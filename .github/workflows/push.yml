@@ -1,0 +1,23 @@
+name: actions
+
+on: push
+
+jobs:
+  # https://github.com/pre-commit/action
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: pre-commit/action@v2.0.0
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set perms
+        run: chmod -R a+rw api
+      - name: Build the stack
+        run: docker-compose --env-file ./docker-compose.env build
+      - name: Test
+        run: docker-compose --env-file ./docker-compose.env run --rm api ./run_tests.sh
