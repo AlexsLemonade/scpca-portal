@@ -22,7 +22,7 @@ class SamplesTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_get_request_returns_owned_samples(self):
+    def test_get_list(self):
         response = self.client.get(reverse("samples-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["count"], 1)
