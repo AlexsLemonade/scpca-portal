@@ -27,7 +27,7 @@ commands = {
     "makemigrations": run_api.format('bash -c "./manage.py makemigrations scpca_portal"'),
     "migrate": run_api.format('bash -c "./manage.py migrate"'),
     "postgres-cli": "./run_psql_client.sh",
-    "graph-models": run_api.format("./manage.py graph_models -a -g > model.dot"),
+    "graph-models": run_api.format("./manage.py graph_models scpca_portal > models.dot"),
     "run-api": run_api,
     "manage-api": run_api.format("./manage.py {}"),
     "run-black": run_api.format("black --line-length=100 --exclude=volumes_postgres ."),
