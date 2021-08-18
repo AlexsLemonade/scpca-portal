@@ -26,11 +26,6 @@ class Production(Common):
     # AWS S3
     AWS_S3_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME")
 
-    GRANTS_TEAM_EMAIL = "grants@alexslemonade.org"
-
-    # Only used locally, make sure it is None.
-    LOCAL_FILE_DIRECTORY = None
-
     # https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#cache-control
     # Response can be cached by browser and any intermediary caches (i.e. it is "public") for up to 1 day
     # 86400 = (60 seconds x 60 minutes x 24 hours)

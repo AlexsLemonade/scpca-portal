@@ -28,7 +28,7 @@ For example:
 sportal test-api scpca_portal.test.serializers.test_project.TestProjectSerializer
 ```
 
-will run all the tests in the TestGrantSerializer class.
+will run all the tests in the TestProjectSerializer class.
 
 The dev server runs by default on port 8000 with the docs being served at 8001.
 If these ports are already in use on your local machine, you can run them at different ports with:

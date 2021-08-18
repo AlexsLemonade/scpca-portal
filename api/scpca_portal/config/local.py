@@ -1,5 +1,4 @@
 import os
-import sys
 
 from scpca_portal.config.common import Common
 
@@ -22,20 +21,6 @@ class Local(Common):
 
     # AWS S3
     AWS_S3_BUCKET_NAME = None
-
-    # Local handling of uploaded files.
-    TESTING = "test" in sys.argv
-
-    if TESTING:
-        LOCAL_FILE_DIRECTORY = "/home/user/code/test_uploaded_files"
-    else:
-        LOCAL_FILE_DIRECTORY = "/home/user/code/uploaded_files"
-
-    if not os.path.exists(LOCAL_FILE_DIRECTORY):
-        os.mkdir(LOCAL_FILE_DIRECTORY)
-
-    # OAuth
-    OAUTH_URL = "https://sandbox.orcid.org/oauth/token"
 
     CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1"]
 

@@ -22,8 +22,6 @@ class Common(Configuration):
         "django_extensions",
         "rest_framework",  # utilities for rest apis
         "django_filters",  # for filtering rest endpoints
-        "guardian",  # extended permissions to individual objects
-        "django_expiring_token",  # token authentication
         "drf_yasg",
         "computedfields",  # Allows for computed fields on models
         "safedelete",  # soft-deletes objects
@@ -108,15 +106,6 @@ class Common(Configuration):
     # https://docs.djangoproject.com/en/dev/ref/settings/#debug
     DEBUG = strtobool(os.getenv("DJANGO_DEBUG", "no"))
 
-    # Password Validation
-    # https://docs.djangoproject.com/en/2.0/topics/auth/passwords/#module-django.contrib.auth.password_validation
-    AUTH_PASSWORD_VALIDATORS = [
-        {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",},
-        {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-        {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-        {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
-    ]
-
     # Logging
     LOGGING = {
         "version": 1,
@@ -163,25 +152,6 @@ class Common(Configuration):
             "rest_framework.renderers.JSONRenderer",
             "rest_framework.renderers.BrowsableAPIRenderer",
         ),
-        "DEFAULT_PERMISSION_CLASSES": [
-            # 'rest_framework.permissions.IsAuthenticated',
-        ],
-        "DEFAULT_AUTHENTICATION_CLASSES": (
-            "django_expiring_token.authentication.ExpiringTokenAuthentication",
-        ),
     }
-
-    # Custom permissions with django-guard
-    AUTHENTICATION_BACKENDS = (
-        "django.contrib.auth.backends.ModelBackend",  # default
-        "guardian.backends.ObjectPermissionBackend",
-    )
-
-    # Time for expiration of API tokens
-    # About 6 months
-    EXPIRING_TOKEN_DURATION = timedelta(weeks=26)
-
     # CORS - unrestricted
     CORS_ORIGIN_ALLOW_ALL = True
-
-    GRANTS_TEAM_EMAIL = None

@@ -34,11 +34,30 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Project"
 
-    diagnosis = "AML"
-    seq_unit = "cell"
-    technology = "10Xv2_5prime"
+    pi_name = "gawad"
+    project_title = "Single-Cell Profiling of Acute Myeloid Leukemia for High-Resolution Chemo-immunotherapy Target Discovery"
+    abstract = """Despite enormous efforts to find better treatments
+    for children with acute myeloid leukemia (AML), it remains one of
+    the most difficult to treat pediatric cancers. The children that
+    are fortunate enough to survive the intense treatment regimens
+    suffer both short-term and lifelong side effects of their
+    treatments. A major cause of the challenges in treating AML is the
+    differences between cells present within leukemia that have varied
+    responses to a given treatment. This study will utilize recently
+    developed technologies that are able to analyze AML samples one
+    cell at a time, providing insights into the disease at the
+    cellular level. We produce this higher-resolution understanding of
+    the disease using these new technologies and will make our data
+    immediately accessible to the research community, with the aim of
+    accelerating our efforts to find new ways to cure all children
+    with AML"""
+    project_contact = "gawad"
+    disease_timing = "Diagnosis, Relapse/Diagnosis at LPCH, Relapsed, Healthy control"
+    diagnoses = "AML, Normal"
+    seq_units = "cell"
+    technologies = "10Xv2_5prime, CITE-seq"
 
-    sample_count = 28
+    sample_count = 60
 
 
 class SampleFactory(factory.django.DjangoModelFactory):

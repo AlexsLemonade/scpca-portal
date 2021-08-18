@@ -13,11 +13,15 @@ class ProjectDetailSerializer(ProjectSerializer):
 
 class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Project.objects.all().order_by("-created_at")
-    filterset_fields = (
-        "id",
-        "technology",
-        "diagnosis",
-    )
+    filterset_fields = {
+        "id": ["exact"],
+        "pi_name": ["exact"],
+        "project_title": ["contains"],
+        "abstract": ["contains"],
+        "technologies": ["exact", "contains"],
+        "diagnoses": ["exact", "contains"],
+        "seq_units": ["exact", "contains"],
+    }
 
     def get_serializer_class(self):
         if self.action == "list":
