@@ -38,8 +38,8 @@ services:
       STAGE_SENTRY_DSN: '${SENTRY_DSN}'
       STAGE_SENTRY_ENV: '${SENTRY_ENV}'
 
+    # TODO: readd storybook
     command: >
-      # TODO: readd storybook
       bash -c 'cd /home/user/code &&
                yarn &&
                yarn dev -p ${CLIENT_PORT}'
