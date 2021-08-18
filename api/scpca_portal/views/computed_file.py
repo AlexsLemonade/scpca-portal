@@ -19,8 +19,6 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "sample__id",
         "id",
         "type",
-        "s3_bucket",
-        "s3_key",
     )
 
     def get_serializer_class(self):
