@@ -59,11 +59,13 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     diagnoses = set()
     seq_units = set()
     technologies = set()
+    disease_timings = set()
     summaries = {}
     for sample in project.samples.all():
         diagnoses.add(sample.diagnosis)
         seq_units.add(sample.seq_unit)
         technologies.add(sample.technology)
+        disease_timings.add(sample.disease_timing)
 
         try:
             summaries[(sample.diagnosis, sample.seq_unit, sample.technology)] += 1
@@ -73,6 +75,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     project.diagnoses = ", ".join(list(diagnoses))
     project.seq_units = ", ".join(list(seq_units))
     project.technologies = ", ".join(list(technologies))
+    project.disease_timings = ", ".join(list(disease_timings))
     project.save()
 
     for summary, count in summaries.items():

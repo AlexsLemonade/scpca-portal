@@ -52,7 +52,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     accelerating our efforts to find new ways to cure all children
     with AML"""
     project_contact = "gawad"
-    disease_timing = "Diagnosis, Relapse/Diagnosis at LPCH, Relapsed, Healthy control"
+    disease_timings = "Diagnosis, Relapse/Diagnosis at LPCH, Relapsed, Healthy control"
     diagnoses = "AML, Normal"
     seq_units = "cell"
     technologies = "10Xv2_5prime, CITE-seq"

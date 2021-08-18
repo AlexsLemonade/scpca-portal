@@ -74,7 +74,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "project_title",
             "abstract",
             "project_contact",
-            "disease_timing",
+            "disease_timings",
             "diagnoses",
             "seq_units",
             "technologies",

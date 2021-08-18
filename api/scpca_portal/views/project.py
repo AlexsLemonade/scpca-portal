@@ -21,6 +21,7 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "technologies": ["exact", "contains"],
         "diagnoses": ["exact", "contains"],
         "seq_units": ["exact", "contains"],
+        "disease_timings": ["exact", "contains"],
     }
 
     def get_serializer_class(self):
