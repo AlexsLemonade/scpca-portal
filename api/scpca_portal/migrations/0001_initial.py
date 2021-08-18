@@ -8,142 +8,221 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Processor',
+            name="Processor",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.DateTimeField(editable=False, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('name', models.TextField()),
-                ('version', models.TextField()),
-                ('workflow_name', models.TextField()),
-                ('is_deleted', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("deleted", models.DateTimeField(editable=False, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("name", models.TextField()),
+                ("version", models.TextField()),
+                ("workflow_name", models.TextField()),
+                ("is_deleted", models.BooleanField(default=False)),
             ],
             options={
-                'db_table': 'processors',
-                'ordering': ['updated_at', 'id'],
-                'get_latest_by': 'updated_at',
+                "db_table": "processors",
+                "ordering": ["updated_at", "id"],
+                "get_latest_by": "updated_at",
             },
         ),
         migrations.CreateModel(
-            name='Project',
+            name="Project",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.DateTimeField(editable=False, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('diagnosis', models.TextField(blank=True, null=True)),
-                ('seq_unit', models.TextField(blank=True, null=True)),
-                ('technology', models.TextField(blank=True, null=True)),
-                ('sample_count', models.IntegerField()),
-                ('is_deleted', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("deleted", models.DateTimeField(editable=False, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("diagnosis", models.TextField(blank=True, null=True)),
+                ("seq_unit", models.TextField(blank=True, null=True)),
+                ("technology", models.TextField(blank=True, null=True)),
+                ("sample_count", models.IntegerField()),
+                ("is_deleted", models.BooleanField(default=False)),
             ],
             options={
-                'db_table': 'projects',
-                'ordering': ['updated_at', 'id'],
-                'get_latest_by': 'updated_at',
+                "db_table": "projects",
+                "ordering": ["updated_at", "id"],
+                "get_latest_by": "updated_at",
             },
         ),
         migrations.CreateModel(
-            name='Sample',
+            name="Sample",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.DateTimeField(editable=False, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('has_cite_seq_data', models.BooleanField(default=False)),
-                ('scpca_sample_id', models.TextField()),
-                ('technology', models.TextField()),
-                ('diagnosis', models.TextField(blank=True, null=True)),
-                ('subdiagnosis', models.TextField(blank=True, null=True)),
-                ('age_at_diagnosis', models.TextField(blank=True, null=True)),
-                ('sex', models.TextField(blank=True, null=True)),
-                ('disease_timing', models.TextField(blank=True, null=True)),
-                ('has_spinal_leptomeningeal_mets', models.BooleanField(default=False)),
-                ('tissue_location', models.TextField(blank=True, null=True)),
-                ('braf_status', models.TextField(blank=True, null=True)),
-                ('treatment', models.TextField(blank=True, null=True)),
-                ('seq_unit', models.TextField(blank=True, null=True)),
-                ('is_deleted', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("deleted", models.DateTimeField(editable=False, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("has_cite_seq_data", models.BooleanField(default=False)),
+                ("scpca_sample_id", models.TextField()),
+                ("technology", models.TextField()),
+                ("diagnosis", models.TextField(blank=True, null=True)),
+                ("subdiagnosis", models.TextField(blank=True, null=True)),
+                ("age_at_diagnosis", models.TextField(blank=True, null=True)),
+                ("sex", models.TextField(blank=True, null=True)),
+                ("disease_timing", models.TextField(blank=True, null=True)),
+                ("has_spinal_leptomeningeal_mets", models.BooleanField(default=False)),
+                ("tissue_location", models.TextField(blank=True, null=True)),
+                ("braf_status", models.TextField(blank=True, null=True)),
+                ("treatment", models.TextField(blank=True, null=True)),
+                ("seq_unit", models.TextField(blank=True, null=True)),
+                ("is_deleted", models.BooleanField(default=False)),
             ],
             options={
-                'db_table': 'samples',
-                'ordering': ['updated_at', 'id'],
-                'get_latest_by': 'updated_at',
+                "db_table": "samples",
+                "ordering": ["updated_at", "id"],
+                "get_latest_by": "updated_at",
             },
         ),
         migrations.CreateModel(
-            name='SampleProcessorAssociation',
+            name="SampleProcessorAssociation",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('processor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='scpca_portal.Processor')),
-                ('sample', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='scpca_portal.Sample')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "processor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="scpca_portal.Processor"
+                    ),
+                ),
+                (
+                    "sample",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="scpca_portal.Sample"
+                    ),
+                ),
             ],
             options={
-                'db_table': 'sample_processor_associations',
-                'unique_together': {('sample', 'processor')},
+                "db_table": "sample_processor_associations",
+                "unique_together": {("sample", "processor")},
             },
         ),
         migrations.AddField(
-            model_name='sample',
-            name='processors',
-            field=models.ManyToManyField(through='scpca_portal.SampleProcessorAssociation', to='scpca_portal.Processor'),
+            model_name="sample",
+            name="processors",
+            field=models.ManyToManyField(
+                through="scpca_portal.SampleProcessorAssociation", to="scpca_portal.Processor"
+            ),
         ),
         migrations.AddField(
-            model_name='sample',
-            name='project',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='samples', to='scpca_portal.Project'),
+            model_name="sample",
+            name="project",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="samples",
+                to="scpca_portal.Project",
+            ),
         ),
         migrations.CreateModel(
-            name='ProjectSummary',
+            name="ProjectSummary",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.DateTimeField(editable=False, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('diagnosis', models.TextField(blank=True, null=True)),
-                ('seq_unit', models.TextField(blank=True, null=True)),
-                ('technology', models.TextField(blank=True, null=True)),
-                ('sample_count', models.IntegerField()),
-                ('is_deleted', models.BooleanField(default=False)),
-                ('project', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='summaries', to='scpca_portal.Project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("deleted", models.DateTimeField(editable=False, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("diagnosis", models.TextField(blank=True, null=True)),
+                ("seq_unit", models.TextField(blank=True, null=True)),
+                ("technology", models.TextField(blank=True, null=True)),
+                ("sample_count", models.IntegerField()),
+                ("is_deleted", models.BooleanField(default=False)),
+                (
+                    "project",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="summaries",
+                        to="scpca_portal.Project",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'project_summaries',
-                'ordering': ['updated_at', 'id'],
-                'get_latest_by': 'updated_at',
+                "db_table": "project_summaries",
+                "ordering": ["updated_at", "id"],
+                "get_latest_by": "updated_at",
             },
         ),
         migrations.AddField(
-            model_name='processor',
-            name='samples',
-            field=models.ManyToManyField(through='scpca_portal.SampleProcessorAssociation', to='scpca_portal.Sample'),
+            model_name="processor",
+            name="samples",
+            field=models.ManyToManyField(
+                through="scpca_portal.SampleProcessorAssociation", to="scpca_portal.Sample"
+            ),
         ),
         migrations.CreateModel(
-            name='ComputedFile',
+            name="ComputedFile",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted', models.DateTimeField(editable=False, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('type', models.TextField()),
-                ('s3_bucket', models.TextField()),
-                ('s3_key', models.TextField()),
-                ('is_deleted', models.BooleanField(default=False)),
-                ('processor', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='computed_files', to='scpca_portal.Processor')),
-                ('project', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='computed_files', to='scpca_portal.Project')),
-                ('sample', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='computed_files', to='scpca_portal.Sample')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("deleted", models.DateTimeField(editable=False, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("type", models.TextField()),
+                ("s3_bucket", models.TextField()),
+                ("s3_key", models.TextField()),
+                ("is_deleted", models.BooleanField(default=False)),
+                (
+                    "processor",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="computed_files",
+                        to="scpca_portal.Processor",
+                    ),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="computed_files",
+                        to="scpca_portal.Project",
+                    ),
+                ),
+                (
+                    "sample",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="computed_files",
+                        to="scpca_portal.Sample",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'computed_files',
-                'ordering': ['updated_at', 'id'],
-                'get_latest_by': 'updated_at',
+                "db_table": "computed_files",
+                "ordering": ["updated_at", "id"],
+                "get_latest_by": "updated_at",
             },
         ),
     ]
