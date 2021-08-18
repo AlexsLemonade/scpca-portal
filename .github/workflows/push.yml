@@ -20,4 +20,4 @@ jobs:
       - name: Build the stack
         run: docker-compose --env-file ./docker-compose.env build
       - name: Test
-        run: docker-compose --env-file ./docker-compose.env run --rm api ./run_tests.sh
+        run: ./bin/sportal test-api

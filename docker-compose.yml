@@ -26,6 +26,7 @@ services:
       - ./api:/home/user/code
     depends_on:
       - client
+      - postgres
   client:
     image: node:14.2
     ports:
