@@ -14,5 +14,4 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "scpca_portal.config")
 os.environ.setdefault("DJANGO_CONFIGURATION", "Local")
 
 
-
 application = get_wsgi_application()
