@@ -28,7 +28,7 @@ services:
       - client
       - postgres
   client:
-    image: node:14.2
+    image: node:14.15
     ports:
       - '${API_PORT}:${API_PORT}'
       - '${STORYBOOK_PORT}:${STORYBOOK_PORT}'
@@ -43,7 +43,8 @@ services:
     command: >
       bash -c 'cd /home/user/code &&
                yarn &&
-               yarn dev -p ${CLIENT_PORT}'
+               (start-storybook -p ${STORYBOOK_PORT} &
+               yarn dev -p ${CLIENT_PORT})'
     volumes:
       - ./client:/home/user/code
       - ./client/node_modules:/home/user/code/node_modules
