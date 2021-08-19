@@ -1,8 +1,6 @@
 # This terraform file hosts the resources directly related to security.
 
 
-# This is the SSH key that can be used to ssh onto instances for
-# debugging. Long term we may want to remove this entirely.
 resource "aws_key_pair" "scpca_portal" {
   key_name = "scpca-portal-key-${var.user}-${var.stage}"
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDBdLoGqW+z1lc8KiNWg5OOyHjce/ulev8Xh8qK0FKVtIGNMt55pKXpFW8Wjc7e3PP4omq5lIJvkHOQYvTNE1xlzRSCzsNJTjyPVwBLDUek/cXqJUP3HqZ+XsZnoMC6yDKzbCec6e9XpJJGLiHB5L/80+J7sGsDYAcqsitf3WbNIZbqCPC3w8unx35UDNIvD1Ow4pK5VTvhEVnGsy9dKBe5ClXxxOl5WC2sPpVDRdbYjMnc/xXuIRlDd7F1J9zxjjERO76/Ll8AhwRkWAokOMA1JEh2xYmij/HFbWi2aQ5DWMpaW4QkH34wbfTUtVe6dLdyAwpwakx4lJnboiCzbPsAy3Mrzmok/jNze64Ub6B/GPnuDuB/7efIvBoZhaV984Gi5T9JqMdfPMXtIUGgrq1JH/zUsPOzcrPtHpMa2zLumysEiexmb6RpVkwd7qKlHjLKieWfeLkP4iJfL2Ta+T3TqtVJ1tCPviY2gIC0pFl+iyUPgmMKKrber2b187OBqn7sZNLipO+6F8Yz86f1FmoSpny5DqAIRyDCVtjJdkIF+hXd3dvWNv4OgGttIVyYAN1Lem51czSXse04Fca3hedaTWj6k7GF48FdmqjEpaj0ZOKArkgQJ4uiKds8DLmZrHidd3kS8+3cSMyJDodHUW1UbqvfpucYADGdmHrLrGJWAQ=="

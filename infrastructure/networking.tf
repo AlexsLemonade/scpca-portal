@@ -38,7 +38,7 @@ resource "aws_subnet" "scpca_portal_1b" {
   availability_zone = "${var.region}b"
   cidr_block = "10.0.128.0/17"
   vpc_id = aws_vpc.scpca_portal_vpc.id
-  # Unsure if this should be set to true
+
   map_public_ip_on_launch = true
 
   tags = {
@@ -57,8 +57,7 @@ resource "aws_internet_gateway" "scpca_portal" {
   )
 }
 
-# Note: this is a insecure practice long term, however it's
-# necessary to access it from lab machines.
+# Allow access for ssh.
 resource "aws_route_table" "scpca_portal" {
   vpc_id = aws_vpc.scpca_portal_vpc.id
 
@@ -157,7 +156,7 @@ resource "aws_lb_target_group" "api-http" {
   tags = merge(
     var.default_tags,
     {
-      Name = "rp-api-${var.user}-${var.stage}-http"
+      Name = "scpca-api-${var.user}-${var.stage}-http"
     }
   )
 }
@@ -195,7 +194,7 @@ resource "aws_lb_target_group" "api-https" {
   tags = merge(
     var.default_tags,
     {
-      Name = "rp-api-${var.user}-${var.stage}-https"
+      Name = "scpca-api-${var.user}-${var.stage}-https"
     }
   )
 }

@@ -11,8 +11,6 @@ api_docker_image=${dockerhub_repo}/scpca_portal_api:latest
 docker pull $api_docker_image
 
 # Migrate first.
-# These database values are created after terraform
-# is run, so we have to pass them in programatically
 docker run \
        --env-file environment \
        -v "$STATIC_VOLUMES":/tmp/www/static \

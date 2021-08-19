@@ -41,7 +41,7 @@ variable "django_secret_key" {
 variable "database_password" {
   # This will be overwritten by the password in GitHub actions.
   # It's kept there so it's secret.
-  default = "rppostgrespassword"
+  default = "scpcapostgrespassword"
 }
 
 variable "database_port" {

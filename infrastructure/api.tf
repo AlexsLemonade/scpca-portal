@@ -30,6 +30,7 @@ resource "aws_instance" "api_server_1" {
   vpc_security_group_ids = [aws_security_group.scpca_portal_api.id]
   iam_instance_profile = aws_iam_instance_profile.scpca_portal_instance_profile.name
   subnet_id = aws_subnet.scpca_portal_1a.id
+  key_name = aws_key_pair.scpca_portal.key_name
   depends_on = [
     aws_db_instance.postgres_db,
     aws_security_group_rule.scpca_portal_api_http,
@@ -68,7 +69,6 @@ resource "aws_instance" "api_server_1" {
       region = var.region
       log_group = aws_cloudwatch_log_group.scpca_portal_log_group.name
     })
-  key_name = aws_key_pair.scpca_portal.key_name
 
   tags =  merge(
     var.default_tags,

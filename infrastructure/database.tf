@@ -18,7 +18,7 @@ resource "aws_db_parameter_group" "postgres_parameters" {
   }
 }
 
-resource "aws_db_parameter_group" "postgres_parameters_new" {
+resource "aws_db_parameter_group" "postgres_parameters" {
   name = "scpca-portal-postgres-parameters-${var.user}-${var.stage}"
   description = "Postgres Parameters ${var.user} ${var.stage}"
   family = "postgres9.6"
@@ -46,11 +46,11 @@ resource "aws_db_instance" "postgres_db" {
   instance_class = var.database_instance_type
   name = "scpca_portal"
   port = "5432"
-  username = "rppostgresuser"
+  username = "scpcapostgresuser"
   password = var.database_password
 
   db_subnet_group_name = aws_db_subnet_group.scpca_portal.name
-  parameter_group_name = aws_db_parameter_group.postgres_parameters_new.name
+  parameter_group_name = aws_db_parameter_group.postgres_parameters.name
 
   # TF is broken, but we do want this protection in prod.
   # Related: https://github.com/hashicorp/terraform/issues/5417
