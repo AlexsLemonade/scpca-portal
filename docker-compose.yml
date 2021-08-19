@@ -38,12 +38,12 @@ services:
       STAGE_API_HOST: 'http://localhost:${API_PORT}'
       STAGE_SENTRY_DSN: '${SENTRY_DSN}'
       STAGE_SENTRY_ENV: '${SENTRY_ENV}'
+      STORYBOOK_PORT: '${STORYBOOK_PORT}'
 
-    # TODO: readd storybook
     command: >
       bash -c 'cd /home/user/code &&
                yarn &&
-               (start-storybook -p ${STORYBOOK_PORT} &
+               (yarn storybook --quiet -p ${STORYBOOK_PORT} &
                yarn dev -p ${CLIENT_PORT})'
     volumes:
       - ./client:/home/user/code
