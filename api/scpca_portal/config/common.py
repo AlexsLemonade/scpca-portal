@@ -46,10 +46,6 @@ class Common(Configuration):
     SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
     WSGI_APPLICATION = "scpca_portal.wsgi.application"
 
-    # OAuth
-    CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
-    CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")
-
     ADMINS = (("Author", "ccdl@alexslemonade.org"),)
 
     # Postgres

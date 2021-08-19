@@ -11,7 +11,7 @@ fake = Faker()
 
 class SamplesTestCase(APITestCase):
     """
-    Tests /users/<id>/samples operations.
+    Tests /samples/ operations.
     """
 
     def setUp(self):

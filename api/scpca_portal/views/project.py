@@ -13,6 +13,7 @@ class ProjectDetailSerializer(ProjectSerializer):
 
 class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Project.objects.all().order_by("-created_at")
+    ordering_fields = "__all__"
     filterset_fields = {
         "id": ["exact"],
         "pi_name": ["exact"],

@@ -13,6 +13,7 @@ class ComputedFileDetailSerializer(ComputedFileSerializer):
 
 class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = ComputedFile.objects.all().order_by("-created_at")
+    ordering_fields = "__all__"
     filterset_fields = (
         "processor__id",
         "project__id",

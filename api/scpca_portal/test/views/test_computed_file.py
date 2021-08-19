@@ -11,7 +11,7 @@ fake = Faker()
 
 class ComputedFilesTestCase(APITestCase):
     """
-    Tests /users/<id>/computed_files operations.
+    Tests /computed_files/ operations.
     """
 
     def setUp(self):

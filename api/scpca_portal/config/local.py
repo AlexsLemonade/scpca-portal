@@ -16,9 +16,6 @@ class Local(Common):
     # AWS
     AWS_REGION = None
 
-    # AWS Simple Email Service
-    AWS_SES_DOMAIN = None
-
     # AWS S3
     AWS_S3_BUCKET_NAME = None
 

@@ -13,6 +13,7 @@ class ProcessorDetailSerializer(ProcessorSerializer):
 
 class ProcessorViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Processor.objects.all().order_by("-created_at")
+    ordering_fields = "__all__"
     filterset_fields = (
         "id",
         "name",

@@ -20,9 +20,6 @@ class Production(Common):
     # AWS
     AWS_REGION = os.getenv("AWS_REGION")
 
-    # AWS Simple Email Service
-    AWS_SES_DOMAIN = os.getenv("AWS_SES_DOMAIN")
-
     # AWS S3
     AWS_S3_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME")
 

@@ -16,7 +16,7 @@ Run a command inside the docker container:
 sportal run-api [command]
 ```
 
-i.e. the tests:
+Or run the tests:
 
 ```
 sportal test-api
@@ -29,6 +29,13 @@ sportal test-api scpca_portal.test.serializers.test_project.TestProjectSerialize
 ```
 
 will run all the tests in the TestProjectSerializer class.
+
+See
+```
+sportal -h
+```
+
+For more commands.
 
 The dev server runs by default on port 8000 with the docs being served at 8001.
 If these ports are already in use on your local machine, you can run them at different ports with:
