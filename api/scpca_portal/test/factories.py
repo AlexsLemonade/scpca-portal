@@ -12,15 +12,6 @@ class ProjectSummaryFactory(factory.django.DjangoModelFactory):
     sample_count = 28
 
 
-class LeafProcessorFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = "scpca_portal.Processor"
-
-    name = "CellRanger"
-    version = "1.0.0"
-    workflow_name = "cellranger-quant"
-
-
 class LeafComputedFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.ComputedFile"
@@ -28,6 +19,7 @@ class LeafComputedFileFactory(factory.django.DjangoModelFactory):
     type = "FILTERED_COUNTS"
     s3_bucket = "scpca-portal-local"
     s3_key = "SCPCR000126/filtered_sce.rds"
+    workflow_version = "1.0.0"
 
 
 class LeafProjectFactory(factory.django.DjangoModelFactory):
@@ -72,38 +64,23 @@ class SampleFactory(factory.django.DjangoModelFactory):
     age_at_diagnosis = "4"
     sex = "M"
     disease_timing = "primary diagnosis"
-    has_spinal_leptomeningeal_mets = False
     tissue_location = "posterior fossa"
-    braf_status = "Not tested for BRAF status"
     treatment = "STR"
     seq_unit = "cell"
+    additional_metadata = {
+        "has_spinal_leptomeningeal_mets": False,
+        "braf_status": "Not tested for BRAF status",
+    }
 
     project = factory.SubFactory(LeafProjectFactory)
-
-
-class SampleProcessorAssociationFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = "scpca_portal.SampleProcessorAssociation"
-
-    sample = factory.SubFactory(SampleFactory)
-    processor = factory.SubFactory(LeafProcessorFactory)
+    computed_file = factory.SubFactory(LeafComputedFileFactory)
 
 
 class ComputedFileFactory(LeafComputedFileFactory):
-
-    processor = factory.SubFactory(LeafProcessorFactory)
     sample = factory.SubFactory(SampleFactory)
-
-
-class ProcessorFactory(LeafProcessorFactory):
-    @factory.post_generation
-    def post(self, create, extracted, **kwargs):
-        sample = SampleFactory()
-        self.samples.add(sample)
-        self.computed_files.add(ComputedFileFactory(sample=sample, processor=self))
 
 
 class ProjectFactory(LeafProjectFactory):
     sample1 = factory.RelatedFactory(SampleFactory, "project")
-    computed_file1 = factory.RelatedFactory(LeafComputedFileFactory, factory_related_name="project")
+    computed_file = factory.SubFactory(LeafComputedFileFactory)
     summary1 = factory.RelatedFactory(ProjectSummaryFactory, factory_related_name="project")

@@ -3,17 +3,11 @@ from rest_framework import viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import Sample
-from scpca_portal.serializers import (
-    ComputedFileSerializer,
-    ProcessorSerializer,
-    ProjectSerializer,
-    SampleSerializer,
-)
+from scpca_portal.serializers import ComputedFileSerializer, ProjectSerializer, SampleSerializer
 
 
 class SampleDetailSerializer(SampleSerializer):
-    computed_files = ComputedFileSerializer(many=True, read_only=True)
-    processors = ProcessorSerializer(many=True, read_only=True)
+    computed_file = ComputedFileSerializer(read_only=True)
     project = ProjectSerializer(read_only=True)
 
 
@@ -31,9 +25,7 @@ class SampleViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "age_at_diagnosis",
         "sex",
         "disease_timing",
-        "has_spinal_leptomeningeal_mets",
         "tissue_location",
-        "braf_status",
         "treatment",
         "seq_unit",
     )

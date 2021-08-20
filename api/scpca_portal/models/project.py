@@ -3,6 +3,8 @@ from django.db import models
 from safedelete.managers import SafeDeleteDeletedManager, SafeDeleteManager
 from safedelete.models import SOFT_DELETE, SafeDeleteModel
 
+from scpca_portal.models.computed_file import ComputedFile
+
 
 class Project(SafeDeleteModel):
     class Meta:
@@ -27,5 +29,9 @@ class Project(SafeDeleteModel):
     technologies = models.TextField(blank=True, null=True)
 
     sample_count = models.IntegerField()
+
+    computed_file = models.OneToOneField(
+        ComputedFile, blank=False, null=True, on_delete=models.CASCADE, related_name="project"
+    )
 
     is_deleted = models.BooleanField(default=False)
