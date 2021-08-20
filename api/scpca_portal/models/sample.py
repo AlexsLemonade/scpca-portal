@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -5,6 +6,7 @@ from django.dispatch import receiver
 from safedelete.managers import SafeDeleteDeletedManager, SafeDeleteManager
 from safedelete.models import SOFT_DELETE, SafeDeleteModel
 
+from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.project_summary import ProjectSummary
 
@@ -30,19 +32,21 @@ class Sample(SafeDeleteModel):
     age_at_diagnosis = models.TextField(blank=True, null=True)
     sex = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
-    has_spinal_leptomeningeal_mets = models.BooleanField(default=False)
     tissue_location = models.TextField(blank=True, null=True)
-    braf_status = models.TextField(blank=True, null=True)
     treatment = models.TextField(blank=True, null=True)
     seq_unit = models.TextField(blank=True, null=True)
 
-    is_deleted = models.BooleanField(default=False)
+    additional_metadata = JSONField(default=dict)
 
     project = models.ForeignKey(
         Project, null=False, on_delete=models.CASCADE, related_name="samples"
     )
 
-    processors = models.ManyToManyField("Processor", through="SampleProcessorAssociation")
+    computed_file = models.OneToOneField(
+        ComputedFile, blank=False, null=True, on_delete=models.CASCADE, related_name="sample"
+    )
+
+    is_deleted = models.BooleanField(default=False)
 
 
 @receiver(post_save, sender="scpca_portal.Sample")

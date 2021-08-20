@@ -25,7 +25,9 @@ class ComputedFilesTestCase(APITestCase):
     def test_get_list(self):
         response = self.client.get(reverse("computed-files-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["count"], 1)
+        # One for self.computed_file, and one for
+        # self.computed_file.sample.project.computed_file
+        self.assertEqual(response.json()["count"], 2)
 
     def test_post_is_not_allowed(self):
         url = reverse("computed-files-list", args=[])
