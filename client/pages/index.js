@@ -1,5 +1,5 @@
 const Home = () => {
-  return "ScPCA Portal Homepage"
+  return 'ScPCA Portal Homepage'
 }
 
 export default Home

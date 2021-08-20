@@ -1,24 +1,18 @@
-import React from "react";
-import { useRouter } from "next/router";
+import React from 'react'
+import { useRouter } from 'next/router'
 
-const ErrorPage = ({ sentry = {} }) => {
-  const router = useRouter();
-
-  const { eventId } = sentry;
+const ErrorPage = () => {
+  const router = useRouter()
 
   React.useEffect(() => {
     const forceRefresh = (url) => {
-      window.location = url;
-    };
+      window.location = url
+    }
 
-    router.events.on("routeChangeStart", forceRefresh);
-  });
+    router.events.on('routeChangeStart', forceRefresh)
+  })
 
-  const goBack = () => {
-    router.back();
-  };
+  return 'An error has occurred'
+}
 
-  return "An error has occurred";
-};
-
-export default ErrorPage;
+export default ErrorPage
