@@ -19,16 +19,16 @@ class Project(SafeDeleteModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    pi_name = models.TextField(null=False)
-    project_title = models.TextField(null=False)
+    pi_name = models.TextField(unique=True, null=False)
+    title = models.TextField(null=False)
     abstract = models.TextField(null=False)
-    project_contact = models.TextField(null=False)
+    contact = models.TextField(null=False)
     disease_timings = models.TextField(null=False)
     diagnoses = models.TextField(blank=True, null=True)
     seq_units = models.TextField(blank=True, null=True)
     technologies = models.TextField(blank=True, null=True)
 
-    sample_count = models.IntegerField()
+    sample_count = models.IntegerField(default=0)
 
     computed_file = models.OneToOneField(
         ComputedFile, blank=False, null=True, on_delete=models.CASCADE, related_name="project"

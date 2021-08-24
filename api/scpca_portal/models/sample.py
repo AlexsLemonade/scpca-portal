@@ -26,7 +26,7 @@ class Sample(SafeDeleteModel):
 
     has_cite_seq_data = models.BooleanField(default=False)
     scpca_sample_id = models.TextField(null=False)
-    technology = models.TextField(null=False)
+    technologies = models.TextField(null=False)
     diagnosis = models.TextField(blank=True, null=True)
     subdiagnosis = models.TextField(blank=True, null=True)
     age_at_diagnosis = models.TextField(blank=True, null=True)
@@ -34,7 +34,7 @@ class Sample(SafeDeleteModel):
     disease_timing = models.TextField(blank=True, null=True)
     tissue_location = models.TextField(blank=True, null=True)
     treatment = models.TextField(blank=True, null=True)
-    seq_unit = models.TextField(blank=True, null=True)
+    seq_units = models.TextField(blank=True, null=True)
 
     additional_metadata = JSONField(default=dict)
 
@@ -67,14 +67,18 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     summaries = {}
     for sample in project.samples.all():
         diagnoses.add(sample.diagnosis)
-        seq_units.add(sample.seq_unit)
-        technologies.add(sample.technology)
         disease_timings.add(sample.disease_timing)
+        sample_seq_units = sample.seq_units.split(",")
+        sample_technologies = sample.technologies.split(",")
+        seq_units = seq_units.union(set(sample_seq_units))
+        technologies = technologies.union(set(sample_technologies))
 
-        try:
-            summaries[(sample.diagnosis, sample.seq_unit, sample.technology)] += 1
-        except KeyError:
-            summaries[(sample.diagnosis, sample.seq_unit, sample.technology)] = 1
+        for seq_unit in sample_seq_units:
+            for technology in sample_technologies:
+                try:
+                    summaries[(sample.diagnosis, seq_unit, technology)] += 1
+                except KeyError:
+                    summaries[(sample.diagnosis, seq_unit, technology)] = 1
 
     project.diagnoses = ", ".join(list(diagnoses))
     project.seq_units = ", ".join(list(seq_units))
@@ -85,10 +89,13 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     for summary, count in summaries.items():
         try:
             project_summary = ProjectSummary.objects.get(
-                diagnosis=summary[0], seq_unit=summary[1], technology=summary[2]
+                diagnosis=summary[0], seq_units=summary[1], technologies=summary[2]
             )
             project_summary.sample_count = count
         except ProjectSummary.DoesNotExist:
             ProjectSummary.objects.create(
-                diagnosis=summary[0], seq_unit=summary[1], technology=summary[2], sample_count=count
+                diagnosis=summary[0],
+                seq_units=summary[1],
+                technologies=summary[2],
+                sample_count=count,
             )

@@ -19,7 +19,7 @@ class SampleViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "id",
         "has_cite_seq_data",
         "scpca_sample_id",
-        "technology",
+        "technologies",
         "diagnosis",
         "subdiagnosis",
         "age_at_diagnosis",
@@ -27,7 +27,7 @@ class SampleViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "disease_timing",
         "tissue_location",
         "treatment",
-        "seq_unit",
+        "seq_units",
     )
 
     def get_serializer_class(self):

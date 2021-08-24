@@ -24,6 +24,8 @@ services:
                ./manage.py runserver 0.0.0.0:${API_PORT}'
     volumes:
       - ./api:/home/user/code
+      - ./data:/home/user/data
+      - '${HOME}/.aws:/home/user/.aws:ro'
     depends_on:
       - client
       - postgres
