@@ -14,8 +14,7 @@ class Production(Common):
     ALLOWED_HOSTS = ["*"]
     INSTALLED_APPS += ("gunicorn",)
 
-    # OAuth
-    OAUTH_URL = os.getenv("OAUTH_URL")
+    UPDATE_IMPORTED_DATA = True
 
     # AWS
     AWS_REGION = os.getenv("AWS_REGION")

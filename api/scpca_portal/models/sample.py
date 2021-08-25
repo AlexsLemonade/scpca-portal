@@ -89,13 +89,13 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     for summary, count in summaries.items():
         try:
             project_summary = ProjectSummary.objects.get(
-                diagnosis=summary[0], seq_units=summary[1], technologies=summary[2]
+                diagnosis=summary[0], seq_unit=summary[1], technology=summary[2]
             )
             project_summary.sample_count = count
         except ProjectSummary.DoesNotExist:
             ProjectSummary.objects.create(
                 diagnosis=summary[0],
-                seq_units=summary[1],
-                technologies=summary[2],
+                seq_unit=summary[1],
+                technology=summary[2],
                 sample_count=count,
             )

@@ -23,3 +23,12 @@ class ComputedFile(SafeDeleteModel):
     s3_key = models.TextField(null=False)
 
     is_deleted = models.BooleanField(default=False)
+
+    @property
+    def download_url(self):
+        """ A temporary URL from which the file can be downloaded.
+
+        TODO: implement this
+        https://github.com/AlexsLemonade/scpca-portal/issues/14
+        """
+        return f"https://{self.s3_bucket}.s3.amazonaws.com/{self.s3_key}"

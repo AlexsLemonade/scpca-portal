@@ -16,31 +16,76 @@ from scpca_portal.models import ComputedFile, Project, Sample
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
-def package_files_for_sample(project_dir, output_dir, sample, libraries_metadata):
+def package_files_for_project(
+    project_dir, output_dir, project, sample_to_file_mapping, project_metadata_path, should_zip_data
+):
+    zip_file_name = f"{project.pi_name}_project.zip"
+    project_zip = os.path.join(output_dir, zip_file_name)
+
+    if should_zip_data:
+        with ZipFile(project_zip, "w") as zip_object:
+            zip_object.write(project_metadata_path, "libraries_metadata.csv")
+
+            for sample_id, file_paths in sample_to_file_mapping.items():
+                for local_file_path in file_paths:
+                    # We want to nest these under thier sample id.
+                    archive_path = os.path.join(sample_id, os.path.basename(local_file_path))
+                    zip_object.write(local_file_path, archive_path)
+
+        s3.upload_file(project_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
+
+    computed_file = ComputedFile(
+        type="PROJECT_ZIP",
+        workflow_version="0.0.1",
+        s3_bucket=settings.AWS_S3_BUCKET_NAME,
+        s3_key=zip_file_name,
+    )
+    computed_file.save()
+
+    project.computed_file = computed_file
+    project.save()
+
+    return computed_file
+
+
+def get_sample_metadata_path(output_dir, scpca_sample_id):
+    return os.path.join(output_dir, f"{scpca_sample_id}_libraries_metadata.csv")
+
+
+def package_files_for_sample(project_dir, output_dir, sample, libraries_metadata, should_zip_data):
     sample_id = sample["scpca_sample_id"]
     libraries = [lib for lib in libraries_metadata if lib["scpca_sample_id"] == sample_id]
 
-    sample_zip = os.path.join(output_dir, f"{sample_id}.zip")
+    zip_file_name = f"{sample_id}.zip"
+    sample_zip = os.path.join(output_dir, zip_file_name)
 
-    with ZipFile(sample_zip, "w") as zip_object:
-        for library in libraries:
-            # TODO: reenable _qc_report.html once it's there.
-            # for file_postfix in ["_unfiltered_sce.rds", "_filtered_sce.rds", "_qc_report.html"]:
-            for file_postfix in ["_unfiltered_sce.rds", "_filtered_sce.rds"]:
-                filename = f"{library['scpca_library_id']}{file_postfix}"
-                local_file_path = os.path.join(project_dir, "files", sample_id, filename)
-                zip_object.write(local_file_path, filename)
+    file_paths = []
+    if should_zip_data:
+        with ZipFile(sample_zip, "w") as zip_object:
+            local_metadata_path = get_sample_metadata_path(output_dir, sample_id)
+            zip_object.write(local_metadata_path, "libraries_metadata.csv")
 
-    # TODO: upload the file to S3.
+            for library in libraries:
+                # TODO: reenable _qc_report.html once it's there.
+                # https://github.com/AlexsLemonade/scpca-portal/issues/33
+                # for file_postfix in ["_unfiltered_sce.rds", "_filtered_sce.rds", "_qc_report.html"]:
+                for file_postfix in ["_unfiltered_sce.rds", "_filtered_sce.rds"]:
+                    filename = f"{library['scpca_library_id']}{file_postfix}"
+                    local_file_path = os.path.join(project_dir, "files", sample_id, filename)
+                    file_paths.append(local_file_path)
+                    zip_object.write(local_file_path, filename)
+
+        s3.upload_file(sample_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
 
     computed_file = ComputedFile(
         type="SAMPLE_ZIP",
         workflow_version="0.0.1",
         s3_bucket=settings.AWS_S3_BUCKET_NAME,
-        s3_key=sample_zip,
+        s3_key=zip_file_name,
     )
     computed_file.save()
-    return computed_file
+
+    return computed_file, {sample_id: file_paths}
 
 
 def create_sample_from_dict(project, sample, computed_file):
@@ -65,7 +110,7 @@ def create_sample_from_dict(project, sample, computed_file):
             additional_metadata[key] = value
 
     # get_or_create returns a tuple like (object, was_created)
-    return Sample.objects.get_or_create(
+    sample_object = Sample(
         project=project,
         computed_file=computed_file,
         scpca_sample_id=sample["scpca_sample_id"],
@@ -80,13 +125,18 @@ def create_sample_from_dict(project, sample, computed_file):
         seq_units=sample["seq_units"],
         additional_metadata=additional_metadata,
     )
+    sample_object.save()
+
+    return sample_object
 
 
-def load_data_for_project(data_dir, output_dir, project):
+def load_data_for_project(data_dir, output_dir, project, should_zip_data):
+    # Don't update existing Samples, that's error
+    # prone. If there's samples that need to be updated
+    # they should be purged and readded.
+    # TODO: purge projects before loading data for them.
+
     project_dir = f"{data_dir}{project.pi_name}/"
-
-    # TODO: use this to package up the files.
-    # objects = s3.list_objects_v2(Bucket="scpca-portal-inputs", Prefix=project_prefix, Delimiter="/")
 
     libraries_metadata = []
     try:
@@ -118,9 +168,8 @@ def load_data_for_project(data_dir, output_dir, project):
     field_names = list(field_names)
     # TODO: order these?
 
-    with open(
-        os.path.join(output_dir, f"{project.pi_name}_libraries_metadata.csv"), "w", newline=""
-    ) as project_file:
+    project_metadata_path = os.path.join(output_dir, f"{project.pi_name}_libraries_metadata.csv")
+    with open(project_metadata_path, "w", newline="") as project_file:
         project_writer = csv.DictWriter(project_file, fieldnames=field_names)
         project_writer.writeheader()
         for sample in samples_metadata:
@@ -131,11 +180,8 @@ def load_data_for_project(data_dir, output_dir, project):
             sample_copy["pi_name"] = project.pi_name
             sample_copy["project_title"] = project.title
 
-            with open(
-                os.path.join(output_dir, f"{sample['scpca_sample_id']}_libraries_metadata.csv"),
-                "w",
-                newline="",
-            ) as sample_file:
+            sample_metadata_path = get_sample_metadata_path(output_dir, sample["scpca_sample_id"])
+            with open(sample_metadata_path, "w", newline="") as sample_file:
                 sample_writer = csv.DictWriter(sample_file, fieldnames=field_names)
                 sample_writer.writeheader()
                 for library in libraries_metadata:
@@ -146,25 +192,41 @@ def load_data_for_project(data_dir, output_dir, project):
                         sample_writer.writerow(library)
 
     created_samples = []
+    sample_to_file_mapping = {}
     for sample in samples_metadata:
-        # Don't update existing Samples, that's error
-        # prone. If there's samples that need to be updated
-        # they should be purged and readded.
-        if not Sample.objects.filter(scpca_sample_id=sample["scpca_sample_id"]).first():
-            computed_file = package_files_for_sample(
-                project_dir, output_dir, sample, full_libraries_metadata
-            )
+        computed_file, sample_files = package_files_for_sample(
+            project_dir, output_dir, sample, full_libraries_metadata, should_zip_data
+        )
 
-            sample_tuple = create_sample_from_dict(project, sample, computed_file)
-            if sample_tuple[1]:
-                created_samples.append(sample_tuple[0])
-            else:
-                print(f"Unable to create sample {sample['scpca_sample_id']}")
+        sample_object = create_sample_from_dict(project, sample, computed_file)
+        created_samples.append(sample_object)
+
+        sample_to_file_mapping.update(sample_files)
+
+    package_files_for_project(
+        project_dir,
+        output_dir,
+        project,
+        sample_to_file_mapping,
+        project_metadata_path,
+        should_zip_data,
+    )
 
     return created_samples
 
 
-def load_data_from_s3(bucket_name="scpca-portal-inputs", data_dir="/home/user/data/"):
+def load_data_from_s3(
+    should_update, bucket_name="scpca-portal-inputs", data_dir="/home/user/data/"
+):
+    # should_update could be False, True, or None.
+    # If None then the default behavior is based on prod vs local.
+    if should_update is False:
+        should_zip_data = False
+    elif should_update:
+        should_zip_data = True
+    else:
+        should_zip_data = settings.UPDATE_IMPORTED_DATA
+
     # If this raises we're done anyway, so let it.
     subprocess.check_call(["aws", "s3", "sync", f"s3://{bucket_name}", data_dir])
 
@@ -189,9 +251,10 @@ def load_data_from_s3(bucket_name="scpca-portal-inputs", data_dir="/home/user/da
     for project_dir in os.listdir():
         project = Project.objects.filter(pi_name=project_dir).first()
         if project_dir != project_metadata_file and project:
-            created_samples = load_data_for_project(data_dir, output_dir, project)
+            print(f"Importing and loading data for project {project_dir}")
+            created_samples = load_data_for_project(data_dir, output_dir, project, should_zip_data)
 
-            print(f"created {len(created_samples)} samples for project project_dir")
+            print(f"created {len(created_samples)} samples for project {project_dir}")
 
 
 class Command(BaseCommand):
@@ -218,5 +281,8 @@ class Command(BaseCommand):
     If run in the cloud the zipped ComputedFiles files will be copied
     to a stack-specific S3 bucket."""
 
+    def add_arguments(self, parser):
+        parser.add_argument("--update", default=None, type=bool)
+
     def handle(self, *args, **options):
-        load_data_from_s3()
+        load_data_from_s3(options["update"])
