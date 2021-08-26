@@ -18,7 +18,7 @@ class SamplesTestCase(APITestCase):
         self.sample = SampleFactory()
 
     def test_get_single(self):
-        url = reverse("samples-detail", args=[self.sample.id])
+        url = reverse("samples-detail", args=[self.sample.scpca_sample_id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -34,13 +34,13 @@ class SamplesTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_put_is_not_allowed(self):
-        url = reverse("samples-detail", args=[self.sample.id])
+        url = reverse("samples-detail", args=[self.sample.scpca_sample_id])
         response = self.client.put(url, data={})
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_delete_is_not_allowed(self):
-        url = reverse("samples-detail", args=[self.sample.id])
+        url = reverse("samples-detail", args=[self.sample.scpca_sample_id])
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
