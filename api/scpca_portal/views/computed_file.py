@@ -16,6 +16,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "type",
             "s3_bucket",
             "s3_key",
+            "size_in_bytes",
             "download_url",
             "created_at",
             "updated_at",

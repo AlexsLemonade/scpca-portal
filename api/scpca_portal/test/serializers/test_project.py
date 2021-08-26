@@ -7,7 +7,11 @@ from scpca_portal.views.project import ProjectDetailSerializer, ProjectSerialize
 
 class TestProjectSerializer(TestCase):
     def setUp(self):
-        self.project_data = model_to_dict(ProjectFactory())
+        """Create a project to get a valid dict, then delete it so we don't
+        have a collision on pi_name."""
+        project = ProjectFactory()
+        self.project_data = model_to_dict(project)
+        project.delete()
 
     def test_serializer_with_empty_data(self):
         serializer = ProjectSerializer(data={})

@@ -1,20 +1,13 @@
 from django.db import models
 
-from safedelete.managers import SafeDeleteDeletedManager, SafeDeleteManager
-from safedelete.models import SOFT_DELETE, SafeDeleteModel
-
 from scpca_portal.models.computed_file import ComputedFile
 
 
-class Project(SafeDeleteModel):
+class Project(models.Model):
     class Meta:
         db_table = "projects"
         get_latest_by = "updated_at"
         ordering = ["updated_at", "id"]
-
-    objects = SafeDeleteManager()
-    deleted_objects = SafeDeleteDeletedManager()
-    _safedelete_policy = SOFT_DELETE
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

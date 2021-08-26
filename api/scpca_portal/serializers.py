@@ -23,6 +23,7 @@ class ComputedFileSerializer(serializers.ModelSerializer):
             "type",
             "s3_bucket",
             "s3_key",
+            "size_in_bytes",
             "created_at",
             "updated_at",
         )

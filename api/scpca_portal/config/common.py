@@ -23,7 +23,6 @@ class Common(Configuration):
         "django_filters",  # for filtering rest endpoints
         "drf_yasg",
         "computedfields",  # Allows for computed fields on models
-        "safedelete",  # soft-deletes objects
         "corsheaders",
         # Your apps
         "scpca_portal",

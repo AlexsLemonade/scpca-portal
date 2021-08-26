@@ -3,23 +3,16 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from safedelete.managers import SafeDeleteDeletedManager, SafeDeleteManager
-from safedelete.models import SOFT_DELETE, SafeDeleteModel
-
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.project_summary import ProjectSummary
 
 
-class Sample(SafeDeleteModel):
+class Sample(models.Model):
     class Meta:
         db_table = "samples"
         get_latest_by = "updated_at"
         ordering = ["updated_at", "id"]
-
-    objects = SafeDeleteManager()
-    deleted_objects = SafeDeleteDeletedManager()
-    _safedelete_policy = SOFT_DELETE
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -45,8 +38,6 @@ class Sample(SafeDeleteModel):
     computed_file = models.OneToOneField(
         ComputedFile, blank=False, null=True, on_delete=models.CASCADE, related_name="sample"
     )
-
-    is_deleted = models.BooleanField(default=False)
 
 
 @receiver(post_save, sender="scpca_portal.Sample")
@@ -84,16 +75,18 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     project.seq_units = ", ".join(list(seq_units))
     project.technologies = ", ".join(list(technologies))
     project.disease_timings = ", ".join(list(disease_timings))
+    project.sample_count = project.samples.count()
     project.save()
 
     for summary, count in summaries.items():
         try:
             project_summary = ProjectSummary.objects.get(
-                diagnosis=summary[0], seq_unit=summary[1], technology=summary[2]
+                project=project, diagnosis=summary[0], seq_unit=summary[1], technology=summary[2]
             )
             project_summary.sample_count = count
         except ProjectSummary.DoesNotExist:
             ProjectSummary.objects.create(
+                project=project,
                 diagnosis=summary[0],
                 seq_unit=summary[1],
                 technology=summary[2],
