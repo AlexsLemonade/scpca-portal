@@ -272,7 +272,7 @@ def load_data_for_project(data_dir: str, output_dir: str, project: Project, shou
 
 def load_data_from_s3(
     should_upload: bool,
-    new_only: bool,
+    reload_existing: bool,
     input_bucket_name="scpca-portal-inputs",
     data_dir="/home/user/code/data/",
 ):
@@ -292,7 +292,7 @@ def load_data_from_s3(
         for project in projects:
             pi_name = project["PI Name"]
 
-            if not new_only:
+            if reload_existing:
                 # Purge existing projects so they can be readded.
                 existing_project = Project.objects.filter(pi_name=pi_name).first()
 
@@ -350,8 +350,8 @@ class Command(BaseCommand):
     to a stack-specific S3 bucket."""
 
     def add_arguments(self, parser):
-        parser.add_argument("--new-only", action="store_true")
+        parser.add_argument("--reload-existing", action="store_true")
         parser.add_argument("--upload", default=settings.UPDATE_IMPORTED_DATA, type=bool)
 
     def handle(self, *args, **options):
-        load_data_from_s3(options["upload"], options["new_only"])
+        load_data_from_s3(options["upload"], options["reload_existing"])
