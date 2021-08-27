@@ -29,12 +29,19 @@ class ComputedFile(models.Model):
 
     @property
     def download_url(self):
-        """ A temporary URL from which the file can be downloaded.
+        """ A temporary URL from which the file can be downloaded. """
+        return self.create_download_url()
 
-        TODO: implement this
-        https://github.com/AlexsLemonade/scpca-portal/issues/14
-        """
-        return f"https://{self.s3_bucket}.s3.amazonaws.com/{self.s3_key}"
+    def create_download_url(self):
+        """ Create a temporary URL from which the file can be downloaded."""
+        if self.s3_bucket and self.s3_key:
+            return s3.generate_presigned_url(
+                ClientMethod="get_object",
+                Params={"Bucket": self.s3_bucket, "Key": self.s3_key},
+                ExpiresIn=(60 * 60 * 7 * 24),  # 7 days in seconds.
+            )
+        else:
+            return None
 
     def delete_s3_file(self, force=False):
         # If we're not running in the cloud then we shouldn't try to

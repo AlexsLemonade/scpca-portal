@@ -1,3 +1,5 @@
+import json
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -22,12 +24,33 @@ class ComputedFilesTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        self.assertNotIn("download_url", response.json())
+
+    def test_get_with_token(self):
+        # create token
+        response = self.client.post(
+            reverse("tokens-list"),
+            json.dumps({"is_activated": True}),
+            content_type="application/json",
+        )
+        token_id = response.json()["id"]
+
+        url = reverse("computed-files-detail", args=[self.computed_file.id])
+        response = self.client.get(url, HTTP_API_KEY=token_id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertIsNotNone("download_url", response.json())
+
     def test_get_list(self):
         response = self.client.get(reverse("computed-files-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # One for self.computed_file, and one for
         # self.computed_file.sample.project.computed_file
-        self.assertEqual(response.json()["count"], 2)
+        response_json = response.json()
+        self.assertEqual(response_json["count"], 2)
+
+        # Make sure there's no download_urls in list:
+        self.assertNotIn("download_url", response_json["results"][0])
 
     def test_post_is_not_allowed(self):
         url = reverse("computed-files-list", args=[])
