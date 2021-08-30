@@ -58,6 +58,29 @@ You can use this to make a curl request to the API like so:
 curl http://0.0.0.0:8000/v1/projects/
 ```
 
+Computed files won't provide a `download_url` unless an API token is provided.
+To get and activate an API token, make a request similar to:
+
+```
+curl http://0.0.0.0:8000/v1/tokens/ -X POST -d '{"is_activated": true}' -H "Content-Type: application/json"
+```
+
+Which should return something like
+```
+{
+    "id": "30e429fd-ded5-4c7d-84a7-84c702f596c1",
+    "is_activated": true,
+    "terms_and_conditions": "PLACEHOLDER"
+}
+```
+
+This `id` can then be provided as the value for the `API-KEY` header in a request to the `/v1/computed-files/` endpoint like so:
+```
+curl http://0.0.0.0:8000/v1/computed-files/1/ -H 'API-KEY: 658f859a-b9d0-4b44-be3d-dad9db57164a'
+```
+
+`download_url` can only be retrieved for ComputedFiles one at a time.
+
 
 ## Local Data Management
 

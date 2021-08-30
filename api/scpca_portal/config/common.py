@@ -149,3 +149,5 @@ class Common(Configuration):
     }
     # CORS - unrestricted
     CORS_ORIGIN_ALLOW_ALL = True
+
+    TERMS_AND_CONDITIONS = "PLACEHOLDER"

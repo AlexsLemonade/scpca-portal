@@ -5,7 +5,7 @@ from django.views.generic.base import RedirectView
 
 from rest_framework_extensions.routers import ExtendedSimpleRouter
 
-from scpca_portal.views import ComputedFileViewSet, ProjectViewSet, SampleViewSet
+from scpca_portal.views import APITokenViewSet, ComputedFileViewSet, ProjectViewSet, SampleViewSet
 
 router = ExtendedSimpleRouter()
 router.trailing_slash = "/?"
@@ -13,6 +13,7 @@ router.trailing_slash = "/?"
 router.register(r"computed-files", ComputedFileViewSet, basename="computed-files")
 router.register(r"projects", ProjectViewSet, basename="projects")
 router.register(r"samples", SampleViewSet, basename="samples")
+router.register(r"tokens", APITokenViewSet, basename="tokens")
 
 urlpatterns = [
     path("v1/", include(router.urls)),
