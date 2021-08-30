@@ -14,10 +14,11 @@ class ProjectDetailSerializer(ProjectSerializer):
 class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Project.objects.all().order_by("-created_at")
     ordering_fields = "__all__"
+    lookup_field = "pi_name"
     filterset_fields = {
         "id": ["exact"],
         "pi_name": ["exact"],
-        "project_title": ["contains"],
+        "title": ["contains"],
         "abstract": ["contains"],
         "technologies": ["exact", "contains"],
         "diagnoses": ["exact", "contains"],

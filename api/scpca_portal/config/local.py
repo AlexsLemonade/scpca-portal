@@ -13,11 +13,13 @@ class Local(Common):
     EMAIL_PORT = 1025
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+    UPDATE_IMPORTED_DATA = False
+
     # AWS
     AWS_REGION = None
 
-    # AWS S3
-    AWS_S3_BUCKET_NAME = None
+    # AWS S3 hardcoded to a bucket used for local dev.
+    AWS_S3_BUCKET_NAME = "scpca-local-data"
 
     CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1"]
 

@@ -20,6 +20,7 @@ class LeafComputedFileFactory(factory.django.DjangoModelFactory):
     s3_bucket = "scpca-portal-local"
     s3_key = "SCPCR000126/filtered_sce.rds"
     workflow_version = "1.0.0"
+    size_in_bytes = 100
 
 
 class LeafProjectFactory(factory.django.DjangoModelFactory):
@@ -27,7 +28,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
         model = "scpca_portal.Project"
 
     pi_name = "gawad"
-    project_title = "Single-Cell Profiling of Acute Myeloid Leukemia for High-Resolution Chemo-immunotherapy Target Discovery"
+    title = "Single-Cell Profiling of Acute Myeloid Leukemia for High-Resolution Chemo-immunotherapy Target Discovery"
     abstract = """Despite enormous efforts to find better treatments
     for children with acute myeloid leukemia (AML), it remains one of
     the most difficult to treat pediatric cancers. The children that
@@ -43,7 +44,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     immediately accessible to the research community, with the aim of
     accelerating our efforts to find new ways to cure all children
     with AML"""
-    project_contact = "gawad"
+    contact = "gawad"
     disease_timings = "Diagnosis, Relapse/Diagnosis at LPCH, Relapsed, Healthy control"
     diagnoses = "AML, Normal"
     seq_units = "cell"
@@ -58,7 +59,7 @@ class SampleFactory(factory.django.DjangoModelFactory):
 
     has_cite_seq_data = True
     scpca_sample_id = "SCPCS000034"
-    technology = "10Xv3"
+    technologies = "10Xv3"
     diagnosis = "pilocytic astrocytoma"
     subdiagnosis = "NA"
     age_at_diagnosis = "4"
@@ -66,7 +67,7 @@ class SampleFactory(factory.django.DjangoModelFactory):
     disease_timing = "primary diagnosis"
     tissue_location = "posterior fossa"
     treatment = "STR"
-    seq_unit = "cell"
+    seq_units = "cell"
     additional_metadata = {
         "has_spinal_leptomeningeal_mets": False,
         "braf_status": "Not tested for BRAF status",

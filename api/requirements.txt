@@ -15,7 +15,6 @@ dj-database-url==0.5.0
 django-model-utils==4.0.0
 django_unique_upload==0.2.1
 django-computedfields==0.0.17
-django-safedelete==0.5.5
 django-expiring-token==1.0.2
 
 # Rest apis

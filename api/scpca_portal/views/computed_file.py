@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import serializers, viewsets
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -6,7 +6,22 @@ from scpca_portal.models import ComputedFile
 from scpca_portal.serializers import ComputedFileSerializer, ProjectSerializer, SampleSerializer
 
 
-class ComputedFileDetailSerializer(ComputedFileSerializer):
+class ComputedFileDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ComputedFile
+        fields = (
+            "project",
+            "sample",
+            "id",
+            "type",
+            "s3_bucket",
+            "s3_key",
+            "size_in_bytes",
+            "download_url",
+            "created_at",
+            "updated_at",
+        )
+
     project = ProjectSerializer(read_only=True)
     sample = SampleSerializer(read_only=True)
 
