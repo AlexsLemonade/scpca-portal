@@ -32,8 +32,6 @@ class ProjectSummary(models.Model):
 
     sample_count = models.IntegerField()
 
-    is_deleted = models.BooleanField(default=False)
-
     project = models.ForeignKey(
         Project, blank=False, null=True, on_delete=models.CASCADE, related_name="summaries"
     )

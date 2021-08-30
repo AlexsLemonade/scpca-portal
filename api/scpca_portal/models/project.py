@@ -26,5 +26,3 @@ class Project(models.Model):
     computed_file = models.OneToOneField(
         ComputedFile, blank=False, null=True, on_delete=models.CASCADE, related_name="project"
     )
-
-    is_deleted = models.BooleanField(default=False)
