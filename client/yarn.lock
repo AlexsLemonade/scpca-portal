@@ -5916,6 +5916,28 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.8.tgz#e412b8d33f5e006593cbd3cee6df9f2cebbe802a"
   integrity sha512-qkIilPUYcNhJpd33n0GBXTB1MMPp14TxEsEs0pTrsSVucApsYzW5V+Q8Qxhik6KU3evy+qkAAowTByymK0avdg==
 
+grommet-icons@^4.6.2:
+  version "4.6.2"
+  resolved "https://registry.yarnpkg.com/grommet-icons/-/grommet-icons-4.6.2.tgz#56315cdb061895ddf18ad06cb76378b317cbbe56"
+  integrity sha512-3wTRQsmwrSFM7FvruULNWwi5dWp8MtYCimWeJW0zaJxkq35iPHMTZCzBrVfuRL6pOja3KegNC9b8rvdXVMct6Q==
+  dependencies:
+    grommet-styles "^0.2.0"
+
+grommet-styles@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/grommet-styles/-/grommet-styles-0.2.0.tgz#b2eac2b7e2747cb523434d21728ce5234f8ce4f4"
+  integrity sha512-0OMSYuGeyifYKpg4Gv2HzL8rUdd0ddnJ5LbCBKgDuloC71XIwr9g/Fxa6rs737MbPV7OZ4pEm4wvrjH4epzf1A==
+
+grommet@^2.17.5:
+  version "2.17.5"
+  resolved "https://registry.yarnpkg.com/grommet/-/grommet-2.17.5.tgz#690c288306f3a7f46003eb9db9c2b0d295b10f03"
+  integrity sha512-ld8nvuEqBDXiUiMybX2yuMH94KC1LxGhHKaDyqQI8HZrzgUpOB/GuQ2VcvB2YSB62Zpt7NuBjsghlLPKG5l8gQ==
+  dependencies:
+    grommet-icons "^4.6.2"
+    hoist-non-react-statics "^3.2.0"
+    markdown-to-jsx "^7.1.3"
+    prop-types "^15.7.2"
+
 gud@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/gud/-/gud-1.0.0.tgz#a489581b17e6a70beca9abe3ae57de7a499852c0"
@@ -6110,7 +6132,7 @@ hmac-drbg@^1.0.1:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.1"
 
-hoist-non-react-statics@^3.0.0, hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.2:
+hoist-non-react-statics@^3.0.0, hoist-non-react-statics@^3.2.0, hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-3.3.2.tgz#ece0acaf71d62c2969c2ec59feff42a4b1a85b45"
   integrity sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==
