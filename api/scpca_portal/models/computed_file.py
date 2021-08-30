@@ -25,8 +25,6 @@ class ComputedFile(models.Model):
     s3_key = models.TextField(null=False)
     size_in_bytes = models.BigIntegerField()
 
-    is_deleted = models.BooleanField(default=False)
-
     @property
     def download_url(self):
         """ A temporary URL from which the file can be downloaded.
