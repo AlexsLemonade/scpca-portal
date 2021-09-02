@@ -57,7 +57,4 @@ class ComputedFile(models.Model):
             )
             return False
 
-        self.s3_key = None
-        self.s3_bucket = None
-        self.save()
         return True
