@@ -1,7 +1,7 @@
 import getAPIUrl from 'helpers/getAPIUrl'
 import request from 'helpers/request'
 
-export const fitlers = [
+export const filters = [
   'id',
   'pi_name',
   'has_bulk_rna_seq',
