@@ -18,6 +18,7 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     filterset_fields = {
         "id": ["exact"],
         "pi_name": ["exact"],
+        "has_bulk_rna_seq": ["exact"],
         "title": ["contains"],
         "abstract": ["contains"],
         "technologies": ["exact", "contains"],

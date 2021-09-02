@@ -16,6 +16,7 @@ class Project(models.Model):
     title = models.TextField(null=False)
     abstract = models.TextField(null=False)
     contact = models.TextField(null=False)
+    has_bulk_rna_seq = models.BooleanField(default=False)
     disease_timings = models.TextField(null=False)
     diagnoses = models.TextField(blank=True, null=True)
     seq_units = models.TextField(blank=True, null=True)
