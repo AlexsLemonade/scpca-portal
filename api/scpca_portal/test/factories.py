@@ -18,7 +18,7 @@ class LeafComputedFileFactory(factory.django.DjangoModelFactory):
 
     type = "FILTERED_COUNTS"
     s3_bucket = "scpca-portal-local"
-    s3_key = "SCPCR000126/filtered_sce.rds"
+    s3_key = "SCPCR000126/filtered.rds"
     workflow_version = "1.0.0"
     size_in_bytes = 100
 

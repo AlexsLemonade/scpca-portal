@@ -99,8 +99,8 @@ def package_files_for_sample(
             for library in libraries:
                 # TODO: reenable _qc_report.html once it's there.
                 # https://github.com/AlexsLemonade/scpca-portal/issues/33
-                # for file_postfix in ["_unfiltered_sce.rds", "_filtered_sce.rds", "_qc_report.html"]:
-                for file_postfix in ["_unfiltered_sce.rds", "_filtered_sce.rds"]:
+                # for file_postfix in ["_unfiltered.rds", "_filtered.rds", "_qc_report.html"]:
+                for file_postfix in ["_unfiltered.rds", "_filtered.rds"]:
                     filename = f"{library['scpca_library_id']}{file_postfix}"
                     local_file_path = os.path.join(project_dir, "files", sample_id, filename)
                     file_paths.append(local_file_path)
@@ -334,11 +334,11 @@ class Command(BaseCommand):
         /project_metadata.csv
         /dyer_chen/libraries_metadata.csv
         /dyer_chen/samples_metadata.csv
-        /dyer_chen/files/SCPCS000109/SCPCL000126_filtered_sce.rds
-        /dyer_chen/files/SCPCS000109/SCPCL000126_unfiltered_sce.rds
+        /dyer_chen/files/SCPCS000109/SCPCL000126_filtered.rds
+        /dyer_chen/files/SCPCS000109/SCPCL000126_unfiltered.rds
         /dyer_chen/files/SCPCS000109/SCPCL000126_qc_report.html
-        /dyer_chen/files/SCPCS000109/SCPCL000127_filtered_sce.rds
-        /dyer_chen/files/SCPCS000109/SCPCL000127_unfiltered_sce.rds
+        /dyer_chen/files/SCPCS000109/SCPCL000127_filtered.rds
+        /dyer_chen/files/SCPCS000109/SCPCL000127_unfiltered.rds
         /dyer_chen/files/SCPCS000109/SCPCL000127_qc_report.html
 
     The files will be zipped up and stats will be calculated for them.
