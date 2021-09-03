@@ -7,11 +7,9 @@ const apiToken = {
       method: 'POST',
       body: JSON.stringify(token)
     }),
-  get: (authorization) =>
-    request(getAPIUrl(`tokens/${authorization}`), { authorization }),
+  get: (authorization) => request(getAPIUrl(`tokens/${authorization}`)),
   update: (authorization, token) =>
     request(getAPIUrl(`tokens/${authorization}`), {
-      authorization,
       method: 'PUT',
       body: JSON.stringify(token)
     })
