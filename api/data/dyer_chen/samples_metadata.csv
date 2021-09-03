@@ -1,2 +1,0 @@
-scpca_sample_id,scpca_library_id,Diagnosis,Subdiagnosis,Age at Diagnosis,Sex,Disease Timing,Tissue Location,Treatment,Primary Site,IGSS Stage,COG Risk,seq_units,technologies
-SCPCS000109,SCPCL000126;SCPCL000127,Neuroblastoma,MYCN non-amplified,9,F,Initial Diagnosis,Adrenal Gland,treated,Adrenal,4,High,cell,10Xv3
