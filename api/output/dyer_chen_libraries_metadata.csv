@@ -1,3 +1,0 @@
-scpca_sample_id,scpca_library_id,Diagnosis,Subdiagnosis,seq_unit,technology,pi_name,project_title,Disease Timing,Age at Diagnosis,Sex,Tissue Location,IGSS Stage,Primary Site,Treatment,COG Risk
-SCPCS000109,SCPCL000126,Neuroblastoma,MYCN non-amplified,cell,10Xv3,dyer_chen,Profiling the transcriptional heterogeneity of diverse pediatric solid tumors,Initial Diagnosis,9,F,Adrenal Gland,4,Adrenal,treated,High
-SCPCS000109,SCPCL000127,Neuroblastoma,MYCN non-amplified,cell,10Xv3,dyer_chen,Profiling the transcriptional heterogeneity of diverse pediatric solid tumors,Initial Diagnosis,9,F,Adrenal Gland,4,Adrenal,treated,High
