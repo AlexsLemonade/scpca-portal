@@ -66,6 +66,9 @@ volumes_postgres/
 api/test_uploaded_files
 api/uploaded_files
 
+# Local Data
+api/data
+
 # Flask stuff:
 instance/
 .webassets-cache
