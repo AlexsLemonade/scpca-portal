@@ -59,6 +59,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "has_bulk_rna_seq",
             "disease_timings",
             "diagnoses",
+            "diagnoses_counts",
             "seq_units",
             "technologies",
             "sample_count",
