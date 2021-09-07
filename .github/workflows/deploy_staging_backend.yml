@@ -1,0 +1,33 @@
+name: staging-backend
+
+on: push
+# on:
+#   push:
+#     branches:
+#       - dev
+
+jobs:
+  deploy:
+    name: staging-backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.12.26
+
+      - name: Deploy
+        run: cd infrastructure && python3 deploy.py -e staging -u deployer -d ccdlstaging -v $(git rev-parse HEAD)
+        env:
+          DATABASE_PASSWORD: ${{ secrets.STAGING_DATABASE_PASSWORD }}
+          DJANGO_SECRET_KEY: ${{ secrets.STAGING_DJANGO_SECRET_KEY }}
+          DOCKER_ID: ${{ secrets.DOCKER_ID }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          API_SSH_KEY: ${{ secrets.API_SSH_KEY }}
+          SENTRY_IO_URL: ${{ secrets.SENTRY_IO_URL }}
+          SENTRY_ENV: staging-api
