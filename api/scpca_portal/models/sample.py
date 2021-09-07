@@ -55,6 +55,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     seq_units = set()
     technologies = set()
     disease_timings = set()
+    diagnoses_counts = {}
     summaries = {}
     for sample in project.samples.all():
         diagnoses.add(sample.diagnosis)
@@ -64,6 +65,11 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
         seq_units = seq_units.union(set(sample_seq_units))
         technologies = technologies.union(set(sample_technologies))
 
+        try:
+            diagnoses_counts[sample.diagnosis] += 1
+        except KeyError:
+            diagnoses_counts[sample.diagnosis] = 1
+
         for seq_unit in sample_seq_units:
             for technology in sample_technologies:
                 try:
@@ -71,6 +77,11 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
                 except KeyError:
                     summaries[(sample.diagnosis, seq_unit, technology)] = 1
 
+    diagnoses_strings = []
+    for diagnosis, count in diagnoses_counts.items():
+        diagnoses_strings.append(f"{diagnoses} ({count})")
+
+    project.diagnoses_counts = ", ".join(list(diagnoses_strings))
     project.diagnoses = ", ".join(list(diagnoses))
     project.seq_units = ", ".join(list(seq_units))
     project.technologies = ", ".join(list(technologies))

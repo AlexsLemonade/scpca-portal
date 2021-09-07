@@ -8,7 +8,13 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
-from scpca_portal.views import APITokenViewSet, ComputedFileViewSet, ProjectViewSet, SampleViewSet
+from scpca_portal.views import (
+    APITokenViewSet,
+    ComputedFileViewSet,
+    ProjectViewSet,
+    SampleViewSet,
+    project_filter_options_view,
+)
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -58,6 +64,7 @@ urlpatterns = [
                 re_path(
                     r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema_redoc"
                 ),
+                path("options/projects/", project_filter_options_view, name="project-options",),
             ]
         ),
     ),

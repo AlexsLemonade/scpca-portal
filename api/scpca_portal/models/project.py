@@ -19,6 +19,7 @@ class Project(models.Model):
     has_bulk_rna_seq = models.BooleanField(default=False)
     disease_timings = models.TextField(null=False)
     diagnoses = models.TextField(blank=True, null=True)
+    diagnoses_counts = models.TextField(blank=True, null=True)
     seq_units = models.TextField(blank=True, null=True)
     technologies = models.TextField(blank=True, null=True)
 

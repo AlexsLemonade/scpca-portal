@@ -47,6 +47,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     contact = "gawad"
     disease_timings = "Diagnosis, Relapse/Diagnosis at LPCH, Relapsed, Healthy control"
     diagnoses = "AML, Normal"
+    diagnoses_counts = "AML (20), Normal (40)"
     seq_units = "cell"
     technologies = "10Xv2_5prime, CITE-seq"
 
