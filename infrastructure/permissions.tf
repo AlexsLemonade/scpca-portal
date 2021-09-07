@@ -149,7 +149,7 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
             "s3:GetObject"
          ],
           "Resource": [
-            "arn:aws:s3:::scpca-portal-inputs"
+            "arn:aws:s3:::scpca-portal-inputs/*"
           ]
       }
    ]
