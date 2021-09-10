@@ -74,7 +74,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     # but we want these to always be included.
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
-    computed_file = serializers.PrimaryKeyRelatedField(read_only=True)
+    computed_file = ComputedFileSerializer(read_only=True)
     samples = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
 

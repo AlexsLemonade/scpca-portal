@@ -7,7 +7,6 @@ from scpca_portal.serializers import ComputedFileSerializer, ProjectSerializer, 
 
 
 class ProjectDetailSerializer(ProjectSerializer):
-    computed_file = ComputedFileSerializer(read_only=True)
     samples = SampleSerializer(many=True, read_only=True)
 
 
