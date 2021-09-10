@@ -4,7 +4,7 @@ from rest_framework import serializers, viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import APIToken, ComputedFile
-from scpca_portal.serializers import ComputedFileSerializer, ProjectSerializer, SampleSerializer
+from scpca_portal.serializers import ComputedFileSerializer, ProjectLeafSerializer, SampleSerializer
 
 
 class ComputedFileDetailSerializer(serializers.ModelSerializer):
@@ -28,7 +28,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             }
         }
 
-    project = ProjectSerializer(read_only=True)
+    project = ProjectLeafSerializer(read_only=True)
     sample = SampleSerializer(read_only=True)
 
     def __init__(self, *args, **kwargs):

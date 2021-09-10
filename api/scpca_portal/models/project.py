@@ -17,11 +17,14 @@ class Project(models.Model):
     abstract = models.TextField(null=False)
     contact = models.TextField(null=False)
     has_bulk_rna_seq = models.BooleanField(default=False)
+    has_cite_seq_data = models.BooleanField(default=False)
+    has_spatial_data = models.BooleanField(default=False)
     disease_timings = models.TextField(null=False)
     diagnoses = models.TextField(blank=True, null=True)
     diagnoses_counts = models.TextField(blank=True, null=True)
     seq_units = models.TextField(blank=True, null=True)
     technologies = models.TextField(blank=True, null=True)
+    modalities = models.TextField(blank=True, null=True)
 
     sample_count = models.IntegerField(default=0)
 

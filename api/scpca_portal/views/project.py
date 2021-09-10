@@ -3,11 +3,10 @@ from rest_framework import viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import Project
-from scpca_portal.serializers import ComputedFileSerializer, ProjectSerializer, SampleSerializer
+from scpca_portal.serializers import ProjectSerializer, SampleSerializer
 
 
 class ProjectDetailSerializer(ProjectSerializer):
-    computed_file = ComputedFileSerializer(read_only=True)
     samples = SampleSerializer(many=True, read_only=True)
 
 
@@ -19,6 +18,8 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "id": ["exact"],
         "pi_name": ["exact"],
         "has_bulk_rna_seq": ["exact"],
+        "has_cite_seq_data": ["exact"],
+        "has_spatial_data": ["exact"],
         "title": ["contains"],
         "abstract": ["contains"],
         "technologies": ["exact", "contains"],

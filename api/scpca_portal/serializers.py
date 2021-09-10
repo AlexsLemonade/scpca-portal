@@ -44,7 +44,7 @@ class ProjectSummarySerializer(serializers.ModelSerializer):
         )
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ProjectLeafSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = (
@@ -57,6 +57,9 @@ class ProjectSerializer(serializers.ModelSerializer):
             "abstract",
             "contact",
             "has_bulk_rna_seq",
+            "has_cite_seq_data",
+            "has_spatial_data",
+            "modalities",
             "disease_timings",
             "diagnoses",
             "diagnoses_counts",
@@ -73,6 +76,10 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     computed_file = serializers.PrimaryKeyRelatedField(read_only=True)
     samples = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    computed_file = ComputedFileSerializer(read_only=True)
 
 
 class SampleSerializer(serializers.ModelSerializer):
