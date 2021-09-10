@@ -78,7 +78,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     samples = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ProjectSerializer(ProjectLeafSerializer):
     computed_file = ComputedFileSerializer(read_only=True)
 
 
