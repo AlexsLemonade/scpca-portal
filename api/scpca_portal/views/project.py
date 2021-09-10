@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import Project
-from scpca_portal.serializers import ComputedFileSerializer, ProjectSerializer, SampleSerializer
+from scpca_portal.serializers import ProjectSerializer, SampleSerializer
 
 
 class ProjectDetailSerializer(ProjectSerializer):
