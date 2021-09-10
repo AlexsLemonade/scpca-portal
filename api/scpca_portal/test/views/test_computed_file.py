@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 from django.urls import reverse
 from rest_framework import status
@@ -9,6 +10,14 @@ from faker import Faker
 from scpca_portal.test.factories import ComputedFileFactory
 
 fake = Faker()
+
+
+class MockS3Client:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def generate_presigned_url(self, *args, **kwargs):
+        return "This isn't really a presigned URL but it's good enough."
 
 
 class ComputedFilesTestCase(APITestCase):
@@ -26,6 +35,7 @@ class ComputedFilesTestCase(APITestCase):
 
         self.assertNotIn("download_url", response.json())
 
+    @patch("scpca_portal.models.computed_file.s3", MockS3Client())
     def test_get_with_token(self):
         # create token
         response = self.client.post(

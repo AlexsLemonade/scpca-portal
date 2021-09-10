@@ -46,6 +46,12 @@ args = parser.parse_args()
 
 try:
     command = commands[args.command]
-    os.system(command.format(" ".join(args.command_args)))
+    waitstatus = os.system(command.format(" ".join(args.command_args)))
+
+    # The exit code of this script matches the command it called.
+    # os.system() outputs a waitstatus instead of an exitcode.
+    # In python3.9 this becomes the much more sane
+    # os.waitstatus_to_exitcode() function.
+    exit(os.WEXITSTATUS(waitstatus))
 except KeyError:
     print("Unknown Command")
