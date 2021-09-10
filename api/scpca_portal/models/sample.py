@@ -18,6 +18,7 @@ class Sample(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     has_cite_seq_data = models.BooleanField(default=False)
+    has_spatial_data = models.BooleanField(default=False)
     scpca_sample_id = models.TextField(null=False)
     technologies = models.TextField(null=False)
     diagnosis = models.TextField(blank=True, null=True)
@@ -58,6 +59,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     diagnoses_counts = {}
     summaries = {}
     has_cite_seq_data = False
+    has_spatial_data = False
     for sample in project.samples.all():
         diagnoses.add(sample.diagnosis)
         disease_timings.add(sample.disease_timing)
@@ -65,7 +67,11 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
         sample_technologies = sample.technologies.split(",")
         seq_units = seq_units.union(set(sample_seq_units))
         technologies = technologies.union(set(sample_technologies))
+
         if sample.has_cite_seq_data:
+            has_cite_seq_data = True
+
+        if sample.has_spatial_data:
             has_cite_seq_data = True
 
         try:
@@ -87,10 +93,10 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     modalities = []
     if has_cite_seq_data:
         modalities.append("CITE-seq")
+    if has_spatial_data:
+        modalities.append("Spatial Data")
     if project.has_bulk_rna_seq:
         modalities.append("Bulk RNA-seq")
-    if project.has_spatial_data:
-        modalities.append("Spatial Data")
 
     project.modalities = ", ".join(list(modalities))
     project.diagnoses_counts = ", ".join(list(diagnoses_strings))
@@ -100,6 +106,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     project.disease_timings = ", ".join(list(disease_timings))
     project.sample_count = project.samples.count()
     project.has_cite_seq_data = has_cite_seq_data
+    project.has_spatial_data = has_spatial_data
     project.save()
 
     for summary, count in summaries.items():
