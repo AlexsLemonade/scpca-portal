@@ -19,6 +19,8 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "id": ["exact"],
         "pi_name": ["exact"],
         "has_bulk_rna_seq": ["exact"],
+        "has_cite_seq_data": ["exact"],
+        "has_spatial_data": ["exact"],
         "title": ["contains"],
         "abstract": ["contains"],
         "technologies": ["exact", "contains"],

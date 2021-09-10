@@ -21,6 +21,7 @@ class ProjectsTestCase(APITestCase):
         url = reverse("projects-detail", args=[self.project.pi_name])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["modalities"], "CITE-seq, Bulk RNA-seq")
 
     def test_get_list(self):
         response = self.client.get(reverse("projects-list"))
