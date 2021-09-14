@@ -16,6 +16,7 @@ class APIToken(models.Model):
 
     # Activation
     is_activated = models.BooleanField(default=False)
+    email = models.EmailField("email", blank=False, null=False)
 
     # Common Properties
     created_at = models.DateTimeField(editable=False, default=timezone.now)

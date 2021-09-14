@@ -12,7 +12,7 @@ class APITestCases(APITestCase):
     def test_create_token_one_request(self):
         response = self.client.post(
             reverse("tokens-list"),
-            json.dumps({"is_activated": True}),
+            json.dumps({"is_activated": True, "email": "hi@example.com"}),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 201)
@@ -20,7 +20,11 @@ class APITestCases(APITestCase):
         self.assertEqual(activated_token["is_activated"], True)
 
     def test_create_token_two_requests(self):
-        response = self.client.post(reverse("tokens-list"), content_type="application/json")
+        response = self.client.post(
+            reverse("tokens-list"),
+            json.dumps({"email": "hi@example.com"}),
+            content_type="application/json",
+        )
         self.assertEqual(response.status_code, 201)
         token = response.json()
 
