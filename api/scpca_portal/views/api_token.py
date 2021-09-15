@@ -6,11 +6,12 @@ from scpca_portal.models import APIToken
 class APITokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = APIToken
-        fields = ("id", "is_activated", "terms_and_conditions")
+        fields = ("id", "is_activated", "terms_and_conditions", "email")
         extra_kwargs = {
             "id": {"read_only": True},
             "is_activated": {"read_only": False},
             "terms_and_conditions": {"read_only": True},
+            "email": {"write_only": True},
         }
 
 
