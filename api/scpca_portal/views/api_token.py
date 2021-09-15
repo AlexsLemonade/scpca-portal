@@ -11,7 +11,7 @@ class APITokenSerializer(serializers.ModelSerializer):
             "id": {"read_only": True},
             "is_activated": {"read_only": False},
             "terms_and_conditions": {"read_only": True},
-            "email": {"read_only": False},
+            "email": {"write_only": True},
         }
 
 
