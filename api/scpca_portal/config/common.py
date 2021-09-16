@@ -150,6 +150,6 @@ class Common(Configuration):
     }
     # CORS - unrestricted
     CORS_ORIGIN_ALLOW_ALL = True
-    CORS_ALLOW_HEADERS = default_headers + ("API-KEY",)
+    CORS_ALLOW_HEADERS = default_headers + ("api-key",)
 
     TERMS_AND_CONDITIONS = "PLACEHOLDER"
