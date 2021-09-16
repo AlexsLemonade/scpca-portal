@@ -33,7 +33,7 @@ class ComputedFilesTestCase(APITestCase):
         url = reverse("computed-files-detail", args=[self.computed_file.id])
         # The presence of the origin header triggers CORS middleware,
         # but its content don't matter for this test.
-        response = self.client.options(url, HTTP_ORIGIN="foo")
+        response = self.client.options(url, HTTP_ORIGIN="example.com")
 
         self.assertIn(
             settings.API_KEY_HEADER, response.get("Access-Control-Allow-Headers").split(", ")
