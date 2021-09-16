@@ -1,6 +1,7 @@
 import json
 from unittest.mock import patch
 
+from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -27,6 +28,16 @@ class ComputedFilesTestCase(APITestCase):
 
     def setUp(self):
         self.computed_file = ComputedFileFactory()
+
+    def test_options(self):
+        url = reverse("computed-files-detail", args=[self.computed_file.id])
+        # The presence of the origin header triggers CORS middleware,
+        # but its content don't matter for this test.
+        response = self.client.options(url, HTTP_ORIGIN="example.com")
+
+        self.assertIn(
+            settings.API_KEY_HEADER, response.get("Access-Control-Allow-Headers").split(", ")
+        )
 
     def test_get_single(self):
         url = reverse("computed-files-detail", args=[self.computed_file.id])
