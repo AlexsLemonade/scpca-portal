@@ -4,6 +4,7 @@ from os.path import join
 
 import dj_database_url
 from configurations import Configuration
+from corsheaders.defaults import default_headers
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -149,5 +150,6 @@ class Common(Configuration):
     }
     # CORS - unrestricted
     CORS_ORIGIN_ALLOW_ALL = True
+    CORS_ALLOW_HEADERS = default_headers + ("API-KEY",)
 
     TERMS_AND_CONDITIONS = "PLACEHOLDER"
