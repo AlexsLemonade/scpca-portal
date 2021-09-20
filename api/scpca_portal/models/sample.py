@@ -90,7 +90,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
 
     diagnoses_strings = []
     for diagnosis, count in diagnoses_counts.items():
-        diagnoses_strings.append(f"{diagnoses} ({count})")
+        diagnoses_strings.append(f"{diagnosis} ({count})")
 
     modalities = []
     if has_cite_seq_data:
