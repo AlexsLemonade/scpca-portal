@@ -5,7 +5,7 @@ export const filters = ['project__id', 'sample__id', 'id', 'type']
 
 const computedFiles = {
   get: (id, authorization) =>
-    request(getAPIUrl(`computed-files/${id}`, { authorization })),
+    request(getAPIUrl(`computed-files/${id}`), { authorization }),
   list: (query) => request(getAPIUrl('computed-files', query))
 }
 
