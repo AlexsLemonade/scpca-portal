@@ -7,12 +7,14 @@ class Project(models.Model):
     class Meta:
         db_table = "projects"
         get_latest_by = "updated_at"
-        ordering = ["updated_at", "id"]
+        ordering = ["updated_at"]
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    pi_name = models.TextField(unique=True, null=False)
+    scpca_id = models.TextField(unique=True, null=False)
+    pi_name = models.TextField(null=False)
+    human_readable_pi_name = models.TextField(null=False)
     title = models.TextField(null=False)
     abstract = models.TextField(null=False)
     contact = models.TextField(null=False)
@@ -25,6 +27,8 @@ class Project(models.Model):
     seq_units = models.TextField(blank=True, null=True)
     technologies = models.TextField(blank=True, null=True)
     modalities = models.TextField(blank=True, null=True)
+
+    additional_metadata_keys = models.TextField(blank=True, null=True)
 
     sample_count = models.IntegerField(default=0)
 

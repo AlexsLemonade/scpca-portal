@@ -13,10 +13,12 @@ class ProjectDetailSerializer(ProjectSerializer):
 class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Project.objects.all().order_by("-created_at")
     ordering_fields = "__all__"
-    lookup_field = "pi_name"
+    lookup_field = "scpca_id"
+
     filterset_fields = {
-        "id": ["exact"],
+        "scpca_id": ["exact"],
         "pi_name": ["exact"],
+        "human_readable_pi_name": ["icontains"],
         "has_bulk_rna_seq": ["exact"],
         "has_cite_seq_data": ["exact"],
         "has_spatial_data": ["exact"],

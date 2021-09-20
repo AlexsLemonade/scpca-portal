@@ -27,7 +27,7 @@ def package_files_for_project(
     sample_to_file_mapping: dict,
     should_upload: bool,
 ):
-    zip_file_name = f"{project.pi_name}_project.zip"
+    zip_file_name = f"{project.scpca_id}.zip"
     project_zip = os.path.join(output_dir, zip_file_name)
     computed_file = ComputedFile(
         type="PROJECT_ZIP",
@@ -67,7 +67,7 @@ def get_sample_metadata_path(output_dir: str, scpca_sample_id: str):
 
 
 def get_project_metadata_path(output_dir: str, project: Project):
-    return os.path.join(output_dir, f"{project.pi_name}_libraries_metadata.csv")
+    return os.path.join(output_dir, f"{project.scpca_id}_libraries_metadata.csv")
 
 
 def package_files_for_sample(
@@ -146,7 +146,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
     sample_object = Sample(
         project=project,
         computed_file=computed_file,
-        scpca_sample_id=sample["scpca_sample_id"],
+        scpca_id=sample["scpca_sample_id"],
         technologies=sample["technologies"],
         diagnosis=sample["Diagnosis"],
         subdiagnosis=sample["Subdiagnosis"],
@@ -175,7 +175,7 @@ def combine_and_write_metadata(
     # Get all the field names to pass to the csv.DictWriter
     # First, get all the field names there are.
     field_names = set(libraries_metadata[0].keys()).union(set(samples_metadata[0].keys()))
-    field_names = field_names.union({"pi_name", "project_title"})
+    field_names = field_names.union({"scpca_project_id", "pi_name", "project_title"})
     # Sample metadata has these at the sample level, we want it at the
     # library level.
     field_names -= {"seq_units", "technologies"}
@@ -188,6 +188,7 @@ def combine_and_write_metadata(
         "Subdiagnosis",
         "seq_unit",
         "technology",
+        "scpca_project_id",
         "pi_name",
         "project_title",
         "Disease Timing",
@@ -211,6 +212,7 @@ def combine_and_write_metadata(
             sample_copy.pop("seq_units")
             sample_copy.pop("technologies")
             sample_copy["pi_name"] = project.pi_name
+            sample_copy["scpca_project_id"] = project.scpca_id
             sample_copy["project_title"] = project.title
 
             sample_metadata_path = get_sample_metadata_path(output_dir, sample["scpca_sample_id"])
@@ -229,14 +231,14 @@ def combine_and_write_metadata(
 
 def load_data_for_project(data_dir: str, output_dir: str, project: Project, should_upload: bool):
 
-    project_dir = f"{data_dir}{project.pi_name}/"
+    project_dir = f"{data_dir}{project.scpca_id}/"
 
     libraries_metadata = []
     try:
         with open(project_dir + "libraries_metadata.csv") as csvfile:
             libraries_metadata = [line for line in csv.DictReader(csvfile)]
     except botocore.exceptions.ClientError:
-        print(f"No libraries_metadata.csv found for project {project.pi_name}.")
+        print(f"No libraries_metadata.csv found for project {project.scpca_id}.")
         return
 
     samples_metadata = []
@@ -244,7 +246,7 @@ def load_data_for_project(data_dir: str, output_dir: str, project: Project, shou
         with open(project_dir + "samples_metadata.csv") as csvfile:
             samples_metadata = [line for line in csv.DictReader(csvfile)]
     except botocore.exceptions.ClientError:
-        print(f"No samples_metadata.csv found for project {project.pi_name}.")
+        print(f"No samples_metadata.csv found for project {project.scpca_id}.")
         return
 
     full_libraries_metadata = combine_and_write_metadata(
@@ -290,17 +292,19 @@ def load_data_from_s3(
     with open(project_input_metadata_path) as csvfile:
         projects = csv.DictReader(csvfile)
         for project in projects:
-            pi_name = project["PI Name"]
+            scpca_id = project["scpca_id"]
 
             if reload_existing:
                 # Purge existing projects so they can be readded.
-                existing_project = Project.objects.filter(pi_name=pi_name).first()
+                existing_project = Project.objects.filter(scpca_id=scpca_id).first()
 
                 if existing_project:
-                    purge_project(pi_name, should_upload)
+                    purge_project(scpca_id, should_upload)
 
             project, created = Project.objects.get_or_create(
-                pi_name=pi_name,
+                scpca_id=scpca_id,
+                pi_name=project["PI Name"],
+                human_readable_pi_name=project["human_readable_pi_name"],
                 title=project["Project Title"],
                 abstract=project["Abstract"],
                 contact=project["Project Contact"],
@@ -311,16 +315,16 @@ def load_data_from_s3(
                 # they should be purged and readded.
                 continue
 
-            if project.pi_name in os.listdir(data_dir):
-                print(f"Importing and loading data for project {project.pi_name}")
+            if project.scpca_id in os.listdir(data_dir):
+                print(f"Importing and loading data for project {project.scpca_id}")
                 created_samples = load_data_for_project(
                     data_dir, output_dir, project, should_upload
                 )
 
-                print(f"created {len(created_samples)} samples for project {project.pi_name}")
+                print(f"created {len(created_samples)} samples for project {project.scpca_id}")
             else:
                 print(
-                    f"Metadata found for project {project.pi_name} "
+                    f"Metadata found for project {project.scpca_id} "
                     f"but no s3 folder of that name exists."
                 )
 

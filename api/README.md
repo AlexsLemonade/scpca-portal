@@ -87,7 +87,7 @@ curl http://0.0.0.0:8000/v1/computed-files/1/ -H 'API-KEY: 658f859a-b9d0-4b44-be
 To populate your local database you can run:
 
 ```
-sportal manage-api load_data
+sportal load-data
 ```
 
 This will sync the `scpca-portal-inputs` bucket locally, read the metadata out of it, and load that into your local database.
@@ -96,27 +96,27 @@ To save time, by default it will not package up the actual data in that bucket a
 If you would like to update the data in the `scpca-local-data` bucket, you can do so with the following command:
 
 ```
-sportal manage-api load_data --upload True
+sportal load-data --upload True
 ```
 
 By default the command also will only look for new projects.
 If you would like to reimport all projects you can run
 
 ```
-sportal manage-api load_data --reload-existing
+sportal load-data --reload-existing
 ```
 
 or to reimport and upload all projects:
 
 ```
-sportal manage-api load_data --reload-existing --upload True
+sportal load-data --reload-existing --upload True
 ```
 
 If you would like to update a single project, you can do so by purging and then loading the data without reloading existing projects:
 
 ```
 sportal manage-api purge_project --pi-name dyer_chen
-sportal manage-api load_data
+sportal load-data
 ```
 
 If you would like to purge a project and remove its files from the S3 bucket, you can use:

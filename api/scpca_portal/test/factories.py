@@ -27,7 +27,9 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Project"
 
+    scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
     pi_name = "gawad"
+    human_readable_pi_name = "Gawad"
     title = "Single-Cell Profiling of Acute Myeloid Leukemia for High-Resolution Chemo-immunotherapy Target Discovery"
     abstract = """Despite enormous efforts to find better treatments
     for children with acute myeloid leukemia (AML), it remains one of
@@ -59,8 +61,8 @@ class SampleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Sample"
 
+    scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
     has_cite_seq_data = True
-    scpca_sample_id = "SCPCS000034"
     technologies = "10Xv3"
     diagnosis = "pilocytic astrocytoma"
     subdiagnosis = "NA"

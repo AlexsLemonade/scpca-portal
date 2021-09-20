@@ -4,13 +4,13 @@ from django.core.management.base import BaseCommand
 from scpca_portal.models import Project, ProjectSummary
 
 
-def purge_project(pi_name: str, delete_from_s3=False) -> None:
+def purge_project(scpca_id: str, delete_from_s3=False) -> None:
     """Deletes all projects with pi_name and their associated data.
     """
-    projects = Project.objects.filter(pi_name=pi_name)
+    projects = Project.objects.filter(scpca_id=scpca_id)
 
     if projects.count() == 0:
-        print(f"Project with PI named {pi_name} does not exist.")
+        print(f"Project with ScPCA ID {scpca_id} does not exist.")
         return
 
     for project in projects:
@@ -34,15 +34,15 @@ def purge_project(pi_name: str, delete_from_s3=False) -> None:
 
         project.delete()
 
-        print(f"Purged project with PI named {pi_name}")
+        print(f"Purged project with ScPCA ID {scpca_id}")
 
 
 class Command(BaseCommand):
-    help = """Deletes all projects with pi_name and their associated data."""
+    help = """Deletes all projects with scpca_id and their associated data."""
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--pi-name", help="The name of a PI whose project's data will be deleted."
+            "--scpca-id", help="The ScPCA ID for project whose data will be deleted."
         )
         parser.add_argument(
             "--delete-from-s3",
@@ -55,4 +55,4 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        purge_project(options["pi_name"], options["delete_from_s3"])
+        purge_project(options["scpca_id"], options["delete_from_s3"])

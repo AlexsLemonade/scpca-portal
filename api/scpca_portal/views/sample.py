@@ -14,12 +14,13 @@ class SampleDetailSerializer(SampleSerializer):
 class SampleViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Sample.objects.all().order_by("-created_at")
     ordering_fields = "__all__"
-    lookup_field = "scpca_sample_id"
+    lookup_field = "scpca_id"
+
     filterset_fields = (
-        "project__id",
-        "id",
+        "scpca_id",
+        "project__scpca_id",
+        "scpca_id",
         "has_cite_seq_data",
-        "scpca_sample_id",
         "technologies",
         "diagnosis",
         "subdiagnosis",
