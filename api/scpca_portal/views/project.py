@@ -18,7 +18,7 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     filterset_fields = {
         "scpca_id": ["exact"],
         "pi_name": ["exact"],
-        "human_readable_pi_name": ["contains"],
+        "human_readable_pi_name": ["icontains"],
         "has_bulk_rna_seq": ["exact"],
         "has_cite_seq_data": ["exact"],
         "has_spatial_data": ["exact"],
