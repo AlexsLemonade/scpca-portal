@@ -68,6 +68,7 @@ api/uploaded_files
 
 # Local Data
 api/data
+api/output
 
 # Flask stuff:
 instance/
