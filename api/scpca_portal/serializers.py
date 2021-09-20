@@ -3,7 +3,8 @@
 These serializers do not use nested relationships themselves, so that
 if a sample object links to a computed file and the computed file
 links to the sample, the JSON won't recur infinitely. For any
-relationships, these serializers will use PrimaryKeyRelatedFields.
+relationships, these serializers will use PrimaryKeyRelatedFields or
+SlugRelatedFields.
 
 The one exception is the ProjectSerializer because it will always include its summaries.
 """
@@ -28,8 +29,8 @@ class ComputedFileSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
-    project = serializers.PrimaryKeyRelatedField(read_only=True)
-    sample = serializers.PrimaryKeyRelatedField(read_only=True)
+    project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
+    sample = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
 
 
 class ProjectSummarySerializer(serializers.ModelSerializer):
@@ -48,11 +49,13 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = (
+            "scpca_id",
             "computed_file",
             "samples",
             "summaries",
-            "id",
             "pi_name",
+            "human_readable_pi_name",
+            "additional_metadata_keys",
             "title",
             "abstract",
             "contact",
@@ -75,22 +78,21 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
     computed_file = serializers.PrimaryKeyRelatedField(read_only=True)
-    samples = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
 
 
 class ProjectSerializer(ProjectLeafSerializer):
     computed_file = ComputedFileSerializer(read_only=True)
 
 
-class SampleSerializer(serializers.ModelSerializer):
+class SampleLeafSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
         fields = (
+            "scpca_id",
             "computed_file",
             "project",
-            "id",
             "has_cite_seq_data",
-            "scpca_sample_id",
             "technologies",
             "diagnosis",
             "subdiagnosis",
@@ -106,4 +108,8 @@ class SampleSerializer(serializers.ModelSerializer):
         )
 
     computed_file = serializers.PrimaryKeyRelatedField(read_only=True)
-    project = serializers.PrimaryKeyRelatedField(read_only=True)
+    project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
+
+
+class SampleSerializer(SampleLeafSerializer):
+    computed_file = ComputedFileSerializer(read_only=True)

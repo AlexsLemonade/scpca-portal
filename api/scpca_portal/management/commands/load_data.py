@@ -62,8 +62,8 @@ def package_files_for_project(
     return computed_file
 
 
-def get_sample_metadata_path(output_dir: str, scpca_sample_id: str):
-    return os.path.join(output_dir, f"{scpca_sample_id}_libraries_metadata.csv")
+def get_sample_metadata_path(output_dir: str, scpca_id: str):
+    return os.path.join(output_dir, f"{scpca_id}_libraries_metadata.csv")
 
 
 def get_project_metadata_path(output_dir: str, project: Project):
@@ -77,8 +77,8 @@ def package_files_for_sample(
     libraries_metadata: List[Dict],
     should_upload: bool,
 ):
-    sample_id = sample["scpca_sample_id"]
-    libraries = [lib for lib in libraries_metadata if lib["scpca_sample_id"] == sample_id]
+    sample_id = sample["scpca_id"]
+    libraries = [lib for lib in libraries_metadata if lib["scpca_id"] == sample_id]
 
     zip_file_name = f"{sample_id}.zip"
     sample_zip = os.path.join(output_dir, zip_file_name)
@@ -123,7 +123,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
     # This varies project by project, so whatever's not on
     # the Sample model is additional.
     sample_columns = [
-        "scpca_sample_id",
+        "scpca_id",
         "technologies",
         "Diagnosis",
         "Subdiagnosis",
@@ -146,7 +146,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
     sample_object = Sample(
         project=project,
         computed_file=computed_file,
-        scpca_sample_id=sample["scpca_sample_id"],
+        scpca_id=sample["scpca_id"],
         technologies=sample["technologies"],
         diagnosis=sample["Diagnosis"],
         subdiagnosis=sample["Subdiagnosis"],
@@ -182,7 +182,7 @@ def combine_and_write_metadata(
 
     # Then force the following ordering:
     ordered_field_names = [
-        "scpca_sample_id",
+        "scpca_id",
         "scpca_library_id",
         "Diagnosis",
         "Subdiagnosis",
@@ -213,12 +213,12 @@ def combine_and_write_metadata(
             sample_copy["pi_name"] = project.pi_name
             sample_copy["project_title"] = project.title
 
-            sample_metadata_path = get_sample_metadata_path(output_dir, sample["scpca_sample_id"])
+            sample_metadata_path = get_sample_metadata_path(output_dir, sample["scpca_id"])
             with open(sample_metadata_path, "w", newline="") as sample_file:
                 sample_writer = csv.DictWriter(sample_file, fieldnames=ordered_field_names)
                 sample_writer.writeheader()
                 for library in libraries_metadata:
-                    if library["scpca_sample_id"] == sample["scpca_sample_id"]:
+                    if library["scpca_id"] == sample["scpca_id"]:
                         library.update(sample_copy)
                         full_libraries_metadata.append(library)
                         project_writer.writerow(library)

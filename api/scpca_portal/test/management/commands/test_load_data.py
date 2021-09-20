@@ -41,7 +41,7 @@ class LoadDataTestCase(TestCase):
         self.assertEqual(Sample.objects.count(), 1)
         sample = project.samples.first()
         self.assertIsNotNone(sample.has_cite_seq_data)
-        self.assertIsNotNone(sample.scpca_sample_id)
+        self.assertIsNotNone(sample.scpca_id)
         self.assertIsNotNone(sample.technologies)
         self.assertIsNotNone(sample.diagnosis)
         self.assertIsNotNone(sample.subdiagnosis)
