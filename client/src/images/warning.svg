@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>icons/warning</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M0,24 L24,24 L12,0 L0,24 Z M13.2857143,20.3076923 L10.7142857,20.3076923 L10.7142857,17.5384615 L13.2857143,17.5384615 L13.2857143,20.3076923 Z M13.2857143,15.6923077 L10.7142857,15.6923077 L10.7142857,10.1538462 L13.2857143,10.1538462 L13.2857143,15.6923077 Z" id="path-1"></path>
+    </defs>
+    <g id="Guidelines" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icons-badges-variations" transform="translate(-623.000000, -234.000000)">
+            <g id="icons/warning" transform="translate(623.000000, 234.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="warning" fill="#000000" fill-rule="nonzero" xlink:href="#path-1"></use>
+                <g id="color/black-tint/0-000000" mask="url(#mask-2)" fill="#000000" fill-rule="evenodd">
+                    <rect id="gray-70-4A4A4A" x="0" y="0" width="24" height="24"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>icons/search</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M17.0943125,15.08575 L16.0005,15.08575 L15.5898125,14.742875 C16.88925,13.165875 17.7099375,11.177 17.7099375,8.9143125 C17.709875,3.977 13.7435,0 8.8209375,0 C3.96575,0 0,3.977 0,8.9143125 C0,13.851625 3.96575,17.8285625 8.8890625,17.8285625 C11.07725,17.8285625 13.1285,17.005625 14.701,15.7030625 L15.1110625,16.046 L15.1110625,17.1429375 L21.94875,24 L24,21.942875 L17.0943125,15.08575 Z M8.8890625,15.08575 C5.4701875,15.08575 2.735125,12.3428125 2.735125,8.9143125 C2.735125,5.4856875 5.4701875,2.7429375 8.8890625,2.7429375 C12.3078125,2.7429375 15.0429375,5.4856875 15.0429375,8.9143125 C15.0429375,12.3428125 12.3078125,15.08575 8.8890625,15.08575 Z" id="path-1"></path>
+    </defs>
+    <g id="Guidelines" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icons-badges-variations" transform="translate(-540.000000, -311.000000)">
+            <g id="icons/search" transform="translate(540.000000, 311.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="Shape" fill="#4A4A4A" fill-rule="nonzero" xlink:href="#path-1"></use>
+                <g id="color/black-tint/0-000000" mask="url(#mask-2)" fill="#000000" fill-rule="evenodd">
+                    <rect id="gray-70-4A4A4A" x="0" y="0" width="24" height="24"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
