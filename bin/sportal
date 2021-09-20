@@ -30,6 +30,7 @@ commands = {
     "graph-models": run_api.format("./manage.py graph_models scpca_portal > models.dot"),
     "run-api": run_api,
     "manage-api": run_api.format("./manage.py {}"),
+    "load-data": run_api.format("./manage.py load_data {}"),
     "run-black": run_api.format("black --line-length=100 --exclude=volumes_postgres ."),
     "env": "cat ./docker-compose.env",
 }
