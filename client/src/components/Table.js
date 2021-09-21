@@ -32,18 +32,44 @@ const TableBox = styled(Box)`
 `
 
 const StickyTable = styled(GrommetTable)`
+  position: relative;
   table-layout: auto;
-  left: 0;
+  border-collapse: separate;
+  border-spacing: 0;
 `
 
 const StickyTableCell = styled(TableCell)`
-  ${({ offset }) =>
+  ${({ offset, index }) =>
     typeof offset === 'number' &&
     css`
-      left: ${offset}px;
+      left: ${offset + 2}px;
       position: sticky;
       z-index: 2;
-      outline: 1px solid #ccc;
+      border-left: 1px solid #ccc;
+      box-sizing: border-box;
+      margin-right: ${index}px;
+      &:first-child {
+        left: 0;
+        &:after {
+          border-top: 1px solid #ccc;
+          content: '';
+          display: block;
+          z-index: 1;
+          background-color: #fff;
+          position: absolute;
+          top: 0;
+          right: -2px;
+          bottom: 0;
+          width: 2px;
+        }
+      }
+    `}
+  ${({ stickies, index }) =>
+    stickies - 1 === index &&
+    css`
+      border-right: 1px solid #ccc;
+      box-shadow: 1px 0 0 0 #ccc inset, 0 1px 0 0 #ccc inset,
+        3px 0px 6px 0 rgba(0, 0, 0, 0.1) !important;
     `}
 `
 
@@ -86,6 +112,8 @@ export const THead = ({
             <StickyTableCell
               scope="col"
               offset={offsets[index]}
+              stickies={stickies}
+              index={index}
               // eslint-disable-next-line react/jsx-props-no-spreading
               {...column.getHeaderProps(column.getSortByToggleProps())}
             >
@@ -137,8 +165,13 @@ export const TBody = ({
           // eslint-disable-next-line react/jsx-props-no-spreading
           <TableRow ref={ref} {...row.getRowProps()}>
             {row.cells.map((cell, index) => (
-              // eslint-disable-next-line react/jsx-props-no-spreading
-              <StickyTableCell offset={offsets[index]} {...cell.getCellProps()}>
+              <StickyTableCell
+                offset={offsets[index]}
+                stickies={stickies}
+                index={index}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...cell.getCellProps()}
+              >
                 {cell.render('Cell')}
               </StickyTableCell>
             ))}

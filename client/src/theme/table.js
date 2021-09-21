@@ -13,7 +13,7 @@ export default {
   },
   body: {
     pad: { horizontal: 'medium', vertical: 'small' },
-    border: 'all',
+    border: undefined,
     extend: `
       white-space: nowrap;
     `
@@ -25,12 +25,15 @@ export default {
     verticalAlign: 'bottom'
   },
   extend: `
-    background-clip: padding-box;
     th {
       white-space: nowrap;
     }
-    tr td {
+    tr {
+      box-shadow: 1px 0 0 0 #ccc, 0 1px 0 0 #ccc;
+    }
+    tr td, tr th {
       background-color: #fff;
+      box-shadow: 1px 0 0 0 #ccc inset, 0 1px 0 0 #ccc inset;
     }
     tr:nth-child(even) td {
       background-color: #f2f2f2;
