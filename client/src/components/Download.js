@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Text, FormField, TextInput, CheckBox } from 'grommet'
+import { Anchor, Box, Text, FormField, TextInput, CheckBox } from 'grommet'
 import { Button } from 'components/Button'
 import { Modal } from 'components/Modal'
 import { Link } from 'components/Link'
@@ -111,8 +111,8 @@ export const DownloadView = ({ computedFile }) => {
     ? 'Your download for the project should have started.'
     : 'Your download for the sample should have started.'
   const idText = project
-    ? `Project ID: ${project.id}`
-    : `Sample ID: ${sample.id}`
+    ? `Project ID: ${project.scpca_id}`
+    : `Sample ID: ${sample.scpca_id}`
   return (
     <Box>
       <Box
@@ -140,6 +140,10 @@ export const DownloadView = ({ computedFile }) => {
             <Link label="Click here" href={href} /> if your download has not
             started yet.
           </Text>
+          <Text italic color="black-tint-40" margin={{ top: 'medium' }}>
+            Please ensure that pop-ups are not blocked to enable automatic
+            downloads.
+          </Text>
         </Box>
         <Box pad={{ bottom: 'medium', horizontal: 'medium' }}>
           <DownloadSVG />
@@ -161,7 +165,7 @@ export const DownloadView = ({ computedFile }) => {
 }
 
 // Button and Modal to show when downloading
-export const Download = ({ computedFile: publicComputedFile }) => {
+export const Download = ({ Icon, computedFile: publicComputedFile }) => {
   const { token } = React.useContext(ScPCAPortalContext)
   const { id, project } = publicComputedFile
   const label = project ? 'Download Project' : 'Download Sample'
@@ -183,6 +187,8 @@ export const Download = ({ computedFile: publicComputedFile }) => {
         // try to open download
         window.open(downloadRequest.response.download_url)
         setDownload(downloadRequest.response)
+      } else {
+        console.error('clear the token and go back to that view')
       }
     }
 
@@ -190,13 +196,17 @@ export const Download = ({ computedFile: publicComputedFile }) => {
   }, [download, token, showing])
   return (
     <>
-      <Button
-        flex="grow"
-        primary
-        label={label}
-        disabled={!publicComputedFile}
-        onClick={handleClick}
-      />
+      {Icon ? (
+        <Anchor icon={Icon} onClick={handleClick} />
+      ) : (
+        <Button
+          flex="grow"
+          primary
+          label={label}
+          disabled={!publicComputedFile}
+          onClick={handleClick}
+        />
+      )}
       <Modal showing={showing} setShowing={setShowing} title={label}>
         <Box width="medium">
           {download ? <DownloadView computedFile={download} /> : <TokenView />}
