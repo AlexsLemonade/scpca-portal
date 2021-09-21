@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from rest_framework import serializers, viewsets
+from rest_framework.exceptions import PermissionDenied
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -64,8 +65,13 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         """
         serializer_context = super(ComputedFileViewSet, self).get_serializer_context()
         token_id = self.request.META.get("HTTP_API_KEY", None)
-        try:
-            token = APIToken.objects.get(id=token_id, is_activated=True)
-            return {**serializer_context, "token": token}
-        except (APIToken.DoesNotExist, ValidationError):
+        if token_id:
+            try:
+                token = APIToken.objects.get(id=token_id, is_activated=True)
+                return {**serializer_context, "token": token}
+            except (APIToken.DoesNotExist, ValidationError):
+                raise PermissionDenied(
+                    {"message": "Your token is not valid or activated.", "token_id": token_id}
+                )
+        else:
             return serializer_context
