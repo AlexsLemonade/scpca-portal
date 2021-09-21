@@ -4,6 +4,7 @@ import { Table } from 'components/Table'
 import formatBytes from 'helpers/formatBytes'
 import api from 'api'
 import { Download as DownloadIcon } from 'grommet-icons'
+import { Download } from 'components/Download'
 
 export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
   const [samples, setSamples] = React.useState(defaultSamples)
@@ -12,16 +13,19 @@ export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
   const columns = [
     {
       Header: 'Download',
-      accessor: () => formatBytes(33343245),
-      Cell: () => (
-        <Box direction="row" gap="medium" align="center">
-          <DownloadIcon color="brand" />
-          <Text>{formatBytes(33343245)}</Text>
+      accessor: () => 'computed_file',
+      Cell: ({ row }) => (
+        <Box direction="row" gap="small" align="center">
+          <Download
+            Icon={<DownloadIcon color="brand" />}
+            computedFile={row.original.computed_file}
+          />
+          <Text>{formatBytes(row.original.computed_file.size_in_bytes)}</Text>
         </Box>
       ),
       disableSortBy: true
     },
-    { Header: 'Sample ID', accessor: 'id' },
+    { Header: 'Sample ID', accessor: 'scpca_id' },
     {
       Header: 'Diagnosis - Subdiagnosis',
       accessor: ({ diagnosis, subdiagnosis }) => `${diagnosis} ${subdiagnosis}`,
