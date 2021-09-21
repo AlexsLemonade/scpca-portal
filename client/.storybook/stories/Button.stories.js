@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box } from 'grommet'
-import Component from 'components/Button'
+import { Button } from 'components/Button'
 
 const types = [
   { label: 'Default Button' },
@@ -10,14 +10,14 @@ const types = [
 
 export default {
   title: 'Components/Button',
-  component: Component,
+  component: Button,
   args: { types }
 }
 
 export const Default = (args) => (
-  <Box pad="xlarge" gap="medium">
+  <Box pad="xlarge" gap="medium" direction="row">
     {args.types.map((t) => (
-      <Component key={t.label} {...t} />
+      <Button key={t.label} {...t} />
     ))}
   </Box>
 )

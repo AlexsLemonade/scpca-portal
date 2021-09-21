@@ -1,16 +1,15 @@
 import React from 'react'
-import Component from 'components/Modal'
+import { Modal } from 'components/Modal'
 import { Button } from 'components/Button'
 
 export default {
-  title: 'Components/Modal',
-  component: Component
+  title: 'Components/Modal'
 }
 
 export const Default = () => (
-  <Component showing title="Test Modal">
+  <Modal showing title="Test Modal">
     Test content
-  </Component>
+  </Modal>
 )
 
 export const WithButton = () => {
@@ -18,9 +17,9 @@ export const WithButton = () => {
   return (
     <>
       <Button label="Open Modal" onClick={() => setShowing(true)} />
-      <Component showing={showing} setShowing={setShowing} title="Test Modal">
+      <Modal showing={showing} setShowing={setShowing} title="Test Modal">
         Test content
-      </Component>
+      </Modal>
     </>
   )
 }

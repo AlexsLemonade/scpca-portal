@@ -1,9 +1,8 @@
 import React from 'react'
-import Component from 'components/Header'
+import { Header } from 'components/Header'
 
 export default {
-  title: 'Components/Header',
-  component: Component
+  title: 'Components/Header'
 }
 
-export const Default = (args) => <Component />
+export const Default = (args) => <Header />

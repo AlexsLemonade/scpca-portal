@@ -1,11 +1,10 @@
 import React from 'react'
-import { ProjectSamplesTable as Component } from 'components/ProjectSamplesTable'
+import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import samples from '../data/samples'
 
 export default {
   title: 'Components/ProjectSamplesTable',
-  component: Component,
   args: { samples }
 }
 
-export const Default = (args) => <Component samples={args.samples} />
+export const Default = (args) => <ProjectSamplesTable samples={args.samples} />
