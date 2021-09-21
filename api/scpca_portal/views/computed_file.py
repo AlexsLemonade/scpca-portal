@@ -71,7 +71,7 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 return {**serializer_context, "token": token}
             except (APIToken.DoesNotExist, ValidationError):
                 raise PermissionDenied(
-                    {"message": "Your token is not valid or activated.", "token_id": token_id}
+                    {"message": "Your token is not valid or not activated.", "token_id": token_id}
                 )
         else:
             return serializer_context
