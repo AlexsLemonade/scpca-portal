@@ -1,6 +1,7 @@
 export const readableNames = {
   abstract: 'Abstract',
   pi_name: 'Primary Investigator',
+  human_readable_pi_name: 'Primary Investigator',
   computed_file: 'File',
   samples: 'Samples',
   summaries: 'Summaries',
