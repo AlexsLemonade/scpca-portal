@@ -1,10 +1,12 @@
 export default [
   {
+    scpca_id: 'SCPCP00008',
     computed_file: null,
     samples: [],
     summaries: [],
-    id: 8,
     pi_name: 'teachey_tan',
+    human_readable_pi_name: 'Teachey and Tan',
+    additional_metadata_keys: null,
     title:
       'Single Cell Profiling of Early T cell Precursor Acute Lymphoblastic Leukemia',
     abstract: '',
@@ -19,15 +21,17 @@ export default [
     seq_units: null,
     technologies: null,
     sample_count: 0,
-    created_at: '2021-09-10T20:02:07.432925Z',
-    updated_at: '2021-09-10T20:02:07.432958Z'
+    created_at: '2021-09-20T22:05:52.900240Z',
+    updated_at: '2021-09-20T22:05:52.900339Z'
   },
   {
+    scpca_id: 'SCPCP00007',
     computed_file: null,
     samples: [],
     summaries: [],
-    id: 7,
     pi_name: 'murphy_chen',
+    human_readable_pi_name: 'Murphy and Chen',
+    additional_metadata_keys: null,
     title:
       'Single Nuclear RNA-seq and Spatial Transcriptomic Analysis of Anaplastic and Favorable Histology Wilms Tumor',
     abstract: '',
@@ -42,15 +46,17 @@ export default [
     seq_units: null,
     technologies: null,
     sample_count: 0,
-    created_at: '2021-09-10T20:02:07.427248Z',
-    updated_at: '2021-09-10T20:02:07.427288Z'
+    created_at: '2021-09-20T22:05:52.892454Z',
+    updated_at: '2021-09-20T22:05:52.892485Z'
   },
   {
+    scpca_id: 'SCPCP00006',
     computed_file: null,
     samples: [],
     summaries: [],
-    id: 6,
     pi_name: 'mullighan',
+    human_readable_pi_name: 'Mullighan',
+    additional_metadata_keys: null,
     title: 'Single-cell sequencing of acute lymphoblastomic leukemia',
     abstract: '',
     contact: '',
@@ -64,19 +70,21 @@ export default [
     seq_units: null,
     technologies: null,
     sample_count: 0,
-    created_at: '2021-09-10T20:02:07.420160Z',
-    updated_at: '2021-09-10T20:02:07.420192Z'
+    created_at: '2021-09-20T22:05:52.882628Z',
+    updated_at: '2021-09-20T22:05:52.882657Z'
   },
   {
+    scpca_id: 'SCPCP00005',
     computed_file: null,
     samples: [],
     summaries: [],
-    id: 5,
-    pi_name: 'green_mulcahy_levy',
-    title:
+    pi_name: ' Mulcahy',
+    human_readable_pi_name: 'Green',
+    additional_metadata_keys: null,
+    title: ' and Levy',
+    abstract: 'green_mulcahy_levy',
+    contact:
       'Single Cell RNA Sequencing of Pediatric High- and Low-Grade Gliomas',
-    abstract: '',
-    contact: '',
     has_bulk_rna_seq: false,
     has_cite_seq_data: false,
     has_spatial_data: false,
@@ -87,15 +95,17 @@ export default [
     seq_units: null,
     technologies: null,
     sample_count: 0,
-    created_at: '2021-09-10T20:02:07.414330Z',
-    updated_at: '2021-09-10T20:02:07.414361Z'
+    created_at: '2021-09-20T22:05:52.875837Z',
+    updated_at: '2021-09-20T22:05:52.875865Z'
   },
   {
+    scpca_id: 'SCPCP00004',
     computed_file: null,
     samples: [],
     summaries: [],
-    id: 4,
     pi_name: 'gawad',
+    human_readable_pi_name: 'Gawad',
+    additional_metadata_keys: null,
     title:
       'Single-Cell Profiling of Acute Myeloid Leukemia for High-Resolution Chemo-immunotherapy Target Discovery',
     abstract: '',
@@ -110,33 +120,35 @@ export default [
     seq_units: null,
     technologies: null,
     sample_count: 0,
-    created_at: '2021-09-10T20:02:07.408555Z',
-    updated_at: '2021-09-10T20:02:07.408584Z'
+    created_at: '2021-09-20T22:05:52.865810Z',
+    updated_at: '2021-09-20T22:05:52.865834Z'
   },
   {
+    scpca_id: 'SCPCP00003',
     computed_file: {
-      project: 3,
+      project: 'SCPCP00003',
       sample: null,
       id: 2,
       type: 'PROJECT_ZIP',
       s3_bucket: 'scpca-local-data',
-      s3_key: 'dyer_chen_project.zip',
-      size_in_bytes: 7183834,
-      created_at: '2021-09-10T20:02:07.401145Z',
-      updated_at: '2021-09-10T20:02:07.401179Z'
+      s3_key: 'SCPCP00003.zip',
+      size_in_bytes: 7183873,
+      created_at: '2021-09-20T22:05:52.857602Z',
+      updated_at: '2021-09-20T22:05:52.857634Z'
     },
-    samples: [1],
+    samples: ['SCPCS000109'],
     summaries: [
       {
         diagnosis: 'Neuroblastoma',
         seq_unit: 'cell',
         technology: '10Xv3',
         sample_count: 1,
-        updated_at: '2021-09-10T20:02:07.360550Z'
+        updated_at: '2021-09-20T22:05:52.825288Z'
       }
     ],
-    id: 3,
     pi_name: 'dyer_chen',
+    human_readable_pi_name: 'Dyer and Chen',
+    additional_metadata_keys: 'Treatment, Primary Site, COG Risk, IGSS Stage',
     title:
       'Profiling the transcriptional heterogeneity of diverse pediatric solid tumors',
     abstract: '',
@@ -147,19 +159,21 @@ export default [
     modalities: '',
     disease_timings: 'Initial Diagnosis',
     diagnoses: 'Neuroblastoma',
-    diagnoses_counts: "{'Neuroblastoma'} (1)",
+    diagnoses_counts: 'Neuroblastoma (1)',
     seq_units: 'cell',
     technologies: '10Xv3',
     sample_count: 1,
-    created_at: '2021-09-10T20:02:07.056461Z',
-    updated_at: '2021-09-10T20:02:07.403030Z'
+    created_at: '2021-09-20T22:05:52.421147Z',
+    updated_at: '2021-09-20T22:05:52.859615Z'
   },
   {
+    scpca_id: 'SCPCP00002',
     computed_file: null,
     samples: [],
     summaries: [],
-    id: 2,
     pi_name: 'collins',
+    human_readable_pi_name: 'Collins',
+    additional_metadata_keys: null,
     title: 'A Single Cell Atlas of Pediatric Sarcoma',
     abstract: '',
     contact: '',
@@ -173,15 +187,17 @@ export default [
     seq_units: null,
     technologies: null,
     sample_count: 0,
-    created_at: '2021-09-10T20:02:07.049911Z',
-    updated_at: '2021-09-10T20:02:07.049933Z'
+    created_at: '2021-09-20T22:05:52.411432Z',
+    updated_at: '2021-09-20T22:05:52.411462Z'
   },
   {
+    scpca_id: 'SCPCP00001',
     computed_file: null,
     samples: [],
     summaries: [],
-    id: 1,
     pi_name: 'christensen',
+    human_readable_pi_name: 'Christensen',
+    additional_metadata_keys: null,
     title:
       'Single-cell gene expression and cytosine modification profiling in pediatric central nervous system tumors',
     abstract: '',
@@ -196,7 +212,7 @@ export default [
     seq_units: null,
     technologies: null,
     sample_count: 0,
-    created_at: '2021-09-10T20:02:07.029892Z',
-    updated_at: '2021-09-10T20:02:07.029942Z'
+    created_at: '2021-09-20T22:05:52.393576Z',
+    updated_at: '2021-09-20T22:05:52.393616Z'
   }
 ]

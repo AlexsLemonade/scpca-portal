@@ -1,22 +1,32 @@
 export default {
+  scpca_id: 'SCPCP00003',
   computed_file: {
-    project: 3,
+    project: 'SCPCP00003',
     sample: null,
     id: 2,
     type: 'PROJECT_ZIP',
     s3_bucket: 'scpca-local-data',
-    s3_key: 'dyer_chen_project.zip',
-    size_in_bytes: 7183834,
-    created_at: '2021-09-10T20:02:07.401145Z',
-    updated_at: '2021-09-10T20:02:07.401179Z'
+    s3_key: 'SCPCP00003.zip',
+    size_in_bytes: 7183873,
+    created_at: '2021-09-20T22:05:52.857602Z',
+    updated_at: '2021-09-20T22:05:52.857634Z'
   },
   samples: [
     {
-      computed_file: 1,
-      project: 3,
-      id: 1,
+      scpca_id: 'SCPCS000109',
+      computed_file: {
+        project: null,
+        sample: 'SCPCS000109',
+        id: 1,
+        type: 'SAMPLE_ZIP',
+        s3_bucket: 'scpca-local-data',
+        s3_key: 'SCPCS000109.zip',
+        size_in_bytes: 7183777,
+        created_at: '2021-09-20T22:05:52.778949Z',
+        updated_at: '2021-09-20T22:05:52.778993Z'
+      },
+      project: 'SCPCP00003',
       has_cite_seq_data: false,
-      scpca_sample_id: 'SCPCS000109',
       technologies: '10Xv3',
       diagnosis: 'Neuroblastoma',
       subdiagnosis: 'MYCN non-amplified',
@@ -32,8 +42,8 @@ export default {
         'IGSS Stage': '4',
         'Primary Site': 'Adrenal'
       },
-      created_at: '2021-09-10T20:02:07.315349Z',
-      updated_at: '2021-09-10T20:02:07.315377Z'
+      created_at: '2021-09-20T22:05:52.788597Z',
+      updated_at: '2021-09-20T22:05:52.788630Z'
     }
   ],
   summaries: [
@@ -42,11 +52,12 @@ export default {
       seq_unit: 'cell',
       technology: '10Xv3',
       sample_count: 1,
-      updated_at: '2021-09-10T20:02:07.360550Z'
+      updated_at: '2021-09-20T22:05:52.825288Z'
     }
   ],
-  id: 3,
   pi_name: 'dyer_chen',
+  human_readable_pi_name: 'Dyer and Chen',
+  additional_metadata_keys: 'Treatment, Primary Site, COG Risk, IGSS Stage',
   title:
     'Profiling the transcriptional heterogeneity of diverse pediatric solid tumors',
   abstract: '',
@@ -57,10 +68,10 @@ export default {
   modalities: '',
   disease_timings: 'Initial Diagnosis',
   diagnoses: 'Neuroblastoma',
-  diagnoses_counts: "{'Neuroblastoma'} (1)",
+  diagnoses_counts: 'Neuroblastoma (1)',
   seq_units: 'cell',
   technologies: '10Xv3',
   sample_count: 1,
-  created_at: '2021-09-10T20:02:07.056461Z',
-  updated_at: '2021-09-10T20:02:07.403030Z'
+  created_at: '2021-09-20T22:05:52.421147Z',
+  updated_at: '2021-09-20T22:05:52.859615Z'
 }
