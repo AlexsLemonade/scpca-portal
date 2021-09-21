@@ -62,6 +62,11 @@ class ComputedFilesTestCase(APITestCase):
 
         self.assertIsNotNone("download_url", response.json())
 
+    def test_get_with_bad_token(self):
+        url = reverse("computed-files-detail", args=[self.computed_file.id])
+        response = self.client.get(url, HTTP_API_KEY="bad token")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_get_list(self):
         response = self.client.get(reverse("computed-files-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
