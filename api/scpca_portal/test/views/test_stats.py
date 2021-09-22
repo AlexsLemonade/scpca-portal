@@ -32,8 +32,8 @@ class StatsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
-        self.assertEqual(response_json["projects"], 3)
-        self.assertEqual(response_json["samples"], 4)
+        self.assertEqual(response_json["projects_count"], 3)
+        self.assertEqual(response_json["samples_count"], 4)
         self.assertEqual(response_json["cancer_types"], ["different", "pilocytic astrocytoma"])
         self.assertEqual(response_json["cancer_types_count"], 2)
-        self.assertEqual(response_json["labs"], 2)
+        self.assertEqual(response_json["labs_count"], 2)
