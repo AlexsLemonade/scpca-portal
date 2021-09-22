@@ -11,13 +11,17 @@ const parseRequestResponse = async (response) => {
 // browser/server safe request api with standard pre-parsed responses
 export default async (
   url,
-  { headers = {}, authorization, ...options } = {}
+  {
+    headers = { 'content-type': 'application/json' },
+    authorization,
+    ...options
+  } = {}
 ) => {
   const config = { headers, ...options }
 
   // add authorization token to headers
   if (authorization) {
-    config.headers.Authorization = `Token ${authorization}`
+    config.headers['api-key'] = authorization
   }
 
   try {

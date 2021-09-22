@@ -1,15 +1,19 @@
-import anchor from './anchor'
-import buttons from './buttons'
-import checkBox from './checkBox'
-import global from './global'
-import heading from './heading'
-import icon from './icon'
-import layer from './layer'
-import paragraph from './paragraph'
-import radioButton from './radioButton'
-import select from './select'
-import text from './text'
-import textInput from './textInput'
+import anchor from 'theme/anchor'
+import button from 'theme/button'
+import checkBox from 'theme/checkBox'
+import global from 'theme/global'
+import heading from 'theme/heading'
+import icon from 'theme/icon'
+import layer from 'theme/layer'
+import paragraph from 'theme/paragraph'
+import radioButton from 'theme/radioButton'
+import select from 'theme/select'
+import text from 'theme/text'
+import textInput from 'theme/textInput'
+import tab from 'theme/tab'
+import tabs from 'theme/tabs'
+import formField from 'theme/formField'
+import table from 'theme/table'
 
 export default {
   rounding: 4,
@@ -17,7 +21,7 @@ export default {
   spacing: 16,
   name: 'ScPCA-portal',
   anchor,
-  buttons,
+  button,
   checkBox,
   global,
   heading,
@@ -27,5 +31,9 @@ export default {
   radioButton,
   select,
   text,
-  textInput
+  textInput,
+  tab,
+  tabs,
+  formField,
+  table
 }

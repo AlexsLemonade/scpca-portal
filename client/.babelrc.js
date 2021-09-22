@@ -1,35 +1,42 @@
 module.exports = {
-  presets: ["next/babel"],
+  presets: ['next/babel'],
   plugins: [
     [
-      "inline-react-svg",
+      'inline-react-svg',
       {
         svgo: {
           plugins: [
-            "convertTransform",
-            "removeUselessStrokeAndFill",
-            "removeEditorsNSData",
+            'cleanupAttrs',
+            'removeXMLProcInst',
+            'convertTransform',
+            'convertPathData',
+            'convertStyleToAttrs',
+            'removeUselessStrokeAndFill',
+            'removeEditorsNSData',
+            'removeEmptyContainers',
+            'mergePaths',
+            'collapseGroups',
             {
-              cleanupIDs: {
+              name: 'cleanupIDs',
+              params: {
                 prefix: {
                   toString() {
-                    return `${Math.random().toString(36).substr(2, 9)}`;
-                  },
-                },
-              },
-              convertTransform: false,
-            },
-          ],
-        },
-      },
+                    return `${Math.random().toString(36).substr(2, 9)}`
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
     ],
     [
-      "styled-components",
+      'styled-components',
       {
         ssr: true,
         displayName: true,
-        preprocess: false,
-      },
-    ],
-  ],
-};
+        preprocess: false
+      }
+    ]
+  ]
+}

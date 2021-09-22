@@ -118,7 +118,7 @@ export default {
     },
     border: {
       dark: '#444444',
-      light: 'black-tint-80'
+      light: '#cccccc'
     },
     brand: {
       dark: 'alexs-deep-blue',
