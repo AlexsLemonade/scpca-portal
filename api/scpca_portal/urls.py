@@ -14,6 +14,7 @@ from scpca_portal.views import (
     ProjectViewSet,
     SampleViewSet,
     project_filter_options_view,
+    stats_view,
 )
 
 schema_view = get_schema_view(
@@ -65,6 +66,7 @@ urlpatterns = [
                     r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema_redoc"
                 ),
                 path("options/projects/", project_filter_options_view, name="project-options",),
+                path("stats/", stats_view, name="stats"),
             ]
         ),
     ),

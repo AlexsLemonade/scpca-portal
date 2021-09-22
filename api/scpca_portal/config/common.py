@@ -56,6 +56,17 @@ class Common(Configuration):
         )
     }
 
+    # Caching: for now we're only caching a single record and its not
+    # even intense to compute so the locally memory cache is
+    # sufficient and memcache would be overkill.
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",
+            "TIMEOUT": None,
+        }
+    }
+
     # General
     APPEND_SLASH = True
     TIME_ZONE = "UTC"

@@ -97,8 +97,6 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
         modalities.append("CITE-seq")
     if has_spatial_data:
         modalities.append("Spatial Data")
-    if project.has_bulk_rna_seq:
-        modalities.append("Bulk RNA-seq")
 
     project.additional_metadata_keys = ", ".join(list(additional_metadata_keys))
     project.modalities = ", ".join(list(modalities))
