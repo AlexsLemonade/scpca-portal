@@ -8,3 +8,7 @@ export default {
 }
 
 export const Default = (args) => <ProjectSamplesTable samples={args.samples} />
+
+export const OnePage = (args) => (
+  <ProjectSamplesTable samples={args.samples.slice(0, 10)} />
+)
