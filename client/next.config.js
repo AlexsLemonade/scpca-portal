@@ -15,8 +15,6 @@ module.exports = () => {
     SENTRY_ENV: process.env.STAGE_SENTRY_ENV
   }
 
-  console.log(stageEnv)
-
   const env = isProduction ? productionEnv : stageEnv
 
   return {
