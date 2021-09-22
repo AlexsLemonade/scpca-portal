@@ -4,7 +4,7 @@ from rest_framework.test import APITestCase
 
 from faker import Faker
 
-from scpca_portal.test.factories import ProjectFactory, SampleFactory
+from scpca_portal.test.factories import LeafProjectFactory, ProjectFactory, SampleFactory
 
 fake = Faker()
 
@@ -23,12 +23,16 @@ class FilterOptionsTestCase(APITestCase):
             diagnosis="different",
         )
 
+        # Create an Project with no Samples:
+        LeafProjectFactory()
+
     def test_get(self):
         url = reverse("project-options")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
-        self.assertEqual(len(response_json["diagnoses"]), 2)
+
+        self.assertEqual(len(response_json["diagnoses"]), 4)
         self.assertEqual(len(response_json["seq_units"]), 2)
-        self.assertEqual(len(response_json["technologies"]), 3)
+        self.assertEqual(len(response_json["technologies"]), 5)
