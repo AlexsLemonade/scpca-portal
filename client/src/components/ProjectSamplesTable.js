@@ -67,5 +67,7 @@ export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
   })
 
   if (!loaded) return 'Loading...'
-  return <Table filter columns={columns} data={samples} stickies={3} />
+  return (
+    <Table filter columns={columns} data={samples} stickies={3} pageSize={10} />
+  )
 }
