@@ -10,10 +10,10 @@ from scpca_portal.models import Project, Sample
 def stats_view(request):
     cancer_types_queryset = Sample.objects.order_by().values_list("diagnosis", flat=True).distinct()
     response_dict = {
-        "projects": Project.objects.count(),
-        "samples": Sample.objects.count(),
+        "projects_count: Project.objects.count(),
+        "samples_count": Sample.objects.count(),
         "cancer_types": list(cancer_types_queryset),
         "cancer_types_count": cancer_types_queryset.count(),
-        "labs": Project.objects.values("pi_name").distinct().count(),
+        "labs_count": Project.objects.values("pi_name").distinct().count(),
     }
     return Response(response_dict)
