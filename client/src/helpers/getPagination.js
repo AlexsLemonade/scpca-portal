@@ -21,5 +21,5 @@ export const indexToPage = (index) => {
 }
 
 export const countToLastOffset = (count, limit) => {
-  return Math.floor(count / limit) * limit
+  return Math.ceil(count / limit) * limit - limit
 }
