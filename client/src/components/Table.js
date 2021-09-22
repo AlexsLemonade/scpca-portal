@@ -198,7 +198,7 @@ export const Table = ({
   Head = THead,
   Body = TBody,
   filter = false,
-  pageSize = 10,
+  pageSize = 0,
   infoText
 }) => {
   const globalFilter = 'fuzzyText'
