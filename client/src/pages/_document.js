@@ -1,4 +1,4 @@
-import Document, { Head, Main, NextScript } from 'next/document'
+import Document, { Html, Head, Main, NextScript } from 'next/document'
 import React from 'react'
 import { ServerStyleSheet } from 'styled-components'
 
@@ -16,7 +16,7 @@ export default class MyDocument extends Document {
 
   render() {
     return (
-      <html lang="en-US">
+      <Html>
         <Head>
           <link rel="icon" href="/favicon.svg" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -53,7 +53,7 @@ export default class MyDocument extends Document {
           <Main />
           <NextScript />
         </body>
-      </html>
+      </Html>
     )
   }
 }
