@@ -25,6 +25,9 @@ export default {
     verticalAlign: 'bottom'
   },
   extend: `
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+
     th {
       white-space: nowrap;
     }
@@ -34,6 +37,13 @@ export default {
     tr td, tr th {
       background-color: #fff;
       box-shadow: 1px 0 0 0 #ccc inset, 0 1px 0 0 #ccc inset;
+    }
+    tr th {
+      box-shadow: 1px 0 0 0 #ccc inset,
+                  0 1px 0 0 #ccc inset,
+                  0.5px 0 0 0 #999999,
+                  0 3px 6px 0 rgba(0,0,0,0.16);
+
     }
     tr:nth-child(even) td {
       background-color: #f2f2f2;
