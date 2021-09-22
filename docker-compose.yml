@@ -35,10 +35,10 @@ services:
       - '${STORYBOOK_PORT}:${STORYBOOK_PORT}'
       - '${CLIENT_PORT}:${CLIENT_PORT}'
     environment:
-      STAGE_API_VERSION: '${API_VERSION}'
+      STAGE_API_VERSION: '${STAGE_API_VERSION}'
       STAGE_API_HOST: 'http://localhost:${API_PORT}'
-      STAGE_SENTRY_DSN: '${SENTRY_DSN}'
-      STAGE_SENTRY_ENV: '${SENTRY_ENV}'
+      STAGE_SENTRY_DSN: '${STAGE_SENTRY_DSN}'
+      STAGE_SENTRY_ENV: '${STAGE_SENTRY_ENV}'
       STORYBOOK_PORT: '${STORYBOOK_PORT}'
 
     command: >
