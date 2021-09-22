@@ -6,7 +6,7 @@ export default {
   title: 'Components/ProjectSamplesSummaryTable',
   args: { project }
 }
-console.log(project)
+
 export const Default = (args) => (
   <ProjectSamplesSummaryTable summaries={args.project.summaries} />
 )
