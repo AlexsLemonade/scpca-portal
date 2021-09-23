@@ -4,6 +4,7 @@ import { Grommet } from 'grommet'
 import theme from 'theme'
 import { Layout } from 'components/Layout'
 import { Reset } from 'styles/Reset'
+import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
 import Error from './_error'
 
 const Fallback = (sentry) => {
@@ -21,12 +22,14 @@ const Portal = ({ Component, pageProps }) => {
     <>
       <Reset />
       <Grommet theme={theme}>
-        <Sentry.ErrorBoundary fallback={Fallback} showDialog>
-          <Layout>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            <Component {...pageProps} />
-          </Layout>
-        </Sentry.ErrorBoundary>
+        <ScPCAPortalContextProvider>
+          <Sentry.ErrorBoundary fallback={Fallback} showDialog>
+            <Layout>
+              {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+              <Component {...pageProps} />
+            </Layout>
+          </Sentry.ErrorBoundary>
+        </ScPCAPortalContextProvider>
       </Grommet>
     </>
   )
