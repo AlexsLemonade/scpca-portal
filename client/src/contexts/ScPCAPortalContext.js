@@ -8,9 +8,13 @@ export const ScPCAPortalContext = React.createContext({})
 export const ScPCAPortalContextProvider = ({ children }) => {
   const [email, setEmail] = useLocalStorage('scpca-token-email')
   const [token, setToken] = useLocalStorage('scpca-api-token', false)
-  const [acceptsTerms, setAcceptsTerms] = useLocalStorage('scpca-api-terms')
+  const [acceptsTerms, setAcceptsTerms] = useLocalStorage(
+    'scpca-api-terms',
+    false
+  )
   const [wantsEmails, setWantsEmails] = useLocalStorage(
-    'scpca-api-wants-emails'
+    'scpca-api-wants-emails',
+    false
   )
   // const [signedUpForEmails, setSignedUpForEmails] = useLocalStorage(
   //  'scpca-api-token'

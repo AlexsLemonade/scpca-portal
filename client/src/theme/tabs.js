@@ -11,7 +11,11 @@ export default {
       padding: 0 16px;
 
       button {
-        transform: translate(0, 1px)
+        transform: translate(0, 1px);
+        span {
+          font-size: 21px;
+          line-height: 32px;
+        }
       }
 
       button:hover {

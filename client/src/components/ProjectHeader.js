@@ -6,6 +6,16 @@ import { Link } from 'components/Link'
 import { Download } from 'components/Download'
 import { getReadable } from 'helpers/getReadable'
 import formatBytes from 'helpers/formatBytes'
+import capitalize from 'helpers/capitalize'
+import styled, { css } from 'styled-components'
+
+const HeaderBadge = styled(Badge)`
+  ${({ label }) =>
+    label === '' &&
+    css`
+      visibility: hidden;
+    `}
+`
 
 export const ProjectHeader = ({ project, linked = false }) => {
   return (
@@ -37,10 +47,13 @@ export const ProjectHeader = ({ project, linked = false }) => {
         </Box>
       </Box>
       <Box direction="row" justify="between">
-        <Badge badge="Samples" label={`${project.sample_count} Samples`} />
-        <Badge badge="SeqUnit" label={project.seq_units} />
-        <Badge badge="Kit" label={project.technologies} />
-        <Badge badge="Modality" label={project.modalities} />
+        <HeaderBadge
+          badge="Samples"
+          label={`${project.sample_count} Samples`}
+        />
+        <HeaderBadge badge="SeqUnit" label={capitalize(project.seq_units)} />
+        <HeaderBadge badge="Kit" label={project.technologies} />
+        <HeaderBadge badge="Modality" label={project.modalities} />
       </Box>
     </Box>
   )

@@ -12,10 +12,10 @@ const badges = {
   Samples
 }
 
-export const Badge = ({ badge, label }) => {
+export const Badge = ({ badge, label, className }) => {
   const BadgeSVG = badges[badge]
   return (
-    <Box direction="row" align="center">
+    <Box direction="row" align="center" className={className}>
       <BadgeSVG />
       <Paragraph margin={{ left: 'small' }}>{label}</Paragraph>
     </Box>

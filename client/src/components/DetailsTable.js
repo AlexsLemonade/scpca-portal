@@ -22,11 +22,27 @@ const DetailsTableDetail = ({ datum, emptyString = 'Not Specified' }) => {
   return <Text>{value}</Text>
 }
 
+const DetailsTableTable = styled(Table)`
+  border: none;
+`
+
 const DetailsTableBody = styled(TableBody)`
+  border: none;
+
   > tr > td:first-child {
     width: 150px;
   }
-  > tr:nth-child(2n + 1) {
+
+  > tr,
+  tr td {
+    box-shadow: none;
+  }
+
+  > tr:nth-child(2n) td {
+    background-color: ${({ theme }) => theme.global.colors.white};
+  }
+
+  > tr:nth-child(2n + 1) td {
     background-color: ${({ theme }) =>
       theme.global.colors['background-highlight']};
   }
@@ -43,7 +59,7 @@ export const DetailsTable = ({ data, order, className }) => {
 
   return (
     <Box width="full">
-      <Table className={className}>
+      <DetailsTableTable className={className}>
         <DetailsTableBody>
           {tableData.map((datum) => (
             <TableRow key={datum.label}>
@@ -56,7 +72,7 @@ export const DetailsTable = ({ data, order, className }) => {
             </TableRow>
           ))}
         </DetailsTableBody>
-      </Table>
+      </DetailsTableTable>
     </Box>
   )
 }
