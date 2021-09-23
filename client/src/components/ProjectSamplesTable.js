@@ -5,10 +5,15 @@ import formatBytes from 'helpers/formatBytes'
 import api from 'api'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { Download } from 'components/Download'
+import { Loader } from 'components/Loader'
 
 export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
   const [samples, setSamples] = React.useState(defaultSamples)
   const [loaded, setLoaded] = React.useState(false)
+  const infoText =
+    project && project.has_bulk_rna_seq
+      ? 'Bulk RNA-seq data available only when you download the entire project'
+      : false
 
   const columns = [
     {
@@ -64,10 +69,17 @@ export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
 
     if (!samples && !loaded) asyncFetch()
     if (samples && !loaded) setLoaded(true)
-  })
+  }, [samples, loaded])
 
-  if (!loaded) return 'Loading...'
+  if (!loaded) return <Loader />
   return (
-    <Table filter columns={columns} data={samples} stickies={3} pageSize={10} />
+    <Table
+      filter
+      columns={columns}
+      data={samples}
+      stickies={3}
+      pageSize={10}
+      infoText={infoText}
+    />
   )
 }
