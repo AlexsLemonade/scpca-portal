@@ -20,6 +20,7 @@ import { matchSorter } from 'match-sorter'
 import { Icon } from 'components/Icon'
 import { TableFilter } from 'components/TableFilter'
 import { Pagination } from 'components/Pagination'
+import { InfoText } from 'components/InfoText'
 
 // Styles to allow for dynamic "sticky" columns
 const TableBox = styled(Box)`
@@ -243,8 +244,8 @@ export const Table = ({
 
   return (
     <>
-      <Box pad={pad} align="end" justify={justify}>
-        {infoText && <Text />}
+      <Box direction="row" pad={pad} align="start" justify={justify}>
+        {infoText && <InfoText label={infoText} />}
         {filter && (
           <TableFilter
             // state.globalFilter is the current string being filtered against
