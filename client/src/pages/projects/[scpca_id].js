@@ -26,11 +26,17 @@ const Project = ({ project }) => {
                 ]}
               />
             </Box>
-            <Text weight="bold">Sample Summary</Text>
-            <ProjectSamplesSummaryTable summaries={project.summaries} />
+            <Text size="large" weight="bold">
+              Sample Summary
+            </Text>
+            <Box pad={{ top: 'medium', bottom: 'large' }}>
+              <ProjectSamplesSummaryTable summaries={project.summaries} />
+            </Box>
           </Tab>
           <Tab title="Sample Details">
-            <ProjectSamplesTable samples={project.samples} />
+            <Box pad={{ vertical: 'medium' }}>
+              <ProjectSamplesTable project={project} />
+            </Box>
           </Tab>
         </Tabs>
       </Box>
