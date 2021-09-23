@@ -6,6 +6,7 @@ import { Link } from 'components/Link'
 import { Download } from 'components/Download'
 import { getReadable } from 'helpers/getReadable'
 import formatBytes from 'helpers/formatBytes'
+import capitalize from 'helpers/capitalize'
 import styled, { css } from 'styled-components'
 
 const HeaderBadge = styled(Badge)`
@@ -50,7 +51,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           badge="Samples"
           label={`${project.sample_count} Samples`}
         />
-        <HeaderBadge badge="SeqUnit" label={project.seq_units} />
+        <HeaderBadge badge="SeqUnit" label={capitalize(project.seq_units)} />
         <HeaderBadge badge="Kit" label={project.technologies} />
         <HeaderBadge badge="Modality" label={project.modalities} />
       </Box>
