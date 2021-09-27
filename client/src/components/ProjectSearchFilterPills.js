@@ -52,7 +52,7 @@ export const ProjectSearchFilterPills = ({
 
   const removeFilter = (filter, option) => {
     const newFilters = { ...filters }
-    newFilters[filter].splice(newFilters[filter].indexOf(option), 2)
+    newFilters[filter].splice(newFilters[filter].indexOf(option), 1)
     setFilters(newFilters)
     onFilterChange(newFilters)
   }

@@ -44,7 +44,7 @@ export const ProjectSearchFilter = ({
       newFilters[filter] = newFilters[filter] || []
       newFilters[filter].push(option)
     } else {
-      newFilters[filter].splice(newFilters[filter].indexOf(option), 2)
+      newFilters[filter].splice(newFilters[filter].indexOf(option), 1)
     }
     setFilters(newFilters)
     onFilterChange(newFilters)

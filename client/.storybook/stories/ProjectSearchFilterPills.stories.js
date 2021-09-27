@@ -3,7 +3,7 @@ import { Box } from 'grommet'
 import { ProjectSearchFilterPills } from 'components/ProjectSearchFilterPills'
 
 const filters = {
-  one: ['a filter options', 'filter options two', 'another filter options']
+  one: ['a filter option', 'filter option number two', 'another filter option']
 }
 export default {
   title: 'Components/ProjectSearchFilterPills',
