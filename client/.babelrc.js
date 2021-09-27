@@ -17,6 +17,10 @@ module.exports = {
             'mergePaths',
             'collapseGroups',
             {
+              name: 'removeUnknownsAndDefaults',
+              params: { attrs: { keepDataAttrs: false } }
+            },
+            {
               name: 'cleanupIDs',
               params: {
                 prefix: {
@@ -25,6 +29,10 @@ module.exports = {
                   }
                 }
               }
+            },
+            {
+              name: 'removeAttrs',
+              params: { attrs: '(data-name)' }
             }
           ]
         }
@@ -35,7 +43,10 @@ module.exports = {
       {
         ssr: true,
         displayName: true,
-        preprocess: false
+        preprocess: false,
+        minify: true,
+        transpileTemplateLiterals: true,
+        pure: true
       }
     ]
   ]
