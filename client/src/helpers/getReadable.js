@@ -12,7 +12,8 @@ export const readableNames = {
   diagnoses: 'Diagnosis',
   seq_units: 'Seq Units',
   technologies: 'Technologies',
-  sample_count: 'Sample Count'
+  sample_count: 'Sample Count',
+  modalities: 'Modalities'
 }
 
 export const getReadable = (key) => readableNames[key] || key
