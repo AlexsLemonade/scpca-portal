@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Header as GrommetHeader, Nav, ResponsiveContext } from 'grommet'
 import styled from 'styled-components'
+import { DonateButton } from 'components/DonateButton'
 import { Link } from 'components/Link'
 import Logo from 'components/Logo'
 
@@ -11,7 +12,7 @@ const FixedBox = styled(Box)`
   box-shadow: 0px 2px 5px 5px #fdfdfd;
 `
 
-export const Header = ({ className }) => {
+export const Header = ({ className, donate = false }) => {
   const size = React.useContext(ResponsiveContext)
   return (
     <Box height="80px">
@@ -25,7 +26,7 @@ export const Header = ({ className }) => {
         >
           <Box
             direction="row"
-            width={{ max: size === 'large' ? 'xxlarge' : 'full' }}
+            width={{ max: 'xlarge' }}
             fill="horizontal"
             justify="between"
           >
@@ -40,12 +41,13 @@ export const Header = ({ className }) => {
               align="center"
             >
               <Link color="white" href="/" label="Home" />
-              <Link color="white" href="/search" label="Browse" />
+              <Link color="white" href="/projects" label="Browse" />
               <Link
                 color="white"
-                href="https://help.resources.alexslemonade.org/knowledge"
+                href="https://alexslemonade.org"
                 label="Docs"
               />
+              {donate && <DonateButton />}
             </Nav>
           </Box>
         </GrommetHeader>
