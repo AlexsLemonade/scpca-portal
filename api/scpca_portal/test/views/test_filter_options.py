@@ -27,7 +27,7 @@ class FilterOptionsTestCase(APITestCase):
         LeafProjectFactory()
 
     def test_get(self):
-        url = reverse("project-options")
+        url = reverse("project-options-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
