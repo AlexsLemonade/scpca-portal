@@ -6,6 +6,7 @@ import tokenSchema from 'schemas/token'
 export const ScPCAPortalContext = React.createContext({})
 
 export const ScPCAPortalContextProvider = ({ children }) => {
+  const [browseFilters, setBrowseFilters] = React.useState({})
   const [email, setEmail] = useLocalStorage('scpca-token-email')
   const [token, setToken] = useLocalStorage('scpca-api-token', false)
   const [acceptsTerms, setAcceptsTerms] = useLocalStorage(
@@ -64,7 +65,9 @@ export const ScPCAPortalContextProvider = ({ children }) => {
         wantsEmails,
         setWantsEmails,
         createToken,
-        validateToken
+        validateToken,
+        browseFilters,
+        setBrowseFilters
       }}
     >
       {children}

@@ -20,9 +20,9 @@ export const ProjectSearchResult = ({ project }) => {
     }
   ]
   return (
-    <Box elevation="medium" pad="medium">
+    <Box elevation="medium" pad="medium" width="full">
       <ProjectHeader linked project={project} />
-      <Box border={{ side: 'top' }}>
+      <Box border={{ side: 'top' }} margin={{ top: 'medium' }}>
         {searchDetails.map((d) => (
           <Box key={d.title} pad={{ top: 'medium' }}>
             <Text weight="bold">{d.title}</Text>
@@ -37,7 +37,7 @@ export const ProjectSearchResult = ({ project }) => {
         ))}
       </Box>
       <Box pad={{ top: 'medium' }}>
-        <Link href={`/projects/${project.id}#samples`}>
+        <Link href={`/projects/${project.scpca_id}#samples`}>
           <Button label="View Samples" />
         </Link>
       </Box>

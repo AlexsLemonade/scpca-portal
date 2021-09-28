@@ -23,7 +23,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
       <Box direction="row" align="start" justifyContents="between">
         <Box flex="shrink" pad={{ right: 'medium' }}>
           {linked ? (
-            <Link href={`/projects/${project.pi_name}`}>
+            <Link href={`/projects/${project.scpca_id}`}>
               <Text weight="bold" color="brand">
                 {project.title}
               </Text>
@@ -39,10 +39,14 @@ export const ProjectHeader = ({ project, linked = false }) => {
             {project.has_bulk_rna_seq && (
               <Pill label={getReadable('has_bulk_rna_seq')} />
             )}
-            <Download computedFile={project.computed_file} />
-            <Text>
-              Size: {formatBytes(project.computed_file.size_in_bytes)}
-            </Text>
+            {project.computed_file && (
+              <>
+                <Download computedFile={project.computed_file} />
+                <Text>
+                  Size: {formatBytes(project.computed_file.size_in_bytes)}
+                </Text>
+              </>
+            )}
           </Box>
         </Box>
       </Box>

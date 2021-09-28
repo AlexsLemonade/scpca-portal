@@ -23,7 +23,7 @@ export const Link = ({
       {children}
     </Anchor>
   ) : (
-    <NextLink href={href} prefetch>
+    <NextLink href={href}>
       <Anchor color={color} href={href} label={label} icon={icon} as={as}>
         {children}
       </Anchor>
