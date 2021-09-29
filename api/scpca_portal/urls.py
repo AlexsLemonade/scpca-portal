@@ -11,10 +11,10 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 from scpca_portal.views import (
     APITokenViewSet,
     ComputedFileViewSet,
+    FilterOptionsViewSet,
     ProjectViewSet,
     SampleViewSet,
-    project_filter_options_view,
-    stats_view,
+    StatsViewSet,
 )
 
 schema_view = get_schema_view(
@@ -50,6 +50,8 @@ router.register(r"computed-files", ComputedFileViewSet, basename="computed-files
 router.register(r"projects", ProjectViewSet, basename="projects")
 router.register(r"samples", SampleViewSet, basename="samples")
 router.register(r"tokens", APITokenViewSet, basename="tokens")
+router.register(r"project-options", FilterOptionsViewSet, basename="project-options")
+router.register(r"stats", StatsViewSet, basename="stats")
 
 urlpatterns = [
     path(
@@ -65,8 +67,6 @@ urlpatterns = [
                 re_path(
                     r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema_redoc"
                 ),
-                path("options/projects/", project_filter_options_view, name="project-options",),
-                path("stats/", stats_view, name="stats"),
             ]
         ),
     ),

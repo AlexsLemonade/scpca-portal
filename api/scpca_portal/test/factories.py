@@ -72,6 +72,7 @@ class SampleFactory(factory.django.DjangoModelFactory):
     tissue_location = "posterior fossa"
     treatment = "STR"
     seq_units = "cell"
+    cell_count = 42
     additional_metadata = {
         "has_spinal_leptomeningeal_mets": False,
         "braf_status": "Not tested for BRAF status",

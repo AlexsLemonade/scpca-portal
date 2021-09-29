@@ -29,6 +29,7 @@ class Sample(models.Model):
     tissue_location = models.TextField(blank=True, null=True)
     treatment = models.TextField(blank=True, null=True)
     seq_units = models.TextField(blank=True, null=True)
+    cell_count = models.IntegerField()
 
     additional_metadata = JSONField(default=dict)
 

@@ -156,6 +156,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
         tissue_location=sample["Tissue Location"],
         treatment=sample["Treatment"],
         seq_units=sample["seq_units"],
+        cell_count=42,
         additional_metadata=additional_metadata,
     )
     sample_object.save()

@@ -27,7 +27,7 @@ class StatsTestCase(APITestCase):
         ProjectFactory(pi_name="different")
 
     def test_get(self):
-        url = reverse("stats")
+        url = reverse("stats-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
