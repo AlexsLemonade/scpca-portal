@@ -20,6 +20,11 @@ logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
+def purge_all_projects(should_upload):
+    for project in Project.objects.all():
+        purge_project(project.scpca_id, should_upload)
+
+
 def package_files_for_project(
     project_dir: str,
     output_dir: str,
@@ -276,9 +281,13 @@ def load_data_for_project(data_dir: str, output_dir: str, project: Project, shou
 def load_data_from_s3(
     should_upload: bool,
     reload_existing: bool,
+    reload_all: bool,
     input_bucket_name="scpca-portal-inputs",
     data_dir="/home/user/code/data/",
 ):
+    if reload_all:
+        purge_all_projects(should_upload)
+
     # If this raises we're done anyway, so let it.
     subprocess.check_call(["aws", "s3", "sync", f"s3://{input_bucket_name}", data_dir])
 
@@ -356,7 +365,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--reload-existing", action="store_true")
+        parser.add_argument("--reload-all", action="store_true")
         parser.add_argument("--upload", default=settings.UPDATE_IMPORTED_DATA, type=bool)
 
     def handle(self, *args, **options):
-        load_data_from_s3(options["upload"], options["reload_existing"])
+        load_data_from_s3(options["upload"], options["reload_existing"], options["reload_all"])
