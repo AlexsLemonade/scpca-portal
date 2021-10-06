@@ -39,8 +39,8 @@ export default {
     size: '9px'
   },
   xxlarge: {
-    height: '27px',
-    maxWidth: '363px',
-    size: '23px'
+    height: '53px',
+    maxWidth: '660px',
+    size: '38px'
   }
 }
