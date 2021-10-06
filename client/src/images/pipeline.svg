@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="119px" height="81px" viewBox="0 0 119 81" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>pipeline</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Guidelines" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.2">
+        <g id="export" transform="translate(-236.000000, -378.000000)">
+            <g id="pipeline" transform="translate(235.000000, 376.000000)">
+                <g id="icon-process" transform="translate(71.714300, 51.500000) rotate(-18.000000) translate(-71.714300, -51.500000) translate(13.214300, -7.000000)">
+                    <path d="M44.1182364,20.1386943 C60.7682364,20.1386943 77.4182364,20.1386943 94.0682364,20.1386943 L94.0682364,20.1386943 C104.561647,20.1386943 113.068236,28.645284 113.068236,39.1386943 L113.068236,39.1386943 C113.068236,49.6813909 104.612037,58.2753165 94.0707157,58.445627 L19.1611132,59.6559012 C9.12175992,59.8181016 1.06823638,68.0027927 1.06823638,78.0434562 L1.06823638,78.0434562 C1.06823638,88.0371802 9.16975043,96.1386943 19.1634745,96.1386943 L68.2682364,96.1386943" id="Path-3" stroke="#4A4A4A" stroke-width="2" stroke-linecap="round"></path>
+                    <rect id="Rectangle" fill="#80A6D6" x="0.91502473" y="0.968519364" width="39" height="39" rx="7"></rect>
+                    <rect id="Rectangle" fill="#386DB0" x="77.0746176" y="77.2359201" width="39" height="39" rx="7"></rect>
+                    <polyline id="Path-4" stroke="#4A4A4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="54.6240543 107.394416 68.6240543 95.894416 54.6240543 84.394416"></polyline>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
