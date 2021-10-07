@@ -6,6 +6,7 @@ import { Link } from 'components/Link'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import api from 'api'
 import formatBytes from 'helpers/formatBytes'
+import config from 'config'
 import DownloadSVG from '../images/download-folder.svg'
 
 // label for the checkbox needs to be component to show links
@@ -161,7 +162,7 @@ export const DownloadView = ({ computedFile }) => {
         pad={{ top: 'large' }}
       >
         <Text>Learn about what you can expect in your download file.</Text>
-        <Link href="/docs">
+        <Link href={config.links.help}>
           <Button primary label="Read Docs" />
         </Link>
       </Box>
