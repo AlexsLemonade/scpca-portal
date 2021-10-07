@@ -39,7 +39,8 @@ export const TokenView = () => {
     acceptsTerms,
     setAcceptsTerms,
     createToken,
-    validateToken
+    validateToken,
+    emailListForm
   } = React.useContext(ScPCAPortalContext)
   const [requesting, setRequesting] = React.useState(false)
   const [errors, setErrors] = React.useState([])
@@ -51,6 +52,10 @@ export const TokenView = () => {
         const tokenRequest = await createToken()
         if (tokenRequest.isOK) {
           setErrors([])
+        }
+        // quietly sign them up for emails if checked
+        if (wantsEmails) {
+          emailListForm.submit({ email })
         }
       } else {
         // invalid set errors here
