@@ -1,4 +1,4 @@
-export default {
+export const config = {
   links: {
     what_downloading: 'https://help.resources.alexslemonade.org/knowledge',
     how_processed: 'https://help.resources.alexslemonade.org/knowledge',
@@ -12,3 +12,5 @@ export default {
     ccdlGithub: 'https://github.com/AlexsLemonade/'
   }
 }
+
+export default config

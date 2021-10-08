@@ -1,4 +1,4 @@
-import urlSearchParamsFromKeys from 'helpers/urlSearchParamsFromKeys'
+import { urlSearchParamsFromKeys } from 'helpers/urlSearchParamsFromKeys'
 
 export const host = process.env.API_HOST
 export const version = process.env.API_VERSION

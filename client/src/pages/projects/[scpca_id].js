@@ -4,7 +4,7 @@ import { ProjectHeader } from 'components/ProjectHeader'
 import { DetailsTable } from 'components/DetailsTable'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
-import api from 'api'
+import { api } from 'api'
 
 const Project = ({ project }) => {
   if (!project) return '404'

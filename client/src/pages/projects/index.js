@@ -5,7 +5,7 @@ import { ProjectSearchResult } from 'components/ProjectSearchResult'
 import { ProjectSearchFilter } from 'components/ProjectSearchFilter'
 import { ProjectSearchFilterPills } from 'components/ProjectSearchFilterPills'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
-import api from 'api'
+import { api } from 'api'
 
 const Project = ({ projects, count, filters, filterOptions }) => {
   const { browseFilters, setBrowseFilters } = React.useContext(

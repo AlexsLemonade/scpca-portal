@@ -1,7 +1,9 @@
 import { string, object } from 'yup'
 
-export default object({
+export const schema = object({
   email: string()
     .email('Please check your email.')
     .required('Please enter your email.')
 })
+
+export default schema

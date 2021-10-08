@@ -4,9 +4,9 @@ import { Button } from 'components/Button'
 import { Modal } from 'components/Modal'
 import { Link } from 'components/Link'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
-import api from 'api'
+import { api } from 'api'
 import { formatBytes } from 'helpers/formatBytes'
-import config from 'config'
+import { config } from 'config'
 import DownloadSVG from '../images/download-folder.svg'
 
 // label for the checkbox needs to be component to show links

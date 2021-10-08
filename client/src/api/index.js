@@ -5,7 +5,7 @@ import tokens from './resources/tokens'
 import options from './resources/options'
 import stats from './resources/stats'
 
-export default {
+export const api = {
   computedFiles,
   projects,
   samples,
@@ -13,3 +13,5 @@ export default {
   options,
   stats
 }
+
+export default api

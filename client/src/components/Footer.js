@@ -3,7 +3,7 @@ import { Box, Button, Nav, Image, Paragraph, Text } from 'grommet'
 import { Link } from 'components/Link'
 import { FooterBand } from 'components/Band'
 import { Icon } from 'components/Icon'
-import config from 'config'
+import { config } from 'config'
 
 export const Footer = () => {
   return (

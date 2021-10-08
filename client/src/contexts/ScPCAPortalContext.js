@@ -1,10 +1,10 @@
 import React from 'react'
 import { useLocalStorage } from 'hooks/useLocalStorage'
 import { useHubspotForm } from 'hooks/useHubspotForm'
-import api from 'api'
+import { api } from 'api'
 import tokenSchema from 'schemas/token'
 import hubspotEmailSchema from 'schemas/hubspotEmail'
-import getErrorMessages from 'helpers/getErrorMessages'
+import { getErrorMessages } from 'helpers/getErrorMessages'
 
 export const ScPCAPortalContext = React.createContext({})
 
