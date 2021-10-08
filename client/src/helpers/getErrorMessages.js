@@ -1,7 +1,7 @@
 import { getReadable } from 'helpers/getReadable'
 
 // convert Yup.js validationError object to error messages object
-export default (validationError) => {
+export const getErrorMessages = (validationError) => {
   const messages = {}
   validationError.inner.forEach(({ path, errors }) => {
     let message = messages
@@ -19,3 +19,5 @@ export default (validationError) => {
 
   return messages
 }
+
+export default getErrorMessages

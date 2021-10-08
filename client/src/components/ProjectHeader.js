@@ -5,8 +5,8 @@ import { Badge } from 'components/Badge'
 import { Link } from 'components/Link'
 import { Download } from 'components/Download'
 import { getReadable } from 'helpers/getReadable'
-import formatBytes from 'helpers/formatBytes'
-import capitalize from 'helpers/capitalize'
+import { formatBytes } from 'helpers/formatBytes'
+import { capitalize } from 'helpers/capitalize'
 import styled, { css } from 'styled-components'
 
 const HeaderBadge = styled(Badge)`

@@ -1,7 +1,7 @@
 import React from 'react'
 import * as Sentry from '@sentry/react'
 import { Grommet } from 'grommet'
-import theme from 'theme'
+import { theme } from 'theme'
 import { Layout } from 'components/Layout'
 import { Reset } from 'styles/Reset'
 import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'

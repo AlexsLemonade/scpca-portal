@@ -15,7 +15,7 @@ import tabs from 'theme/tabs'
 import formField from 'theme/formField'
 import table from 'theme/table'
 
-export default {
+export const theme = {
   rounding: 4,
   scale: 1,
   spacing: 16,
@@ -37,3 +37,5 @@ export default {
   formField,
   table
 }
+
+export default theme

@@ -1,4 +1,4 @@
-export default (stats) => [
+export const getStatsBlocks = (stats) => [
   {
     name: 'Projects',
     value: stats.projects_count
@@ -16,3 +16,5 @@ export default (stats) => [
     value: stats.labs_count
   }
 ]
+
+export default getStatsBlocks

@@ -5,7 +5,7 @@ import { Modal } from 'components/Modal'
 import { Link } from 'components/Link'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import api from 'api'
-import formatBytes from 'helpers/formatBytes'
+import { formatBytes } from 'helpers/formatBytes'
 import config from 'config'
 import DownloadSVG from '../images/download-folder.svg'
 
