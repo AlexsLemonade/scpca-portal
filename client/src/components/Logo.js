@@ -1,9 +1,9 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
-import Logo from '../images/alsf-logo.svg'
-import LogoBlue from '../images/alsf-logo-blue.svg'
+import ASLFLogo from '../images/alsf-logo.svg'
+import ALSFLogoBlue from '../images/alsf-logo-blue.svg'
 
-export default () => {
+const Logo = () => {
   const [scrolled, setScrolled] = React.useState(false)
   const margin = scrolled ? 0 : 38
   const height = scrolled ? '74px' : '112px'
@@ -38,10 +38,10 @@ export default () => {
       >
         {scrolled ? (
           <Box pad="small">
-            <LogoBlue margin={{ top: '38px' }} pad="small" />
+            <ALSFLogoBlue margin={{ top: '38px' }} pad="small" />
           </Box>
         ) : (
-          <Logo />
+          <ASLFLogo />
         )}
       </Box>
       <Text serif size="large" color="white" margin={{ bottom: `${margin}px` }}>
@@ -50,3 +50,5 @@ export default () => {
     </Box>
   )
 }
+
+export default Logo
