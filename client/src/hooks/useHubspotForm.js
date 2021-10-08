@@ -1,6 +1,6 @@
 import React from 'react'
-import request from 'helpers/request'
-import getErrorMessages from 'helpers/getErrorMessages'
+import { request } from 'helpers/request'
+import { getErrorMessages } from 'helpers/getErrorMessages'
 import { useLocalStorage } from 'hooks/useLocalStorage'
 
 export const useHubspotForm = (portalId, formId, formSchema) => {

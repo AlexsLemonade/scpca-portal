@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Text, CheckBox } from 'grommet'
 import { Loader } from 'components/Loader'
-import api from 'api'
+import { api } from 'api'
 
 export const ProjectSearchFilter = ({
   filters: defaultFilters = {},

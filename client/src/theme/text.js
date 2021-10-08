@@ -1,5 +1,5 @@
-import applyAll from 'helpers/applyAll'
-import applyWhen from 'helpers/applyWhen'
+import { applyAll } from 'helpers/applyAll'
+import { applyWhen } from 'helpers/applyWhen'
 
 export default {
   extend: (props) =>
