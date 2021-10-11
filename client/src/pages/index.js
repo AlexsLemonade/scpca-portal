@@ -284,7 +284,7 @@ const Home = ({ stats }) => {
               disabled={emailListForm.hasError}
               label="Subscribe"
               onClick={async () => {
-                if (await emailListForm.validate().isValid)
+                if ((await emailListForm.validate()).isValid)
                   emailListForm.submit()
               }}
             />
