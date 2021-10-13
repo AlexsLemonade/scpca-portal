@@ -27,7 +27,6 @@ class Sample(models.Model):
     sex = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
     tissue_location = models.TextField(blank=True, null=True)
-    treatment = models.TextField(blank=True, null=True)
     seq_units = models.TextField(blank=True, null=True)
     cell_count = models.IntegerField()
 
