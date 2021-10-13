@@ -1,4 +1,5 @@
 import csv
+import json
 import os
 import shutil
 import subprocess
@@ -53,11 +54,13 @@ def package_files_for_project(
                     zip_object.write(local_file_path, archive_path)
 
         computed_file.size_in_bytes = os.path.getsize(local_file_path)
-        s3.upload_file(project_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
+        print("Wasn't expecting that")
+        # s3.upload_file(project_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
     else:
-        s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
-        assert len(s3_objects["Contents"]) == 1
-        computed_file.size_in_bytes = s3_objects["Contents"][0]["Size"]
+        computed_file.size_in_bytes = 5
+    #     s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
+    #     assert len(s3_objects["Contents"]) == 1
+    #     computed_file.size_in_bytes = s3_objects["Contents"][0]["Size"]
 
     computed_file.save()
 
@@ -106,17 +109,19 @@ def package_files_for_sample(
                 # https://github.com/AlexsLemonade/scpca-portal/issues/33
                 # for file_postfix in ["_unfiltered.rds", "_filtered.rds", "_qc_report.html"]:
                 for file_postfix in ["_unfiltered.rds", "_filtered.rds"]:
-                    filename = f"{library['scpca_library_id']}{file_postfix}"
+                    filename = f"{library['library_id']}{file_postfix}"
                     local_file_path = os.path.join(project_dir, "files", sample_id, filename)
                     file_paths.append(local_file_path)
                     zip_object.write(local_file_path, filename)
 
         computed_file.size_in_bytes = os.path.getsize(local_file_path)
-        s3.upload_file(sample_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
+        print("Wasn't expecting that")
+        # s3.upload_file(sample_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
     else:
-        s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
-        assert len(s3_objects["Contents"]) == 1
-        computed_file.size_in_bytes = s3_objects["Contents"][0]["Size"]
+        # s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
+        # assert len(s3_objects["Contents"]) == 1
+        # computed_file.size_in_bytes = s3_objects["Contents"][0]["Size"]
+        computed_file.size_in_bytes = 5
 
     computed_file.save()
 
@@ -130,17 +135,16 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
     sample_columns = [
         "scpca_sample_id",
         "technologies",
-        "Diagnosis",
-        "Subdiagnosis",
-        "Age at Diagnosis",
-        "Sex",
-        "Disease Timing",
-        "Tissue Location",
-        "treatment",
+        "diagnosis",
+        "subdiagnosis",
+        "age",
+        "sex",
+        "disease_timing",
+        "tissue_location",
         "seq_units",
         # Also include this, not because it's a sample column but
         # because we don't want it in additional_metadata.
-        "scpca_library_id",
+        "library_id",
     ]
     additional_metadata = {}
     for key, value in sample.items():
@@ -153,13 +157,12 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
         computed_file=computed_file,
         scpca_id=sample["scpca_sample_id"],
         technologies=sample["technologies"],
-        diagnosis=sample["Diagnosis"],
-        subdiagnosis=sample["Subdiagnosis"],
-        age_at_diagnosis=sample["Age at Diagnosis"],
-        sex=sample["Sex"],
-        disease_timing=sample["Disease Timing"],
-        tissue_location=sample["Tissue Location"],
-        treatment=sample["Treatment"],
+        diagnosis=sample["diagnosis"],
+        subdiagnosis=sample["subdiagnosis"],
+        age_at_diagnosis=sample["age"],
+        sex=sample["sex"],
+        disease_timing=sample["disease_timing"],
+        tissue_location=sample["tissue_location"],
         seq_units=sample["seq_units"],
         cell_count=42,
         additional_metadata=additional_metadata,
@@ -189,18 +192,18 @@ def combine_and_write_metadata(
     # Then force the following ordering:
     ordered_field_names = [
         "scpca_sample_id",
-        "scpca_library_id",
-        "Diagnosis",
-        "Subdiagnosis",
+        "library_id",
+        "diagnosis",
+        "subdiagnosis",
         "seq_unit",
         "technology",
         "scpca_project_id",
         "pi_name",
         "project_title",
-        "Disease Timing",
-        "Age at Diagnosis",
-        "Sex",
-        "Tissue Location",
+        "disease_timing",
+        "age",
+        "sex",
+        "tissue_location",
     ]
 
     for field_name in ordered_field_names:
@@ -214,9 +217,8 @@ def combine_and_write_metadata(
         project_writer.writeheader()
         for sample in samples_metadata:
             sample_copy = sample.copy()
-            sample_copy.pop("scpca_library_id")
-            sample_copy.pop("seq_units")
             sample_copy.pop("technologies")
+            sample_copy.pop("seq_units")
             sample_copy["pi_name"] = project.pi_name
             sample_copy["scpca_project_id"] = project.scpca_id
             sample_copy["project_title"] = project.title
@@ -226,7 +228,7 @@ def combine_and_write_metadata(
                 sample_writer = csv.DictWriter(sample_file, fieldnames=ordered_field_names)
                 sample_writer.writeheader()
                 for library in libraries_metadata:
-                    if library["scpca_sample_id"] == sample["scpca_sample_id"]:
+                    if library["sample_id"] == sample["scpca_sample_id"]:
                         library.update(sample_copy)
                         full_libraries_metadata.append(library)
                         project_writer.writerow(library)
@@ -239,14 +241,6 @@ def load_data_for_project(data_dir: str, output_dir: str, project: Project, shou
 
     project_dir = f"{data_dir}{project.scpca_id}/"
 
-    libraries_metadata = []
-    try:
-        with open(project_dir + "libraries_metadata.csv") as csvfile:
-            libraries_metadata = [line for line in csv.DictReader(csvfile)]
-    except botocore.exceptions.ClientError:
-        print(f"No libraries_metadata.csv found for project {project.scpca_id}.")
-        return
-
     samples_metadata = []
     try:
         with open(project_dir + "samples_metadata.csv") as csvfile:
@@ -254,6 +248,27 @@ def load_data_for_project(data_dir: str, output_dir: str, project: Project, shou
     except botocore.exceptions.ClientError:
         print(f"No samples_metadata.csv found for project {project.scpca_id}.")
         return
+
+    libraries_metadata = []
+    for sample in samples_metadata:
+        sample_dir = os.path.join(project_dir, sample["scpca_sample_id"])
+        for filename in os.listdir(sample_dir):
+            if filename.endswith("_metadata.json"):
+                with open(os.path.join(sample_dir, filename)) as json_file:
+                    parsed_json = json.load(json_file)
+                    libraries_metadata.append(parsed_json)
+
+                    if "technologies" in sample:
+                        sample["technologies"] = (
+                            sample["technologies"] + ", " + parsed_json["technology"]
+                        )
+                    else:
+                        sample["technologies"] = parsed_json["technology"]
+
+                    if "seq_units" in sample:
+                        sample["seq_units"] = sample["seq_units"] + ", " + parsed_json["seq_unit"]
+                    else:
+                        sample["seq_units"] = parsed_json["seq_unit"]
 
     full_libraries_metadata = combine_and_write_metadata(
         output_dir, project, samples_metadata, libraries_metadata
@@ -289,7 +304,7 @@ def load_data_from_s3(
         purge_all_projects(should_upload)
 
     # If this raises we're done anyway, so let it.
-    subprocess.check_call(["aws", "s3", "sync", f"s3://{input_bucket_name}", data_dir])
+    subprocess.check_call(["aws", "s3", "sync", "--delete", f"s3://{input_bucket_name}", data_dir])
 
     # Make sure we're starting with a blank slate for the zip files.
     output_dir = "output/"
@@ -302,7 +317,7 @@ def load_data_from_s3(
     with open(project_input_metadata_path) as csvfile:
         projects = csv.DictReader(csvfile)
         for project in projects:
-            scpca_id = project["scpca_id"]
+            scpca_id = project["scpca_project_id"]
 
             if reload_existing:
                 # Purge existing projects so they can be readded.
@@ -313,11 +328,11 @@ def load_data_from_s3(
 
             project, created = Project.objects.get_or_create(
                 scpca_id=scpca_id,
-                pi_name=project["PI Name"],
-                human_readable_pi_name=project["human_readable_pi_name"],
-                title=project["Project Title"],
-                abstract=project["Abstract"],
-                contact=project["Project Contact"],
+                pi_name=project["submitter"],
+                human_readable_pi_name=project["PI"],
+                title=project["project_title"],
+                abstract=project["abstract"],
+                contact=project["project_contact"],
             )
 
             if not created:

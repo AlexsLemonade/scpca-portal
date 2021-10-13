@@ -85,9 +85,9 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
         for seq_unit in sample_seq_units:
             for technology in sample_technologies:
                 try:
-                    summaries[(sample.diagnosis, seq_unit, technology)] += 1
+                    summaries[(sample.diagnosis, seq_unit.strip(), technology.strip())] += 1
                 except KeyError:
-                    summaries[(sample.diagnosis, seq_unit, technology)] = 1
+                    summaries[(sample.diagnosis, seq_unit.strip(), technology.strip())] = 1
 
     diagnoses_strings = []
     for diagnosis, count in diagnoses_counts.items():
@@ -117,6 +117,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
                 project=project, diagnosis=summary[0], seq_unit=summary[1], technology=summary[2]
             )
             project_summary.sample_count = count
+            project_summary.save()
         except ProjectSummary.DoesNotExist:
             ProjectSummary.objects.create(
                 project=project,
