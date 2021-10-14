@@ -31,6 +31,7 @@ commands = {
     "run-api": run_api,
     "manage-api": run_api.format("./manage.py {}"),
     "load-data": run_api.format("./manage.py load_data {}"),
+    "mock-data": run_api.format("./manage.py load_mock_data {}"),
     "run-black": run_api.format("black --line-length=100 --exclude=volumes_postgres ."),
     "env": "cat ./docker-compose.env",
 }
@@ -41,7 +42,9 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("command", help="The command you want to run", choices=commands)
 parser.add_argument(
-    "command_args", help="The command and args for manage-api or run-api", nargs=argparse.REMAINDER,
+    "command_args",
+    help="The command and args for manage-api or run-api",
+    nargs=argparse.REMAINDER,
 )
 args = parser.parse_args()
 
