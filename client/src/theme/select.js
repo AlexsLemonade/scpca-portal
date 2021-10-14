@@ -1,8 +1,8 @@
 import React from 'react'
 import { Blank } from 'grommet-icons'
 import { normalizeColor } from 'grommet/utils'
-import applyAll from 'helpers/applyAll'
-import applyWhen from 'helpers/applyWhen'
+import { applyAll } from 'helpers/applyAll'
+import { applyWhen } from 'helpers/applyWhen'
 
 const DownArrow = (props) => (
   // eslint-disable-next-line react/jsx-props-no-spreading

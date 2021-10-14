@@ -1,3 +1,5 @@
 // Helper for concating rules in theme.
 
-export default (...rules) => rules.concat()
+export const applyAll = (...rules) => rules.concat()
+
+export default applyAll

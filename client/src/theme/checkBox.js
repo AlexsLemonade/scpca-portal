@@ -1,4 +1,4 @@
-import applyWhen from 'helpers/applyWhen'
+import { applyWhen } from 'helpers/applyWhen'
 
 export default {
   color: 'brand',

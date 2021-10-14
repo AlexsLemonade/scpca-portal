@@ -1,7 +1,7 @@
 import React from 'react'
 import NextLink from 'next/link'
 import { Anchor } from 'grommet'
-import isExternalPath from 'helpers/isExternalPath'
+import { isExternalPath } from 'helpers/isExternalPath'
 
 export const Link = ({
   href,

@@ -1,4 +1,4 @@
-export default (bytes, decimals = 2) => {
+export const formatBytes = (bytes, decimals = 2) => {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
   const dm = decimals <= 0 ? 0 : decimals
@@ -7,3 +7,5 @@ export default (bytes, decimals = 2) => {
 
   return `${parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`
 }
+
+export default formatBytes

@@ -1,13 +1,16 @@
 import React from 'react'
 import { useLocalStorage } from 'hooks/useLocalStorage'
-import api from 'api'
+import { useHubspotForm } from 'hooks/useHubspotForm'
+import { api } from 'api'
 import tokenSchema from 'schemas/token'
+import hubspotEmailSchema from 'schemas/hubspotEmail'
+import { getErrorMessages } from 'helpers/getErrorMessages'
 
 export const ScPCAPortalContext = React.createContext({})
 
 export const ScPCAPortalContextProvider = ({ children }) => {
   const [browseFilters, setBrowseFilters] = React.useState({})
-  const [email, setEmail] = useLocalStorage('scpca-token-email')
+  const [email, setEmail] = useLocalStorage('scpca-user-email')
   const [token, setToken] = useLocalStorage('scpca-api-token', false)
   const [acceptsTerms, setAcceptsTerms] = useLocalStorage(
     'scpca-api-terms',
@@ -17,28 +20,26 @@ export const ScPCAPortalContextProvider = ({ children }) => {
     'scpca-api-wants-emails',
     false
   )
-  // const [signedUpForEmails, setSignedUpForEmails] = useLocalStorage(
-  //  'scpca-api-token'
-  // )
+
+  const emailListForm = useHubspotForm(
+    process.env.HUBSPOT_PORTAL_ID,
+    process.env.HUBSPOT_EMAIL_LIST_ID,
+    hubspotEmailSchema
+  )
 
   const getToken = () => ({
     email,
     is_activated: acceptsTerms
   })
 
-  // const signUpForEmails = async () => {
-  //  // probably shouldnt use the api for this
-  //  // maybe helpers?
-  // }
-
   const validateToken = async () => {
     try {
-      await tokenSchema.validate(getToken())
+      await tokenSchema.validate(getToken(), { abortEarly: false })
       return { isValid: true }
-    } catch ({ errors }) {
+    } catch (e) {
       return {
         isValid: false,
-        errors
+        errors: getErrorMessages(e)
       }
     }
   }
@@ -67,7 +68,8 @@ export const ScPCAPortalContextProvider = ({ children }) => {
         createToken,
         validateToken,
         browseFilters,
-        setBrowseFilters
+        setBrowseFilters,
+        emailListForm
       }}
     >
       {children}

@@ -1,7 +1,7 @@
 // convert object to query string ie: ?key=val
 // optional keys list to prevent passing all object keys
 
-export default (query, ...keys) => {
+export const urlSearchParamsFromKeys = (query, ...keys) => {
   const search = new URLSearchParams()
 
   const appendParam = (key, val) => {
@@ -18,3 +18,5 @@ export default (query, ...keys) => {
 
   return search
 }
+
+export default urlSearchParamsFromKeys
