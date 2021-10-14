@@ -77,8 +77,10 @@ const Project = ({ projects, count, filters, filterOptions }) => {
 }
 
 export const getServerSideProps = async ({ query }) => {
-  const projectRequest = await api.projects.list(query)
-  const optionsRequest = await api.options.projects.get()
+  const [projectRequest, optionsRequest] = await Promise.all([
+    api.projects.list(query),
+    api.options.projects.get()
+  ])
 
   if (projectRequest.isOk && optionsRequest.isOk) {
     const { results: projects, count } = projectRequest.response
