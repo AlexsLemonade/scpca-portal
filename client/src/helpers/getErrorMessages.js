@@ -4,15 +4,15 @@ import { getReadable } from 'helpers/getReadable'
 export const getErrorMessages = (validationError) => {
   const messages = {}
   validationError.inner.forEach(({ path, errors }) => {
-    let message = messages
     path.split('.').forEach((attribute, index, arr) => {
-      message[attribute] = message[attribute] || {}
+      messages[attribute] = messages[attribute] || {}
       if (index === arr.length - 1) {
-        message[attribute] = errors.map((error) =>
+        messages[attribute] = errors.map((error) =>
           error.replace(path, getReadable(attribute))
         )
       } else {
-        message = message[attribute]
+        // attach a generic error message when nested error occur
+        messages[attribute] = `${getReadable(attribute)} contains errors.`
       }
     })
   })
