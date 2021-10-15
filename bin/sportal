@@ -42,9 +42,7 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("command", help="The command you want to run", choices=commands)
 parser.add_argument(
-    "command_args",
-    help="The command and args for manage-api or run-api",
-    nargs=argparse.REMAINDER,
+    "command_args", help="The command and args for manage-api or run-api", nargs=argparse.REMAINDER,
 )
 args = parser.parse_args()
 

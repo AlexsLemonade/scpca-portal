@@ -238,7 +238,7 @@ mock_metadata_keys = [
 mock_sample_index = 0
 
 
-def get_mock_option(key: str, k=False):
+def get_mock_option(key: str, k=None):
     if k:
         return random.choices(mock_sample_options[key], k=k)
     return random.choice(mock_sample_options[key])
@@ -246,12 +246,10 @@ def get_mock_option(key: str, k=False):
 
 def purge_all_projects():
     for project in Project.objects.all():
-        purge_project(project.scpca_id, False)
+        purge_project(project.scpca_id, True)
 
 
-def mock_package_files_for_project(
-    project: Project,
-):
+def mock_package_files_for_project(project: Project,):
     computed_file = ComputedFile(
         type="PROJECT_ZIP",
         workflow_version="0.0.1",
@@ -268,9 +266,7 @@ def mock_package_files_for_project(
     return computed_file
 
 
-def mock_package_files_for_sample(
-    sample: Dict,
-):
+def mock_package_files_for_sample(sample: Dict,):
     sample_id = sample["scpca_sample_id"]
     zip_file_name = f"{sample_id}.zip"
 
