@@ -1,5 +1,13 @@
 import React from 'react'
-import { Box, Table, TableBody, TableCell, TableRow, Text } from 'grommet'
+import {
+  Box,
+  Paragraph,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+  Text
+} from 'grommet'
 import styled from 'styled-components'
 import { getBooleanString } from 'helpers/booleanOptions'
 import { getReadable } from 'helpers/getReadable'
@@ -17,9 +25,9 @@ const DetailsTableDetail = ({ datum, emptyString = 'Not Specified' }) => {
 
   // check if it is an array of values
   const isArray = Array.isArray(value)
-  if (isArray) return <Text>{value.join(', ')}</Text>
+  if (isArray) return <Paragraph>{value.join(', ')}</Paragraph>
 
-  return <Text>{value}</Text>
+  return <Paragraph>{value}</Paragraph>
 }
 
 const DetailsTableTable = styled(Table)`
@@ -36,6 +44,7 @@ const DetailsTableBody = styled(TableBody)`
   > tr,
   tr td {
     box-shadow: none;
+    white-space: break-spaces;
   }
 
   > tr:nth-child(2n) td {

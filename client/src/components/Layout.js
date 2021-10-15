@@ -8,7 +8,7 @@ import styled, { css } from 'styled-components'
 const FixedBox = styled(Box)`
   position: fixed;
   width: 100%;
-  z-index: 1;
+  z-index: 3;
   ${({ showMargin }) =>
     showMargin &&
     css`
