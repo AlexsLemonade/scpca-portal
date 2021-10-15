@@ -117,6 +117,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
                 project=project, diagnosis=summary[0], seq_unit=summary[1], technology=summary[2]
             )
             project_summary.sample_count = count
+            project_summary.save()
         except ProjectSummary.DoesNotExist:
             ProjectSummary.objects.create(
                 project=project,
