@@ -238,7 +238,7 @@ mock_metadata_keys = [
 mock_sample_index = 0
 
 
-def get_mock_option(key: str, k=False):
+def get_mock_option(key: str, k=None):
     if k:
         return random.choices(mock_sample_options[key], k=k)
     return random.choice(mock_sample_options[key])
@@ -246,7 +246,7 @@ def get_mock_option(key: str, k=False):
 
 def purge_all_projects():
     for project in Project.objects.all():
-        purge_project(project.scpca_id, False)
+        purge_project(project.scpca_id, True)
 
 
 def mock_package_files_for_project(project: Project,):
