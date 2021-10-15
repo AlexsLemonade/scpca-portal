@@ -52,13 +52,13 @@ export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
       Header: 'Also Available',
       accessor: ({ additional_metadata: data }) => Object.keys(data).join(', ')
     },
-    { Header: 'Sample Count Estimates', accessor: () => 'tbd' }
+    { Header: 'Sample Count Estimates', accessor: 'cell_count' }
   ]
 
   React.useEffect(() => {
     const asyncFetch = async () => {
       const samplesRequest = await api.samples.list({
-        project__id: project.id,
+        project__scpca_id: project.scpca_id,
         limit: 1000 // TODO:: 'all' option
       })
       if (samplesRequest.isOk) {
