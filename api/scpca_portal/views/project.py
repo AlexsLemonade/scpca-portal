@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from rest_framework_extensions.mixins import NestedViewSetMixin
 from django_filters import rest_framework as filters
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import Project
 from scpca_portal.serializers import ProjectSerializer, SampleSerializer
