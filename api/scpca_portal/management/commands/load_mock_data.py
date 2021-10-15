@@ -240,7 +240,7 @@ mock_sample_index = 0
 
 def get_mock_option(key: str, k=False):
     if k:
-        return random.choices(mock_sample_options[k], k)
+        return random.choices(mock_sample_options[key], k=k)
     return random.choice(mock_sample_options[key])
 
 
@@ -302,6 +302,8 @@ def mock_sample_from_dict(project: Project, sample: dict, computed_file: Compute
         "tissue_location",
         "treatment",
         "seq_units",
+        "has_cite_seq_data",
+        "has_spacial_data",
         # Also include this, not because it's a sample column but
         # because we don't want it in additional_metadata.
         "scpca_library_id",
@@ -326,6 +328,8 @@ def mock_sample_from_dict(project: Project, sample: dict, computed_file: Compute
         treatment=sample["treatment"],
         seq_units=sample["seq_units"],
         cell_count=sample["cell_count"],
+        has_cite_seq_data=sample["has_cite_seq_data"],
+        has_spatial_data=sample["has_spatial_data"],
         additional_metadata=additional_metadata,
     )
     sample_object.save()
@@ -337,6 +341,13 @@ def mock_samples_for_project(project: Project):
 
     created_samples = []
     samples_to_mock = range(random.randrange(10, 45))
+
+    # limit variety per project
+    mock_technologies = get_mock_option("technologies", k=random.randrange(1, 3))
+    mock_diagnosis = get_mock_option("diagnosis", k=random.choice([1, 10, 5]))
+    mock_subdiagnosis = get_mock_option("subdiagnosis", k=random.randrange(1, 10, 5))
+    mock_seq_units = get_mock_option("seq_units", k=random.randrange(1, 3))
+
     for _ in samples_to_mock:
 
         global mock_sample_index
@@ -345,16 +356,18 @@ def mock_samples_for_project(project: Project):
 
         sample = {
             "scpca_sample_id": sample_id,
-            "technologies": get_mock_option("technologies"),
-            "diagnosis": get_mock_option("diagnosis"),
-            "subdiagnosis": get_mock_option("subdiagnosis"),
+            "technologies": random.choice(mock_technologies),
+            "diagnosis": random.choice(mock_diagnosis),
+            "subdiagnosis": random.choice(mock_subdiagnosis),
             "age_at_diagnosis": round(random.uniform(0.08, 24.0), 1),
             "sex": get_mock_option("sex"),
             "disease_timing": get_mock_option("disease_timing"),
             "tissue_location": get_mock_option("tissue_location"),
             "treatment": get_mock_option("treatment"),
-            "seq_units": get_mock_option("seq_units"),
+            "seq_units": random.choice(mock_seq_units),
             "cell_count": random.randrange(1, 100),
+            "has_cite_seq_data": random.choice([False, True]),
+            "has_spatial_data": random.choice([False, True]),
         }
 
         additional_metadata_keys = random.choices(
@@ -381,6 +394,8 @@ def replace_db_with_mock_data():
 
     # Make sure we're starting with a blank slate for the zip files.
     for project in mock_projects:
+
+        project.update({"has_bulk_rna_seq": random.choice([True, False])})
 
         project, created = Project.objects.get_or_create(**project, contact="email@example.com")
 
