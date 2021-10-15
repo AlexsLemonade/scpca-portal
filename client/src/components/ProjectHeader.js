@@ -5,8 +5,8 @@ import { Badge } from 'components/Badge'
 import { Link } from 'components/Link'
 import { Download } from 'components/Download'
 import { getReadable } from 'helpers/getReadable'
-import formatBytes from 'helpers/formatBytes'
-import capitalize from 'helpers/capitalize'
+import { formatBytes } from 'helpers/formatBytes'
+import { capitalize } from 'helpers/capitalize'
 import styled, { css } from 'styled-components'
 
 const HeaderBadge = styled(Badge)`
@@ -34,18 +34,24 @@ export const ProjectHeader = ({ project, linked = false }) => {
             </Text>
           )}
         </Box>
-        <Box gap="small" align="end" width={{ min: '0px' }} flex="grow">
-          <Box align="center">
-            {project.has_bulk_rna_seq && (
-              <Pill label={getReadable('has_bulk_rna_seq')} />
+        <Box
+          gap="small"
+          align="end"
+          width={{ min: '0px' }}
+          flex="grow"
+          pad={{ bottom: 'medium' }}
+        >
+          <Box align="center" gap="small">
+            {project.computed_file && (
+              <Download computedFile={project.computed_file} />
             )}
             {project.computed_file && (
-              <>
-                <Download computedFile={project.computed_file} />
-                <Text>
-                  Size: {formatBytes(project.computed_file.size_in_bytes)}
-                </Text>
-              </>
+              <Text>
+                Size: {formatBytes(project.computed_file.size_in_bytes)}
+              </Text>
+            )}
+            {project.has_bulk_rna_seq && (
+              <Pill label={getReadable('has_bulk_rna_seq')} />
             )}
           </Box>
         </Box>

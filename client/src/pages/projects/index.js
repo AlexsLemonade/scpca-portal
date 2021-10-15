@@ -5,7 +5,7 @@ import { ProjectSearchResult } from 'components/ProjectSearchResult'
 import { ProjectSearchFilter } from 'components/ProjectSearchFilter'
 import { ProjectSearchFilterPills } from 'components/ProjectSearchFilterPills'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
-import api from 'api'
+import { api } from 'api'
 
 const Project = ({ projects, count, filters, filterOptions }) => {
   const { browseFilters, setBrowseFilters } = React.useContext(
@@ -77,8 +77,10 @@ const Project = ({ projects, count, filters, filterOptions }) => {
 }
 
 export const getServerSideProps = async ({ query }) => {
-  const projectRequest = await api.projects.list(query)
-  const optionsRequest = await api.options.projects.get()
+  const [projectRequest, optionsRequest] = await Promise.all([
+    api.projects.list(query),
+    api.options.projects.get()
+  ])
 
   if (projectRequest.isOk && optionsRequest.isOk) {
     const { results: projects, count } = projectRequest.response

@@ -4,8 +4,9 @@ import { Button } from 'components/Button'
 import { Modal } from 'components/Modal'
 import { Link } from 'components/Link'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
-import api from 'api'
-import formatBytes from 'helpers/formatBytes'
+import { api } from 'api'
+import { formatBytes } from 'helpers/formatBytes'
+import { config } from 'config'
 import DownloadSVG from '../images/download-folder.svg'
 
 // label for the checkbox needs to be component to show links
@@ -39,7 +40,8 @@ export const TokenView = () => {
     acceptsTerms,
     setAcceptsTerms,
     createToken,
-    validateToken
+    validateToken,
+    emailListForm
   } = React.useContext(ScPCAPortalContext)
   const [requesting, setRequesting] = React.useState(false)
   const [errors, setErrors] = React.useState([])
@@ -51,6 +53,10 @@ export const TokenView = () => {
         const tokenRequest = await createToken()
         if (tokenRequest.isOK) {
           setErrors([])
+        }
+        // quietly sign them up for emails if checked
+        if (wantsEmails) {
+          emailListForm.submit({ email })
         }
       } else {
         // invalid set errors here
@@ -156,7 +162,7 @@ export const DownloadView = ({ computedFile }) => {
         pad={{ top: 'large' }}
       >
         <Text>Learn about what you can expect in your download file.</Text>
-        <Link href="/docs">
+        <Link href={config.links.help}>
           <Button primary label="Read Docs" />
         </Link>
       </Box>

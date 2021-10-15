@@ -214,7 +214,7 @@ export default {
     full: '100%',
     large: `${8 * 91}px`,
     medium: `${8 * 65}px`,
-    small: '158px',
+    small: '258px',
     xlarge: `${8 * 130}px`,
     xsmall: '64px',
     xxlarge: `${8 * 156}px`,

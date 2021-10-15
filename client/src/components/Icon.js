@@ -19,6 +19,10 @@ import Search from '../images/search.svg'
 import Trashcan from '../images/trash-can.svg'
 import View from '../images/view.svg'
 import Warning from '../images/warning.svg'
+import Twitter from '../images/twitter.svg'
+import Facebook from '../images/facebook.svg'
+import Instagram from '../images/instagram.svg'
+import Github from '../images/github.svg'
 
 export const SVGs = {
   Check,
@@ -39,7 +43,11 @@ export const SVGs = {
   Search,
   Trashcan,
   View,
-  Warning
+  Warning,
+  Twitter,
+  Instagram,
+  Facebook,
+  Github
 }
 
 export const Icon = ({ color = 'brand', size = 'medium', name }) => {

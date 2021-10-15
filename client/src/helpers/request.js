@@ -9,7 +9,7 @@ const parseRequestResponse = async (response) => {
 }
 
 // browser/server safe request api with standard pre-parsed responses
-export default async (
+export const request = async (
   url,
   {
     headers = { 'content-type': 'application/json' },
@@ -39,3 +39,5 @@ export default async (
     }
   }
 }
+
+export default request
