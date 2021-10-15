@@ -24,7 +24,13 @@ class ProjectFilter(filters.FilterSet):
 
     class Meta:
         model = Project
-        fields = ["scpca_id", "pi_name", "has_bulk_rna_seq", "has_spatial_data"]
+        fields = [
+            "scpca_id",
+            "pi_name",
+            "has_bulk_rna_seq",
+            "has_cite_seq_data",
+            "has_spatial_data",
+        ]
 
 
 class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
