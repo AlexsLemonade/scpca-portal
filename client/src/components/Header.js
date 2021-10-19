@@ -31,6 +31,7 @@ export const Header = ({ className, margin, donate = false }) => {
           align="center"
         >
           <Link color="white" href="/" label="Home" />
+          <Link color="white" href="/about" label="About" />
           <Link color="white" href="/projects" label="Browse" />
           <Link color="white" href="https://alexslemonade.org" label="Docs" />
           {donate && <DonateButton />}
