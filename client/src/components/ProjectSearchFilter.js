@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Text, CheckBox } from 'grommet'
 import { Loader } from 'components/Loader'
 import { api } from 'api'
+import { getReadable } from 'helpers/getReadable'
 
 export const ProjectSearchFilter = ({
   filters: defaultFilters = {},
@@ -35,16 +36,25 @@ export const ProjectSearchFilter = ({
   }, [defaultFilters])
 
   const hasFilterOption = (filter, option) => {
-    return (filters[filter] || []).includes(option)
+    if (option) {
+      return (filters[filter] || []).includes(option)
+    }
+    return filter in filters
   }
 
   const toggleFilterOption = (filter, option) => {
     const newFilters = { ...filters }
     if (!hasFilterOption(filter, option)) {
-      newFilters[filter] = newFilters[filter] || []
-      newFilters[filter].push(option)
-    } else {
+      if (option) {
+        newFilters[filter] = newFilters[filter] || []
+        newFilters[filter].push(option)
+      } else {
+        newFilters[filter] = [true]
+      }
+    } else if (option) {
       newFilters[filter].splice(newFilters[filter].indexOf(option), 1)
+    } else {
+      delete newFilters[filter]
     }
     setFilters(newFilters)
     onFilterChange(newFilters)
@@ -83,6 +93,14 @@ export const ProjectSearchFilter = ({
                 onChange={() => toggleFilterOption(f, o)}
               />
             ))}
+            {f === 'modalities' && (
+              <CheckBox
+                label={getReadable('has_bulk_rna_seq')}
+                value
+                checked={hasFilterOption('has_bulk_rna_seq')}
+                onChange={() => toggleFilterOption('has_bulk_rna_seq')}
+              />
+            )}
           </Box>
         </Box>
       ))}
