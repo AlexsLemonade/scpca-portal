@@ -2,7 +2,7 @@ export default {
   header: {
     border: undefined,
     fill: 'horizontal',
-    pad: { horizontal: 'medium', vertical: 'small' },
+    pad: { horizontal: 'small', top: 'xsmall', bottom: 'small' },
     verticalAlign: 'bottom',
     extend: `
       font-weight: bold;

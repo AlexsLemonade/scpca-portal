@@ -35,10 +35,10 @@ export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
       Header: 'Diagnosis - Subdiagnosis',
       accessor: ({ diagnosis, subdiagnosis }) => `${diagnosis} ${subdiagnosis}`,
       Cell: ({ row }) => (
-        <>
+        <Box width={{ max: '200px' }} style={{ 'white-space': 'normal' }}>
           <Text>{row.original.diagnosis}</Text>
           <Text size="small">{row.original.subdiagnosis}</Text>
-        </>
+        </Box>
       )
     },
     { Header: 'Sequencing Units', accessor: 'seq_units' },
