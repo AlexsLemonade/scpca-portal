@@ -224,6 +224,7 @@ const Home = ({ stats }) => {
                 alignSelf="start"
                 label="Learn More"
                 href={config.links.how_processed}
+                target="_blank"
               />
             </Box>
             <Box margin={{ top: '6px' }}>
@@ -249,6 +250,7 @@ const Home = ({ stats }) => {
                 alignSelf="start"
                 label="Learn More"
                 href={config.links.what_downloading}
+                target="_blank"
               />
             </Box>
             <Box margin={{ top: '6px' }}>
