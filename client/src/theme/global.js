@@ -15,7 +15,7 @@ export default {
   breakpoints: {
     large: {},
     medium: {
-      value: '1024px'
+      value: '1200px'
     },
     small: {
       borderSize: {
