@@ -49,7 +49,7 @@ export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
     { Header: 'Age at Diagnosis', accessor: 'age_at_diagnosis' },
     { Header: 'Sex', accessor: 'sex' },
     {
-      Header: 'Also Available',
+      Header: 'Additional Metadata Fields',
       accessor: ({ additional_metadata: data }) => Object.keys(data).join(', ')
     },
     { Header: 'Sample Count Estimates', accessor: 'cell_count' }
