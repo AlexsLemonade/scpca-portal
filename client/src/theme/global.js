@@ -15,7 +15,7 @@ export default {
   breakpoints: {
     large: {},
     medium: {
-      value: '1200px'
+      value: '1024px'
     },
     small: {
       borderSize: {
@@ -215,7 +215,7 @@ export default {
     large: `${8 * 91}px`,
     medium: `${8 * 65}px`,
     small: '258px',
-    xlarge: `${8 * 130}px`,
+    xlarge: `${8 * 150}px`,
     xsmall: '64px',
     xxlarge: `${8 * 156}px`,
     xxsmall: '32px'
