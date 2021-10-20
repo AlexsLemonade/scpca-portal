@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { Icon } from 'components/Icon'
+import { getReadable } from 'helpers/getReadable'
 
 export const FilterPill = ({ option, onRemove }) => {
   return (
@@ -59,6 +60,16 @@ export const ProjectSearchFilterPills = ({
   const appliedFilters = Object.keys(filters).filter(
     (k) => filters[k].length > 0
   )
+
+  // nextjs casts ints and bools to strings when parsing the query object
+  // we have to do this, it could be more robust but we can do that later
+  const getOption = (filter, option) => {
+    const notString = typeof option !== 'string'
+    const isBool = ['true', 'false'].includes(option)
+    if (notString || isBool) return getReadable(filter)
+    return getReadable(option)
+  }
+
   return (
     <Box direction="row" wrap>
       {appliedFilters.length > 0 && (
@@ -70,7 +81,7 @@ export const ProjectSearchFilterPills = ({
         filters[f].map((o) => (
           <FilterPill
             key={`${f}-${o}`}
-            option={o}
+            option={getOption(f, o)}
             onRemove={() => removeFilter(f, o)}
           />
         ))

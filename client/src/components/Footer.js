@@ -92,7 +92,7 @@ export const Footer = () => {
           <Nav direction="row" align="center" gap="large">
             <Link href="/terms-of-use" label="Terms of Use" />
             <Link href="/privacy-policy" label="Privacy Policy" />
-            <Link href={config.links.help} label="Help" />
+            <Link href={config.links.help} label="Docs" />
           </Nav>
         </Box>
       </Box>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Paragraph, Text } from 'grommet'
+import { Box, Grid, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { HeroBandReversed, CardBandLarge } from 'components/Band'
 import AboutPageFigure from '../../images/about-page-figure.svg'
@@ -37,8 +37,9 @@ export const About = () => {
       <Box>
         <AboutPageFigure />
       </Box>
-      <Box
-        direction="row"
+      <Grid
+        columns="1/2"
+        gap="xxlarge"
         pad={{ top: 'large', bottom: 'xlarge' }}
         width={{ max: 'xlarge' }}
       >
@@ -63,7 +64,7 @@ export const About = () => {
             tumor types represented and samples being processed here.
           </Text>
         </Box>
-      </Box>
+      </Grid>
       <Box background="dawn" width="full" align="center" pad={{ top: 'large' }}>
         <Box align="start" width={{ max: 'xlarge' }} fill>
           <Text size="xlarge">Impact</Text>
@@ -75,88 +76,62 @@ export const About = () => {
               this open resource to accelerate the rate of new discoveries.
             </Text>
           </Box>
-          <Box>
-            <Box direction="row" wrap>
-              <Box
-                basis="1/2"
-                direction="row"
-                justify="between"
-                gap="medium"
-                margin={{ bottom: 'xlarge' }}
-              >
-                <Box width="24px">
-                  <Access />
-                </Box>
-                <Box>
-                  <Text weight="bold">Accessible Cutting-edge Technology</Text>
-                  <Text>
-                    Single-cell RNA sequencing is a cutting-edge technology and
-                    may not be accessible to all childhood cancer experts.
-                    Making the outputs of this project readily and openly
-                    available puts data in the hands of more researchers.
-                  </Text>
-                </Box>
+          <Grid columns="1/2" gap="xlarge" margin={{ bottom: 'xlarge' }}>
+            <Box direction="row" justify="between" gap="medium">
+              <Box width="24px">
+                <Access />
               </Box>
-              <Box
-                basis="1/2"
-                direction="row"
-                justify="between"
-                gap="medium"
-                margin={{ bottom: 'xlarge' }}
-              >
-                <Box width="24px">
-                  <WidelyAvailable />
-                </Box>
-                <Box>
-                  <Text weight="bold">Widely Available</Text>
-                  <Text>
-                    The Data Lab developed the ScPCA Portal to make the data
-                    from these patient samples widely and easily available in
-                    one location.
-                  </Text>
-                </Box>
-              </Box>
-              <Box
-                basis="1/2"
-                direction="row"
-                justify="between"
-                gap="medium"
-                margin={{ bottom: 'xlarge' }}
-              >
-                <Box width="24px">
-                  <OpenSource />
-                </Box>
-                <Box>
-                  <Text weight="bold">Open Source</Text>
-                  <Text>
-                    The pipeline used to process the data is open source and
-                    well documented. This not only cultivates trust in the data,
-                    but also enables researchers to utilize the pipeline for
-                    their own analyses and ensure reproducible results.
-                  </Text>
-                </Box>
-              </Box>
-              <Box
-                basis="1/2"
-                direction="row"
-                justify="between"
-                gap="medium"
-                margin={{ bottom: 'xlarge' }}
-              >
-                <Box width="24px">
-                  <SaveTime />
-                </Box>
-                <Box>
-                  <Text weight="bold">Frees up Researcher Time</Text>
-                  <Text>
-                    This saves precious time for researchers who would have
-                    otherwise had to process the data themselves and enables
-                    them to begin using it immediately.
-                  </Text>
-                </Box>
+              <Box>
+                <Text weight="bold">Accessible Cutting-edge Technology</Text>
+                <Text>
+                  Single-cell RNA sequencing is a cutting-edge technology and
+                  may not be accessible to all childhood cancer experts. Making
+                  the outputs of this project readily and openly available puts
+                  data in the hands of more researchers.
+                </Text>
               </Box>
             </Box>
-          </Box>
+            <Box direction="row" justify="between" gap="medium">
+              <Box width="24px">
+                <WidelyAvailable />
+              </Box>
+              <Box>
+                <Text weight="bold">Widely Available</Text>
+                <Text>
+                  The Data Lab developed the ScPCA Portal to make the data from
+                  these patient samples widely and easily available in one
+                  location.
+                </Text>
+              </Box>
+            </Box>
+            <Box direction="row" justify="between" gap="medium">
+              <Box width="24px">
+                <OpenSource />
+              </Box>
+              <Box>
+                <Text weight="bold">Open Source</Text>
+                <Text>
+                  The pipeline used to process the data is open source and well
+                  documented. This not only cultivates trust in the data, but
+                  also enables researchers to utilize the pipeline for their own
+                  analyses and ensure reproducible results.
+                </Text>
+              </Box>
+            </Box>
+            <Box direction="row" justify="between" gap="medium">
+              <Box width="24px">
+                <SaveTime />
+              </Box>
+              <Box>
+                <Text weight="bold">Frees up Researcher Time</Text>
+                <Text>
+                  This saves precious time for researchers who would have
+                  otherwise had to process the data themselves and enables them
+                  to begin using it immediately.
+                </Text>
+              </Box>
+            </Box>
+          </Grid>
         </Box>
       </Box>
       <Box width={{ max: 'xlarge' }}>

@@ -51,7 +51,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               </Text>
             )}
             {project.has_bulk_rna_seq && (
-              <Pill label={getReadable('has_bulk_rna_seq')} />
+              <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
             )}
           </Box>
         </Box>
