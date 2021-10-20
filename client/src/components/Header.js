@@ -3,6 +3,7 @@ import { Box, Header as GrommetHeader, Nav, ResponsiveContext } from 'grommet'
 import { DonateButton } from 'components/DonateButton'
 import { Link } from 'components/Link'
 import Logo from 'components/Logo'
+import { config } from 'config'
 
 export const Header = ({ className, margin, donate = false }) => {
   const size = React.useContext(ResponsiveContext)
@@ -33,7 +34,7 @@ export const Header = ({ className, margin, donate = false }) => {
           <Link color="white" href="/" label="Home" />
           <Link color="white" href="/about" label="About" />
           <Link color="white" href="/projects" label="Browse" />
-          <Link color="white" href="https://alexslemonade.org" label="Docs" />
+          <Link color="white" href={config.links.help} label="Docs" />
           {donate && <DonateButton />}
         </Nav>
       </Box>
