@@ -26,7 +26,7 @@ See the [Downloadable files](https://scpca.readthedocs.io/en/latest/download_fil
 
 For instructions on using the RDS files, please see [FAQ: How do I use the provided files in R?](https://scpca.readthedocs.io/en/latest/faq.html#how-do-i-use-the-provided-rds-files-in-r) or [FAQ: What if I want to use Python instead of R?](https://scpca.readthedocs.io/en/latest/faq.html#what-if-i-want-to-use-python-instead-of-r)
 
-## Contact 
+## Contact
 
 If you identify issues with this download, please [file an issue on GitHub.](https://github.com/AlexsLemonade/scpca-portal/issues/new) If you would prefer to report issues via e-mail, please contact us at [scpca@ccdatalab.org](mailto:scpca@ccdatalab.org).
 
