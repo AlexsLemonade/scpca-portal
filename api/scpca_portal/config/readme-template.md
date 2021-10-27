@@ -2,21 +2,21 @@
 
 The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a database of single-cell and single-nuclei data from pediatric cancer clinical samples and xenografts, built by the [Childhood Cancer Data Lab](https://www.ccdatalab.org/) at [Alex's Lemonade Stand Foundation](https://www.alexslemonade.org/).
 
-## Contents 
+## Contents
 
 This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{project_accession}]({project_url}) in the ScPCA portal.
 
 Each sample folder (indicated by the `SCPCS` prefix) contains the files for all libraries (`SCPCL` prefix) derived from that biological sample.
-Most samples only have one library that has been sequenced. 
+Most samples only have one library that has been sequenced.
 See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/en/latest/faq.html#what-is-the-difference-between-samples-and-libraries) for more information.
 
 The files associated with each library are (example shown for a library with ID `SCPCL000000`):
-- An unfiltered counts file: `SCPCL000000_unfiltered.rds`, 
-- A filtered counts file: `SCPCL000000_filtered.rds`, 
-- A quality control report: `SCPCL000000_qc.html`, 
-- A metadata file: `SCPCL000000_metadata.json`. 
+- An unfiltered counts file: `SCPCL000000_unfiltered.rds`,
+- A filtered counts file: `SCPCL000000_filtered.rds`,
+- A quality control report: `SCPCL000000_qc.html`,
+- A metadata file: `SCPCL000000_metadata.json`.
 
-Also included in each download is a `libraries_metadata.csv`, a comma-separated table, with one row per library and columns containing pertinent metadata corresponding to that library. 
+Also included in each download is a `libraries_metadata.csv`, a comma-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
 Gene expression files, available as RDS files containing a `SingleCellExperiment` object, house the expression data, cell and gene metrics, associated metadata, and in the case of multi-modal data like CITE-seq, data from the additional cell-based assays (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html) for more information).
 
