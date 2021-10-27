@@ -4,7 +4,7 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents 
 
-This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [project_accession](project_url) in the ScPCA portal.
+This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{project_accession}]({project_url}) in the ScPCA portal.
 
 Each sample folder (indicated by the `SCPCS` prefix) contains the files for all libraries (`SCPCL` prefix) derived from that biological sample.
 Most samples only have one library that has been sequenced. 
@@ -32,7 +32,7 @@ If you identify issues with this download, please [file an issue on GitHub.](htt
 
 ## Citing
 
-To cite data from project_accession, please see the citation information at [project_accession page.](project_url)
+To cite data from {project_accession}, please see the citation information at [{project_accession} page.]({project_url})
 
 ## Terms of Use
 
