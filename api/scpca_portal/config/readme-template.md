@@ -21,7 +21,7 @@ Also included in each download is a `libraries_metadata.csv`, a comma-separated 
 Gene expression files, available as RDS files containing a `SingleCellExperiment` object, house the expression data, cell and gene metrics, associated metadata, and in the case of multi-modal data like CITE-seq, data from the additional cell-based assays (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html) for more information).
 
 See the [Downloadable files](https://scpca.readthedocs.io/en/latest/download_files.html) section in our documentation for more detailed information on files included in the download.
-   
+
 ## Usage
 
 For instructions on using the RDS files, please see [FAQ: How do I use the provided files in R?](https://scpca.readthedocs.io/en/latest/faq.html#how-do-i-use-the-provided-rds-files-in-r) or [FAQ: What if I want to use Python instead of R?](https://scpca.readthedocs.io/en/latest/faq.html#what-if-i-want-to-use-python-instead-of-r)
