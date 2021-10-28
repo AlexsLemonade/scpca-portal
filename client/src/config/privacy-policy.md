@@ -5,13 +5,13 @@ This database and website, located at
 [*https://cognoma.org*](https://cognoma.org),
 [*https://scpca.alexslemonade.org/*](https://scpca.alexslemonade.org/)
 and [*http://www.refine.bio*](http://www.refine.bio) or any subdomains
-thereof (the **\"CCDL\"**), is supported by Alex's Lemonade Stand
-Foundation (**\"we,\"** **\"our,\"** or **\"us\"**).
+thereof (the **"CCDL"**), is supported by Alex’s Lemonade Stand
+Foundation (**"we,"** **"our,"** or **"us"**).
 
 Your access to, and use of, the CCDL is subject to our Terms of Use,
 located at [*http://refine.bio/terms*](https://www.refine.bio/terms)
-(the **\"Terms of Use\"**). We have created this Privacy Policy (this
-**\"Privacy Policy\"**) to explain what information we gather when you
+(the **"Terms of Use"**). We have created this Privacy Policy (this
+**"Privacy Policy"**) to explain what information we gather when you
 visit or interact with the CCDL, how we and others may use your
 information, and the security approaches we use to protect your
 information. This Privacy Policy is incorporated into and made part of
@@ -38,26 +38,25 @@ types of personal information we gather:
 
     -   **Automatic Information:** We receive and store certain types of
         > information whenever you interact with us, including IP
-        > addresses and session identifiers. We may use \"cookies\" or
+        > addresses and session identifiers. We may use "cookies" or
         > other tracking tools to enhance your experience and gather
         > information about Users and visits to the CCDL. Please refer
-        > to the \"May we use \'cookies\' or other tracking tools?\"
-        > section below for information about cookies and how we may use
-        > them.
+        > to the "May we use 'cookies' or other tracking tools?" section
+        > below for information about cookies and how we may use them.
 
     -   **Information from Other Sources:** For purposes such as
         > authentication, monitoring, completeness or accuracy, we may
         > receive information about you from other sources, including
         > third parties you have authorized to share information with
         > us, and we may add or relate such information to your
-        > account.\
+        > account.  
 
-2.  **How do we respond to \"Do Not Track\" signals?**
+2.  **How do we respond to "Do Not Track" signals?**
 
 Because there is not yet a common understanding of how to interpret web
-browser-based \"Do Not Track\" (**\"DNT\"**) signals other than cookies,
-we do not currently respond to, or provide Users with a different CCDL
-experience based on, undefined \"DNT\" signals to the CCDL.
+browser-based "Do Not Track" (**"DNT"**) signals other than cookies, we
+do not currently respond to, or provide Users with a different CCDL
+experience based on, undefined "DNT" signals to the CCDL.
 
 1.  **How do we use your personal information?**
 
@@ -84,7 +83,7 @@ We may use your personal information in any of the following ways:
     -   To administer a survey or other CCDL feature.
 
     -   To operate, maintain, analyze, improve, control, or customize
-        > the CCDL.\
+        > the CCDL.  
 
 2.  **Do we disclose the information we collect?**
 
@@ -129,11 +128,11 @@ information with third parties.
 
 You can correct or update your personal information by re-registering,
 updating your profile, or by contacting us at
-[*ccdl\@alexslemonade.org*](mailto:ccdl@alexslemonade.org). You can also
+[*ccdl@alexslemonade.org*](mailto:ccdl@alexslemonade.org). You can also
 request that we delete your personal information or remove you from our
 communications.
 
-1.  **May we use \"cookies\" or other tracking tools?**
+1.  **May we use "cookies" or other tracking tools?**
 
 Yes. We may use web tracking tools such as cookies and web beacons. A
 cookie is a small data file that certain websites write to your hard
@@ -184,7 +183,7 @@ integrity of the CCDL and welcome any feedback about these linked sites
 
 Any questions or feedback about the CCDL or this Privacy Policy should
 be directed to
-[*ccdl\@alexslemonade.org*](mailto:ccdl@alexslemonade.org).
+[*ccdl@alexslemonade.org*](mailto:ccdl@alexslemonade.org).
 
 1.  **Important Notices to Non-United States Residents**
 
@@ -194,15 +193,15 @@ any personal information you provide to us will be transferred to the
 United States. By using the CCDL and/or providing us with your personal
 information, you consent to this transfer.
 
-1.  **Children\'s Privacy**
+1.  **Children's Privacy**
 
 We do not knowingly intend to collect personal information from children
 under 13 years of age. If a child has provided us with personal
 information, a parent or guardian of that child may send an email
-message to [*ccdl\@alexslemonade.org*](mailto:ccdl@alexslemonade.org)
-with \"Request for Child Information Removal\" in the subject line and
-the name and age of the child in the body of the message. After
-confirmation, we will make reasonable efforts to delete the child's
+message to [*ccdl@alexslemonade.org*](mailto:ccdl@alexslemonade.org)
+with "Request for Child Information Removal" in the subject line and the
+name and age of the child in the body of the message. After
+confirmation, we will make reasonable efforts to delete the child’s
 information from the database that stores information for the CCDL.
 
 Last Updated: \[INSERT DATE\]
