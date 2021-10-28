@@ -54,6 +54,10 @@ export const getServerSideProps = async ({ query }) => {
     }
   }
 
+  if (projectRequest.status === 404) {
+    return { notFound: true }
+  }
+
   return { props: { project: null } }
 }
 

@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default (func) => {
+export const useWaitForAsync = (func) => {
   const mountedRef = React.useRef(true)
   const [waiting, setWaiting] = React.useState(false)
 
@@ -25,3 +25,5 @@ export default (func) => {
     }
   ]
 }
+
+export default useWaitForAsync

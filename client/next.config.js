@@ -1,3 +1,5 @@
+const path = require('path')
+
 module.exports = () => {
   const isProduction = process.env.VERCEL_GIT_COMMIT_REF === 'master'
 
@@ -22,6 +24,19 @@ module.exports = () => {
   const env = isProduction ? productionEnv : stageEnv
 
   return {
-    env
+    env,
+    experimental: {
+      productionBrowserSourceMaps: true
+    },
+    webpack: (baseConfig) => {
+      const config = { ...baseConfig }
+      config.devtool = 'source-map'
+      config.resolveLoader.modules.push(path.resolve(__dirname, 'loaders'))
+      config.module.rules.push({
+        test: /\.md$/,
+        use: ['raw-loader', 'template-literal-loader']
+      })
+      return config
+    }
   }
 }
