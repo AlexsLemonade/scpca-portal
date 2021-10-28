@@ -1,4 +1,4 @@
-**TERMS OF USE**
+###TERMS OF USE
 
 Welcome to the Alex's Lemonade Single-cell Pediatric Cancer Atlas Data
 Portal, which is supported by Alex's Lemonade Stand Foundation
