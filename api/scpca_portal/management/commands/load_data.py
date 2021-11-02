@@ -104,7 +104,7 @@ def package_files_for_sample(
             zip_object.write(local_metadata_path, "libraries_metadata.csv")
 
             for library in libraries:
-                for file_postfix in ["_unfiltered.rds", "_filtered.rds", "_qc_report.html"]:
+                for file_postfix in ["_unfiltered.rds", "_filtered.rds", "_qc.html"]:
                     filename = f"{library['scpca_library_id']}{file_postfix}"
                     local_file_path = os.path.join(project_dir, sample_id, filename)
                     file_paths.append(local_file_path)
@@ -375,11 +375,11 @@ class Command(BaseCommand):
         /SCPCP000001/samples_metadata.csv
         /SCPCP000001/SCPCS000109/SCPCL000126_filtered.rds
         /SCPCP000001/SCPCS000109/SCPCL000126_unfiltered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_qc_report.html
+        /SCPCP000001/SCPCS000109/SCPCL000126_qc.html
         /SCPCP000001/SCPCS000109/SCPCL000126_metadata.json
         /SCPCP000001/SCPCS000109/SCPCL000127_filtered.rds
         /SCPCP000001/SCPCS000109/SCPCL000127_unfiltered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_qc_report.html
+        /SCPCP000001/SCPCS000109/SCPCL000127_qc.html
         /SCPCP000001/SCPCS000109/SCPCL000127_metadata.json
 
     The files will be zipped up and stats will be calculated for them.
