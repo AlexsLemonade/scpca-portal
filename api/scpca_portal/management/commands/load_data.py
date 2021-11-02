@@ -19,6 +19,7 @@ from scpca_portal.models import ComputedFile, Project, Sample
 
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
+project_whitelist = ["murphy_chen"]
 
 
 def purge_all_projects(should_upload):
@@ -54,13 +55,11 @@ def package_files_for_project(
                     zip_object.write(local_file_path, archive_path)
 
         computed_file.size_in_bytes = os.path.getsize(local_file_path)
-        print("Wasn't expecting that")
-        # s3.upload_file(project_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
+        s3.upload_file(project_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
     else:
-        computed_file.size_in_bytes = 5
-    #     s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
-    #     assert len(s3_objects["Contents"]) == 1
-    #     computed_file.size_in_bytes = s3_objects["Contents"][0]["Size"]
+        s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
+        assert len(s3_objects["Contents"]) == 1
+        computed_file.size_in_bytes = s3_objects["Contents"][0]["Size"]
 
     computed_file.save()
 
@@ -105,23 +104,18 @@ def package_files_for_sample(
             zip_object.write(local_metadata_path, "libraries_metadata.csv")
 
             for library in libraries:
-                # TODO: reenable _qc_report.html once it's there.
-                # https://github.com/AlexsLemonade/scpca-portal/issues/33
-                # for file_postfix in ["_unfiltered.rds", "_filtered.rds", "_qc_report.html"]:
-                for file_postfix in ["_unfiltered.rds", "_filtered.rds"]:
-                    filename = f"{library['library_id']}{file_postfix}"
-                    local_file_path = os.path.join(project_dir, "files", sample_id, filename)
+                for file_postfix in ["_unfiltered.rds", "_filtered.rds", "_qc_report.html"]:
+                    filename = f"{library['scpca_library_id']}{file_postfix}"
+                    local_file_path = os.path.join(project_dir, sample_id, filename)
                     file_paths.append(local_file_path)
                     zip_object.write(local_file_path, filename)
 
         computed_file.size_in_bytes = os.path.getsize(local_file_path)
-        print("Wasn't expecting that")
-        # s3.upload_file(sample_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
+        s3.upload_file(sample_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
     else:
-        # s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
-        # assert len(s3_objects["Contents"]) == 1
-        # computed_file.size_in_bytes = s3_objects["Contents"][0]["Size"]
-        computed_file.size_in_bytes = 5
+        s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
+        assert len(s3_objects["Contents"]) == 1
+        computed_file.size_in_bytes = s3_objects["Contents"][0]["Size"]
 
     computed_file.save()
 
@@ -137,6 +131,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
         "technologies",
         "diagnosis",
         "subdiagnosis",
+        "cell_count",
         "age",
         "sex",
         "disease_timing",
@@ -144,7 +139,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
         "seq_units",
         # Also include this, not because it's a sample column but
         # because we don't want it in additional_metadata.
-        "library_id",
+        "scpca_library_id",
     ]
     additional_metadata = {}
     for key, value in sample.items():
@@ -164,7 +159,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
         disease_timing=sample["disease_timing"],
         tissue_location=sample["tissue_location"],
         seq_units=sample["seq_units"],
-        cell_count=42,
+        cell_count=sample["cell_count"],
         additional_metadata=additional_metadata,
     )
     sample_object.save()
@@ -192,11 +187,12 @@ def combine_and_write_metadata(
     # Then force the following ordering:
     ordered_field_names = [
         "scpca_sample_id",
-        "library_id",
+        "scpca_library_id",
         "diagnosis",
         "subdiagnosis",
         "seq_unit",
         "technology",
+        "filtered_cell_count",
         "scpca_project_id",
         "pi_name",
         "project_title",
@@ -228,7 +224,7 @@ def combine_and_write_metadata(
                 sample_writer = csv.DictWriter(sample_file, fieldnames=ordered_field_names)
                 sample_writer.writeheader()
                 for library in libraries_metadata:
-                    if library["sample_id"] == sample["scpca_sample_id"]:
+                    if library["scpca_sample_id"] == sample["scpca_sample_id"]:
                         library.update(sample_copy)
                         full_libraries_metadata.append(library)
                         project_writer.writerow(library)
@@ -251,12 +247,21 @@ def load_data_for_project(data_dir: str, output_dir: str, project: Project, shou
 
     libraries_metadata = []
     for sample in samples_metadata:
+        sample_cell_count = 0
         sample_dir = os.path.join(project_dir, sample["scpca_sample_id"])
         for filename in os.listdir(sample_dir):
             if filename.endswith("_metadata.json"):
                 with open(os.path.join(sample_dir, filename)) as json_file:
                     parsed_json = json.load(json_file)
+
+                    # Rename these key for consistency with the docs:
+                    parsed_json["scpca_sample_id"] = parsed_json.pop("sample_id")
+                    parsed_json["scpca_library_id"] = parsed_json.pop("library_id")
+                    parsed_json["filtered_cell_count"] = parsed_json.pop("filtered_cells")
+
                     libraries_metadata.append(parsed_json)
+
+                    sample_cell_count += parsed_json["filtered_cell_count"]
 
                     if "technologies" in sample:
                         sample["technologies"] = (
@@ -269,6 +274,8 @@ def load_data_for_project(data_dir: str, output_dir: str, project: Project, shou
                         sample["seq_units"] = sample["seq_units"] + ", " + parsed_json["seq_unit"]
                     else:
                         sample["seq_units"] = parsed_json["seq_unit"]
+
+        sample["cell_count"] = sample_cell_count
 
     full_libraries_metadata = combine_and_write_metadata(
         output_dir, project, samples_metadata, libraries_metadata
@@ -317,6 +324,9 @@ def load_data_from_s3(
     with open(project_input_metadata_path) as csvfile:
         projects = csv.DictReader(csvfile)
         for project in projects:
+            if project["submitter"] not in project_whitelist:
+                continue
+
             scpca_id = project["scpca_project_id"]
 
             if reload_existing:
@@ -361,14 +371,16 @@ class Command(BaseCommand):
 
     The directory structure for this bucket should follow this pattern:
         /project_metadata.csv
-        /dyer_chen/libraries_metadata.csv
-        /dyer_chen/samples_metadata.csv
-        /dyer_chen/files/SCPCS000109/SCPCL000126_filtered.rds
-        /dyer_chen/files/SCPCS000109/SCPCL000126_unfiltered.rds
-        /dyer_chen/files/SCPCS000109/SCPCL000126_qc_report.html
-        /dyer_chen/files/SCPCS000109/SCPCL000127_filtered.rds
-        /dyer_chen/files/SCPCS000109/SCPCL000127_unfiltered.rds
-        /dyer_chen/files/SCPCS000109/SCPCL000127_qc_report.html
+        /SCPCP000001/libraries_metadata.csv
+        /SCPCP000001/samples_metadata.csv
+        /SCPCP000001/SCPCS000109/SCPCL000126_filtered.rds
+        /SCPCP000001/SCPCS000109/SCPCL000126_unfiltered.rds
+        /SCPCP000001/SCPCS000109/SCPCL000126_qc_report.html
+        /SCPCP000001/SCPCS000109/SCPCL000126_metadata.json
+        /SCPCP000001/SCPCS000109/SCPCL000127_filtered.rds
+        /SCPCP000001/SCPCS000109/SCPCL000127_unfiltered.rds
+        /SCPCP000001/SCPCS000109/SCPCL000127_qc_report.html
+        /SCPCP000001/SCPCS000109/SCPCL000127_metadata.json
 
     The files will be zipped up and stats will be calculated for them.
 

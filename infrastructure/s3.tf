@@ -11,3 +11,10 @@ resource "aws_s3_bucket" "scpca_portal_bucket" {
     }
   )
 }
+
+resource "aws_s3_bucket_public_access_block" "scpca_portal_bucket" {
+  bucket = "${aws_s3_bucket.scpca_portal_bucket.id}"
+
+  block_public_acls   = true
+  block_public_policy = true
+}
