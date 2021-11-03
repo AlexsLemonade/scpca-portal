@@ -1,6 +1,6 @@
 import React from 'react'
 import { useRouter } from 'next/router'
-import { Box, Grid, Text } from 'grommet'
+import { Anchor, Box, Grid, Text } from 'grommet'
 import { ProjectSearchResult } from 'components/ProjectSearchResult'
 import { ProjectSearchFilter } from 'components/ProjectSearchFilter'
 import { ProjectSearchFilterPills } from 'components/ProjectSearchFilterPills'
@@ -26,6 +26,11 @@ const Project = ({ projects, count, filters, filterOptions }) => {
     })
   }
 
+  const hasFilters = Object.keys(browseFilters).length > 0
+  const clearFilters = () => {
+    onFilterChange({})
+  }
+
   return (
     <Box width="full">
       <Box pad={{ bottom: 'large' }}>
@@ -44,9 +49,17 @@ const Project = ({ projects, count, filters, filterOptions }) => {
         gap="large"
       >
         <Box gridArea="filters" width="small">
-          <Text serif size="large">
-            Filters
-          </Text>
+          <Box direction="row" justify="between">
+            <Text serif size="large">
+              Filters
+            </Text>
+            <Anchor
+              color="brand"
+              label="clear all"
+              disabled={!hasFilters}
+              onClick={clearFilters}
+            />
+          </Box>
           <ProjectSearchFilter
             filters={browseFilters}
             filterOptions={filterOptions}

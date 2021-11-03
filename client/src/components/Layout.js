@@ -47,6 +47,7 @@ export const Layout = ({ children }) => {
         alignSelf="center"
         overflow="visible"
         align="center"
+        justify="center"
       >
         {children}
       </Main>

@@ -20,11 +20,10 @@ const ErrorPage = () => {
   }
 
   return (
-    <Box direction="row" gap="xxlarge">
-      <Box justify="center" align="start">
+    <Box direction="row" align="center" gap="xxlarge">
+      <Box align="start">
         <Box margin={{ bottom: 'medium' }}>
-          <Text size="xxlarge">We encountered an unexpected error.</Text>
-          <Text size="xxlarge">Please try again later..</Text>
+          <Text size="xxlarge">This page does not exist.</Text>
         </Box>
         <Button primary onClick={goBack} label="Go Back" />
       </Box>

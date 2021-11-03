@@ -15,7 +15,7 @@ export const ProjectSearchResult = ({ project }) => {
       value: project.abstract
     },
     {
-      title: 'Sample Metadata Fields',
+      title: 'Additional Sample Metadata Fields',
       value: project.additional_metadata_keys
     }
   ]

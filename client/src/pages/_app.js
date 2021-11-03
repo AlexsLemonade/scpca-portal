@@ -23,12 +23,12 @@ const Portal = ({ Component, pageProps }) => {
       <Reset />
       <Grommet theme={theme}>
         <ScPCAPortalContextProvider>
-          <Sentry.ErrorBoundary fallback={Fallback} showDialog>
-            <Layout>
+          <Layout>
+            <Sentry.ErrorBoundary fallback={Fallback} showDialog>
               {/* eslint-disable-next-line react/jsx-props-no-spreading */}
               <Component {...pageProps} />
-            </Layout>
-          </Sentry.ErrorBoundary>
+            </Sentry.ErrorBoundary>
+          </Layout>
         </ScPCAPortalContextProvider>
       </Grommet>
     </>

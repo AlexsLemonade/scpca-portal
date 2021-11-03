@@ -7,7 +7,7 @@ export const readableNames = {
   summaries: 'Summaries',
   title: 'Title',
   contact: 'Contact',
-  has_bulk_rna_seq: 'Includes Bulk RNA-Seq',
+  has_bulk_rna_seq: 'Bulk RNA-Seq',
   disease_timings: 'Disease Timing',
   diagnoses: 'Diagnosis',
   seq_units: 'Seq Units',
