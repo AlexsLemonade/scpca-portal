@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Text } from 'grommet'
 import { Icon } from 'components/Icon'
 import { getReadable } from 'helpers/getReadable'
+import { AnalyticsContext } from 'contexts/AnalyticsContext'
 
 export const FilterPill = ({ option, onRemove }) => {
   return (
@@ -34,6 +35,7 @@ export const ProjectSearchFilterPills = ({
   filters: defaultFilters,
   onFilterChange
 }) => {
+  const { trackFilterChange } = React.useContext(AnalyticsContext)
   const getSafeDefaultFilters = (unsafeFilters) => {
     const safeFilters = {}
     Object.keys(unsafeFilters).forEach((k) => {
@@ -54,6 +56,7 @@ export const ProjectSearchFilterPills = ({
   const removeFilter = (filter, option) => {
     const newFilters = { ...filters }
     newFilters[filter].splice(newFilters[filter].indexOf(option), 1)
+    trackFilterChange(`${filter} - ${option}`, 'Removed')
     setFilters(newFilters)
     onFilterChange(newFilters)
   }
