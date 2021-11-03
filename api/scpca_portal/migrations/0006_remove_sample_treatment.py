@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0005_sample_cell_count'),
+        ("scpca_portal", "0005_sample_cell_count"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='sample',
-            name='treatment',
-        ),
+        migrations.RemoveField(model_name="sample", name="treatment",),
     ]
