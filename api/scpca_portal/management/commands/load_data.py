@@ -21,6 +21,9 @@ logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 project_whitelist = ["murphy_chen"]
 
+README_FILENAME = "README.md"
+PROJECT_URL_TEMPLATE = "https://scpca.alexslemonade.org/projects/{project_accession}"
+
 
 def purge_all_projects(should_upload):
     for project in Project.objects.all():
@@ -32,6 +35,7 @@ def package_files_for_project(
     output_dir: str,
     project: Project,
     sample_to_file_mapping: dict,
+    readme_path: str,
     should_upload: bool,
 ):
     zip_file_name = f"{project.scpca_id}.zip"
@@ -47,6 +51,7 @@ def package_files_for_project(
         project_metadata_path = get_project_metadata_path(output_dir, project)
         with ZipFile(project_zip, "w") as zip_object:
             zip_object.write(project_metadata_path, "libraries_metadata.csv")
+            zip_object.write(readme_path, README_FILENAME)
 
             for sample_id, file_paths in sample_to_file_mapping.items():
                 for local_file_path in file_paths:
@@ -82,6 +87,7 @@ def package_files_for_sample(
     output_dir: str,
     sample: dict,
     libraries_metadata: List[Dict],
+    readme_path: str,
     should_upload: bool,
 ):
     sample_id = sample["scpca_sample_id"]
@@ -102,6 +108,7 @@ def package_files_for_sample(
         with ZipFile(sample_zip, "w") as zip_object:
             local_metadata_path = get_sample_metadata_path(output_dir, sample_id)
             zip_object.write(local_metadata_path, "libraries_metadata.csv")
+            zip_object.write(readme_path, README_FILENAME)
 
             for library in libraries:
                 for file_postfix in ["_unfiltered.rds", "_filtered.rds", "_qc.html"]:
@@ -233,9 +240,19 @@ def combine_and_write_metadata(
     return full_libraries_metadata
 
 
-def load_data_for_project(data_dir: str, output_dir: str, project: Project, should_upload: bool):
-
+def load_data_for_project(
+    data_dir: str, output_dir: str, project: Project, readme_text: str, should_upload: bool
+):
     project_dir = f"{data_dir}{project.scpca_id}/"
+
+    project_url = PROJECT_URL_TEMPLATE.format(project_accession=project.scpca_id)
+    formatted_readme = readme_text.format(
+        project_accession=project.scpca_id, project_url=project_url
+    )
+
+    readme_path = os.path.join(output_dir, README_FILENAME)
+    with open(readme_path, "w") as readme_file:
+        readme_file.write(formatted_readme)
 
     samples_metadata = []
     try:
@@ -285,7 +302,7 @@ def load_data_for_project(data_dir: str, output_dir: str, project: Project, shou
     sample_to_file_mapping = {}
     for sample in samples_metadata:
         computed_file, sample_files = package_files_for_sample(
-            project_dir, output_dir, sample, full_libraries_metadata, should_upload
+            project_dir, output_dir, sample, full_libraries_metadata, readme_path, should_upload,
         )
 
         sample_object = create_sample_from_dict(project, sample, computed_file)
@@ -294,7 +311,7 @@ def load_data_for_project(data_dir: str, output_dir: str, project: Project, shou
         sample_to_file_mapping.update(sample_files)
 
     package_files_for_project(
-        project_dir, output_dir, project, sample_to_file_mapping, should_upload,
+        project_dir, output_dir, project, sample_to_file_mapping, readme_path, should_upload,
     )
 
     return created_samples
@@ -306,6 +323,7 @@ def load_data_from_s3(
     reload_all: bool,
     input_bucket_name="scpca-portal-inputs",
     data_dir="/home/user/code/data/",
+    readme_path="/home/user/code/scpca_portal/config/readme_template.md",
 ):
     if reload_all:
         purge_all_projects(should_upload)
@@ -317,6 +335,9 @@ def load_data_from_s3(
     output_dir = "output/"
     shutil.rmtree(output_dir, ignore_errors=True)
     os.mkdir(output_dir)
+
+    with open(readme_path) as readme_file:
+        readme_text = readme_file.read()
 
     project_input_metadata_file = "project_metadata.csv"
     project_input_metadata_path = f"{data_dir}{project_input_metadata_file}"
@@ -353,7 +374,7 @@ def load_data_from_s3(
             if project.scpca_id in os.listdir(data_dir):
                 print(f"Importing and loading data for project {project.scpca_id}")
                 created_samples = load_data_for_project(
-                    data_dir, output_dir, project, should_upload
+                    data_dir, output_dir, project, readme_text, should_upload
                 )
 
                 print(f"created {len(created_samples)} samples for project {project.scpca_id}")
