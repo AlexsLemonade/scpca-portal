@@ -1,6 +1,5 @@
 import React from 'react'
 import { Box, Grid, Paragraph, Text } from 'grommet'
-import { Button } from 'components/Button'
 import { HeroBandReversed, CardBandLarge } from 'components/Band'
 import { DonateButton } from 'components/DonateButton'
 import AboutPageFigure from '../../images/about-page-figure.svg'
