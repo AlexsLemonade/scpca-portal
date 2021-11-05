@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Grid, Paragraph, Text } from 'grommet'
-import { Button } from 'components/Button'
 import { HeroBandReversed, CardBandLarge } from 'components/Band'
+import { DonateButton } from 'components/DonateButton'
 import AboutPageFigure from '../../images/about-page-figure.svg'
 import SaveTime from '../../images/save-time.svg'
 import WidelyAvailable from '../../images/widely-available.svg'
@@ -155,7 +155,7 @@ export const About = () => {
                 by donating to ALSF’s Childhood Cancer Data Lab today!
               </Text>
               <Box flex="grow">
-                <Button primary label="Donate Now" />
+                <DonateButton label="Donate Now" />
               </Box>
             </Box>
           </CardBandLarge>

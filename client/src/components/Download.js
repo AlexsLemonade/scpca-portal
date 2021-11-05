@@ -4,6 +4,7 @@ import { Button } from 'components/Button'
 import { Modal } from 'components/Modal'
 import { Link } from 'components/Link'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
+import { AnalyticsContext } from 'contexts/AnalyticsContext'
 import { api } from 'api'
 import { formatBytes } from 'helpers/formatBytes'
 import { config } from 'config'
@@ -173,7 +174,8 @@ export const DownloadView = ({ computedFile }) => {
 // Button and Modal to show when downloading
 export const Download = ({ Icon, computedFile: publicComputedFile }) => {
   const { token } = React.useContext(ScPCAPortalContext)
-  const { id, project } = publicComputedFile
+  const { trackDownload } = React.useContext(AnalyticsContext)
+  const { id, type, project, sample } = publicComputedFile
   const label = project ? 'Download Project' : 'Download Sample'
 
   const [showing, setShowing] = React.useState(false)
@@ -182,6 +184,7 @@ export const Download = ({ Icon, computedFile: publicComputedFile }) => {
   const handleClick = () => {
     setShowing(true)
     if (download && download.download_url) {
+      trackDownload(type, project, sample)
       window.open(download.download_url)
     }
   }
@@ -191,6 +194,7 @@ export const Download = ({ Icon, computedFile: publicComputedFile }) => {
       const downloadRequest = await api.computedFiles.get(id, token)
       if (downloadRequest.isOk) {
         // try to open download
+        trackDownload(type, project, sample)
         window.open(downloadRequest.response.download_url)
         setDownload(downloadRequest.response)
       } else {
