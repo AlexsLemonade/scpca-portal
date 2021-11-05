@@ -1,6 +1,7 @@
 import React from 'react'
 import styled, { css } from 'styled-components'
 import { Button } from 'grommet'
+import { AnalyticsContext } from 'contexts/AnalyticsContext'
 
 export const StyledButton = styled(Button)`
   ${({ theme }) =>
@@ -14,12 +15,18 @@ export const StyledButton = styled(Button)`
     `}
 `
 
-export const DonateButton = () => (
-  <StyledButton
-    href="https://www.alexslemonade.org/contribute/7?restrict=Childhood%20Cancer%20Data%20Lab"
-    target="_blank"
-    label="Donate"
-  />
-)
+export const DonateButton = ({ yellow = false, label = 'Donate' }) => {
+  const { trackDonate } = React.useContext(AnalyticsContext)
+  const Component = yellow ? StyledButton : Button
+  return (
+    <Component
+      href="https://www.alexslemonade.org/contribute/7?restrict=Childhood%20Cancer%20Data%20Lab"
+      target="_blank"
+      label={label}
+      primary
+      onClick={trackDonate}
+    />
+  )
+}
 
 export default DonateButton

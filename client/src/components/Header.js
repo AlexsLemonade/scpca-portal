@@ -35,7 +35,7 @@ export const Header = ({ className, margin, donate = false }) => {
           <Link color="white" href="/about" label="About" />
           <Link color="white" href="/projects" label="Browse" />
           <Link color="white" href={config.links.help} label="Docs" />
-          {donate && <DonateButton />}
+          {donate && <DonateButton yellow />}
         </Nav>
       </Box>
     </GrommetHeader>
