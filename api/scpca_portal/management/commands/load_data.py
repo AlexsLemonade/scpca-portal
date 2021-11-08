@@ -21,6 +21,7 @@ logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 project_whitelist = ["murphy_chen"]
 
+OUTPUT_DIR = "output/"
 README_FILENAME = "README.md"
 PROJECT_URL_TEMPLATE = "https://scpca.alexslemonade.org/projects/{project_accession}"
 
@@ -332,9 +333,8 @@ def load_data_from_s3(
     subprocess.check_call(["aws", "s3", "sync", "--delete", f"s3://{input_bucket_name}", data_dir])
 
     # Make sure we're starting with a blank slate for the zip files.
-    output_dir = "output/"
-    shutil.rmtree(output_dir, ignore_errors=True)
-    os.mkdir(output_dir)
+    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
+    os.mkdir(OUTPUT_DIR)
 
     with open(readme_path) as readme_file:
         readme_text = readme_file.read()
@@ -374,7 +374,7 @@ def load_data_from_s3(
             if project.scpca_id in os.listdir(data_dir):
                 print(f"Importing and loading data for project {project.scpca_id}")
                 created_samples = load_data_for_project(
-                    data_dir, output_dir, project, readme_text, should_upload
+                    data_dir, OUTPUT_DIR, project, readme_text, should_upload
                 )
 
                 print(f"created {len(created_samples)} samples for project {project.scpca_id}")
