@@ -333,7 +333,13 @@ def load_data_from_s3(
         os.makedirs(data_dir)
 
     # If this raises we're done anyway, so let it.
-    subprocess.check_call(["aws", "s3", "sync", "--delete", f"s3://{input_bucket_name}", data_dir])
+    try:
+        subprocess.check_call(
+            ["aws", "s3", "sync", "--delete", f"s3://{input_bucket_name}", data_dir]
+        )
+    except subprocess.CalledProcessError as e:
+        print(e.returncode)
+        print(e.output)
 
     # Make sure we're starting with a blank slate for the zip files.
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
