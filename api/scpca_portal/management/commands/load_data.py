@@ -340,6 +340,7 @@ def load_data_from_s3(
     except subprocess.CalledProcessError as e:
         print(e.returncode)
         print(e.output)
+        print(e.stderr)
 
     # Make sure we're starting with a blank slate for the zip files.
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
