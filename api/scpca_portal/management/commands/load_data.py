@@ -329,6 +329,9 @@ def load_data_from_s3(
     if reload_all:
         purge_all_projects(should_upload)
 
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
     # If this raises we're done anyway, so let it.
     subprocess.check_call(["aws", "s3", "sync", "--delete", f"s3://{input_bucket_name}", data_dir])
 
