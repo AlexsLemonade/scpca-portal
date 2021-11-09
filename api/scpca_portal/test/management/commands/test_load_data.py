@@ -19,6 +19,9 @@ class MockS3Client:
         # Don't actually upload because this is a test.
         pass
 
+    def list_objects(self, *args, **kwargs):
+        return {"Contents": [{"Size": 1111}]}
+
 
 class LoadDataTestCase(TestCase):
     def assert_project(self, scpca_project_id, upload_data):
@@ -87,6 +90,7 @@ class LoadDataTestCase(TestCase):
 
         return project, project_computed_file, project_summary, sample, sample_computed_file
 
+    @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_load_data_from_s3_no_upload(self):
         scpca_project_id = "SCPCP000006"
         upload_data = False

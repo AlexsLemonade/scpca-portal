@@ -337,12 +337,7 @@ def load_data_from_s3(
     if "public-test" in input_bucket_name:
         command_list.append("--no-sign-request")
 
-    try:
-        subprocess.check_call(command_list)
-    except subprocess.CalledProcessError as e:
-        print(e.returncode)
-        print(e.output)
-        print(e.stderr)
+    subprocess.check_call(command_list)
 
     # Make sure we're starting with a blank slate for the zip files.
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
