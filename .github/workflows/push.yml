@@ -21,3 +21,8 @@ jobs:
         run: docker-compose --env-file ./docker-compose.env build
       - name: Test
         run: ./bin/sportal test-api
+        env:
+          # These have no permissions, but are still needed for S3
+          # operations against public buckets for some reason.
+          AWS_ACCESS_KEY_ID: ${{ secrets.TEST_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.TEST_AWS_SECRET_ACCESS_KEY }}
