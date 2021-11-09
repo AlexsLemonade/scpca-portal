@@ -333,10 +333,12 @@ def load_data_from_s3(
         os.makedirs(data_dir)
 
     # If this raises we're done anyway, so let it.
+    command_list = ["aws", "s3", "sync", "--delete", f"s3://{input_bucket_name}", data_dir]
+    if "pubtlic-test" in input_bucket_name:
+        command_list.append("--no-sign-request")
+
     try:
-        subprocess.check_call(
-            ["aws", "s3", "sync", "--delete", f"s3://{input_bucket_name}", data_dir]
-        )
+        subprocess.check_call(command_list)
     except subprocess.CalledProcessError as e:
         print(e.returncode)
         print(e.output)
