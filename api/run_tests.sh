@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
 python wait_for_postgres.py
+mkdir /home/user/code/test_data/
+aws s3 sync --delete s3://scpca-portal-inputs /home/user/code/test_data/
 coverage run ./manage.py test -v 2 --no-input "$@"
 coverage report -m
