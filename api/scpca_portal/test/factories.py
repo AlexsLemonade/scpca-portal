@@ -70,7 +70,6 @@ class SampleFactory(factory.django.DjangoModelFactory):
     sex = "M"
     disease_timing = "primary diagnosis"
     tissue_location = "posterior fossa"
-    treatment = "STR"
     seq_units = "cell"
     cell_count = 42
     additional_metadata = {

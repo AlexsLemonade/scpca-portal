@@ -100,7 +100,6 @@ class SampleLeafSerializer(serializers.ModelSerializer):
             "sex",
             "disease_timing",
             "tissue_location",
-            "treatment",
             "seq_units",
             "cell_count",
             "additional_metadata",

@@ -100,16 +100,22 @@ sportal load-data --upload True
 ```
 
 By default the command also will only look for new projects.
-If you would like to reimport all projects you can run
+If you would like to reimport existing projects you can run
 
 ```
 sportal load-data --reload-existing
 ```
 
-or to reimport and upload all projects:
+or to reimport and upload projects that exist in the input data:
 
 ```
 sportal load-data --reload-existing --upload True
+```
+
+or to reimport and upload all projects:
+
+```
+sportal load-data --reload-all --upload True
 ```
 
 If you would like to update a single project, you can do so by purging and then loading the data without reloading existing projects:

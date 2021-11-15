@@ -28,7 +28,6 @@ class SampleViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "sex",
         "disease_timing",
         "tissue_location",
-        "treatment",
         "seq_units",
     )
 
