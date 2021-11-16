@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20px" height="24px" viewBox="0 0 20 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>icons/trash-can</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M2,21.3393125 C2,22.802875 3.199875,24 4.6666875,24 L15.333375,24 C16.800125,24 18,22.802875 18,21.3393125 L18,6 L2,6 L2,21.3393125 Z M20,2 L15,2 L13.3259375,0 L6.674125,0 L5,2 L0,2 L0,4 L20,4 L20,2 Z" id="path-1"></path>
+    </defs>
+    <g id="Guidelines" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icons-badges-variations" transform="translate(-125.000000, -237.000000)">
+            <g id="icons/trash-can" transform="translate(125.000000, 237.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="Shape" fill="#4A4A4A" fill-rule="nonzero" xlink:href="#path-1"></use>
+                <g id="color/black-tint/0-000000" mask="url(#mask-2)" fill="#000000" fill-rule="evenodd">
+                    <g transform="translate(0.000000, -1.000000)" id="gray-70-4A4A4A">
+                        <rect x="0" y="0" width="20" height="25"></rect>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

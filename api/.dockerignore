@@ -1,0 +1,6 @@
+.*
+!.coveragerc
+!.env
+volumes_postgres/
+data/
+output/

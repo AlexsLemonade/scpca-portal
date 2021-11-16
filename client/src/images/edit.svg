@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>icons/edit</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M23.1333333,2.73333333 L21.2333333,0.833333333 C20.2,-0.2 18.5,-0.2 17.4666667,0.833333333 L2.4,15.9333333 C2.13333333,16.2 1.96666667,16.5666667 1.93333333,16.9 L0.1,23.0333333 C0.0333333333,23.2666667 0.1,23.5333333 0.266666667,23.7 C0.4,23.8333333 0.566666667,23.9 0.733333333,23.9 C0.8,23.9 0.866666667,23.9 0.933333333,23.8666667 L7.1,22.0333333 C7.46666667,22 7.8,21.8333333 8.06666667,21.5666667 L23.1666667,6.46666667 C24.1666667,5.46666667 24.1666667,3.8 23.1333333,2.73333333 Z M2.8,18.7 L5.3,21.2 L1.73333333,22.2666667 L2.8,18.7 Z M22.2,5.56666667 L20.6666667,7.1 L16.9,3.33333333 L18.4333333,1.8 C18.9666667,1.26666667 19.8,1.26666667 20.3333333,1.8 L22.2333333,3.7 C22.7,4.2 22.7,5.06666667 22.2,5.56666667 Z" id="path-1"></path>
+    </defs>
+    <g id="Guidelines" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icons-badges-variations" transform="translate(-528.000000, -237.000000)">
+            <g id="icons/edit" transform="translate(528.000000, 237.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="edit" fill="#1A1A1A" fill-rule="nonzero" xlink:href="#path-1"></use>
+                <g id="color/black-tint/0-000000" mask="url(#mask-2)" fill="#000000" fill-rule="evenodd">
+                    <rect id="gray-70-4A4A4A" x="0" y="0" width="24" height="24"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

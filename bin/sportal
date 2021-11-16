@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+
+# exit if not called from project root
+if not os.path.exists("./bin/sportal"):
+    print("Please call sportal from the project's root")
+    exit()
+
+# Docker compose uses the current directory in the network name. We
+# need to pass the network name into containers, so we have to know
+# what it is.
+project_folder = os.getcwd().split("/")[-1]
+
+# every docker-compose run api command looks like this
+run_api = f"API_NETWORK={project_folder}_default docker-compose --env-file ./docker-compose.env run --rm api {{}}"
+
+# list of available commands
+commands = {
+    "up": "docker-compose --env-file ./docker-compose.env up",
+    "down": "docker-compose --env-file ./docker-compose.env down",
+    "build": "docker-compose --env-file ./docker-compose.env build",
+    "shell": run_api.format('bash -c "./manage.py shell"'),
+    "recreate-schema": "./recreate_schema.sh",
+    "test-api": run_api.format('bash -c "./run_tests.sh {}"'),
+    "makemigrations": run_api.format('bash -c "./manage.py makemigrations scpca_portal"'),
+    "migrate": run_api.format('bash -c "./manage.py migrate"'),
+    "postgres-cli": "./run_psql_client.sh",
+    "graph-models": run_api.format("./manage.py graph_models scpca_portal > models.dot"),
+    "run-api": run_api,
+    "manage-api": run_api.format("./manage.py {}"),
+    "load-data": run_api.format("./manage.py load_data {}"),
+    "mock-data": run_api.format("./manage.py load_mock_data {}"),
+    "run-black": run_api.format("black --line-length=100 --exclude=volumes_postgres ."),
+    "env": "cat ./docker-compose.env",
+}
+
+parser = argparse.ArgumentParser(
+    description="ScPCA Portal Helper Commands. Expected to be called from project root.",
+    usage="sportal [command] [command and args for run-api or manage-api]",
+)
+parser.add_argument("command", help="The command you want to run", choices=commands)
+parser.add_argument(
+    "command_args", help="The command and args for manage-api or run-api", nargs=argparse.REMAINDER,
+)
+args = parser.parse_args()
+
+try:
+    command = commands[args.command]
+    waitstatus = os.system(command.format(" ".join(args.command_args)))
+
+    # The exit code of this script matches the command it called.
+    # os.system() outputs a waitstatus instead of an exitcode.
+    # In python3.9 this becomes the much more sane
+    # os.waitstatus_to_exitcode() function.
+    exit(os.WEXITSTATUS(waitstatus))
+except KeyError:
+    print("Unknown Command")
