@@ -76,16 +76,9 @@ class LoadDataTestCase(TestCase):
         sample_computed_file = sample.computed_file
         self.assertIsNotNone(sample_computed_file)
 
-        if upload_data:
-            # The test files are empty, and this was recorded because
-            # upload_data was true.
-            self.assertEqual(project_computed_file.size_in_bytes, 0)
-            self.assertEqual(sample_computed_file.size_in_bytes, 0)
-        else:
-            # These will have checked the bucket for local dev to get
-            # the size of the files it contains.
-            self.assertGreater(project_computed_file.size_in_bytes, 0)
-            self.assertGreater(sample_computed_file.size_in_bytes, 0)
+        # These will vary, but they shouldn't be null or 0.
+        self.assertGreater(project_computed_file.size_in_bytes, 0)
+        self.assertGreater(sample_computed_file.size_in_bytes, 0)
 
         return project, project_computed_file, project_summary, sample, sample_computed_file
 
