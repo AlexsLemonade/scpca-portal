@@ -60,7 +60,7 @@ def package_files_for_project(
                     archive_path = os.path.join(sample_id, os.path.basename(local_file_path))
                     zip_object.write(local_file_path, archive_path)
 
-        computed_file.size_in_bytes = os.path.getsize(local_file_path)
+        computed_file.size_in_bytes = os.path.getsize(project_zip)
         s3.upload_file(project_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
     else:
         s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
@@ -118,7 +118,7 @@ def package_files_for_sample(
                     file_paths.append(local_file_path)
                     zip_object.write(local_file_path, filename)
 
-        computed_file.size_in_bytes = os.path.getsize(local_file_path)
+        computed_file.size_in_bytes = os.path.getsize(sample_zip)
         s3.upload_file(sample_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
     else:
         s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
