@@ -28,6 +28,10 @@ ARG PORT
 
 ENV SYSTEM_VERSION $SYSTEM_VERSION
 
+# Adds our application code to the image, which is needed even though
+# we use the code dir for the readme template.
+COPY . .
+
 USER user
 
 WORKDIR /home/user/code

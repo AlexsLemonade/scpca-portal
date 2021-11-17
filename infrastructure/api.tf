@@ -64,6 +64,11 @@ resource "aws_instance" "api_server_1" {
           log_group = aws_cloudwatch_log_group.scpca_portal_log_group.name
           log_stream = aws_cloudwatch_log_stream.log_stream_api.name
         })
+      load_data_script = templatefile(
+        "api-configuration/load_data.tpl.sh",
+        {
+          dockerhub_repo = var.dockerhub_repo
+        })
       user = var.user
       stage = var.stage
       region = var.region
