@@ -1,7 +1,7 @@
 const path = require('path')
 
 module.exports = () => {
-  const isProduction = process.env.VERCEL_GIT_COMMIT_REF === 'master'
+  const isProduction = process.env.VERCEL_GIT_COMMIT_REF === 'main'
 
   const productionEnv = {
     API_HOST: process.env.API_HOST,
