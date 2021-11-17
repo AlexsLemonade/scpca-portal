@@ -323,8 +323,8 @@ def load_data_from_s3(
     reload_existing: bool,
     reload_all: bool,
     input_bucket_name="scpca-portal-inputs",
-    data_dir="/home/user/code/data/",
-    readme_path="/home/user/code/scpca_portal/config/readme_template.md",
+    data_dir="/home/user/data/",
+    readme_path="/home/user/scpca_portal/config/readme_template.md",
 ):
     if reload_all:
         purge_all_projects(should_upload)
