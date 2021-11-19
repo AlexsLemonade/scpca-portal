@@ -17,7 +17,7 @@ cat <<"EOF" > nginx.conf
 ${nginx_config}
 EOF
 apt-get update -y
-apt-get install nginx -y
+apt-get install nginx awscli -y
 cp nginx.conf /etc/nginx/nginx.conf
 service nginx restart
 
@@ -51,7 +51,7 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 	cd -
 	mv /etc/letsencryptdir.zip .
 	aws s3 cp letsencryptdir.zip "s3://${scpca_portal_cert_bucket}/"
-	rm sslcert.zip
+	rm letsencryptdir.zip
     else
 	zip_filename=$(aws s3 ls ${scpca_portal_cert_bucket} | head -1 | awk '{print $4}')
 	aws s3 cp "s3://${scpca_portal_cert_bucket}/$zip_filename" letsencryptdir.zip

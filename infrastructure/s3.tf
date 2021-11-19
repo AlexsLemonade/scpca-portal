@@ -24,6 +24,17 @@ resource "aws_s3_bucket" "scpca_portal_cert_bucket" {
   acl = "private"
   force_destroy = var.stage == "prod" ? false : true
 
+  lifecycle_rule {
+    id = "auto-delete-after-30-days-${var.user}-${var.stage}"
+    prefix = ""
+    enabled = true
+    abort_incomplete_multipart_upload_days = 1
+
+    expiration {
+      days = 30
+    }
+  }
+
   tags = merge(
     var.default_tags,
     {
