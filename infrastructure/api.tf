@@ -35,27 +35,29 @@ resource "aws_instance" "api_server_1" {
     aws_db_instance.postgres_db,
     aws_security_group_rule.scpca_portal_api_http,
     aws_security_group_rule.scpca_portal_api_outbound,
-    aws_key_pair.scpca_portal
+    aws_key_pair.scpca_portal,
+    aws_s3_bucket.scpca_portal_cert_bucket
   ]
 
   user_data = templatefile(
     "api-configuration/api-server-instance-user-data.tpl.sh",
     {
       nginx_config = data.local_file.api_nginx_config.content
+      scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
       api_environment = templatefile(
         "api-configuration/environment.tpl",
-        {
-          django_secret_key = var.django_secret_key
-          database_host = aws_db_instance.postgres_db.address
-          database_port = aws_db_instance.postgres_db.port
-          database_user = aws_db_instance.postgres_db.username
-          database_name = aws_db_instance.postgres_db.name
-          database_password = var.database_password
-          aws_region  = var.region
-          aws_s3_bucket_name = aws_s3_bucket.scpca_portal_bucket.id
-          sentry_io_url = var.sentry_io_url
-          sentry_env = var.sentry_env
-        })
+	{
+	  django_secret_key = var.django_secret_key
+	  database_host = aws_db_instance.postgres_db.address
+	  database_port = aws_db_instance.postgres_db.port
+	  database_user = aws_db_instance.postgres_db.username
+	  database_name = aws_db_instance.postgres_db.name
+	  database_password = var.database_password
+	  aws_region  = var.region
+	  aws_s3_bucket_name = aws_s3_bucket.scpca_portal_bucket.id
+	  sentry_io_url = var.sentry_io_url
+	  sentry_env = var.sentry_env
+	})
       start_api_with_migrations = templatefile(
         "api-configuration/start_api_with_migrations.tpl.sh",
         {
