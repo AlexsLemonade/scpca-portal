@@ -46,8 +46,15 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
             certbot --nginx -d api.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
 	fi
 
+	# Add the nginx.conf file that certbot setup to the zip dir.
+	cp /etc/nginx/nginx.conf /etc/letsencrypt/
+
 	cd /etc/letsencrypt/
 	sudo zip -r ../letsencryptdir.zip ../$(basename $PWD)
+
+	# And then cleanup the extra copy.
+	rm /etc/letsencrypt/nginx.conf
+
 	cd -
 	mv /etc/letsencryptdir.zip .
 	aws s3 cp letsencryptdir.zip "s3://${scpca_portal_cert_bucket}/"
@@ -56,6 +63,7 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 	zip_filename=$(aws s3 ls ${scpca_portal_cert_bucket} | head -1 | awk '{print $4}')
 	aws s3 cp "s3://${scpca_portal_cert_bucket}/$zip_filename" letsencryptdir.zip
 	unzip letsencryptdir.zip -d /etc/
+	mv /etc/letsencrypt/nginx.conf /etc/nginx/
     fi
 fi
 
