@@ -64,6 +64,7 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 	aws s3 cp "s3://${scpca_portal_cert_bucket}/$zip_filename" letsencryptdir.zip
 	unzip letsencryptdir.zip -d /etc/
 	mv /etc/letsencrypt/nginx.conf /etc/nginx/
+	service nginx restart
     fi
 fi
 
