@@ -19,7 +19,6 @@ from scpca_portal.models import ComputedFile, Project, Sample
 
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
-project_whitelist = ["murphy_chen", "green_mulcahy_levy"]
 
 OUTPUT_DIR = "output/"
 README_FILENAME = "README.md"
@@ -352,9 +351,6 @@ def load_data_from_s3(
     with open(project_input_metadata_path) as csvfile:
         projects = csv.DictReader(csvfile)
         for project in projects:
-            if project["submitter"] not in project_whitelist:
-                continue
-
             scpca_id = project["scpca_project_id"]
 
             if reload_existing:
