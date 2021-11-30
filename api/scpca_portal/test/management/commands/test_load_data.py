@@ -29,7 +29,8 @@ class LoadDataTestCase(TestCase):
 
         self.assertIsNotNone(project.title)
         self.assertIsNotNone(project.abstract)
-        self.assertIsNotNone(project.contact)
+        self.assertIsNotNone(project.contact_name)
+        self.assertIsNotNone(project.contact_email)
         self.assertIsNotNone(project.disease_timings)
         self.assertIsNotNone(project.diagnoses)
         self.assertIsNotNone(project.seq_units)
@@ -76,16 +77,9 @@ class LoadDataTestCase(TestCase):
         sample_computed_file = sample.computed_file
         self.assertIsNotNone(sample_computed_file)
 
-        if upload_data:
-            # The test files are empty, and this was recorded because
-            # upload_data was true.
-            self.assertEqual(project_computed_file.size_in_bytes, 0)
-            self.assertEqual(sample_computed_file.size_in_bytes, 0)
-        else:
-            # These will have checked the bucket for local dev to get
-            # the size of the files it contains.
-            self.assertGreater(project_computed_file.size_in_bytes, 0)
-            self.assertGreater(sample_computed_file.size_in_bytes, 0)
+        # These will vary, but they shouldn't be null or 0.
+        self.assertGreater(project_computed_file.size_in_bytes, 0)
+        self.assertGreater(sample_computed_file.size_in_bytes, 0)
 
         return project, project_computed_file, project_summary, sample, sample_computed_file
 
@@ -103,7 +97,7 @@ class LoadDataTestCase(TestCase):
         )
 
         # The whitelist currently allows 3 projects:
-        self.assertEqual(Project.objects.count(), 3)
+        self.assertEqual(Project.objects.count(), 5)
 
         (
             project,
@@ -118,7 +112,7 @@ class LoadDataTestCase(TestCase):
         load_data_from_s3(
             False, False, False, "scpca-portal-public-test-inputs", "/home/user/code/test_data/"
         )
-        self.assertEqual(Project.objects.count(), 3)
+        self.assertEqual(Project.objects.count(), 5)
         self.assertEqual(ProjectSummary.objects.count(), 1)
         self.assertEqual(Sample.objects.count(), 38)
         self.assertEqual(ComputedFile.objects.count(), 39)
@@ -137,7 +131,7 @@ class LoadDataTestCase(TestCase):
         # Next, this is a good place to test he purge command since we
         # have data to purge.
         purge_project(scpca_project_id)
-        self.assertEqual(Project.objects.count(), 2)
+        self.assertEqual(Project.objects.count(), 4)
         self.assertEqual(ProjectSummary.objects.count(), 0)
         self.assertEqual(Sample.objects.count(), 0)
         self.assertEqual(ComputedFile.objects.count(), 0)
@@ -147,7 +141,7 @@ class LoadDataTestCase(TestCase):
         load_data_from_s3(
             False, True, False, "scpca-portal-public-test-inputs", "/home/user/code/test_data/"
         )
-        self.assertEqual(Project.objects.count(), 3)
+        self.assertEqual(Project.objects.count(), 5)
         self.assertEqual(ProjectSummary.objects.count(), 1)
         self.assertEqual(Sample.objects.count(), 38)
         self.assertEqual(ComputedFile.objects.count(), 39)
@@ -167,7 +161,7 @@ class LoadDataTestCase(TestCase):
         )
 
         # The whitelist currently allows 3 projects:
-        self.assertEqual(Project.objects.count(), 3)
+        self.assertEqual(Project.objects.count(), 5)
 
         self.assert_project(scpca_project_id, upload_data)
 
