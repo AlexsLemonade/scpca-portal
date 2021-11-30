@@ -29,7 +29,8 @@ class LoadDataTestCase(TestCase):
 
         self.assertIsNotNone(project.title)
         self.assertIsNotNone(project.abstract)
-        self.assertIsNotNone(project.contact)
+        self.assertIsNotNone(project.contact_name)
+        self.assertIsNotNone(project.contact_email)
         self.assertIsNotNone(project.disease_timings)
         self.assertIsNotNone(project.diagnoses)
         self.assertIsNotNone(project.seq_units)
