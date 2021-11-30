@@ -370,7 +370,8 @@ def load_data_from_s3(
                 human_readable_pi_name=project["PI"],
                 title=project["project_title"],
                 abstract=project["abstract"],
-                contact=project["project_contact"],
+                contact_name=project["contact_name"],
+                contact_email=project["contact_email"],
             )
 
             if not created:
