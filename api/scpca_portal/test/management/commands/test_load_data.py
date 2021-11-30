@@ -96,7 +96,7 @@ class LoadDataTestCase(TestCase):
         )
 
         # The whitelist currently allows 3 projects:
-        self.assertEqual(Project.objects.count(), 3)
+        self.assertEqual(Project.objects.count(), 5)
 
         (
             project,
@@ -111,7 +111,7 @@ class LoadDataTestCase(TestCase):
         load_data_from_s3(
             False, False, False, "scpca-portal-public-test-inputs", "/home/user/code/test_data/"
         )
-        self.assertEqual(Project.objects.count(), 3)
+        self.assertEqual(Project.objects.count(), 5)
         self.assertEqual(ProjectSummary.objects.count(), 1)
         self.assertEqual(Sample.objects.count(), 38)
         self.assertEqual(ComputedFile.objects.count(), 39)
@@ -130,7 +130,7 @@ class LoadDataTestCase(TestCase):
         # Next, this is a good place to test he purge command since we
         # have data to purge.
         purge_project(scpca_project_id)
-        self.assertEqual(Project.objects.count(), 2)
+        self.assertEqual(Project.objects.count(), 4)
         self.assertEqual(ProjectSummary.objects.count(), 0)
         self.assertEqual(Sample.objects.count(), 0)
         self.assertEqual(ComputedFile.objects.count(), 0)
@@ -140,7 +140,7 @@ class LoadDataTestCase(TestCase):
         load_data_from_s3(
             False, True, False, "scpca-portal-public-test-inputs", "/home/user/code/test_data/"
         )
-        self.assertEqual(Project.objects.count(), 3)
+        self.assertEqual(Project.objects.count(), 5)
         self.assertEqual(ProjectSummary.objects.count(), 1)
         self.assertEqual(Sample.objects.count(), 38)
         self.assertEqual(ComputedFile.objects.count(), 39)
@@ -160,7 +160,7 @@ class LoadDataTestCase(TestCase):
         )
 
         # The whitelist currently allows 3 projects:
-        self.assertEqual(Project.objects.count(), 3)
+        self.assertEqual(Project.objects.count(), 5)
 
         self.assert_project(scpca_project_id, upload_data)
 
