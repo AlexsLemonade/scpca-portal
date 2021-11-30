@@ -7,6 +7,8 @@ export const readableNames = {
   summaries: 'Summaries',
   title: 'Title',
   contact: 'Contact',
+  contact_name: 'Contact Name',
+  contact_email: 'Contact Email',
   has_bulk_rna_seq: 'Bulk RNA-Seq',
   disease_timings: 'Disease Timing',
   diagnoses: 'Diagnosis',
