@@ -4,20 +4,33 @@ import { Link } from 'components/Link'
 import { FooterBand } from 'components/Band'
 import { Icon } from 'components/Icon'
 import { config } from 'config'
+import { useResponsive } from 'hooks/useResponsive'
 
 export const Footer = () => {
+  const { responsive } = useResponsive()
+
+  const direction = responsive('column', 'row')
+
   return (
     <FooterBand elevation="medium" align="center" pad={{ vertical: 'xlarge' }}>
-      <Box direction="row" justify="between" align="end" width="xlarge">
-        <Box direction="row" justify="between" align="end" width="xlarge">
-          <Box align="start" margin={{ vertical: 'large' }}>
-            <Text color="black-tint-40">
+      <Box direction={direction} justify="between" align="end" width="xlarge">
+        <Box
+          direction={direction}
+          justify="between"
+          align={responsive('center', 'end')}
+          width="xlarge"
+        >
+          <Box
+            margin={{ vertical: 'large' }}
+            align={responsive('center', 'start')}
+          >
+            <Text size={responsive('small', 'medium')} color="black-tint-40">
               Alex’s Lemonade Stand Foundation for Childhood Cancer
             </Text>
-            <Text color="black-tint-40">
+            <Text size={responsive('small', 'medium')} color="black-tint-40">
               333 E. Lancaster Ave, #414, Wynnewood, PA 19096 USA
             </Text>
-            <Text color="black-tint-40">
+            <Text size={responsive('small', 'medium')} color="black-tint-40">
               Phone: 866.333.1213 • Fax: 610.649.3038
             </Text>
             <Box margin={{ top: 'large' }}>
@@ -31,12 +44,12 @@ export const Footer = () => {
           </Box>
           <Box
             basis="1/3"
-            pad={{ left: 'xlarge' }}
+            pad={responsive({ bottom: 'large' }, { left: 'xlarge' })}
             margin={{ vertical: 'large' }}
           >
             <Box
               direction="row"
-              gap="large"
+              gap={responsive('xxlarge', 'large')}
               width={{ max: '220px' }}
               align="center"
             >
@@ -87,7 +100,11 @@ export const Footer = () => {
           </Box>
         </Box>
       </Box>
-      <Box direction="row" justify="between" width="xlarge">
+      <Box
+        direction="row"
+        justify={responsive('around', 'between')}
+        width="xlarge"
+      >
         <Box>
           <Nav direction="row" align="center" gap="large">
             <Link href="/terms-of-use" label="Terms of Use" />
