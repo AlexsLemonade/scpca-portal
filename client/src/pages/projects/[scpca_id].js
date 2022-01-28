@@ -5,10 +5,11 @@ import { DetailsTable } from 'components/DetailsTable'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
 import { api } from 'api'
+import { useResponsive } from 'hooks/useResponsive'
 
 const Project = ({ project }) => {
   if (!project) return '404'
-
+  const { responsive } = useResponsive()
   return (
     <Box width="xlarge">
       <ProjectHeader project={project} />
@@ -29,13 +30,24 @@ const Project = ({ project }) => {
             <Text size="large" weight="bold">
               Sample Summary
             </Text>
-            <Box pad={{ top: 'medium', bottom: 'large' }}>
+            <Box
+              pad={{ vertical: 'medium' }}
+              width={{ max: 'full' }}
+              overflow="auto"
+            >
               <ProjectSamplesSummaryTable summaries={project.summaries} />
             </Box>
           </Tab>
           <Tab title="Sample Details">
-            <Box pad={{ vertical: 'medium' }}>
-              <ProjectSamplesTable project={project} />
+            <Box
+              pad={{ vertical: 'medium' }}
+              width={{ max: 'full' }}
+              overflow="auto"
+            >
+              <ProjectSamplesTable
+                project={project}
+                stickies={responsive(0, 3)}
+              />
             </Box>
           </Tab>
         </Tabs>
