@@ -44,7 +44,7 @@ export default {
         xsmall: '32px',
         xxsmall: '16px'
       },
-      value: 512
+      value: 768
     }
   },
   colors: {
