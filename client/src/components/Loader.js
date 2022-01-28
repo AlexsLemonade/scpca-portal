@@ -5,18 +5,23 @@ import styled, { css } from 'styled-components'
 const LoaderBox = styled(Box)`
   display: inline-block;
   position: relative;
-  width: 80px;
-  height: 80px;
-  ${({ theme }) =>
+  ${({ theme, width }) =>
     css`
+      width: ${width}px;
+      height: ${width}px;
+
       > div {
         box-sizing: border-box;
         display: block;
         position: absolute;
-        width: 64px;
-        height: 64px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: ${width}px;
+        height: ${width}px;
         margin: 8px;
-        border: 8px solid ${theme.global.colors['alexs-deep-blue']};
+        border: ${width === 80 ? '8' : '4'}px solid
+          ${theme.global.colors['alexs-deep-blue']};
         border-radius: 50%;
         animation: loader 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
         border-color: ${theme.global.colors['alexs-deep-blue']} transparent
@@ -44,13 +49,16 @@ const LoaderBox = styled(Box)`
     }
   }
 `
-export const Loader = () => (
-  <Box width="full" align="center" justify="center" pad={{ vertical: 'large' }}>
-    <LoaderBox>
-      <Box />
-      <Box />
-      <Box />
-      <Box />
-    </LoaderBox>
-  </Box>
-)
+export const Loader = ({ width = 'full', pad = { verical: 'large' } }) => {
+  const loaderWidth = width === 'full' ? 80 : parseInt(width, 10)
+  return (
+    <Box width={width} align="center" justify="center" pad={pad}>
+      <LoaderBox width={loaderWidth}>
+        <Box />
+        <Box />
+        <Box />
+        <Box />
+      </LoaderBox>
+    </Box>
+  )
+}
