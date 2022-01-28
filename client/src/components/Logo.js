@@ -1,13 +1,22 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
+import { useResponsive } from 'hooks/useResponsive'
+import styled from 'styled-components'
 import ASLFLogo from '../images/alsf-logo.svg'
 import ALSFLogoBlue from '../images/alsf-logo-blue.svg'
 
+const ALSFLogoBlueStyled = styled(ALSFLogoBlue)``
+
 const Logo = () => {
+  const { size, responsive } = useResponsive()
   const [scrolled, setScrolled] = React.useState(false)
-  const margin = scrolled ? 0 : 38
-  const height = scrolled ? '74px' : '112px'
-  const background = scrolled ? 'alexs-lemonade' : 'transparent'
+  const width = responsive('60px', '91px')
+  const small = size === 'small'
+  const showScrolled = scrolled || small
+
+  const margin = showScrolled ? 0 : 38
+  const height = showScrolled ? '74px' : '112px'
+  const background = showScrolled ? 'alexs-lemonade' : 'transparent'
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -31,20 +40,25 @@ const Logo = () => {
       margin={{ bottom: `-${margin}px` }}
     >
       <Box
-        width="91px"
+        width={width}
         height={height}
         justify="center"
         background={background}
       >
-        {scrolled ? (
+        {showScrolled ? (
           <Box pad="small">
-            <ALSFLogoBlue margin={{ top: '38px' }} pad="small" />
+            <ALSFLogoBlueStyled />
           </Box>
         ) : (
           <ASLFLogo />
         )}
       </Box>
-      <Text serif size="large" color="white" margin={{ bottom: `${margin}px` }}>
+      <Text
+        serif
+        size={responsive('medium', 'large')}
+        color="white"
+        margin={{ bottom: `${margin}px` }}
+      >
         ScPCA Portal
       </Text>
     </Box>
