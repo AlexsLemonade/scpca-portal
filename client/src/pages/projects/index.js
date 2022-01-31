@@ -48,7 +48,7 @@ const Project = ({ projects, count, filters, filterOptions }) => {
   }
 
   return (
-    <Box width="full">
+    <Box width="full" pad={responsive({ horizontal: 'medium' })}>
       <Box pad={{ bottom: 'large' }}>
         <Text serif size="xlarge">
           Browse Projects
