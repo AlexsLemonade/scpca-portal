@@ -168,6 +168,7 @@ export const DownloadView = ({ computedFile }) => {
             primary
             label="Read Docs"
             href={config.links.what_downloading}
+            target="_blank"
           />
         </Link>
       </Box>
