@@ -61,10 +61,10 @@ const ExposeBox = styled(Box)`
 `
 
 const Home = ({ stats }) => {
+  const cancerTypes = stats.cancer_types.filter((c) => c !== 'Normal margin')
   const { emailListForm } = React.useContext(ScPCAPortalContext)
   const { responsive } = useResponsive()
   const statBlocks = getStatsBlocks(stats)
-
   const cancerColors = React.useMemo(
     () =>
       fillArrayRandom(
@@ -76,9 +76,8 @@ const Home = ({ stats }) => {
     []
   )
 
-  const [exposed, setExposed] = React.useState(
-    stats.cancer_types.length > 10 ? 'none' : 'all'
-  )
+  // when we have more cancer types to display add this back
+  const [exposed, setExposed] = React.useState('all')
 
   const exposeMore = () => {
     if (exposed === 'none') return setExposed('some')
@@ -168,7 +167,7 @@ const Home = ({ stats }) => {
               align="center"
               pad={{ vertical: 'large' }}
             >
-              {stats.cancer_types.map((ct, i) => (
+              {cancerTypes.map((ct, i) => (
                 <Link key={ct} href={`/projects?diagnoses=${ct}`}>
                   <Box
                     round
