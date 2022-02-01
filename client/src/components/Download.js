@@ -164,7 +164,11 @@ export const DownloadView = ({ computedFile }) => {
       >
         <Text>Learn about what you can expect in your download file.</Text>
         <Link href={config.links.help}>
-          <Button primary label="Read Docs" />
+          <Button
+            primary
+            label="Read Docs"
+            href={config.links.what_downloading}
+          />
         </Link>
       </Box>
     </Box>
