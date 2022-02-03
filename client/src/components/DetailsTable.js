@@ -60,10 +60,15 @@ const DetailsTableBody = styled(TableBody)`
 export const DetailsTable = ({ data, order, className }) => {
   const tableData =
     order && typeof data === 'object'
-      ? order.map((entry) => ({
-          label: getReadable(entry),
-          value: data[entry]
-        }))
+      ? order.map((entry) => {
+          // either pass object key or a label value pair
+          return typeof entry === 'object'
+            ? entry
+            : {
+                label: getReadable(entry),
+                value: data[entry]
+              }
+        })
       : data
 
   return (

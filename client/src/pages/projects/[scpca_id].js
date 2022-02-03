@@ -29,7 +29,11 @@ const Project = ({ project }) => {
                   'abstract',
                   'disease_timings',
                   'sample_count',
-                  'human_readable_pi_name'
+                  'human_readable_pi_name',
+                  {
+                    label: 'Contact Information',
+                    value: `${project.contact_name} <${project.contact_email}>`
+                  }
                 ]}
               />
             </Box>
