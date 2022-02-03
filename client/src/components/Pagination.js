@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Button, Paragraph, TextInput } from 'grommet'
+import { Box, Button, Paragraph, Text, TextInput } from 'grommet'
 import { FormPrevious, FormNext } from 'grommet-icons'
 import { isOnlyNumbers } from 'helpers/isOnlyNumbers'
 import {
@@ -59,19 +59,19 @@ export const Pagination = ({
     updateOffset(pageToOffset(parseInt(enteredPageNumber, 10)))
   }
 
-  const getDisplayedOffsets = () => {
+  const [buttonOffsets, setButtonOffsets] = React.useState([])
+
+  React.useEffect(() => {
     const page = offsetToPage(offset, limit)
     const lastPage = offsetToPage(last, limit)
     const allOffsets = [...Array(lastPage).keys()].map((o) => o * limit)
     // get first 6
-    if (page <= 2) return allOffsets.slice(0, 6)
+    if (page <= 2) setButtonOffsets(allOffsets.slice(0, 6))
     // get last 5
-    if (lastPage - page <= 2) return allOffsets.slice(-5)
+    else if (lastPage - page <= 2) setButtonOffsets(allOffsets.slice(-5))
     // get 2 before and 2 after current
-    return allOffsets.slice(page - 2, page + 3)
-  }
-
-  const buttonOffsets = getDisplayedOffsets()
+    else setButtonOffsets(allOffsets.slice(page - 2, page + 3))
+  }, [offset, limit])
 
   return (
     <Box
@@ -96,10 +96,11 @@ export const Pagination = ({
             plain
             key="start"
             pad="xsmall"
-            label={1}
             onClick={() => updateOffset(0)}
-          />,
-          !buttonOffsets.includes(1) && (
+          >
+            <Text color="brand">1</Text>
+          </Button>,
+          !buttonOffsets.includes(pageToOffset(2, limit)) && (
             <Paragraph
               key="elipse-start"
               size="medium"
@@ -115,9 +116,10 @@ export const Pagination = ({
             <Button
               key={pageOffset}
               plain
-              label={offsetToPage(pageOffset, limit)}
               onClick={() => updateOffset(pageOffset)}
-            />
+            >
+              <Text color="brand">{offsetToPage(pageOffset, limit)}</Text>
+            </Button>
           ) : (
             <Paragraph
               key="current-page"
@@ -144,9 +146,10 @@ export const Pagination = ({
             plain
             key={last}
             pad="xsmall"
-            label={offsetToPage(last, limit)}
             onClick={() => updateOffset(last)}
-          />
+          >
+            <Text color="brand">{offsetToPage(last, limit)}</Text>
+          </Button>
         ]}
         <Button
           plain
