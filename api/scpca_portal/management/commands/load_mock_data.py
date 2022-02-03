@@ -383,7 +383,9 @@ def replace_db_with_mock_data():
 
         project.update({"has_bulk_rna_seq": random.choice([True, False])})
 
-        project, created = Project.objects.get_or_create(**project, contact="email@example.com")
+        project, created = Project.objects.get_or_create(
+            **project, contact_name="Mocked Contact", contact_email="email@example.com"
+        )
 
         if not created:
             # Only import new projects. If old ones are desired
