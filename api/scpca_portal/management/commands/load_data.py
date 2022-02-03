@@ -19,7 +19,7 @@ from scpca_portal.models import ComputedFile, Project, Sample
 
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
-project_whitelist = ["murphy_chen", "green_mulcahy_levy"]
+project_whitelist = ["murphy_chen", "green_mulcahy_levy", "dyer_chen"]
 
 OUTPUT_DIR = "output/"
 README_FILENAME = "README.md"
@@ -370,7 +370,8 @@ def load_data_from_s3(
                 human_readable_pi_name=project["PI"],
                 title=project["project_title"],
                 abstract=project["abstract"],
-                contact=project["project_contact"],
+                contact_name=project["contact_name"],
+                contact_email=project["contact_email"],
             )
 
             if not created:

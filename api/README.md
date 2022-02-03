@@ -138,6 +138,13 @@ The one difference is that in the cloud `load_data` defaults to uploading data.
 This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
 It's not recommended but if you really want to just update the metadata without reuploading the data to S3 you can pass `--upload False`.
 
+To run the `load_data` command in production, there is a load_data.sh script that is created on the API instance.
+It passes any arguments to it through to the command, so `./load_data.sh --reload-all` will work nicely.
+
+The `purge_project` command does not have it's own script.
+Ideally it should only be run via the `load_data` command using the `--reload-existing` and `--reload-all` options, but if it ever needs to be run on it's own then `docker exec -it scpca_portal_api python3 manage.py purge_project --pi-name dyer_chen` will still work.
+The `load_data` command necessitated it's own script because it does need to be run enough and also it can take a while to load all the data so doing so without a TTY is preferable.
+
 ## Cloud Deployments
 
 To deploy the API to AWS follow the directions for doing so in the [infrastructure README](../infrastructure/README.md).

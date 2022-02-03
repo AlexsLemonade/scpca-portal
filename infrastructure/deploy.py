@@ -120,6 +120,8 @@ def load_env_vars(args):
     os.environ["TF_VAR_region"] = args.region
     os.environ["TF_VAR_dockerhub_repo"] = args.dockerhub_repo
     os.environ["TF_VAR_system_version"] = args.system_version
+    os.environ["TF_VAR_database_password"] = os.environ["DATABASE_PASSWORD"]
+    os.environ["TF_VAR_django_secret_key"] = os.environ["DJANGO_SECRET_KEY"]
     os.environ["TF_VAR_sentry_io_url"] = os.environ["SENTRY_IO_URL"]
     os.environ["TF_VAR_sentry_env"] = os.environ["SENTRY_ENV"]
 
