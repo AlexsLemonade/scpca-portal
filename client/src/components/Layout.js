@@ -48,6 +48,7 @@ export const Layout = ({ children }) => {
         overflow="visible"
         align="center"
         justify="center"
+        pad={{ top: 'xlarge' }}
       >
         {children}
       </Main>
