@@ -194,15 +194,7 @@ const Home = ({ stats }) => {
           align="center"
           pad={{ bottom: 'large' }}
         >
-          <Box>
-            <Image src="/alsf-logo.png" />
-          </Box>
-          <Text size="xlarge" weight="bold">
-            X
-          </Text>
-          <Box>
-            <Image src="/ccdl-logo.png" />
-          </Box>
+          <Image width="100%" src="/ccdlxalsf.png" />
         </Box>
         <Box width="medium" pad={{ vertical: 'medium' }}>
           <Paragraph textAlign="center">
