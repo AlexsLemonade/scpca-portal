@@ -5,6 +5,12 @@ import { FooterBand } from 'components/Band'
 import { Icon } from 'components/Icon'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
+import styled from 'styled-components'
+
+const FooterImage = styled(Image)`
+  max-width: 100%;
+  max-height: 100%;
+`
 
 export const Footer = () => {
   const { responsive } = useResponsive()
@@ -68,7 +74,7 @@ export const Footer = () => {
                   height="60px"
                   width={{ width: 'full', max: '50px' }}
                 >
-                  <Image src="/alsf-logo.png" />
+                  <FooterImage src="/alsf-logo.png" />
                 </Box>
 
                 <Box
@@ -98,7 +104,7 @@ export const Footer = () => {
                   height="60px"
                   width={{ width: 'full', max: '100px' }}
                 >
-                  <Image src="/ccdl-logo.png" />
+                  <FooterImage src="/ccdl-logo.png" />
                 </Box>
                 <Box
                   direction="row"
