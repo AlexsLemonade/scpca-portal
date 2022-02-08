@@ -23,8 +23,8 @@ import DownloadSVG from '../images/download-folder.svg'
 const AcceptLabel = () => {
   return (
     <Text>
-      I agree to the <Link label="Terms of Service" href="/#" /> and{' '}
-      <Link label="Privacy Policy" href="/#" />.
+      I agree to the <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
+      <Link label="Privacy Policy" href="/privacy-policy" />.
     </Text>
   )
 }
@@ -34,7 +34,7 @@ const UpdatesLabel = () => {
   return (
     <Text>
       I would like to receive occasional updates from the{' '}
-      <Link label="Privacy Policy" href="https://ccdatalab.org" />.
+      <Link label="Privacy Policy" href="/privacy-policy" />.
     </Text>
   )
 }
@@ -80,8 +80,10 @@ export const TokenView = () => {
   return (
     <Box>
       <Text>
-        Please read and accept our <Link label="Terms of Service" href="/#" />{' '}
-        and <Link label="Privacy Policy" href="/#" /> before you download data.
+        Please read and accept our{' '}
+        <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
+        <Link label="Privacy Policy" href="/privacy-policy" /> before you
+        download data.
       </Text>
       {(errors || errors.length) && <Text color="error">{errors}</Text>}
       <FormField label="Email">
