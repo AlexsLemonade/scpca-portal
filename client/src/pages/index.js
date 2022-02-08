@@ -109,7 +109,9 @@ const Home = ({ stats }) => {
           </Paragraph>
         </Box>
         <Box pad={{ bottom: 'large' }}>
-          <Button primary label="Browse Portal" href="/projects" />
+          <Link primary href="/projects">
+            <Button primary label="Browse Portal" />
+          </Link>
         </Box>
       </HeroBand>
       <Box
