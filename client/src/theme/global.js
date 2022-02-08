@@ -152,7 +152,8 @@ export default {
     },
     focus: 'brand',
     'border-black': '#F2F2F2',
-    'border-brand': '#BAEFFE'
+    'border-brand': '#BAEFFE',
+    'border-yellow': '#F3E502'
   },
   control: {
     border: {
