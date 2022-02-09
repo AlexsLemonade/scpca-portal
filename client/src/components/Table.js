@@ -102,7 +102,7 @@ export const THead = ({
       .map((_, i) => widths.slice(0, i).reduce((a, b) => a + b, 0))
       .slice(0, stickies)
     setOffsets(newOffsets)
-  }, [globalFilter])
+  }, [globalFilter, stickies])
   return (
     <TableHeader>
       {headerGroups.map((headerGroup) => (
@@ -156,7 +156,7 @@ export const TBody = ({
         .slice(0, stickies)
       setOffsets(newOffsets)
     }
-  }, [globalFilter])
+  }, [globalFilter, stickies])
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <TableBody {...getTableBodyProps()}>
@@ -256,7 +256,7 @@ export const Table = ({
           />
         )}
       </Box>
-      <TableBox width="full" stickies={stickies}>
+      <TableBox width={{ max: 'full' }} overflow="auto" stickies={stickies}>
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <StickyTable {...getTableProps()} width="auto">
           <Head instance={instance} stickies={stickies} />

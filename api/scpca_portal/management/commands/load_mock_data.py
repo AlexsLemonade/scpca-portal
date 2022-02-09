@@ -235,10 +235,12 @@ def get_mock_option(key: str, k=None):
 
 def purge_all_projects():
     for project in Project.objects.all():
-        purge_project(project.scpca_id, True)
+        purge_project(project.scpca_id)
 
 
-def mock_package_files_for_project(project: Project,):
+def mock_package_files_for_project(
+    project: Project,
+):
     computed_file = ComputedFile(
         type="PROJECT_ZIP",
         workflow_version="0.0.1",
@@ -255,7 +257,9 @@ def mock_package_files_for_project(project: Project,):
     return computed_file
 
 
-def mock_package_files_for_sample(sample: Dict,):
+def mock_package_files_for_sample(
+    sample: Dict,
+):
     sample_id = sample["scpca_sample_id"]
     zip_file_name = f"{sample_id}.zip"
 
@@ -379,7 +383,9 @@ def replace_db_with_mock_data():
 
         project.update({"has_bulk_rna_seq": random.choice([True, False])})
 
-        project, created = Project.objects.get_or_create(**project, contact="email@example.com")
+        project, created = Project.objects.get_or_create(
+            **project, contact_name="Mocked Contact", contact_email="email@example.com"
+        )
 
         if not created:
             # Only import new projects. If old ones are desired

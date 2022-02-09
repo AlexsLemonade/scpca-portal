@@ -7,7 +7,11 @@ import { Download as DownloadIcon } from 'grommet-icons'
 import { Download } from 'components/Download'
 import { Loader } from 'components/Loader'
 
-export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
+export const ProjectSamplesTable = ({
+  project,
+  samples: defaultSamples,
+  stickies = 3
+}) => {
   const [samples, setSamples] = React.useState(defaultSamples)
   const [loaded, setLoaded] = React.useState(false)
   const infoText =
@@ -77,7 +81,7 @@ export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
       filter
       columns={columns}
       data={samples}
-      stickies={3}
+      stickies={stickies}
       pageSize={10}
       infoText={infoText}
     />

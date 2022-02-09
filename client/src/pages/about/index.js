@@ -2,25 +2,39 @@ import React from 'react'
 import { Box, Grid, Paragraph, Text } from 'grommet'
 import { HeroBandReversed, CardBandLarge } from 'components/Band'
 import { DonateButton } from 'components/DonateButton'
+import { useResponsive } from 'hooks/useResponsive'
 import AboutPageFigure from '../../images/about-page-figure.svg'
+import AboutPageFigureMobile from '../../images/about-page-fig-mobile.svg'
 import SaveTime from '../../images/save-time.svg'
 import WidelyAvailable from '../../images/widely-available.svg'
 import OpenSource from '../../images/open-source.svg'
 import Access from '../../images/access.svg'
 
 export const About = () => {
+  const { responsive } = useResponsive()
+
   return (
     <>
       <HeroBandReversed
         background="dawn"
         width="full"
         align="center"
-        pad={{ top: 'xxlarge' }}
+        pad={{ top: '92px' }}
       >
-        <Box width={{ max: 'xlarge' }} fill pad={{ top: 'medium' }}>
+        <Box
+          width={{ max: 'xlarge' }}
+          fill
+          pad={responsive({ horizontal: 'medium' }, { top: 'large' })}
+        >
           <Text size="xxlarge">About</Text>
         </Box>
-        <Box width={{ max: 'large' }} pad={{ top: 'large', bottom: 'large' }}>
+        <Box
+          width={{ max: 'large' }}
+          pad={responsive(
+            { top: 'xlarge', bottom: 'large' },
+            { top: 'large', bottom: 'large' }
+          )}
+        >
           <Paragraph size="large" textAlign="center">
             The Single-cell Pediatric Cancer Atlas (ScPCA) is accelerating the
             discovery of better treatments for pediatric solid tumors and
@@ -30,20 +44,27 @@ export const About = () => {
         </Box>
       </HeroBandReversed>
       <Box width="full" align="center" pad={{ vertical: 'large' }}>
-        <Box width={{ max: 'xlarge' }} fill>
+        <Box
+          width={{ max: 'xlarge' }}
+          fill
+          pad={responsive({ horizontal: 'medium' })}
+        >
           <Text size="xlarge">How it works</Text>
         </Box>
       </Box>
-      <Box>
-        <AboutPageFigure />
+      <Box pad={{ horizontal: 'medium' }}>
+        {responsive(
+          <AboutPageFigureMobile style={{ maxWidth: '100%' }} />,
+          <AboutPageFigure />
+        )}
       </Box>
       <Grid
-        columns="1/2"
+        columns={responsive('1', '1/2')}
         gap="xxlarge"
         pad={{ top: 'large', bottom: 'xlarge' }}
-        width={{ max: 'xlarge' }}
+        width={{ width: 'full', max: 'xlarge' }}
       >
-        <Box pad={{ right: 'xxlarge' }}>
+        <Box pad={responsive({ horizontal: 'medium' })}>
           <Text weight="bold">
             ALSF funds cutting-edge pediatric cancer research
           </Text>
@@ -55,7 +76,7 @@ export const About = () => {
             program.
           </Text>
         </Box>
-        <Box pad={{ right: 'xxlarge' }}>
+        <Box pad={responsive({ horizontal: 'medium' })}>
           <Text weight="bold">The Data Lab processes the generated data</Text>
           <Text>
             ALSF’s Childhood Cancer Data Lab is trusted to process the
@@ -66,18 +87,36 @@ export const About = () => {
         </Box>
       </Grid>
       <Box background="dawn" width="full" align="center" pad={{ top: 'large' }}>
-        <Box align="start" width={{ max: 'xlarge' }} fill>
+        <Box
+          align="start"
+          width={{ width: 'full', max: 'xlarge' }}
+          fill
+          pad={responsive({ horizontal: 'medium' })}
+        >
           <Text size="xlarge">Impact</Text>
         </Box>
-        <Box align="center" width={{ max: 'xlarge' }}>
-          <Box margin={{ vertical: 'large' }}>
+        <Box align="center" width={{ width: 'full', max: 'xlarge' }}>
+          <Box
+            margin={{ vertical: 'large' }}
+            pad={responsive({ horizontal: 'medium' })}
+          >
             <Text>
               ALSF’s funding and the Data Lab’s expertise maximize the reach of
               this open resource to accelerate the rate of new discoveries.
             </Text>
           </Box>
-          <Grid columns="1/2" gap="xlarge" margin={{ bottom: 'xlarge' }}>
-            <Box direction="row" justify="between" gap="medium">
+          <Grid
+            columns={responsive('1', '1/2')}
+            gap="xlarge"
+            width={{ width: 'full', max: 'xlarge' }}
+            margin={{ bottom: 'xlarge' }}
+            pad={responsive('medium')}
+          >
+            <Box
+              direction="row"
+              justify="between"
+              gap={responsive('large', 'medium')}
+            >
               <Box width="24px">
                 <Access />
               </Box>
@@ -91,7 +130,11 @@ export const About = () => {
                 </Text>
               </Box>
             </Box>
-            <Box direction="row" justify="between" gap="medium">
+            <Box
+              direction="row"
+              justify="between"
+              gap={responsive('large', 'medium')}
+            >
               <Box width="24px">
                 <WidelyAvailable />
               </Box>
@@ -104,7 +147,11 @@ export const About = () => {
                 </Text>
               </Box>
             </Box>
-            <Box direction="row" justify="between" gap="medium">
+            <Box
+              direction="row"
+              justify="between"
+              gap={responsive('large', 'medium')}
+            >
               <Box width="24px">
                 <OpenSource />
               </Box>
@@ -118,7 +165,11 @@ export const About = () => {
                 </Text>
               </Box>
             </Box>
-            <Box direction="row" justify="between" gap="medium">
+            <Box
+              direction="row"
+              justify="between"
+              gap={responsive('large', 'medium')}
+            >
               <Box width="24px">
                 <SaveTime />
               </Box>
@@ -137,18 +188,29 @@ export const About = () => {
       <Box width={{ max: 'xlarge' }}>
         <Box pad={{ vertical: 'xlarge' }}>
           <CardBandLarge
-            pad={{
-              top: 'xlarge',
-              right: 'xxlarge',
-              bottom: 'large',
-              left: 'xxlarge'
-            }}
+            pad={responsive(
+              {
+                horizontal: 'large',
+                vertical: 'xlarge'
+              },
+              {
+                top: 'xlarge',
+                right: 'xxlarge',
+                bottom: 'large',
+                left: 'xxlarge'
+              }
+            )}
             elevation="medium"
+            background={responsive('none')}
           >
             <Text size="large" weight="bold">
               Donate
             </Text>
-            <Box direction="row" align="center" gap="xxlarge">
+            <Box
+              direction={responsive('column', 'row')}
+              align="center"
+              gap={responsive('medium', 'xxlarge')}
+            >
               <Text>
                 Innovative projects like the Single-cell Pediatric Cancer Atlas
                 are made possible by generous donors. Support impactful research

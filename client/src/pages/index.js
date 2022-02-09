@@ -2,6 +2,7 @@ import React from 'react'
 import {
   Box,
   FormField,
+  Grid,
   Image,
   Paragraph,
   Stack,
@@ -18,6 +19,7 @@ import { getStatsBlocks } from 'helpers/getStatsBlocks'
 import { fillArrayRandom } from 'helpers/fillArrayRandom'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import { config } from 'config'
+import { useResponsive } from 'hooks/useResponsive'
 import PipelineSvg from '../images/pipeline.svg'
 import FilesSvg from '../images/files.svg'
 
@@ -60,8 +62,9 @@ const ExposeBox = styled(Box)`
 
 const Home = ({ stats }) => {
   const { emailListForm } = React.useContext(ScPCAPortalContext)
-
+  const { responsive } = useResponsive()
   const statBlocks = getStatsBlocks(stats)
+
   const cancerColors = React.useMemo(
     () =>
       fillArrayRandom(
@@ -96,7 +99,9 @@ const Home = ({ stats }) => {
           align="center"
           pad={{ bottom: 'small' }}
         >
-          <Text size="xxlarge">Single-cell Pediatric Cancer Atlas Portal</Text>
+          <Text size={responsive('large', 'xxlarge')}>
+            Single-cell Pediatric Cancer Atlas Portal
+          </Text>
         </Box>
         <Box width="medium" pad={{ top: 'large', bottom: 'large' }}>
           <Paragraph size="large" textAlign="center">
@@ -108,15 +113,27 @@ const Home = ({ stats }) => {
           <Button primary label="Browse Portal" href="/projects" />
         </Box>
       </HeroBand>
-      <Box width="full" align="center" pad={{ vertical: 'large' }}>
-        <Text size="xlarge">ScPCA Portal currently has</Text>
+      <Box
+        width="full"
+        align="center"
+        pad={{ vertical: 'large', horizontal: 'small' }}
+      >
+        <Text size={responsive('large', 'xlarge')}>
+          ScPCA Portal currently has
+        </Text>
         <Box
           width="full"
           pad={{ vertical: 'large' }}
           background="linear-gradient(0deg, rgba(237,247,253,1) 50%, transparent 50%)"
           align="center"
         >
-          <Box direction="row" gap="xxlarge" width="xlarge">
+          <Grid
+            columns={responsive('1', '1/4')}
+            gap={responsive('large', 'xlarge')}
+            margin={{ bottom: 'xlarge' }}
+            width={responsive('small', 'large')}
+            fill="horizontal"
+          >
             {statBlocks.map((sb) => (
               <CardBand
                 key={sb.name}
@@ -130,7 +147,7 @@ const Home = ({ stats }) => {
                 <Text size="large">{sb.name}</Text>
               </CardBand>
             ))}
-          </Box>
+          </Grid>
         </Box>
         <Box
           align="center"
@@ -204,7 +221,12 @@ const Home = ({ stats }) => {
         background="dawn"
         pad={{ vertical: 'xlarge' }}
       >
-        <Box width="xlarge" align="center" direction="row" gap="xlarge">
+        <Box
+          width="xlarge"
+          align="center"
+          direction={responsive('column', 'row')}
+          gap="xlarge"
+        >
           <Stack anchor="bottom-right">
             <Box
               background="white"
@@ -260,8 +282,8 @@ const Home = ({ stats }) => {
         </Box>
       </Box>
       <Box align="center" pad={{ vertical: 'large' }}>
-        <Text size="xlarge">Sign up for updates</Text>
-        <Text size="large">
+        <Text size={responsive('medium', 'xlarge')}>Sign up for updates</Text>
+        <Text size={responsive('medium', 'large')}>
           Receive updates about new datasets and updates to the portal.
         </Text>
         <Box direction="row" gap="medium" pad={{ vertical: 'medium' }}>

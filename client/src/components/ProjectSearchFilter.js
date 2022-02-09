@@ -82,12 +82,13 @@ export const ProjectSearchFilter = ({
   const filterOrder = ['diagnoses', 'seq_units', 'modalities', 'technologies']
 
   return (
-    <Box>
+    <Box overflow="auto">
       {filterOrder.map((f, i) => (
         <Box
           key={f}
           border={i === 0 ? false : { side: 'top' }}
           pad={{ vertical: 'medium' }}
+          height={{ min: 'auto' }}
         >
           <Text weight="bold">{filterNames[f]}</Text>
           <Box pad={{ top: 'medium' }}>
