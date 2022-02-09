@@ -184,8 +184,11 @@ export const DownloadView = ({ computedFile }) => {
         pad={{ top: 'large' }}
       >
         <Text>
-          <Link href={config.links.help} label="Read the docs here" /> to learn
-          about what you can expect in your download file.
+          <Link
+            href={config.links.what_downloading}
+            label="Read the docs here"
+          />{' '}
+          to learn about what you can expect in your download file.
         </Text>
       </Box>
     </>
