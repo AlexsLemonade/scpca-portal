@@ -238,9 +238,7 @@ def purge_all_projects():
         purge_project(project.scpca_id)
 
 
-def mock_package_files_for_project(
-    project: Project,
-):
+def mock_package_files_for_project(project: Project,):
     computed_file = ComputedFile(
         type="PROJECT_ZIP",
         workflow_version="0.0.1",
@@ -257,9 +255,7 @@ def mock_package_files_for_project(
     return computed_file
 
 
-def mock_package_files_for_sample(
-    sample: Dict,
-):
+def mock_package_files_for_sample(sample: Dict,):
     sample_id = sample["scpca_sample_id"]
     zip_file_name = f"{sample_id}.zip"
 
