@@ -19,8 +19,10 @@ import {
 import { matchSorter } from 'match-sorter'
 import { Icon } from 'components/Icon'
 import { TableFilter } from 'components/TableFilter'
+import { TablePageSize } from 'components/TablePageSize'
 import { Pagination } from 'components/Pagination'
 import { InfoText } from 'components/InfoText'
+import { useResponsive } from 'hooks/useResponsive'
 
 // Styles to allow for dynamic "sticky" columns
 const TableBox = styled(Box)`
@@ -199,7 +201,8 @@ export const Table = ({
   Head = THead,
   Body = TBody,
   filter = false,
-  pageSize = 0,
+  pageSize: initialPageSize = 0,
+  pageSizeOptions = [],
   infoText
 }) => {
   const globalFilter = 'fuzzyText'
@@ -212,6 +215,8 @@ export const Table = ({
   )
   const columns = React.useMemo(() => userColumns, [])
   const data = React.useMemo(() => userData, [])
+
+  const pageSize = initialPageSize || pageSizeOptions[0] || 0
 
   // if no pageSize is set dont use the hook
   const hooks = [useGlobalFilter, useSortBy]
@@ -236,16 +241,35 @@ export const Table = ({
     globalFilteredRows,
     preGlobalFilteredRows,
     gotoPage,
+    setPageSize,
+    pageOptions,
     state: { pageIndex }
   } = instance
 
   const justify = filter && infoText ? 'between' : 'end'
   const pad = filter ? { vertical: 'medium' } : {}
+  const { responsive } = useResponsive()
+
+  const showPagination = pageOptions && pageOptions.length > 1
 
   return (
     <>
-      <Box direction="row" pad={pad} align="start" justify={justify}>
+      <Box
+        direction={responsive('column', 'row')}
+        pad={pad}
+        gap="medium"
+        align="start"
+        justify={justify}
+      >
         {infoText && <InfoText label={infoText} />}
+        {pageSizeOptions.length > 0 && (
+          <TablePageSize
+            pageSize={state.pageSize}
+            setPageSize={setPageSize}
+            pageSizeOptions={pageSizeOptions}
+            gotoPage={gotoPage}
+          />
+        )}
         {filter && (
           <TableFilter
             // state.globalFilter is the current string being filtered against
@@ -275,12 +299,12 @@ export const Table = ({
           <Button label="Reset Filter" onClick={() => setGlobalFilter()} />
         </Box>
       )}
-      {pageSize > 0 && (
+      {showPagination && (
         <Box justify="center" pad={{ vertical: 'medium' }}>
           <Pagination
             update={({ pageIndex: index }) => gotoPage(index)}
-            offset={pageIndex * pageSize}
-            limit={pageSize}
+            offset={pageIndex * state.pageSize}
+            limit={state.pageSize}
             count={globalFilteredRows.length}
           />
         </Box>

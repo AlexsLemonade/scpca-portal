@@ -4,17 +4,29 @@ import { Box, Main } from 'grommet'
 import { Header } from 'components/Header'
 import { Footer } from 'components/Footer'
 import styled, { css } from 'styled-components'
+import { PageLoader } from 'components/PageLoader'
 
 const FixedBox = styled(Box)`
   position: fixed;
   width: 100%;
   z-index: 3;
+  // padding-bottom: 8px;
   ${({ showMargin }) =>
     showMargin &&
     css`
       box-shadow: 0px 2px 5px 5px #fdfdfd;
     `}
 `
+
+const ProgressBar = styled(PageLoader)`
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  z-index: -1;
+  transform: translate(0, -100%);
+  height: 12px;
+`
+
 export const Layout = ({ children }) => {
   const router = useRouter()
 
@@ -35,10 +47,8 @@ export const Layout = ({ children }) => {
       <Box margin={showMargin ? { bottom: 'xlarge' } : ''}>
         <Box height="80px">
           <FixedBox showMargin={showMargin} background="white">
-            <Header
-              margin={showMargin ? { bottom: '12px' } : ''}
-              donate={showDonate}
-            />
+            <Header margin={{ bottom: 'small' }} donate={showDonate} />
+            <ProgressBar />
           </FixedBox>
         </Box>
       </Box>
@@ -48,6 +58,7 @@ export const Layout = ({ children }) => {
         overflow="visible"
         align="center"
         justify="center"
+        pad={showMargin ? { top: 'xlarge' } : {}}
       >
         {children}
       </Main>

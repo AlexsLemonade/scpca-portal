@@ -14,7 +14,6 @@ const Logo = () => {
   const small = size === 'small'
   const showScrolled = scrolled || small
 
-  const margin = showScrolled ? 0 : 38
   const height = showScrolled ? '74px' : '112px'
   const background = showScrolled ? 'alexs-lemonade' : 'transparent'
 
@@ -33,11 +32,12 @@ const Logo = () => {
 
   return (
     <Box
-      height="full"
       direction="row"
-      align="center"
+      align="start"
+      justify="center"
       gap="small"
-      margin={{ bottom: `-${margin}px` }}
+      overflow="visible"
+      height="74px"
     >
       <Box
         width={width}
@@ -53,14 +53,11 @@ const Logo = () => {
           <ASLFLogo />
         )}
       </Box>
-      <Text
-        serif
-        size={responsive('medium', 'large')}
-        color="white"
-        margin={{ bottom: `${margin}px` }}
-      >
-        ScPCA Portal
-      </Text>
+      <Box height="74px" align="center" justify="center">
+        <Text serif size={responsive('medium', 'large')} color="white">
+          ScPCA Portal
+        </Text>
+      </Box>
     </Box>
   )
 }

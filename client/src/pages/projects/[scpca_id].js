@@ -1,5 +1,6 @@
 import React from 'react'
 import { Box, Tabs, Tab, Text } from 'grommet'
+import { useRouter } from 'next/router'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { DetailsTable } from 'components/DetailsTable'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
@@ -9,12 +10,17 @@ import { useResponsive } from 'hooks/useResponsive'
 
 const Project = ({ project }) => {
   if (!project) return '404'
+  const router = useRouter()
+
+  const showSamples = router.asPath.indexOf('samples') !== -1
+  const [activeIndex, setActiveIndex] = React.useState(showSamples ? 1 : 0)
+  const onActive = (nextIndex) => setActiveIndex(nextIndex)
   const { responsive } = useResponsive()
   return (
     <Box width="xlarge">
       <ProjectHeader project={project} />
       <Box pad={{ vertical: 'large' }}>
-        <Tabs>
+        <Tabs activeIndex={activeIndex} onActive={onActive}>
           <Tab title="Project Details">
             <Box pad={{ vertical: 'large' }}>
               <DetailsTable
@@ -23,7 +29,11 @@ const Project = ({ project }) => {
                   'abstract',
                   'disease_timings',
                   'sample_count',
-                  'human_readable_pi_name'
+                  'human_readable_pi_name',
+                  {
+                    label: 'Contact Information',
+                    value: `${project.contact_name} <${project.contact_email}>`
+                  }
                 ]}
               />
             </Box>

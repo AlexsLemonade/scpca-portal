@@ -17,7 +17,6 @@ export const Header = ({ className, margin, donate = false }) => {
     <GrommetHeader
       className={className}
       background="brand"
-      border={[{ size: 'medium', side: 'bottom', color: '#F3E502' }]}
       justify="center"
       margin={margin}
     >

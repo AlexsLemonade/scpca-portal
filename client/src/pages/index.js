@@ -61,10 +61,10 @@ const ExposeBox = styled(Box)`
 `
 
 const Home = ({ stats }) => {
+  const cancerTypes = stats.cancer_types.filter((c) => c !== 'Normal margin')
   const { emailListForm } = React.useContext(ScPCAPortalContext)
   const { responsive } = useResponsive()
   const statBlocks = getStatsBlocks(stats)
-
   const cancerColors = React.useMemo(
     () =>
       fillArrayRandom(
@@ -76,9 +76,8 @@ const Home = ({ stats }) => {
     []
   )
 
-  const [exposed, setExposed] = React.useState(
-    stats.cancer_types.length > 10 ? 'none' : 'all'
-  )
+  // when we have more cancer types to display add this back
+  const [exposed, setExposed] = React.useState('all')
 
   const exposeMore = () => {
     if (exposed === 'none') return setExposed('some')
@@ -105,12 +104,14 @@ const Home = ({ stats }) => {
         </Box>
         <Box width="medium" pad={{ top: 'large', bottom: 'large' }}>
           <Paragraph size="large" textAlign="center">
-            Database of single-cell data from pediatric cancer clinical samples
-            and xenografts
+            Database of uniformly processed single-cell data from pediatric
+            cancer clinical samples and xenografts
           </Paragraph>
         </Box>
         <Box pad={{ bottom: 'large' }}>
-          <Button primary label="Browse Portal" href="/projects" />
+          <Link primary href="/projects">
+            <Button primary label="Browse Portal" />
+          </Link>
         </Box>
       </HeroBand>
       <Box
@@ -168,7 +169,7 @@ const Home = ({ stats }) => {
               align="center"
               pad={{ vertical: 'large' }}
             >
-              {stats.cancer_types.map((ct, i) => (
+              {cancerTypes.map((ct, i) => (
                 <Link key={ct} href={`/projects?diagnoses=${ct}`}>
                   <Box
                     round
@@ -195,15 +196,7 @@ const Home = ({ stats }) => {
           align="center"
           pad={{ bottom: 'large' }}
         >
-          <Box>
-            <Image src="/alsf-logo.png" />
-          </Box>
-          <Text size="xlarge" weight="bold">
-            X
-          </Text>
-          <Box>
-            <Image src="/ccdl-logo.png" />
-          </Box>
+          <Image width="100%" src="/ccdlxalsf.png" />
         </Box>
         <Box width="medium" pad={{ vertical: 'medium' }}>
           <Paragraph textAlign="center">

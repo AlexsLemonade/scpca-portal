@@ -5,6 +5,12 @@ import { FooterBand } from 'components/Band'
 import { Icon } from 'components/Icon'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
+import styled from 'styled-components'
+
+const FooterImage = styled(Image)`
+  max-width: 100%;
+  max-height: 100%;
+`
 
 export const Footer = () => {
   const { responsive } = useResponsive()
@@ -12,7 +18,12 @@ export const Footer = () => {
   const direction = responsive('column', 'row')
 
   return (
-    <FooterBand elevation="medium" align="center" pad={{ vertical: 'xlarge' }}>
+    <FooterBand
+      elevation="medium"
+      align="center"
+      justify="center"
+      pad={{ vertical: 'xlarge' }}
+    >
       <Box direction={direction} justify="between" align="end" width="xlarge">
         <Box
           direction={direction}
@@ -49,15 +60,23 @@ export const Footer = () => {
           >
             <Box
               direction="row"
-              gap={responsive('xxlarge', 'large')}
-              width={{ max: '220px' }}
+              gap={responsive('xxlarge', 'xlarge')}
+              width={{ width: 'full', max: '220px' }}
               align="center"
+              justify="center"
             >
-              <Box>
+              <Box align="center">
                 <Paragraph textAlign="center" color="black-tint-40">
                   <Text size="small">Funded By</Text>
                 </Paragraph>
-                <Image src="/alsf-logo.png" />
+                <Box
+                  pad={{ top: 'small' }}
+                  height="60px"
+                  width={{ width: 'full', max: '50px' }}
+                >
+                  <FooterImage src="/alsf-logo.png" />
+                </Box>
+
                 <Box
                   direction="row"
                   pad={{ top: 'medium' }}
@@ -80,7 +99,13 @@ export const Footer = () => {
                 <Paragraph textAlign="center" color="black-tint-40">
                   <Text size="small">Developed By</Text>
                 </Paragraph>
-                <Image src="/ccdl-logo.png" />
+                <Box
+                  pad={{ top: 'small' }}
+                  height="60px"
+                  width={{ width: 'full', max: '100px' }}
+                >
+                  <FooterImage src="/ccdl-logo.png" />
+                </Box>
                 <Box
                   direction="row"
                   pad={{ top: 'medium' }}
