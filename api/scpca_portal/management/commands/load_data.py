@@ -295,6 +295,9 @@ def load_data_for_project(
 
         sample["cell_count"] = sample_cell_count
 
+        # remove repeated technologies
+        sample["technologies"] = ", ".join(set(sample["technologies"].split(", ")))
+
     full_libraries_metadata = combine_and_write_metadata(
         output_dir, project, samples_metadata, libraries_metadata
     )

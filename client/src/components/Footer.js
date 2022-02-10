@@ -4,20 +4,44 @@ import { Link } from 'components/Link'
 import { FooterBand } from 'components/Band'
 import { Icon } from 'components/Icon'
 import { config } from 'config'
+import { useResponsive } from 'hooks/useResponsive'
+import styled from 'styled-components'
+
+const FooterImage = styled(Image)`
+  max-width: 100%;
+  max-height: 100%;
+`
 
 export const Footer = () => {
+  const { responsive } = useResponsive()
+
+  const direction = responsive('column', 'row')
+
   return (
-    <FooterBand elevation="medium" align="center" pad={{ vertical: 'xlarge' }}>
-      <Box direction="row" justify="between" align="end" width="xlarge">
-        <Box direction="row" justify="between" align="end" width="xlarge">
-          <Box align="start" margin={{ vertical: 'large' }}>
-            <Text color="black-tint-40">
+    <FooterBand
+      elevation="medium"
+      align="center"
+      justify="center"
+      pad={{ vertical: 'xlarge' }}
+    >
+      <Box direction={direction} justify="between" align="end" width="xlarge">
+        <Box
+          direction={direction}
+          justify="between"
+          align={responsive('center', 'end')}
+          width="xlarge"
+        >
+          <Box
+            margin={{ vertical: 'large' }}
+            align={responsive('center', 'start')}
+          >
+            <Text size={responsive('small', 'medium')} color="black-tint-40">
               Alex’s Lemonade Stand Foundation for Childhood Cancer
             </Text>
-            <Text color="black-tint-40">
+            <Text size={responsive('small', 'medium')} color="black-tint-40">
               333 E. Lancaster Ave, #414, Wynnewood, PA 19096 USA
             </Text>
-            <Text color="black-tint-40">
+            <Text size={responsive('small', 'medium')} color="black-tint-40">
               Phone: 866.333.1213 • Fax: 610.649.3038
             </Text>
             <Box margin={{ top: 'large' }}>
@@ -31,20 +55,28 @@ export const Footer = () => {
           </Box>
           <Box
             basis="1/3"
-            pad={{ left: 'xlarge' }}
+            pad={responsive({ bottom: 'large' }, { left: 'xlarge' })}
             margin={{ vertical: 'large' }}
           >
             <Box
               direction="row"
-              gap="large"
-              width={{ max: '220px' }}
+              gap={responsive('xxlarge', 'xlarge')}
+              width={{ width: 'full', max: '220px' }}
               align="center"
+              justify="center"
             >
-              <Box>
+              <Box align="center">
                 <Paragraph textAlign="center" color="black-tint-40">
                   <Text size="small">Funded By</Text>
                 </Paragraph>
-                <Image src="/alsf-logo.png" />
+                <Box
+                  pad={{ top: 'small' }}
+                  height="60px"
+                  width={{ width: 'full', max: '50px' }}
+                >
+                  <FooterImage src="/alsf-logo.png" />
+                </Box>
+
                 <Box
                   direction="row"
                   pad={{ top: 'medium' }}
@@ -67,7 +99,13 @@ export const Footer = () => {
                 <Paragraph textAlign="center" color="black-tint-40">
                   <Text size="small">Developed By</Text>
                 </Paragraph>
-                <Image src="/ccdl-logo.png" />
+                <Box
+                  pad={{ top: 'small' }}
+                  height="60px"
+                  width={{ width: 'full', max: '100px' }}
+                >
+                  <FooterImage src="/ccdl-logo.png" />
+                </Box>
                 <Box
                   direction="row"
                   pad={{ top: 'medium' }}
@@ -87,7 +125,11 @@ export const Footer = () => {
           </Box>
         </Box>
       </Box>
-      <Box direction="row" justify="between" width="xlarge">
+      <Box
+        direction="row"
+        justify={responsive('around', 'between')}
+        width="xlarge"
+      >
         <Box>
           <Nav direction="row" align="center" gap="large">
             <Link href="/terms-of-use" label="Terms of Use" />
