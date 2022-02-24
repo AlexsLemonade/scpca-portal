@@ -54,6 +54,15 @@ def package_files_for_project(
             zip_object.write(project_metadata_path, "libraries_metadata.csv")
             zip_object.write(readme_path, README_FILENAME)
 
+            if project.has_bulk_rna_seq:
+                print(f"Attaching bulk data tsvs for {project.scpca_id}")
+                zip_object.write(
+                    get_project_bulk_metadata_path(project_dir, project), "bulk_metadata.tsv"
+                )
+                zip_object.write(
+                    get_project_bulk_quant_path(project_dir, project), "bulk_quant.tsv"
+                )
+
             for sample_id, file_paths in sample_to_file_mapping.items():
                 for local_file_path in file_paths:
                     # We want to nest these under thier sample id.
@@ -81,6 +90,14 @@ def get_sample_metadata_path(output_dir: str, scpca_sample_id: str):
 
 def get_project_metadata_path(output_dir: str, project: Project):
     return os.path.join(output_dir, f"{project.scpca_id}_libraries_metadata.csv")
+
+
+def get_project_bulk_metadata_path(project_dir: str, project: Project):
+    return os.path.join(project_dir, f"{project.scpca_id}_bulk_metadata.tsv")
+
+
+def get_project_bulk_quant_path(project_dir: str, project: Project):
+    return os.path.join(project_dir, f"{project.scpca_id}_bulk_quant.tsv")
 
 
 def package_files_for_sample(
@@ -329,6 +346,7 @@ def load_data_from_s3(
     data_dir="/home/user/data/",
     readme_path="/home/user/scpca_portal/config/readme_template.md",
 ):
+
     if reload_all:
         purge_all_projects(should_upload)
 
@@ -367,6 +385,13 @@ def load_data_from_s3(
                 if existing_project:
                     purge_project(scpca_id, should_upload)
 
+            # check if there is bulk metadata
+            has_bulk_rna_seq = False
+            bulk_metadata = f"{data_dir}{scpca_id}/{scpca_id}_bulk_metadata.tsv"
+
+            if os.path.exists(bulk_metadata):
+                has_bulk_rna_seq = True
+
             project, created = Project.objects.get_or_create(
                 scpca_id=scpca_id,
                 pi_name=project["submitter"],
@@ -375,6 +400,7 @@ def load_data_from_s3(
                 abstract=project["abstract"],
                 contact_name=project["contact_name"],
                 contact_email=project["contact_email"],
+                has_bulk_rna_seq=has_bulk_rna_seq,
             )
 
             if not created:
