@@ -283,9 +283,13 @@ def load_data_for_project(
         return
 
     libraries_metadata = []
+
     for sample in samples_metadata:
         sample_cell_count = 0
+        sample_technologies = set()
+        sample_seq_units = set()
         sample_dir = os.path.join(project_dir, sample["scpca_sample_id"])
+
         for filename in os.listdir(sample_dir):
             if filename.endswith("_metadata.json"):
                 with open(os.path.join(sample_dir, filename)) as json_file:
@@ -299,23 +303,12 @@ def load_data_for_project(
                     libraries_metadata.append(parsed_json)
 
                     sample_cell_count += parsed_json["filtered_cell_count"]
-
-                    if "technologies" in sample:
-                        sample["technologies"] = (
-                            sample["technologies"] + ", " + parsed_json["technology"]
-                        )
-                    else:
-                        sample["technologies"] = parsed_json["technology"]
-
-                    if "seq_units" in sample:
-                        sample["seq_units"] = sample["seq_units"] + ", " + parsed_json["seq_unit"]
-                    else:
-                        sample["seq_units"] = parsed_json["seq_unit"]
+                    sample_technologies.add(parsed_json["technology"].strip())
+                    sample_seq_units.add(parsed_json["seq_unit"].strip())
 
         sample["cell_count"] = sample_cell_count
-
-        # remove repeated technologies
-        sample["technologies"] = ", ".join(set(sample["technologies"].split(", ")))
+        sample["technologies"] = ", ".join(sample_technologies)
+        sample["seq_units"] = ", ".join(sample_seq_units)
 
     full_libraries_metadata = combine_and_write_metadata(
         output_dir, project, samples_metadata, libraries_metadata
