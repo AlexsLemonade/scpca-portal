@@ -34,7 +34,7 @@ const UpdatesLabel = () => {
   return (
     <Text>
       I would like to receive occasional updates from the{' '}
-      <Link label="Privacy Policy" href="/privacy-policy" />.
+      <Link label="Data Lab Team" href="https://ccdatalab.org" />.
     </Text>
   )
 }
