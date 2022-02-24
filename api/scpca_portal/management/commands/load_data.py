@@ -449,4 +449,16 @@ class Command(BaseCommand):
         parser.add_argument("--upload", default=settings.UPDATE_IMPORTED_DATA, type=bool)
 
     def handle(self, *args, **options):
-        load_data_from_s3(options["upload"], options["reload_existing"], options["reload_all"])
+
+        # locally the docker container puts the code in a folder called code
+        # this allows us to run the same command on production or locally
+        code_dir = "/home/user/code/{}" if os.path.exists("/home/user/code") else "/home/user/{}"
+
+        load_data_from_s3(
+            options["upload"],
+            options["reload_existing"],
+            options["reload_all"],
+            "scpca-portal-inputs",
+            code_dir.format("data/"),
+            code_dir.format("scpca_portal/config/readme_template.md"),
+        )
