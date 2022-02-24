@@ -57,7 +57,9 @@ export const ProjectHeader = ({ project, linked = false }) => {
         <Badge badge="Samples" label={`${project.sample_count} Samples`} />
         <Badge badge="SeqUnit" label={capitalize(project.seq_units)} />
         <Badge badge="Kit" label={project.technologies} />
-        <Badge badge="Modality" label={project.modalities} />
+        {project.modalities && (
+          <Badge badge="Modality" label={project.modalities} />
+        )}
       </Grid>
     </Box>
   )
