@@ -162,6 +162,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
         "disease_timing",
         "tissue_location",
         "seq_units",
+        "treatment",
         # Also include this, not because it's a sample column but
         # because we don't want it in additional_metadata.
         "scpca_library_id",
@@ -183,6 +184,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
         sex=sample["sex"],
         disease_timing=sample["disease_timing"],
         tissue_location=sample["tissue_location"],
+        treatment=sample.get("treatment"),
         seq_units=sample["seq_units"],
         cell_count=sample["cell_count"],
         additional_metadata=additional_metadata,
