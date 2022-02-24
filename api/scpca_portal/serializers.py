@@ -103,6 +103,7 @@ class SampleLeafSerializer(serializers.ModelSerializer):
             "tissue_location",
             "seq_units",
             "cell_count",
+            "treatment",
             "additional_metadata",
             "created_at",
             "updated_at",

@@ -6,13 +6,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0007_auto_20211130_1520'),
+        ("scpca_portal", "0007_auto_20211130_1520"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sample',
-            name='treatment',
-            field=models.TextField(blank=True, null=True),
+            model_name="sample", name="treatment", field=models.TextField(blank=True, null=True),
         ),
     ]
