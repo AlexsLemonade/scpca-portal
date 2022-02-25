@@ -55,7 +55,7 @@ def package_files_for_project(
             zip_object.write(readme_path, README_FILENAME)
 
             if project.has_bulk_rna_seq:
-                print(f"Attaching bulk data tsvs for {project.scpca_id}")
+                print(f"Attaching bulk data and bulk quant tsv for {project.scpca_id}")
                 zip_object.write(
                     get_project_bulk_metadata_path(project_dir, project), "bulk_metadata.tsv"
                 )
