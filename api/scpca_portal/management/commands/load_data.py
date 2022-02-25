@@ -51,7 +51,7 @@ def package_files_for_project(
     if should_upload:
         project_metadata_path = get_project_metadata_path(output_dir, project)
         with ZipFile(project_zip, "w") as zip_object:
-            zip_object.write(project_metadata_path, "libraries_metadata.csv")
+            zip_object.write(project_metadata_path, "single_cell_metadata.tsv")
             zip_object.write(readme_path, README_FILENAME)
 
             if project.has_bulk_rna_seq:
@@ -85,11 +85,11 @@ def package_files_for_project(
 
 
 def get_sample_metadata_path(output_dir: str, scpca_sample_id: str):
-    return os.path.join(output_dir, f"{scpca_sample_id}_libraries_metadata.csv")
+    return os.path.join(output_dir, f"{scpca_sample_id}_libraries_metadata.tsv")
 
 
 def get_project_metadata_path(output_dir: str, project: Project):
-    return os.path.join(output_dir, f"{project.scpca_id}_libraries_metadata.csv")
+    return os.path.join(output_dir, f"{project.scpca_id}_libraries_metadata.tsv")
 
 
 def get_project_bulk_metadata_path(project_dir: str, project: Project):
@@ -125,7 +125,7 @@ def package_files_for_sample(
     if should_upload:
         with ZipFile(sample_zip, "w") as zip_object:
             local_metadata_path = get_sample_metadata_path(output_dir, sample_id)
-            zip_object.write(local_metadata_path, "libraries_metadata.csv")
+            zip_object.write(local_metadata_path, "single_cell_metadata.tsv")
             zip_object.write(readme_path, README_FILENAME)
 
             for library in libraries:
@@ -236,7 +236,9 @@ def combine_and_write_metadata(
 
     project_metadata_path = get_project_metadata_path(output_dir, project)
     with open(project_metadata_path, "w", newline="") as project_file:
-        project_writer = csv.DictWriter(project_file, fieldnames=ordered_field_names)
+        project_writer = csv.DictWriter(
+            project_file, fieldnames=ordered_field_names, delimiter="\t"
+        )
         project_writer.writeheader()
         for sample in samples_metadata:
             sample_copy = sample.copy()
@@ -248,7 +250,9 @@ def combine_and_write_metadata(
 
             sample_metadata_path = get_sample_metadata_path(output_dir, sample["scpca_sample_id"])
             with open(sample_metadata_path, "w", newline="") as sample_file:
-                sample_writer = csv.DictWriter(sample_file, fieldnames=ordered_field_names)
+                sample_writer = csv.DictWriter(
+                    sample_file, fieldnames=ordered_field_names, delimiter="\t"
+                )
                 sample_writer.writeheader()
                 for library in libraries_metadata:
                     if library["scpca_sample_id"] == sample["scpca_sample_id"]:
