@@ -168,7 +168,7 @@ class LoadDataTestCase(TestCase):
 
         project_zip_path = os.path.join(OUTPUT_DIR, new_project.scpca_id + ".zip")
         with ZipFile(project_zip_path) as project_zip:
-            sample_metadata = project_zip.read("libraries_metadata.csv")
+            sample_metadata = project_zip.read("single_cell_metadata.tsv")
             sample_metadata_lines = sample_metadata.decode("utf-8").split("\r\n")
             # 38 samples and a header.
             self.assertTrue(len(sample_metadata_lines), 39)
@@ -214,7 +214,7 @@ class LoadDataTestCase(TestCase):
             self.assertEqual(sample_metadata_keys, expected_keys)
 
             # There are three files for each sample, plus a README.md
-            # and a libraries_metadata.csv file.
+            # and a single_cell_metadata.tsv file.
             # 38 * 3 + 2 = 116
             self.assertEqual(len(project_zip.namelist()), 116)
 
@@ -223,13 +223,13 @@ class LoadDataTestCase(TestCase):
         sample_zip_path = os.path.join(OUTPUT_DIR, test_sample.scpca_id + ".zip")
 
         with ZipFile(sample_zip_path) as sample_zip:
-            with sample_zip.open("libraries_metadata.csv", "r") as sample_csv:
+            with sample_zip.open("single_cell_metadata.tsv", "r") as sample_csv:
                 csv_reader = csv.DictReader(TextIOWrapper(sample_csv, "utf-8"))
                 rows = []
                 for row in csv_reader:
                     rows.append(row)
 
-            # sample_metadata = sample_zip.read("libraries_metadata.csv")
+            # sample_metadata = sample_zip.read("single_cell_metadata.tsv")
             # sample_metadata_lines = sample_metadata.decode("utf-8").split("\r\n")
             self.assertTrue(len(rows), 1)
             expected_keys = {
@@ -274,7 +274,7 @@ class LoadDataTestCase(TestCase):
             scpca_library_id = rows[0]["scpca_library_id"]
 
             expected_filenames = {
-                "libraries_metadata.csv",
+                "single_cell_metadata.tsv",
                 "README.md",
                 f"{scpca_library_id}_unfiltered.rds",
                 f"{scpca_library_id}_filtered.rds",
