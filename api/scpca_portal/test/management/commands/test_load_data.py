@@ -59,9 +59,8 @@ class LoadDataTestCase(TestCase):
         self.assertIsNotNone(sample.cell_count)
         self.assertIsNotNone(sample.seq_units)
 
-        expected_keys = {
+        expected_metadata_keys = {
             "submitter",
-            "treatment",
             "metastasis",
             "submitter_id",
             "vital_status",
@@ -69,7 +68,7 @@ class LoadDataTestCase(TestCase):
             "relapse_status",
             "scpca_project_id",
         }
-        self.assertEqual(set(sample.additional_metadata.keys()), expected_keys)
+        self.assertEqual(set(sample.additional_metadata.keys()), expected_metadata_keys)
 
         self.assertEqual(ComputedFile.objects.count(), 39)
         project_computed_file = project.computed_file
