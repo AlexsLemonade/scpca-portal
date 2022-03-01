@@ -93,7 +93,6 @@ class LoadDataTestCase(TestCase):
             False,
             "scpca-portal-public-test-inputs",
             "/home/user/code/test_data/",
-            "/home/user/code/scpca_portal/config/readme_template.md",
         )
 
         # The whitelist currently allows 3 projects:
@@ -110,12 +109,7 @@ class LoadDataTestCase(TestCase):
         # Next, let's make sure that reload_existing=False won't add anything
         # new when there's nothing new.
         load_data_from_s3(
-            False,
-            False,
-            False,
-            "scpca-portal-public-test-inputs",
-            "/home/user/code/test_data/",
-            "/home/user/code/scpca_portal/config/readme_template.md",
+            False, False, False, "scpca-portal-public-test-inputs", "/home/user/code/test_data/"
         )
         self.assertEqual(Project.objects.count(), 5)
         self.assertEqual(ProjectSummary.objects.count(), 1)
@@ -144,12 +138,7 @@ class LoadDataTestCase(TestCase):
         # Finally, let's make sure that loading, purging, and then
         # reloading works smoothly.
         load_data_from_s3(
-            False,
-            True,
-            False,
-            "scpca-portal-public-test-inputs",
-            "/home/user/code/test_data/",
-            "/home/user/code/scpca_portal/config/readme_template.md",
+            False, True, False, "scpca-portal-public-test-inputs", "/home/user/code/test_data/"
         )
         self.assertEqual(Project.objects.count(), 5)
         self.assertEqual(ProjectSummary.objects.count(), 1)
@@ -168,7 +157,6 @@ class LoadDataTestCase(TestCase):
             False,
             "scpca-portal-public-test-inputs",
             "/home/user/code/test_data/",
-            "/home/user/code/scpca_portal/config/readme_template.md",
         )
 
         # The whitelist currently allows 3 projects:
@@ -184,7 +172,7 @@ class LoadDataTestCase(TestCase):
             sample_metadata_lines = sample_metadata.decode("utf-8").split("\r\n")
             # 38 samples and a header.
             self.assertTrue(len(sample_metadata_lines), 39)
-            sample_metadata_keys = set(sample_metadata_lines[0].split("\t"))
+            sample_metadata_keys = set(sample_metadata_lines[0].split(","))
             expected_keys = {
                 "seq_unit",
                 "scpca_library_id",
@@ -236,7 +224,7 @@ class LoadDataTestCase(TestCase):
 
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open("single_cell_metadata.tsv", "r") as sample_csv:
-                csv_reader = csv.DictReader(TextIOWrapper(sample_csv, "utf-8"), delimiter="\t")
+                csv_reader = csv.DictReader(TextIOWrapper(sample_csv, "utf-8"))
                 rows = []
                 for row in csv_reader:
                     rows.append(row)
@@ -281,6 +269,7 @@ class LoadDataTestCase(TestCase):
                 "cell_count",
                 "mapped_reads",
             }
+
             self.assertEqual(rows[0].keys(), expected_keys)
             scpca_library_id = rows[0]["scpca_library_id"]
 
