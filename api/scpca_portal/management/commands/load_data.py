@@ -43,7 +43,7 @@ def package_files_for_project(
     project_zip = os.path.join(output_dir, zip_file_name)
     computed_file = ComputedFile(
         type="PROJECT_ZIP",
-        workflow_version="0.0.1",
+        workflow_version="",
         s3_bucket=settings.AWS_S3_BUCKET_NAME,
         s3_key=zip_file_name,
     )
@@ -106,6 +106,7 @@ def package_files_for_sample(
     sample: dict,
     libraries_metadata: List[Dict],
     readme_path: str,
+    workflow_version: str,
     should_upload: bool,
 ):
     sample_id = sample["scpca_sample_id"]
@@ -116,7 +117,7 @@ def package_files_for_sample(
 
     computed_file = ComputedFile(
         type="SAMPLE_ZIP",
-        workflow_version="0.0.1",
+        workflow_version=workflow_version,
         s3_bucket=settings.AWS_S3_BUCKET_NAME,
         s3_key=zip_file_name,
     )
@@ -288,6 +289,7 @@ def load_data_for_project(
 
     libraries_metadata = []
 
+    # this is taken from the last samples's json file
     for sample in samples_metadata:
         sample_cell_count = 0
         sample_technologies = set()
@@ -309,6 +311,7 @@ def load_data_for_project(
                     sample_cell_count += parsed_json["filtered_cell_count"]
                     sample_technologies.add(parsed_json["technology"].strip())
                     sample_seq_units.add(parsed_json["seq_unit"].strip())
+                    sample["workflow_version"] = parsed_json["workflow_version"]
 
         sample["cell_count"] = sample_cell_count
         sample["technologies"] = ", ".join(sample_technologies)
@@ -317,12 +320,18 @@ def load_data_for_project(
     full_libraries_metadata = combine_and_write_metadata(
         output_dir, project, samples_metadata, libraries_metadata
     )
-
     created_samples = []
     sample_to_file_mapping = {}
     for sample in samples_metadata:
+        workflow_version = sample.pop("workflow_version")
         computed_file, sample_files = package_files_for_sample(
-            project_dir, output_dir, sample, full_libraries_metadata, readme_path, should_upload,
+            project_dir,
+            output_dir,
+            sample,
+            full_libraries_metadata,
+            readme_path,
+            workflow_version,
+            should_upload,
         )
 
         sample_object = create_sample_from_dict(project, sample, computed_file)
@@ -331,7 +340,12 @@ def load_data_for_project(
         sample_to_file_mapping.update(sample_files)
 
     package_files_for_project(
-        project_dir, output_dir, project, sample_to_file_mapping, readme_path, should_upload,
+        project_dir,
+        output_dir,
+        project,
+        sample_to_file_mapping,
+        readme_path,
+        should_upload,
     )
 
     return created_samples
