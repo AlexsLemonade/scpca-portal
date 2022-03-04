@@ -43,7 +43,7 @@ def package_files_for_project(
     project_zip = os.path.join(output_dir, zip_file_name)
     computed_file = ComputedFile(
         type="PROJECT_ZIP",
-        workflow_version="0.0.1",
+        workflow_version="",
         s3_bucket=settings.AWS_S3_BUCKET_NAME,
         s3_key=zip_file_name,
     )
@@ -51,8 +51,17 @@ def package_files_for_project(
     if should_upload:
         project_metadata_path = get_project_metadata_path(output_dir, project)
         with ZipFile(project_zip, "w") as zip_object:
-            zip_object.write(project_metadata_path, "libraries_metadata.csv")
+            zip_object.write(project_metadata_path, "single_cell_metadata.tsv")
             zip_object.write(readme_path, README_FILENAME)
+
+            if project.has_bulk_rna_seq:
+                print(f"Attaching bulk data and bulk quant tsv for {project.scpca_id}")
+                zip_object.write(
+                    get_project_bulk_metadata_path(project_dir, project), "bulk_metadata.tsv"
+                )
+                zip_object.write(
+                    get_project_bulk_quant_path(project_dir, project), "bulk_quant.tsv"
+                )
 
             for sample_id, file_paths in sample_to_file_mapping.items():
                 for local_file_path in file_paths:
@@ -76,11 +85,19 @@ def package_files_for_project(
 
 
 def get_sample_metadata_path(output_dir: str, scpca_sample_id: str):
-    return os.path.join(output_dir, f"{scpca_sample_id}_libraries_metadata.csv")
+    return os.path.join(output_dir, f"{scpca_sample_id}_libraries_metadata.tsv")
 
 
 def get_project_metadata_path(output_dir: str, project: Project):
-    return os.path.join(output_dir, f"{project.scpca_id}_libraries_metadata.csv")
+    return os.path.join(output_dir, f"{project.scpca_id}_libraries_metadata.tsv")
+
+
+def get_project_bulk_metadata_path(project_dir: str, project: Project):
+    return os.path.join(project_dir, f"{project.scpca_id}_bulk_metadata.tsv")
+
+
+def get_project_bulk_quant_path(project_dir: str, project: Project):
+    return os.path.join(project_dir, f"{project.scpca_id}_bulk_quant.tsv")
 
 
 def package_files_for_sample(
@@ -89,6 +106,7 @@ def package_files_for_sample(
     sample: dict,
     libraries_metadata: List[Dict],
     readme_path: str,
+    workflow_version: str,
     should_upload: bool,
 ):
     sample_id = sample["scpca_sample_id"]
@@ -99,7 +117,7 @@ def package_files_for_sample(
 
     computed_file = ComputedFile(
         type="SAMPLE_ZIP",
-        workflow_version="0.0.1",
+        workflow_version=workflow_version,
         s3_bucket=settings.AWS_S3_BUCKET_NAME,
         s3_key=zip_file_name,
     )
@@ -108,7 +126,7 @@ def package_files_for_sample(
     if should_upload:
         with ZipFile(sample_zip, "w") as zip_object:
             local_metadata_path = get_sample_metadata_path(output_dir, sample_id)
-            zip_object.write(local_metadata_path, "libraries_metadata.csv")
+            zip_object.write(local_metadata_path, "single_cell_metadata.tsv")
             zip_object.write(readme_path, README_FILENAME)
 
             for library in libraries:
@@ -145,6 +163,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
         "disease_timing",
         "tissue_location",
         "seq_units",
+        "treatment",
         # Also include this, not because it's a sample column but
         # because we don't want it in additional_metadata.
         "scpca_library_id",
@@ -166,6 +185,7 @@ def create_sample_from_dict(project: Project, sample: dict, computed_file: Compu
         sex=sample["sex"],
         disease_timing=sample["disease_timing"],
         tissue_location=sample["tissue_location"],
+        treatment=sample.get("treatment"),
         seq_units=sample["seq_units"],
         cell_count=sample["cell_count"],
         additional_metadata=additional_metadata,
@@ -217,7 +237,9 @@ def combine_and_write_metadata(
 
     project_metadata_path = get_project_metadata_path(output_dir, project)
     with open(project_metadata_path, "w", newline="") as project_file:
-        project_writer = csv.DictWriter(project_file, fieldnames=ordered_field_names)
+        project_writer = csv.DictWriter(
+            project_file, fieldnames=ordered_field_names, delimiter="\t"
+        )
         project_writer.writeheader()
         for sample in samples_metadata:
             sample_copy = sample.copy()
@@ -229,7 +251,9 @@ def combine_and_write_metadata(
 
             sample_metadata_path = get_sample_metadata_path(output_dir, sample["scpca_sample_id"])
             with open(sample_metadata_path, "w", newline="") as sample_file:
-                sample_writer = csv.DictWriter(sample_file, fieldnames=ordered_field_names)
+                sample_writer = csv.DictWriter(
+                    sample_file, fieldnames=ordered_field_names, delimiter="\t"
+                )
                 sample_writer.writeheader()
                 for library in libraries_metadata:
                     if library["scpca_sample_id"] == sample["scpca_sample_id"]:
@@ -264,9 +288,14 @@ def load_data_for_project(
         return
 
     libraries_metadata = []
+
+    # this is taken from the last samples's json file
     for sample in samples_metadata:
         sample_cell_count = 0
+        sample_technologies = set()
+        sample_seq_units = set()
         sample_dir = os.path.join(project_dir, sample["scpca_sample_id"])
+
         for filename in os.listdir(sample_dir):
             if filename.endswith("_metadata.json"):
                 with open(os.path.join(sample_dir, filename)) as json_file:
@@ -280,33 +309,29 @@ def load_data_for_project(
                     libraries_metadata.append(parsed_json)
 
                     sample_cell_count += parsed_json["filtered_cell_count"]
-
-                    if "technologies" in sample:
-                        sample["technologies"] = (
-                            sample["technologies"] + ", " + parsed_json["technology"]
-                        )
-                    else:
-                        sample["technologies"] = parsed_json["technology"]
-
-                    if "seq_units" in sample:
-                        sample["seq_units"] = sample["seq_units"] + ", " + parsed_json["seq_unit"]
-                    else:
-                        sample["seq_units"] = parsed_json["seq_unit"]
+                    sample_technologies.add(parsed_json["technology"].strip())
+                    sample_seq_units.add(parsed_json["seq_unit"].strip())
+                    sample["workflow_version"] = parsed_json["workflow_version"]
 
         sample["cell_count"] = sample_cell_count
-
-        # remove repeated technologies
-        sample["technologies"] = ", ".join(set(sample["technologies"].split(", ")))
+        sample["technologies"] = ", ".join(sample_technologies)
+        sample["seq_units"] = ", ".join(sample_seq_units)
 
     full_libraries_metadata = combine_and_write_metadata(
         output_dir, project, samples_metadata, libraries_metadata
     )
-
     created_samples = []
     sample_to_file_mapping = {}
     for sample in samples_metadata:
+        workflow_version = sample.pop("workflow_version")
         computed_file, sample_files = package_files_for_sample(
-            project_dir, output_dir, sample, full_libraries_metadata, readme_path, should_upload,
+            project_dir,
+            output_dir,
+            sample,
+            full_libraries_metadata,
+            readme_path,
+            workflow_version,
+            should_upload,
         )
 
         sample_object = create_sample_from_dict(project, sample, computed_file)
@@ -329,6 +354,7 @@ def load_data_from_s3(
     data_dir="/home/user/data/",
     readme_path="/home/user/scpca_portal/config/readme_template.md",
 ):
+
     if reload_all:
         purge_all_projects(should_upload)
 
@@ -367,6 +393,13 @@ def load_data_from_s3(
                 if existing_project:
                     purge_project(scpca_id, should_upload)
 
+            # check if there is bulk metadata
+            has_bulk_rna_seq = False
+            bulk_metadata = f"{data_dir}{scpca_id}/{scpca_id}_bulk_metadata.tsv"
+
+            if os.path.exists(bulk_metadata):
+                has_bulk_rna_seq = True
+
             project, created = Project.objects.get_or_create(
                 scpca_id=scpca_id,
                 pi_name=project["submitter"],
@@ -375,6 +408,7 @@ def load_data_from_s3(
                 abstract=project["abstract"],
                 contact_name=project["contact_name"],
                 contact_email=project["contact_email"],
+                has_bulk_rna_seq=has_bulk_rna_seq,
             )
 
             if not created:
@@ -428,4 +462,16 @@ class Command(BaseCommand):
         parser.add_argument("--upload", default=settings.UPDATE_IMPORTED_DATA, type=bool)
 
     def handle(self, *args, **options):
-        load_data_from_s3(options["upload"], options["reload_existing"], options["reload_all"])
+
+        # locally the docker container puts the code in a folder called code
+        # this allows us to run the same command on production or locally
+        code_dir = "/home/user/code/{}" if os.path.exists("/home/user/code") else "/home/user/{}"
+
+        load_data_from_s3(
+            options["upload"],
+            options["reload_existing"],
+            options["reload_all"],
+            "scpca-portal-inputs",
+            code_dir.format("data/"),
+            code_dir.format("scpca_portal/config/readme_template.md"),
+        )

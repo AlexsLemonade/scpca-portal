@@ -49,14 +49,14 @@ export const ProjectSamplesTable = ({
     { Header: 'Technology', accessor: 'technologies' },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
-    { Header: 'Treatment', accessor: 'treatment' },
+    { Header: 'Treatment', accessor: ({ treatment }) => treatment || 'N/A' },
     { Header: 'Age at Diagnosis', accessor: 'age_at_diagnosis' },
     { Header: 'Sex', accessor: 'sex' },
+    { Header: 'Sample Count Estimates', accessor: 'cell_count' },
     {
       Header: 'Additional Metadata Fields',
       accessor: ({ additional_metadata: data }) => Object.keys(data).join(', ')
-    },
-    { Header: 'Sample Count Estimates', accessor: 'cell_count' }
+    }
   ]
 
   React.useEffect(() => {

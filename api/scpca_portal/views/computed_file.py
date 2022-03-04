@@ -16,6 +16,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "sample",
             "id",
             "type",
+            "workflow_version",
             "s3_bucket",
             "s3_key",
             "size_in_bytes",

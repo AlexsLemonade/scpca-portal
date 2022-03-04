@@ -27,6 +27,7 @@ class Sample(models.Model):
     sex = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
     tissue_location = models.TextField(blank=True, null=True)
+    treatment = models.TextField(blank=True, null=True)
     seq_units = models.TextField(blank=True, null=True)
     cell_count = models.IntegerField()
 
@@ -65,8 +66,8 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
         additional_metadata_keys.update(sample.additional_metadata.keys())
         diagnoses.add(sample.diagnosis)
         disease_timings.add(sample.disease_timing)
-        sample_seq_units = sample.seq_units.split(",")
-        sample_technologies = sample.technologies.split(",")
+        sample_seq_units = sample.seq_units.split(", ")
+        sample_technologies = sample.technologies.split(", ")
         seq_units = seq_units.union(set(sample_seq_units))
         technologies = technologies.union(set(sample_technologies))
 
@@ -102,9 +103,9 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     project.modalities = ", ".join(list(modalities))
     project.diagnoses_counts = ", ".join(list(diagnoses_strings))
     project.diagnoses = ", ".join(list(diagnoses))
-    project.seq_units = ", ".join(list(seq_units))
-    project.technologies = ", ".join(list(technologies))
-    project.disease_timings = ", ".join(list(disease_timings))
+    project.seq_units = ", ".join(set(seq_units))
+    project.technologies = ", ".join(technologies)
+    project.disease_timings = ", ".join(disease_timings)
     project.sample_count = project.samples.count()
     project.has_cite_seq_data = has_cite_seq_data
     project.has_spatial_data = has_spatial_data
