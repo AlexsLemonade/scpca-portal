@@ -4,26 +4,42 @@ import { Anchor, Box, Grid, Text } from 'grommet'
 import { ProjectSearchResult } from 'components/ProjectSearchResult'
 import { ProjectSearchFilter } from 'components/ProjectSearchFilter'
 import { ProjectSearchFilterPills } from 'components/ProjectSearchFilterPills'
+import { ResponsiveSheet } from 'components/ResponsiveSheet'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
+import { useResponsive } from 'hooks/useResponsive'
+import { delay } from 'helpers/delay'
 import { api } from 'api'
+import Error from 'pages/_error'
 
 const Project = ({ projects, count, filters, filterOptions }) => {
   const { browseFilters, setBrowseFilters } = React.useContext(
     ScPCAPortalContext
   )
-  if (!projects) return '404'
+
+  const { responsive } = useResponsive()
+
+  const [showFilters, setShowFilters] = React.useState(false)
+  const [loading, setLoading] = React.useState(false)
   const router = useRouter()
+
+  // we don't want to 404 here we want to show that the api is down
+  if (!projects) return <Error />
 
   React.useEffect(() => {
     setBrowseFilters(filters)
   }, [])
 
   const onFilterChange = async (newFilters) => {
+    setLoading(true)
     setBrowseFilters(newFilters)
-    router.replace({
-      pathname: '/projects',
-      query: newFilters
-    })
+    await Promise.all([
+      router.replace({
+        pathname: '/projects',
+        query: newFilters
+      }),
+      delay(1200)
+    ])
+    setLoading(false)
   }
 
   const hasFilters = Object.keys(browseFilters).length > 0
@@ -32,39 +48,54 @@ const Project = ({ projects, count, filters, filterOptions }) => {
   }
 
   return (
-    <Box width="full">
+    <Box width="full" pad={responsive({ horizontal: 'medium' })}>
       <Box pad={{ bottom: 'large' }}>
         <Text serif size="xlarge">
           Browse Projects
         </Text>
       </Box>
       <Grid
-        rows={['auto']}
-        columns={['small', 'auto']}
-        areas={[
-          { name: 'filters', start: [0, 0], end: [0, 0] },
-          { name: 'results', start: [1, 0], end: [1, 0] }
-        ]}
+        rows={responsive(['auto', 'auto'], ['auto'])}
+        columns={responsive(['auto'], ['small', 'auto'])}
+        areas={responsive(
+          [
+            { name: 'filters', start: [0, 0], end: [0, 0] },
+            { name: 'results', start: [0, 1], end: [0, 1] }
+          ],
+          [
+            { name: 'filters', start: [0, 0], end: [0, 0] },
+            { name: 'results', start: [1, 0], end: [1, 0] }
+          ]
+        )}
         direction="row"
         gap="large"
       >
-        <Box gridArea="filters" width="small">
-          <Box direction="row" justify="between">
-            <Text serif size="large">
-              Filters
-            </Text>
-            <Anchor
-              color="brand"
-              label="clear all"
-              disabled={!hasFilters}
-              onClick={clearFilters}
-            />
-          </Box>
-          <ProjectSearchFilter
-            filters={browseFilters}
-            filterOptions={filterOptions}
-            onFilterChange={onFilterChange}
-          />
+        <Box gridArea="filters">
+          <ResponsiveSheet
+            show={showFilters}
+            setShow={setShowFilters}
+            label="Show Filters"
+            loading={loading}
+          >
+            <Box width="small">
+              <Box direction="row" justify="between">
+                <Text serif size="large">
+                  Filters
+                </Text>
+                <Anchor
+                  color="brand"
+                  label="clear all"
+                  disabled={!hasFilters}
+                  onClick={clearFilters}
+                />
+              </Box>
+              <ProjectSearchFilter
+                filters={browseFilters}
+                filterOptions={filterOptions}
+                onFilterChange={onFilterChange}
+              />
+            </Box>
+          </ResponsiveSheet>
         </Box>
         <Box gridArea="results">
           <Box direction="row" justify="between">

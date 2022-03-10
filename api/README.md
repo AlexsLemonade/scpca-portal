@@ -121,14 +121,14 @@ sportal load-data --reload-all --upload True
 If you would like to update a single project, you can do so by purging and then loading the data without reloading existing projects:
 
 ```
-sportal manage-api purge_project --pi-name dyer_chen
+sportal manage-api purge_project --scpca-id SCPCP000001
 sportal load-data
 ```
 
 If you would like to purge a project and remove its files from the S3 bucket, you can use:
 
 ```
-sportal manage-api purge_project --pi-name dyer_chen --delete-from-s3
+sportal manage-api purge_project --scpca-id SCPCP000001 --delete-from-s3
 ```
 
 ## Cloud Data Management
@@ -142,7 +142,7 @@ To run the `load_data` command in production, there is a load_data.sh script tha
 It passes any arguments to it through to the command, so `./load_data.sh --reload-all` will work nicely.
 
 The `purge_project` command does not have it's own script.
-Ideally it should only be run via the `load_data` command using the `--reload-existing` and `--reload-all` options, but if it ever needs to be run on it's own then `docker exec -it scpca_portal_api python3 manage.py purge_project --pi-name dyer_chen` will still work.
+Ideally it should only be run via the `load_data` command using the `--reload-existing` and `--reload-all` options, but if it ever needs to be run on it's own then `docker exec -it scpca_portal_api python3 manage.py purge_project --scpca-id SCPCP000001` will still work.
 The `load_data` command necessitated it's own script because it does need to be run enough and also it can take a while to load all the data so doing so without a TTY is preferable.
 
 ## Cloud Deployments

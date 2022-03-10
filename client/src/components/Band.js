@@ -58,8 +58,8 @@ export const CardBandLarge = styled(Box)`
   ${({ theme }) => css`
     background-image: linear-gradient(
         177.8deg,
-        ${theme.global.colors['alexs-light-blue-tint-40']} 20%,
-        transparent 20.5%
+        ${theme.global.colors['alexs-light-blue-tint-40']} 15%,
+        transparent 15.5%
       ),
       linear-gradient(
         -177.8deg,

@@ -7,7 +7,11 @@ import { Download as DownloadIcon } from 'grommet-icons'
 import { Download } from 'components/Download'
 import { Loader } from 'components/Loader'
 
-export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
+export const ProjectSamplesTable = ({
+  project,
+  samples: defaultSamples,
+  stickies = 3
+}) => {
   const [samples, setSamples] = React.useState(defaultSamples)
   const [loaded, setLoaded] = React.useState(false)
   const infoText =
@@ -45,14 +49,14 @@ export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
     { Header: 'Technology', accessor: 'technologies' },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
-    { Header: 'Treatment', accessor: 'treatment' },
+    { Header: 'Treatment', accessor: ({ treatment }) => treatment || 'N/A' },
     { Header: 'Age at Diagnosis', accessor: 'age_at_diagnosis' },
     { Header: 'Sex', accessor: 'sex' },
+    { Header: 'Sample Count Estimates', accessor: 'cell_count' },
     {
       Header: 'Additional Metadata Fields',
       accessor: ({ additional_metadata: data }) => Object.keys(data).join(', ')
-    },
-    { Header: 'Sample Count Estimates', accessor: 'cell_count' }
+    }
   ]
 
   React.useEffect(() => {
@@ -77,8 +81,9 @@ export const ProjectSamplesTable = ({ project, samples: defaultSamples }) => {
       filter
       columns={columns}
       data={samples}
-      stickies={3}
-      pageSize={10}
+      stickies={stickies}
+      pageSize={5}
+      pageSizeOptions={[5, 10, 20, 50]}
       infoText={infoText}
     />
   )

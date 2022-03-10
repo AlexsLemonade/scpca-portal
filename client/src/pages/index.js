@@ -2,6 +2,7 @@ import React from 'react'
 import {
   Box,
   FormField,
+  Grid,
   Image,
   Paragraph,
   Stack,
@@ -18,6 +19,7 @@ import { getStatsBlocks } from 'helpers/getStatsBlocks'
 import { fillArrayRandom } from 'helpers/fillArrayRandom'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import { config } from 'config'
+import { useResponsive } from 'hooks/useResponsive'
 import PipelineSvg from '../images/pipeline.svg'
 import FilesSvg from '../images/files.svg'
 
@@ -59,8 +61,9 @@ const ExposeBox = styled(Box)`
 `
 
 const Home = ({ stats }) => {
+  const cancerTypes = stats.cancer_types.filter((c) => c !== 'Normal margin')
   const { emailListForm } = React.useContext(ScPCAPortalContext)
-
+  const { responsive } = useResponsive()
   const statBlocks = getStatsBlocks(stats)
   const cancerColors = React.useMemo(
     () =>
@@ -73,9 +76,8 @@ const Home = ({ stats }) => {
     []
   )
 
-  const [exposed, setExposed] = React.useState(
-    stats.cancer_types.length > 10 ? 'none' : 'all'
-  )
+  // when we have more cancer types to display add this back
+  const [exposed, setExposed] = React.useState('all')
 
   const exposeMore = () => {
     if (exposed === 'none') return setExposed('some')
@@ -96,27 +98,43 @@ const Home = ({ stats }) => {
           align="center"
           pad={{ bottom: 'small' }}
         >
-          <Text size="xxlarge">Single-cell Pediatric Cancer Atlas Portal</Text>
+          <Text size={responsive('large', 'xxlarge')}>
+            Single-cell Pediatric Cancer Atlas Portal
+          </Text>
         </Box>
         <Box width="medium" pad={{ top: 'large', bottom: 'large' }}>
           <Paragraph size="large" textAlign="center">
-            Database of single-cell data from pediatric cancer clinical samples
-            and xenografts
+            Database of uniformly processed single-cell data from pediatric
+            cancer clinical samples and xenografts
           </Paragraph>
         </Box>
         <Box pad={{ bottom: 'large' }}>
-          <Button primary label="Browse Portal" href="/projects" />
+          <Link primary href="/projects">
+            <Button primary label="Browse Portal" />
+          </Link>
         </Box>
       </HeroBand>
-      <Box width="full" align="center" pad={{ vertical: 'large' }}>
-        <Text size="xlarge">ScPCA Portal currently has</Text>
+      <Box
+        width="full"
+        align="center"
+        pad={{ vertical: 'large', horizontal: 'small' }}
+      >
+        <Text size={responsive('large', 'xlarge')}>
+          ScPCA Portal currently has
+        </Text>
         <Box
           width="full"
           pad={{ vertical: 'large' }}
           background="linear-gradient(0deg, rgba(237,247,253,1) 50%, transparent 50%)"
           align="center"
         >
-          <Box direction="row" gap="xxlarge" width="xlarge">
+          <Grid
+            columns={responsive('1', '1/4')}
+            gap={responsive('large', 'xlarge')}
+            margin={{ bottom: 'xlarge' }}
+            width={responsive('small', 'large')}
+            fill="horizontal"
+          >
             {statBlocks.map((sb) => (
               <CardBand
                 key={sb.name}
@@ -130,7 +148,7 @@ const Home = ({ stats }) => {
                 <Text size="large">{sb.name}</Text>
               </CardBand>
             ))}
-          </Box>
+          </Grid>
         </Box>
         <Box
           align="center"
@@ -151,7 +169,7 @@ const Home = ({ stats }) => {
               align="center"
               pad={{ vertical: 'large' }}
             >
-              {stats.cancer_types.map((ct, i) => (
+              {cancerTypes.map((ct, i) => (
                 <Link key={ct} href={`/projects?diagnoses=${ct}`}>
                   <Box
                     round
@@ -178,15 +196,7 @@ const Home = ({ stats }) => {
           align="center"
           pad={{ bottom: 'large' }}
         >
-          <Box>
-            <Image src="/alsf-logo.png" />
-          </Box>
-          <Text size="xlarge" weight="bold">
-            X
-          </Text>
-          <Box>
-            <Image src="/ccdl-logo.png" />
-          </Box>
+          <Image width="100%" src="/ccdlxalsf.png" />
         </Box>
         <Box width="medium" pad={{ vertical: 'medium' }}>
           <Paragraph textAlign="center">
@@ -204,7 +214,12 @@ const Home = ({ stats }) => {
         background="dawn"
         pad={{ vertical: 'xlarge' }}
       >
-        <Box width="xlarge" align="center" direction="row" gap="xlarge">
+        <Box
+          width="xlarge"
+          align="center"
+          direction={responsive('column', 'row')}
+          gap="xlarge"
+        >
           <Stack anchor="bottom-right">
             <Box
               background="white"
@@ -260,8 +275,8 @@ const Home = ({ stats }) => {
         </Box>
       </Box>
       <Box align="center" pad={{ vertical: 'large' }}>
-        <Text size="xlarge">Sign up for updates</Text>
-        <Text size="large">
+        <Text size={responsive('medium', 'xlarge')}>Sign up for updates</Text>
+        <Text size={responsive('medium', 'large')}>
           Receive updates about new datasets and updates to the portal.
         </Text>
         <Box direction="row" gap="medium" pad={{ vertical: 'medium' }}>

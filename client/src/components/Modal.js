@@ -1,6 +1,7 @@
 import React from 'react'
 import { Icon } from 'components/Icon'
 import { Anchor, Box, Layer, Stack, Text } from 'grommet'
+import { useResponsive } from 'hooks/useResponsive'
 
 export const Modal = ({
   showing,
@@ -10,6 +11,8 @@ export const Modal = ({
   title,
   critical = false
 }) => {
+  const { responsive } = useResponsive()
+
   const dismissModal = () => {
     if (!nondismissable) {
       setShowing(false)
@@ -31,7 +34,10 @@ export const Modal = ({
               flex
               overflow="auto"
               height={{ min: 'min-content', max: '100vh' }}
-              width={{ min: '600px', max: '100vw' }}
+              width={responsive(
+                { width: '100%;' },
+                { width: '100%', max: '600px' }
+              )}
               pad={{ vertical: 'large', horizontal: 'xlarge' }}
               gap="none"
               align="center"

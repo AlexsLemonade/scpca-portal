@@ -44,7 +44,7 @@ export default {
         xsmall: '32px',
         xxsmall: '16px'
       },
-      value: 512
+      value: 768
     }
   },
   colors: {
@@ -152,7 +152,8 @@ export default {
     },
     focus: 'brand',
     'border-black': '#F2F2F2',
-    'border-brand': '#BAEFFE'
+    'border-brand': '#BAEFFE',
+    'border-yellow': '#F3E502'
   },
   control: {
     border: {
