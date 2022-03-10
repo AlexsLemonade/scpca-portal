@@ -9,6 +9,6 @@ docker pull $api_docker_image
 docker run \
        --env-file environment \
        --name=scpca_portal_loader \
-       -d $api_docker_image python3 manage.py load_data "$@"
+       --rm $api_docker_image python3 manage.py load_data "$@"
 
 docker exec scpca_portal_api pwd
