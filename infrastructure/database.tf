@@ -4,7 +4,7 @@
 resource "aws_db_parameter_group" "postgres_parameters" {
   name = "scpca-portal-postgres-parameters-${var.user}-${var.stage}"
   description = "Postgres Parameters ${var.user} ${var.stage}"
-  family = "postgres9.6"
+  family = "postgres12"
 
   parameter {
     name = "deadlock_timeout"
@@ -16,6 +16,10 @@ resource "aws_db_parameter_group" "postgres_parameters" {
     value = "60000" # 60000ms = 60s
   }
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   tags = var.default_tags
 }
 
@@ -24,7 +28,7 @@ resource "aws_db_instance" "postgres_db" {
   allocated_storage = 100
   storage_type = "gp2"
   engine = "postgres"
-  engine_version = "9.6.20"
+  engine_version = "12.10"
   auto_minor_version_upgrade = false
   instance_class = var.database_instance_type
   name = "scpca_portal"
