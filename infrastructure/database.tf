@@ -52,6 +52,10 @@ resource "aws_db_instance" "postgres_db" {
   identifier = "scpca-portal-${var.user}-${var.stage}"
   allocated_storage = 100
   storage_type = "gp2"
+  # start temp upgrade options
+  allow_major_version_upgrade = true
+  apply_immediately = true
+  # end temp upgrade options
   engine = "postgres"
   engine_version = "12.5"
   auto_minor_version_upgrade = false
