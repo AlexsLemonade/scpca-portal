@@ -19,7 +19,7 @@ from scpca_portal.models import ComputedFile, Project, Sample
 
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
-project_whitelist = ["murphy_chen", "green_mulcahy_levy", "dyer_chen", "gawad"]
+project_whitelist = ["murphy_chen", "green_mulcahy_levy", "dyer_chen", "gawad", "christensen"]
 
 OUTPUT_DIR = "output/"
 README_FILENAME = "README.md"
