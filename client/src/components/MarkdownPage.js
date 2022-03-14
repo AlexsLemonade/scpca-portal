@@ -12,7 +12,7 @@ const StyledOl = styled(Box)`
 `
 
 const StyledUl = styled(Box)`
-  list-style: inside;
+  list-style: revert;
 `
 
 
@@ -21,7 +21,7 @@ export const MarkdownPage = ({ markdown }) => {
     p: { component: Paragraph, props: { margin: { bottom: 'medium' } } },
     strong: { component: Text, props: { weight: 'bold' } },
     ol: { component: StyledOl, props: { as: 'ol' } },
-    ul: { component: StyledOl, props: { as: 'ul' } },
+    ul: { component: StyledUl, props: { as: 'ul' } },
     li: { component: StyledLi, props: { as: 'li' } }
   }
 
