@@ -15,7 +15,6 @@ const StyledUl = styled(Box)`
   list-style: revert;
 `
 
-
 export const MarkdownPage = ({ markdown }) => {
   const components = {
     p: { component: Paragraph, props: { margin: { bottom: 'medium' } } },
