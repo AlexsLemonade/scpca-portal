@@ -11,11 +11,16 @@ const StyledOl = styled(Box)`
   list-style: revert;
 `
 
+const StyledUl = styled(Box)`
+  list-style: revert;
+`
+
 export const MarkdownPage = ({ markdown }) => {
   const components = {
     p: { component: Paragraph, props: { margin: { bottom: 'medium' } } },
     strong: { component: Text, props: { weight: 'bold' } },
     ol: { component: StyledOl, props: { as: 'ol' } },
+    ul: { component: StyledUl, props: { as: 'ul' } },
     li: { component: StyledLi, props: { as: 'li' } }
   }
 
