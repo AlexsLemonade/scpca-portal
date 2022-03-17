@@ -74,9 +74,13 @@ export const ProjectSamplesTable = ({
         limit: 1000 // TODO:: 'all' option
       })
       if (samplesRequest.isOk) {
-        const sortedSamples = samplesRequest.response.results.sort((a) =>
-          a.computed_file && a.computed_file.id ? -1 : 1
-        )
+        // if not all samples are downloadable show downloadable first
+        const sortedSamples =
+          project.sample_count !== project.downloadable_sample_count
+            ? samplesRequest.response.results.sort((a) =>
+                a.computed_file && a.computed_file.id ? -1 : 1
+              )
+            : samplesRequest.response.results
         setSamples(sortedSamples)
         setLoaded(true)
       }
