@@ -62,6 +62,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     summaries = {}
     has_cite_seq_data = False
     has_spatial_data = False
+
     for sample in project.samples.filter(computed_file__isnull=False).all():
         additional_metadata_keys.update(sample.additional_metadata.keys())
         diagnoses.add(sample.diagnosis)
@@ -71,16 +72,11 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
         seq_units = seq_units.union(sample_seq_units)
         technologies = technologies.union(sample_technologies)
 
-        # try to remove any empty strings
-        # this is caused by importing non-downloadable samples
-        try:
+        if "" in seq_units:
             seq_units.remove("")
-        except KeyError:
-            pass
-        try:
+
+        if "" in technologies:
             technologies.remove("")
-        except KeyError:
-            pass
 
         if sample.has_cite_seq_data:
             has_cite_seq_data = True
