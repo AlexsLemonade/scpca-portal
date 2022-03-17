@@ -107,6 +107,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     project.technologies = ", ".join(technologies)
     project.disease_timings = ", ".join(disease_timings)
     project.sample_count = project.samples.count()
+    project.downloadable_sample_count = project.samples.filter(computed_file__isnull=False).count()
     project.has_cite_seq_data = has_cite_seq_data
     project.has_spatial_data = has_spatial_data
     project.save()
