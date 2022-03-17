@@ -71,7 +71,8 @@ export default {
   diagnoses_counts: 'Neuroblastoma (1)',
   seq_units: 'cell',
   technologies: '10Xv3',
-  sample_count: 1,
+  sample_count: 38,
+  downloadable_sample_count: 4,
   created_at: '2021-09-20T22:05:52.421147Z',
   updated_at: '2021-09-20T22:05:52.859615Z'
 }

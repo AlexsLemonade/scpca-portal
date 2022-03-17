@@ -1,10 +1,10 @@
 import { boolean, string, object } from 'yup'
 
-export const schema = object({
+export const tokenSchema = object({
   email: string().required().email('Please check your email.'),
   is_activated: boolean()
     .required()
     .oneOf([true], 'Please accept the terms of service.')
 })
 
-export default schema
+export default tokenSchema
