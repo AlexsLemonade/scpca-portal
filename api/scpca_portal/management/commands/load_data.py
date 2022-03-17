@@ -296,22 +296,25 @@ def load_data_for_project(
         sample_seq_units = set()
         sample_dir = os.path.join(project_dir, sample["scpca_sample_id"])
 
-        for filename in os.listdir(sample_dir):
-            if filename.endswith("_metadata.json"):
-                with open(os.path.join(sample_dir, filename)) as json_file:
-                    parsed_json = json.load(json_file)
+        if os.path.exists(sample_dir):
+            # some samples will exist but their contents cannot be shared yet
+            # when this happens their corresponding sample folder will not exist
+            for filename in os.listdir(sample_dir):
+                if filename.endswith("_metadata.json"):
+                    with open(os.path.join(sample_dir, filename)) as json_file:
+                        parsed_json = json.load(json_file)
 
-                    # Rename these key for consistency with the docs:
-                    parsed_json["scpca_sample_id"] = parsed_json.pop("sample_id")
-                    parsed_json["scpca_library_id"] = parsed_json.pop("library_id")
-                    parsed_json["filtered_cell_count"] = parsed_json.pop("filtered_cells")
+                        # Rename these key for consistency with the docs:
+                        parsed_json["scpca_sample_id"] = parsed_json.pop("sample_id")
+                        parsed_json["scpca_library_id"] = parsed_json.pop("library_id")
+                        parsed_json["filtered_cell_count"] = parsed_json.pop("filtered_cells")
 
-                    libraries_metadata.append(parsed_json)
+                        libraries_metadata.append(parsed_json)
 
-                    sample_cell_count += parsed_json["filtered_cell_count"]
-                    sample_technologies.add(parsed_json["technology"].strip())
-                    sample_seq_units.add(parsed_json["seq_unit"].strip())
-                    sample["workflow_version"] = parsed_json["workflow_version"]
+                        sample_cell_count += parsed_json["filtered_cell_count"]
+                        sample_technologies.add(parsed_json["technology"].strip())
+                        sample_seq_units.add(parsed_json["seq_unit"].strip())
+                        sample["workflow_version"] = parsed_json["workflow_version"]
 
         sample["cell_count"] = sample_cell_count
         sample["technologies"] = ", ".join(sample_technologies)
@@ -320,27 +323,41 @@ def load_data_for_project(
     full_libraries_metadata = combine_and_write_metadata(
         output_dir, project, samples_metadata, libraries_metadata
     )
+
     created_samples = []
     sample_to_file_mapping = {}
+
     for sample in samples_metadata:
-        workflow_version = sample.pop("workflow_version")
-        computed_file, sample_files = package_files_for_sample(
-            project_dir,
-            output_dir,
-            sample,
-            full_libraries_metadata,
-            readme_path,
-            workflow_version,
-            should_upload,
-        )
+        # if the metadata exists but no file, create the sample but not the computed_file
+        computed_file = None
+        sample_files = None
+        try:
+            workflow_version = sample.pop("workflow_version")
+            computed_file, sample_files = package_files_for_sample(
+                project_dir,
+                output_dir,
+                sample,
+                full_libraries_metadata,
+                readme_path,
+                workflow_version,
+                should_upload,
+            )
+        except KeyError:
+            pass
 
         sample_object = create_sample_from_dict(project, sample, computed_file)
         created_samples.append(sample_object)
 
-        sample_to_file_mapping.update(sample_files)
+        if sample_files:
+            sample_to_file_mapping.update(sample_files)
 
     package_files_for_project(
-        project_dir, output_dir, project, sample_to_file_mapping, readme_path, should_upload,
+        project_dir,
+        output_dir,
+        project,
+        sample_to_file_mapping,
+        readme_path,
+        should_upload,
     )
 
     return created_samples
