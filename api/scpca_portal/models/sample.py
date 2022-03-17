@@ -62,14 +62,21 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     summaries = {}
     has_cite_seq_data = False
     has_spatial_data = False
-    for sample in project.samples.all():
+
+    for sample in project.samples.filter(computed_file__isnull=False).all():
         additional_metadata_keys.update(sample.additional_metadata.keys())
         diagnoses.add(sample.diagnosis)
         disease_timings.add(sample.disease_timing)
         sample_seq_units = sample.seq_units.split(", ")
         sample_technologies = sample.technologies.split(", ")
-        seq_units = seq_units.union(set(sample_seq_units))
-        technologies = technologies.union(set(sample_technologies))
+        seq_units = seq_units.union(sample_seq_units)
+        technologies = technologies.union(sample_technologies)
+
+        if "" in seq_units:
+            seq_units.remove("")
+
+        if "" in technologies:
+            technologies.remove("")
 
         if sample.has_cite_seq_data:
             has_cite_seq_data = True
@@ -107,6 +114,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     project.technologies = ", ".join(technologies)
     project.disease_timings = ", ".join(disease_timings)
     project.sample_count = project.samples.count()
+    project.downloadable_sample_count = project.samples.filter(computed_file__isnull=False).count()
     project.has_cite_seq_data = has_cite_seq_data
     project.has_spatial_data = has_spatial_data
     project.save()

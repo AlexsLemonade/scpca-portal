@@ -14,7 +14,7 @@ class StatsViewSet(viewsets.ViewSet):
         )
         response_dict = {
             "projects_count": Project.objects.count(),
-            "samples_count": Sample.objects.count(),
+            "samples_count": Sample.objects.filter(computed_file__isnull=False).count(),
             "cancer_types": list(cancer_types_queryset),
             "cancer_types_count": cancer_types_queryset.count(),
             "labs_count": Project.objects.values("pi_name").distinct().count(),
