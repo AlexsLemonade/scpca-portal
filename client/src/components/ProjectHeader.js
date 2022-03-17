@@ -8,6 +8,7 @@ import { getReadable } from 'helpers/getReadable'
 import { formatBytes } from 'helpers/formatBytes'
 import { capitalize } from 'helpers/capitalize'
 import { useResponsive } from 'hooks/useResponsive'
+import { InfoText } from './InfoText'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
@@ -53,14 +54,31 @@ export const ProjectHeader = ({ project, linked = false }) => {
           </Box>
         </Box>
       </Box>
-      <Grid columns={responsive('1', '1/4')} gap={responsive('medium')}>
-        <Badge badge="Samples" label={`${project.sample_count} Samples`} />
+      <Grid columns={responsive('1', '1/3')} gap={responsive('medium')}>
+        <Badge
+          badge="Samples"
+          label={`${project.downloadable_sample_count} Downloadable Samples`}
+        />
         <Badge badge="SeqUnit" label={capitalize(project.seq_units)} />
         <Badge badge="Kit" label={project.technologies} />
         {project.modalities && (
           <Badge badge="Modality" label={project.modalities} />
         )}
       </Grid>
+      {project.sample_count !== project.downloadable_sample_count && (
+        <Box
+          border={{ side: 'top' }}
+          margin={{ top: 'medium' }}
+          pad={{ top: 'medium', bottom: 'small' }}
+        >
+          <InfoText
+            label={`${
+              Number(project.sample_count) -
+              Number(project.downloadable_sample_count)
+            } more samples will be made available soon`}
+          />
+        </Box>
+      )}
     </Box>
   )
 }
