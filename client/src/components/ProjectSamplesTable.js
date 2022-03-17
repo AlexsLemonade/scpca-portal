@@ -34,11 +34,8 @@ export const ProjectSamplesTable = ({
           </Box>
         ) : (
           <Box width={{ min: '120px' }}>
-            <Text>
-              Not Available
-              <br />
-              For Download
-            </Text>
+            <Text>Not Available</Text>
+            <Text>For Download</Text>
           </Box>
         )
     },
