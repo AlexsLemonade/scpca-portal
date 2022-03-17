@@ -23,15 +23,18 @@ export const ProjectSamplesTable = ({
     {
       Header: 'Download',
       accessor: () => 'computed_file',
-      Cell: ({ row }) => (
-        <Box direction="row" gap="small" align="center">
-          <Download
-            Icon={<DownloadIcon color="brand" />}
-            computedFile={row.original.computed_file}
-          />
-          <Text>{formatBytes(row.original.computed_file.size_in_bytes)}</Text>
-        </Box>
-      ),
+      Cell: ({ row }) =>
+        row.original.computed_file ? (
+          <Box direction="row" gap="small" align="center">
+            <Download
+              Icon={<DownloadIcon color="brand" />}
+              computedFile={row.original.computed_file}
+            />
+            <Text>{formatBytes(row.original.computed_file.size_in_bytes)}</Text>
+          </Box>
+        ) : (
+          'N/A'
+        ),
       disableSortBy: true
     },
     { Header: 'Sample ID', accessor: 'scpca_id' },
