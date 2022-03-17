@@ -5,6 +5,7 @@ import { ProjectHeader } from 'components/ProjectHeader'
 import { DetailsTable } from 'components/DetailsTable'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
+import { Link } from 'components/Link'
 import { api } from 'api'
 import { useResponsive } from 'hooks/useResponsive'
 
@@ -32,7 +33,12 @@ const Project = ({ project }) => {
                   'human_readable_pi_name',
                   {
                     label: 'Contact Information',
-                    value: `${project.contact_name} <${project.contact_email}>`
+                    value: (
+                      <Link
+                        label={`${project.contact_name} <${project.contact_email}>`}
+                        href={`mailto:${project.contact_email}`}
+                      />
+                    )
                   }
                 ]}
               />
