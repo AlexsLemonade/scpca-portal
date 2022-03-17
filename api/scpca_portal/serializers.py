@@ -71,6 +71,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "seq_units",
             "technologies",
             "sample_count",
+            "downloadable_sample_count",
             "created_at",
             "updated_at",
         )
