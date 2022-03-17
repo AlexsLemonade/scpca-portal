@@ -33,9 +33,11 @@ export const ProjectSamplesTable = ({
             <Text>{formatBytes(row.original.computed_file.size_in_bytes)}</Text>
           </Box>
         ) : (
-          'N/A'
-        ),
-      disableSortBy: true
+          <Box>
+            <Text>Not Available</Text>
+            <Text>For Download</Text>
+          </Box>
+        )
     },
     { Header: 'Sample ID', accessor: 'scpca_id' },
     {
@@ -69,7 +71,10 @@ export const ProjectSamplesTable = ({
         limit: 1000 // TODO:: 'all' option
       })
       if (samplesRequest.isOk) {
-        setSamples(samplesRequest.response.results)
+        const sortedSamples = samplesRequest.response.results.sort((a) =>
+          a.computed_file && a.computed_file.id ? -1 : 1
+        )
+        setSamples(sortedSamples)
         setLoaded(true)
       }
     }
