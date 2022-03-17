@@ -33,7 +33,7 @@ export const ProjectSamplesTable = ({
             <Text>{formatBytes(row.original.computed_file.size_in_bytes)}</Text>
           </Box>
         ) : (
-          <Box>
+          <Box width={{ min: '120px' }}>
             <Text>Not Available</Text>
             <Text>For Download</Text>
           </Box>
