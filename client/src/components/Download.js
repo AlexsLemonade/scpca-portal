@@ -15,6 +15,7 @@ import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import { AnalyticsContext } from 'contexts/AnalyticsContext'
 import { api } from 'api'
 import { formatBytes } from 'helpers/formatBytes'
+import { formatDate } from 'helpers/formatDate'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
 import DownloadSVG from '../images/download-folder.svg'
@@ -197,7 +198,7 @@ export const DownloadView = ({ computedFile }) => {
 
 // Button and Modal to show when downloading
 export const Download = ({ Icon, computedFile: publicComputedFile }) => {
-  const { token } = React.useContext(ScPCAPortalContext)
+  const { token, email, surveyListForm } = React.useContext(ScPCAPortalContext)
   const { trackDownload } = React.useContext(AnalyticsContext)
   const { id, type, project, sample } = publicComputedFile
   const label = project ? 'Download Project' : 'Download Sample'
@@ -209,6 +210,7 @@ export const Download = ({ Icon, computedFile: publicComputedFile }) => {
     setShowing(true)
     if (download && download.download_url) {
       trackDownload(type, project, sample)
+      surveyListForm.submit({ email, scpca_last_download_date: formatDate() })
       window.open(download.download_url)
     }
   }
@@ -219,6 +221,7 @@ export const Download = ({ Icon, computedFile: publicComputedFile }) => {
       if (downloadRequest.isOk) {
         // try to open download
         trackDownload(type, project, sample)
+        surveyListForm.submit({ email, scpca_last_download_date: formatDate() })
         window.open(downloadRequest.response.download_url)
         setDownload(downloadRequest.response)
       } else {

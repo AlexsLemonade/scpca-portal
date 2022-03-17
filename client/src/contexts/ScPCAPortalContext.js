@@ -2,8 +2,7 @@ import React from 'react'
 import { useLocalStorage } from 'hooks/useLocalStorage'
 import { useHubspotForm } from 'hooks/useHubspotForm'
 import { api } from 'api'
-import tokenSchema from 'schemas/token'
-import hubspotEmailSchema from 'schemas/hubspotEmail'
+import { tokenSchema, hubspotSurveySchema, hubspotEmailSchema } from 'schemas'
 import { getErrorMessages } from 'helpers/getErrorMessages'
 
 export const ScPCAPortalContext = React.createContext({})
@@ -25,6 +24,12 @@ export const ScPCAPortalContextProvider = ({ children }) => {
     process.env.HUBSPOT_PORTAL_ID,
     process.env.HUBSPOT_EMAIL_LIST_ID,
     hubspotEmailSchema
+  )
+
+  const surveyListForm = useHubspotForm(
+    process.env.HUBSPOT_PORTAL_ID,
+    process.env.HUBSPOT_SURVEY_LIST_ID,
+    hubspotSurveySchema
   )
 
   const getToken = () => ({
@@ -69,7 +74,8 @@ export const ScPCAPortalContextProvider = ({ children }) => {
         validateToken,
         browseFilters,
         setBrowseFilters,
-        emailListForm
+        emailListForm,
+        surveyListForm
       }}
     >
       {children}
