@@ -68,8 +68,19 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
         disease_timings.add(sample.disease_timing)
         sample_seq_units = sample.seq_units.split(", ")
         sample_technologies = sample.technologies.split(", ")
-        seq_units = seq_units.union(set(sample_seq_units))
-        technologies = technologies.union(set(sample_technologies))
+        seq_units = seq_units.union(sample_seq_units)
+        technologies = technologies.union(sample_technologies)
+
+        # try to remove any empty strings
+        # this is caused by importing non-downloadable samples
+        try:
+            seq_units.remove("")
+        except KeyError:
+            pass
+        try:
+            technologies.remove("")
+        except KeyError:
+            pass
 
         if sample.has_cite_seq_data:
             has_cite_seq_data = True
