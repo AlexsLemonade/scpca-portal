@@ -32,6 +32,7 @@ class Project(models.Model):
     additional_metadata_keys = models.TextField(blank=True, null=True)
 
     sample_count = models.IntegerField(default=0)
+    downloadable_sample_count = models.IntegerField(default=0)
 
     computed_file = models.OneToOneField(
         ComputedFile, blank=False, null=True, on_delete=models.CASCADE, related_name="project"
