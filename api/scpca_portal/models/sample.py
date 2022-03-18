@@ -62,7 +62,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     summaries = {}
     has_cite_seq_data = False
     has_spatial_data = False
-    modalities = []
+    modalities = set()
 
     for sample in project.samples.filter(computed_file__isnull=False).all():
         additional_metadata_keys.update(sample.additional_metadata.keys())
@@ -74,10 +74,10 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
         technologies = technologies.union(sample_technologies)
 
         if sample.has_cite_seq_data:
-            modalities.append("CITE-seq")
+            modalities.add("CITE-seq")
 
         if sample.has_spatial_data:
-            modalities.append("Spatial Data")
+            modalities.add("Spatial Data")
 
         try:
             diagnoses_counts[sample.diagnosis] += 1
