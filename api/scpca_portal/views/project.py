@@ -34,7 +34,7 @@ class ProjectFilter(filters.FilterSet):
 
 
 class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = Project.objects.all().order_by("-created_at")
+    queryset = Project.objects.all().order_by("created_at")
     ordering_fields = "__all__"
     lookup_field = "scpca_id"
     filterset_class = ProjectFilter
