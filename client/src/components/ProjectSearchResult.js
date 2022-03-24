@@ -38,7 +38,7 @@ export const ProjectSearchResult = ({ project }) => {
       </Box>
       <Box pad={{ top: 'medium' }}>
         <Link href={`/projects/${project.scpca_id}#samples`}>
-          <Button label="View Samples" />
+          <Button label="View Samples" aria-label="View Samples" />
         </Link>
       </Box>
     </Box>

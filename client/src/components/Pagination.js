@@ -87,6 +87,7 @@ export const Pagination = ({
           gap="xxsmall"
           width="small"
           label="Previous"
+          aria-label="Previous"
           icon={<FormPrevious color={atStart ? 'black-tint-60' : 'brand'} />}
           disabled={atStart}
           onClick={() => updateOffset(offset - limit)}
@@ -157,6 +158,7 @@ export const Pagination = ({
           gap="xxsmall"
           width="small"
           label="Next"
+          aria-label="Next"
           icon={<FormNext color={atEnd ? 'black-tint-60' : 'brand'} />}
           disabled={atEnd}
           onClick={() => updateOffset(offset + limit)}
@@ -170,11 +172,13 @@ export const Pagination = ({
           <TextInput
             size="medium"
             value={enteredPageNumber}
+            aria-label="Jump to page"
             onChange={handlePageNumberRequest}
           />
         </Box>
         <Button
           label="Go"
+          aria-label="Go"
           disabled={!enteredPageNumberInRange || enteredPageNumber === ''}
           onClick={goToOffsetRequest}
         />
