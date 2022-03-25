@@ -62,6 +62,7 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     summaries = {}
     has_cite_seq_data = False
     has_spatial_data = False
+    modalities = set()
 
     for sample in project.samples.filter(computed_file__isnull=False).all():
         additional_metadata_keys.update(sample.additional_metadata.keys())
@@ -72,22 +73,22 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
         seq_units = seq_units.union(sample_seq_units)
         technologies = technologies.union(sample_technologies)
 
-        if "" in seq_units:
-            seq_units.remove("")
-
-        if "" in technologies:
-            technologies.remove("")
-
         if sample.has_cite_seq_data:
-            has_cite_seq_data = True
+            modalities.add("CITE-seq")
 
         if sample.has_spatial_data:
-            has_cite_seq_data = True
+            modalities.add("Spatial Data")
 
         try:
             diagnoses_counts[sample.diagnosis] += 1
         except KeyError:
             diagnoses_counts[sample.diagnosis] = 1
+
+        if "" in seq_units:
+            seq_units.remove("")
+
+        if "" in technologies:
+            technologies.remove("")
 
         for seq_unit in sample_seq_units:
             for technology in sample_technologies:
@@ -99,12 +100,6 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     diagnoses_strings = []
     for diagnosis, count in diagnoses_counts.items():
         diagnoses_strings.append(f"{diagnosis} ({count})")
-
-    modalities = []
-    if has_cite_seq_data:
-        modalities.append("CITE-seq")
-    if has_spatial_data:
-        modalities.append("Spatial Data")
 
     project.additional_metadata_keys = ", ".join(list(additional_metadata_keys))
     project.modalities = ", ".join(list(modalities))
