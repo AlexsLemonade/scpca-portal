@@ -40,4 +40,4 @@ jobs:
           eslint: true
           eslint_dir: client/
           prettier: false
-          prettier_lint: client/
+          prettier_dir: client/

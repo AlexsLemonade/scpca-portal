@@ -84,12 +84,6 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
         except KeyError:
             diagnoses_counts[sample.diagnosis] = 1
 
-        if "" in seq_units:
-            seq_units.remove("")
-
-        if "" in technologies:
-            technologies.remove("")
-
         for seq_unit in sample_seq_units:
             for technology in sample_technologies:
                 try:
@@ -105,8 +99,8 @@ def update_project_counts(sender, instance=None, created=False, update_fields=No
     project.modalities = ", ".join(list(modalities))
     project.diagnoses_counts = ", ".join(list(diagnoses_strings))
     project.diagnoses = ", ".join(list(diagnoses))
-    project.seq_units = ", ".join(set(seq_units))
-    project.technologies = ", ".join(technologies)
+    project.seq_units = ", ".join(list(filter(None, seq_units)))
+    project.technologies = ", ".join(list(filter(None, technologies)))
     project.disease_timings = ", ".join(disease_timings)
     project.sample_count = project.samples.count()
     project.downloadable_sample_count = project.samples.filter(computed_file__isnull=False).count()
