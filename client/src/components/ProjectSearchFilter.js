@@ -3,7 +3,7 @@ import { Box, Text, CheckBox } from 'grommet'
 import { Loader } from 'components/Loader'
 import { api } from 'api'
 import { getReadable } from 'helpers/getReadable'
-import { useAnalytics } from 'hooks'
+import { useAnalytics } from 'hooks/useAnalytics'
 
 export const ProjectSearchFilter = ({
   filters: defaultFilters = {},

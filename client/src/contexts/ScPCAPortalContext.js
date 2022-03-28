@@ -1,5 +1,6 @@
 import React, { createContext, useState } from 'react'
-import { useLocalStorage, useHubspotForm } from 'hooks'
+import { useHubspotForm } from 'hooks/useHubspotForm'
+import { useLocalStorage } from 'hooks/useLocalStorage'
 import { api } from 'api'
 import { tokenSchema, hubspotSurveySchema, hubspotEmailSchema } from 'schemas'
 import { getErrorMessages } from 'helpers/getErrorMessages'

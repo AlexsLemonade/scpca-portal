@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Box, Header as GrommetHeader, Nav } from 'grommet'
-import { useResponsive } from 'hooks'
+import { useResponsive } from 'hooks/useResponsive'
 import { DonateButton } from 'components/DonateButton'
 import { Link } from 'components/Link'
 import Logo from 'components/Logo'

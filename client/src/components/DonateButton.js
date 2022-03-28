@@ -1,7 +1,7 @@
 import React from 'react'
 import styled, { css } from 'styled-components'
 import { Button } from 'grommet'
-import { useAnalytics } from 'hooks'
+import { useAnalytics } from 'hooks/useAnalytics'
 
 export const StyledButton = styled(Button)`
   ${({ theme }) =>

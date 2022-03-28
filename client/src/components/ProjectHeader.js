@@ -7,7 +7,7 @@ import { Download } from 'components/Download'
 import { getReadable } from 'helpers/getReadable'
 import { formatBytes } from 'helpers/formatBytes'
 import { capitalize } from 'helpers/capitalize'
-import { useResponsive } from 'hooks'
+import { useResponsive } from 'hooks/useResponsive'
 import { InfoText } from './InfoText'
 
 export const ProjectHeader = ({ project, linked = false }) => {

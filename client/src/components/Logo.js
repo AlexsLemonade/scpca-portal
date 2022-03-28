@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Text } from 'grommet'
-import { useResponsive } from 'hooks'
+import { useResponsive } from 'hooks/useResponsive'
 import styled from 'styled-components'
 import ASLFLogo from '../images/alsf-logo.svg'
 import ALSFLogoBlue from '../images/alsf-logo-blue.svg'

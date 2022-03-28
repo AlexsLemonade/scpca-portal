@@ -22,7 +22,7 @@ import { TableFilter } from 'components/TableFilter'
 import { TablePageSize } from 'components/TablePageSize'
 import { Pagination } from 'components/Pagination'
 import { InfoText } from 'components/InfoText'
-import { useResponsive } from 'hooks'
+import { useResponsive } from 'hooks/useResponsive'
 
 // Styles to allow for dynamic "sticky" columns
 const TableBox = styled(Box)`

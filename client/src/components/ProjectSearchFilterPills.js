@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Box, Text } from 'grommet'
 import { Icon } from 'components/Icon'
 import { getReadable } from 'helpers/getReadable'
-import { useAnalytics } from 'hooks'
+import { useAnalytics } from 'hooks/useAnalytics'
 
 export const FilterPill = ({ option, onRemove }) => {
   return (

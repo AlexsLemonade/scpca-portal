@@ -7,7 +7,7 @@ import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
 import { Link } from 'components/Link'
 import { api } from 'api'
-import { useResponsive } from 'hooks'
+import { useResponsive } from 'hooks/useResponsive'
 
 const Project = ({ project }) => {
   if (!project) return '404'

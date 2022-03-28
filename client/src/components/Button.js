@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button as GrommetButton } from 'grommet'
-import { useWaitForAsync } from 'hooks'
+import { useWaitForAsync } from 'hooks/useWaitForAsync'
 
 export const Button = ({ onClick, ...props }) => {
   const [waiting, asyncOnClick] = useWaitForAsync(onClick)

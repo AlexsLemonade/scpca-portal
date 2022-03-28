@@ -3,7 +3,7 @@ import { Anchor, Box, Layer } from 'grommet'
 import { Button } from 'components/Button'
 import { Icon } from 'components/Icon'
 import { Loader } from 'components/Loader'
-import { useResponsive } from 'hooks'
+import { useResponsive } from 'hooks/useResponsive'
 
 export const ResponsiveSheet = ({
   label = 'Show',
