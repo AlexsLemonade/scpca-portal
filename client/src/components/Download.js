@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Anchor,
   Box,
@@ -11,13 +11,11 @@ import {
 import { Button } from 'components/Button'
 import { Modal } from 'components/Modal'
 import { Link } from 'components/Link'
-import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
-import { AnalyticsContext } from 'contexts/AnalyticsContext'
+import { useAnalytics, useScPCAPortal, useResponsive } from 'hooks'
 import { api } from 'api'
 import { formatBytes } from 'helpers/formatBytes'
 import { formatDate } from 'helpers/formatDate'
 import { config } from 'config'
-import { useResponsive } from 'hooks/useResponsive'
 import DownloadSVG from '../images/download-folder.svg'
 
 // label for the checkbox needs to be component to show links
@@ -53,11 +51,11 @@ export const TokenView = () => {
     createToken,
     validateToken,
     emailListForm
-  } = React.useContext(ScPCAPortalContext)
-  const [requesting, setRequesting] = React.useState(false)
-  const [errors, setErrors] = React.useState([])
+  } = useScPCAPortal()
+  const [requesting, setRequesting] = useState(false)
+  const [errors, setErrors] = useState([])
 
-  React.useEffect(() => {
+  useEffect(() => {
     const asyncTokenRequest = async () => {
       const validation = await validateToken()
       if (validation.isValid) {
@@ -198,13 +196,13 @@ export const DownloadView = ({ computedFile }) => {
 
 // Button and Modal to show when downloading
 export const Download = ({ Icon, computedFile: publicComputedFile }) => {
-  const { token, email, surveyListForm } = React.useContext(ScPCAPortalContext)
-  const { trackDownload } = React.useContext(AnalyticsContext)
+  const { token, email, surveyListForm } = useScPCAPortal()
+  const { trackDownload } = useAnalytics()
   const { id, type, project, sample } = publicComputedFile
   const label = project ? 'Download Project' : 'Download Sample'
 
-  const [showing, setShowing] = React.useState(false)
-  const [download, setDownload] = React.useState(false)
+  const [showing, setShowing] = useState(false)
+  const [download, setDownload] = useState(false)
 
   const handleClick = () => {
     setShowing(true)
@@ -215,7 +213,7 @@ export const Download = ({ Icon, computedFile: publicComputedFile }) => {
     }
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     const asyncFetch = async () => {
       const downloadRequest = await api.computedFiles.get(id, token)
       if (downloadRequest.isOk) {

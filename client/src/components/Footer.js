@@ -4,7 +4,7 @@ import { Link } from 'components/Link'
 import { FooterBand } from 'components/Band'
 import { Icon } from 'components/Icon'
 import { config } from 'config'
-import { useResponsive } from 'hooks/useResponsive'
+import { useResponsive } from 'hooks'
 import styled from 'styled-components'
 
 const FooterImage = styled(Image)`

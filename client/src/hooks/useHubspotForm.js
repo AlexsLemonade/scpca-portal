@@ -1,11 +1,11 @@
-import React from 'react'
+import { useState } from 'react'
 import { request } from 'helpers/request'
 import { getErrorMessages } from 'helpers/getErrorMessages'
-import { useLocalStorage } from 'hooks/useLocalStorage'
+import { useLocalStorage } from 'hooks'
 
 export const useHubspotForm = (portalId, formId, formSchema) => {
-  const [formData, setFormData] = React.useState({})
-  const [errors, setErrors] = React.useState({})
+  const [formData, setFormData] = useState({})
+  const [errors, setErrors] = useState({})
   const [success, setSuccess] = useLocalStorage(formId, false)
 
   const apiBase = 'https://api.hsforms.com/submissions/v3/integration/submit'

@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { createContext } from 'react'
 import ReactGA from 'react-ga'
 import { events } from 'config/ga'
 import { capitalize } from 'helpers/capitalize'
 
 ReactGA.initialize('G-3YR7L2222E')
 
-export const AnalyticsContext = React.createContext({})
+export const AnalyticsContext = createContext({})
 
 export const AnalyticsContextProvider = ({ children }) => {
   const trackEvent = (

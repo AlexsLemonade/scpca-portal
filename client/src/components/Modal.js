@@ -1,7 +1,7 @@
 import React from 'react'
 import { Icon } from 'components/Icon'
 import { Anchor, Box, Layer, Stack, Text } from 'grommet'
-import { useResponsive } from 'hooks/useResponsive'
+import { useResponsive } from 'hooks'
 
 export const Modal = ({
   showing,

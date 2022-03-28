@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   Box,
   FormField,
@@ -17,9 +17,8 @@ import { ErrorLabel } from 'components/ErrorLabel'
 import styled, { css } from 'styled-components'
 import { getStatsBlocks } from 'helpers/getStatsBlocks'
 import { fillArrayRandom } from 'helpers/fillArrayRandom'
-import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
+import { useScPCAPortal, useResponsive } from 'hooks'
 import { config } from 'config'
-import { useResponsive } from 'hooks/useResponsive'
 import PipelineSvg from '../images/pipeline.svg'
 import FilesSvg from '../images/files.svg'
 
@@ -62,10 +61,10 @@ const ExposeBox = styled(Box)`
 
 const Home = ({ stats }) => {
   const cancerTypes = stats.cancer_types.filter((c) => c !== 'Normal margin')
-  const { emailListForm } = React.useContext(ScPCAPortalContext)
+  const { emailListForm } = useScPCAPortal()
   const { responsive } = useResponsive()
   const statBlocks = getStatsBlocks(stats)
-  const cancerColors = React.useMemo(
+  const cancerColors = useMemo(
     () =>
       fillArrayRandom(
         stats.cancer_types.length,
@@ -77,7 +76,7 @@ const Home = ({ stats }) => {
   )
 
   // when we have more cancer types to display add this back
-  const [exposed, setExposed] = React.useState('all')
+  const [exposed, setExposed] = useState('all')
 
   const exposeMore = () => {
     if (exposed === 'none') return setExposed('some')

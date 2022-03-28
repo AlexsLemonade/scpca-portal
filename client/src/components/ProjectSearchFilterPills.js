@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Text } from 'grommet'
 import { Icon } from 'components/Icon'
 import { getReadable } from 'helpers/getReadable'
-import { AnalyticsContext } from 'contexts/AnalyticsContext'
+import { useAnalytics } from 'hooks'
 
 export const FilterPill = ({ option, onRemove }) => {
   return (
@@ -35,7 +35,7 @@ export const ProjectSearchFilterPills = ({
   filters: defaultFilters,
   onFilterChange
 }) => {
-  const { trackFilterChange } = React.useContext(AnalyticsContext)
+  const { trackFilterChange } = useAnalytics()
   const getSafeDefaultFilters = (unsafeFilters) => {
     const safeFilters = {}
     Object.keys(unsafeFilters).forEach((k) => {
@@ -47,9 +47,9 @@ export const ProjectSearchFilterPills = ({
     return safeFilters
   }
   const safeDefaultFilters = getSafeDefaultFilters(defaultFilters)
-  const [filters, setFilters] = React.useState(safeDefaultFilters)
+  const [filters, setFilters] = useState(safeDefaultFilters)
 
-  React.useEffect(() => {
+  useEffect(() => {
     setFilters(getSafeDefaultFilters(defaultFilters))
   }, [defaultFilters])
 
