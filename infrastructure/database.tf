@@ -17,10 +17,6 @@ resource "aws_db_parameter_group" "postgres_parameters" {
     value = "60000" # 60000ms = 60s
   }
 
-  lifecycle {
-    create_before_destroy = true
-  }
-
   tags = var.default_tags
 }
 
