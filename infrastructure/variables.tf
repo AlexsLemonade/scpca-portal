@@ -53,7 +53,7 @@ variable "api_instance_type" {
 }
 
 variable "database_instance_type" {
-  default = "db.t2.micro"
+  default = "db.t3.micro"
 }
 
 variable "sentry_io_url" {
