@@ -28,7 +28,7 @@ export default class MyDocument extends Document {
           {/* Google Analytics */}
           <script
             async
-            src="https://www.googletagmanager.com/gtag/js?id=G-BYH3X5WS0V"
+            src="https://www.googletagmanager.com/gtag/js?id=G-3YR7L2222E"
           />
           {/* Hotjar */}
           <script
