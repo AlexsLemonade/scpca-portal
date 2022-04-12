@@ -32,9 +32,9 @@ jobs:
           github_token: ${{ secrets.github_token }}
           # Enable linters
           # Temporarily disabled: https://github.com/wearerequired/lint-action/issues/88
-          # black: true
-          # black_args: --line-length=100
-          # black_dir: api/
+          black: true
+          black_args: --line-length=100
+          black_dir: api/
           flake8: true
           flake8_dir: api/
           eslint: true
