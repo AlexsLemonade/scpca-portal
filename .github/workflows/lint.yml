@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.8
+          python-version: '3.8'
 
       - name: Install Python dependencies
         run: pip install black==19.10b0 flake8
@@ -31,7 +31,6 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           # Enable linters
-          # Temporarily disabled: https://github.com/wearerequired/lint-action/issues/88
           black: true
           black_args: --line-length=100
           black_dir: api/
