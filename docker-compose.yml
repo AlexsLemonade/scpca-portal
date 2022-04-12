@@ -1,13 +1,9 @@
 version: '2'
 
 services:
-  postgres:
-    image: postgres:11.6
-    volumes:
-      - ./api/volumes_postgres/volumes_postgres:/var/lib/postgresql/data
   api:
-    container_name: '${API_NAME}'
-    network_mode: '${API_NETWORK}'
+    container_name: '${API_CONTAINER_NAME}'
+    network_mode: '${API_NETWORK_MODE}'
     restart: always
     env_file: infrastructure/api-configuration/dev-secrets
     image: api
@@ -28,7 +24,9 @@ services:
     depends_on:
       - client
       - postgres
+
   client:
+    container_name: '${CLIENT_CONTAINER_NAME}'
     image: node:14.15
     ports:
       - '${API_PORT}:${API_PORT}'
@@ -52,3 +50,9 @@ services:
       - ./client:/home/user/code
       - ./client/node_modules:/home/user/code/node_modules
       - ./client/.next:/home/user/code/.next
+
+  postgres:
+    container_name: '${POSTGRES_CONTAINER_NAME}'
+    image: postgres:11.6
+    volumes:
+      - ./api/volumes_postgres/volumes_postgres:/var/lib/postgresql/data
