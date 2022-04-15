@@ -5,6 +5,9 @@ module.exports = {
     sourceType: 'module',
     ecmaFeatures: {
       modules: true
+    },
+    babelOptions: {
+      configFile: require.resolve('./.babelrc.js')
     }
   },
   extends: ['airbnb', 'plugin:prettier/recommended'],
