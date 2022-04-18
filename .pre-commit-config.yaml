@@ -7,9 +7,11 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: mixed-line-ending
-        args: [--fix=lf]
+        args:
+          - --fix=lf
       - id: trailing-whitespace
-        args: [--markdown-linebreak-ext=md]
+        args:
+          - --markdown-linebreak-ext=md
       # - id: check-executables-have-shebangs
       - id: check-merge-conflict
       # - id: check-docstring-first # We can enable this rule once models.py is simplified
@@ -26,14 +28,14 @@ repos:
     rev: 22.3.0
     hooks:
       - id: black
-        args: [--line-length=100]
         language_version: python3
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v7.32.0
     hooks:
       - id: eslint
-        args: [--config=client/.eslintrc.js]
+        args:
+          - --config=client/.eslintrc.js
         additional_dependencies:
           - eslint@7.32.0
           - eslint-config-airbnb@^18.2.1
