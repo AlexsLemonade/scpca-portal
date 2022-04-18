@@ -44,3 +44,4 @@ repos:
           - eslint-plugin-prettier@^3.4.0
           - "@babel/eslint-parser@7.15.0"
           - eslint-plugin-react@7.24.0
+          - eslint-plugin-jsx-a11y@6.4.1
