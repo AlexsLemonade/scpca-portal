@@ -48,3 +48,5 @@ repos:
           - eslint-plugin-import@2.24.0
           - babel-plugin-inline-react-svg@2.0.1
           - babel-plugin-styled-components@1.13.2
+          - "@babel/preset-env@7.15.0"
+          - "@babel/core@7.15.0"
