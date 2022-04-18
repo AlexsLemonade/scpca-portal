@@ -42,12 +42,13 @@ repos:
           - eslint-config-next@11.1.0
           - eslint-config-prettier@^8.3.0
           - eslint-plugin-prettier@^3.4.0
-          - "@babel/eslint-parser@7.15.0"
           - eslint-plugin-react@7.24.0
           - eslint-plugin-jsx-a11y@6.4.1
           - eslint-plugin-import@2.24.0
           - babel-plugin-inline-react-svg@2.0.1
           - babel-plugin-styled-components@1.13.2
+          - "@babel/eslint-parser@7.15.0"
           - "@babel/core@7.15.0"
           - "@babel/preset-env@7.15.0"
           - "next@11.1.0"
+          - prettier@2.2.1
