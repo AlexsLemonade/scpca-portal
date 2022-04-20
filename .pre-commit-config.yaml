@@ -30,10 +30,11 @@ repos:
       - id: black
         language_version: python3
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.13.0
-    hooks:
-      - id: eslint
-        exclude: client/node_modules
-        args:
-          - client
+# re-enable after resolving eslint import error
+# - repo: https://github.com/pre-commit/mirrors-eslint
+#   rev: v8.13.0
+#   hooks:
+#     - id: eslint
+#       exclude: client/node_modules
+#       args:
+#         - client

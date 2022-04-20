@@ -1,3 +1,5 @@
+const path = require('path')
+
 module.exports = {
   parser: '@babel/eslint-parser',
   parserOptions: {
@@ -7,10 +9,11 @@ module.exports = {
       modules: true
     },
     babelOptions: {
-      configFile: require.resolve('./.babelrc.js')
+      configFile: path.resolve(`${__dirname}/.babelrc.js`)
     }
   },
-  extends: ['airbnb', 'plugin:prettier/recommended'],
+  ignorePatterns: ['node_modules/**'],
+  extends: ['airbnb', 'airbnb/base', 'plugin:prettier/recommended'],
   env: {
     browser: true,
     es6: true
