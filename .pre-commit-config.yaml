@@ -30,9 +30,10 @@ repos:
       - id: black
         language_version: python3
 
-  - repo: local
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.13.0
     hooks:
       - id: eslint
-        name: eslint
-        language: system
-        entry: cd client && yarn run eslint
+        exclude: client/node_modules
+        args:
+          - client
