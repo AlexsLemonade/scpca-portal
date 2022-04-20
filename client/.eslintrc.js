@@ -12,8 +12,7 @@ module.exports = {
       configFile: path.resolve(`${__dirname}/.babelrc.js`)
     }
   },
-  ignorePatterns: ['node_modules/**'],
-  extends: ['airbnb', 'airbnb/base', 'plugin:prettier/recommended'],
+  extends: ['airbnb', 'plugin:prettier/recommended'],
   env: {
     browser: true,
     es6: true
