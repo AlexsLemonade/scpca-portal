@@ -37,6 +37,8 @@
     "@storybook/react": "^6.3.7",
     "babel-loader": "^8.2.2",
     "babel-plugin-inline-react-svg": "^2.0.1",
+    "babel-preset-airbnb": "^5.0.0",
+    "babel-preset-next": "^1.4.0",
     "eslint": "^8.13.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-next": "11.1.0",
