@@ -17,10 +17,8 @@ export const Pagination = ({
 }) => {
   const [offset, setOffset] = React.useState(initialOffset)
   const [enteredPageNumber, setEnteredPageNumber] = React.useState('')
-  const [
-    enteredPageNumberInRange,
-    setEnteredPageNumberInRange
-  ] = React.useState(false)
+  const [enteredPageNumberInRange, setEnteredPageNumberInRange] =
+    React.useState(false)
   const last = countToLastOffset(count, limit)
 
   React.useEffect(() => {
