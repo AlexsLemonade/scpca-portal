@@ -6,8 +6,6 @@ from django.core.management.base import BaseCommand
 from scpca_portal.models import Project, ProjectSummary
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
 
 
 class Command(BaseCommand):

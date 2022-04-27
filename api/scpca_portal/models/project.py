@@ -17,8 +17,6 @@ from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.sample import Sample
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
 
 
 class Project(models.Model):

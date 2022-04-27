@@ -26,9 +26,6 @@ ALLOWED_SUBMITTERS = {
 }
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
-
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
@@ -165,8 +162,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         load_data_from_s3(
             options["update_s3"],
-            options["reload_existing"],
             options["reload_all"],
+            options["reload_existing"],
             options["scpca_project_ids"],
             options["scpca_sample_ids"],
         )
