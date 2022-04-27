@@ -69,7 +69,7 @@ class ComputedFile(models.Model):
 
     @property
     def download_url(self):
-        """ A temporary URL from which the file can be downloaded. """
+        """A temporary URL from which the file can be downloaded."""
         return self.create_download_url()
 
     @property

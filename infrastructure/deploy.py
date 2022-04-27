@@ -26,7 +26,11 @@ def parse_args():
     only be used from a deployment machine. `dev` will deploy a dev stack which is appropriate for a
     single developer to use to test."""
     parser.add_argument(
-        "-e", "--env", help=env_help_text, required=True, choices=["dev", "staging", "prod"],
+        "-e",
+        "--env",
+        help=env_help_text,
+        required=True,
+        choices=["dev", "staging", "prod"],
     )
 
     user_help_text = "Specify the username of the deployer. Should be the developer's name in development stacks."

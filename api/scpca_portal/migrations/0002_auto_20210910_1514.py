@@ -16,12 +16,18 @@ class Migration(migrations.Migration):
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name="project", name="has_spatial_data", field=models.BooleanField(default=False),
+            model_name="project",
+            name="has_spatial_data",
+            field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name="project", name="modalities", field=models.TextField(blank=True, null=True),
+            model_name="project",
+            name="modalities",
+            field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name="sample", name="has_spatial_data", field=models.BooleanField(default=False),
+            model_name="sample",
+            name="has_spatial_data",
+            field=models.BooleanField(default=False),
         ),
     ]
