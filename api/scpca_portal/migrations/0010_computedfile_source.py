@@ -3,8 +3,6 @@
 import django.db.models.deletion
 from django.db import migrations, models
 
-from scpca_portal.models.computed_file import ComputedFile
-
 
 class Migration(migrations.Migration):
 

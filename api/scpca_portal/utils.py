@@ -3,9 +3,9 @@
 
 def boolean_from_string(value):
     """
-  Returns True if string value represents truthy value. Otherwise returns False.
-  Raises ValueError if value cannot be casted to boolean.
-  """
+    Returns True if string value represents truthy value. Otherwise returns False.
+    Raises ValueError if value cannot be casted to boolean.
+    """
 
     value_type = type(value)
 

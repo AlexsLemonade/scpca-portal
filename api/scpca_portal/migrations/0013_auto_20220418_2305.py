@@ -11,7 +11,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="sample", name="computed_file",),
+        migrations.RemoveField(
+            model_name="sample",
+            name="computed_file",
+        ),
         migrations.AddField(
             model_name="computedfile",
             name="smpl",

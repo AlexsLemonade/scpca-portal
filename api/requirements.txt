@@ -27,8 +27,8 @@ drf-extensions==0.6.0
 ipdb==0.12.3
 ipython==7.20
 mkdocs==1.0.4
-flake8==3.7.9
-black==19.10b0
+flake8
+black
 django-extensions==2.2.8
 sentry-sdk==0.18.0
 requests-aws4auth==1.0.1

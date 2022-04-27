@@ -120,7 +120,9 @@ def load_data_from_s3(
             logger.info(f"Exporting '{project}' computed files to S3")
             for computed_file in computed_files:
                 s3.upload_file(
-                    computed_file.zip_file_path, settings.AWS_S3_BUCKET_NAME, computed_file.s3_key,
+                    computed_file.zip_file_path,
+                    settings.AWS_S3_BUCKET_NAME,
+                    computed_file.s3_key,
                 )
 
 

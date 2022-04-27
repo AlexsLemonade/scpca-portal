@@ -491,7 +491,8 @@ class Project(models.Model):
 
             if self.has_spatial_data:
                 computed_file, spatial_metadata_files = sample.create_spatial_data_file(
-                    combined_spatial_metadata, workflow_version,
+                    combined_spatial_metadata,
+                    workflow_version,
                 )
                 computed_files.append(computed_file)
                 spatial_file_mapping.update(spatial_metadata_files)

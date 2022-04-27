@@ -144,7 +144,9 @@ class Sample(models.Model):
         return computed_file, {self.scpca_id: file_paths}
 
     def create_spatial_data_file(
-        self, libraries_metadata: List[Dict], workflow_version: str,
+        self,
+        libraries_metadata: List[Dict],
+        workflow_version: str,
     ):
 
         computed_file = ComputedFile(
