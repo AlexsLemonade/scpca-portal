@@ -28,7 +28,8 @@ ipdb==0.12.3
 ipython==7.20
 mkdocs==1.0.4
 flake8
-black
+black==22.3.0
+isort==4.3.21
 django-extensions==2.2.8
 sentry-sdk==0.18.0
 requests-aws4auth==1.0.1
