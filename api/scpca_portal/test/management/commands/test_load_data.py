@@ -258,7 +258,6 @@ class TestLoadData(TestCase):
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_spatial_metadata(self):
-        update_s3_data = True
         # First, just test that loading data works.
         load_data_from_s3(
             update_s3_data=True,
