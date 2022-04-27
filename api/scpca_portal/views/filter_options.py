@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 
 from scpca_portal.models import Project
 

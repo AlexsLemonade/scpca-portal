@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from scpca_portal.models import Project, ProjectSummary
+from scpca_portal.models import Project
 
 logger = logging.getLogger()
 

@@ -1,5 +1,4 @@
 import csv
-import os
 from io import TextIOWrapper
 from unittest.mock import patch
 from zipfile import ZipFile

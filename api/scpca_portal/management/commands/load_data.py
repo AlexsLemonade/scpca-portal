@@ -1,11 +1,9 @@
 import csv
-import json
 import logging
 import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Dict, List
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -15,7 +13,7 @@ import boto3
 from botocore.client import Config
 
 from scpca_portal import common, utils
-from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
+from scpca_portal.models import ComputedFile, Project
 
 ALLOWED_SUBMITTERS = {
     "christensen",
@@ -108,7 +106,7 @@ def load_data_from_s3(
         project.title = project_data["project_title"]
         project.save()
 
-        if not project.scpca_id in os.listdir(common.INPUT_DATA_DIR):
+        if project.scpca_id not in os.listdir(common.INPUT_DATA_DIR):
             logger.warning(f"Metadata found for '{project}' but no s3 folder of that name exists.")
             continue
 

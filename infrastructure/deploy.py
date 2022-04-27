@@ -87,7 +87,7 @@ def build_and_push_docker_image(args):
 
     try:
         completed_command = subprocess.check_call(docker_login_command)
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         print("Failed to login to docker.")
         return 1
 

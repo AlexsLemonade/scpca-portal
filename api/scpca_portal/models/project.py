@@ -430,9 +430,6 @@ class Project(models.Model):
             sample_cell_count = 0
             sample_seq_units = set()
             sample_technologies = set()
-
-            spatial_library_ids = []
-            spatial_metadata = {}
             for filename in os.listdir(sample_dir):
                 # Handle sample metadata.
                 if filename.endswith("_metadata.json"):
@@ -477,7 +474,6 @@ class Project(models.Model):
                 samples_metadata, spatial_libraries_metadata, scpca_sample_ids
             )
 
-        created_samples = []
         single_cell_file_mapping = {}
         spatial_file_mapping = {}
         for sample_metadata in samples_metadata:

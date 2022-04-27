@@ -6,7 +6,7 @@ from scpca_portal import utils
 class TestUtils(TestCase):
     def test_boolean_from_string_raises_exception(self):
         for v in (-1, 1.2, None):
-            with self.assertRaises(ValueError) as ctx:
+            with self.assertRaises(ValueError):
                 utils.boolean_from_string(v)
 
     def test_boolean_from_string_returns_false(self):
