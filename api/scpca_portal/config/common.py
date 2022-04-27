@@ -126,19 +126,37 @@ class Common(Configuration):
             },
             "simple": {"format": "%(asctime)s %(levelname)s %(message)s"},
         },
-        "filters": {"require_debug_true": {"()": "django.utils.log.RequireDebugTrue",},},
+        "filters": {
+            "require_debug_true": {
+                "()": "django.utils.log.RequireDebugTrue",
+            },
+        },
         "handlers": {
             "django.server": {
                 "level": "INFO",
                 "class": "logging.StreamHandler",
                 "formatter": "django.server",
             },
-            "console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "simple",},
-            "mail_admins": {"level": "ERROR", "class": "django.utils.log.AdminEmailHandler",},
+            "console": {
+                "level": "DEBUG",
+                "class": "logging.StreamHandler",
+                "formatter": "simple",
+            },
+            "mail_admins": {
+                "level": "ERROR",
+                "class": "django.utils.log.AdminEmailHandler",
+            },
         },
         "loggers": {
-            "django": {"handlers": ["console"], "propagate": True,},
-            "django.server": {"handlers": ["django.server"], "level": "INFO", "propagate": False,},
+            "django": {
+                "handlers": ["console"],
+                "propagate": True,
+            },
+            "django.server": {
+                "handlers": ["django.server"],
+                "level": "INFO",
+                "propagate": False,
+            },
             "django.request": {
                 "handlers": ["mail_admins", "console"],
                 "level": "ERROR",

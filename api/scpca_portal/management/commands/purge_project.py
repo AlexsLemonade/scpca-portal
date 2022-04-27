@@ -5,8 +5,7 @@ from scpca_portal.models import Project, ProjectSummary
 
 
 def purge_project(scpca_id: str, delete_from_s3=False) -> None:
-    """Deletes all projects with pi_name and their associated data.
-    """
+    """Deletes all projects with pi_name and their associated data."""
     projects = Project.objects.filter(scpca_id=scpca_id)
 
     if projects.count() == 0:

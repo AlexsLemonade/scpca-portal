@@ -27,11 +27,11 @@ class ComputedFile(models.Model):
 
     @property
     def download_url(self):
-        """ A temporary URL from which the file can be downloaded. """
+        """A temporary URL from which the file can be downloaded."""
         return self.create_download_url()
 
     def create_download_url(self):
-        """ Create a temporary URL from which the file can be downloaded."""
+        """Create a temporary URL from which the file can be downloaded."""
         if self.s3_bucket and self.s3_key:
             return s3.generate_presigned_url(
                 ClientMethod="get_object",

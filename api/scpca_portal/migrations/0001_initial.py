@@ -31,7 +31,9 @@ class Migration(migrations.Migration):
                 ),
                 ("last_modified", models.DateTimeField(default=django.utils.timezone.now)),
             ],
-            options={"db_table": "api_token",},
+            options={
+                "db_table": "api_token",
+            },
         ),
         migrations.CreateModel(
             name="ComputedFile",

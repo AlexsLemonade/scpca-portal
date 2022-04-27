@@ -352,7 +352,12 @@ def load_data_for_project(
             sample_to_file_mapping.update(sample_files)
 
     package_files_for_project(
-        project_dir, output_dir, project, sample_to_file_mapping, readme_path, should_upload,
+        project_dir,
+        output_dir,
+        project,
+        sample_to_file_mapping,
+        readme_path,
+        should_upload,
     )
 
     return created_samples
