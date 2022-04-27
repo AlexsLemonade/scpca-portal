@@ -1,43 +1,29 @@
 from django.http import JsonResponse
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 
 from scpca_portal.models import Project
 
 
 class FilterOptionsViewSet(viewsets.ViewSet):
     def list(self, request):
-        dicts = (
-            Project.objects.order_by()
-            .values("diagnoses", "seq_units", "technologies", "modalities")
-            .distinct()
-        )
-
         diagnoses_options = set()
+        modalities = set()
         seq_units_options = set()
         technologies_options = set()
-        modalities = set()
-        for value_set in dicts:
-            if value_set["diagnoses"]:
-                for value in value_set["diagnoses"].split(", "):
-                    diagnoses_options.add(value)
 
-            if value_set["seq_units"]:
-                for value in value_set["seq_units"].split(", "):
-                    seq_units_options.add(value)
+        for project in Project.objects.values(
+            "diagnoses", "modalities", "seq_units", "technologies"
+        ):
+            diagnoses_options.update((project["diagnoses"] or "").split(", "))
+            modalities.update((project["modalities"] or "").split(", "))
+            seq_units_options.update((project["seq_units"] or "").split(", "))
+            technologies_options.update((project["technologies"] or "").split(", "))
 
-            if value_set["technologies"]:
-                for value in value_set["technologies"].split(", "):
-                    technologies_options.add(value)
-
-            if value_set["modalities"]:
-                for value in value_set["modalities"].split(", "):
-                    modalities.add(value)
-
-        response_dict = {
-            "diagnoses": list(diagnoses_options),
-            "seq_units": list(seq_units_options),
-            "technologies": list(technologies_options),
-            "modalities": list(modalities),
-        }
-
-        return JsonResponse(response_dict, status=status.HTTP_200_OK)
+        return JsonResponse(
+            {
+                "diagnoses": sorted(diagnoses_options),
+                "modalities": sorted(modalities),
+                "seq_units": sorted(seq_units_options),
+                "technologies": sorted(technologies_options),
+            }
+        )

@@ -2,20 +2,17 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from faker import Faker
-
-from scpca_portal.test.factories import SampleFactory
-
-fake = Faker()
+from scpca_portal.test.factories import SampleComputedFileFactory, SampleFactory
 
 
 class SamplesTestCase(APITestCase):
-    """
-    Tests /samples/ operations.
-    """
+    """Tests /samples/ operations."""
 
     def setUp(self):
         self.sample = SampleFactory()
+        computed_file = SampleComputedFileFactory()
+        computed_file.smpl = self.sample
+        computed_file.save()
 
     def test_get_single(self):
         url = reverse("samples-detail", args=[self.sample.scpca_id])

@@ -6,11 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from faker import Faker
-
-from scpca_portal.test.factories import ComputedFileFactory
-
-fake = Faker()
+from scpca_portal.test.factories import ProjectComputedFileFactory, SampleComputedFileFactory
 
 
 class MockS3Client:
@@ -27,10 +23,11 @@ class ComputedFilesTestCase(APITestCase):
     """
 
     def setUp(self):
-        self.computed_file = ComputedFileFactory()
+        self.project_computed_file = ProjectComputedFileFactory()
+        self.sample_computed_file = SampleComputedFileFactory()
 
     def test_options(self):
-        url = reverse("computed-files-detail", args=[self.computed_file.id])
+        url = reverse("computed-files-detail", args=[self.sample_computed_file.id])
         # The presence of the origin header triggers CORS middleware,
         # but its content don't matter for this test.
         response = self.client.options(url, HTTP_ORIGIN="example.com")
@@ -40,7 +37,7 @@ class ComputedFilesTestCase(APITestCase):
         )
 
     def test_get_single(self):
-        url = reverse("computed-files-detail", args=[self.computed_file.id])
+        url = reverse("computed-files-detail", args=[self.sample_computed_file.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -56,14 +53,14 @@ class ComputedFilesTestCase(APITestCase):
         )
         token_id = response.json()["id"]
 
-        url = reverse("computed-files-detail", args=[self.computed_file.id])
+        url = reverse("computed-files-detail", args=[self.sample_computed_file.id])
         response = self.client.get(url, HTTP_API_KEY=token_id)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertIsNotNone("download_url", response.json())
 
     def test_get_with_bad_token(self):
-        url = reverse("computed-files-detail", args=[self.computed_file.id])
+        url = reverse("computed-files-detail", args=[self.sample_computed_file.id])
         response = self.client.get(url, HTTP_API_KEY="bad token")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -85,13 +82,13 @@ class ComputedFilesTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_put_is_not_allowed(self):
-        url = reverse("computed-files-detail", args=[self.computed_file.id])
+        url = reverse("computed-files-detail", args=[self.sample_computed_file.id])
         response = self.client.put(url, data={})
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_delete_is_not_allowed(self):
-        url = reverse("computed-files-detail", args=[self.computed_file.id])
+        url = reverse("computed-files-detail", args=[self.sample_computed_file.id])
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)

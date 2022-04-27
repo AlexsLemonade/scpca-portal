@@ -2,17 +2,11 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from faker import Faker
-
 from scpca_portal.test.factories import ProjectFactory
-
-fake = Faker()
 
 
 class ProjectsTestCase(APITestCase):
-    """
-    Tests /projects/ operations.
-    """
+    """Tests /projects/ operations."""
 
     def setUp(self):
         self.project = ProjectFactory()

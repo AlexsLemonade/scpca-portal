@@ -2,11 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from faker import Faker
-
 from scpca_portal.test.factories import LeafProjectFactory, ProjectFactory, SampleFactory
-
-fake = Faker()
 
 
 class FilterOptionsTestCase(APITestCase):
