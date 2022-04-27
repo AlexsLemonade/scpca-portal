@@ -240,17 +240,14 @@ def purge_all_projects():
 
 def mock_package_files_for_project(project: Project,):
     computed_file = ComputedFile(
-        type="PROJECT_ZIP",
+        type=ComputedFile.FileTypes.PROJECT_ZIP,
         workflow_version="0.0.1",
+        project=project,
         s3_bucket=settings.AWS_S3_BUCKET_NAME,
         s3_key=f"{project.scpca_id}.zip",
         size_in_bytes=random.randrange(200, 160000),
     )
-
     computed_file.save()
-
-    project.computed_file = computed_file
-    project.save()
 
     return computed_file
 
@@ -260,7 +257,7 @@ def mock_package_files_for_sample(sample: Dict,):
     zip_file_name = f"{sample_id}.zip"
 
     computed_file = ComputedFile(
-        type="SAMPLE_ZIP",
+        type=ComputedFile.FileTypes.SAMPLE_ZIP,
         workflow_version="0.0.1",
         s3_bucket=settings.AWS_S3_BUCKET_NAME,
         s3_key=zip_file_name,

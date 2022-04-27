@@ -1,5 +1,7 @@
 import factory
 
+from scpca_portal.models import ComputedFile
+
 
 class ProjectSummaryFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -16,7 +18,6 @@ class LeafComputedFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.ComputedFile"
 
-    type = "FILTERED_COUNTS"
     s3_bucket = "scpca-portal-local"
     s3_key = "SCPCR000126/filtered.rds"
     workflow_version = "1.0.0"
@@ -58,35 +59,37 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     sample_count = 60
 
 
+class ProjectComputedFileFactory(LeafComputedFileFactory):
+    type = ComputedFile.FileTypes.PROJECT_ZIP
+
+class SampleComputedFileFactory(LeafComputedFileFactory):
+    type = ComputedFile.FileTypes.SAMPLE_ZIP
+
+
 class SampleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Sample"
 
-    scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
-    has_cite_seq_data = True
-    technologies = "10Xv3"
-    diagnosis = "pilocytic astrocytoma"
-    subdiagnosis = "NA"
-    age_at_diagnosis = "4"
-    sex = "M"
-    disease_timing = "primary diagnosis"
-    tissue_location = "posterior fossa"
-    seq_units = "cell"
-    cell_count = 42
     additional_metadata = {
-        "has_spinal_leptomeningeal_mets": False,
         "braf_status": "Not tested for BRAF status",
+        "has_spinal_leptomeningeal_mets": False,
     }
-
+    age_at_diagnosis = "4"
+    cell_count = 42
+    computed_file1 = factory.RelatedFactory(SampleComputedFileFactory, "smpl")
+    diagnosis = "pilocytic astrocytoma"
+    disease_timing = "primary diagnosis"
+    has_cite_seq_data = True
     project = factory.SubFactory(LeafProjectFactory)
-    computed_file = factory.SubFactory(LeafComputedFileFactory)
-
-
-class ComputedFileFactory(LeafComputedFileFactory):
-    sample = factory.SubFactory(SampleFactory)
+    scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
+    seq_units = "cell"
+    sex = "M"
+    subdiagnosis = "NA"
+    technologies = "10Xv3"
+    tissue_location = "posterior fossa"
 
 
 class ProjectFactory(LeafProjectFactory):
+    computed_file1 = factory.RelatedFactory(ProjectComputedFileFactory, "prjct")
     sample1 = factory.RelatedFactory(SampleFactory, "project")
-    computed_file = factory.SubFactory(LeafComputedFileFactory)
     summary1 = factory.RelatedFactory(ProjectSummaryFactory, factory_related_name="project")

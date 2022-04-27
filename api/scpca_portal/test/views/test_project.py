@@ -2,22 +2,20 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from faker import Faker
-
-from scpca_portal.test.factories import ProjectFactory
-
-fake = Faker()
+from scpca_portal.test.factories import ProjectFactory, SampleComputedFileFactory
 
 
 class ProjectsTestCase(APITestCase):
-    """
-    Tests /projects/ operations.
-    """
+    """Tests /projects/ operations."""
 
     def setUp(self):
         self.project = ProjectFactory()
 
     def test_get_single(self):
+        # computed_file = SampleComputedFileFactory()
+        # computed_file.prjct = self.project
+        # computed_file.save()
+
         url = reverse("projects-detail", args=[self.project.scpca_id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

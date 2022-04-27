@@ -18,20 +18,24 @@ class ComputedFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComputedFile
         fields = (
-            "project",
-            "sample",
+            "created_at",
             "id",
-            "type",
-            "workflow_version",
+            "project",
             "s3_bucket",
             "s3_key",
+            "sample",
             "size_in_bytes",
-            "created_at",
+            "type",
             "updated_at",
+            "workflow_version",
         )
 
-    project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
+    project = serializers.SerializerMethodField(method_name="get_project")
     sample = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
+
+    def get_project(self, instance):
+        if instance.prjct:
+            return instance.prjct.scpca_id
 
 
 class ProjectSummarySerializer(serializers.ModelSerializer):
@@ -39,9 +43,9 @@ class ProjectSummarySerializer(serializers.ModelSerializer):
         model = ProjectSummary
         fields = (
             "diagnosis",
+            "sample_count",
             "seq_unit",
             "technology",
-            "sample_count",
             "updated_at",
         )
 
@@ -50,29 +54,29 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = (
-            "scpca_id",
-            "computed_file",
-            "samples",
-            "summaries",
-            "pi_name",
-            "human_readable_pi_name",
-            "additional_metadata_keys",
-            "title",
             "abstract",
-            "contact_name",
+            "additional_metadata_keys",
+            "computed_file",
             "contact_email",
+            "contact_name",
+            "created_at",
+            "diagnoses_counts",
+            "diagnoses",
+            "disease_timings",
+            "downloadable_sample_count",
             "has_bulk_rna_seq",
             "has_cite_seq_data",
             "has_spatial_data",
+            "human_readable_pi_name",
             "modalities",
-            "disease_timings",
-            "diagnoses",
-            "diagnoses_counts",
-            "seq_units",
-            "technologies",
+            "pi_name",
             "sample_count",
-            "downloadable_sample_count",
-            "created_at",
+            "samples",
+            "scpca_id",
+            "seq_units",
+            "summaries",
+            "technologies",
+            "title",
             "updated_at",
         )
 
@@ -92,22 +96,22 @@ class SampleLeafSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
         fields = (
-            "scpca_id",
-            "computed_file",
-            "project",
-            "has_cite_seq_data",
-            "technologies",
-            "diagnosis",
-            "subdiagnosis",
-            "age_at_diagnosis",
-            "sex",
-            "disease_timing",
-            "tissue_location",
-            "seq_units",
-            "cell_count",
-            "treatment",
             "additional_metadata",
+            "age_at_diagnosis",
+            "cell_count",
+            "computed_file",
             "created_at",
+            "diagnosis",
+            "disease_timing",
+            "has_cite_seq_data",
+            "project",
+            "scpca_id",
+            "seq_units",
+            "sex",
+            "subdiagnosis",
+            "technologies",
+            "tissue_location",
+            "treatment",
             "updated_at",
         )
 

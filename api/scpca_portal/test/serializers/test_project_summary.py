@@ -9,10 +9,6 @@ class TestProjectSummarySerializer(TestCase):
     def setUp(self):
         self.project_summary_data = model_to_dict(ProjectSummaryFactory())
 
-    def test_serializer_with_empty_data(self):
-        serializer = ProjectSummarySerializer(data={})
-        self.assertFalse(serializer.is_valid())
-
     def test_serializer_with_valid_data(self):
         serializer = ProjectSummarySerializer(data=self.project_summary_data)
         self.assertTrue(serializer.is_valid())

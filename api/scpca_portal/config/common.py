@@ -1,4 +1,5 @@
 import os
+import sys
 from distutils.util import strtobool
 from os.path import join
 
@@ -67,7 +68,7 @@ class Common(Configuration):
         }
     }
 
-    # General
+    # General.
     APPEND_SLASH = True
     TIME_ZONE = "UTC"
     LANGUAGE_CODE = "en-us"
@@ -78,7 +79,7 @@ class Common(Configuration):
     USE_TZ = True
     LOGIN_REDIRECT_URL = "/"
 
-    # Static files (CSS, JavaScript, Images)
+    # Static files (CSS, JavaScript, Images).
     # https://docs.djangoproject.com/en/2.0/howto/static-files/
     STATIC_ROOT = "/tmp/www/static/"
     STATICFILES_DIRS = []
@@ -108,11 +109,14 @@ class Common(Configuration):
         },
     ]
 
-    # Set DEBUG to False as a default for safety
+    # Set DEBUG to False as a default for safety.
     # https://docs.djangoproject.com/en/dev/ref/settings/#debug
     DEBUG = strtobool(os.getenv("DJANGO_DEBUG", "no"))
 
-    # Logging
+    # Indicates running in test environment.
+    TEST = "test" in sys.argv
+
+    # Logging.
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
@@ -148,7 +152,7 @@ class Common(Configuration):
         },
     }
 
-    # Django Rest Framework
+    # Django Rest Framework.
     REST_FRAMEWORK = {
         "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
         "PAGE_SIZE": int(os.getenv("DJANGO_PAGINATION_LIMIT", 10)),
@@ -159,7 +163,8 @@ class Common(Configuration):
             "rest_framework.renderers.BrowsableAPIRenderer",
         ),
     }
-    # CORS - unrestricted
+
+    # CORS - unrestricted.
     CORS_ORIGIN_ALLOW_ALL = True
     API_KEY_HEADER = "api-key"
     CORS_ALLOW_HEADERS = default_headers + (API_KEY_HEADER,)
