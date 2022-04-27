@@ -1,5 +1,6 @@
 import csv
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Dict, List
@@ -15,6 +16,10 @@ from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.sample import Sample
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
+
 
 class Project(models.Model):
     class Meta:
@@ -22,30 +27,29 @@ class Project(models.Model):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
+    # TODO(arkid15r): extract to an abstact model.
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    scpca_id = models.TextField(unique=True, null=False)
-    pi_name = models.TextField(null=False)
-    human_readable_pi_name = models.TextField(null=False)
-    title = models.TextField(null=False)
     abstract = models.TextField(null=False)
-    contact_name = models.TextField(null=True)
+    additional_metadata_keys = models.TextField(blank=True, null=True)
     contact_email = models.TextField(null=True)
+    contact_name = models.TextField(null=True)
+    diagnoses = models.TextField(blank=True, null=True)
+    diagnoses_counts = models.TextField(blank=True, null=True)
+    disease_timings = models.TextField(null=False)
+    downloadable_sample_count = models.IntegerField(default=0)
     has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
-    disease_timings = models.TextField(null=False)
-    diagnoses = models.TextField(blank=True, null=True)
-    diagnoses_counts = models.TextField(blank=True, null=True)
+    human_readable_pi_name = models.TextField(null=False)
+    modalities = models.TextField(blank=True, null=True)
+    pi_name = models.TextField(null=False)
+    sample_count = models.IntegerField(default=0)
+    scpca_id = models.TextField(unique=True, null=False)
     seq_units = models.TextField(blank=True, null=True)
     technologies = models.TextField(blank=True, null=True)
-    modalities = models.TextField(blank=True, null=True)
-
-    additional_metadata_keys = models.TextField(blank=True, null=True)
-
-    downloadable_sample_count = models.IntegerField(default=0)
-    sample_count = models.IntegerField(default=0)
+    title = models.TextField(null=False)
 
     def __str__(self):
         return f"Project {self.scpca_id}"
@@ -116,7 +120,9 @@ class Project(models.Model):
         combined_metadata = []
 
         # Get all the field names to pass to the csv.DictWriter
-        field_names = list(single_cell_libraries_metadata[0].keys()) + list(samples_metadata[0].keys())
+        field_names = list(single_cell_libraries_metadata[0].keys()) + list(
+            samples_metadata[0].keys()
+        )
         field_names += ("scpca_project_id", "pi_name", "project_title")  # Additional fields.
 
         field_order = [
@@ -339,7 +345,7 @@ class Project(models.Model):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(common.README_FILE_PATH, common.README_FILE_NAME)
+            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
             zip_file.write(self.output_single_cell_metadata_path, computed_file.metadata_file_name)
 
             for sample_id, file_paths in sample_to_file_mapping.items():
@@ -369,7 +375,7 @@ class Project(models.Model):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(common.README_FILE_PATH, common.README_FILE_NAME)
+            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
             zip_file.write(self.output_spatial_metadata_path, computed_file.metadata_file_name)
 
             for sample_id, file_paths in sample_to_file_mapping.items():
@@ -385,7 +391,7 @@ class Project(models.Model):
     def get_sample_input_data_dir(self, scpca_id):
         return os.path.join(self.input_data_dir, scpca_id)
 
-    def load_data(self, readme_template: str, scpca_sample_ids=None) -> List[ComputedFile]:
+    def load_data(self, scpca_sample_ids=None) -> List[ComputedFile]:
         """
         Goes through a project directory contents, parses multiple level metadata
         files, writes combined metadata into resulting files.
@@ -394,7 +400,9 @@ class Project(models.Model):
         """
 
         # Create readme file first.
-        with open(common.README_FILE_PATH, "w") as readme_file:
+        with open(ComputedFile.README_TEMPLATE_FILE_PATH, "r") as readme_template_file:
+            readme_template = readme_template_file.read()
+        with open(ComputedFile.README_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 readme_template.format(project_accession=self.scpca_id, project_url=self.url)
             )
@@ -404,7 +412,7 @@ class Project(models.Model):
             with open(self.input_samples_metadata_path) as samples_csv_file:
                 samples_metadata = [line for line in csv.DictReader(samples_csv_file)]
         except FileNotFoundError:
-            print(f"No samples metadata file found for project {self.scpca_id}.")
+            logger.error(f"No samples metadata file found for '{self}'.")
             return
 
         computed_files = []

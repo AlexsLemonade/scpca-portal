@@ -25,10 +25,9 @@ class ProjectSummary(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     diagnosis = models.TextField(blank=True, null=True)
+    sample_count = models.PositiveIntegerField(default=0)
     seq_unit = models.TextField(blank=True, null=True)
     technology = models.TextField(blank=True, null=True)
-
-    sample_count = models.PositiveIntegerField(default=0)
 
     project = models.ForeignKey(
         "Project", blank=False, null=True, on_delete=models.CASCADE, related_name="summaries"

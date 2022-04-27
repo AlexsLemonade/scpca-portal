@@ -33,7 +33,7 @@ s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
 def cleanup_output_data_dir():
-    cleanup_items = (common.README_FILE_NAME, "*.tsv")
+    cleanup_items = (ComputedFile.README_FILE_NAME, "*.tsv")
     for item in cleanup_items:
         for path in Path(common.OUTPUT_DATA_DIR).glob(item):
             path.unlink()
@@ -74,9 +74,6 @@ def load_data_from_s3(
     if "public-test" in input_bucket_name:
         command_list.append("--no-sign-request")
     subprocess.check_call(command_list)
-
-    with open(common.README_TEMPLATE_PATH) as readme_template_file:
-        readme_template = readme_template_file.read()
 
     with open(Project.get_input_metadata_path()) as project_csv:
         project_list = list(csv.DictReader(project_csv))
@@ -119,7 +116,7 @@ def load_data_from_s3(
             continue
 
         logger.info(f"Importing '{project}' data")
-        computed_files = project.load_data(readme_template, scpca_sample_ids=scpca_sample_ids)
+        computed_files = project.load_data(scpca_sample_ids=scpca_sample_ids)
         samples_count = project.samples.count()
         if samples_count:
             logger.info(f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'")

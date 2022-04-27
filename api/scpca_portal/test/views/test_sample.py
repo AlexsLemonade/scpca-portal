@@ -10,6 +10,9 @@ class SamplesTestCase(APITestCase):
 
     def setUp(self):
         self.sample = SampleFactory()
+        computed_file = SampleComputedFileFactory()
+        computed_file.smpl = self.sample
+        computed_file.save()
 
     def test_get_single(self):
         url = reverse("samples-detail", args=[self.sample.scpca_id])
@@ -17,10 +20,6 @@ class SamplesTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_list(self):
-        computed_file = SampleComputedFileFactory()
-        computed_file.smpl = self.sample
-        computed_file.save()
-
         response = self.client.get(reverse("samples-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         json_response = response.json()

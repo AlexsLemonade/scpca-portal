@@ -62,6 +62,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
 class ProjectComputedFileFactory(LeafComputedFileFactory):
     type = ComputedFile.FileTypes.PROJECT_ZIP
 
+
 class SampleComputedFileFactory(LeafComputedFileFactory):
     type = ComputedFile.FileTypes.SAMPLE_ZIP
 

@@ -36,8 +36,8 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(ComputedFileDetailSerializer, self).__init__(*args, **kwargs)
         if "context" in kwargs:
-            # Only include the field `download_url` if a valid token is specified
-            # the token lookup happens in the view.
+            # Only include the field `download_url` if a valid token is
+            # specified. The token lookup happens in the view.
             if "token" not in kwargs["context"]:
                 self.fields.pop("download_url")
 
@@ -69,7 +69,9 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         token_id = self.request.META.get("HTTP_API_KEY", None)
         if token_id:
             try:
-                serializer_context.update({"token": APIToken.objects.get(id=token_id, is_activated=True)})
+                serializer_context.update(
+                    {"token": APIToken.objects.get(id=token_id, is_activated=True)}
+                )
             except (APIToken.DoesNotExist, ValidationError):
                 raise PermissionDenied(
                     {"message": "Your token is not valid or not activated.", "token_id": token_id}

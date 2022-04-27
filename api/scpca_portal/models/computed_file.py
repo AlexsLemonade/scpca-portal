@@ -36,14 +36,18 @@ class ComputedFile(models.Model):
             (SAMPLE_ZIP, "Sample ZIP"),
         )
 
+    README_FILE_NAME = "README.md"
+    README_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_FILE_NAME)
+    README_TEMPLATE_FILE_PATH = os.path.join(common.TEMPLATE_DIR, "readme.md")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    type = models.TextField(choices=FileTypes.CHOICES)
-    workflow_version = models.TextField(null=False)
     s3_bucket = models.TextField(null=False)
     s3_key = models.TextField(null=False)
     size_in_bytes = models.BigIntegerField()
+    type = models.TextField(choices=FileTypes.CHOICES)
+    workflow_version = models.TextField(null=False)
 
     # This is going to be renamed to `project` later.
     prjct = models.ForeignKey(

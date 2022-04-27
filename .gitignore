@@ -68,7 +68,7 @@ api/uploaded_files
 
 # Local Data
 api/data
-api/output
+api/test_data
 
 # Flask stuff:
 instance/

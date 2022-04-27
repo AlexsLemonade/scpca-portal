@@ -7,10 +7,9 @@ from scpca_portal.views.project import ProjectDetailSerializer, ProjectSerialize
 
 class TestProjectSerializer(TestCase):
     def setUp(self):
-        """Create a project to get a valid dict"""
-        project = ProjectFactory()
-        self.project = project
-        self.project_data = model_to_dict(project)
+        """Create a project to get a valid dict."""
+        self.project = ProjectFactory()
+        self.project_data = model_to_dict(self.project)
 
         self.project_data["scpca_id"] = "SCPCP99999"  # This needs to be unique.
         self.project_data.pop("id")

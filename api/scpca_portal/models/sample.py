@@ -20,6 +20,7 @@ class Sample(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    additional_metadata = JSONField(default=dict)
     age_at_diagnosis = models.TextField(blank=True, null=True)
     cell_count = models.IntegerField()
     diagnosis = models.TextField(blank=True, null=True)
@@ -33,8 +34,6 @@ class Sample(models.Model):
     technologies = models.TextField(null=False)
     tissue_location = models.TextField(blank=True, null=True)
     treatment = models.TextField(blank=True, null=True)
-
-    additional_metadata = JSONField(default=dict)
 
     project = models.ForeignKey(
         "Project", null=False, on_delete=models.CASCADE, related_name="samples"
@@ -123,10 +122,10 @@ class Sample(models.Model):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(common.README_FILE_PATH, common.README_FILE_NAME)
+            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
             zip_file.write(
                 Sample.get_output_metadata_path(self.scpca_id),
-                ComputedFile.FileNames.SINGLE_CELL_METADATA_FILE_NAME
+                ComputedFile.FileNames.SINGLE_CELL_METADATA_FILE_NAME,
             )
 
             file_paths = []
@@ -158,10 +157,10 @@ class Sample(models.Model):
 
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_object:
-            zip_object.write(common.README_FILE_PATH, common.README_FILE_NAME)
+            zip_object.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
             zip_object.write(
                 Sample.get_output_spatial_metadata_path(self.scpca_id),
-                ComputedFile.FileNames.SPATIAL_METADATA_FILE_NAME
+                ComputedFile.FileNames.SPATIAL_METADATA_FILE_NAME,
             )
 
             libraries = [lm for lm in libraries_metadata if lm["scpca_sample_id"] == self.scpca_id]
