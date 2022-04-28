@@ -94,6 +94,7 @@ def load_data_from_s3(
         # Only import new projects. If old ones are desired they should be
         # purged and readded.
         if not created:
+            logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
             continue
 
         project.abstract = project_data["abstract"]
@@ -155,9 +156,9 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--reload-all", action="store_true")
         parser.add_argument("--reload-existing", action="store_true")
-        parser.add_argument("--scpca-project-ids", nargs="+", type=str)
-        parser.add_argument("--scpca-sample-ids", nargs="+", type=str)
-        parser.add_argument("--update-s3", default=settings.UPDATE_S3_DATA, type=bool)
+        parser.add_argument("--scpca-project-ids", action="extend", nargs="+", type=str)
+        parser.add_argument("--scpca-sample-ids", action="extend", nargs="+", type=str)
+        parser.add_argument("--update-s3", action="store_true", default=settings.UPDATE_S3_DATA)
 
     def handle(self, *args, **options):
         load_data_from_s3(

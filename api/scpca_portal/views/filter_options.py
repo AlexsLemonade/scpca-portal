@@ -14,10 +14,10 @@ class FilterOptionsViewSet(viewsets.ViewSet):
         for project in Project.objects.values(
             "diagnoses", "modalities", "seq_units", "technologies"
         ):
-            diagnoses_options.update((project["diagnoses"] or "").split(", "))
-            modalities.update((project["modalities"] or "").split(", "))
-            seq_units_options.update((project["seq_units"] or "").split(", "))
-            technologies_options.update((project["technologies"] or "").split(", "))
+            diagnoses_options.update((d for d in (project["diagnoses"] or "").split(", ") if d))
+            modalities.update(m for m in (project["modalities"] or "").split(", ") if m)
+            seq_units_options.update(su for su in (project["seq_units"] or "").split(", ") if su)
+            technologies_options.update(t for t in (project["technologies"] or "").split(", ") if t)
 
         return JsonResponse(
             {
