@@ -242,7 +242,7 @@ def mock_package_files_for_project(
     project: Project,
 ):
     computed_file = ComputedFile(
-        type=ComputedFile.FileTypes.PROJECT_ZIP,
+        type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
         workflow_version="0.0.1",
         project=project,
         s3_bucket=settings.AWS_S3_BUCKET_NAME,
@@ -261,7 +261,7 @@ def mock_package_files_for_sample(
     zip_file_name = f"{sample_id}.zip"
 
     computed_file = ComputedFile(
-        type=ComputedFile.FileTypes.SAMPLE_ZIP,
+        type=ComputedFile.OutputFileTypes.SAMPLE_ZIP,
         workflow_version="0.0.1",
         s3_bucket=settings.AWS_S3_BUCKET_NAME,
         s3_key=zip_file_name,

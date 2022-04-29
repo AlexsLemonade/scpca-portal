@@ -217,7 +217,7 @@ class TestLoadData(TestCase):
 
         with ZipFile(new_project.output_single_cell_data_file_path) as project_zip:
             sample_metadata = project_zip.read(
-                ComputedFile.FileNames.SINGLE_CELL_METADATA_FILE_NAME
+                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
             )
             sample_metadata_lines = sample_metadata.decode("utf-8").split("\r\n")
 
@@ -235,7 +235,7 @@ class TestLoadData(TestCase):
         sample = new_project.samples.first()
         with ZipFile(sample.output_single_cell_data_file_path) as sample_zip:
             with sample_zip.open(
-                ComputedFile.FileNames.SINGLE_CELL_METADATA_FILE_NAME, "r"
+                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
                     TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
@@ -306,7 +306,7 @@ class TestLoadData(TestCase):
 
         with ZipFile(new_project.output_spatial_data_file_path) as project_zip:
             spatial_metadata_file = project_zip.read(
-                ComputedFile.FileNames.SPATIAL_METADATA_FILE_NAME
+                ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
             )
             spatial_metadata = spatial_metadata_file.decode("utf-8").split("\r\n")
             # 2 items + header.
@@ -323,7 +323,7 @@ class TestLoadData(TestCase):
         sample = new_project.samples.first()
         with ZipFile(sample.output_spatial_data_file_path) as sample_zip:
             with sample_zip.open(
-                ComputedFile.FileNames.SPATIAL_METADATA_FILE_NAME, "r"
+                ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
                     TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB

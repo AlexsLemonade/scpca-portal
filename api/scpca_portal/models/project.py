@@ -2,11 +2,8 @@ import csv
 import json
 import logging
 import os
-from pathlib import Path
 from typing import Dict, List
-from zipfile import ZipFile
 
-from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -173,7 +170,9 @@ class Project(models.Model):
                 sample_metadata_copy["project_title"] = self.title
                 sample_metadata_copy["scpca_project_id"] = self.scpca_id
 
-                sample_metadata_path = Sample.get_output_metadata_path(scpca_sample_id)
+                sample_metadata_path = Sample.get_output_single_cell_metadata_file_path(
+                    scpca_sample_id
+                )
                 with open(sample_metadata_path, "w", newline="") as sample_file:
                     sample_csv_writer = csv.DictWriter(
                         sample_file, fieldnames=field_order, delimiter=common.TAB
@@ -306,7 +305,7 @@ class Project(models.Model):
                 sample_metadata_copy["project_title"] = self.title
                 sample_metadata_copy["scpca_project_id"] = self.scpca_id
 
-                sample_metadata_path = Sample.get_output_spatial_metadata_path(scpca_sample_id)
+                sample_metadata_path = Sample.get_output_spatial_metadata_file_path(scpca_sample_id)
                 with open(sample_metadata_path, "w", newline="") as sample_file:
                     sample_csv_writer = csv.DictWriter(
                         sample_file, fieldnames=field_order, delimiter=common.TAB
@@ -330,61 +329,6 @@ class Project(models.Model):
                         project_csv_writer.writerow(library)
 
         return combined_metadata
-
-    def create_single_cell_data_file(self, sample_to_file_mapping: dict) -> ComputedFile:
-        """Produces a single data file of combined single cell data."""
-
-        computed_file = ComputedFile(
-            prjct=self,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=self.output_single_cell_data_file_name,
-            type=ComputedFile.FileTypes.PROJECT_ZIP,
-            workflow_version="",
-        )
-
-        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
-            zip_file.write(self.output_single_cell_metadata_path, computed_file.metadata_file_name)
-
-            for sample_id, file_paths in sample_to_file_mapping.items():
-                for file_path in file_paths:
-                    # Nest these under thier sample id.
-                    archive_path = os.path.join(sample_id, os.path.basename(file_path))
-                    zip_file.write(file_path, archive_path)
-
-            if self.has_bulk_rna_seq:
-                zip_file.write(self.input_bulk_metadata_path, "bulk_metadata.tsv")
-                zip_file.write(self.input_bulk_quant_path, "bulk_quant.tsv")
-
-        computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
-        computed_file.save()
-
-        return computed_file
-
-    def create_spatial_data_file(self, sample_to_file_mapping: dict) -> ComputedFile:
-        """Produces a data file of combined spatial data."""
-
-        computed_file = ComputedFile(
-            prjct=self,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=self.output_spatial_data_file_name,
-            type=ComputedFile.FileTypes.PROJECT_SPATIAL_ZIP,
-            workflow_version="",
-        )
-
-        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
-            zip_file.write(self.output_spatial_metadata_path, computed_file.metadata_file_name)
-
-            for sample_id, file_paths in sample_to_file_mapping.items():
-                sample_path = Path(self.get_sample_input_data_dir(sample_id))
-                for file_path in file_paths:
-                    zip_file.write(file_path, Path(file_path).relative_to(sample_path))
-
-        computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
-        computed_file.save()
-
-        return computed_file
 
     def get_sample_input_data_dir(self, scpca_id):
         return os.path.join(self.input_data_dir, scpca_id)
@@ -483,23 +427,32 @@ class Project(models.Model):
             workflow_version = sample_metadata.pop("workflow_version")
             sample = Sample.create_from_dict(sample_metadata, self)
 
-            computed_file, single_cell_metadata_files = sample.create_single_cell_data_file(
-                combined_single_cell_metadata, workflow_version
+            (
+                computed_file,
+                single_cell_metadata_files,
+            ) = ComputedFile.create_sample_single_cell_data_file(
+                sample, combined_single_cell_metadata, workflow_version
             )
             computed_files.append(computed_file)
             single_cell_file_mapping.update(single_cell_metadata_files)
 
             if self.has_spatial_data:
-                computed_file, spatial_metadata_files = sample.create_spatial_data_file(
-                    combined_spatial_metadata,
-                    workflow_version,
+                (
+                    computed_file,
+                    spatial_metadata_files,
+                ) = ComputedFile.create_sample_spatial_data_file(
+                    sample, combined_spatial_metadata, workflow_version
                 )
                 computed_files.append(computed_file)
                 spatial_file_mapping.update(spatial_metadata_files)
 
-        computed_files.append(self.create_single_cell_data_file(single_cell_file_mapping))
+        computed_files.append(
+            ComputedFile.create_project_single_cell_data_file(self, single_cell_file_mapping)
+        )
         if self.has_spatial_data:
-            computed_files.append(self.create_spatial_data_file(spatial_metadata_files))
+            computed_files.append(
+                ComputedFile.create_project_spatial_data_file(self, spatial_metadata_files)
+            )
 
         return computed_files
 

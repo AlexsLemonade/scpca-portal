@@ -34,8 +34,8 @@ class ComputedFileSerializer(serializers.ModelSerializer):
     sample = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
 
     def get_project(self, instance):
-        if instance.prjct:
-            return instance.prjct.scpca_id
+        if instance.project:
+            return instance.project.scpca_id
 
 
 class ProjectSummarySerializer(serializers.ModelSerializer):

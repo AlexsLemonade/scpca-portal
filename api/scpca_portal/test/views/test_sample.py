@@ -11,7 +11,7 @@ class SamplesTestCase(APITestCase):
     def setUp(self):
         self.sample = SampleFactory()
         computed_file = SampleComputedFileFactory()
-        computed_file.smpl = self.sample
+        computed_file.sample = self.sample
         computed_file.save()
 
     def test_get_single(self):

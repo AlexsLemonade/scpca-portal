@@ -60,11 +60,11 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
 
 
 class ProjectComputedFileFactory(LeafComputedFileFactory):
-    type = ComputedFile.FileTypes.PROJECT_ZIP
+    type = ComputedFile.OutputFileTypes.PROJECT_ZIP
 
 
 class SampleComputedFileFactory(LeafComputedFileFactory):
-    type = ComputedFile.FileTypes.SAMPLE_ZIP
+    type = ComputedFile.OutputFileTypes.SAMPLE_ZIP
 
 
 class SampleFactory(factory.django.DjangoModelFactory):
@@ -77,7 +77,7 @@ class SampleFactory(factory.django.DjangoModelFactory):
     }
     age_at_diagnosis = "4"
     cell_count = 42
-    computed_file1 = factory.RelatedFactory(SampleComputedFileFactory, "smpl")
+    computed_file1 = factory.RelatedFactory(SampleComputedFileFactory, "sample")
     diagnosis = "pilocytic astrocytoma"
     disease_timing = "primary diagnosis"
     has_cite_seq_data = True
@@ -91,6 +91,6 @@ class SampleFactory(factory.django.DjangoModelFactory):
 
 
 class ProjectFactory(LeafProjectFactory):
-    computed_file1 = factory.RelatedFactory(ProjectComputedFileFactory, "prjct")
+    computed_file1 = factory.RelatedFactory(ProjectComputedFileFactory, "project")
     sample1 = factory.RelatedFactory(SampleFactory, "project")
     summary1 = factory.RelatedFactory(ProjectSummaryFactory, factory_related_name="project")

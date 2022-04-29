@@ -6,7 +6,8 @@ from django.core.management.base import BaseCommand
 from scpca_portal.models.project import Project
 
 logger = logging.getLogger()
-
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
 
 class Command(BaseCommand):
     help = """Deletes all data related to a project with ScPCA ID `scpca_id`."""
@@ -22,7 +23,10 @@ class Command(BaseCommand):
             ),
         )
         parser.add_argument(
-            "--scpca-id", help="The ScPCA ID for project whose data will be deleted.", required=True, type=str
+            "--scpca-id",
+            help="The ScPCA ID for project whose data will be deleted.",
+            required=True,
+            type=str,
         )
 
     def handle(self, *args, **options):
@@ -32,4 +36,4 @@ class Command(BaseCommand):
             logger.info(f"Purging '{project}'")
             project.purge(delete_from_s3=options["delete_from_s3"])
         except Project.DoesNotExist:
-            logger.error(f"Project with scpca_id '{options["scpca_id"]}' not found")
+            logger.error(f"Project with scpca_id {options['scpca_id']} not found")

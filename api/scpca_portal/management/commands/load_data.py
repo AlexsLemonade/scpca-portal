@@ -24,6 +24,9 @@ ALLOWED_SUBMITTERS = {
 }
 
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
+
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
