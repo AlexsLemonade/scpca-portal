@@ -9,6 +9,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
+
 class Command(BaseCommand):
     help = """Deletes all data related to a project with ScPCA ID `scpca_id`."""
 
