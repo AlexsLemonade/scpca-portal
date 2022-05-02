@@ -30,7 +30,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        print(options)
         try:
             project = Project.objects.get(scpca_id=options["scpca_id"])
             logger.info(f"Purging '{project}'")

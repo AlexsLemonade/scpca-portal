@@ -114,7 +114,7 @@ class Common(Configuration):
     DEBUG = strtobool(os.getenv("DJANGO_DEBUG", "no"))
 
     # Indicates running in test environment.
-    TEST = "test" in sys.argv
+    TEST = sys.argv[1] == "test"
 
     # Logging.
     LOGGING = {
