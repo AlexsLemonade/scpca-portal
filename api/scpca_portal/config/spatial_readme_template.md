@@ -6,11 +6,10 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 This download includes gene expression data from libraries processed using spatial transcriptomics and associated metadata for samples from project [{project_accession}]({project_url}) in the ScPCA portal.
 
-Each sample folder (indicated by the `SCPCS` prefix) contains the files for all spatial transcriptomics libraries (`SCPCL` prefix) derived from that biological sample.
+For all spatial transcriptomics libraries (indicated by the `SCPCL` prefix) , a `SCPCL000000_spatial` folder will be nested inside the corresponding sample folder (`SCPCS` prefix) in the download.
 See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/en/latest/faq.html#what-is-the-difference-between-samples-and-libraries) for more information.
 
-For all spatial transcriptomics libraries, a `SCPCL000000_spatial` folder will be nested inside the corresponding sample folder in the download.
-Inside that folder will be the following folders and files:
+Inside the `SCPCL000000_spatial` folder will be the following folders and files:
 
 - A `raw_feature_bc_matrix` folder containing the [unfiltered counts files](https://support.10xgenomics.com/spatial-gene-expression/software/pipelines/latest/output/matrices)
 - A `filtered_feature_bc_matrix` folder containing the [filtered counts files](https://support.10xgenomics.com/spatial-gene-expression/software/pipelines/latest/output/matrices)
