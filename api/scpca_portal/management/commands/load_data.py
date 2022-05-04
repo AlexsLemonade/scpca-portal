@@ -30,6 +30,50 @@ logger.addHandler(logging.StreamHandler())
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
+class Command(BaseCommand):
+    help = """Populates the database with data.
+
+    The data should be contained in an S3 bucket called scpca-portal-inputs.
+
+    The directory structure for this bucket should follow this pattern:
+        /project_metadata.csv
+        /SCPCP000001/libraries_metadata.csv
+        /SCPCP000001/samples_metadata.csv
+        /SCPCP000001/SCPCS000109/SCPCL000126_filtered.rds
+        /SCPCP000001/SCPCS000109/SCPCL000126_unfiltered.rds
+        /SCPCP000001/SCPCS000109/SCPCL000126_qc.html
+        /SCPCP000001/SCPCS000109/SCPCL000126_metadata.json
+        /SCPCP000001/SCPCS000109/SCPCL000127_filtered.rds
+        /SCPCP000001/SCPCS000109/SCPCL000127_unfiltered.rds
+        /SCPCP000001/SCPCS000109/SCPCL000127_qc.html
+        /SCPCP000001/SCPCS000109/SCPCL000127_metadata.json
+
+    The files will be zipped up and stats will be calculated for them.
+
+    If run locally the zipped ComputedFiles will be copied to the
+    "scpca-local-data" bucket.
+
+    If run in the cloud the zipped ComputedFiles files will be copied
+    to a stack-specific S3 bucket."""
+
+    def add_arguments(self, parser):
+        parser.add_argument("--reload-all", action="store_true")
+        parser.add_argument("--reload-existing", action="store_true")
+        parser.add_argument("--scpca-project-ids", action="extend", nargs="+", type=str)
+        parser.add_argument("--scpca-sample-ids", action="extend", nargs="+", type=str)
+        parser.add_argument("--update-s3", action="store_true", default=settings.UPDATE_S3_DATA)
+
+    def handle(self, *args, **options):
+        load_data_from_s3(
+            options["update_s3"],
+            options["reload_all"],
+            options["reload_existing"],
+            options["scpca_project_ids"],
+            options["scpca_sample_ids"],
+        )
+        cleanup_output_data_dir()
+
+
 def cleanup_output_data_dir():
     cleanup_items = (ComputedFile.README_FILE_NAME, "*.tsv")
     for item in cleanup_items:
@@ -57,21 +101,21 @@ def load_data_from_s3(
     if not os.path.exists(common.INPUT_DATA_DIR):
         os.makedirs(common.INPUT_DATA_DIR)
 
-    # Prepare data output directory.
-    shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
-    os.mkdir(common.OUTPUT_DATA_DIR)
+    # # Prepare data output directory.
+    # shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
+    # os.mkdir(common.OUTPUT_DATA_DIR)
 
-    command_list = [
-        "aws",
-        "s3",
-        "sync",
-        "--delete",
-        f"s3://{input_bucket_name}",
-        common.INPUT_DATA_DIR,
-    ]
-    if "public-test" in input_bucket_name:
-        command_list.append("--no-sign-request")
-    subprocess.check_call(command_list)
+    # command_list = [
+    #     "aws",
+    #     "s3",
+    #     "sync",
+    #     "--delete",
+    #     f"s3://{input_bucket_name}",
+    #     common.INPUT_DATA_DIR,
+    # ]
+    # if "public-test" in input_bucket_name:
+    #     command_list.append("--no-sign-request")
+    # subprocess.check_call(command_list)
 
     with open(Project.get_input_metadata_path()) as project_csv:
         project_list = list(csv.DictReader(project_csv))
@@ -128,48 +172,3 @@ def load_data_from_s3(
                     settings.AWS_S3_BUCKET_NAME,
                     computed_file.s3_key,
                 )
-
-
-class Command(BaseCommand):
-    help = """Populates the database with data.
-
-    The data should be contained in an S3 bucket called scpca-portal-inputs.
-
-    The directory structure for this bucket should follow this pattern:
-        /project_metadata.csv
-        /SCPCP000001/libraries_metadata.csv
-        /SCPCP000001/samples_metadata.csv
-        /SCPCP000001/SCPCS000109/SCPCL000126_filtered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_unfiltered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_qc.html
-        /SCPCP000001/SCPCS000109/SCPCL000126_metadata.json
-        /SCPCP000001/SCPCS000109/SCPCL000127_filtered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_unfiltered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_qc.html
-        /SCPCP000001/SCPCS000109/SCPCL000127_metadata.json
-
-    The files will be zipped up and stats will be calculated for them.
-
-    If run locally the zipped ComputedFiles will be copied to the
-    "scpca-local-data" bucket.
-
-    If run in the cloud the zipped ComputedFiles files will be copied
-    to a stack-specific S3 bucket."""
-
-    def add_arguments(self, parser):
-        parser.add_argument("--reload-all", action="store_true")
-        parser.add_argument("--reload-existing", action="store_true")
-        parser.add_argument("--scpca-project-ids", action="extend", nargs="+", type=str)
-        parser.add_argument("--scpca-sample-ids", action="extend", nargs="+", type=str)
-        parser.add_argument("--update-s3", action="store_true", default=settings.UPDATE_S3_DATA)
-
-    def handle(self, *args, **options):
-        load_data_from_s3(
-            options["update_s3"],
-            options["reload_all"],
-            options["reload_existing"],
-            options["scpca_project_ids"],
-            options["scpca_sample_ids"],
-        )
-
-        cleanup_output_data_dir()

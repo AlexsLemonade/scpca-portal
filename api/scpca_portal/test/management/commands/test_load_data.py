@@ -69,15 +69,14 @@ class TestLoadData(TestCase):
         self.assertIsNotNone(sample.tissue_location)
 
         expected_metadata_keys = {
-            "metastasis",
             "participant_id",
-            "relapse_status",
             "scpca_project_id",
             "submitter_id",
             "submitter",
-            "vital_status",
         }
-        self.assertEqual(set(sample.additional_metadata.keys()), expected_metadata_keys)
+
+        for expected_metadata_key in expected_metadata_keys:
+            self.assertIn(expected_metadata_key, sample.additional_metadata.keys())
 
         self.assertIsNotNone(project.computed_file)
         self.assertGreater(project.computed_file.size_in_bytes, 0)
@@ -176,11 +175,9 @@ class TestLoadData(TestCase):
             "has_citeseq",
             "mapped_reads",
             "mapping_index",
-            "metastasis",
             "participant_id",
             "pi_name",
             "project_title",
-            "relapse_status",
             "salmon_version",
             "scpca_library_id",
             "scpca_project_id",
@@ -196,7 +193,6 @@ class TestLoadData(TestCase):
             "transcript_type",
             "treatment",
             "unfiltered_cells",
-            "vital_status",
             "workflow_commit",
             "workflow_version",
             "workflow",
@@ -223,8 +219,8 @@ class TestLoadData(TestCase):
 
         # 1 item + header.
         self.assertTrue(len(sample_metadata_lines), 2)
-        sample_metadata_keys = set(sample_metadata_lines[0].split(common.TAB))
 
+        sample_metadata_keys = set(sample_metadata_lines[0].split(common.TAB))
         self.assertEqual(sample_metadata_keys, expected_keys)
 
         # There are three files for each sample, plus a README.md
@@ -279,11 +275,9 @@ class TestLoadData(TestCase):
             "genome_assembly",
             "mapped_reads",
             "mapping_index",
-            "metastasis",
             "participant_id",
             "pi_name",
             "project_title",
-            "relapse_status",
             "scpca_library_id",
             "scpca_project_id",
             "scpca_sample_id",
@@ -298,7 +292,6 @@ class TestLoadData(TestCase):
             "tissue_location",
             "total_reads",
             "treatment",
-            "vital_status",
             "workflow_commit",
             "workflow_version",
             "workflow",

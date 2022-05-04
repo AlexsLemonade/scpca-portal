@@ -75,52 +75,16 @@ class Project(models.Model):
         return os.path.join(self.input_data_dir, "samples_metadata.csv")
 
     @property
-    def output_single_cell_data_file_name(self):
-        return f"{self.scpca_id}.zip"
+    def output_single_cell_ignored_fields(self):
+        return {
+            "injected": ("seq_units", "technologies"),
+            "library": ("filtering_method",),
+            "sample": ("metastasis", "relapse_status", "upload_date", "vital_status"),
+        }
 
     @property
-    def output_single_cell_data_file_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, self.output_single_cell_data_file_name)
-
-    @property
-    def output_spatial_data_file_name(self):
-        return f"{self.scpca_id}_spatial.zip"
-
-    @property
-    def output_spatial_data_file_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, self.output_spatial_data_file_name)
-
-    @property
-    def output_single_cell_metadata_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, f"{self.scpca_id}_libraries_metadata.tsv")
-
-    @property
-    def output_spatial_metadata_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, f"{self.scpca_id}_spatial_metadata.tsv")
-
-    @property
-    def url(self):
-        return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
-
-    def combine_single_cell_metadata(
-        self,
-        samples_metadata: List[Dict],
-        single_cell_libraries_metadata: List[Dict],
-        scpca_sample_ids: List[str],
-    ):
-        """Combines the two metadata dicts together to have all single cell data
-        at the library level. Writes the combination out at the project and
-        sample level.
-        """
-        combined_metadata = []
-
-        # Get all the field names to pass to the csv.DictWriter
-        field_names = list(single_cell_libraries_metadata[0].keys()) + list(
-            samples_metadata[0].keys()
-        )
-        field_names += ("scpca_project_id", "pi_name", "project_title")  # Additional fields.
-
-        field_order = [
+    def output_single_cell_ordered_fields(self):
+        return [
             "scpca_sample_id",
             "scpca_library_id",
             "diagnosis",
@@ -137,88 +101,68 @@ class Project(models.Model):
             "tissue_location",
         ]
 
-        # Manually injected fields to be removed from the sample level.
-        sample_metadata_excluded_field_names = ("seq_units", "technologies")
+    @property
+    def output_single_cell_data_file_name(self):
+        return f"{self.scpca_id}.zip"
 
-        field_names = set(field_names)
-        field_names -= set(field_order)
-        field_names -= set(sample_metadata_excluded_field_names)
+    @property
+    def output_single_cell_data_file_path(self):
+        return os.path.join(common.OUTPUT_DATA_DIR, self.output_single_cell_data_file_name)
 
-        # The resulting field order.
-        field_order.extend(sorted(field_names))
+    @property
+    def output_single_cell_metadata_path(self):
+        return os.path.join(common.OUTPUT_DATA_DIR, f"{self.scpca_id}_libraries_metadata.tsv")
 
-        with open(self.output_single_cell_metadata_path, "w", newline="") as project_file:
-            project_csv_writer = csv.DictWriter(
-                project_file, fieldnames=field_order, delimiter=common.TAB
-            )
-            project_csv_writer.writeheader()
+    @property
+    def output_spatial_data_file_name(self):
+        return f"{self.scpca_id}_spatial.zip"
 
-            for sample_metadata in samples_metadata:
-                scpca_sample_id = sample_metadata["scpca_sample_id"]
-                if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
-                    continue
+    @property
+    def output_spatial_data_file_path(self):
+        return os.path.join(common.OUTPUT_DATA_DIR, self.output_spatial_data_file_name)
 
-                sample_metadata_copy = sample_metadata.copy()
+    @property
+    def output_spatial_metadata_ignored_fields(self):
+        return {
+            "injected": ("cell_count", "seq_units", "technologies"),
+            "library": (
+                "filtered_cells",
+                "filtered_spots",
+                "tissue_spots",
+                "unfiltered_cells",
+                "unfiltered_spots",
+            ),
+            "sample": ("metastasis", "relapse_status", "upload_date", "vital_status"),
+            "single_cell": (
+                "alevin_fry_version",
+                "cell_count",
+                "filtered_cell_count",
+                "filtering_method",
+                "has_citeseq",
+                "salmon_version",
+                "seq_units",
+                "technologies",
+                "transcript_type",
+                "unfiltered_cells",
+                "workflow_version",
+            ),
+        }
 
-                # Remove excluded fields.
-                for excluded_field_name in sample_metadata_excluded_field_names:
-                    if excluded_field_name not in sample_metadata_copy:
-                        continue
-                    sample_metadata_copy.pop(excluded_field_name)
-
-                sample_metadata_copy["pi_name"] = self.pi_name
-                sample_metadata_copy["project_title"] = self.title
-                sample_metadata_copy["scpca_project_id"] = self.scpca_id
-
-                sample_metadata_path = Sample.get_output_single_cell_metadata_file_path(
-                    scpca_sample_id
-                )
-                with open(sample_metadata_path, "w", newline="") as sample_file:
-                    sample_csv_writer = csv.DictWriter(
-                        sample_file, fieldnames=field_order, delimiter=common.TAB
-                    )
-                    sample_csv_writer.writeheader()
-
-                    for library in single_cell_libraries_metadata:
-                        if library["scpca_sample_id"] != scpca_sample_id:
-                            continue
-
-                        library.update(sample_metadata_copy)
-                        combined_metadata.append(library)
-
-                        sample_csv_writer.writerow(library)
-                        project_csv_writer.writerow(library)
-
-        return combined_metadata
-
-    def combine_spatial_metadata(
-        self,
-        samples_metadata: List[Dict],
-        spatial_libraries_metadata: List[Dict],
-        scpca_sample_ids: List[str],
-    ):
-        """Combines the two metadata dicts together to have all spatial data at
-        the library level. Writes the combination out at the project and
-        sample level.
-        """
-        combined_metadata = []
-
-        # Get all the field names to pass to the csv.DictWriter
-        field_names = list(spatial_libraries_metadata[0].keys()) + list(samples_metadata[0].keys())
-
-        field_order = [
+    @property
+    def output_spatial_metadata_ordered_fields(self):
+        return [
             "scpca_project_id",
-            "scpca_sample_id",  # From spatial file.
-            "scpca_library_id",  # From spatial file.
-            "technology",  # From spatial file.
-            "seq_unit",  # From spatial file.
-            "total_reads",  # From spatial file.
-            "mapped_reads",  # From spatial file.
+            "scpca_sample_id",
+            "scpca_library_id",
+            "technology",
+            "seq_unit",
+            "total_reads",
+            "mapped_reads",
             "genome_assembly",
-            "mapping_index",  # From spatial file.
+            "mapping_index",
             "date_processed",
             "spaceranger_version",
-            "workflow",  # From spatial file.
+            "workflow",
             "workflow_version",
             "workflow_commit",
             "diagnosis",
@@ -237,53 +181,43 @@ class Project(models.Model):
             "spinal_leptomeningeal_mets",
         ]
 
-        single_cell_excluded_field_names = (
-            "alevin_fry_version",
-            "cell_count",
-            "filtered_cell_count",
-            "filtering_method",
-            "has_citeseq",
-            "salmon_version",
-            "seq_units",
-            "technologies",
-            "transcript_type",
-            "unfiltered_cells",
-            "workflow_version",
+    @property
+    def output_spatial_metadata_path(self):
+        return os.path.join(common.OUTPUT_DATA_DIR, f"{self.scpca_id}_spatial_metadata.tsv")
+
+    @property
+    def url(self):
+        return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
+
+    def combine_single_cell_metadata(
+        self,
+        samples_metadata: List[Dict],
+        single_cell_libraries_metadata: List[Dict],
+        scpca_sample_ids: List[str],
+    ):
+        """Combines the two metadata dicts together to have all single cell data
+        at the library level. Writes the combination out to the project and
+        sample metadata files.
+        """
+        combined_metadata = []
+
+        # Get all the field names to pass to the csv.DictWriter
+        all_fields = set(single_cell_libraries_metadata[0].keys()) - set(
+            self.output_single_cell_ignored_fields["library"]
+        )
+        all_fields.update(
+            set(samples_metadata[0].keys())
+            - set(self.output_single_cell_ignored_fields["injected"])
+            - set(self.output_single_cell_ignored_fields["sample"])
         )
 
-        single_cell_suppressed_field_names = (
-            "mapped_reads",
-            "mapping_index",
-            "scpca_library_id",
-            "scpca_sample_id",
-            "seq_unit",
-            "seq_units",
-            "technologies",
-            "technology",
-            "total_reads",
-            "workflow",
-            "workflow_commit",
-            "date_processed",
-        )
+        ordered_fields = self.output_single_cell_ordered_fields
+        all_fields -= set(ordered_fields)
+        ordered_fields.extend(sorted(all_fields))  # The resulting field order.
 
-        spatial_excluded_field_names = (
-            "filtered_spots",
-            "tissue_spots",
-            "unfiltered_spots",
-        )
-
-        field_names = set(field_names)
-        field_names -= set(single_cell_excluded_field_names)
-        field_names -= set(single_cell_suppressed_field_names)
-        field_names -= set(spatial_excluded_field_names)
-        field_names -= set(field_order)
-
-        # The resulting field order.
-        field_order.extend(sorted(field_names))
-
-        with open(self.output_spatial_metadata_path, "w", newline="") as project_file:
+        with open(self.output_single_cell_metadata_path, "w", newline="") as project_file:
             project_csv_writer = csv.DictWriter(
-                project_file, fieldnames=field_order, delimiter=common.TAB
+                project_file, fieldnames=ordered_fields, delimiter=common.TAB
             )
             project_csv_writer.writeheader()
 
@@ -294,8 +228,92 @@ class Project(models.Model):
 
                 sample_metadata_copy = sample_metadata.copy()
 
-                # Remove excluded/suppressed fields.
-                field_names = single_cell_excluded_field_names + single_cell_suppressed_field_names
+                # Exclude fields.
+                field_names = set(
+                    self.output_single_cell_ignored_fields["injected"]
+                    + self.output_single_cell_ignored_fields["sample"]
+                )
+                for field_name in field_names:
+                    if field_name not in sample_metadata_copy:
+                        continue
+                    sample_metadata_copy.pop(field_name)
+
+                sample_metadata_copy["pi_name"] = self.pi_name
+                sample_metadata_copy["project_title"] = self.title
+                sample_metadata_copy["scpca_project_id"] = self.scpca_id
+
+                sample_metadata_path = Sample.get_output_single_cell_metadata_file_path(
+                    scpca_sample_id
+                )
+                with open(sample_metadata_path, "w", newline="") as sample_file:
+                    sample_csv_writer = csv.DictWriter(
+                        sample_file, fieldnames=ordered_fields, delimiter=common.TAB
+                    )
+                    sample_csv_writer.writeheader()
+
+                    for library in single_cell_libraries_metadata:
+                        if library["scpca_sample_id"] != scpca_sample_id:
+                            continue
+
+                        # Exclude fields.
+                        for field_name in self.output_single_cell_ignored_fields["library"]:
+                            if field_name not in library:
+                                continue
+                            library.pop(field_name)
+
+                        library.update(sample_metadata_copy)
+                        combined_metadata.append(library)
+
+                        sample_csv_writer.writerow(library)
+                        project_csv_writer.writerow(library)
+
+        return combined_metadata
+
+    def combine_spatial_metadata(
+        self,
+        samples_metadata: List[Dict],
+        spatial_libraries_metadata: List[Dict],
+        scpca_sample_ids: List[str],
+    ):
+        """Combines the two metadata dicts together to have all spatial data at
+        the library level. Writes the combination out to the project and
+        sample metadata files.
+        """
+        combined_metadata = []
+
+        # Get all the field names to pass to the csv.DictWriter
+        all_fields = set(spatial_libraries_metadata[0].keys())
+        all_fields -= set(self.output_spatial_metadata_ignored_fields["library"])
+        all_fields -= set(self.output_spatial_metadata_ignored_fields["single_cell"])
+        all_fields.update(
+            set(samples_metadata[0].keys())
+            - set(self.output_spatial_metadata_ignored_fields["injected"])
+            - set(self.output_spatial_metadata_ignored_fields["sample"])
+        )
+
+        ordered_fields = self.output_spatial_metadata_ordered_fields
+        all_fields -= set(ordered_fields)
+        ordered_fields.extend(sorted(all_fields))  # The resulting field order.
+
+        with open(self.output_spatial_metadata_path, "w", newline="") as project_file:
+            project_csv_writer = csv.DictWriter(
+                project_file, fieldnames=ordered_fields, delimiter=common.TAB
+            )
+            project_csv_writer.writeheader()
+
+            for sample_metadata in samples_metadata:
+                scpca_sample_id = sample_metadata["scpca_sample_id"]
+                if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
+                    continue
+
+                sample_metadata_copy = sample_metadata.copy()
+
+                # Exclude fields.
+                field_names = (
+                    self.output_spatial_metadata_ignored_fields["injected"]
+                    + self.output_spatial_metadata_ignored_fields["sample"]
+                    + self.output_spatial_metadata_ignored_fields["single_cell"]
+                )
                 for field_name in field_names:
                     if field_name not in sample_metadata_copy:
                         continue
@@ -308,7 +326,7 @@ class Project(models.Model):
                 sample_metadata_path = Sample.get_output_spatial_metadata_file_path(scpca_sample_id)
                 with open(sample_metadata_path, "w", newline="") as sample_file:
                     sample_csv_writer = csv.DictWriter(
-                        sample_file, fieldnames=field_order, delimiter=common.TAB
+                        sample_file, fieldnames=ordered_fields, delimiter=common.TAB
                     )
                     sample_csv_writer.writeheader()
 
@@ -316,11 +334,11 @@ class Project(models.Model):
                         if library["scpca_sample_id"] != scpca_sample_id:
                             continue
 
-                        # Remove excluded fields.
-                        for excluded_field_name in spatial_excluded_field_names:
-                            if excluded_field_name not in library:
+                        # Exclude fields.
+                        for field_name in self.output_spatial_metadata_ignored_fields["library"]:
+                            if field_name not in library:
                                 continue
-                            library.pop(excluded_field_name)
+                            library.pop(field_name)
 
                         library.update(sample_metadata_copy)
                         combined_metadata.append(library)
