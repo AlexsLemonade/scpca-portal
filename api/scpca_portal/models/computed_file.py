@@ -59,13 +59,13 @@ class ComputedFile(models.Model):
     )
 
     @classmethod
-    def create_project_single_cell_data_file(cls, project, sample_to_file_mapping):
+    def create_project_single_cell_file(cls, project, sample_to_file_mapping):
         """Produces a single data file of combined single cell data."""
 
         computed_file = cls(
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=project.output_single_cell_data_file_name,
+            s3_key=project.output_single_cell_computed_file_name,
             type=cls.OutputFileTypes.PROJECT_ZIP,
             workflow_version="",
         )
@@ -73,7 +73,7 @@ class ComputedFile(models.Model):
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
             zip_file.write(
-                project.output_single_cell_metadata_path, computed_file.metadata_file_name
+                project.output_single_cell_metadata_file_path, computed_file.metadata_file_name
             )
 
             for sample_id, file_paths in sample_to_file_mapping.items():
@@ -83,8 +83,8 @@ class ComputedFile(models.Model):
                     zip_file.write(file_path, archive_path)
 
             if project.has_bulk_rna_seq:
-                zip_file.write(project.input_bulk_metadata_path, "bulk_metadata.tsv")
-                zip_file.write(project.input_bulk_quant_path, "bulk_quant.tsv")
+                zip_file.write(project.input_bulk_metadata_file_path, "bulk_metadata.tsv")
+                zip_file.write(project.input_bulk_quant_file_path, "bulk_quant.tsv")
 
         computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
         computed_file.save()
@@ -92,20 +92,22 @@ class ComputedFile(models.Model):
         return computed_file
 
     @classmethod
-    def create_project_spatial_data_file(cls, project, sample_to_file_mapping):
+    def create_project_spatial_file(cls, project, sample_to_file_mapping):
         """Produces a data file of combined spatial data."""
 
         computed_file = cls(
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=project.output_spatial_data_file_name,
+            s3_key=project.output_spatial_computed_file_name,
             type=cls.OutputFileTypes.PROJECT_SPATIAL_ZIP,
             workflow_version="",
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
-            zip_file.write(project.output_spatial_metadata_path, computed_file.metadata_file_name)
+            zip_file.write(
+                project.output_spatial_metadata_file_path, computed_file.metadata_file_name
+            )
 
             for sample_id, file_paths in sample_to_file_mapping.items():
                 sample_path = Path(project.get_sample_input_data_dir(sample_id))
@@ -118,17 +120,16 @@ class ComputedFile(models.Model):
         return computed_file
 
     @classmethod
-    def create_sample_single_cell_data_file(cls, sample, libraries_metadata, workflow_version):
-        libraries = [lm for lm in libraries_metadata if lm["scpca_sample_id"] == sample.scpca_id]
-
+    def create_sample_single_cell_file(cls, sample, libraries, workflow_version):
         computed_file = cls(
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=sample.output_single_cell_data_file_name,
+            s3_key=sample.output_single_cell_computed_file_name,
             sample=sample,
             type=cls.OutputFileTypes.SAMPLE_ZIP,
             workflow_version=workflow_version,
         )
 
+        file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
             zip_file.write(
@@ -136,7 +137,6 @@ class ComputedFile(models.Model):
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
             )
 
-            file_paths = []
             for library in libraries:
                 for file_postfix in ("_filtered.rds", "_qc.html", "_unfiltered.rds"):
                     file_name = f"{library['scpca_library_id']}{file_postfix}"
@@ -152,11 +152,10 @@ class ComputedFile(models.Model):
         return computed_file, {sample.scpca_id: file_paths}
 
     @classmethod
-    def create_sample_spatial_data_file(cls, sample, libraries_metadata, workflow_version):
-
+    def create_sample_spatial_file(cls, sample, libraries, workflow_version):
         computed_file = ComputedFile(
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=sample.output_spatial_data_file_name,
+            s3_key=sample.output_spatial_computed_file_name,
             sample=sample,
             type=cls.OutputFileTypes.SAMPLE_SPATIAL_ZIP,
             workflow_version=workflow_version,
@@ -170,9 +169,6 @@ class ComputedFile(models.Model):
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME,
             )
 
-            libraries = [
-                lm for lm in libraries_metadata if lm["scpca_sample_id"] == sample.scpca_id
-            ]
             for library in libraries:
                 library_path = Path(
                     os.path.join(

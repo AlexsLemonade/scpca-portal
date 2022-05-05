@@ -101,23 +101,23 @@ def load_data_from_s3(
     if not os.path.exists(common.INPUT_DATA_DIR):
         os.makedirs(common.INPUT_DATA_DIR)
 
-    # # Prepare data output directory.
-    # shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
-    # os.mkdir(common.OUTPUT_DATA_DIR)
+    # Prepare data output directory.
+    shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
+    os.mkdir(common.OUTPUT_DATA_DIR)
 
-    # command_list = [
-    #     "aws",
-    #     "s3",
-    #     "sync",
-    #     "--delete",
-    #     f"s3://{input_bucket_name}",
-    #     common.INPUT_DATA_DIR,
-    # ]
-    # if "public-test" in input_bucket_name:
-    #     command_list.append("--no-sign-request")
-    # subprocess.check_call(command_list)
+    command_list = [
+        "aws",
+        "s3",
+        "sync",
+        "--delete",
+        f"s3://{input_bucket_name}",
+        common.INPUT_DATA_DIR,
+    ]
+    if "public-test" in input_bucket_name:
+        command_list.append("--no-sign-request")
+    subprocess.check_call(command_list)
 
-    with open(Project.get_input_metadata_path()) as project_csv:
+    with open(Project.get_input_project_metadata_file_path()) as project_csv:
         project_list = list(csv.DictReader(project_csv))
 
     for project_data in project_list:
@@ -147,7 +147,7 @@ def load_data_from_s3(
         project.abstract = project_data["abstract"]
         project.contact_email = project_data["contact_email"]
         project.contact_name = project_data["contact_name"]
-        project.has_bulk_rna_seq = os.path.exists(project.input_bulk_metadata_path)
+        project.has_bulk_rna_seq = os.path.exists(project.input_bulk_metadata_file_path)
         project.has_spatial_data = utils.boolean_from_string(project_data.get("has_spatial", False))
         project.human_readable_pi_name = project_data["PI"]
         project.pi_name = project_data["submitter"]

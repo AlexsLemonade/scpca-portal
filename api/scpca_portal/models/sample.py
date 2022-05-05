@@ -90,24 +90,24 @@ class Sample(models.Model):
         return self.sample_computed_file.first()
 
     @property
-    def output_single_cell_data_file_name(self):
+    def output_single_cell_computed_file_name(self):
         return f"{self.scpca_id}.zip"
 
     @property
-    def output_single_cell_data_file_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, self.output_single_cell_data_file_name)
+    def output_single_cell_computed_file_path(self):
+        return os.path.join(common.OUTPUT_DATA_DIR, self.output_single_cell_computed_file_name)
 
     @property
     def output_single_cell_metadata_file_path(self):
         return Sample.get_output_single_cell_metadata_file_path(self.scpca_id)
 
     @property
-    def output_spatial_data_file_name(self):
+    def output_spatial_computed_file_name(self):
         return f"{self.scpca_id}_spatial.zip"
 
     @property
-    def output_spatial_data_file_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, self.output_spatial_data_file_name)
+    def output_spatial_computed_file_path(self):
+        return os.path.join(common.OUTPUT_DATA_DIR, self.output_spatial_computed_file_name)
 
     @property
     def output_spatial_metadata_file_path(self):

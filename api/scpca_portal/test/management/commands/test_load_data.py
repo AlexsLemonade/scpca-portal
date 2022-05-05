@@ -26,7 +26,7 @@ class MockS3Client:
 
 class TestLoadData(TestCase):
     def setUp(self):
-        self.scpca_project_id = "SCPCP111111"
+        self.scpca_project_id = "SCPCP999999"
 
         self.expected_computed_file_count = 4
         self.expected_project_count = 1
@@ -211,7 +211,7 @@ class TestLoadData(TestCase):
         self.assert_project(self.scpca_project_id)
         new_project = Project.objects.get(scpca_id=self.scpca_project_id)
 
-        with ZipFile(new_project.output_single_cell_data_file_path) as project_zip:
+        with ZipFile(new_project.output_single_cell_computed_file_path) as project_zip:
             sample_metadata = project_zip.read(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
             )
@@ -223,13 +223,13 @@ class TestLoadData(TestCase):
         sample_metadata_keys = set(sample_metadata_lines[0].split(common.TAB))
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are three files for each sample, plus a README.md
+        # There are 3 files for each sample, plus a README.md
         # and a single_cell_metadata.tsv file.
         # 1 * 3 + 2 = 5
         self.assertEqual(len(project_zip.namelist()), 5)
 
         sample = new_project.samples.first()
-        with ZipFile(sample.output_single_cell_data_file_path) as sample_zip:
+        with ZipFile(sample.output_single_cell_computed_file_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
@@ -297,7 +297,7 @@ class TestLoadData(TestCase):
             "workflow",
         }
 
-        with ZipFile(new_project.output_spatial_data_file_path) as project_zip:
+        with ZipFile(new_project.output_spatial_computed_file_path) as project_zip:
             spatial_metadata_file = project_zip.read(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
             )
@@ -310,11 +310,11 @@ class TestLoadData(TestCase):
 
             # There are 17 files for each spatial library (including
             # subdirectories), plus a README.md and a spatial_metadata.tsv file.
-            # 2 * 17 + 2 = 36
-            self.assertEqual(len(project_zip.namelist()), 36)
+            # 1 * 17 + 2 = 19
+            self.assertEqual(len(project_zip.namelist()), 19)
 
         sample = new_project.samples.first()
-        with ZipFile(sample.output_spatial_data_file_path) as sample_zip:
+        with ZipFile(sample.output_spatial_computed_file_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
@@ -323,11 +323,11 @@ class TestLoadData(TestCase):
                 )
                 rows = list(csv_reader)
 
-        expected_library_count = 2
+        expected_library_count = 1
         self.assertEqual(len(rows), expected_library_count)
         self.assertEqual(rows[0].keys(), expected_keys)
 
-        scpca_library_ids = (rows[0]["scpca_library_id"], rows[1]["scpca_library_id"])
+        scpca_library_ids = (rows[0]["scpca_library_id"],)
 
         expected_filenames = {
             "README.md",
