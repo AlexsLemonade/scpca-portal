@@ -53,10 +53,9 @@ class Project(models.Model):
     def get_input_project_metadata_file_path():
         return os.path.join(common.INPUT_DATA_DIR, "project_metadata.csv")
 
-    # TODO(arkid15r): remove the property after BE/FE refactoring.
     @property
-    def computed_file(self):
-        return self.project_computed_file.first()
+    def computed_files(self):
+        return self.project_computed_files.order_by("created_at")
 
     @property
     def input_data_dir(self):
@@ -184,6 +183,22 @@ class Project(models.Model):
     @property
     def output_spatial_metadata_file_path(self):
         return os.path.join(common.OUTPUT_DATA_DIR, f"{self.scpca_id}_spatial_metadata.tsv")
+
+    @property
+    def single_cell_computed_file(self):
+        try:
+            return self.project_computed_files.get(type=ComputedFile.OutputFileTypes.PROJECT_ZIP)
+        except ComputedFile.DoesNotExist:
+            pass
+
+    @property
+    def spatial_computed_file(self):
+        try:
+            return self.project_computed_files.get(
+                type=ComputedFile.OutputFileTypes.PROJECT_SPATIAL_ZIP
+            )
+        except ComputedFile.DoesNotExist:
+            pass
 
     @property
     def url(self):
@@ -486,16 +501,16 @@ class Project(models.Model):
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
         for sample in self.samples.all():
-            if sample.computed_file:
+            for computed_file in sample.computed_files:
                 if delete_from_s3:
-                    sample.computed_file.delete_s3_file(force=True)
-                sample.computed_file.delete()
+                    computed_file.delete_s3_file(force=True)
+                computed_file.delete()
             sample.delete()
 
-        if self.computed_file:
+        for computed_file in self.computed_files:
             if delete_from_s3:
-                self.computed_file.delete_s3_file(force=True)
-            self.computed_file.delete()
+                computed_file.delete_s3_file(force=True)
+            computed_file.delete()
 
         ProjectSummary.objects.filter(project=self).delete()
         self.delete()
@@ -550,7 +565,7 @@ class Project(models.Model):
             (f"{diagnosis} ({count})" for diagnosis, count in diagnoses_counts.items())
         )
         downloadable_sample_count = project.samples.filter(
-            sample_computed_file__isnull=False
+            sample_computed_files__isnull=False
         ).count()
         seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
         technologies = sorted((technology for technology in technologies if technology))

@@ -52,10 +52,10 @@ class ComputedFile(models.Model):
     workflow_version = models.TextField(null=False)
 
     project = models.ForeignKey(
-        "Project", null=True, on_delete=models.CASCADE, related_name="project_computed_file"
+        "Project", null=True, on_delete=models.CASCADE, related_name="project_computed_files"
     )
     sample = models.ForeignKey(
-        "Sample", null=True, on_delete=models.CASCADE, related_name="sample_computed_file"
+        "Sample", null=True, on_delete=models.CASCADE, related_name="sample_computed_files"
     )
 
     @classmethod

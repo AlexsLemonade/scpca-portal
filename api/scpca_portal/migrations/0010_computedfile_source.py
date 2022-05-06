@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
-                related_name="project_computed_file",
+                related_name="project_computed_files",
                 to="scpca_portal.Project",
             ),
         ),

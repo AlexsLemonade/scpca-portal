@@ -17,25 +17,21 @@ from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 class ComputedFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComputedFile
-        fields = (
+        fields = [
             "created_at",
             "id",
             "project",
+            "sample",
             "s3_bucket",
             "s3_key",
-            "sample",
             "size_in_bytes",
             "type",
             "updated_at",
             "workflow_version",
-        )
+        ]
 
-    project = serializers.SerializerMethodField(method_name="get_project")
+    project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
     sample = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
-
-    def get_project(self, instance):
-        if instance.project:
-            return instance.project.scpca_id
 
 
 class ProjectSummarySerializer(serializers.ModelSerializer):
@@ -56,7 +52,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
         fields = (
             "abstract",
             "additional_metadata_keys",
-            "computed_file",
+            "computed_files",
             "contact_email",
             "contact_name",
             "created_at",
@@ -83,13 +79,12 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     # This breaks the general pattern of not using sub-serializers,
     # but we want these to always be included.
     summaries = ProjectSummarySerializer(many=True, read_only=True)
-
-    computed_file = serializers.PrimaryKeyRelatedField(read_only=True)
+    computed_files = ComputedFileSerializer(read_only=True, many=True)
     samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
 
 
 class ProjectSerializer(ProjectLeafSerializer):
-    computed_file = ComputedFileSerializer(read_only=True)
+    computed_files = ComputedFileSerializer(read_only=True, many=True)
 
 
 class SampleLeafSerializer(serializers.ModelSerializer):
@@ -99,7 +94,7 @@ class SampleLeafSerializer(serializers.ModelSerializer):
             "additional_metadata",
             "age_at_diagnosis",
             "cell_count",
-            "computed_file",
+            "computed_files",
             "created_at",
             "diagnosis",
             "disease_timing",
@@ -115,9 +110,9 @@ class SampleLeafSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
-    computed_file = serializers.PrimaryKeyRelatedField(read_only=True)
+    computed_files = ComputedFileSerializer(read_only=True, many=True)
     project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
 
 
 class SampleSerializer(SampleLeafSerializer):
-    computed_file = ComputedFileSerializer(read_only=True)
+    computed_files = ComputedFileSerializer(read_only=True, many=True)

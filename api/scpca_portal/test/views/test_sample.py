@@ -24,7 +24,7 @@ class SamplesTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         json_response = response.json()
         self.assertEqual(json_response["count"], 1)
-        self.assertIn("size_in_bytes", json_response["results"][0]["computed_file"])
+        self.assertIn("size_in_bytes", json_response["results"][0]["computed_files"][0])
 
     def test_post_is_not_allowed(self):
         url = reverse("samples-list", args=[])

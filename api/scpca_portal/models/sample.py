@@ -4,6 +4,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 
 from scpca_portal import common
+from scpca_portal.models.computed_file import ComputedFile
 
 
 class Sample(models.Model):
@@ -84,10 +85,9 @@ class Sample(models.Model):
     def get_output_spatial_metadata_file_path(scpca_sample_id):
         return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_spatial_metadata.tsv")
 
-    # TODO(arkid15r): remove the property after BE/FE refactoring.
     @property
-    def computed_file(self):
-        return self.sample_computed_file.first()
+    def computed_files(self):
+        return self.sample_computed_files.order_by("created_at")
 
     @property
     def output_single_cell_computed_file_name(self):
@@ -112,3 +112,19 @@ class Sample(models.Model):
     @property
     def output_spatial_metadata_file_path(self):
         return Sample.get_output_spatial_metadata_file_path(self.scpca_id)
+
+    @property
+    def single_cell_computed_file(self):
+        try:
+            return self.sample_computed_files.get(type=ComputedFile.OutputFileTypes.SAMPLE_ZIP)
+        except ComputedFile.DoesNotExist:
+            pass
+
+    @property
+    def spatial_computed_file(self):
+        try:
+            return self.sample_computed_files.get(
+                type=ComputedFile.OutputFileTypes.SAMPLE_SPATIAL_ZIP
+            )
+        except ComputedFile.DoesNotExist:
+            pass

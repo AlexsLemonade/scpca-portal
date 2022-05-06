@@ -78,20 +78,24 @@ class TestLoadData(TestCase):
         for expected_metadata_key in expected_metadata_keys:
             self.assertIn(expected_metadata_key, sample.additional_metadata.keys())
 
-        self.assertIsNotNone(project.computed_file)
-        self.assertGreater(project.computed_file.size_in_bytes, 0)
+        self.assertEqual(len(project.computed_files), 2)
+        self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
+        self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
 
-        self.assertIsNotNone(sample.computed_file)
-        self.assertGreater(sample.computed_file.size_in_bytes, 0)
+        self.assertEqual(len(sample.computed_files), 2)
+        self.assertIsNotNone(sample.single_cell_computed_file)
+        self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
 
+        self.assertIsNotNone(sample.spatial_computed_file)
+        self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(ComputedFile.objects.count(), self.expected_computed_file_count)
 
         return (
             project,
-            project.computed_file,
+            project.computed_files,
             project.summaries.first(),
             sample,
-            sample.computed_file,
+            sample.computed_files,
         )
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
@@ -108,10 +112,10 @@ class TestLoadData(TestCase):
 
         (
             project,
-            project_computed_file,
+            project_computed_files,
             project_summary,
             sample,
-            sample_computed_file,
+            sample_computed_files,
         ) = self.assert_project(self.scpca_project_id)
 
         # Next, let's make sure that reload_existing=False won't add anything
@@ -128,16 +132,16 @@ class TestLoadData(TestCase):
         self.assertEqual(Sample.objects.count(), self.expected_sample_count)
         self.assertEqual(ComputedFile.objects.count(), self.expected_computed_file_count)
 
-        # project, project_computed_file, project_summary, sample, and
-        # sample_computed_file all still reference the what was loaded
+        # project, project_computed_files, project_summary, sample, and
+        # sample_computed_files all still reference the what was loaded
         # in the first call.
         new_project = Project.objects.get(scpca_id=self.scpca_project_id)
         self.assertEqual(project, new_project)
         self.assertEqual(project_summary, new_project.summaries.first())
         new_sample = new_project.samples.first()
         self.assertEqual(sample, new_sample)
-        self.assertEqual(project_computed_file, new_project.computed_file)
-        self.assertEqual(sample_computed_file, new_sample.computed_file)
+        self.assertEqual(list(project_computed_files), list(new_project.computed_files))
+        self.assertEqual(list(sample_computed_files), list(new_sample.computed_files))
 
         # Next, this is a good place to test the purge command since we
         # have data to purge.

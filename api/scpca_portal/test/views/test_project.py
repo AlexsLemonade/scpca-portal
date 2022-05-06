@@ -17,7 +17,7 @@ class ProjectsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_json = response.json()
         self.assertEqual(response_json["modalities"], "CITE-seq")
-        self.assertEqual(response_json["computed_file"]["size_in_bytes"], 100)
+        self.assertEqual(response_json["computed_files"][0]["size_in_bytes"], 100)
 
     def test_get_list(self):
         response = self.client.get(reverse("projects-list"))
