@@ -11,7 +11,7 @@ class TestProjectSerializer(TestCase):
         self.project = ProjectFactory()
         self.project_data = model_to_dict(self.project)
 
-        self.project_data["scpca_id"] = "SCPCP99999"  # This needs to be unique.
+        self.project_data["scpca_id"] = "SCPCP999999"  # This needs to be unique.
         self.project_data.pop("id")
 
     def test_serializer_with_empty_data(self):

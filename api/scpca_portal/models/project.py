@@ -386,6 +386,14 @@ class Project(models.Model):
                 readme_template.format(project_accession=self.scpca_id, project_url=self.url)
             )
 
+        if self.has_spatial_data:
+            with open(ComputedFile.README_TEMPLATE_SPATIAL_FILE_PATH, "r") as readme_template_file:
+                readme_template = readme_template_file.read()
+            with open(ComputedFile.README_SPATIAL_FILE_PATH, "w") as readme_file:
+                readme_file.write(
+                    readme_template.format(project_accession=self.scpca_id, project_url=self.url)
+                )
+
         # Start with a list of samples and their metadata.
         try:
             with open(self.input_samples_metadata_file_path) as samples_csv_file:

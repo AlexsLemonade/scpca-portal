@@ -75,7 +75,7 @@ class Command(BaseCommand):
 
 
 def cleanup_output_data_dir():
-    cleanup_items = (ComputedFile.README_FILE_NAME, "*.tsv")
+    cleanup_items = (ComputedFile.README_FILE_NAME, ComputedFile.README_SPATIAL_FILE_NAME, "*.tsv")
     for item in cleanup_items:
         for path in Path(common.OUTPUT_DATA_DIR).glob(item):
             path.unlink()

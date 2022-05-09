@@ -38,9 +38,16 @@ class ComputedFile(models.Model):
             (SAMPLE_ZIP, "Sample ZIP"),
         )
 
-    README_FILE_NAME = "README.md"
+    OUTPUT_README_FILE_NAME = "README.md"
+
+    README_FILE_NAME = "readme.md"
     README_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_FILE_NAME)
-    README_TEMPLATE_FILE_PATH = os.path.join(common.TEMPLATE_DIR, "readme.md")
+
+    README_SPATIAL_FILE_NAME = "readme_spatial.md"
+    README_SPATIAL_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_SPATIAL_FILE_NAME)
+
+    README_TEMPLATE_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_FILE_NAME)
+    README_TEMPLATE_SPATIAL_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_SPATIAL_FILE_NAME)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -71,7 +78,7 @@ class ComputedFile(models.Model):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
+            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME)
             zip_file.write(
                 project.output_single_cell_metadata_file_path, computed_file.metadata_file_name
             )
@@ -104,7 +111,9 @@ class ComputedFile(models.Model):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
+            zip_file.write(
+                ComputedFile.README_SPATIAL_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME
+            )
             zip_file.write(
                 project.output_spatial_metadata_file_path, computed_file.metadata_file_name
             )
@@ -131,7 +140,7 @@ class ComputedFile(models.Model):
 
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
+            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME)
             zip_file.write(
                 sample.output_single_cell_metadata_file_path,
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
@@ -163,7 +172,9 @@ class ComputedFile(models.Model):
 
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_object:
-            zip_object.write(ComputedFile.README_FILE_PATH, ComputedFile.README_FILE_NAME)
+            zip_object.write(
+                ComputedFile.README_SPATIAL_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME
+            )
             zip_object.write(
                 sample.output_spatial_metadata_file_path,
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME,
