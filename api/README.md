@@ -24,6 +24,7 @@ sportal test-api
 
 Note that the tests are run with the Django unittest runner, so specific modules, classes, or methods may be specified in the standard unittest manner: https://docs.python.org/3/library/unittest.html#unittest-test-discovery.
 For example:
+
 ```
 sportal test-api scpca_portal.test.serializers.test_project.TestProjectSerializer
 ```
@@ -31,6 +32,7 @@ sportal test-api scpca_portal.test.serializers.test_project.TestProjectSerialize
 will run all the tests in the TestProjectSerializer class.
 
 See
+
 ```
 sportal -h
 ```
@@ -44,7 +46,7 @@ If these ports are already in use on your local machine, you can run them at dif
 HTTP_PORT=8002 DOCS_PORT=8003 sportal up
 ```
 
-A postgres commmand line client can be started by running:
+A postgres command line client can be started by running:
 
 ```
 sportal postgres-cli
@@ -66,6 +68,7 @@ curl http://0.0.0.0:8000/v1/tokens/ -X POST -d '{"is_activated": true}' -H "Cont
 ```
 
 Which should return something like
+
 ```
 {
     "id": "30e429fd-ded5-4c7d-84a7-84c702f596c1",
@@ -75,12 +78,12 @@ Which should return something like
 ```
 
 This `id` can then be provided as the value for the `API-KEY` header in a request to the `/v1/computed-files/` endpoint like so:
+
 ```
 curl http://0.0.0.0:8000/v1/computed-files/1/ -H 'API-KEY: 658f859a-b9d0-4b44-be3d-dad9db57164a'
 ```
 
 `download_url` can only be retrieved for ComputedFiles one at a time.
-
 
 ## Local Data Management
 
@@ -96,7 +99,7 @@ To save time, by default it will not package up the actual data in that bucket a
 If you would like to update the data in the `scpca-local-data` bucket, you can do so with the following command:
 
 ```
-sportal load-data --upload True
+sportal load-data --update-s3
 ```
 
 By default the command also will only look for new projects.
@@ -109,20 +112,25 @@ sportal load-data --reload-existing
 or to reimport and upload projects that exist in the input data:
 
 ```
-sportal load-data --reload-existing --upload True
+sportal load-data --reload-existing --update-s3
 ```
 
 or to reimport and upload all projects:
 
 ```
-sportal load-data --reload-all --upload True
+sportal load-data --reload-all --update-s3
 ```
 
-If you would like to update a single project, you can do so by purging and then loading the data without reloading existing projects:
+If you would like to update a specific project use --scpca-project-ids flag (accepts multiple values):
 
 ```
-sportal manage-api purge_project --scpca-id SCPCP000001
-sportal load-data
+sportal load-data --scpca-project-ids SCPCP000001
+```
+
+For a specific sample update use --scpca-sample-ids flag (accepts multiple values):
+
+```
+sportal load-data --scpca-sample-ids SCPCS000001
 ```
 
 If you would like to purge a project and remove its files from the S3 bucket, you can use:
@@ -136,7 +144,6 @@ sportal manage-api purge_project --scpca-id SCPCP000001 --delete-from-s3
 The `load_data` and `purge_project` commands can also be run in the cloud.
 The one difference is that in the cloud `load_data` defaults to uploading data.
 This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
-It's not recommended but if you really want to just update the metadata without reuploading the data to S3 you can pass `--upload False`.
 
 To run the `load_data` command in production, there is a load_data.sh script that is created on the API instance.
 It passes any arguments to it through to the command, so `./load_data.sh --reload-all` will work nicely.

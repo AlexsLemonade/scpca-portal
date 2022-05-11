@@ -1,450 +1,33 @@
 import csv
-import json
+import logging
 import os
 import shutil
 import subprocess
-from typing import Dict, List
-from zipfile import ZipFile
+from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.template.defaultfilters import pluralize
 
 import boto3
-import botocore
 from botocore.client import Config
 
-from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.management.commands.purge_project import purge_project
-from scpca_portal.models import ComputedFile, Project, Sample
+from scpca_portal import common, utils
+from scpca_portal.models import ComputedFile, Project
 
-logger = get_and_configure_logger(__name__)
+ALLOWED_SUBMITTERS = {
+    "christensen",
+    "dyer_chen",
+    "gawad",
+    "green_mulcahy_levy",
+    "murphy_chen",
+}
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
+
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
-project_whitelist = ["murphy_chen", "green_mulcahy_levy", "dyer_chen", "gawad", "christensen"]
-
-OUTPUT_DIR = "output/"
-README_FILENAME = "README.md"
-PROJECT_URL_TEMPLATE = "https://scpca.alexslemonade.org/projects/{project_accession}"
-
-
-def purge_all_projects(should_upload):
-    for project in Project.objects.all():
-        purge_project(project.scpca_id, should_upload)
-
-
-def package_files_for_project(
-    project_dir: str,
-    output_dir: str,
-    project: Project,
-    sample_to_file_mapping: dict,
-    readme_path: str,
-    should_upload: bool,
-):
-    zip_file_name = f"{project.scpca_id}.zip"
-    project_zip = os.path.join(output_dir, zip_file_name)
-    computed_file = ComputedFile(
-        type="PROJECT_ZIP",
-        workflow_version="",
-        s3_bucket=settings.AWS_S3_BUCKET_NAME,
-        s3_key=zip_file_name,
-    )
-
-    if should_upload:
-        project_metadata_path = get_project_metadata_path(output_dir, project)
-        with ZipFile(project_zip, "w") as zip_object:
-            zip_object.write(project_metadata_path, "single_cell_metadata.tsv")
-            zip_object.write(readme_path, README_FILENAME)
-
-            if project.has_bulk_rna_seq:
-                print(f"Attaching bulk data and bulk quant tsv for {project.scpca_id}")
-                zip_object.write(
-                    get_project_bulk_metadata_path(project_dir, project), "bulk_metadata.tsv"
-                )
-                zip_object.write(
-                    get_project_bulk_quant_path(project_dir, project), "bulk_quant.tsv"
-                )
-
-            for sample_id, file_paths in sample_to_file_mapping.items():
-                for local_file_path in file_paths:
-                    # We want to nest these under thier sample id.
-                    archive_path = os.path.join(sample_id, os.path.basename(local_file_path))
-                    zip_object.write(local_file_path, archive_path)
-
-        computed_file.size_in_bytes = os.path.getsize(project_zip)
-        s3.upload_file(project_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
-    else:
-        s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
-        assert len(s3_objects["Contents"]) == 1
-        computed_file.size_in_bytes = s3_objects["Contents"][0]["Size"]
-
-    computed_file.save()
-
-    project.computed_file = computed_file
-    project.save()
-
-    return computed_file
-
-
-def get_sample_metadata_path(output_dir: str, scpca_sample_id: str):
-    return os.path.join(output_dir, f"{scpca_sample_id}_libraries_metadata.tsv")
-
-
-def get_project_metadata_path(output_dir: str, project: Project):
-    return os.path.join(output_dir, f"{project.scpca_id}_libraries_metadata.tsv")
-
-
-def get_project_bulk_metadata_path(project_dir: str, project: Project):
-    return os.path.join(project_dir, f"{project.scpca_id}_bulk_metadata.tsv")
-
-
-def get_project_bulk_quant_path(project_dir: str, project: Project):
-    return os.path.join(project_dir, f"{project.scpca_id}_bulk_quant.tsv")
-
-
-def package_files_for_sample(
-    project_dir: str,
-    output_dir: str,
-    sample: dict,
-    libraries_metadata: List[Dict],
-    readme_path: str,
-    workflow_version: str,
-    should_upload: bool,
-):
-    sample_id = sample["scpca_sample_id"]
-    libraries = [lib for lib in libraries_metadata if lib["scpca_sample_id"] == sample_id]
-
-    zip_file_name = f"{sample_id}.zip"
-    sample_zip = os.path.join(output_dir, zip_file_name)
-
-    computed_file = ComputedFile(
-        type="SAMPLE_ZIP",
-        workflow_version=workflow_version,
-        s3_bucket=settings.AWS_S3_BUCKET_NAME,
-        s3_key=zip_file_name,
-    )
-
-    file_paths = []
-    if should_upload:
-        with ZipFile(sample_zip, "w") as zip_object:
-            local_metadata_path = get_sample_metadata_path(output_dir, sample_id)
-            zip_object.write(local_metadata_path, "single_cell_metadata.tsv")
-            zip_object.write(readme_path, README_FILENAME)
-
-            for library in libraries:
-                for file_postfix in ["_unfiltered.rds", "_filtered.rds", "_qc.html"]:
-                    filename = f"{library['scpca_library_id']}{file_postfix}"
-                    local_file_path = os.path.join(project_dir, sample_id, filename)
-                    file_paths.append(local_file_path)
-                    zip_object.write(local_file_path, filename)
-
-        computed_file.size_in_bytes = os.path.getsize(sample_zip)
-        s3.upload_file(sample_zip, settings.AWS_S3_BUCKET_NAME, zip_file_name)
-    else:
-        s3_objects = s3.list_objects(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=zip_file_name)
-        assert len(s3_objects["Contents"]) == 1
-        computed_file.size_in_bytes = s3_objects["Contents"][0]["Size"]
-
-    computed_file.save()
-
-    return computed_file, {sample_id: file_paths}
-
-
-def create_sample_from_dict(project: Project, sample: dict, computed_file: ComputedFile):
-    # First figure out what metadata is additional.
-    # This varies project by project, so whatever's not on
-    # the Sample model is additional.
-    sample_columns = [
-        "scpca_sample_id",
-        "technologies",
-        "diagnosis",
-        "subdiagnosis",
-        "cell_count",
-        "age",
-        "sex",
-        "disease_timing",
-        "tissue_location",
-        "seq_units",
-        "treatment",
-        # Also include this, not because it's a sample column but
-        # because we don't want it in additional_metadata.
-        "scpca_library_id",
-    ]
-    additional_metadata = {}
-    for key, value in sample.items():
-        if key not in sample_columns:
-            additional_metadata[key] = value
-
-    # get_or_create returns a tuple like (object, was_created)
-    sample_object = Sample(
-        project=project,
-        computed_file=computed_file,
-        scpca_id=sample["scpca_sample_id"],
-        technologies=sample["technologies"],
-        diagnosis=sample["diagnosis"],
-        subdiagnosis=sample["subdiagnosis"],
-        age_at_diagnosis=sample["age"],
-        sex=sample["sex"],
-        disease_timing=sample["disease_timing"],
-        tissue_location=sample["tissue_location"],
-        treatment=sample.get("treatment"),
-        seq_units=sample["seq_units"],
-        cell_count=sample["cell_count"],
-        additional_metadata=additional_metadata,
-    )
-    sample_object.save()
-
-    return sample_object
-
-
-def combine_and_write_metadata(
-    output_dir: str, project: Project, samples_metadata: List[Dict], libraries_metadata: List[Dict]
-):
-    """Smush the two metadata dicts together to have all the data at
-    the library level. Write the combination out at the project and
-    sample level.
-    """
-    full_libraries_metadata = []
-
-    # Get all the field names to pass to the csv.DictWriter
-    # First, get all the field names there are.
-    field_names = set(libraries_metadata[0].keys()).union(set(samples_metadata[0].keys()))
-    field_names = field_names.union({"scpca_project_id", "pi_name", "project_title"})
-    # Sample metadata has these at the sample level, we want it at the
-    # library level.
-    field_names -= {"seq_units", "technologies"}
-
-    # Then force the following ordering:
-    ordered_field_names = [
-        "scpca_sample_id",
-        "scpca_library_id",
-        "diagnosis",
-        "subdiagnosis",
-        "seq_unit",
-        "technology",
-        "filtered_cell_count",
-        "scpca_project_id",
-        "pi_name",
-        "project_title",
-        "disease_timing",
-        "age",
-        "sex",
-        "tissue_location",
-    ]
-
-    for field_name in ordered_field_names:
-        field_names.remove(field_name)
-
-    ordered_field_names.extend(list(field_names))
-
-    project_metadata_path = get_project_metadata_path(output_dir, project)
-    with open(project_metadata_path, "w", newline="") as project_file:
-        project_writer = csv.DictWriter(
-            project_file, fieldnames=ordered_field_names, delimiter="\t"
-        )
-        project_writer.writeheader()
-        for sample in samples_metadata:
-            sample_copy = sample.copy()
-            sample_copy.pop("technologies")
-            sample_copy.pop("seq_units")
-            sample_copy["pi_name"] = project.pi_name
-            sample_copy["scpca_project_id"] = project.scpca_id
-            sample_copy["project_title"] = project.title
-
-            sample_metadata_path = get_sample_metadata_path(output_dir, sample["scpca_sample_id"])
-            with open(sample_metadata_path, "w", newline="") as sample_file:
-                sample_writer = csv.DictWriter(
-                    sample_file, fieldnames=ordered_field_names, delimiter="\t"
-                )
-                sample_writer.writeheader()
-                for library in libraries_metadata:
-                    if library["scpca_sample_id"] == sample["scpca_sample_id"]:
-                        library.update(sample_copy)
-                        full_libraries_metadata.append(library)
-                        project_writer.writerow(library)
-                        sample_writer.writerow(library)
-
-    return full_libraries_metadata
-
-
-def load_data_for_project(
-    data_dir: str, output_dir: str, project: Project, readme_text: str, should_upload: bool
-):
-    project_dir = f"{data_dir}{project.scpca_id}/"
-
-    project_url = PROJECT_URL_TEMPLATE.format(project_accession=project.scpca_id)
-    formatted_readme = readme_text.format(
-        project_accession=project.scpca_id, project_url=project_url
-    )
-
-    readme_path = os.path.join(output_dir, README_FILENAME)
-    with open(readme_path, "w") as readme_file:
-        readme_file.write(formatted_readme)
-
-    samples_metadata = []
-    try:
-        with open(project_dir + "samples_metadata.csv") as csvfile:
-            samples_metadata = [line for line in csv.DictReader(csvfile)]
-    except botocore.exceptions.ClientError:
-        print(f"No samples_metadata.csv found for project {project.scpca_id}.")
-        return
-
-    libraries_metadata = []
-
-    # this is taken from the last samples's json file
-    for sample in samples_metadata:
-        sample_cell_count = 0
-        sample_technologies = set()
-        sample_seq_units = set()
-        sample_dir = os.path.join(project_dir, sample["scpca_sample_id"])
-
-        if os.path.exists(sample_dir):
-            # some samples will exist but their contents cannot be shared yet
-            # when this happens their corresponding sample folder will not exist
-            for filename in os.listdir(sample_dir):
-                if filename.endswith("_metadata.json"):
-                    with open(os.path.join(sample_dir, filename)) as json_file:
-                        parsed_json = json.load(json_file)
-
-                        # Rename these key for consistency with the docs:
-                        parsed_json["scpca_sample_id"] = parsed_json.pop("sample_id")
-                        parsed_json["scpca_library_id"] = parsed_json.pop("library_id")
-                        parsed_json["filtered_cell_count"] = parsed_json.pop("filtered_cells")
-
-                        libraries_metadata.append(parsed_json)
-
-                        sample_cell_count += parsed_json["filtered_cell_count"]
-                        sample_technologies.add(parsed_json["technology"].strip())
-                        sample_seq_units.add(parsed_json["seq_unit"].strip())
-                        sample["workflow_version"] = parsed_json["workflow_version"]
-
-        sample["cell_count"] = sample_cell_count
-        sample["technologies"] = ", ".join(sample_technologies)
-        sample["seq_units"] = ", ".join(sample_seq_units)
-
-    full_libraries_metadata = combine_and_write_metadata(
-        output_dir, project, samples_metadata, libraries_metadata
-    )
-
-    created_samples = []
-    sample_to_file_mapping = {}
-
-    for sample in samples_metadata:
-        # if the metadata exists but no file, create the sample but not the computed_file
-        computed_file = None
-        sample_files = None
-        try:
-            workflow_version = sample.pop("workflow_version")
-            computed_file, sample_files = package_files_for_sample(
-                project_dir,
-                output_dir,
-                sample,
-                full_libraries_metadata,
-                readme_path,
-                workflow_version,
-                should_upload,
-            )
-        except KeyError:
-            pass
-
-        sample_object = create_sample_from_dict(project, sample, computed_file)
-        created_samples.append(sample_object)
-
-        if sample_files:
-            sample_to_file_mapping.update(sample_files)
-
-    package_files_for_project(
-        project_dir,
-        output_dir,
-        project,
-        sample_to_file_mapping,
-        readme_path,
-        should_upload,
-    )
-
-    return created_samples
-
-
-def load_data_from_s3(
-    should_upload: bool,
-    reload_existing: bool,
-    reload_all: bool,
-    input_bucket_name="scpca-portal-inputs",
-    data_dir="/home/user/data/",
-    readme_path="/home/user/scpca_portal/config/readme_template.md",
-):
-
-    if reload_all:
-        purge_all_projects(should_upload)
-
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-
-    # If this raises we're done anyway, so let it.
-    command_list = ["aws", "s3", "sync", "--delete", f"s3://{input_bucket_name}", data_dir]
-    if "public-test" in input_bucket_name:
-        command_list.append("--no-sign-request")
-
-    subprocess.check_call(command_list)
-
-    # Make sure we're starting with a blank slate for the zip files.
-    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-    os.mkdir(OUTPUT_DIR)
-
-    with open(readme_path) as readme_file:
-        readme_text = readme_file.read()
-
-    project_input_metadata_file = "project_metadata.csv"
-    project_input_metadata_path = f"{data_dir}{project_input_metadata_file}"
-
-    with open(project_input_metadata_path) as csvfile:
-        projects = csv.DictReader(csvfile)
-        for project in projects:
-            if project["submitter"] not in project_whitelist:
-                continue
-
-            scpca_id = project["scpca_project_id"]
-
-            if reload_existing:
-                # Purge existing projects so they can be readded.
-                existing_project = Project.objects.filter(scpca_id=scpca_id).first()
-
-                if existing_project:
-                    purge_project(scpca_id, should_upload)
-
-            # check if there is bulk metadata
-            has_bulk_rna_seq = False
-            bulk_metadata = f"{data_dir}{scpca_id}/{scpca_id}_bulk_metadata.tsv"
-
-            if os.path.exists(bulk_metadata):
-                has_bulk_rna_seq = True
-
-            project, created = Project.objects.get_or_create(
-                scpca_id=scpca_id,
-                pi_name=project["submitter"],
-                human_readable_pi_name=project["PI"],
-                title=project["project_title"],
-                abstract=project["abstract"],
-                contact_name=project["contact_name"],
-                contact_email=project["contact_email"],
-                has_bulk_rna_seq=has_bulk_rna_seq,
-            )
-
-            if not created:
-                # Only import new projects. If old ones are desired
-                # they should be purged and readded.
-                continue
-
-            if project.scpca_id in os.listdir(data_dir):
-                print(f"Importing and loading data for project {project.scpca_id}")
-                created_samples = load_data_for_project(
-                    data_dir, OUTPUT_DIR, project, readme_text, should_upload
-                )
-
-                print(f"created {len(created_samples)} samples for project {project.scpca_id}")
-            else:
-                print(
-                    f"Metadata found for project {project.scpca_id} "
-                    f"but no s3 folder of that name exists."
-                )
 
 
 class Command(BaseCommand):
@@ -474,21 +57,118 @@ class Command(BaseCommand):
     to a stack-specific S3 bucket."""
 
     def add_arguments(self, parser):
-        parser.add_argument("--reload-existing", action="store_true")
         parser.add_argument("--reload-all", action="store_true")
-        parser.add_argument("--upload", default=settings.UPDATE_IMPORTED_DATA, type=bool)
+        parser.add_argument("--reload-existing", action="store_true")
+        parser.add_argument("--scpca-project-ids", action="extend", nargs="+", type=str)
+        parser.add_argument("--scpca-sample-ids", action="extend", nargs="+", type=str)
+        parser.add_argument("--update-s3", action="store_true", default=settings.UPDATE_S3_DATA)
 
     def handle(self, *args, **options):
-
-        # locally the docker container puts the code in a folder called code
-        # this allows us to run the same command on production or locally
-        code_dir = "/home/user/code/{}" if os.path.exists("/home/user/code") else "/home/user/{}"
-
         load_data_from_s3(
-            options["upload"],
-            options["reload_existing"],
+            options["update_s3"],
             options["reload_all"],
-            "scpca-portal-inputs",
-            code_dir.format("data/"),
-            code_dir.format("scpca_portal/config/readme_template.md"),
+            options["reload_existing"],
+            options["scpca_project_ids"],
+            options["scpca_sample_ids"],
         )
+        cleanup_output_data_dir()
+
+
+def cleanup_output_data_dir():
+    cleanup_items = (ComputedFile.README_FILE_NAME, ComputedFile.README_SPATIAL_FILE_NAME, "*.tsv")
+    for item in cleanup_items:
+        for path in Path(common.OUTPUT_DATA_DIR).glob(item):
+            path.unlink()
+
+
+def load_data_from_s3(
+    update_s3_data: bool,
+    reload_all: bool,
+    reload_existing: bool,
+    scpca_project_ids=None,
+    scpca_sample_ids=None,
+    allowed_submitters=ALLOWED_SUBMITTERS,
+    input_bucket_name="scpca-portal-inputs",
+):
+    """Loads data from S3. Creates projects and loads data for them."""
+
+    if reload_all:
+        logger.info("Purging all projects")
+        for project in Project.objects.order_by("scpca_id"):
+            project.purge(delete_from_s3=update_s3_data)
+
+    # Prepare data input directory.
+    if not os.path.exists(common.INPUT_DATA_DIR):
+        os.makedirs(common.INPUT_DATA_DIR)
+
+    # Prepare data output directory.
+    shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
+    os.mkdir(common.OUTPUT_DATA_DIR)
+
+    command_list = [
+        "aws",
+        "s3",
+        "sync",
+        "--delete",
+        f"s3://{input_bucket_name}",
+        common.INPUT_DATA_DIR,
+    ]
+    if "public-test" in input_bucket_name:
+        command_list.append("--no-sign-request")
+    subprocess.check_call(command_list)
+
+    with open(Project.get_input_project_metadata_file_path()) as project_csv:
+        project_list = list(csv.DictReader(project_csv))
+
+    for project_data in project_list:
+        scpca_id = project_data["scpca_project_id"]
+        if scpca_project_ids and scpca_id not in scpca_project_ids:
+            continue
+
+        if project_data["submitter"] not in allowed_submitters:
+            continue
+
+        # Purge existing projects so they can be readded.
+        if reload_existing:
+            try:
+                project = Project.objects.get(scpca_id=scpca_id)
+                logger.info(f"Purging '{project}'")
+                project.purge(delete_from_s3=update_s3_data)
+            except Project.DoesNotExist:
+                pass
+
+        project, created = Project.objects.get_or_create(scpca_id=scpca_id)
+        # Only import new projects. If old ones are desired they should be
+        # purged and readded.
+        if not created:
+            logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
+            continue
+
+        project.abstract = project_data["abstract"]
+        project.contact_email = project_data["contact_email"]
+        project.contact_name = project_data["contact_name"]
+        project.has_bulk_rna_seq = os.path.exists(project.input_bulk_metadata_file_path)
+        project.has_spatial_data = utils.boolean_from_string(project_data.get("has_spatial", False))
+        project.human_readable_pi_name = project_data["PI"]
+        project.pi_name = project_data["submitter"]
+        project.title = project_data["project_title"]
+        project.save()
+
+        if project.scpca_id not in os.listdir(common.INPUT_DATA_DIR):
+            logger.warning(f"Metadata found for '{project}' but no s3 folder of that name exists.")
+            continue
+
+        logger.info(f"Importing '{project}' data")
+        computed_files = project.load_data(scpca_sample_ids=scpca_sample_ids)
+        samples_count = project.samples.count()
+        if samples_count:
+            logger.info(f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'")
+
+        if update_s3_data:
+            logger.info(f"Exporting '{project}' computed files to S3")
+            for computed_file in computed_files:
+                s3.upload_file(
+                    computed_file.zip_file_path,
+                    settings.AWS_S3_BUCKET_NAME,
+                    computed_file.s3_key,
+                )
