@@ -53,20 +53,20 @@ export default {
       }
     },
     3: {
-      large: {
+      small: {
         height: '32px',
         maxWidth: null,
-        size: '28px'
+        size: '21px'
       },
       medium: {
         height: 1.5,
         maxWidth: null,
         size: '38px'
       },
-      small: {
-        height: '21px',
+      large: {
+        height: '32px',
         maxWidth: null,
-        size: '17px'
+        size: '28px'
       },
       xlarge: {
         height: '37px',

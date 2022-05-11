@@ -1,16 +1,9 @@
 import React from 'react'
-import {
-  Anchor,
-  Box,
-  Grid,
-  Text,
-  FormField,
-  TextInput,
-  CheckBox
-} from 'grommet'
+import { Anchor, Box, Grid, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Modal } from 'components/Modal'
 import { Link } from 'components/Link'
+import { TokenView } from 'components/TokenView'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import { AnalyticsContext } from 'contexts/AnalyticsContext'
 import { api } from 'api'
@@ -19,103 +12,6 @@ import { formatDate } from 'helpers/formatDate'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
 import DownloadSVG from '../images/download-folder.svg'
-
-// label for the checkbox needs to be component to show links
-const AcceptLabel = () => {
-  return (
-    <Text>
-      I agree to the <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
-      <Link label="Privacy Policy" href="/privacy-policy" />.
-    </Text>
-  )
-}
-
-// label for the checkbox needs to be component to show links
-const UpdatesLabel = () => {
-  return (
-    <Text>
-      I would like to receive occasional updates from the{' '}
-      <Link label="Data Lab Team" href="https://ccdatalab.org" />.
-    </Text>
-  )
-}
-
-// View when the user has no token in local storage yet
-export const TokenView = () => {
-  // needs email validation
-  const {
-    email,
-    setEmail,
-    wantsEmails,
-    setWantsEmails,
-    acceptsTerms,
-    setAcceptsTerms,
-    createToken,
-    validateToken,
-    emailListForm
-  } = React.useContext(ScPCAPortalContext)
-  const [requesting, setRequesting] = React.useState(false)
-  const [errors, setErrors] = React.useState([])
-
-  React.useEffect(() => {
-    const asyncTokenRequest = async () => {
-      const validation = await validateToken()
-      if (validation.isValid) {
-        const tokenRequest = await createToken()
-        if (tokenRequest.isOK) {
-          setErrors([])
-        }
-        // quietly sign them up for emails if checked
-        if (wantsEmails) {
-          emailListForm.submit({ email })
-        }
-      } else {
-        // invalid set errors here
-        setErrors(validation.errors)
-        setRequesting(false)
-      }
-    }
-    if (requesting) asyncTokenRequest()
-  }, [requesting])
-
-  return (
-    <Box>
-      <Text>
-        Please read and accept our{' '}
-        <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
-        <Link label="Privacy Policy" href="/privacy-policy" /> before you
-        download data.
-      </Text>
-      {(errors || errors.length) && <Text color="error">{errors}</Text>}
-      <FormField label="Email">
-        <TextInput
-          value={email || ''}
-          onChange={({ target: { value } }) => setEmail(value)}
-        />
-      </FormField>
-      <CheckBox
-        label={<AcceptLabel />}
-        value
-        checked={acceptsTerms}
-        onChange={({ target: { checked } }) => setAcceptsTerms(checked)}
-      />
-      <CheckBox
-        label={<UpdatesLabel />}
-        value
-        checked={wantsEmails}
-        onChange={({ target: { checked } }) => setWantsEmails(checked)}
-      />
-      <Box direction="row" justify="end" margin={{ top: 'medium' }}>
-        <Button
-          primary
-          label="Download"
-          disabled={!acceptsTerms || !email || requesting}
-          onClick={() => setRequesting(true)}
-        />
-      </Box>
-    </Box>
-  )
-}
 
 // View when the donwload should have been initiated
 export const DownloadView = ({ computedFile }) => {

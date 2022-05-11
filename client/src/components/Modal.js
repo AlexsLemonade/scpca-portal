@@ -4,14 +4,21 @@ import { Anchor, Box, Layer, Stack, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 
 export const Modal = ({
+  backBtn,
+  backBtnText,
   showing,
   setShowing,
+  setInitialView,
   nondismissable,
   children,
   title,
   critical = false
 }) => {
   const { responsive } = useResponsive()
+
+  const backToInitialView = () => {
+    setInitialView(true)
+  }
 
   const dismissModal = () => {
     if (!nondismissable) {
@@ -36,7 +43,7 @@ export const Modal = ({
               height={{ min: 'min-content', max: '100vh' }}
               width={responsive(
                 { width: '100%;' },
-                { width: '100%', max: '600px' }
+                { width: '100%', max: '720px' }
               )}
               pad={{ vertical: 'large', horizontal: 'xlarge' }}
               gap="none"
@@ -49,6 +56,17 @@ export const Modal = ({
               }
             >
               <Box width="full" height={{ min: 'min-content' }}>
+                {!backBtn && (
+                  <Text
+                    color="brand"
+                    role="button"
+                    margin={{ bottom: 'medium' }}
+                    style={{ cursor: 'pointer' }}
+                    onClick={backToInitialView}
+                  >
+                    <Icon size="16px" name="ChevronLeft" /> {backBtnText}
+                  </Text>
+                )}
                 {title && (
                   <Box
                     width="full"

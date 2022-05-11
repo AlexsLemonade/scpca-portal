@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Grid, Text } from 'grommet'
 import { Pill } from 'components/Pill'
 import { Badge } from 'components/Badge'
 import { Link } from 'components/Link'
 import { Download } from 'components/Download'
+import { DownloadSpatial } from 'components/DownloadSpatial'
 import { getReadable } from 'helpers/getReadable'
 import { formatBytes } from 'helpers/formatBytes'
 import { capitalize } from 'helpers/capitalize'
@@ -12,6 +13,12 @@ import { InfoText } from './InfoText'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
+  const [spatial, setSpatial] = useState(false)
+
+  useEffect(() => {
+    setSpatial(true)
+  }, spatial)
+
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
       <Box
@@ -42,7 +49,11 @@ export const ProjectHeader = ({ project, linked = false }) => {
           <Box align="center" gap="small">
             {project.computed_file && (
               <>
-                <Download computedFile={project.computed_file} />
+                {spatial ? (
+                  <DownloadSpatial computedFile={project.computed_file} />
+                ) : (
+                  <Download computedFile={project.computed_file} />
+                )}
                 <Text>
                   Size: {formatBytes(project.computed_file.size_in_bytes)}
                 </Text>
