@@ -7,11 +7,11 @@ from scpca_portal.views.project import ProjectDetailSerializer, ProjectSerialize
 
 class TestProjectSerializer(TestCase):
     def setUp(self):
-        """Create a project to get a valid dict"""
-        project = ProjectFactory()
-        self.project_data = model_to_dict(project)
-        # This needs to be unique.
-        self.project_data["scpca_id"] = "SCPCP99999"
+        """Create a project to get a valid dict."""
+        self.project = ProjectFactory()
+        self.project_data = model_to_dict(self.project)
+
+        self.project_data["scpca_id"] = "SCPCP999999"  # This needs to be unique.
         self.project_data.pop("id")
 
     def test_serializer_with_empty_data(self):
@@ -28,4 +28,5 @@ class TestProjectSerializer(TestCase):
 
     def test_detail_serializer_with_valid_data(self):
         serializer = ProjectDetailSerializer(data=self.project_data)
+        serializer.is_valid()
         self.assertTrue(serializer.is_valid())
