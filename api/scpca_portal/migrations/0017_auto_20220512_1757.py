@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0016_merge_0011_auto_20220428_1822_0015_auto_20220429_2116'),
+        ("scpca_portal", "0016_merge_0011_auto_20220428_1822_0015_auto_20220429_2116"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='apitoken',
-            name='created_at',
+            model_name="apitoken",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True),
         ),
         migrations.AlterField(
-            model_name='apitoken',
-            name='updated_at',
+            model_name="apitoken",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True),
         ),
     ]
