@@ -69,11 +69,11 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         if token_id:
             token = APIToken.verify(token_id)
-            if token:
-                serializer_context.update({"token": token})
-            else:
+            if not token:
                 raise PermissionDenied(
                     {"message": "Your token is not valid or not activated.", "token_id": token_id}
                 )
+
+            serializer_context.update({"token": token})
 
         return serializer_context
