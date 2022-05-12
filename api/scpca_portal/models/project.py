@@ -94,11 +94,7 @@ class Project(models.Model):
 
     @property
     def output_single_cell_metadata_ignored_fields(self):
-        return {
-            "injected": ("seq_units", "technologies"),
-            "library": ("filtering_method",),
-            "sample": ("metastasis", "relapse_status", "upload_date", "vital_status"),
-        }
+        return ["seq_units", "technologies"]
 
     @property
     def output_single_cell_computed_file_name(self):
@@ -149,8 +145,6 @@ class Project(models.Model):
             "participant_id",
             "submitter",
             "submitter_id",
-            "BRAF_status",
-            "spinal_leptomeningeal_mets",
         ]
 
     @property
@@ -164,7 +158,6 @@ class Project(models.Model):
                 "unfiltered_cells",
                 "unfiltered_spots",
             ),
-            "sample": ("metastasis", "relapse_status", "upload_date", "vital_status"),
             "single_cell": (
                 "alevin_fry_version",
                 "cell_count",
@@ -217,13 +210,9 @@ class Project(models.Model):
         combined_metadata = []
 
         # Get all the field names to pass to the csv.DictWriter
-        all_fields = set(single_cell_libraries_metadata[0].keys()) - set(
-            self.output_single_cell_metadata_ignored_fields["library"]
-        )
+        all_fields = set(single_cell_libraries_metadata[0].keys())
         all_fields.update(
-            set(samples_metadata[0].keys())
-            - set(self.output_single_cell_metadata_ignored_fields["injected"])
-            - set(self.output_single_cell_metadata_ignored_fields["sample"])
+            set(samples_metadata[0].keys()) - set(self.output_single_cell_metadata_ignored_fields)
         )
 
         ordered_fields = self.output_single_cell_metadata_field_order
@@ -243,11 +232,7 @@ class Project(models.Model):
 
                 sample_metadata_copy = sample_metadata.copy()
                 # Exclude fields.
-                field_names = set(
-                    self.output_single_cell_metadata_ignored_fields["injected"]
-                    + self.output_single_cell_metadata_ignored_fields["sample"]
-                )
-                for field_name in field_names:
+                for field_name in self.output_single_cell_metadata_ignored_fields:
                     if field_name not in sample_metadata_copy:
                         continue
                     sample_metadata_copy.pop(field_name)
@@ -271,14 +256,6 @@ class Project(models.Model):
                         if sclm["scpca_sample_id"] == scpca_sample_id
                     )
                     for library in libraries:
-                        # Exclude fields.
-                        for field_name in self.output_single_cell_metadata_ignored_fields[
-                            "library"
-                        ]:
-                            if field_name not in library:
-                                continue
-                            library.pop(field_name)
-
                         library.update(sample_metadata_copy)
                         combined_metadata.append(library)
 
@@ -306,7 +283,6 @@ class Project(models.Model):
         all_fields.update(
             set(samples_metadata[0].keys())
             - set(self.output_spatial_metadata_ignored_fields["injected"])
-            - set(self.output_spatial_metadata_ignored_fields["sample"])
         )
 
         ordered_fields = self.output_spatial_metadata_field_order
@@ -328,7 +304,6 @@ class Project(models.Model):
                 # Exclude fields.
                 field_names = (
                     self.output_spatial_metadata_ignored_fields["injected"]
-                    + self.output_spatial_metadata_ignored_fields["sample"]
                     + self.output_spatial_metadata_ignored_fields["single_cell"]
                 )
                 for field_name in field_names:
