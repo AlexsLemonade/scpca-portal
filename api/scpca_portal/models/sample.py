@@ -1,6 +1,5 @@
 import os
 
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 
 from scpca_portal import common
@@ -16,7 +15,7 @@ class Sample(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    additional_metadata = JSONField(default=dict)
+    additional_metadata = models.JSONField(default=dict)
     age_at_diagnosis = models.TextField(blank=True, null=True)
     cell_count = models.IntegerField()
     diagnosis = models.TextField(blank=True, null=True)
