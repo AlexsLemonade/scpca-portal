@@ -4,21 +4,13 @@ import { Anchor, Box, Layer, Stack, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 
 export const Modal = ({
-  backBtn,
-  backBtnText,
   showing,
   setShowing,
-  setInitialView,
   nondismissable,
   children,
-  title,
   critical = false
 }) => {
   const { responsive } = useResponsive()
-
-  const backToInitialView = () => {
-    setInitialView(true)
-  }
 
   const dismissModal = () => {
     if (!nondismissable) {
@@ -27,7 +19,7 @@ export const Modal = ({
   }
 
   return (
-    <>
+    <span>
       {showing && (
         <Layer
           onEsc={dismissModal}
@@ -55,35 +47,7 @@ export const Modal = ({
                   : undefined
               }
             >
-              <Box width="full" height={{ min: 'min-content' }}>
-                {!backBtn && (
-                  <Text
-                    color="brand"
-                    role="button"
-                    margin={{ bottom: 'medium' }}
-                    style={{ cursor: 'pointer' }}
-                    onClick={backToInitialView}
-                  >
-                    <Icon size="16px" name="ChevronLeft" /> {backBtnText}
-                  </Text>
-                )}
-                {title && (
-                  <Box
-                    width="full"
-                    border={{
-                      side: 'bottom',
-                      color: 'border-black',
-                      size: 'small'
-                    }}
-                    height={{ min: 'min-content' }}
-                    pad={{ bottom: 'medium' }}
-                    margin={{ bottom: 'medium' }}
-                  >
-                    <Text size="xlarge">{title}</Text>
-                  </Box>
-                )}
-                {children}
-              </Box>
+              {children}
             </Box>
             {!nondismissable && (
               <Box alignSelf="end">
@@ -97,8 +61,31 @@ export const Modal = ({
           </Stack>
         </Layer>
       )}
-    </>
+    </span>
   )
 }
+
+Modal.Header = (props) => <Box width="full">{props.children}</Box>
+Modal.Title = (props) => (
+  <Box
+    width="full"
+    border={{
+      side: 'bottom',
+      color: 'border-black',
+      size: 'small'
+    }}
+    height={{ min: 'min-content' }}
+    pad={{ bottom: 'medium' }}
+    margin={{ bottom: 'medium' }}
+  >
+    <Text size="xlarge">{props.children}</Text>
+  </Box>
+)
+Modal.Body = (props) => (
+  <Box width="full" height={{ min: 'min-content' }}>
+    {props.children}
+  </Box>
+)
+Modal.Footer = (props) => <Box width="full">{props.children}</Box>
 
 export default Modal

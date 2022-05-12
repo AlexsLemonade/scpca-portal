@@ -22,15 +22,17 @@ export const ProjectSamplesTable = ({
   const columns = [
     {
       Header: 'Download',
-      accessor: () => 'computed_file',
+      accessor: () => 'computed_files',
       Cell: ({ row }) =>
         row.original.computed_file ? (
           <Box direction="row" gap="small" align="center">
             <Download
-              Icon={<DownloadIcon color="brand" />}
-              computedFile={row.original.computed_file}
+              icon={<DownloadIcon color="brand" />}
+              computedFile={row.original.computed_files}
             />
-            <Text>{formatBytes(row.original.computed_file.size_in_bytes)}</Text>
+            <Text>
+              {formatBytes(row.original.computed_files.size_in_bytes)}
+            </Text>
           </Box>
         ) : (
           <Box width={{ min: '120px' }}>
@@ -75,7 +77,7 @@ export const ProjectSamplesTable = ({
         const sortedSamples =
           project.sample_count !== project.downloadable_sample_count
             ? samplesRequest.response.results.sort((a) =>
-                a.computed_file && a.computed_file.id ? -1 : 1
+                a.computed_files && a.computed_files.id ? -1 : 1
               )
             : samplesRequest.response.results
         setSamples(sortedSamples)

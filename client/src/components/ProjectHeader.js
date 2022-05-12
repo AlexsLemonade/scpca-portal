@@ -4,7 +4,6 @@ import { Pill } from 'components/Pill'
 import { Badge } from 'components/Badge'
 import { Link } from 'components/Link'
 import { Download } from 'components/Download'
-import { DownloadSpatial } from 'components/DownloadSpatial'
 import { getReadable } from 'helpers/getReadable'
 import { formatBytes } from 'helpers/formatBytes'
 import { capitalize } from 'helpers/capitalize'
@@ -47,15 +46,11 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none'), bottom: 'medium' }}
         >
           <Box align="center" gap="small">
-            {project.computed_file && (
+            {project.computed_files.length > 0 && (
               <>
-                {spatial ? (
-                  <DownloadSpatial computedFile={project.computed_file} />
-                ) : (
-                  <Download computedFile={project.computed_file} />
-                )}
+                <Download resource={project} />
                 <Text>
-                  Size: {formatBytes(project.computed_file.size_in_bytes)}
+                  Size: {formatBytes(project.computed_files.size_in_bytes)}
                 </Text>
               </>
             )}

@@ -2,7 +2,7 @@ export const readableNames = {
   abstract: 'Abstract',
   pi_name: 'Primary Investigator',
   human_readable_pi_name: 'Primary Investigator',
-  computed_file: 'File',
+  computed_files: 'File',
   samples: 'Samples',
   summaries: 'Summaries',
   title: 'Title',
