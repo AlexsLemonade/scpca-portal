@@ -120,7 +120,7 @@ class Migration(migrations.Migration):
                 ("seq_units", models.TextField(blank=True, null=True)),
                 (
                     "additional_metadata",
-                    django.contrib.postgres.fields.jsonb.JSONField(default=dict),
+                    models.JSONField(default=dict),
                 ),
                 (
                     "computed_file",
