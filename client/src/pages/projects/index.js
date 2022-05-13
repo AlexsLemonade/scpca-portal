@@ -12,9 +12,8 @@ import { api } from 'api'
 import Error from 'pages/_error'
 
 const Project = ({ projects, count, filters, filterOptions }) => {
-  const { browseFilters, setBrowseFilters } = React.useContext(
-    ScPCAPortalContext
-  )
+  const { browseFilters, setBrowseFilters } =
+    React.useContext(ScPCAPortalContext)
 
   const { responsive } = useResponsive()
 

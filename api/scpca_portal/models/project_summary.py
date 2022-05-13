@@ -1,7 +1,5 @@
 from django.db import models
 
-from scpca_portal.models.project import Project
-
 
 class ProjectSummary(models.Model):
     """One of multiple summaries of a project.
@@ -27,11 +25,10 @@ class ProjectSummary(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     diagnosis = models.TextField(blank=True, null=True)
+    sample_count = models.PositiveIntegerField(default=0)
     seq_unit = models.TextField(blank=True, null=True)
     technology = models.TextField(blank=True, null=True)
 
-    sample_count = models.IntegerField()
-
     project = models.ForeignKey(
-        Project, blank=False, null=True, on_delete=models.CASCADE, related_name="summaries"
+        "Project", blank=False, null=True, on_delete=models.CASCADE, related_name="summaries"
     )

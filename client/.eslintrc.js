@@ -1,3 +1,5 @@
+const path = require('path')
+
 module.exports = {
   parser: '@babel/eslint-parser',
   parserOptions: {
@@ -5,6 +7,9 @@ module.exports = {
     sourceType: 'module',
     ecmaFeatures: {
       modules: true
+    },
+    babelOptions: {
+      configFile: path.resolve(`${__dirname}/.babelrc.js`)
     }
   },
   extends: ['airbnb', 'plugin:prettier/recommended'],

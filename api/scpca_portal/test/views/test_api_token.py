@@ -35,7 +35,11 @@ class APITestCases(APITestCase):
         token["is_activated"] = True
         token_id = token["id"]
         token_url = reverse("tokens-detail", kwargs={"id": token_id})
-        response = self.client.patch(token_url, json.dumps(token), content_type="application/json",)
+        response = self.client.patch(
+            token_url,
+            json.dumps(token),
+            content_type="application/json",
+        )
         self.assertEqual(response.status_code, 200)
 
         activated_token = response.json()
