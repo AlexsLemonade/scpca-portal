@@ -441,7 +441,12 @@ class Project(models.Model):
         single_cell_file_mapping = {}
         spatial_file_mapping = {}
         for sample_metadata in samples_metadata:
-            if scpca_sample_ids and sample_metadata["scpca_sample_id"] not in scpca_sample_ids:
+            scpca_sample_id = sample_metadata["scpca_sample_id"]
+            if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
+                continue
+
+            # Skip sample if its directory doesn't exist.
+            if not os.path.exists(self.get_sample_input_data_dir(scpca_sample_id)):
                 continue
 
             workflow_version = sample_metadata.pop("workflow_version")
