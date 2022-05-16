@@ -6,6 +6,7 @@ import { api } from 'api'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { Download } from 'components/Download'
 import { Loader } from 'components/Loader'
+import { accumulateValue } from 'helpers/accumulateValue'
 
 export const ProjectSamplesTable = ({
   project,
@@ -31,7 +32,9 @@ export const ProjectSamplesTable = ({
               resource={row.original}
             />
             <Text>
-              {formatBytes(row.original.computed_files.size_in_bytes)}
+              {formatBytes(
+                accumulateValue(row.original.computed_files, 'size_in_bytes')
+              )}
             </Text>
           </Box>
         ) : (

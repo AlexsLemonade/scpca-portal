@@ -18,7 +18,8 @@ export const downloadOptions = {
       'Bulk RNA-seq data',
       'CITE-seq data',
       'Project and Sample Metadata'
-    ]
+    ],
+    header: 'Download Single-cell Data'
   },
   SAMPLE_SPATIAL_ZIP: {
     items: ['Spatial data', 'Project and Sample Metadata'],
