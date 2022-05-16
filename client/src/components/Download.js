@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { Anchor, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Icon } from 'components/Icon'
-import { Modal } from 'components/Modal'
+import { Modal, ModalHeader, ModalTitle, ModalBody } from 'components/Modal'
 import { DownloadStarted } from 'components/DownloadStarted'
 import { DownloadOptions } from 'components/DownloadOptions'
 import { DownloadToken } from 'components/DownloadToken'
@@ -11,18 +11,20 @@ import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import { AnalyticsContext } from 'contexts/AnalyticsContext'
 import { api } from 'api'
 import { formatDate } from 'helpers/formatDate'
+import { isProjectID } from 'helpers/isProjectID'
 
 // Button and Modal to show when downloading
 export const Download = ({ icon, resource }) => {
   const { token, email, surveyListForm } = useContext(ScPCAPortalContext)
   const { trackDownload } = useContext(AnalyticsContext)
-  const [publicComputedFile, setPublicComputedFile] = useState(null)
-  const label =
-    publicComputedFile?.project || null ? 'Download Project' : 'Download Sample'
-
+  const [publicComputedFile, setPublicComputedFile] = useState(() =>
+    resource.computed_files.length === 1 ? resource.computed_files[0] : null
+  )
   const [showing, setShowing] = useState(false)
   const [download, setDownload] = useState(false)
-  const [showDownloadOptions, setShowDownloadOptions] = useState(true)
+  const label = isProjectID(resource.scpca_id)
+    ? 'Download Project'
+    : 'Download Sample'
 
   const handleClick = () => {
     setShowing(true)
@@ -34,38 +36,21 @@ export const Download = ({ icon, resource }) => {
     }
   }
 
-  const backToDownloadOptions = () => {
-    if (!download) {
+  const handleBackToOptions = () => {
+    setPublicComputedFile(null)
+  }
+
+  const handleSelectFile = (file) => {
+    setDownload(false)
+    setPublicComputedFile(file)
+  }
+
+  useEffect(() => {
+    if (!showing) {
+      setDownload(false)
       setPublicComputedFile(null)
     }
-    setShowDownloadOptions(true)
-  }
 
-  const switchComputedFile = (computedFile) => {
-    setPublicComputedFile(computedFile)
-    // setShowDownloadOptions(false)
-  }
-
-  useEffect(() => {
-    if (resource.computed_files.length === 1) {
-      setPublicComputedFile(resource.computed_files[0])
-    }
-  }, [])
-
-  // useEffect(() => {
-  //   console.log(publicComputedFile)
-  // }, [publicComputedFile])
-
-  useEffect(() => {
-    if (!showing && !download) {
-      if (resource.computed_files.length > 1) {
-        setPublicComputedFile(null)
-      }
-      setShowDownloadOptions(true)
-    }
-  }, [showing])
-
-  useEffect(() => {
     const asyncFetch = async () => {
       const downloadRequest = await api.computedFiles.get(
         publicComputedFile.id,
@@ -83,8 +68,9 @@ export const Download = ({ icon, resource }) => {
       }
     }
 
-    if (!download && token && showing) asyncFetch()
-  }, [download, token, showing])
+    if (!download && token && showing && publicComputedFile) asyncFetch()
+  }, [download, token, showing, publicComputedFile])
+
   return (
     <>
       {icon ? (
@@ -99,37 +85,36 @@ export const Download = ({ icon, resource }) => {
         />
       )}
       <Modal showing={showing} setShowing={setShowing}>
-        {!showDownloadOptions && (
-          <Modal.Header>
+        {publicComputedFile && (
+          <ModalHeader>
             <Text
               color="brand"
               role="button"
               margin={{ bottom: 'medium' }}
               style={{ cursor: 'pointer' }}
-              onClick={backToDownloadOptions}
+              onClick={handleBackToOptions}
             >
               <Icon size="16px" name="ChevronLeft" /> View Download Options
             </Text>
-          </Modal.Header>
+          </ModalHeader>
         )}
-        <Modal.Title>{label}</Modal.Title>
-        <Modal.Body>
-          {download && !showDownloadOptions ? (
+        <ModalTitle>{label}</ModalTitle>
+        <ModalBody>
+          {download && token && publicComputedFile ? (
             <DownloadStarted
               resource={resource}
               computedFile={download}
-              switchComputedFile={switchComputedFile}
+              handleSelectFile={handleSelectFile}
             />
-          ) : !download && !showDownloadOptions ? (
+          ) : !token && publicComputedFile ? (
             <DownloadToken />
-          ) : showDownloadOptions ? (
+          ) : !publicComputedFile ? (
             <DownloadOptions
+              handleSelectFile={handleSelectFile}
               computedFiles={resource.computed_files}
-              setShowDownloadOptions={setShowDownloadOptions}
-              setPublicComputedFile={setPublicComputedFile}
             />
           ) : null}
-        </Modal.Body>
+        </ModalBody>
       </Modal>
     </>
   )

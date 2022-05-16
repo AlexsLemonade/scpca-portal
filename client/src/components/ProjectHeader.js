@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Box, Grid, Text } from 'grommet'
 import { Pill } from 'components/Pill'
 import { Badge } from 'components/Badge'
@@ -8,15 +8,11 @@ import { getReadable } from 'helpers/getReadable'
 import { formatBytes } from 'helpers/formatBytes'
 import { capitalize } from 'helpers/capitalize'
 import { useResponsive } from 'hooks/useResponsive'
+import { accumulateValue } from 'helpers/accumulateValue'
 import { InfoText } from './InfoText'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
-  const [spatial, setSpatial] = useState(false)
-
-  useEffect(() => {
-    setSpatial(true)
-  }, spatial)
 
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
@@ -50,7 +46,10 @@ export const ProjectHeader = ({ project, linked = false }) => {
               <>
                 <Download resource={project} />
                 <Text>
-                  Size: {formatBytes(project.computed_files.size_in_bytes)}
+                  Size:{' '}
+                  {formatBytes(
+                    accumulateValue(project.computed_files, 'size_in_bytes')
+                  )}
                 </Text>
               </>
             )}

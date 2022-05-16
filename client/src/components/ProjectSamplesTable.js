@@ -24,11 +24,11 @@ export const ProjectSamplesTable = ({
       Header: 'Download',
       accessor: () => 'computed_files',
       Cell: ({ row }) =>
-        row.original.computed_file ? (
+        row.original.computed_files ? (
           <Box direction="row" gap="small" align="center">
             <Download
               icon={<DownloadIcon color="brand" />}
-              computedFile={row.original.computed_files}
+              resource={row.original}
             />
             <Text>
               {formatBytes(row.original.computed_files.size_in_bytes)}
@@ -54,6 +54,10 @@ export const ProjectSamplesTable = ({
     },
     { Header: 'Sequencing Units', accessor: 'seq_units' },
     { Header: 'Technology', accessor: 'technologies' },
+    {
+      Header: 'Other Modalities',
+      accessor: ({ other_modalities }) => other_modalities || 'N/A'
+    },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
     { Header: 'Treatment', accessor: ({ treatment }) => treatment || 'N/A' },

@@ -26,7 +26,6 @@ const UpdatesLabel = () => {
 
 // View when the user has no token in local storage yet
 export const DownloadToken = () => {
-  // needs email validation
   const {
     email,
     setEmail,

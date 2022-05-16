@@ -65,8 +65,8 @@ export const Modal = ({
   )
 }
 
-Modal.Header = (props) => <Box width="full">{props.children}</Box>
-Modal.Title = (props) => (
+export const ModalHeader = ({ children }) => <Box width="full">{children}</Box>
+export const ModalTitle = ({ children }) => (
   <Box
     width="full"
     border={{
@@ -78,14 +78,14 @@ Modal.Title = (props) => (
     pad={{ bottom: 'medium' }}
     margin={{ bottom: 'medium' }}
   >
-    <Text size="xlarge">{props.children}</Text>
+    <Text size="xlarge">{children}</Text>
   </Box>
 )
-Modal.Body = (props) => (
+export const ModalBody = ({ children }) => (
   <Box width="full" height={{ min: 'min-content' }}>
-    {props.children}
+    {children}
   </Box>
 )
-Modal.Footer = (props) => <Box width="full">{props.children}</Box>
+export const ModalFooter = ({ children }) => <Box width="full">{children}</Box>
 
 export default Modal

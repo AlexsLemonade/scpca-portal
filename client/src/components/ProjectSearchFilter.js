@@ -102,12 +102,22 @@ export const ProjectSearchFilter = ({
               />
             ))}
             {f === 'modalities' && (
-              <CheckBox
-                label={getReadable('has_bulk_rna_seq')}
-                value
-                checked={hasFilterOption('has_bulk_rna_seq')}
-                onChange={() => toggleFilterOption('has_bulk_rna_seq')}
-              />
+              <>
+                <CheckBox
+                  label={getReadable('has_spatial transcriptomics')}
+                  value
+                  checked={hasFilterOption('has_spatial transcriptomics')}
+                  onChange={() =>
+                    toggleFilterOption('has_spatial transcriptomics')
+                  }
+                />
+                <CheckBox
+                  label={getReadable('has_bulk_rna_seq')}
+                  value
+                  checked={hasFilterOption('has_bulk_rna_seq')}
+                  onChange={() => toggleFilterOption('has_bulk_rna_seq')}
+                />
+              </>
             )}
           </Box>
         </Box>
