@@ -20,7 +20,7 @@ export const DonateButton = ({ yellow = false, label = 'Donate' }) => {
   const Component = yellow ? StyledButton : Button
   return (
     <Component
-      href="https://www.alexslemonade.org/contribute/7?restrict=Childhood%20Cancer%20Data%20Lab"
+      href="https://www.ccdatalab.org/donate-link"
       target="_blank"
       label={label}
       primary
