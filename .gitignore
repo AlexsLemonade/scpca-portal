@@ -131,7 +131,6 @@ infrastructure/.terraform/
 .vscode
 *.code-workspace
 
-
 #
 # Client
 #
