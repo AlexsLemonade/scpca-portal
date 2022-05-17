@@ -124,6 +124,13 @@ infrastructure/*.tfstate*
 infrastructure/.terraform/
 .circleci/s3_tfstate/.terraform
 
+# MacOS
+.DS_Store
+
+# VSCode
+.vscode
+*.code-workspace
+
 
 #
 # Client
@@ -145,7 +152,6 @@ client/out/
 client/build
 
 # misc
-client/.DS_Store
 client/*.pem
 
 # debug
