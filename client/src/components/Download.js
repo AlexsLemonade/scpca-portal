@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { Anchor, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Icon } from 'components/Icon'
-import { Modal, ModalHeader, ModalTitle, ModalBody } from 'components/Modal'
+import { Modal } from 'components/Modal'
 import { DownloadStarted } from 'components/DownloadStarted'
 import { DownloadOptions } from 'components/DownloadOptions'
 import { DownloadToken } from 'components/DownloadToken'
@@ -84,9 +84,9 @@ export const Download = ({ icon, resource }) => {
           onClick={handleClick}
         />
       )}
-      <Modal showing={showing} setShowing={setShowing}>
+      <Modal title={label} showing={showing} setShowing={setShowing}>
         {publicComputedFile && (
-          <ModalHeader>
+          <Modal.Header>
             <Text
               color="brand"
               role="button"
@@ -96,10 +96,9 @@ export const Download = ({ icon, resource }) => {
             >
               <Icon size="16px" name="ChevronLeft" /> View Download Options
             </Text>
-          </ModalHeader>
+          </Modal.Header>
         )}
-        <ModalTitle>{label}</ModalTitle>
-        <ModalBody>
+        <Modal.Body>
           {download && token && publicComputedFile ? (
             <DownloadStarted
               resource={resource}
@@ -114,7 +113,7 @@ export const Download = ({ icon, resource }) => {
               computedFiles={resource.computed_files}
             />
           ) : null}
-        </ModalBody>
+        </Modal.Body>
       </Modal>
     </>
   )

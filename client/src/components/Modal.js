@@ -1,9 +1,10 @@
 import React from 'react'
 import { Icon } from 'components/Icon'
-import { Anchor, Box, Layer, Stack, Text } from 'grommet'
+import { Anchor, Box, Grid, Layer, Stack, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 
 export const Modal = ({
+  title,
   showing,
   setShowing,
   nondismissable,
@@ -47,7 +48,34 @@ export const Modal = ({
                   : undefined
               }
             >
-              {children}
+              <Grid
+                areas={[
+                  { name: 'header', start: [0, 0], end: [1, 0] },
+                  { name: 'title', start: [0, 1], end: [1, 1] },
+                  { name: 'body', start: [0, 2], end: [1, 2] },
+                  { name: 'footer', start: [0, 3], end: [1, 3] }
+                ]}
+                columns={['1', '1']}
+                rows={['auto', 'auto', '1fr', 'auto']}
+              >
+                {title && (
+                  <Box
+                    border={{
+                      side: 'bottom',
+                      color: 'border-black',
+                      size: 'small'
+                    }}
+                    gridArea="title"
+                    width="full"
+                    height={{ min: 'min-content' }}
+                    pad={{ bottom: 'medium' }}
+                    margin={{ bottom: 'medium' }}
+                  >
+                    <Text size="xlarge">{title} </Text>
+                  </Box>
+                )}
+                {children}
+              </Grid>
             </Box>
             {!nondismissable && (
               <Box alignSelf="end">
@@ -65,27 +93,23 @@ export const Modal = ({
   )
 }
 
-export const ModalHeader = ({ children }) => <Box width="full">{children}</Box>
-export const ModalTitle = ({ children }) => (
-  <Box
-    width="full"
-    border={{
-      side: 'bottom',
-      color: 'border-black',
-      size: 'small'
-    }}
-    height={{ min: 'min-content' }}
-    pad={{ bottom: 'medium' }}
-    margin={{ bottom: 'medium' }}
-  >
-    <Text size="xlarge">{children}</Text>
-  </Box>
-)
-export const ModalBody = ({ children }) => (
-  <Box width="full" height={{ min: 'min-content' }}>
+const Header = ({ children }) => (
+  <Box gridArea="header" width="full">
     {children}
   </Box>
 )
-export const ModalFooter = ({ children }) => <Box width="full">{children}</Box>
+const Body = ({ children }) => (
+  <Box gridArea="body" width="full" height={{ min: 'min-content' }}>
+    {children}
+  </Box>
+)
+const Footer = ({ children }) => (
+  <Box gridArea="footer" width="full">
+    {children}
+  </Box>
+)
+Modal.Header = Header
+Modal.Body = Body
+Modal.Footer = Footer
 
 export default Modal
