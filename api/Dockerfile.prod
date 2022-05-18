@@ -36,4 +36,4 @@ VOLUME /tmp/www/static
 EXPOSE $HTTP_PORT
 
 # Run the production server
-CMD python manage.py collectstatic --noinput && uwsgi --ini uwsgi.ini --http $HTTP_PORT
+CMD python manage.py collectstatic --noinput && uwsgi --ini ./uwsgi.ini --http $HTTP_PORT
