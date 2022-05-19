@@ -1,6 +1,6 @@
 /*
-@param arr - a targetd array that is iterlated over 
-@param key - a key that is used to sort 
+@param arr - a targeted array that is iterlated over
+@param key - a key that is used to sort
 @param comp - an arary of prefered sorting order
 @param asc - a boolean indicates whether it's ascending order or not
 */
