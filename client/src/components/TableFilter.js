@@ -27,6 +27,7 @@ export const TableFilter = ({
             setValue(newValue)
             onChange(newValue)
           }}
+          aria-label="Filter"
         />
       </Box>
       <Text size="small" italic color="black-tint-40">

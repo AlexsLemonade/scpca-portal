@@ -77,6 +77,7 @@ export const Download = ({ icon, resource }) => {
         <Anchor icon={icon} onClick={handleClick} />
       ) : (
         <Button
+          aria-label={label}
           flex="grow"
           primary
           label={label}

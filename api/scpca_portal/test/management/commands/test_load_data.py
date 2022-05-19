@@ -167,41 +167,6 @@ class TestLoadData(TestCase):
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_single_cell_metadata(self):
-        expected_keys = {
-            "age",
-            "alevin_fry_version",
-            "cell_count",
-            "date_processed",
-            "diagnosis",
-            "disease_timing",
-            "filtered_cell_count",
-            "genome_assembly",
-            "has_citeseq",
-            "mapped_reads",
-            "mapping_index",
-            "participant_id",
-            "pi_name",
-            "project_title",
-            "salmon_version",
-            "scpca_library_id",
-            "scpca_project_id",
-            "scpca_sample_id",
-            "seq_unit",
-            "sex",
-            "subdiagnosis",
-            "submitter_id",
-            "submitter",
-            "technology",
-            "tissue_location",
-            "total_reads",
-            "transcript_type",
-            "treatment",
-            "unfiltered_cells",
-            "workflow_commit",
-            "workflow_version",
-            "workflow",
-        }
-
         # First, just test that loading data works.
         load_data_from_s3(
             update_s3_data=True,
@@ -224,7 +189,29 @@ class TestLoadData(TestCase):
         # 1 item + header.
         self.assertTrue(len(sample_metadata_lines), 2)
 
-        sample_metadata_keys = set(sample_metadata_lines[0].split(common.TAB))
+        expected_keys = new_project.output_single_cell_metadata_field_order + [
+            "alevin_fry_version",
+            "date_processed",
+            "filtered_cell_count",
+            "filtering_method",
+            "genome_assembly",
+            "has_citeseq",
+            "mapped_reads",
+            "mapping_index",
+            "participant_id",
+            "salmon_version",
+            "submitter",
+            "submitter_id",
+            "total_reads",
+            "transcript_type",
+            "treatment",
+            "unfiltered_cells",
+            "upload_date",
+            "workflow",
+            "workflow_commit",
+            "workflow_version",
+        ]
+        sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
         # There are 3 files for each sample, plus a README.md
@@ -243,7 +230,7 @@ class TestLoadData(TestCase):
                 rows = list(csv_reader)
 
         self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0].keys(), expected_keys)
+        self.assertEqual(list(rows[0].keys()), expected_keys)
         scpca_library_id = rows[0]["scpca_library_id"]
 
         expected_filenames = {
@@ -270,52 +257,25 @@ class TestLoadData(TestCase):
         self.assert_project(self.scpca_project_id)
         new_project = Project.objects.get(scpca_id=self.scpca_project_id)
 
-        expected_keys = {
-            "age",
-            "BRAF_status",
-            "date_processed",
-            "diagnosis",
-            "disease_timing",
-            "genome_assembly",
-            "mapped_reads",
-            "mapping_index",
-            "participant_id",
-            "pi_name",
-            "project_title",
-            "scpca_library_id",
-            "scpca_project_id",
-            "scpca_sample_id",
-            "seq_unit",
-            "sex",
-            "spaceranger_version",
-            "spinal_leptomeningeal_mets",
-            "subdiagnosis",
-            "submitter_id",
-            "submitter",
-            "technology",
-            "tissue_location",
-            "total_reads",
-            "treatment",
-            "workflow_commit",
-            "workflow_version",
-            "workflow",
-        }
-
         with ZipFile(new_project.output_spatial_computed_file_path) as project_zip:
             spatial_metadata_file = project_zip.read(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
             )
             spatial_metadata = spatial_metadata_file.decode("utf-8").split("\r\n")
-            # 2 items + header.
-            self.assertTrue(len(spatial_metadata), 3)
-            spatial_metadata_keys = set(spatial_metadata[0].split(common.TAB))
 
-            self.assertEqual(spatial_metadata_keys, expected_keys)
+        # 2 items + header.
+        self.assertTrue(len(spatial_metadata), 3)
+        spatial_metadata_keys = spatial_metadata[0].split(common.TAB)
 
-            # There are 17 files for each spatial library (including
-            # subdirectories), plus a README.md and a spatial_metadata.tsv file.
-            # 1 * 17 + 2 = 19
-            self.assertEqual(len(project_zip.namelist()), 19)
+        expected_keys = new_project.output_spatial_metadata_field_order + [
+            "upload_date",
+        ]
+        self.assertEqual(spatial_metadata_keys, expected_keys)
+
+        # There are 17 files for each spatial library (including
+        # subdirectories), plus a README.md and a spatial_metadata.tsv file.
+        # 1 * 17 + 2 = 19
+        self.assertEqual(len(project_zip.namelist()), 19)
 
         sample = new_project.samples.first()
         with ZipFile(sample.output_spatial_computed_file_path) as sample_zip:
@@ -329,7 +289,7 @@ class TestLoadData(TestCase):
 
         expected_library_count = 1
         self.assertEqual(len(rows), expected_library_count)
-        self.assertEqual(rows[0].keys(), expected_keys)
+        self.assertEqual(list(rows[0].keys()), expected_keys)
 
         scpca_library_ids = (rows[0]["scpca_library_id"],)
 
