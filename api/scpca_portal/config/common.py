@@ -13,18 +13,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 class Common(Configuration):
 
     INSTALLED_APPS = (
-        "django.contrib.admin",
         "django.contrib.auth",
         "django.contrib.contenttypes",
         "django.contrib.sessions",
         "django.contrib.messages",
         "django.contrib.staticfiles",
         # Third party apps
-        "django_extensions",
         "rest_framework",  # utilities for rest apis
         "django_filters",  # for filtering rest endpoints
         "drf_yasg",
-        "computedfields",  # Allows for computed fields on models
         "corsheaders",
         # Your apps
         "scpca_portal",
