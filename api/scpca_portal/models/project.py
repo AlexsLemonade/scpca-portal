@@ -2,11 +2,10 @@ import csv
 import json
 import logging
 import os
+from collections import Counter
 from typing import Dict, List
 
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 from scpca_portal import common
 from scpca_portal.models.computed_file import ComputedFile
@@ -484,6 +483,8 @@ class Project(models.Model):
                 ComputedFile.create_project_spatial_file(self, spatial_metadata_files)
             )
 
+        self.update_counts()
+
         return computed_files
 
     def purge(self, delete_from_s3=False):
@@ -503,24 +504,22 @@ class Project(models.Model):
         ProjectSummary.objects.filter(project=self).delete()
         self.delete()
 
-    @receiver(post_save, sender="scpca_portal.Sample")
-    def update_project_counts(sender, instance, created=False, update_fields=None, **kwargs):
-        """The Project and ProjectSummary models cache aggregated sample metadata.
-
-        When Samples are added to the Project, we need to update these."""
-
-        project = instance.project
+    def update_counts(self):
+        """
+        The Project and ProjectSummary models cache aggregated sample metadata.
+        We need to update these after any project's sample gets added/deleted.
+        """
 
         additional_metadata_keys = set()
         diagnoses = set()
-        diagnoses_counts = {}
+        diagnoses_counts = Counter()
         disease_timings = set()
         modalities = set()
         seq_units = set()
-        summaries = {}
+        summaries_counts = Counter()
         technologies = set()
 
-        for sample in project.samples.all():
+        for sample in self.samples.all():
             additional_metadata_keys.update(sample.additional_metadata.keys())
             diagnoses.add(sample.diagnosis)
             disease_timings.add(sample.disease_timing)
@@ -535,43 +534,36 @@ class Project(models.Model):
             if sample.has_spatial_data:
                 modalities.add("Spatial Data")
 
-            # TODO(arkid15r): replace with a counter.
-            if sample.diagnosis in diagnoses_counts:
-                diagnoses_counts[sample.diagnosis] += 1
-            else:
-                diagnoses_counts[sample.diagnosis] = 1
-
+            diagnoses_counts.update({sample.diagnosis: 1})
             for seq_unit in sample_seq_units:
                 for technology in sample_technologies:
-                    summary = (sample.diagnosis, seq_unit.strip(), technology.strip())
-                    if summary in summaries:
-                        summaries[summary] += 1
-                    else:
-                        summaries[summary] = 1
+                    summaries_counts.update(
+                        {(sample.diagnosis, seq_unit.strip(), technology.strip()): 1}
+                    )
 
         diagnoses_strings = sorted(
             (f"{diagnosis} ({count})" for diagnosis, count in diagnoses_counts.items())
         )
-        downloadable_sample_count = project.samples.filter(
-            sample_computed_files__isnull=False
-        ).count()
+        downloadable_sample_count = (
+            self.samples.filter(sample_computed_files__isnull=False).distinct().count()
+        )
         seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
         technologies = sorted((technology for technology in technologies if technology))
 
-        project.additional_metadata_keys = ", ".join(sorted(additional_metadata_keys))
-        project.diagnoses = ", ".join(sorted(diagnoses))
-        project.diagnoses_counts = ", ".join(diagnoses_strings)
-        project.disease_timings = ", ".join(disease_timings)
-        project.downloadable_sample_count = downloadable_sample_count
-        project.modalities = ", ".join(sorted(modalities))
-        project.sample_count = project.samples.count()
-        project.seq_units = ", ".join(seq_units)
-        project.technologies = ", ".join(technologies)
-        project.save()
+        self.additional_metadata_keys = ", ".join(sorted(additional_metadata_keys))
+        self.diagnoses = ", ".join(sorted(diagnoses))
+        self.diagnoses_counts = ", ".join(diagnoses_strings)
+        self.disease_timings = ", ".join(disease_timings)
+        self.downloadable_sample_count = downloadable_sample_count
+        self.modalities = ", ".join(sorted(modalities))
+        self.sample_count = self.samples.count()
+        self.seq_units = ", ".join(seq_units)
+        self.technologies = ", ".join(technologies)
+        self.save()
 
-        for (diagnosis, seq_unit, technology), count in summaries.items():
+        for (diagnosis, seq_unit, technology), count in summaries_counts.items():
             project_summary, _ = ProjectSummary.objects.get_or_create(
-                diagnosis=diagnosis, project=project, seq_unit=seq_unit, technology=technology
+                diagnosis=diagnosis, project=self, seq_unit=seq_unit, technology=technology
             )
             project_summary.sample_count = count
             project_summary.save(update_fields=("sample_count",))

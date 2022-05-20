@@ -29,6 +29,7 @@ class TestLoadData(TestCase):
         self.scpca_project_id = "SCPCP999999"
 
         self.expected_computed_file_count = 4
+        self.expected_downloadable_sample_count = 1
         self.expected_project_count = 1
         self.expected_sample_count = 1
         self.expected_summary_count = 4
@@ -89,6 +90,8 @@ class TestLoadData(TestCase):
         self.assertIsNotNone(sample.spatial_computed_file)
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(ComputedFile.objects.count(), self.expected_computed_file_count)
+
+        self.assertEqual(project.downloadable_sample_count, self.expected_downloadable_sample_count)
 
         return (
             project,
