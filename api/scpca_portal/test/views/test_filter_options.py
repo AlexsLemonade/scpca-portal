@@ -9,12 +9,13 @@ class FilterOptionsTestCase(APITestCase):
     """Tests /project-options/ endpoint."""
 
     def setUp(self):
-        SampleFactory(
+        sample = SampleFactory(
             diagnosis="different",
             project=ProjectFactory(),
             seq_units="cell, bulk",
             technologies="10Xv4, 10Xv5",
         )
+        sample.project.update_counts()
 
         # Create a project with no samples.
         LeafProjectFactory()
