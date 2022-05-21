@@ -49,7 +49,7 @@ export const ProjectSamplesTable = ({
       Header: 'Diagnosis - Subdiagnosis',
       accessor: ({ diagnosis, subdiagnosis }) => `${diagnosis} ${subdiagnosis}`,
       Cell: ({ row }) => (
-        <Box width={{ max: '200px' }} style={{ 'white-space': 'normal' }}>
+        <Box width={{ max: '200px' }} style={{ whiteSpace: 'normal' }}>
           <Text>{row.original.diagnosis}</Text>
           <Text size="small">{row.original.subdiagnosis}</Text>
         </Box>
@@ -83,7 +83,7 @@ export const ProjectSamplesTable = ({
         // if not all samples are downloadable show downloadable first
         const sortedSamples =
           project.sample_count !== project.downloadable_sample_count
-            ? samplesRequest.response.results.sort(({ computed_file: a }) =>
+            ? samplesRequest.response.results.sort(({ computed_files: a }) =>
                 a && a.id ? -1 : 1
               )
             : samplesRequest.response.results
