@@ -61,18 +61,23 @@ const ExposeBox = styled(Box)`
 `
 
 const Home = ({ stats }) => {
-  const cancerTypes = stats.cancer_types.filter((c) => c !== 'Normal margin')
+  const cancerTypes = stats.cancer_types
+    ? stats.cancer_types.filter((c) => c !== 'Normal margin')
+    : null
   const { emailListForm } = React.useContext(ScPCAPortalContext)
   const { responsive } = useResponsive()
   const statBlocks = getStatsBlocks(stats)
+
   const cancerColors = React.useMemo(
     () =>
-      fillArrayRandom(
-        stats.cancer_types.length,
-        'alexs-deep-blue-tint-70',
-        'alexs-lemonade-tint-75',
-        'alexs-light-blue-tint-60'
-      ),
+      stats.cancer_types
+        ? fillArrayRandom(
+            stats.cancer_types.length,
+            'alexs-deep-blue-tint-70',
+            'alexs-lemonade-tint-75',
+            'alexs-light-blue-tint-60'
+          )
+        : '',
     []
   )
 
@@ -169,18 +174,22 @@ const Home = ({ stats }) => {
               align="center"
               pad={{ vertical: 'large' }}
             >
-              {cancerTypes.map((ct, i) => (
-                <Link key={ct} href={`/projects?diagnoses=${ct}`}>
-                  <Box
-                    round
-                    background={cancerColors[i]}
-                    pad={{ vertical: 'xsmall', horizontal: 'small' }}
-                    margin="small"
-                  >
-                    <Text wordBreak="keep-all">{ct}</Text>
-                  </Box>
-                </Link>
-              ))}
+              {cancerTypes ? (
+                cancerTypes.map((ct, i) => (
+                  <Link key={ct} href={`/projects?diagnoses=${ct}`}>
+                    <Box
+                      round
+                      background={cancerColors[i]}
+                      pad={{ vertical: 'xsmall', horizontal: 'small' }}
+                      margin="small"
+                    >
+                      <Text wordBreak="keep-all">{ct}</Text>
+                    </Box>
+                  </Link>
+                ))
+              ) : (
+                <Text>Currently not available</Text>
+              )}
             </Box>
             {exposed !== 'all' && (
               <Button
