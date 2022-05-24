@@ -28,10 +28,6 @@ export const DownloadStarted = ({
   )
   const downloadOptionType = downloadOptions[computedFile.type]
 
-  const handleClick = (file) => {
-    handleSelectFile(file)
-  }
-
   return (
     <span>
       <Grid
@@ -130,7 +126,7 @@ export const DownloadStarted = ({
                   label={downloadOptions[otherComputedFile.type].header}
                   href=""
                   target="_blank"
-                  onClick={() => handleClick(otherComputedFile)}
+                  onClick={() => handleSelectFile(otherComputedFile)}
                 />
               </Box>
             </Fragment>
