@@ -20,7 +20,7 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
       ]}
       columns={['1/2', '1/2']}
       fill="vertical"
-      pad={{ left: '16px', right: '32px' }}
+      margin={{ left: '8px', right: '8px' }}
       rows={['auto', '1fr', 'auto']}
     >
       <Box gridArea="header" pad={{ bottom: '8px' }}>

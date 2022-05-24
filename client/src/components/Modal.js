@@ -69,7 +69,7 @@ export const Modal = ({
                     width="full"
                     height={{ min: 'min-content' }}
                     pad={{ bottom: 'medium' }}
-                    margin={{ bottom: 'medium' }}
+                    margin={{ bottom: '24px' }}
                   >
                     <Text size="xlarge">{title} </Text>
                   </Box>

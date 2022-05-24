@@ -12,7 +12,7 @@ export const DownloadOptions = ({ computedFiles, handleSelectFile }) => {
   ])
 
   return (
-    <Grid columns={['1/2', '1/2']} gap="large" pad={{ bottom: 'medium' }}>
+    <Grid columns={['auto', 'auto']} gap="large" pad={{ bottom: 'medium' }}>
       {sortedComputedFiles.map((computedFile, i, arr) => {
         return (
           <Box
