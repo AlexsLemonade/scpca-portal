@@ -93,7 +93,7 @@ export const Modal = ({
   )
 }
 
-const Header = ({ children }) => (
+export const ModalHeader = ({ children }) => (
   <Box gridArea="header" width="full">
     {children}
   </Box>
@@ -108,7 +108,6 @@ const Footer = ({ children }) => (
     {children}
   </Box>
 )
-Modal.Header = Header
 Modal.Body = Body
 Modal.Footer = Footer
 
