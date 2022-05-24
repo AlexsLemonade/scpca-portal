@@ -59,7 +59,8 @@ export const ProjectSamplesTable = ({
     { Header: 'Technology', accessor: 'technologies' },
     {
       Header: 'Other Modalities',
-      accessor: ({ other_modalities }) => other_modalities || 'N/A'
+      accessor: ({ other_modalities: otherModalities }) =>
+        otherModalities || 'N/A'
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
