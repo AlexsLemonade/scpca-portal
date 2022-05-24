@@ -20,6 +20,7 @@ import { fillArrayRandom } from 'helpers/fillArrayRandom'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
+import Head from 'next/head'
 import PipelineSvg from '../images/pipeline.svg'
 import FilesSvg from '../images/files.svg'
 
@@ -86,6 +87,9 @@ const Home = ({ stats }) => {
 
   return (
     <>
+      <Head>
+        <title>ScPCA Portal</title>
+      </Head>
       <HeroBand
         background="dawn"
         width="full"

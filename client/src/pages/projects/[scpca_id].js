@@ -8,6 +8,7 @@ import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTabl
 import { Link } from 'components/Link'
 import { api } from 'api'
 import { useResponsive } from 'hooks/useResponsive'
+import Head from 'next/head'
 
 const Project = ({ project }) => {
   if (!project) return '404'
@@ -18,57 +19,62 @@ const Project = ({ project }) => {
   const onActive = (nextIndex) => setActiveIndex(nextIndex)
   const { responsive } = useResponsive()
   return (
-    <Box width="xlarge">
-      <ProjectHeader project={project} />
-      <Box pad={{ vertical: 'large' }}>
-        <Tabs activeIndex={activeIndex} onActive={onActive}>
-          <Tab title="Project Details">
-            <Box pad={{ vertical: 'large' }}>
-              <DetailsTable
-                data={project}
-                order={[
-                  'abstract',
-                  'disease_timings',
-                  'sample_count',
-                  'human_readable_pi_name',
-                  {
-                    label: 'Contact Information',
-                    value: (
-                      <Link
-                        label={`${project.contact_name} <${project.contact_email}>`}
-                        href={`mailto:${project.contact_email}`}
-                      />
-                    )
-                  }
-                ]}
-              />
-            </Box>
-            <Text size="large" weight="bold">
-              Sample Summary
-            </Text>
-            <Box
-              pad={{ vertical: 'medium' }}
-              width={{ max: 'full' }}
-              overflow="auto"
-            >
-              <ProjectSamplesSummaryTable summaries={project.summaries} />
-            </Box>
-          </Tab>
-          <Tab title="Sample Details">
-            <Box
-              pad={{ vertical: 'medium' }}
-              width={{ max: 'full' }}
-              overflow="auto"
-            >
-              <ProjectSamplesTable
-                project={project}
-                stickies={responsive(0, 3)}
-              />
-            </Box>
-          </Tab>
-        </Tabs>
+    <>
+      <Head>
+        <title>Project - ScPCA Portal</title>
+      </Head>
+      <Box width="xlarge">
+        <ProjectHeader project={project} />
+        <Box pad={{ vertical: 'large' }}>
+          <Tabs activeIndex={activeIndex} onActive={onActive}>
+            <Tab title="Project Details">
+              <Box pad={{ vertical: 'large' }}>
+                <DetailsTable
+                  data={project}
+                  order={[
+                    'abstract',
+                    'disease_timings',
+                    'sample_count',
+                    'human_readable_pi_name',
+                    {
+                      label: 'Contact Information',
+                      value: (
+                        <Link
+                          label={`${project.contact_name} <${project.contact_email}>`}
+                          href={`mailto:${project.contact_email}`}
+                        />
+                      )
+                    }
+                  ]}
+                />
+              </Box>
+              <Text size="large" weight="bold">
+                Sample Summary
+              </Text>
+              <Box
+                pad={{ vertical: 'medium' }}
+                width={{ max: 'full' }}
+                overflow="auto"
+              >
+                <ProjectSamplesSummaryTable summaries={project.summaries} />
+              </Box>
+            </Tab>
+            <Tab title="Sample Details">
+              <Box
+                pad={{ vertical: 'medium' }}
+                width={{ max: 'full' }}
+                overflow="auto"
+              >
+                <ProjectSamplesTable
+                  project={project}
+                  stickies={responsive(0, 3)}
+                />
+              </Box>
+            </Tab>
+          </Tabs>
+        </Box>
       </Box>
-    </Box>
+    </>
   )
 }
 
