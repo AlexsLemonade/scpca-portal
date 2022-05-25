@@ -54,8 +54,15 @@ export const About = () => {
       </Box>
       <Box pad={{ horizontal: 'medium' }}>
         {responsive(
-          <AboutPageFigureMobile style={{ maxWidth: '100%' }} />,
-          <AboutPageFigure />
+          <AboutPageFigureMobile
+            style={{ maxWidth: '100%' }}
+            role="img"
+            title="A diagram image for How it works"
+          />,
+          <AboutPageFigure
+            role="img"
+            aria-label="A diagram image for How it works"
+          />
         )}
       </Box>
       <Grid
@@ -118,7 +125,11 @@ export const About = () => {
               gap={responsive('large', 'medium')}
             >
               <Box width="24px">
-                <Access />
+                <Access
+                  role="presentation"
+                  aria-hidden="true"
+                  focusable="false"
+                />
               </Box>
               <Box>
                 <Text weight="bold">Accessible Cutting-edge Technology</Text>
@@ -136,7 +147,11 @@ export const About = () => {
               gap={responsive('large', 'medium')}
             >
               <Box width="24px">
-                <WidelyAvailable />
+                <WidelyAvailable
+                  role="presentation"
+                  aria-hidden="true"
+                  focusable="false"
+                />
               </Box>
               <Box>
                 <Text weight="bold">Widely Available</Text>
@@ -153,7 +168,11 @@ export const About = () => {
               gap={responsive('large', 'medium')}
             >
               <Box width="24px">
-                <OpenSource />
+                <OpenSource
+                  role="presentation"
+                  aria-hidden="true"
+                  focusable="false"
+                />
               </Box>
               <Box>
                 <Text weight="bold">Open Source</Text>
@@ -171,7 +190,11 @@ export const About = () => {
               gap={responsive('large', 'medium')}
             >
               <Box width="24px">
-                <SaveTime />
+                <SaveTime
+                  role="presentation"
+                  aria-hidden="true"
+                  focusable="false"
+                />
               </Box>
               <Box>
                 <Text weight="bold">Frees up Researcher Time</Text>

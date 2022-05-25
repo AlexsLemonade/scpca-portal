@@ -2,11 +2,10 @@ import csv
 import json
 import logging
 import os
+from collections import Counter
 from typing import Dict, List
 
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 from scpca_portal import common
 from scpca_portal.models.computed_file import ComputedFile
@@ -94,11 +93,7 @@ class Project(models.Model):
 
     @property
     def output_single_cell_metadata_ignored_fields(self):
-        return {
-            "injected": ("seq_units", "technologies"),
-            "library": ("filtering_method",),
-            "sample": ("metastasis", "relapse_status", "upload_date", "vital_status"),
-        }
+        return ["seq_units", "technologies"]
 
     @property
     def output_single_cell_computed_file_name(self):
@@ -149,8 +144,6 @@ class Project(models.Model):
             "participant_id",
             "submitter",
             "submitter_id",
-            "BRAF_status",
-            "spinal_leptomeningeal_mets",
         ]
 
     @property
@@ -164,7 +157,6 @@ class Project(models.Model):
                 "unfiltered_cells",
                 "unfiltered_spots",
             ),
-            "sample": ("metastasis", "relapse_status", "upload_date", "vital_status"),
             "single_cell": (
                 "alevin_fry_version",
                 "cell_count",
@@ -217,13 +209,9 @@ class Project(models.Model):
         combined_metadata = []
 
         # Get all the field names to pass to the csv.DictWriter
-        all_fields = set(single_cell_libraries_metadata[0].keys()) - set(
-            self.output_single_cell_metadata_ignored_fields["library"]
-        )
+        all_fields = set(single_cell_libraries_metadata[0].keys())
         all_fields.update(
-            set(samples_metadata[0].keys())
-            - set(self.output_single_cell_metadata_ignored_fields["injected"])
-            - set(self.output_single_cell_metadata_ignored_fields["sample"])
+            set(samples_metadata[0].keys()) - set(self.output_single_cell_metadata_ignored_fields)
         )
 
         ordered_fields = self.output_single_cell_metadata_field_order
@@ -243,11 +231,7 @@ class Project(models.Model):
 
                 sample_metadata_copy = sample_metadata.copy()
                 # Exclude fields.
-                field_names = set(
-                    self.output_single_cell_metadata_ignored_fields["injected"]
-                    + self.output_single_cell_metadata_ignored_fields["sample"]
-                )
-                for field_name in field_names:
+                for field_name in self.output_single_cell_metadata_ignored_fields:
                     if field_name not in sample_metadata_copy:
                         continue
                     sample_metadata_copy.pop(field_name)
@@ -271,14 +255,6 @@ class Project(models.Model):
                         if sclm["scpca_sample_id"] == scpca_sample_id
                     )
                     for library in libraries:
-                        # Exclude fields.
-                        for field_name in self.output_single_cell_metadata_ignored_fields[
-                            "library"
-                        ]:
-                            if field_name not in library:
-                                continue
-                            library.pop(field_name)
-
                         library.update(sample_metadata_copy)
                         combined_metadata.append(library)
 
@@ -306,7 +282,6 @@ class Project(models.Model):
         all_fields.update(
             set(samples_metadata[0].keys())
             - set(self.output_spatial_metadata_ignored_fields["injected"])
-            - set(self.output_spatial_metadata_ignored_fields["sample"])
         )
 
         ordered_fields = self.output_spatial_metadata_field_order
@@ -328,7 +303,6 @@ class Project(models.Model):
                 # Exclude fields.
                 field_names = (
                     self.output_spatial_metadata_ignored_fields["injected"]
-                    + self.output_spatial_metadata_ignored_fields["sample"]
                     + self.output_spatial_metadata_ignored_fields["single_cell"]
                 )
                 for field_name in field_names:
@@ -466,7 +440,12 @@ class Project(models.Model):
         single_cell_file_mapping = {}
         spatial_file_mapping = {}
         for sample_metadata in samples_metadata:
-            if scpca_sample_ids and sample_metadata["scpca_sample_id"] not in scpca_sample_ids:
+            scpca_sample_id = sample_metadata["scpca_sample_id"]
+            if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
+                continue
+
+            # Skip sample if its directory doesn't exist.
+            if not os.path.exists(self.get_sample_input_data_dir(scpca_sample_id)):
                 continue
 
             workflow_version = sample_metadata.pop("workflow_version")
@@ -504,6 +483,8 @@ class Project(models.Model):
                 ComputedFile.create_project_spatial_file(self, spatial_metadata_files)
             )
 
+        self.update_counts()
+
         return computed_files
 
     def purge(self, delete_from_s3=False):
@@ -523,24 +504,22 @@ class Project(models.Model):
         ProjectSummary.objects.filter(project=self).delete()
         self.delete()
 
-    @receiver(post_save, sender="scpca_portal.Sample")
-    def update_project_counts(sender, instance, created=False, update_fields=None, **kwargs):
-        """The Project and ProjectSummary models cache aggregated sample metadata.
-
-        When Samples are added to the Project, we need to update these."""
-
-        project = instance.project
+    def update_counts(self):
+        """
+        The Project and ProjectSummary models cache aggregated sample metadata.
+        We need to update these after any project's sample gets added/deleted.
+        """
 
         additional_metadata_keys = set()
         diagnoses = set()
-        diagnoses_counts = {}
+        diagnoses_counts = Counter()
         disease_timings = set()
         modalities = set()
         seq_units = set()
-        summaries = {}
+        summaries_counts = Counter()
         technologies = set()
 
-        for sample in project.samples.all():
+        for sample in self.samples.all():
             additional_metadata_keys.update(sample.additional_metadata.keys())
             diagnoses.add(sample.diagnosis)
             disease_timings.add(sample.disease_timing)
@@ -555,43 +534,36 @@ class Project(models.Model):
             if sample.has_spatial_data:
                 modalities.add("Spatial Data")
 
-            # TODO(arkid15r): replace with a counter.
-            if sample.diagnosis in diagnoses_counts:
-                diagnoses_counts[sample.diagnosis] += 1
-            else:
-                diagnoses_counts[sample.diagnosis] = 1
-
+            diagnoses_counts.update({sample.diagnosis: 1})
             for seq_unit in sample_seq_units:
                 for technology in sample_technologies:
-                    summary = (sample.diagnosis, seq_unit.strip(), technology.strip())
-                    if summary in summaries:
-                        summaries[summary] += 1
-                    else:
-                        summaries[summary] = 1
+                    summaries_counts.update(
+                        {(sample.diagnosis, seq_unit.strip(), technology.strip()): 1}
+                    )
 
         diagnoses_strings = sorted(
             (f"{diagnosis} ({count})" for diagnosis, count in diagnoses_counts.items())
         )
-        downloadable_sample_count = project.samples.filter(
-            sample_computed_files__isnull=False
-        ).count()
+        downloadable_sample_count = (
+            self.samples.filter(sample_computed_files__isnull=False).distinct().count()
+        )
         seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
         technologies = sorted((technology for technology in technologies if technology))
 
-        project.additional_metadata_keys = ", ".join(sorted(additional_metadata_keys))
-        project.diagnoses = ", ".join(sorted(diagnoses))
-        project.diagnoses_counts = ", ".join(diagnoses_strings)
-        project.disease_timings = ", ".join(disease_timings)
-        project.downloadable_sample_count = downloadable_sample_count
-        project.modalities = ", ".join(sorted(modalities))
-        project.sample_count = project.samples.count()
-        project.seq_units = ", ".join(seq_units)
-        project.technologies = ", ".join(technologies)
-        project.save()
+        self.additional_metadata_keys = ", ".join(sorted(additional_metadata_keys))
+        self.diagnoses = ", ".join(sorted(diagnoses))
+        self.diagnoses_counts = ", ".join(diagnoses_strings)
+        self.disease_timings = ", ".join(disease_timings)
+        self.downloadable_sample_count = downloadable_sample_count
+        self.modalities = ", ".join(sorted(modalities))
+        self.sample_count = self.samples.count()
+        self.seq_units = ", ".join(seq_units)
+        self.technologies = ", ".join(technologies)
+        self.save()
 
-        for (diagnosis, seq_unit, technology), count in summaries.items():
+        for (diagnosis, seq_unit, technology), count in summaries_counts.items():
             project_summary, _ = ProjectSummary.objects.get_or_create(
-                diagnosis=diagnosis, project=project, seq_unit=seq_unit, technology=technology
+                diagnosis=diagnosis, project=self, seq_unit=seq_unit, technology=technology
             )
             project_summary.sample_count = count
             project_summary.save(update_fields=("sample_count",))

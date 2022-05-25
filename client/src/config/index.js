@@ -4,8 +4,7 @@ export const config = {
       'https://scpca.readthedocs.io/en/latest/download_files.html',
     how_processed:
       'https://scpca.readthedocs.io/en/latest/processing_information.html',
-    donate:
-      'https://www.alexslemonade.org/contribute/7?restrict=Childhood%20Cancer%20Data%20Lab',
+    donate: 'https://www.ccdatalab.org/donate-link',
     help: 'https://scpca.readthedocs.io/en/latest/',
     alsfTwitter: 'https://twitter.com/alexslemonade',
     alsfFacebook: 'https://www.facebook.com/alexslemonade/',

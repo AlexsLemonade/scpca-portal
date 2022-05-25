@@ -1,36 +1,40 @@
+"""ScPCA portal API token."""
+
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
+
+from scpca_portal.models.base import TimestampedModel
 
 
-class APIToken(models.Model):
-    """Required for starting a smash job"""
+class APIToken(TimestampedModel):
+    """Controls API user access to the portal data."""
 
     class Meta:
-        db_table = "api_token"
+        db_table = "api_tokens"
 
-    # ID
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # Activation
-    is_activated = models.BooleanField(default=False)
     email = models.EmailField("email", blank=False, null=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    is_activated = models.BooleanField(default=False)
 
-    # Common Properties
-    created_at = models.DateTimeField(editable=False, default=timezone.now)
-    last_modified = models.DateTimeField(default=timezone.now)
+    @classmethod
+    def verify(cls, token_id):
+        """
+        Returns APIToken instance for an active token_id. Returns None
+        otherwise.
+        """
+        if not token_id:
+            return
 
-    def save(self, *args, **kwargs):
-        """On save, update timestamps"""
-        current_time = timezone.now()
-        if not self.id:
-            self.created_at = current_time
-        self.last_modified = current_time
-        return super(APIToken, self).save(*args, **kwargs)
+        try:
+            return cls.objects.get(id=token_id, is_activated=True)
+        except (APIToken.DoesNotExist, ValidationError):
+            pass
 
     @property
     def terms_and_conditions(self):
-        """ """
+        """Terms and conditions placeholder."""
+
         return settings.TERMS_AND_CONDITIONS
