@@ -9,7 +9,7 @@ class TestSampleSerializer(TestCase):
     def setUp(self):
         self.sample_data = model_to_dict(SampleFactory())
         # This needs to be unique.
-        self.sample_data["scpca_id"] = "SCPCS99999"
+        self.sample_data["scpca_id"] = "SCPCS999999"
 
     def test_serializer_with_empty_data(self):
         serializer = SampleSerializer(data={})

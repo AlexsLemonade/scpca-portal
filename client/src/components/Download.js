@@ -23,7 +23,7 @@ import DownloadSVG from '../images/download-folder.svg'
 // label for the checkbox needs to be component to show links
 const AcceptLabel = () => {
   return (
-    <Text>
+    <Text id="agreement">
       I agree to the <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
       <Link label="Privacy Policy" href="/privacy-policy" />.
     </Text>
@@ -33,7 +33,7 @@ const AcceptLabel = () => {
 // label for the checkbox needs to be component to show links
 const UpdatesLabel = () => {
   return (
-    <Text>
+    <Text id="update">
       I would like to receive occasional updates from the{' '}
       <Link label="Data Lab Team" href="https://ccdatalab.org" />.
     </Text>
@@ -91,16 +91,19 @@ export const TokenView = () => {
         <TextInput
           value={email || ''}
           onChange={({ target: { value } }) => setEmail(value)}
+          aria-label="Email"
         />
       </FormField>
       <CheckBox
         label={<AcceptLabel />}
+        aria-labelledby="agreement"
         value
         checked={acceptsTerms}
         onChange={({ target: { checked } }) => setAcceptsTerms(checked)}
       />
       <CheckBox
         label={<UpdatesLabel />}
+        aria-labelledby="update"
         value
         checked={wantsEmails}
         onChange={({ target: { checked } }) => setWantsEmails(checked)}
@@ -109,6 +112,7 @@ export const TokenView = () => {
         <Button
           primary
           label="Download"
+          aria-label="Download"
           disabled={!acceptsTerms || !email || requesting}
           onClick={() => setRequesting(true)}
         />
@@ -169,13 +173,20 @@ export const DownloadView = ({ computedFile }) => {
             <Button
               alignSelf="start"
               label="Download Now"
+              aria-label="Download Now"
               href={href}
               target="_blank"
             />
           </Box>
         </Box>
         <Box pad={{ bottom: 'medium', horizontal: 'medium' }}>
-          <DownloadSVG width="100%" height="auto" />
+          <DownloadSVG
+            width="100%"
+            height="auto"
+            role="presentation"
+            aria-hidden="true"
+            focusable="false"
+          />
         </Box>
       </Grid>
       <Box
@@ -240,6 +251,7 @@ export const Download = ({ Icon, computedFile: publicComputedFile }) => {
           flex="grow"
           primary
           label={label}
+          aria-label={label}
           disabled={!publicComputedFile}
           onClick={handleClick}
         />

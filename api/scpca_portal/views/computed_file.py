@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import PermissionDenied
 
@@ -36,14 +35,14 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(ComputedFileDetailSerializer, self).__init__(*args, **kwargs)
         if "context" in kwargs:
-            # only include the field `download_url` if a valid token is specified
-            # the token lookup happens in the view.
+            # Only include the field `download_url` if a valid token is
+            # specified. The token lookup happens in the view.
             if "token" not in kwargs["context"]:
                 self.fields.pop("download_url")
 
 
 class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = ComputedFile.objects.all().order_by("-created_at")
+    queryset = ComputedFile.objects.order_by("-created_at")
     ordering_fields = "__all__"
     filterset_fields = (
         "project__id",
@@ -65,14 +64,16 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         This is looking for the API-KEY HTTP Header.
         """
         serializer_context = super(ComputedFileViewSet, self).get_serializer_context()
-        token_id = self.request.META.get("HTTP_API_KEY", None)
+
+        token_id = self.request.META.get("HTTP_API_KEY")
+
         if token_id:
-            try:
-                token = APIToken.objects.get(id=token_id, is_activated=True)
-                return {**serializer_context, "token": token}
-            except (APIToken.DoesNotExist, ValidationError):
+            token = APIToken.verify(token_id)
+            if not token:
                 raise PermissionDenied(
                     {"message": "Your token is not valid or not activated.", "token_id": token_id}
                 )
-        else:
-            return serializer_context
+
+            serializer_context.update({"token": token})
+
+        return serializer_context

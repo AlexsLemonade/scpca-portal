@@ -11,12 +11,17 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="project", options={"get_latest_by": "updated_at", "ordering": ["updated_at"]},
+            name="project",
+            options={"get_latest_by": "updated_at", "ordering": ["updated_at"]},
         ),
         migrations.AlterModelOptions(
-            name="sample", options={"get_latest_by": "updated_at", "ordering": ["updated_at"]},
+            name="sample",
+            options={"get_latest_by": "updated_at", "ordering": ["updated_at"]},
         ),
-        migrations.RemoveField(model_name="sample", name="scpca_sample_id",),
+        migrations.RemoveField(
+            model_name="sample",
+            name="scpca_sample_id",
+        ),
         migrations.AddField(
             model_name="project",
             name="additional_metadata_keys",
@@ -44,5 +49,9 @@ class Migration(migrations.Migration):
             ),
             preserve_default=False,
         ),
-        migrations.AlterField(model_name="project", name="pi_name", field=models.TextField(),),
+        migrations.AlterField(
+            model_name="project",
+            name="pi_name",
+            field=models.TextField(),
+        ),
     ]

@@ -47,10 +47,16 @@ const Logo = () => {
       >
         {showScrolled ? (
           <Box pad="small">
-            <ALSFLogoBlueStyled />
+            <ALSFLogoBlueStyled
+              role="img"
+              aria-label="Alex's Lemonade Stand Foundation Logo"
+            />
           </Box>
         ) : (
-          <ASLFLogo />
+          <ASLFLogo
+            role="img"
+            aria-label="Alex's Lemonade Stand Foundation Logo"
+          />
         )}
       </Box>
       <Box height="74px" align="center" justify="center">
