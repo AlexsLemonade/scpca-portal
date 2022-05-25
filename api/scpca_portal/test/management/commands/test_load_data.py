@@ -39,14 +39,16 @@ class TestLoadData(TestCase):
     def assert_project(self, scpca_project_id):
         project = Project.objects.get(scpca_id=scpca_project_id)
 
-        self.assertIsNotNone(project.abstract)
+        self.assertTrue(project.abstract)
         self.assertIsNotNone(project.contact_email)
         self.assertIsNotNone(project.contact_name)
         self.assertIsNotNone(project.diagnoses)
-        self.assertIsNotNone(project.disease_timings)
+        self.assertIsNotNone(project.diagnoses_counts)
+        self.assertTrue(project.disease_timings)
+        self.assertTrue(project.modalities)
         self.assertIsNotNone(project.seq_units)
         self.assertIsNotNone(project.technologies)
-        self.assertIsNotNone(project.title)
+        self.assertTrue(project.title)
 
         self.assertEqual(project.summaries.count(), self.expected_summary_count)
         self.assertEqual(ProjectSummary.objects.count(), self.expected_summary_count)
@@ -60,16 +62,18 @@ class TestLoadData(TestCase):
         self.assertEqual(Sample.objects.count(), self.expected_sample_count)
         sample = project.samples.first()
         self.assertIsNotNone(sample.age_at_diagnosis)
-        self.assertIsNotNone(sample.cell_count)
+        self.assertGreater(sample.cell_count, 0)
         self.assertIsNotNone(sample.diagnosis)
         self.assertIsNotNone(sample.disease_timing)
-        self.assertIsNotNone(sample.has_cite_seq_data)
-        self.assertIsNotNone(sample.scpca_id)
+        self.assertFalse(sample.has_cite_seq_data)
+        self.assertTrue(sample.has_spatial_data)
+        self.assertTrue(sample.scpca_id)
         self.assertIsNotNone(sample.seq_units)
         self.assertIsNotNone(sample.sex)
         self.assertIsNotNone(sample.subdiagnosis)
-        self.assertIsNotNone(sample.technologies)
+        self.assertTrue(sample.technologies)
         self.assertIsNotNone(sample.tissue_location)
+        self.assertIsNotNone(sample.treatment)
 
         expected_metadata_keys = {
             "participant_id",
