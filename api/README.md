@@ -133,6 +133,12 @@ For a specific sample update use --scpca-sample-ids flag (accepts multiple value
 sportal load-data --scpca-sample-ids SCPCS000001
 ```
 
+If you don't want the data to be re-synced from the input bucket use --skip-input-bucket-sync flag:
+
+```
+sportal load-data --scpca-sample-ids SCPCS000001 --skip-input-bucket-sync
+```
+
 If you would like to purge a project and remove its files from the S3 bucket, you can use:
 
 ```
