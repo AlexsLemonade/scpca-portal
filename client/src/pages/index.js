@@ -61,14 +61,13 @@ const ExposeBox = styled(Box)`
 `
 
 const Home = ({ stats }) => {
-  const cancerTypes = stats.cancer_types.filter((c) => c !== 'Normal margin')
   const { emailListForm } = React.useContext(ScPCAPortalContext)
   const { responsive } = useResponsive()
   const statBlocks = getStatsBlocks(stats)
   const cancerColors = React.useMemo(
     () =>
       fillArrayRandom(
-        stats.cancer_types.length,
+        stats.cancer_types_count,
         'alexs-deep-blue-tint-70',
         'alexs-lemonade-tint-75',
         'alexs-light-blue-tint-60'
@@ -169,7 +168,7 @@ const Home = ({ stats }) => {
               align="center"
               pad={{ vertical: 'large' }}
             >
-              {cancerTypes.map((ct, i) => (
+              {stats.cancer_types.map((ct, i) => (
                 <Link key={ct} href={`/projects?diagnoses=${ct}`}>
                   <Box
                     round

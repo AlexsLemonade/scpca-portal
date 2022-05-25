@@ -5,6 +5,8 @@ from rest_framework.response import Response
 
 from scpca_portal.models import Project, Sample
 
+NON_CANCER_TYPES = ["Non-cancerous", "Normal margin"]
+
 
 class StatsViewSet(viewsets.ViewSet):
     @method_decorator(cache_page(None))
@@ -12,6 +14,7 @@ class StatsViewSet(viewsets.ViewSet):
         cancer_types_field_name = "diagnosis"
         cancer_types_queryset = (
             Sample.objects.distinct(cancer_types_field_name)
+            .exclude(diagnosis__in=NON_CANCER_TYPES)
             .order_by(cancer_types_field_name)  # Must match distinct expression.
             .values_list(cancer_types_field_name, flat=True)
         )
