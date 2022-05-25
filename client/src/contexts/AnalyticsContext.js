@@ -3,7 +3,7 @@ import ReactGA from 'react-ga4'
 import { events } from 'config/ga'
 import { capitalize } from 'helpers/capitalize'
 
-ReactGA.initialize('G-3YR7L2222E', { debug: true })
+ReactGA.initialize('G-3YR7L2222E')
 
 export const AnalyticsContext = React.createContext({})
 
