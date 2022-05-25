@@ -404,7 +404,7 @@ class Project(models.Model):
                     sample_json["filtered_cell_count"] = sample_json.pop("filtered_cells")
                     single_cell_libraries_metadata.append(sample_json)
 
-                    sample_metadata["workflow_version"] = sample_json["workflow_version"]
+                    # sample_metadata["workflow_version"] = sample_json["workflow_version"]
                     sample_cell_count += sample_json["filtered_cell_count"]
                     sample_seq_units.add(sample_json["seq_unit"].strip())
                     sample_technologies.add(sample_json["technology"].strip())
@@ -438,7 +438,9 @@ class Project(models.Model):
             )
 
         single_cell_file_mapping = {}
+        single_cell_workflow_versions = set()
         spatial_file_mapping = {}
+        spatial_workflow_versions = set()
         for sample_metadata in samples_metadata:
             scpca_sample_id = sample_metadata["scpca_sample_id"]
             if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
@@ -448,39 +450,48 @@ class Project(models.Model):
             if not os.path.exists(self.get_sample_input_data_dir(scpca_sample_id)):
                 continue
 
-            workflow_version = sample_metadata.pop("workflow_version")
+            # workflow_version = sample_metadata.pop("workflow_version")
             sample = Sample.create_from_dict(sample_metadata, self)
             libraries = [
                 scm
                 for scm in combined_single_cell_metadata
                 if scm["scpca_sample_id"] == sample.scpca_id
             ]
+            workflow_versions = set([library["workflow_version"] for library in libraries])
+            single_cell_workflow_versions.update(workflow_versions)
             (
                 computed_file,
                 single_cell_metadata_files,
-            ) = ComputedFile.create_sample_single_cell_file(sample, libraries, workflow_version)
+            ) = ComputedFile.create_sample_single_cell_file(sample, libraries, workflow_versions)
             computed_files.append(computed_file)
             single_cell_file_mapping.update(single_cell_metadata_files)
 
             if self.has_spatial_data:
+                spatial_workflow_versions = set()
                 libraries = [
                     sm
                     for sm in combined_spatial_metadata
                     if sm["scpca_sample_id"] == sample.scpca_id
                 ]
+                workflow_versions = set([library["workflow_version"] for library in libraries])
+                spatial_workflow_versions.update(workflow_versions)
                 (
                     computed_file,
                     spatial_metadata_files,
-                ) = ComputedFile.create_sample_spatial_file(sample, libraries, workflow_version)
+                ) = ComputedFile.create_sample_spatial_file(sample, libraries, workflow_versions)
                 computed_files.append(computed_file)
                 spatial_file_mapping.update(spatial_metadata_files)
 
         computed_files.append(
-            ComputedFile.create_project_single_cell_file(self, single_cell_file_mapping)
+            ComputedFile.create_project_single_cell_file(
+                self, single_cell_file_mapping, single_cell_workflow_versions
+            )
         )
         if self.has_spatial_data:
             computed_files.append(
-                ComputedFile.create_project_spatial_file(self, spatial_metadata_files)
+                ComputedFile.create_project_spatial_file(
+                    self, spatial_metadata_files, spatial_workflow_versions
+                )
             )
 
         self.update_counts()

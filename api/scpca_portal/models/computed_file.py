@@ -8,7 +8,7 @@ from django.db import models
 import boto3
 from botocore.client import Config
 
-from scpca_portal import common
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
@@ -66,7 +66,7 @@ class ComputedFile(models.Model):
     )
 
     @classmethod
-    def create_project_single_cell_file(cls, project, sample_to_file_mapping):
+    def create_project_single_cell_file(cls, project, sample_to_file_mapping, workflow_versions):
         """Produces a single data file of combined single cell data."""
 
         computed_file = cls(
@@ -74,7 +74,7 @@ class ComputedFile(models.Model):
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=project.output_single_cell_computed_file_name,
             type=cls.OutputFileTypes.PROJECT_ZIP,
-            workflow_version="",
+            workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
@@ -99,7 +99,7 @@ class ComputedFile(models.Model):
         return computed_file
 
     @classmethod
-    def create_project_spatial_file(cls, project, sample_to_file_mapping):
+    def create_project_spatial_file(cls, project, sample_to_file_mapping, workflow_versions):
         """Produces a data file of combined spatial data."""
 
         computed_file = cls(
@@ -107,7 +107,7 @@ class ComputedFile(models.Model):
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=project.output_spatial_computed_file_name,
             type=cls.OutputFileTypes.PROJECT_SPATIAL_ZIP,
-            workflow_version="",
+            workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
@@ -129,13 +129,13 @@ class ComputedFile(models.Model):
         return computed_file
 
     @classmethod
-    def create_sample_single_cell_file(cls, sample, libraries, workflow_version):
+    def create_sample_single_cell_file(cls, sample, libraries, workflow_versions):
         computed_file = cls(
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_single_cell_computed_file_name,
             sample=sample,
             type=cls.OutputFileTypes.SAMPLE_ZIP,
-            workflow_version=workflow_version,
+            workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
         file_paths = []
@@ -161,13 +161,13 @@ class ComputedFile(models.Model):
         return computed_file, {sample.scpca_id: file_paths}
 
     @classmethod
-    def create_sample_spatial_file(cls, sample, libraries, workflow_version):
-        computed_file = ComputedFile(
+    def create_sample_spatial_file(cls, sample, libraries, workflow_versions):
+        computed_file = cls(
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_spatial_computed_file_name,
             sample=sample,
             type=cls.OutputFileTypes.SAMPLE_SPATIAL_ZIP,
-            workflow_version=workflow_version,
+            workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
         file_paths = []
