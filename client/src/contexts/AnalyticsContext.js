@@ -1,5 +1,5 @@
 import React, { createContext } from 'react'
-import ReactGA from 'react-ga'
+import ReactGA from 'react-ga4'
 import { events } from 'config/ga'
 import { capitalize } from 'helpers/capitalize'
 
