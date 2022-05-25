@@ -61,7 +61,7 @@ class Command(BaseCommand):
         parser.add_argument("--reload-existing", action="store_true")
         parser.add_argument("--scpca-project-ids", action="extend", nargs="+", type=str)
         parser.add_argument("--scpca-sample-ids", action="extend", nargs="+", type=str)
-        parser.add_argument("--skip-input-bucket-sync", action="store_true", default=False)
+        parser.add_argument("--skip-sync", action="store_true", default=False)
         parser.add_argument("--update-s3", action="store_true", default=settings.UPDATE_S3_DATA)
 
     def handle(self, *args, **options):
@@ -71,7 +71,7 @@ class Command(BaseCommand):
             options["reload_existing"],
             options["scpca_project_ids"],
             options["scpca_sample_ids"],
-            skip_input_bucket_sync=options["skip_input_bucket_sync"],
+            skip_input_bucket_sync=options["skip_sync"],
         )
         cleanup_output_data_dir()
 
