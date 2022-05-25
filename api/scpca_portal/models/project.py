@@ -455,7 +455,7 @@ class Project(models.Model):
                 for scm in combined_single_cell_metadata
                 if scm["scpca_sample_id"] == sample.scpca_id
             ]
-            workflow_versions = set([library["workflow_version"] for library in libraries])
+            workflow_versions = [library["workflow_version"] for library in libraries]
             single_cell_workflow_versions.update(workflow_versions)
             (
                 computed_file,
@@ -471,7 +471,7 @@ class Project(models.Model):
                     for sm in combined_spatial_metadata
                     if sm["scpca_sample_id"] == sample.scpca_id
                 ]
-                workflow_versions = set([library["workflow_version"] for library in libraries])
+                workflow_versions = [library["workflow_version"] for library in libraries]
                 spatial_workflow_versions.update(workflow_versions)
                 (
                     computed_file,

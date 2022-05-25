@@ -19,12 +19,12 @@ class TestBooleanFromString(TestCase):
 
 
 class TestJoinWorkflowVersions(TestCase):
+    def test_join_duplicate_values(self):
+        items = ("an item", "an item", "another item")
+        self.assertEqual(utils.join_workflow_versions(items), "an item, another item")
+
     def test_join_empty_value(self):
         self.assertEqual(utils.join_workflow_versions([]), "")
-
-    def test_join_single_item(self):
-        items = ("single item",)
-        self.assertEqual(utils.join_workflow_versions(items), items[0])
 
     def test_join_multiple_items(self):
         test_pairs = (
@@ -33,3 +33,7 @@ class TestJoinWorkflowVersions(TestCase):
         )
         for value, result in test_pairs:
             self.assertEqual(utils.join_workflow_versions(value), result)
+
+    def test_join_single_item(self):
+        items = ("single item",)
+        self.assertEqual(utils.join_workflow_versions(items), items[0])

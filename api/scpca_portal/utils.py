@@ -19,6 +19,6 @@ def boolean_from_string(value):
 
 
 def join_workflow_versions(workflow_versions):
-    """Returns list of sorted workflow versions."""
+    """Returns list of sorted unique workflow versions."""
 
-    return ", ".join(sorted(workflow_versions))
+    return ", ".join(sorted(set(workflow_versions)))
