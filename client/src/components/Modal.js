@@ -1,14 +1,14 @@
 import React from 'react'
 import { Icon } from 'components/Icon'
-import { Anchor, Box, Layer, Stack, Text } from 'grommet'
+import { Anchor, Box, Grid, Layer, Stack, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 
 export const Modal = ({
+  title,
   showing,
   setShowing,
   nondismissable,
   children,
-  title,
   critical = false
 }) => {
   const { responsive } = useResponsive()
@@ -20,7 +20,7 @@ export const Modal = ({
   }
 
   return (
-    <>
+    <span>
       {showing && (
         <Layer
           onEsc={dismissModal}
@@ -36,7 +36,7 @@ export const Modal = ({
               height={{ min: 'min-content', max: '100vh' }}
               width={responsive(
                 { width: '100%;' },
-                { width: '100%', max: '600px' }
+                { width: '100%', max: '720px' }
               )}
               pad={{ vertical: 'large', horizontal: 'xlarge' }}
               gap="none"
@@ -48,24 +48,34 @@ export const Modal = ({
                   : undefined
               }
             >
-              <Box width="full" height={{ min: 'min-content' }}>
+              <Grid
+                areas={[
+                  { name: 'header', start: [0, 0], end: [1, 0] },
+                  { name: 'title', start: [0, 1], end: [1, 1] },
+                  { name: 'body', start: [0, 2], end: [1, 2] },
+                  { name: 'footer', start: [0, 3], end: [1, 3] }
+                ]}
+                columns={['1', '1']}
+                rows={['auto', 'auto', '1fr', 'auto']}
+              >
                 {title && (
                   <Box
-                    width="full"
                     border={{
                       side: 'bottom',
                       color: 'border-black',
                       size: 'small'
                     }}
+                    gridArea="title"
+                    width="full"
                     height={{ min: 'min-content' }}
                     pad={{ bottom: 'medium' }}
-                    margin={{ bottom: 'medium' }}
+                    margin={{ bottom: '24px' }}
                   >
-                    <Text size="xlarge">{title}</Text>
+                    <Text size="xlarge">{title} </Text>
                   </Box>
                 )}
                 {children}
-              </Box>
+              </Grid>
             </Box>
             {!nondismissable && (
               <Box alignSelf="end">
@@ -79,8 +89,24 @@ export const Modal = ({
           </Stack>
         </Layer>
       )}
-    </>
+    </span>
   )
 }
+
+export const ModalHeader = ({ children }) => (
+  <Box gridArea="header" width="full">
+    {children}
+  </Box>
+)
+export const ModalBody = ({ children }) => (
+  <Box gridArea="body" width="full" height={{ min: 'min-content' }}>
+    {children}
+  </Box>
+)
+export const ModalFooter = ({ children }) => (
+  <Box gridArea="footer" width="full">
+    {children}
+  </Box>
+)
 
 export default Modal

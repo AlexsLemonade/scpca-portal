@@ -6,6 +6,7 @@ import { api } from 'api'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { Download } from 'components/Download'
 import { Loader } from 'components/Loader'
+import { accumulateValue } from 'helpers/accumulateValue'
 
 export const ProjectSamplesTable = ({
   project,
@@ -22,15 +23,19 @@ export const ProjectSamplesTable = ({
   const columns = [
     {
       Header: 'Download',
-      accessor: () => 'computed_file',
+      accessor: () => 'computed_files',
       Cell: ({ row }) =>
-        row.original.computed_file ? (
+        row.original.computed_files ? (
           <Box direction="row" gap="small" align="center">
             <Download
-              Icon={<DownloadIcon color="brand" />}
-              computedFile={row.original.computed_file}
+              icon={<DownloadIcon color="brand" />}
+              resource={row.original}
             />
-            <Text>{formatBytes(row.original.computed_file.size_in_bytes)}</Text>
+            <Text>
+              {formatBytes(
+                accumulateValue(row.original.computed_files, 'size_in_bytes')
+              )}
+            </Text>
           </Box>
         ) : (
           <Box width={{ min: '120px' }}>
@@ -44,7 +49,7 @@ export const ProjectSamplesTable = ({
       Header: 'Diagnosis - Subdiagnosis',
       accessor: ({ diagnosis, subdiagnosis }) => `${diagnosis} ${subdiagnosis}`,
       Cell: ({ row }) => (
-        <Box width={{ max: '200px' }} style={{ 'white-space': 'normal' }}>
+        <Box width={{ max: '200px' }} style={{ whiteSpace: 'normal' }}>
           <Text>{row.original.diagnosis}</Text>
           <Text size="small">{row.original.subdiagnosis}</Text>
         </Box>
@@ -52,6 +57,11 @@ export const ProjectSamplesTable = ({
     },
     { Header: 'Sequencing Units', accessor: 'seq_units' },
     { Header: 'Technology', accessor: 'technologies' },
+    {
+      Header: 'Other Modalities',
+      accessor: ({ other_modalities: otherModalities }) =>
+        otherModalities || 'N/A'
+    },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
     { Header: 'Treatment', accessor: ({ treatment }) => treatment || 'N/A' },
@@ -74,7 +84,7 @@ export const ProjectSamplesTable = ({
         // if not all samples are downloadable show downloadable first
         const sortedSamples =
           project.sample_count !== project.downloadable_sample_count
-            ? samplesRequest.response.results.sort(({ computed_file: a }) =>
+            ? samplesRequest.response.results.sort(({ computed_files: a }) =>
                 a && a.id ? -1 : 1
               )
             : samplesRequest.response.results

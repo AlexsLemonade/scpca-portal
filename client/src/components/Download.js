@@ -1,236 +1,64 @@
-import React, { useState, useEffect } from 'react'
-import {
-  Anchor,
-  Box,
-  Grid,
-  Text,
-  FormField,
-  TextInput,
-  CheckBox
-} from 'grommet'
+/* eslint-disable no-nested-ternary */
+import React, { useEffect, useState } from 'react'
+import { Anchor, Text } from 'grommet'
 import { Button } from 'components/Button'
-import { Modal } from 'components/Modal'
-import { Link } from 'components/Link'
+import { Icon } from 'components/Icon'
+import { Modal, ModalHeader, ModalBody } from 'components/Modal'
+import { DownloadStarted } from 'components/DownloadStarted'
+import { DownloadOptions } from 'components/DownloadOptions'
+import { DownloadToken } from 'components/DownloadToken'
 import { useAnalytics } from 'hooks/useAnalytics'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
-import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
-import { formatBytes } from 'helpers/formatBytes'
 import { formatDate } from 'helpers/formatDate'
-import { config } from 'config'
-import DownloadSVG from '../images/download-folder.svg'
-
-// label for the checkbox needs to be component to show links
-const AcceptLabel = () => {
-  return (
-    <Text id="agreement">
-      I agree to the <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
-      <Link label="Privacy Policy" href="/privacy-policy" />.
-    </Text>
-  )
-}
-
-// label for the checkbox needs to be component to show links
-const UpdatesLabel = () => {
-  return (
-    <Text id="update">
-      I would like to receive occasional updates from the{' '}
-      <Link label="Data Lab Team" href="https://ccdatalab.org" />.
-    </Text>
-  )
-}
-
-// View when the user has no token in local storage yet
-export const TokenView = () => {
-  // needs email validation
-  const {
-    email,
-    setEmail,
-    wantsEmails,
-    setWantsEmails,
-    acceptsTerms,
-    setAcceptsTerms,
-    createToken,
-    validateToken,
-    emailListForm
-  } = useScPCAPortal()
-  const [requesting, setRequesting] = useState(false)
-  const [errors, setErrors] = useState([])
-
-  useEffect(() => {
-    const asyncTokenRequest = async () => {
-      const validation = await validateToken()
-      if (validation.isValid) {
-        const tokenRequest = await createToken()
-        if (tokenRequest.isOK) {
-          setErrors([])
-        }
-        // quietly sign them up for emails if checked
-        if (wantsEmails) {
-          emailListForm.submit({ email })
-        }
-      } else {
-        // invalid set errors here
-        setErrors(validation.errors)
-        setRequesting(false)
-      }
-    }
-    if (requesting) asyncTokenRequest()
-  }, [requesting])
-
-  return (
-    <Box>
-      <Text>
-        Please read and accept our{' '}
-        <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
-        <Link label="Privacy Policy" href="/privacy-policy" /> before you
-        download data.
-      </Text>
-      {(errors || errors.length) && <Text color="error">{errors}</Text>}
-      <FormField label="Email">
-        <TextInput
-          value={email || ''}
-          onChange={({ target: { value } }) => setEmail(value)}
-          aria-label="Email"
-        />
-      </FormField>
-      <CheckBox
-        label={<AcceptLabel />}
-        aria-labelledby="agreement"
-        value
-        checked={acceptsTerms}
-        onChange={({ target: { checked } }) => setAcceptsTerms(checked)}
-      />
-      <CheckBox
-        label={<UpdatesLabel />}
-        aria-labelledby="update"
-        value
-        checked={wantsEmails}
-        onChange={({ target: { checked } }) => setWantsEmails(checked)}
-      />
-      <Box direction="row" justify="end" margin={{ top: 'medium' }}>
-        <Button
-          primary
-          label="Download"
-          aria-label="Download"
-          disabled={!acceptsTerms || !email || requesting}
-          onClick={() => setRequesting(true)}
-        />
-      </Box>
-    </Box>
-  )
-}
-
-// View when the donwload should have been initiated
-export const DownloadView = ({ computedFile }) => {
-  // open the file in a new tab
-  const {
-    project,
-    sample,
-    size_in_bytes: size,
-    download_url: href
-  } = computedFile
-  const startedText = project
-    ? 'Your download for the project should have started.'
-    : 'Your download for the sample should have started.'
-  const idText = project
-    ? `Project ID: ${project.scpca_id}`
-    : `Sample ID: ${sample.scpca_id}`
-
-  const { size: responsiveSize } = useResponsive()
-
-  return (
-    <>
-      <Grid
-        columns={['2/3', '1/3']}
-        align="center"
-        gap="large"
-        pad={{ bottom: 'medium' }}
-        border={{
-          side: 'bottom',
-          color: 'border-black',
-          size: 'small'
-        }}
-      >
-        <Box>
-          <Text>{startedText}</Text>
-          <Box
-            direction="row"
-            justify="between"
-            margin={{ vertical: 'medium' }}
-          >
-            <Text weight="bold">{idText}</Text>
-            <Text weight="bold">Size: {formatBytes(size)}</Text>
-          </Box>
-          <Box gap="medium">
-            {responsiveSize !== 'small' && (
-              <Text italic color="black-tint-40">
-                If your download has not started, please ensure that pop-ups are
-                not blocked to enable automatic downloads. You can download now
-                by using the button below:
-              </Text>
-            )}
-            <Button
-              alignSelf="start"
-              label="Download Now"
-              aria-label="Download Now"
-              href={href}
-              target="_blank"
-            />
-          </Box>
-        </Box>
-        <Box pad={{ bottom: 'medium', horizontal: 'medium' }}>
-          <DownloadSVG
-            width="100%"
-            height="auto"
-            role="presentation"
-            aria-hidden="true"
-            focusable="false"
-          />
-        </Box>
-      </Grid>
-      <Box
-        direction="row"
-        align="center"
-        justify="between"
-        pad={{ top: 'large' }}
-      >
-        <Text>
-          <Link
-            href={config.links.what_downloading}
-            label="Read the docs here"
-          />{' '}
-          to learn about what you can expect in your download file.
-        </Text>
-      </Box>
-    </>
-  )
-}
+import { isProjectID } from 'helpers/isProjectID'
 
 // Button and Modal to show when downloading
-export const Download = ({ Icon, computedFile: publicComputedFile }) => {
+export const Download = ({ icon, resource }) => {
   const { token, email, surveyListForm } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
-  const { id, type, project, sample } = publicComputedFile
-  const label = project ? 'Download Project' : 'Download Sample'
-
+  const [publicComputedFile, setPublicComputedFile] = useState(() =>
+    resource.computed_files.length === 1 ? resource.computed_files[0] : null
+  )
   const [showing, setShowing] = useState(false)
   const [download, setDownload] = useState(false)
+  const label = isProjectID(resource.scpca_id)
+    ? 'Download Project'
+    : 'Download Sample'
 
   const handleClick = () => {
     setShowing(true)
     if (download && download.download_url) {
+      const { type, project, sample } = publicComputedFile
       trackDownload(type, project, sample)
       surveyListForm.submit({ email, scpca_last_download_date: formatDate() })
       window.open(download.download_url)
     }
   }
 
+  const handleBackToOptions = () => {
+    setPublicComputedFile(null)
+  }
+
+  const handleSelectFile = (file) => {
+    setDownload(false)
+    setPublicComputedFile(file)
+  }
+
   useEffect(() => {
+    if (!showing) {
+      setDownload(false)
+      setPublicComputedFile(null)
+    }
+
     const asyncFetch = async () => {
-      const downloadRequest = await api.computedFiles.get(id, token)
+      const downloadRequest = await api.computedFiles.get(
+        publicComputedFile.id,
+        token
+      )
       if (downloadRequest.isOk) {
         // try to open download
+        const { type, project, sample } = publicComputedFile
         trackDownload(type, project, sample)
         surveyListForm.submit({ email, scpca_last_download_date: formatDate() })
         window.open(downloadRequest.response.download_url)
@@ -240,26 +68,53 @@ export const Download = ({ Icon, computedFile: publicComputedFile }) => {
       }
     }
 
-    if (!download && token && showing) asyncFetch()
-  }, [download, token, showing])
+    if (!download && token && showing && publicComputedFile) asyncFetch()
+  }, [download, token, showing, publicComputedFile])
+
   return (
     <>
-      {Icon ? (
-        <Anchor icon={Icon} onClick={handleClick} />
+      {icon ? (
+        <Anchor icon={icon} onClick={handleClick} />
       ) : (
         <Button
+          aria-label={label}
           flex="grow"
           primary
           label={label}
-          aria-label={label}
-          disabled={!publicComputedFile}
+          disabled={publicComputedFile === undefined}
           onClick={handleClick}
         />
       )}
-      <Modal showing={showing} setShowing={setShowing} title={label}>
-        <Box width={{ width: 'full' }}>
-          {download ? <DownloadView computedFile={download} /> : <TokenView />}
-        </Box>
+      <Modal title={label} showing={showing} setShowing={setShowing}>
+        {publicComputedFile && (
+          <ModalHeader>
+            <Text
+              color="brand"
+              role="button"
+              margin={{ bottom: 'medium' }}
+              style={{ cursor: 'pointer' }}
+              onClick={handleBackToOptions}
+            >
+              <Icon size="16px" name="ChevronLeft" /> View Download Options
+            </Text>
+          </ModalHeader>
+        )}
+        <ModalBody>
+          {download && token && publicComputedFile ? (
+            <DownloadStarted
+              resource={resource}
+              computedFile={download}
+              handleSelectFile={handleSelectFile}
+            />
+          ) : !token && publicComputedFile ? (
+            <DownloadToken />
+          ) : !publicComputedFile ? (
+            <DownloadOptions
+              handleSelectFile={handleSelectFile}
+              computedFiles={resource.computed_files}
+            />
+          ) : null}
+        </ModalBody>
       </Modal>
     </>
   )

@@ -4,7 +4,7 @@ import project from '../data/project'
 
 export default {
   title: 'Components/Download',
-  args: { computedFile: project.computed_file }
+  args: { computedFile: project.computed_files }
 }
 
 export const Default = (args) => <Download computedFile={args.computedFile} />
