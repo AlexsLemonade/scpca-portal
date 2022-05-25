@@ -33,6 +33,8 @@ class TestLoadData(TestCase):
         self.expected_project_count = 1
         self.expected_sample_count = 1
         self.expected_summary_count = 4
+        self.expected_single_cell_workflow_version = "v0.2.7"
+        self.expected_spatial_workflow_version = "v0.2.7"
 
     def assert_project(self, scpca_project_id):
         project = Project.objects.get(scpca_id=scpca_project_id)
@@ -83,15 +85,30 @@ class TestLoadData(TestCase):
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
 
-        self.assertEqual(len(sample.computed_files), 2)
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
-
+        self.assertEqual(
+            sample.single_cell_computed_file.workflow_version,
+            self.expected_single_cell_workflow_version,
+        )
         self.assertIsNotNone(sample.spatial_computed_file)
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
+        self.assertEqual(
+            sample.spatial_computed_file.workflow_version, self.expected_spatial_workflow_version
+        )
+
+        self.assertEqual(len(sample.computed_files), 2)
         self.assertEqual(ComputedFile.objects.count(), self.expected_computed_file_count)
 
         self.assertEqual(project.downloadable_sample_count, self.expected_downloadable_sample_count)
+
+        self.assertEqual(
+            project.single_cell_computed_file.workflow_version,
+            self.expected_single_cell_workflow_version,
+        )
+        self.assertEqual(
+            project.spatial_computed_file.workflow_version, self.expected_spatial_workflow_version
+        )
 
         return (
             project,
