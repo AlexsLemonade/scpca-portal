@@ -1,30 +1,27 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { Anchor, Box, Grid, Text } from 'grommet'
 import { ProjectSearchResult } from 'components/ProjectSearchResult'
 import { ProjectSearchFilter } from 'components/ProjectSearchFilter'
 import { ProjectSearchFilterPills } from 'components/ProjectSearchFilterPills'
 import { ResponsiveSheet } from 'components/ResponsiveSheet'
-import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
+import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useResponsive } from 'hooks/useResponsive'
 import { delay } from 'helpers/delay'
 import { api } from 'api'
 import Error from 'pages/_error'
 
 const Project = ({ projects, count, filters, filterOptions }) => {
-  const { browseFilters, setBrowseFilters } =
-    React.useContext(ScPCAPortalContext)
-
+  const { browseFilters, setBrowseFilters } = useScPCAPortal()
   const { responsive } = useResponsive()
-
-  const [showFilters, setShowFilters] = React.useState(false)
-  const [loading, setLoading] = React.useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   // we don't want to 404 here we want to show that the api is down
   if (!projects) return <Error />
 
-  React.useEffect(() => {
+  useEffect(() => {
     setBrowseFilters(filters)
   }, [])
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Header as GrommetHeader, Nav } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { DonateButton } from 'components/DonateButton'
@@ -11,7 +11,7 @@ import { config } from 'config'
 export const Header = ({ className, margin, donate = false }) => {
   const { size, responsive } = useResponsive()
   const linksColor = responsive('brand', 'white')
-  const [showMenu, setShowMenu] = React.useState(false)
+  const [showMenu, setShowMenu] = useState(false)
 
   return (
     <GrommetHeader
