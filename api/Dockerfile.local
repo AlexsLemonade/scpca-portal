@@ -16,8 +16,8 @@ RUN ./aws/install
 RUN python3 -m pip install --upgrade pip
 
 # Allows docker to cache installed dependencies between builds
-COPY ./requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+COPY requirements requirements
+RUN pip install -r requirements/local.txt
 
 VOLUME /home/user/code
 
