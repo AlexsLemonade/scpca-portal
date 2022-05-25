@@ -109,7 +109,7 @@ const Home = ({ stats }) => {
         </Box>
         <Box pad={{ bottom: 'large' }}>
           <Link primary href="/projects">
-            <Button primary label="Browse Portal" />
+            <Button primary label="Browse Portal" aria-label="Browse Portal" />
           </Link>
         </Box>
       </HeroBand>
@@ -182,7 +182,12 @@ const Home = ({ stats }) => {
               ))}
             </Box>
             {exposed !== 'all' && (
-              <Button primary onClick={exposeMore} label="Show More..." />
+              <Button
+                primary
+                onClick={exposeMore}
+                label="Show More..."
+                aria-label="Show More..."
+              />
             )}
           </ExposeBox>
         </Box>
@@ -195,7 +200,11 @@ const Home = ({ stats }) => {
           align="center"
           pad={{ bottom: 'large' }}
         >
-          <Image width="100%" src="/ccdlxalsf.png" />
+          <Image
+            width="100%"
+            src="/ccdlxalsf.png"
+            alt="Childhood Cancer Data Lab powered by ALSF Logo"
+          />
         </Box>
         <Box width="medium" pad={{ vertical: 'medium' }}>
           <Paragraph textAlign="center">
@@ -205,7 +214,12 @@ const Home = ({ stats }) => {
             pediatric cancer data.
           </Paragraph>
         </Box>
-        <Button primary label="Learn More" href="/about" />
+        <Button
+          primary
+          label="Learn More"
+          aria-label="Learn More"
+          href="/about"
+        />
       </Box>
       <Box
         width="full"
@@ -237,6 +251,7 @@ const Home = ({ stats }) => {
               <Button
                 alignSelf="start"
                 label="Learn More"
+                aria-label="Learn More"
                 href={config.links.how_processed}
                 target="_blank"
               />
@@ -263,6 +278,7 @@ const Home = ({ stats }) => {
               <Button
                 alignSelf="start"
                 label="Learn More"
+                aria-label="Learn More"
                 href={config.links.what_downloading}
                 target="_blank"
               />
@@ -292,6 +308,7 @@ const Home = ({ stats }) => {
               onChange={({ target: { value } }) => {
                 emailListForm.setAttribute('email', value)
               }}
+              aria-label="Email"
             />
           </FormField>
           <Box margin={{ top: 'medium', bottom: 'small' }}>
@@ -299,6 +316,7 @@ const Home = ({ stats }) => {
               primary
               disabled={emailListForm.hasError}
               label="Subscribe"
+              aria-label="Subscribe"
               onClick={async () => {
                 if ((await emailListForm.validate()).isValid)
                   emailListForm.submit()

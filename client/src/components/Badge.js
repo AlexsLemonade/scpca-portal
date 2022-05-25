@@ -17,7 +17,7 @@ export const Badge = ({ badge, label, className }) => {
   return (
     <Box direction="row" align="center" className={className}>
       <Box width="24px">
-        <BadgeSVG />
+        <BadgeSVG role="presentation" aria-hidden="true" focusable="false" />
       </Box>
       <Paragraph margin={{ left: 'small' }}>{label}</Paragraph>
     </Box>

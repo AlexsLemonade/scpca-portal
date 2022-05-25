@@ -13,9 +13,9 @@ class Local(Common):
     EMAIL_PORT = 1025
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-    UPDATE_IMPORTED_DATA = False
+    UPDATE_S3_DATA = False
 
-    # AWS
+    # AWS.
     AWS_REGION = None
 
     # AWS S3 hardcoded to a bucket used for local dev.

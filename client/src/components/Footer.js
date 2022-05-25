@@ -74,7 +74,10 @@ export const Footer = () => {
                   height="60px"
                   width={{ width: 'full', max: '50px' }}
                 >
-                  <FooterImage src="/alsf-logo.png" />
+                  <FooterImage
+                    src="/alsf-logo.png"
+                    alt="Alex's Lemonade Stand Foundation Logo"
+                  />
                 </Box>
 
                 <Box
@@ -104,7 +107,10 @@ export const Footer = () => {
                   height="60px"
                   width={{ width: 'full', max: '100px' }}
                 >
-                  <FooterImage src="/ccdl-logo.png" />
+                  <FooterImage
+                    src="/ccdl-logo.png"
+                    alt="Childhood Cancer Data Lab powered by ALSF Logo"
+                  />
                 </Box>
                 <Box
                   direction="row"

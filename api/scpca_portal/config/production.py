@@ -9,17 +9,17 @@ from scpca_portal.config.common import Common
 class Production(Common):
     INSTALLED_APPS = Common.INSTALLED_APPS
     SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-    # Site
+    # Site.
     # https://docs.djangoproject.com/en/2.0/ref/settings/#allowed-hosts
     ALLOWED_HOSTS = ["*"]
     INSTALLED_APPS += ("gunicorn",)
 
-    UPDATE_IMPORTED_DATA = True
+    UPDATE_S3_DATA = True
 
-    # AWS
+    # AWS.
     AWS_REGION = os.getenv("AWS_REGION")
 
-    # AWS S3
+    # AWS S3.
     AWS_S3_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME")
 
     # https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#cache-control
