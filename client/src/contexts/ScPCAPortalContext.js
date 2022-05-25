@@ -1,14 +1,14 @@
-import React from 'react'
-import { useLocalStorage } from 'hooks/useLocalStorage'
+import React, { createContext, useState } from 'react'
 import { useHubspotForm } from 'hooks/useHubspotForm'
+import { useLocalStorage } from 'hooks/useLocalStorage'
 import { api } from 'api'
 import { tokenSchema, hubspotSurveySchema, hubspotEmailSchema } from 'schemas'
 import { getErrorMessages } from 'helpers/getErrorMessages'
 
-export const ScPCAPortalContext = React.createContext({})
+export const ScPCAPortalContext = createContext({})
 
 export const ScPCAPortalContextProvider = ({ children }) => {
-  const [browseFilters, setBrowseFilters] = React.useState({})
+  const [browseFilters, setBrowseFilters] = useState({})
   const [email, setEmail] = useLocalStorage('scpca-user-email')
   const [token, setToken] = useLocalStorage('scpca-api-token', false)
   const [acceptsTerms, setAcceptsTerms] = useLocalStorage(

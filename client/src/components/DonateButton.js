@@ -1,7 +1,7 @@
 import React from 'react'
 import styled, { css } from 'styled-components'
 import { Button } from 'grommet'
-import { AnalyticsContext } from 'contexts/AnalyticsContext'
+import { useAnalytics } from 'hooks/useAnalytics'
 
 export const StyledButton = styled(Button)`
   ${({ theme }) =>
@@ -16,7 +16,7 @@ export const StyledButton = styled(Button)`
 `
 
 export const DonateButton = ({ yellow = false, label = 'Donate' }) => {
-  const { trackDonate } = React.useContext(AnalyticsContext)
+  const { trackDonate } = useAnalytics()
   const Component = yellow ? StyledButton : Button
   return (
     <Component

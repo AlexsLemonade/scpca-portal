@@ -1,16 +1,16 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Text, CheckBox } from 'grommet'
 import { Loader } from 'components/Loader'
 import { api } from 'api'
 import { getReadable } from 'helpers/getReadable'
-import { AnalyticsContext } from 'contexts/AnalyticsContext'
+import { useAnalytics } from 'hooks/useAnalytics'
 
 export const ProjectSearchFilter = ({
   filters: defaultFilters = {},
   filterOptions: defaultOptions,
   onFilterChange = () => {}
 }) => {
-  const { trackFilterChange } = React.useContext(AnalyticsContext)
+  const { trackFilterChange } = useAnalytics()
   const filterNames = {
     diagnoses: 'Diagnosis',
     seq_units: 'Sequencing Unit',
@@ -30,10 +30,10 @@ export const ProjectSearchFilter = ({
   }
 
   const safeDefaultFilters = getSafeDefaultFilters(defaultFilters)
-  const [filters, setFilters] = React.useState(safeDefaultFilters)
-  const [filterOptions, setFilterOptions] = React.useState(defaultOptions)
+  const [filters, setFilters] = useState(safeDefaultFilters)
+  const [filterOptions, setFilterOptions] = useState(defaultOptions)
 
-  React.useEffect(() => {
+  useEffect(() => {
     setFilters(getSafeDefaultFilters(defaultFilters))
   }, [defaultFilters])
 
@@ -67,7 +67,7 @@ export const ProjectSearchFilter = ({
     onFilterChange(newFilters)
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     const asyncGetFilterOptions = async () => {
       const request = await api.options.projects.get()
       if (request.isOk) {

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect, createRef, useMemo } from 'react'
 import {
   Box,
   Button,
@@ -95,9 +95,9 @@ export const THead = ({
   },
   stickies = 0
 }) => {
-  const [offsets, setOffsets] = React.useState([])
-  const ref = React.createRef(null)
-  React.useEffect(() => {
+  const [offsets, setOffsets] = useState([])
+  const ref = createRef(null)
+  useEffect(() => {
     const nodes = Array.from(ref.current.childNodes)
     const widths = nodes.map((n) => n.clientWidth)
     const newOffsets = widths
@@ -147,9 +147,9 @@ export const TBody = ({
   },
   stickies = 0
 }) => {
-  const [offsets, setOffsets] = React.useState([])
-  const ref = React.createRef(null)
-  React.useEffect(() => {
+  const [offsets, setOffsets] = useState([])
+  const ref = createRef(null)
+  useEffect(() => {
     if (ref.current) {
       const nodes = Array.from(ref.current.childNodes)
       const widths = nodes.map((n) => n.clientWidth)
@@ -206,15 +206,15 @@ export const Table = ({
   infoText
 }) => {
   const globalFilter = 'fuzzyText'
-  const filterTypes = React.useMemo(
+  const filterTypes = useMemo(
     () => ({
       // Add a new fuzzyTextFilterFn filter type.
       fuzzyText: fuzzyTextFilterFn
     }),
     []
   )
-  const columns = React.useMemo(() => userColumns, [])
-  const data = React.useMemo(() => userData, [])
+  const columns = useMemo(() => userColumns, [])
+  const data = useMemo(() => userData, [])
 
   const pageSize = initialPageSize || pageSizeOptions[0] || 0
 
