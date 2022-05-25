@@ -404,7 +404,6 @@ class Project(models.Model):
                     sample_json["filtered_cell_count"] = sample_json.pop("filtered_cells")
                     single_cell_libraries_metadata.append(sample_json)
 
-                    # sample_metadata["workflow_version"] = sample_json["workflow_version"]
                     sample_cell_count += sample_json["filtered_cell_count"]
                     sample_seq_units.add(sample_json["seq_unit"].strip())
                     sample_technologies.add(sample_json["technology"].strip())
@@ -450,7 +449,6 @@ class Project(models.Model):
             if not os.path.exists(self.get_sample_input_data_dir(scpca_sample_id)):
                 continue
 
-            # workflow_version = sample_metadata.pop("workflow_version")
             sample = Sample.create_from_dict(sample_metadata, self)
             libraries = [
                 scm
