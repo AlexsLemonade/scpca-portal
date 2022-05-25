@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { Anchor, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Icon } from 'components/Icon'
-import { Modal, ModalHeader } from 'components/Modal'
+import { Modal, ModalHeader, ModalBody } from 'components/Modal'
 import { DownloadStarted } from 'components/DownloadStarted'
 import { DownloadOptions } from 'components/DownloadOptions'
 import { DownloadToken } from 'components/DownloadToken'
@@ -99,7 +99,7 @@ export const Download = ({ icon, resource }) => {
             </Text>
           </ModalHeader>
         )}
-        <Modal.Body>
+        <ModalBody>
           {download && token && publicComputedFile ? (
             <DownloadStarted
               resource={resource}
@@ -114,7 +114,7 @@ export const Download = ({ icon, resource }) => {
               computedFiles={resource.computed_files}
             />
           ) : null}
-        </Modal.Body>
+        </ModalBody>
       </Modal>
     </>
   )

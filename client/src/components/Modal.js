@@ -98,17 +98,15 @@ export const ModalHeader = ({ children }) => (
     {children}
   </Box>
 )
-const Body = ({ children }) => (
+export const ModalBody = ({ children }) => (
   <Box gridArea="body" width="full" height={{ min: 'min-content' }}>
     {children}
   </Box>
 )
-const Footer = ({ children }) => (
+export const ModalFooter = ({ children }) => (
   <Box gridArea="footer" width="full">
     {children}
   </Box>
 )
-Modal.Body = Body
-Modal.Footer = Footer
 
 export default Modal
