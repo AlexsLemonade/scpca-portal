@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Anchor, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Icon } from 'components/Icon'
@@ -7,16 +7,16 @@ import { Modal, ModalHeader } from 'components/Modal'
 import { DownloadStarted } from 'components/DownloadStarted'
 import { DownloadOptions } from 'components/DownloadOptions'
 import { DownloadToken } from 'components/DownloadToken'
-import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
-import { AnalyticsContext } from 'contexts/AnalyticsContext'
+import { useAnalytics } from 'hooks/useAnalytics'
+import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
 import { formatDate } from 'helpers/formatDate'
 import { isProjectID } from 'helpers/isProjectID'
 
 // Button and Modal to show when downloading
 export const Download = ({ icon, resource }) => {
-  const { token, email, surveyListForm } = useContext(ScPCAPortalContext)
-  const { trackDownload } = useContext(AnalyticsContext)
+  const { token, email, surveyListForm } = useScPCAPortal()
+  const { trackDownload } = useAnalytics()
   const [publicComputedFile, setPublicComputedFile] = useState(() =>
     resource.computed_files.length === 1 ? resource.computed_files[0] : null
   )

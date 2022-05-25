@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
 import { ProjectHeader } from 'components/ProjectHeader'
@@ -14,7 +14,7 @@ const Project = ({ project }) => {
   const router = useRouter()
 
   const showSamples = router.asPath.indexOf('samples') !== -1
-  const [activeIndex, setActiveIndex] = React.useState(showSamples ? 1 : 0)
+  const [activeIndex, setActiveIndex] = useState(showSamples ? 1 : 0)
   const onActive = (nextIndex) => setActiveIndex(nextIndex)
   const { responsive } = useResponsive()
   return (

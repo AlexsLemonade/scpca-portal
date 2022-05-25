@@ -61,6 +61,7 @@ class Command(BaseCommand):
         parser.add_argument("--reload-existing", action="store_true")
         parser.add_argument("--scpca-project-ids", action="extend", nargs="+", type=str)
         parser.add_argument("--scpca-sample-ids", action="extend", nargs="+", type=str)
+        parser.add_argument("--skip-sync", action="store_true", default=False)
         parser.add_argument("--update-s3", action="store_true", default=settings.UPDATE_S3_DATA)
 
     def handle(self, *args, **options):
@@ -70,6 +71,7 @@ class Command(BaseCommand):
             options["reload_existing"],
             options["scpca_project_ids"],
             options["scpca_sample_ids"],
+            skip_input_bucket_sync=options["skip_sync"],
         )
         cleanup_output_data_dir()
 
@@ -89,6 +91,7 @@ def load_data_from_s3(
     scpca_sample_ids=None,
     allowed_submitters=ALLOWED_SUBMITTERS,
     input_bucket_name="scpca-portal-inputs",
+    skip_input_bucket_sync=False,
 ):
     """Loads data from S3. Creates projects and loads data for them."""
 
@@ -105,17 +108,18 @@ def load_data_from_s3(
     shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
     os.mkdir(common.OUTPUT_DATA_DIR)
 
-    command_list = [
-        "aws",
-        "s3",
-        "sync",
-        "--delete",
-        f"s3://{input_bucket_name}",
-        common.INPUT_DATA_DIR,
-    ]
-    if "public-test" in input_bucket_name:
-        command_list.append("--no-sign-request")
-    subprocess.check_call(command_list)
+    if not skip_input_bucket_sync:
+        command_list = [
+            "aws",
+            "s3",
+            "sync",
+            "--delete",
+            f"s3://{input_bucket_name}",
+            common.INPUT_DATA_DIR,
+        ]
+        if "public-test" in input_bucket_name:
+            command_list.append("--no-sign-request")
+        subprocess.check_call(command_list)
 
     with open(Project.get_input_project_metadata_file_path()) as project_csv:
         project_list = list(csv.DictReader(project_csv))

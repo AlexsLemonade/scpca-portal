@@ -70,7 +70,7 @@ class Sample(models.Model):
             subdiagnosis=data["subdiagnosis"],
             technologies=data.get("technologies", ""),
             tissue_location=data["tissue_location"],
-            treatment=data.get("treatment"),
+            treatment=data.get("treatment", ""),
         )
         sample.save()
 
