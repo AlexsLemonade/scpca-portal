@@ -21,7 +21,7 @@ class Project(models.Model):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
-    # TODO(arkid15r): extract to an abstact model.
+    # TODO(arkid15r): extract to an abstract model.
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -93,7 +93,7 @@ class Project(models.Model):
 
     @property
     def output_single_cell_metadata_ignored_fields(self):
-        return ["seq_units", "technologies"]
+        return ["has_cite_seq_data", "has_spatial_data", "seq_units", "technologies"]
 
     @property
     def output_single_cell_computed_file_name(self):
@@ -149,7 +149,13 @@ class Project(models.Model):
     @property
     def output_spatial_metadata_ignored_fields(self):
         return {
-            "injected": ("cell_count", "seq_units", "technologies"),
+            "injected": (
+                "cell_count",
+                "has_cite_seq_data",
+                "has_spatial_data",
+                "seq_units",
+                "technologies",
+            ),
             "library": (
                 "filtered_cells",
                 "filtered_spots",
@@ -390,6 +396,8 @@ class Project(models.Model):
             if not os.path.exists(sample_dir):
                 continue
 
+            has_cite_seq_data = False
+            has_spatial_data = False
             sample_cell_count = 0
             sample_seq_units = set()
             sample_technologies = set()
@@ -399,6 +407,7 @@ class Project(models.Model):
                     with open(os.path.join(sample_dir, filename)) as sample_json_file:
                         sample_json = json.load(sample_json_file)
 
+                    has_cite_seq_data = sample_json.get("has_citeseq", False)
                     sample_json["scpca_sample_id"] = sample_json.pop("sample_id")
                     sample_json["scpca_library_id"] = sample_json.pop("library_id")
                     sample_json["filtered_cell_count"] = sample_json.pop("filtered_cells")
@@ -420,10 +429,13 @@ class Project(models.Model):
                     spatial_json["scpca_library_id"] = spatial_json.pop("library_id")
                     spatial_libraries_metadata.append(spatial_json)
 
+                    has_spatial_data = True
                     sample_seq_units.add(spatial_json["seq_unit"].strip())
                     sample_technologies.add(spatial_json["technology"].strip())
 
             sample_metadata["cell_count"] = sample_cell_count
+            sample_metadata["has_cite_seq_data"] = has_cite_seq_data
+            sample_metadata["has_spatial_data"] = has_spatial_data
             sample_metadata["seq_units"] = ", ".join(sample_seq_units)
             sample_metadata["technologies"] = ", ".join(sample_technologies)
 
@@ -464,8 +476,7 @@ class Project(models.Model):
             computed_files.append(computed_file)
             single_cell_file_mapping.update(single_cell_metadata_files)
 
-            if self.has_spatial_data:
-                spatial_workflow_versions = set()
+            if sample.has_spatial_data:
                 libraries = [
                     sm
                     for sm in combined_spatial_metadata
@@ -488,7 +499,7 @@ class Project(models.Model):
         if self.has_spatial_data:
             computed_files.append(
                 ComputedFile.create_project_spatial_file(
-                    self, spatial_metadata_files, spatial_workflow_versions
+                    self, spatial_file_mapping, spatial_workflow_versions
                 )
             )
 

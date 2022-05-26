@@ -63,6 +63,8 @@ class Sample(models.Model):
             cell_count=data["cell_count"],
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],
+            has_cite_seq_data=data["has_cite_seq_data"],
+            has_spatial_data=data["has_spatial_data"],
             project=project,
             scpca_id=data["scpca_sample_id"],
             seq_units=data.get("seq_units", ""),
