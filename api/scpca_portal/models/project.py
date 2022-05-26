@@ -451,11 +451,6 @@ class Project(models.Model):
             if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
                 continue
 
-            try:
-                workflow_version = sample_metadata.pop("workflow_version")
-            except KeyError:
-                workflow_version = ""
-
             sample = Sample.create_from_dict(sample_metadata, self)
             # Skip computed files creation if sample directory does not exist.
             if scpca_sample_id in non_downloadable_sample_ids:
