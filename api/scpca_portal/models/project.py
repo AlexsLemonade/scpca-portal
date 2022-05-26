@@ -377,6 +377,7 @@ class Project(models.Model):
             return
 
         computed_files = []
+        non_downloadable_sample_ids = set()
         single_cell_libraries_metadata = []
         spatial_libraries_metadata = []
         for sample_metadata in samples_metadata:
@@ -384,10 +385,15 @@ class Project(models.Model):
             if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
                 continue
 
+            sample_metadata["cell_count"] = 0
+            sample_metadata["seq_units"] = ""
+            sample_metadata["technologies"] = ""
+
             # Some samples will exist but their contents cannot be shared yet.
             # When this happens their corresponding sample folder will not exist.
             sample_dir = self.get_sample_input_data_dir(scpca_sample_id)
             if not os.path.exists(sample_dir):
+                non_downloadable_sample_ids.add(scpca_sample_id)
                 continue
 
             sample_cell_count = 0
@@ -445,11 +451,16 @@ class Project(models.Model):
             if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
                 continue
 
-            # Skip sample if its directory doesn't exist.
-            if not os.path.exists(self.get_sample_input_data_dir(scpca_sample_id)):
-                continue
+            try:
+                workflow_version = sample_metadata.pop("workflow_version")
+            except KeyError:
+                workflow_version = ""
 
             sample = Sample.create_from_dict(sample_metadata, self)
+            # Skip computed files creation if sample directory does not exist.
+            if scpca_sample_id in non_downloadable_sample_ids:
+                continue
+
             libraries = [
                 scm
                 for scm in combined_single_cell_metadata
