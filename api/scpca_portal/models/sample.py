@@ -1,5 +1,6 @@
 import os
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common
@@ -22,6 +23,7 @@ class Sample(models.Model):
     disease_timing = models.TextField(blank=True, null=True)
     has_cite_seq_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
+    is_multiplexed_with = ArrayField(models.TextField(), default=list)
     scpca_id = models.TextField(unique=True, null=False)
     seq_units = models.TextField(blank=True, null=True)
     sex = models.TextField(blank=True, null=True)
