@@ -151,7 +151,7 @@ def load_data_from_s3(
         project.abstract = project_data["abstract"]
         project.contact_email = project_data["contact_email"]
         project.contact_name = project_data["contact_name"]
-        project.has_bulk_rna_seq = os.path.exists(project.input_bulk_metadata_file_path)
+        project.has_bulk_rna_seq = utils.boolean_from_string(project_data.get("has_bulk", False))
         project.has_spatial_data = utils.boolean_from_string(project_data.get("has_spatial", False))
         project.human_readable_pi_name = project_data["PI"]
         project.pi_name = project_data["submitter"]

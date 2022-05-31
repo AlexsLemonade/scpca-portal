@@ -20,6 +20,7 @@ class Sample(models.Model):
     cell_count = models.IntegerField()
     diagnosis = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
+    has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     scpca_id = models.TextField(unique=True, null=False)
@@ -60,11 +61,12 @@ class Sample(models.Model):
         sample = cls(
             additional_metadata=additional_metadata,
             age_at_diagnosis=data["age"],
-            cell_count=data["cell_count"],
+            cell_count=data.get("cell_count", 0),
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],
-            has_cite_seq_data=data["has_cite_seq_data"],
-            has_spatial_data=data["has_spatial_data"],
+            has_bulk_rna_seq=data.get("has_bulk_rna_seq", False),
+            has_cite_seq_data=data.get("has_cite_seq_data", False),
+            has_spatial_data=data.get("has_spatial_data", False),
             project=project,
             scpca_id=data["scpca_sample_id"],
             seq_units=data.get("seq_units", ""),
