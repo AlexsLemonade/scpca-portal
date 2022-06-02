@@ -37,4 +37,4 @@ USER user
 WORKDIR /home/user/code
 
 # Run the server
-CMD newrelic-admin run-program gunicorn --bind 0.0.0.0:$PORT --access-logfile - scpca_portal.wsgi:application
+CMD gunicorn --bind 0.0.0.0:$PORT --access-logfile - scpca_portal.wsgi:application
