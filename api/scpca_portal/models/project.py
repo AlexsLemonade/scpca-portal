@@ -93,7 +93,13 @@ class Project(models.Model):
 
     @property
     def output_single_cell_metadata_ignored_fields(self):
-        return ["has_cite_seq_data", "has_spatial_data", "seq_units", "technologies"]
+        return [
+            "has_bulk_rna_seq",
+            "has_cite_seq_data",
+            "has_spatial_data",
+            "seq_units",
+            "technologies",
+        ]
 
     @property
     def output_single_cell_computed_file_name(self):
@@ -151,6 +157,7 @@ class Project(models.Model):
         return {
             "injected": (
                 "cell_count",
+                "has_bulk_rna_seq",
                 "has_cite_seq_data",
                 "has_spatial_data",
                 "seq_units",
@@ -358,6 +365,14 @@ class Project(models.Model):
         Returns a list of project's computed files.
         """
 
+        # Start with a list of samples and their metadata.
+        try:
+            with open(self.input_samples_metadata_file_path) as samples_csv_file:
+                samples_metadata = [line for line in csv.DictReader(samples_csv_file)]
+        except FileNotFoundError:
+            logger.error(f"No samples metadata file found for '{self}'.")
+            return
+
         # Create readme file first.
         with open(ComputedFile.README_TEMPLATE_FILE_PATH, "r") as readme_template_file:
             readme_template = readme_template_file.read()
@@ -374,13 +389,15 @@ class Project(models.Model):
                     readme_template.format(project_accession=self.scpca_id, project_url=self.url)
                 )
 
-        # Start with a list of samples and their metadata.
-        try:
-            with open(self.input_samples_metadata_file_path) as samples_csv_file:
-                samples_metadata = [line for line in csv.DictReader(samples_csv_file)]
-        except FileNotFoundError:
-            logger.error(f"No samples metadata file found for '{self}'.")
-            return
+        bulk_rna_seq_sample_scpca_ids = set()
+        if self.has_bulk_rna_seq:
+            with open(self.input_bulk_metadata_file_path, "r") as bulk_metadata_file:
+                bulk_rna_seq_sample_scpca_ids = set(
+                    [
+                        line["sample_id"]
+                        for line in csv.DictReader(bulk_metadata_file, delimiter=common.TAB)
+                    ]
+                )
 
         computed_files = []
         non_downloadable_sample_ids = set()
@@ -390,10 +407,6 @@ class Project(models.Model):
             scpca_sample_id = sample_metadata["scpca_sample_id"]
             if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
                 continue
-
-            sample_metadata["cell_count"] = 0
-            sample_metadata["seq_units"] = ""
-            sample_metadata["technologies"] = ""
 
             # Some samples will exist but their contents cannot be shared yet.
             # When this happens their corresponding sample folder will not exist.
@@ -408,7 +421,7 @@ class Project(models.Model):
             sample_seq_units = set()
             sample_technologies = set()
             for filename in os.listdir(sample_dir):
-                # Handle sample metadata.
+                # Handle single cell metadata.
                 if filename.endswith("_metadata.json"):
                     with open(os.path.join(sample_dir, filename)) as sample_json_file:
                         sample_json = json.load(sample_json_file)
@@ -440,6 +453,7 @@ class Project(models.Model):
                     sample_technologies.add(spatial_json["technology"].strip())
 
             sample_metadata["cell_count"] = sample_cell_count
+            sample_metadata["has_bulk_rna_seq"] = scpca_sample_id in bulk_rna_seq_sample_scpca_ids
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
             sample_metadata["has_spatial_data"] = has_spatial_data
             sample_metadata["seq_units"] = ", ".join(sample_seq_units)
