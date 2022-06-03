@@ -14,6 +14,7 @@ class ProjectDetailSerializer(ProjectSerializer):
 class ProjectFilter(filters.FilterSet):
     diagnoses = filters.CharFilter(field_name="diagnoses", lookup_expr="icontains")
     seq_units = filters.CharFilter(field_name="seq_units", lookup_expr="icontains")
+    modalities = filters.CharFilter(field_name="modalities", lookup_expr="icontains")
     technologies = filters.CharFilter(field_name="technologies", lookup_expr="icontains")
     disease_timings = filters.CharFilter(field_name="disease_timings", lookup_expr="icontains")
     human_readable_pi_name = filters.CharFilter(
