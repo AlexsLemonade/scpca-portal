@@ -3,17 +3,15 @@ import os
 from django.db import models
 
 from scpca_portal import common
+from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 
 
-class Sample(models.Model):
+class Sample(TimestampedModel):
     class Meta:
         db_table = "samples"
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     additional_metadata = models.JSONField(default=dict)
     age_at_diagnosis = models.TextField(blank=True, null=True)
