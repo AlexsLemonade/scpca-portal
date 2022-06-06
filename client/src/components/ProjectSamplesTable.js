@@ -25,7 +25,7 @@ export const ProjectSamplesTable = ({
       Header: 'Download',
       accessor: () => 'computed_files',
       Cell: ({ row }) =>
-        row.original.computed_files ? (
+        row.original.computed_files.length !== 0 ? (
           <Box direction="row" gap="small" align="center">
             <Download
               icon={<DownloadIcon color="brand" />}
@@ -85,7 +85,7 @@ export const ProjectSamplesTable = ({
         const sortedSamples =
           project.sample_count !== project.downloadable_sample_count
             ? samplesRequest.response.results.sort(({ computed_files: a }) =>
-                a && a.id ? -1 : 1
+                a && a.length ? -1 : 1
               )
             : samplesRequest.response.results
         setSamples(sortedSamples)

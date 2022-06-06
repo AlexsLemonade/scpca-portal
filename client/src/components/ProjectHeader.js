@@ -59,7 +59,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           </Box>
         </Box>
       </Box>
-      <Grid columns={responsive('1', '1/3')} gap={responsive('medium')}>
+      <Grid columns={responsive('1', '1/4')} gap={responsive('medium')}>
         <Badge
           badge="Samples"
           label={`${project.downloadable_sample_count} Downloadable Samples`}
