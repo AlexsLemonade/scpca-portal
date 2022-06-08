@@ -6,7 +6,7 @@ export const downloadOptions = {
       has_bulk_rna_data: 'Bulk RNA-seq data',
       has_cite_seq_data: 'CITE-seq data'
     },
-    metadata: ['Project and Sample Metadata']
+    metadata: 'Project and Sample Metadata'
   },
   PROJECT_SPATIAL_ZIP: {
     header: 'Download Spatial Data',
