@@ -111,7 +111,6 @@ export const Download = ({ icon, resource }) => {
           ) : !publicComputedFile ? (
             <DownloadOptions
               resource={resource}
-              computedFiles={resource.computed_files}
               handleSelectFile={handleSelectFile}
             />
           ) : null}
