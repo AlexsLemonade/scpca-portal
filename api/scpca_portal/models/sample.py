@@ -52,7 +52,7 @@ class Sample(models.Model):
         if self.has_spatial_data:
             modalities.append("Spatial Transcriptomics")
 
-        if len(modalities) != 0:
+        if modalities:
             return ", ".join(modalities)
 
         return "N/A"
