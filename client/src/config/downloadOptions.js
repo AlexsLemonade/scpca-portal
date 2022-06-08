@@ -24,7 +24,7 @@ export const downloadOptions = {
     metadata: 'Project and Sample Metadata'
   },
   SAMPLE_SPATIAL_ZIP: {
-    header: ' Download Spatial Data',
+    header: 'Download Spatial Data',
     data: 'Spatial data',
     included: {},
     metadata: 'Project and Sample Metadata'
