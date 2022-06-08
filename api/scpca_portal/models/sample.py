@@ -1,5 +1,6 @@
 import os
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common
@@ -23,6 +24,7 @@ class Sample(models.Model):
     has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
+    multiplexed_with = ArrayField(models.TextField(), default=list)
     scpca_id = models.TextField(unique=True, null=False)
     seq_units = models.TextField(blank=True, null=True)
     sex = models.TextField(blank=True, null=True)
@@ -67,6 +69,7 @@ class Sample(models.Model):
             has_bulk_rna_seq=data.get("has_bulk_rna_seq", False),
             has_cite_seq_data=data.get("has_cite_seq_data", False),
             has_spatial_data=data.get("has_spatial_data", False),
+            multiplexed_with=data.get("multiplexed_with"),
             project=project,
             scpca_id=data["scpca_sample_id"],
             seq_units=data.get("seq_units", ""),
@@ -81,6 +84,10 @@ class Sample(models.Model):
         return sample
 
     @staticmethod
+    def get_output_multiplexed_metadata_file_path(scpca_sample_id):
+        return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_multiplexed_metadata.tsv")
+
+    @staticmethod
     def get_output_single_cell_metadata_file_path(scpca_sample_id):
         return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_libraries_metadata.tsv")
 
@@ -93,12 +100,16 @@ class Sample(models.Model):
         return self.sample_computed_files.order_by("created_at")
 
     @property
-    def output_single_cell_computed_file_name(self):
-        return f"{self.scpca_id}.zip"
+    def output_multiplexed_computed_file_name(self):
+        return f"{self.scpca_id}_multiplexed.zip"
 
     @property
-    def output_single_cell_computed_file_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, self.output_single_cell_computed_file_name)
+    def output_multiplexed_metadata_file_path(self):
+        return Sample.get_output_multiplexed_metadata_file_path(self.scpca_id)
+
+    @property
+    def output_single_cell_computed_file_name(self):
+        return f"{self.scpca_id}.zip"
 
     @property
     def output_single_cell_metadata_file_path(self):
@@ -109,12 +120,17 @@ class Sample(models.Model):
         return f"{self.scpca_id}_spatial.zip"
 
     @property
-    def output_spatial_computed_file_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, self.output_spatial_computed_file_name)
-
-    @property
     def output_spatial_metadata_file_path(self):
         return Sample.get_output_spatial_metadata_file_path(self.scpca_id)
+
+    @property
+    def multiplexed_computed_file(self):
+        try:
+            return self.sample_computed_files.get(
+                type=ComputedFile.OutputFileTypes.SAMPLE_MULTIPLEXED_ZIP
+            )
+        except ComputedFile.DoesNotExist:
+            pass
 
     @property
     def single_cell_computed_file(self):
