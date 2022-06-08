@@ -110,8 +110,9 @@ export const Download = ({ icon, resource }) => {
             <DownloadToken />
           ) : !publicComputedFile ? (
             <DownloadOptions
-              handleSelectFile={handleSelectFile}
+              resource={resource}
               computedFiles={resource.computed_files}
+              handleSelectFile={handleSelectFile}
             />
           ) : null}
         </ModalBody>
