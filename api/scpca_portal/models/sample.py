@@ -38,25 +38,6 @@ class Sample(models.Model):
     def __str__(self):
         return f"Sample {self.scpca_id} of {self.project}"
 
-    @property
-    def modalities(self):
-        print(self.scpca_id)
-        modalities = []
-
-        if self.has_bulk_rna_seq:
-            modalities.append("Bulk")
-
-        if self.has_cite_seq_data:
-            modalities.append("CITE-seq")
-
-        if self.has_spatial_data:
-            modalities.append("Spatial Transcriptomics")
-
-        if modalities:
-            return ", ".join(modalities)
-
-        return "N/A"
-
     @classmethod
     def create_from_dict(cls, data, project):
         # First figure out what metadata is additional. This varies project by
@@ -106,6 +87,24 @@ class Sample(models.Model):
     @staticmethod
     def get_output_spatial_metadata_file_path(scpca_sample_id):
         return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_spatial_metadata.tsv")
+
+    @property
+    def modalities(self):
+        modalities = []
+
+        if self.has_bulk_rna_seq:
+            modalities.append("Bulk")
+
+        if self.has_cite_seq_data:
+            modalities.append("CITE-seq")
+
+        if self.has_spatial_data:
+            modalities.append("Spatial Transcriptomics")
+
+        if modalities:
+            return ", ".join(modalities)
+
+        return None
 
     @property
     def computed_files(self):
