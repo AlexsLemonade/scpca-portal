@@ -14,12 +14,9 @@ module.exports = {
     config.resolve.modules.push(path.resolve(__dirname, './../src'))
 
     // Add env vars for helpers
-    const plugin = config.plugins.find(
-      (plugin) => plugin.definitions?.['process.env']
-    )
-
     Object.keys(envVars).forEach((key) => {
-      plugin.definitions['process.env'][key] = JSON.stringify(envVars[key])
+      config.plugins.DefinePlugin.definitions[`process.env.${key}`] =
+        JSON.stringify(envVars[key])
     })
 
     return config
