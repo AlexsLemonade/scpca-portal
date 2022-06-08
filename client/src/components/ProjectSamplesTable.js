@@ -19,7 +19,6 @@ export const ProjectSamplesTable = ({
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
       : false
-
   const columns = [
     {
       Header: 'Download',
@@ -59,8 +58,7 @@ export const ProjectSamplesTable = ({
     { Header: 'Technology', accessor: 'technologies' },
     {
       Header: 'Other Modalities',
-      accessor: ({ other_modalities: otherModalities }) =>
-        otherModalities || 'N/A'
+      accessor: 'modalities'
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },

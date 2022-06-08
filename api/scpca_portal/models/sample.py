@@ -38,6 +38,25 @@ class Sample(models.Model):
     def __str__(self):
         return f"Sample {self.scpca_id} of {self.project}"
 
+    @property
+    def modalities(self):
+        print(self.scpca_id)
+        modalities = []
+
+        if self.has_bulk_rna_seq:
+            modalities.append("Bulk")
+
+        if self.has_cite_seq_data:
+            modalities.append("CITE-seq")
+
+        if self.has_spatial_data:
+            modalities.append("Spatial Transcriptomics")
+
+        if len(modalities) != 0:
+            return ", ".join(modalities)
+
+        return "N/A"
+
     @classmethod
     def create_from_dict(cls, data, project):
         # First figure out what metadata is additional. This varies project by
