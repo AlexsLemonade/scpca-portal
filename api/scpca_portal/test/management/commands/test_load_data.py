@@ -63,7 +63,7 @@ class TestLoadData(TestCase):
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_load_data_from_s3(self):
-        def assert_db_record_count():
+        def assert_object_count():
             self.assertEqual(Project.objects.count(), 2)
             self.assertEqual(ProjectSummary.objects.count(), 6)
             self.assertEqual(Sample.objects.count(), 5)
@@ -77,7 +77,7 @@ class TestLoadData(TestCase):
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
         )
-        assert_db_record_count()
+        assert_object_count()
 
         scpca_project_ids = ("SCPCP999990", "SCPCP999999")
         for scpca_project_id in scpca_project_ids:
@@ -98,7 +98,7 @@ class TestLoadData(TestCase):
                 allowed_submitters=ALLOWED_SUBMITTERS,
                 input_bucket_name=INPUT_BUCKET_NAME,
             )
-            assert_db_record_count()
+            assert_object_count()
 
             new_project = Project.objects.get(scpca_id=scpca_project_id)
             self.assertEqual(project, new_project)
@@ -126,7 +126,7 @@ class TestLoadData(TestCase):
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
         )
-        assert_db_record_count()
+        assert_object_count()
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_multiplexed_metadata(self):
