@@ -104,7 +104,6 @@ class Sample(models.Model):
         if modalities:
             return ", ".join(modalities)
 
-
     @property
     def computed_files(self):
         return self.sample_computed_files.order_by("created_at")
