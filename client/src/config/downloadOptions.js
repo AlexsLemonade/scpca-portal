@@ -1,28 +1,32 @@
 export const downloadOptions = {
   PROJECT_ZIP: {
-    items: [
-      'Single-cell data',
-      'Bulk RNA-seq data',
-      'CITE-seq data',
-      'Project and Sample Metadata'
-    ],
-    header: 'Download Single-cell Data'
+    header: 'Download Single-cell Data',
+    data: 'Single-cell data',
+    included: {
+      has_bulk_rna_data: 'Bulk RNA-seq data',
+      has_cite_seq_data: 'CITE-seq data'
+    },
+    metadata: 'Project and Sample Metadata'
   },
   PROJECT_SPATIAL_ZIP: {
-    items: ['Spatial data', 'Project and Sample Metadata'],
-    header: ' Download Spatial Data'
+    header: 'Download Spatial Data',
+    data: 'Spatial data',
+    included: {},
+    metadata: 'Project and Sample Metadata'
   },
   SAMPLE_ZIP: {
-    items: [
-      'Single-cell data',
-      'Bulk RNA-seq data',
-      'CITE-seq data',
-      'Project and Sample Metadata'
-    ],
-    header: 'Download Single-cell Data'
+    header: 'Download Single-cell Data',
+    data: 'Single-cell data',
+    included: {
+      has_bulk_rna_data: 'Bulk RNA-seq data',
+      has_cite_seq_data: 'CITE-seq data'
+    },
+    metadata: 'Project and Sample Metadata'
   },
   SAMPLE_SPATIAL_ZIP: {
-    items: ['Spatial data', 'Project and Sample Metadata'],
-    header: ' Download Spatial Data'
+    header: 'Download Spatial Data',
+    data: 'Spatial data',
+    included: {},
+    metadata: 'Project and Sample Metadata'
   }
 }

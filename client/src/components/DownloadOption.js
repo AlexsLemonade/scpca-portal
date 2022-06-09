@@ -1,11 +1,15 @@
 import React from 'react'
 import { Box, Grid, Heading, Text } from 'grommet'
 import { Button } from 'components/Button'
-import { downloadOptions } from 'config/downloadOptions'
 import { formatBytes } from 'helpers/formatBytes'
+import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 
-export const DownloadOption = ({ computedFile, handleSelectFile }) => {
-  const downloadOptionType = downloadOptions[computedFile.type]
+export const DownloadOption = ({
+  resource,
+  computedFile,
+  handleSelectFile
+}) => {
+  const { header, items } = getDownloadOptionDetails(resource, computedFile)
 
   const handleClick = (file) => {
     handleSelectFile(file)
@@ -25,7 +29,7 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
     >
       <Box gridArea="header" pad={{ bottom: '8px' }}>
         <Heading level="3" size="small">
-          {downloadOptionType.header}
+          {header}
         </Heading>
       </Box>
       <Box gridArea="body">
@@ -37,7 +41,7 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
               listStyleType: 'square'
             }}
           >
-            {downloadOptionType.items.map((item) => (
+            {items.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -49,8 +53,8 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
           <Button
             primary
             alignSelf="start"
-            aria-label={downloadOptionType.header}
-            label={downloadOptionType.header}
+            aria-label={header}
+            label={header}
             target="_blank"
             onClick={() => handleClick(computedFile)}
           />

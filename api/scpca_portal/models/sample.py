@@ -89,6 +89,22 @@ class Sample(models.Model):
         return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_spatial_metadata.tsv")
 
     @property
+    def modalities(self):
+        modalities = []
+
+        if self.has_bulk_rna_seq:
+            modalities.append("Bulk")
+
+        if self.has_cite_seq_data:
+            modalities.append("CITE-seq")
+
+        if self.has_spatial_data:
+            modalities.append("Spatial Transcriptomics")
+
+        if modalities:
+            return ", ".join(modalities)
+
+    @property
     def computed_files(self):
         return self.sample_computed_files.order_by("created_at")
 
