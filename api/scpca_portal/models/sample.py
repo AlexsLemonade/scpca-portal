@@ -104,7 +104,6 @@ class Sample(models.Model):
         if modalities:
             return ", ".join(modalities)
 
-        return None
 
     @property
     def computed_files(self):
