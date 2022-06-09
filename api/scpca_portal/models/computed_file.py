@@ -80,7 +80,7 @@ class ComputedFile(models.Model):
 
     @classmethod
     def create_project_multiplexed_file(cls, project, sample_to_file_mapping, workflow_versions):
-        """Produces a data file of combined multiplexed data."""
+        """Produces a single data file of project's combined multiplexed data."""
 
         computed_file = cls(
             project=project,
@@ -111,7 +111,7 @@ class ComputedFile(models.Model):
 
     @classmethod
     def create_project_single_cell_file(cls, project, sample_to_file_mapping, workflow_versions):
-        """Produces a single data file of combined single cell data."""
+        """Produces a single data file of project's combined single cell data."""
 
         computed_file = cls(
             project=project,
@@ -144,7 +144,7 @@ class ComputedFile(models.Model):
 
     @classmethod
     def create_project_spatial_file(cls, project, sample_to_file_mapping, workflow_versions):
-        """Produces a data file of combined spatial data."""
+        """Produces a single data file of project's combined spatial data."""
 
         computed_file = cls(
             project=project,
@@ -176,6 +176,10 @@ class ComputedFile(models.Model):
     def create_sample_multiplexed_file(
         cls, sample, libraries, library_path_mapping, workflow_versions
     ):
+        """
+        Produces a single data file of sample's combined multiplexed data.
+        Returns the data file and file mapping for a sample.
+        """
         computed_file = cls(
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_multiplexed_computed_file_name,
@@ -209,6 +213,10 @@ class ComputedFile(models.Model):
 
     @classmethod
     def create_sample_single_cell_file(cls, sample, libraries, workflow_versions):
+        """
+        Produces a single data file of sample's combined single cell data.
+        Returns the data file and file mapping for a sample.
+        """
         computed_file = cls(
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_single_cell_computed_file_name,
@@ -241,6 +249,10 @@ class ComputedFile(models.Model):
 
     @classmethod
     def create_sample_spatial_file(cls, sample, libraries, workflow_versions):
+        """
+        Produces a single data file of sample's combined spatial data.
+        Returns the data file and file mapping for a sample.
+        """
         computed_file = cls(
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_spatial_computed_file_name,
@@ -306,7 +318,7 @@ class ComputedFile(models.Model):
         return os.path.join(common.OUTPUT_DATA_DIR, self.s3_key)
 
     def create_download_url(self):
-        """Create a temporary URL from which the file can be downloaded."""
+        """Creates a temporary URL from which the file can be downloaded."""
         if self.s3_bucket and self.s3_key:
             return s3.generate_presigned_url(
                 ClientMethod="get_object",

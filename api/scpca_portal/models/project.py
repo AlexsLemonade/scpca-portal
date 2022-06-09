@@ -334,7 +334,7 @@ class Project(models.Model):
                 )
 
         # Generate multiplexed sample metadata dict.
-        sample_metadata_mapping = {}
+        sample_metadata_mapping = dict()
         for sample_metadata in samples_metadata:
             multiplexed_sample_id = sample_metadata["scpca_sample_id"]
             if multiplexed_sample_id not in multiplexed_sample_ids:  # Skip non-multiplexed samples.
@@ -401,7 +401,7 @@ class Project(models.Model):
                 project_file, fieldnames=ordered_fields, delimiter=common.TAB
             )
             project_csv_writer.writeheader()
-            # Project file has to be sorted by library_id.
+            # Project file data has to be sorted by the library_id.
             project_csv_writer.writerows(
                 sorted([cm for cm in combined_metadata], key=lambda cm: cm["scpca_library_id"])
             )
@@ -465,9 +465,9 @@ class Project(models.Model):
                     sample_csv_writer.writeheader()
 
                     libraries = (
-                        sclm
-                        for sclm in single_cell_libraries_metadata
-                        if sclm["scpca_sample_id"] == scpca_sample_id
+                        library
+                        for library in single_cell_libraries_metadata
+                        if library["scpca_sample_id"] == scpca_sample_id
                     )
                     for library in libraries:
                         library.update(sample_metadata_copy)
@@ -540,9 +540,9 @@ class Project(models.Model):
                     sample_csv_writer.writeheader()
 
                     libraries = (
-                        slm
-                        for slm in spatial_libraries_metadata
-                        if slm["scpca_sample_id"] == scpca_sample_id
+                        library
+                        for library in spatial_libraries_metadata
+                        if library["scpca_sample_id"] == scpca_sample_id
                     )
                     for library in libraries:
                         # Exclude fields.
@@ -559,8 +559,41 @@ class Project(models.Model):
 
         return combined_metadata
 
+    def create_computed_files(
+        self,
+        single_cell_file_mapping,
+        single_cell_workflow_versions,
+        spatial_file_mapping,
+        spatial_workflow_versions,
+        multiplexed_file_mapping,
+        multiplexed_workflow_versions,
+    ):
+        """Creates project computed files based on generated file mappings."""
+        computed_files = list()
+
+        if multiplexed_file_mapping:
+            computed_files.append(
+                ComputedFile.create_project_multiplexed_file(
+                    self, multiplexed_file_mapping, multiplexed_workflow_versions
+                )
+            )
+        if single_cell_file_mapping:
+            computed_files.append(
+                ComputedFile.create_project_single_cell_file(
+                    self, single_cell_file_mapping, single_cell_workflow_versions
+                )
+            )
+        if spatial_file_mapping:
+            computed_files.append(
+                ComputedFile.create_project_spatial_file(
+                    self, spatial_file_mapping, spatial_workflow_versions
+                )
+            )
+
+        return computed_files
+
     def create_single_cell_readme_file(self):
-        """Create single cell README file."""
+        """Creates a single cell metadata README file."""
         with open(ComputedFile.README_TEMPLATE_FILE_PATH, "r") as readme_template_file:
             readme_template = readme_template_file.read()
         with open(ComputedFile.README_FILE_PATH, "w") as readme_file:
@@ -569,7 +602,7 @@ class Project(models.Model):
             )
 
     def create_multiplexed_readme_file(self):
-        """Create multiplexed README file."""
+        """Creates a multiplexed metadata README file."""
         with open(ComputedFile.README_TEMPLATE_MULTIPLEXED_FILE_PATH, "r") as readme_template_file:
             readme_template = readme_template_file.read()
         with open(ComputedFile.README_MULTIPLEXED_FILE_PATH, "w") as readme_file:
@@ -578,7 +611,7 @@ class Project(models.Model):
             )
 
     def create_spatial_readme_file(self):
-        """Create spatial README file."""
+        """Creates a spatial metadata README file."""
         with open(ComputedFile.README_TEMPLATE_SPATIAL_FILE_PATH, "r") as readme_template_file:
             readme_template = readme_template_file.read()
         with open(ComputedFile.README_SPATIAL_FILE_PATH, "w") as readme_file:
@@ -587,18 +620,20 @@ class Project(models.Model):
             )
 
     def get_bulk_rna_seq_sample_ids(self):
-        bulk_rna_seq_sample_scpca_ids = set()
+        """Returns bulk RNA sequencing sample IDs."""
+        bulk_rna_seq_sample_ids = set()
         if self.has_bulk_rna_seq:
             with open(self.input_bulk_metadata_file_path, "r") as bulk_metadata_file:
-                bulk_rna_seq_sample_scpca_ids.update(
-                    [
+                bulk_rna_seq_sample_ids.update(
+                    (
                         line["sample_id"]
                         for line in csv.DictReader(bulk_metadata_file, delimiter=common.TAB)
-                    ]
+                    )
                 )
-        return bulk_rna_seq_sample_scpca_ids
+        return bulk_rna_seq_sample_ids
 
     def get_sample_input_data_dir(self, sample_scpca_id):
+        """Returns an input data directory based on a sample ID."""
         return os.path.join(self.input_data_dir, sample_scpca_id)
 
     def load_data(self, scpca_sample_ids=None) -> List[ComputedFile]:
@@ -617,41 +652,15 @@ class Project(models.Model):
             logger.error(f"No samples metadata file found for '{self}'.")
             return
 
-        # Create readme file first.
-        with open(ComputedFile.README_TEMPLATE_FILE_PATH, "r") as readme_template_file:
-            readme_template = readme_template_file.read()
-        with open(ComputedFile.README_FILE_PATH, "w") as readme_file:
-            readme_file.write(
-                readme_template.format(project_accession=self.scpca_id, project_url=self.url)
-            )
-
-        if self.has_spatial_data:
-            with open(ComputedFile.README_TEMPLATE_SPATIAL_FILE_PATH, "r") as readme_template_file:
-                readme_template = readme_template_file.read()
-            with open(ComputedFile.README_SPATIAL_FILE_PATH, "w") as readme_file:
-                readme_file.write(
-                    readme_template.format(project_accession=self.scpca_id, project_url=self.url)
-                )
-
-        bulk_rna_seq_sample_scpca_ids = set()
-        if self.has_bulk_rna_seq:
-            with open(self.input_bulk_metadata_file_path, "r") as bulk_metadata_file:
-                bulk_rna_seq_sample_scpca_ids = set(
-                    [
-                        line["sample_id"]
-                        for line in csv.DictReader(bulk_metadata_file, delimiter=common.TAB)
-                    ]
-                )
-
         self.create_multiplexed_readme_file()
         self.create_single_cell_readme_file()
         self.create_spatial_readme_file()
 
-        bulk_rna_seq_sample_scpca_ids = self.get_bulk_rna_seq_sample_ids()
-        computed_files = []
+        bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
+        computed_files = list()
         non_downloadable_sample_ids = set()
-        single_cell_libraries_metadata = []
-        spatial_libraries_metadata = []
+        single_cell_libraries_metadata = list()
+        spatial_libraries_metadata = list()
         for sample_metadata in samples_metadata:
             scpca_sample_id = sample_metadata["scpca_sample_id"]
             if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
@@ -702,7 +711,7 @@ class Project(models.Model):
                     sample_technologies.add(spatial_json["technology"].strip())
 
             sample_metadata["cell_count"] = sample_cell_count
-            sample_metadata["has_bulk_rna_seq"] = scpca_sample_id in bulk_rna_seq_sample_scpca_ids
+            sample_metadata["has_bulk_rna_seq"] = scpca_sample_id in bulk_rna_seq_sample_ids
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
             sample_metadata["has_spatial_data"] = has_spatial_data
             sample_metadata["seq_units"] = ", ".join(sample_seq_units)
@@ -760,9 +769,9 @@ class Project(models.Model):
             # Skip computed files creation if sample directory does not exist.
             if scpca_sample_id not in non_downloadable_sample_ids:
                 libraries = [
-                    cm
-                    for cm in combined_single_cell_metadata
-                    if cm["scpca_sample_id"] == sample.scpca_id
+                    library
+                    for library in combined_single_cell_metadata
+                    if library["scpca_sample_id"] == sample.scpca_id
                 ]
                 workflow_versions = [library["workflow_version"] for library in libraries]
                 single_cell_workflow_versions.update(workflow_versions)
@@ -777,9 +786,9 @@ class Project(models.Model):
 
                 if sample.has_spatial_data:
                     libraries = [
-                        cm
-                        for cm in combined_spatial_metadata
-                        if cm["scpca_sample_id"] == sample.scpca_id
+                        library
+                        for library in combined_spatial_metadata
+                        if library["scpca_sample_id"] == sample.scpca_id
                     ]
                     workflow_versions = [library["workflow_version"] for library in libraries]
                     spatial_workflow_versions.update(workflow_versions)
@@ -794,9 +803,9 @@ class Project(models.Model):
 
             if sample.multiplexed_with:
                 libraries = [
-                    cm
-                    for cm in combined_multiplexed_metadata
-                    if cm["scpca_sample_id"] == sample.scpca_id
+                    library
+                    for library in combined_multiplexed_metadata
+                    if library["scpca_sample_id"] == sample.scpca_id
                 ]
                 workflow_versions = [library["workflow_version"] for library in libraries]
                 multiplexed_workflow_versions.update(workflow_versions)
@@ -809,25 +818,16 @@ class Project(models.Model):
                 computed_files.append(computed_file)
                 multiplexed_file_mapping.update(multiplexed_metadata_files)
 
-        if single_cell_file_mapping:
-            computed_files.append(
-                ComputedFile.create_project_single_cell_file(
-                    self, single_cell_file_mapping, single_cell_workflow_versions
-                )
+        computed_files.extend(
+            self.create_computed_files(
+                single_cell_file_mapping,
+                single_cell_workflow_versions,
+                spatial_file_mapping,
+                spatial_workflow_versions,
+                multiplexed_file_mapping,
+                multiplexed_workflow_versions,
             )
-
-        if spatial_file_mapping:
-            computed_files.append(
-                ComputedFile.create_project_spatial_file(
-                    self, spatial_file_mapping, spatial_workflow_versions
-                )
-            )
-        if multiplexed_file_mapping:
-            computed_files.append(
-                ComputedFile.create_project_multiplexed_file(
-                    self, multiplexed_file_mapping, multiplexed_workflow_versions
-                )
-            )
+        )
 
         self.update_counts()
 

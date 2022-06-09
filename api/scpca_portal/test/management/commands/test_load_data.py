@@ -76,7 +76,6 @@ class TestLoadData(TestCase):
             reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
-            skip_input_bucket_sync=True,
         )
         assert_db_record_count()
 
@@ -98,7 +97,6 @@ class TestLoadData(TestCase):
                 reload_existing=False,
                 allowed_submitters=ALLOWED_SUBMITTERS,
                 input_bucket_name=INPUT_BUCKET_NAME,
-                skip_input_bucket_sync=True,
             )
             assert_db_record_count()
 
@@ -127,7 +125,6 @@ class TestLoadData(TestCase):
             reload_existing=True,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
-            skip_input_bucket_sync=True,
         )
         assert_db_record_count()
 
@@ -139,7 +136,6 @@ class TestLoadData(TestCase):
             reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
-            skip_input_bucket_sync=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999990")
@@ -245,7 +241,6 @@ class TestLoadData(TestCase):
             reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
-            skip_input_bucket_sync=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999999")
@@ -355,7 +350,6 @@ class TestLoadData(TestCase):
             reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
-            skip_input_bucket_sync=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999999")

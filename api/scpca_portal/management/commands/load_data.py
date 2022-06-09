@@ -73,7 +73,7 @@ class Command(BaseCommand):
             options["scpca_sample_ids"],
             skip_input_bucket_sync=options["skip_sync"],
         )
-        # cleanup_output_data_dir()
+        cleanup_output_data_dir()
 
 
 def cleanup_output_data_dir():
