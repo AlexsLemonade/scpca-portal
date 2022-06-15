@@ -84,11 +84,16 @@ resource "aws_instance" "api_server_1" {
     }
   )
 
-  # I think these are the defaults provided in terraform examples.
-  # They should be removed or revisited.
+  # This should be approx x2 the size of the s3 data
   root_block_device {
     volume_type = "gp2"
-    volume_size = 100
+    volume_size = 250
+    tags =  merge(
+      var.default_tags,
+      {
+        Name = "scpca-block-${var.user}-${var.stage}"
+      }
+    )
   }
 }
 
