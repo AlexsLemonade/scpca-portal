@@ -77,6 +77,8 @@ const Home = ({ stats }) => {
 
   // when we have more cancer types to display add this back
   const [exposed, setExposed] = useState('all')
+  const [submitted, setSubmitted] = useState(false)
+  const [email, setEmail] = useState('')
 
   const exposeMore = () => {
     if (exposed === 'none') return setExposed('some')
@@ -304,8 +306,10 @@ const Home = ({ stats }) => {
             }
           >
             <TextInput
-              value={emailListForm.getAttribute('email') || ''}
+              value={email}
               onChange={({ target: { value } }) => {
+                setSubmitted(false)
+                setEmail(value)
                 emailListForm.setAttribute('email', value)
               }}
               aria-label="Email"
@@ -318,15 +322,24 @@ const Home = ({ stats }) => {
               label="Subscribe"
               aria-label="Subscribe"
               onClick={async () => {
-                if ((await emailListForm.validate()).isValid)
+                if ((await emailListForm.validate()).isValid) {
                   emailListForm.submit()
+                  setSubmitted(true)
+                  setEmail('')
+                }
               }}
             />
           </Box>
         </Box>
-        {emailListForm.success && (
+        {emailListForm.success && submitted && (
           <Box>
-            <Text color="success">Thank you for signing up!</Text>
+            <Text
+              color="success"
+              margin={{ top: '-2px', left: '-90px' }}
+              style={{ position: 'absolute' }}
+            >
+              Thank you for signing up!
+            </Text>
           </Box>
         )}
       </Box>
