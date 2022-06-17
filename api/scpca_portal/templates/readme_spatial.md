@@ -19,7 +19,7 @@ Inside the `SCPCL000000_spatial` folder will be the following folders and files:
 
 Also included in each download is a `spatial_metadata.tsv`, a tab separated values table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
-See the [Downloadable files](https://scpca.readthedocs.io/en/latest/download_files.html) section in our documentation for more detailed information on files included in the download.
+See the [Downloadable files](https://scpca.readthedocs.io/en/latest/download_files.html#spatial-transcriptomics-libraries) section in our documentation for more detailed information on files included in the download for spatial transcriptomics libraries.
 
 For more information on how the spatial libraries were processed, see the [Spatial Transcriptomics section in the Processing information](https://scpca.readthedocs.io/en/latest/processing_information.html#spatial-transcriptomics) page of the ScPCA Portal documentation.
 
