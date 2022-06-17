@@ -35,15 +35,24 @@ export const Footer = () => {
             margin={{ vertical: 'large' }}
             align={responsive('center', 'start')}
           >
-            <Text size={responsive('small', 'medium')} color="black-tint-40">
-              Alex’s Lemonade Stand Foundation for Childhood Cancer
-            </Text>
-            <Text size={responsive('small', 'medium')} color="black-tint-40">
-              333 E. Lancaster Ave, #414, Wynnewood, PA 19096 USA
-            </Text>
-            <Text size={responsive('small', 'medium')} color="black-tint-40">
-              Phone: 866.333.1213 • Fax: 610.649.3038
-            </Text>
+            {Object.keys(config.contact).map((k) => (
+              <Text
+                key={k}
+                size={responsive('small', 'medium')}
+                color="black-tint-40"
+              >
+                {k === 'email' ? (
+                  <>
+                    {k[0].toUpperCase() + k.substring(1)}:{' '}
+                    <Link href={`mailto:mailto:email@${config.contact[k]}`}>
+                      {config.contact[k]}
+                    </Link>
+                  </>
+                ) : (
+                  config.contact[k]
+                )}
+              </Text>
+            ))}
             <Box margin={{ top: 'large' }}>
               <Button
                 primary
