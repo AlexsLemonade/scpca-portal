@@ -3,7 +3,6 @@ import { Box, Grid, Paragraph, Text } from 'grommet'
 import { HeroBandReversed, CardBandLarge } from 'components/Band'
 import { DonateButton } from 'components/DonateButton'
 import { useResponsive } from 'hooks/useResponsive'
-import Head from 'next/head'
 import AboutPageFigure from '../../images/about-page-figure.svg'
 import AboutPageFigureMobile from '../../images/about-page-fig-mobile.svg'
 import SaveTime from '../../images/save-time.svg'
@@ -16,9 +15,6 @@ export const About = () => {
 
   return (
     <>
-      <Head>
-        <title>About - ScPCA Portal</title>
-      </Head>
       <HeroBandReversed
         background="dawn"
         width="full"

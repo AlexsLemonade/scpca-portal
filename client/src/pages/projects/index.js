@@ -10,7 +10,6 @@ import { useResponsive } from 'hooks/useResponsive'
 import { delay } from 'helpers/delay'
 import { api } from 'api'
 import Error from 'pages/_error'
-import Head from 'next/head'
 
 const Project = ({ projects, count, filters, filterOptions }) => {
   const { browseFilters, setBrowseFilters } = useScPCAPortal()
@@ -46,9 +45,6 @@ const Project = ({ projects, count, filters, filterOptions }) => {
 
   return (
     <>
-      <Head>
-        <title>Browse Projects - ScPCA Portal</title>
-      </Head>
       <Box width="full" pad={responsive({ horizontal: 'medium' })}>
         <Box pad={{ bottom: 'large' }}>
           <Text serif size="xlarge">
