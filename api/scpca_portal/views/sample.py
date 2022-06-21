@@ -7,7 +7,7 @@ from scpca_portal.serializers import ComputedFileSerializer, ProjectSerializer, 
 
 
 class SampleDetailSerializer(SampleSerializer):
-    computed_file = ComputedFileSerializer(read_only=True)
+    computed_files = ComputedFileSerializer(read_only=True, many=True)
     project = ProjectSerializer(read_only=True)
 
 
@@ -21,6 +21,8 @@ class SampleViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "project__scpca_id",
         "scpca_id",
         "has_cite_seq_data",
+        "has_bulk_rna_seq",
+        "has_spatial_data",
         "technologies",
         "diagnosis",
         "subdiagnosis",

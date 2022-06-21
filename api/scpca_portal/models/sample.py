@@ -1,11 +1,9 @@
-from django.contrib.postgres.fields import JSONField
-from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+import os
 
+from django.db import models
+
+from scpca_portal import common
 from scpca_portal.models.computed_file import ComputedFile
-from scpca_portal.models.project import Project
-from scpca_portal.models.project_summary import ProjectSummary
 
 
 class Sample(models.Model):
@@ -17,120 +15,135 @@ class Sample(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    scpca_id = models.TextField(unique=True, null=False)
+    additional_metadata = models.JSONField(default=dict)
+    age_at_diagnosis = models.TextField(blank=True, null=True)
+    cell_count = models.IntegerField()
+    diagnosis = models.TextField(blank=True, null=True)
+    disease_timing = models.TextField(blank=True, null=True)
+    has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
-    technologies = models.TextField(null=False)
-    diagnosis = models.TextField(blank=True, null=True)
-    subdiagnosis = models.TextField(blank=True, null=True)
-    age_at_diagnosis = models.TextField(blank=True, null=True)
+    scpca_id = models.TextField(unique=True, null=False)
+    seq_units = models.TextField(blank=True, null=True)
     sex = models.TextField(blank=True, null=True)
-    disease_timing = models.TextField(blank=True, null=True)
+    subdiagnosis = models.TextField(blank=True, null=True)
+    technologies = models.TextField(null=False)
     tissue_location = models.TextField(blank=True, null=True)
     treatment = models.TextField(blank=True, null=True)
-    seq_units = models.TextField(blank=True, null=True)
-    cell_count = models.IntegerField()
-
-    additional_metadata = JSONField(default=dict)
 
     project = models.ForeignKey(
-        Project, null=False, on_delete=models.CASCADE, related_name="samples"
+        "Project", null=False, on_delete=models.CASCADE, related_name="samples"
     )
 
-    computed_file = models.OneToOneField(
-        ComputedFile, blank=False, null=True, on_delete=models.CASCADE, related_name="sample"
-    )
+    def __str__(self):
+        return f"Sample {self.scpca_id} of {self.project}"
 
+    @classmethod
+    def create_from_dict(cls, data, project):
+        # First figure out what metadata is additional. This varies project by
+        # project, so whatever's not on the Sample model is additional.
+        sample_columns = (
+            "age",
+            "cell_count",
+            "diagnosis",
+            "disease_timing",
+            "scpca_library_id",  # Also include this because we don't want it in additional_metadata.
+            "scpca_sample_id",
+            "seq_units",
+            "sex",
+            "subdiagnosis",
+            "technologies",
+            "tissue_location",
+            "treatment",
+        )
+        additional_metadata = {k: v for k, v in data.items() if k not in sample_columns}
 
-@receiver(post_save, sender="scpca_portal.Sample")
-def update_project_counts(sender, instance=None, created=False, update_fields=None, **kwargs):
-    """The Project and ProjectSummary models cache aggregated sample metadata.
+        sample = cls(
+            additional_metadata=additional_metadata,
+            age_at_diagnosis=data["age"],
+            cell_count=data.get("cell_count", 0),
+            diagnosis=data["diagnosis"],
+            disease_timing=data["disease_timing"],
+            has_bulk_rna_seq=data.get("has_bulk_rna_seq", False),
+            has_cite_seq_data=data.get("has_cite_seq_data", False),
+            has_spatial_data=data.get("has_spatial_data", False),
+            project=project,
+            scpca_id=data["scpca_sample_id"],
+            seq_units=data.get("seq_units", ""),
+            sex=data["sex"],
+            subdiagnosis=data["subdiagnosis"],
+            technologies=data.get("technologies", ""),
+            tissue_location=data["tissue_location"],
+            treatment=data.get("treatment", ""),
+        )
+        sample.save()
 
-    When Samples are added to the Project, we need to update these."""
-    if not instance:
-        # Nothing to do
-        return
+        return sample
 
-    project = instance.project
+    @staticmethod
+    def get_output_single_cell_metadata_file_path(scpca_sample_id):
+        return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_libraries_metadata.tsv")
 
-    additional_metadata_keys = set()
-    diagnoses = set()
-    seq_units = set()
-    technologies = set()
-    disease_timings = set()
-    diagnoses_counts = {}
-    summaries = {}
-    has_cite_seq_data = False
-    has_spatial_data = False
+    @staticmethod
+    def get_output_spatial_metadata_file_path(scpca_sample_id):
+        return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_spatial_metadata.tsv")
 
-    for sample in project.samples.filter(computed_file__isnull=False).all():
-        additional_metadata_keys.update(sample.additional_metadata.keys())
-        diagnoses.add(sample.diagnosis)
-        disease_timings.add(sample.disease_timing)
-        sample_seq_units = sample.seq_units.split(", ")
-        sample_technologies = sample.technologies.split(", ")
-        seq_units = seq_units.union(sample_seq_units)
-        technologies = technologies.union(sample_technologies)
+    @property
+    def modalities(self):
+        modalities = []
 
-        if "" in seq_units:
-            seq_units.remove("")
+        if self.has_bulk_rna_seq:
+            modalities.append("Bulk")
 
-        if "" in technologies:
-            technologies.remove("")
+        if self.has_cite_seq_data:
+            modalities.append("CITE-seq")
 
-        if sample.has_cite_seq_data:
-            has_cite_seq_data = True
+        if self.has_spatial_data:
+            modalities.append("Spatial Transcriptomics")
 
-        if sample.has_spatial_data:
-            has_cite_seq_data = True
+        if modalities:
+            return ", ".join(modalities)
 
+    @property
+    def computed_files(self):
+        return self.sample_computed_files.order_by("created_at")
+
+    @property
+    def output_single_cell_computed_file_name(self):
+        return f"{self.scpca_id}.zip"
+
+    @property
+    def output_single_cell_computed_file_path(self):
+        return os.path.join(common.OUTPUT_DATA_DIR, self.output_single_cell_computed_file_name)
+
+    @property
+    def output_single_cell_metadata_file_path(self):
+        return Sample.get_output_single_cell_metadata_file_path(self.scpca_id)
+
+    @property
+    def output_spatial_computed_file_name(self):
+        return f"{self.scpca_id}_spatial.zip"
+
+    @property
+    def output_spatial_computed_file_path(self):
+        return os.path.join(common.OUTPUT_DATA_DIR, self.output_spatial_computed_file_name)
+
+    @property
+    def output_spatial_metadata_file_path(self):
+        return Sample.get_output_spatial_metadata_file_path(self.scpca_id)
+
+    @property
+    def single_cell_computed_file(self):
         try:
-            diagnoses_counts[sample.diagnosis] += 1
-        except KeyError:
-            diagnoses_counts[sample.diagnosis] = 1
+            return self.sample_computed_files.get(type=ComputedFile.OutputFileTypes.SAMPLE_ZIP)
+        except ComputedFile.DoesNotExist:
+            pass
 
-        for seq_unit in sample_seq_units:
-            for technology in sample_technologies:
-                try:
-                    summaries[(sample.diagnosis, seq_unit.strip(), technology.strip())] += 1
-                except KeyError:
-                    summaries[(sample.diagnosis, seq_unit.strip(), technology.strip())] = 1
-
-    diagnoses_strings = []
-    for diagnosis, count in diagnoses_counts.items():
-        diagnoses_strings.append(f"{diagnosis} ({count})")
-
-    modalities = []
-    if has_cite_seq_data:
-        modalities.append("CITE-seq")
-    if has_spatial_data:
-        modalities.append("Spatial Data")
-
-    project.additional_metadata_keys = ", ".join(list(additional_metadata_keys))
-    project.modalities = ", ".join(list(modalities))
-    project.diagnoses_counts = ", ".join(list(diagnoses_strings))
-    project.diagnoses = ", ".join(list(diagnoses))
-    project.seq_units = ", ".join(set(seq_units))
-    project.technologies = ", ".join(technologies)
-    project.disease_timings = ", ".join(disease_timings)
-    project.sample_count = project.samples.count()
-    project.downloadable_sample_count = project.samples.filter(computed_file__isnull=False).count()
-    project.has_cite_seq_data = has_cite_seq_data
-    project.has_spatial_data = has_spatial_data
-    project.save()
-
-    for summary, count in summaries.items():
+    @property
+    def spatial_computed_file(self):
         try:
-            project_summary = ProjectSummary.objects.get(
-                project=project, diagnosis=summary[0], seq_unit=summary[1], technology=summary[2]
+            return self.sample_computed_files.get(
+                type=ComputedFile.OutputFileTypes.SAMPLE_SPATIAL_ZIP
             )
-            project_summary.sample_count = count
-            project_summary.save()
-        except ProjectSummary.DoesNotExist:
-            ProjectSummary.objects.create(
-                project=project,
-                diagnosis=summary[0],
-                seq_unit=summary[1],
-                technology=summary[2],
-                sample_count=count,
-            )
+        except ComputedFile.DoesNotExist:
+            pass

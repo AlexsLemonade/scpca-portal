@@ -8,10 +8,12 @@ import { getReadable } from 'helpers/getReadable'
 import { formatBytes } from 'helpers/formatBytes'
 import { capitalize } from 'helpers/capitalize'
 import { useResponsive } from 'hooks/useResponsive'
+import { accumulateValue } from 'helpers/accumulateValue'
 import { InfoText } from './InfoText'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
+
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
       <Box
@@ -40,11 +42,14 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none'), bottom: 'medium' }}
         >
           <Box align="center" gap="small">
-            {project.computed_file && (
+            {project.computed_files.length > 0 && (
               <>
-                <Download computedFile={project.computed_file} />
+                <Download resource={project} />
                 <Text>
-                  Size: {formatBytes(project.computed_file.size_in_bytes)}
+                  Size:{' '}
+                  {formatBytes(
+                    accumulateValue(project.computed_files, 'size_in_bytes')
+                  )}
                 </Text>
               </>
             )}
@@ -54,7 +59,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           </Box>
         </Box>
       </Box>
-      <Grid columns={responsive('1', '1/3')} gap={responsive('medium')}>
+      <Grid columns={responsive('1', '1/4')} gap={responsive('medium')}>
         <Badge
           badge="Samples"
           label={`${project.downloadable_sample_count} Downloadable Samples`}

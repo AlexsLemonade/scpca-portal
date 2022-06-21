@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import styled from 'styled-components'
@@ -9,7 +9,7 @@ const ALSFLogoBlueStyled = styled(ALSFLogoBlue)``
 
 const Logo = () => {
   const { size, responsive } = useResponsive()
-  const [scrolled, setScrolled] = React.useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const width = responsive('60px', '91px')
   const small = size === 'small'
   const showScrolled = scrolled || small
@@ -17,7 +17,7 @@ const Logo = () => {
   const height = showScrolled ? '74px' : '112px'
   const background = showScrolled ? 'alexs-lemonade' : 'transparent'
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => {
       if (window.pageYOffset > 0 && !scrolled) setScrolled(true)
       if (window.pageYOffset === 0 && scrolled) setScrolled(false)
@@ -47,10 +47,16 @@ const Logo = () => {
       >
         {showScrolled ? (
           <Box pad="small">
-            <ALSFLogoBlueStyled />
+            <ALSFLogoBlueStyled
+              role="img"
+              aria-label="Alex's Lemonade Stand Foundation Logo"
+            />
           </Box>
         ) : (
-          <ASLFLogo />
+          <ASLFLogo
+            role="img"
+            aria-label="Alex's Lemonade Stand Foundation Logo"
+          />
         )}
       </Box>
       <Box height="74px" align="center" justify="center">

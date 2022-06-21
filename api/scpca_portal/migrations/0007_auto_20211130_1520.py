@@ -10,11 +10,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="project", name="contact",),
-        migrations.AddField(
-            model_name="project", name="contact_email", field=models.TextField(null=True),
+        migrations.RemoveField(
+            model_name="project",
+            name="contact",
         ),
         migrations.AddField(
-            model_name="project", name="contact_name", field=models.TextField(null=True),
+            model_name="project",
+            name="contact_email",
+            field=models.TextField(null=True),
+        ),
+        migrations.AddField(
+            model_name="project",
+            name="contact_name",
+            field=models.TextField(null=True),
         ),
     ]

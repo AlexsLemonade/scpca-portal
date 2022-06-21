@@ -31,7 +31,9 @@ class Migration(migrations.Migration):
                 ),
                 ("last_modified", models.DateTimeField(default=django.utils.timezone.now)),
             ],
-            options={"db_table": "api_token",},
+            options={
+                "db_table": "api_token",
+            },
         ),
         migrations.CreateModel(
             name="ComputedFile",
@@ -118,7 +120,7 @@ class Migration(migrations.Migration):
                 ("seq_units", models.TextField(blank=True, null=True)),
                 (
                     "additional_metadata",
-                    django.contrib.postgres.fields.jsonb.JSONField(default=dict),
+                    models.JSONField(default=dict),
                 ),
                 (
                     "computed_file",
