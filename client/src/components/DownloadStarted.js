@@ -108,7 +108,12 @@ export const DownloadStarted = ({
         </Box>
       </Grid>
       {otherComputedFiles.length > 0 && (
-        <Grid columns={['1/2', '1/2']} pad={{ vertical: 'medium' }}>
+        <Grid
+          columns={['auto', 'auto']}
+          align="center"
+          alignContent="between"
+          pad={{ vertical: 'medium' }}
+        >
           {otherComputedFiles.map((otherComputedFile) => (
             <OtherComputedFile
               key={otherComputedFile.id}
@@ -125,7 +130,7 @@ export const DownloadStarted = ({
 
 export default DownloadStarted
 
-const OtherComputedFile = (resource, computedFile, handleSelectFile) => {
+const OtherComputedFile = ({ resource, computedFile, handleSelectFile }) => {
   const { header } = getDownloadOptionDetails(resource, computedFile)
 
   return (
@@ -138,7 +143,6 @@ const OtherComputedFile = (resource, computedFile, handleSelectFile) => {
       </Box>
       <Box>
         <Button
-          secondary
           aria-label={header}
           label={header}
           href=""
