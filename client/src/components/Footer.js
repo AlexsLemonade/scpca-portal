@@ -14,8 +14,8 @@ const FooterImage = styled(Image)`
 
 export const Footer = () => {
   const { responsive } = useResponsive()
-
   const direction = responsive('column', 'row')
+  const { contact, links } = config
 
   return (
     <FooterBand
@@ -35,20 +35,29 @@ export const Footer = () => {
             margin={{ vertical: 'large' }}
             align={responsive('center', 'start')}
           >
-            <Text size={responsive('small', 'medium')} color="black-tint-40">
-              Alex’s Lemonade Stand Foundation for Childhood Cancer
-            </Text>
-            <Text size={responsive('small', 'medium')} color="black-tint-40">
-              333 E. Lancaster Ave, #414, Wynnewood, PA 19096 USA
-            </Text>
-            <Text size={responsive('small', 'medium')} color="black-tint-40">
-              Phone: 866.333.1213 • Fax: 610.649.3038
-            </Text>
+            {Object.keys(contact).map((k) => (
+              <Text
+                key={k}
+                size={responsive('small', 'medium')}
+                color="black-tint-40"
+              >
+                {k === 'email' ? (
+                  <>
+                    {k[0].toUpperCase() + k.substring(1)}:{' '}
+                    <Link href={`mailto:mailto:email@${contact[k]}`}>
+                      {contact[k]}
+                    </Link>
+                  </>
+                ) : (
+                  contact[k]
+                )}
+              </Text>
+            ))}
             <Box margin={{ top: 'large' }}>
               <Button
                 primary
                 label="Donate"
-                href={config.links.donate}
+                href={links.donate}
                 target="_blank"
               />
             </Box>
@@ -87,13 +96,13 @@ export const Footer = () => {
                   justify="center"
                   align="center"
                 >
-                  <Link href={config.links.alsfTwitter}>
+                  <Link href={links.alsfTwitter}>
                     <Icon name="Twitter" color="black-tint-40" />
                   </Link>
-                  <Link href={config.links.alsfInstagram}>
+                  <Link href={links.alsfInstagram}>
                     <Icon name="Instagram" color="black-tint-40" />
                   </Link>
-                  <Link href={config.links.alsfFacebook}>
+                  <Link href={links.alsfFacebook}>
                     <Icon name="Facebook" color="black-tint-40" />
                   </Link>
                 </Box>
@@ -119,10 +128,10 @@ export const Footer = () => {
                   justify="center"
                   align="center"
                 >
-                  <Link href={config.links.ccdlGithub}>
+                  <Link href={links.ccdlGithub}>
                     <Icon name="Github" color="black-tint-40" />
                   </Link>
-                  <Link href={config.links.ccdlTwitter}>
+                  <Link href={links.ccdlTwitter}>
                     <Icon name="Twitter" color="black-tint-40" />
                   </Link>
                 </Box>
@@ -140,7 +149,7 @@ export const Footer = () => {
           <Nav direction="row" align="center" gap="large">
             <Link href="/terms-of-use" label="Terms of Use" />
             <Link href="/privacy-policy" label="Privacy Policy" />
-            <Link href={config.links.help} label="Docs" />
+            <Link href={links.help} label="Docs" />
           </Nav>
         </Box>
       </Box>
