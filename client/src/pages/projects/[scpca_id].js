@@ -8,17 +8,20 @@ import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTabl
 import { Link } from 'components/Link'
 import { api } from 'api'
 import { useResponsive } from 'hooks/useResponsive'
+import Head from 'next/head'
 
 const Project = ({ project }) => {
   if (!project) return '404'
   const router = useRouter()
-
   const showSamples = router.asPath.indexOf('samples') !== -1
   const [activeIndex, setActiveIndex] = useState(showSamples ? 1 : 0)
   const onActive = (nextIndex) => setActiveIndex(nextIndex)
   const { responsive } = useResponsive()
   return (
     <>
+      <Head>
+        <title>{project.title} - ScPCA</title>
+      </Head>
       <Box width="xlarge">
         <ProjectHeader project={project} />
         <Box pad={{ vertical: 'large' }}>

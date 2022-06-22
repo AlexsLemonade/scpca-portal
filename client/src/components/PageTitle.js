@@ -22,9 +22,6 @@ export const PageTitle = () => {
     case /\/projects$/.test(path):
       title = 'Browse Projects - ScPCA Portal '
       break
-    case /\/projects\//.test(path):
-      title = `Project ID ${path.substring(10)} - ScPCA Portal`
-      break
     default:
       return 'ScPCA Portal'
   }
