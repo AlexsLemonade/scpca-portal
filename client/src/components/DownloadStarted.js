@@ -5,7 +5,7 @@ import { Link } from 'components/Link'
 import { formatBytes } from 'helpers/formatBytes'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
-import { downloadOptions } from 'config/downloadOptions'
+import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 import { isProjectID } from 'helpers/isProjectID'
 import DownloadSVG from '../images/download-folder.svg'
 
@@ -26,7 +26,7 @@ export const DownloadStarted = ({
   const otherComputedFiles = resource.computed_files.filter(
     (cf) => cf.id !== computedFile.id
   )
-  const downloadOptionType = downloadOptions[computedFile.type]
+  const { header, items } = getDownloadOptionDetails(resource, computedFile)
 
   return (
     <span>
@@ -43,7 +43,7 @@ export const DownloadStarted = ({
       >
         <Box>
           <Heading level="3" size="small">
-            {downloadOptionType.header}
+            {header}
           </Heading>
           <Text>{startedText}</Text>
           <Box
@@ -62,7 +62,7 @@ export const DownloadStarted = ({
                 listStyleType: 'square'
               }}
             >
-              {downloadOptionType.items.map((item) => (
+              {items.map((item) => (
                 <Fragment key={item}>
                   <li>{item}</li>
                 </Fragment>
@@ -108,28 +108,19 @@ export const DownloadStarted = ({
         </Box>
       </Grid>
       {otherComputedFiles.length > 0 && (
-        <Grid columns={['1/2', '1/2']} pad={{ vertical: 'medium' }}>
+        <Grid
+          columns={['auto', 'auto']}
+          align="center"
+          alignContent="between"
+          pad={{ vertical: 'medium' }}
+        >
           {otherComputedFiles.map((otherComputedFile) => (
-            <Fragment key={otherComputedFile.id}>
-              <Box>
-                <Heading level="3" size="small">
-                  {downloadOptions[otherComputedFile.type].header}
-                </Heading>
-                <Text>
-                  Size: {formatBytes(otherComputedFile.size_in_bytes)}
-                </Text>
-              </Box>
-              <Box>
-                <Button
-                  secondary
-                  aria-label={downloadOptions[otherComputedFile.type].header}
-                  label={downloadOptions[otherComputedFile.type].header}
-                  href=""
-                  target="_blank"
-                  onClick={() => handleSelectFile(otherComputedFile)}
-                />
-              </Box>
-            </Fragment>
+            <OtherComputedFile
+              key={otherComputedFile.id}
+              resource={resource}
+              computedFile={otherComputedFile}
+              handleSelectFile={handleSelectFile}
+            />
           ))}
         </Grid>
       )}
@@ -138,3 +129,27 @@ export const DownloadStarted = ({
 }
 
 export default DownloadStarted
+
+const OtherComputedFile = ({ resource, computedFile, handleSelectFile }) => {
+  const { header } = getDownloadOptionDetails(resource, computedFile)
+
+  return (
+    <>
+      <Box>
+        <Heading level="3" size="small">
+          {header}
+        </Heading>
+        <Text>Size: {formatBytes(computedFile.size_in_bytes)}</Text>
+      </Box>
+      <Box>
+        <Button
+          aria-label={header}
+          label={header}
+          href=""
+          target="_blank"
+          onClick={() => handleSelectFile(computedFile)}
+        />
+      </Box>
+    </>
+  )
+}
