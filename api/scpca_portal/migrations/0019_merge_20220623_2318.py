@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0018_sample_has_bulk_rna_seq'),
-        ('scpca_portal', '0018_sample_multiplexed_with'),
+        ("scpca_portal", "0018_sample_has_bulk_rna_seq"),
+        ("scpca_portal", "0018_sample_multiplexed_with"),
     ]
 
-    operations = [
-    ]
+    operations = []
