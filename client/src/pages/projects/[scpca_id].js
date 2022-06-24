@@ -19,7 +19,7 @@ const Project = ({ project }) => {
   const { responsive } = useResponsive()
   return (
     <>
-      <PageTitle projectTitle={project.title} />
+      <PageTitle title={project.title} />
       <Box width="xlarge">
         <ProjectHeader project={project} />
         <Box pad={{ vertical: 'large' }}>
