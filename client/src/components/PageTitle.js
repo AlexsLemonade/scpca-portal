@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 
-export const PageTitle = () => {
+export const PageTitle = ({ projectTitle }) => {
   const router = useRouter()
   const [path, setPath] = useState('')
 
@@ -10,20 +10,21 @@ export const PageTitle = () => {
     setPath(router.asPath)
   }, [router, path])
 
-  let title = ''
+  const TITLE = 'ScPCA Portal'
+  let title = TITLE
 
   switch (true) {
-    case /\/$/.test(path):
-      title = 'ScPCA Portal'
-      break
     case /\/about$/.test(path):
-      title = 'About - ScPCA Portal'
+      title = `About - ${TITLE}`
       break
-    case /\/projects$/.test(path):
-      title = 'Browse Projects - ScPCA Portal '
+    case /\/projects$/.test(path) || /\/projects\?/.test(path):
+      title = `Browse Projects - ${TITLE}`
+      break
+    case /\/projects\//.test(path):
+      title = `${projectTitle} - ${TITLE}`
       break
     default:
-      return 'ScPCA Portal'
+      break
   }
 
   return (

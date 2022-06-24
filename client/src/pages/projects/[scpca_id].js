@@ -8,7 +8,7 @@ import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTabl
 import { Link } from 'components/Link'
 import { api } from 'api'
 import { useResponsive } from 'hooks/useResponsive'
-import Head from 'next/head'
+import { PageTitle } from 'components/PageTitle'
 
 const Project = ({ project }) => {
   if (!project) return '404'
@@ -19,9 +19,7 @@ const Project = ({ project }) => {
   const { responsive } = useResponsive()
   return (
     <>
-      <Head>
-        <title>{project.title} - ScPCA</title>
-      </Head>
+      <PageTitle projectTitle={project.title} />
       <Box width="xlarge">
         <ProjectHeader project={project} />
         <Box pad={{ vertical: 'large' }}>
