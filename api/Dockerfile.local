@@ -2,7 +2,7 @@
 # This is useful for local development, because as the files are changed the server
 # can detect that and use the newer code without being restarted.
 
-FROM python:3.8
+FROM --platform=linux/amd64 python:3.8
 ENV PYTHONUNBUFFERED 1
 
 RUN groupadd user && useradd --create-home --home-dir /home/user -g user user
