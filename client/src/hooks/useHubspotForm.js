@@ -7,7 +7,7 @@ export const useHubspotForm = (portalId, formId, formSchema) => {
   const [formData, setFormData] = useState({})
   const [errors, setErrors] = useState({})
   const [success, setSuccess] = useState(false)
-  const [sessionSuccess, setSessionSuccess] = useLocalStorage(formId, false) // previous submission status
+  const [previousSuccess, setPreviousSuccess] = useLocalStorage(formId, false)
 
   const apiBase = 'https://api.hsforms.com/submissions/v3/integration/submit'
   const endpoint = `${apiBase}/${portalId}/${formId}`
@@ -56,7 +56,7 @@ export const useHubspotForm = (portalId, formId, formSchema) => {
       body: JSON.stringify({ fields })
     })
     setSuccess(formRequest.isOk)
-    setSessionSuccess(formRequest.isOk)
+    setPreviousSuccess(formRequest.isOk)
 
     return formRequest
   }
@@ -73,7 +73,7 @@ export const useHubspotForm = (portalId, formId, formSchema) => {
     hasError,
     success,
     setSuccess,
-    sessionSuccess
+    previousSuccess
   }
 }
 
