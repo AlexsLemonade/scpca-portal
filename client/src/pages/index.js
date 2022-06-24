@@ -61,7 +61,17 @@ const ExposeBox = styled(Box)`
 `
 
 const Home = ({ stats }) => {
-  const { emailListForm } = useScPCAPortal()
+  const { emailListForm, setEmail } = useScPCAPortal()
+  const {
+    success,
+    setSuccess,
+    errors,
+    hasError,
+    validate,
+    submit,
+    getAttribute,
+    setAttribute
+  } = emailListForm
   const { responsive } = useResponsive()
   const statBlocks = getStatsBlocks(stats)
   const cancerColors = useMemo(
@@ -77,8 +87,7 @@ const Home = ({ stats }) => {
 
   // when we have more cancer types to display add this back
   const [exposed, setExposed] = useState('all')
-  const [submitted, setSubmitted] = useState(false)
-  const [email, setEmail] = useState('')
+  const [input, setInput] = useState('')
 
   const exposeMore = () => {
     if (exposed === 'none') return setExposed('some')
@@ -299,18 +308,14 @@ const Home = ({ stats }) => {
         <Box direction="row" gap="medium" pad={{ vertical: 'medium' }}>
           <FormField
             width="280px"
-            error={
-              emailListForm.hasError && (
-                <ErrorLabel error={emailListForm.errors.email} />
-              )
-            }
+            error={hasError && <ErrorLabel error={errors.email} />}
           >
             <TextInput
-              value={email}
+              value={input}
               onChange={({ target: { value } }) => {
-                setSubmitted(false)
-                setEmail(value)
-                emailListForm.setAttribute('email', value)
+                setSuccess(false)
+                setInput(value)
+                setAttribute('email', value)
               }}
               aria-label="Email"
             />
@@ -318,24 +323,24 @@ const Home = ({ stats }) => {
           <Box margin={{ top: 'medium', bottom: 'small' }}>
             <Button
               primary
-              disabled={emailListForm.hasError}
+              disabled={hasError}
               label="Subscribe"
               aria-label="Subscribe"
               onClick={async () => {
-                if ((await emailListForm.validate()).isValid) {
-                  emailListForm.submit()
-                  setSubmitted(true)
-                  setEmail('')
+                if ((await validate()).isValid) {
+                  await submit()
+                  setEmail(getAttribute('email'))
+                  setInput('')
                 }
               }}
             />
           </Box>
         </Box>
-        {emailListForm.success && submitted && (
+        {success && (
           <Box>
             <Text
               color="success"
-              margin={{ top: '-2px', left: '-90px' }}
+              margin={{ top: '-10px', left: '-90px' }}
               style={{ position: 'absolute' }}
             >
               Thank you for signing up!

@@ -6,7 +6,8 @@ import { useLocalStorage } from 'hooks/useLocalStorage'
 export const useHubspotForm = (portalId, formId, formSchema) => {
   const [formData, setFormData] = useState({})
   const [errors, setErrors] = useState({})
-  const [success, setSuccess] = useLocalStorage(formId, false)
+  const [success, setSuccess] = useState(false)
+  const [sessionSuccess, setSessionSuccess] = useLocalStorage(formId, false) // previous submission status
 
   const apiBase = 'https://api.hsforms.com/submissions/v3/integration/submit'
   const endpoint = `${apiBase}/${portalId}/${formId}`
@@ -55,6 +56,8 @@ export const useHubspotForm = (portalId, formId, formSchema) => {
       body: JSON.stringify({ fields })
     })
     setSuccess(formRequest.isOk)
+    setSessionSuccess(formRequest.isOk)
+
     return formRequest
   }
 
@@ -68,7 +71,9 @@ export const useHubspotForm = (portalId, formId, formSchema) => {
     validate,
     errors,
     hasError,
-    success
+    success,
+    setSuccess,
+    sessionSuccess
   }
 }
 
