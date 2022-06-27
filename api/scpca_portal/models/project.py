@@ -8,6 +8,7 @@ from typing import Dict, List
 from django.db import models
 
 from scpca_portal import common
+from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.sample import Sample
@@ -15,15 +16,11 @@ from scpca_portal.models.sample import Sample
 logger = logging.getLogger()
 
 
-class Project(models.Model):
+class Project(TimestampedModel):
     class Meta:
         db_table = "projects"
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
-
-    # TODO(arkid15r): extract to an abstract model.
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     abstract = models.TextField(null=False)
     additional_metadata_keys = models.TextField(blank=True, null=True)

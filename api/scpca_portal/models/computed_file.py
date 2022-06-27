@@ -10,12 +10,13 @@ from botocore.client import Config
 
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.models.base import TimestampedModel
 
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
-class ComputedFile(models.Model):
+class ComputedFile(TimestampedModel):
     class Meta:
         db_table = "computed_files"
         get_latest_by = "updated_at"
@@ -48,9 +49,6 @@ class ComputedFile(models.Model):
 
     README_TEMPLATE_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_FILE_NAME)
     README_TEMPLATE_SPATIAL_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_SPATIAL_FILE_NAME)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     s3_bucket = models.TextField(null=False)
     s3_key = models.TextField(null=False)
