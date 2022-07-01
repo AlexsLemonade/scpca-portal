@@ -1,4 +1,5 @@
 import csv
+import os
 from io import TextIOWrapper
 from unittest.mock import patch
 from zipfile import ZipFile
@@ -25,109 +26,49 @@ class MockS3Client:
 
 
 class TestLoadData(TestCase):
-    def setUp(self):
-        self.scpca_project_id = "SCPCP999999"
-
-        self.expected_computed_file_count = 4
-        self.expected_downloadable_sample_count = 1
-        self.expected_project_count = 1
-        self.expected_sample_count = 1
-        self.expected_summary_count = 4
-        self.expected_single_cell_workflow_version = "v0.2.7"
-        self.expected_spatial_workflow_version = "v0.2.7"
-
-    def assert_project(self, scpca_project_id):
-        project = Project.objects.get(scpca_id=scpca_project_id)
-
+    def assert_project(self, project):
         self.assertTrue(project.abstract)
         self.assertIsNotNone(project.contact_email)
         self.assertIsNotNone(project.contact_name)
         self.assertIsNotNone(project.diagnoses)
         self.assertIsNotNone(project.diagnoses_counts)
         self.assertTrue(project.disease_timings)
-        self.assertFalse(project.has_bulk_rna_seq)
-        self.assertFalse(project.has_cite_seq_data)
-        self.assertTrue(project.has_spatial_data)
-        self.assertTrue(project.modalities)
         self.assertIsNotNone(project.seq_units)
-        self.assertIsNotNone(project.technologies)
         self.assertTrue(project.title)
 
-        self.assertEqual(project.summaries.count(), self.expected_summary_count)
-        self.assertEqual(ProjectSummary.objects.count(), self.expected_summary_count)
         project_summary = project.summaries.first()
         self.assertIsNotNone(project_summary.diagnosis)
         self.assertIsNotNone(project_summary.seq_unit)
         self.assertIsNotNone(project_summary.technology)
-        self.assertEqual(project_summary.sample_count, self.expected_sample_count)
 
-        self.assertEqual(project.sample_count, self.expected_sample_count)
-        self.assertEqual(Sample.objects.count(), self.expected_sample_count)
         sample = project.samples.first()
         self.assertIsNotNone(sample.age_at_diagnosis)
-        self.assertGreater(sample.cell_count, 0)
         self.assertIsNotNone(sample.diagnosis)
         self.assertIsNotNone(sample.disease_timing)
-        self.assertFalse(sample.has_bulk_rna_seq)
-        self.assertFalse(sample.has_cite_seq_data)
-        self.assertTrue(sample.has_spatial_data)
         self.assertTrue(sample.scpca_id)
         self.assertIsNotNone(sample.seq_units)
         self.assertIsNotNone(sample.sex)
         self.assertIsNotNone(sample.subdiagnosis)
-        self.assertTrue(sample.technologies)
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-        expected_metadata_keys = {
+        expected_metadata_keys = (
             "participant_id",
             "scpca_project_id",
-            "submitter_id",
             "submitter",
-        }
-
-        for expected_metadata_key in expected_metadata_keys:
-            self.assertIn(expected_metadata_key, sample.additional_metadata.keys())
-
-        self.assertEqual(len(project.computed_files), 2)
-        self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
-        self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
-
-        self.assertIsNotNone(sample.single_cell_computed_file)
-        self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
-        self.assertEqual(
-            sample.single_cell_computed_file.workflow_version,
-            self.expected_single_cell_workflow_version,
+            "submitter_id",
         )
-        self.assertIsNotNone(sample.spatial_computed_file)
-        self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
-        self.assertEqual(
-            sample.spatial_computed_file.workflow_version, self.expected_spatial_workflow_version
-        )
-
-        self.assertEqual(len(sample.computed_files), 2)
-        self.assertEqual(ComputedFile.objects.count(), self.expected_computed_file_count)
-
-        self.assertEqual(project.downloadable_sample_count, self.expected_downloadable_sample_count)
-
-        self.assertEqual(
-            project.single_cell_computed_file.workflow_version,
-            self.expected_single_cell_workflow_version,
-        )
-        self.assertEqual(
-            project.spatial_computed_file.workflow_version, self.expected_spatial_workflow_version
-        )
-
-        return (
-            project,
-            project.computed_files,
-            project.summaries.first(),
-            sample,
-            sample.computed_files,
-        )
+        for key in expected_metadata_keys:
+            self.assertIn(key, sample.additional_metadata.keys())
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_load_data_from_s3(self):
+        def assert_object_count():
+            self.assertEqual(Project.objects.count(), 2)
+            self.assertEqual(ProjectSummary.objects.count(), 6)
+            self.assertEqual(Sample.objects.count(), 5)
+            self.assertEqual(ComputedFile.objects.count(), 9)
+
         # First, just test that loading data works.
         load_data_from_s3(
             update_s3_data=False,
@@ -136,51 +77,48 @@ class TestLoadData(TestCase):
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
         )
-        self.assertEqual(Project.objects.count(), self.expected_project_count)
+        assert_object_count()
 
-        (
-            project,
-            project_computed_files,
-            project_summary,
-            sample,
-            sample_computed_files,
-        ) = self.assert_project(self.scpca_project_id)
+        scpca_project_ids = ("SCPCP999990", "SCPCP999999")
+        for scpca_project_id in scpca_project_ids:
+            project = Project.objects.get(scpca_id=scpca_project_id)
+            project_computed_files = project.computed_files
+            project_summary = project.summaries.first()
+            sample = project.samples.first()
+            sample_computed_files = sample.computed_files
 
-        # Next, let's make sure that reload_existing=False won't add anything
-        # new when there's nothing new.
-        load_data_from_s3(
-            update_s3_data=False,
-            reload_all=False,
-            reload_existing=False,
-            allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
-        )
-        self.assertEqual(Project.objects.count(), self.expected_project_count)
-        self.assertEqual(ProjectSummary.objects.count(), self.expected_summary_count)
-        self.assertEqual(Sample.objects.count(), self.expected_sample_count)
-        self.assertEqual(ComputedFile.objects.count(), self.expected_computed_file_count)
+            self.assert_project(project)
 
-        # project, project_computed_files, project_summary, sample, and
-        # sample_computed_files all still reference the what was loaded
-        # in the first call.
-        new_project = Project.objects.get(scpca_id=self.scpca_project_id)
-        self.assertEqual(project, new_project)
-        self.assertEqual(project_summary, new_project.summaries.first())
-        new_sample = new_project.samples.first()
-        self.assertEqual(sample, new_sample)
-        self.assertEqual(list(project_computed_files), list(new_project.computed_files))
-        self.assertEqual(list(sample_computed_files), list(new_sample.computed_files))
+            # Make sure that reload_existing=False won't add anything
+            # new when there's nothing new.
+            load_data_from_s3(
+                update_s3_data=False,
+                reload_all=False,
+                reload_existing=False,
+                allowed_submitters=ALLOWED_SUBMITTERS,
+                input_bucket_name=INPUT_BUCKET_NAME,
+            )
+            assert_object_count()
 
-        # Next, this is a good place to test the purge command since we
-        # have data to purge.
-        new_project.purge()
+            new_project = Project.objects.get(scpca_id=scpca_project_id)
+            self.assertEqual(project, new_project)
+            self.assertEqual(project_summary, new_project.summaries.first())
+
+            new_sample = new_project.samples.first()
+            self.assertEqual(sample, new_sample)
+            self.assertEqual(list(project_computed_files), list(new_project.computed_files))
+            self.assertEqual(list(sample_computed_files), list(new_sample.computed_files))
+
+        # Make sure purging works as expected.
+        for scpca_project_id in scpca_project_ids:
+            Project.objects.get(scpca_id=scpca_project_id).purge()
+
         self.assertEqual(Project.objects.count(), 0)
         self.assertEqual(ProjectSummary.objects.count(), 0)
         self.assertEqual(Sample.objects.count(), 0)
         self.assertEqual(ComputedFile.objects.count(), 0)
 
-        # Finally, let's make sure that loading, purging, and then
-        # reloading works smoothly.
+        # Make sure reloading works smoothly.
         load_data_from_s3(
             update_s3_data=False,
             reload_all=False,
@@ -188,14 +126,10 @@ class TestLoadData(TestCase):
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
         )
-        self.assertEqual(Project.objects.count(), self.expected_project_count)
-        self.assertEqual(ProjectSummary.objects.count(), self.expected_summary_count)
-        self.assertEqual(Sample.objects.count(), self.expected_sample_count)
-        self.assertEqual(ComputedFile.objects.count(), self.expected_computed_file_count)
+        assert_object_count()
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
-    def test_single_cell_metadata(self):
-        # First, just test that loading data works.
+    def test_multiplexed_metadata(self):
         load_data_from_s3(
             update_s3_data=True,
             reload_all=False,
@@ -204,20 +138,128 @@ class TestLoadData(TestCase):
             input_bucket_name=INPUT_BUCKET_NAME,
         )
 
-        self.assertEqual(Project.objects.count(), self.expected_project_count)
-        self.assert_project(self.scpca_project_id)
-        new_project = Project.objects.get(scpca_id=self.scpca_project_id)
+        project = Project.objects.get(scpca_id="SCPCP999990")
+        self.assert_project(project)
+        self.assertEqual(project.downloadable_sample_count, 4)
+        self.assertFalse(project.has_bulk_rna_seq)
+        self.assertFalse(project.has_cite_seq_data)
+        self.assertFalse(project.has_spatial_data)
+        self.assertEqual(project.sample_count, 4)
+        self.assertEqual(project.summaries.count(), 2)
+        self.assertEqual(project.summaries.first().sample_count, 2)
+        self.assertEqual(len(project.computed_files), 1)
+        self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
+        self.assertEqual(
+            project.multiplexed_computed_file.workflow_version,
+            "development",
+        )
 
-        with ZipFile(new_project.output_single_cell_computed_file_path) as project_zip:
+        expected_keys = project.output_multiplexed_metadata_field_order + [
+            "alevin_fry_version",
+            "demux_method",
+            "demux_samples",
+            "filtered_cells",
+            "filtering_method",
+            "has_cellhash",
+            "has_citeseq",
+            "is_multiplexed",
+            "salmon_version",
+            "sample_cell_estimates",
+            "transcript_type",
+            "unfiltered_cells",
+            "WHO_grade",
+        ]
+
+        project_zip_path = os.path.join(
+            common.OUTPUT_DATA_DIR, project.output_multiplexed_computed_file_name
+        )
+        with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
-                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
+                ComputedFile.MetadataFilenames.MULTIPLEXED_METADATA_FILE_NAME
             )
-            sample_metadata_lines = sample_metadata.decode("utf-8").split("\r\n")
+            sample_metadata_lines = [
+                sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
+            ]
 
-        # 1 item + header.
-        self.assertTrue(len(sample_metadata_lines), 2)
+        self.assertEqual(len(sample_metadata_lines), 5)  # 4 items + header.
 
-        expected_keys = new_project.output_single_cell_metadata_field_order + [
+        sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
+        self.assertEqual(sample_metadata_keys, expected_keys)
+
+        library_sample_mapping = {
+            "SCPCL999990": ("SCPCS999990", "SCPCS999991"),
+            "SCPCL999991": ("SCPCS999992", "SCPCS999993"),
+        }
+        library_path_templates = (
+            "{sample_id}/{library_id}_filtered.rds",
+            "{sample_id}/{library_id}_qc.html",
+            "{sample_id}/{library_id}_unfiltered.rds",
+        )
+        expected_filenames = {
+            "README.md",
+            "multiplexed_metadata.tsv",
+        }
+        for library_id in library_sample_mapping:
+            for sample_id in library_sample_mapping[library_id]:
+                for library_path in library_path_templates:
+                    expected_filenames.add(
+                        library_path.format(library_id=library_id, sample_id=sample_id)
+                    )
+        self.assertEqual(set(project_zip.namelist()), expected_filenames)
+
+        sample = project.samples.first()
+        sample_zip_path = os.path.join(
+            common.OUTPUT_DATA_DIR, sample.output_multiplexed_computed_file_name
+        )
+        with ZipFile(sample_zip_path) as sample_zip:
+            with sample_zip.open(
+                ComputedFile.MetadataFilenames.MULTIPLEXED_METADATA_FILE_NAME, "r"
+            ) as sample_csv:
+                csv_reader = csv.DictReader(
+                    TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
+                )
+                rows = list(csv_reader)
+
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(list(rows[0].keys()), expected_keys)
+
+        library_id = rows[0]["scpca_library_id"]
+        expected_filenames = {
+            "README.md",
+            "multiplexed_metadata.tsv",
+            f"{library_id}_filtered.rds",
+            f"{library_id}_qc.html",
+            f"{library_id}_unfiltered.rds",
+        }
+        self.assertEqual(set(sample_zip.namelist()), expected_filenames)
+
+    @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
+    def test_single_cell_metadata(self):
+        load_data_from_s3(
+            update_s3_data=True,
+            reload_all=False,
+            reload_existing=False,
+            allowed_submitters=ALLOWED_SUBMITTERS,
+            input_bucket_name=INPUT_BUCKET_NAME,
+        )
+
+        project = Project.objects.get(scpca_id="SCPCP999999")
+        self.assert_project(project)
+        self.assertEqual(project.downloadable_sample_count, 1)
+        self.assertFalse(project.has_bulk_rna_seq)
+        self.assertFalse(project.has_cite_seq_data)
+        self.assertTrue(project.modalities)
+        self.assertEqual(project.sample_count, 1)
+        self.assertEqual(project.summaries.count(), 4)
+        self.assertEqual(project.summaries.first().sample_count, 1)
+        self.assertEqual(len(project.computed_files), 2)
+        self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
+        self.assertEqual(
+            project.single_cell_computed_file.workflow_version,
+            "v0.2.7",
+        )
+
+        expected_keys = project.output_single_cell_metadata_field_order + [
             "alevin_fry_version",
             "date_processed",
             "filtered_cell_count",
@@ -239,16 +281,46 @@ class TestLoadData(TestCase):
             "workflow_commit",
             "workflow_version",
         ]
+
+        project_zip_path = os.path.join(
+            common.OUTPUT_DATA_DIR, project.output_single_cell_computed_file_name
+        )
+        with ZipFile(project_zip_path) as project_zip:
+            sample_metadata = project_zip.read(
+                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
+            )
+            sample_metadata_lines = [
+                sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
+            ]
+
+        self.assertEqual(len(sample_metadata_lines), 2)  # 1 item + header.
+
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
         # There are 3 files for each sample, plus a README.md
         # and a single_cell_metadata.tsv file.
-        # 1 * 3 + 2 = 5
+        # 5 = 1 * 3 + 2
         self.assertEqual(len(project_zip.namelist()), 5)
 
-        sample = new_project.samples.first()
-        with ZipFile(sample.output_single_cell_computed_file_path) as sample_zip:
+        sample = project.samples.first()
+        self.assertGreater(sample.cell_count, 0)
+        self.assertEqual(len(sample.computed_files), 2)
+        self.assertFalse(sample.has_bulk_rna_seq)
+        self.assertFalse(sample.has_cite_seq_data)
+        self.assertTrue(sample.has_spatial_data)
+        self.assertIsNotNone(sample.single_cell_computed_file)
+        self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
+        self.assertEqual(
+            sample.single_cell_computed_file.workflow_version,
+            "v0.2.7",
+        )
+        self.assertTrue(sample.technologies)
+
+        sample_zip_path = os.path.join(
+            common.OUTPUT_DATA_DIR, sample.output_single_cell_computed_file_name
+        )
+        with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
@@ -259,20 +331,19 @@ class TestLoadData(TestCase):
 
         self.assertEqual(len(rows), 1)
         self.assertEqual(list(rows[0].keys()), expected_keys)
-        scpca_library_id = rows[0]["scpca_library_id"]
 
+        library_id = rows[0]["scpca_library_id"]
         expected_filenames = {
             "README.md",
             "single_cell_metadata.tsv",
-            f"{scpca_library_id}_unfiltered.rds",
-            f"{scpca_library_id}_filtered.rds",
-            f"{scpca_library_id}_qc.html",
+            f"{library_id}_filtered.rds",
+            f"{library_id}_qc.html",
+            f"{library_id}_unfiltered.rds",
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_spatial_metadata(self):
-        # First, just test that loading data works.
         load_data_from_s3(
             update_s3_data=True,
             reload_all=False,
@@ -281,32 +352,63 @@ class TestLoadData(TestCase):
             input_bucket_name=INPUT_BUCKET_NAME,
         )
 
-        self.assertEqual(Project.objects.count(), 1)
-        self.assert_project(self.scpca_project_id)
-        new_project = Project.objects.get(scpca_id=self.scpca_project_id)
+        project = Project.objects.get(scpca_id="SCPCP999999")
+        self.assert_project(project)
+        self.assertEqual(project.downloadable_sample_count, 1)
+        self.assertFalse(project.has_bulk_rna_seq)
+        self.assertFalse(project.has_cite_seq_data)
+        self.assertTrue(project.has_spatial_data)
+        self.assertTrue(project.modalities)
+        self.assertEqual(project.sample_count, 1)
+        self.assertEqual(project.summaries.count(), 4)
+        self.assertEqual(project.summaries.first().sample_count, 1)
+        self.assertEqual(len(project.computed_files), 2)
+        self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
+        self.assertEqual(project.spatial_computed_file.workflow_version, "v0.2.7")
 
-        with ZipFile(new_project.output_spatial_computed_file_path) as project_zip:
+        expected_keys = project.output_spatial_metadata_field_order + [
+            "upload_date",
+        ]
+
+        project_zip_path = os.path.join(
+            common.OUTPUT_DATA_DIR, project.output_spatial_computed_file_name
+        )
+        with ZipFile(project_zip_path) as project_zip:
             spatial_metadata_file = project_zip.read(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
             )
-            spatial_metadata = spatial_metadata_file.decode("utf-8").split("\r\n")
+            spatial_metadata = [
+                sm for sm in spatial_metadata_file.decode("utf-8").split("\r\n") if sm
+            ]
 
-        # 2 items + header.
-        self.assertTrue(len(spatial_metadata), 3)
+        self.assertEqual(len(spatial_metadata), 2)  # 1 item + header.
+
         spatial_metadata_keys = spatial_metadata[0].split(common.TAB)
-
-        expected_keys = new_project.output_spatial_metadata_field_order + [
-            "upload_date",
-        ]
         self.assertEqual(spatial_metadata_keys, expected_keys)
 
         # There are 17 files for each spatial library (including
         # subdirectories), plus a README.md and a spatial_metadata.tsv file.
-        # 1 * 17 + 2 = 19
+        # 19 = 1 * 17 + 2
         self.assertEqual(len(project_zip.namelist()), 19)
 
-        sample = new_project.samples.first()
-        with ZipFile(sample.output_spatial_computed_file_path) as sample_zip:
+        sample = project.samples.first()
+        self.assertGreater(sample.cell_count, 0)
+        self.assertEqual(len(sample.computed_files), 2)
+        self.assertFalse(sample.has_bulk_rna_seq)
+        self.assertFalse(sample.has_cite_seq_data)
+        self.assertTrue(sample.has_spatial_data)
+        self.assertIsNotNone(sample.spatial_computed_file)
+        self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
+        self.assertEqual(
+            sample.spatial_computed_file.workflow_version,
+            "v0.2.7",
+        )
+        self.assertTrue(sample.technologies)
+
+        sample_zip_path = os.path.join(
+            common.OUTPUT_DATA_DIR, sample.output_spatial_computed_file_name
+        )
+        with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
@@ -315,18 +417,15 @@ class TestLoadData(TestCase):
                 )
                 rows = list(csv_reader)
 
-        expected_library_count = 1
-        self.assertEqual(len(rows), expected_library_count)
+        self.assertEqual(len(rows), 1)
         self.assertEqual(list(rows[0].keys()), expected_keys)
 
-        scpca_library_ids = (rows[0]["scpca_library_id"],)
-
+        library_ids = (rows[0]["scpca_library_id"],)
         expected_filenames = {
             "README.md",
             "spatial_metadata.tsv",
         }
-
-        library_filename_templates = {
+        library_path_templates = {
             "{library_id}_spatial/{library_id}_metadata.json",
             "{library_id}_spatial/{library_id}_spaceranger_summary.html",
             "{library_id}_spatial/filtered_feature_bc_matrix/",
@@ -345,10 +444,7 @@ class TestLoadData(TestCase):
             "{library_id}_spatial/spatial/tissue_lowres_image.png",
             "{library_id}_spatial/spatial/tissue_positions_list.csv",
         }
-        for scpca_library_id in scpca_library_ids:
-            for library_filename_template in library_filename_templates:
-                expected_filenames.add(
-                    library_filename_template.format(library_id=scpca_library_id)
-                )
-
+        for library_id in library_ids:
+            for library_path in library_path_templates:
+                expected_filenames.add(library_path.format(library_id=library_id))
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
