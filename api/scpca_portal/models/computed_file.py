@@ -23,18 +23,23 @@ class ComputedFile(TimestampedModel):
         ordering = ["updated_at", "id"]
 
     class MetadataFilenames:
+        MULTIPLEXED_METADATA_FILE_NAME = "multiplexed_metadata.tsv"
         SINGLE_CELL_METADATA_FILE_NAME = "single_cell_metadata.tsv"
         SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
 
     class OutputFileTypes:
+        PROJECT_MULTIPLEXED_ZIP = "PROJECT_MULTIPLEXED_ZIP"
         PROJECT_SPATIAL_ZIP = "PROJECT_SPATIAL_ZIP"
         PROJECT_ZIP = "PROJECT_ZIP"
+        SAMPLE_MULTIPLEXED_ZIP = "SAMPLE_MULTIPLEXED_ZIP"
         SAMPLE_SPATIAL_ZIP = "SAMPLE_SPATIAL_ZIP"
         SAMPLE_ZIP = "SAMPLE_ZIP"
 
         CHOICES = (
+            (PROJECT_MULTIPLEXED_ZIP, "Project Multiplexed ZIP"),
             (PROJECT_SPATIAL_ZIP, "Project Spatial ZIP"),
             (PROJECT_ZIP, "Project ZIP"),
+            (SAMPLE_MULTIPLEXED_ZIP, "Sample Multiplexed ZIP"),
             (SAMPLE_SPATIAL_ZIP, "Sample Spatial ZIP"),
             (SAMPLE_ZIP, "Sample ZIP"),
         )
@@ -44,10 +49,18 @@ class ComputedFile(TimestampedModel):
     README_FILE_NAME = "readme.md"
     README_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_FILE_NAME)
 
+    README_MULTIPLEXED_FILE_NAME = "readme_multiplexed.md"
+    README_MULTIPLEXED_FILE_PATH = os.path.join(
+        common.OUTPUT_DATA_DIR, README_MULTIPLEXED_FILE_NAME
+    )
+
     README_SPATIAL_FILE_NAME = "readme_spatial.md"
     README_SPATIAL_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_SPATIAL_FILE_NAME)
 
     README_TEMPLATE_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_FILE_NAME)
+    README_TEMPLATE_MULTIPLEXED_FILE_PATH = os.path.join(
+        common.TEMPLATE_DIR, README_MULTIPLEXED_FILE_NAME
+    )
     README_TEMPLATE_SPATIAL_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_SPATIAL_FILE_NAME)
 
     s3_bucket = models.TextField(null=False)
@@ -64,8 +77,39 @@ class ComputedFile(TimestampedModel):
     )
 
     @classmethod
+    def create_project_multiplexed_file(cls, project, sample_to_file_mapping, workflow_versions):
+        """Produces a single data file of project's combined multiplexed data."""
+
+        computed_file = cls(
+            project=project,
+            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_key=project.output_multiplexed_computed_file_name,
+            type=cls.OutputFileTypes.PROJECT_MULTIPLEXED_ZIP,
+            workflow_version=utils.join_workflow_versions(workflow_versions),
+        )
+
+        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
+            zip_file.write(
+                ComputedFile.README_MULTIPLEXED_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME
+            )
+            zip_file.write(
+                project.output_multiplexed_metadata_file_path, computed_file.metadata_file_name
+            )
+
+            for sample_id, file_paths in sample_to_file_mapping.items():
+                for file_path in file_paths:
+                    # Nest these under thier sample id.
+                    archive_path = os.path.join(sample_id, os.path.basename(file_path))
+                    zip_file.write(file_path, archive_path)
+
+        computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
+        computed_file.save()
+
+        return computed_file
+
+    @classmethod
     def create_project_single_cell_file(cls, project, sample_to_file_mapping, workflow_versions):
-        """Produces a single data file of combined single cell data."""
+        """Produces a single data file of project's combined single cell data."""
 
         computed_file = cls(
             project=project,
@@ -98,7 +142,7 @@ class ComputedFile(TimestampedModel):
 
     @classmethod
     def create_project_spatial_file(cls, project, sample_to_file_mapping, workflow_versions):
-        """Produces a data file of combined spatial data."""
+        """Produces a single data file of project's combined spatial data."""
 
         computed_file = cls(
             project=project,
@@ -127,7 +171,50 @@ class ComputedFile(TimestampedModel):
         return computed_file
 
     @classmethod
+    def create_sample_multiplexed_file(
+        cls, sample, libraries, library_path_mapping, workflow_versions
+    ):
+        """
+        Produces a single data file of sample's combined multiplexed data.
+        Returns the data file and file mapping for a sample.
+        """
+        computed_file = cls(
+            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_key=sample.output_multiplexed_computed_file_name,
+            sample=sample,
+            type=cls.OutputFileTypes.SAMPLE_MULTIPLEXED_ZIP,
+            workflow_version=utils.join_workflow_versions(workflow_versions),
+        )
+
+        file_paths = []
+        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
+            zip_file.write(
+                ComputedFile.README_MULTIPLEXED_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME
+            )
+            zip_file.write(
+                sample.output_multiplexed_metadata_file_path,
+                ComputedFile.MetadataFilenames.MULTIPLEXED_METADATA_FILE_NAME,
+            )
+
+            for library in libraries:
+                library_id = library["scpca_library_id"]
+                for file_postfix in ("_filtered.rds", "_qc.html", "_unfiltered.rds"):
+                    file_name = f"{library_id}{file_postfix}"
+                    file_path = os.path.join(library_path_mapping[library_id], file_name)
+                    file_paths.append(file_path)
+                    zip_file.write(file_path, file_name)
+
+        computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
+        computed_file.save()
+
+        return computed_file, {sample.scpca_id: file_paths}
+
+    @classmethod
     def create_sample_single_cell_file(cls, sample, libraries, workflow_versions):
+        """
+        Produces a single data file of sample's combined single cell data.
+        Returns the data file and file mapping for a sample.
+        """
         computed_file = cls(
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_single_cell_computed_file_name,
@@ -160,6 +247,10 @@ class ComputedFile(TimestampedModel):
 
     @classmethod
     def create_sample_spatial_file(cls, sample, libraries, workflow_versions):
+        """
+        Produces a single data file of sample's combined spatial data.
+        Returns the data file and file mapping for a sample.
+        """
         computed_file = cls(
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_spatial_computed_file_name,
@@ -195,6 +286,10 @@ class ComputedFile(TimestampedModel):
         return computed_file, {sample.scpca_id: file_paths}
 
     @property
+    def is_project_multiplexed_zip(self):
+        return self.type == ComputedFile.OutputFileTypes.PROJECT_MULTIPLEXED_ZIP
+
+    @property
     def is_project_zip(self):
         return self.type == ComputedFile.OutputFileTypes.PROJECT_ZIP
 
@@ -209,7 +304,9 @@ class ComputedFile(TimestampedModel):
 
     @property
     def metadata_file_name(self):
-        if self.is_project_zip:
+        if self.is_project_multiplexed_zip:
+            return ComputedFile.MetadataFilenames.MULTIPLEXED_METADATA_FILE_NAME
+        elif self.is_project_zip:
             return ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
         elif self.is_project_spatial_zip:
             return ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
@@ -219,7 +316,7 @@ class ComputedFile(TimestampedModel):
         return os.path.join(common.OUTPUT_DATA_DIR, self.s3_key)
 
     def create_download_url(self):
-        """Create a temporary URL from which the file can be downloaded."""
+        """Creates a temporary URL from which the file can be downloaded."""
         if self.s3_bucket and self.s3_key:
             return s3.generate_presigned_url(
                 ClientMethod="get_object",
