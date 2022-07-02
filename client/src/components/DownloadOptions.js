@@ -9,7 +9,9 @@ export const DownloadOptions = ({ resource, handleSelectFile }) => {
     'PROJECT_ZIP',
     'SAMPLE_ZIP',
     'PROJECT_SPATIAL_ZIP',
-    'SAMPLE_SPATIAL_ZIP'
+    'SAMPLE_SPATIAL_ZIP',
+    'PROJECT_MULTIPLEXED_ZIP',
+    'SAMPLE_MULTIPLEXED_ZIP'
   ])
 
   return (

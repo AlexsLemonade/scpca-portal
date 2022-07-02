@@ -1,11 +1,15 @@
+/* eslint-disable camelcase */
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { Table } from 'components/Table'
 import { formatBytes } from 'helpers/formatBytes'
+import { getReadable } from 'helpers/getReadable'
 import { api } from 'api'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { Download } from 'components/Download'
 import { Loader } from 'components/Loader'
+import { Icon } from 'components/Icon'
+import { Pill } from 'components/Pill'
 import { accumulateValue } from 'helpers/accumulateValue'
 
 export const ProjectSamplesTable = ({
@@ -15,6 +19,7 @@ export const ProjectSamplesTable = ({
 }) => {
   const [samples, setSamples] = React.useState(defaultSamples)
   const [loaded, setLoaded] = React.useState(false)
+  const isMultiplexed = true // temp
   const infoText =
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
@@ -41,9 +46,19 @@ export const ProjectSamplesTable = ({
             <Text>Not Available</Text>
             <Text>For Download</Text>
           </Box>
-        )
+        ),
+      isVisible: true
     },
-    { Header: 'Sample ID', accessor: 'scpca_id' },
+    {
+      Header: 'Sample ID',
+      accessor: ({ scpca_id, has_multiplexed_data }) =>
+        has_multiplexed_data ? (
+          <Pill label={getReadable('has_multiplexed_data')} />
+        ) : (
+          scpca_id
+        ),
+      isVisible: true
+    },
     {
       Header: 'Diagnosis - Subdiagnosis',
       accessor: ({ diagnosis, subdiagnosis }) => `${diagnosis} ${subdiagnosis}`,
@@ -52,23 +67,48 @@ export const ProjectSamplesTable = ({
           <Text>{row.original.diagnosis}</Text>
           <Text size="small">{row.original.subdiagnosis}</Text>
         </Box>
-      )
+      ),
+      isVisible: true
     },
-    { Header: 'Sequencing Units', accessor: 'seq_units' },
-    { Header: 'Technology', accessor: 'technologies' },
+    { Header: 'Sequencing Units', accessor: 'seq_units', isVisible: true },
+    { Header: 'Technology', accessor: 'technologies', isVisible: true },
     {
       Header: 'Other Modalities',
-      accessor: ({ modalities }) => modalities || 'N/A'
+      accessor: ({ modalities }) => modalities || 'N/A',
+      isVisible: true
     },
-    { Header: 'Disease Timing', accessor: 'disease_timing' },
-    { Header: 'Tissue Location', accessor: 'tissue_location' },
-    { Header: 'Treatment', accessor: ({ treatment }) => treatment || 'N/A' },
-    { Header: 'Age at Diagnosis', accessor: 'age_at_diagnosis' },
-    { Header: 'Sex', accessor: 'sex' },
-    { Header: 'Sample Count Estimates', accessor: 'cell_count' },
+    { Header: 'Disease Timing', accessor: 'disease_timing', isVisible: true },
+    { Header: 'Tissue Location', accessor: 'tissue_location', isVisible: true },
+    {
+      Header: 'Treatment',
+      accessor: ({ treatment }) => treatment || 'N/A',
+      isVisible: true
+    },
+    {
+      Header: 'Age at Diagnosis',
+      accessor: 'age_at_diagnosis',
+      isVisible: true
+    },
+    { Header: 'Sex', accessor: 'sex', isVisible: true },
+    {
+      Header: 'Sample Count Estimates',
+      accessor: 'cell_count',
+      isVisible: true
+    },
+    {
+      Header: () => (
+        <Box direction="row" align="center">
+          Est. Demux Sample Counts &nbsp; <Icon size="small" name="Help" />
+        </Box>
+      ),
+      accessor: 'est_demux_sample_count',
+      Cell: () => 'N/A',
+      isVisible: isMultiplexed
+    },
     {
       Header: 'Additional Metadata Fields',
-      accessor: ({ additional_metadata: data }) => Object.keys(data).join(', ')
+      accessor: ({ additional_metadata: data }) => Object.keys(data).join(', '),
+      isVisible: true
     }
   ]
 

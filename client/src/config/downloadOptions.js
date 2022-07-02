@@ -14,6 +14,14 @@ export const downloadOptions = {
     included: {},
     metadata: 'Project and Sample Metadata'
   },
+  PROJECT_MULTIPLEXED_ZIP: {
+    header: 'Download Single-cell Data',
+    data: 'Single-cell data',
+    included: {
+      has_multiplexed_data: 'Single-cell multiplexed data'
+    },
+    metadata: 'Project and Sample Metadata'
+  },
   SAMPLE_ZIP: {
     header: 'Download Single-cell Data',
     data: 'Single-cell data',
@@ -26,6 +34,12 @@ export const downloadOptions = {
   SAMPLE_SPATIAL_ZIP: {
     header: 'Download Spatial Data',
     data: 'Spatial data',
+    included: {},
+    metadata: 'Project and Sample Metadata'
+  },
+  SAMPLE_MULTIPLEXED_ZIP: {
+    header: 'Download Single-cell Data',
+    data: 'Single-cell multiplexed data',
     included: {},
     metadata: 'Project and Sample Metadata'
   }

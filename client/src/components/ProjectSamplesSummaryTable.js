@@ -3,10 +3,10 @@ import { Table } from 'components/Table'
 
 export const ProjectSamplesSummaryTable = ({ summaries }) => {
   const columns = [
-    { Header: 'Diagnosis', accessor: 'diagnosis' },
-    { Header: 'Sequencing Unit', accessor: 'seq_unit' },
-    { Header: 'Technology', accessor: 'technology' },
-    { Header: 'Library Count', accessor: 'sample_count' }
+    { Header: 'Diagnosis', accessor: 'diagnosis', isVisible: true },
+    { Header: 'Sequencing Unit', accessor: 'seq_unit', isVisible: true },
+    { Header: 'Technology', accessor: 'technology', isVisible: true },
+    { Header: 'Library Count', accessor: 'sample_count', isVisible: true }
   ]
   return <Table columns={columns} data={summaries} />
 }

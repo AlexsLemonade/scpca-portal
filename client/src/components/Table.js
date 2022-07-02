@@ -243,8 +243,17 @@ export const Table = ({
     gotoPage,
     setPageSize,
     pageOptions,
+    setHiddenColumns,
     state: { pageIndex }
   } = instance
+
+  useEffect(() => {
+    setHiddenColumns(
+      columns
+        .filter((column) => !column.isVisible)
+        .map((column) => column.accessor)
+    )
+  }, [setHiddenColumns, columns])
 
   const justify = filter && infoText ? 'between' : 'end'
   const pad = filter ? { vertical: 'medium' } : {}
