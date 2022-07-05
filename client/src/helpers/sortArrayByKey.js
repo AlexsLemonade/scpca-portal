@@ -1,14 +1,23 @@
 /*
-@param arr - a targeted array that is iterlated over
-@param key - a key that is used to sort
-@param comp - an arary of prefered sorting order
-@param asc - a boolean indicates whether it's ascending order or not
+@name sortArrayByKey
+@description sort an array or an array of object
+@param {string} key - an object key that is used to sort 
+@param {array} target - an arry to sort
+@param {array} sortOrder - a preferred sorting order
+@param {boolean} asc - a boolean indicates whether it's ascending order or not
 */
-export const sortArrayByKey = (arr, key, comp, asc = true) => {
-  const sortedArray = [...arr].sort((a, b) => {
-    if (Array.isArray(comp)) {
-      return comp.indexOf(a[key]) - comp.indexOf[b[key]]
+
+export const sortArrayByKey = (
+  key = '',
+  target,
+  sortOrder = [],
+  asc = true
+) => {
+  const sortedArray = target.sort((a, b) => {
+    if (sortOrder.length > 0) {
+      return sortOrder.indexOf(a[key]) - sortOrder.indexOf(b[key])
     }
+
     return a[key] > b[key] ? 1 : -1
   })
 

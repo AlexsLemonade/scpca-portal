@@ -5,7 +5,7 @@ import { sortArrayByKey } from 'helpers/sortArrayByKey'
 
 export const DownloadOptions = ({ resource, handleSelectFile }) => {
   const { computed_files: computedFiles } = resource
-  const sortedComputedFiles = sortArrayByKey(computedFiles, 'type', [
+  const sortedComputedFiles = sortArrayByKey('type', computedFiles, [
     'PROJECT_ZIP',
     'SAMPLE_ZIP',
     'PROJECT_SPATIAL_ZIP',
