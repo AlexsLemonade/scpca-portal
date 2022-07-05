@@ -8,7 +8,12 @@ export const Button = ({ onClick, ...props }) => {
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <GrommetButton {...props} onClick={asyncOnClick} disabled={disabled} />
+    <GrommetButton
+      {...props}
+      onClick={asyncOnClick}
+      disabled={disabled}
+      style={{ whiteSpace: 'nowrap' }}
+    />
   )
 }
 
