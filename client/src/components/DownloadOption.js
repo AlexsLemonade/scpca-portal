@@ -1,6 +1,8 @@
 import React from 'react'
-import { Box, Grid, Heading, Text } from 'grommet'
+import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
+import { Link } from 'components/Link'
+import { Icon } from 'components/Icon'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 
@@ -9,8 +11,10 @@ export const DownloadOption = ({
   computedFile,
   handleSelectFile
 }) => {
-  const { header, items } = getDownloadOptionDetails(resource, computedFile)
-
+  const { header, items, info } = getDownloadOptionDetails(
+    resource,
+    computedFile
+  )
   return (
     <Grid
       areas={[
@@ -29,6 +33,15 @@ export const DownloadOption = ({
         </Heading>
       </Box>
       <Box gridArea="body">
+        {info && (
+          <Box margin={{ top: 'small', bottom: 'medium' }}>
+            <Box align="center" direction="row">
+              <Icon color="status-warning" size="medium" name="Warning" />
+              <Paragraph margin={{ left: 'small' }}>{info.text}</Paragraph>
+            </Box>
+            <Link label={info.label} href={info.link} />
+          </Box>
+        )}
         <Text>The download consists of the following items:</Text>
         <Box pad="small">
           <ul

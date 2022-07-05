@@ -8,11 +8,13 @@ export const getDownloadOptionDetails = (resource, computedFile) => {
 
   const items = [data]
 
+  const info = downloadOptions[computedFile.type].info || null
+
   Object.entries(included).forEach(([k, v]) => {
     if (resource[k]) items.push(v)
   })
 
   items.push(metadata)
 
-  return { header, items }
+  return { header, items, info }
 }

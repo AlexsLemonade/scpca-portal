@@ -36,7 +36,7 @@ export const Modal = ({
               height={{ min: 'min-content', max: '100vh' }}
               width={responsive(
                 { width: '100%;' },
-                { width: '100%', max: '720px' }
+                { width: '100%', max: '750px' }
               )}
               pad={{ vertical: 'large', horizontal: 'xlarge' }}
               gap="none"

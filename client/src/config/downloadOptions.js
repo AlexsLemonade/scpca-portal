@@ -1,3 +1,5 @@
+import { config } from 'config'
+
 export const downloadOptions = {
   PROJECT_ZIP: {
     header: 'Download Single-cell Data',
@@ -19,7 +21,11 @@ export const downloadOptions = {
     data: 'Single-cell multiplexed data',
     included: {},
     metadata: 'Project and Sample Metadata',
-    info: 'This project contains multiplexed samples.'
+    info: {
+      label: 'Learn more',
+      text: 'This project contains multiplexed samples.',
+      link: config.links.what_downloading_mulitplexed
+    }
   },
   SAMPLE_ZIP: {
     header: 'Download Single-cell Data',
