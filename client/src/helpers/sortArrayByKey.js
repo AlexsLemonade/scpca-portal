@@ -1,7 +1,7 @@
 /*
 @name sortArrayByKey
 @description sort an array or an array of object
-@param {string} key - an object key that is used to sort 
+@param {string} key - an object key that is used to sort
 @param {array} target - an arry to sort
 @param {array} sortOrder - a preferred sorting order
 @param {boolean} asc - a boolean indicates whether it's ascending order or not
