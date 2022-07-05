@@ -6,6 +6,7 @@ export const config = {
       'https://scpca.readthedocs.io/en/latest/download_files.html#download-folder-structure-for-project-downloads',
     what_downloading_sample:
       'https://scpca.readthedocs.io/en/latest/download_files.html#download-folder-structure-for-individual-sample-downloads',
+    what_downloading_mulitplexed: '#',
     how_processed:
       'https://scpca.readthedocs.io/en/latest/processing_information.html',
     donate: 'https://www.ccdatalab.org/donate-link',
