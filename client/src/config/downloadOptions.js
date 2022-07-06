@@ -21,10 +21,14 @@ export const downloadOptions = {
     data: 'Single-cell multiplexed data',
     included: {},
     metadata: 'Project and Sample Metadata',
-    info: {
+    link: {
       label: 'Learn more',
+      icon: {
+        name: 'Warning',
+        color: 'status-warning'
+      },
       text: 'This project contains multiplexed samples.',
-      link: config.links.what_downloading_mulitplexed
+      url: config.links.what_downloading_mulitplexed
     }
   },
   SAMPLE_ZIP: {

@@ -11,7 +11,7 @@ export const DownloadOption = ({
   computedFile,
   handleSelectFile
 }) => {
-  const { header, items, info } = getDownloadOptionDetails(
+  const { header, items, link } = getDownloadOptionDetails(
     resource,
     computedFile
   )
@@ -33,13 +33,21 @@ export const DownloadOption = ({
         </Heading>
       </Box>
       <Box gridArea="body">
-        {info && (
+        {link && (
           <Box margin={{ top: 'small', bottom: 'medium' }}>
             <Box align="center" direction="row">
-              <Icon color="status-warning" size="medium" name="Warning" />
-              <Paragraph margin={{ left: 'small' }}>{info.text}</Paragraph>
+              {link.icon && (
+                <Icon
+                  color={link.icon.color}
+                  size="medium"
+                  name={link.icon.name}
+                />
+              )}
+              {link.text && (
+                <Paragraph margin={{ left: 'small' }}>{link.text}</Paragraph>
+              )}
             </Box>
-            <Link label={info.label} href={info.link} />
+            <Link label={link.label} href={link.url} />
           </Box>
         )}
         <Text>The download consists of the following items:</Text>
