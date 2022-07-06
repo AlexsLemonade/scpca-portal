@@ -1,7 +1,8 @@
 import React, { Fragment } from 'react'
-import { Box, Grid, Heading, Text } from 'grommet'
+import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
+import { Icon } from 'components/Icon'
 import { formatBytes } from 'helpers/formatBytes'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
@@ -26,7 +27,10 @@ export const DownloadStarted = ({
   const otherComputedFiles = resource.computed_files.filter(
     (cf) => cf.id !== computedFile.id
   )
-  const { header, items } = getDownloadOptionDetails(resource, computedFile)
+  const { header, items, info } = getDownloadOptionDetails(
+    resource,
+    computedFile
+  )
 
   return (
     <span>
@@ -54,6 +58,30 @@ export const DownloadStarted = ({
             <Text weight="bold">{idText}</Text>
             <Text weight="bold">Size: {formatBytes(size)}</Text>
           </Box>
+          {info && info.learn_more && (
+            <Box margin={{ top: 'small', bottom: 'medium' }}>
+              <Box align="center" direction="row">
+                {info.learn_more.icon && (
+                  <Icon
+                    color={info.learn_more.icon.color}
+                    size="medium"
+                    name={info.learn_more.icon.name}
+                  />
+                )}
+                {info.learn_more.text && (
+                  <Paragraph margin={{ left: 'small' }}>
+                    {info.learn_more.text} <br />
+                    {info.learn_more.link && (
+                      <Link
+                        label={info.learn_more.label}
+                        href={info.learn_more.link}
+                      />
+                    )}
+                  </Paragraph>
+                )}
+              </Box>
+            </Box>
+          )}
           <Text>The download consists of the following items:</Text>
           <Box pad="medium">
             <ul

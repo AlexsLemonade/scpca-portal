@@ -5,16 +5,21 @@ import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
+import { isProjectID } from 'helpers/isProjectID'
 
 export const DownloadOption = ({
   resource,
   computedFile,
   handleSelectFile
 }) => {
-  const { header, items, link } = getDownloadOptionDetails(
+  const { header, items, info } = getDownloadOptionDetails(
     resource,
     computedFile
   )
+  const label = isProjectID(resource.scpca_id)
+    ? 'Download Project'
+    : 'Download Sample'
+
   return (
     <Grid
       areas={[
@@ -33,24 +38,34 @@ export const DownloadOption = ({
         </Heading>
       </Box>
       <Box gridArea="body">
-        {link && (
+        {info && info.learn_more && (
           <Box margin={{ top: 'small', bottom: 'medium' }}>
             <Box align="center" direction="row">
-              {link.icon && (
+              {info.learn_more.icon && (
                 <Icon
-                  color={link.icon.color}
+                  color={info.learn_more.icon.color}
                   size="medium"
-                  name={link.icon.name}
+                  name={info.learn_more.icon.name}
                 />
               )}
-              {link.text && (
-                <Paragraph margin={{ left: 'small' }}>{link.text}</Paragraph>
+              {info.learn_more.text && (
+                <Paragraph margin={{ left: 'small' }}>
+                  {info.learn_more.text} <br />
+                  {info.learn_more.link && (
+                    <Link
+                      label={info.learn_more.label}
+                      href={info.learn_more.link}
+                    />
+                  )}
+                </Paragraph>
               )}
             </Box>
-            <Link label={link.label} href={link.url} />
           </Box>
         )}
-        <Text>The download consists of the following items:</Text>
+        <Text>
+          {info && info.text_only && <span>{info.text_only}</span>} The download
+          consists of the following items:
+        </Text>
         <Box pad="small">
           <ul
             style={{
@@ -63,6 +78,21 @@ export const DownloadOption = ({
             ))}
           </ul>
         </Box>
+        {info && info.sampleList && (
+          <Box>
+            <Text>{info.sampleList.text}</Text>
+
+            {resource.additional_metadata.multiplexed_with && (
+              <ul>
+                {resource.additional_metadata.multiplexed_with.map((item) => (
+                  <li key={item} style={{ listStyle: 'inside square' }}>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Box>
+        )}
         <Text>Size: {formatBytes(computedFile.size_in_bytes)}</Text>
       </Box>
       <Box gridArea="footer" margin={{ top: '16px' }}>
@@ -70,8 +100,8 @@ export const DownloadOption = ({
           <Button
             primary
             alignSelf="start"
-            aria-label={header}
-            label={header}
+            aria-label={resource.computed_files.length > 1 ? header : label}
+            label={resource.computed_files.length > 1 ? header : label}
             target="_blank"
             onClick={() => handleSelectFile(computedFile)}
           />
