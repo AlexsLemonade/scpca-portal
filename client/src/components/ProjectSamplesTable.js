@@ -9,8 +9,10 @@ import { Download as DownloadIcon } from 'grommet-icons'
 import { Download } from 'components/Download'
 import { Loader } from 'components/Loader'
 import { Icon } from 'components/Icon'
+import { Link } from 'components/Link'
 import { Pill } from 'components/Pill'
 import { accumulateValue } from 'helpers/accumulateValue'
+import { config } from 'config'
 
 export const ProjectSamplesTable = ({
   project,
@@ -19,7 +21,6 @@ export const ProjectSamplesTable = ({
 }) => {
   const [samples, setSamples] = React.useState(defaultSamples)
   const [loaded, setLoaded] = React.useState(false)
-  const isMultiplexed = true // temp
   const infoText =
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
@@ -92,18 +93,23 @@ export const ProjectSamplesTable = ({
     { Header: 'Sex', accessor: 'sex', isVisible: true },
     {
       Header: 'Sample Count Estimates',
-      accessor: 'cell_count',
+      accessor: ({ sample_cell_count_estimate }) =>
+        sample_cell_count_estimate || 'N/A',
       isVisible: true
     },
     {
       Header: () => (
         <Box direction="row" align="center">
-          Est. Demux Sample Counts &nbsp; <Icon size="small" name="Help" />
+          Est. Demux Sample Counts &nbsp;
+          <Link href={config.links.what_downloading_mulitplexed}>
+            <Icon size="small" name="Help" />
+          </Link>{' '}
+          &nbsp;
         </Box>
       ),
-      accessor: 'est_demux_sample_count',
+      accessor: 'demux_cell_count_estimate',
       Cell: () => 'N/A',
-      isVisible: isMultiplexed
+      isVisible: project.has_multiplexed_data || true
     },
     {
       Header: 'Additional Metadata Fields',
