@@ -33,6 +33,7 @@ class Project(TimestampedModel):
     downloadable_sample_count = models.IntegerField(default=0)
     has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
+    has_multiplexed_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField(null=False)
     modalities = models.TextField(blank=True, null=True)
@@ -798,7 +799,7 @@ class Project(TimestampedModel):
                     computed_files.append(computed_file)
                     spatial_file_mapping.update(spatial_metadata_files)
 
-            if sample.multiplexed_with:
+            if sample.has_multiplexed_data:
                 libraries = [
                     library
                     for library in combined_multiplexed_metadata
@@ -825,6 +826,11 @@ class Project(TimestampedModel):
                 multiplexed_workflow_versions,
             )
         )
+
+        # Set project level flag for multiplexed data.
+        if multiplexed_file_mapping:
+            self.has_multiplexed_data = True
+            self.save(update_fields=["has_multiplexed_data"])
 
         self.update_counts()
 
@@ -873,6 +879,9 @@ class Project(TimestampedModel):
 
             if sample.has_cite_seq_data:
                 modalities.add("CITE-seq")
+
+            if sample.has_multiplexed_data:
+                modalities.add("Multiplexed")
 
             if sample.has_spatial_data:
                 modalities.add("Spatial Data")
