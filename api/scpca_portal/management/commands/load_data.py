@@ -132,7 +132,7 @@ def load_data_from_s3(
         if project_data["submitter"] not in allowed_submitters:
             continue
 
-        # Purge existing projects so they can be readded.
+        # Purge existing projects so they can be re-added.
         if reload_existing:
             try:
                 project = Project.objects.get(scpca_id=scpca_id)
@@ -143,7 +143,7 @@ def load_data_from_s3(
 
         project, created = Project.objects.get_or_create(scpca_id=scpca_id)
         # Only import new projects. If old ones are desired they should be
-        # purged and readded.
+        # purged and re-added.
         if not created:
             logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
             continue

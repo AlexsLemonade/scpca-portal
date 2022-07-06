@@ -22,6 +22,7 @@ class SampleViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "scpca_id",
         "has_cite_seq_data",
         "has_bulk_rna_seq",
+        "has_multiplexed_data",
         "has_spatial_data",
         "technologies",
         "diagnosis",

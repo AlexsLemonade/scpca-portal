@@ -30,6 +30,7 @@ class ProjectFilter(filters.FilterSet):
             "pi_name",
             "has_bulk_rna_seq",
             "has_cite_seq_data",
+            "has_multiplexed_data",
             "has_spatial_data",
         ]
 

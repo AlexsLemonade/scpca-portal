@@ -21,6 +21,7 @@ class Sample(TimestampedModel):
     disease_timing = models.TextField(blank=True, null=True)
     has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
+    has_multiplexed_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     multiplexed_with = ArrayField(models.TextField(), default=list)
     scpca_id = models.TextField(unique=True, null=False)
@@ -66,6 +67,7 @@ class Sample(TimestampedModel):
             disease_timing=data["disease_timing"],
             has_bulk_rna_seq=data.get("has_bulk_rna_seq", False),
             has_cite_seq_data=data.get("has_cite_seq_data", False),
+            has_multiplexed_data=bool(data.get("multiplexed_with")),
             has_spatial_data=data.get("has_spatial_data", False),
             multiplexed_with=data.get("multiplexed_with"),
             project=project,
@@ -102,6 +104,9 @@ class Sample(TimestampedModel):
 
         if self.has_cite_seq_data:
             modalities.append("CITE-seq")
+
+        if self.has_multiplexed_data:
+            modalities.append("Multiplexed")
 
         if self.has_spatial_data:
             modalities.append("Spatial Transcriptomics")
