@@ -100,11 +100,11 @@ export const ProjectSamplesTable = ({
     {
       Header: () => (
         <Box direction="row" align="center">
-          Est. Demux Sample Counts &nbsp;
+          Est. Demux Sample Counts&nbsp;
           <Link href={config.links.what_downloading_mulitplexed}>
             <Icon size="small" name="Help" />
-          </Link>{' '}
-          &nbsp;
+          </Link>
+          &nbsp;&nbsp;
         </Box>
       ),
       accessor: 'demux_cell_count_estimate',

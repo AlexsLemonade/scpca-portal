@@ -18,17 +18,23 @@ export const downloadOptions = {
   },
   PROJECT_MULTIPLEXED_ZIP: {
     header: 'Download Single-cell Multiplexed Data',
-    data: 'Single-cell multiplexed data',
-    included: {},
+    data: 'Single-cell data',
+    included: {
+      has_bulk_rna_data: 'Bulk RNA-seq data',
+      has_multiplexed_data: 'Single-cell multiplexed data'
+    },
     metadata: 'Project and Sample Metadata',
-    link: {
-      label: 'Learn more',
-      icon: {
-        name: 'Warning',
-        color: 'status-warning'
-      },
-      text: 'This project contains multiplexed samples.',
-      url: config.links.what_downloading_mulitplexed
+    info: {
+      learn_more: {
+        label: 'Learn more',
+        icon: {
+          name: 'Warning',
+          color: 'status-warning',
+          size: 'medium'
+        },
+        text: 'This project contains multiplexed samples.',
+        link: config.links.what_downloading_mulitplexed
+      }
     }
   },
   SAMPLE_ZIP: {
@@ -48,8 +54,37 @@ export const downloadOptions = {
   },
   SAMPLE_MULTIPLEXED_ZIP: {
     header: 'Download Single-cell Multiplexed Data',
+    button_label: 'Download',
     data: 'Single-cell multiplexed data',
     included: {},
-    metadata: 'Project and Sample Metadata'
+    metadata: 'Project and Sample Metadata',
+    info: {
+      text_only: 'This is a multiplexed sample.',
+      sample_list: {
+        text: 'It has been multiplexed with the followig samples.'
+      },
+      learn_more: {
+        label: 'here',
+        text: 'Learn more about multiplexed samples',
+        link: config.links.what_downloading_mulitplexed
+      },
+      download_project: {
+        icon: {
+          name: 'Warning',
+          color: 'status-warning',
+          size: 'medium'
+        },
+        link: {
+          icon: {
+            name: 'DownloadFile',
+            color: 'brand',
+            size: 'medium'
+          },
+          label: 'Download Project',
+          url: '#'
+        },
+        text: 'If you are planning to work with more than one multiplexed sample, we reccommend downloading the entire project.'
+      }
+    }
   }
 }

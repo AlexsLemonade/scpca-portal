@@ -58,18 +58,20 @@ export const DownloadStarted = ({
             <Text weight="bold">{idText}</Text>
             <Text weight="bold">Size: {formatBytes(size)}</Text>
           </Box>
-          {info && info.learn_more && (
+          {isProjectID(resource.scpca_id) && info && info.learn_more && (
             <Box margin={{ top: 'small', bottom: 'medium' }}>
               <Box align="center" direction="row">
                 {info.learn_more.icon && (
-                  <Icon
-                    color={info.learn_more.icon.color}
-                    size="medium"
-                    name={info.learn_more.icon.name}
-                  />
+                  <Box margin={{ right: 'small' }} pad="small">
+                    <Icon
+                      color={info.learn_more.icon.color}
+                      size={info.learn_more.icon.size}
+                      name={info.learn_more.icon.name}
+                    />
+                  </Box>
                 )}
                 {info.learn_more.text && (
-                  <Paragraph margin={{ left: 'small' }}>
+                  <Paragraph>
                     {info.learn_more.text} <br />
                     {info.learn_more.link && (
                       <Link
@@ -82,7 +84,11 @@ export const DownloadStarted = ({
               </Box>
             </Box>
           )}
-          <Text>The download consists of the following items:</Text>
+          <Text>
+            {' '}
+            {info && info.text_only && <span>{info.text_only}</span>} The
+            download consists of the following items:
+          </Text>
           <Box pad="medium">
             <ul
               style={{
@@ -113,6 +119,72 @@ export const DownloadStarted = ({
               .
             </Text>
           </Box>
+          {info && info.sample_list && (
+            <Box margin={{ top: 'small', bottom: 'small' }}>
+              <Text>{info.sample_list.text}</Text>
+              {resource.additional_metadata.multiplexed_with && (
+                <ul style={{ margin: '8px 0 4px 16px' }}>
+                  {resource.additional_metadata.multiplexed_with.map((item) => (
+                    <li key={item} style={{ listStyle: 'inside square' }}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Box>
+          )}
+          {!isProjectID(resource.scpca_id) && info && info.learn_more && (
+            <Box margin={{ bottom: 'medium' }}>
+              <Box align="center" direction="row">
+                {info.learn_more.icon && (
+                  <Box margin={{ right: 'small' }} pad="small">
+                    <Icon
+                      color={info.learn_more.icon.color}
+                      size={info.learn_more.icon.size}
+                      name={info.learn_more.icon.name}
+                    />
+                  </Box>
+                )}
+                {info.learn_more.text && (
+                  <Paragraph>
+                    {info.learn_more.text}{' '}
+                    {info.learn_more.link && (
+                      <Link
+                        label={info.learn_more.label}
+                        href={info.learn_more.link}
+                      />
+                    )}
+                    .
+                  </Paragraph>
+                )}
+              </Box>
+            </Box>
+          )}
+          {info && info.download_project && (
+            <Box margin={{ bottom: 'medium' }}>
+              <Box align="center" direction="row">
+                {info.download_project.icon && (
+                  <Box margin={{ right: 'small' }} pad="small">
+                    <Icon
+                      color={info.download_project.icon.color}
+                      size={info.download_project.icon.size}
+                      name={info.download_project.icon.name}
+                    />
+                  </Box>
+                )}
+                {info.download_project.text && (
+                  <Paragraph>
+                    {info.download_project.text} <br />
+                    {info.download_project.link && (
+                      <Link href={info.download_project.link.url}>
+                        {info.download_project.link.label}
+                      </Link>
+                    )}
+                  </Paragraph>
+                )}
+              </Box>
+            </Box>
+          )}
           <Box>
             {responsiveSize !== 'small' && (
               <Text italic color="black-tint-40">
