@@ -15,7 +15,7 @@ The files associated with each library are (example shown for a library with ID 
 - A filtered counts file: `SCPCL000000_filtered.rds`,
 - A quality control report: `SCPCL000000_qc.html`
 
-Also included in each download is a `single_cell_metadata.tsv`, a comma-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
+Also included in each download is a `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
 Gene expression files, available as RDS files containing a `SingleCellExperiment` object, house the expression data, cell and gene metrics, associated metadata, and in the case of multi-modal data like CITE-seq, data from the additional cell-based assays (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html) for more information).
 
