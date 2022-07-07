@@ -7,7 +7,7 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{project_accession}]({project_url}) in the ScPCA portal.
 
 This project includes multiplexed samples, where multiple biological samples have been combined into libraries using cellhashing or similar technologies.
-The data files are divided into folders named by the set of samples that the libraries within contain (an underscore-separated list of sample ids, each with an `SCPCS` prefix).
+The data files are divided into folders named with an underscore-separated list of the sample ids (each with an `SCPCS` prefix) for each set of multiplexed samples.
 Each of these folders contains the files for all libraries (`SCPCL` prefix) derived from that set of samples.
 See the FAQ sections about [samples and libraries](https://scpca.readthedocs.io/en/latest/faq.html#what-is-the-difference-between-samples-and-libraries) and [multiplexed samples](https://scpca.readthedocs.io/en/latest/faq.html#what-is-a-multiplexed-sample) for more information.
 
@@ -30,6 +30,8 @@ See the [Downloadable files](https://scpca.readthedocs.io/en/latest/download_fil
 ## Usage
 
 For instructions on using the RDS files, please see [FAQ: How do I use the provided files in R?](https://scpca.readthedocs.io/en/latest/faq.html#how-do-i-use-the-provided-rds-files-in-r) or [FAQ: What if I want to use Python instead of R?](https://scpca.readthedocs.io/en/latest/faq.html#what-if-i-want-to-use-python-instead-of-r)
+
+For information on how to use the demultiplexing results that the filtered data files contains, see the ["Getting started" section about multiplex samples](https://scpca.readthedocs.io/en/latest/getting_started.html#special-considerations-for-multiplexed-samples).
 
 
 ## Contact
