@@ -94,7 +94,7 @@ class SampleLeafSerializer(serializers.ModelSerializer):
         fields = (
             "additional_metadata",
             "age_at_diagnosis",
-            "cell_count",
+            "demux_cell_count_estimate",
             "computed_files",
             "created_at",
             "diagnosis",
@@ -105,6 +105,7 @@ class SampleLeafSerializer(serializers.ModelSerializer):
             "has_spatial_data",
             "modalities",
             "project",
+            "sample_cell_count_estimate",
             "scpca_id",
             "seq_units",
             "sex",

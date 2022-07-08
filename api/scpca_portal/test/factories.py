@@ -76,12 +76,12 @@ class SampleFactory(factory.django.DjangoModelFactory):
         "has_spinal_leptomeningeal_mets": False,
     }
     age_at_diagnosis = "4"
-    cell_count = 42
     computed_file1 = factory.RelatedFactory(SampleComputedFileFactory, "sample")
     diagnosis = "pilocytic astrocytoma"
     disease_timing = "primary diagnosis"
     has_cite_seq_data = True
     project = factory.SubFactory(LeafProjectFactory)
+    sample_cell_count_estimate = 42
     scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
     seq_units = "cell"
     sex = "M"
