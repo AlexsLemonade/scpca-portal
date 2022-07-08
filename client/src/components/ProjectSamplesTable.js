@@ -51,8 +51,14 @@ export const ProjectSamplesTable = ({
     },
     {
       Header: 'Sample ID',
-      accessor: ({ scpca_id: id, has_multiplexed_data: multiplexed }) =>
-        multiplexed ? <Pill label={getReadable('has_multiplexed_data')} /> : id,
+      accessor: ({ scpca_id: id, has_multiplexed_data: multiplexed }) => (
+        <Box>
+          <Text>{id}</Text>
+          {multiplexed && (
+            <Pill label={getReadable('has_multiplexed_data')} bullet={false} />
+          )}
+        </Box>
+      ),
       isVisible: true
     },
     {

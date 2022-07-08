@@ -7,7 +7,8 @@ export const Pill = ({
   background = 'alexs-lemonade-tint-75',
   color = 'brand',
   textColor = 'text',
-  label = ''
+  label = '',
+  bullet = true
 }) => {
   return (
     <Box
@@ -20,15 +21,18 @@ export const Pill = ({
       alignSelf="start"
       pad={{ vertical: '0', horizontal: '8px' }}
     >
-      <Box
-        width="8px"
-        height="8px"
-        round="100%"
-        background={color}
-        alignSelf="center"
-        as="span"
-        margin={{ right: '4px' }}
-      />
+      {bullet && (
+        <Box
+          width="8px"
+          height="8px"
+          round="100%"
+          background={color}
+          alignSelf="center"
+          as="span"
+          margin={{ right: '4px' }}
+        />
+      )}
+
       <Paragraph
         color={textColor}
         size="medium"
