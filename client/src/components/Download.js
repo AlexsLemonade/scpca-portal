@@ -72,12 +72,12 @@ export const Download = ({ icon, resource, iconLabel }) => {
   }, [download, token, showing, publicComputedFile])
 
   return (
-    <>
+    <span>
       {icon ? (
-        <>
+        <span>
           <Anchor icon={icon} onClick={handleClick} />
           {iconLabel && <Text>{iconLabel}</Text>}
-        </>
+        </span>
       ) : (
         <Button
           aria-label={label}
@@ -89,7 +89,7 @@ export const Download = ({ icon, resource, iconLabel }) => {
         />
       )}
       <Modal title={label} showing={showing} setShowing={setShowing}>
-        {publicComputedFile && (
+        {publicComputedFile && resource.computed_files.length > 1 && (
           <ModalHeader>
             <Text
               color="brand"
@@ -119,7 +119,7 @@ export const Download = ({ icon, resource, iconLabel }) => {
           ) : null}
         </ModalBody>
       </Modal>
-    </>
+    </span>
   )
 }
 
