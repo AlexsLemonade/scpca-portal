@@ -101,14 +101,15 @@ export const ProjectSamplesTable = ({
       Header: () => (
         <Box direction="row" align="center">
           Est. Demux Sample Counts&nbsp;
-          <Link href={config.links.what_downloading_mulitplexed}>
+          <Link href={config.links.what_est_demux_cell}>
             <Icon size="small" name="Help" />
           </Link>
           &nbsp;&nbsp;
         </Box>
       ),
       accessor: 'demux_cell_count_estimate',
-      Cell: () => 'N/A',
+      Cell: ({ demux_cell_count_estimate }) =>
+        demux_cell_count_estimate || 'N/A',
       isVisible: project.has_multiplexed_data || true
     },
     {
