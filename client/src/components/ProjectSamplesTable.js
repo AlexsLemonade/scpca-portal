@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { Table } from 'components/Table'
@@ -52,12 +51,8 @@ export const ProjectSamplesTable = ({
     },
     {
       Header: 'Sample ID',
-      accessor: ({ scpca_id, has_multiplexed_data }) =>
-        has_multiplexed_data ? (
-          <Pill label={getReadable('has_multiplexed_data')} />
-        ) : (
-          scpca_id
-        ),
+      accessor: ({ scpca_id: id, has_multiplexed_data: multiplexed }) =>
+        multiplexed ? <Pill label={getReadable('has_multiplexed_data')} /> : id,
       isVisible: true
     },
     {
@@ -93,8 +88,7 @@ export const ProjectSamplesTable = ({
     { Header: 'Sex', accessor: 'sex', isVisible: true },
     {
       Header: 'Sample Count Estimates',
-      accessor: ({ sample_cell_count_estimate }) =>
-        sample_cell_count_estimate || 'N/A',
+      accessor: ({ sample_cell_count_estimate: count }) => count || 'N/A',
       isVisible: true
     },
     {
@@ -108,8 +102,7 @@ export const ProjectSamplesTable = ({
         </Box>
       ),
       accessor: 'demux_cell_count_estimate',
-      Cell: ({ demux_cell_count_estimate }) =>
-        demux_cell_count_estimate || 'N/A',
+      Cell: ({ demux_cell_count_estimate: count }) => count || 'N/A',
       isVisible: project.has_multiplexed_data || true
     },
     {
