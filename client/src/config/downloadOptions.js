@@ -25,15 +25,13 @@ export const downloadOptions = {
     },
     metadata: 'Project and Sample Metadata',
     info: {
-      learn_more: {
-        label: 'Learn more',
-        icon: {
-          name: 'Warning',
-          color: 'status-warning',
-          size: 'medium'
+      message: {},
+      warning_text: {
+        link: {
+          label: 'Learn more',
+          url: config.links.what_downloading_mulitplexed
         },
-        text: 'This project contains multiplexed samples.',
-        link: config.links.what_downloading_mulitplexed
+        text: 'This project contains multiplexed samples.'
       }
     }
   },
@@ -59,30 +57,18 @@ export const downloadOptions = {
     included: {},
     metadata: 'Project and Sample Metadata',
     info: {
-      text_only: 'This is a multiplexed sample.',
-      sample_list: {
-        text: 'It has been multiplexed with the followig samples.'
-      },
-      learn_more: {
-        label: 'here',
-        text: 'Learn more about multiplexed samples',
-        link: config.links.what_downloading_mulitplexed
-      },
-      download_project: {
-        icon: {
-          name: 'Warning',
-          color: 'status-warning',
-          size: 'medium'
+      message: {
+        text_only: 'This is a multiplexed sample.',
+        multiplexed_with: {
+          text: 'It has been multiplexed with the followig samples.'
         },
-        link: {
-          icon: {
-            name: 'DownloadFile',
-            color: 'brand',
-            size: 'medium'
-          },
-          label: 'Download Project',
-          url: '#'
-        },
+        learn_more: {
+          label: 'here',
+          text: 'Learn more about multiplexed samples ',
+          url: config.links.what_downloading_mulitplexed
+        }
+      },
+      warning_text: {
         text: 'If you are planning to work with more than one multiplexed sample, we reccommend downloading the entire project.'
       }
     }

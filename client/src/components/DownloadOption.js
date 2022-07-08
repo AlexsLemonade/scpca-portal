@@ -2,10 +2,10 @@ import React from 'react'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
-import { Icon } from 'components/Icon'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 import { isProjectID } from 'helpers/isProjectID'
+import { WarningText } from 'components/WarningText'
 
 export const DownloadOption = ({
   resource,
@@ -38,35 +38,19 @@ export const DownloadOption = ({
         </Heading>
       </Box>
       <Box gridArea="body">
-        {isProjectID(resource.scpca_id) && info && info.learn_more && (
-          <Box margin={{ top: 'small', bottom: 'medium' }}>
-            <Box align="center" direction="row">
-              {info.learn_more.icon && (
-                <Box margin={{ right: 'small' }} pad="small">
-                  <Icon
-                    color={info.learn_more.icon.color}
-                    size={info.learn_more.icon.size}
-                    name={info.learn_more.icon.name}
-                  />
-                </Box>
-              )}
-              {info.learn_more.text && (
-                <Paragraph>
-                  {info.learn_more.text} <br />
-                  {info.learn_more.link && (
-                    <Link
-                      label={info.learn_more.label}
-                      href={info.learn_more.link}
-                    />
-                  )}
-                </Paragraph>
-              )}
-            </Box>
-          </Box>
+        {isProjectID(resource.scpca_id) && info && info.warning_text && (
+          <WarningText
+            link={info.warning_text.link.url}
+            linkLable={info.warning_text.link.label}
+            iconSize="24px"
+            text={info.warning_text.text}
+          />
         )}
         <Text>
-          {info && info.text_only && <span>{info.text_only}</span>} The download
-          consists of the following items:
+          {info && info.message.text_only && (
+            <span>{info.message.text_only}</span>
+          )}{' '}
+          The download consists of the following items:
         </Text>
         <Box pad="small">
           <ul
@@ -80,9 +64,9 @@ export const DownloadOption = ({
             ))}
           </ul>
         </Box>
-        {info && info.sample_list && (
+        {info && info.message.multiplexed_with && (
           <Box margin={{ top: 'small', bottom: 'small' }}>
-            <Text>{info.sample_list.text}</Text>
+            <Text>{info.message.multiplexed_with.text}</Text>
             {resource.additional_metadata.multiplexed_with && (
               <ul style={{ margin: '8px 0 4px 16px' }}>
                 {resource.additional_metadata.multiplexed_with.map((item) => (
@@ -94,57 +78,20 @@ export const DownloadOption = ({
             )}
           </Box>
         )}
-        {!isProjectID(resource.scpca_id) && info && info.learn_more && (
-          <Box margin={{ bottom: 'medium' }}>
-            <Box align="center" direction="row">
-              {info.learn_more.icon && (
-                <Box margin={{ right: 'small' }} pad="small">
-                  <Icon
-                    color={info.learn_more.icon.color}
-                    size={info.learn_more.icon.size}
-                    name={info.learn_more.icon.name}
-                  />
-                </Box>
-              )}
-              {info.learn_more.text && (
-                <Paragraph>
-                  {info.learn_more.text}{' '}
-                  {info.learn_more.link && (
-                    <Link
-                      label={info.learn_more.label}
-                      href={info.learn_more.link}
-                    />
-                  )}
-                  .
-                </Paragraph>
-              )}
-            </Box>
-          </Box>
+        {info && info.message.learn_more && (
+          <Paragraph margin={{ bottom: 'small' }}>
+            {info.message.learn_more.text}
+            <Link
+              label={info.message.learn_more.label}
+              href={info.message.learn_more.url}
+            />
+            .
+          </Paragraph>
         )}
-        {info && info.download_project && (
-          <Box margin={{ bottom: 'medium' }}>
-            <Box align="center" direction="row">
-              {info.download_project.icon && (
-                <Box margin={{ right: 'small' }} pad="small">
-                  <Icon
-                    color={info.download_project.icon.color}
-                    size={info.download_project.icon.size}
-                    name={info.download_project.icon.name}
-                  />
-                </Box>
-              )}
-              {info.download_project.text && (
-                <Paragraph>
-                  {info.download_project.text} <br />
-                  {info.download_project.link && (
-                    <Link href={info.download_project.link.url}>
-                      {info.download_project.link.label}
-                    </Link>
-                  )}
-                </Paragraph>
-              )}
-            </Box>
-          </Box>
+        {!isProjectID(resource.scpca_id) && info && info.warning_text && (
+          <WarningText iconSize="24px" text={info.warning_text.text}>
+            <Text>TEMP: Download Project</Text>
+          </WarningText>
         )}
 
         <Text>Size: {formatBytes(computedFile.size_in_bytes)}</Text>

@@ -9,7 +9,10 @@ import { formatBytes } from 'helpers/formatBytes'
 import { capitalize } from 'helpers/capitalize'
 import { useResponsive } from 'hooks/useResponsive'
 import { accumulateValue } from 'helpers/accumulateValue'
+import { config } from 'config'
+import { countMultiplexedSamples } from 'helpers/countMultiplexedSamples'
 import { InfoText } from './InfoText'
+import { WarningText } from './WarningText'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
@@ -82,6 +85,17 @@ export const ProjectHeader = ({ project, linked = false }) => {
               Number(project.downloadable_sample_count)
             } more samples will be made available soon`}
           />
+          {project.has_multiplexed_data && (
+            <WarningText
+              lineBreak={false}
+              text={`${countMultiplexedSamples(
+                project.samples
+              )} samples are multiplexed.`}
+              link={config.links.what_downloading_mulitplexed_sample}
+              linkLable="Learn more"
+              iconMargin={[0, 0, 0, 0]}
+            />
+          )}
         </Box>
       )}
     </Box>

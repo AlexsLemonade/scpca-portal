@@ -3,6 +3,7 @@ import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
+import { WarningText } from 'components/WarningText'
 import { formatBytes } from 'helpers/formatBytes'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
@@ -46,9 +47,11 @@ export const DownloadStarted = ({
         }}
       >
         <Box>
-          <Heading level="3" size="small">
-            {header}
-          </Heading>
+          {resource.computed_files.length > 1 && (
+            <Heading level="3" size="small">
+              {header}
+            </Heading>
+          )}
           <Text>{startedText}</Text>
           <Box
             direction="row"
@@ -58,31 +61,12 @@ export const DownloadStarted = ({
             <Text weight="bold">{idText}</Text>
             <Text weight="bold">Size: {formatBytes(size)}</Text>
           </Box>
-          {isProjectID(resource.scpca_id) && info && info.learn_more && (
-            <Box margin={{ top: 'small', bottom: 'medium' }}>
-              <Box align="center" direction="row">
-                {info.learn_more.icon && (
-                  <Box margin={{ right: 'small' }} pad="small">
-                    <Icon
-                      color={info.learn_more.icon.color}
-                      size={info.learn_more.icon.size}
-                      name={info.learn_more.icon.name}
-                    />
-                  </Box>
-                )}
-                {info.learn_more.text && (
-                  <Paragraph>
-                    {info.learn_more.text} <br />
-                    {info.learn_more.link && (
-                      <Link
-                        label={info.learn_more.label}
-                        href={info.learn_more.link}
-                      />
-                    )}
-                  </Paragraph>
-                )}
-              </Box>
-            </Box>
+          {isProjectID(resource.scpca_id) && info && info.warning_text && (
+            <WarningText
+              link={info.warning_text.link.url}
+              linkLable={info.warning_text.link.label}
+              text={info.warning_text.text}
+            />
           )}
           <Text>
             {' '}
