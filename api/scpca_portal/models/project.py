@@ -732,7 +732,9 @@ class Project(TimestampedModel):
 
                 multiplexed_library_path_mapping[library_id] = multiplexed_sample_dir
                 multiplexed_libraries_metadata.append(multiplexed_json)
-                multiplexed_sample_demux_cell_counter.update(multiplexed_json["sample_cell_estimates"])
+                multiplexed_sample_demux_cell_counter.update(
+                    multiplexed_json["sample_cell_estimates"]
+                )
 
         combined_single_cell_metadata = self.combine_single_cell_metadata(
             samples_metadata, single_cell_libraries_metadata, scpca_sample_ids
