@@ -209,7 +209,10 @@ class TestLoadData(TestCase):
         self.assertEqual(set(project_zip.namelist()), expected_filenames)
 
         sample = project.samples.first()
+        self.assertIsNone(sample.sample_cell_count_estimate)
+        self.assertEqual(sample.demux_cell_count_estimate, 2841)
         self.assertTrue(sample.has_multiplexed_data)
+
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_multiplexed_computed_file_name
         )
@@ -307,12 +310,13 @@ class TestLoadData(TestCase):
         self.assertEqual(len(project_zip.namelist()), 5)
 
         sample = project.samples.first()
-        self.assertGreater(sample.cell_count, 0)
         self.assertEqual(len(sample.computed_files), 2)
+        self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
         self.assertFalse(project.has_multiplexed_data)
         self.assertTrue(sample.has_spatial_data)
+        self.assertEqual(sample.sample_cell_count_estimate, 23751)
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -397,12 +401,13 @@ class TestLoadData(TestCase):
         self.assertEqual(len(project_zip.namelist()), 19)
 
         sample = project.samples.first()
-        self.assertGreater(sample.cell_count, 0)
         self.assertEqual(len(sample.computed_files), 2)
+        self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
         self.assertFalse(sample.has_multiplexed_data)
         self.assertTrue(sample.has_spatial_data)
+        self.assertEqual(sample.sample_cell_count_estimate, 23751)
         self.assertIsNotNone(sample.spatial_computed_file)
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(
