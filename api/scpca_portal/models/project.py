@@ -123,9 +123,10 @@ class Project(TimestampedModel):
     def output_multiplexed_metadata_ignored_fields(self):
         return {
             "injected": (
-                "cell_count",
+                "demux_cell_count_estimate",
                 "has_cite_seq_data",
                 "has_spatial_data",
+                "sample_cell_count_estimate",
                 "seq_units",
                 "technologies",
             ),
@@ -158,7 +159,7 @@ class Project(TimestampedModel):
             "subdiagnosis",
             "seq_unit",
             "technology",
-            "cell_count",
+            "sample_cell_count_estimate",
             "scpca_project_id",
             "pi_name",
             "project_title",
@@ -225,10 +226,10 @@ class Project(TimestampedModel):
     def output_spatial_metadata_ignored_fields(self):
         return {
             "injected": (
-                "cell_count",
                 "has_bulk_rna_seq",
                 "has_cite_seq_data",
                 "has_spatial_data",
+                "sample_cell_count_estimate",
                 "seq_units",
                 "technologies",
             ),
@@ -241,7 +242,6 @@ class Project(TimestampedModel):
             ),
             "single_cell": (
                 "alevin_fry_version",
-                "cell_count",
                 "filtered_cell_count",
                 "filtering_method",
                 "has_citeseq",
@@ -673,7 +673,7 @@ class Project(TimestampedModel):
 
             has_cite_seq_data = False
             has_spatial_data = False
-            sample_cell_count = 0
+            sample_cell_count_estimate = 0
             sample_seq_units = set()
             sample_technologies = set()
             for filename in os.listdir(sample_dir):
@@ -688,7 +688,7 @@ class Project(TimestampedModel):
                     sample_json["scpca_sample_id"] = sample_json.pop("sample_id")
                     single_cell_libraries_metadata.append(sample_json)
 
-                    sample_cell_count += sample_json["filtered_cell_count"]
+                    sample_cell_count_estimate += sample_json["filtered_cell_count"]
                     sample_seq_units.add(sample_json["seq_unit"].strip())
                     sample_technologies.add(sample_json["technology"].strip())
 
@@ -708,16 +708,16 @@ class Project(TimestampedModel):
                     sample_seq_units.add(spatial_json["seq_unit"].strip())
                     sample_technologies.add(spatial_json["technology"].strip())
 
-            sample_metadata["cell_count"] = sample_cell_count
             sample_metadata["has_bulk_rna_seq"] = scpca_sample_id in bulk_rna_seq_sample_ids
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
             sample_metadata["has_spatial_data"] = has_spatial_data
+            sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
             sample_metadata["seq_units"] = ", ".join(sample_seq_units)
             sample_metadata["technologies"] = ", ".join(sample_technologies)
 
         multiplexed_libraries_metadata = list()
+        multiplexed_sample_demux_cell_counter = Counter()
         multiplexed_library_path_mapping = dict()
-        multiplexed_sample_mapping = dict()
         for multiplexed_sample_dir in Path(self.input_data_dir).rglob("*,*"):
             for filename in os.listdir(multiplexed_sample_dir):
                 if not filename.endswith("_metadata.json"):
@@ -726,13 +726,15 @@ class Project(TimestampedModel):
                 with open(os.path.join(multiplexed_sample_dir, filename)) as multiplexed_json_file:
                     multiplexed_json = json.load(multiplexed_json_file)
 
-                multiplexed_json["scpca_library_id"] = multiplexed_json.pop("library_id")
+                library_id = multiplexed_json.pop("library_id")
+                multiplexed_json["scpca_library_id"] = library_id
                 multiplexed_json["scpca_sample_id"] = multiplexed_json.pop("sample_id")
 
-                multiplexed_library_path_mapping[
-                    multiplexed_json["scpca_library_id"]
-                ] = multiplexed_sample_dir
+                multiplexed_library_path_mapping[library_id] = multiplexed_sample_dir
                 multiplexed_libraries_metadata.append(multiplexed_json)
+                multiplexed_sample_demux_cell_counter.update(
+                    multiplexed_json["sample_cell_estimates"]
+                )
 
         combined_single_cell_metadata = self.combine_single_cell_metadata(
             samples_metadata, single_cell_libraries_metadata, scpca_sample_ids
@@ -760,10 +762,15 @@ class Project(TimestampedModel):
             if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
                 continue
 
-            sample_metadata["multiplexed_with"] = sorted(
-                multiplexed_sample_mapping.get(scpca_sample_id, [])
-            )
+            multiplexed_with = sorted(multiplexed_sample_mapping.get(scpca_sample_id, []))
+
+            sample_metadata[
+                "demux_cell_count_estimate"
+            ] = multiplexed_sample_demux_cell_counter.get(scpca_sample_id)
+            sample_metadata["multiplexed_with"] = multiplexed_with
+
             sample = Sample.create_from_dict(sample_metadata, self)
+
             # Skip computed files creation if sample directory does not exist.
             if scpca_sample_id not in non_downloadable_sample_ids:
                 libraries = [
