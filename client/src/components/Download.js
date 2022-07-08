@@ -14,7 +14,7 @@ import { formatDate } from 'helpers/formatDate'
 import { isProjectID } from 'helpers/isProjectID'
 
 // Button and Modal to show when downloading
-export const Download = ({ icon, resource }) => {
+export const Download = ({ icon, resource, iconLabel }) => {
   const { token, email, surveyListForm } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
   const [publicComputedFile, setPublicComputedFile] = useState(() =>
@@ -74,7 +74,10 @@ export const Download = ({ icon, resource }) => {
   return (
     <>
       {icon ? (
-        <Anchor icon={icon} onClick={handleClick} />
+        <>
+          <Anchor icon={icon} onClick={handleClick} />
+          {iconLabel && <Text>{iconLabel}</Text>}
+        </>
       ) : (
         <Button
           aria-label={label}
