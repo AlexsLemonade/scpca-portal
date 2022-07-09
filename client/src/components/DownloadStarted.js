@@ -119,8 +119,14 @@ export const DownloadStarted = ({
           )}
           {!isProjectID(resource.scpca_id) && info && info.warning_text && (
             <WarningText iconSize="24px" text={info.warning_text.text}>
-              <Box onClick={handleDownloadProject}>
-                <Text>Download Project!</Text>
+              <Box
+                onClick={handleDownloadProject}
+                align='="center'
+                direction="row"
+              >
+                <Icon name="Download" />
+                &nbsp;&nbsp;
+                <Text color="brand">Download Project</Text>
               </Box>
             </WarningText>
           )}

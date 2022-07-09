@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
+import { Icon } from 'components/Icon'
 import { areComputedFiles } from 'helpers/areComputedFiles'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
@@ -93,8 +94,14 @@ export const DownloadOption = ({
         )}
         {!isProjectID(resource.scpca_id) && info && info.warning_text && (
           <WarningText iconSize="24px" text={info.warning_text.text}>
-            <Box onClick={handleDownloadProject}>
-              <Text>Download Project</Text>
+            <Box
+              onClick={handleDownloadProject}
+              align='="center'
+              direction="row"
+            >
+              <Icon name="Download" />
+              &nbsp;&nbsp;
+              <Text color="brand">Download Project</Text>
             </Box>
           </WarningText>
         )}
