@@ -3,7 +3,11 @@ import { Grid, Box } from 'grommet'
 import { DownloadOption } from 'components/DownloadOption'
 import { sortArrayByKey } from 'helpers/sortArrayByKey'
 
-export const DownloadOptions = ({ resource, handleSelectFile }) => {
+export const DownloadOptions = ({
+  resource,
+  handleSelectFile,
+  handleDownloadProject
+}) => {
   const { computed_files: computedFiles } = resource
   const sortedComputedFiles = sortArrayByKey('type', computedFiles, [
     'PROJECT_ZIP',
@@ -34,6 +38,7 @@ export const DownloadOptions = ({ resource, handleSelectFile }) => {
               resource={resource}
               computedFile={computedFile}
               handleSelectFile={handleSelectFile}
+              handleDownloadProject={handleDownloadProject}
             />
           </Box>
         )

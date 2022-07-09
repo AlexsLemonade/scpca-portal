@@ -11,7 +11,8 @@ import { WarningText } from 'components/WarningText'
 export const DownloadOption = ({
   resource,
   computedFile,
-  handleSelectFile
+  handleSelectFile,
+  handleDownloadProject
 }) => {
   const { header, items, info } = getDownloadOptionDetails(
     resource,
@@ -92,7 +93,9 @@ export const DownloadOption = ({
         )}
         {!isProjectID(resource.scpca_id) && info && info.warning_text && (
           <WarningText iconSize="24px" text={info.warning_text.text}>
-            <Text>TEMP: Download Project</Text>
+            <Box onClick={handleDownloadProject}>
+              <Text>Download Project</Text>
+            </Box>
           </WarningText>
         )}
 

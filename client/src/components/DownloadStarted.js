@@ -16,7 +16,8 @@ import DownloadSVG from '../images/download-folder.svg'
 export const DownloadStarted = ({
   resource,
   computedFile,
-  handleSelectFile
+  handleSelectFile,
+  handleDownloadProject
 }) => {
   // open the file in a new tab
   const { size: responsiveSize } = useResponsive()
@@ -118,7 +119,9 @@ export const DownloadStarted = ({
           )}
           {!isProjectID(resource.scpca_id) && info && info.warning_text && (
             <WarningText iconSize="24px" text={info.warning_text.text}>
-              <Text>TEMP: Download Project</Text>
+              <Box onClick={handleDownloadProject}>
+                <Text>Download Project!</Text>
+              </Box>
             </WarningText>
           )}
           {info && info.download_project && (

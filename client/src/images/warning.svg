@@ -1,22 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
-    <title>icons/warning</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M0,24 L24,24 L12,0 L0,24 Z M13.2857143,20.3076923 L10.7142857,20.3076923 L10.7142857,17.5384615 L13.2857143,17.5384615 L13.2857143,20.3076923 Z M13.2857143,15.6923077 L10.7142857,15.6923077 L10.7142857,10.1538462 L13.2857143,10.1538462 L13.2857143,15.6923077 Z" id="path-1"></path>
-    </defs>
-    <g id="Guidelines" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="icons-badges-variations" transform="translate(-623.000000, -234.000000)">
-            <g id="icons/warning" transform="translate(623.000000, 234.000000)">
-                <mask id="mask-2" fill="white">
-                    <use xlink:href="#path-1"></use>
-                </mask>
-                <use id="warning" fill="#000000" fill-rule="nonzero" xlink:href="#path-1"></use>
-                <g id="color/black-tint/0-000000" mask="url(#mask-2)" fill="#000000" fill-rule="evenodd">
-                    <rect id="gray-70-4A4A4A" x="0" y="0" width="24" height="24"></rect>
-                </g>
-            </g>
-        </g>
-    </g>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M24 24L12 0L0 24H24ZM10.7143 20.3077V17.5385H13.2857V20.3077H10.7143ZM10.7143 15.6923H13.2857V10.1538H10.7143V15.6923Z" fill="black"/>
+<mask id="mask0_383_15599" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M24 24L12 0L0 24H24ZM10.7143 20.3077V17.5385H13.2857V20.3077H10.7143ZM10.7143 15.6923H13.2857V10.1538H10.7143V15.6923Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_383_15599)">
+<rect width="24" height="24" fill="#FFDD00"/>
+</g>
+<path d="M10.5 10H13.5V16H10.5V10Z" fill="black"/>
+<path d="M10.5 17.5H13.5V20.5H10.5V17.5Z" fill="black"/>
 </svg>

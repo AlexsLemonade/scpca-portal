@@ -15,7 +15,7 @@ import { formatDate } from 'helpers/formatDate'
 import { isProjectID } from 'helpers/isProjectID'
 
 // Button and Modal to show when downloading
-export const Download = ({ icon, resource, iconLabel }) => {
+export const Download = ({ icon, resource }) => {
   const { token, email, surveyListForm } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
   const mutltipleComputedFiles = areComputedFiles(resource.computed_files)
@@ -47,6 +47,10 @@ export const Download = ({ icon, resource, iconLabel }) => {
     setPublicComputedFile(file)
   }
 
+  const handleDownloadProject = () => {
+    console.log('download project')
+  }
+
   useEffect(() => {
     if (!showing) {
       setDownload(false)
@@ -76,7 +80,7 @@ export const Download = ({ icon, resource, iconLabel }) => {
   return (
     <span>
       {icon ? (
-        <Anchor icon={icon} onClick={handleClick} label={iconLabel} />
+        <Anchor icon={icon} onClick={handleClick} />
       ) : (
         <Button
           aria-label={label}
@@ -107,6 +111,7 @@ export const Download = ({ icon, resource, iconLabel }) => {
               resource={resource}
               computedFile={download}
               handleSelectFile={handleSelectFile}
+              handleDownloadProject={handleDownloadProject}
             />
           ) : !token && publicComputedFile ? (
             <DownloadToken />
@@ -114,6 +119,7 @@ export const Download = ({ icon, resource, iconLabel }) => {
             <DownloadOptions
               resource={resource}
               handleSelectFile={handleSelectFile}
+              handleDownloadProject={handleDownloadProject}
             />
           ) : null}
         </ModalBody>
