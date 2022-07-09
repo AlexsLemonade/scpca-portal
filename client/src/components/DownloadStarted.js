@@ -4,6 +4,7 @@ import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
 import { WarningText } from 'components/WarningText'
+import { areComputedFiles } from 'helpers/areComputedFiles'
 import { formatBytes } from 'helpers/formatBytes'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
@@ -32,6 +33,14 @@ export const DownloadStarted = ({
     resource,
     computedFile
   )
+  const mutltipleComputedFiles = areComputedFiles(resource.computed_files)
+  const borderStyle = mutltipleComputedFiles
+    ? {
+        side: 'bottom',
+        color: 'border-black',
+        size: 'small'
+      }
+    : ''
 
   return (
     <span>
@@ -40,14 +49,10 @@ export const DownloadStarted = ({
         align="center"
         gap="large"
         pad={{ bottom: 'medium' }}
-        border={{
-          side: 'bottom',
-          color: 'border-black',
-          size: 'small'
-        }}
+        border={borderStyle}
       >
         <Box>
-          {resource.computed_files.length > 1 && (
+          {mutltipleComputedFiles && (
             <Heading level="3" size="small">
               {header}
             </Heading>
@@ -87,25 +92,9 @@ export const DownloadStarted = ({
               ))}
             </ul>
           </Box>
-          <Box pad={{ bottom: 'medium' }}>
-            <Text>
-              Learn more about what you can expect in your
-              <br />
-              download file{' '}
-              <Link
-                href={
-                  isProject
-                    ? config.links.what_downloading_project
-                    : config.links.what_downloading_sample
-                }
-                label="here"
-              />
-              .
-            </Text>
-          </Box>
-          {info && info.sample_list && (
+          {info && info.message.multiplexed_with && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
-              <Text>{info.sample_list.text}</Text>
+              <Text>{info.message.multiplexed_with.text}</Text>
               {resource.additional_metadata.multiplexed_with && (
                 <ul style={{ margin: '8px 0 4px 16px' }}>
                   {resource.additional_metadata.multiplexed_with.map((item) => (
@@ -117,32 +106,20 @@ export const DownloadStarted = ({
               )}
             </Box>
           )}
-          {!isProjectID(resource.scpca_id) && info && info.learn_more && (
-            <Box margin={{ bottom: 'medium' }}>
-              <Box align="center" direction="row">
-                {info.learn_more.icon && (
-                  <Box margin={{ right: 'small' }} pad="small">
-                    <Icon
-                      color={info.learn_more.icon.color}
-                      size={info.learn_more.icon.size}
-                      name={info.learn_more.icon.name}
-                    />
-                  </Box>
-                )}
-                {info.learn_more.text && (
-                  <Paragraph>
-                    {info.learn_more.text}{' '}
-                    {info.learn_more.link && (
-                      <Link
-                        label={info.learn_more.label}
-                        href={info.learn_more.link}
-                      />
-                    )}
-                    .
-                  </Paragraph>
-                )}
-              </Box>
-            </Box>
+          {info && info.message.learn_more && (
+            <Paragraph margin={{ bottom: 'small' }}>
+              {info.message.learn_more.text}
+              <Link
+                label={info.message.learn_more.label}
+                href={info.message.learn_more.url}
+              />
+              .
+            </Paragraph>
+          )}
+          {!isProjectID(resource.scpca_id) && info && info.warning_text && (
+            <WarningText iconSize="24px" text={info.warning_text.text}>
+              <Text>TEMP: Download Project</Text>
+            </WarningText>
           )}
           {info && info.download_project && (
             <Box margin={{ bottom: 'medium' }}>
@@ -167,6 +144,24 @@ export const DownloadStarted = ({
                   </Paragraph>
                 )}
               </Box>
+            </Box>
+          )}
+          {resource.has_multiplexed_data && (
+            <Box pad={{ bottom: 'medium' }}>
+              <Text>
+                Learn more about what you can expect in your
+                <br />
+                download file{' '}
+                <Link
+                  href={
+                    isProject
+                      ? config.links.what_downloading_project
+                      : config.links.what_downloading_sample
+                  }
+                  label="here"
+                />
+                .
+              </Text>
             </Box>
           )}
           <Box>

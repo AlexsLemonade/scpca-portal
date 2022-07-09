@@ -136,7 +136,6 @@ export const ProjectSamplesTable = ({
         setLoaded(true)
       }
     }
-
     if (!samples && !loaded) asyncFetch()
     if (samples && !loaded) setLoaded(true)
   }, [samples, loaded])

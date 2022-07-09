@@ -4,6 +4,7 @@ import { Pill } from 'components/Pill'
 import { Badge } from 'components/Badge'
 import { Link } from 'components/Link'
 import { Download } from 'components/Download'
+import { areComputedFiles } from 'helpers/areComputedFiles'
 import { getReadable } from 'helpers/getReadable'
 import { formatBytes } from 'helpers/formatBytes'
 import { capitalize } from 'helpers/capitalize'
@@ -16,6 +17,7 @@ import { WarningText } from './WarningText'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
+  const mutltipleComputedFiles = areComputedFiles(project.computed_files)
 
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
@@ -45,7 +47,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none'), bottom: 'medium' }}
         >
           <Box align="center" gap="small">
-            {project.computed_files.length > 0 && (
+            {mutltipleComputedFiles && (
               <>
                 <Download resource={project} />
                 <Text>

@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
+import { areComputedFiles } from 'helpers/areComputedFiles'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 import { isProjectID } from 'helpers/isProjectID'
@@ -19,6 +20,7 @@ export const DownloadOption = ({
   const label = isProjectID(resource.scpca_id)
     ? 'Download Project'
     : 'Download Sample'
+  const mutltipleComputedFiles = areComputedFiles(resource.computed_files)
 
   return (
     <Grid
@@ -101,8 +103,8 @@ export const DownloadOption = ({
           <Button
             primary
             alignSelf="start"
-            aria-label={resource.computed_files.length > 1 ? header : label}
-            label={resource.computed_files.length > 1 ? header : label}
+            aria-label={mutltipleComputedFiles ? header : label}
+            label={mutltipleComputedFiles ? header : label}
             target="_blank"
             onClick={() => handleSelectFile(computedFile)}
           />

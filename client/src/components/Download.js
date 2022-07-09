@@ -10,6 +10,7 @@ import { DownloadToken } from 'components/DownloadToken'
 import { useAnalytics } from 'hooks/useAnalytics'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
+import { areComputedFiles } from 'helpers/areComputedFiles'
 import { formatDate } from 'helpers/formatDate'
 import { isProjectID } from 'helpers/isProjectID'
 
@@ -17,8 +18,9 @@ import { isProjectID } from 'helpers/isProjectID'
 export const Download = ({ icon, resource, iconLabel }) => {
   const { token, email, surveyListForm } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
+  const mutltipleComputedFiles = areComputedFiles(resource.computed_files)
   const [publicComputedFile, setPublicComputedFile] = useState(() =>
-    resource.computed_files.length === 1 ? resource.computed_files[0] : null
+    !mutltipleComputedFiles ? resource.computed_files[0] : null
   )
   const [showing, setShowing] = useState(false)
   const [download, setDownload] = useState(false)
@@ -74,10 +76,7 @@ export const Download = ({ icon, resource, iconLabel }) => {
   return (
     <span>
       {icon ? (
-        <span>
-          <Anchor icon={icon} onClick={handleClick} />
-          {iconLabel && <Text>{iconLabel}</Text>}
-        </span>
+        <Anchor icon={icon} onClick={handleClick} label={iconLabel} />
       ) : (
         <Button
           aria-label={label}
@@ -89,7 +88,7 @@ export const Download = ({ icon, resource, iconLabel }) => {
         />
       )}
       <Modal title={label} showing={showing} setShowing={setShowing}>
-        {publicComputedFile && resource.computed_files.length > 1 && (
+        {publicComputedFile && areComputedFiles(resource.computed_files) && (
           <ModalHeader>
             <Text
               color="brand"
