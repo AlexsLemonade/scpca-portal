@@ -34,6 +34,7 @@ export const ProjectSamplesTable = ({
             <Download
               icon={<DownloadIcon color="brand" />}
               resource={row.original}
+              projectResource={project}
             />
             <Text>
               {formatBytes(

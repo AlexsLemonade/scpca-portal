@@ -15,7 +15,7 @@ import { formatDate } from 'helpers/formatDate'
 import { isProjectID } from 'helpers/isProjectID'
 
 // Button and Modal to show when downloading
-export const Download = ({ icon, resource }) => {
+export const Download = ({ icon, resource, projectResource }) => {
   const { token, email, surveyListForm } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
   const mutltipleComputedFiles = areComputedFiles(resource.computed_files)
@@ -48,7 +48,8 @@ export const Download = ({ icon, resource }) => {
   }
 
   const handleDownloadProject = () => {
-    console.log('download project')
+    setPublicComputedFile(projectResource.computed_files[0])
+    setDownload(false)
   }
 
   useEffect(() => {
