@@ -4,9 +4,8 @@ import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
 import { WarningText } from 'components/WarningText'
-import { areComputedFiles } from 'helpers/areComputedFiles'
+import { hasMultiple } from 'helpers/hasMultiple'
 import { formatBytes } from 'helpers/formatBytes'
-import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 import { isProjectID } from 'helpers/isProjectID'
@@ -34,7 +33,7 @@ export const DownloadStarted = ({
     resource,
     computedFile
   )
-  const mutltipleComputedFiles = areComputedFiles(resource.computed_files)
+  const mutltipleComputedFiles = hasMultiple(resource.computed_files)
   const borderStyle = mutltipleComputedFiles
     ? {
         side: 'bottom',
@@ -93,9 +92,9 @@ export const DownloadStarted = ({
               ))}
             </ul>
           </Box>
-          {info && info.message.multiplexed_with && (
+          {info && info.texts.multiplexed_with && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
-              <Text>{info.message.multiplexed_with.text}</Text>
+              <Text>{info.texts.multiplexed_with.text}</Text>
               {resource.additional_metadata.multiplexed_with && (
                 <ul style={{ margin: '8px 0 4px 16px' }}>
                   {resource.additional_metadata.multiplexed_with.map((item) => (
@@ -107,17 +106,13 @@ export const DownloadStarted = ({
               )}
             </Box>
           )}
-          {info && info.message.learn_more && (
+          {info && info.learn_more && (
             <Paragraph margin={{ bottom: 'small' }}>
-              {info.message.learn_more.text}
-              <Link
-                label={info.message.learn_more.label}
-                href={info.message.learn_more.url}
-              />
-              .
+              {info.learn_more.text}
+              <Link label={info.learn_more.label} href={info.learn_more.url} />.
             </Paragraph>
           )}
-          {!isProjectID(resource.scpca_id) && info && info.warning_text && (
+          {handleDownloadProject && (
             <WarningText iconSize="24px" text={info.warning_text.text}>
               <Box
                 onClick={handleDownloadProject}
@@ -155,24 +150,7 @@ export const DownloadStarted = ({
               </Box>
             </Box>
           )}
-          {resource.has_multiplexed_data && (
-            <Box pad={{ bottom: 'medium' }}>
-              <Text>
-                Learn more about what you can expect in your
-                <br />
-                download file{' '}
-                <Link
-                  href={
-                    isProject
-                      ? config.links.what_downloading_project
-                      : config.links.what_downloading_sample
-                  }
-                  label="here"
-                />
-                .
-              </Text>
-            </Box>
-          )}
+
           <Box>
             {responsiveSize !== 'small' && (
               <Text italic color="black-tint-40">

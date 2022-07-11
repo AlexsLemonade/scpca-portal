@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Box, Text } from 'grommet'
 import { Table } from 'components/Table'
 import { formatBytes } from 'helpers/formatBytes'
@@ -24,6 +24,19 @@ export const ProjectSamplesTable = ({
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
       : false
+
+  // ! Temp - remove once the API is ready
+  useEffect(() => {
+    if (project.scpca_id === 'SCPCP000009') {
+      if (samples) {
+        samples.forEach((s) => {
+          // eslint-disable-next-line no-param-reassign
+          s.has_multiplexed_data = true
+        })
+      }
+    }
+  }, [samples])
+
   const columns = [
     {
       Header: 'Download',
@@ -34,7 +47,6 @@ export const ProjectSamplesTable = ({
             <Download
               icon={<DownloadIcon color="brand" />}
               resource={row.original}
-              projectResource={project}
             />
             <Text>
               {formatBytes(
@@ -56,7 +68,11 @@ export const ProjectSamplesTable = ({
         <Box>
           <Text>{id}</Text>
           {multiplexed && (
-            <Pill label={getReadable('has_multiplexed_data')} bullet={false} />
+            <Pill
+              textSize="small"
+              label={getReadable('has_multiplexed_data')}
+              bullet={false}
+            />
           )}
         </Box>
       ),
@@ -110,7 +126,7 @@ export const ProjectSamplesTable = ({
       ),
       accessor: 'demux_cell_count_estimate',
       Cell: ({ demux_cell_count_estimate: count }) => count || 'N/A',
-      isVisible: project.has_multiplexed_data || true
+      isVisible: project.has_multiplexed_data
     },
     {
       Header: 'Additional Metadata Fields',

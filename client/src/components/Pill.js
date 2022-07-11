@@ -7,6 +7,7 @@ export const Pill = ({
   background = 'alexs-lemonade-tint-75',
   color = 'brand',
   textColor = 'text',
+  textSize = 'medium',
   label = '',
   bullet = true
 }) => {
@@ -35,7 +36,7 @@ export const Pill = ({
 
       <Paragraph
         color={textColor}
-        size="medium"
+        size={textSize}
         responsive={false}
         alignSelf="center"
         margin="none"
