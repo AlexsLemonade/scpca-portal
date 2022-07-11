@@ -1,23 +1,15 @@
 import React from 'react'
-import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
+import { Box, Grid, Heading, Text } from 'grommet'
 import { Button } from 'components/Button'
-import { Link } from 'components/Link'
-import { Icon } from 'components/Icon'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
-import { isProjectID } from 'helpers/isProjectID'
-import { WarningText } from 'components/WarningText'
 
 export const DownloadOption = ({
   resource,
   computedFile,
-  handleSelectFile,
-  handleDownloadProject
+  handleSelectFile
 }) => {
-  const { header, items, info } = getDownloadOptionDetails(
-    resource,
-    computedFile
-  )
+  const { header, items } = getDownloadOptionDetails(resource, computedFile)
 
   return (
     <Grid
@@ -37,20 +29,6 @@ export const DownloadOption = ({
         </Heading>
       </Box>
       <Box gridArea="body">
-        {isProjectID(resource.scpca_id) && info && info.warning_text && (
-          <WarningText
-            link={info.warning_text.link.url}
-            linkLable={info.warning_text.link.label}
-            iconSize="24px"
-            text={info.warning_text.text}
-          />
-        )}
-        <Text>
-          {info && info.message.text_only && (
-            <span>{info.message.text_only}</span>
-          )}{' '}
-          The download consists of the following items:
-        </Text>
         <Box pad="small">
           <ul
             style={{
@@ -59,48 +37,10 @@ export const DownloadOption = ({
             }}
           >
             {items.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item}>{item} - test</li>
             ))}
           </ul>
         </Box>
-        {info && info.message.multiplexed_with && (
-          <Box margin={{ top: 'small', bottom: 'small' }}>
-            <Text>{info.message.multiplexed_with.text}</Text>
-            {resource.additional_metadata.multiplexed_with && (
-              <ul style={{ margin: '8px 0 4px 16px' }}>
-                {resource.additional_metadata.multiplexed_with.map((item) => (
-                  <li key={item} style={{ listStyle: 'inside square' }}>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Box>
-        )}
-        {info && info.message.learn_more && (
-          <Paragraph margin={{ bottom: 'small' }}>
-            {info.message.learn_more.text}
-            <Link
-              label={info.message.learn_more.label}
-              href={info.message.learn_more.url}
-            />
-            .
-          </Paragraph>
-        )}
-        {!isProjectID(resource.scpca_id) && info && info.warning_text && (
-          <WarningText iconSize="24px" text={info.warning_text.text}>
-            <Box
-              onClick={handleDownloadProject}
-              align='="center'
-              direction="row"
-            >
-              <Icon name="Download" />
-              &nbsp;&nbsp;
-              <Text color="brand">Download Project</Text>
-            </Box>
-          </WarningText>
-        )}
-
         <Text>Size: {formatBytes(computedFile.size_in_bytes)}</Text>
       </Box>
       <Box gridArea="footer" margin={{ top: '16px' }}>

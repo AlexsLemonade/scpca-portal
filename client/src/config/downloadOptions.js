@@ -5,7 +5,7 @@ export const downloadOptions = {
     header: 'Download Single-cell Data',
     data: 'Single-cell data',
     included: {
-      has_bulk_rna_data: 'Bulk RNA-seq data',
+      has_bulk_rna_seq: 'Bulk RNA-seq data',
       has_cite_seq_data: 'CITE-seq data'
     },
     metadata: 'Project and Sample Metadata',
@@ -36,7 +36,7 @@ export const downloadOptions = {
     header: 'Download Single-cell Multiplexed Data',
     data: 'Single-cell data',
     included: {
-      has_bulk_rna_data: 'Bulk RNA-seq data',
+      has_bulk_rna_seq: 'Bulk RNA-seq data',
       has_multiplexed_data: 'Single-cell multiplexed data'
     },
     metadata: 'Project and Sample Metadata',
@@ -55,7 +55,7 @@ export const downloadOptions = {
     header: 'Download Single-cell Data',
     data: 'Single-cell data',
     included: {
-      has_bulk_rna_data: 'Bulk RNA-seq data',
+      has_bulk_rna_seq: 'Bulk RNA-seq data',
       has_cite_seq_data: 'CITE-seq data'
     },
     metadata: 'Project and Sample Metadata',
