@@ -16,13 +16,15 @@ class Sample(TimestampedModel):
 
     additional_metadata = models.JSONField(default=dict)
     age_at_diagnosis = models.TextField(blank=True, null=True)
-    cell_count = models.IntegerField()
+    demux_cell_count_estimate = models.IntegerField(null=True)
     diagnosis = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
     has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
+    has_multiplexed_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     multiplexed_with = ArrayField(models.TextField(), default=list)
+    sample_cell_count_estimate = models.IntegerField(null=True)
     scpca_id = models.TextField(unique=True, null=False)
     seq_units = models.TextField(blank=True, null=True)
     sex = models.TextField(blank=True, null=True)
@@ -44,9 +46,10 @@ class Sample(TimestampedModel):
         # project, so whatever's not on the Sample model is additional.
         sample_columns = (
             "age",
-            "cell_count",
+            "demux_cell_count_estimate",
             "diagnosis",
             "disease_timing",
+            "sample_cell_count_estimate",
             "scpca_library_id",  # Also include this because we don't want it in additional_metadata.
             "scpca_sample_id",
             "seq_units",
@@ -57,17 +60,24 @@ class Sample(TimestampedModel):
             "treatment",
         )
         additional_metadata = {k: v for k, v in data.items() if k not in sample_columns}
+        has_multiplexed_data = bool(data.get("multiplexed_with"))
 
         sample = cls(
             additional_metadata=additional_metadata,
             age_at_diagnosis=data["age"],
-            cell_count=data.get("cell_count", 0),
+            demux_cell_count_estimate=(
+                data.get("demux_cell_count_estimate") if has_multiplexed_data else None
+            ),
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],
             has_bulk_rna_seq=data.get("has_bulk_rna_seq", False),
             has_cite_seq_data=data.get("has_cite_seq_data", False),
+            has_multiplexed_data=has_multiplexed_data,
             has_spatial_data=data.get("has_spatial_data", False),
             multiplexed_with=data.get("multiplexed_with"),
+            sample_cell_count_estimate=(
+                data.get("sample_cell_count_estimate") if not has_multiplexed_data else None
+            ),
             project=project,
             scpca_id=data["scpca_sample_id"],
             seq_units=data.get("seq_units", ""),
@@ -102,6 +112,9 @@ class Sample(TimestampedModel):
 
         if self.has_cite_seq_data:
             modalities.append("CITE-seq")
+
+        if self.has_multiplexed_data:
+            modalities.append("Multiplexed")
 
         if self.has_spatial_data:
             modalities.append("Spatial Transcriptomics")
