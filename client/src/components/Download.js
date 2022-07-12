@@ -13,6 +13,8 @@ import { api } from 'api'
 import { hasMultiple } from 'helpers/hasMultiple'
 import { formatDate } from 'helpers/formatDate'
 import { isProjectID } from 'helpers/isProjectID'
+import { isMultiplexedSample } from 'helpers/isMultiplexedSample'
+import { getProjectID } from 'helpers/getProjectID'
 
 // Button and Modal to show when downloading
 export const Download = ({ icon, resource: initialResource }) => {
@@ -30,10 +32,10 @@ export const Download = ({ icon, resource: initialResource }) => {
     : 'Download Sample'
 
   const handleClick = () => {
-    // // ! Temp - remove once the API is ready
-    // if (resource.scpca_id === 'SCPCP000009') {
-    //   setPublicComputedFile(resource.computed_files[0])
-    // }
+    // ! Temp - remove once the API is ready
+    if (resource.scpca_id === 'SCPCP000009') {
+      setPublicComputedFile(resource.computed_files[0])
+    }
 
     setShowing(true)
     if (download && download.download_url) {
@@ -53,13 +55,14 @@ export const Download = ({ icon, resource: initialResource }) => {
     setPublicComputedFile(file)
   }
 
-  // & for multiplexed
+  // * ONLY multiplexed
   const handleDownloadProject = () => {
     setResource(project)
     setProject(null)
     setDownload(false)
   }
 
+  // * ONLY multiplexed
   useEffect(() => {
     const newPublicComputedFile = mutltipleComputedFiles
       ? null
@@ -67,21 +70,31 @@ export const Download = ({ icon, resource: initialResource }) => {
     setPublicComputedFile(newPublicComputedFile)
 
     const shouldFetchProject =
-      newPublicComputedFile &&
-      newPublicComputedFile.type === 'SAMPLE_MULTIPLEXED_ZIP' // helper for multiplexedSample
+      newPublicComputedFile && isMultiplexedSample(newPublicComputedFile.type)
     // resource.project might be an object so test
     const fetchProject = async () => {
-      const { isOk, response } = await api.projects.get(resource.project) // getProjectID helper
-      if (isOk) setProject(response)
-    }
-    // ! fetch the project if it's sample that matches criteria
-    // if its shown - only show in the view
-    if (shouldFetchProject) fetchProject()
+      const { isOk, response } = await api.projects.get(
+        getProjectID(resource.project)
+      )
+      if (isOk) {
+        // ! Temp - remove once the API is ready
+        if (response && response.scpca_id === 'SCPCP000009') {
+          // eslint-disable-next-line no-param-reassign
+          response.has_multiplexed_data = true
+          // eslint-disable-next-line no-param-reassign
+          response.modalities = 'Multiplexed'
+          // eslint-disable-next-line no-param-reassign
+          response.computed_files = response.computed_files.filter(
+            (c) => c.type !== 'PROJECT_ZIP'
+          )
+        }
 
-    // if (mutltipleComputedFiles) {
-    //   setPublicComputedFile(null) // * set to null only for Spacial
-    // }
-  }, [resource, showing])
+        setProject(response)
+      }
+    }
+
+    if (shouldFetchProject) fetchProject()
+  }, [resource])
 
   useEffect(() => {
     if (!showing) {
