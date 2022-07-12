@@ -151,7 +151,14 @@ export const Download = ({ icon, resource: initialResource }) => {
               resource={resource}
               computedFile={download}
               handleSelectFile={handleSelectFile}
-              handleDownloadProject={project ? handleDownloadProject : null}
+              hasDownloadProject={
+                project
+                  ? {
+                      handleDownloadProject,
+                      projectSize: project.computed_files[0].size_in_bytes
+                    }
+                  : null
+              }
             />
           ) : !token && publicComputedFile ? (
             <DownloadToken />

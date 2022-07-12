@@ -16,7 +16,7 @@ export const DownloadStarted = ({
   resource,
   computedFile,
   handleSelectFile,
-  handleDownloadProject
+  hasDownloadProject
 }) => {
   // open the file in a new tab\
   const isProject = isProjectID(resource.scpca_id)
@@ -25,6 +25,7 @@ export const DownloadStarted = ({
     computedFile
   )
 
+  const { handleDownloadProject, projectSize } = hasDownloadProject
   useEffect(() => {}, [computedFile, resource])
 
   const { size: responsiveSize } = useResponsive()
@@ -126,35 +127,12 @@ export const DownloadStarted = ({
                 <Icon name="Download" />
                 &nbsp;&nbsp;
                 <Text color="brand">Download Project</Text>
+                <Text style={{ fontStyle: 'italic' }}>
+                  &nbsp;&nbsp;(Size: {formatBytes(projectSize)})
+                </Text>
               </Box>
             </WarningText>
           )}
-          {info && info.download_project && (
-            <Box margin={{ bottom: 'medium' }}>
-              <Box align="center" direction="row">
-                {info.download_project.icon && (
-                  <Box margin={{ right: 'small' }} pad="small">
-                    <Icon
-                      color={info.download_project.icon.color}
-                      size={info.download_project.icon.size}
-                      name={info.download_project.icon.name}
-                    />
-                  </Box>
-                )}
-                {info.download_project.text && (
-                  <Paragraph>
-                    {info.download_project.text} <br />
-                    {info.download_project.link && (
-                      <Link href={info.download_project.link.url}>
-                        {info.download_project.link.label}
-                      </Link>
-                    )}
-                  </Paragraph>
-                )}
-              </Box>
-            </Box>
-          )}
-
           <Box>
             {responsiveSize !== 'small' && (
               <Text italic color="black-tint-40">
