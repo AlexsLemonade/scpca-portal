@@ -24,7 +24,6 @@ export const Download = ({ icon, resource: initialResource }) => {
   const { trackDownload } = useAnalytics()
   const mutltipleComputedFiles = hasMultiple(resource.computed_files)
   const [publicComputedFile, setPublicComputedFile] = useState(null)
-
   const [showing, setShowing] = useState(false)
   const [download, setDownload] = useState(false)
   const label = isProjectID(resource.scpca_id)
@@ -58,20 +57,18 @@ export const Download = ({ icon, resource: initialResource }) => {
   // * ONLY multiplexed
   const handleDownloadProject = () => {
     setResource(project)
+    setPublicComputedFile(project.computed_files[0])
     setProject(null)
     setDownload(false)
   }
 
-  // * ONLY multiplexed
   useEffect(() => {
     const newPublicComputedFile = mutltipleComputedFiles
       ? null
       : resource.computed_files[0]
     setPublicComputedFile(newPublicComputedFile)
-
     const shouldFetchProject =
       newPublicComputedFile && isMultiplexedSample(newPublicComputedFile.type)
-    // resource.project might be an object so test
     const fetchProject = async () => {
       const { isOk, response } = await api.projects.get(
         getProjectID(resource.project)
@@ -88,13 +85,12 @@ export const Download = ({ icon, resource: initialResource }) => {
             (c) => c.type !== 'PROJECT_ZIP'
           )
         }
-
         setProject(response)
       }
     }
 
     if (shouldFetchProject) fetchProject()
-  }, [resource])
+  }, [resource, showing])
 
   useEffect(() => {
     if (!showing) {

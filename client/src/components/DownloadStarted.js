@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react'
+import React, { Fragment, useEffect } from 'react'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
@@ -18,10 +18,18 @@ export const DownloadStarted = ({
   handleSelectFile,
   handleDownloadProject
 }) => {
-  // open the file in a new tab
+  // open the file in a new tab\
+  const isProject = isProjectID(resource.scpca_id)
+  const { header, items, info } = getDownloadOptionDetails(
+    resource,
+    computedFile
+  )
+
+  useEffect(() => {}, [computedFile, resource])
+
   const { size: responsiveSize } = useResponsive()
   const { size_in_bytes: size, download_url: href } = computedFile
-  const isProject = isProjectID(resource.scpca_id)
+
   const startedText = isProject
     ? 'Your download for the project should have started.'
     : 'Your download for the sample should have started.'
@@ -29,10 +37,7 @@ export const DownloadStarted = ({
   const otherComputedFiles = resource.computed_files.filter(
     (cf) => cf.id !== computedFile.id
   )
-  const { header, items, info } = getDownloadOptionDetails(
-    resource,
-    computedFile
-  )
+
   const mutltipleComputedFiles = hasMultiple(resource.computed_files)
   const borderStyle = mutltipleComputedFiles
     ? {
@@ -41,7 +46,6 @@ export const DownloadStarted = ({
         size: 'small'
       }
     : ''
-
   return (
     <span>
       <Grid
