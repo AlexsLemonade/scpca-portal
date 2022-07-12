@@ -16,7 +16,7 @@ class BulkModel(models.Model):
         It does not work with many-to-many relationships.
         Returns a list of created objects.
 
-        See https://docs.djangoproject.com/en/4.0/ref/models/querysets/#bulk-create
+        See https://docs.djangoproject.com/en/stable/ref/models/querysets/#bulk-create
         for more details.
         """
 
