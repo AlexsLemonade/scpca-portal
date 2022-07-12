@@ -10,13 +10,13 @@ from botocore.client import Config
 
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.base import BulkModel, TimestampedModel
 
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
-class ComputedFile(TimestampedModel):
+class ComputedFile(BulkModel, TimestampedModel):
     class Meta:
         db_table = "computed_files"
         get_latest_by = "updated_at"
@@ -76,7 +76,9 @@ class ComputedFile(TimestampedModel):
     )
 
     @classmethod
-    def create_project_multiplexed_file(cls, project, sample_to_file_mapping, workflow_versions):
+    def create_project_multiplexed_file(
+        cls, project, sample_to_file_mapping, workflow_versions, commit=True
+    ):
         """Produces a single data file of project's combined multiplexed data."""
 
         computed_file = cls(
@@ -106,12 +108,16 @@ class ComputedFile(TimestampedModel):
                 zip_file.write(project.input_bulk_quant_file_path, "bulk_quant.tsv")
 
         computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
-        computed_file.save()
+
+        if commit:
+            computed_file.save()
 
         return computed_file
 
     @classmethod
-    def create_project_single_cell_file(cls, project, sample_to_file_mapping, workflow_versions):
+    def create_project_single_cell_file(
+        cls, project, sample_to_file_mapping, workflow_versions, commit=True
+    ):
         """Produces a single data file of project's combined single cell data."""
 
         computed_file = cls(
@@ -139,12 +145,16 @@ class ComputedFile(TimestampedModel):
                 zip_file.write(project.input_bulk_quant_file_path, "bulk_quant.tsv")
 
         computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
-        computed_file.save()
+
+        if commit:
+            computed_file.save()
 
         return computed_file
 
     @classmethod
-    def create_project_spatial_file(cls, project, sample_to_file_mapping, workflow_versions):
+    def create_project_spatial_file(
+        cls, project, sample_to_file_mapping, workflow_versions, commit=True
+    ):
         """Produces a single data file of project's combined spatial data."""
 
         computed_file = cls(
@@ -169,13 +179,15 @@ class ComputedFile(TimestampedModel):
                     zip_file.write(file_path, Path(file_path).relative_to(sample_path))
 
         computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
-        computed_file.save()
+
+        if commit:
+            computed_file.save()
 
         return computed_file
 
     @classmethod
     def create_sample_multiplexed_file(
-        cls, sample, libraries, library_path_mapping, workflow_versions
+        cls, sample, libraries, library_path_mapping, workflow_versions, commit=True
     ):
         """
         Produces a single data file of sample's combined multiplexed data.
@@ -211,12 +223,14 @@ class ComputedFile(TimestampedModel):
                     zip_file.write(file_path, file_name)
 
         computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
-        computed_file.save()
+
+        if commit:
+            computed_file.save()
 
         return computed_file, {"_".join(sample.multiplexed_ids): file_name_path_mapping.values()}
 
     @classmethod
-    def create_sample_single_cell_file(cls, sample, libraries, workflow_versions):
+    def create_sample_single_cell_file(cls, sample, libraries, workflow_versions, commit=True):
         """
         Produces a single data file of sample's combined single cell data.
         Returns the data file and file mapping for a sample.
@@ -247,12 +261,14 @@ class ComputedFile(TimestampedModel):
                     zip_file.write(file_path, file_name)
 
         computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
-        computed_file.save()
+
+        if commit:
+            computed_file.save()
 
         return computed_file, {sample.scpca_id: file_paths}
 
     @classmethod
-    def create_sample_spatial_file(cls, sample, libraries, workflow_versions):
+    def create_sample_spatial_file(cls, sample, libraries, workflow_versions, commit=True):
         """
         Produces a single data file of sample's combined spatial data.
         Returns the data file and file mapping for a sample.
@@ -287,7 +303,9 @@ class ComputedFile(TimestampedModel):
                     file_paths.append(f"{Path(library_path, item.relative_to(library_path))}")
 
         computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
-        computed_file.save()
+
+        if commit:
+            computed_file.save()
 
         return computed_file, {sample.scpca_id: file_paths}
 

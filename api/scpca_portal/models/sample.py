@@ -4,11 +4,11 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common
-from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.base import BulkModel, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 
 
-class Sample(TimestampedModel):
+class Sample(BulkModel, TimestampedModel):
     class Meta:
         db_table = "samples"
         get_latest_by = "updated_at"
@@ -41,7 +41,7 @@ class Sample(TimestampedModel):
         return f"Sample {self.scpca_id} of {self.project}"
 
     @classmethod
-    def create_from_dict(cls, data, project):
+    def create_from_dict(cls, data, project, commit=True):
         # First figure out what metadata is additional. This varies project by
         # project, so whatever's not on the Sample model is additional.
         sample_columns = (
@@ -87,7 +87,9 @@ class Sample(TimestampedModel):
             tissue_location=data["tissue_location"],
             treatment=data.get("treatment", ""),
         )
-        sample.save()
+
+        if commit:
+            sample.save()
 
         return sample
 
