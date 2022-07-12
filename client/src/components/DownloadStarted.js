@@ -25,7 +25,6 @@ export const DownloadStarted = ({
     computedFile
   )
 
-  const { handleDownloadProject, projectSize } = hasDownloadProject
   useEffect(() => {}, [computedFile, resource])
 
   const { size: responsiveSize } = useResponsive()
@@ -117,10 +116,10 @@ export const DownloadStarted = ({
               <Link label={info.learn_more.label} href={info.learn_more.url} />.
             </Paragraph>
           )}
-          {handleDownloadProject && (
+          {hasDownloadProject && (
             <WarningText iconSize="24px" text={info.warning_text.text}>
               <Box
-                onClick={handleDownloadProject}
+                onClick={hasDownloadProject.handleToggleFile}
                 align='="center'
                 direction="row"
               >
@@ -128,7 +127,8 @@ export const DownloadStarted = ({
                 &nbsp;&nbsp;
                 <Text color="brand">Download Project</Text>
                 <Text style={{ fontStyle: 'italic' }}>
-                  &nbsp;&nbsp;(Size: {formatBytes(projectSize)})
+                  &nbsp;&nbsp;(Size:{' '}
+                  {formatBytes(hasDownloadProject.projectSize)})
                 </Text>
               </Box>
             </WarningText>

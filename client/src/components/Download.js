@@ -20,6 +20,8 @@ import { getProjectID } from 'helpers/getProjectID'
 export const Download = ({ icon, resource: initialResource }) => {
   const [resource, setResource] = useState(initialResource)
   const [project, setProject] = useState(null)
+  const [initial, setInital] = useState(true)
+  const [toggleFile, setToggleFile] = useState(false)
   const { token, email, surveyListForm } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
   const mutltipleComputedFiles = hasMultiple(resource.computed_files)
@@ -54,15 +56,18 @@ export const Download = ({ icon, resource: initialResource }) => {
     setPublicComputedFile(file)
   }
 
-  // * ONLY multiplexed
-  const handleDownloadProject = () => {
+  const handleToggleFile = () => {
     setResource(project)
     setPublicComputedFile(project.computed_files[0])
     setProject(null)
+    setToggleFile(true)
+    setInital(false)
     setDownload(false)
   }
 
   useEffect(() => {
+    if (initial || (!initial && !toggleFile)) setResource(initialResource)
+
     const newPublicComputedFile = mutltipleComputedFiles
       ? null
       : resource.computed_files[0]
@@ -90,6 +95,7 @@ export const Download = ({ icon, resource: initialResource }) => {
     }
 
     if (shouldFetchProject) fetchProject()
+    setToggleFile(false)
   }, [resource, showing])
 
   useEffect(() => {
@@ -154,7 +160,7 @@ export const Download = ({ icon, resource: initialResource }) => {
               hasDownloadProject={
                 project
                   ? {
-                      handleDownloadProject,
+                      handleToggleFile,
                       projectSize: project.computed_files[0].size_in_bytes
                     }
                   : null
