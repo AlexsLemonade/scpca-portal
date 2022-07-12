@@ -130,11 +130,7 @@ class Project(TimestampedModel):
                 "seq_units",
                 "technologies",
             ),
-            "library": (
-                "demux_samples",
-                "sample_cell_estimates",
-                "scpca_sample_id",
-            ),
+            "library": ("scpca_sample_id",),
             "single_cell": (
                 "alevin_fry_version",
                 "date_processed",
@@ -371,10 +367,13 @@ class Project(TimestampedModel):
                 multiplexed_sample_ids = sorted(multiplexed_sample_mapping[sample_id])
                 multiplexed_sample_ids.insert(0, sample_id)  # Current sample libraries go first.
                 for multiplexed_sample_id in multiplexed_sample_ids:
-                    libraries = (
-                        library
-                        for library in multiplexed_libraries_metadata
-                        if library["scpca_library_id"] in multiplexed_library_mapping[sample_id]
+                    libraries = sorted(
+                        (
+                            library
+                            for library in multiplexed_libraries_metadata
+                            if library["scpca_library_id"] in multiplexed_library_mapping[sample_id]
+                        ),
+                        key=lambda l: l["scpca_library_id"],
                     )
                     for library in libraries:
                         # Exclude fields.
@@ -569,13 +568,15 @@ class Project(TimestampedModel):
         """Creates project computed files based on generated file mappings."""
         computed_files = list()
 
+        # The multiplexed and single cell cases are if/else as we produce
+        # a single computed file for a multiplexed samples project.
         if multiplexed_file_mapping:
             computed_files.append(
                 ComputedFile.create_project_multiplexed_file(
                     self, multiplexed_file_mapping, multiplexed_workflow_versions
                 )
             )
-        if single_cell_file_mapping:
+        elif single_cell_file_mapping:
             computed_files.append(
                 ComputedFile.create_project_single_cell_file(
                     self, single_cell_file_mapping, single_cell_workflow_versions
@@ -762,12 +763,12 @@ class Project(TimestampedModel):
             if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
                 continue
 
-            multiplexed_with = sorted(multiplexed_sample_mapping.get(scpca_sample_id, []))
-
             sample_metadata[
                 "demux_cell_count_estimate"
             ] = multiplexed_sample_demux_cell_counter.get(scpca_sample_id)
-            sample_metadata["multiplexed_with"] = multiplexed_with
+            sample_metadata["multiplexed_with"] = sorted(
+                multiplexed_sample_mapping.get(scpca_sample_id, [])
+            )
 
             sample = Sample.create_from_dict(sample_metadata, self)
 
@@ -823,6 +824,13 @@ class Project(TimestampedModel):
                 computed_files.append(computed_file)
                 multiplexed_file_mapping.update(multiplexed_metadata_files)
 
+        if multiplexed_file_mapping:
+            # We want a single ZIP archive for a multiplexed samples project.
+            multiplexed_file_mapping.update(single_cell_file_mapping)
+            # Set project level flag for multiplexed data.
+            self.has_multiplexed_data = True
+            self.save(update_fields=("has_multiplexed_data",))
+
         computed_files.extend(
             self.create_computed_files(
                 single_cell_file_mapping,
@@ -833,11 +841,6 @@ class Project(TimestampedModel):
                 multiplexed_workflow_versions,
             )
         )
-
-        # Set project level flag for multiplexed data.
-        if multiplexed_file_mapping:
-            self.has_multiplexed_data = True
-            self.save(update_fields=["has_multiplexed_data"])
 
         self.update_counts()
 
