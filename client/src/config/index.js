@@ -10,11 +10,11 @@ export const config = {
       'https://scpca.readthedocs.io/en/latest/download_files.html#spatial-transcriptomics-libraries',
     what_downloading_mulitplexed:
       'https://scpca.readthedocs.io/en/latest/download_files.html#multiplexed-sample-libraries',
-    what_downloading_mulitplexed_sample:
-      'https://scpca.readthedocs.io/en/latest/download_files.html#multiplexed-sample-libraries',
     what_est_demux_cell:
       'https://scpca.readthedocs.io/en/latest/faq.html#what-are-estimated-demux-cell-counts',
     how_processed:
+      'https://scpca.readthedocs.io/en/latest/processing_information.html',
+    how_processed_multiplexed:
       'https://scpca.readthedocs.io/en/latest/processing_information.html',
     donate: 'https://www.ccdatalab.org/donate-link',
     help: 'https://scpca.readthedocs.io/en/latest/',
