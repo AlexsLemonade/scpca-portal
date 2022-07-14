@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Box, Text } from 'grommet'
 import { Table } from 'components/Table'
 import { formatBytes } from 'helpers/formatBytes'
@@ -24,18 +24,6 @@ export const ProjectSamplesTable = ({
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
       : false
-
-  // ! Temp - remove once the API is ready
-  useEffect(() => {
-    if (project.scpca_id === 'SCPCP000009') {
-      if (samples) {
-        samples.forEach((s) => {
-          // eslint-disable-next-line no-param-reassign
-          s.has_multiplexed_data = true
-        })
-      }
-    }
-  }, [samples])
 
   const columns = [
     {

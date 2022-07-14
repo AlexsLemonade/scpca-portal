@@ -33,11 +33,6 @@ export const Download = ({ icon, resource: initialResource }) => {
     : 'Download Sample'
 
   const handleClick = () => {
-    // ! Temp - remove once the API is ready
-    if (resource.scpca_id === 'SCPCP000009') {
-      setPublicComputedFile(resource.computed_files[0])
-    }
-
     setShowing(true)
     if (download && download.download_url) {
       const { type, project: projectID, sample } = publicComputedFile
@@ -79,17 +74,6 @@ export const Download = ({ icon, resource: initialResource }) => {
         getProjectID(resource.project)
       )
       if (isOk) {
-        // ! Temp - remove once the API is ready
-        if (response && response.scpca_id === 'SCPCP000009') {
-          // eslint-disable-next-line no-param-reassign
-          response.has_multiplexed_data = true
-          // eslint-disable-next-line no-param-reassign
-          response.modalities = 'Multiplexed'
-          // eslint-disable-next-line no-param-reassign
-          response.computed_files = response.computed_files.filter(
-            (c) => c.type !== 'PROJECT_ZIP'
-          )
-        }
         setProject(response)
       }
     }

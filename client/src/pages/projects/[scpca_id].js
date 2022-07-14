@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
 import { ProjectHeader } from 'components/ProjectHeader'
@@ -17,20 +17,6 @@ const Project = ({ project }) => {
   const [activeIndex, setActiveIndex] = useState(showSamples ? 1 : 0)
   const onActive = (nextIndex) => setActiveIndex(nextIndex)
   const { responsive } = useResponsive()
-
-  useEffect(() => {
-    // ! Temp - remove once the API is ready
-    if (project && project.scpca_id === 'SCPCP000009') {
-      // eslint-disable-next-line no-param-reassign
-      project.has_multiplexed_data = true
-      // eslint-disable-next-line no-param-reassign
-      project.modalities = 'Multiplexed'
-      // eslint-disable-next-line no-param-reassign
-      project.computed_files = project.computed_files.filter(
-        (c) => c.type !== 'PROJECT_ZIP'
-      )
-    }
-  }, [project])
 
   return (
     <>
