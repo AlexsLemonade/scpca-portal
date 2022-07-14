@@ -6,7 +6,7 @@ export const getDownloadOptionDetails = (resource, computedFile) => {
   const { header, data, included, metadata } =
     downloadOptions[computedFile.type]
 
-  const items = [data]
+  const items = data.length > 0 ? [data] : []
 
   const info = downloadOptions[computedFile.type].info || null
 

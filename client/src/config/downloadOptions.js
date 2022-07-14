@@ -36,8 +36,9 @@ export const downloadOptions = {
     header: 'Download Single-cell Multiplexed Data',
     data: 'Single-cell data',
     included: {
+      has_multiplexed_data: 'Single-cell multiplexed data',
       has_bulk_rna_seq: 'Bulk RNA-seq data',
-      has_multiplexed_data: 'Single-cell multiplexed data'
+      has_cite_seq_data: 'CITE-seq data'
     },
     metadata: 'Project and Sample Metadata',
     info: {
@@ -85,8 +86,12 @@ export const downloadOptions = {
   SAMPLE_MULTIPLEXED_ZIP: {
     header: 'Download Single-cell Multiplexed Data',
     button_label: 'Download',
-    data: 'Single-cell multiplexed data',
-    included: {},
+    data: '',
+    included: {
+      has_multiplexed_data: 'Single-cell multiplexed data',
+      has_bulk_rna_seq: 'Bulk RNA-seq data',
+      has_cite_seq_data: 'CITE-seq data'
+    },
     metadata: 'Project and Sample Metadata',
     info: {
       texts: {
@@ -98,7 +103,7 @@ export const downloadOptions = {
       learn_more: {
         label: 'here',
         text: 'Learn more about multiplexed samples ',
-        url: config.links.what_downloading_mulitplexed_sample
+        url: config.links.what_downloading_mulitplexed
       },
       warning_text: {
         text: 'If you are planning to work with more than one multiplexed sample, we reccommend downloading the entire project.'
