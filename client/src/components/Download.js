@@ -13,7 +13,7 @@ import { api } from 'api'
 import { hasMultiple } from 'helpers/hasMultiple'
 import { formatDate } from 'helpers/formatDate'
 import { isProjectID } from 'helpers/isProjectID'
-import { isMultiplexedSample } from 'helpers/isMultiplexedSample'
+import { hasToggleFile } from 'helpers/hasToggleFile'
 import { getProjectID } from 'helpers/getProjectID'
 
 // Button and Modal to show when downloading
@@ -73,7 +73,7 @@ export const Download = ({ icon, resource: initialResource }) => {
       : resource.computed_files[0]
     setPublicComputedFile(newPublicComputedFile)
     const shouldFetchProject =
-      newPublicComputedFile && isMultiplexedSample(newPublicComputedFile.type)
+      newPublicComputedFile && hasToggleFile(newPublicComputedFile.type)
     const fetchProject = async () => {
       const { isOk, response } = await api.projects.get(
         getProjectID(resource.project)
@@ -124,7 +124,7 @@ export const Download = ({ icon, resource: initialResource }) => {
   }, [download, token, showing, publicComputedFile])
 
   return (
-    <span>
+    <>
       {icon ? (
         <Anchor icon={icon} onClick={handleClick} />
       ) : (
@@ -157,7 +157,7 @@ export const Download = ({ icon, resource: initialResource }) => {
               resource={resource}
               computedFile={download}
               handleSelectFile={handleSelectFile}
-              hasDownloadProject={
+              hasToggleFile={
                 project
                   ? {
                       handleToggleFile,
@@ -176,7 +176,7 @@ export const Download = ({ icon, resource: initialResource }) => {
           ) : null}
         </ModalBody>
       </Modal>
-    </span>
+    </>
   )
 }
 

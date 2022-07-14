@@ -16,7 +16,7 @@ export const DownloadStarted = ({
   resource,
   computedFile,
   handleSelectFile,
-  hasDownloadProject
+  hasToggleFile
 }) => {
   // open the file in a new tab\
   const isProject = isProjectID(resource.scpca_id)
@@ -47,7 +47,7 @@ export const DownloadStarted = ({
       }
     : ''
   return (
-    <span>
+    <>
       <Grid
         columns={['2/3', '1/3']}
         align="center"
@@ -116,10 +116,10 @@ export const DownloadStarted = ({
               <Link label={info.learn_more.label} href={info.learn_more.url} />.
             </Paragraph>
           )}
-          {hasDownloadProject && (
+          {hasToggleFile && (
             <WarningText iconSize="24px" text={info.warning_text.text}>
               <Box
-                onClick={hasDownloadProject.handleToggleFile}
+                onClick={hasToggleFile.handleToggleFile}
                 align='="center'
                 direction="row"
               >
@@ -127,8 +127,7 @@ export const DownloadStarted = ({
                 &nbsp;&nbsp;
                 <Text color="brand">Download Project</Text>
                 <Text style={{ fontStyle: 'italic' }}>
-                  &nbsp;&nbsp;(Size:{' '}
-                  {formatBytes(hasDownloadProject.projectSize)})
+                  &nbsp;&nbsp;(Size: {formatBytes(hasToggleFile.projectSize)})
                 </Text>
               </Box>
             </WarningText>
@@ -172,7 +171,7 @@ export const DownloadStarted = ({
           ))}
         </Grid>
       )}
-    </span>
+    </>
   )
 }
 
