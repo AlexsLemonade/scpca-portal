@@ -141,7 +141,7 @@ class TestLoadData(TestCase):
         project = Project.objects.get(scpca_id="SCPCP999990")
         self.assert_project(project)
         self.assertEqual(project.downloadable_sample_count, 4)
-        self.assertFalse(project.has_bulk_rna_seq)
+        self.assertTrue(project.has_bulk_rna_seq)
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.has_multiplexed_data)
         self.assertFalse(project.has_spatial_data)
@@ -176,7 +176,7 @@ class TestLoadData(TestCase):
         )
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
-                ComputedFile.MetadataFilenames.MULTIPLEXED_METADATA_FILE_NAME
+                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
             )
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
@@ -188,8 +188,8 @@ class TestLoadData(TestCase):
         self.assertEqual(sample_metadata_keys, expected_keys)
 
         library_sample_mapping = {
-            "SCPCL999990": ("SCPCS999990", "SCPCS999991"),
-            "SCPCL999991": ("SCPCS999992", "SCPCS999993"),
+            "SCPCL999990": "SCPCS999990_SCPCS999991",
+            "SCPCL999991": "SCPCS999992_SCPCS999993",
         }
         library_path_templates = (
             "{sample_id}/{library_id}_filtered.rds",
@@ -198,14 +198,15 @@ class TestLoadData(TestCase):
         )
         expected_filenames = {
             "README.md",
-            "multiplexed_metadata.tsv",
+            "bulk_metadata.tsv",
+            "bulk_quant.tsv",
+            "single_cell_metadata.tsv",
         }
-        for library_id in library_sample_mapping:
-            for sample_id in library_sample_mapping[library_id]:
-                for library_path in library_path_templates:
-                    expected_filenames.add(
-                        library_path.format(library_id=library_id, sample_id=sample_id)
-                    )
+        for library_id, sample_id in library_sample_mapping.items():
+            for library_path in library_path_templates:
+                expected_filenames.add(
+                    library_path.format(library_id=library_id, sample_id=sample_id)
+                )
         self.assertEqual(set(project_zip.namelist()), expected_filenames)
 
         sample = project.samples.first()
@@ -218,7 +219,7 @@ class TestLoadData(TestCase):
         )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
-                ComputedFile.MetadataFilenames.MULTIPLEXED_METADATA_FILE_NAME, "r"
+                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
                     TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
@@ -231,7 +232,7 @@ class TestLoadData(TestCase):
         library_id = rows[0]["scpca_library_id"]
         expected_filenames = {
             "README.md",
-            "multiplexed_metadata.tsv",
+            "single_cell_metadata.tsv",
             f"{library_id}_filtered.rds",
             f"{library_id}_qc.html",
             f"{library_id}_unfiltered.rds",

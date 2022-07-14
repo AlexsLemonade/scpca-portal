@@ -23,7 +23,6 @@ class ComputedFile(TimestampedModel):
         ordering = ["updated_at", "id"]
 
     class MetadataFilenames:
-        MULTIPLEXED_METADATA_FILE_NAME = "multiplexed_metadata.tsv"
         SINGLE_CELL_METADATA_FILE_NAME = "single_cell_metadata.tsv"
         SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
 
@@ -101,6 +100,10 @@ class ComputedFile(TimestampedModel):
                     # Nest these under thier sample id.
                     archive_path = os.path.join(sample_id, os.path.basename(file_path))
                     zip_file.write(file_path, archive_path)
+
+            if project.has_bulk_rna_seq:
+                zip_file.write(project.input_bulk_metadata_file_path, "bulk_metadata.tsv")
+                zip_file.write(project.input_bulk_quant_file_path, "bulk_quant.tsv")
 
         computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
         computed_file.save()
@@ -186,28 +189,31 @@ class ComputedFile(TimestampedModel):
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
-        file_paths = []
-        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(
-                ComputedFile.README_MULTIPLEXED_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME
-            )
-            zip_file.write(
-                sample.output_multiplexed_metadata_file_path,
-                ComputedFile.MetadataFilenames.MULTIPLEXED_METADATA_FILE_NAME,
-            )
+        file_name_path_mapping = dict()
+        for library in libraries:
+            library_id = library["scpca_library_id"]
+            for file_postfix in ("_filtered.rds", "_qc.html", "_unfiltered.rds"):
+                file_name = f"{library_id}{file_postfix}"
+                file_name_path_mapping[file_name] = os.path.join(
+                    library_path_mapping[library_id], file_name
+                )
 
-            for library in libraries:
-                library_id = library["scpca_library_id"]
-                for file_postfix in ("_filtered.rds", "_qc.html", "_unfiltered.rds"):
-                    file_name = f"{library_id}{file_postfix}"
-                    file_path = os.path.join(library_path_mapping[library_id], file_name)
-                    file_paths.append(file_path)
+        if not os.path.exists(computed_file.zip_file_path):
+            with ZipFile(computed_file.zip_file_path, "w") as zip_file:
+                zip_file.write(
+                    ComputedFile.README_MULTIPLEXED_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME
+                )
+                zip_file.write(
+                    sample.output_multiplexed_metadata_file_path,
+                    ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
+                )
+                for file_name, file_path in file_name_path_mapping.items():
                     zip_file.write(file_path, file_name)
 
         computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
         computed_file.save()
 
-        return computed_file, {sample.scpca_id: file_paths}
+        return computed_file, {"_".join(sample.multiplexed_ids): file_name_path_mapping.values()}
 
     @classmethod
     def create_sample_single_cell_file(cls, sample, libraries, workflow_versions):
@@ -304,11 +310,9 @@ class ComputedFile(TimestampedModel):
 
     @property
     def metadata_file_name(self):
-        if self.is_project_multiplexed_zip:
-            return ComputedFile.MetadataFilenames.MULTIPLEXED_METADATA_FILE_NAME
-        elif self.is_project_zip:
+        if self.is_project_multiplexed_zip or self.is_project_zip:
             return ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
-        elif self.is_project_spatial_zip:
+        if self.is_project_spatial_zip:
             return ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
 
     @property

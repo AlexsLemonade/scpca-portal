@@ -127,8 +127,15 @@ class Sample(TimestampedModel):
         return self.sample_computed_files.order_by("created_at")
 
     @property
+    def multiplexed_ids(self):
+        multiplexed_sample_ids = [self.scpca_id]
+        multiplexed_sample_ids.extend(self.multiplexed_with)
+
+        return sorted(multiplexed_sample_ids)
+
+    @property
     def output_multiplexed_computed_file_name(self):
-        return f"{self.scpca_id}_multiplexed.zip"
+        return f"{'_'.join(self.multiplexed_ids)}_multiplexed.zip"
 
     @property
     def output_multiplexed_metadata_file_path(self):
