@@ -10,7 +10,6 @@ import { capitalize } from 'helpers/capitalize'
 import { useResponsive } from 'hooks/useResponsive'
 import { accumulateValue } from 'helpers/accumulateValue'
 import { config } from 'config'
-import { countMultiplexedSamples } from 'helpers/countMultiplexedSamples'
 import { InfoText } from './InfoText'
 import { WarningText } from './WarningText'
 
@@ -87,10 +86,10 @@ export const ProjectHeader = ({ project, linked = false }) => {
           {project.has_multiplexed_data && (
             <WarningText
               lineBreak={false}
-              text={`${countMultiplexedSamples(
-                project.samples
-              )} samples are multiplexed.`}
-              link={config.links.what_downloading_mulitplexed_sample}
+              text={`${
+                project.multiplexed_sample_count || 'N/A'
+              } samples are multiplexed.`}
+              link={config.links.how_processed_multiplexed}
               linkLable="Learn more"
               iconMargin={[0, 0, 0, 0]}
             />
