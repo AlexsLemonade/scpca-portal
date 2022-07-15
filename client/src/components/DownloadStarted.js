@@ -1,14 +1,14 @@
 import React, { Fragment, useEffect } from 'react'
+import { useResponsive } from 'hooks/useResponsive'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
-import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
-import { WarningText } from 'components/WarningText'
-import { hasMultiple } from 'helpers/hasMultiple'
+import { Link } from 'components/Link'
 import { formatBytes } from 'helpers/formatBytes'
-import { useResponsive } from 'hooks/useResponsive'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
+import { hasMultiple } from 'helpers/hasMultiple'
 import { isProjectID } from 'helpers/isProjectID'
+import { WarningText } from 'components/WarningText'
 import DownloadSVG from '../images/download-folder.svg'
 
 // View when the donwload should have been initiated
@@ -19,17 +19,14 @@ export const DownloadStarted = ({
   hasToggleFile
 }) => {
   // open the file in a new tab\
-  const isProject = isProjectID(resource.scpca_id)
   const { header, items, info } = getDownloadOptionDetails(
     resource,
     computedFile
   )
 
-  useEffect(() => {}, [computedFile, resource])
-
   const { size: responsiveSize } = useResponsive()
   const { size_in_bytes: size, download_url: href } = computedFile
-
+  const isProject = isProjectID(resource.scpca_id)
   const startedText = isProject
     ? 'Your download for the project should have started.'
     : 'Your download for the sample should have started.'
@@ -39,13 +36,16 @@ export const DownloadStarted = ({
   )
 
   const mutltipleComputedFiles = hasMultiple(resource.computed_files)
-  const borderStyle = mutltipleComputedFiles
+  const inlineBorderStyle = mutltipleComputedFiles
     ? {
         side: 'bottom',
         color: 'border-black',
         size: 'small'
       }
     : ''
+
+  useEffect(() => {}, [resource])
+
   return (
     <>
       <Grid
@@ -53,7 +53,7 @@ export const DownloadStarted = ({
         align="center"
         gap="large"
         pad={{ bottom: 'medium' }}
-        border={borderStyle}
+        border={inlineBorderStyle}
       >
         <Box>
           {mutltipleComputedFiles && (
@@ -61,7 +61,7 @@ export const DownloadStarted = ({
               {header}
             </Heading>
           )}
-          <Text>{startedText}</Text>
+          <Paragraph>{startedText}</Paragraph>
           <Box
             direction="row"
             justify="between"
@@ -77,11 +77,10 @@ export const DownloadStarted = ({
               text={info.warning_text.text}
             />
           )}
-          <Text>
-            {' '}
+          <Paragraph>
             {info && info.text_only && <span>{info.text_only}</span>} The
             download consists of the following items:
-          </Text>
+          </Paragraph>
           <Box pad="medium">
             <ul
               style={{
@@ -134,10 +133,10 @@ export const DownloadStarted = ({
           )}
           <Box>
             {responsiveSize !== 'small' && (
-              <Text italic color="black-tint-40">
+              <Paragraph style={{ fontStyle: 'italic' }} color="black-tint-40">
                 If your download has not started, please ensure that pop-ups are
                 not blocked and try again using the button below:
-              </Text>
+              </Paragraph>
             )}
           </Box>
           <Box pad={{ vertical: 'medium' }}>

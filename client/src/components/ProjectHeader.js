@@ -1,15 +1,15 @@
 import React from 'react'
-import { Box, Grid, Text } from 'grommet'
-import { Pill } from 'components/Pill'
-import { Badge } from 'components/Badge'
-import { Link } from 'components/Link'
-import { Download } from 'components/Download'
-import { getReadable } from 'helpers/getReadable'
-import { formatBytes } from 'helpers/formatBytes'
-import { capitalize } from 'helpers/capitalize'
 import { useResponsive } from 'hooks/useResponsive'
-import { accumulateValue } from 'helpers/accumulateValue'
 import { config } from 'config'
+import { Box, Grid, Text } from 'grommet'
+import { Badge } from 'components/Badge'
+import { Download } from 'components/Download'
+import { Link } from 'components/Link'
+import { Pill } from 'components/Pill'
+import { accumulateValue } from 'helpers/accumulateValue'
+import { capitalize } from 'helpers/capitalize'
+import { formatBytes } from 'helpers/formatBytes'
+import { getReadable } from 'helpers/getReadable'
 import { InfoText } from './InfoText'
 import { WarningText } from './WarningText'
 
@@ -44,7 +44,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
         >
           <Box align="center" gap="small">
             {project.computed_files.length > 0 && (
-              <Box>
+              <>
                 <Download resource={project} />
                 <Text>
                   Size:{' '}
@@ -52,7 +52,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
                     accumulateValue(project.computed_files, 'size_in_bytes')
                   )}
                 </Text>
-              </Box>
+              </>
             )}
             {project.has_bulk_rna_seq && (
               <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />

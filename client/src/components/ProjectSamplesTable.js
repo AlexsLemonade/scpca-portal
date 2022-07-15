@@ -1,17 +1,17 @@
 import React from 'react'
-import { Box, Text } from 'grommet'
-import { Table } from 'components/Table'
-import { formatBytes } from 'helpers/formatBytes'
-import { getReadable } from 'helpers/getReadable'
 import { api } from 'api'
+import { config } from 'config'
+import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { Download } from 'components/Download'
-import { Loader } from 'components/Loader'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
+import { Loader } from 'components/Loader'
 import { Pill } from 'components/Pill'
+import { Table } from 'components/Table'
 import { accumulateValue } from 'helpers/accumulateValue'
-import { config } from 'config'
+import { formatBytes } from 'helpers/formatBytes'
+import { getReadable } from 'helpers/getReadable'
 
 export const ProjectSamplesTable = ({
   project,

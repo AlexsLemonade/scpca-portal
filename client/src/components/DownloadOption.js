@@ -37,7 +37,7 @@ export const DownloadOption = ({
             }}
           >
             {items.map((item) => (
-              <li key={item}>{item} - test</li>
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </Box>

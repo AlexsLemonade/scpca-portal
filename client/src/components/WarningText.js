@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Text } from 'grommet'
+import { Box, Paragraph } from 'grommet'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 
@@ -35,11 +35,11 @@ export const WarningText = ({
       >
         <Icon color="status-warning" size={iconSize} name="Warning" />
       </Box>
-      <Text>
+      <Paragraph>
         {text} {lineBreak && <br />}
         {link && <Link label={linkLable} href={link} />}
         {children}
-      </Text>
+      </Paragraph>
     </Box>
   )
 }

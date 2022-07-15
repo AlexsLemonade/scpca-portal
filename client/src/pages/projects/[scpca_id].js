@@ -17,7 +17,6 @@ const Project = ({ project }) => {
   const [activeIndex, setActiveIndex] = useState(showSamples ? 1 : 0)
   const onActive = (nextIndex) => setActiveIndex(nextIndex)
   const { responsive } = useResponsive()
-
   return (
     <>
       <PageTitle title={project.title} />

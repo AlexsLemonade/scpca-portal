@@ -33,7 +33,7 @@ export const downloadOptions = {
     }
   },
   PROJECT_MULTIPLEXED_ZIP: {
-    header: 'Download Single-cell Multiplexed Data',
+    header: 'Download Single-cell Data',
     data: 'Single-cell data',
     included: {
       has_multiplexed_data: 'Single-cell multiplexed data',
@@ -84,7 +84,7 @@ export const downloadOptions = {
     }
   },
   SAMPLE_MULTIPLEXED_ZIP: {
-    header: 'Download Single-cell Multiplexed Data',
+    header: 'Download Single-cell Data',
     button_label: 'Download',
     data: '',
     included: {
