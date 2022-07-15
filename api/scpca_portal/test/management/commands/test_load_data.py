@@ -52,15 +52,6 @@ class TestLoadData(TestCase):
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-        expected_metadata_keys = (
-            "participant_id",
-            "scpca_project_id",
-            "submitter",
-            "submitter_id",
-        )
-        for key in expected_metadata_keys:
-            self.assertIn(key, sample.additional_metadata.keys())
-
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_load_data_from_s3(self):
         def assert_object_count():
@@ -155,14 +146,39 @@ class TestLoadData(TestCase):
             "development",
         )
 
-        expected_keys = project.output_multiplexed_metadata_field_order + [
+        expected_keys = [
+            "scpca_sample_id",
+            "scpca_library_id",
+            "scpca_project_id",
+            "technology",
+            "seq_unit",
+            "total_reads",
+            "mapped_reads",
+            "genome_assembly",
+            "mapping_index",
+            "date_processed",
+            "spaceranger_version",
+            "workflow",
+            "workflow_version",
+            "workflow_commit",
+            "diagnosis",
+            "subdiagnosis",
+            "pi_name",
+            "project_title",
+            "disease_timing",
+            "age",
+            "sex",
+            "tissue_location",
+            "treatment",
+            "participant_id",
+            "submitter",
+            "submitter_id",
             "alevin_fry_version",
             "demux_method",
             "demux_samples",
             "filtered_cells",
             "filtering_method",
             "has_cellhash",
-            "has_citeseq",
             "is_multiplexed",
             "salmon_version",
             "sample_cell_estimates",
@@ -213,6 +229,21 @@ class TestLoadData(TestCase):
         self.assertIsNone(sample.sample_cell_count_estimate)
         self.assertEqual(sample.demux_cell_count_estimate, 2841)
         self.assertTrue(sample.has_multiplexed_data)
+
+        expected_additional_metadata_keys = [
+            "participant_id",
+            "scpca_project_id",
+            "submitter",
+            "submitter_id",
+            "WHO_grade",
+        ]
+        self.assertEqual(
+            expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
+        )
+        expected_additional_metadata_keys.insert(0, "multiplexed_with")
+        self.assertEqual(
+            set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
+        )
 
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_multiplexed_computed_file_name
@@ -266,13 +297,26 @@ class TestLoadData(TestCase):
             "v0.2.7",
         )
 
-        expected_keys = project.output_single_cell_metadata_field_order + [
+        expected_keys = [
+            "scpca_sample_id",
+            "scpca_library_id",
+            "diagnosis",
+            "subdiagnosis",
+            "seq_unit",
+            "technology",
+            "sample_cell_count_estimate",
+            "scpca_project_id",
+            "pi_name",
+            "project_title",
+            "disease_timing",
+            "age",
+            "sex",
+            "tissue_location",
             "alevin_fry_version",
             "date_processed",
             "filtered_cell_count",
             "filtering_method",
             "genome_assembly",
-            "has_citeseq",
             "mapped_reads",
             "mapping_index",
             "participant_id",
@@ -326,6 +370,21 @@ class TestLoadData(TestCase):
         )
         self.assertTrue(sample.technologies)
 
+        expected_additional_metadata_keys = [
+            "has_spatial_data",
+            "participant_id",
+            "scpca_project_id",
+            "submitter",
+            "submitter_id",
+            "upload_date",
+        ]
+        self.assertEqual(
+            expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
+        )
+        self.assertEqual(
+            set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
+        )
+
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_single_cell_computed_file_name
         )
@@ -376,7 +435,33 @@ class TestLoadData(TestCase):
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "v0.2.7")
 
-        expected_keys = project.output_spatial_metadata_field_order + [
+        expected_keys = [
+            "scpca_project_id",
+            "scpca_sample_id",
+            "scpca_library_id",
+            "technology",
+            "seq_unit",
+            "total_reads",
+            "mapped_reads",
+            "genome_assembly",
+            "mapping_index",
+            "date_processed",
+            "spaceranger_version",
+            "workflow",
+            "workflow_version",
+            "workflow_commit",
+            "diagnosis",
+            "subdiagnosis",
+            "pi_name",
+            "project_title",
+            "disease_timing",
+            "age",
+            "sex",
+            "tissue_location",
+            "treatment",
+            "participant_id",
+            "submitter",
+            "submitter_id",
             "upload_date",
         ]
 
@@ -416,6 +501,21 @@ class TestLoadData(TestCase):
             "v0.2.7",
         )
         self.assertTrue(sample.technologies)
+
+        expected_additional_metadata_keys = [
+            "has_spatial_data",
+            "participant_id",
+            "scpca_project_id",
+            "submitter",
+            "submitter_id",
+            "upload_date",
+        ]
+        self.assertEqual(
+            expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
+        )
+        self.assertEqual(
+            set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
+        )
 
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_spatial_computed_file_name

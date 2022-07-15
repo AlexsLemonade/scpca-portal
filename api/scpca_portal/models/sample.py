@@ -14,6 +14,18 @@ class Sample(TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
+    BULK_RNA_SEQ_MODALITY = "BULK_RNA_SEQ"
+    CITE_SEQ_MODALITY = "CITE_SEQ"
+    MULTIPLEXED_MODALITY = "MULTIPLEXED"
+    SPATIAL_MODALITY = "SPATIAL"
+
+    MODALITY_NAME_MAPPING = {
+        BULK_RNA_SEQ_MODALITY: "Bulk",
+        CITE_SEQ_MODALITY: "CITE-seq",
+        MULTIPLEXED_MODALITY: "Multiplexed",
+        SPATIAL_MODALITY: "Spatial Data",
+    }
+
     additional_metadata = models.JSONField(default=dict)
     age_at_diagnosis = models.TextField(blank=True, null=True)
     demux_cell_count_estimate = models.IntegerField(null=True)
@@ -59,7 +71,11 @@ class Sample(TimestampedModel):
             "tissue_location",
             "treatment",
         )
-        additional_metadata = {k: v for k, v in data.items() if k not in sample_columns}
+        additional_metadata = {
+            k: v
+            for k, v in data.items()
+            if k not in sample_columns and k not in project.ignored_additional_metadata_keys
+        }
         has_multiplexed_data = bool(data.get("multiplexed_with"))
 
         sample = cls(
@@ -105,22 +121,19 @@ class Sample(TimestampedModel):
 
     @property
     def modalities(self):
-        modalities = []
+        attr_name_modality_name_mapping = {
+            "has_bulk_rna_seq": self.BULK_RNA_SEQ_MODALITY,
+            "has_cite_seq_data": self.CITE_SEQ_MODALITY,
+            "has_multiplexed_data": self.MULTIPLEXED_MODALITY,
+            "has_spatial_data": self.SPATIAL_MODALITY,
+        }
 
-        if self.has_bulk_rna_seq:
-            modalities.append("Bulk")
+        modalities = list()
+        for attr_name, modality_name in attr_name_modality_name_mapping.items():
+            if getattr(self, attr_name):
+                modalities.append(self.MODALITY_NAME_MAPPING[modality_name])
 
-        if self.has_cite_seq_data:
-            modalities.append("CITE-seq")
-
-        if self.has_multiplexed_data:
-            modalities.append("Multiplexed")
-
-        if self.has_spatial_data:
-            modalities.append("Spatial Transcriptomics")
-
-        if modalities:
-            return ", ".join(modalities)
+        return sorted(modalities)
 
     @property
     def computed_files(self):
