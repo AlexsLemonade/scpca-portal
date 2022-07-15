@@ -46,7 +46,6 @@ class TestLoadData(TestCase):
         self.assertIsNotNone(sample.diagnosis)
         self.assertIsNotNone(sample.disease_timing)
         self.assertTrue(sample.scpca_id)
-        self.assertIsNotNone(sample.seq_units)
         self.assertIsNotNone(sample.sex)
         self.assertIsNotNone(sample.subdiagnosis)
         self.assertIsNotNone(sample.tissue_location)
@@ -229,6 +228,8 @@ class TestLoadData(TestCase):
         self.assertIsNone(sample.sample_cell_count_estimate)
         self.assertEqual(sample.demux_cell_count_estimate, 2841)
         self.assertTrue(sample.has_multiplexed_data)
+        self.assertEqual(sample.seq_units, "nucleus")
+        self.assertEqual(sample.technologies, "10Xv3.1")
 
         expected_additional_metadata_keys = [
             "participant_id",
@@ -288,6 +289,7 @@ class TestLoadData(TestCase):
         self.assertFalse(project.has_multiplexed_data)
         self.assertTrue(project.modalities)
         self.assertEqual(project.sample_count, 1)
+        self.assertEqual(project.seq_units, "nucleus, spot")
         self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(len(project.computed_files), 2)
@@ -296,6 +298,7 @@ class TestLoadData(TestCase):
             project.single_cell_computed_file.workflow_version,
             "v0.2.7",
         )
+        self.assertEqual(project.technologies, "10Xv3.1, visium")
 
         expected_keys = [
             "scpca_sample_id",
@@ -362,13 +365,14 @@ class TestLoadData(TestCase):
         self.assertFalse(project.has_multiplexed_data)
         self.assertTrue(sample.has_spatial_data)
         self.assertEqual(sample.sample_cell_count_estimate, 23751)
+        self.assertEqual(sample.seq_units, "nucleus, spot")
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(
             sample.single_cell_computed_file.workflow_version,
             "v0.2.7",
         )
-        self.assertTrue(sample.technologies)
+        self.assertEqual(sample.technologies, "10Xv3.1, visium")
 
         expected_additional_metadata_keys = [
             "has_spatial_data",
@@ -494,13 +498,14 @@ class TestLoadData(TestCase):
         self.assertFalse(sample.has_multiplexed_data)
         self.assertTrue(sample.has_spatial_data)
         self.assertEqual(sample.sample_cell_count_estimate, 23751)
+        self.assertEqual(sample.seq_units, "nucleus, spot")
         self.assertIsNotNone(sample.spatial_computed_file)
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(
             sample.spatial_computed_file.workflow_version,
             "v0.2.7",
         )
-        self.assertTrue(sample.technologies)
+        self.assertEqual(sample.technologies, "10Xv3.1, visium")
 
         expected_additional_metadata_keys = [
             "has_spatial_data",

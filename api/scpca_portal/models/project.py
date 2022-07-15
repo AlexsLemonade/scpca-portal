@@ -624,8 +624,6 @@ class Project(TimestampedModel):
                     "mapped_reads",
                     "scpca_library_id",
                     "sample_cell_count_estimate",
-                    "seq_units",
-                    "technologies",
                     "total_reads",
                     "workflow",
                     "workflow_commit",
@@ -641,8 +639,6 @@ class Project(TimestampedModel):
                     "filtering_method",
                     "salmon_version",
                     "sample_cell_count_estimate",
-                    "seq_units",
-                    "technologies",
                     "transcript_type",
                     "unfiltered_cells",
                     "workflow_version",
@@ -664,12 +660,8 @@ class Project(TimestampedModel):
         """
 
         # Start with a list of samples and their metadata.
-        try:
-            with open(self.input_samples_metadata_file_path) as samples_csv_file:
-                samples_metadata = [line for line in csv.DictReader(samples_csv_file)]
-        except FileNotFoundError:
-            logger.error(f"No samples metadata file found for '{self}'.")
-            return
+        with open(self.input_samples_metadata_file_path) as samples_csv_file:
+            samples_metadata = [line for line in csv.DictReader(samples_csv_file)]
 
         self.create_multiplexed_readme_file()
         self.create_single_cell_readme_file()
@@ -697,54 +689,49 @@ class Project(TimestampedModel):
             sample_cell_count_estimate = 0
             sample_seq_units = set()
             sample_technologies = set()
-            for filename in os.listdir(sample_dir):
-                # Handle single cell metadata.
-                if filename.endswith("_metadata.json"):
-                    with open(os.path.join(sample_dir, filename)) as sample_json_file:
-                        sample_json = json.load(sample_json_file)
+            # Handle single cell metadata.
+            for filename_path in Path(sample_dir).glob("*_metadata.json"):
+                with open(filename_path) as sample_json_file:
+                    sample_json = json.load(sample_json_file)
 
-                    has_cite_seq_data = sample_json.get("has_citeseq", False) or has_cite_seq_data
-                    sample_json["filtered_cell_count"] = sample_json.pop("filtered_cells")
-                    sample_json["scpca_library_id"] = sample_json.pop("library_id")
-                    sample_json["scpca_sample_id"] = sample_json.pop("sample_id")
-                    single_cell_libraries_metadata.append(sample_json)
+                has_cite_seq_data = sample_json.get("has_citeseq", False) or has_cite_seq_data
+                sample_json["filtered_cell_count"] = sample_json.pop("filtered_cells")
+                sample_json["scpca_library_id"] = sample_json.pop("library_id")
+                sample_json["scpca_sample_id"] = sample_json.pop("sample_id")
+                single_cell_libraries_metadata.append(sample_json)
 
-                    sample_cell_count_estimate += sample_json["filtered_cell_count"]
-                    sample_seq_units.add(sample_json["seq_unit"].strip())
-                    sample_technologies.add(sample_json["technology"].strip())
+                sample_cell_count_estimate += sample_json["filtered_cell_count"]
+                sample_seq_units.add(sample_json["seq_unit"].strip())
+                sample_technologies.add(sample_json["technology"].strip())
 
-                # Handle spatial metadata.
-                if self.has_spatial_data and filename.endswith("_spatial"):
-                    spatial_dir = os.path.join(sample_dir, filename)
-                    filename = filename.replace("spatial", "metadata.json")
+            # Handle spatial metadata.
+            for filename_path in Path(sample_dir).rglob("*_spatial/*_metadata.json"):
+                with open(filename_path) as spatial_json_file:
+                    spatial_json = json.load(spatial_json_file)
+                has_spatial_data = True
 
-                    with open(os.path.join(spatial_dir, filename)) as spatial_json_file:
-                        spatial_json = json.load(spatial_json_file)
+                spatial_json["scpca_library_id"] = spatial_json.pop("library_id")
+                spatial_json["scpca_sample_id"] = spatial_json.pop("sample_id")
+                spatial_libraries_metadata.append(spatial_json)
 
-                    spatial_json["scpca_library_id"] = spatial_json.pop("library_id")
-                    spatial_json["scpca_sample_id"] = spatial_json.pop("sample_id")
-                    spatial_libraries_metadata.append(spatial_json)
-
-                    has_spatial_data = True
-                    sample_seq_units.add(spatial_json["seq_unit"].strip())
-                    sample_technologies.add(spatial_json["technology"].strip())
+                sample_seq_units.add(spatial_json["seq_unit"].strip())
+                sample_technologies.add(spatial_json["technology"].strip())
 
             sample_metadata["has_bulk_rna_seq"] = scpca_sample_id in bulk_rna_seq_sample_ids
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
             sample_metadata["has_spatial_data"] = has_spatial_data
             sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
-            sample_metadata["seq_units"] = ", ".join(sample_seq_units)
-            sample_metadata["technologies"] = ", ".join(sample_technologies)
+            sample_metadata["seq_units"] = ", ".join(sorted(sample_seq_units, key=str.lower))
+            sample_metadata["technologies"] = ", ".join(sorted(sample_technologies, key=str.lower))
 
         multiplexed_libraries_metadata = list()
-        multiplexed_sample_demux_cell_counter = Counter()
         multiplexed_library_path_mapping = dict()
+        multiplexed_sample_demux_cell_counter = Counter()
+        multiplexed_sample_seq_units_mapping = dict()
+        multiplexed_sample_technologies_mapping = dict()
         for multiplexed_sample_dir in Path(self.input_data_dir).rglob("*,*"):
-            for filename in os.listdir(multiplexed_sample_dir):
-                if not filename.endswith("_metadata.json"):
-                    continue
-
-                with open(os.path.join(multiplexed_sample_dir, filename)) as multiplexed_json_file:
+            for filename_path in Path(multiplexed_sample_dir).rglob("*_metadata.json"):
+                with open(filename_path) as multiplexed_json_file:
                     multiplexed_json = json.load(multiplexed_json_file)
 
                 library_id = multiplexed_json.pop("library_id")
@@ -756,6 +743,20 @@ class Project(TimestampedModel):
                 multiplexed_sample_demux_cell_counter.update(
                     multiplexed_json["sample_cell_estimates"]
                 )
+
+                # Gather seq_units and technologies data.
+                for sample_id in multiplexed_json["demux_samples"]:
+                    if sample_id not in multiplexed_sample_seq_units_mapping:
+                        multiplexed_sample_seq_units_mapping[sample_id] = set()
+                    if sample_id not in multiplexed_sample_technologies_mapping:
+                        multiplexed_sample_technologies_mapping[sample_id] = set()
+
+                    multiplexed_sample_seq_units_mapping[sample_id].add(
+                        multiplexed_json["seq_unit"].strip()
+                    )
+                    multiplexed_sample_technologies_mapping[sample_id].add(
+                        multiplexed_json["technology"].strip()
+                    )
 
         combined_single_cell_metadata = self.combine_single_cell_metadata(
             samples_metadata, single_cell_libraries_metadata, scpca_sample_ids
@@ -783,11 +784,29 @@ class Project(TimestampedModel):
             if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
                 continue
 
+            # Populate multiplexed samples related values.
             sample_metadata[
                 "demux_cell_count_estimate"
             ] = multiplexed_sample_demux_cell_counter.get(scpca_sample_id)
             sample_metadata["multiplexed_with"] = sorted(
-                multiplexed_sample_mapping.get(scpca_sample_id, [])
+                multiplexed_sample_mapping.get(scpca_sample_id, ())
+            )
+            sample_metadata["seq_units"] = (
+                ", ".join(
+                    sorted(
+                        multiplexed_sample_seq_units_mapping.get(scpca_sample_id, ()), key=str.lower
+                    )
+                )
+                or sample_metadata["seq_units"]
+            )
+            sample_metadata["technologies"] = (
+                ", ".join(
+                    sorted(
+                        multiplexed_sample_technologies_mapping.get(scpca_sample_id, ()),
+                        key=str.lower,
+                    )
+                )
+                or sample_metadata["technologies"]
             )
 
             sample = Sample.create_from_dict(sample_metadata, self)
