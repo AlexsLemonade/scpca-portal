@@ -791,23 +791,15 @@ class Project(TimestampedModel):
             sample_metadata["multiplexed_with"] = sorted(
                 multiplexed_sample_mapping.get(scpca_sample_id, ())
             )
-            sample_metadata["seq_units"] = (
-                ", ".join(
-                    sorted(
-                        multiplexed_sample_seq_units_mapping.get(scpca_sample_id, ()), key=str.lower
-                    )
+            sample_metadata["seq_units"] = ", ".join(
+                sorted(multiplexed_sample_seq_units_mapping.get(scpca_sample_id, ()), key=str.lower)
+            ) or sample_metadata.get("seq_units", "")
+            sample_metadata["technologies"] = ", ".join(
+                sorted(
+                    multiplexed_sample_technologies_mapping.get(scpca_sample_id, ()),
+                    key=str.lower,
                 )
-                or sample_metadata["seq_units"]
-            )
-            sample_metadata["technologies"] = (
-                ", ".join(
-                    sorted(
-                        multiplexed_sample_technologies_mapping.get(scpca_sample_id, ()),
-                        key=str.lower,
-                    )
-                )
-                or sample_metadata["technologies"]
-            )
+            ) or sample_metadata.get("technologies", "")
 
             sample = Sample.create_from_dict(sample_metadata, self)
 
