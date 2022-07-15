@@ -17,18 +17,18 @@ from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 class ComputedFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComputedFile
-        fields = [
+        fields = (
             "created_at",
             "id",
             "project",
-            "sample",
             "s3_bucket",
             "s3_key",
+            "sample",
             "size_in_bytes",
             "type",
             "updated_at",
             "workflow_version",
-        ]
+        )
 
     project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
     sample = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
@@ -66,6 +66,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "has_spatial_data",
             "human_readable_pi_name",
             "modalities",
+            "multiplexed_sample_count",
             "pi_name",
             "sample_count",
             "samples",
@@ -94,13 +95,13 @@ class SampleLeafSerializer(serializers.ModelSerializer):
         fields = (
             "additional_metadata",
             "age_at_diagnosis",
-            "demux_cell_count_estimate",
             "computed_files",
             "created_at",
+            "demux_cell_count_estimate",
             "diagnosis",
             "disease_timing",
-            "has_cite_seq_data",
             "has_bulk_rna_seq",
+            "has_cite_seq_data",
             "has_multiplexed_data",
             "has_spatial_data",
             "modalities",
