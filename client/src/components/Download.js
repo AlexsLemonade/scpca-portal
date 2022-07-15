@@ -24,13 +24,13 @@ export const Download = ({ icon, resource: initialResource }) => {
   const [toggleFile, setToggleFile] = useState(false)
   const { token, email, surveyListForm } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
-  const mutltipleComputedFiles = hasMultiple(resource.computed_files)
   const [publicComputedFile, setPublicComputedFile] = useState(null)
   const [showing, setShowing] = useState(false)
   const [download, setDownload] = useState(false)
   const label = isProjectID(resource.scpca_id)
     ? 'Download Project'
     : 'Download Sample'
+  const mutltipleComputedFiles = hasMultiple(resource.computed_files)
 
   const handleClick = () => {
     setShowing(true)
@@ -63,12 +63,13 @@ export const Download = ({ icon, resource: initialResource }) => {
   useEffect(() => {
     if (initial || (!initial && !toggleFile)) setResource(initialResource)
 
-    const newPublicComputedFile = mutltipleComputedFiles
-      ? null
-      : resource.computed_files[0]
-    setPublicComputedFile(newPublicComputedFile)
+    setPublicComputedFile(
+      mutltipleComputedFiles ? null : resource.computed_files[0]
+    )
+
     const shouldFetchProject =
-      newPublicComputedFile && hasToggleFile(newPublicComputedFile.type)
+      publicComputedFile && hasToggleFile(publicComputedFile.type)
+
     const fetchProject = async () => {
       const { isOk, response } = await api.projects.get(
         getProjectID(resource.project)
