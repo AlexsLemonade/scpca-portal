@@ -13,7 +13,7 @@ import { Modal, ModalHeader, ModalBody } from 'components/Modal'
 import { formatDate } from 'helpers/formatDate'
 import { getProjectID } from 'helpers/getProjectID'
 import { hasMultiple } from 'helpers/hasMultiple'
-import { hasToggleFile } from 'helpers/hasToggleFile'
+import { hasRecommendedResource } from 'helpers/hasRecommendedResource'
 import { isProjectID } from 'helpers/isProjectID'
 
 // Button and Modal to show when downloading
@@ -68,7 +68,7 @@ export const Download = ({ icon, resource: initialResource }) => {
     )
 
     const shouldFetchProject =
-      publicComputedFile && hasToggleFile(publicComputedFile.type)
+      publicComputedFile && hasRecommendedResource(publicComputedFile.type)
 
     const fetchProject = async () => {
       const { isOk, response } = await api.projects.get(
