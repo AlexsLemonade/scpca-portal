@@ -4,11 +4,11 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common
-from scpca_portal.models.base import BulkModel, TimestampedModel
+from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 
 
-class Sample(BulkModel, TimestampedModel):
+class Sample(TimestampedModel):
     class Meta:
         db_table = "samples"
         get_latest_by = "updated_at"

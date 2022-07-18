@@ -556,41 +556,6 @@ class Project(TimestampedModel):
 
         return combined_metadata
 
-    def create_computed_files(
-        self,
-        single_cell_file_mapping,
-        single_cell_workflow_versions,
-        spatial_file_mapping,
-        spatial_workflow_versions,
-        multiplexed_file_mapping,
-        multiplexed_workflow_versions,
-    ):
-        """Creates project computed files based on generated file mappings."""
-        computed_files = list()
-
-        # The multiplexed and single cell cases are if/else as we produce
-        # a single computed file for a multiplexed samples project.
-        if multiplexed_file_mapping:
-            computed_files.append(
-                ComputedFile.create_project_multiplexed_file(
-                    self, multiplexed_file_mapping, multiplexed_workflow_versions, commit=False
-                )
-            )
-        elif single_cell_file_mapping:
-            computed_files.append(
-                ComputedFile.create_project_single_cell_file(
-                    self, single_cell_file_mapping, single_cell_workflow_versions, commit=False
-                )
-            )
-        if spatial_file_mapping:
-            computed_files.append(
-                ComputedFile.create_project_spatial_file(
-                    self, spatial_file_mapping, spatial_workflow_versions, commit=False
-                )
-            )
-
-        return computed_files
-
     def create_single_cell_readme_file(self):
         """Creates a single cell metadata README file."""
         with open(ComputedFile.README_TEMPLATE_FILE_PATH, "r") as readme_template_file:
@@ -631,9 +596,69 @@ class Project(TimestampedModel):
                 )
         return bulk_rna_seq_sample_ids
 
+    def get_computed_files(
+        self,
+        single_cell_file_mapping,
+        single_cell_workflow_versions,
+        spatial_file_mapping,
+        spatial_workflow_versions,
+        multiplexed_file_mapping,
+        multiplexed_workflow_versions,
+    ):
+        """Prepares ready for saving project computed files based on generated file mappings."""
+        computed_files = list()
+
+        # The multiplexed and single cell cases are if/else as we produce
+        # a single computed file for a multiplexed samples project.
+        if multiplexed_file_mapping:
+            computed_files.append(
+                ComputedFile.get_project_multiplexed_file(
+                    self, multiplexed_file_mapping, multiplexed_workflow_versions
+                )
+            )
+        elif single_cell_file_mapping:
+            computed_files.append(
+                ComputedFile.get_project_single_cell_file(
+                    self, single_cell_file_mapping, single_cell_workflow_versions
+                )
+            )
+        if spatial_file_mapping:
+            computed_files.append(
+                ComputedFile.get_project_spatial_file(
+                    self, spatial_file_mapping, spatial_workflow_versions
+                )
+            )
+
+        return computed_files
+
     def get_sample_input_data_dir(self, sample_scpca_id):
         """Returns an input data directory based on a sample ID."""
         return os.path.join(self.input_data_dir, sample_scpca_id)
+
+    def get_samples(
+        self,
+        samples_metadata,
+        scpca_sample_ids,
+        multiplexed_sample_demux_cell_counter,
+        multiplexed_sample_mapping,
+    ):
+        """Prepares ready for saving sample objects."""
+        samples = []
+        for sample_metadata in samples_metadata:
+            scpca_sample_id = sample_metadata["scpca_sample_id"]
+            if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
+                continue
+
+            sample_metadata[
+                "demux_cell_count_estimate"
+            ] = multiplexed_sample_demux_cell_counter.get(scpca_sample_id)
+            sample_metadata["multiplexed_with"] = sorted(
+                multiplexed_sample_mapping.get(scpca_sample_id, [])
+            )
+
+            samples.append(Sample.create_from_dict(sample_metadata, self, commit=False))
+
+        return samples
 
     def load_data(self, scpca_sample_ids=None) -> List[ComputedFile]:
         """
@@ -759,13 +784,13 @@ class Project(TimestampedModel):
         spatial_file_mapping = dict()
         spatial_workflow_versions = set()
 
-        samples = self.prepare_samples(
+        samples = self.get_samples(
             samples_metadata,
             scpca_sample_ids,
             multiplexed_sample_demux_cell_counter,
             multiplexed_sample_mapping,
         )
-        for sample in Sample.bulk_create(samples):
+        for sample in Sample.objects.bulk_create(samples):
             # Skip computed files creation if sample directory does not exist.
             if scpca_sample_id not in non_downloadable_sample_ids:
                 libraries = [
@@ -778,9 +803,7 @@ class Project(TimestampedModel):
                 (
                     computed_file,
                     single_cell_metadata_files,
-                ) = ComputedFile.create_sample_single_cell_file(
-                    sample, libraries, workflow_versions, commit=False
-                )
+                ) = ComputedFile.get_sample_single_cell_file(sample, libraries, workflow_versions)
                 computed_files.append(computed_file)
                 single_cell_file_mapping.update(single_cell_metadata_files)
 
@@ -795,9 +818,7 @@ class Project(TimestampedModel):
                     (
                         computed_file,
                         spatial_metadata_files,
-                    ) = ComputedFile.create_sample_spatial_file(
-                        sample, libraries, workflow_versions, commit=False
-                    )
+                    ) = ComputedFile.get_sample_spatial_file(sample, libraries, workflow_versions)
                     computed_files.append(computed_file)
                     spatial_file_mapping.update(spatial_metadata_files)
 
@@ -812,12 +833,11 @@ class Project(TimestampedModel):
                 (
                     computed_file,
                     multiplexed_metadata_files,
-                ) = ComputedFile.create_sample_multiplexed_file(
+                ) = ComputedFile.get_sample_multiplexed_file(
                     sample,
                     libraries,
                     multiplexed_library_path_mapping,
                     workflow_versions,
-                    commit=False,
                 )
                 computed_files.append(computed_file)
                 multiplexed_file_mapping.update(multiplexed_metadata_files)
@@ -830,7 +850,7 @@ class Project(TimestampedModel):
             self.save(update_fields=("has_multiplexed_data",))
 
         computed_files.extend(
-            self.create_computed_files(
+            self.get_computed_files(
                 single_cell_file_mapping,
                 single_cell_workflow_versions,
                 spatial_file_mapping,
@@ -839,36 +859,11 @@ class Project(TimestampedModel):
                 multiplexed_workflow_versions,
             )
         )
-        ComputedFile.bulk_create(computed_files)
+        ComputedFile.objects.bulk_create(computed_files)
 
         self.update_counts()
 
         return computed_files
-
-    def prepare_samples(
-        self,
-        samples_metadata,
-        scpca_sample_ids,
-        multiplexed_sample_demux_cell_counter,
-        multiplexed_sample_mapping,
-    ):
-        """Prepares sample objects for bulk creation."""
-        samples = []
-        for sample_metadata in samples_metadata:
-            scpca_sample_id = sample_metadata["scpca_sample_id"]
-            if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
-                continue
-
-            sample_metadata[
-                "demux_cell_count_estimate"
-            ] = multiplexed_sample_demux_cell_counter.get(scpca_sample_id)
-            sample_metadata["multiplexed_with"] = sorted(
-                multiplexed_sample_mapping.get(scpca_sample_id, [])
-            )
-
-            samples.append(Sample.create_from_dict(sample_metadata, self, commit=False))
-
-        return samples
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
