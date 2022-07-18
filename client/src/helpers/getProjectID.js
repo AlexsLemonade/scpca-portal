@@ -1,4 +1,5 @@
 /* eslint-disable no-nested-ternary */
+import { getDefaultComputedFile } from './getDefaultComputedFile'
 /*
 @name getProjectID
 @description returns a project ID
@@ -8,7 +9,7 @@ export const getProjectID = (project) =>
   typeof project === 'string'
     ? project
     : typeof project === 'object'
-    ? project.computed_files[0].project
+    ? getDefaultComputedFile(project).project
     : null
 
 export default getProjectID
