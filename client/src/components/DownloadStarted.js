@@ -74,6 +74,7 @@ export const DownloadStarted = ({
           </Box>
           {isProjectID(resource.scpca_id) && info && info.warning_text && (
             <WarningText
+              iconSize="24px"
               link={info.warning_text.link.url}
               linkLable={info.warning_text.link.label}
               text={info.warning_text.text}

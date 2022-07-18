@@ -4,7 +4,7 @@
 <path fill-rule="evenodd" clip-rule="evenodd" d="M24 24L12 0L0 24H24ZM10.7143 20.3077V17.5385H13.2857V20.3077H10.7143ZM10.7143 15.6923H13.2857V10.1538H10.7143V15.6923Z" fill="white"/>
 </mask>
 <g mask="url(#mask0_383_15599)">
-<rect width="24" height="24" fill="#FFDD00"/>
+<rect width="24" height="24" fill="#000000"/>
 </g>
 <path d="M10.5 10H13.5V16H10.5V10Z" fill="black"/>
 <path d="M10.5 17.5H13.5V20.5H10.5V17.5Z" fill="black"/>
