@@ -37,6 +37,7 @@ class Project(TimestampedModel):
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField(null=False)
     modalities = models.TextField(blank=True, null=True)
+    multiplexed_sample_count = models.IntegerField(default=0)
     pi_name = models.TextField(null=False)
     sample_count = models.IntegerField(default=0)
     scpca_id = models.TextField(unique=True, null=False)
@@ -928,6 +929,7 @@ class Project(TimestampedModel):
         downloadable_sample_count = (
             self.samples.filter(sample_computed_files__isnull=False).distinct().count()
         )
+        multiplexed_sample_count = self.samples.filter(has_multiplexed_data=True).distinct().count()
         seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
         technologies = sorted((technology for technology in technologies if technology))
 
@@ -937,6 +939,7 @@ class Project(TimestampedModel):
         self.disease_timings = ", ".join(disease_timings)
         self.downloadable_sample_count = downloadable_sample_count
         self.modalities = ", ".join(sorted(modalities))
+        self.multiplexed_sample_count = multiplexed_sample_count
         self.sample_count = self.samples.count()
         self.seq_units = ", ".join(seq_units)
         self.technologies = ", ".join(technologies)
