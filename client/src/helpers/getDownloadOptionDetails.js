@@ -5,9 +5,7 @@ import { downloadOptions } from 'config/downloadOptions'
 export const getDownloadOptionDetails = (resource, computedFile) => {
   const { header, data, included, metadata } =
     downloadOptions[computedFile.type]
-
   const items = data.length > 0 ? [data] : []
-
   const info = downloadOptions[computedFile.type].info || null
 
   Object.entries(included).forEach(([k, v]) => {

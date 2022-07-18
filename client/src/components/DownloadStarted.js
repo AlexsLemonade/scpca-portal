@@ -18,7 +18,7 @@ export const DownloadStarted = ({
   handleSelectFile,
   hasToggleFile
 }) => {
-  // open the file in a new tab\
+  // open the file in a new tab
   const { header, items, info } = getDownloadOptionDetails(
     resource,
     computedFile

@@ -1,5 +1,10 @@
+/* eslint-disable no-nested-ternary */
+/*
+@name getProjectID
+@description returns a project ID
+@param {string || Object} project - a project ID as a string or an object containing a project ID
+*/
 export const getProjectID = (project) =>
-  // eslint-disable-next-line no-nested-ternary
   typeof project === 'string'
     ? project
     : typeof project === 'object'

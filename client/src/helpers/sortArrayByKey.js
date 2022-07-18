@@ -6,7 +6,6 @@
 @param {string[]} sortOrder - a preferred sorting order
 @param {boolean} asc - a boolean indicates whether it's ascending order or not
 */
-
 export const sortArrayByKey = (key, target, sortOrder = [], asc = true) => {
   const sortedArray = target.sort((a, b) => {
     if (sortOrder.length > 0) {

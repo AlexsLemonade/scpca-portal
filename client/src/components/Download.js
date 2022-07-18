@@ -123,7 +123,7 @@ export const Download = ({ icon, resource: initialResource }) => {
         />
       )}
       <Modal title={label} showing={showing} setShowing={setShowing}>
-        {publicComputedFile && hasMultiple(resource.computed_files) && (
+        {publicComputedFile && mutltipleComputedFiles && (
           <ModalHeader>
             <Text
               color="brand"
