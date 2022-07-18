@@ -657,7 +657,7 @@ class Project(TimestampedModel):
                 multiplexed_sample_mapping.get(scpca_sample_id, [])
             )
 
-            samples.append(Sample.create_from_dict(sample_metadata, self, commit=False))
+            samples.append(Sample.get_from_dict(sample_metadata, self))
 
         return samples
 
