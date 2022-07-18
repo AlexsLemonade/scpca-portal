@@ -1,10 +1,11 @@
-import React, { Fragment, useEffect, memo } from 'react'
+import React, { Fragment, useEffect } from 'react'
 import { useResponsive } from 'hooks/useResponsive'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { formatBytes } from 'helpers/formatBytes'
+import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 import { hasMultiple } from 'helpers/hasMultiple'
 import { isProjectID } from 'helpers/isProjectID'
@@ -129,7 +130,7 @@ export const DownloadStarted = ({
                 <Text style={{ fontStyle: 'italic' }}>
                   &nbsp;&nbsp;(Size:{' '}
                   {formatBytes(
-                    recommendedResource.computed_files[0].size_in_bytes
+                    getDefaultComputedFile(recommendedResource).size_in_bytes
                   )}
                   )
                 </Text>

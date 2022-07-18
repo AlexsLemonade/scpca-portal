@@ -11,6 +11,7 @@ import { DownloadToken } from 'components/DownloadToken'
 import { Icon } from 'components/Icon'
 import { Modal, ModalHeader, ModalBody } from 'components/Modal'
 import { formatDate } from 'helpers/formatDate'
+import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
 import { getProjectID } from 'helpers/getProjectID'
 import { hasMultiple } from 'helpers/hasMultiple'
 import { hasRecommendedResource } from 'helpers/hasRecommendedResource'
@@ -31,6 +32,8 @@ export const Download = ({ icon, resource: initialResource }) => {
   const label = isProjectID(resource.scpca_id)
     ? 'Download Project'
     : 'Download Sample'
+
+  const defaultComputedFile = getDefaultComputedFile(resource)
   const mutltipleComputedFiles = hasMultiple(resource.computed_files)
 
   const handleClick = () => {
@@ -54,7 +57,7 @@ export const Download = ({ icon, resource: initialResource }) => {
 
   const handleSelectRecommendedResource = () => {
     setResource(recommendedResource)
-    setPublicComputedFile(recommendedResource.computed_files[0])
+    setPublicComputedFile(getDefaultComputedFile(recommendedResource))
     setRecommendedResource(null)
     setTogglePublicComputedFile(true)
     setInital(false)
@@ -65,9 +68,7 @@ export const Download = ({ icon, resource: initialResource }) => {
     if (initial || (!initial && !togglePublicComputedFile))
       setResource(initialResource)
 
-    setPublicComputedFile(
-      mutltipleComputedFiles ? null : resource.computed_files[0]
-    )
+    setPublicComputedFile(mutltipleComputedFiles ? null : defaultComputedFile)
 
     const shouldFetchProject =
       publicComputedFile && hasRecommendedResource(publicComputedFile.type)
