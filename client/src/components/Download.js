@@ -18,13 +18,13 @@ import { isProjectID } from 'helpers/isProjectID'
 
 // Button and Modal to show when downloading
 export const Download = ({ icon, resource: initialResource }) => {
-  const [resource, setResource] = useState(initialResource)
-  const [project, setProject] = useState(null)
-  const [initial, setInital] = useState(true)
-  const [toggleFile, setToggleFile] = useState(false)
   const { token, email, surveyListForm } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
+  const [resource, setResource] = useState(initialResource)
+  const [recommendedResource, setRecommendedResource] = useState(null)
   const [publicComputedFile, setPublicComputedFile] = useState(null)
+  const [initial, setInital] = useState(true)
+  const [toggleFile, setToggleFile] = useState(false)
   const [showing, setShowing] = useState(false)
   const [download, setDownload] = useState(false)
   const label = isProjectID(resource.scpca_id)
@@ -35,8 +35,8 @@ export const Download = ({ icon, resource: initialResource }) => {
   const handleClick = () => {
     setShowing(true)
     if (download && download.download_url) {
-      const { type, project: projectID, sample } = publicComputedFile
-      trackDownload(type, projectID, sample)
+      const { type, project, sample } = publicComputedFile
+      trackDownload(type, project, sample)
       surveyListForm.submit({ email, scpca_last_download_date: formatDate() })
       window.open(download.download_url)
     }
@@ -51,10 +51,10 @@ export const Download = ({ icon, resource: initialResource }) => {
     setPublicComputedFile(file)
   }
 
-  const handleToggleFile = () => {
-    setResource(project)
-    setPublicComputedFile(project.computed_files[0])
-    setProject(null)
+  const handleSelectRecommendedResource = () => {
+    setResource(recommendedResource)
+    setPublicComputedFile(recommendedResource.computed_files[0])
+    setRecommendedResource(null)
     setToggleFile(true)
     setInital(false)
     setDownload(false)
@@ -75,7 +75,7 @@ export const Download = ({ icon, resource: initialResource }) => {
         getProjectID(resource.project)
       )
       if (isOk) {
-        setProject(response)
+        setRecommendedResource(response)
       }
     }
 
@@ -95,8 +95,8 @@ export const Download = ({ icon, resource: initialResource }) => {
       )
       if (downloadRequest.isOk) {
         // try to open download
-        const { type, project: projectID, sample } = publicComputedFile
-        trackDownload(type, projectID, sample)
+        const { type, project, sample } = publicComputedFile
+        trackDownload(type, project, sample)
         surveyListForm.submit({ email, scpca_last_download_date: formatDate() })
         window.open(downloadRequest.response.download_url)
         setDownload(downloadRequest.response)
@@ -141,15 +141,9 @@ export const Download = ({ icon, resource: initialResource }) => {
             <DownloadStarted
               resource={resource}
               computedFile={download}
+              recommendedResource={recommendedResource}
               handleSelectFile={handleSelectFile}
-              hasToggleFile={
-                project
-                  ? {
-                      handleToggleFile,
-                      projectSize: project.computed_files[0].size_in_bytes
-                    }
-                  : null
-              }
+              handleSelectRecommendedResource={handleSelectRecommendedResource}
             />
           ) : !token && publicComputedFile ? (
             <DownloadToken />

@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect } from 'react'
+import React, { Fragment, useEffect, memo } from 'react'
 import { useResponsive } from 'hooks/useResponsive'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
@@ -16,7 +16,8 @@ export const DownloadStarted = ({
   resource,
   computedFile,
   handleSelectFile,
-  hasToggleFile
+  recommendedResource,
+  handleSelectRecommendedResource
 }) => {
   // open the file in a new tab
   const { header, items, info } = getDownloadOptionDetails(
@@ -115,10 +116,10 @@ export const DownloadStarted = ({
               <Link label={info.learn_more.label} href={info.learn_more.url} />.
             </Paragraph>
           )}
-          {hasToggleFile && (
+          {recommendedResource && handleSelectRecommendedResource && (
             <WarningText iconSize="24px" text={info.warning_text.text}>
               <Box
-                onClick={hasToggleFile.handleToggleFile}
+                onClick={handleSelectRecommendedResource}
                 align='="center'
                 direction="row"
               >
@@ -126,7 +127,11 @@ export const DownloadStarted = ({
                 &nbsp;&nbsp;
                 <Text color="brand">Download Project</Text>
                 <Text style={{ fontStyle: 'italic' }}>
-                  &nbsp;&nbsp;(Size: {formatBytes(hasToggleFile.projectSize)})
+                  &nbsp;&nbsp;(Size:{' '}
+                  {formatBytes(
+                    recommendedResource.computed_files[0].size_in_bytes
+                  )}
+                  )
                 </Text>
               </Box>
             </WarningText>
