@@ -24,7 +24,8 @@ export const Download = ({ icon, resource: initialResource }) => {
   const [recommendedResource, setRecommendedResource] = useState(null)
   const [publicComputedFile, setPublicComputedFile] = useState(null)
   const [initial, setInital] = useState(true)
-  const [toggleFile, setToggleFile] = useState(false)
+  const [togglePublicComputedFile, setTogglePublicComputedFile] =
+    useState(false)
   const [showing, setShowing] = useState(false)
   const [download, setDownload] = useState(false)
   const label = isProjectID(resource.scpca_id)
@@ -55,13 +56,14 @@ export const Download = ({ icon, resource: initialResource }) => {
     setResource(recommendedResource)
     setPublicComputedFile(recommendedResource.computed_files[0])
     setRecommendedResource(null)
-    setToggleFile(true)
+    setTogglePublicComputedFile(true)
     setInital(false)
     setDownload(false)
   }
 
   useEffect(() => {
-    if (initial || (!initial && !toggleFile)) setResource(initialResource)
+    if (initial || (!initial && !togglePublicComputedFile))
+      setResource(initialResource)
 
     setPublicComputedFile(
       mutltipleComputedFiles ? null : resource.computed_files[0]
@@ -80,7 +82,7 @@ export const Download = ({ icon, resource: initialResource }) => {
     }
 
     if (shouldFetchProject) fetchProject()
-    setToggleFile(false)
+    setTogglePublicComputedFile(false)
   }, [resource, showing])
 
   useEffect(() => {
