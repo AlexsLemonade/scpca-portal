@@ -121,22 +121,22 @@ or to reimport and upload all projects:
 sportal load-data --reload-all --update-s3
 ```
 
-If you would like to update a specific project use --scpca-project-ids flag (accepts multiple values):
+If you would like to update a specific project use --scpca-project-id flag (accepts multiple values):
 
 ```
-sportal load-data --scpca-project-ids SCPCP000001
+sportal load-data --scpca-project-id SCPCP000001 --scpca-project-id SCPCP000002
 ```
 
-For a specific sample update use --scpca-sample-ids flag (accepts multiple values):
+For a specific sample update use --scpca-sample-id flag (accepts multiple values):
 
 ```
-sportal load-data --scpca-sample-ids SCPCS000001
+sportal load-data --scpca-sample-id SCPCS000001 --scpca-sample-id SCPCS000002
 ```
 
 If you don't want the data to be re-synced from the input bucket use --skip-sync flag:
 
 ```
-sportal load-data --scpca-sample-ids SCPCS000001 --skip-sync
+sportal load-data --scpca-sample-id SCPCS000001 --skip-sync
 ```
 
 If you would like to purge a project and remove its files from the S3 bucket, you can use:

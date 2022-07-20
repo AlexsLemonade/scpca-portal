@@ -386,7 +386,7 @@ class Project(TimestampedModel):
                             library.pop(field_name)
 
                         library_copy = library.copy()
-                        library_copy.update(sample_metadata_mapping[multiplexed_sample_id])
+                        library_copy.update(sample_metadata_mapping.get(multiplexed_sample_id, {}))
                         sample_csv_writer.writerow(library_copy)
 
                         pair_id = (library_copy["scpca_library_id"], multiplexed_sample_id)
@@ -812,7 +812,7 @@ class Project(TimestampedModel):
                 libraries = [
                     library
                     for library in combined_multiplexed_metadata
-                    if library["scpca_sample_id"] == sample.scpca_id
+                    if library.get("scpca_sample_id") == sample.scpca_id
                 ]
                 workflow_versions = [library["workflow_version"] for library in libraries]
                 multiplexed_workflow_versions.update(workflow_versions)
