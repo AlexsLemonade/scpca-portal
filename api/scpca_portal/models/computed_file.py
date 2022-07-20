@@ -75,6 +75,9 @@ class ComputedFile(TimestampedModel):
         "Sample", null=True, on_delete=models.CASCADE, related_name="sample_computed_files"
     )
 
+    def __str__(self):
+        return f"Computed file for '{self.project or self.sample}'"
+
     @classmethod
     def create_project_multiplexed_file(cls, project, sample_to_file_mapping, workflow_versions):
         """Produces a single data file of project's combined multiplexed data."""

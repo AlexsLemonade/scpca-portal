@@ -75,6 +75,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "summaries",
             "technologies",
             "title",
+            "unavailable_samples_count",
             "updated_at",
         )
 

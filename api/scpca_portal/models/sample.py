@@ -22,6 +22,7 @@ class Sample(TimestampedModel):
     has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
     has_multiplexed_data = models.BooleanField(default=False)
+    has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     multiplexed_with = ArrayField(models.TextField(), default=list)
     sample_cell_count_estimate = models.IntegerField(null=True)
@@ -73,6 +74,7 @@ class Sample(TimestampedModel):
             has_bulk_rna_seq=data.get("has_bulk_rna_seq", False),
             has_cite_seq_data=data.get("has_cite_seq_data", False),
             has_multiplexed_data=has_multiplexed_data,
+            has_single_cell_data=data.get("has_single_cell_data", False),
             has_spatial_data=data.get("has_spatial_data", False),
             multiplexed_with=data.get("multiplexed_with"),
             sample_cell_count_estimate=(
