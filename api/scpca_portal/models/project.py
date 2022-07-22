@@ -37,6 +37,7 @@ class Project(TimestampedModel):
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField(null=False)
     modalities = models.TextField(blank=True, null=True)
+    multiplexed_sample_count = models.IntegerField(default=0)
     pi_name = models.TextField(null=False)
     sample_count = models.IntegerField(default=0)
     scpca_id = models.TextField(unique=True, null=False)
@@ -223,7 +224,7 @@ class Project(TimestampedModel):
                             if key not in library_metadata_keys:
                                 library_metadata_copy.pop(key)
 
-                        library_metadata_copy.update(sample_metadata_mapping[multiplexed_sample_id])
+                        library_metadata_copy.update(sample_metadata_mapping.get(multiplexed_sample_id, {}))
                         sample_csv_writer.writerow(library_metadata_copy)
 
                         pair_id = (library_metadata_copy["scpca_library_id"], multiplexed_sample_id)
@@ -820,7 +821,7 @@ class Project(TimestampedModel):
                 libraries = [
                     library
                     for library in combined_multiplexed_metadata
-                    if library["scpca_sample_id"] == sample.scpca_id
+                    if library.get("scpca_sample_id") == sample.scpca_id
                 ]
                 workflow_versions = [library["workflow_version"] for library in libraries]
                 multiplexed_workflow_versions.update(workflow_versions)
@@ -911,6 +912,7 @@ class Project(TimestampedModel):
         downloadable_sample_count = (
             self.samples.filter(sample_computed_files__isnull=False).distinct().count()
         )
+        multiplexed_sample_count = self.samples.filter(has_multiplexed_data=True).distinct().count()
         seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
         technologies = sorted((technology for technology in technologies if technology))
 
@@ -923,6 +925,7 @@ class Project(TimestampedModel):
         self.disease_timings = ", ".join(disease_timings)
         self.downloadable_sample_count = downloadable_sample_count
         self.modalities = ", ".join(sorted(modalities))
+        self.multiplexed_sample_count = multiplexed_sample_count
         self.sample_count = self.samples.count()
         self.seq_units = ", ".join(seq_units)
         self.technologies = ", ".join(technologies)

@@ -61,11 +61,11 @@ class TestLoadData(TestCase):
 
         # First, just test that loading data works.
         load_data_from_s3(
-            update_s3_data=False,
-            reload_all=False,
-            reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=False,
+            update_s3_data=False,
         )
         assert_object_count()
 
@@ -82,11 +82,11 @@ class TestLoadData(TestCase):
             # Make sure that reload_existing=False won't add anything
             # new when there's nothing new.
             load_data_from_s3(
-                update_s3_data=False,
-                reload_all=False,
-                reload_existing=False,
                 allowed_submitters=ALLOWED_SUBMITTERS,
                 input_bucket_name=INPUT_BUCKET_NAME,
+                reload_all=False,
+                reload_existing=False,
+                update_s3_data=False,
             )
             assert_object_count()
 
@@ -110,22 +110,22 @@ class TestLoadData(TestCase):
 
         # Make sure reloading works smoothly.
         load_data_from_s3(
-            update_s3_data=False,
-            reload_all=False,
-            reload_existing=True,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=True,
+            update_s3_data=False,
         )
         assert_object_count()
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_multiplexed_metadata(self):
         load_data_from_s3(
-            update_s3_data=True,
-            reload_all=False,
-            reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=False,
+            update_s3_data=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999990")
@@ -135,6 +135,7 @@ class TestLoadData(TestCase):
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.has_multiplexed_data)
         self.assertFalse(project.has_spatial_data)
+        self.assertEqual(project.multiplexed_sample_count, 4)
         self.assertEqual(project.sample_count, 5)
         self.assertEqual(project.summaries.count(), 3)
         self.assertEqual(project.summaries.first().sample_count, 1)
@@ -271,11 +272,11 @@ class TestLoadData(TestCase):
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_single_cell_metadata(self):
         load_data_from_s3(
-            update_s3_data=True,
-            reload_all=False,
-            reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=False,
+            update_s3_data=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999999")
@@ -285,6 +286,7 @@ class TestLoadData(TestCase):
         self.assertFalse(project.has_cite_seq_data)
         self.assertFalse(project.has_multiplexed_data)
         self.assertTrue(project.modalities)
+        self.assertEqual(project.multiplexed_sample_count, 0)
         self.assertEqual(project.sample_count, 1)
         self.assertEqual(project.seq_units, "nucleus, spot")
         self.assertEqual(project.summaries.count(), 4)
@@ -413,11 +415,11 @@ class TestLoadData(TestCase):
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_spatial_metadata(self):
         load_data_from_s3(
-            update_s3_data=True,
-            reload_all=False,
-            reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=False,
+            update_s3_data=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999999")
@@ -428,6 +430,7 @@ class TestLoadData(TestCase):
         self.assertFalse(project.has_multiplexed_data)
         self.assertTrue(project.has_spatial_data)
         self.assertTrue(project.modalities)
+        self.assertEqual(project.multiplexed_sample_count, 0)
         self.assertEqual(project.sample_count, 1)
         self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
