@@ -56,26 +56,6 @@ class Project(TimestampedModel):
         return self.project_computed_files.order_by("created_at")
 
     @property
-    def ignored_additional_metadata_keys(self):
-        attr_name_field_names_mapping = {
-            "has_bulk_rna_seq": ("has_bulk_rna_seq",),
-            "has_cite_seq_data": ("has_cite_seq_data",),
-            "has_multiplexed_data": (
-                "demux_cell_count_estimate",
-                "multiplexed_with",
-                "sample_cell_count_estimate",
-            ),
-            "has_spatial_data": ("has_spatial_data",),
-        }
-
-        irrelevant_keys = list()
-        for attr_name, field_names in attr_name_field_names_mapping.items():
-            if not getattr(self, attr_name):
-                irrelevant_keys.extend(field_names)
-
-        return irrelevant_keys
-
-    @property
     def input_data_dir(self):
         return os.path.join(common.INPUT_DATA_DIR, self.scpca_id)
 
@@ -105,58 +85,8 @@ class Project(TimestampedModel):
         return f"{self.scpca_id}_multiplexed.zip"
 
     @property
-    def output_multiplexed_metadata_field_order(self):
-        return [
-            "scpca_sample_id",
-            "scpca_library_id",
-            "scpca_project_id",
-            "technology",
-            "seq_unit",
-            "total_reads",
-            "mapped_reads",
-            "genome_assembly",
-            "mapping_index",
-            "date_processed",
-            "spaceranger_version",
-            "workflow",
-            "workflow_version",
-            "workflow_commit",
-            "diagnosis",
-            "subdiagnosis",
-            "pi_name",
-            "project_title",
-            "disease_timing",
-            "age",
-            "sex",
-            "tissue_location",
-            "treatment",
-            "participant_id",
-            "submitter",
-            "submitter_id",
-        ]
-
-    @property
     def output_multiplexed_metadata_file_path(self):
         return os.path.join(common.OUTPUT_DATA_DIR, f"{self.scpca_id}_multiplexed_metadata.tsv")
-
-    @property
-    def output_single_cell_metadata_field_order(self):
-        return [
-            "scpca_sample_id",
-            "scpca_library_id",
-            "diagnosis",
-            "subdiagnosis",
-            "seq_unit",
-            "technology",
-            "sample_cell_count_estimate",
-            "scpca_project_id",
-            "pi_name",
-            "project_title",
-            "disease_timing",
-            "age",
-            "sex",
-            "tissue_location",
-        ]
 
     @property
     def output_single_cell_computed_file_name(self):
@@ -169,37 +99,6 @@ class Project(TimestampedModel):
     @property
     def output_spatial_computed_file_name(self):
         return f"{self.scpca_id}_spatial.zip"
-
-    @property
-    def output_spatial_metadata_field_order(self):
-        return [
-            "scpca_project_id",
-            "scpca_sample_id",
-            "scpca_library_id",
-            "technology",
-            "seq_unit",
-            "total_reads",
-            "mapped_reads",
-            "genome_assembly",
-            "mapping_index",
-            "date_processed",
-            "spaceranger_version",
-            "workflow",
-            "workflow_version",
-            "workflow_commit",
-            "diagnosis",
-            "subdiagnosis",
-            "pi_name",
-            "project_title",
-            "disease_timing",
-            "age",
-            "sex",
-            "tissue_location",
-            "treatment",
-            "participant_id",
-            "submitter",
-            "submitter_id",
-        ]
 
     @property
     def output_spatial_metadata_file_path(self):
@@ -241,29 +140,28 @@ class Project(TimestampedModel):
         if not multiplexed_libraries_metadata:
             return combined_metadata, multiplexed_sample_mapping
 
-        modalities = (Sample.MULTIPLEXED_MODALITY,)
-        ignored_library_metadata_keys = self.get_ignored_library_metadata_keys(
-            modalities=modalities
+        modality = Sample.Modalities.MULTIPLEXED
+        library_metadata_keys = self.get_library_metadata_keys(
+            set(multiplexed_libraries_metadata[0].keys()), modalities={modality}
         )
-        ignored_sample_metadata_keys = self.get_ignored_sample_metadata_keys(modalities=modalities)
-
-        # Get all the field names to pass to the csv.DictWriter
-        all_fields = set(multiplexed_libraries_metadata[0].keys()) - ignored_library_metadata_keys
-        all_fields.update(set(samples_metadata[0].keys()) - ignored_sample_metadata_keys)
-
-        ordered_fields = self.output_multiplexed_metadata_field_order
-        all_fields -= set(ordered_fields)
-        ordered_fields.extend(sorted(all_fields, key=str.lower))  # The resulting field order.
+        sample_metadata_keys = self.get_sample_metadata_keys(
+            set(samples_metadata[0].keys()), modalities={modality}
+        )
+        field_names = self.get_metadata_field_names(
+            library_metadata_keys.union(sample_metadata_keys), modality=modality
+        )
 
         multiplexed_library_mapping = dict()  # Sample ID to library IDs mapping.
         multiplexed_sample_ids = set()  # Unified multiplexed sample ID set.
-        for library in multiplexed_libraries_metadata:
-            multiplexed_library_sample_ids = library["demux_samples"]
+        for library_metadata in multiplexed_libraries_metadata:
+            multiplexed_library_sample_ids = library_metadata["demux_samples"]
             for multiplexed_sample_id in multiplexed_library_sample_ids:
                 # Populate multiplexed library mapping.
                 if multiplexed_sample_id not in multiplexed_library_mapping:
                     multiplexed_library_mapping[multiplexed_sample_id] = set()
-                multiplexed_library_mapping[multiplexed_sample_id].add(library["scpca_library_id"])
+                multiplexed_library_mapping[multiplexed_sample_id].add(
+                    library_metadata["scpca_library_id"]
+                )
 
                 # Add sample IDs to a unified set.
                 multiplexed_sample_ids.update(multiplexed_library_sample_ids)
@@ -291,31 +189,27 @@ class Project(TimestampedModel):
                 continue
 
             sample_metadata_copy = sample_metadata.copy()
-            # Exclude fields.
-            for field_name in ignored_sample_metadata_keys:
-                if field_name in sample_metadata_copy:
-                    sample_metadata_copy.pop(field_name)
+            for key in sample_metadata.keys():  # Exclude fields.
+                if key not in sample_metadata_keys:
+                    sample_metadata_copy.pop(key)
 
-            sample_metadata_copy["pi_name"] = self.pi_name
-            sample_metadata_copy["project_title"] = self.title
-            sample_metadata_copy["scpca_project_id"] = self.scpca_id
-
+            self.inject_metadata(sample_metadata_copy)
             sample_metadata_mapping[multiplexed_sample_id] = sample_metadata_copy
 
         # Combine and write the metadata.
         combined_metadata_added_pair_ids = set()
         for sample_id in sorted(sample_metadata_mapping.keys()):
-            sample_metadata_path = Sample.get_output_multiplexed_metadata_file_path(sample_id)
+            sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
             with open(sample_metadata_path, "w", newline="") as sample_file:
                 sample_csv_writer = csv.DictWriter(
-                    sample_file, fieldnames=ordered_fields, delimiter=common.TAB
+                    sample_file, fieldnames=field_names, delimiter=common.TAB
                 )
                 sample_csv_writer.writeheader()
 
                 multiplexed_sample_ids = sorted(multiplexed_sample_mapping[sample_id])
                 multiplexed_sample_ids.insert(0, sample_id)  # Current sample libraries go first.
                 for multiplexed_sample_id in multiplexed_sample_ids:
-                    libraries = sorted(
+                    libraries_metadata = sorted(
                         (
                             library
                             for library in multiplexed_libraries_metadata
@@ -323,24 +217,23 @@ class Project(TimestampedModel):
                         ),
                         key=lambda l: l["scpca_library_id"],
                     )
-                    for library in libraries:
-                        library_copy = library.copy()
-                        # Exclude fields.
-                        for field_name in ignored_library_metadata_keys:
-                            if field_name in library_copy:
-                                library_copy.pop(field_name)
+                    for library_metadata in libraries_metadata:
+                        library_metadata_copy = library_metadata.copy()
+                        for key in library_metadata.keys():  # Exclude fields.
+                            if key not in library_metadata_keys:
+                                library_metadata_copy.pop(key)
 
-                        library_copy.update(sample_metadata_mapping[multiplexed_sample_id])
-                        sample_csv_writer.writerow(library_copy)
+                        library_metadata_copy.update(sample_metadata_mapping[multiplexed_sample_id])
+                        sample_csv_writer.writerow(library_metadata_copy)
 
-                        pair_id = (library_copy["scpca_library_id"], multiplexed_sample_id)
+                        pair_id = (library_metadata_copy["scpca_library_id"], multiplexed_sample_id)
                         if pair_id not in combined_metadata_added_pair_ids:
                             combined_metadata_added_pair_ids.add(pair_id)
-                            combined_metadata.append(library_copy)
+                            combined_metadata.append(library_metadata_copy)
 
         with open(self.output_multiplexed_metadata_file_path, "w", newline="") as project_file:
             project_csv_writer = csv.DictWriter(
-                project_file, fieldnames=ordered_fields, delimiter=common.TAB
+                project_file, fieldnames=field_names, delimiter=common.TAB
             )
             project_csv_writer.writeheader()
             # Project file data has to be sorted by the library_id.
@@ -365,25 +258,24 @@ class Project(TimestampedModel):
         if not single_cell_libraries_metadata:
             return combined_metadata
 
-        modalities = list()
+        modality = Sample.Modalities.SINGLE_CELL
+        modalities = {modality}
         if self.has_cite_seq_data:
-            modalities.append(Sample.CITE_SEQ_MODALITY)
-        ignored_library_metadata_keys = self.get_ignored_library_metadata_keys(
-            modalities=modalities
+            modalities.add(Sample.Modalities.CITE_SEQ)
+
+        library_metadata_keys = self.get_library_metadata_keys(
+            set(single_cell_libraries_metadata[0].keys()), modalities=modalities
         )
-        ignored_sample_metadata_keys = self.get_ignored_sample_metadata_keys(modalities=modalities)
-
-        # Get all the field names to pass to the csv.DictWriter
-        all_fields = set(single_cell_libraries_metadata[0].keys()) - ignored_library_metadata_keys
-        all_fields.update(set(samples_metadata[0].keys()) - ignored_sample_metadata_keys)
-
-        ordered_fields = self.output_single_cell_metadata_field_order
-        all_fields -= set(ordered_fields)
-        ordered_fields.extend(sorted(all_fields))  # The resulting field order.
+        sample_metadata_keys = self.get_sample_metadata_keys(
+            set(samples_metadata[0].keys()), modalities=modalities
+        )
+        field_names = self.get_metadata_field_names(
+            library_metadata_keys.union(sample_metadata_keys), modality=modality
+        )
 
         with open(self.output_single_cell_metadata_file_path, "w", newline="") as project_file:
             project_csv_writer = csv.DictWriter(
-                project_file, fieldnames=ordered_fields, delimiter=common.TAB
+                project_file, fieldnames=field_names, delimiter=common.TAB
             )
             project_csv_writer.writeheader()
 
@@ -393,41 +285,37 @@ class Project(TimestampedModel):
                     continue
 
                 sample_metadata_copy = sample_metadata.copy()
-                # Exclude fields.
-                for field_name in ignored_sample_metadata_keys:
-                    if field_name in sample_metadata_copy:
-                        sample_metadata_copy.pop(field_name)
+                for key in sample_metadata.keys():  # Exclude fields.
+                    if key not in sample_metadata_keys:
+                        sample_metadata_copy.pop(key)
 
-                sample_metadata_copy["pi_name"] = self.pi_name
-                sample_metadata_copy["project_title"] = self.title
-                sample_metadata_copy["scpca_project_id"] = self.scpca_id
+                self.inject_metadata(sample_metadata_copy)
 
-                sample_metadata_path = Sample.get_output_single_cell_metadata_file_path(
-                    scpca_sample_id
+                sample_metadata_path = Sample.get_output_metadata_file_path(
+                    scpca_sample_id, modality
                 )
                 with open(sample_metadata_path, "w", newline="") as sample_file:
                     sample_csv_writer = csv.DictWriter(
-                        sample_file, fieldnames=ordered_fields, delimiter=common.TAB
+                        sample_file, fieldnames=field_names, delimiter=common.TAB
                     )
                     sample_csv_writer.writeheader()
 
-                    libraries = (
+                    libraries_metadata = (
                         library
                         for library in single_cell_libraries_metadata
                         if library["scpca_sample_id"] == scpca_sample_id
                     )
-                    for library in libraries:
-                        library_copy = library.copy()
-                        # Exclude fields.
-                        for field_name in ignored_library_metadata_keys:
-                            if field_name in library_copy:
-                                library_copy.pop(field_name)
+                    for library_metadata in libraries_metadata:
+                        library_metadata_copy = library_metadata.copy()
+                        for key in library_metadata.keys():  # Exclude fields.
+                            if key not in library_metadata_keys:
+                                library_metadata_copy.pop(key)
 
-                        library_copy.update(sample_metadata_copy)
-                        combined_metadata.append(library_copy)
+                        library_metadata_copy.update(sample_metadata_copy)
+                        combined_metadata.append(library_metadata_copy)
 
-                        sample_csv_writer.writerow(library_copy)
-                        project_csv_writer.writerow(library_copy)
+                        sample_csv_writer.writerow(library_metadata_copy)
+                        project_csv_writer.writerow(library_metadata_copy)
 
         return combined_metadata
 
@@ -446,23 +334,20 @@ class Project(TimestampedModel):
         if not spatial_libraries_metadata:
             return combined_metadata
 
-        modalities = (Sample.SPATIAL_MODALITY,)
-        ignored_library_metadata_keys = self.get_ignored_library_metadata_keys(
-            modalities=modalities
+        modality = Sample.Modalities.SPATIAL
+        library_metadata_keys = self.get_library_metadata_keys(
+            set(spatial_libraries_metadata[0].keys()), modalities={modality}
         )
-        ignored_sample_metadata_keys = self.get_ignored_sample_metadata_keys(modalities=modalities)
-
-        # Get all the field names to pass to the csv.DictWriter
-        all_fields = set(spatial_libraries_metadata[0].keys()) - ignored_library_metadata_keys
-        all_fields.update(set(samples_metadata[0].keys()) - ignored_sample_metadata_keys)
-
-        ordered_fields = self.output_spatial_metadata_field_order
-        all_fields -= set(ordered_fields)
-        ordered_fields.extend(sorted(all_fields))  # The resulting field order.
+        sample_metadata_keys = self.get_sample_metadata_keys(
+            set(samples_metadata[0].keys()), modalities={modality}
+        )
+        field_names = self.get_metadata_field_names(
+            library_metadata_keys.union(sample_metadata_keys), modality=modality
+        )
 
         with open(self.output_spatial_metadata_file_path, "w", newline="") as project_file:
             project_csv_writer = csv.DictWriter(
-                project_file, fieldnames=ordered_fields, delimiter=common.TAB
+                project_file, fieldnames=field_names, delimiter=common.TAB
             )
             project_csv_writer.writeheader()
 
@@ -472,39 +357,37 @@ class Project(TimestampedModel):
                     continue
 
                 sample_metadata_copy = sample_metadata.copy()
-                # Exclude fields.
-                for field_name in ignored_sample_metadata_keys:
-                    if field_name in sample_metadata_copy:
-                        sample_metadata_copy.pop(field_name)
+                for key in sample_metadata.keys():  # Exclude fields.
+                    if key not in sample_metadata_keys:
+                        sample_metadata_copy.pop(key)
 
-                sample_metadata_copy["pi_name"] = self.pi_name
-                sample_metadata_copy["project_title"] = self.title
-                sample_metadata_copy["scpca_project_id"] = self.scpca_id
+                self.inject_metadata(sample_metadata_copy)
 
-                sample_metadata_path = Sample.get_output_spatial_metadata_file_path(scpca_sample_id)
+                sample_metadata_path = Sample.get_output_metadata_file_path(
+                    scpca_sample_id, modality
+                )
                 with open(sample_metadata_path, "w", newline="") as sample_file:
                     sample_csv_writer = csv.DictWriter(
-                        sample_file, fieldnames=ordered_fields, delimiter=common.TAB
+                        sample_file, fieldnames=field_names, delimiter=common.TAB
                     )
                     sample_csv_writer.writeheader()
 
-                    libraries = (
+                    libraries_metadata = (
                         library
                         for library in spatial_libraries_metadata
                         if library["scpca_sample_id"] == scpca_sample_id
                     )
-                    for library in libraries:
-                        library_copy = library.copy()
-                        # Exclude fields.
-                        for field_name in ignored_library_metadata_keys:
-                            if field_name in library_copy:
-                                library_copy.pop(field_name)
+                    for library_metadata in libraries_metadata:
+                        library_metadata_copy = library_metadata.copy()
+                        for key in library_metadata.keys():  # Exclude fields.
+                            if key not in library_metadata_keys:
+                                library_metadata_copy.pop(key)
 
-                        library_copy.update(sample_metadata_copy)
-                        combined_metadata.append(library_copy)
+                        library_metadata_copy.update(sample_metadata_copy)
+                        combined_metadata.append(library_metadata_copy)
 
-                        sample_csv_writer.writerow(library_copy)
-                        project_csv_writer.writerow(library_copy)
+                        sample_csv_writer.writerow(library_metadata_copy)
+                        project_csv_writer.writerow(library_metadata_copy)
 
         return combined_metadata
 
@@ -583,17 +466,17 @@ class Project(TimestampedModel):
                 )
         return bulk_rna_seq_sample_ids
 
-    def get_ignored_library_metadata_keys(self, modalities=()):
-        ignored_keys = {
-            # Injected keys.
+    def get_library_metadata_keys(self, all_keys, modalities=()):
+        """Returns a set of library metadata keys based on the modalities context."""
+        excluded_keys = {
             "scpca_sample_id",
         }
 
-        if Sample.CITE_SEQ_MODALITY not in modalities:
-            ignored_keys.add("has_citeseq")
+        if Sample.Modalities.CITE_SEQ not in modalities:
+            excluded_keys.add("has_citeseq")
 
-        if Sample.SPATIAL_MODALITY in modalities:
-            ignored_keys.update(
+        if Sample.Modalities.SPATIAL in modalities:
+            excluded_keys.update(
                 (
                     "filtered_cells",
                     "filtered_spots",
@@ -603,10 +486,95 @@ class Project(TimestampedModel):
                 )
             )
 
-        return ignored_keys
+        return all_keys.difference(excluded_keys)
 
-    def get_ignored_sample_metadata_keys(self, modalities=()):
-        ignored_keys = {
+    def get_metadata_field_names(self, columns, modality):
+        """Returns a list of metadata field names based on the modality context."""
+        ordering = {
+            Sample.Modalities.MULTIPLEXED: (
+                "scpca_sample_id",
+                "scpca_library_id",
+                "scpca_project_id",
+                "technology",
+                "seq_unit",
+                "total_reads",
+                "mapped_reads",
+                "genome_assembly",
+                "mapping_index",
+                "date_processed",
+                "spaceranger_version",
+                "workflow",
+                "workflow_version",
+                "workflow_commit",
+                "diagnosis",
+                "subdiagnosis",
+                "pi_name",
+                "project_title",
+                "disease_timing",
+                "age_at_diagnosis",
+                "sex",
+                "tissue_location",
+                "treatment",
+                "participant_id",
+                "submitter",
+                "submitter_id",
+            ),
+            Sample.Modalities.SINGLE_CELL: (
+                "scpca_sample_id",
+                "scpca_library_id",
+                "diagnosis",
+                "subdiagnosis",
+                "seq_unit",
+                "technology",
+                "sample_cell_count_estimate",
+                "scpca_project_id",
+                "pi_name",
+                "project_title",
+                "disease_timing",
+                "age_at_diagnosis",
+                "sex",
+                "tissue_location",
+            ),
+            Sample.Modalities.SPATIAL: (
+                "scpca_project_id",
+                "scpca_sample_id",
+                "scpca_library_id",
+                "technology",
+                "seq_unit",
+                "total_reads",
+                "mapped_reads",
+                "genome_assembly",
+                "mapping_index",
+                "date_processed",
+                "spaceranger_version",
+                "workflow",
+                "workflow_version",
+                "workflow_commit",
+                "diagnosis",
+                "subdiagnosis",
+                "pi_name",
+                "project_title",
+                "disease_timing",
+                "age_at_diagnosis",
+                "sex",
+                "tissue_location",
+                "treatment",
+                "participant_id",
+                "submitter",
+                "submitter_id",
+            ),
+        }
+
+        return sorted(
+            sorted((c for c in columns), key=str.lower),  # Sort by a column name first.
+            key=lambda k: ordering[modality].index(k)  # Then enforce expected ordering.
+            if k in ordering[modality]
+            else float("inf"),
+        )
+
+    def get_sample_metadata_keys(self, all_keys, modalities=()):
+        """Returns a set of metadata keys based on the modalities context."""
+        excluded_keys = {
             # Injected keys.
             "has_bulk_rna_seq",
             "has_cite_seq_data",
@@ -614,9 +582,13 @@ class Project(TimestampedModel):
             "seq_units",
             "technologies",
         }
+        injected_keys = {
+            "pi_name",
+            "project_title",
+        }
 
-        if Sample.MULTIPLEXED_MODALITY in modalities:
-            ignored_keys.update(
+        if Sample.Modalities.MULTIPLEXED in modalities:
+            excluded_keys.update(
                 (
                     "alevin_fry_version",
                     "date_processed",
@@ -631,8 +603,8 @@ class Project(TimestampedModel):
                 )
             )
 
-        if Sample.SPATIAL_MODALITY in modalities:
-            ignored_keys.update(
+        if Sample.Modalities.SPATIAL in modalities:
+            excluded_keys.update(
                 (
                     "alevin_fry_version",
                     "filtered_cell_count",
@@ -645,11 +617,17 @@ class Project(TimestampedModel):
                 )
             )
 
-        return ignored_keys
+        return all_keys.union(injected_keys).difference(excluded_keys)
 
     def get_sample_input_data_dir(self, sample_scpca_id):
         """Returns an input data directory based on a sample ID."""
         return os.path.join(self.input_data_dir, sample_scpca_id)
+
+    def inject_metadata(self, sample_metadata):
+        """Adds project level metadata to the `sample_metadata`."""
+        sample_metadata["pi_name"] = self.pi_name
+        sample_metadata["project_title"] = self.title
+        sample_metadata["scpca_project_id"] = self.scpca_id
 
     def load_data(self, scpca_sample_ids=None) -> List[ComputedFile]:
         """
@@ -682,7 +660,6 @@ class Project(TimestampedModel):
             sample_dir = self.get_sample_input_data_dir(scpca_sample_id)
             if not os.path.exists(sample_dir):
                 non_downloadable_sample_ids.add(scpca_sample_id)
-                continue
 
             has_cite_seq_data = False
             has_spatial_data = False
@@ -717,6 +694,7 @@ class Project(TimestampedModel):
                 sample_seq_units.add(spatial_json["seq_unit"].strip())
                 sample_technologies.add(spatial_json["technology"].strip())
 
+            sample_metadata["age_at_diagnosis"] = sample_metadata.pop("age")
             sample_metadata["has_bulk_rna_seq"] = scpca_sample_id in bulk_rna_seq_sample_ids
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
             sample_metadata["has_spatial_data"] = has_spatial_data

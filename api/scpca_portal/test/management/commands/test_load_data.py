@@ -55,8 +55,8 @@ class TestLoadData(TestCase):
     def test_load_data_from_s3(self):
         def assert_object_count():
             self.assertEqual(Project.objects.count(), 2)
-            self.assertEqual(ProjectSummary.objects.count(), 6)
-            self.assertEqual(Sample.objects.count(), 5)
+            self.assertEqual(ProjectSummary.objects.count(), 7)
+            self.assertEqual(Sample.objects.count(), 6)
             self.assertEqual(ComputedFile.objects.count(), 9)
 
         # First, just test that loading data works.
@@ -135,9 +135,9 @@ class TestLoadData(TestCase):
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.has_multiplexed_data)
         self.assertFalse(project.has_spatial_data)
-        self.assertEqual(project.sample_count, 4)
-        self.assertEqual(project.summaries.count(), 2)
-        self.assertEqual(project.summaries.first().sample_count, 2)
+        self.assertEqual(project.sample_count, 5)
+        self.assertEqual(project.summaries.count(), 3)
+        self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(len(project.computed_files), 1)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -156,7 +156,6 @@ class TestLoadData(TestCase):
             "genome_assembly",
             "mapping_index",
             "date_processed",
-            "spaceranger_version",
             "workflow",
             "workflow_version",
             "workflow_commit",
@@ -165,10 +164,9 @@ class TestLoadData(TestCase):
             "pi_name",
             "project_title",
             "disease_timing",
-            "age",
+            "age_at_diagnosis",
             "sex",
             "tissue_location",
-            "treatment",
             "participant_id",
             "submitter",
             "submitter_id",
@@ -224,7 +222,7 @@ class TestLoadData(TestCase):
                 )
         self.assertEqual(set(project_zip.namelist()), expected_filenames)
 
-        sample = project.samples.first()
+        sample = project.samples.filter(has_multiplexed_data=True).first()
         self.assertIsNone(sample.sample_cell_count_estimate)
         self.assertEqual(sample.demux_cell_count_estimate, 2841)
         self.assertTrue(sample.has_multiplexed_data)
@@ -241,7 +239,6 @@ class TestLoadData(TestCase):
         self.assertEqual(
             expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
         )
-        expected_additional_metadata_keys.insert(0, "multiplexed_with")
         self.assertEqual(
             set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
         )
@@ -312,7 +309,7 @@ class TestLoadData(TestCase):
             "pi_name",
             "project_title",
             "disease_timing",
-            "age",
+            "age_at_diagnosis",
             "sex",
             "tissue_location",
             "alevin_fry_version",
@@ -375,7 +372,6 @@ class TestLoadData(TestCase):
         self.assertEqual(sample.technologies, "10Xv3.1, visium")
 
         expected_additional_metadata_keys = [
-            "has_spatial_data",
             "participant_id",
             "scpca_project_id",
             "submitter",
@@ -459,7 +455,7 @@ class TestLoadData(TestCase):
             "pi_name",
             "project_title",
             "disease_timing",
-            "age",
+            "age_at_diagnosis",
             "sex",
             "tissue_location",
             "treatment",
@@ -508,7 +504,6 @@ class TestLoadData(TestCase):
         self.assertEqual(sample.technologies, "10Xv3.1, visium")
 
         expected_additional_metadata_keys = [
-            "has_spatial_data",
             "participant_id",
             "scpca_project_id",
             "submitter",

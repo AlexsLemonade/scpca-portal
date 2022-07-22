@@ -14,17 +14,19 @@ class Sample(TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
-    BULK_RNA_SEQ_MODALITY = "BULK_RNA_SEQ"
-    CITE_SEQ_MODALITY = "CITE_SEQ"
-    MULTIPLEXED_MODALITY = "MULTIPLEXED"
-    SPATIAL_MODALITY = "SPATIAL"
+    class Modalities:
+        BULK_RNA_SEQ = "BULK_RNA_SEQ"
+        CITE_SEQ = "CITE_SEQ"
+        MULTIPLEXED = "MULTIPLEXED"
+        SINGLE_CELL = "SINGLE_CELL"
+        SPATIAL = "SPATIAL"
 
-    MODALITY_NAME_MAPPING = {
-        BULK_RNA_SEQ_MODALITY: "Bulk",
-        CITE_SEQ_MODALITY: "CITE-seq",
-        MULTIPLEXED_MODALITY: "Multiplexed",
-        SPATIAL_MODALITY: "Spatial Data",
-    }
+        NAME_MAPPING = {
+            BULK_RNA_SEQ: "Bulk",
+            CITE_SEQ: "CITE-seq",
+            MULTIPLEXED: "Multiplexed",
+            SPATIAL: "Spatial Data",
+        }
 
     additional_metadata = models.JSONField(default=dict)
     age_at_diagnosis = models.TextField(blank=True, null=True)
@@ -54,33 +56,9 @@ class Sample(TimestampedModel):
 
     @classmethod
     def create_from_dict(cls, data, project):
-        # First figure out what metadata is additional. This varies project by
-        # project, so whatever's not on the Sample model is additional.
-        sample_columns = (
-            "age",
-            "demux_cell_count_estimate",
-            "diagnosis",
-            "disease_timing",
-            "sample_cell_count_estimate",
-            "scpca_library_id",  # Also include this because we don't want it in additional_metadata.
-            "scpca_sample_id",
-            "seq_units",
-            "sex",
-            "subdiagnosis",
-            "technologies",
-            "tissue_location",
-            "treatment",
-        )
-        additional_metadata = {
-            k: v
-            for k, v in data.items()
-            if k not in sample_columns and k not in project.ignored_additional_metadata_keys
-        }
         has_multiplexed_data = bool(data.get("multiplexed_with"))
-
         sample = cls(
-            additional_metadata=additional_metadata,
-            age_at_diagnosis=data["age"],
+            age_at_diagnosis=data["age_at_diagnosis"],
             demux_cell_count_estimate=(
                 data.get("demux_cell_count_estimate") if has_multiplexed_data else None
             ),
@@ -95,7 +73,7 @@ class Sample(TimestampedModel):
                 data.get("sample_cell_count_estimate") if not has_multiplexed_data else None
             ),
             project=project,
-            scpca_id=data["scpca_sample_id"],
+            scpca_id=data.pop("scpca_sample_id"),
             seq_units=data.get("seq_units", ""),
             sex=data["sex"],
             subdiagnosis=data["subdiagnosis"],
@@ -103,35 +81,40 @@ class Sample(TimestampedModel):
             tissue_location=data["tissue_location"],
             treatment=data.get("treatment", ""),
         )
+
+        # Additional metadata varies project by project.
+        # Generally, whatever's not on the Sample model is additional.
+        sample.additional_metadata = {
+            key: value for key, value in data.items() if not hasattr(sample, key)
+        }
         sample.save()
 
         return sample
 
     @staticmethod
-    def get_output_multiplexed_metadata_file_path(scpca_sample_id):
-        return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_multiplexed_metadata.tsv")
-
-    @staticmethod
-    def get_output_single_cell_metadata_file_path(scpca_sample_id):
-        return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_libraries_metadata.tsv")
-
-    @staticmethod
-    def get_output_spatial_metadata_file_path(scpca_sample_id):
-        return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_spatial_metadata.tsv")
+    def get_output_metadata_file_path(scpca_sample_id, modality):
+        if modality == Sample.Modalities.MULTIPLEXED:
+            return os.path.join(
+                common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_multiplexed_metadata.tsv"
+            )
+        if modality == Sample.Modalities.SINGLE_CELL:
+            return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_libraries_metadata.tsv")
+        if modality == Sample.Modalities.SPATIAL:
+            return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_spatial_metadata.tsv")
 
     @property
     def modalities(self):
-        attr_name_modality_name_mapping = {
-            "has_bulk_rna_seq": self.BULK_RNA_SEQ_MODALITY,
-            "has_cite_seq_data": self.CITE_SEQ_MODALITY,
-            "has_multiplexed_data": self.MULTIPLEXED_MODALITY,
-            "has_spatial_data": self.SPATIAL_MODALITY,
+        attr_name_modality_mapping = {
+            "has_bulk_rna_seq": Sample.Modalities.BULK_RNA_SEQ,
+            "has_cite_seq_data": Sample.Modalities.CITE_SEQ,
+            "has_multiplexed_data": Sample.Modalities.MULTIPLEXED,
+            "has_spatial_data": Sample.Modalities.SPATIAL,
         }
 
         modalities = list()
-        for attr_name, modality_name in attr_name_modality_name_mapping.items():
+        for attr_name, modality_name in attr_name_modality_mapping.items():
             if getattr(self, attr_name):
-                modalities.append(self.MODALITY_NAME_MAPPING[modality_name])
+                modalities.append(Sample.Modalities.NAME_MAPPING[modality_name])
 
         return sorted(modalities)
 
@@ -152,7 +135,7 @@ class Sample(TimestampedModel):
 
     @property
     def output_multiplexed_metadata_file_path(self):
-        return Sample.get_output_multiplexed_metadata_file_path(self.scpca_id)
+        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.MULTIPLEXED)
 
     @property
     def output_single_cell_computed_file_name(self):
@@ -160,7 +143,7 @@ class Sample(TimestampedModel):
 
     @property
     def output_single_cell_metadata_file_path(self):
-        return Sample.get_output_single_cell_metadata_file_path(self.scpca_id)
+        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SINGLE_CELL)
 
     @property
     def output_spatial_computed_file_name(self):
@@ -168,7 +151,7 @@ class Sample(TimestampedModel):
 
     @property
     def output_spatial_metadata_file_path(self):
-        return Sample.get_output_spatial_metadata_file_path(self.scpca_id)
+        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SPATIAL)
 
     @property
     def multiplexed_computed_file(self):
