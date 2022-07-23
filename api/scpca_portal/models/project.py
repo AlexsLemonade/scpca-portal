@@ -224,7 +224,9 @@ class Project(TimestampedModel):
                             if key not in library_metadata_keys:
                                 library_metadata_copy.pop(key)
 
-                        library_metadata_copy.update(sample_metadata_mapping.get(multiplexed_sample_id, {}))
+                        library_metadata_copy.update(
+                            sample_metadata_mapping.get(multiplexed_sample_id, {})
+                        )
                         sample_csv_writer.writerow(library_metadata_copy)
 
                         pair_id = (library_metadata_copy["scpca_library_id"], multiplexed_sample_id)
