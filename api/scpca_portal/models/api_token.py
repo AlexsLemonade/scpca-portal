@@ -15,7 +15,7 @@ class APIToken(TimestampedModel):
     class Meta:
         db_table = "api_tokens"
 
-    email = models.EmailField("email", blank=False, null=False)
+    email = models.EmailField("email")
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     is_activated = models.BooleanField(default=False)
 

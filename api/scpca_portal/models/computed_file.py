@@ -62,11 +62,11 @@ class ComputedFile(TimestampedModel):
     )
     README_TEMPLATE_SPATIAL_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_SPATIAL_FILE_NAME)
 
-    s3_bucket = models.TextField(null=False)
-    s3_key = models.TextField(null=False)
+    s3_bucket = models.TextField()
+    s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
     type = models.TextField(choices=OutputFileTypes.CHOICES)
-    workflow_version = models.TextField(null=False)
+    workflow_version = models.TextField()
 
     project = models.ForeignKey(
         "Project", null=True, on_delete=models.CASCADE, related_name="project_computed_files"

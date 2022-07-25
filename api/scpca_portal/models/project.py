@@ -23,27 +23,27 @@ class Project(TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
-    abstract = models.TextField(null=False)
+    abstract = models.TextField()
     additional_metadata_keys = models.TextField(blank=True, null=True)
     contact_email = models.TextField(null=True)
     contact_name = models.TextField(null=True)
     diagnoses = models.TextField(blank=True, null=True)
     diagnoses_counts = models.TextField(blank=True, null=True)
-    disease_timings = models.TextField(null=False)
+    disease_timings = models.TextField()
     downloadable_sample_count = models.IntegerField(default=0)
     has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
     has_multiplexed_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
-    human_readable_pi_name = models.TextField(null=False)
+    human_readable_pi_name = models.TextField()
     modalities = models.TextField(blank=True, null=True)
     multiplexed_sample_count = models.IntegerField(default=0)
-    pi_name = models.TextField(null=False)
+    pi_name = models.TextField()
     sample_count = models.IntegerField(default=0)
-    scpca_id = models.TextField(unique=True, null=False)
+    scpca_id = models.TextField(unique=True)
     seq_units = models.TextField(blank=True, null=True)
     technologies = models.TextField(blank=True, null=True)
-    title = models.TextField(null=False)
+    title = models.TextField()
 
     def __str__(self):
         return f"Project {self.scpca_id}"

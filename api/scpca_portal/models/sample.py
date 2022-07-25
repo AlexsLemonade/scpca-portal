@@ -25,17 +25,15 @@ class Sample(TimestampedModel):
     has_spatial_data = models.BooleanField(default=False)
     multiplexed_with = ArrayField(models.TextField(), default=list)
     sample_cell_count_estimate = models.IntegerField(null=True)
-    scpca_id = models.TextField(unique=True, null=False)
+    scpca_id = models.TextField(unique=True)
     seq_units = models.TextField(blank=True, null=True)
     sex = models.TextField(blank=True, null=True)
     subdiagnosis = models.TextField(blank=True, null=True)
-    technologies = models.TextField(null=False)
+    technologies = models.TextField()
     tissue_location = models.TextField(blank=True, null=True)
     treatment = models.TextField(blank=True, null=True)
 
-    project = models.ForeignKey(
-        "Project", null=False, on_delete=models.CASCADE, related_name="samples"
-    )
+    project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="samples")
 
     def __str__(self):
         return f"Sample {self.scpca_id} of {self.project}"
