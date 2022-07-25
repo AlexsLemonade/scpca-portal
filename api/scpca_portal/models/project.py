@@ -125,6 +125,12 @@ class Project(TimestampedModel):
     def url(self):
         return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
 
+    def add_project_metadata(self, sample_metadata):
+        """Adds project level metadata to the `sample_metadata`."""
+        sample_metadata["pi_name"] = self.pi_name
+        sample_metadata["project_title"] = self.title
+        sample_metadata["scpca_project_id"] = self.scpca_id
+
     def combine_multiplexed_metadata(
         self,
         samples_metadata: List[Dict],
@@ -194,7 +200,7 @@ class Project(TimestampedModel):
                 if key not in sample_metadata_keys:
                     sample_metadata_copy.pop(key)
 
-            self.inject_metadata(sample_metadata_copy)
+            self.add_project_metadata(sample_metadata_copy)
             sample_metadata_mapping[multiplexed_sample_id] = sample_metadata_copy
 
         # Combine and write the metadata.
@@ -292,7 +298,7 @@ class Project(TimestampedModel):
                     if key not in sample_metadata_keys:
                         sample_metadata_copy.pop(key)
 
-                self.inject_metadata(sample_metadata_copy)
+                self.add_project_metadata(sample_metadata_copy)
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(
                     scpca_sample_id, modality
@@ -364,7 +370,7 @@ class Project(TimestampedModel):
                     if key not in sample_metadata_keys:
                         sample_metadata_copy.pop(key)
 
-                self.inject_metadata(sample_metadata_copy)
+                self.add_project_metadata(sample_metadata_copy)
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(
                     scpca_sample_id, modality
@@ -578,14 +584,13 @@ class Project(TimestampedModel):
     def get_sample_metadata_keys(self, all_keys, modalities=()):
         """Returns a set of metadata keys based on the modalities context."""
         excluded_keys = {
-            # Injected keys.
             "has_bulk_rna_seq",
             "has_cite_seq_data",
             "has_spatial_data",
             "seq_units",
             "technologies",
         }
-        injected_keys = {
+        project_keys = {
             "pi_name",
             "project_title",
         }
@@ -620,17 +625,11 @@ class Project(TimestampedModel):
                 )
             )
 
-        return all_keys.union(injected_keys).difference(excluded_keys)
+        return all_keys.union(project_keys).difference(excluded_keys)
 
     def get_sample_input_data_dir(self, sample_scpca_id):
         """Returns an input data directory based on a sample ID."""
         return os.path.join(self.input_data_dir, sample_scpca_id)
-
-    def inject_metadata(self, sample_metadata):
-        """Adds project level metadata to the `sample_metadata`."""
-        sample_metadata["pi_name"] = self.pi_name
-        sample_metadata["project_title"] = self.title
-        sample_metadata["scpca_project_id"] = self.scpca_id
 
     def load_data(self, scpca_sample_ids=None) -> List[ComputedFile]:
         """
