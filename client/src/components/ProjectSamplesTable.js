@@ -47,8 +47,7 @@ export const ProjectSamplesTable = ({
             <Text>Not Available</Text>
             <Text>For Download</Text>
           </Box>
-        ),
-      isVisible: true
+        )
     },
     {
       Header: 'Sample ID',
@@ -63,8 +62,7 @@ export const ProjectSamplesTable = ({
             />
           )}
         </Box>
-      ),
-      isVisible: true
+      )
     },
     {
       Header: 'Diagnosis - Subdiagnosis',
@@ -74,33 +72,28 @@ export const ProjectSamplesTable = ({
           <Text>{row.original.diagnosis}</Text>
           <Text size="small">{row.original.subdiagnosis}</Text>
         </Box>
-      ),
-      isVisible: true
+      )
     },
-    { Header: 'Sequencing Units', accessor: 'seq_units', isVisible: true },
-    { Header: 'Technology', accessor: 'technologies', isVisible: true },
+    { Header: 'Sequencing Units', accessor: 'seq_units' },
+    { Header: 'Technology', accessor: 'technologies' },
     {
       Header: 'Other Modalities',
-      accessor: ({ modalities }) => modalities || 'N/A',
-      isVisible: true
+      accessor: ({ modalities }) => modalities || 'N/A'
     },
-    { Header: 'Disease Timing', accessor: 'disease_timing', isVisible: true },
-    { Header: 'Tissue Location', accessor: 'tissue_location', isVisible: true },
+    { Header: 'Disease Timing', accessor: 'disease_timing' },
+    { Header: 'Tissue Location', accessor: 'tissue_location' },
     {
       Header: 'Treatment',
-      accessor: ({ treatment }) => treatment || 'N/A',
-      isVisible: true
+      accessor: ({ treatment }) => treatment || 'N/A'
     },
     {
       Header: 'Age at Diagnosis',
-      accessor: 'age_at_diagnosis',
-      isVisible: true
+      accessor: 'age_at_diagnosis'
     },
-    { Header: 'Sex', accessor: 'sex', isVisible: true },
+    { Header: 'Sex', accessor: 'sex' },
     {
       Header: 'Sample Count Estimates',
-      accessor: ({ sample_cell_count_estimate: count }) => count || 'N/A',
-      isVisible: true
+      accessor: ({ sample_cell_count_estimate: count }) => count || 'N/A'
     },
     {
       Header: () => (
@@ -118,8 +111,7 @@ export const ProjectSamplesTable = ({
     },
     {
       Header: 'Additional Metadata Fields',
-      accessor: ({ additional_metadata: data }) => Object.keys(data).join(', '),
-      isVisible: true
+      accessor: ({ additional_metadata: data }) => Object.keys(data).join(', ')
     }
   ]
 

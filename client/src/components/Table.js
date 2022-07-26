@@ -247,6 +247,11 @@ export const Table = ({
     state: { pageIndex }
   } = instance
 
+  userColumns.forEach((c) => {
+    // eslint-disable-next-line no-prototype-builtins, no-param-reassign
+    if (!c.hasOwnProperty('isVisible')) c.isVisible = true
+  })
+
   useEffect(() => {
     setHiddenColumns(
       columns
