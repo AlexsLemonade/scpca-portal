@@ -2,6 +2,7 @@ import React from 'react'
 import { Icon } from 'components/Icon'
 import { Anchor, Box, Grid, Layer, Stack, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
+import { Loader } from './Loader'
 
 export const Modal = ({
   title,
@@ -92,6 +93,16 @@ export const Modal = ({
     </span>
   )
 }
+
+export const ModalLoader = ({
+  width = '320px',
+  height = '200px',
+  loaderWidth = '32px'
+}) => (
+  <Box align="center" justify="center" width={width} height={height}>
+    <Loader width={loaderWidth} />
+  </Box>
+)
 
 export const ModalHeader = ({ children }) => (
   <Box gridArea="header" width="full">
