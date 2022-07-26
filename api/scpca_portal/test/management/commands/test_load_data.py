@@ -138,7 +138,7 @@ class TestLoadData(TestCase):
         self.assertEqual(project.multiplexed_sample_count, 4)
         self.assertEqual(project.sample_count, 5)
         self.assertEqual(project.summaries.count(), 3)
-        self.assertEqual(project.summaries.first().sample_count, 1)
+        self.assertEqual(project.summaries.first().sample_count, 2)
         self.assertEqual(len(project.computed_files), 1)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -223,7 +223,7 @@ class TestLoadData(TestCase):
                 )
         self.assertEqual(set(project_zip.namelist()), expected_filenames)
 
-        sample = project.samples.filter(has_multiplexed_data=True).first()
+        sample = project.samples.first()
         self.assertIsNone(sample.sample_cell_count_estimate)
         self.assertEqual(sample.demux_cell_count_estimate, 2841)
         self.assertTrue(sample.has_multiplexed_data)

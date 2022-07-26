@@ -55,7 +55,9 @@ class Sample(TimestampedModel):
         return f"Sample {self.scpca_id} of {self.project}"
 
     @classmethod
-    def create_from_dict(cls, data, project):
+    def get_from_dict(cls, data, project):
+        """Prepares a ready for saving sample object."""
+
         has_multiplexed_data = bool(data.get("multiplexed_with"))
         sample = cls(
             age_at_diagnosis=data["age_at_diagnosis"],
@@ -87,7 +89,6 @@ class Sample(TimestampedModel):
         sample.additional_metadata = {
             key: value for key, value in data.items() if not hasattr(sample, key)
         }
-        sample.save()
 
         return sample
 
