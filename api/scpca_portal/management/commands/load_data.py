@@ -59,19 +59,19 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--reload-all", action="store_true")
         parser.add_argument("--reload-existing", action="store_true")
-        parser.add_argument("--scpca-project-ids", action="extend", nargs="+", type=str)
-        parser.add_argument("--scpca-sample-ids", action="extend", nargs="+", type=str)
+        parser.add_argument("--scpca-project-id", action="extend", nargs="+", type=str)
+        parser.add_argument("--scpca-sample-id", action="extend", nargs="+", type=str)
         parser.add_argument("--skip-sync", action="store_true", default=False)
         parser.add_argument("--update-s3", action="store_true", default=settings.UPDATE_S3_DATA)
 
     def handle(self, *args, **options):
         load_data_from_s3(
-            options["update_s3"],
-            options["reload_all"],
-            options["reload_existing"],
-            options["scpca_project_ids"],
-            options["scpca_sample_ids"],
+            reload_all=options["reload_all"],
+            reload_existing=options["reload_existing"],
+            scpca_project_ids=options["scpca_project_id"] or (),
+            scpca_sample_ids=options["scpca_sample_id"] or (),
             skip_input_bucket_sync=options["skip_sync"],
+            update_s3_data=options["update_s3"],
         )
         cleanup_output_data_dir()
 
@@ -84,25 +84,19 @@ def cleanup_output_data_dir():
 
 
 def load_data_from_s3(
-    update_s3_data: bool,
-    reload_all: bool,
-    reload_existing: bool,
-    scpca_project_ids=None,
-    scpca_sample_ids=None,
-    allowed_submitters=ALLOWED_SUBMITTERS,
-    input_bucket_name="scpca-portal-inputs",
-    skip_input_bucket_sync=False,
+    allowed_submitters: set = ALLOWED_SUBMITTERS,
+    input_bucket_name: str = "scpca-portal-inputs",
+    reload_all: bool = False,
+    reload_existing: bool = False,
+    scpca_project_ids=(),
+    scpca_sample_ids=(),
+    skip_input_bucket_sync: bool = False,
+    update_s3_data: bool = False,
 ):
     """Loads data from S3. Creates projects and loads data for them."""
 
-    if reload_all:
-        logger.info("Purging all projects")
-        for project in Project.objects.order_by("scpca_id"):
-            project.purge(delete_from_s3=update_s3_data)
-
     # Prepare data input directory.
-    if not os.path.exists(common.INPUT_DATA_DIR):
-        os.makedirs(common.INPUT_DATA_DIR)
+    os.makedirs(common.INPUT_DATA_DIR, exist_ok=True)
 
     # Prepare data output directory.
     shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
@@ -113,20 +107,45 @@ def load_data_from_s3(
             "aws",
             "s3",
             "sync",
-            "--delete",
             f"s3://{input_bucket_name}",
             common.INPUT_DATA_DIR,
         ]
         if "public-test" in input_bucket_name:
             command_list.append("--no-sign-request")
+
+        scpca_ids = list(scpca_project_ids) + list(scpca_sample_ids)
+        if scpca_ids:
+            command_list.extend(
+                (
+                    "--exclude=*",  # Must precede include patterns.
+                    "--include=project_metadata.csv",
+                )
+            )
+
+            if scpca_sample_ids:
+                command_list.extend(
+                    (
+                        "--include=*/samples_metadata.csv",
+                        "--include=*_bulk_metadata.tsv",
+                        "--include=*_bulk_quant.tsv",
+                    )
+                )
+            command_list.extend((f"--include=*{scpca_id}*" for scpca_id in scpca_ids))
+        else:
+            command_list.append("--delete")
+
         subprocess.check_call(command_list)
+
+    if reload_all:
+        logger.info("Purging all projects")
+        for project in Project.objects.order_by("scpca_id"):
+            project.purge(delete_from_s3=update_s3_data)
 
     with open(Project.get_input_project_metadata_file_path()) as project_csv:
         project_list = list(csv.DictReader(project_csv))
-
     for project_data in project_list:
         scpca_id = project_data["scpca_project_id"]
-        if scpca_project_ids and scpca_id not in scpca_project_ids:
+        if scpca_project_ids and not scpca_sample_ids and scpca_id not in scpca_project_ids:
             continue
 
         if project_data["submitter"] not in allowed_submitters:
@@ -152,6 +171,10 @@ def load_data_from_s3(
         project.contact_email = project_data["contact_email"]
         project.contact_name = project_data["contact_name"]
         project.has_bulk_rna_seq = utils.boolean_from_string(project_data.get("has_bulk", False))
+        project.has_cite_seq_data = utils.boolean_from_string(project_data.get("has_CITE", False))
+        project.has_multiplexed_data = utils.boolean_from_string(
+            project_data.get("has_multiplex", False)
+        )
         project.has_spatial_data = utils.boolean_from_string(project_data.get("has_spatial", False))
         project.human_readable_pi_name = project_data["PI"]
         project.pi_name = project_data["submitter"]

@@ -1,4 +1,5 @@
-boto3==1.11.1
+awscli==1.25.32
+boto3==1.24.32
 daiquiri==1.5.0
 dj-database-url==0.5.0
 django-configurations==2.2

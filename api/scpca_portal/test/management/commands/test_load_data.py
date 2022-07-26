@@ -46,36 +46,26 @@ class TestLoadData(TestCase):
         self.assertIsNotNone(sample.diagnosis)
         self.assertIsNotNone(sample.disease_timing)
         self.assertTrue(sample.scpca_id)
-        self.assertIsNotNone(sample.seq_units)
         self.assertIsNotNone(sample.sex)
         self.assertIsNotNone(sample.subdiagnosis)
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-        expected_metadata_keys = (
-            "participant_id",
-            "scpca_project_id",
-            "submitter",
-            "submitter_id",
-        )
-        for key in expected_metadata_keys:
-            self.assertIn(key, sample.additional_metadata.keys())
-
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_load_data_from_s3(self):
         def assert_object_count():
             self.assertEqual(Project.objects.count(), 2)
-            self.assertEqual(ProjectSummary.objects.count(), 6)
+            self.assertEqual(ProjectSummary.objects.count(), 7)
             self.assertEqual(Sample.objects.count(), 6)
             self.assertEqual(ComputedFile.objects.count(), 9)
 
         # First, just test that loading data works.
         load_data_from_s3(
-            update_s3_data=False,
-            reload_all=False,
-            reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=False,
+            update_s3_data=False,
         )
         assert_object_count()
 
@@ -92,11 +82,11 @@ class TestLoadData(TestCase):
             # Make sure that reload_existing=False won't add anything
             # new when there's nothing new.
             load_data_from_s3(
-                update_s3_data=False,
-                reload_all=False,
-                reload_existing=False,
                 allowed_submitters=ALLOWED_SUBMITTERS,
                 input_bucket_name=INPUT_BUCKET_NAME,
+                reload_all=False,
+                reload_existing=False,
+                update_s3_data=False,
             )
             assert_object_count()
 
@@ -120,22 +110,22 @@ class TestLoadData(TestCase):
 
         # Make sure reloading works smoothly.
         load_data_from_s3(
-            update_s3_data=False,
-            reload_all=False,
-            reload_existing=True,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=True,
+            update_s3_data=False,
         )
         assert_object_count()
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_multiplexed_metadata(self):
         load_data_from_s3(
-            update_s3_data=True,
-            reload_all=False,
-            reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=False,
+            update_s3_data=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999990")
@@ -147,8 +137,8 @@ class TestLoadData(TestCase):
         self.assertFalse(project.has_spatial_data)
         self.assertEqual(project.multiplexed_sample_count, 4)
         self.assertEqual(project.sample_count, 5)
-        self.assertEqual(project.summaries.count(), 2)
-        self.assertEqual(project.summaries.first().sample_count, 3)
+        self.assertEqual(project.summaries.count(), 3)
+        self.assertEqual(project.summaries.first().sample_count, 2)
         self.assertEqual(project.unavailable_samples_count, 1)
         self.assertEqual(len(project.computed_files), 1)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
@@ -157,14 +147,37 @@ class TestLoadData(TestCase):
             "development",
         )
 
-        expected_keys = project.output_multiplexed_metadata_field_order + [
+        expected_keys = [
+            "scpca_sample_id",
+            "scpca_library_id",
+            "scpca_project_id",
+            "technology",
+            "seq_unit",
+            "total_reads",
+            "mapped_reads",
+            "genome_assembly",
+            "mapping_index",
+            "date_processed",
+            "workflow",
+            "workflow_version",
+            "workflow_commit",
+            "diagnosis",
+            "subdiagnosis",
+            "pi_name",
+            "project_title",
+            "disease_timing",
+            "age_at_diagnosis",
+            "sex",
+            "tissue_location",
+            "participant_id",
+            "submitter",
+            "submitter_id",
             "alevin_fry_version",
             "demux_method",
             "demux_samples",
             "filtered_cells",
             "filtering_method",
             "has_cellhash",
-            "has_citeseq",
             "is_multiplexed",
             "salmon_version",
             "sample_cell_estimates",
@@ -215,6 +228,22 @@ class TestLoadData(TestCase):
         self.assertIsNone(sample.sample_cell_count_estimate)
         self.assertEqual(sample.demux_cell_count_estimate, 2841)
         self.assertTrue(sample.has_multiplexed_data)
+        self.assertEqual(sample.seq_units, "nucleus")
+        self.assertEqual(sample.technologies, "10Xv3.1")
+
+        expected_additional_metadata_keys = [
+            "participant_id",
+            "scpca_project_id",
+            "submitter",
+            "submitter_id",
+            "WHO_grade",
+        ]
+        self.assertEqual(
+            expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
+        )
+        self.assertEqual(
+            set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
+        )
 
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_multiplexed_computed_file_name
@@ -244,11 +273,11 @@ class TestLoadData(TestCase):
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_single_cell_metadata(self):
         load_data_from_s3(
-            update_s3_data=True,
-            reload_all=False,
-            reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=False,
+            update_s3_data=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999999")
@@ -260,6 +289,7 @@ class TestLoadData(TestCase):
         self.assertTrue(project.modalities)
         self.assertEqual(project.multiplexed_sample_count, 0)
         self.assertEqual(project.sample_count, 1)
+        self.assertEqual(project.seq_units, "nucleus, spot")
         self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
@@ -269,14 +299,28 @@ class TestLoadData(TestCase):
             project.single_cell_computed_file.workflow_version,
             "v0.2.7",
         )
+        self.assertEqual(project.technologies, "10Xv3.1, visium")
 
-        expected_keys = project.output_single_cell_metadata_field_order + [
+        expected_keys = [
+            "scpca_sample_id",
+            "scpca_library_id",
+            "diagnosis",
+            "subdiagnosis",
+            "seq_unit",
+            "technology",
+            "sample_cell_count_estimate",
+            "scpca_project_id",
+            "pi_name",
+            "project_title",
+            "disease_timing",
+            "age_at_diagnosis",
+            "sex",
+            "tissue_location",
             "alevin_fry_version",
             "date_processed",
             "filtered_cell_count",
             "filtering_method",
             "genome_assembly",
-            "has_citeseq",
             "mapped_reads",
             "mapping_index",
             "participant_id",
@@ -322,13 +366,28 @@ class TestLoadData(TestCase):
         self.assertFalse(project.has_multiplexed_data)
         self.assertTrue(sample.has_spatial_data)
         self.assertEqual(sample.sample_cell_count_estimate, 23751)
+        self.assertEqual(sample.seq_units, "nucleus, spot")
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(
             sample.single_cell_computed_file.workflow_version,
             "v0.2.7",
         )
-        self.assertTrue(sample.technologies)
+        self.assertEqual(sample.technologies, "10Xv3.1, visium")
+
+        expected_additional_metadata_keys = [
+            "participant_id",
+            "scpca_project_id",
+            "submitter",
+            "submitter_id",
+            "upload_date",
+        ]
+        self.assertEqual(
+            expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
+        )
+        self.assertEqual(
+            set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
+        )
 
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_single_cell_computed_file_name
@@ -358,11 +417,11 @@ class TestLoadData(TestCase):
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_spatial_metadata(self):
         load_data_from_s3(
-            update_s3_data=True,
-            reload_all=False,
-            reload_existing=False,
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=False,
+            update_s3_data=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999999")
@@ -382,7 +441,33 @@ class TestLoadData(TestCase):
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "v0.2.7")
 
-        expected_keys = project.output_spatial_metadata_field_order + [
+        expected_keys = [
+            "scpca_project_id",
+            "scpca_sample_id",
+            "scpca_library_id",
+            "technology",
+            "seq_unit",
+            "total_reads",
+            "mapped_reads",
+            "genome_assembly",
+            "mapping_index",
+            "date_processed",
+            "spaceranger_version",
+            "workflow",
+            "workflow_version",
+            "workflow_commit",
+            "diagnosis",
+            "subdiagnosis",
+            "pi_name",
+            "project_title",
+            "disease_timing",
+            "age_at_diagnosis",
+            "sex",
+            "tissue_location",
+            "treatment",
+            "participant_id",
+            "submitter",
+            "submitter_id",
             "upload_date",
         ]
 
@@ -415,13 +500,28 @@ class TestLoadData(TestCase):
         self.assertFalse(sample.has_multiplexed_data)
         self.assertTrue(sample.has_spatial_data)
         self.assertEqual(sample.sample_cell_count_estimate, 23751)
+        self.assertEqual(sample.seq_units, "nucleus, spot")
         self.assertIsNotNone(sample.spatial_computed_file)
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(
             sample.spatial_computed_file.workflow_version,
             "v0.2.7",
         )
-        self.assertTrue(sample.technologies)
+        self.assertEqual(sample.technologies, "10Xv3.1, visium")
+
+        expected_additional_metadata_keys = [
+            "participant_id",
+            "scpca_project_id",
+            "submitter",
+            "submitter_id",
+            "upload_date",
+        ]
+        self.assertEqual(
+            expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
+        )
+        self.assertEqual(
+            set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
+        )
 
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_spatial_computed_file_name
