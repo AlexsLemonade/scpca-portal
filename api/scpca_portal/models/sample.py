@@ -41,7 +41,9 @@ class Sample(TimestampedModel):
         return f"Sample {self.scpca_id} of {self.project}"
 
     @classmethod
-    def create_from_dict(cls, data, project):
+    def get_from_dict(cls, data, project):
+        """Prepares a ready for saving sample object."""
+
         # First figure out what metadata is additional. This varies project by
         # project, so whatever's not on the Sample model is additional.
         sample_columns = (
@@ -87,7 +89,6 @@ class Sample(TimestampedModel):
             tissue_location=data["tissue_location"],
             treatment=data.get("treatment", ""),
         )
-        sample.save()
 
         return sample
 
