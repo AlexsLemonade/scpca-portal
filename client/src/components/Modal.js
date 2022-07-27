@@ -1,8 +1,8 @@
 import React from 'react'
+import { Loader } from 'components/Loader'
 import { Icon } from 'components/Icon'
 import { Anchor, Box, Grid, Layer, Stack, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
-import { Loader } from './Loader'
 
 export const Modal = ({
   title,
