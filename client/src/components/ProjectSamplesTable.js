@@ -1,12 +1,17 @@
 import React from 'react'
-import { Box, Text } from 'grommet'
-import { Table } from 'components/Table'
-import { formatBytes } from 'helpers/formatBytes'
 import { api } from 'api'
+import { config } from 'config'
+import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { Download } from 'components/Download'
+import { Icon } from 'components/Icon'
+import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
+import { Pill } from 'components/Pill'
+import { Table } from 'components/Table'
 import { accumulateValue } from 'helpers/accumulateValue'
+import { formatBytes } from 'helpers/formatBytes'
+import { getReadable } from 'helpers/getReadable'
 
 export const ProjectSamplesTable = ({
   project,
@@ -19,6 +24,7 @@ export const ProjectSamplesTable = ({
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
       : false
+
   const columns = [
     {
       Header: 'Download',
@@ -43,7 +49,21 @@ export const ProjectSamplesTable = ({
           </Box>
         )
     },
-    { Header: 'Sample ID', accessor: 'scpca_id' },
+    {
+      Header: 'Sample ID',
+      accessor: ({ scpca_id: id, has_multiplexed_data: multiplexed }) => (
+        <Box>
+          <Text>{id}</Text>
+          {multiplexed && (
+            <Pill
+              textSize="small"
+              label={getReadable('has_multiplexed_data')}
+              bullet={false}
+            />
+          )}
+        </Box>
+      )
+    },
     {
       Header: 'Diagnosis - Subdiagnosis',
       accessor: ({ diagnosis, subdiagnosis }) => `${diagnosis} ${subdiagnosis}`,
@@ -62,10 +82,33 @@ export const ProjectSamplesTable = ({
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
-    { Header: 'Treatment', accessor: ({ treatment }) => treatment || 'N/A' },
-    { Header: 'Age at Diagnosis', accessor: 'age_at_diagnosis' },
+    {
+      Header: 'Treatment',
+      accessor: ({ treatment }) => treatment || 'N/A'
+    },
+    {
+      Header: 'Age at Diagnosis',
+      accessor: 'age_at_diagnosis'
+    },
     { Header: 'Sex', accessor: 'sex' },
-    { Header: 'Sample Count Estimates', accessor: 'cell_count' },
+    {
+      Header: 'Sample Count Estimates',
+      accessor: ({ sample_cell_count_estimate: count }) => count || 'N/A'
+    },
+    {
+      Header: () => (
+        <Box direction="row" align="center">
+          Est. Demux Sample Counts&nbsp;
+          <Link href={config.links.what_est_demux_cell}>
+            <Icon size="small" name="Help" />
+          </Link>
+          &nbsp;&nbsp;
+        </Box>
+      ),
+      accessor: 'demux_cell_count_estimate',
+      Cell: ({ demux_cell_count_estimate: count }) => count || 'N/A',
+      isVisible: project.has_multiplexed_data
+    },
     {
       Header: 'Additional Metadata Fields',
       accessor: ({ additional_metadata: data }) => Object.keys(data).join(', ')
@@ -90,7 +133,6 @@ export const ProjectSamplesTable = ({
         setLoaded(true)
       }
     }
-
     if (!samples && !loaded) asyncFetch()
     if (samples && !loaded) setLoaded(true)
   }, [samples, loaded])

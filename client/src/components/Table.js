@@ -243,8 +243,22 @@ export const Table = ({
     gotoPage,
     setPageSize,
     pageOptions,
+    setHiddenColumns,
     state: { pageIndex }
   } = instance
+
+  userColumns.forEach((c) => {
+    // eslint-disable-next-line no-prototype-builtins, no-param-reassign
+    if (!c.hasOwnProperty('isVisible')) c.isVisible = true
+  })
+
+  useEffect(() => {
+    setHiddenColumns(
+      columns
+        .filter((column) => !column.isVisible)
+        .map((column) => column.accessor)
+    )
+  }, [setHiddenColumns, columns])
 
   const justify = filter && infoText ? 'between' : 'end'
   const pad = filter ? { vertical: 'medium' } : {}
