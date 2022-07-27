@@ -1,19 +1,20 @@
 import React from 'react'
-import { Box, Grid, Text } from 'grommet'
-import { Pill } from 'components/Pill'
-import { Badge } from 'components/Badge'
-import { Link } from 'components/Link'
-import { Download } from 'components/Download'
-import { getReadable } from 'helpers/getReadable'
-import { formatBytes } from 'helpers/formatBytes'
-import { capitalize } from 'helpers/capitalize'
 import { useResponsive } from 'hooks/useResponsive'
+import { config } from 'config'
+import { Box, Grid, Text } from 'grommet'
+import { Badge } from 'components/Badge'
+import { Download } from 'components/Download'
+import { Link } from 'components/Link'
+import { Pill } from 'components/Pill'
 import { accumulateValue } from 'helpers/accumulateValue'
+import { capitalize } from 'helpers/capitalize'
+import { formatBytes } from 'helpers/formatBytes'
+import { getReadable } from 'helpers/getReadable'
 import { InfoText } from './InfoText'
+import { WarningText } from './WarningText'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
-
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
       <Box
@@ -82,6 +83,17 @@ export const ProjectHeader = ({ project, linked = false }) => {
               Number(project.downloadable_sample_count)
             } more samples will be made available soon`}
           />
+          {project.has_multiplexed_data && (
+            <WarningText
+              lineBreak={false}
+              text={`${
+                project.multiplexed_sample_count || 'N/A'
+              } samples are multiplexed.`}
+              link={config.links.how_processed_multiplexed}
+              linkLable="Learn more"
+              iconMargin="0"
+            />
+          )}
         </Box>
       )}
     </Box>
