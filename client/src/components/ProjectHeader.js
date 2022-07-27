@@ -5,16 +5,21 @@ import { Box, Grid, Text } from 'grommet'
 import { Badge } from 'components/Badge'
 import { Download } from 'components/Download'
 import { Link } from 'components/Link'
+import { InfoText } from 'components/InfoText'
 import { Pill } from 'components/Pill'
+import { WarningText } from 'components/WarningText'
 import { accumulateValue } from 'helpers/accumulateValue'
 import { capitalize } from 'helpers/capitalize'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
-import { InfoText } from './InfoText'
-import { WarningText } from './WarningText'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
+  const sampleCountWithSingleCellData =
+    Number(project.sample_count) - Number(project.unavailable_samples_count)
+  const SampleCountEqualToDownloadableCount =
+    sampleCountWithSingleCellData === Number(project.downloadable_sample_count)
+
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
       <Box
@@ -71,7 +76,8 @@ export const ProjectHeader = ({ project, linked = false }) => {
           <Badge badge="Modality" label={project.modalities} />
         )}
       </Grid>
-      {project.sample_count !== project.downloadable_sample_count && (
+
+      {!SampleCountEqualToDownloadableCount && (
         <Box
           border={{ side: 'top' }}
           margin={{ top: 'medium' }}
@@ -83,17 +89,24 @@ export const ProjectHeader = ({ project, linked = false }) => {
               Number(project.downloadable_sample_count)
             } more samples will be made available soon`}
           />
-          {project.has_multiplexed_data && (
-            <WarningText
-              lineBreak={false}
-              text={`${
-                project.multiplexed_sample_count || 'N/A'
-              } samples are multiplexed.`}
-              link={config.links.how_processed_multiplexed}
-              linkLable="Learn more"
-              iconMargin="0"
-            />
-          )}
+        </Box>
+      )}
+
+      {project.has_multiplexed_data && (
+        <Box
+          border={SampleCountEqualToDownloadableCount ? { side: 'top' } : ''}
+          margin={{ top: 'medium' }}
+          pad={SampleCountEqualToDownloadableCount ? { top: 'medium' } : ''}
+        >
+          <WarningText
+            lineBreak={false}
+            text={`${
+              project.multiplexed_sample_count || 'N/A'
+            } samples are multiplexed.`}
+            link={config.links.how_processed_multiplexed}
+            linkLable="Learn more"
+            iconMargin="0"
+          />
         </Box>
       )}
     </Box>
