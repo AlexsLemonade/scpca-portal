@@ -11,10 +11,6 @@ export const DownloadOption = ({
 }) => {
   const { header, items } = getDownloadOptionDetails(resource, computedFile)
 
-  const handleClick = (file) => {
-    handleSelectFile(file)
-  }
-
   return (
     <Grid
       areas={[
@@ -33,7 +29,6 @@ export const DownloadOption = ({
         </Heading>
       </Box>
       <Box gridArea="body">
-        <Text>The download consists of the following items:</Text>
         <Box pad="small">
           <ul
             style={{
@@ -56,7 +51,7 @@ export const DownloadOption = ({
             aria-label={header}
             label={header}
             target="_blank"
-            onClick={() => handleClick(computedFile)}
+            onClick={() => handleSelectFile(computedFile)}
           />
         </Box>
       </Box>

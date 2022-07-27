@@ -133,7 +133,7 @@ export default {
     'status-disabled': '#CCCCCC',
     'status-ok': '#00C781',
     'status-unknown': '#CCCCCC',
-    'status-warning': '#FFAA15',
+    'status-warning': '#FFDD00',
     text: {
       dark: '#FDFDFD',
       light: '#000000'
