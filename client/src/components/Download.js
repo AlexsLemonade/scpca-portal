@@ -5,11 +5,11 @@ import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
 import { Anchor, Text } from 'grommet'
 import { Button } from 'components/Button'
-import { DownloadStarted } from 'components/DownloadStarted'
 import { DownloadOptions } from 'components/DownloadOptions'
+import { DownloadStarted } from 'components/DownloadStarted'
 import { DownloadToken } from 'components/DownloadToken'
 import { Icon } from 'components/Icon'
-import { Modal, ModalHeader, ModalBody } from 'components/Modal'
+import { Modal, ModalLoader, ModalHeader, ModalBody } from 'components/Modal'
 import { formatDate } from 'helpers/formatDate'
 import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
 import { getProjectID } from 'helpers/getProjectID'
@@ -155,7 +155,9 @@ export const Download = ({ icon, resource: initialResource }) => {
               resource={resource}
               handleSelectFile={handleSelectFile}
             />
-          ) : null}
+          ) : (
+            <ModalLoader />
+          )}
         </ModalBody>
       </Modal>
     </>

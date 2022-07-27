@@ -137,7 +137,12 @@ export const ProjectSamplesTable = ({
     if (samples && !loaded) setLoaded(true)
   }, [samples, loaded])
 
-  if (!loaded) return <Loader />
+  if (!loaded)
+    return (
+      <Box margin="64px">
+        <Loader />
+      </Box>
+    )
   return (
     <Table
       filter

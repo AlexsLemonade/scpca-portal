@@ -3,7 +3,9 @@ import { Box } from 'grommet'
 import styled, { css } from 'styled-components'
 
 const LoaderBox = styled(Box)`
-  display: inline-block;
+  display: inline-flex;
+  algin-item: center;
+  justiy-content: center;
   position: relative;
   ${({ theme, width }) =>
     css`
@@ -11,30 +13,24 @@ const LoaderBox = styled(Box)`
       height: ${width}px;
 
       > div {
+        border: ${width === 80 ? '8' : '4'}px solid
+          ${theme.global.colors['alexs-deep-blue']};
+        border-color: ${theme.global.colors['alexs-deep-blue']} transparent
+          transparent transparent;
+        border-radius: 50%;
         box-sizing: border-box;
         display: block;
         position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
         width: ${width}px;
         height: ${width}px;
-        margin: 8px;
-        border: ${width === 80 ? '8' : '4'}px solid
-          ${theme.global.colors['alexs-deep-blue']};
-        border-radius: 50%;
         animation: loader 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-        border-color: ${theme.global.colors['alexs-deep-blue']} transparent
-          transparent transparent;
 
         &:nth-child(1) {
           animation-delay: -0.45s;
         }
-
         &:nth-child(2) {
           animation-delay: -0.3s;
         }
-
         &:nth-child(3) {
           animation-delay: -0.15s;
         }
