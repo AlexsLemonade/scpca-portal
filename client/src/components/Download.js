@@ -34,7 +34,7 @@ export const Download = ({ icon, resource: initialResource }) => {
     : 'Download Sample'
 
   const defaultComputedFile = getDefaultComputedFile(resource)
-  const mutltipleComputedFiles = hasMultiple(resource.computed_files)
+  const multipleComputedFiles = hasMultiple(resource.computed_files)
 
   const handleClick = () => {
     setShowing(true)
@@ -68,7 +68,7 @@ export const Download = ({ icon, resource: initialResource }) => {
     if (initial || (!initial && !togglePublicComputedFile))
       setResource(initialResource)
 
-    setPublicComputedFile(mutltipleComputedFiles ? null : defaultComputedFile)
+    setPublicComputedFile(multipleComputedFiles ? null : defaultComputedFile)
 
     const shouldFetchProject =
       publicComputedFile && hasRecommendedResource(publicComputedFile.type)
@@ -126,7 +126,7 @@ export const Download = ({ icon, resource: initialResource }) => {
         />
       )}
       <Modal title={label} showing={showing} setShowing={setShowing}>
-        {publicComputedFile && mutltipleComputedFiles && (
+        {publicComputedFile && multipleComputedFiles && (
           <ModalHeader>
             <Text
               color="brand"
@@ -150,7 +150,7 @@ export const Download = ({ icon, resource: initialResource }) => {
             />
           ) : !token && publicComputedFile ? (
             <DownloadToken />
-          ) : !publicComputedFile && mutltipleComputedFiles ? (
+          ) : !publicComputedFile && multipleComputedFiles ? (
             <DownloadOptions
               resource={resource}
               handleSelectFile={handleSelectFile}

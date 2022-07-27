@@ -37,8 +37,8 @@ export const DownloadStarted = ({
     (cf) => cf.id !== computedFile.id
   )
 
-  const mutltipleComputedFiles = hasMultiple(resource.computed_files)
-  const inlineBorderStyle = mutltipleComputedFiles
+  const multipleComputedFiles = hasMultiple(resource.computed_files)
+  const inlineBorderStyle = multipleComputedFiles
     ? {
         side: 'bottom',
         color: 'border-black',
@@ -58,7 +58,7 @@ export const DownloadStarted = ({
         border={inlineBorderStyle}
       >
         <Box>
-          {mutltipleComputedFiles && (
+          {multipleComputedFiles && (
             <Heading level="3" size="small">
               {header}
             </Heading>
