@@ -91,7 +91,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               } samples are multiplexed.`}
               link={config.links.how_processed_multiplexed}
               linkLable="Learn more"
-              iconMargin={[0, 0, 0, 0]}
+              iconMargin="0"
             />
           )}
         </Box>
