@@ -15,9 +15,9 @@ import { getReadable } from 'helpers/getReadable'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
-  const isSampleCountEqualToDownloadableCount =
-    Number(project.sample_count) - Number(project.unavailable_samples_count) ===
-    Number(project.downloadable_sample_count)
+  const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
+  const unavailableSampleCountText =
+    Number(project.unavailable_samples_count) > 1 ? 'samples' : 'sample'
 
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
@@ -76,26 +76,23 @@ export const ProjectHeader = ({ project, linked = false }) => {
         )}
       </Grid>
 
-      {!isSampleCountEqualToDownloadableCount && (
+      {hasUnavailableSample && (
         <Box
           border={{ side: 'top' }}
           margin={{ top: 'medium' }}
           pad={{ top: 'medium', bottom: 'small' }}
         >
           <InfoText
-            label={`${
-              Number(project.sample_count) -
-              Number(project.downloadable_sample_count)
-            } more samples will be made available soon`}
+            label={`${project.unavailable_samples_count} more ${unavailableSampleCountText} will be made available soon`}
           />
         </Box>
       )}
 
       {project.has_multiplexed_data && (
         <Box
-          border={isSampleCountEqualToDownloadableCount ? { side: 'top' } : ''}
+          border={!hasUnavailableSample ? { side: 'top' } : ''}
           margin={{ top: 'medium' }}
-          pad={isSampleCountEqualToDownloadableCount ? { top: 'medium' } : ''}
+          pad={!hasUnavailableSample ? { top: 'medium' } : ''}
         >
           <WarningText
             lineBreak={false}
