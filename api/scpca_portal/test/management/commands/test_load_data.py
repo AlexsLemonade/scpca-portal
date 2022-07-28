@@ -139,6 +139,7 @@ class TestLoadData(TestCase):
         self.assertEqual(project.sample_count, 5)
         self.assertEqual(project.summaries.count(), 3)
         self.assertEqual(project.summaries.first().sample_count, 2)
+        self.assertEqual(project.unavailable_samples_count, 1)
         self.assertEqual(len(project.computed_files), 1)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -223,7 +224,7 @@ class TestLoadData(TestCase):
                 )
         self.assertEqual(set(project_zip.namelist()), expected_filenames)
 
-        sample = project.samples.first()
+        sample = project.samples.filter(has_multiplexed_data=True).first()
         self.assertIsNone(sample.sample_cell_count_estimate)
         self.assertEqual(sample.demux_cell_count_estimate, 2841)
         self.assertTrue(sample.has_multiplexed_data)
@@ -291,6 +292,7 @@ class TestLoadData(TestCase):
         self.assertEqual(project.seq_units, "nucleus, spot")
         self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
+        self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(len(project.computed_files), 2)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -356,7 +358,7 @@ class TestLoadData(TestCase):
         # 5 = 1 * 3 + 2
         self.assertEqual(len(project_zip.namelist()), 5)
 
-        sample = project.samples.first()
+        sample = project.samples.filter(has_single_cell_data=True).first()
         self.assertEqual(len(sample.computed_files), 2)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
@@ -434,6 +436,7 @@ class TestLoadData(TestCase):
         self.assertEqual(project.sample_count, 1)
         self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
+        self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(len(project.computed_files), 2)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "v0.2.7")
@@ -489,7 +492,7 @@ class TestLoadData(TestCase):
         # 19 = 1 * 17 + 2
         self.assertEqual(len(project_zip.namelist()), 19)
 
-        sample = project.samples.first()
+        sample = project.samples.filter(has_spatial_data=True).first()
         self.assertEqual(len(sample.computed_files), 2)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)

@@ -34,6 +34,7 @@ class Project(TimestampedModel):
     has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
     has_multiplexed_data = models.BooleanField(default=False)
+    has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField(null=False)
     modalities = models.TextField(blank=True, null=True)
@@ -44,6 +45,7 @@ class Project(TimestampedModel):
     seq_units = models.TextField(blank=True, null=True)
     technologies = models.TextField(blank=True, null=True)
     title = models.TextField(null=False)
+    unavailable_samples_count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"Project {self.scpca_id}"
@@ -586,6 +588,7 @@ class Project(TimestampedModel):
         excluded_keys = {
             "has_bulk_rna_seq",
             "has_cite_seq_data",
+            "has_single_cell_data",
             "has_spatial_data",
             "seq_units",
             "technologies",
@@ -708,6 +711,7 @@ class Project(TimestampedModel):
                 non_downloadable_sample_ids.add(scpca_sample_id)
 
             has_cite_seq_data = False
+            has_single_cell_data = False
             has_spatial_data = False
             sample_cell_count_estimate = 0
             sample_seq_units = set()
@@ -715,17 +719,18 @@ class Project(TimestampedModel):
             # Handle single cell metadata.
             for filename_path in Path(sample_dir).glob("*_metadata.json"):
                 with open(filename_path) as sample_json_file:
-                    sample_json = json.load(sample_json_file)
+                    single_cell_json = json.load(sample_json_file)
 
-                has_cite_seq_data = sample_json.get("has_citeseq", False) or has_cite_seq_data
-                sample_json["filtered_cell_count"] = sample_json.pop("filtered_cells")
-                sample_json["scpca_library_id"] = sample_json.pop("library_id")
-                sample_json["scpca_sample_id"] = sample_json.pop("sample_id")
-                single_cell_libraries_metadata.append(sample_json)
+                has_single_cell_data = True
+                has_cite_seq_data = single_cell_json.get("has_citeseq", False) or has_cite_seq_data
+                single_cell_json["filtered_cell_count"] = single_cell_json.pop("filtered_cells")
+                single_cell_json["scpca_library_id"] = single_cell_json.pop("library_id")
+                single_cell_json["scpca_sample_id"] = single_cell_json.pop("sample_id")
+                single_cell_libraries_metadata.append(single_cell_json)
 
-                sample_cell_count_estimate += sample_json["filtered_cell_count"]
-                sample_seq_units.add(sample_json["seq_unit"].strip())
-                sample_technologies.add(sample_json["technology"].strip())
+                sample_cell_count_estimate += single_cell_json["filtered_cell_count"]
+                sample_seq_units.add(single_cell_json["seq_unit"].strip())
+                sample_technologies.add(single_cell_json["technology"].strip())
 
             # Handle spatial metadata.
             for filename_path in Path(sample_dir).rglob("*_spatial/*_metadata.json"):
@@ -743,6 +748,7 @@ class Project(TimestampedModel):
             sample_metadata["age_at_diagnosis"] = sample_metadata.pop("age")
             sample_metadata["has_bulk_rna_seq"] = scpca_sample_id in bulk_rna_seq_sample_ids
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
+            sample_metadata["has_single_cell_data"] = has_single_cell_data
             sample_metadata["has_spatial_data"] = has_spatial_data
             sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
             sample_metadata["seq_units"] = ", ".join(sorted(sample_seq_units, key=str.lower))
@@ -943,9 +949,12 @@ class Project(TimestampedModel):
         downloadable_sample_count = (
             self.samples.filter(sample_computed_files__isnull=False).distinct().count()
         )
-        multiplexed_sample_count = self.samples.filter(has_multiplexed_data=True).distinct().count()
+        multiplexed_sample_count = self.samples.filter(has_multiplexed_data=True).count()
         seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
         technologies = sorted((technology for technology in technologies if technology))
+        unavailable_samples_count = self.samples.filter(
+            has_multiplexed_data=False, has_single_cell_data=False, has_spatial_data=False
+        ).count()
 
         if self.has_multiplexed_data and "multiplexed_with" in additional_metadata_keys:
             additional_metadata_keys.remove("multiplexed_with")
@@ -960,6 +969,7 @@ class Project(TimestampedModel):
         self.sample_count = self.samples.count()
         self.seq_units = ", ".join(seq_units)
         self.technologies = ", ".join(technologies)
+        self.unavailable_samples_count = unavailable_samples_count
         self.save()
 
         for (diagnosis, seq_unit, technology), count in summaries_counts.items():
