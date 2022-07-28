@@ -55,8 +55,8 @@ class TestLoadData(TestCase):
     def test_load_data_from_s3(self):
         def assert_object_count():
             self.assertEqual(Project.objects.count(), 2)
-            self.assertEqual(ProjectSummary.objects.count(), 7)
-            self.assertEqual(Sample.objects.count(), 6)
+            self.assertEqual(ProjectSummary.objects.count(), 6)
+            self.assertEqual(Sample.objects.count(), 5)
             self.assertEqual(ComputedFile.objects.count(), 9)
 
         # First, just test that loading data works.
@@ -136,10 +136,10 @@ class TestLoadData(TestCase):
         self.assertTrue(project.has_multiplexed_data)
         self.assertFalse(project.has_spatial_data)
         self.assertEqual(project.multiplexed_sample_count, 4)
-        self.assertEqual(project.sample_count, 5)
-        self.assertEqual(project.summaries.count(), 3)
+        self.assertEqual(project.sample_count, 4)
+        self.assertEqual(project.summaries.count(), 2)
         self.assertEqual(project.summaries.first().sample_count, 2)
-        self.assertEqual(project.unavailable_samples_count, 1)
+        self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(len(project.computed_files), 1)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(

@@ -950,11 +950,15 @@ class Project(TimestampedModel):
             self.samples.filter(sample_computed_files__isnull=False).distinct().count()
         )
         multiplexed_sample_count = self.samples.filter(has_multiplexed_data=True).count()
-        seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
-        technologies = sorted((technology for technology in technologies if technology))
-        unavailable_samples_count = self.samples.filter(
+        non_downloadable_samples_count = self.samples.filter(
             has_multiplexed_data=False, has_single_cell_data=False, has_spatial_data=False
         ).count()
+        sample_count = self.samples.count()
+        seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
+        technologies = sorted((technology for technology in technologies if technology))
+        unavailable_samples_count = max(
+            sample_count - downloadable_sample_count - non_downloadable_samples_count, 0
+        )
 
         if self.has_multiplexed_data and "multiplexed_with" in additional_metadata_keys:
             additional_metadata_keys.remove("multiplexed_with")
@@ -966,7 +970,7 @@ class Project(TimestampedModel):
         self.downloadable_sample_count = downloadable_sample_count
         self.modalities = ", ".join(sorted(modalities))
         self.multiplexed_sample_count = multiplexed_sample_count
-        self.sample_count = self.samples.count()
+        self.sample_count = sample_count
         self.seq_units = ", ".join(seq_units)
         self.technologies = ", ".join(technologies)
         self.unavailable_samples_count = unavailable_samples_count
