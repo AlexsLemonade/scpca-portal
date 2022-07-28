@@ -15,10 +15,9 @@ import { getReadable } from 'helpers/getReadable'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
-  const sampleCountWithSingleCellData =
-    Number(project.sample_count) - Number(project.unavailable_samples_count)
-  const SampleCountEqualToDownloadableCount =
-    sampleCountWithSingleCellData === Number(project.downloadable_sample_count)
+  const isSampleCountEqualToDownloadableCount =
+    Number(project.sample_count) - Number(project.unavailable_samples_count) ===
+    Number(project.downloadable_sample_count)
 
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
@@ -77,7 +76,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
         )}
       </Grid>
 
-      {!SampleCountEqualToDownloadableCount && (
+      {!isSampleCountEqualToDownloadableCount && (
         <Box
           border={{ side: 'top' }}
           margin={{ top: 'medium' }}
@@ -94,9 +93,9 @@ export const ProjectHeader = ({ project, linked = false }) => {
 
       {project.has_multiplexed_data && (
         <Box
-          border={SampleCountEqualToDownloadableCount ? { side: 'top' } : ''}
+          border={isSampleCountEqualToDownloadableCount ? { side: 'top' } : ''}
           margin={{ top: 'medium' }}
-          pad={SampleCountEqualToDownloadableCount ? { top: 'medium' } : ''}
+          pad={isSampleCountEqualToDownloadableCount ? { top: 'medium' } : ''}
         >
           <WarningText
             lineBreak={false}
