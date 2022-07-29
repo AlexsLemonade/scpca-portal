@@ -873,9 +873,6 @@ class Project(TimestampedModel):
         if multiplexed_file_mapping:
             # We want a single ZIP archive for a multiplexed samples project.
             multiplexed_file_mapping.update(single_cell_file_mapping)
-            # Set project level flag for multiplexed data.
-            self.has_multiplexed_data = True
-            self.save(update_fields=("has_multiplexed_data",))
 
         computed_files.extend(
             self.get_computed_files(
@@ -888,6 +885,22 @@ class Project(TimestampedModel):
             )
         )
         ComputedFile.objects.bulk_create(computed_files)
+
+        # Set modality flags based on a real data availability.
+        self.has_bulk_rna_seq = self.samples.filter(has_bulk_rna_seq=True).exists()
+        self.has_cite_seq_data = self.samples.filter(has_cite_seq_data=True).exists()
+        self.has_multiplexed_data = self.samples.filter(has_multiplexed_data=True).exists()
+        self.has_single_cell_data = self.samples.filter(has_single_cell_data=True).exists()
+        self.has_spatial_data = self.samples.filter(has_spatial_data=True).exists()
+        self.save(
+            update_fields=(
+                "has_bulk_rna_seq",
+                "has_cite_seq_data",
+                "has_multiplexed_data",
+                "has_single_cell_data",
+                "has_spatial_data",
+            )
+        )
 
         self.update_counts()
 
