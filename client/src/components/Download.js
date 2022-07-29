@@ -1,30 +1,40 @@
 /* eslint-disable no-nested-ternary */
 import React, { useEffect, useState } from 'react'
-import { Anchor, Text } from 'grommet'
-import { Button } from 'components/Button'
-import { Icon } from 'components/Icon'
-import { Modal, ModalHeader, ModalBody } from 'components/Modal'
-import { DownloadStarted } from 'components/DownloadStarted'
-import { DownloadOptions } from 'components/DownloadOptions'
-import { DownloadToken } from 'components/DownloadToken'
 import { useAnalytics } from 'hooks/useAnalytics'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
+import { Anchor, Text } from 'grommet'
+import { Button } from 'components/Button'
+import { DownloadOptions } from 'components/DownloadOptions'
+import { DownloadStarted } from 'components/DownloadStarted'
+import { DownloadToken } from 'components/DownloadToken'
+import { Icon } from 'components/Icon'
+import { Modal, ModalLoader, ModalHeader, ModalBody } from 'components/Modal'
 import { formatDate } from 'helpers/formatDate'
+import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
+import { getProjectID } from 'helpers/getProjectID'
+import { hasMultiple } from 'helpers/hasMultiple'
+import { hasRecommendedResource } from 'helpers/hasRecommendedResource'
 import { isProjectID } from 'helpers/isProjectID'
 
 // Button and Modal to show when downloading
-export const Download = ({ icon, resource }) => {
+export const Download = ({ icon, resource: initialResource }) => {
   const { token, email, surveyListForm } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
-  const [publicComputedFile, setPublicComputedFile] = useState(() =>
-    resource.computed_files.length === 1 ? resource.computed_files[0] : null
-  )
+  const [resource, setResource] = useState(initialResource)
+  const [recommendedResource, setRecommendedResource] = useState(null)
+  const [publicComputedFile, setPublicComputedFile] = useState(null)
+  const [initial, setInital] = useState(true)
+  const [togglePublicComputedFile, setTogglePublicComputedFile] =
+    useState(false)
   const [showing, setShowing] = useState(false)
   const [download, setDownload] = useState(false)
   const label = isProjectID(resource.scpca_id)
     ? 'Download Project'
     : 'Download Sample'
+
+  const defaultComputedFile = getDefaultComputedFile(resource)
+  const multipleComputedFiles = hasMultiple(resource.computed_files)
 
   const handleClick = () => {
     setShowing(true)
@@ -45,10 +55,40 @@ export const Download = ({ icon, resource }) => {
     setPublicComputedFile(file)
   }
 
+  const handleSelectRecommendedResource = () => {
+    setResource(recommendedResource)
+    setPublicComputedFile(getDefaultComputedFile(recommendedResource))
+    setRecommendedResource(null)
+    setTogglePublicComputedFile(true)
+    setInital(false)
+    setDownload(false)
+  }
+
+  useEffect(() => {
+    if (initial || (!initial && !togglePublicComputedFile))
+      setResource(initialResource)
+
+    setPublicComputedFile(multipleComputedFiles ? null : defaultComputedFile)
+
+    const shouldFetchProject =
+      publicComputedFile && hasRecommendedResource(publicComputedFile.type)
+
+    const fetchProject = async () => {
+      const { isOk, response } = await api.projects.get(
+        getProjectID(resource.project)
+      )
+      if (isOk) {
+        setRecommendedResource(response)
+      }
+    }
+
+    if (shouldFetchProject) fetchProject()
+    setTogglePublicComputedFile(false)
+  }, [resource, showing])
+
   useEffect(() => {
     if (!showing) {
       setDownload(false)
-      setPublicComputedFile(null)
     }
 
     const asyncFetch = async () => {
@@ -86,7 +126,7 @@ export const Download = ({ icon, resource }) => {
         />
       )}
       <Modal title={label} showing={showing} setShowing={setShowing}>
-        {publicComputedFile && (
+        {publicComputedFile && multipleComputedFiles && (
           <ModalHeader>
             <Text
               color="brand"
@@ -104,16 +144,20 @@ export const Download = ({ icon, resource }) => {
             <DownloadStarted
               resource={resource}
               computedFile={download}
+              recommendedResource={recommendedResource}
               handleSelectFile={handleSelectFile}
+              handleSelectRecommendedResource={handleSelectRecommendedResource}
             />
           ) : !token && publicComputedFile ? (
             <DownloadToken />
-          ) : !publicComputedFile ? (
+          ) : !publicComputedFile && multipleComputedFiles ? (
             <DownloadOptions
               resource={resource}
               handleSelectFile={handleSelectFile}
             />
-          ) : null}
+          ) : (
+            <ModalLoader />
+          )}
         </ModalBody>
       </Modal>
     </>

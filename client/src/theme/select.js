@@ -46,9 +46,5 @@ export default {
         )
       )
   },
-  options: {
-    text: {
-      color: 'black'
-    }
-  }
+  options: {}
 }

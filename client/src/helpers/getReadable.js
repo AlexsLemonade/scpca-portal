@@ -10,6 +10,7 @@ export const readableNames = {
   contact_name: 'Contact Name',
   contact_email: 'Contact Email',
   has_bulk_rna_seq: 'Bulk RNA-Seq',
+  has_multiplexed_data: 'Multiplexed',
   disease_timings: 'Disease Timing',
   diagnoses: 'Diagnosis',
   seq_units: 'Seq Units',

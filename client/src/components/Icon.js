@@ -7,6 +7,7 @@ import ChevronRight from '../images/chevron-right.svg'
 import ChevronUp from '../images/chevron-up.svg'
 import Cite from '../images/cite.svg'
 import Cross from '../images/cross.svg'
+import Download from '../images/download.svg'
 import Dropdown from '../images/dropdown.svg'
 import Edit from '../images/edit.svg'
 import Filter from '../images/filter.svg'
@@ -32,6 +33,7 @@ export const SVGs = {
   ChevronUp,
   Cite,
   Cross,
+  Download,
   Dropdown,
   Edit,
   Filter,

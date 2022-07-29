@@ -46,20 +46,10 @@ class TestLoadData(TestCase):
         self.assertIsNotNone(sample.diagnosis)
         self.assertIsNotNone(sample.disease_timing)
         self.assertTrue(sample.scpca_id)
-        self.assertIsNotNone(sample.seq_units)
         self.assertIsNotNone(sample.sex)
         self.assertIsNotNone(sample.subdiagnosis)
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
-
-        expected_metadata_keys = (
-            "participant_id",
-            "scpca_project_id",
-            "submitter",
-            "submitter_id",
-        )
-        for key in expected_metadata_keys:
-            self.assertIn(key, sample.additional_metadata.keys())
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_load_data_from_s3(self):
@@ -149,6 +139,7 @@ class TestLoadData(TestCase):
         self.assertEqual(project.sample_count, 4)
         self.assertEqual(project.summaries.count(), 2)
         self.assertEqual(project.summaries.first().sample_count, 2)
+        self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(len(project.computed_files), 1)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -156,14 +147,37 @@ class TestLoadData(TestCase):
             "development",
         )
 
-        expected_keys = project.output_multiplexed_metadata_field_order + [
+        expected_keys = [
+            "scpca_sample_id",
+            "scpca_library_id",
+            "scpca_project_id",
+            "technology",
+            "seq_unit",
+            "total_reads",
+            "mapped_reads",
+            "genome_assembly",
+            "mapping_index",
+            "date_processed",
+            "workflow",
+            "workflow_version",
+            "workflow_commit",
+            "diagnosis",
+            "subdiagnosis",
+            "pi_name",
+            "project_title",
+            "disease_timing",
+            "age_at_diagnosis",
+            "sex",
+            "tissue_location",
+            "participant_id",
+            "submitter",
+            "submitter_id",
             "alevin_fry_version",
             "demux_method",
             "demux_samples",
             "filtered_cells",
             "filtering_method",
             "has_cellhash",
-            "has_citeseq",
             "is_multiplexed",
             "salmon_version",
             "sample_cell_estimates",
@@ -210,10 +224,26 @@ class TestLoadData(TestCase):
                 )
         self.assertEqual(set(project_zip.namelist()), expected_filenames)
 
-        sample = project.samples.first()
+        sample = project.samples.filter(has_multiplexed_data=True).first()
         self.assertIsNone(sample.sample_cell_count_estimate)
         self.assertEqual(sample.demux_cell_count_estimate, 2841)
         self.assertTrue(sample.has_multiplexed_data)
+        self.assertEqual(sample.seq_units, "nucleus")
+        self.assertEqual(sample.technologies, "10Xv3.1")
+
+        expected_additional_metadata_keys = [
+            "participant_id",
+            "scpca_project_id",
+            "submitter",
+            "submitter_id",
+            "WHO_grade",
+        ]
+        self.assertEqual(
+            expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
+        )
+        self.assertEqual(
+            set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
+        )
 
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_multiplexed_computed_file_name
@@ -259,22 +289,38 @@ class TestLoadData(TestCase):
         self.assertTrue(project.modalities)
         self.assertEqual(project.multiplexed_sample_count, 0)
         self.assertEqual(project.sample_count, 1)
+        self.assertEqual(project.seq_units, "nucleus, spot")
         self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
+        self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(len(project.computed_files), 2)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(
             project.single_cell_computed_file.workflow_version,
             "v0.2.7",
         )
+        self.assertEqual(project.technologies, "10Xv3.1, visium")
 
-        expected_keys = project.output_single_cell_metadata_field_order + [
+        expected_keys = [
+            "scpca_sample_id",
+            "scpca_library_id",
+            "diagnosis",
+            "subdiagnosis",
+            "seq_unit",
+            "technology",
+            "sample_cell_count_estimate",
+            "scpca_project_id",
+            "pi_name",
+            "project_title",
+            "disease_timing",
+            "age_at_diagnosis",
+            "sex",
+            "tissue_location",
             "alevin_fry_version",
             "date_processed",
             "filtered_cell_count",
             "filtering_method",
             "genome_assembly",
-            "has_citeseq",
             "mapped_reads",
             "mapping_index",
             "participant_id",
@@ -312,7 +358,7 @@ class TestLoadData(TestCase):
         # 5 = 1 * 3 + 2
         self.assertEqual(len(project_zip.namelist()), 5)
 
-        sample = project.samples.first()
+        sample = project.samples.filter(has_single_cell_data=True).first()
         self.assertEqual(len(sample.computed_files), 2)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
@@ -320,13 +366,28 @@ class TestLoadData(TestCase):
         self.assertFalse(project.has_multiplexed_data)
         self.assertTrue(sample.has_spatial_data)
         self.assertEqual(sample.sample_cell_count_estimate, 23751)
+        self.assertEqual(sample.seq_units, "nucleus, spot")
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(
             sample.single_cell_computed_file.workflow_version,
             "v0.2.7",
         )
-        self.assertTrue(sample.technologies)
+        self.assertEqual(sample.technologies, "10Xv3.1, visium")
+
+        expected_additional_metadata_keys = [
+            "participant_id",
+            "scpca_project_id",
+            "submitter",
+            "submitter_id",
+            "upload_date",
+        ]
+        self.assertEqual(
+            expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
+        )
+        self.assertEqual(
+            set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
+        )
 
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_single_cell_computed_file_name
@@ -375,11 +436,38 @@ class TestLoadData(TestCase):
         self.assertEqual(project.sample_count, 1)
         self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
+        self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(len(project.computed_files), 2)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "v0.2.7")
 
-        expected_keys = project.output_spatial_metadata_field_order + [
+        expected_keys = [
+            "scpca_project_id",
+            "scpca_sample_id",
+            "scpca_library_id",
+            "technology",
+            "seq_unit",
+            "total_reads",
+            "mapped_reads",
+            "genome_assembly",
+            "mapping_index",
+            "date_processed",
+            "spaceranger_version",
+            "workflow",
+            "workflow_version",
+            "workflow_commit",
+            "diagnosis",
+            "subdiagnosis",
+            "pi_name",
+            "project_title",
+            "disease_timing",
+            "age_at_diagnosis",
+            "sex",
+            "tissue_location",
+            "treatment",
+            "participant_id",
+            "submitter",
+            "submitter_id",
             "upload_date",
         ]
 
@@ -404,7 +492,7 @@ class TestLoadData(TestCase):
         # 19 = 1 * 17 + 2
         self.assertEqual(len(project_zip.namelist()), 19)
 
-        sample = project.samples.first()
+        sample = project.samples.filter(has_spatial_data=True).first()
         self.assertEqual(len(sample.computed_files), 2)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
@@ -412,13 +500,28 @@ class TestLoadData(TestCase):
         self.assertFalse(sample.has_multiplexed_data)
         self.assertTrue(sample.has_spatial_data)
         self.assertEqual(sample.sample_cell_count_estimate, 23751)
+        self.assertEqual(sample.seq_units, "nucleus, spot")
         self.assertIsNotNone(sample.spatial_computed_file)
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(
             sample.spatial_computed_file.workflow_version,
             "v0.2.7",
         )
-        self.assertTrue(sample.technologies)
+        self.assertEqual(sample.technologies, "10Xv3.1, visium")
+
+        expected_additional_metadata_keys = [
+            "participant_id",
+            "scpca_project_id",
+            "submitter",
+            "submitter_id",
+            "upload_date",
+        ]
+        self.assertEqual(
+            expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
+        )
+        self.assertEqual(
+            set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
+        )
 
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_spatial_computed_file_name
