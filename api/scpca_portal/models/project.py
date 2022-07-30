@@ -820,7 +820,7 @@ class Project(TimestampedModel):
         )
         for sample in Sample.objects.bulk_create(samples):
             # Skip computed files creation if sample directory does not exist.
-            if scpca_sample_id not in non_downloadable_sample_ids:
+            if sample.scpca_id not in non_downloadable_sample_ids:
                 libraries = [
                     library
                     for library in combined_single_cell_metadata
