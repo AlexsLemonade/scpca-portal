@@ -6,8 +6,16 @@ export const config = {
       'https://scpca.readthedocs.io/en/latest/download_files.html#download-folder-structure-for-project-downloads',
     what_downloading_sample:
       'https://scpca.readthedocs.io/en/latest/download_files.html#download-folder-structure-for-individual-sample-downloads',
+    what_downloading_spatial:
+      'https://scpca.readthedocs.io/en/latest/download_files.html#spatial-transcriptomics-libraries',
+    what_downloading_mulitplexed:
+      'https://scpca.readthedocs.io/en/latest/download_files.html#multiplexed-sample-libraries',
+    what_est_demux_cell:
+      'https://scpca.readthedocs.io/en/latest/faq.html#what-are-estimated-demux-cell-counts',
     how_processed:
       'https://scpca.readthedocs.io/en/latest/processing_information.html',
+    how_processed_multiplexed:
+      'https://scpca.readthedocs.io/en/latest/processing_information.html#multiplexed-libraries',
     donate: 'https://www.ccdatalab.org/donate-link',
     help: 'https://scpca.readthedocs.io/en/latest/',
 
@@ -16,6 +24,12 @@ export const config = {
     alsfInstagram: 'https://www.instagram.com/AlexsLemonade/',
     ccdlTwitter: 'https://twitter.com/CancerDataLab',
     ccdlGithub: 'https://github.com/AlexsLemonade/'
+  },
+  contact: {
+    to: 'Alex’s Lemonade Stand Foundation for Childhood Cancer',
+    address: '333 E. Lancaster Ave, #414, Wynnewood, PA 19096 USA',
+    numbers: 'Phone: 866.333.1213 • Fax: 610.649.3038',
+    email: 'scpca@ccdatalab.org'
   }
 }
 

@@ -1,7 +1,9 @@
 from django.db import models
 
+from scpca_portal.models.base import TimestampedModel
 
-class ProjectSummary(models.Model):
+
+class ProjectSummary(TimestampedModel):
     """One of multiple summaries of a project.
 
     There will be one of these per combination of `diagnosis`,
@@ -20,9 +22,6 @@ class ProjectSummary(models.Model):
         db_table = "project_summaries"
         get_latest_by = "updated_at"
         ordering = ["updated_at", "id"]
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     diagnosis = models.TextField(blank=True, null=True)
     sample_count = models.PositiveIntegerField(default=0)
