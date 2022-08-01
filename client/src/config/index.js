@@ -15,7 +15,7 @@ export const config = {
     how_processed:
       'https://scpca.readthedocs.io/en/latest/processing_information.html',
     how_processed_multiplexed:
-      'https://scpca.readthedocs.io/en/latest/processing_information.html',
+      'https://scpca.readthedocs.io/en/latest/processing_information.html#multiplexed-libraries',
     donate: 'https://www.ccdatalab.org/donate-link',
     help: 'https://scpca.readthedocs.io/en/latest/',
 
