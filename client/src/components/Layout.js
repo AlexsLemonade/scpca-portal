@@ -1,10 +1,13 @@
 import React from 'react'
 import { useRouter } from 'next/router'
-import { Box, Main } from 'grommet'
-import { Header } from 'components/Header'
+import { Box, Main, Paragraph } from 'grommet'
+import { Banner } from 'components/Banner'
 import { Footer } from 'components/Footer'
-import styled, { css } from 'styled-components'
+import { Header } from 'components/Header'
+import { Link } from 'components/Link'
 import { PageLoader } from 'components/PageLoader'
+import { config } from 'config'
+import styled, { css } from 'styled-components'
 
 const FixedBox = styled(Box)`
   position: fixed;
@@ -44,6 +47,17 @@ export const Layout = ({ children }) => {
 
   return (
     <Box height={{ min: '100vh' }}>
+      <Banner bgColor="alexs-lemonade-tint-40" fontColor="black">
+        <Box aria-hidden="true" style={{ fontSize: '24px' }}>
+          &#9881;&#65039;
+        </Box>
+        <Paragraph>
+          Processing your own single-cell data?{' '}
+          <Link href={config.links.recruitment_hsform}>
+            Sign up to test our pipeline
+          </Link>
+        </Paragraph>
+      </Banner>
       <Box margin={showMargin ? { bottom: 'xlarge' } : ''}>
         <Box height="80px">
           <FixedBox showMargin={showMargin} background="white">

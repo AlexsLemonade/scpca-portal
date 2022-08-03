@@ -18,7 +18,8 @@ export const config = {
       'https://scpca.readthedocs.io/en/latest/processing_information.html#multiplexed-libraries',
     donate: 'https://www.ccdatalab.org/donate-link',
     help: 'https://scpca.readthedocs.io/en/latest/',
-
+    recruitment_hsform:
+      'https://share.hsforms.com/19if2XeF2Rl2YkWxppHW-HQ336z0',
     alsfTwitter: 'https://twitter.com/alexslemonade',
     alsfFacebook: 'https://www.facebook.com/alexslemonade/',
     alsfInstagram: 'https://www.instagram.com/AlexsLemonade/',
