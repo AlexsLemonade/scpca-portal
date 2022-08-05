@@ -1,10 +1,10 @@
 import React from 'react'
+import { useBanner } from 'hooks/useBanner'
 import { useRouter } from 'next/router'
-import { Box, Main, Paragraph } from 'grommet'
+import { Box, Main } from 'grommet'
 import { Banner } from 'components/Banner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
-import { Link } from 'components/Link'
 import { PageLoader } from 'components/PageLoader'
 import { config } from 'config'
 import styled, { css } from 'styled-components'
@@ -31,6 +31,7 @@ const ProgressBar = styled(PageLoader)`
 `
 
 export const Layout = ({ children }) => {
+  const { bannerHeight } = useBanner()
   const router = useRouter()
 
   // donate button on about page only
@@ -48,7 +49,7 @@ export const Layout = ({ children }) => {
   return (
     <Box height={{ min: '100vh' }}>
       <Box margin={showMargin ? { bottom: 'xlarge' } : ''}>
-        <Box height="136px">
+        <Box height={`${80 + bannerHeight}px`}>
           <FixedBox showMargin={showMargin} background="white">
             <Banner
               bannerLabel="Processing your own single-cell data?"

@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect } from 'react'
+import { useBanner } from 'hooks/useBanner'
 import { Box, Paragraph } from 'grommet'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
@@ -15,7 +16,7 @@ export const Banner = ({
   iconSize,
   children
 }) => {
-  const [showing, setShowing] = useState(true)
+  const { showing, setShowing, onBannerClose } = useBanner()
   const BannerBox = styled(Box)`
     ${({ theme }) => css`
       background-color: ${theme.global.colors[bgColor] ||
@@ -29,6 +30,9 @@ export const Banner = ({
       }
     `}
   `
+  useEffect(() => {
+    setShowing(true)
+  }, [])
 
   return (
     <>
@@ -51,7 +55,7 @@ export const Banner = ({
             </Paragraph>
             {children}
           </Box>
-          <Box pad="20px" onClick={() => setShowing(false)}>
+          <Box pad="20px" onClick={() => onBannerClose()}>
             <Icon name="Cross" size="16px" color={fontColor} />
           </Box>
         </BannerBox>
