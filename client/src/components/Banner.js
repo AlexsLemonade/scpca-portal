@@ -12,27 +12,10 @@ export const Banner = ({
 }) => {
   const [showing, setShowing] = useState(true)
   const BannerBox = styled(Box)`
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    height: 56px;
     ${({ theme }) => css`
       background-color: ${theme.global.colors[bgColor] ||
       theme.global.colors.gradient[bgColor]};
       > div {
-        align-item: center;
-        align-self: center;
-        display: flex;
-        flex-direction: row;
-        font-size: 21px;
-        justify-content: center;
-        &:first-child {
-          flex: 1;
-        }
-        &:last-child {
-          padding: 20px;
-        }
         > svg + p,
         div + p {
           margin-left: 4px;
@@ -52,14 +35,14 @@ export const Banner = ({
   return (
     <>
       {showing && (
-        <BannerBox>
-          <Box>
+        <BannerBox direction="row" justify="between" width="100%" height="56px">
+          <Box direction="row" align="center" justify="center" flex="grow">
             {iconName && (
               <Icon name={iconName} size={iconSize} aria-hidden="true" />
             )}
             {children}
           </Box>
-          <Box onClick={() => setShowing(false)}>
+          <Box pad="20px" onClick={() => setShowing(false)}>
             <Icon name="Cross" size="16px" color={fontColor} />
           </Box>
         </BannerBox>

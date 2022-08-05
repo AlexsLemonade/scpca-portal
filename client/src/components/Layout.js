@@ -47,20 +47,20 @@ export const Layout = ({ children }) => {
 
   return (
     <Box height={{ min: '100vh' }}>
-      <Banner bgColor="alexs-lemonade-tint-40" fontColor="black">
-        <Box aria-hidden="true" style={{ fontSize: '24px' }}>
-          &#9881;&#65039;
-        </Box>
-        <Paragraph>
-          Processing your own single-cell data?{' '}
-          <Link href={config.links.recruitment_hsform}>
-            Sign up to test our pipeline
-          </Link>
-        </Paragraph>
-      </Banner>
       <Box margin={showMargin ? { bottom: 'xlarge' } : ''}>
-        <Box height="80px">
+        <Box height="200px">
           <FixedBox showMargin={showMargin} background="white">
+            <Banner bgColor="alexs-lemonade-tint-40" fontColor="black">
+              <Box aria-hidden="true" style={{ fontSize: '24px' }}>
+                &#9881;&#65039;
+              </Box>
+              <Paragraph>
+                Processing your own single-cell data?{' '}
+                <Link href={config.links.recruitment_hsform}>
+                  Sign up to test our pipeline
+                </Link>
+              </Paragraph>
+            </Banner>
             <Header margin={{ bottom: 'small' }} donate={showDonate} />
             <ProgressBar />
           </FixedBox>
