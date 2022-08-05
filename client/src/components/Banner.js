@@ -1,11 +1,16 @@
 import React, { useState } from 'react'
-import { Box } from 'grommet'
+import { Box, Paragraph } from 'grommet'
+import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
 import styled, { css } from 'styled-components'
 
 export const Banner = ({
+  bannerLabel,
   bgColor = 'brand',
+  ctaLabel,
+  ctaLink,
   fontColor = 'white',
+  htmlIcon,
   iconName,
   iconSize,
   children
@@ -16,15 +21,8 @@ export const Banner = ({
       background-color: ${theme.global.colors[bgColor] ||
       theme.global.colors.gradient[bgColor]};
       > div {
-        > svg + p,
-        div + p {
-          margin-left: 4px;
-        }
         > p {
-          color: ${theme.global.colors[fontColor]};
-          font-size: 21px;
           > a {
-            color: inherit;
             text-decoration: underline;
           }
         }
@@ -40,6 +38,17 @@ export const Banner = ({
             {iconName && (
               <Icon name={iconName} size={iconSize} aria-hidden="true" />
             )}
+            {htmlIcon && (
+              <Box aria-hidden="true" style={{ fontSize: '24px' }}>
+                {htmlIcon}
+              </Box>
+            )}
+            <Paragraph color={fontColor} margin={{ left: '4px' }} size="21px">
+              {bannerLabel}{' '}
+              <Link color={fontColor} href={ctaLink}>
+                {ctaLabel}
+              </Link>
+            </Paragraph>
             {children}
           </Box>
           <Box pad="20px" onClick={() => setShowing(false)}>
