@@ -39,21 +39,28 @@ export const Banner = ({
       {showing && (
         <BannerBox direction="row" justify="between" width="100%" height="56px">
           <Box direction="row" align="center" justify="center" flex="grow">
-            {iconName && (
-              <Icon name={iconName} size={iconSize} aria-hidden="true" />
+            {children || (
+              <>
+                {iconName && (
+                  <Icon name={iconName} size={iconSize} aria-hidden="true" />
+                )}
+                {htmlIcon && (
+                  <Box aria-hidden="true" style={{ fontSize: '24px' }}>
+                    {htmlIcon}
+                  </Box>
+                )}
+                <Paragraph
+                  color={fontColor}
+                  margin={{ left: '4px' }}
+                  size="21px"
+                >
+                  {bannerLabel}{' '}
+                  <Link color={fontColor} href={ctaLink}>
+                    {ctaLabel}
+                  </Link>
+                </Paragraph>
+              </>
             )}
-            {htmlIcon && (
-              <Box aria-hidden="true" style={{ fontSize: '24px' }}>
-                {htmlIcon}
-              </Box>
-            )}
-            <Paragraph color={fontColor} margin={{ left: '4px' }} size="21px">
-              {bannerLabel}{' '}
-              <Link color={fontColor} href={ctaLink}>
-                {ctaLabel}
-              </Link>
-            </Paragraph>
-            {children}
           </Box>
           <Box pad="20px" onClick={() => onBannerClose()}>
             <Icon name="Cross" size="16px" color={fontColor} />
