@@ -4,7 +4,10 @@ Include an issue number if applicable.
 
 ## Purpose/Implementation Notes
 
+<!-- For changes that impact the frontend and user interactions, please ensure there's a vercel preview and tag a designer (@dvenprasad) for review  -->
+
 Describe the big picture of your changes.
+
 
 ## Types of changes
 
