@@ -6,21 +6,19 @@ import { Icon } from 'components/Icon'
 import styled, { css } from 'styled-components'
 
 export const Banner = ({
-  bannerLabel,
+  label,
   bgColor = 'brand',
   ctaLabel,
   ctaLink,
   fontColor = 'white',
-  htmlIcon,
-  iconName,
-  iconSize,
+  htmlIcon = null,
+  iconName = null,
+  iconSize = '24px',
   children
 }) => {
-  const { showing, setShowing, onBannerClose } = useBanner()
+  const { showing, onBannerClose, onBannerOpen } = useBanner()
   const BannerBox = styled(Box)`
-    ${({ theme }) => css`
-      background-color: ${theme.global.colors[bgColor] ||
-      theme.global.colors.gradient[bgColor]};
+    ${() => css`
       > div {
         > p {
           > a {
@@ -31,13 +29,19 @@ export const Banner = ({
     `}
   `
   useEffect(() => {
-    setShowing(true)
+    onBannerOpen()
   }, [])
 
   return (
     <>
       {showing && (
-        <BannerBox direction="row" justify="between" width="100%" height="56px">
+        <BannerBox
+          background={bgColor}
+          direction="row"
+          justify="between"
+          width="100%"
+          height="56px"
+        >
           <Box direction="row" align="center" justify="center" flex="grow">
             {children || (
               <>
@@ -54,7 +58,7 @@ export const Banner = ({
                   margin={{ left: '4px' }}
                   size="21px"
                 >
-                  {bannerLabel}{' '}
+                  {label}{' '}
                   <Link color={fontColor} href={ctaLink}>
                     {ctaLabel}
                   </Link>

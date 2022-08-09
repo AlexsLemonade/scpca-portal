@@ -52,7 +52,7 @@ export const Layout = ({ children }) => {
         <Box height={`${80 + bannerHeight}px`}>
           <FixedBox showMargin={showMargin} background="white">
             <Banner
-              bannerLabel="Processing your own single-cell data?"
+              label="Processing your own single-cell data?"
               bgColor="alexs-lemonade-tint-40"
               ctaLink={config.links.recruitment_hsform}
               ctaLabel="Sign up to test our pipeline"
