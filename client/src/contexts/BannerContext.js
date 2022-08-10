@@ -2,16 +2,16 @@ import React, { createContext, useState } from 'react'
 
 export const BannerContext = createContext({})
 
-export const BannerContextProvider = ({ children }) => {
-  const [showing, setShowing] = useState(false)
+export const BannerContextProvider = ({ startShowing = true, children }) => {
+  const [showing, setShowing] = useState(startShowing)
   const [bannerHeight, setBannerHeight] = useState(56)
 
-  const onBannerClose = () => {
+  const hideBanner = () => {
     setShowing(false)
     setBannerHeight(0)
   }
 
-  const onBannerOpen = () => {
+  const showBanner = () => {
     setShowing(true)
     setBannerHeight(56)
   }
@@ -20,11 +20,10 @@ export const BannerContextProvider = ({ children }) => {
     <BannerContext.Provider
       value={{
         showing,
-        setShowing,
         bannerHeight,
         setBannerHeight,
-        onBannerClose,
-        onBannerOpen
+        hideBanner,
+        showBanner
       }}
     >
       {children}
