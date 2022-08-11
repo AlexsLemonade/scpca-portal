@@ -1,4 +1,5 @@
 import React from 'react'
+import { Text } from 'grommet'
 import { Blank } from 'grommet-icons'
 import Check from '../images/check.svg'
 import ChevronDown from '../images/chevron-down.svg'
@@ -49,14 +50,20 @@ export const SVGs = {
   Twitter,
   Instagram,
   Facebook,
-  Github
+  Github,
+  htmlGear: '⚙️'
 }
 
 export const Icon = ({ color = 'brand', size = 'medium', name }) => {
-  const IconSVG = SVGs[name]
-  return (
+  const IconContent = SVGs[name]
+
+  return typeof IconContent === 'string' ? (
+    <Text aria-hidden="true" size={size}>
+      {IconContent}
+    </Text>
+  ) : (
     <Blank color={color} size={size}>
-      <IconSVG />
+      <IconContent />
     </Blank>
   )
 }
