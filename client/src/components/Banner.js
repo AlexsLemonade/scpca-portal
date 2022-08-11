@@ -5,27 +5,27 @@ import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
 
 export const Banner = ({
-  label,
-  bgColor = 'brand',
+  background = 'brand',
+  color = 'white',
   ctaLabel,
   ctaLink,
-  fontColor = 'white',
+  label,
   iconColor = 'brand',
   iconName = null,
   iconSize = '24px',
   children
 }) => {
-  const { showing, handleHideBanner, handleShowBanner } = useBanner()
+  const { showing, hideBanner, showBanner } = useBanner()
 
   useEffect(() => {
-    handleShowBanner()
+    showBanner()
   }, [])
 
   return (
     <>
       {showing && (
         <Box
-          background={bgColor}
+          background={background}
           direction="row"
           justify="between"
           width="100%"
@@ -42,14 +42,10 @@ export const Banner = ({
                     aria-hidden="true"
                   />
                 )}
-                <Paragraph
-                  color={fontColor}
-                  margin={{ left: '4px' }}
-                  size="21px"
-                >
+                <Paragraph color={color} margin={{ left: '4px' }} size="21px">
                   {label}{' '}
                   <Link
-                    color={fontColor}
+                    color={color}
                     href={ctaLink}
                     label={ctaLabel}
                     underline
@@ -58,8 +54,8 @@ export const Banner = ({
               </>
             )}
           </Box>
-          <Box pad="20px" onClick={() => handleHideBanner()}>
-            <Icon name="Cross" size="16px" color={fontColor} />
+          <Box pad="20px" onClick={() => hideBanner()}>
+            <Icon name="Cross" size="16px" color={color} />
           </Box>
         </Box>
       )}

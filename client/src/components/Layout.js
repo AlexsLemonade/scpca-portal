@@ -52,11 +52,11 @@ export const Layout = ({ children }) => {
         <Box height={`${80 + bannerHeight}px`}>
           <FixedBox showMargin={showMargin} background="white">
             <Banner
-              label="Processing your own single-cell data?"
-              bgColor="alexs-lemonade-tint-40"
+              background="alexs-lemonade-tint-40"
+              color="black"
               ctaLink={config.links.recruitment_hsform}
               ctaLabel="Sign up to test our pipeline"
-              fontColor="black"
+              label="Processing your own single-cell data?"
               iconName="htmlGear"
             />
             <Header margin={{ bottom: 'small' }} donate={showDonate} />
