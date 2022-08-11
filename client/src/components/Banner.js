@@ -46,7 +46,7 @@ export const Banner = ({
                 )}
                 <Paragraph
                   color={color}
-                  margin={{ left: '4px' }}
+                  margin={{ left: 'xsmall' }}
                   size={responsive('medium', 'large')}
                 >
                   {label}{' '}

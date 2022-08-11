@@ -58,7 +58,7 @@ export const Icon = ({ color = 'brand', size = 'medium', name }) => {
   const IconContent = SVGs[name]
 
   return typeof IconContent === 'string' ? (
-    <Text aria-hidden="true" style={{ fontSize: size }}>
+    <Text aria-hidden="true" size={size}>
       {IconContent}
     </Text>
   ) : (
