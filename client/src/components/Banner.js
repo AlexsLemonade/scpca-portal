@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useBanner } from 'hooks/useBanner'
 import { Box, Paragraph } from 'grommet'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
-import styled, { css } from 'styled-components'
 
 export const Banner = ({
   label,
@@ -11,31 +10,16 @@ export const Banner = ({
   ctaLabel,
   ctaLink,
   fontColor = 'white',
-  htmlIcon = null,
   iconName = null,
   iconSize = '24px',
   children
 }) => {
-  const { showing, onBannerClose, onBannerOpen } = useBanner()
-  const BannerBox = styled(Box)`
-    ${() => css`
-      > div {
-        > p {
-          > a {
-            text-decoration: underline;
-          }
-        }
-      }
-    `}
-  `
-  useEffect(() => {
-    onBannerOpen()
-  }, [])
+  const { showing, hideBanner } = useBanner()
 
   return (
     <>
       {showing && (
-        <BannerBox
+        <Box
           background={bgColor}
           direction="row"
           justify="between"
@@ -48,28 +32,26 @@ export const Banner = ({
                 {iconName && (
                   <Icon name={iconName} size={iconSize} aria-hidden="true" />
                 )}
-                {htmlIcon && (
-                  <Box aria-hidden="true" style={{ fontSize: '24px' }}>
-                    {htmlIcon}
-                  </Box>
-                )}
                 <Paragraph
                   color={fontColor}
                   margin={{ left: '4px' }}
                   size="21px"
                 >
                   {label}{' '}
-                  <Link color={fontColor} href={ctaLink}>
-                    {ctaLabel}
-                  </Link>
+                  <Link
+                    color={fontColor}
+                    href={ctaLink}
+                    label={ctaLabel}
+                    underline
+                  />
                 </Paragraph>
               </>
             )}
           </Box>
-          <Box pad="20px" onClick={() => onBannerClose()}>
+          <Box pad="20px" onClick={() => hideBanner()}>
             <Icon name="Cross" size="16px" color={fontColor} />
           </Box>
-        </BannerBox>
+        </Box>
       )}
     </>
   )

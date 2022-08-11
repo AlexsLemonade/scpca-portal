@@ -57,7 +57,7 @@ export const Layout = ({ children }) => {
               ctaLink={config.links.recruitment_hsform}
               ctaLabel="Sign up to test our pipeline"
               fontColor="black"
-              htmlIcon="&#9881;&#65039;"
+              iconName="htmlGear"
             />
             <Header margin={{ bottom: 'small' }} donate={showDonate} />
             <ProgressBar />
