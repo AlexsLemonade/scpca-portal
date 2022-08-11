@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { useBanner } from 'hooks/useBanner'
+import { useResponsive } from 'hooks/useResponsive'
 import { Box, Paragraph } from 'grommet'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
@@ -16,6 +17,7 @@ export const Banner = ({
   children
 }) => {
   const { showing, hideBanner, showBanner } = useBanner()
+  const { responsive } = useResponsive()
 
   useEffect(() => {
     showBanner()
@@ -42,7 +44,11 @@ export const Banner = ({
                     aria-hidden="true"
                   />
                 )}
-                <Paragraph color={color} margin={{ left: '4px' }} size="21px">
+                <Paragraph
+                  color={color}
+                  margin={{ left: '4px' }}
+                  size={responsive('medium', 'large')}
+                >
                   {label}{' '}
                   <Link
                     color={color}
