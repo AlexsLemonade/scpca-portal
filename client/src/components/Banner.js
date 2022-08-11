@@ -14,7 +14,7 @@ export const Banner = ({
   iconSize = '24px',
   children
 }) => {
-  const { showing, hideBanner } = useBanner()
+  const { showing, handleHideBanner } = useBanner()
 
   return (
     <>
@@ -48,7 +48,7 @@ export const Banner = ({
               </>
             )}
           </Box>
-          <Box pad="20px" onClick={() => hideBanner()}>
+          <Box pad="20px" onClick={() => handleHideBanner()}>
             <Icon name="Cross" size="16px" color={fontColor} />
           </Box>
         </Box>

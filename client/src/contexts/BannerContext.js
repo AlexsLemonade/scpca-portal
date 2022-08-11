@@ -6,12 +6,12 @@ export const BannerContextProvider = ({ startShowing = true, children }) => {
   const [showing, setShowing] = useState(startShowing)
   const [bannerHeight, setBannerHeight] = useState(56)
 
-  const hideBanner = () => {
+  const handleHideBanner = () => {
     setShowing(false)
     setBannerHeight(0)
   }
 
-  const showBanner = () => {
+  const handleShowBanner = () => {
     setShowing(true)
     setBannerHeight(56)
   }
@@ -22,8 +22,8 @@ export const BannerContextProvider = ({ startShowing = true, children }) => {
         showing,
         bannerHeight,
         setBannerHeight,
-        hideBanner,
-        showBanner
+        handleHideBanner,
+        handleShowBanner
       }}
     >
       {children}
