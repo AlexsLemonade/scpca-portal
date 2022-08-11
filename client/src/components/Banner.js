@@ -10,6 +10,7 @@ export const Banner = ({
   ctaLabel,
   ctaLink,
   fontColor = 'white',
+  iconColor = 'brand',
   iconName = null,
   iconSize = '24px',
   children
@@ -30,7 +31,12 @@ export const Banner = ({
             {children || (
               <>
                 {iconName && (
-                  <Icon name={iconName} size={iconSize} aria-hidden="true" />
+                  <Icon
+                    color={iconColor}
+                    name={iconName}
+                    size={iconSize}
+                    aria-hidden="true"
+                  />
                 )}
                 <Paragraph
                   color={fontColor}
