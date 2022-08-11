@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useBanner } from 'hooks/useBanner'
 import { Box, Paragraph } from 'grommet'
 import { Link } from 'components/Link'
@@ -15,7 +15,11 @@ export const Banner = ({
   iconSize = '24px',
   children
 }) => {
-  const { showing, handleHideBanner } = useBanner()
+  const { showing, handleHideBanner, handleShowBanner } = useBanner()
+
+  useEffect(() => {
+    handleShowBanner()
+  }, [])
 
   return (
     <>

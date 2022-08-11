@@ -2,9 +2,9 @@ import React, { createContext, useState } from 'react'
 
 export const BannerContext = createContext({})
 
-export const BannerContextProvider = ({ startShowing = true, children }) => {
-  const [showing, setShowing] = useState(startShowing)
-  const [bannerHeight, setBannerHeight] = useState(56)
+export const BannerContextProvider = ({ children }) => {
+  const [showing, setShowing] = useState(false)
+  const [bannerHeight, setBannerHeight] = useState(0)
 
   const handleHideBanner = () => {
     setShowing(false)
