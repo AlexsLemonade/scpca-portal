@@ -4,6 +4,7 @@ import { Grommet } from 'grommet'
 import { theme } from 'theme'
 import { Layout } from 'components/Layout'
 import { Reset } from 'styles/Reset'
+import { BannerContextProvider } from 'contexts/BannerContext'
 import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
 import { AnalyticsContextProvider } from 'contexts/AnalyticsContext'
 import { PageTitle } from 'components/PageTitle'
@@ -27,12 +28,14 @@ const Portal = ({ Component, pageProps }) => {
         <ScPCAPortalContextProvider>
           <AnalyticsContextProvider>
             <PageTitle />
-            <Layout>
-              <Sentry.ErrorBoundary fallback={Fallback} showDialog>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                <Component {...pageProps} />
-              </Sentry.ErrorBoundary>
-            </Layout>
+            <BannerContextProvider>
+              <Layout>
+                <Sentry.ErrorBoundary fallback={Fallback} showDialog>
+                  {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                  <Component {...pageProps} />
+                </Sentry.ErrorBoundary>
+              </Layout>
+            </BannerContextProvider>
           </AnalyticsContextProvider>
         </ScPCAPortalContextProvider>
       </Grommet>

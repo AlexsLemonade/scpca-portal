@@ -1,10 +1,13 @@
 import React from 'react'
+import { useBanner } from 'hooks/useBanner'
 import { useRouter } from 'next/router'
 import { Box, Main } from 'grommet'
-import { Header } from 'components/Header'
+import { Banner } from 'components/Banner'
 import { Footer } from 'components/Footer'
-import styled, { css } from 'styled-components'
+import { Header } from 'components/Header'
 import { PageLoader } from 'components/PageLoader'
+import { config } from 'config'
+import styled, { css } from 'styled-components'
 
 const FixedBox = styled(Box)`
   position: fixed;
@@ -28,6 +31,7 @@ const ProgressBar = styled(PageLoader)`
 `
 
 export const Layout = ({ children }) => {
+  const { bannerHeight } = useBanner()
   const router = useRouter()
 
   // donate button on about page only
@@ -45,8 +49,16 @@ export const Layout = ({ children }) => {
   return (
     <Box height={{ min: '100vh' }}>
       <Box margin={showMargin ? { bottom: 'xlarge' } : ''}>
-        <Box height="80px">
+        <Box height={`${80 + bannerHeight}px`}>
           <FixedBox showMargin={showMargin} background="white">
+            <Banner
+              background="alexs-lemonade-tint-40"
+              color="black"
+              ctaLink={config.links.recruitment_hsform}
+              ctaLabel="Sign up to test our pipeline"
+              label="Processing your own single-cell data?"
+              iconName="htmlGear"
+            />
             <Header margin={{ bottom: 'small' }} donate={showDonate} />
             <ProgressBar />
           </FixedBox>
