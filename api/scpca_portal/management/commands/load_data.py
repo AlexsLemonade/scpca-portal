@@ -20,6 +20,7 @@ ALLOWED_SUBMITTERS = {
     "dyer_chen",
     "gawad",
     "green_mulcahy_levy",
+    "mullighan",
     "murphy_chen",
 }
 
