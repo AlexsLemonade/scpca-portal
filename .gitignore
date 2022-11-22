@@ -122,6 +122,7 @@ venv.bak/
 # Terraform
 infrastructure/*.tfstate*
 infrastructure/.terraform/
+infrastructure/.terraform.lock.hcl
 .circleci/s3_tfstate/.terraform
 
 # MacOS
@@ -151,7 +152,7 @@ client/out/
 client/build
 
 # misc
-client/*.pem
+*.pem
 
 # debug
 client/npm-debug.log*
