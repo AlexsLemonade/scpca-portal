@@ -1,27 +1,31 @@
-# This Dockerfile is designed to run the API using files that live on the host machine.
-# This is useful for local development, because as the files are changed the server
-# can detect that and use the newer code without being restarted.
+# This Dockerfile is designed to run the API using files that live on the host
+# machine. This is useful for local development, because as the files are
+# changed the server can detect that and use the newer code without being
+# restarted.
 
 FROM python:3.10
-ENV PYTHONUNBUFFERED 1
 
-RUN groupadd user && useradd --create-home --home-dir /home/user -g user user
+# Fail in case of an error at any stage in the pipe.
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ENV PYTHONUNBUFFERED=1
+
+RUN groupadd user && \
+    useradd --create-home --home-dir /home/user -g user user && \
+    python3 -m pip install --upgrade pip
+
 WORKDIR /home/user
 
-RUN python3 -m pip install --upgrade pip
-
-# Allows docker to cache installed dependencies between builds
+# Allows docker to cache installed dependencies between builds.
 COPY requirements requirements
 RUN pip install -r requirements/local.txt
 
 VOLUME /home/user/code
 
-EXPOSE $PORT
-
-ARG SYSTEM_VERSION
 ARG PORT
+ARG SYSTEM_VERSION
 
-ENV SYSTEM_VERSION $SYSTEM_VERSION
+ENV SYSTEM_VERSION=$SYSTEM_VERSION
 
 # Adds our application code to the image, which is needed even though
 # we use the code dir for the readme template.
@@ -31,5 +35,8 @@ USER user
 
 WORKDIR /home/user/code
 
-# Run the server
-CMD gunicorn --bind 0.0.0.0:$PORT --access-logfile - scpca_portal.wsgi:application
+EXPOSE $PORT
+
+# Run the server.
+CMD ["sh", "-c", "gunicorn --access-logfile --bind 0.0.0.0:$PORT \
+                  scpca_portal.wsgi:application"]
