@@ -78,12 +78,17 @@ export const ProjectSamplesTable = ({
     { Header: 'Technology', accessor: 'technologies' },
     {
       Header: 'Other Modalities',
-      accessor: ({ modalities }) =>
-        modalities.map((modality, i) => (
-          <>
-            {i ? ' ,' : ''} {modality}
-          </>
-        )) || 'N/A'
+      accessor: ({ modalities }) => (
+        <>
+          {modalities.length
+            ? modalities.map((modality, i) => (
+                <>
+                  {i ? ', ' : ''} {modality}
+                </>
+              ))
+            : 'N/A'}
+        </>
+      )
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
