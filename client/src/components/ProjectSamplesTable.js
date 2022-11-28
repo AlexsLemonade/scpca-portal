@@ -79,15 +79,7 @@ export const ProjectSamplesTable = ({
     {
       Header: 'Other Modalities',
       accessor: ({ modalities }) => (
-        <>
-          {modalities.length
-            ? modalities.map((modality, i) => (
-                <>
-                  {i ? ', ' : ''} {modality}
-                </>
-              ))
-            : 'N/A'}
-        </>
+        <>{modalities.length ? <>{modalities.join(', ')}</> : 'N/A'}</>
       )
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
