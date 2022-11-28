@@ -224,7 +224,7 @@ class Project(TimestampedModel):
                             for library in multiplexed_libraries_metadata
                             if library["scpca_library_id"] in multiplexed_library_mapping[sample_id]
                         ),
-                        key=lambda l: l["scpca_library_id"],
+                        key=lambda library: library["scpca_library_id"],
                     )
                     for library_metadata in libraries_metadata:
                         library_metadata_copy = library_metadata.copy()
