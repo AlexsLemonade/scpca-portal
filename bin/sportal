@@ -14,7 +14,10 @@ if not os.path.exists("./bin/sportal"):
 project_folder = os.getcwd().split("/")[-1]
 
 # every docker-compose run api command looks like this
-run_api = f"API_NETWORK={project_folder}_default docker-compose --env-file ./docker-compose.env run --rm api {{}}"
+run_api = (
+    f"API_NETWORK={project_folder}_default "
+    f"docker-compose --env-file ./docker-compose.env run --rm api {{}}"
+)
 
 # list of available commands
 commands = {

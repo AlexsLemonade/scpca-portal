@@ -13,17 +13,18 @@ KEY_FILE_PATH = "scpca-portal-key.pem"
 
 
 def parse_args():
-    description = """This script can be used to deploy and update a `scpca portal` instance stack.
-    It will create all of the AWS infrastructure (roles/instances/db/network/etc),
-    open an ingress, perform a database migration, and close the
-    ingress. This can be run from a CI/CD machine or a local dev box.
-    This script must be run from /infrastructure!"""
+    description = """This script can be used to deploy and update a
+    `scpca portal` instance stack. It will create all of the AWS infrastructure
+    (roles/instances/db/network/etc), open an ingress, perform a database
+    migration, and close the ingress. This can be run from a CI/CD machine or
+    a local dev box. This script must be run from /infrastructure!"""
     parser = argparse.ArgumentParser(description=description)
 
-    env_help_text = """Specify the environment you would like to deploy to. Not optional. Valid values
-    are: prod, staging, and dev `prod` and `staging` will deploy the production stack. These should
-    only be used from a deployment machine. `dev` will deploy a dev stack which is appropriate for a
-    single developer to use to test."""
+    env_help_text = """Specify the environment you would like to deploy to.
+    Not optional. Valid values are: prod, staging, and dev `prod` and `staging`
+    will deploy the production stack. These should only be used from a
+    deployment machine. `dev` will deploy a dev stack which is appropriate
+    for a single developer to use to test."""
     parser.add_argument(
         "-e",
         "--env",
@@ -32,7 +33,10 @@ def parse_args():
         choices=["dev", "staging", "prod"],
     )
 
-    user_help_text = "Specify the username of the deployer. Should be the developer's name in development stacks."
+    user_help_text = (
+        "Specify the username of the deployer. "
+        "Should be the developer's name in development stacks."
+    )
     parser.add_argument("-u", "--user", help=user_help_text, required=True)
 
     dockerhub_help_text = (
@@ -184,7 +188,8 @@ def restart_api_if_still_running(args, api_ip_address):
     try:
         if not run_remote_command(api_ip_address, "docker ps -q -a"):
             print(
-                "Seems like the API came up, but has no docker containers so it will start them itself."
+                "Seems like the API came up, but has no docker containers "
+                "so it will start them itself."
             )
             return 0
     except subprocess.CalledProcessError:
