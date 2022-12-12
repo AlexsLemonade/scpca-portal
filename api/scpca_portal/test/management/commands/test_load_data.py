@@ -208,6 +208,7 @@ class TestLoadData(TestCase):
         }
         library_path_templates = (
             "{sample_id}/{library_id}_filtered.rds",
+            "{sample_id}/{library_id}_processed.rds",
             "{sample_id}/{library_id}_qc.html",
             "{sample_id}/{library_id}_unfiltered.rds",
         )
@@ -265,6 +266,7 @@ class TestLoadData(TestCase):
             "README.md",
             "single_cell_metadata.tsv",
             f"{library_id}_filtered.rds",
+            f"{library_id}_processed.rds",
             f"{library_id}_qc.html",
             f"{library_id}_unfiltered.rds",
         }
@@ -353,10 +355,10 @@ class TestLoadData(TestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 3 files for each sample, plus a README.md
+        # There are 4 files for each sample, plus a README.md
         # and a single_cell_metadata.tsv file.
-        # 5 = 1 * 3 + 2
-        self.assertEqual(len(project_zip.namelist()), 5)
+        # 6 = 1 * 4 + 2
+        self.assertEqual(len(project_zip.namelist()), 6)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
         self.assertEqual(len(sample.computed_files), 2)
@@ -409,6 +411,7 @@ class TestLoadData(TestCase):
             "README.md",
             "single_cell_metadata.tsv",
             f"{library_id}_filtered.rds",
+            f"{library_id}_processed.rds",
             f"{library_id}_qc.html",
             f"{library_id}_unfiltered.rds",
         }

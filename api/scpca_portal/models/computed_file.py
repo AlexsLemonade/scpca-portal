@@ -192,7 +192,7 @@ class ComputedFile(TimestampedModel):
         file_name_path_mapping = dict()
         for library in libraries:
             library_id = library["scpca_library_id"]
-            for file_postfix in ("_filtered.rds", "_qc.html", "_unfiltered.rds"):
+            for file_postfix in ("_filtered.rds", "_processed.rds", "_qc.html", "_unfiltered.rds"):
                 file_name = f"{library_id}{file_postfix}"
                 file_name_path_mapping[file_name] = os.path.join(
                     library_path_mapping[library_id], file_name
@@ -237,7 +237,12 @@ class ComputedFile(TimestampedModel):
             )
 
             for library in libraries:
-                for file_postfix in ("_filtered.rds", "_qc.html", "_unfiltered.rds"):
+                for file_postfix in (
+                    "_filtered.rds",
+                    "_processed.rds",
+                    "_qc.html",
+                    "_unfiltered.rds",
+                ):
                     file_name = f"{library['scpca_library_id']}{file_postfix}"
                     file_path = os.path.join(
                         sample.project.get_sample_input_data_dir(sample.scpca_id), file_name
