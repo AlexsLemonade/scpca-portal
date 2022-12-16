@@ -169,8 +169,6 @@ def load_data_from_s3(
             continue
 
         project.abstract = project_data["abstract"]
-        project.contact_email = project_data["contact_email"]
-        project.contact_name = project_data["contact_name"]
         project.has_bulk_rna_seq = utils.boolean_from_string(project_data.get("has_bulk", False))
         project.has_cite_seq_data = utils.boolean_from_string(project_data.get("has_CITE", False))
         project.has_multiplexed_data = utils.boolean_from_string(
@@ -181,6 +179,9 @@ def load_data_from_s3(
         project.pi_name = project_data["submitter"]
         project.title = project_data["project_title"]
         project.save()
+
+        project.add_contacts(project_data["contact_email"], project_data["contact_name"])
+        project.add_publications(project_data["citation"])
 
         if project.scpca_id not in os.listdir(common.INPUT_DATA_DIR):
             logger.warning(f"Metadata found for '{project}' but no s3 folder of that name exists.")

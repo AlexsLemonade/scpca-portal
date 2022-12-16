@@ -2,6 +2,7 @@ import csv
 import json
 import logging
 import os
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List
@@ -11,7 +12,9 @@ from django.db import models
 from scpca_portal import common
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.contact import Contact
 from scpca_portal.models.project_summary import ProjectSummary
+from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
 
 logger = logging.getLogger()
@@ -46,6 +49,9 @@ class Project(TimestampedModel):
     technologies = models.TextField(blank=True, null=True)
     title = models.TextField()
     unavailable_samples_count = models.PositiveIntegerField(default=0)
+
+    contacts = models.ManyToManyField(Contact)
+    publications = models.ManyToManyField(Publication)
 
     def __str__(self):
         return f"Project {self.scpca_id}"
@@ -253,6 +259,39 @@ class Project(TimestampedModel):
             )
 
         return combined_metadata, multiplexed_sample_mapping
+
+    def add_contacts(self, project_emails, project_names):
+        """Creates and adds project contacts."""
+        emails = project_emails.split(";")
+        names = project_names.split(";")
+
+        if len(emails) != len(names):
+            logger.error("Unable to add ambiguous contacts.")
+            return
+
+        for idx, email in enumerate(emails):
+            contact, _ = Contact.objects.get_or_create(email=email.lower().strip())
+            contact.name = names[idx].strip()
+            contact.submitter_id = self.pi_name
+            contact.save()
+
+            self.contacts.add(contact)
+
+    def add_publications(self, project_citation):
+        """Creates and adds project publications."""
+        if not project_citation or project_citation == "N/A":
+            return
+
+        doi_re = re.compile(r"10.\d{4,9}/[-._;()/:A-Z0-9]+", re.IGNORECASE)
+        for citation in project_citation.split(";"):
+            doi = doi_re.findall(citation)[0].strip(".")
+
+            publication, _ = Publication.objects.get_or_create(doi=doi)
+            publication.citation = citation.replace(f"DOI: {doi}.", "").strip()
+            publication.submitter_id = self.pi_name
+            publication.save()
+
+            self.publications.add(publication)
 
     def combine_single_cell_metadata(
         self,

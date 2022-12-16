@@ -28,8 +28,7 @@ class MockS3Client:
 class TestLoadData(TestCase):
     def assert_project(self, project):
         self.assertTrue(project.abstract)
-        self.assertIsNotNone(project.contact_email)
-        self.assertIsNotNone(project.contact_name)
+        self.assertIsNotNone(project.contacts)
         self.assertIsNotNone(project.diagnoses)
         self.assertIsNotNone(project.diagnoses_counts)
         self.assertTrue(project.disease_timings)
