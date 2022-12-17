@@ -28,8 +28,6 @@ class Project(TimestampedModel):
 
     abstract = models.TextField()
     additional_metadata_keys = models.TextField(blank=True, null=True)
-    contact_email = models.TextField(null=True)
-    contact_name = models.TextField(null=True)
     diagnoses = models.TextField(blank=True, null=True)
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
