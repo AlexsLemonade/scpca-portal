@@ -41,13 +41,15 @@ class Command(BaseCommand):
         /SCPCP000001/libraries_metadata.csv
         /SCPCP000001/samples_metadata.csv
         /SCPCP000001/SCPCS000109/SCPCL000126_filtered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_unfiltered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_qc.html
         /SCPCP000001/SCPCS000109/SCPCL000126_metadata.json
+        /SCPCP000001/SCPCS000109/SCPCL000126_processed.rds
+        /SCPCP000001/SCPCS000109/SCPCL000126_qc.html
+        /SCPCP000001/SCPCS000109/SCPCL000126_unfiltered.rds
         /SCPCP000001/SCPCS000109/SCPCL000127_filtered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_unfiltered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_qc.html
         /SCPCP000001/SCPCS000109/SCPCL000127_metadata.json
+        /SCPCP000001/SCPCS000109/SCPCL000127_processed.rds
+        /SCPCP000001/SCPCS000109/SCPCL000127_qc.html
+        /SCPCP000001/SCPCS000109/SCPCL000127_unfiltered.rds
 
     The files will be zipped up and stats will be calculated for them.
 
