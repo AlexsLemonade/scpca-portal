@@ -11,7 +11,7 @@ class Contact(TimestampedModel):
 
     name = models.TextField()
     email = models.EmailField(unique=True)
-    submitter_id = models.TextField()
+    pi_name = models.TextField()
 
     def __str__(self) -> str:
         return f"{self.name} <{self.email}>"

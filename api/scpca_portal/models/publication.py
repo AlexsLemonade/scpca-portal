@@ -11,7 +11,7 @@ class Publication(TimestampedModel):
 
     doi = models.TextField(unique=True)
     citation = models.TextField()
-    submitter_id = models.TextField()
+    pi_name = models.TextField()
 
     def __str__(self) -> str:
         return self.doi

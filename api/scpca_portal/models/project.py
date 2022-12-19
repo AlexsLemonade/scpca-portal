@@ -259,8 +259,8 @@ class Project(TimestampedModel):
 
     def add_contacts(self, contact_emails, contact_names):
         """Creates and adds project contacts."""
-        emails = contact_emails.split(";")
-        names = contact_names.split(";")
+        emails = contact_emails.split(common.CSV_MULTI_VALUE_DELIMITER)
+        names = contact_names.split(common.CSV_MULTI_VALUE_DELIMITER)
 
         if len(emails) != len(names):
             logger.error("Unable to add ambiguous contacts.")
@@ -279,8 +279,8 @@ class Project(TimestampedModel):
 
     def add_publications(self, citations, citation_dois):
         """Creates and adds project publications."""
-        citations = citations.split(";")
-        dois = citation_dois.split(";")
+        citations = citations.split(common.CSV_MULTI_VALUE_DELIMITER)
+        dois = citation_dois.split(common.CSV_MULTI_VALUE_DELIMITER)
 
         if len(citations) != len(dois):
             logger.error("Unable to add ambiguous publications.")

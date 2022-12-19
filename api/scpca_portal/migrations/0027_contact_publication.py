@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 ("name", models.TextField()),
                 ("email", models.EmailField(max_length=254, unique=True)),
-                ("submitter_id", models.TextField()),
+                ("pi_name", models.TextField()),
             ],
             options={
                 "db_table": "contacts",
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 ("doi", models.TextField(unique=True)),
                 ("citation", models.TextField()),
-                ("submitter_id", models.TextField()),
+                ("pi_name", models.TextField()),
             ],
             options={
                 "db_table": "publications",
