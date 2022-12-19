@@ -181,7 +181,7 @@ def load_data_from_s3(
         project.save()
 
         project.add_contacts(project_data["contact_email"], project_data["contact_name"])
-        project.add_publications(project_data["citation"])
+        project.add_publications(project_data["citation"], project_data["citation_doi"])
 
         if project.scpca_id not in os.listdir(common.INPUT_DATA_DIR):
             logger.warning(f"Metadata found for '{project}' but no s3 folder of that name exists.")

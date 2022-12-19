@@ -2,7 +2,6 @@ import csv
 import json
 import logging
 import os
-import re
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List
@@ -258,16 +257,19 @@ class Project(TimestampedModel):
 
         return combined_metadata, multiplexed_sample_mapping
 
-    def add_contacts(self, project_emails, project_names):
+    def add_contacts(self, contact_emails, contact_names):
         """Creates and adds project contacts."""
-        emails = project_emails.split(";")
-        names = project_names.split(";")
+        emails = contact_emails.split(";")
+        names = contact_names.split(";")
 
         if len(emails) != len(names):
             logger.error("Unable to add ambiguous contacts.")
             return
 
         for idx, email in enumerate(emails):
+            if email in {"", "N/A", "TBD"}:
+                continue
+
             contact, _ = Contact.objects.get_or_create(email=email.lower().strip())
             contact.name = names[idx].strip()
             contact.submitter_id = self.pi_name
@@ -275,17 +277,21 @@ class Project(TimestampedModel):
 
             self.contacts.add(contact)
 
-    def add_publications(self, project_citation):
+    def add_publications(self, citations, citation_dois):
         """Creates and adds project publications."""
-        if not project_citation or project_citation == "N/A":
+        citations = citations.split(";")
+        dois = citation_dois.split(";")
+
+        if len(citations) != len(dois):
+            logger.error("Unable to add ambiguous publications.")
             return
 
-        doi_re = re.compile(r"10.\d{4,9}/[-._;()/:A-Z0-9]+", re.IGNORECASE)
-        for citation in project_citation.split(";"):
-            doi = doi_re.findall(citation)[0].strip(".")
+        for idx, doi in enumerate(dois):
+            if doi in {"", "N/A", "TBD"}:
+                continue
 
-            publication, _ = Publication.objects.get_or_create(doi=doi)
-            publication.citation = citation.replace(f"DOI: {doi}.", "").strip()
+            publication, _ = Publication.objects.get_or_create(doi=doi.strip())
+            publication.citation = citations[idx].strip()
             publication.submitter_id = self.pi_name
             publication.save()
 
