@@ -11,7 +11,7 @@ The one exception is the ProjectSerializer because it will always include its su
 
 from rest_framework import serializers
 
-from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
+from scpca_portal.models import ComputedFile, Contact, Project, ProjectSummary, Publication, Sample
 
 
 class ComputedFileSerializer(serializers.ModelSerializer):
@@ -34,6 +34,25 @@ class ComputedFileSerializer(serializers.ModelSerializer):
     sample = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
 
 
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = (
+            "email",
+            "name",
+        )
+
+
+class PublicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Publication
+        fields = (
+            "citation",
+            "doi",
+            "doi_url",
+        )
+
+
 class ProjectSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectSummary
@@ -53,8 +72,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "abstract",
             "additional_metadata_keys",
             "computed_files",
-            "contact_email",
-            "contact_name",
+            "contacts",
             "created_at",
             "diagnoses_counts",
             "diagnoses",
@@ -69,6 +87,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "modalities",
             "multiplexed_sample_count",
             "pi_name",
+            "publications",
             "sample_count",
             "samples",
             "scpca_id",
@@ -82,9 +101,11 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
 
     # This breaks the general pattern of not using sub-serializers,
     # but we want these to always be included.
-    summaries = ProjectSummarySerializer(many=True, read_only=True)
     computed_files = ComputedFileSerializer(read_only=True, many=True)
+    contacts = ContactSerializer(read_only=True, many=True)
+    publications = PublicationSerializer(read_only=True, many=True)
     samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
+    summaries = ProjectSummarySerializer(many=True, read_only=True)
 
 
 class ProjectSerializer(ProjectLeafSerializer):
