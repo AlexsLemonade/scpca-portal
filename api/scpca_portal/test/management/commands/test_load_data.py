@@ -28,8 +28,7 @@ class MockS3Client:
 class TestLoadData(TestCase):
     def assert_project(self, project):
         self.assertTrue(project.abstract)
-        self.assertIsNotNone(project.contact_email)
-        self.assertIsNotNone(project.contact_name)
+        self.assertIsNotNone(project.contacts)
         self.assertIsNotNone(project.diagnoses)
         self.assertIsNotNone(project.diagnoses_counts)
         self.assertTrue(project.disease_timings)
@@ -147,6 +146,22 @@ class TestLoadData(TestCase):
             "development",
         )
 
+        # Check contacts.
+        self.assertEqual(project.contacts.count(), 2)
+        contact1, contact2 = project.contacts.all()
+        self.assertEqual(contact1.name, "<contact 1>")
+        self.assertEqual(contact1.email, "<email contact 1>")
+        self.assertEqual(contact2.name, "<contact 2>")
+        self.assertEqual(contact2.email, "<email contact 2>")
+
+        # Check citations.
+        self.assertEqual(project.publications.count(), 2)
+        publication, publication2 = project.publications.all()
+        self.assertEqual(publication.doi, "<doi 1>")
+        self.assertEqual(publication.citation, "<formatted citation 1>")
+        self.assertEqual(publication2.doi, "<doi 2>")
+        self.assertEqual(publication2.citation, "<formatted citation 2>")
+
         expected_keys = [
             "scpca_sample_id",
             "scpca_library_id",
@@ -173,12 +188,16 @@ class TestLoadData(TestCase):
             "submitter",
             "submitter_id",
             "alevin_fry_version",
+            "cell_filtering_method",
             "demux_method",
             "demux_samples",
+            "droplet_filtering_method",
             "filtered_cells",
-            "filtering_method",
             "has_cellhash",
             "is_multiplexed",
+            "min_gene_cutoff",
+            "normalization_method",
+            "prob_compromised_cutoff",
             "salmon_version",
             "sample_cell_estimates",
             "transcript_type",
@@ -319,13 +338,19 @@ class TestLoadData(TestCase):
             "sex",
             "tissue_location",
             "alevin_fry_version",
+            "cell_filtering_method",
             "date_processed",
+            "droplet_filtering_method",
             "filtered_cell_count",
-            "filtering_method",
             "genome_assembly",
+            "has_cellhash",
+            "is_multiplexed",
             "mapped_reads",
             "mapping_index",
+            "min_gene_cutoff",
+            "normalization_method",
             "participant_id",
+            "prob_compromised_cutoff",
             "salmon_version",
             "submitter",
             "submitter_id",
