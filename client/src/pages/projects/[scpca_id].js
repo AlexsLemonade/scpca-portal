@@ -3,6 +3,7 @@ import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { DetailsTable } from 'components/DetailsTable'
+import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetails'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
 import { Link } from 'components/Link'
@@ -17,6 +18,7 @@ const Project = ({ project }) => {
   const [activeIndex, setActiveIndex] = useState(showSamples ? 1 : 0)
   const onActive = (nextIndex) => setActiveIndex(nextIndex)
   const { responsive } = useResponsive()
+
   return (
     <>
       <PageTitle title={project.title} />
@@ -30,17 +32,56 @@ const Project = ({ project }) => {
                   data={project}
                   order={[
                     'abstract',
+                    {
+                      label: 'Publications',
+                      value:
+                        project.publications.length > 0 ? (
+                          <ProjectPublicationsDetail
+                            publications={project.publications}
+                          />
+                        ) : (
+                          ''
+                        )
+                    },
+                    {
+                      label: 'DOI',
+                      value:
+                        project.publications.length > 0 ? (
+                          <Text>
+                            {project.publications.map((publication) => (
+                              <Link
+                                key={publication.doi}
+                                label={publication.doi}
+                                href={publication.doi_url}
+                              />
+                            ))}
+                          </Text>
+                        ) : (
+                          ''
+                        )
+                    },
                     'disease_timings',
                     'sample_count',
                     'human_readable_pi_name',
                     {
                       label: 'Contact Information',
-                      value: (
-                        <Link
-                          label={`${project.contact_name} <${project.contact_email}>`}
-                          href={`mailto:${project.contact_email}`}
-                        />
-                      )
+                      value:
+                        project.contacts.length > 0 ? (
+                          <>
+                            {project.contacts.map((contact, i) => (
+                              <Text>
+                                {i ? ', ' : ''}
+                                <Link
+                                  key={contact.name}
+                                  label={`${contact.name} <${contact.email}>`}
+                                  href={`mailto:${contact.email}`}
+                                />
+                              </Text>
+                            ))}
+                          </>
+                        ) : (
+                          ''
+                        )
                     }
                   ]}
                 />

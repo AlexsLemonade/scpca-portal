@@ -1,22 +1,19 @@
 export const readableNames = {
   abstract: 'Abstract',
-  pi_name: 'Primary Investigator',
-  human_readable_pi_name: 'Primary Investigator',
   computed_files: 'File',
-  samples: 'Samples',
-  summaries: 'Summaries',
-  title: 'Title',
-  contact: 'Contact',
-  contact_name: 'Contact Name',
-  contact_email: 'Contact Email',
-  has_bulk_rna_seq: 'Bulk RNA-Seq',
-  has_multiplexed_data: 'Multiplexed',
   disease_timings: 'Disease Timing',
   diagnoses: 'Diagnosis',
-  seq_units: 'Seq Units',
-  technologies: 'Technologies',
+  has_bulk_rna_seq: 'Bulk RNA-Seq',
+  has_multiplexed_data: 'Multiplexed',
+  human_readable_pi_name: 'Primary Investigator',
+  modalities: 'Modalities',
+  pi_name: 'Primary Investigator',
+  samples: 'Samples',
   sample_count: 'Sample Count',
-  modalities: 'Modalities'
+  seq_units: 'Seq Units',
+  summaries: 'Summaries',
+  technologies: 'Technologies',
+  title: 'Title'
 }
 
 export const getReadable = (key) => readableNames[key] || key
