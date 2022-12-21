@@ -17,6 +17,7 @@ const Project = ({ project }) => {
   const [activeIndex, setActiveIndex] = useState(showSamples ? 1 : 0)
   const onActive = (nextIndex) => setActiveIndex(nextIndex)
   const { responsive } = useResponsive()
+
   return (
     <>
       <PageTitle title={project.title} />
@@ -35,12 +36,23 @@ const Project = ({ project }) => {
                     'human_readable_pi_name',
                     {
                       label: 'Contact Information',
-                      value: (
-                        <Link
-                          label={`${project.contact_name} <${project.contact_email}>`}
-                          href={`mailto:${project.contact_email}`}
-                        />
-                      )
+                      value:
+                        project.contacts.length > 0 ? (
+                          <>
+                            {project.contacts.map((contact, i) => (
+                              <Text>
+                                {i ? ', ' : ''}
+                                <Link
+                                  key={contact.name}
+                                  label={`${contact.name} <${contact.email}>`}
+                                  href={`mailto:${contact.email}`}
+                                />
+                              </Text>
+                            ))}
+                          </>
+                        ) : (
+                          ''
+                        )
                     }
                   ]}
                 />
