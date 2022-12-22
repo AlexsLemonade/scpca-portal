@@ -80,7 +80,10 @@ class Command(BaseCommand):
 
 
 def cleanup_output_data_dir():
-    cleanup_items = (ComputedFile.README_FILE_NAME, ComputedFile.README_SPATIAL_FILE_NAME, "*.tsv")
+    cleanup_items = (
+        ComputedFile.README_FILE_NAME,
+        ComputedFile.README_SPATIAL_FILE_NAME,
+    )
     for item in cleanup_items:
         for path in Path(common.OUTPUT_DATA_DIR).glob(item):
             path.unlink()
@@ -88,6 +91,7 @@ def cleanup_output_data_dir():
 
 def load_data_from_s3(
     allowed_submitters: set = ALLOWED_SUBMITTERS,
+    cleanup_output_data=not (settings.DEBUG or settings.TEST),
     input_bucket_name: str = "scpca-portal-inputs",
     reload_all: bool = False,
     reload_existing: bool = False,
@@ -203,3 +207,11 @@ def load_data_from_s3(
                     settings.AWS_S3_BUCKET_NAME,
                     computed_file.s3_key,
                 )
+
+        if cleanup_output_data:
+            logger.info(f"Cleaning up '{project}' output data")
+            for computed_file in computed_files:
+                os.unlink(computed_file.zip_file_path)
+
+            for path in Path(common.OUTPUT_DATA_DIR).glob("*.tsv"):
+                path.unlink()
