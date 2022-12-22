@@ -82,6 +82,7 @@ class Command(BaseCommand):
 def cleanup_output_data_dir():
     cleanup_items = (
         ComputedFile.README_FILE_NAME,
+        ComputedFile.README_MULTIPLEXED_FILE_NAME,
         ComputedFile.README_SPATIAL_FILE_NAME,
     )
     for item in cleanup_items:
@@ -211,7 +212,7 @@ def load_data_from_s3(
         if cleanup_output_data:
             logger.info(f"Cleaning up '{project}' output data")
             for computed_file in computed_files:
-                os.unlink(computed_file.zip_file_path)
+                Path(computed_file.zip_file_path).unlink(missing_ok=True)
 
             for path in Path(common.OUTPUT_DATA_DIR).glob("*.tsv"):
-                path.unlink()
+                path.unlink(missing_ok=True)
