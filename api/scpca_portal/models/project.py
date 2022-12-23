@@ -11,7 +11,9 @@ from django.db import models
 from scpca_portal import common
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.contact import Contact
 from scpca_portal.models.project_summary import ProjectSummary
+from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
 
 logger = logging.getLogger()
@@ -25,8 +27,6 @@ class Project(TimestampedModel):
 
     abstract = models.TextField()
     additional_metadata_keys = models.TextField(blank=True, null=True)
-    contact_email = models.TextField(null=True)
-    contact_name = models.TextField(null=True)
     diagnoses = models.TextField(blank=True, null=True)
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
@@ -46,6 +46,9 @@ class Project(TimestampedModel):
     technologies = models.TextField(blank=True, null=True)
     title = models.TextField()
     unavailable_samples_count = models.PositiveIntegerField(default=0)
+
+    contacts = models.ManyToManyField(Contact)
+    publications = models.ManyToManyField(Publication)
 
     def __str__(self):
         return f"Project {self.scpca_id}"
@@ -224,7 +227,7 @@ class Project(TimestampedModel):
                             for library in multiplexed_libraries_metadata
                             if library["scpca_library_id"] in multiplexed_library_mapping[sample_id]
                         ),
-                        key=lambda l: l["scpca_library_id"],
+                        key=lambda library: library["scpca_library_id"],
                     )
                     for library_metadata in libraries_metadata:
                         library_metadata_copy = library_metadata.copy()
@@ -253,6 +256,46 @@ class Project(TimestampedModel):
             )
 
         return combined_metadata, multiplexed_sample_mapping
+
+    def add_contacts(self, contact_emails, contact_names):
+        """Creates and adds project contacts."""
+        emails = contact_emails.split(common.CSV_MULTI_VALUE_DELIMITER)
+        names = contact_names.split(common.CSV_MULTI_VALUE_DELIMITER)
+
+        if len(emails) != len(names):
+            logger.error("Unable to add ambiguous contacts.")
+            return
+
+        for idx, email in enumerate(emails):
+            if email in {"", "N/A", "TBD"}:
+                continue
+
+            contact, _ = Contact.objects.get_or_create(email=email.lower().strip())
+            contact.name = names[idx].strip()
+            contact.submitter_id = self.pi_name
+            contact.save()
+
+            self.contacts.add(contact)
+
+    def add_publications(self, citations, citation_dois):
+        """Creates and adds project publications."""
+        citations = citations.split(common.CSV_MULTI_VALUE_DELIMITER)
+        dois = citation_dois.split(common.CSV_MULTI_VALUE_DELIMITER)
+
+        if len(citations) != len(dois):
+            logger.error("Unable to add ambiguous publications.")
+            return
+
+        for idx, doi in enumerate(dois):
+            if doi in {"", "N/A", "TBD"}:
+                continue
+
+            publication, _ = Publication.objects.get_or_create(doi=doi.strip())
+            publication.citation = citations[idx].strip()
+            publication.submitter_id = self.pi_name
+            publication.save()
+
+            self.publications.add(publication)
 
     def combine_single_cell_metadata(
         self,

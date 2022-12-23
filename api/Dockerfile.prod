@@ -1,26 +1,30 @@
 FROM python:3.10
-ENV PYTHONUNBUFFERED 1
 
-RUN groupadd user && useradd --create-home --home-dir /home/user -g user user
+# Fail in case of an error at any stage in the pipe.
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ENV PYTHONUNBUFFERED=1
+
+RUN groupadd user && \
+    useradd --create-home --home-dir /home/user -g user user && \
+    python3 -m pip install --upgrade pip
+
 WORKDIR /home/user
 
-RUN python3 -m pip install --upgrade pip
-
-# Allows docker to cache installed dependencies between builds
+# Allows docker to cache installed dependencies between builds.
 COPY requirements requirements
-RUN pip install -r requirements/prod.txt
+RUN pip install -r requirements/prod.txt && \
+    mkdir -p /tmp/www/static && \
+    chown user /tmp/www/static
 
-# Adds our application code to the image
-COPY . .
-
-RUN mkdir -p /tmp/www/static
-RUN chown user /tmp/www/static
-
-ARG SYSTEM_VERSION
 ARG HTTP_PORT
+ARG SYSTEM_VERSION
 
-ENV SYSTEM_VERSION $SYSTEM_VERSION
-ENV HTTP_PORT ":$HTTP_PORT"
+ENV HTTP_PORT=$HTTP_PORT
+ENV SYSTEM_VERSION=$SYSTEM_VERSION
+
+# Adds our application code to the image.
+COPY . .
 
 USER user
 
@@ -30,5 +34,5 @@ VOLUME /tmp/www/static
 
 EXPOSE $HTTP_PORT
 
-# Run the production server
-CMD python manage.py collectstatic --noinput && uwsgi --ini uwsgi.ini --http $HTTP_PORT
+# Run the production server.
+CMD ["sh", "-c", "uwsgi --http :$HTTP_PORT --ini uwsgi.ini"]
