@@ -13,7 +13,6 @@ See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/e
 The files associated with each library are (example shown for a library with ID `SCPCL000000`):
 - An unfiltered counts file: `SCPCL000000_unfiltered.rds`,
 - A filtered counts file: `SCPCL000000_filtered.rds`,
-- A processed counts file: `SCPCL000000_processed.rds`,
 - A quality control report: `SCPCL000000_qc.html`
 
 Also included in each download is a `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.

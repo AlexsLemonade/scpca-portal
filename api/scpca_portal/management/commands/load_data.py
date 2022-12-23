@@ -41,15 +41,13 @@ class Command(BaseCommand):
         /SCPCP000001/libraries_metadata.csv
         /SCPCP000001/samples_metadata.csv
         /SCPCP000001/SCPCS000109/SCPCL000126_filtered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_metadata.json
-        /SCPCP000001/SCPCS000109/SCPCL000126_processed.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_qc.html
         /SCPCP000001/SCPCS000109/SCPCL000126_unfiltered.rds
+        /SCPCP000001/SCPCS000109/SCPCL000126_qc.html
+        /SCPCP000001/SCPCS000109/SCPCL000126_metadata.json
         /SCPCP000001/SCPCS000109/SCPCL000127_filtered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_metadata.json
-        /SCPCP000001/SCPCS000109/SCPCL000127_processed.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_qc.html
         /SCPCP000001/SCPCS000109/SCPCL000127_unfiltered.rds
+        /SCPCP000001/SCPCS000109/SCPCL000127_qc.html
+        /SCPCP000001/SCPCS000109/SCPCL000127_metadata.json
 
     The files will be zipped up and stats will be calculated for them.
 
@@ -171,6 +169,8 @@ def load_data_from_s3(
             continue
 
         project.abstract = project_data["abstract"]
+        project.contact_email = project_data["contact_email"]
+        project.contact_name = project_data["contact_name"]
         project.has_bulk_rna_seq = utils.boolean_from_string(project_data.get("has_bulk", False))
         project.has_cite_seq_data = utils.boolean_from_string(project_data.get("has_CITE", False))
         project.has_multiplexed_data = utils.boolean_from_string(
@@ -181,9 +181,6 @@ def load_data_from_s3(
         project.pi_name = project_data["submitter"]
         project.title = project_data["project_title"]
         project.save()
-
-        project.add_contacts(project_data["contact_email"], project_data["contact_name"])
-        project.add_publications(project_data["citation"], project_data["citation_doi"])
 
         if project.scpca_id not in os.listdir(common.INPUT_DATA_DIR):
             logger.warning(f"Metadata found for '{project}' but no s3 folder of that name exists.")

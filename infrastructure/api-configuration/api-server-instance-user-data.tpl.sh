@@ -79,13 +79,13 @@ cat <<EOF >awslogs.conf
 [general]
 state_file = /var/lib/awslogs/agent-state
 
-[/var/log/nginx/error.log]
-file = /var/log/nginx/error.log
+[/tmp/error.log]
+file = /tmp/error.log
 log_group_name = ${log_group}
 log_stream_name = log-stream-api-nginx-error-${user}-${stage}
 
-[/var/log/nginx/access.log]
-file = /var/log/nginx/access.log
+[/tmp/access.log]
+file = /tmp/access.log
 log_group_name = ${log_group}
 log_stream_name = log-stream-api-nginx-access-${user}-${stage}
 
@@ -96,7 +96,7 @@ wget https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setu
 python3 ./awslogs-agent-setup.py --region ${region} --non-interactive --configfile awslogs.conf
 # Rotate the logs, delete after 3 days.
 echo "
-/var/log/nginx/error.log {
+/tmp/error.log {
     missingok
     notifempty
     compress
@@ -105,7 +105,7 @@ echo "
     maxage 3
 }" >> /etc/logrotate.conf
 echo "
-/var/log/nginx/access.log {
+/tmp/access.log {
     missingok
     notifempty
     compress

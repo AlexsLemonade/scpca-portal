@@ -22,19 +22,19 @@ schema_view = get_schema_view(
         title="ScPCA Portal API",
         default_version="v1",
         description="""
-The Single-cell Pediatric Cancer Atlas is a collection of pediatric cancer projects that collected single-cell sequencing data and were processed using the workflows contained in https://github.com/AlexsLemonade/alsf-scpca.
+The Single-cell Pediatrc Cancer Atlas is a collection of pediatric cancer projects that collected single-cell sequencing data and were processed using the workflows contained in https://github.com/AlexsLemonade/alsf-scpca.
 
-The swagger-ui view can be found [here](http://api.scpca.alexslemonade.org/v1/swagger/).
+The swagger-ui view can be found [here](http://api.scpca.alexslemonade.org/swagger/).
 
-The ReDoc view can be found [here](https://api.scpca.alexslemonade.org/v1/redoc/).
+The ReDoc view can be found [here](http://api.scpca.alexslemonade.org/).
 
-Additional documentation can be found at [scpca.readthedocs.io](https://scpca.readthedocs.io/en/latest/).
+Additional documentation can be found at [docs.scpca.alexslemonade.org](http://docs.scpca.alexslemonade.org/en/latest/).
 
 ### Questions/Feedback?
 
-If you have a question or comment, please [file an issue on GitHub](https://github.com/AlexsLemonade/scpca-portal/issues) or send us an email at [requests@ccdatalab.org](mailto:requests@ccdatalab.org).
+If you have a question or comment, please [file an issue on GitHub](https://github.com/AlexsLemonade/scpca/issues) or send us an email at [requests@ccdatalab.org](mailto:requests@ccdatalab.org).
         """,
-        terms_of_service="https://scpca.alexslemonade.org/terms-of-use",
+        terms_of_service="https://scpca.alexslemonade.org/terms",
         contact=openapi.Contact(email="requests@ccdatalab.org"),
         license=openapi.License(name="BSD License"),
     ),
