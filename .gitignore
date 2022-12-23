@@ -68,7 +68,7 @@ api/uploaded_files
 
 # Local Data
 api/data
-api/test_data*
+api/test_data
 
 # Flask stuff:
 instance/
@@ -122,7 +122,6 @@ venv.bak/
 # Terraform
 infrastructure/*.tfstate*
 infrastructure/.terraform/
-infrastructure/.terraform.lock.hcl
 .circleci/s3_tfstate/.terraform
 
 # MacOS
@@ -152,7 +151,7 @@ client/out/
 client/build
 
 # misc
-*.pem
+client/*.pem
 
 # debug
 client/npm-debug.log*

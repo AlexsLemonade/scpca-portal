@@ -31,10 +31,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
     pi_name = "gawad"
     human_readable_pi_name = "Gawad"
-    title = (
-        "Single-Cell Profiling of Acute Myeloid Leukemia for "
-        "High-Resolution Chemo-immunotherapy Target Discovery"
-    )
+    title = "Single-Cell Profiling of Acute Myeloid Leukemia for High-Resolution Chemo-immunotherapy Target Discovery"
     abstract = """Despite enormous efforts to find better treatments
     for children with acute myeloid leukemia (AML), it remains one of
     the most difficult to treat pediatric cancers. The children that
@@ -50,6 +47,8 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     immediately accessible to the research community, with the aim of
     accelerating our efforts to find new ways to cure all children
     with AML"""
+    contact_name = "Gawad"
+    contact_email = "gawad@example.com"
     disease_timings = "Diagnosis, Relapse/Diagnosis at LPCH, Relapsed, Healthy control"
     diagnoses = "AML, Normal"
     diagnoses_counts = "AML (20), Normal (40)"

@@ -3,7 +3,6 @@ import { Box, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { ProjectHeader } from 'components/ProjectHeader'
-import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetails'
 
 export const ProjectSearchResult = ({ project }) => {
   const searchDetails = [
@@ -14,15 +13,6 @@ export const ProjectSearchResult = ({ project }) => {
     {
       title: 'Abstract',
       value: project.abstract
-    },
-    {
-      title: 'Publications',
-      value:
-        project.publications.length > 0 ? (
-          <ProjectPublicationsDetail publications={project.publications} />
-        ) : (
-          ''
-        )
     },
     {
       title: 'Additional Sample Metadata Fields',

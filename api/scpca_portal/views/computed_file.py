@@ -25,10 +25,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             "download_url": {
-                "help_text": (
-                    "This will contain an url to download the file. "
-                    "You must send a valid [token](#tag/token) in order to receive this."
-                )
+                "help_text": "This will contain an url to download the file. You must send a valid [token](#tag/token) in order to receive this."
             }
         }
 
