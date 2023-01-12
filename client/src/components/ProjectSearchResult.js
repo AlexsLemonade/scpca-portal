@@ -3,7 +3,8 @@ import { Box, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { ProjectHeader } from 'components/ProjectHeader'
-import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetails'
+import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
+import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 
 export const ProjectSearchResult = ({ project }) => {
   const searchDetails = [
@@ -13,7 +14,9 @@ export const ProjectSearchResult = ({ project }) => {
     },
     {
       title: 'Abstract',
-      value: project.abstract
+      value: (
+        <ProjectAbstractDetail label={project.abstract} />
+      )
     },
     {
       title: 'Publications',
