@@ -14,9 +14,7 @@ export const ProjectSearchResult = ({ project }) => {
     },
     {
       title: 'Abstract',
-      value: (
-        <ProjectAbstractDetail label={project.abstract} />
-      )
+      value: <ProjectAbstractDetail abstract={project.abstract} />
     },
     {
       title: 'Publications',
