@@ -119,6 +119,8 @@ class TestLoadData(TestCase):
 
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_multiplexed_metadata(self):
+        self.maxDiff = None
+
         load_data_from_s3(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
