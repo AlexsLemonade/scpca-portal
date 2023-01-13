@@ -222,9 +222,8 @@ class TestLoadData(TestCase):
 
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
 
-        self.assertEqual(sample_metadata_keys, expected_keys)
-        self.assertEqual(sample_metadata_keys, [])
         self.assertEqual(expected_keys, [])
+        self.assertEqual(sample_metadata_keys, expected_keys)
 
         library_sample_mapping = {
             "SCPCL999990": "SCPCS999990_SCPCS999991",
