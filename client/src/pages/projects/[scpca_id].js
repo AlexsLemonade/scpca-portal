@@ -3,7 +3,8 @@ import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { DetailsTable } from 'components/DetailsTable'
-import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetails'
+import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
+import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
 import { Link } from 'components/Link'
@@ -31,7 +32,12 @@ const Project = ({ project }) => {
                 <DetailsTable
                   data={project}
                   order={[
-                    'abstract',
+                    {
+                      label: 'Abstract',
+                      value: (
+                        <ProjectAbstractDetail abstract={project.abstract} />
+                      )
+                    },
                     {
                       label: 'Publications',
                       value:
