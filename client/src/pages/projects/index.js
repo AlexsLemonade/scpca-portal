@@ -94,7 +94,7 @@ const Project = ({ projects, count, filters, filterOptions }) => {
               </Box>
             </ResponsiveSheet>
           </Box>
-          <Box gridArea="results">
+          <Box gridArea="results" pad={{ bottom: 'medium' }}>
             <Box direction="row" justify="between">
               <Box flex="shrink">
                 <ProjectSearchFilterPills
