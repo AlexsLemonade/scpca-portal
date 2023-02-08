@@ -94,7 +94,7 @@ const Project = ({ projects, count, filters, filterOptions }) => {
               </Box>
             </ResponsiveSheet>
           </Box>
-          <Box gridArea="results">
+          <Box gridArea="results" pad={{ bottom: 'medium' }}>
             <Box direction="row" justify="between">
               <Box flex="shrink">
                 <ProjectSearchFilterPills
@@ -119,8 +119,11 @@ const Project = ({ projects, count, filters, filterOptions }) => {
 }
 
 export const getServerSideProps = async ({ query }) => {
+  // default limit is 10, so here we will set it to 100 unless specified
+  const queryWithDefaultLimit = { ...query, limit: query.limit || 100 }
+
   const [projectRequest, optionsRequest] = await Promise.all([
-    api.projects.list(query),
+    api.projects.list(queryWithDefaultLimit),
     api.options.projects.get()
   ])
 
