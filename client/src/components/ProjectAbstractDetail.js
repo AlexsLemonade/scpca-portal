@@ -3,7 +3,7 @@ import { Paragraph } from 'grommet'
 
 export const ProjectAbstractDetail = ({ abstract }) =>
   abstract
-    .split('\n')
+    .split('\\n')
     .map((line, i) => (
       <Paragraph margin={{ top: i && 'small' }}>{line}</Paragraph>
     ))
