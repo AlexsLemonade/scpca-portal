@@ -39,6 +39,8 @@ class Production(Common):
         }
     }
 
+    PRODUCTION = True
+
     sentry_sdk.init(
         dsn=os.getenv("SENTRY_IO_URL"),
         integrations=[DjangoIntegration()],

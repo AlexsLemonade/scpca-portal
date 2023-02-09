@@ -113,6 +113,9 @@ class Common(Configuration):
     # Indicates running in test environment.
     TEST = len(sys.argv) > 1 and sys.argv[1] == "test"
 
+    # Indicates running in prod environment.
+    PRODUCTION = False
+
     # Logging.
     LOGGING = {
         "version": 1,

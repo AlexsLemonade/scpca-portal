@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import subprocess
+from argparse import BooleanOptionalAction
 from pathlib import Path
 
 from django.conf import settings
@@ -60,6 +61,9 @@ class Command(BaseCommand):
     to a stack-specific S3 bucket."""
 
     def add_arguments(self, parser):
+        parser.add_argument(
+            "--cleanup-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
+        )
         parser.add_argument("--reload-all", action="store_true")
         parser.add_argument("--reload-existing", action="store_true")
         parser.add_argument("--scpca-project-id", action="extend", nargs="+", type=str)
@@ -69,6 +73,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         load_data_from_s3(
+            cleanup_output_data=options["cleanup_output_data"],
             reload_all=options["reload_all"],
             reload_existing=options["reload_existing"],
             scpca_project_ids=options["scpca_project_id"] or (),
@@ -92,7 +97,7 @@ def cleanup_output_data_dir():
 
 def load_data_from_s3(
     allowed_submitters: set = ALLOWED_SUBMITTERS,
-    cleanup_output_data=not (settings.DEBUG or settings.TEST),
+    cleanup_output_data: bool = False,
     input_bucket_name: str = "scpca-portal-inputs",
     reload_all: bool = False,
     reload_existing: bool = False,
