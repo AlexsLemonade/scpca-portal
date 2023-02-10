@@ -1,5 +1,6 @@
 import csv
 import os
+import shutil
 from io import TextIOWrapper
 from unittest.mock import patch
 from zipfile import ZipFile
@@ -26,6 +27,11 @@ class MockS3Client:
 
 
 class TestLoadData(TestCase):
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
+
     def assert_project(self, project):
         self.assertTrue(project.abstract)
         self.assertIsNotNone(project.contacts)
