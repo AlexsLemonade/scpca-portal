@@ -86,7 +86,7 @@ resource "aws_instance" "api_server_1" {
   # This should be approx x2 the size of the s3 data
   root_block_device {
     volume_type = "gp2"
-    volume_size = 300
+    volume_size = 100
     tags =  merge(
       var.default_tags,
       {
