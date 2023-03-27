@@ -30,7 +30,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: "${{ secrets.OP_AWS_SECRET_ACCESS_KEY }}"
           SSH_PRIVATE_KEY: "${{ secrets.OP_SSH_PRIVATE_KEY }}"
           SSH_PUBLIC_KEY: "${{ secrets.OP_SSH_PUBLIC_KEY }}"
-          SENTRY_DSN: "${{ secrets.SENTRY_DSN }}"
+          SENTRY_DSN: "${{ secrets.OP_SENTRY_DSN }}"
 
 
       - name: Setup Terraform
