@@ -64,6 +64,10 @@ variable "sentry_env" {
   default = "MISSING_VALUE"
 }
 
+variable "ssh_public_key" {
+  default = "MISSING_VALUE"
+}
+
 output "environment_variables" {
   value = [
     {name = "DATABASE_NAME"
