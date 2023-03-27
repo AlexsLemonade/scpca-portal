@@ -54,7 +54,7 @@ resource "aws_instance" "api_server_1" {
           database_password = var.database_password
           aws_region  = var.region
           aws_s3_bucket_name = aws_s3_bucket.scpca_portal_bucket.id
-          sentry_io_url = var.sentry_io_url
+          sentry_dsn = var.sentry_dsn
           sentry_env = var.sentry_env
         })
       start_api_with_migrations = templatefile(
