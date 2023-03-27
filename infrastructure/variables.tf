@@ -56,7 +56,7 @@ variable "database_instance_type" {
   default = "db.t2.micro"
 }
 
-variable "sentry_io_url" {
+variable "sentry_dsn" {
   default = "MISSING_VALUE"
 }
 

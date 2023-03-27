@@ -42,7 +42,7 @@ class Production(Common):
     PRODUCTION = True
 
     sentry_sdk.init(
-        dsn=os.getenv("SENTRY_IO_URL"),
+        dsn=os.getenv("SENTRY_DSN"),
         integrations=[DjangoIntegration()],
         traces_sample_rate=1.0,
         environment=os.getenv("SENTRY_ENV"),

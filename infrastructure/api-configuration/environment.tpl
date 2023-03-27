@@ -9,5 +9,5 @@ DATABASE_NAME=${database_name}
 DATABASE_PASSWORD=${database_password}
 AWS_REGION=${aws_region}
 AWS_S3_BUCKET_NAME=${aws_s3_bucket_name}
-SENTRY_IO_URL=${sentry_io_url}
+SENTRY_DSN=${sentry_dsn}
 SENTRY_ENV=${sentry_env}
