@@ -88,8 +88,8 @@ def build_and_push_docker_image(args):
 
     docker_login_command = ["docker", "login"]
 
-    if "DOCKER_ID" in os.environ:
-        docker_login_command.extend(["--username", os.environ["DOCKER_ID"]])
+    if "DOCKER_USERNAME" in os.environ:
+        docker_login_command.extend(["--username", os.environ["DOCKER_USERNAME"]])
 
         if "DOCKER_PASSWORD" in os.environ:
             docker_login_command.extend(["--password", os.environ["DOCKER_PASSWORD"]])
