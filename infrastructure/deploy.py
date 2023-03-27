@@ -88,8 +88,8 @@ def build_and_push_docker_image(args):
 
     docker_login_command = ["docker", "login"]
 
-    if "DOCKER_ID" in os.environ:
-        docker_login_command.extend(["--username", os.environ["DOCKER_ID"]])
+    if "DOCKER_USERNAME" in os.environ:
+        docker_login_command.extend(["--username", os.environ["DOCKER_USERNAME"]])
 
         if "DOCKER_PASSWORD" in os.environ:
             docker_login_command.extend(["--password", os.environ["DOCKER_PASSWORD"]])
@@ -131,8 +131,9 @@ def load_env_vars(args):
     os.environ["TF_VAR_system_version"] = args.system_version
     os.environ["TF_VAR_database_password"] = os.environ["DATABASE_PASSWORD"]
     os.environ["TF_VAR_django_secret_key"] = os.environ["DJANGO_SECRET_KEY"]
-    os.environ["TF_VAR_sentry_io_url"] = os.environ["SENTRY_IO_URL"]
+    os.environ["TF_VAR_sentry_dsn"] = os.environ["SENTRY_DSN"]
     os.environ["TF_VAR_sentry_env"] = os.environ["SENTRY_ENV"]
+    os.environ["TF_VAR_ssh_public_key"] = os.environ["SSH_PUBLIC_KEY"]
 
 
 def run_terraform(args):
@@ -251,7 +252,7 @@ if __name__ == "__main__":
     # Create a key file from env var
     if args.env != "dev":
         with open(KEY_FILE_PATH, "w") as key_file:
-            key_file.write(os.environ["API_SSH_KEY"])
+            key_file.write(os.environ["SSH_PRIVATE_KEY"])
 
         os.chmod(KEY_FILE_PATH, 0o600)
 

@@ -56,11 +56,15 @@ variable "database_instance_type" {
   default = "db.t2.micro"
 }
 
-variable "sentry_io_url" {
+variable "sentry_dsn" {
   default = "MISSING_VALUE"
 }
 
 variable "sentry_env" {
+  default = "MISSING_VALUE"
+}
+
+variable "ssh_public_key" {
   default = "MISSING_VALUE"
 }
 
