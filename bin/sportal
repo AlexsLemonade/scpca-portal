@@ -16,14 +16,15 @@ project_folder = os.getcwd().split("/")[-1]
 # every docker-compose run api command looks like this
 run_api = (
     f"API_NETWORK={project_folder}_default "
-    f"docker-compose --env-file ./docker-compose.env run --rm api {{}}"
+    f"docker compose --env-file ./docker-compose.env "
+    f"run -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN --rm api {{}}"
 )
 
 # list of available commands
 commands = {
-    "up": "docker-compose --env-file ./docker-compose.env up",
-    "down": "docker-compose --env-file ./docker-compose.env down",
-    "build": "docker-compose --env-file ./docker-compose.env build",
+    "up": "docker compose --env-file ./docker-compose.env up",
+    "down": "docker compose --env-file ./docker-compose.env down",
+    "build": "docker compose --env-file ./docker-compose.env build",
     "shell": run_api.format('bash -c "./manage.py shell"'),
     "recreate-schema": "./recreate_schema.sh",
     "test-api": run_api.format('bash -c "./run_tests.sh {}"'),
