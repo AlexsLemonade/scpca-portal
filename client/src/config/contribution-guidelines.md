@@ -47,7 +47,7 @@ Interested parties can join drop-in office hours sessions with Data Lab team mem
 #### Contact the Data Lab
 
 You can contact the Data Lab via email at [scpca@ccdatalab.org](mailto:scpca@ccdatalab.org).
-Potential submitters are also encouraged to join the `#scpca-contributions` channel in Cancer Data Science Slack (<https://www.ccdatalab.org/slack>) to facilitate support from the Data Lab team while preparing their submissions.
+Potential submitters are also encouraged to join the \`#scpca-contributions\` channel in Cancer Data Science Slack (<https://www.ccdatalab.org/slack>) to facilitate support from the Data Lab team while preparing their submissions.
 
 ### Overview of Steps for Submission
 
@@ -63,13 +63,13 @@ The Data Lab will provide transfer details once a dataset has been determined to
 
 ### About the Processing Pipeline
 
-The Data Lab's [Nextflow](https://www.nextflow.io) workflow ([`scpca-nf`](https://github.com/AlexsLemonade/scpca-nf)) is used to process 10x Genomics single-cell and single-nuclei RNA-seq data for release on the [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
+The Data Lab's [Nextflow](https://www.nextflow.io) workflow ([\`scpca-nf\`](https://github.com/AlexsLemonade/scpca-nf)) is used to process 10x Genomics single-cell and single-nuclei RNA-seq data for release on the [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
 Submitters are **required to use this pipeline** to ensure that all datasets available via the ScPCA Portal are uniformly processed.
 
-The workflow processes FASTQ files with [alevin-fry](https://alevin-fry.readthedocs.io/en/latest/) to create summarized gene expression matrices (gene-by-cell matrices stored as [`SingleCellExperiment` objects](https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html)).
+The workflow processes FASTQ files with [alevin-fry](https://alevin-fry.readthedocs.io/en/latest/) to create summarized gene expression matrices (gene-by-cell matrices stored as [\`SingleCellExperiment\` objects](https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html)).
 The alevin-fry pipeline requires less RAM and compute time than Cell Ranger from 10x Genomics while producing similar results in our testing.
 These matrices are filtered, and additional processing is performed to calculate quality control statistics, create reduced-dimension transformations, and create output reports.
-`scpca-nf` can also process CITE-seq, bulk RNA-seq, and spatial transcriptomics samples.
+\`scpca-nf\` can also process CITE-seq, bulk RNA-seq, and spatial transcriptomics samples.
 For more information on the contents of the output files and the processing of all modalities, please see the [ScPCA Portal docs](https://scpca.readthedocs.io/en/latest/).
 
 All dependencies for the workflow outside of the Nextflow workflow engine itself are handled automatically; setup generally requires only organizing the input files and configuring Nextflow for your computing environment.
@@ -80,7 +80,7 @@ Nextflow will also handle parallelizing sample processing as your environment al
 **Please note that processing single-cell and single-nuclei RNA-seq samples with the pipeline as currently configured requires access to a high-performance computing (HPC) environment with nodes that can accommodate jobs requiring up to 24 GB of RAM and 12 CPUs.**
 The pipeline can be adapted to lower CPU counts if needed.
 
-`scpca-nf` can be set up for your computing environment with a few configuration files.
+\`scpca-nf\` can be set up for your computing environment with a few configuration files.
 Please see [our instructions](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md) to get started.
 
 The Data Lab team is available to provide technical support, including video conferencing calls for troubleshooting purposes, as you prepare your submission (see [**Contact the Data Lab**](#contact-the-data-lab) to get in touch).
@@ -114,11 +114,11 @@ All submissions are required to include the following metadata fields:
 
 | Metadata Field | Description |
 |----------------|-------------|
-| `seq_unit`        | `cell` for single-cell samples or `nucleus` for single-nucleus samples |
-| `technology`      | 10x Genomics kit used to process library, one of: `10Xv2`, `10Xv2_5prime`, `10Xv3` or `10Xv3.1`                        |
-| `submitter_id`    | A research sample identifier; ideally, identifiers would allow for linkage to published results or samples in widely-used repositories for sequencing data |
-| `diagnosis`       | Tumor type of origin or disease being modeled                                                |
-| `subdiagnosis`    | Subcategory of diagnosis or mutation status (if applicable)    |
+| \`seq_unit\`        | \`cell\` for single-cell samples or \`nucleus\` for single-nucleus samples |
+| \`technology\`      | 10x Genomics kit used to process library, one of: \`10Xv2\`, \`10Xv2_5prime\`, \`10Xv3\` or \`10Xv3.1\`                        |
+| \`submitter_id\`    | A research sample identifier; ideally, identifiers would allow for linkage to published results or samples in widely-used repositories for sequencing data |
+| \`diagnosis\`       | Tumor type of origin or disease being modeled                                                |
+| \`subdiagnosis\`    | Subcategory of diagnosis or mutation status (if applicable)    |
 
 
 ##### Tumor Samples
@@ -127,10 +127,10 @@ Submissions of tumor samples directly obtained from patients are required to inc
 
 | Metadata Field | Description |
 |----------------|-------------|
-| `age`             | Age at time sample was obtained                                |
-| `sex`             | Sex of patient that the sample was obtained from               |
-| `tissue_location` | Where in the body the tumor sample was located                 |
-| `disease_timing`  | What stage of disease was the sample obtained? At diagnosis or recurrence? |
+| \`age\`             | Age at time sample was obtained                                |
+| \`sex\`             | Sex of patient that the sample was obtained from               |
+| \`tissue_location\` | Where in the body the tumor sample was located                 |
+| \`disease_timing\`  | What stage of disease was the sample obtained? At diagnosis or recurrence? |
 
 ##### Cell Line Samples
 
@@ -138,13 +138,13 @@ Submissions of human cell line samples are required to include the following add
 
 | Metadata Field | Description |
 |----------------|-------------|
-| `cell_line` | Cell line name AND [Cell Line Ontology (CLO)](https://www.ebi.ac.uk/ols/ontologies/clo) identifier|
-| `age_at_collection` | Age of the patient at the time the sample used to establish the line was obtained |
-| `sex`             | Sex of the patient from which the line was isolated |
-| `tissue_location` | Where in the body the source of culture was derived from |
-| `disease_timing`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
-| `cell_type` or `tissue` | The type of cell (e.g., epithelial) or tissue if mixed cell types are expected |
-| `passage_number` | The number of times the cells were split or passaged prior to library preparation |
+| \`cell_line\` | Cell line name AND [Cell Line Ontology (CLO)](https://www.ebi.ac.uk/ols/ontologies/clo) identifier|
+| \`age_at_collection\` | Age of the patient at the time the sample used to establish the line was obtained |
+| \`sex\`             | Sex of the patient from which the line was isolated |
+| \`tissue_location\` | Where in the body the source of culture was derived from |
+| \`disease_timing\`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
+| \`cell_type\` or \`tissue\` | The type of cell (e.g., epithelial) or tissue if mixed cell types are expected |
+| \`passage_number\` | The number of times the cells were split or passaged prior to library preparation |
 
 Please include any perturbations (e.g., treatment with small molecule inhibitors) that were performed.
 
@@ -154,11 +154,11 @@ Submissions of samples obtained from mouse models are required to include the fo
 
 | Metadata Field | Description |
 |----------------|-------------|
-| `tissue_source` | The source of the tissue (e.g., tissue location or isolation methodology) |
-| `genotype` | Genotype of the mouse (if applicable) |
-| `model_description` | Description of the model type (e.g., syngeneic model or humanized model with specifics about engraftment) |
-| `strain` | Formal name of mouse strain (i.e., "C57BL/6" not "B6") |
-| `sex` | Sex of the mouse from which the sample was isolated |
+| \`tissue_source\` | The source of the tissue (e.g., tissue location or isolation methodology) |
+| \`genotype\` | Genotype of the mouse (if applicable) |
+| \`model_description\` | Description of the model type (e.g., syngeneic model or humanized model with specifics about engraftment) |
+| \`strain\` | Formal name of mouse strain (i.e., "C57BL/6" not "B6") |
+| \`sex\` | Sex of the mouse from which the sample was isolated |
 
 Please include any perturbations (e.g., treatment with small molecule inhibitors) that were performed or any relevant phenotypic information.
 If a submitter has data from a non-traditional mouse model, such as cell line injections into mice, they will be required to submit additional sample data, such as injection site.
@@ -169,11 +169,11 @@ Submissions of patient-derived xenograft samples are required to include the fol
 
 | Metadata Field | Description |
 |----------------|-------------|
-| `age_at_collection` | Age of the patient at the time the sample used to establish the xenograft was obtained |
-| `sex`             | Sex of the patient from which the xenograft was isolated |
-| `tissue_location` | Where in the body the source of the xenograft was derived from |
-| `disease_timing`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
-| `xenograft_type` | The type of xenograft (e.g., orthotopic) |
+| \`age_at_collection\` | Age of the patient at the time the sample used to establish the xenograft was obtained |
+| \`sex\`             | Sex of the patient from which the xenograft was isolated |
+| \`tissue_location\` | Where in the body the source of the xenograft was derived from |
+| \`disease_timing\`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
+| \`xenograft_type\` | The type of xenograft (e.g., orthotopic) |
 
 #### De-identification Standard for Human Samples
 
@@ -192,7 +192,7 @@ Submitters will be required to submit a table with the following information:
 
 | Field | Description |
 |-------|-------------|
-| `submitter_id` | The research sample identifier included in your sample metadata |
-| `cell_barcode` | 10x Genomics cell barcode associated with each cell |
-| `cell_type_assignment` | The cell type or label assigned to the cell |
-| `CLO_term` | (_Optional_) The [Cell Ontology](https://obofoundry.org/ontology/cl.html) cell type term associated with the designated cell type. Although these are not required, the cell type ontology can help standardize cell type assignment across datasets available on our portal. |
+| \`submitter_id\` | The research sample identifier included in your sample metadata |
+| \`cell_barcode\` | 10x Genomics cell barcode associated with each cell |
+| \`cell_type_assignment\` | The cell type or label assigned to the cell |
+| \`CLO_term\` | (_Optional_) The [Cell Ontology](https://obofoundry.org/ontology/cl.html) cell type term associated with the designated cell type. Although these are not required, the cell type ontology can help standardize cell type assignment across datasets available on our portal. |
