@@ -28,16 +28,15 @@ Submitters must also sign a Data Transfer Agreement before data transfer ([view 
 ### Award
 
 **Up to 10 eligible researchers will receive $5000 in unrestricted funds**.
-Once an eligible single-cell dataset submission has been completed and approved by the Data Lab, researchers will be invited to complete a grant application for the unrestricted funds consisting of basic contact and payment information. 
+Once an eligible single-cell dataset submission has been completed and approved by the Data Lab, researchers will be invited to complete a grant application for the unrestricted funds consisting of basic contact and payment information.
 Eligibility will be determined at ALSF’s discretion.
-Funds are available on a first-come-first-served basis and distributed to the researcher’s institution, which must be a non-profit institution. 
+Funds are available on a first-come-first-served basis and distributed to the researcher’s institution, which must be a non-profit institution.
 ALSF does not allow any funds to be used for research utilizing human embryonic stem cells or nonhuman primates.
-Research with human induced pluripotent stem cells is permissible. 
+Research with human induced pluripotent stem cells is permissible.
 **The first step in the submission process is to [fill out this form](https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0) to verify whether a dataset is suitable for inclusion in the ScPCA Portal.**
 
 Researchers are encouraged to engage with the Childhood Cancer Data Lab (Data Lab) before and during the preparation of their submissions.
 Interested parties can join drop-in office hours sessions with Data Lab team members on Zoom or reach out to the Data Lab directly via email (See [**Contact the Data Lab**](#contact-the-data-lab)).
-
 
 #### Important Dates
 
@@ -54,7 +53,7 @@ Potential submitters are also encouraged to join the `#scpca-contributions` chan
 
 Submitters must take the following steps:
 
-1. Complete an intake form to determine dataset eligibility: <https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0>. 
+1. Complete an intake form to determine dataset eligibility: <https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0>.
 A Data Lab team member will contact you within three working days of your submission to notify you of your eligibility and provide additional information required for submission.
 2. Execute a Data Transfer Agreement between your institution and ALSF.
 View the template agreement [here](https://docs.google.com/document/d/1eLHobiV4M0bC0KOQALgpfaLU0Y4nMZYs/edit?usp=share_link&ouid=105890053693989014850&rtpof=true&sd=true).
@@ -117,7 +116,7 @@ All submissions are required to include the following metadata fields:
 |----------------|-------------|
 | `seq_unit`        | `cell` for single-cell samples or `nucleus` for single-nucleus samples |
 | `technology`      | 10x Genomics kit used to process library, one of: `10Xv2`, `10Xv2_5prime`, `10Xv3` or `10Xv3.1`                        |
-| `submitter_id`    | A research sample identifier; ideally, identifiers would allow for linkage to published results or samples in widely-used repositories for sequencing data |                                                                     
+| `submitter_id`    | A research sample identifier; ideally, identifiers would allow for linkage to published results or samples in widely-used repositories for sequencing data |
 | `diagnosis`       | Tumor type of origin or disease being modeled                                                |
 | `subdiagnosis`    | Subcategory of diagnosis or mutation status (if applicable)    |
 
@@ -145,7 +144,7 @@ Submissions of human cell line samples are required to include the following add
 | `tissue_location` | Where in the body the source of culture was derived from |
 | `disease_timing`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
 | `cell_type` or `tissue` | The type of cell (e.g., epithelial) or tissue if mixed cell types are expected |
-| `passage_number` | The number of times the cells were split or passaged prior to library preparation | 
+| `passage_number` | The number of times the cells were split or passaged prior to library preparation |
 
 Please include any perturbations (e.g., treatment with small molecule inhibitors) that were performed.
 
@@ -157,9 +156,9 @@ Submissions of samples obtained from mouse models are required to include the fo
 |----------------|-------------|
 | `tissue_source` | The source of the tissue (e.g., tissue location or isolation methodology) |
 | `genotype` | Genotype of the mouse (if applicable) |
-| `model_description` | Description of the model type (e.g., syngeneic model or humanized model with specifics about engraftment) | 
+| `model_description` | Description of the model type (e.g., syngeneic model or humanized model with specifics about engraftment) |
 | `strain` | Formal name of mouse strain (i.e., "C57BL/6" not "B6") |
-| `sex` | Sex of the mouse from which the sample was isolated | 
+| `sex` | Sex of the mouse from which the sample was isolated |
 
 Please include any perturbations (e.g., treatment with small molecule inhibitors) that were performed or any relevant phenotypic information.
 If a submitter has data from a non-traditional mouse model, such as cell line injections into mice, they will be required to submit additional sample data, such as injection site.
@@ -174,7 +173,7 @@ Submissions of patient-derived xenograft samples are required to include the fol
 | `sex`             | Sex of the patient from which the xenograft was isolated |
 | `tissue_location` | Where in the body the source of the xenograft was derived from |
 | `disease_timing`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
-| `xenograft_type` | The type of xenograft (e.g., orthotopic) | 
+| `xenograft_type` | The type of xenograft (e.g., orthotopic) |
 
 #### De-identification Standard for Human Samples
 
@@ -186,7 +185,7 @@ We consider human sample-associated metadata to be de-identified when the follow
 
 ### Submitting Cell Metadata
 
-Individual cell types or labels should be submitted to ensure datasets are maximally valuable for users of the ScPCA Portal. 
+Individual cell types or labels should be submitted to ensure datasets are maximally valuable for users of the ScPCA Portal.
 In particular, cell types or labels assigned by submitters, e.g., as part of the underlying conclusions of a publication, should be included in submissions.
 
 Submitters will be required to submit a table with the following information:
@@ -195,5 +194,5 @@ Submitters will be required to submit a table with the following information:
 |-------|-------------|
 | `submitter_id` | The research sample identifier included in your sample metadata |
 | `cell_barcode` | 10x Genomics cell barcode associated with each cell |
-| `cell_type_assignment` | The cell type or label assigned to the cell | 
-| `CLO_term` | (_Optional_) The [Cell Ontology](https://obofoundry.org/ontology/cl.html) cell type term associated with the designated cell type. Although these are not required, the cell type ontology can help standardize cell type assignment across datasets available on our portal. | 
+| `cell_type_assignment` | The cell type or label assigned to the cell |
+| `CLO_term` | (_Optional_) The [Cell Ontology](https://obofoundry.org/ontology/cl.html) cell type term associated with the designated cell type. Although these are not required, the cell type ontology can help standardize cell type assignment across datasets available on our portal. |
