@@ -50,6 +50,7 @@ export const Header = ({ className, margin, donate = false }) => {
               <Link color={linksColor} href="/about" label="About" />
               <Link color={linksColor} href="/projects" label="Browse" />
               <Link color={linksColor} href={config.links.help} label="Docs" />
+              <Link color={linksColor} href="/contribute" label="Contribute" />
             </Nav>
           </ResponsiveSheet>
           {size !== 'small' && <Nav>{donate && <DonateButton yellow />}</Nav>}
