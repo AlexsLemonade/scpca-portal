@@ -1,7 +1,8 @@
-import React from 'react'
-import { useBanner } from 'hooks/useBanner'
+import React, { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
+import { useStickyBanner } from 'hooks/useStickyBanner'
 import { Box, Main } from 'grommet'
+import { ContributeBanner } from 'components/ContributeBanner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
 import { PageLoader } from 'components/PageLoader'
@@ -29,8 +30,17 @@ const ProgressBar = styled(PageLoader)`
 `
 
 export const Layout = ({ children }) => {
-  const { bannerHeight } = useBanner()
   const router = useRouter()
+  const { stickyBannerHeight } = useStickyBanner()
+
+  // get the height of FixedBox
+  const fixedBoxRef = useRef(null)
+  const [fixedBoxHeight, setFixedBoxHeight] = useState(0)
+  useEffect(() => {
+    if (fixedBoxRef) {
+      setFixedBoxHeight(fixedBoxRef.current?.offsetHeight)
+    }
+  }, [stickyBannerHeight, fixedBoxHeight])
 
   // donate button on about page only
   const donatePaths = ['/about']
@@ -44,15 +54,27 @@ export const Layout = ({ children }) => {
   const excludeMarginPaths = ['/', '/about']
   const showMargin = !excludeMarginPaths.includes(router.pathname)
 
+  // exclude the contribue banner on the following pages
+  const excludeContributeBanner = [
+    '/contribute',
+    '/privacy-policy',
+    '/terms-of-use'
+  ]
+  const shwContributeBanner = !excludeContributeBanner.includes(router.pathname)
+
   return (
     <Box height={{ min: '100vh' }}>
-      <Box margin={showMargin ? { bottom: 'xlarge' } : ''}>
-        <Box height={`${80 + bannerHeight}px`}>
-          <FixedBox showMargin={showMargin} background="white">
-            <Header margin={{ bottom: 'small' }} donate={showDonate} />
-            <ProgressBar />
-          </FixedBox>
-        </Box>
+      <Box margin={showMargin ? { bottom: `${fixedBoxHeight}px` } : ''}>
+        <FixedBox background="white" ref={fixedBoxRef}>
+          \
+          <Header margin={{ bottom: 'small' }} donate={showDonate} />
+          <ProgressBar />
+        </FixedBox>
+        {shwContributeBanner && (
+          <Box margin={{ top: `${fixedBoxHeight}px` }}>
+            <ContributeBanner />
+          </Box>
+        )}
       </Box>
       <Main
         width={showWide ? 'full' : 'xlarge'}
