@@ -3,8 +3,12 @@ const path = require('path')
 module.exports = () => {
   const isProduction = process.env.VERCEL_GIT_COMMIT_REF === 'main'
 
-  // esline-disable-next-line
-  console.log('CCDL BUILD LOG:', process.env.VERCEL_GIT_COMMIT_REF, isProduction)
+  // eslint-disable-next-line prettier/prettier, no-console
+  console.log(
+    'CCDL BUILD LOG:',
+    process.env.VERCEL_GIT_COMMIT_REF,
+    isProduction
+  )
 
   const productionEnv = {
     API_HOST: process.env.API_HOST,
