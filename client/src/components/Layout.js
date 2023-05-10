@@ -36,6 +36,8 @@ export const Layout = ({ children }) => {
   // get the height of FixedBox
   const fixedBoxRef = useRef(null)
   const [fixedBoxHeight, setFixedBoxHeight] = useState(0)
+  const fixedBoxMargin = `${fixedBoxHeight}px`
+
   useEffect(() => {
     if (fixedBoxRef) {
       setFixedBoxHeight(fixedBoxRef.current?.offsetHeight)
@@ -64,13 +66,13 @@ export const Layout = ({ children }) => {
 
   return (
     <Box height={{ min: '100vh' }}>
-      <Box margin={showMargin ? { bottom: `${fixedBoxHeight}px` } : ''}>
+      <Box margin={showMargin ? { bottom: fixedBoxMargin } : ''}>
         <FixedBox background="white" ref={fixedBoxRef}>
           <Header margin={{ bottom: 'small' }} donate={showDonate} />
           <ProgressBar />
         </FixedBox>
         {shwContributeBanner && (
-          <Box margin={{ top: `${fixedBoxHeight}px` }}>
+          <Box margin={{ top: fixedBoxMargin }}>
             <ContributeBanner />
           </Box>
         )}

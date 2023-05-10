@@ -10,8 +10,8 @@ import {
   Text
 } from 'grommet'
 import { MarkdownPage } from 'components/MarkdownPage'
+import contributionGuidelines from 'config/contribution-guidelines.md'
 import styled from 'styled-components'
-import contributionGuidelines from '../config/contribution-guidelines.md'
 
 const TableHeader = styled(GrommetTableHeader)`
   td {
@@ -40,6 +40,9 @@ const Button = styled(Box)`
   }
 `
 
+const headingMargin = { top: '24px', bottom: 'small' }
+const listMargin = { bottom: 'medium', horizontal: 'medium' }
+
 export const Contribute = () => {
   const components = {
     h1: {
@@ -56,7 +59,7 @@ export const Contribute = () => {
       props: {
         level: 2,
         size: 'xsmall',
-        margin: { top: '24px', bottom: 'small' },
+        margin: headingMargin,
         weight: 'normal',
         style: { fontWeight: 'normal' }
       }
@@ -66,7 +69,7 @@ export const Contribute = () => {
       props: {
         level: 3,
         size: 'small',
-        margin: { top: '24px', bottom: 'medium' }
+        margin: headingMargin
       }
     },
     h4: {
@@ -74,7 +77,7 @@ export const Contribute = () => {
       props: {
         level: 4,
         size: 'xsmall',
-        margin: { top: '24px', bottom: 'small' }
+        margin: headingMargin
       }
     },
     h5: {
@@ -82,14 +85,14 @@ export const Contribute = () => {
       props: {
         level: 5,
         size: 'xsmall',
-        margin: { top: 'medium', bottom: 'small' }
+        margin: headingMargin
       }
     },
     ul: {
       component: Box,
       props: {
         as: 'ul',
-        margin: { bottom: 'medium', horizontal: 'medium' },
+        margin: listMargin,
         style: { listStyleType: 'disc' }
       }
     },
@@ -97,7 +100,7 @@ export const Contribute = () => {
       component: Box,
       props: {
         as: 'ol',
-        margin: { bottom: 'medium', horizontal: 'medium' },
+        margin: listMargin,
         style: { listStyleType: 'decimal' }
       }
     },
@@ -125,6 +128,7 @@ export const Contribute = () => {
     code: {
       component: Box,
       props: {
+        as: 'span',
         background: 'black-tint-90',
         pad: { horizontal: 'xsmall' },
         round: 'xsmall',
