@@ -203,3 +203,7 @@ Submitters will be required to submit a table with the following information:
 | \`cell_barcode\`         | 10x Genomics cell barcode associated with each cell                                                                                                                                                                                                                           |
 | \`cell_type_assignment\` | The cell type or label assigned to the cell                                                                                                                                                                                                                                   |
 | \`CLO_term\`             | (_Optional_) The [Cell Ontology](https://obofoundry.org/ontology/cl.html) cell type term associated with the designated cell type. Although these are not required, the cell type ontology can help standardize cell type assignment across datasets available on our portal. |
+
+<form style="margin: 32px 0 16px">
+    <button formaction="https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0" formtarget="_blank">Fill the Intake Form</button>
+</form>
