@@ -1,3 +1,7 @@
+<form style="display: flex;justify-content: flex-end;padding-bottom: 24px">
+    <button formaction="./scpca-contribution-guidelines.pdf" formtarget="_blank">Download Guidelines as PDF</button>
+</form>
+
 # Single-cell Pediatric Cancer Atlas Request for Contributions
 
 ## About Alex's Lemonade Stand Foundation
@@ -25,6 +29,10 @@ We will accept submissions of 10x Genomics single-cell or single-nuclei profilin
 Researchers must process their data using the Childhood Cancer Data Lab's production pipeline – available at <https://github.com/AlexsLemonade/scpca-nf/> – and submit the output, along with project (see [**Submitting Project Metadata**](#submitting-project-metadata)), sample (see [**Submitting Sample Metadata**](#submitting-sample-metadata)) and cell (see [**Submitting Cell Metadata**](#submitting-cell-metadata)) metadata.
 Submitters must also sign a Data Transfer Agreement before data transfer ([view Data Transfer Agreement template](https://docs.google.com/document/d/1eLHobiV4M0bC0KOQALgpfaLU0Y4nMZYs/edit?usp=share_link&ouid=105890053693989014850&rtpof=true&sd=true)).
 
+<form>
+    <button formaction="https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0" formtarget="_blank">Fill the Intake Form</button>
+</form>
+
 ### Award
 
 **Up to 10 eligible researchers will receive $5000 in unrestricted funds**.
@@ -40,9 +48,9 @@ Interested parties can join drop-in office hours sessions with Data Lab team mem
 
 #### Important Dates
 
-* **Office Hours:** June 2, 2023, from 3-4 pm Eastern and July 17, 2023, from 3-4 pm Eastern on [Zoom](https://us06web.zoom.us/j/81178912820?pwd=NGhhSkd1ZERXbmUyWmZUblRhUk1zQT09) (no registration required)
-* **Dataset Submission Deadline:** September 1, 2023
-* **Application Submission Deadline** (if eligible): September 15, 2023
+- **Office Hours:** June 2, 2023, from 3-4 pm Eastern and July 17, 2023, from 3-4 pm Eastern on [Zoom](https://us06web.zoom.us/j/81178912820?pwd=NGhhSkd1ZERXbmUyWmZUblRhUk1zQT09) (no registration required)
+- **Dataset Submission Deadline:** September 1, 2023
+- **Application Submission Deadline** (if eligible): September 15, 2023
 
 #### Contact the Data Lab
 
@@ -54,12 +62,12 @@ Potential submitters are also encouraged to join the \`#scpca-contributions\` ch
 Submitters must take the following steps:
 
 1. Complete an intake form to determine dataset eligibility: <https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0>.
-A Data Lab team member will contact you within three working days of your submission to notify you of your eligibility and provide additional information required for submission.
+   A Data Lab team member will contact you within three working days of your submission to notify you of your eligibility and provide additional information required for submission.
 2. Execute a Data Transfer Agreement between your institution and ALSF.
-View the template agreement [here](https://docs.google.com/document/d/1eLHobiV4M0bC0KOQALgpfaLU0Y4nMZYs/edit?usp=share_link&ouid=105890053693989014850&rtpof=true&sd=true).
+   View the template agreement [here](https://docs.google.com/document/d/1eLHobiV4M0bC0KOQALgpfaLU0Y4nMZYs/edit?usp=share_link&ouid=105890053693989014850&rtpof=true&sd=true).
 3. Process the dataset you will submit using the ScPCA processing pipeline, available at <https://github.com/AlexsLemonade/scpca-nf/> (see [**About the Processing Pipeline**](#about-the-processing-pipeline) for more information).
 4. Transfer the output of the processing pipeline and project and sample metadata to the Data Lab.
-The Data Lab will provide transfer details once a dataset has been determined to be eligible for an award.
+   The Data Lab will provide transfer details once a dataset has been determined to be eligible for an award.
 
 ### About the Processing Pipeline
 
@@ -89,10 +97,10 @@ The Data Lab team is available to provide technical support, including video con
 
 Submitters will be required to submit the following to be posted on the ScPCA Portal:
 
-* A project title
-* A project abstract describing the dataset
-* Contact name and email address
-* _Optional:_ Preprint or peer-reviewed publication portal users should cite if using the dataset for their research
+- A project title
+- A project abstract describing the dataset
+- Contact name and email address
+- _Optional:_ Preprint or peer-reviewed publication portal users should cite if using the dataset for their research
 
 Submitters will be asked to submit this information in a Word document.
 
@@ -112,39 +120,38 @@ The minimal metadata fields that should be included in submissions of different 
 
 All submissions are required to include the following metadata fields:
 
-| Metadata Field | Description |
-|----------------|-------------|
-| \`seq_unit\`        | \`cell\` for single-cell samples or \`nucleus\` for single-nucleus samples |
-| \`technology\`      | 10x Genomics kit used to process library, one of: \`10Xv2\`, \`10Xv2_5prime\`, \`10Xv3\` or \`10Xv3.1\`                        |
-| \`submitter_id\`    | A research sample identifier; ideally, identifiers would allow for linkage to published results or samples in widely-used repositories for sequencing data |
-| \`diagnosis\`       | Tumor type of origin or disease being modeled                                                |
-| \`subdiagnosis\`    | Subcategory of diagnosis or mutation status (if applicable)    |
-
+| Metadata Field   | Description                                                                                                                                                |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| \`seq_unit\`     | \`cell\` for single-cell samples or \`nucleus\` for single-nucleus samples                                                                                 |
+| \`technology\`   | 10x Genomics kit used to process library, one of: \`10Xv2\`, \`10Xv2_5prime\`, \`10Xv3\` or \`10Xv3.1\`                                                    |
+| \`submitter_id\` | A research sample identifier; ideally, identifiers would allow for linkage to published results or samples in widely-used repositories for sequencing data |
+| \`diagnosis\`    | Tumor type of origin or disease being modeled                                                                                                              |
+| \`subdiagnosis\` | Subcategory of diagnosis or mutation status (if applicable)                                                                                                |
 
 ##### Tumor Samples
 
 Submissions of tumor samples directly obtained from patients are required to include the following additional metadata fields:
 
-| Metadata Field | Description |
-|----------------|-------------|
-| \`age\`             | Age at time sample was obtained                                |
-| \`sex\`             | Sex of patient that the sample was obtained from               |
-| \`tissue_location\` | Where in the body the tumor sample was located                 |
+| Metadata Field      | Description                                                                |
+| ------------------- | -------------------------------------------------------------------------- |
+| \`age\`             | Age at time sample was obtained                                            |
+| \`sex\`             | Sex of patient that the sample was obtained from                           |
+| \`tissue_location\` | Where in the body the tumor sample was located                             |
 | \`disease_timing\`  | What stage of disease was the sample obtained? At diagnosis or recurrence? |
 
 ##### Cell Line Samples
 
 Submissions of human cell line samples are required to include the following additional metadata fields:
 
-| Metadata Field | Description |
-|----------------|-------------|
-| \`cell_line\` | Cell line name AND [Cell Line Ontology (CLO)](https://www.ebi.ac.uk/ols/ontologies/clo) identifier|
-| \`age_at_collection\` | Age of the patient at the time the sample used to establish the line was obtained |
-| \`sex\`             | Sex of the patient from which the line was isolated |
-| \`tissue_location\` | Where in the body the source of culture was derived from |
-| \`disease_timing\`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
-| \`cell_type\` or \`tissue\` | The type of cell (e.g., epithelial) or tissue if mixed cell types are expected |
-| \`passage_number\` | The number of times the cells were split or passaged prior to library preparation |
+| Metadata Field              | Description                                                                                        |
+| --------------------------- | -------------------------------------------------------------------------------------------------- |
+| \`cell_line\`               | Cell line name AND [Cell Line Ontology (CLO)](https://www.ebi.ac.uk/ols/ontologies/clo) identifier |
+| \`age_at_collection\`       | Age of the patient at the time the sample used to establish the line was obtained                  |
+| \`sex\`                     | Sex of the patient from which the line was isolated                                                |
+| \`tissue_location\`         | Where in the body the source of culture was derived from                                           |
+| \`disease_timing\`          | What stage of disease was the original sample obtained? At diagnosis or recurrence?                |
+| \`cell_type\` or \`tissue\` | The type of cell (e.g., epithelial) or tissue if mixed cell types are expected                     |
+| \`passage_number\`          | The number of times the cells were split or passaged prior to library preparation                  |
 
 Please include any perturbations (e.g., treatment with small molecule inhibitors) that were performed.
 
@@ -152,13 +159,13 @@ Please include any perturbations (e.g., treatment with small molecule inhibitors
 
 Submissions of samples obtained from mouse models are required to include the following additional metadata fields:
 
-| Metadata Field | Description |
-|----------------|-------------|
-| \`tissue_source\` | The source of the tissue (e.g., tissue location or isolation methodology) |
-| \`genotype\` | Genotype of the mouse (if applicable) |
+| Metadata Field        | Description                                                                                               |
+| --------------------- | --------------------------------------------------------------------------------------------------------- |
+| \`tissue_source\`     | The source of the tissue (e.g., tissue location or isolation methodology)                                 |
+| \`genotype\`          | Genotype of the mouse (if applicable)                                                                     |
 | \`model_description\` | Description of the model type (e.g., syngeneic model or humanized model with specifics about engraftment) |
-| \`strain\` | Formal name of mouse strain (i.e., "C57BL/6" not "B6") |
-| \`sex\` | Sex of the mouse from which the sample was isolated |
+| \`strain\`            | Formal name of mouse strain (i.e., "C57BL/6" not "B6")                                                    |
+| \`sex\`               | Sex of the mouse from which the sample was isolated                                                       |
 
 Please include any perturbations (e.g., treatment with small molecule inhibitors) that were performed or any relevant phenotypic information.
 If a submitter has data from a non-traditional mouse model, such as cell line injections into mice, they will be required to submit additional sample data, such as injection site.
@@ -167,21 +174,21 @@ If a submitter has data from a non-traditional mouse model, such as cell line in
 
 Submissions of patient-derived xenograft samples are required to include the following additional metadata fields:
 
-| Metadata Field | Description |
-|----------------|-------------|
+| Metadata Field        | Description                                                                            |
+| --------------------- | -------------------------------------------------------------------------------------- |
 | \`age_at_collection\` | Age of the patient at the time the sample used to establish the xenograft was obtained |
-| \`sex\`             | Sex of the patient from which the xenograft was isolated |
-| \`tissue_location\` | Where in the body the source of the xenograft was derived from |
-| \`disease_timing\`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
-| \`xenograft_type\` | The type of xenograft (e.g., orthotopic) |
+| \`sex\`               | Sex of the patient from which the xenograft was isolated                               |
+| \`tissue_location\`   | Where in the body the source of the xenograft was derived from                         |
+| \`disease_timing\`    | What stage of disease was the original sample obtained? At diagnosis or recurrence?    |
+| \`xenograft_type\`    | The type of xenograft (e.g., orthotopic)                                               |
 
 #### De-identification Standard for Human Samples
 
 We consider human sample-associated metadata to be de-identified when the following conditions are met:
 
-* Elements delineated in 45 C.F.R. § 164.514(b)(2) have been fully removed (i.e., the HIPAA Safe Harbor Method for de-identification has been satisfied).
-* The disclosure of any sample identifiers or accessions included in the metadata is allowable under HIPAA Privacy Rule guidelines around the disclosure of unique codes and re-identification.
-* There is no reasonable basis to believe that the metadata, or the metadata in combination with the project description, is sufficient to uniquely identify individuals (e.g., a combination of values is sufficiently rare in general or at an institution documented in the project description to allow for re-identification).
+- Elements delineated in 45 C.F.R. § 164.514(b)(2) have been fully removed (i.e., the HIPAA Safe Harbor Method for de-identification has been satisfied).
+- The disclosure of any sample identifiers or accessions included in the metadata is allowable under HIPAA Privacy Rule guidelines around the disclosure of unique codes and re-identification.
+- There is no reasonable basis to believe that the metadata, or the metadata in combination with the project description, is sufficient to uniquely identify individuals (e.g., a combination of values is sufficiently rare in general or at an institution documented in the project description to allow for re-identification).
 
 ### Submitting Cell Metadata
 
@@ -190,9 +197,9 @@ In particular, cell types or labels assigned by submitters, e.g., as part of the
 
 Submitters will be required to submit a table with the following information:
 
-| Field | Description |
-|-------|-------------|
-| \`submitter_id\` | The research sample identifier included in your sample metadata |
-| \`cell_barcode\` | 10x Genomics cell barcode associated with each cell |
-| \`cell_type_assignment\` | The cell type or label assigned to the cell |
-| \`CLO_term\` | (_Optional_) The [Cell Ontology](https://obofoundry.org/ontology/cl.html) cell type term associated with the designated cell type. Although these are not required, the cell type ontology can help standardize cell type assignment across datasets available on our portal. |
+| Field                    | Description                                                                                                                                                                                                                                                                   |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| \`submitter_id\`         | The research sample identifier included in your sample metadata                                                                                                                                                                                                               |
+| \`cell_barcode\`         | 10x Genomics cell barcode associated with each cell                                                                                                                                                                                                                           |
+| \`cell_type_assignment\` | The cell type or label assigned to the cell                                                                                                                                                                                                                                   |
+| \`CLO_term\`             | (_Optional_) The [Cell Ontology](https://obofoundry.org/ontology/cl.html) cell type term associated with the designated cell type. Although these are not required, the cell type ontology can help standardize cell type assignment across datasets available on our portal. |
