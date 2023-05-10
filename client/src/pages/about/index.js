@@ -1,8 +1,10 @@
 import React from 'react'
-import { Box, Grid, Paragraph, Text } from 'grommet'
-import { HeroBandReversed, CardBandLarge } from 'components/Band'
-import { DonateButton } from 'components/DonateButton'
 import { useResponsive } from 'hooks/useResponsive'
+import { Box, Grid, Paragraph, Text } from 'grommet'
+import { CardBandLarge, HeroBandReversed } from 'components/Band'
+import { DonateButton } from 'components/DonateButton'
+import { Link } from 'components/Link'
+import { config } from 'config'
 import AboutPageFigure from '../../images/about-page-figure.svg'
 import AboutPageFigureMobile from '../../images/about-page-fig-mobile.svg'
 import SaveTime from '../../images/save-time.svg'
@@ -79,8 +81,13 @@ export const About = () => {
             Alex’s Lemonade Stand Foundation (ALSF) funded 10 childhood cancer
             investigators from eight different institutions working on
             single-cell profiling to create a publicly available atlas of
-            single-cell pediatric cancer data. Learn more about the grants
-            program.
+            single-cell pediatric cancer data.{' '}
+            <Link
+              href={config.links.grants_program}
+              label="Learn more about the grants
+            program"
+            />
+            .
           </Text>
         </Box>
         <Box pad={responsive({ horizontal: 'medium' })}>

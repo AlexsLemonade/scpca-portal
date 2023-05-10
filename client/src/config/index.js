@@ -17,6 +17,7 @@ export const config = {
     how_processed_multiplexed:
       'https://scpca.readthedocs.io/en/latest/processing_information.html#multiplexed-libraries',
     donate: 'https://www.ccdatalab.org/donate-link',
+    grants_program: 'https://www.alexslemonade.org/researchers-reviewers',
     help: 'https://scpca.readthedocs.io/en/latest/',
     recruitment_hsform:
       'https://share.hsforms.com/19if2XeF2Rl2YkWxppHW-HQ336z0',
