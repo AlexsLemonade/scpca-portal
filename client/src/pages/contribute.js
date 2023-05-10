@@ -34,7 +34,6 @@ const Button = styled(Box)`
   font-size: 16px;
   line-height: 24px;
   padding: 7px 24px;
-  
   &:focus {
     box-shadow: 0 3px 4px 0 rgba(0,0,0,0.5);
   }
