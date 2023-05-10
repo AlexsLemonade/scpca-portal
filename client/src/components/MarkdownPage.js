@@ -15,20 +15,25 @@ const StyledUl = styled(Box)`
   list-style: revert;
 `
 
-export const MarkdownPage = ({ markdown }) => {
-  const components = {
+export const MarkdownPage = ({
+  components = {},
+  markdown,
+  width = 'large'
+}) => {
+  const config = {
     p: { component: Paragraph, props: { margin: { bottom: 'medium' } } },
     strong: { component: Text, props: { weight: 'bold' } },
     ol: { component: StyledOl, props: { as: 'ol' } },
     ul: { component: StyledUl, props: { as: 'ul' } },
-    li: { component: StyledLi, props: { as: 'li' } }
+    li: { component: StyledLi, props: { as: 'li' } },
+    ...components
   }
 
   if (!markdown) return 'missing'
   return (
     <Box pad={{ vertical: 'large' }} justify="center">
-      <Box width="large">
-        <Markdown components={components}>{markdown}</Markdown>
+      <Box width={width}>
+        <Markdown components={config}>{markdown}</Markdown>
       </Box>
     </Box>
   )

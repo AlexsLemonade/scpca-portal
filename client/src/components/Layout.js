@@ -66,7 +66,6 @@ export const Layout = ({ children }) => {
     <Box height={{ min: '100vh' }}>
       <Box margin={showMargin ? { bottom: `${fixedBoxHeight}px` } : ''}>
         <FixedBox background="white" ref={fixedBoxRef}>
-          \
           <Header margin={{ bottom: 'small' }} donate={showDonate} />
           <ProgressBar />
         </FixedBox>
