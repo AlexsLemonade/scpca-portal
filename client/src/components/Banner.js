@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react'
-import { useStickyBanner } from 'hooks/useStickyBanner'
+import { useBanner } from 'hooks/useBanner'
 import { useResponsive } from 'hooks/useResponsive'
 import { Box, Paragraph } from 'grommet'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
 
-export const StickyBanner = ({
+export const Banner = ({
   background = 'brand',
   color = 'white',
   ctaLabel,
@@ -17,15 +17,14 @@ export const StickyBanner = ({
   showByDefault = true,
   children
 }) => {
-  const { show, hideStickyBanner, showStickyBanner, setStickyBannerHeight } =
-    useStickyBanner()
+  const { show, hideBanner, showBanner, setBannerHeight } = useBanner()
   const { responsive } = useResponsive()
   const bannerRef = useRef(null)
 
   useEffect(() => {
-    if (showByDefault) showStickyBanner()
+    if (showByDefault) showBanner()
 
-    setStickyBannerHeight(bannerRef.current?.clientHeight)
+    setBannerHeight(bannerRef.current?.clientHeight)
   }, [])
 
   if (!show) return null
@@ -54,10 +53,10 @@ export const StickyBanner = ({
           </>
         )}
       </Box>
-      <Box pad="20px" onClick={() => hideStickyBanner()}>
+      <Box pad="20px" onClick={() => hideBanner()}>
         <Icon name="Cross" size="16px" color={color} />
       </Box>
     </Box>
   )
 }
-export default StickyBanner
+export default Banner
