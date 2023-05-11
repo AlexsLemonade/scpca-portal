@@ -1,7 +1,3 @@
-<form style="display: flex;justify-content: flex-end;padding-bottom: 24px">
-    <button formaction="./scpca-contribution-guidelines.pdf" formtarget="_blank">Download Guidelines as PDF</button>
-</form>
-
 # Single-cell Pediatric Cancer Atlas Request for Contributions
 
 ## About Alex's Lemonade Stand Foundation
@@ -29,9 +25,7 @@ We will accept submissions of 10x Genomics single-cell or single-nuclei profilin
 Researchers must process their data using the Childhood Cancer Data Lab's production pipeline – available at <https://github.com/AlexsLemonade/scpca-nf/> – and submit the output, along with project (see [**Submitting Project Metadata**](#submitting-project-metadata)), sample (see [**Submitting Sample Metadata**](#submitting-sample-metadata)) and cell (see [**Submitting Cell Metadata**](#submitting-cell-metadata)) metadata.
 Submitters must also sign a Data Transfer Agreement before data transfer ([view Data Transfer Agreement template](https://docs.google.com/document/d/1eLHobiV4M0bC0KOQALgpfaLU0Y4nMZYs/edit?usp=share_link&ouid=105890053693989014850&rtpof=true&sd=true)).
 
-<form>
-    <button formaction="https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0" formtarget="_blank">Fill the Intake Form</button>
-</form>
+<!-- IntakeFormLink -->
 
 ### Award
 
@@ -204,6 +198,4 @@ Submitters will be required to submit a table with the following information:
 | \`cell_type_assignment\` | The cell type or label assigned to the cell                                                                                                                                                                                                                                   |
 | \`CLO_term\`             | (_Optional_) The [Cell Ontology](https://obofoundry.org/ontology/cl.html) cell type term associated with the designated cell type. Although these are not required, the cell type ontology can help standardize cell type assignment across datasets available on our portal. |
 
-<form style="margin: 32px 0 16px">
-    <button formaction="https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0" formtarget="_blank">Fill the Intake Form</button>
-</form>
+<!-- IntakeFormLink -->

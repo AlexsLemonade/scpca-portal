@@ -7,11 +7,7 @@ const StyledLi = styled(Box)`
   padding-left: 20px;
 `
 
-const StyledOl = styled(Box)`
-  list-style: revert;
-`
-
-const StyledUl = styled(Box)`
+const StyledList = styled(Box)`
   list-style: revert;
 `
 
@@ -23,13 +19,14 @@ export const MarkdownPage = ({
   const config = {
     p: { component: Paragraph, props: { margin: { bottom: 'medium' } } },
     strong: { component: Text, props: { weight: 'bold' } },
-    ol: { component: StyledOl, props: { as: 'ol' } },
-    ul: { component: StyledUl, props: { as: 'ul' } },
+    ol: { component: StyledList, props: { as: 'ol' } },
+    ul: { component: StyledList, props: { as: 'ul' } },
     li: { component: StyledLi, props: { as: 'li' } },
     ...components
   }
 
   if (!markdown) return 'missing'
+
   return (
     <Box pad={{ vertical: 'large' }} justify="center">
       <Box width={width}>

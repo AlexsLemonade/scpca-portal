@@ -2,14 +2,16 @@ import React from 'react'
 import {
   Box,
   Heading,
-  Paragraph,
   Table,
   TableCell,
   TableHeader as GrommetTableHeader,
   TableRow as GrommetTableRow,
   Text
 } from 'grommet'
+import { Button } from 'components/Button'
 import { MarkdownPage } from 'components/MarkdownPage'
+import { Link } from 'components/Link'
+import { config } from 'config'
 import contributionGuidelines from 'config/contribution-guidelines.md'
 import styled from 'styled-components'
 
@@ -24,16 +26,18 @@ const TableRow = styled(GrommetTableRow)`
   box-shadow: none !important;
 `
 
-const Button = styled(Box)`
+const ButtonLink = styled(Box)`
   background: #003595;
   border: none;
   border-radius: 4px;
-  display: inline-block;
   color: #fdfdfd;
   cursor: pointer;
+  display: inline-block;
   font-size: 16px;
   line-height: 24px;
+  margin: 16px 0 24px;
   padding: 7px 24px;
+  text-decoration: none;
   &:focus {
     box-shadow: 0 3px 4px 0 rgba(0,0,0,0.5);
   }
@@ -42,6 +46,12 @@ const Button = styled(Box)`
 
 const headingMargin = { top: '24px', bottom: 'small' }
 const listMargin = { bottom: 'medium', horizontal: 'medium' }
+// replace all comments for the intake form with h6
+const intakeFormLinkLabel = 'Fill the Intake Form'
+const markdownContent = contributionGuidelines.replace(
+  /<!-- IntakeFormLink -->/g,
+  `###### ${intakeFormLinkLabel}`
+)
 
 export const Contribute = () => {
   const components = {
@@ -88,6 +98,28 @@ export const Contribute = () => {
         margin: headingMargin
       }
     },
+    h6: {
+      component: ButtonLink,
+      props: {
+        as: 'a',
+        href: config.links.contribute_hsform,
+        label: intakeFormLinkLabel,
+        target: '_blank'
+      }
+    },
+    a: {
+      component: Link
+    },
+    code: {
+      component: Box,
+      props: {
+        as: 'span',
+        background: 'black-tint-90',
+        pad: { horizontal: 'xsmall' },
+        round: 'xsmall',
+        style: { color: '#DB3B28', display: 'inline-block' }
+      }
+    },
     ul: {
       component: Box,
       props: {
@@ -108,7 +140,6 @@ export const Contribute = () => {
       component: Text,
       props: { as: 'li', margin: { left: 'medium', vertical: 'xsmall' } }
     },
-    p: { component: Paragraph, props: { margin: { bottom: 'medium' } } },
     table: {
       component: Table,
       props: { margin: { bottom: 'small' } }
@@ -118,31 +149,25 @@ export const Contribute = () => {
     td: {
       component: TableCell,
       props: { pad: 'small', style: { whiteSpace: 'normal' } }
-    },
-    button: {
-      component: Button,
-      props: {
-        as: 'button'
-      }
-    },
-    code: {
-      component: Box,
-      props: {
-        as: 'span',
-        background: 'black-tint-90',
-        pad: { horizontal: 'xsmall' },
-        round: 'xsmall',
-        style: { color: '#DB3B28', display: 'inline-block' }
-      }
     }
   }
 
   return (
-    <MarkdownPage
-      components={components}
-      markdown={contributionGuidelines}
-      width="960px" // sets the fix width to preserve the UI layout
-    />
+    <>
+      <Box alignSelf="end" margin={{ vertical: '24px' }}>
+        <Button
+          href={config.links.contribute_pdf}
+          label="Download Guidelines as PDF"
+          target="_blank"
+          primary
+        />
+      </Box>
+      <MarkdownPage
+        components={components}
+        markdown={markdownContent}
+        width="xlarge"
+      />
+    </>
   )
 }
 
