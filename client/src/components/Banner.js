@@ -36,7 +36,10 @@ export const Banner = ({
         width={fullWidth ? '100%' : 'xlarge'}
       >
         {children}
-        <Box pad="medium" onClick={() => hideBanner(id)}>
+        <Box
+          pad={{ vertical: 'medium', right: '24px' }}
+          onClick={() => hideBanner(id)}
+        >
           <Icon name="Cross" color={closeIconColor} size="16px" />
         </Box>
       </Box>
