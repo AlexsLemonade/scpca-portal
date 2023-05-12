@@ -9,14 +9,14 @@ export const Banner = ({
   background = 'brand',
   closeIconColor = 'black',
   elevation = '',
-  fullWidth = true,
-  showByDefault = true,
+  width = '100%',
+  hidden = false,
   children
 }) => {
   const { banner, hideBanner, openBanner } = useBanner()
 
   useEffect(() => {
-    if (showByDefault) openBanner(id)
+    if (!hidden) openBanner(id)
   }, [])
 
   if (!banner[id]) return null
@@ -28,13 +28,9 @@ export const Banner = ({
       justify="center"
       width="100%"
       elevation={elevation}
-      style={{ zIndex: 1 }}
+      style={{ zIndex: 5 }}
     >
-      <Box
-        direction="row"
-        justify="center"
-        width={fullWidth ? '100%' : 'xlarge'}
-      >
+      <Box direction="row" justify="center" width={width}>
         {children}
         <Box
           pad={{ vertical: 'medium', right: '24px' }}

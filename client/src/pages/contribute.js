@@ -154,7 +154,7 @@ export const Contribute = () => {
 
   return (
     <>
-      <Box alignSelf="end" margin={{ vertical: '24px' }}>
+      <Box alignSelf="end" margin={{ top: 'large' }}>
         <Button
           href={config.links.contribute_pdf}
           label="Download Guidelines as PDF"
