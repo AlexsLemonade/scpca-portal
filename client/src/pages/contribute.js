@@ -46,11 +46,11 @@ const ButtonLink = styled(Box)`
 
 const headingMargin = { top: '24px', bottom: 'small' }
 const listMargin = { bottom: 'medium', horizontal: 'medium' }
-// replace all comments for the intake form with h6
+// replace all comments for the intake form with <button> tag
 const intakeFormLinkLabel = 'Fill the Intake Form'
 const markdownContent = contributionGuidelines.replace(
   /<!-- IntakeFormLink -->/g,
-  `###### ${intakeFormLinkLabel}`
+  `<button>${intakeFormLinkLabel}</button>`
 )
 
 export const Contribute = () => {
@@ -98,7 +98,7 @@ export const Contribute = () => {
         margin: headingMargin
       }
     },
-    h6: {
+    button: {
       component: ButtonLink,
       props: {
         as: 'a',
