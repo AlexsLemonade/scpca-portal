@@ -26,34 +26,20 @@ const TableRow = styled(GrommetTableRow)`
   box-shadow: none !important;
 `
 
-const ButtonLink = styled(Box)`
-  background: #003595;
-  border: none;
-  border-radius: 4px;
-  color: #fdfdfd;
-  cursor: pointer;
-  display: inline-block;
-  font-size: 16px;
-  line-height: 24px;
-  margin: 16px 0 24px;
-  padding: 7px 24px;
-  text-decoration: none;
-  &:focus {
-    box-shadow: 0 3px 4px 0 rgba(0,0,0,0.5);
-  }
-  }
-`
-
-const headingMargin = { top: '24px', bottom: 'small' }
-const listMargin = { bottom: 'medium', horizontal: 'medium' }
-// replace all comments for the intake form with <button> tag
-const intakeFormLinkLabel = 'Fill the Intake Form'
-const markdownContent = contributionGuidelines.replace(
-  /<!-- IntakeFormLink -->/g,
-  `<button>${intakeFormLinkLabel}</button>`
+const IntakeFormLink = () => (
+  <Button
+    href={config.links.contribute_hsform}
+    label="Fill the Intake Form"
+    margin={{ top: 'small', bottom: 'medium' }}
+    target="_blank"
+    primary
+  />
 )
 
 export const Contribute = () => {
+  const headingMargin = { top: '24px', bottom: 'small' }
+  const listMargin = { bottom: 'medium', horizontal: 'medium' }
+
   const components = {
     h1: {
       component: Heading,
@@ -98,14 +84,8 @@ export const Contribute = () => {
         margin: headingMargin
       }
     },
-    button: {
-      component: ButtonLink,
-      props: {
-        as: 'a',
-        href: config.links.contribute_hsform,
-        label: intakeFormLinkLabel,
-        target: '_blank'
-      }
+    IntakeFormLink: {
+      component: IntakeFormLink
     },
     a: {
       component: Link
@@ -164,7 +144,7 @@ export const Contribute = () => {
       </Box>
       <MarkdownPage
         components={components}
-        markdown={markdownContent}
+        markdown={contributionGuidelines}
         width="xlarge"
       />
     </>
