@@ -1,10 +1,13 @@
-import React from 'react'
-import { useBanner } from 'hooks/useBanner'
+import React, { useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/router'
+import { useBanner } from 'hooks/useBanner'
+import { useResizeObserver } from 'hooks/useResizeObserver'
 import { Box, Main } from 'grommet'
+import { ContributeBanner } from 'components/ContributeBanner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
 import { PageLoader } from 'components/PageLoader'
+import { RecruitNFBanner } from 'components/RecruitNFBanner'
 import styled, { css } from 'styled-components'
 
 const FixedBox = styled(Box)`
@@ -29,8 +32,18 @@ const ProgressBar = styled(PageLoader)`
 `
 
 export const Layout = ({ children }) => {
-  const { bannerHeight } = useBanner()
   const router = useRouter()
+  const { banner } = useBanner()
+
+  // get the height of FixedBox for to preserve the margin
+  const [fixedBoxHeight, setFixedBoxHeight] = useState(0)
+  const fixedBoxRef = useRef(null)
+  useResizeObserver(
+    fixedBoxRef,
+    useCallback((ref) => {
+      setFixedBoxHeight(`${ref.clientHeight}px`)
+    }, [])
+  )
 
   // donate button on about page only
   const donatePaths = ['/about']
@@ -40,27 +53,45 @@ export const Layout = ({ children }) => {
   const widePaths = ['/', '/about']
   const showWide = widePaths.includes(router.pathname)
 
-  // exclude margin / and box shadow on homepage
-  const excludeMarginPaths = ['/', '/about']
-  const showMargin = !excludeMarginPaths.includes(router.pathname)
+  // exclude the padding / and box shadow on the following pages
+  const excludPadPaths = ['/', '/about']
+  const showMargin = !excludPadPaths.includes(router.pathname)
+
+  // add the top margin to the following pages when the contribution banner is hidden
+  const addTopMarginPaths = ['/projects', '/projects/[scpca_id]']
+  const addTopMargin =
+    addTopMarginPaths.includes(router.pathname) &&
+    showMargin &&
+    !banner['contribute-banner']
+
+  // exclude the contribue banner on the following pages
+  const excludeContributeBanner = [
+    '/contribute',
+    '/privacy-policy',
+    '/terms-of-use'
+  ]
+  const showContributeBanner = !excludeContributeBanner.includes(
+    router.pathname
+  )
 
   return (
     <Box height={{ min: '100vh' }}>
-      <Box margin={showMargin ? { bottom: 'xlarge' } : ''}>
-        <Box height={`${80 + bannerHeight}px`}>
-          <FixedBox showMargin={showMargin} background="white">
-            <Header margin={{ bottom: 'small' }} donate={showDonate} />
-            <ProgressBar />
-          </FixedBox>
-        </Box>
+      <Box height={fixedBoxHeight}>
+        <FixedBox background="white" ref={fixedBoxRef} showMargin={showMargin}>
+          <RecruitNFBanner hidden />
+          <Header margin={{ bottom: 'small' }} donate={showDonate} />
+          <ProgressBar />
+        </FixedBox>
       </Box>
+      {showContributeBanner && <ContributeBanner />}
       <Main
         width={showWide ? 'full' : 'xlarge'}
         alignSelf="center"
         overflow="visible"
         align="center"
         justify="center"
-        pad={showMargin ? { top: 'xlarge' } : {}}
+        margin={{ top: addTopMargin ? 'xlarge' : '' }}
+        pad={{ top: showMargin ? 'xlarge' : '' }}
       >
         {children}
       </Main>

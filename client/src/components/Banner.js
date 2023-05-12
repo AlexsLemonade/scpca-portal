@@ -1,71 +1,45 @@
 import React, { useEffect } from 'react'
 import { useBanner } from 'hooks/useBanner'
-import { useResponsive } from 'hooks/useResponsive'
-import { Box, Paragraph } from 'grommet'
-import { Link } from 'components/Link'
+import { Box } from 'grommet'
 import { Icon } from 'components/Icon'
 
+// id is required and must be unique
 export const Banner = ({
+  id,
   background = 'brand',
-  color = 'white',
-  ctaLabel,
-  ctaLink,
-  label,
-  iconColor = 'brand',
-  iconName = null,
-  iconSize = '24px',
+  closeIconColor = 'black',
+  elevation = '',
+  width = '100%',
+  hidden = false,
   children
 }) => {
-  const { showing, hideBanner, showBanner } = useBanner()
-  const { responsive } = useResponsive()
+  const { banner, hideBanner, openBanner } = useBanner()
 
   useEffect(() => {
-    showBanner()
+    if (!hidden) openBanner(id)
   }, [])
 
+  if (!banner[id]) return null
+
   return (
-    <>
-      {showing && (
+    <Box
+      background={background}
+      direction="row"
+      justify="center"
+      width="100%"
+      elevation={elevation}
+      style={{ zIndex: 5 }}
+    >
+      <Box direction="row" justify="center" width={width}>
+        {children}
         <Box
-          background={background}
-          direction="row"
-          justify="between"
-          width="100%"
-          height="56px"
+          pad={{ vertical: 'medium', right: '24px' }}
+          onClick={() => hideBanner(id)}
         >
-          <Box direction="row" align="center" justify="center" flex="grow">
-            {children || (
-              <>
-                {iconName && (
-                  <Icon
-                    color={iconColor}
-                    name={iconName}
-                    size={iconSize}
-                    aria-hidden="true"
-                  />
-                )}
-                <Paragraph
-                  color={color}
-                  margin={{ left: 'xsmall' }}
-                  size={responsive('medium', 'large')}
-                >
-                  {label}{' '}
-                  <Link
-                    color={color}
-                    href={ctaLink}
-                    label={ctaLabel}
-                    underline
-                  />
-                </Paragraph>
-              </>
-            )}
-          </Box>
-          <Box pad="20px" onClick={() => hideBanner()}>
-            <Icon name="Cross" size="16px" color={color} />
-          </Box>
+          <Icon name="Cross" color={closeIconColor} size="16px" />
         </Box>
-      )}
-    </>
+      </Box>
+    </Box>
   )
 }
 export default Banner
