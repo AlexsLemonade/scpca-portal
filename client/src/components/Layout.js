@@ -6,7 +6,7 @@ import { Box, Main } from 'grommet'
 import { ContributeBanner } from 'components/ContributeBanner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
-import { PageLoader } from 'components/PageLoader'
+import { ProgressBar } from 'components/ProgressBar'
 import { RecruitNFBanner } from 'components/RecruitNFBanner'
 import styled, { css } from 'styled-components'
 
@@ -20,15 +20,6 @@ const FixedBox = styled(Box)`
     css`
       box-shadow: 0px 2px 5px 5px #fdfdfd;
     `}
-`
-
-const ProgressBar = styled(PageLoader)`
-  position: absolute;
-  top: 100%;
-  width: 100%;
-  z-index: -1;
-  transform: translate(0, -100%);
-  height: 12px;
 `
 
 export const Layout = ({ children }) => {
