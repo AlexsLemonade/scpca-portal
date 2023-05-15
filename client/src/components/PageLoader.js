@@ -5,6 +5,7 @@ import styled, { css } from 'styled-components'
 import { delay } from 'helpers/delay'
 
 const Progress = styled(Box)`
+  background: white;
   width: 100%;
 
   ${({ theme }) => css`

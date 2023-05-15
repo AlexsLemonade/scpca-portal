@@ -6,12 +6,7 @@ import { Nav } from 'components/Nav'
 import { ProgressBar } from 'components/ProgressBar'
 
 export const Header = () => (
-  <GrommetHeader
-    background="brand"
-    justify="center"
-    pad={{ bottom: 'small' }}
-    style={{ position: 'sticky', top: 0, left: 0 }}
-  >
+  <GrommetHeader background="brand" justify="center" pad={{ bottom: 'small' }}>
     <Box
       direction="row"
       width={{ max: 'xlarge' }}

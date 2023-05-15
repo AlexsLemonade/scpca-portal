@@ -44,6 +44,7 @@ export const Logo = () => {
         height={height}
         justify="center"
         background={background}
+        style={{ zIndex: 1 }}
       >
         {showScrolled ? (
           <Box pad="small">

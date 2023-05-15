@@ -41,14 +41,8 @@ export const ContributeBanner = ({
 }) => {
   const router = useRouter()
   // exclude the contribue banner on the following pages
-  const excludedPages = [
-    '/contribute',
-    '/privacy-policy',
-    '/terms-of-use'
-  ]
-  const show = !excludedPages.includes(
-    router.pathname
-  )
+  const excludedPages = ['/contribute', '/privacy-policy', '/terms-of-use']
+  const show = !excludedPages.includes(router.pathname)
 
   if (!show) return null
 

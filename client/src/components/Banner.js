@@ -28,7 +28,6 @@ export const Banner = ({
       justify="center"
       width="100%"
       elevation={elevation}
-      style={{ zIndex: 5 }}
     >
       <Box direction="row" justify="center" width={width}>
         {children}
