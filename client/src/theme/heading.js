@@ -28,6 +28,12 @@ export default {
         height: '80px',
         maxWidth: null,
         size: '76px'
+      },
+      // For /contribute taken value from /about
+      xsmall: {
+        height: '53px',
+        maxWidth: null,
+        size: '38px'
       }
     },
     2: {
@@ -50,6 +56,11 @@ export default {
         height: '48px',
         maxWidth: null,
         size: '44px'
+      },
+      // For /contribute taken value from /about
+      xsmall: {
+        height: '42px',
+        size: '28px'
       }
     },
     3: {
@@ -94,6 +105,11 @@ export default {
         height: '27px',
         maxWidth: null,
         size: '23px'
+      },
+      // For /contribute taken value from /about
+      xsmall: {
+        height: '24px',
+        size: '16px'
       }
     },
     5: {
@@ -116,6 +132,11 @@ export default {
         height: '15px',
         maxWidth: null,
         size: '11px'
+      },
+      // For /contribute taken value from h4 small
+      xsmall: {
+        height: '24px',
+        size: '15px'
       }
     },
     6: {
@@ -130,7 +151,7 @@ export default {
         size: '9px'
       },
       small: {
-        height: '13px',
+        height: '19px',
         maxWidth: null,
         size: '9px'
       },
