@@ -36,10 +36,6 @@ export const Layout = ({ children }) => {
     }, [])
   )
 
-  // donate button on about page only
-  const donatePaths = ['/about']
-  const showDonate = donatePaths.includes(router.pathname)
-
   // homepage is full width
   const widePaths = ['/', '/about']
   const showWide = widePaths.includes(router.pathname)
@@ -60,7 +56,7 @@ export const Layout = ({ children }) => {
       <Box height={fixedBoxHeight}>
         <FixedBox background="white" ref={fixedBoxRef} showMargin={showMargin}>
           <RecruitNFBanner hidden />
-          <Header margin={{ bottom: 'small' }} donate={showDonate} />
+          <Header margin={{ bottom: 'small' }} />
           <ProgressBar />
         </FixedBox>
       </Box>
