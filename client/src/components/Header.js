@@ -1,68 +1,31 @@
-import React, { useState } from 'react'
-import { useRouter } from 'next/router'
-import { Box, Header as GrommetHeader, Nav } from 'grommet'
-import { useResponsive } from 'hooks/useResponsive'
-import { DonateButton } from 'components/DonateButton'
+import React from 'react'
+import { Box, Header as GrommetHeader } from 'grommet'
 import { Link } from 'components/Link'
 import Logo from 'components/Logo'
-import { ResponsiveSheet } from 'components/ResponsiveSheet'
-import { Menu } from 'grommet-icons'
-import { config } from 'config'
+import { Nav } from 'components/Nav'
 
-export const Header = ({ className, margin, donate = false }) => {
-  const router = useRouter()
-  const { size, responsive } = useResponsive()
-  const linksColor = responsive('brand', 'white')
-  const [showMenu, setShowMenu] = useState(false)
-  // show donate button on about page only
-  const donatePaths = ['/about']
-  const showDonate = donatePaths.includes(router.pathname)
-
-  return (
-    <GrommetHeader
-      className={className}
-      background="brand"
-      justify="center"
-      margin={margin}
+export const Header = ({ className, margin }) => (
+  <GrommetHeader
+    className={className}
+    background="brand"
+    justify="center"
+    margin={margin}
+  >
+    <Box
+      direction="row"
+      width={{ max: 'xlarge' }}
+      fill="horizontal"
+      justify="between"
+      align="center"
     >
-      <Box
-        direction="row"
-        width={{ max: 'xlarge' }}
-        fill="horizontal"
-        justify="between"
-        align="center"
-      >
-        <Box direction="row" align="center" gap="small">
-          <Link href="/">
-            <Logo />
-          </Link>
-        </Box>
-        <Box direction="row" gap={responsive('small', 'xlarge')}>
-          {size === 'small' && <Nav>{donate && <DonateButton yellow />}</Nav>}
-          <ResponsiveSheet
-            label={<Menu />}
-            show={showMenu}
-            setShow={setShowMenu}
-            alignSelf="center"
-          >
-            <Nav
-              direction={responsive('column', 'row')}
-              gap="xlarge"
-              align={responsive('start', 'center')}
-              width={responsive({ min: '300px' })}
-            >
-              <Link color={linksColor} href="/" label="Home" />
-              <Link color={linksColor} href="/about" label="About" />
-              <Link color={linksColor} href="/projects" label="Browse" />
-              <Link color={linksColor} href={config.links.help} label="Docs" />
-              <Link color={linksColor} href="/contribute" label="Contribute" />
-            </Nav>
-          </ResponsiveSheet>
-          {size !== 'small' && <Nav>{showDonate && <DonateButton yellow />}</Nav>}
-        </Box>
+      <Box direction="row" align="center" gap="small">
+        <Link href="/">
+          <Logo />
+        </Link>
       </Box>
-    </GrommetHeader>
-  )
-}
+      <Nav />
+    </Box>
+  </GrommetHeader>
+)
 
 export default Header
