@@ -1,15 +1,16 @@
 import React from 'react'
 import { Box, Header as GrommetHeader } from 'grommet'
 import { Link } from 'components/Link'
-import Logo from 'components/Logo'
+import { Logo } from 'components/Logo'
 import { Nav } from 'components/Nav'
+import { ProgressBar } from 'components/ProgressBar'
 
-export const Header = ({ className, margin }) => (
+export const Header = () => (
   <GrommetHeader
-    className={className}
     background="brand"
     justify="center"
-    margin={margin}
+    pad={{ bottom: 'small' }}
+    style={{ position: 'sticky', top: 0, left: 0 }}
   >
     <Box
       direction="row"
@@ -25,6 +26,7 @@ export const Header = ({ className, margin }) => (
       </Box>
       <Nav />
     </Box>
+    <ProgressBar />
   </GrommetHeader>
 )
 

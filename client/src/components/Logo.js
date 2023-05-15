@@ -7,7 +7,7 @@ import ALSFLogoBlue from '../images/alsf-logo-blue.svg'
 
 const ALSFLogoBlueStyled = styled(ALSFLogoBlue)``
 
-const Logo = () => {
+export const Logo = () => {
   const { size, responsive } = useResponsive()
   const [scrolled, setScrolled] = useState(false)
   const width = responsive('60px', '91px')

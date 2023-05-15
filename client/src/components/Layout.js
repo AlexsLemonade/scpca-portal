@@ -6,7 +6,6 @@ import { Box, Main } from 'grommet'
 import { ContributeBanner } from 'components/ContributeBanner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
-import { ProgressBar } from 'components/ProgressBar'
 import { RecruitNFBanner } from 'components/RecruitNFBanner'
 import styled, { css } from 'styled-components'
 
@@ -56,8 +55,7 @@ export const Layout = ({ children }) => {
       <Box height={fixedBoxHeight}>
         <FixedBox background="white" ref={fixedBoxRef} showMargin={showMargin}>
           <RecruitNFBanner hidden />
-          <Header margin={{ bottom: 'small' }} />
-          <ProgressBar />
+          <Header />
         </FixedBox>
       </Box>
       <ContributeBanner />
