@@ -1,4 +1,5 @@
 import React from 'react'
+import { useRouter } from 'next/router'
 import { Box, Heading, Paragraph } from 'grommet'
 import { Banner } from 'components/Banner'
 import { Button } from 'components/Button'
@@ -38,6 +39,19 @@ export const ContributeBanner = ({
   id = 'contribute-guidelines',
   ...props
 }) => {
+  const router = useRouter()
+  // exclude the contribue banner on the following pages
+  const excludedPages = [
+    '/contribute',
+    '/privacy-policy',
+    '/terms-of-use'
+  ]
+  const show = !excludedPages.includes(
+    router.pathname
+  )
+
+  if (!show) return null
+
   return (
     <Banner
       id={id}

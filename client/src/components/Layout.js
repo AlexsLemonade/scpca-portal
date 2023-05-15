@@ -55,16 +55,6 @@ export const Layout = ({ children }) => {
     showMargin &&
     !banner['contribute-banner']
 
-  // exclude the contribue banner on the following pages
-  const excludeContributeBanner = [
-    '/contribute',
-    '/privacy-policy',
-    '/terms-of-use'
-  ]
-  const showContributeBanner = !excludeContributeBanner.includes(
-    router.pathname
-  )
-
   return (
     <Box height={{ min: '100vh' }}>
       <Box height={fixedBoxHeight}>
@@ -74,7 +64,7 @@ export const Layout = ({ children }) => {
           <ProgressBar />
         </FixedBox>
       </Box>
-      {showContributeBanner && <ContributeBanner />}
+      <ContributeBanner />
       <Main
         width={showWide ? 'full' : 'xlarge'}
         alignSelf="center"
