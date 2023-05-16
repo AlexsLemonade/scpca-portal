@@ -16,7 +16,7 @@ export const About = () => {
   const { responsive } = useResponsive()
 
   return (
-    <>
+    <Box align="center">
       <HeroBandReversed
         background="dawn"
         width="full"
@@ -253,7 +253,7 @@ export const About = () => {
           </CardBandLarge>
         </Box>
       </Box>
-    </>
+    </Box>
   )
 }
 

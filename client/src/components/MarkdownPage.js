@@ -1,5 +1,6 @@
 import React from 'react'
 import { Box, Paragraph, Text, Markdown } from 'grommet'
+import { FixedContainer } from 'components/FixedContainer'
 import styled from 'styled-components'
 
 const StyledLi = styled(Box)`
@@ -28,11 +29,13 @@ export const MarkdownPage = ({
   if (!markdown) return 'missing'
 
   return (
-    <Box pad={{ vertical: 'large' }} justify="center">
-      <Box width={width}>
-        <Markdown components={config}>{markdown}</Markdown>
+    <FixedContainer align="center">
+      <Box pad={{ vertical: 'large' }} justify="center">
+        <Box width={width}>
+          <Markdown components={config}>{markdown}</Markdown>
+        </Box>
       </Box>
-    </Box>
+    </FixedContainer>
   )
 }
 

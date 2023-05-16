@@ -1,4 +1,5 @@
 import React from 'react'
+import { useResponsive } from 'hooks/useResponsive'
 import {
   Box,
   Heading,
@@ -9,6 +10,7 @@ import {
   Text
 } from 'grommet'
 import { Button } from 'components/Button'
+import { FixedContainer } from 'components/FixedContainer'
 import { MarkdownPage } from 'components/MarkdownPage'
 import { Link } from 'components/Link'
 import { config } from 'config'
@@ -37,6 +39,8 @@ const IntakeFormLink = () => (
 )
 
 export const Contribute = () => {
+  const { responsive } = useResponsive()
+
   const headingMargin = { top: '24px', bottom: 'small' }
   const listMargin = { bottom: 'medium', horizontal: 'medium' }
 
@@ -134,14 +138,16 @@ export const Contribute = () => {
 
   return (
     <>
-      <Box alignSelf="end" margin={{ top: 'large' }}>
+      <FixedContainer margin={{ bottom: responsive('-48px', '-96px') }}>
         <Button
+          alignSelf="end"
           href={config.links.contribute_pdf}
           label="Download Guidelines as PDF"
+          margin={{ top: 'large' }}
           target="_blank"
           primary
         />
-      </Box>
+      </FixedContainer>
       <MarkdownPage
         components={components}
         markdown={contributionGuidelines}

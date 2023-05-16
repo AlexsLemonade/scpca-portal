@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { Anchor, Box, Grid, Text } from 'grommet'
+import { FixedContainer } from 'components/FixedContainer'
 import { ProjectSearchResult } from 'components/ProjectSearchResult'
 import { ProjectSearchFilter } from 'components/ProjectSearchFilter'
 import { ProjectSearchFilterPills } from 'components/ProjectSearchFilterPills'
@@ -44,7 +45,7 @@ const Project = ({ projects, count, filters, filterOptions }) => {
   }
 
   return (
-    <>
+    <FixedContainer>
       <Box width="full" pad={responsive({ horizontal: 'medium' })}>
         <Box pad={{ bottom: 'large' }}>
           <Text serif size="xlarge">
@@ -114,7 +115,7 @@ const Project = ({ projects, count, filters, filterOptions }) => {
           </Box>
         </Grid>
       </Box>
-    </>
+    </FixedContainer>
   )
 }
 

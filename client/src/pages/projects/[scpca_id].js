@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
+import { FixedContainer } from 'components/FixedContainer'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { DetailsTable } from 'components/DetailsTable'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
@@ -21,7 +22,7 @@ const Project = ({ project }) => {
   const { responsive } = useResponsive()
 
   return (
-    <>
+    <FixedContainer>
       <PageTitle title={project.title} />
       <Box width="xlarge">
         <ProjectHeader project={project} />
@@ -118,7 +119,7 @@ const Project = ({ project }) => {
           </Tabs>
         </Box>
       </Box>
-    </>
+    </FixedContainer>
   )
 }
 

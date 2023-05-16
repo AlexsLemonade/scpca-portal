@@ -188,7 +188,8 @@ export default {
   elevation: {
     light: {
       medium: '0 2px 18px 1px rgba(0, 0, 0, 0.1)',
-      large: '0px 3px 20px rgba(0, 0, 0, 0.1)'
+      large: '0px 3px 20px rgba(0, 0, 0, 0.1)',
+      xlarge: '0px 2px 5px 5px #fdfdfd'
     }
   },
   font: {

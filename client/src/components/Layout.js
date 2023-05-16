@@ -5,62 +5,47 @@ import { Box, Main } from 'grommet'
 import { ContributeBanner } from 'components/ContributeBanner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
-import styled, { css } from 'styled-components'
+import styled from 'styled-components'
 
 const StickyBox = styled(Box)`
   position: sticky;
   top: 0;
   left: 0;
   z-index: 100;
-  ${({ boxShadow }) =>
-    boxShadow &&
-    css`
-      box-shadow: 0px 2px 5px 5px #fdfdfd;
-    `}
 `
 
 export const Layout = ({ children }) => {
   const router = useRouter()
 
-  // get the height of the wrapper for the hero banner (e.g. ContributeBanner)
-  const wrapperRef = useRef(null)
-  const [wrapperHeight, setWrapperHeights] = useState(0)
+  // check whether the scrollable hero area contains any child elements (e.g. ContributeBanner)
+  const scrollableHeroRef = useRef(null)
+  const [isElement, setIsElement] = useState(0)
   useResizeObserver(
-    wrapperRef,
+    scrollableHeroRef,
     useCallback((ref) => {
-      setWrapperHeights(ref.clientHeight)
+      setIsElement(ref.clientHeight > 0)
     }, [])
   )
 
-  // exclude css rules (padding /box shadow) on the following pages
   const excludedPages = ['/', '/about']
   const isExcludedPages = excludedPages.includes(router.pathname)
-  const isBoxShadow = !isExcludedPages && wrapperHeight === 0
+  // apply the box shadow to StickyBox on the non-excluded pages when no scrollable hero element
+  const isBoxShadow = !isExcludedPages && !isElement
 
-  // add the top margin & box shadow to the following pages when the contribution banner is hidden
+  // add the top margin & box shadow to the project pages when no scrollable hero element
   const projectPages = ['/projects', '/projects/[scpca_id]']
-  const isProjectPages =
-    projectPages.includes(router.pathname) && wrapperHeight === 0
+  const isProjectPages = projectPages.includes(router.pathname) && !isElement
 
   return (
     <Box height={{ min: '100vh' }}>
-      <StickyBox boxShadow={isBoxShadow}>
+      <StickyBox elevation={isBoxShadow ? 'xlarge' : ''}>
         <Header />
       </StickyBox>
-      <Box ref={wrapperRef}>
+      <Box ref={scrollableHeroRef}>
+        {/* scrollable hero area */}
         <ContributeBanner />
       </Box>
-      <Main
-        align="center"
-        alignSelf="center"
-        justify="center"
-        overflow="visible"
-        margin={{ top: isProjectPages ? 'xlarge' : '' }}
-        pad={{ top: !isExcludedPages ? 'xlarge' : '' }}
-        width={isExcludedPages ? 'full' : 'xlarge'}
-      >
-        {children}
-      </Main>
+      <Main margin={{ top: isProjectPages ? 'xlarge' : '' }}>{children}</Main>
       <Footer />
     </Box>
   )
