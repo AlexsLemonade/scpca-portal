@@ -14,7 +14,7 @@ export const ContributeContentBlock = () => (
         margin={{ top: 'medium' }}
       >
         <Heading level={2} size="small">
-          Contribute your data to the ScPCA Portal
+          GGGGG Contribute your data to the ScPCA Portal
         </Heading>
         <Paragraph
           margin="medium"
@@ -47,16 +47,18 @@ export const ContributeBanner = ({
   if (!show) return null
 
   return (
-    <Banner
-      id={id}
-      background="alexs-lemonade-tint-60"
-      width="large"
-      elevation="xlarge"
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...props}
-    >
-      <ContributeContentBlock />
-    </Banner>
+    <Box style={{ zIndex: 5 }}>
+      <Banner
+        id={id}
+        background="alexs-lemonade-tint-60"
+        width="large"
+        elevation="xxlarge"
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+      >
+        <ContributeContentBlock />
+      </Banner>
+    </Box>
   )
 }
 
