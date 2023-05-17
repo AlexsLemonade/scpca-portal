@@ -1,9 +1,18 @@
 import React from 'react'
-import { Paragraph } from 'grommet'
+import { Text } from 'grommet'
 
-export const ProjectAbstractDetail = ({ abstract }) =>
-  abstract.split('\\n').map((line, i) => (
-    <Paragraph key={line} margin={{ top: i && 'small' }}>
+export const ProjectAbstractDetail = ({ abstract }) => {
+  const content = abstract.split('\\n')
+
+  if (content.length === 1) return content
+
+  return content.map((line, i) => (
+    <Text
+      key={line}
+      margin={{ top: i ? 'small' : 'none' }}
+      style={{ display: 'block' }}
+    >
       {line}
-    </Paragraph>
+    </Text>
   ))
+}
