@@ -46,7 +46,7 @@ const LoaderBox = styled(Box)`
   }
 `
 export const Loader = ({ width = 'full', pad = { verical: 'large' } }) => {
-  const loaderWidth = width === 'full' ? 80 : parseInt(width, 10)
+  const loaderWidth = width === 'full' ? '80px' : `${parseInt(width, 10)}px`
   return (
     <Box width={width} align="center" justify="center" pad={pad}>
       <LoaderBox width={loaderWidth}>
