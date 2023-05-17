@@ -1,16 +1,12 @@
 import React from 'react'
+import Image from 'next/image'
 import { useResponsive } from 'hooks/useResponsive'
 import { Box, Grid, Paragraph, Text } from 'grommet'
 import { CardBandLarge, HeroBandReversed } from 'components/Band'
 import { DonateButton } from 'components/DonateButton'
+import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { config } from 'config'
-import AboutPageFigure from '../../images/about-page-figure.svg'
-import AboutPageFigureMobile from '../../images/about-page-fig-mobile.svg'
-import SaveTime from '../../images/save-time.svg'
-import WidelyAvailable from '../../images/widely-available.svg'
-import OpenSource from '../../images/open-source.svg'
-import Access from '../../images/access.svg'
 
 export const About = () => {
   const { responsive } = useResponsive()
@@ -55,17 +51,16 @@ export const About = () => {
         </Box>
       </Box>
       <Box pad={{ horizontal: 'medium' }}>
-        {responsive(
-          <AboutPageFigureMobile
-            style={{ maxWidth: '100%' }}
-            role="img"
-            title="A diagram image for How it works"
-          />,
-          <AboutPageFigure
-            role="img"
-            aria-label="A diagram image for How it works"
-          />
-        )}
+        <Image
+          aria-label="A diagram image for How it works"
+          role="presentation"
+          src={responsive(
+            '/images/about-page-fig-mobile.svg',
+            '/images/about-page-figure.svg'
+          )}
+          width={responsive(452, 636)}
+          height={responsive(228, 315)}
+        />
       </Box>
       <Grid
         columns={responsive('1', '1/2')}
@@ -131,13 +126,7 @@ export const About = () => {
               justify="between"
               gap={responsive('large', 'medium')}
             >
-              <Box width="24px">
-                <Access
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
-                />
-              </Box>
+              <Icon name="Access" />
               <Box>
                 <Text weight="bold">Accessible Cutting-edge Technology</Text>
                 <Text>
@@ -153,13 +142,7 @@ export const About = () => {
               justify="between"
               gap={responsive('large', 'medium')}
             >
-              <Box width="24px">
-                <WidelyAvailable
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
-                />
-              </Box>
+              <Icon name="WidelyAvailable" />
               <Box>
                 <Text weight="bold">Widely Available</Text>
                 <Text>
@@ -174,13 +157,7 @@ export const About = () => {
               justify="between"
               gap={responsive('large', 'medium')}
             >
-              <Box width="24px">
-                <OpenSource
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
-                />
-              </Box>
+              <Icon name="OpenSource" />
               <Box>
                 <Text weight="bold">Open Source</Text>
                 <Text>
@@ -196,13 +173,7 @@ export const About = () => {
               justify="between"
               gap={responsive('large', 'medium')}
             >
-              <Box width="24px">
-                <SaveTime
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
-                />
-              </Box>
+              <Icon name="SaveTime" />
               <Box>
                 <Text weight="bold">Frees up Researcher Time</Text>
                 <Text>
