@@ -6,7 +6,17 @@ const envVars = {
 }
 
 module.exports = {
-  addons: ['@storybook/addon-storysource'],
+  addons: [
+    '@storybook/addon-storysource',
+    {
+      name: '@storybook/addon-postcss',
+      options: {
+        postcssLoaderOptions: {
+          implementation: require('postcss')
+        }
+      }
+    }
+  ],
   staticDirs: ['./../public'],
   stories: ['./stories/**/*.stories.@(js|mdx)'],
   webpackFinal: async (config) => {
