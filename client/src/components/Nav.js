@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { useRouter } from 'next/router'
 import { Box, Nav as GrommetNav } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { DonateButton } from 'components/DonateButton'
@@ -8,8 +7,7 @@ import { ResponsiveSheet } from 'components/ResponsiveSheet'
 import { Menu } from 'grommet-icons'
 import { config } from 'config'
 
-export const Nav = ({ donate = false }) => {
-  const router = useRouter()
+export const Nav = ({ router, donate = false }) => {
   const { size, responsive } = useResponsive()
   const linksColor = responsive('brand', 'white')
   const [showMenu, setShowMenu] = useState(false)

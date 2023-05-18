@@ -1,11 +1,20 @@
 import React from 'react'
-import { useRouter } from 'next/router'
+import { delay } from 'helpers/delay'
 import { Box } from 'grommet'
 import styled, { css } from 'styled-components'
-import { delay } from 'helpers/delay'
+
+const ProgressBar = styled(Box)`
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: translate(0, -100%);
+`
 
 const Progress = styled(Box)`
   background: white;
+  position: absolute;
+  left: 0;
+  bottom: 0;
   width: 100%;
 
   ${({ theme }) => css`
@@ -13,9 +22,11 @@ const Progress = styled(Box)`
   `}
 
   div {
-    height: 100%;
+    height: inherit;
+
     ${({ theme, progress }) => css`
       background-color: ${theme.global.colors['border-yellow']};
+      top: ${theme.global.borderSize.medium};
       width: ${progress}%;
       transition: width ${progress === 20 ? '0s' : '0.1s'} ease-out;
     `}
@@ -28,8 +39,7 @@ const Progress = styled(Box)`
   }
 `
 
-export const PageLoader = ({ className }) => {
-  const router = useRouter()
+export const PageLoader = ({ router }) => {
   const [progress, setProgress] = React.useState(0)
   const [error, setError] = React.useState(false)
 
@@ -65,9 +75,11 @@ export const PageLoader = ({ className }) => {
   }, [router.events])
 
   return (
-    <Progress error={error} progress={progress} className={className}>
-      <Box />
-    </Progress>
+    <ProgressBar>
+      <Progress error={error} progress={progress}>
+        <Box />
+      </Progress>
+    </ProgressBar>
   )
 }
 
