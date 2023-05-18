@@ -5,4 +5,11 @@ export default {
   title: 'Components/Header'
 }
 
-export const Default = (args) => <Header />
+export const Default = () => <Header />
+
+Default.parameters = {
+  nextRouter: {
+    path: '/',
+    asPath: '/'
+  }
+}

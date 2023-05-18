@@ -7,6 +7,7 @@ const envVars = {
 
 module.exports = {
   addons: [
+    'storybook-addon-next-router',
     '@storybook/addon-storysource',
     {
       name: '@storybook/addon-postcss',
