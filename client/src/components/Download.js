@@ -19,7 +19,7 @@ import { isProjectID } from 'helpers/isProjectID'
 
 // Button and Modal to show when downloading
 export const Download = ({ icon, resource: initialResource }) => {
-  const { token, email, surveyListForm, createToken, validateToken } = useScPCAPortal()
+  const { token, email, surveyListForm, createToken } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
   const [resource, setResource] = useState(initialResource)
   const [recommendedResource, setRecommendedResource] = useState(null)
@@ -108,7 +108,7 @@ export const Download = ({ icon, resource: initialResource }) => {
       } else {
         // NOTE: there isnt much we can do here to recover.
         console.error(
-          "An error occurred while trying to get the download url for:",
+          'An error occurred while trying to get the download url for:',
           publicComputedFile.id
         )
       }
