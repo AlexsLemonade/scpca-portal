@@ -14,7 +14,7 @@ export const ContributeContentBlock = () => (
         margin={{ top: 'medium' }}
       >
         <Heading level={2} size="small">
-          GGGGG Contribute your data to the ScPCA Portal
+          Contribute your data to the ScPCA Portal
         </Heading>
         <Paragraph
           margin="medium"
