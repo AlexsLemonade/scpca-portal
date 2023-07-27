@@ -760,7 +760,7 @@ class Project(TimestampedModel):
             sample_seq_units = set()
             sample_technologies = set()
             # Handle single cell metadata.
-            for filename_path in Path(sample_dir).glob("*_metadata.json"):
+            for filename_path in sorted(Path(sample_dir).glob("*_metadata.json")):
                 with open(filename_path) as sample_json_file:
                     single_cell_json = json.load(sample_json_file)
 
@@ -776,7 +776,7 @@ class Project(TimestampedModel):
                 sample_technologies.add(single_cell_json["technology"].strip())
 
             # Handle spatial metadata.
-            for filename_path in Path(sample_dir).rglob("*_spatial/*_metadata.json"):
+            for filename_path in sorted(Path(sample_dir).rglob("*_spatial/*_metadata.json")):
                 with open(filename_path) as spatial_json_file:
                     spatial_json = json.load(spatial_json_file)
                 has_spatial_data = True
@@ -802,8 +802,8 @@ class Project(TimestampedModel):
         multiplexed_sample_demux_cell_counter = Counter()
         multiplexed_sample_seq_units_mapping = dict()
         multiplexed_sample_technologies_mapping = dict()
-        for multiplexed_sample_dir in Path(self.input_data_dir).rglob("*,*"):
-            for filename_path in Path(multiplexed_sample_dir).rglob("*_metadata.json"):
+        for multiplexed_sample_dir in sorted(Path(self.input_data_dir).rglob("*,*")):
+            for filename_path in sorted(Path(multiplexed_sample_dir).rglob("*_metadata.json")):
                 with open(filename_path) as multiplexed_json_file:
                     multiplexed_json = json.load(multiplexed_json_file)
 
