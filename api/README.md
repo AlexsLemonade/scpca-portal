@@ -157,12 +157,10 @@ The `load_data` and `purge_project` commands can also be run in the cloud.
 The one difference is that in the cloud `load_data` defaults to uploading data.
 This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
 
-To run the `load_data` command in production, there is a load_data.sh script that is created on the API instance.
-It passes any arguments to it through to the command, so `./load_data.sh --reload-all` will work nicely.
+To run a command in production, there is a run_command.sh script that is created on the API instance.
+It passes any arguments through to the `manage.py`, so `./run_command.sh load_data --reload-all` will work nicely.
 
-The `purge_project` command does not have it's own script.
-Ideally it should only be run via the `load_data` command using the `--reload-existing` and `--reload-all` options, but if it ever needs to be run on it's own then `docker exec -it scpca_portal_api python3 manage.py purge_project --scpca-id SCPCP000001` will still work.
-The `load_data` command necessitated it's own script because it does need to be run enough and also it can take a while to load all the data so doing so without a TTY is preferable.
+The `purge_project` command can be run in a similar fashion: `./run_command.sh purge_project --scpca-id SCPCP000001`
 
 ## Cloud Deployments
 
