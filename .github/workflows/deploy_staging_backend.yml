@@ -13,15 +13,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-
       - name: Load 1Password Secrets
         id: op-load-secrets
         uses: 1password/load-secrets-action@v1
         with:
           export-env: true
         env:
-          OP_CONNECT_HOST: "${{ secrets.OP_CONNECT_HOST }}"
-          OP_CONNECT_TOKEN: "${{ secrets.OP_CONNECT_TOKEN }}"
+          OP_SERVICE_ACCOUNT_TOKEN: "${{ secrets.OP_ENGINEERING_AUTH_TOKEN }}"
           DATABASE_PASSWORD: "${{ secrets.OP_STAGING_DATABASE_PASSWORD }}"
           DJANGO_SECRET_KEY: "${{ secrets.OP_STAGING_DJANGO_SECRET_KEY }}"
           DOCKER_USERNAME: "${{ secrets.OP_DOCKER_USERNAME }}"
@@ -32,12 +30,10 @@ jobs:
           SSH_PUBLIC_KEY: "${{ secrets.OP_SSH_PUBLIC_KEY }}"
           SENTRY_DSN: "${{ secrets.OP_SENTRY_DSN }}"
 
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 0.12.26
-
 
       - name: Deploy
         run: cd infrastructure && python3 deploy.py -e staging -u deployer -d ccdlstaging -v $(git rev-parse HEAD)
