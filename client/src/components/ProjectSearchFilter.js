@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Box, Text, CheckBox } from 'grommet'
 import { Loader } from 'components/Loader'
 import { api } from 'api'
-import { getReadable } from 'helpers/getReadable'
 import { useAnalytics } from 'hooks/useAnalytics'
 
 export const ProjectSearchFilter = ({
@@ -101,16 +100,6 @@ export const ProjectSearchFilter = ({
                 onChange={() => toggleFilterOption(f, o)}
               />
             ))}
-            {f === 'modalities' && (
-              <>
-                <CheckBox
-                  label={getReadable('has_bulk_rna_seq')}
-                  value
-                  checked={hasFilterOption('has_bulk_rna_seq')}
-                  onChange={() => toggleFilterOption('has_bulk_rna_seq')}
-                />
-              </>
-            )}
           </Box>
         </Box>
       ))}
