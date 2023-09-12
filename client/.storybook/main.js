@@ -7,6 +7,7 @@ const envVars = {
 }
 
 module.exports = {
+  staticDirs: ['./../public'],
   stories: ['./stories/**/*.stories.@(js|mdx)'],
   addons: ['@storybook/addon-storysource'],
   webpackFinal: async (config) => {
