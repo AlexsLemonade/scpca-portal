@@ -34,9 +34,7 @@ module.exports = () => {
 
   return {
     env,
-    experimental: {
-      productionBrowserSourceMaps: true
-    },
+    productionBrowserSourceMaps: true,
     webpack: (baseConfig) => {
       const config = { ...baseConfig }
       config.resolveLoader.modules.push(path.resolve(__dirname, 'loaders'))
