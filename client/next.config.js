@@ -39,7 +39,6 @@ module.exports = () => {
     },
     webpack: (baseConfig) => {
       const config = { ...baseConfig }
-      config.devtool = 'source-map'
       config.resolveLoader.modules.push(path.resolve(__dirname, 'loaders'))
       config.module.rules.push({
         test: /\.md$/,
