@@ -9,6 +9,7 @@ module.exports = {
   addons: ['@storybook/addon-storysource'],
   staticDirs: ['./../public'],
   stories: ['./stories/**/*.stories.@(js|mdx)'],
+
   webpackFinal: async (config) => {
     // Add src to imports (so this works with app webpack config)
     config.resolve.modules.push(path.resolve(__dirname, './../src'))
@@ -24,5 +25,14 @@ module.exports = {
     })
 
     return config
+  },
+
+  framework: {
+    name: '@storybook/react-webpack5',
+    options: {}
+  },
+
+  docs: {
+    autodocs: true
   }
 }
