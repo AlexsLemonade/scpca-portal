@@ -4,6 +4,7 @@ import { useBanner } from 'hooks/useBanner'
 import { useResizeObserver } from 'hooks/useResizeObserver'
 import { Box, Main } from 'grommet'
 import { ContributeBanner } from 'components/ContributeBanner'
+import { ContributePageCard } from 'components/ContributePageCard'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
 import { PageLoader } from 'components/PageLoader'
@@ -54,7 +55,7 @@ export const Layout = ({ children }) => {
   const showWide = widePaths.includes(router.pathname)
 
   // exclude the padding / and box shadow on the following pages
-  const excludPadPaths = ['/', '/about']
+  const excludPadPaths = ['/', '/about', '/contribute']
   const showMargin = !excludPadPaths.includes(router.pathname)
 
   // add the top margin to the following pages when the contribution banner is hidden
@@ -68,6 +69,12 @@ export const Layout = ({ children }) => {
   const includeContributeBanner = []
   const showContributeBanner = includeContributeBanner.includes(router.pathname)
 
+  // include the contribution page card in the following pages
+  const includeContributePageCard = ['/contribute']
+  const showContributePageCard = includeContributePageCard.includes(
+    router.pathname
+  )
+
   return (
     <Box height={{ min: '100vh' }}>
       <Box height={fixedBoxHeight}>
@@ -78,6 +85,7 @@ export const Layout = ({ children }) => {
         </FixedBox>
       </Box>
       {showContributeBanner && <ContributeBanner />}
+      {showContributePageCard && <ContributePageCard />}
       <Main
         width={showWide ? 'full' : 'xlarge'}
         alignSelf="center"
