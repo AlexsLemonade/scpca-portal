@@ -133,21 +133,13 @@ export const Contribute = () => {
   }
 
   return (
-    <>
-      <Box alignSelf="end" margin={{ top: 'large' }}>
-        <Button
-          href={config.links.contribute_pdf}
-          label="Download Guidelines as PDF"
-          target="_blank"
-          primary
-        />
-      </Box>
+    <Box alignSelf="end" margin={{ top: 'large' }}>
       <MarkdownPage
         components={components}
         markdown={contributionGuidelines}
         width="xlarge"
       />
-    </>
+    </Box>
   )
 }
 
