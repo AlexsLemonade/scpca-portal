@@ -5,7 +5,9 @@ import { ServerStyleSheet } from 'styled-components'
 
 export default class MyDocument extends Document {
   // set up styled components
-  static getInitialProps({ renderPage }) {
+  static async getInitialProps(ctx) {
+    const { renderPage } = ctx
+    const initialProps = await Document.getInitialProps(ctx)
     const sheet = new ServerStyleSheet()
     const page = renderPage(
       (App) => (props) =>
@@ -13,7 +15,7 @@ export default class MyDocument extends Document {
         sheet.collectStyles(<App {...props} />)
     )
     const styleTags = sheet.getStyleElement()
-    return { ...page, styleTags }
+    return { ...initialProps, ...page, styleTags }
   }
 
   render() {
