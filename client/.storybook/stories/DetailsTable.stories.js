@@ -1,7 +1,6 @@
 import React from 'react'
-import { Box } from 'grommet'
 import { DetailsTable } from 'components/DetailsTable'
-import project from '../data/project'
+import project from 'data/project'
 
 const defaultData = [
   { label: 'String', value: 'This is a string.' },
