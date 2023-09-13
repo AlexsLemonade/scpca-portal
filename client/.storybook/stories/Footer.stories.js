@@ -5,4 +5,4 @@ export default {
   title: 'Components/Footer'
 }
 
-export const Default = (args) => <Footer />
+export const Default = () => <Footer />
