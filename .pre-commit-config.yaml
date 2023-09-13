@@ -10,6 +10,7 @@ repos:
         args:
           - --fix=lf
       - id: trailing-whitespace
+        exclude: ^client/.yarn/*
         args:
           - --markdown-linebreak-ext=md
       # - id: check-executables-have-shebangs

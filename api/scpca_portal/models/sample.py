@@ -22,7 +22,7 @@ class Sample(TimestampedModel):
         SPATIAL = "SPATIAL"
 
         NAME_MAPPING = {
-            BULK_RNA_SEQ: "Bulk",
+            BULK_RNA_SEQ: "Bulk RNA-seq",
             CITE_SEQ: "CITE-seq",
             MULTIPLEXED: "Multiplexed",
             SPATIAL: "Spatial Data",
@@ -112,12 +112,13 @@ class Sample(TimestampedModel):
             "has_spatial_data": Sample.Modalities.SPATIAL,
         }
 
-        modalities = list()
-        for attr_name, modality_name in attr_name_modality_mapping.items():
-            if getattr(self, attr_name):
-                modalities.append(Sample.Modalities.NAME_MAPPING[modality_name])
-
-        return sorted(modalities)
+        return sorted(
+            [
+                Sample.Modalities.NAME_MAPPING[modality_name]
+                for attr_name, modality_name in attr_name_modality_mapping.items()
+                if getattr(self, attr_name)
+            ]
+        )
 
     @property
     def computed_files(self):

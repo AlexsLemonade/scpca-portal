@@ -37,7 +37,7 @@ export const Layout = ({ children }) => {
   const { banner } = useBanner()
 
   // get the height of FixedBox for to preserve the margin
-  const [fixedBoxHeight, setFixedBoxHeight] = useState(0)
+  const [fixedBoxHeight, setFixedBoxHeight] = useState('0px')
   const fixedBoxRef = useRef(null)
   useResizeObserver(
     fixedBoxRef,

@@ -29,10 +29,7 @@ export const PageTitle = ({ title = '' }) => {
 
   return (
     <Head>
-      <title>
-        {pageTitle}
-        {appName}
-      </title>
+      <title>{`${pageTitle}${appName}`}</title>
     </Head>
   )
 }
