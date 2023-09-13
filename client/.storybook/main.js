@@ -1,4 +1,4 @@
-const path = require('path')
+import * as path from 'path'
 
 const envVars = {
   API_HOST: 'http://localhost:8000',
@@ -6,7 +6,15 @@ const envVars = {
 }
 
 module.exports = {
-  addons: ['@storybook/addon-storysource'],
+  addons: [
+    '@storybook/addon-storysource',
+    '@storybook/addon-links',
+    '@storybook/addon-essentials'
+  ],
+  framework: {
+    name: '@storybook/react-webpack5',
+    options: {}
+  },
   staticDirs: ['./../public'],
   stories: ['./stories/**/*.stories.@(js|mdx)'],
 
@@ -26,10 +34,5 @@ module.exports = {
     })
 
     return config
-  },
-
-  framework: {
-    name: '@storybook/react-webpack5',
-    options: {}
   }
 }
