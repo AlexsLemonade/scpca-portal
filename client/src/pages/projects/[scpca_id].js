@@ -56,11 +56,12 @@ const Project = ({ project }) => {
                         project.publications.length > 0 ? (
                           <Text>
                             {project.publications.map((publication) => (
-                              <Link
-                                key={publication.doi}
-                                label={publication.doi}
-                                href={publication.doi_url}
-                              />
+                              <Box key={publication.doi}>
+                                <Link
+                                  label={publication.doi}
+                                  href={publication.doi_url}
+                                />
+                              </Box>
                             ))}
                           </Text>
                         ) : (

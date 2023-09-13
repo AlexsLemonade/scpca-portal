@@ -119,12 +119,12 @@ cat <<"EOF" > environment
 ${api_environment}
 EOF
 
-# Install the script to load data
-cat <<"EOF" > load_data.sh
-${load_data_script}
+# Install the script to run commands
+cat <<"EOF" > run_command.sh
+${run_command_script}
 EOF
 
-chmod +x ./load_data.sh
+chmod +x ./run_command.sh
 
 # Install the API startup script
 cat <<"EOF" > start_api_with_migrations.sh

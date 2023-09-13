@@ -34,7 +34,7 @@ export const Link = ({
       {children}
     </LinkAnchor>
   ) : (
-    <NextLink href={href}>
+    <NextLink href={href} legacyBehavior>
       <LinkAnchor
         color={color}
         href={href}

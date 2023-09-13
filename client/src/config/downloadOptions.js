@@ -13,7 +13,7 @@ export const downloadOptions = {
       texts: {},
       learn_more: {
         label: 'here',
-        text: 'Learn more about what you can expect in your download file ',
+        text: 'Learn more about what you can expect in your download file.',
         url: config.links.what_downloading_project
       }
     }
@@ -27,7 +27,7 @@ export const downloadOptions = {
       texts: {},
       learn_more: {
         label: 'here',
-        text: 'Learn more about what you can expect in your download file ',
+        text: 'Learn more about what you can expect in your download file.',
         url: config.links.what_downloading_spatial
       }
     }
@@ -64,7 +64,7 @@ export const downloadOptions = {
       texts: {},
       learn_more: {
         label: 'here',
-        text: 'Learn more about what you can expect in your download file ',
+        text: 'Learn more about what you can expect in your download file.',
         url: config.links.what_downloading_sample
       }
     }
@@ -78,7 +78,7 @@ export const downloadOptions = {
       texts: {},
       learn_more: {
         label: 'here',
-        text: 'Learn more about what you can expect in your download file ',
+        text: 'Learn more about what you can expect in your download file.',
         url: config.links.what_downloading_spatial
       }
     }
@@ -97,7 +97,7 @@ export const downloadOptions = {
       texts: {
         text_only: 'This is a multiplexed sample.',
         multiplexed_with: {
-          text: 'It has been multiplexed with the followig samples.'
+          text: 'It has been multiplexed with the following samples.'
         }
       },
       learn_more: {
@@ -106,7 +106,7 @@ export const downloadOptions = {
         url: config.links.what_downloading_mulitplexed
       },
       warning_text: {
-        text: 'If you are planning to work with more than one multiplexed sample, we reccommend downloading the entire project.'
+        text: 'If you are planning to work with more than one multiplexed sample, we recommend downloading the entire project.'
       }
     }
   }
