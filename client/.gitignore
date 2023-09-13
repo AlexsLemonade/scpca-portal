@@ -3,7 +3,7 @@
 
 # yarn
 # (resources)
-# https://yarnpkg.com/features/zero-installs 
+# https://yarnpkg.com/features/zero-installs
 # https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
 .yarn/*
 !.yarn/patches
