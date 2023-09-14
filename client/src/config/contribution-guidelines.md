@@ -35,7 +35,7 @@ Eligibility will be determined at ALSF’s discretion.
 Funds are available on a first-come-first-served basis and distributed to the researcher’s institution, which must be a non-profit institution.
 ALSF does not allow any funds to be used for research utilizing human embryonic stem cells or nonhuman primates.
 Research with human induced pluripotent stem cells is permissible.
-**The first step in the submission process is to [fill out this form](https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0) to verify whether a dataset is suitable for inclusion in the ScPCA Portal.**
+**The first step in the submission process is to [fill out this form](https://share.hsforms.com/1Fs_Z94OzS7abnh5qEieOTA336z0) to verify whether a dataset is suitable for inclusion in the ScPCA Portal.**
 
 Researchers are encouraged to engage with the Childhood Cancer Data Lab (Data Lab) before and during the preparation of their submissions.
 Interested parties can join drop-in office hours sessions with Data Lab team members on Zoom or reach out to the Data Lab directly via email (See [**Contact the Data Lab**](#contact-the-data-lab)).
@@ -55,7 +55,7 @@ Potential submitters are also encouraged to join the \`#scpca-contributions\` ch
 
 Submitters must take the following steps:
 
-1. Complete an intake form to determine dataset eligibility: <https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0>.
+1. Complete an intake form to determine dataset eligibility: <https://share.hsforms.com/1Fs_Z94OzS7abnh5qEieOTA336z0>.
    A Data Lab team member will contact you within three working days of your submission to notify you of your eligibility and provide additional information required for submission.
 2. Execute a Data Transfer Agreement between your institution and ALSF.
    View the template agreement [here](https://docs.google.com/document/d/1eLHobiV4M0bC0KOQALgpfaLU0Y4nMZYs/edit?usp=share_link&ouid=105890053693989014850&rtpof=true&sd=true).
