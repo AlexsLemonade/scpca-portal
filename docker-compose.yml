@@ -29,7 +29,7 @@ services:
       - client
       - postgres
   client:
-    image: node:14.17
+    image: node:18.17.1
     ports:
       - '${API_PORT}:${API_PORT}'
       - '${STORYBOOK_PORT}:${STORYBOOK_PORT}'
@@ -45,6 +45,7 @@ services:
       STAGE_HUBSPOT_SURVEY_LIST_ID: '${STAGE_HUBSPOT_SURVEY_LIST_ID}'
     command: >
       bash -c 'cd /home/user/code &&
+               yarn set version 3.6.3 &&
                yarn &&
                (yarn storybook --quiet -p ${STORYBOOK_PORT} &
                yarn dev -p ${CLIENT_PORT})'

@@ -1,5 +1,4 @@
-const path = require('path')
-const Dotenv = require('dotenv-webpack')
+import * as path from 'path'
 
 const envVars = {
   API_HOST: 'http://localhost:8000',
@@ -7,16 +6,31 @@ const envVars = {
 }
 
 module.exports = {
+  addons: [
+    '@storybook/addon-storysource',
+    '@storybook/addon-links',
+    '@storybook/addon-essentials'
+  ],
+  framework: {
+    name: '@storybook/react-webpack5',
+    options: {}
+  },
+  staticDirs: ['./../public'],
   stories: ['./stories/**/*.stories.@(js|mdx)'],
-  addons: ['@storybook/addon-storysource'],
+
   webpackFinal: async (config) => {
     // Add src to imports (so this works with app webpack config)
     config.resolve.modules.push(path.resolve(__dirname, './../src'))
-
+    config.resolve.alias['data'] = path.resolve(__dirname, './data')
     // Add env vars for helpers
-    Object.keys(envVars).forEach((key) => {
-      config.plugins.DefinePlugin.definitions[`process.env.${key}`] =
-        JSON.stringify(envVars[key])
+    config.plugins.forEach((plugin) => {
+      if (Object.keys(plugin)[0] === 'definitions') {
+        Object.keys(envVars).forEach((key) => {
+          plugin['definitions'][`process.env.${key}`] = JSON.stringify(
+            envVars[key]
+          )
+        })
+      }
     })
 
     return config

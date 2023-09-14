@@ -5,7 +5,9 @@ import { ServerStyleSheet } from 'styled-components'
 
 export default class MyDocument extends Document {
   // set up styled components
-  static getInitialProps({ renderPage }) {
+  static async getInitialProps(ctx) {
+    const { renderPage } = ctx
+    const initialProps = await Document.getInitialProps(ctx)
     const sheet = new ServerStyleSheet()
     const page = renderPage(
       (App) => (props) =>
@@ -13,7 +15,7 @@ export default class MyDocument extends Document {
         sheet.collectStyles(<App {...props} />)
     )
     const styleTags = sheet.getStyleElement()
-    return { ...page, styleTags }
+    return { ...initialProps, ...page, styleTags }
   }
 
   render() {
@@ -22,7 +24,11 @@ export default class MyDocument extends Document {
         <Head>
           <link rel="icon" href="/favicon.svg" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
+          <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossOrigin="true"
+          />
           <link
             href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,700;1,400&family=Zilla+Slab:wght@500&display=swap"
             rel="stylesheet"

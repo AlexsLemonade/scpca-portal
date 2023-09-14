@@ -7,6 +7,7 @@ export const WarningText = ({
   lineBreak = true,
   link = '',
   linkLable = '',
+  iconColor = 'status-warning',
   iconMargin = { right: 'medium' },
   iconPad = { right: 'small' },
   iconSize = '16px',
@@ -20,7 +21,7 @@ export const WarningText = ({
       margin={{ top: 'small', bottom: 'medium' }}
     >
       <Box margin={iconMargin} pad={iconPad}>
-        <Icon color="status-warning" size={iconSize} name="Warning" />
+        <Icon color={iconColor} size={iconSize} name="Warning" />
       </Box>
       <Paragraph>
         {text} {lineBreak && <br />}
