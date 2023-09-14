@@ -2,6 +2,7 @@ import React from 'react'
 import {
   Box,
   Heading,
+  Paragraph,
   Table,
   TableCell,
   TableHeader as GrommetTableHeader,
@@ -11,6 +12,7 @@ import {
 import { Button } from 'components/Button'
 import { MarkdownPage } from 'components/MarkdownPage'
 import { Link } from 'components/Link'
+import { WarningCard } from 'components/WarningCard'
 import { config } from 'config'
 import contributionGuidelines from 'config/contribution-guidelines.md'
 import styled from 'styled-components'
@@ -133,13 +135,43 @@ export const Contribute = () => {
   }
 
   return (
-    <Box alignSelf="end" margin={{ top: 'large' }}>
-      <MarkdownPage
-        components={components}
-        markdown={contributionGuidelines}
-        width="xlarge"
-      />
-    </Box>
+    <>
+      <WarningCard label="We are NOT currently accepting contributions">
+        <Box
+          align="center"
+          direction="row"
+          gap="large"
+          justify="between"
+          pad={{ horizontal: 'small', bottom: 'xlarge' }}
+        >
+          <Box width={{ max: '750px' }}>
+            <Heading level={5} margin={{ bottom: 'small' }} size="16px">
+              Interested in contributing? Sign up to be notified.
+            </Heading>
+            <Paragraph>
+              If you have an existing single-cell dataset you are interested in
+              making available via the portal, please sign up to be notified
+              about future opportunities. In the future, there will be a process
+              for determining if your data meets the necessary requirements to
+              be shared on the portal.
+            </Paragraph>
+          </Box>
+          <Button
+            href={config.links.contribute_hsform}
+            label="Sign Up For Notifications"
+            target="_blank"
+            primary
+          />
+        </Box>
+      </WarningCard>
+      <Box alignSelf="end" margin={{ top: 'large' }}>
+        <MarkdownPage
+          components={components}
+          markdown={contributionGuidelines}
+          width="xlarge"
+        />
+      </Box>
+    </>
   )
 }
 
