@@ -52,6 +52,7 @@ export default {
     disabled: undefined
   },
   extend: () => `
+    white-space: nowrap;
     &:active:not([disabled]) {
       box-shadow: 0 3px 4px 0 rgba(0,0,0,0.5);
     }

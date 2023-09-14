@@ -54,7 +54,7 @@ export const Layout = ({ children }) => {
   const showWide = widePaths.includes(router.pathname)
 
   // exclude the padding / and box shadow on the following pages
-  const excludPadPaths = ['/', '/about']
+  const excludPadPaths = ['/', '/about', '/contribute']
   const showMargin = !excludPadPaths.includes(router.pathname)
 
   // add the top margin to the following pages when the contribution banner is hidden
@@ -64,15 +64,9 @@ export const Layout = ({ children }) => {
     showMargin &&
     !banner['contribute-banner']
 
-  // exclude the contribue banner on the following pages
-  const excludeContributeBanner = [
-    '/contribute',
-    '/privacy-policy',
-    '/terms-of-use'
-  ]
-  const showContributeBanner = !excludeContributeBanner.includes(
-    router.pathname
-  )
+  // include the contribue banner on the following pages
+  const includeContributeBanner = []
+  const showContributeBanner = includeContributeBanner.includes(router.pathname)
 
   return (
     <Box height={{ min: '100vh' }}>
