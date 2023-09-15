@@ -1,5 +1,6 @@
 import React from 'react'
 import * as Sentry from '@sentry/react'
+import 'regenerator-runtime/runtime'
 import { Grommet } from 'grommet'
 import { theme } from 'theme'
 import { Layout } from 'components/Layout'
