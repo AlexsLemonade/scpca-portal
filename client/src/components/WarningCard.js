@@ -8,12 +8,13 @@ export const WarningCard = ({ label, children }) => {
     <CardBandLarge
       align="center"
       elevation="small"
-      pad={{ top: 'large' }}
+      pad={{ top: 'xxlarge' }}
       width="100%"
     >
       <Box margin={{ bottom: 'medium' }}>
         <WarningText
           iconColor="error"
+          iconNoFill
           iconMargin="none"
           iconSize="24px"
           text={

@@ -8,6 +8,7 @@ export const WarningText = ({
   link = '',
   linkLable = '',
   iconColor = 'status-warning',
+  iconNoFill = false,
   iconMargin = { right: 'medium' },
   iconPad = { right: 'small' },
   iconSize = '16px',
@@ -21,7 +22,11 @@ export const WarningText = ({
       margin={{ top: 'small', bottom: 'medium' }}
     >
       <Box margin={iconMargin} pad={iconPad}>
-        <Icon color={iconColor} size={iconSize} name="Warning" />
+        <Icon
+          color={iconColor}
+          size={iconSize}
+          name={`Warning${iconNoFill ? 'NoFill' : ''}`}
+        />
       </Box>
       <Paragraph>
         {text} {lineBreak && <br />}
