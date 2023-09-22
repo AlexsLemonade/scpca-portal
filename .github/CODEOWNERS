@@ -1,0 +1,6 @@
+# For more information on CODEOWNERS, see:
+# https://help.github.com/en/articles/about-code-owners
+
+* @davidsmejia
+*.js @nozomione
+*.py @arkid15r
