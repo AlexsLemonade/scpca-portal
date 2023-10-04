@@ -29,7 +29,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
         <Box flex="shrink" pad={{ right: 'medium' }}>
           {linked ? (
             <Link href={`/projects/${project.scpca_id}`}>
-              <Text weight="bold" color="brand">
+              <Text weight="bold" color="brand" size="large">
                 {project.title}
               </Text>
             </Link>
