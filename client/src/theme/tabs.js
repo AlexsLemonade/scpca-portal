@@ -13,7 +13,7 @@ export default {
       button {
         margin-right: 24px;
         transform: translate(0, 2px);
-        
+
         div {
           padding: 0 0 8px;
         }
