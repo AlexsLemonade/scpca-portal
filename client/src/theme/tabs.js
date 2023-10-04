@@ -4,15 +4,22 @@ export default {
     border: {
       side: 'bottom',
       color: 'border',
-      size: 'xsmall'
+      size: '2px'
     },
     extend: ({ theme }) => `
       justify-content: start;
-      padding: 0 16px;
+      padding: 0;
 
       button {
-        transform: translate(0, 1px);
+        margin-right: 24px;
+        transform: translate(0, 2px);
+        
+        div {
+          padding: 0 0 8px;
+        }
+
         span {
+          color: ${theme.global.colors.black};
           font-size: 21px;
           line-height: 32px;
         }
@@ -23,11 +30,11 @@ export default {
       }
 
       > button[aria-expanded="true"] {
-        font-weight: 700;
-        border-left: 1px solid ${theme.global.colors.border.light};
-        border-top: 1px solid ${theme.global.colors.border.light};
-        border-right: 1px solid ${theme.global.colors.border.light};
-        border-bottom: 1px solid ${theme.global.colors.background.light};
+        border-bottom: 2px solid ${theme.global.colors.brand.light};
+
+        span {
+          color: ${theme.global.colors.brand.light};
+        }
       }
     `
   }
