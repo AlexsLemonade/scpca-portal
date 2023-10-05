@@ -100,7 +100,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               project.multiplexed_sample_count || 'N/A'
             } samples are multiplexed.`}
             link={config.links.how_processed_multiplexed}
-            linkLable="Learn more"
+            linkLabel="Learn more"
             iconMargin="0"
           />
         </Box>
