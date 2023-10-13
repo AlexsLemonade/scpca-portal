@@ -12,7 +12,7 @@ from scpca_portal.management.commands.load_data import load_data_from_s3
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"genomics_10X"}
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs"
+INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/anndata-tests"
 
 
 class MockS3Client:
@@ -38,6 +38,9 @@ class TestLoadData(TestCase):
         self.assertIsNotNone(project.diagnoses)
         self.assertIsNotNone(project.diagnoses_counts)
         self.assertTrue(project.disease_timings)
+        self.assertTrue(project.has_multiplexed_data)
+        self.assertTrue(project.has_single_cell_data)
+        self.assertTrue(project.has_spatial_data)
         self.assertIsNotNone(project.seq_units)
         self.assertTrue(project.title)
 
@@ -59,10 +62,10 @@ class TestLoadData(TestCase):
     @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
     def test_load_data_from_s3(self):
         def assert_object_count():
-            self.assertEqual(Project.objects.count(), 2)
-            self.assertEqual(ProjectSummary.objects.count(), 6)
+            self.assertEqual(Project.objects.count(), 1)
+            self.assertEqual(ProjectSummary.objects.count(), 5)
             self.assertEqual(Sample.objects.count(), 5)
-            self.assertEqual(ComputedFile.objects.count(), 9)
+            self.assertEqual(ComputedFile.objects.count(), 8)
 
         # First, just test that loading data works.
         load_data_from_s3(
@@ -74,39 +77,36 @@ class TestLoadData(TestCase):
         )
         assert_object_count()
 
-        scpca_project_ids = ("SCPCP999990", "SCPCP999999")
-        for scpca_project_id in scpca_project_ids:
-            project = Project.objects.get(scpca_id=scpca_project_id)
-            project_computed_files = project.computed_files
-            project_summary = project.summaries.first()
-            sample = project.samples.first()
-            sample_computed_files = sample.computed_files
+        scpca_project_id = "SCPCP999990"
+        project = Project.objects.get(scpca_id=scpca_project_id)
+        project_computed_files = project.computed_files
+        project_summary = project.summaries.first()
+        sample = project.samples.first()
+        sample_computed_files = sample.computed_files
 
-            self.assert_project(project)
+        self.assert_project(project)
 
-            # Make sure that reload_existing=False won't add anything
-            # new when there's nothing new.
-            load_data_from_s3(
-                allowed_submitters=ALLOWED_SUBMITTERS,
-                input_bucket_name=INPUT_BUCKET_NAME,
-                reload_all=False,
-                reload_existing=False,
-                update_s3_data=False,
-            )
-            assert_object_count()
+        # Make sure that reload_existing=False won't add anything new when there's nothing new.
+        load_data_from_s3(
+            allowed_submitters=ALLOWED_SUBMITTERS,
+            input_bucket_name=INPUT_BUCKET_NAME,
+            reload_all=False,
+            reload_existing=False,
+            update_s3_data=False,
+        )
+        assert_object_count()
 
-            new_project = Project.objects.get(scpca_id=scpca_project_id)
-            self.assertEqual(project, new_project)
-            self.assertEqual(project_summary, new_project.summaries.first())
+        new_project = Project.objects.get(scpca_id=scpca_project_id)
+        self.assertEqual(project, new_project)
+        self.assertEqual(project_summary, new_project.summaries.first())
 
-            new_sample = new_project.samples.first()
-            self.assertEqual(sample, new_sample)
-            self.assertEqual(list(project_computed_files), list(new_project.computed_files))
-            self.assertEqual(list(sample_computed_files), list(new_sample.computed_files))
+        new_sample = new_project.samples.first()
+        self.assertEqual(sample, new_sample)
+        self.assertEqual(list(project_computed_files), list(new_project.computed_files))
+        self.assertEqual(list(sample_computed_files), list(new_sample.computed_files))
 
         # Make sure purging works as expected.
-        for scpca_project_id in scpca_project_ids:
-            Project.objects.get(scpca_id=scpca_project_id).purge()
+        Project.objects.get(scpca_id=scpca_project_id).purge()
 
         self.assertEqual(Project.objects.count(), 0)
         self.assertEqual(ProjectSummary.objects.count(), 0)
@@ -139,18 +139,14 @@ class TestLoadData(TestCase):
         self.assertTrue(project.has_bulk_rna_seq)
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.has_multiplexed_data)
-        self.assertFalse(project.has_spatial_data)
-        self.assertEqual(project.multiplexed_sample_count, 4)
-        self.assertEqual(project.sample_count, 4)
-        self.assertEqual(project.summaries.count(), 2)
-        self.assertEqual(project.summaries.first().sample_count, 2)
+        self.assertEqual(project.multiplexed_sample_count, 2)
+        self.assertEqual(project.sample_count, 5)
+        self.assertEqual(project.summaries.count(), 5)
+        self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 1)
+        self.assertEqual(len(project.computed_files), 3)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
-        self.assertEqual(
-            project.multiplexed_computed_file.workflow_version,
-            "development",
-        )
+        self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
 
         # Check contacts.
         self.assertEqual(project.contacts.count(), 2)
@@ -197,15 +193,22 @@ class TestLoadData(TestCase):
             "cell_filtering_method",
             "demux_method",
             "demux_samples",
+            "development_stage_ontology_term_id",
+            "disease_ontology_term_id",
             "droplet_filtering_method",
             "filtered_cells",
             "has_cellhash",
             "is_multiplexed",
             "min_gene_cutoff",
             "normalization_method",
+            "organism",
+            "organism_ontology_id",
             "prob_compromised_cutoff",
             "salmon_version",
             "sample_cell_estimates",
+            "self_reported_ethnicity_ontology_term_id",
+            "sex_ontology_term_id",
+            "tissue_ontology_term_id",
             "transcript_type",
             "unfiltered_cells",
             "WHO_grade",
@@ -222,14 +225,13 @@ class TestLoadData(TestCase):
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
 
-        self.assertEqual(len(sample_metadata_lines), 5)  # 4 items + header.
+        self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
 
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
         library_sample_mapping = {
-            "SCPCL999990": "SCPCS999990_SCPCS999991",
-            "SCPCL999991": "SCPCS999992_SCPCS999993",
+            "SCPCL999992": "SCPCS999992_SCPCS999993",
         }
         library_path_templates = (
             "{sample_id}/{library_id}_filtered.rds",
@@ -248,20 +250,26 @@ class TestLoadData(TestCase):
                 expected_filenames.add(
                     library_path.format(library_id=library_id, sample_id=sample_id)
                 )
-        self.assertEqual(set(project_zip.namelist()), expected_filenames)
+        self.assertTrue(expected_filenames.issubset(set(project_zip.namelist())))
 
         sample = project.samples.filter(has_multiplexed_data=True).first()
         self.assertIsNone(sample.sample_cell_count_estimate)
-        self.assertEqual(sample.demux_cell_count_estimate, 2841)
         self.assertTrue(sample.has_multiplexed_data)
-        self.assertEqual(sample.seq_units, "nucleus")
+        self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3.1")
 
         expected_additional_metadata_keys = [
+            "development_stage_ontology_term_id",
+            "disease_ontology_term_id",
+            "organism",
+            "organism_ontology_id",
             "participant_id",
             "scpca_project_id",
+            "self_reported_ethnicity_ontology_term_id",
+            "sex_ontology_term_id",
             "submitter",
             "submitter_id",
+            "tissue_ontology_term_id",
             "WHO_grade",
         ]
         self.assertEqual(
@@ -307,25 +315,20 @@ class TestLoadData(TestCase):
             update_s3_data=True,
         )
 
-        project = Project.objects.get(scpca_id="SCPCP999999")
+        project = Project.objects.get(scpca_id="SCPCP999990")
         self.assert_project(project)
-        self.assertEqual(project.downloadable_sample_count, 1)
-        self.assertFalse(project.has_bulk_rna_seq)
+        self.assertEqual(project.downloadable_sample_count, 4)
         self.assertFalse(project.has_cite_seq_data)
-        self.assertFalse(project.has_multiplexed_data)
         self.assertTrue(project.modalities)
-        self.assertEqual(project.multiplexed_sample_count, 0)
-        self.assertEqual(project.sample_count, 1)
-        self.assertEqual(project.seq_units, "nucleus, spot")
-        self.assertEqual(project.summaries.count(), 4)
+        self.assertEqual(project.multiplexed_sample_count, 2)
+        self.assertEqual(project.sample_count, 5)
+        self.assertEqual(project.seq_units, "cell, spot")
+        self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 2)
+        self.assertEqual(len(project.computed_files), 3)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
-        self.assertEqual(
-            project.single_cell_computed_file.workflow_version,
-            "v0.2.7",
-        )
+        self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
         self.assertEqual(project.technologies, "10Xv3.1, visium")
 
         expected_keys = [
@@ -346,6 +349,8 @@ class TestLoadData(TestCase):
             "alevin_fry_version",
             "cell_filtering_method",
             "date_processed",
+            "development_stage_ontology_term_id",
+            "disease_ontology_term_id",
             "droplet_filtering_method",
             "filtered_cell_count",
             "genome_assembly",
@@ -355,16 +360,20 @@ class TestLoadData(TestCase):
             "mapping_index",
             "min_gene_cutoff",
             "normalization_method",
+            "organism",
+            "organism_ontology_id",
             "participant_id",
             "prob_compromised_cutoff",
             "salmon_version",
+            "self_reported_ethnicity_ontology_term_id",
+            "sex_ontology_term_id",
             "submitter",
             "submitter_id",
+            "tissue_ontology_term_id",
             "total_reads",
             "transcript_type",
-            "treatment",
             "unfiltered_cells",
-            "upload_date",
+            "WHO_grade",
             "workflow",
             "workflow_commit",
             "workflow_version",
@@ -386,34 +395,36 @@ class TestLoadData(TestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 4 files for each sample, plus a README.md
-        # and a single_cell_metadata.tsv file.
-        # 6 = 1 * 4 + 2
-        self.assertEqual(len(project_zip.namelist()), 6)
+        # There are 4 files for each sample, plus a README.md,
+        # a single_cell_metadata.tsv file, and 2 bulk_ files.
+        # 8 = 1 * 4 + 4
+        self.assertEqual(len(project_zip.namelist()), 8)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
-        self.assertEqual(len(sample.computed_files), 2)
+        self.assertEqual(len(sample.computed_files), 1)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
-        self.assertFalse(project.has_multiplexed_data)
-        self.assertTrue(sample.has_spatial_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 23751)
-        self.assertEqual(sample.seq_units, "nucleus, spot")
+        self.assertEqual(sample.sample_cell_count_estimate, 1639)
+        self.assertEqual(sample.seq_units, "cell")
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
-        self.assertEqual(
-            sample.single_cell_computed_file.workflow_version,
-            "v0.2.7",
-        )
-        self.assertEqual(sample.technologies, "10Xv3.1, visium")
+        self.assertEqual(sample.single_cell_computed_file.workflow_version, "development")
+        self.assertEqual(sample.technologies, "10Xv3.1")
 
         expected_additional_metadata_keys = [
+            "development_stage_ontology_term_id",
+            "disease_ontology_term_id",
+            "organism",
+            "organism_ontology_id",
             "participant_id",
             "scpca_project_id",
+            "self_reported_ethnicity_ontology_term_id",
+            "sex_ontology_term_id",
             "submitter",
             "submitter_id",
-            "upload_date",
+            "tissue_ontology_term_id",
+            "WHO_grade",
         ]
         self.assertEqual(
             expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")
@@ -458,22 +469,19 @@ class TestLoadData(TestCase):
             update_s3_data=True,
         )
 
-        project = Project.objects.get(scpca_id="SCPCP999999")
+        project = Project.objects.get(scpca_id="SCPCP999990")
         self.assert_project(project)
-        self.assertEqual(project.downloadable_sample_count, 1)
-        self.assertFalse(project.has_bulk_rna_seq)
+        self.assertEqual(project.downloadable_sample_count, 4)
         self.assertFalse(project.has_cite_seq_data)
-        self.assertFalse(project.has_multiplexed_data)
         self.assertTrue(project.has_spatial_data)
         self.assertTrue(project.modalities)
-        self.assertEqual(project.multiplexed_sample_count, 0)
-        self.assertEqual(project.sample_count, 1)
-        self.assertEqual(project.summaries.count(), 4)
+        self.assertEqual(project.sample_count, 5)
+        self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 2)
+        self.assertEqual(len(project.computed_files), 3)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
-        self.assertEqual(project.spatial_computed_file.workflow_version, "v0.2.7")
+        self.assertEqual(project.spatial_computed_file.workflow_version, "development")
 
         expected_keys = [
             "scpca_project_id",
@@ -498,11 +506,17 @@ class TestLoadData(TestCase):
             "age_at_diagnosis",
             "sex",
             "tissue_location",
-            "treatment",
             "participant_id",
             "submitter",
             "submitter_id",
-            "upload_date",
+            "development_stage_ontology_term_id",
+            "disease_ontology_term_id",
+            "organism",
+            "organism_ontology_id",
+            "self_reported_ethnicity_ontology_term_id",
+            "sex_ontology_term_id",
+            "tissue_ontology_term_id",
+            "WHO_grade",
         ]
 
         project_zip_path = os.path.join(
@@ -533,22 +547,25 @@ class TestLoadData(TestCase):
         self.assertFalse(sample.has_cite_seq_data)
         self.assertFalse(sample.has_multiplexed_data)
         self.assertTrue(sample.has_spatial_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 23751)
-        self.assertEqual(sample.seq_units, "nucleus, spot")
+        self.assertEqual(sample.seq_units, "spot")
         self.assertIsNotNone(sample.spatial_computed_file)
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
-        self.assertEqual(
-            sample.spatial_computed_file.workflow_version,
-            "v0.2.7",
-        )
-        self.assertEqual(sample.technologies, "10Xv3.1, visium")
+        self.assertEqual(sample.spatial_computed_file.workflow_version, "development")
+        self.assertEqual(sample.technologies, "visium")
 
         expected_additional_metadata_keys = [
+            "development_stage_ontology_term_id",
+            "disease_ontology_term_id",
+            "organism",
+            "organism_ontology_id",
             "participant_id",
             "scpca_project_id",
+            "self_reported_ethnicity_ontology_term_id",
+            "sex_ontology_term_id",
             "submitter",
             "submitter_id",
-            "upload_date",
+            "tissue_ontology_term_id",
+            "WHO_grade",
         ]
         self.assertEqual(
             expected_additional_metadata_keys, project.additional_metadata_keys.split(", ")

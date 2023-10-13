@@ -497,20 +497,20 @@ class Project(TimestampedModel):
         """Prepares ready for saving project computed files based on generated file mappings."""
         computed_files = list()
 
-        # The multiplexed and single cell cases are if/else as we produce
-        # a single computed file for a multiplexed samples project.
         if multiplexed_file_mapping:
             computed_files.append(
                 ComputedFile.get_project_multiplexed_file(
                     self, multiplexed_file_mapping, multiplexed_workflow_versions
                 )
             )
-        elif single_cell_file_mapping:
+
+        if single_cell_file_mapping:
             computed_files.append(
                 ComputedFile.get_project_single_cell_file(
                     self, single_cell_file_mapping, single_cell_workflow_versions
                 )
             )
+
         if spatial_file_mapping:
             computed_files.append(
                 ComputedFile.get_project_spatial_file(
