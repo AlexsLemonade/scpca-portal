@@ -230,6 +230,23 @@ class TestLoadData(TestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
+        # There are 12 files (including subdirectory names):
+        # ├── README.md
+        # ├── SCPCS999990
+        # │   ├── SCPCL999990_filtered.rds
+        # │   ├── SCPCL999990_processed.rds
+        # │   ├── SCPCL999990_qc.html
+        # │   └── SCPCL999990_unfiltered.rds
+        # ├── SCPCS999992_SCPCS999993
+        # │   ├── SCPCL999992_filtered.rds
+        # │   ├── SCPCL999992_processed.rds
+        # │   ├── SCPCL999992_qc.html
+        # │   └── SCPCL999992_unfiltered.rds
+        # ├── bulk_metadata.tsv
+        # ├── bulk_quant.tsv
+        # └── single_cell_metadata.tsv
+        self.assertEqual(len(project_zip.namelist()), 12)
+
         library_sample_mapping = {
             "SCPCL999992": "SCPCS999992_SCPCS999993",
         }
@@ -395,9 +412,16 @@ class TestLoadData(TestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 4 files for each sample, plus a README.md,
-        # a single_cell_metadata.tsv file, and 2 bulk_ files.
-        # 8 = 1 * 4 + 4
+        # There are 8 files (including subdirectory names):
+        # ├── README.md
+        # ├── SCPCS999990
+        # │   ├── SCPCL999990_filtered.rds
+        # │   ├── SCPCL999990_processed.rds
+        # │   ├── SCPCL999990_qc.html
+        # │   └── SCPCL999990_unfiltered.rds
+        # ├── bulk_metadata.tsv
+        # ├── bulk_quant.tsv
+        # └── single_cell_metadata.tsv
         self.assertEqual(len(project_zip.namelist()), 8)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
@@ -535,9 +559,27 @@ class TestLoadData(TestCase):
         spatial_metadata_keys = spatial_metadata[0].split(common.TAB)
         self.assertEqual(spatial_metadata_keys, expected_keys)
 
-        # There are 17 files for each spatial library (including
-        # subdirectories), plus a README.md and a spatial_metadata.tsv file.
-        # 19 = 1 * 17 + 2
+        # There are 19 files (including subdirectory names):
+        # ├── README.md
+        # ├── SCPCL999991_spatial
+        # │   ├── SCPCL999991_metadata.json
+        # │   ├── SCPCL999991_spaceranger_summary.html
+        # │   ├── filtered_feature_bc_matrix
+        # │   │   ├── barcodes.tsv.gz
+        # │   │   ├── features.tsv.gz
+        # │   │   └── matrix.mtx.gz
+        # │   ├── raw_feature_bc_matrix
+        # │   │   ├── barcodes.tsv.gz
+        # │   │   ├── features.tsv.gz
+        # │   │   └── matrix.mtx.gz
+        # │   └── spatial
+        # │       ├── aligned_fiducials.jpg
+        # │       ├── detected_tissue_image.jpg
+        # │       ├── scalefactors_json.json
+        # │       ├── tissue_hires_image.png
+        # │       ├── tissue_lowres_image.png
+        # │       └── tissue_positions_list.csv
+        # └── spatial_metadata.tsv
         self.assertEqual(len(project_zip.namelist()), 19)
 
         sample = project.samples.filter(has_spatial_data=True).first()
