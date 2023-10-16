@@ -29,7 +29,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
         <Box flex="shrink" pad={{ right: 'medium' }}>
           {linked ? (
             <Link href={`/projects/${project.scpca_id}`}>
-              <Text weight="bold" color="brand">
+              <Text weight="bold" color="brand" size="large">
                 {project.title}
               </Text>
             </Link>
@@ -100,7 +100,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               project.multiplexed_sample_count || 'N/A'
             } samples are multiplexed.`}
             link={config.links.how_processed_multiplexed}
-            linkLable="Learn more"
+            linkLabel="Learn more"
             iconMargin="0"
           />
         </Box>
