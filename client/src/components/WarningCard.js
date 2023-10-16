@@ -15,8 +15,8 @@ export const WarningCard = ({ label, children }) => {
         <Box margin={{ bottom: 'medium' }}>
           <WarningText
             iconColor="error"
-            iconNoFill
             iconMargin="none"
+            iconName="WarningNoFill"
             iconSize="24px"
             text={
               <Text color="error" size="24px" weight="bold">
