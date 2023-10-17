@@ -132,7 +132,7 @@ class ComputedFile(TimestampedModel):
 
             for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
-                    # Nest these under thier sample id.
+                    # Nest these under their sample id.
                     archive_path = os.path.join(sample_id, os.path.basename(file_path))
                     zip_file.write(file_path, archive_path)
 
