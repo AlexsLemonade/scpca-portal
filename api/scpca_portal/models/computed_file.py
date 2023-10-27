@@ -167,8 +167,8 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            spacial_readme = ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH)
-            zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, spacial_readme)
+            readme = ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH)
+            zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
             zip_file.write(
                 project.output_spatial_metadata_file_path, computed_file.metadata_file_name
             )
