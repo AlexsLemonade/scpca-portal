@@ -31,7 +31,8 @@ See the [Downloadable files](https://scpca.readthedocs.io/en/latest/download_fil
 
 ## Usage
 
-For instructions on using the RDS files, please see [FAQ: How do I use the provided HDF5 files in Python?](https://scpca.readthedocs.io/en/latest/faq.html#how-do-i-use-the-provided-HDF5-files-in-python)
+For instructions on using the HDF5 files, please see [FAQ: How do I use the provided HDF5 files in Python?](https://scpca.readthedocs.io/en/latest/faq.html#how-do-i-use-the-provided-HDF5-files-in-python)
+For more information on working with the processed `AnnData` objects, see [`Getting started with an ScPCA dataset`](https://scpca.readthedocs.io/en/latest/getting_started.html).
 
 ## Contact
 
