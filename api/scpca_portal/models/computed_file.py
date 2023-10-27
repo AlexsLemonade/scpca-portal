@@ -334,14 +334,15 @@ class ComputedFile(TimestampedModel):
         if self.s3_bucket and self.s3_key:
             # Append the download date to the filename on download.
             date = datetime.today().strftime(DATE_FORMAT)
-            filename = f"{self.s3_key}_{date}"
+            filename, extension = self.s3_key.split(".")
+            new_filename = f"{filename}_{date}.{extension}"
 
             return s3.generate_presigned_url(
                 ClientMethod="get_object",
                 Params={
                     "Bucket": self.s3_bucket,
                     "Key": self.s3_key,
-                    "ResponseContentDisposition": f"attachment; filename = {filename}",
+                    "ResponseContentDisposition": f"attachment; filename = {new_filename}",
                 },
                 ExpiresIn=(60 * 60 * 24 * 7),  # 7 days in seconds.
             )
