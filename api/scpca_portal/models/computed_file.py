@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -11,6 +12,8 @@ from botocore.client import Config
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import TimestampedModel
+
+DATE_FORMAT = "%Y-%M-%d"
 
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
@@ -324,9 +327,17 @@ class ComputedFile(TimestampedModel):
     def create_download_url(self):
         """Creates a temporary URL from which the file can be downloaded."""
         if self.s3_bucket and self.s3_key:
+            # Append the download date to the filename on download.
+            date = datetime.today().strftime(DATE_FORMAT)
+            filename = f"{self.s3_key}_{date}"
+
             return s3.generate_presigned_url(
                 ClientMethod="get_object",
-                Params={"Bucket": self.s3_bucket, "Key": self.s3_key},
+                Params={
+                    "Bucket": self.s3_bucket,
+                    "Key": self.s3_key,
+                    "ResponseContentDisposition": f"attachment; filename = {filename}",
+                },
                 ExpiresIn=(60 * 60 * 24 * 7),  # 7 days in seconds.
             )
 
