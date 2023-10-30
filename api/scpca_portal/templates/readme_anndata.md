@@ -16,7 +16,7 @@ The files associated with each library are (example shown for a library with ID 
 - A processed counts file: `SCPCL000000_processed_rna.hdf5`,
 - A quality control report: `SCPCL000000_qc.html`
 
-Also included in each download is a `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
+Also included in each download is `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
 Gene expression files, available as HDF5 files containing an `AnnData` object, house the expression data, cell and gene metrics, and associated metadata (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html) for more information).
 
@@ -40,8 +40,8 @@ If you identify issues with this download, please [file an issue on GitHub.](htt
 
 ## Citing
 
-To cite data from {project_accession}, please see the citation information at [{project_accession} page.]({project_url})
+To cite data from {project_accession}, please see the citation information at [{project_accession} page]({project_url}).
 
 ## Terms of Use
 
-In using these data, you agree to our [Terms of Use.](https://scpca.alexslemonade.org/terms-of-use)
+In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade.org/terms-of-use).
