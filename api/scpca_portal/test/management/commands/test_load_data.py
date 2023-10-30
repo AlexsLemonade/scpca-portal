@@ -160,9 +160,9 @@ class TestLoadData(TestCase):
         self.assertEqual(project.publications.count(), 2)
         publication, publication2 = project.publications.all()
         self.assertEqual(publication.doi, "{doi 1}")
-        self.assertEqual(publication.citation, "{formatted citation 1}")
+        self.assertEqual(publication.citation, "<{formatted citation 1}>")
         self.assertEqual(publication2.doi, "{doi 2}")
-        self.assertEqual(publication2.citation, '"{formatted citation 2}"')
+        self.assertEqual(publication2.citation, "<{formatted citation 2}>")
 
         expected_keys = [
             "scpca_sample_id",
