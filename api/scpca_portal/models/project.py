@@ -8,7 +8,7 @@ from typing import Dict, List
 
 from django.db import models
 
-from scpca_portal import common
+from scpca_portal import common, utils
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -16,7 +16,6 @@ from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
-from scpca_portal import utils
 
 logger = logging.getLogger()
 
