@@ -12,9 +12,11 @@ from scpca_portal import common
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
+from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
+from scpca_portal import utils
 
 logger = logging.getLogger()
 
@@ -48,6 +50,7 @@ class Project(TimestampedModel):
     unavailable_samples_count = models.PositiveIntegerField(default=0)
 
     contacts = models.ManyToManyField(Contact)
+    external_accessions = models.ManyToManyField(ExternalAccession)
     publications = models.ManyToManyField(Publication)
 
     def __str__(self):
@@ -257,10 +260,10 @@ class Project(TimestampedModel):
 
         return combined_metadata, multiplexed_sample_mapping
 
-    def add_contacts(self, contact_emails, contact_names):
+    def add_contacts(self, contact_email, contact_name):
         """Creates and adds project contacts."""
-        emails = contact_emails.split(common.CSV_MULTI_VALUE_DELIMITER)
-        names = contact_names.split(common.CSV_MULTI_VALUE_DELIMITER)
+        emails = contact_email.split(common.CSV_MULTI_VALUE_DELIMITER)
+        names = contact_name.split(common.CSV_MULTI_VALUE_DELIMITER)
 
         if len(emails) != len(names):
             logger.error("Unable to add ambiguous contacts.")
@@ -277,12 +280,34 @@ class Project(TimestampedModel):
 
             self.contacts.add(contact)
 
-    def add_publications(self, citations, citation_dois):
-        """Creates and adds project publications."""
-        citations = citations.split(common.CSV_MULTI_VALUE_DELIMITER)
-        dois = citation_dois.split(common.CSV_MULTI_VALUE_DELIMITER)
+    def add_external_accessions(
+        self, external_accession, external_accession_url, external_accession_raw
+    ):
+        """Creates and adds project external accessions."""
+        accessions = external_accession.split(common.CSV_MULTI_VALUE_DELIMITER)
+        urls = external_accession_url.split(common.CSV_MULTI_VALUE_DELIMITER)
+        accessions_raw = external_accession_raw.split(common.CSV_MULTI_VALUE_DELIMITER)
 
-        if len(citations) != len(dois):
+        if len(set((len(accessions), len(urls), len(accessions_raw)))) != 1:
+            logger.error("Unable to add ambiguous external accessions.")
+            return
+
+        for idx, accession in enumerate(accessions):
+            external_accession, _ = ExternalAccession.objects.get_or_create(
+                accession=accession.strip()
+            )
+            external_accession.url = urls[idx].strip()
+            external_accession.has_raw = utils.boolean_from_string(accessions_raw[idx].strip())
+            external_accession.save()
+
+            self.external_accessions.add(external_accession)
+
+    def add_publications(self, citation, citation_doi):
+        """Creates and adds project publications."""
+        citation = citation.split(common.CSV_MULTI_VALUE_DELIMITER)
+        dois = citation_doi.split(common.CSV_MULTI_VALUE_DELIMITER)
+
+        if len(citation) != len(dois):
             logger.error("Unable to add ambiguous publications.")
             return
 
@@ -291,7 +316,7 @@ class Project(TimestampedModel):
                 continue
 
             publication, _ = Publication.objects.get_or_create(doi=doi.strip())
-            publication.citation = citations[idx].strip()
+            publication.citation = citation[idx].strip()
             publication.submitter_id = self.pi_name
             publication.save()
 

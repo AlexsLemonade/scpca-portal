@@ -43,6 +43,16 @@ class ContactSerializer(serializers.ModelSerializer):
         )
 
 
+class ExternalAccessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = (
+            "accession",
+            "has_raw",
+            "url",
+        )
+
+
 class PublicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Publication
@@ -78,6 +88,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "diagnoses",
             "disease_timings",
             "downloadable_sample_count",
+            "external_accessions",
             "has_bulk_rna_seq",
             "has_cite_seq_data",
             "has_multiplexed_data",
@@ -103,6 +114,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     # but we want these to always be included.
     computed_files = ComputedFileSerializer(read_only=True, many=True)
     contacts = ContactSerializer(read_only=True, many=True)
+    external_accessions = ExternalAccessionSerializer(read_only=True, many=True)
     publications = PublicationSerializer(read_only=True, many=True)
     samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
     summaries = ProjectSummarySerializer(many=True, read_only=True)

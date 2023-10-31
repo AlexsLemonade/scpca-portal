@@ -195,6 +195,11 @@ def load_data_from_s3(
         project.save()
 
         project.add_contacts(project_data["contact_email"], project_data["contact_name"])
+        project.add_external_accessions(
+            project_data["external_accession"],
+            project_data["external_accession_url"],
+            project_data["external_accession_raw"],
+        )
         project.add_publications(project_data["citation"], project_data["citation_doi"])
 
         if project.scpca_id not in os.listdir(common.INPUT_DATA_DIR):
