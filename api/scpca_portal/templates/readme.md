@@ -34,9 +34,28 @@ For instructions on using the RDS files, please see [FAQ: How do I use the provi
 
 If you identify issues with this download, please [file an issue on GitHub.](https://github.com/AlexsLemonade/scpca-portal/issues/new) If you would prefer to report issues via e-mail, please contact us at [scpca@ccdatalab.org](mailto:scpca@ccdatalab.org).
 
-## Citing
+## Citation
 
-To cite data from {project_accession}, please see the citation information at [{project_accession} page]({project_url}).
+You must cite the data submitter using language provided as part of the project abstract (as applicable), the publication listed for the project (as applicable), or both, and the ScPCA Portal using the language below.
+For more information, please see [the How to Cite section of our documentation](https://scpca.readthedocs.io/en/latest/citation.html).
+
+### Citing this project
+
+To cite data from {project_accession}, please see the project abstract and publication information at [{project_accession} page.]({project_url})
+
+### Citing the ScPCA Portal
+
+The date you downloaded this data is included in the name of the top-most directory of your download for your convenience.
+Use this date to populate the access date below.
+
+#### APA Format
+
+Alex's Lemonade Stand Foundation Childhood Cancer Data Lab. (n.d.). The Single-cell Pediatric Cancer Atlas Portal. Retrieved (insert access date), from https://scpca.alexslemonade.org/
+
+#### MLA Format
+
+The Single-Cell Pediatric Cancer Atlas Portal, Alex’s Lemonade Stand Foundation Childhood Cancer Data Lab, https://scpca.alexslemonade.org/. Accessed (insert access date).
+
 
 ## Terms of Use
 
