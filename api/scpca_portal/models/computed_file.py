@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -81,12 +80,11 @@ class ComputedFile(TimestampedModel):
     def __str__(self):
         return f"Computed file for '{self.project or self.sample}'"
 
-    @classmethod
-    def get_readme_contents(cls, readme: str) -> str:
-        with open(readme, "r") as readme_file:
-            date = datetime.today().strftime(DATE_FORMAT)
-            contents = f"Generated on: {date}\n\n{readme_file.read()}"
-            return contents
+    @staticmethod
+    def get_readme_contents(readme_path: str) -> str:
+        with open(readme_path, "r") as readme_file:
+            date = utils.get_today_string()
+            return f"Generated on: {date}\n\n{readme_file.read()}"
 
     @classmethod
     def get_project_multiplexed_file(cls, project, sample_to_file_mapping, workflow_versions):
@@ -101,8 +99,10 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            readme = ComputedFile.get_readme_contents(ComputedFile.README_MULTIPLEXED_FILE_PATH)
-            zip_file.writestr(ComputedFile.README_MULTIPLEXED_FILE_NAME, readme)
+            zip_file.writestr(
+                ComputedFile.OUTPUT_README_FILE_NAME,
+                ComputedFile.get_readme_contents(ComputedFile.README_MULTIPLEXED_FILE_PATH),
+            )
             zip_file.write(
                 project.output_multiplexed_metadata_file_path, computed_file.metadata_file_name
             )
@@ -134,8 +134,10 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            readme = ComputedFile.get_readme_contents(ComputedFile.README_FILE_PATH)
-            zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
+            zip_file.writestr(
+                ComputedFile.OUTPUT_README_FILE_NAME,
+                ComputedFile.get_readme_contents(ComputedFile.README_FILE_PATH),
+            )
             zip_file.write(
                 project.output_single_cell_metadata_file_path, computed_file.metadata_file_name
             )
@@ -167,8 +169,10 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            readme = ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH)
-            zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
+            zip_file.writestr(
+                ComputedFile.OUTPUT_README_FILE_NAME,
+                ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH),
+            )
             zip_file.write(
                 project.output_spatial_metadata_file_path, computed_file.metadata_file_name
             )
@@ -209,8 +213,10 @@ class ComputedFile(TimestampedModel):
 
         if not os.path.exists(computed_file.zip_file_path):
             with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-                readme = ComputedFile.get_readme_contents(ComputedFile.README_MULTIPLEXED_FILE_PATH)
-                zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
+                zip_file.writestr(
+                    ComputedFile.OUTPUT_README_FILE_NAME,
+                    ComputedFile.get_readme_contents(ComputedFile.README_MULTIPLEXED_FILE_PATH),
+                )
                 zip_file.write(
                     sample.output_multiplexed_metadata_file_path,
                     ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
@@ -238,8 +244,10 @@ class ComputedFile(TimestampedModel):
 
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            readme = ComputedFile.get_readme_contents(ComputedFile.README_FILE_PATH)
-            zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
+            zip_file.writestr(
+                ComputedFile.OUTPUT_README_FILE_NAME,
+                ComputedFile.get_readme_contents(ComputedFile.README_FILE_PATH),
+            )
             zip_file.write(
                 sample.output_single_cell_metadata_file_path,
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
@@ -279,8 +287,10 @@ class ComputedFile(TimestampedModel):
 
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            readme = ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH)
-            zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
+            zip_file.writestr(
+                ComputedFile.OUTPUT_README_FILE_NAME,
+                ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH),
+            )
             zip_file.write(
                 sample.output_spatial_metadata_file_path,
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME,
@@ -333,18 +343,17 @@ class ComputedFile(TimestampedModel):
         """Creates a temporary URL from which the file can be downloaded."""
         if self.s3_bucket and self.s3_key:
             # Append the download date to the filename on download.
-            date = datetime.today().strftime(DATE_FORMAT)
-            filename, extension = self.s3_key.split(".")
-            new_filename = f"{filename}_{date}.{extension}"
+            date = utils.get_today_string()
+            filename, ext = os.path.splitext(self.s3_key)
 
             return s3.generate_presigned_url(
                 ClientMethod="get_object",
                 Params={
                     "Bucket": self.s3_bucket,
                     "Key": self.s3_key,
-                    "ResponseContentDisposition": f"attachment; filename = {new_filename}",
+                    "ResponseContentDisposition": f"attachment; filename = {filename}_{date}.{ext}",
                 },
-                ExpiresIn=(60 * 60 * 24 * 7),  # 7 days in seconds.
+                ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
             )
 
     def delete_s3_file(self, force=False):
