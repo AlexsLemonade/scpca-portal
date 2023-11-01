@@ -101,8 +101,10 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            readme = ComputedFile.get_readme_contents(ComputedFile.README_MULTIPLEXED_FILE_PATH)
-            zip_file.writestr(ComputedFile.README_MULTIPLEXED_FILE_NAME, readme)
+            zip_file.writestr(
+                ComputedFile.OUTPUT_README_FILE_NAME,
+                ComputedFile.get_readme_contents(ComputedFile.README_MULTIPLEXED_FILE_PATH),
+            )
             zip_file.write(
                 project.output_multiplexed_metadata_file_path, computed_file.metadata_file_name
             )
@@ -134,8 +136,10 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            readme = ComputedFile.get_readme_contents(ComputedFile.README_FILE_PATH)
-            zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
+            zip_file.writestr(
+                ComputedFile.OUTPUT_README_FILE_NAME,
+                ComputedFile.get_readme_contents(ComputedFile.README_FILE_PATH),
+            )
             zip_file.write(
                 project.output_single_cell_metadata_file_path, computed_file.metadata_file_name
             )
@@ -167,8 +171,10 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            readme = ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH)
-            zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
+            zip_file.writestr(
+                ComputedFile.OUTPUT_README_FILE_NAME,
+                ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH),
+            )
             zip_file.write(
                 project.output_spatial_metadata_file_path, computed_file.metadata_file_name
             )
@@ -209,8 +215,10 @@ class ComputedFile(TimestampedModel):
 
         if not os.path.exists(computed_file.zip_file_path):
             with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-                readme = ComputedFile.get_readme_contents(ComputedFile.README_MULTIPLEXED_FILE_PATH)
-                zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
+                zip_file.writestr(
+                    ComputedFile.OUTPUT_README_FILE_NAME,
+                    ComputedFile.get_readme_contents(ComputedFile.README_MULTIPLEXED_FILE_PATH),
+                )
                 zip_file.write(
                     sample.output_multiplexed_metadata_file_path,
                     ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
@@ -238,8 +246,10 @@ class ComputedFile(TimestampedModel):
 
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            readme = ComputedFile.get_readme_contents(ComputedFile.README_FILE_PATH)
-            zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
+            zip_file.writestr(
+                ComputedFile.OUTPUT_README_FILE_NAME,
+                ComputedFile.get_readme_contents(ComputedFile.README_FILE_PATH),
+            )
             zip_file.write(
                 sample.output_single_cell_metadata_file_path,
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
@@ -279,8 +289,10 @@ class ComputedFile(TimestampedModel):
 
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            readme = ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH)
-            zip_file.writestr(ComputedFile.OUTPUT_README_FILE_NAME, readme)
+            zip_file.writestr(
+                ComputedFile.OUTPUT_README_FILE_NAME,
+                ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH),
+            )
             zip_file.write(
                 sample.output_spatial_metadata_file_path,
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME,
