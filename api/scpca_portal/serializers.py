@@ -11,7 +11,15 @@ The one exception is the ProjectSerializer because it will always include its su
 
 from rest_framework import serializers
 
-from scpca_portal.models import ComputedFile, Contact, Project, ProjectSummary, Publication, Sample
+from scpca_portal.models import (
+    ComputedFile,
+    Contact,
+    ExternalAccession,
+    Project,
+    ProjectSummary,
+    Publication,
+    Sample,
+)
 
 
 class ComputedFileSerializer(serializers.ModelSerializer):
@@ -45,7 +53,7 @@ class ContactSerializer(serializers.ModelSerializer):
 
 class ExternalAccessionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Contact
+        model = ExternalAccession
         fields = (
             "accession",
             "has_raw",
