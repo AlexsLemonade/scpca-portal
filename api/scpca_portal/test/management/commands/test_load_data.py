@@ -156,7 +156,17 @@ class TestLoadData(TestCase):
         self.assertEqual(contact2.name, "{contact 2}")
         self.assertEqual(contact2.email, "{email contact 2}")
 
-        # Check citations.
+        # Check external accessions.
+        self.assertEqual(project.external_accessions.count(), 2)
+        accession1, accession2 = project.external_accessions.all()
+        self.assertEqual(accession1.accession, "{SRA project accession}")
+        self.assertTrue(accession1.has_raw)
+        self.assertEqual(accession1.url, "<{SRA Run Selector URL}>")
+        self.assertEqual(accession2.accession, "{GEO series accession}")
+        self.assertFalse(accession2.has_raw)
+        self.assertEqual(accession2.url, "<{GEO Series URL}>")
+
+        # Check publications.
         self.assertEqual(project.publications.count(), 2)
         publication, publication2 = project.publications.all()
         self.assertEqual(publication.doi, "{doi 1}")
