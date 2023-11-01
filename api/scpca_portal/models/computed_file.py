@@ -12,8 +12,6 @@ from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import TimestampedModel
 
-DATE_FORMAT = "%Y-%M-%d"
-
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
