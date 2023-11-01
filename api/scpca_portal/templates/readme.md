@@ -45,7 +45,7 @@ To cite data from {project_accession}, please see the project abstract and publi
 
 ### Citing the ScPCA Portal
 
-The date you downloaded this data is included in the name of the top-most directory of your download for your convenience.
+The date you accessed and downloaded this data is included in the name of the top-most directory of your download for your convenience.
 Use this date to populate the access date below.
 
 #### APA Format
