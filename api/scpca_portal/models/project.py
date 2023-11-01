@@ -303,10 +303,10 @@ class Project(TimestampedModel):
 
     def add_publications(self, citation, citation_doi):
         """Creates and adds project publications."""
-        citation = citation.split(common.CSV_MULTI_VALUE_DELIMITER)
+        citations = citation.split(common.CSV_MULTI_VALUE_DELIMITER)
         dois = citation_doi.split(common.CSV_MULTI_VALUE_DELIMITER)
 
-        if len(citation) != len(dois):
+        if len(citations) != len(dois):
             logger.error("Unable to add ambiguous publications.")
             return
 
@@ -315,7 +315,7 @@ class Project(TimestampedModel):
                 continue
 
             publication, _ = Publication.objects.get_or_create(doi=doi.strip())
-            publication.citation = citation[idx].strip()
+            publication.citation = citations[idx].strip()
             publication.submitter_id = self.pi_name
             publication.save()
 
