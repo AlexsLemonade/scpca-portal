@@ -47,4 +47,3 @@ To cite data from {project_accession}, please see the citation information at [{
 ## Terms of Use
 
 In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade.org/terms-of-use).
-stable
