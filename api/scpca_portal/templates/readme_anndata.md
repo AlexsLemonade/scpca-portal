@@ -10,7 +10,7 @@ This download includes single-cell or single-nuclei gene expression files and as
 
 Each sample folder (indicated by the `SCPCS` prefix) contains the files for all libraries (`SCPCL` prefix) derived from that biological sample.
 Most samples only have one library that has been sequenced.
-See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/en/latest/faq.html#what-is-the-difference-between-samples-and-libraries) for more information.
+See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/en/stable/faq.html#what-is-the-difference-between-samples-and-libraries) for more information.
 
 The files associated with each library are (example shown for a library with ID `SCPCL000000`):
 - An unfiltered counts file: `SCPCL000000_unfiltered_rna.hdf5`,
@@ -20,7 +20,7 @@ The files associated with each library are (example shown for a library with ID 
 
 Also included in each download is `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
-Gene expression files, available as HDF5 files containing an `AnnData` object, house the expression data, cell and gene metrics, and associated metadata (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/latest/sce_file_contents.html) for more information).
+Gene expression files, available as HDF5 files containing an `AnnData` object, house the expression data, cell and gene metrics, and associated metadata (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
 
 In the case of multi-modal data like CITE-seq (ADT tags), the ADT expression matrices will be provided in separate files corresponding to the same three stages of data processing: an unfiltered object (`_unfiltered_adt.hdf5`), a filtered object (`_filtered_adt.hdf5`), and a processed object (`_processed_adt.hdf5`).
 These files will only contain ADT expression data and not RNA expression data.
@@ -29,12 +29,12 @@ If a project contains bulk RNA-seq data, two tab-separated value files, `bulk_qu
 The `bulk_quant.tsv` file contains a gene by sample matrix (each row a gene, each column a sample) containing raw gene expression counts quantified by Salmon.
 The `bulk_metadata.tsv` file contains associated metadata for all samples with bulk RNA-seq data.
 
-See the [Downloadable files](https://scpca.readthedocs.io/en/latest/download_files.html) section in our documentation for more detailed information on files included in the download.
+See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_files.html) section in our documentation for more detailed information on files included in the download.
 
 ## Usage
 
-For instructions on using the HDF5 files, please see [FAQ: How do I use the provided HDF5 files in Python?](https://scpca.readthedocs.io/en/latest/faq.html#how-do-i-use-the-provided-HDF5-files-in-python)
-For more information on working with the processed `AnnData` objects, see [`Getting started with an ScPCA dataset`](https://scpca.readthedocs.io/en/latest/getting_started.html).
+For instructions on using the HDF5 files, please see [FAQ: How do I use the provided HDF5 files in Python?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-HDF5-files-in-python)
+For more information on working with the processed `AnnData` objects, see [`Getting started with an ScPCA dataset`](https://scpca.readthedocs.io/en/stable/getting_started.html).
 
 ## Contact
 
@@ -47,3 +47,4 @@ To cite data from {project_accession}, please see the citation information at [{
 ## Terms of Use
 
 In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade.org/terms-of-use).
+stable

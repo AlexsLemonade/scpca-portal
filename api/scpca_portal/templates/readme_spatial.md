@@ -9,7 +9,7 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 This download includes gene expression data from libraries processed using spatial transcriptomics and associated metadata for samples from project [{project_accession}]({project_url}) in the ScPCA portal.
 
 For all spatial transcriptomics libraries (indicated by the `SCPCL` prefix) , a `SCPCL000000_spatial` folder will be nested inside the corresponding sample folder (`SCPCS` prefix) in the download.
-See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/en/latest/faq.html#what-is-the-difference-between-samples-and-libraries) for more information.
+See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/en/stable/faq.html#what-is-the-difference-between-samples-and-libraries) for more information.
 
 Inside the `SCPCL000000_spatial` folder will be the following folders and files:
 
@@ -21,9 +21,9 @@ Inside the `SCPCL000000_spatial` folder will be the following folders and files:
 
 Also included in each download is a `spatial_metadata.tsv`, a tab separated values table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
-See the [Downloadable files](https://scpca.readthedocs.io/en/latest/download_files.html#spatial-transcriptomics-libraries) section in our documentation for more detailed information on files included in the download for spatial transcriptomics libraries.
+See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_files.html#spatial-transcriptomics-libraries) section in our documentation for more detailed information on files included in the download for spatial transcriptomics libraries.
 
-For more information on how the spatial libraries were processed, see the [Spatial Transcriptomics section in the Processing information](https://scpca.readthedocs.io/en/latest/processing_information.html#spatial-transcriptomics) page of the ScPCA Portal documentation.
+For more information on how the spatial libraries were processed, see the [Spatial Transcriptomics section in the Processing information](https://scpca.readthedocs.io/en/stable/processing_information.html#spatial-transcriptomics) page of the ScPCA Portal documentation.
 
 ## Contact
 
