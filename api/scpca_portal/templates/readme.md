@@ -38,7 +38,10 @@ If you identify issues with this download, please [file an issue on GitHub.](htt
 
 ## Citation
 
-You must cite the data submitter using language provided as part of the project abstract (as applicable), the publication listed for the project (as applicable), or both, and the ScPCA Portal using the language below.
+If you use these data in your research, you must cite:
+* The data submitter using language provided as part of the project abstract (as applicable), the publication listed for the project (as applicable), or both.
+* The ScPCA Portal using the language below.
+
 For more information, please see [the How to Cite section of our documentation](https://scpca.readthedocs.io/en/stable/citation.html).
 
 ### Citing this project
