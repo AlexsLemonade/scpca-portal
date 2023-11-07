@@ -64,6 +64,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
+            "--cleanup-input-data", action=BooleanOptionalAction, default=settings.PRODUCTION
+        )
+        parser.add_argument(
             "--cleanup-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
         parser.add_argument("--reload-all", action="store_true")
@@ -75,6 +78,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         load_data_from_s3(
+            cleanup_input_data=options["cleanup_input_data"],
             cleanup_output_data=options["cleanup_output_data"],
             reload_all=options["reload_all"],
             reload_existing=options["reload_existing"],
@@ -99,6 +103,7 @@ def cleanup_output_data_dir():
 
 def load_data_from_s3(
     allowed_submitters: set = ALLOWED_SUBMITTERS,
+    cleanup_input_data: bool = False,
     cleanup_output_data: bool = False,
     input_bucket_name: str = "scpca-portal-inputs",
     reload_all: bool = False,
@@ -220,6 +225,10 @@ def load_data_from_s3(
                     settings.AWS_S3_BUCKET_NAME,
                     computed_file.s3_key,
                 )
+
+        if cleanup_input_data:
+            logger.info(f"Cleaning up '{project}' input data")
+            shutil.rmtree(os.path.join(common.INPUT_DATA_DIR, project.scpca_id), ignore_errors=True)
 
         if cleanup_output_data:
             logger.info(f"Cleaning up '{project}' output data")
