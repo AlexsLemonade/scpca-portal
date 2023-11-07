@@ -145,6 +145,12 @@ If you would like to purge a project and remove its files from the S3 bucket, yo
 sportal manage-api purge_project --scpca-id SCPCP000001 --delete-from-s3
 ```
 
+The `--cleanup-input-data` flag can help you control the projects input data size. If flag is set the
+input data cleanup process will be run for each project right after its processing is over.
+```
+sportal load-data --cleanup-input-data --reload-all --update-s3
+```
+
 The `--cleanup-output-data` flag can help you control the projects output data size. If flag is set the
 output (no longer needed) data cleanup process will be run for each project right after its processing is over.
 ```
