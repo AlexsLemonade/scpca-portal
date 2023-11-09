@@ -25,6 +25,6 @@ def join_workflow_versions(workflow_versions):
     return ", ".join(sorted(set(workflow_versions)))
 
 
-def get_today_string(format: str = "%Y-%M-%d"):
+def get_today_string(format: str = "%Y-%m-%d"):
     """Returns today's date formatted. Defaults to ISO 8601."""
     return datetime.today().strftime(format)
