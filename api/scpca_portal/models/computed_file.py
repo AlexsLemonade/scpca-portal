@@ -12,8 +12,6 @@ from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import TimestampedModel
 
-DATE_FORMAT = "%Y-%M-%d"
-
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
@@ -80,12 +78,6 @@ class ComputedFile(TimestampedModel):
     def __str__(self):
         return f"Computed file for '{self.project or self.sample}'"
 
-    @staticmethod
-    def get_readme_contents(readme_path: str) -> str:
-        with open(readme_path, "r") as readme_file:
-            date = utils.get_today_string()
-            return f"Generated on: {date}\n\n{readme_file.read()}"
-
     @classmethod
     def get_project_multiplexed_file(cls, project, sample_to_file_mapping, workflow_versions):
         """Prepares a ready for saving single data file of project's combined multiplexed data."""
@@ -99,9 +91,9 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.writestr(
+            zip_file.write(
+                ComputedFile.README_MULTIPLEXED_FILE_PATH,
                 ComputedFile.OUTPUT_README_FILE_NAME,
-                ComputedFile.get_readme_contents(ComputedFile.README_MULTIPLEXED_FILE_PATH),
             )
             zip_file.write(
                 project.output_multiplexed_metadata_file_path, computed_file.metadata_file_name
@@ -134,9 +126,9 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.writestr(
+            zip_file.write(
+                ComputedFile.README_FILE_PATH,
                 ComputedFile.OUTPUT_README_FILE_NAME,
-                ComputedFile.get_readme_contents(ComputedFile.README_FILE_PATH),
             )
             zip_file.write(
                 project.output_single_cell_metadata_file_path, computed_file.metadata_file_name
@@ -169,9 +161,9 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.writestr(
+            zip_file.write(
+                ComputedFile.README_SPATIAL_FILE_PATH,
                 ComputedFile.OUTPUT_README_FILE_NAME,
-                ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH),
             )
             zip_file.write(
                 project.output_spatial_metadata_file_path, computed_file.metadata_file_name
@@ -213,9 +205,9 @@ class ComputedFile(TimestampedModel):
 
         if not os.path.exists(computed_file.zip_file_path):
             with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-                zip_file.writestr(
+                zip_file.write(
+                    ComputedFile.README_MULTIPLEXED_FILE_PATH,
                     ComputedFile.OUTPUT_README_FILE_NAME,
-                    ComputedFile.get_readme_contents(ComputedFile.README_MULTIPLEXED_FILE_PATH),
                 )
                 zip_file.write(
                     sample.output_multiplexed_metadata_file_path,
@@ -244,9 +236,9 @@ class ComputedFile(TimestampedModel):
 
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.writestr(
+            zip_file.write(
+                ComputedFile.README_FILE_PATH,
                 ComputedFile.OUTPUT_README_FILE_NAME,
-                ComputedFile.get_readme_contents(ComputedFile.README_FILE_PATH),
             )
             zip_file.write(
                 sample.output_single_cell_metadata_file_path,
@@ -287,9 +279,9 @@ class ComputedFile(TimestampedModel):
 
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.writestr(
+            zip_file.write(
+                ComputedFile.README_SPATIAL_FILE_PATH,
                 ComputedFile.OUTPUT_README_FILE_NAME,
-                ComputedFile.get_readme_contents(ComputedFile.README_SPATIAL_FILE_PATH),
             )
             zip_file.write(
                 sample.output_spatial_metadata_file_path,
