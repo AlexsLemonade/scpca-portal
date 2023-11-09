@@ -36,6 +36,10 @@ For instructions on using the RDS files, please see [FAQ: How do I use the provi
 
 For information on how to use the demultiplexing results that the filtered data files contains, see the ["Getting started" section about multiplex samples](https://scpca.readthedocs.io/en/stable/getting_started.html#special-considerations-for-multiplexed-samples).
 
+## CHANGELOG
+
+A summary of changes impacting downloads from the ScPCA Portal is available in [the CHANGELOG section of our documentation](https://scpca.readthedocs.io/en/stable/CHANGELOG.html).
+
 
 ## Contact
 
