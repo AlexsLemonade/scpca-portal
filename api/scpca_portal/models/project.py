@@ -475,7 +475,11 @@ class Project(TimestampedModel):
             readme_template = readme_template_file.read()
         with open(ComputedFile.README_FILE_PATH, "w") as readme_file:
             readme_file.write(
-                readme_template.format(project_accession=self.scpca_id, project_url=self.url)
+                readme_template.format(
+                    project_accession=self.scpca_id,
+                    project_url=self.url,
+                    date=utils.get_today_string(),
+                )
             )
 
     def create_multiplexed_readme_file(self):
@@ -484,7 +488,11 @@ class Project(TimestampedModel):
             readme_template = readme_template_file.read()
         with open(ComputedFile.README_MULTIPLEXED_FILE_PATH, "w") as readme_file:
             readme_file.write(
-                readme_template.format(project_accession=self.scpca_id, project_url=self.url)
+                readme_template.format(
+                    project_accession=self.scpca_id,
+                    project_url=self.url,
+                    date=utils.get_today_string(),
+                )
             )
 
     def create_spatial_readme_file(self):
@@ -493,7 +501,11 @@ class Project(TimestampedModel):
             readme_template = readme_template_file.read()
         with open(ComputedFile.README_SPATIAL_FILE_PATH, "w") as readme_file:
             readme_file.write(
-                readme_template.format(project_accession=self.scpca_id, project_url=self.url)
+                readme_template.format(
+                    project_accession=self.scpca_id,
+                    project_url=self.url,
+                    date=utils.get_today_string(),
+                )
             )
 
     def get_bulk_rna_seq_sample_ids(self):
