@@ -8,7 +8,7 @@ export const ProjectExternalAccessionsDetail = ({ inline = false, externalAccess
   if (inline) {
     return externalAccessions.map(({ accession, url }, i) => (
       <React.Fragment key={accession}>
-        {i != 0 && ', '}
+        {i !== 0 && ', '}
         <Link label={accession} href={url} />
       </React.Fragment>
     ))
