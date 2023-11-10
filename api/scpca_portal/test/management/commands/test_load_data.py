@@ -161,10 +161,10 @@ class TestLoadData(TestCase):
         accession1, accession2 = project.external_accessions.all()
         self.assertEqual(accession1.accession, "{SRA project accession}")
         self.assertTrue(accession1.has_raw)
-        self.assertEqual(accession1.url, "<{SRA Run Selector URL}>")
+        self.assertEqual(accession1.url, "{SRA Run Selector URL}")
         self.assertEqual(accession2.accession, "{GEO series accession}")
         self.assertFalse(accession2.has_raw)
-        self.assertEqual(accession2.url, "<{GEO Series URL}>")
+        self.assertEqual(accession2.url, "{GEO Series URL}")
 
         # Check publications.
         self.assertEqual(project.publications.count(), 2)
