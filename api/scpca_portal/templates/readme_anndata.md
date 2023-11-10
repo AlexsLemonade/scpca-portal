@@ -8,21 +8,22 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{project_accession}]({project_url}) in the ScPCA portal.
 
-This project includes multiplexed samples, where multiple biological samples have been combined into libraries using cellhashing or similar technologies.
-The data files are divided into folders named with an underscore-separated list of the sample ids (each with an `SCPCS` prefix) for each set of multiplexed samples.
-Each of these folders contains the files for all libraries (`SCPCL` prefix) derived from that set of samples.
-See the FAQ sections about [samples and libraries](https://scpca.readthedocs.io/en/stable/faq.html#what-is-the-difference-between-samples-and-libraries) and [multiplexed samples](https://scpca.readthedocs.io/en/stable/faq.html#what-is-a-multiplexed-sample) for more information.
+Each sample folder (indicated by the `SCPCS` prefix) contains the files for all libraries (`SCPCL` prefix) derived from that biological sample.
+Most samples only have one library that has been sequenced.
+See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/en/stable/faq.html#what-is-the-difference-between-samples-and-libraries) for more information.
 
 The files associated with each library are (example shown for a library with ID `SCPCL000000`):
-- An unfiltered counts file: `SCPCL000000_unfiltered.rds`,
-- A filtered counts file: `SCPCL000000_filtered.rds`,
-- A processed counts file: `SCPCL000000_processed.rds`,
+- An unfiltered counts file: `SCPCL000000_unfiltered_rna.hdf5`,
+- A filtered counts file: `SCPCL000000_filtered_rna.hdf5`,
+- A processed counts file: `SCPCL000000_processed_rna.hdf5`,
 - A quality control report: `SCPCL000000_qc.html`
 
-Also included in each download is a `single_cell_metadata.tsv`, a tab-separated table, with one row per sample/library pair and columns containing pertinent metadata corresponding to that sample and library.
+Also included in each download is `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
-Gene expression files, available as RDS files containing a `SingleCellExperiment` object, house the expression data, cell and gene metrics, associated metadata, and, in the case of multiplexed samples, data from the the cellhash assay (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
-Please note that the libraries derived from multiplexed samples are _not demultiplexed_, however, [results from demultiplexing algorithms](https://scpca.readthedocs.io/en/stable/sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries) are included in the `_filtered.rds` files.
+Gene expression files, available as HDF5 files containing an `AnnData` object, house the expression data, cell and gene metrics, and associated metadata (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
+
+In the case of multi-modal data like CITE-seq (ADT tags), the ADT expression matrices will be provided in separate files corresponding to the same three stages of data processing: an unfiltered object (`_unfiltered_adt.hdf5`), a filtered object (`_filtered_adt.hdf5`), and a processed object (`_processed_adt.hdf5`).
+These files will only contain ADT expression data and not RNA expression data.
 
 If a project contains bulk RNA-seq data, two tab-separated value files, `bulk_quant.tsv` and `bulk_metadata.tsv`, will be included in the download.
 The `bulk_quant.tsv` file contains a gene by sample matrix (each row a gene, each column a sample) containing raw gene expression counts quantified by Salmon.
@@ -32,14 +33,12 @@ See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_fil
 
 ## Usage
 
-For instructions on using the RDS files, please see [FAQ: How do I use the provided files in R?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-rds-files-in-r) or [FAQ: What if I want to use Python instead of R?](https://scpca.readthedocs.io/en/stable/faq.html#what-if-i-want-to-use-python-instead-of-r)
-
-For information on how to use the demultiplexing results that the filtered data files contains, see the ["Getting started" section about multiplex samples](https://scpca.readthedocs.io/en/stable/getting_started.html#special-considerations-for-multiplexed-samples).
+For instructions on using the HDF5 files, please see [FAQ: How do I use the provided HDF5 files in Python?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-HDF5-files-in-python)
+For more information on working with the processed `AnnData` objects, see [`Getting started with an ScPCA dataset`](https://scpca.readthedocs.io/en/stable/getting_started.html).
 
 ## CHANGELOG
 
 A summary of changes impacting downloads from the ScPCA Portal is available in [the CHANGELOG section of our documentation](https://scpca.readthedocs.io/en/stable/CHANGELOG.html).
-
 
 ## Contact
 
@@ -73,4 +72,4 @@ The Single-Cell Pediatric Cancer Atlas Portal, Alex’s Lemonade Stand Foundatio
 
 ## Terms of Use
 
-In using these data, you agree to our [Terms of Use.](https://scpca.alexslemonade.org/terms-of-use)
+In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade.org/terms-of-use).

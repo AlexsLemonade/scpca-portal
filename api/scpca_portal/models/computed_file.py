@@ -92,7 +92,8 @@ class ComputedFile(TimestampedModel):
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(
-                ComputedFile.README_MULTIPLEXED_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME
+                ComputedFile.README_MULTIPLEXED_FILE_PATH,
+                ComputedFile.OUTPUT_README_FILE_NAME,
             )
             zip_file.write(
                 project.output_multiplexed_metadata_file_path, computed_file.metadata_file_name
@@ -125,14 +126,17 @@ class ComputedFile(TimestampedModel):
         )
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME)
+            zip_file.write(
+                ComputedFile.README_FILE_PATH,
+                ComputedFile.OUTPUT_README_FILE_NAME,
+            )
             zip_file.write(
                 project.output_single_cell_metadata_file_path, computed_file.metadata_file_name
             )
 
             for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
-                    # Nest these under thier sample id.
+                    # Nest these under their sample id.
                     archive_path = os.path.join(sample_id, os.path.basename(file_path))
                     zip_file.write(file_path, archive_path)
 
@@ -158,7 +162,8 @@ class ComputedFile(TimestampedModel):
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(
-                ComputedFile.README_SPATIAL_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME
+                ComputedFile.README_SPATIAL_FILE_PATH,
+                ComputedFile.OUTPUT_README_FILE_NAME,
             )
             zip_file.write(
                 project.output_spatial_metadata_file_path, computed_file.metadata_file_name
@@ -201,7 +206,8 @@ class ComputedFile(TimestampedModel):
         if not os.path.exists(computed_file.zip_file_path):
             with ZipFile(computed_file.zip_file_path, "w") as zip_file:
                 zip_file.write(
-                    ComputedFile.README_MULTIPLEXED_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME
+                    ComputedFile.README_MULTIPLEXED_FILE_PATH,
+                    ComputedFile.OUTPUT_README_FILE_NAME,
                 )
                 zip_file.write(
                     sample.output_multiplexed_metadata_file_path,
@@ -230,7 +236,10 @@ class ComputedFile(TimestampedModel):
 
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(ComputedFile.README_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME)
+            zip_file.write(
+                ComputedFile.README_FILE_PATH,
+                ComputedFile.OUTPUT_README_FILE_NAME,
+            )
             zip_file.write(
                 sample.output_single_cell_metadata_file_path,
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
@@ -269,11 +278,12 @@ class ComputedFile(TimestampedModel):
         )
 
         file_paths = []
-        with ZipFile(computed_file.zip_file_path, "w") as zip_object:
-            zip_object.write(
-                ComputedFile.README_SPATIAL_FILE_PATH, ComputedFile.OUTPUT_README_FILE_NAME
+        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
+            zip_file.write(
+                ComputedFile.README_SPATIAL_FILE_PATH,
+                ComputedFile.OUTPUT_README_FILE_NAME,
             )
-            zip_object.write(
+            zip_file.write(
                 sample.output_spatial_metadata_file_path,
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME,
             )
@@ -286,7 +296,7 @@ class ComputedFile(TimestampedModel):
                     )
                 )
                 for item in library_path.rglob("*"):  # Add the entire directory contents.
-                    zip_object.write(item, item.relative_to(library_path.parent))
+                    zip_file.write(item, item.relative_to(library_path.parent))
                     file_paths.append(f"{Path(library_path, item.relative_to(library_path))}")
 
         computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
@@ -324,10 +334,18 @@ class ComputedFile(TimestampedModel):
     def create_download_url(self):
         """Creates a temporary URL from which the file can be downloaded."""
         if self.s3_bucket and self.s3_key:
+            # Append the download date to the filename on download.
+            date = utils.get_today_string()
+            filename, ext = os.path.splitext(self.s3_key)
+
             return s3.generate_presigned_url(
                 ClientMethod="get_object",
-                Params={"Bucket": self.s3_bucket, "Key": self.s3_key},
-                ExpiresIn=(60 * 60 * 24 * 7),  # 7 days in seconds.
+                Params={
+                    "Bucket": self.s3_bucket,
+                    "Key": self.s3_key,
+                    "ResponseContentDisposition": f"attachment; filename = {filename}_{date}.{ext}",
+                },
+                ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
             )
 
     def delete_s3_file(self, force=False):

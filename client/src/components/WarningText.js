@@ -6,9 +6,10 @@ import { Link } from 'components/Link'
 export const WarningText = ({
   lineBreak = true,
   link = '',
-  linkLable = '',
+  linkLabel = '',
   iconColor = 'status-warning',
   iconMargin = { right: 'medium' },
+  iconName = 'Warning',
   iconPad = { right: 'small' },
   iconSize = '16px',
   text = '',
@@ -21,11 +22,11 @@ export const WarningText = ({
       margin={{ top: 'small', bottom: 'medium' }}
     >
       <Box margin={iconMargin} pad={iconPad}>
-        <Icon color={iconColor} size={iconSize} name="Warning" />
+        <Icon color={iconColor} size={iconSize} name={iconName} />
       </Box>
       <Paragraph>
         {text} {lineBreak && <br />}
-        {link && <Link label={linkLable} href={link} />}
+        {link && <Link label={linkLabel} href={link} />}
         {children}
       </Paragraph>
     </Box>

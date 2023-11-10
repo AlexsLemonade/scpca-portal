@@ -25,6 +25,8 @@ class StatsViewSet(viewsets.ViewSet):
                 "cancer_types_count": cancer_types_queryset.count(),
                 "labs_count": Project.objects.values("pi_name").distinct().count(),
                 "projects_count": Project.objects.count(),
-                "samples_count": Sample.objects.filter(sample_computed_files__isnull=False).count(),
+                "samples_count": Sample.objects.filter(sample_computed_files__isnull=False)
+                .distinct()
+                .count(),
             }
         )

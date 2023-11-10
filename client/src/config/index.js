@@ -1,24 +1,24 @@
 export const config = {
   links: {
     what_downloading:
-      'https://scpca.readthedocs.io/en/latest/download_files.html',
+      'https://scpca.readthedocs.io/en/stable/download_files.html',
     what_downloading_project:
-      'https://scpca.readthedocs.io/en/latest/download_files.html#download-folder-structure-for-project-downloads',
+      'https://scpca.readthedocs.io/en/stable/download_files.html#download-folder-structure-for-project-downloads',
     what_downloading_sample:
-      'https://scpca.readthedocs.io/en/latest/download_files.html#download-folder-structure-for-individual-sample-downloads',
+      'https://scpca.readthedocs.io/en/stable/download_files.html#download-folder-structure-for-individual-sample-downloads',
     what_downloading_spatial:
-      'https://scpca.readthedocs.io/en/latest/download_files.html#spatial-transcriptomics-libraries',
+      'https://scpca.readthedocs.io/en/stable/download_files.html#spatial-transcriptomics-libraries',
     what_downloading_mulitplexed:
-      'https://scpca.readthedocs.io/en/latest/download_files.html#multiplexed-sample-libraries',
+      'https://scpca.readthedocs.io/en/stable/download_files.html#multiplexed-sample-libraries',
     what_est_demux_cell:
-      'https://scpca.readthedocs.io/en/latest/faq.html#what-are-estimated-demux-cell-counts',
+      'https://scpca.readthedocs.io/en/stable/faq.html#what-are-estimated-demux-cell-counts',
     how_processed:
-      'https://scpca.readthedocs.io/en/latest/processing_information.html',
+      'https://scpca.readthedocs.io/en/stable/processing_information.html',
     how_processed_multiplexed:
-      'https://scpca.readthedocs.io/en/latest/processing_information.html#multiplexed-libraries',
+      'https://scpca.readthedocs.io/en/stable/processing_information.html#multiplexed-libraries',
     donate: 'https://www.ccdatalab.org/donate-link',
     grants_program: 'https://www.alexslemonade.org/researchers-reviewers',
-    help: 'https://scpca.readthedocs.io/en/latest/',
+    help: 'https://scpca.readthedocs.io',
     contribute_hsform: 'https://share.hsforms.com/1Fs_Z94OzS7abnh5qEieOTA336z0',
     recruitment_hsform:
       'https://share.hsforms.com/19if2XeF2Rl2YkWxppHW-HQ336z0',

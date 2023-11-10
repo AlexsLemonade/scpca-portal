@@ -145,6 +145,12 @@ If you would like to purge a project and remove its files from the S3 bucket, yo
 sportal manage-api purge_project --scpca-id SCPCP000001 --delete-from-s3
 ```
 
+The `--cleanup-input-data` flag can help you control the projects input data size. If flag is set the
+input data cleanup process will be run for each project right after its processing is over.
+```
+sportal load-data --cleanup-input-data --reload-all --update-s3
+```
+
 The `--cleanup-output-data` flag can help you control the projects output data size. If flag is set the
 output (no longer needed) data cleanup process will be run for each project right after its processing is over.
 ```
@@ -159,6 +165,13 @@ This is to help prevent the S3 bucket data from accidentally becoming out of syn
 
 To run a command in production, there is a run_command.sh script that is created on the API instance.
 It passes any arguments through to the `manage.py`, so `./run_command.sh load_data --reload-all` will work nicely.
+
+The following code can be used to process projects one by one with a minimum disk space footprint:
+```
+for i in $(seq -f "%02g" 1 20); do
+    ./run_command.sh load_data --cleanup-input-data --cleanup-output-data --reload-existing --scpca-project-id SCPCP0000$i
+done
+```
 
 The `purge_project` command can be run in a similar fashion: `./run_command.sh purge_project --scpca-id SCPCP000001`
 

@@ -121,8 +121,8 @@ export default {
       light: '#cccccc'
     },
     brand: {
-      dark: 'alexs-deep-blue',
-      light: 'alexs-deep-blue'
+      dark: '#003595',
+      light: '#003595'
     },
     control: 'brand',
     'graph-0': 'brand',

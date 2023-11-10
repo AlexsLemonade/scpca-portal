@@ -1,3 +1,6 @@
+from datetime import date
+from unittest.mock import patch
+
 from django.test import TestCase
 
 from scpca_portal import utils
@@ -37,3 +40,10 @@ class TestJoinWorkflowVersions(TestCase):
     def test_join_single_item(self):
         items = ("single item",)
         self.assertEqual(utils.join_workflow_versions(items), items[0])
+
+
+class TestGetToday(TestCase):
+    @patch("scpca_portal.utils.datetime")
+    def test_format(self, mock_date):
+        mock_date.today.return_value = date(2022, 10, 8)
+        self.assertEqual(utils.get_today_string(), "2022-10-08")
