@@ -37,7 +37,6 @@ export default {
     tr td, tr th {
       background-color: #fff;
       box-shadow: 1px 0 0 0 #ccc inset, 0 1px 0 0 #ccc inset;
-      vertical-align: middle;
     }
     tr th {
       box-shadow: 1px 0 0 0 #ccc inset,
