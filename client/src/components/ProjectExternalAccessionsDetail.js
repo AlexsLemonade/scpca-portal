@@ -6,7 +6,6 @@ export const ProjectExternalAccessionsDetail = ({
   inline = false,
   externalAccessions = []
 }) => {
-
   // Comma separated list.
   if (inline) {
     return externalAccessions.map(({ accession, url }, i) => (
