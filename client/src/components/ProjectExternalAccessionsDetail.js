@@ -2,7 +2,10 @@ import React from 'react'
 import { Box } from 'grommet'
 import { Link } from 'components/Link'
 
-export const ProjectExternalAccessionsDetail = ({ inline = false, externalAccessions }) => {
+export const ProjectExternalAccessionsDetail = ({
+  inline = false,
+  externalAccessions = []
+}) => {
 
   // Comma separated list.
   if (inline) {
