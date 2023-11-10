@@ -28,14 +28,15 @@ export const ProjectSearchResult = ({ project }) => {
     },
     {
       title: 'Also deposited under',
-      value: project.external_accessions.length > 0 ? (
-        <ProjectExternalAccessionsDetail
-          inline
-          externalAccessions={project.external_accessions}
-        />
-      ) : (
-        ''
-      )
+      value:
+        project.external_accessions.length > 0 ? (
+          <ProjectExternalAccessionsDetail
+            inline
+            externalAccessions={project.external_accessions}
+          />
+        ) : (
+          ''
+        )
     },
     {
       title: 'Additional Sample Metadata Fields',
