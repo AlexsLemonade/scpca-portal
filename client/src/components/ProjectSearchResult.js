@@ -54,7 +54,7 @@ export const ProjectSearchResult = ({ project }) => {
               <Text>{d.value}</Text>
             ) : (
               <Text italic color="black-tint-30">
-                Not Available
+                Not Specified
               </Text>
             )}
           </Box>
