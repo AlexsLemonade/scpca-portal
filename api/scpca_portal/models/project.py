@@ -19,6 +19,9 @@ from scpca_portal.models.sample import Sample
 
 logger = logging.getLogger()
 
+IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
+STRIPPED_INPUT_VALUES = "< >"
+
 
 class Project(TimestampedModel):
     class Meta:
@@ -269,7 +272,7 @@ class Project(TimestampedModel):
             return
 
         for idx, email in enumerate(emails):
-            if email in {"", "N/A", "TBD"}:
+            if email in IGNORED_INPUT_VALUES:
                 continue
 
             contact, _ = Contact.objects.get_or_create(email=email.lower().strip())
@@ -292,10 +295,13 @@ class Project(TimestampedModel):
             return
 
         for idx, accession in enumerate(accessions):
+            if accession in IGNORED_INPUT_VALUES:
+                continue
+
             external_accession, _ = ExternalAccession.objects.get_or_create(
                 accession=accession.strip()
             )
-            external_accession.url = urls[idx].strip()
+            external_accession.url = urls[idx].strip(STRIPPED_INPUT_VALUES)
             external_accession.has_raw = utils.boolean_from_string(accessions_raw[idx].strip())
             external_accession.save()
 
@@ -311,11 +317,11 @@ class Project(TimestampedModel):
             return
 
         for idx, doi in enumerate(dois):
-            if doi in {"", "N/A", "TBD"}:
+            if doi in IGNORED_INPUT_VALUES:
                 continue
 
             publication, _ = Publication.objects.get_or_create(doi=doi.strip())
-            publication.citation = citations[idx].strip()
+            publication.citation = citations[idx].strip(STRIPPED_INPUT_VALUES)
             publication.submitter_id = self.pi_name
             publication.save()
 
