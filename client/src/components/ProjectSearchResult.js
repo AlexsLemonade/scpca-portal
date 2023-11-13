@@ -5,6 +5,7 @@ import { Link } from 'components/Link'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
+import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
 
 export const ProjectSearchResult = ({ project }) => {
   const searchDetails = [
@@ -26,6 +27,18 @@ export const ProjectSearchResult = ({ project }) => {
         )
     },
     {
+      title: 'Also deposited under',
+      value:
+        project.external_accessions.length > 0 ? (
+          <ProjectExternalAccessionsDetail
+            inline
+            externalAccessions={project.external_accessions}
+          />
+        ) : (
+          ''
+        )
+    },
+    {
       title: 'Additional Sample Metadata Fields',
       value: project.additional_metadata_keys
     }
@@ -41,7 +54,7 @@ export const ProjectSearchResult = ({ project }) => {
               <Text>{d.value}</Text>
             ) : (
               <Text italic color="black-tint-30">
-                Not Available
+                Not Specified
               </Text>
             )}
           </Box>

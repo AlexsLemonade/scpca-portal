@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Text } from 'grommet'
 import { Link } from 'components/Link'
 
-export const ProjectPublicationsDetail = ({ publications }) => (
+export const ProjectPublicationsDetail = ({ publications = [] }) => (
   <>
     {publications.map((publication, i) => (
       <Box key={publication.doi} margin={{ top: i ? 'small' : 'none' }}>

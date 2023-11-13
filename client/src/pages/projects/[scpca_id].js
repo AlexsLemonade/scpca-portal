@@ -5,6 +5,7 @@ import { ProjectHeader } from 'components/ProjectHeader'
 import { DetailsTable } from 'components/DetailsTable'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
+import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
 import { Link } from 'components/Link'
@@ -44,6 +45,17 @@ const Project = ({ project }) => {
                         project.publications.length > 0 ? (
                           <ProjectPublicationsDetail
                             publications={project.publications}
+                          />
+                        ) : (
+                          ''
+                        )
+                    },
+                    {
+                      label: 'Also deposited under',
+                      value:
+                        project.external_accessions.length > 0 ? (
+                          <ProjectExternalAccessionsDetail
+                            externalAccessions={project.external_accessions}
                           />
                         ) : (
                           ''
