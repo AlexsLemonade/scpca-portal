@@ -208,6 +208,7 @@ class TestLoadData(TestCase):
             "droplet_filtering_method",
             "filtered_cells",
             "has_cellhash",
+            "includes_anndata",
             "is_multiplexed",
             "min_gene_cutoff",
             "normalization_method",
@@ -240,13 +241,16 @@ class TestLoadData(TestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 12 files (including subdirectory names):
+        # There are 15 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
         # │   ├── SCPCL999990_filtered.rds
+        # │   ├── SCPCL999990_filtered_rna.hdf5
         # │   ├── SCPCL999990_processed.rds
+        # │   ├── SCPCL999990_processed_rna.hdf5
         # │   ├── SCPCL999990_qc.html
-        # │   └── SCPCL999990_unfiltered.rds
+        # │   ├── SCPCL999990_unfiltered.rds
+        # │   └── SCPCL999990_unfiltered_rna.hdf5
         # ├── SCPCS999992_SCPCS999993
         # │   ├── SCPCL999992_filtered.rds
         # │   ├── SCPCL999992_processed.rds
@@ -255,9 +259,10 @@ class TestLoadData(TestCase):
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 12)
+        self.assertEqual(len(project_zip.namelist()), 15)
 
         library_sample_mapping = {
+            "SCPCL999990": "SCPCS999990",
             "SCPCL999992": "SCPCS999992_SCPCS999993",
         }
         library_path_templates = (
@@ -346,6 +351,7 @@ class TestLoadData(TestCase):
         self.assert_project(project)
         self.assertEqual(project.downloadable_sample_count, 4)
         self.assertFalse(project.has_cite_seq_data)
+        self.assertTrue(project.includes_anndata)
         self.assertTrue(project.modalities)
         self.assertEqual(project.multiplexed_sample_count, 2)
         self.assertEqual(project.sample_count, 5)
@@ -382,6 +388,7 @@ class TestLoadData(TestCase):
             "filtered_cell_count",
             "genome_assembly",
             "has_cellhash",
+            "includes_anndata",
             "is_multiplexed",
             "mapped_reads",
             "mapping_index",
@@ -422,17 +429,20 @@ class TestLoadData(TestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 8 files (including subdirectory names):
+        # There are 11 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
         # │   ├── SCPCL999990_filtered.rds
+        # │   ├── SCPCL999990_filtered_rna.hdf5
         # │   ├── SCPCL999990_processed.rds
+        # │   ├── SCPCL999990_processed_rna.hdf5
         # │   ├── SCPCL999990_qc.html
-        # │   └── SCPCL999990_unfiltered.rds
+        # │   ├── SCPCL999990_unfiltered.rds
+        # │   └── SCPCL999990_unfiltered_rna.hdf5
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 8)
+        self.assertEqual(len(project_zip.namelist()), 11)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
         self.assertEqual(len(sample.computed_files), 1)
@@ -487,9 +497,12 @@ class TestLoadData(TestCase):
             "README.md",
             "single_cell_metadata.tsv",
             f"{library_id}_filtered.rds",
+            f"{library_id}_filtered_rna.hdf5",
             f"{library_id}_processed.rds",
+            f"{library_id}_processed_rna.hdf5",
             f"{library_id}_qc.html",
             f"{library_id}_unfiltered.rds",
+            f"{library_id}_unfiltered_rna.hdf5",
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
@@ -545,6 +558,7 @@ class TestLoadData(TestCase):
             "submitter_id",
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
+            "includes_anndata",
             "organism",
             "organism_ontology_id",
             "self_reported_ethnicity_ontology_term_id",

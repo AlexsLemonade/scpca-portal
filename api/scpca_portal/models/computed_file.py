@@ -27,23 +27,31 @@ class ComputedFile(TimestampedModel):
         SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
 
     class OutputFileTypes:
+        PROJECT_ANNDATA_ZIP = "PROJECT_ANNDATA_ZIP"
         PROJECT_MULTIPLEXED_ZIP = "PROJECT_MULTIPLEXED_ZIP"
         PROJECT_SPATIAL_ZIP = "PROJECT_SPATIAL_ZIP"
         PROJECT_ZIP = "PROJECT_ZIP"
+
+        SAMPLE_ANNDATA_ZIP = "SAMPLE_ANNDATA_ZIP"
         SAMPLE_MULTIPLEXED_ZIP = "SAMPLE_MULTIPLEXED_ZIP"
         SAMPLE_SPATIAL_ZIP = "SAMPLE_SPATIAL_ZIP"
         SAMPLE_ZIP = "SAMPLE_ZIP"
 
         CHOICES = (
+            (PROJECT_ANNDATA_ZIP, "Project AnnData ZIP"),
             (PROJECT_MULTIPLEXED_ZIP, "Project Multiplexed ZIP"),
             (PROJECT_SPATIAL_ZIP, "Project Spatial ZIP"),
             (PROJECT_ZIP, "Project ZIP"),
+            (SAMPLE_ANNDATA_ZIP, "Sample AnnData ZIP"),
             (SAMPLE_MULTIPLEXED_ZIP, "Sample Multiplexed ZIP"),
             (SAMPLE_SPATIAL_ZIP, "Sample Spatial ZIP"),
             (SAMPLE_ZIP, "Sample ZIP"),
         )
 
     OUTPUT_README_FILE_NAME = "README.md"
+
+    README_ANNDATA_FILE_NAME = "readme_anndata.md"
+    README_ANNDATA_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_ANNDATA_FILE_NAME)
 
     README_FILE_NAME = "readme.md"
     README_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_FILE_NAME)
@@ -56,6 +64,7 @@ class ComputedFile(TimestampedModel):
     README_SPATIAL_FILE_NAME = "readme_spatial.md"
     README_SPATIAL_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_SPATIAL_FILE_NAME)
 
+    README_TEMPLATE_ANNDATA_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_ANNDATA_FILE_NAME)
     README_TEMPLATE_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_FILE_NAME)
     README_TEMPLATE_MULTIPLEXED_FILE_PATH = os.path.join(
         common.TEMPLATE_DIR, README_MULTIPLEXED_FILE_NAME
@@ -127,7 +136,9 @@ class ComputedFile(TimestampedModel):
 
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(
-                ComputedFile.README_FILE_PATH,
+                ComputedFile.README_ANNDATA_FILE_PATH
+                if project.includes_anndata
+                else ComputedFile.README_FILE_PATH,
                 ComputedFile.OUTPUT_README_FILE_NAME,
             )
             zip_file.write(
@@ -234,6 +245,16 @@ class ComputedFile(TimestampedModel):
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
+        file_postfixes = ["_filtered.rds", "_processed.rds", "_qc.html", "_unfiltered.rds"]
+        if sample.includes_anndata and not sample.has_multiplexed_data:
+            file_postfixes.extend(
+                ("_filtered_rna.hdf5", "_processed_rna.hdf5", "_unfiltered_rna.hdf5")
+            )
+            if sample.has_cite_seq_data:
+                file_postfixes.extend(
+                    ("_filtered_adt.hdf5", "_processed_adt.hdf5", "_unfiltered_adt.hdf5")
+                )
+
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(
@@ -246,12 +267,7 @@ class ComputedFile(TimestampedModel):
             )
 
             for library in libraries:
-                for file_postfix in (
-                    "_filtered.rds",
-                    "_processed.rds",
-                    "_qc.html",
-                    "_unfiltered.rds",
-                ):
+                for file_postfix in file_postfixes:
                     file_name = f"{library['scpca_library_id']}{file_postfix}"
                     file_path = os.path.join(
                         sample.project.get_sample_input_data_dir(sample.scpca_id), file_name

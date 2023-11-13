@@ -15,6 +15,7 @@ class Sample(TimestampedModel):
         ordering = ["updated_at"]
 
     class Modalities:
+        ANNDATA = "ANNDATA"
         BULK_RNA_SEQ = "BULK_RNA_SEQ"
         CITE_SEQ = "CITE_SEQ"
         MULTIPLEXED = "MULTIPLEXED"
@@ -22,6 +23,7 @@ class Sample(TimestampedModel):
         SPATIAL = "SPATIAL"
 
         NAME_MAPPING = {
+            ANNDATA: "AnnData",
             BULK_RNA_SEQ: "Bulk RNA-seq",
             CITE_SEQ: "CITE-seq",
             MULTIPLEXED: "Multiplexed",
@@ -38,6 +40,7 @@ class Sample(TimestampedModel):
     has_multiplexed_data = models.BooleanField(default=False)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
+    includes_anndata = models.BooleanField(default=False)
     multiplexed_with = ArrayField(models.TextField(), default=list)
     sample_cell_count_estimate = models.IntegerField(null=True)
     scpca_id = models.TextField(unique=True)
@@ -70,6 +73,7 @@ class Sample(TimestampedModel):
             has_multiplexed_data=has_multiplexed_data,
             has_single_cell_data=data.get("has_single_cell_data", False),
             has_spatial_data=data.get("has_spatial_data", False),
+            includes_anndata=data.get("includes_anndata", False),
             multiplexed_with=data.get("multiplexed_with"),
             sample_cell_count_estimate=(
                 data.get("sample_cell_count_estimate") if not has_multiplexed_data else None

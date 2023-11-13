@@ -41,6 +41,7 @@ class Project(TimestampedModel):
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField()
+    includes_anndata = models.BooleanField(default=False)
     modalities = models.TextField(blank=True, null=True)
     multiplexed_sample_count = models.IntegerField(default=0)
     pi_name = models.TextField()
@@ -475,6 +476,19 @@ class Project(TimestampedModel):
 
         return combined_metadata
 
+    def create_anndata_readme_file(self):
+        """Creates a annotation metadata README file."""
+        with open(ComputedFile.README_TEMPLATE_ANNDATA_FILE_PATH, "r") as readme_template_file:
+            readme_template = readme_template_file.read()
+        with open(ComputedFile.README_ANNDATA_FILE_PATH, "w") as readme_file:
+            readme_file.write(
+                readme_template.format(
+                    date=utils.get_today_string(),
+                    project_accession=self.scpca_id,
+                    project_url=self.url,
+                )
+            )
+
     def create_single_cell_readme_file(self):
         """Creates a single cell metadata README file."""
         with open(ComputedFile.README_TEMPLATE_FILE_PATH, "r") as readme_template_file:
@@ -482,9 +496,9 @@ class Project(TimestampedModel):
         with open(ComputedFile.README_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 readme_template.format(
+                    date=utils.get_today_string(),
                     project_accession=self.scpca_id,
                     project_url=self.url,
-                    date=utils.get_today_string(),
                 )
             )
 
@@ -495,9 +509,9 @@ class Project(TimestampedModel):
         with open(ComputedFile.README_MULTIPLEXED_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 readme_template.format(
+                    date=utils.get_today_string(),
                     project_accession=self.scpca_id,
                     project_url=self.url,
-                    date=utils.get_today_string(),
                 )
             )
 
@@ -775,6 +789,7 @@ class Project(TimestampedModel):
         with open(self.input_samples_metadata_file_path) as samples_csv_file:
             samples_metadata = [line for line in csv.DictReader(samples_csv_file)]
 
+        self.create_anndata_readme_file()
         self.create_multiplexed_readme_file()
         self.create_single_cell_readme_file()
         self.create_spatial_readme_file()
@@ -808,6 +823,7 @@ class Project(TimestampedModel):
 
                 has_single_cell_data = True
                 has_cite_seq_data = single_cell_json.get("has_citeseq", False) or has_cite_seq_data
+
                 single_cell_json["filtered_cell_count"] = single_cell_json.pop("filtered_cells")
                 single_cell_json["scpca_library_id"] = single_cell_json.pop("library_id")
                 single_cell_json["scpca_sample_id"] = single_cell_json.pop("sample_id")
@@ -835,6 +851,7 @@ class Project(TimestampedModel):
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
             sample_metadata["has_single_cell_data"] = has_single_cell_data
             sample_metadata["has_spatial_data"] = has_spatial_data
+            sample_metadata["includes_anndata"] = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
             sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
             sample_metadata["seq_units"] = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample_metadata["technologies"] = ", ".join(sorted(sample_technologies, key=str.lower))
@@ -977,6 +994,7 @@ class Project(TimestampedModel):
         self.has_multiplexed_data = self.samples.filter(has_multiplexed_data=True).exists()
         self.has_single_cell_data = self.samples.filter(has_single_cell_data=True).exists()
         self.has_spatial_data = self.samples.filter(has_spatial_data=True).exists()
+        self.includes_anndata = self.samples.filter(includes_anndata=True).exists()
         self.save(
             update_fields=(
                 "has_bulk_rna_seq",
@@ -984,6 +1002,7 @@ class Project(TimestampedModel):
                 "has_multiplexed_data",
                 "has_single_cell_data",
                 "has_spatial_data",
+                "includes_anndata",
             )
         )
 
