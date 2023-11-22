@@ -15,7 +15,6 @@ class Sample(TimestampedModel):
         ordering = ["updated_at"]
 
     class Modalities:
-        ANNDATA = "ANNDATA"
         BULK_RNA_SEQ = "BULK_RNA_SEQ"
         CITE_SEQ = "CITE_SEQ"
         MULTIPLEXED = "MULTIPLEXED"
@@ -23,7 +22,6 @@ class Sample(TimestampedModel):
         SPATIAL = "SPATIAL"
 
         NAME_MAPPING = {
-            ANNDATA: "AnnData",
             BULK_RNA_SEQ: "Bulk RNA-seq",
             CITE_SEQ: "CITE-seq",
             MULTIPLEXED: "Multiplexed",
@@ -148,6 +146,10 @@ class Sample(TimestampedModel):
         return f"{self.scpca_id}.zip"
 
     @property
+    def output_single_cell_anndata_computed_file_name(self):
+        return f"{self.scpca_id}_anndata.zip"
+
+    @property
     def output_single_cell_metadata_file_path(self):
         return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SINGLE_CELL)
 
@@ -171,7 +173,20 @@ class Sample(TimestampedModel):
     @property
     def single_cell_computed_file(self):
         try:
-            return self.sample_computed_files.get(type=ComputedFile.OutputFileTypes.SAMPLE_ZIP)
+            return self.sample_computed_files.get(
+                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                type=ComputedFile.OutputFileTypes.SAMPLE_ZIP,
+            )
+        except ComputedFile.DoesNotExist:
+            pass
+
+    @property
+    def single_cell_anndata_computed_file(self):
+        try:
+            return self.sample_computed_files.get(
+                format=ComputedFile.OutputFileFormats.ANN_DATA,
+                type=ComputedFile.OutputFileTypes.SAMPLE_ZIP,
+            )
         except ComputedFile.DoesNotExist:
             pass
 

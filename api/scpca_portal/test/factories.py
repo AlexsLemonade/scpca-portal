@@ -61,10 +61,12 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
 
 
 class ProjectComputedFileFactory(LeafComputedFileFactory):
+    format = ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
     type = ComputedFile.OutputFileTypes.PROJECT_ZIP
 
 
 class SampleComputedFileFactory(LeafComputedFileFactory):
+    format = ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
     type = ComputedFile.OutputFileTypes.SAMPLE_ZIP
 
 

@@ -105,6 +105,10 @@ class Project(TimestampedModel):
         return f"{self.scpca_id}.zip"
 
     @property
+    def output_single_cell_anndata_computed_file_name(self):
+        return f"{self.scpca_id}_anndata.zip"
+
+    @property
     def output_single_cell_metadata_file_path(self):
         return os.path.join(common.OUTPUT_DATA_DIR, f"{self.scpca_id}_libraries_metadata.tsv")
 
@@ -119,7 +123,20 @@ class Project(TimestampedModel):
     @property
     def single_cell_computed_file(self):
         try:
-            return self.project_computed_files.get(type=ComputedFile.OutputFileTypes.PROJECT_ZIP)
+            return self.project_computed_files.get(
+                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
+            )
+        except ComputedFile.DoesNotExist:
+            pass
+
+    @property
+    def single_cell_anndata_computed_file(self):
+        try:
+            return self.project_computed_files.get(
+                format=ComputedFile.OutputFileFormats.ANN_DATA,
+                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
+            )
         except ComputedFile.DoesNotExist:
             pass
 
@@ -553,26 +570,30 @@ class Project(TimestampedModel):
         """Prepares ready for saving project computed files based on generated file mappings."""
         computed_files = list()
 
-        if multiplexed_file_mapping:
-            computed_files.append(
-                ComputedFile.get_project_multiplexed_file(
-                    self, multiplexed_file_mapping, multiplexed_workflow_versions
+        for file_format in (
+            ComputedFile.OutputFileFormats.ANN_DATA,
+            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+        ):
+            if multiplexed_file_mapping.get(file_format):
+                computed_files.append(
+                    ComputedFile.get_project_multiplexed_file(
+                        self, multiplexed_file_mapping, multiplexed_workflow_versions, file_format
+                    )
                 )
-            )
 
-        if single_cell_file_mapping:
-            computed_files.append(
-                ComputedFile.get_project_single_cell_file(
-                    self, single_cell_file_mapping, single_cell_workflow_versions
+            if single_cell_file_mapping.get(file_format):
+                computed_files.append(
+                    ComputedFile.get_project_single_cell_file(
+                        self, single_cell_file_mapping, single_cell_workflow_versions, file_format
+                    )
                 )
-            )
 
-        if spatial_file_mapping:
-            computed_files.append(
-                ComputedFile.get_project_spatial_file(
-                    self, spatial_file_mapping, spatial_workflow_versions
+            if spatial_file_mapping.get(file_format):
+                computed_files.append(
+                    ComputedFile.get_project_spatial_file(
+                        self, spatial_file_mapping, spatial_workflow_versions, file_format
+                    )
                 )
-            )
 
         return computed_files
 
@@ -905,11 +926,18 @@ class Project(TimestampedModel):
             samples_metadata, multiplexed_libraries_metadata, scpca_sample_ids
         )
 
-        multiplexed_file_mapping = dict()
+        multiplexed_file_mapping = {
+            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
+        }
         multiplexed_workflow_versions = set()
-        single_cell_file_mapping = dict()
+        single_cell_file_mapping = {
+            ComputedFile.OutputFileFormats.ANN_DATA: {},
+            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
+        }
         single_cell_workflow_versions = set()
-        spatial_file_mapping = dict()
+        spatial_file_mapping = {
+            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
+        }
         spatial_workflow_versions = set()
 
         samples = self.get_samples(
@@ -930,12 +958,19 @@ class Project(TimestampedModel):
                 ]
                 workflow_versions = [library["workflow_version"] for library in libraries]
                 single_cell_workflow_versions.update(workflow_versions)
-                (
-                    computed_file,
-                    single_cell_metadata_files,
-                ) = ComputedFile.get_sample_single_cell_file(sample, libraries, workflow_versions)
-                computed_files.append(computed_file)
-                single_cell_file_mapping.update(single_cell_metadata_files)
+
+                file_formats = [ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]
+                if sample.includes_anndata:
+                    file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
+                for file_format in file_formats:
+                    (
+                        computed_file,
+                        single_cell_metadata_files,
+                    ) = ComputedFile.get_sample_single_cell_file(
+                        sample, libraries, workflow_versions, file_format
+                    )
+                    computed_files.append(computed_file)
+                    single_cell_file_mapping[file_format].update(single_cell_metadata_files)
 
                 if sample.has_spatial_data:
                     libraries = [
@@ -945,12 +980,16 @@ class Project(TimestampedModel):
                     ]
                     workflow_versions = [library["workflow_version"] for library in libraries]
                     spatial_workflow_versions.update(workflow_versions)
-                    (
-                        computed_file,
-                        spatial_metadata_files,
-                    ) = ComputedFile.get_sample_spatial_file(sample, libraries, workflow_versions)
+                    (computed_file, spatial_metadata_files,) = ComputedFile.get_sample_spatial_file(
+                        sample,
+                        libraries,
+                        workflow_versions,
+                        ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                    )
                     computed_files.append(computed_file)
-                    spatial_file_mapping.update(spatial_metadata_files)
+                    spatial_file_mapping[
+                        ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
+                    ].update(spatial_metadata_files)
 
             if sample.has_multiplexed_data:
                 libraries = [
@@ -968,14 +1007,18 @@ class Project(TimestampedModel):
                     libraries,
                     multiplexed_library_path_mapping,
                     workflow_versions,
+                    ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
                 )
                 computed_files.append(computed_file)
-                multiplexed_file_mapping.update(multiplexed_metadata_files)
+                multiplexed_file_mapping[
+                    ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
+                ].update(multiplexed_metadata_files)
 
-        if multiplexed_file_mapping:
+        if multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]:
             # We want a single ZIP archive for a multiplexed samples project.
-            multiplexed_file_mapping.update(single_cell_file_mapping)
-
+            multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
+                single_cell_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]
+            )
         computed_files.extend(
             self.get_computed_files(
                 single_cell_file_mapping,

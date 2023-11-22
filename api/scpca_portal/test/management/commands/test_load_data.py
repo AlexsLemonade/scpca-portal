@@ -12,7 +12,7 @@ from scpca_portal.management.commands.load_data import load_data_from_s3
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"genomics_10X"}
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/anndata-tests"
+INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs"
 
 
 class MockS3Client:
@@ -65,7 +65,7 @@ class TestLoadData(TestCase):
             self.assertEqual(Project.objects.count(), 1)
             self.assertEqual(ProjectSummary.objects.count(), 5)
             self.assertEqual(Sample.objects.count(), 5)
-            self.assertEqual(ComputedFile.objects.count(), 8)
+            self.assertEqual(ComputedFile.objects.count(), 10)
 
         # First, just test that loading data works.
         load_data_from_s3(
@@ -144,7 +144,7 @@ class TestLoadData(TestCase):
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 3)
+        self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
 
@@ -215,6 +215,7 @@ class TestLoadData(TestCase):
             "organism",
             "organism_ontology_id",
             "prob_compromised_cutoff",
+            "processed_cells",
             "salmon_version",
             "sample_cell_estimates",
             "self_reported_ethnicity_ontology_term_id",
@@ -241,16 +242,13 @@ class TestLoadData(TestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 15 files (including subdirectory names):
+        # There are 12 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
         # │   ├── SCPCL999990_filtered.rds
-        # │   ├── SCPCL999990_filtered_rna.hdf5
         # │   ├── SCPCL999990_processed.rds
-        # │   ├── SCPCL999990_processed_rna.hdf5
         # │   ├── SCPCL999990_qc.html
-        # │   ├── SCPCL999990_unfiltered.rds
-        # │   └── SCPCL999990_unfiltered_rna.hdf5
+        # │   └── SCPCL999990_unfiltered.rds
         # ├── SCPCS999992_SCPCS999993
         # │   ├── SCPCL999992_filtered.rds
         # │   ├── SCPCL999992_processed.rds
@@ -259,7 +257,7 @@ class TestLoadData(TestCase):
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 15)
+        self.assertEqual(len(project_zip.namelist()), 12)
 
         library_sample_mapping = {
             "SCPCL999990": "SCPCS999990",
@@ -359,7 +357,7 @@ class TestLoadData(TestCase):
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 3)
+        self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
         self.assertEqual(project.technologies, "10Xv3.1, visium")
@@ -398,6 +396,7 @@ class TestLoadData(TestCase):
             "organism_ontology_id",
             "participant_id",
             "prob_compromised_cutoff",
+            "processed_cells",
             "salmon_version",
             "self_reported_ethnicity_ontology_term_id",
             "sex_ontology_term_id",
@@ -429,27 +428,24 @@ class TestLoadData(TestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 11 files (including subdirectory names):
+        # There are 8 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
         # │   ├── SCPCL999990_filtered.rds
-        # │   ├── SCPCL999990_filtered_rna.hdf5
         # │   ├── SCPCL999990_processed.rds
-        # │   ├── SCPCL999990_processed_rna.hdf5
         # │   ├── SCPCL999990_qc.html
-        # │   ├── SCPCL999990_unfiltered.rds
-        # │   └── SCPCL999990_unfiltered_rna.hdf5
+        # │   └── SCPCL999990_unfiltered.rds
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 11)
+        self.assertEqual(len(project_zip.namelist()), 8)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
-        self.assertEqual(len(sample.computed_files), 1)
+        self.assertEqual(len(sample.computed_files), 2)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 1639)
+        self.assertEqual(sample.sample_cell_count_estimate, 1638)
         self.assertEqual(sample.seq_units, "cell")
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
@@ -477,6 +473,7 @@ class TestLoadData(TestCase):
             set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
         )
 
+        # Check SingleCellExperiment archive.
         sample_zip_path = os.path.join(
             common.OUTPUT_DATA_DIR, sample.output_single_cell_computed_file_name
         )
@@ -497,11 +494,35 @@ class TestLoadData(TestCase):
             "README.md",
             "single_cell_metadata.tsv",
             f"{library_id}_filtered.rds",
-            f"{library_id}_filtered_rna.hdf5",
             f"{library_id}_processed.rds",
-            f"{library_id}_processed_rna.hdf5",
             f"{library_id}_qc.html",
             f"{library_id}_unfiltered.rds",
+        }
+        self.assertEqual(set(sample_zip.namelist()), expected_filenames)
+
+        # Check AnnData archive.
+        sample_zip_path = os.path.join(
+            common.OUTPUT_DATA_DIR, sample.output_single_cell_anndata_computed_file_name
+        )
+        with ZipFile(sample_zip_path) as sample_zip:
+            with sample_zip.open(
+                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
+            ) as sample_csv:
+                csv_reader = csv.DictReader(
+                    TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
+                )
+                rows = list(csv_reader)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(list(rows[0].keys()), expected_keys)
+
+        library_id = rows[0]["scpca_library_id"]
+        expected_filenames = {
+            "README.md",
+            "single_cell_metadata.tsv",
+            f"{library_id}_filtered_rna.hdf5",
+            f"{library_id}_processed_rna.hdf5",
+            f"{library_id}_qc.html",
             f"{library_id}_unfiltered_rna.hdf5",
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
@@ -526,7 +547,7 @@ class TestLoadData(TestCase):
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 3)
+        self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "development")
 
