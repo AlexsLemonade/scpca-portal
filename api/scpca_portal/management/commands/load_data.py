@@ -195,6 +195,9 @@ def load_data_from_s3(
         )
         project.has_spatial_data = utils.boolean_from_string(project_data.get("has_spatial", False))
         project.human_readable_pi_name = project_data["PI"]
+        project.includes_anndata = utils.boolean_from_string(
+            project_data.get("includes_anndata", False)
+        )
         project.pi_name = project_data["submitter"]
         project.title = project_data["project_title"]
         project.save()
