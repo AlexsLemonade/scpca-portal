@@ -71,8 +71,8 @@ export const ProjectHeader = ({ project, linked = false }) => {
         />
         <Badge badge="SeqUnit" label={capitalize(project.seq_units)} />
         <Badge badge="Kit" label={project.technologies} />
-        {project.modalities && (
-          <Badge badge="Modality" label={project.modalities} />
+        {project.modalities.length > 0 && (
+          <Badge badge="Modality" label={project.modalities.join(', ')} />
         )}
       </Grid>
 
