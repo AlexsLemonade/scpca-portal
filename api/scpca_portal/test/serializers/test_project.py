@@ -28,5 +28,4 @@ class TestProjectSerializer(TestCase):
 
     def test_detail_serializer_with_valid_data(self):
         serializer = ProjectDetailSerializer(data=self.project_data)
-        serializer.is_valid()
         self.assertTrue(serializer.is_valid())
