@@ -83,7 +83,7 @@ resource "aws_instance" "api_server_1" {
     }
   )
 
-  # This should be approx x2 the size of the s3 data
+  # This should be approx x3 of the biggest project's size.
   root_block_device {
     volume_type = "gp2"
     volume_size = 700
