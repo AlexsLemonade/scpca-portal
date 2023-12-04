@@ -6,6 +6,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common, utils
@@ -42,7 +43,7 @@ class Project(TimestampedModel):
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField()
     includes_anndata = models.BooleanField(default=False)
-    modalities = models.TextField(blank=True, null=True)
+    modalities = ArrayField(models.TextField(), default=list, blank=True)
     multiplexed_sample_count = models.IntegerField(default=0)
     pi_name = models.TextField()
     sample_count = models.IntegerField(default=0)
@@ -1128,7 +1129,7 @@ class Project(TimestampedModel):
         self.diagnoses_counts = ", ".join(diagnoses_strings)
         self.disease_timings = ", ".join(disease_timings)
         self.downloadable_sample_count = downloadable_sample_count
-        self.modalities = ", ".join(sorted(modalities))
+        self.modalities = sorted(modalities)
         self.multiplexed_sample_count = multiplexed_sample_count
         self.sample_count = sample_count
         self.seq_units = ", ".join(seq_units)
