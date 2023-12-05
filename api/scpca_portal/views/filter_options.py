@@ -15,7 +15,7 @@ class FilterOptionsViewSet(viewsets.ViewSet):
             "diagnoses", "modalities", "seq_units", "technologies"
         ):
             diagnoses_options.update((d for d in (project["diagnoses"] or "").split(", ") if d))
-            modalities.update(m for m in (project["modalities"] or "").split(", ") if m)
+            modalities.update(project["modalities"])
             seq_units_options.update(su for su in (project["seq_units"] or "").split(", ") if su)
             technologies_options.update(t for t in (project["technologies"] or "").split(", ") if t)
 
