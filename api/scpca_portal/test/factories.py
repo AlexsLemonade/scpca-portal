@@ -56,7 +56,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     seq_units = "cell"
     technologies = "10Xv2_5prime, CITE-seq"
     has_bulk_rna_seq = True
-
+    modalities = ["CITE-seq"]
     sample_count = 60
 
 

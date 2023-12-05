@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
             model_name="project",
             name="modalities",
             field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.TextField(), default=list, blank=True, size=None
+                base_field=models.TextField(), default=list, size=None
             ),
         ),
         migrations.RunPython(apply_modalities, reverse_modalities),
