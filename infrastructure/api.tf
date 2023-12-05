@@ -83,10 +83,10 @@ resource "aws_instance" "api_server_1" {
     }
   )
 
-  # This should be approx x3 of the biggest project's size.
+  # This should be approx x3.5 of the biggest project's size.
   root_block_device {
     volume_type = "gp2"
-    volume_size = 700
+    volume_size = 800
     tags =  merge(
       var.default_tags,
       {
