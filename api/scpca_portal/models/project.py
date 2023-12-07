@@ -844,7 +844,7 @@ class Project(TimestampedModel):
                     single_cell_json = json.load(sample_json_file)
 
                 has_single_cell_data = True
-                has_cite_seq_data = single_cell_json.get("has_citeseq", False) or has_cite_seq_data
+                has_cite_seq_data = single_cell_json.get("has_citeseq", False)
 
                 single_cell_json["filtered_cell_count"] = single_cell_json.pop("filtered_cells")
                 single_cell_json["scpca_library_id"] = single_cell_json.pop("library_id")
