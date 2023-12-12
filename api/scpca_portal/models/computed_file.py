@@ -258,30 +258,28 @@ class ComputedFile(TimestampedModel):
         Prepares a ready for saving single data file of sample's combined single cell data.
         Returns the data file and file mapping for a sample.
         """
-        if file_format == cls.OutputFileFormats.ANN_DATA:
+        is_anndata_file_format = file_format == cls.OutputFileFormats.ANN_DATA
+        if is_anndata_file_format:
             file_name = sample.output_single_cell_anndata_computed_file_name
-            file_suffixes = [
-                "_filtered_rna.hdf5",
-                "_processed_rna.hdf5",
-                "_qc.html",
-                "_unfiltered_rna.hdf5",
-            ]
-            if sample.has_cite_seq_data:
-                file_suffixes.extend(
-                    (
-                        "_filtered_adt.hdf5",
-                        "_processed_adt.hdf5",
-                        "_unfiltered_adt.hdf5",
-                    )
-                )
+            common_file_suffixes = (
+                "filtered_rna.hdf5",
+                "processed_rna.hdf5",
+                "qc.html",
+                "unfiltered_rna.hdf5",
+            )
         else:
             file_name = sample.output_single_cell_computed_file_name
-            file_suffixes = [
-                "_filtered.rds",
-                "_processed.rds",
-                "_qc.html",
-                "_unfiltered.rds",
-            ]
+            common_file_suffixes = (
+                "filtered.rds",
+                "processed.rds",
+                "qc.html",
+                "unfiltered.rds",
+            )
+        cite_seq_anndata_file_suffixes = (
+            "filtered_adt.hdf5",
+            "processed_adt.hdf5",
+            "unfiltered_adt.hdf5",
+        )
 
         computed_file = cls(
             format=file_format,
@@ -304,8 +302,13 @@ class ComputedFile(TimestampedModel):
             )
 
             for library in libraries:
-                for file_postfix in file_suffixes:
-                    file_name = f"{library['scpca_library_id']}{file_postfix}"
+                file_suffixes = (
+                    common_file_suffixes + cite_seq_anndata_file_suffixes
+                    if is_anndata_file_format and library.get("has_citeseq")
+                    else common_file_suffixes
+                )
+                for file_suffix in file_suffixes:
+                    file_name = f"{library['scpca_library_id']}_{file_suffix}"
                     file_path = os.path.join(
                         sample.project.get_sample_input_data_dir(sample.scpca_id), file_name
                     )
