@@ -27,6 +27,7 @@ class ComputedFileSerializer(serializers.ModelSerializer):
         model = ComputedFile
         fields = (
             "created_at",
+            "format",
             "id",
             "project",
             "s3_bucket",
