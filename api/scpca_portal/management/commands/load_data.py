@@ -132,7 +132,6 @@ class Command(BaseCommand):
         self.load_data(**kwargs)
         self.clean_up_output_data_dir()
 
-
     def process_project_data(self, data, sample_id, **kwargs):
         self.project.abstract = data["abstract"]
         self.project.has_bulk_rna_seq = utils.boolean_from_string(data.get("has_bulk", False))
