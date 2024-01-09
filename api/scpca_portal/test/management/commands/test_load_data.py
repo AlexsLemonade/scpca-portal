@@ -1,36 +1,27 @@
 import csv
-import os
 import shutil
 from io import TextIOWrapper
 from unittest.mock import patch
 from zipfile import ZipFile
 
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from scpca_portal import common
-from scpca_portal.management.commands.load_data import load_data_from_s3
+from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"genomics_10X"}
 INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs"
 
 
-class MockS3Client:
-    def __init__(self, *args, **kwargs):
-        pass
+class TestLoadData(TransactionTestCase):
+    def setUp(self):
+        self.loader = Command()
 
-    def list_objects(self, *args, **kwargs):
-        return {"Contents": [{"Size": 1111}]}
-
-    def upload_file(self, *args, **kwargs):
-        pass
-
-
-class TestLoadData(TestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
+        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def assert_project(self, project):
         self.assertTrue(project.abstract)
@@ -59,8 +50,8 @@ class TestLoadData(TestCase):
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-    @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
-    def test_load_data_from_s3(self):
+    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
+    def test_load_data(self):
         def assert_object_count():
             self.assertEqual(Project.objects.count(), 1)
             self.assertEqual(ProjectSummary.objects.count(), 5)
@@ -68,12 +59,15 @@ class TestLoadData(TestCase):
             self.assertEqual(ComputedFile.objects.count(), 10)
 
         # First, just test that loading data works.
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3_data=False,
+            update_s3=False,
         )
         assert_object_count()
 
@@ -87,12 +81,13 @@ class TestLoadData(TestCase):
         self.assert_project(project)
 
         # Make sure that reload_existing=False won't add anything new when there's nothing new.
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3_data=False,
+            update_s3=False,
         )
         assert_object_count()
 
@@ -114,23 +109,29 @@ class TestLoadData(TestCase):
         self.assertEqual(ComputedFile.objects.count(), 0)
 
         # Make sure reloading works smoothly.
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
             reload_all=False,
             reload_existing=True,
-            update_s3_data=False,
+            update_s3=False,
         )
         assert_object_count()
 
-    @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
+    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_multiplexed_metadata(self):
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3_data=True,
+            update_s3=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999990")
@@ -226,9 +227,7 @@ class TestLoadData(TestCase):
             "WHO_grade",
         ]
 
-        project_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, project.output_multiplexed_computed_file_name
-        )
+        project_zip_path = common.OUTPUT_DATA_PATH / project.output_multiplexed_computed_file_name
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
@@ -309,9 +308,7 @@ class TestLoadData(TestCase):
             set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
         )
 
-        sample_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, sample.output_multiplexed_computed_file_name
-        )
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_multiplexed_computed_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
@@ -335,14 +332,17 @@ class TestLoadData(TestCase):
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
-    @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
+    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_single_cell_metadata(self):
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3_data=True,
+            update_s3=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999990")
@@ -412,9 +412,7 @@ class TestLoadData(TestCase):
             "workflow_version",
         ]
 
-        project_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, project.output_single_cell_computed_file_name
-        )
+        project_zip_path = common.OUTPUT_DATA_PATH / project.output_single_cell_computed_file_name
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
@@ -474,9 +472,7 @@ class TestLoadData(TestCase):
         )
 
         # Check SingleCellExperiment archive.
-        sample_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, sample.output_single_cell_computed_file_name
-        )
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_single_cell_computed_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
@@ -501,8 +497,8 @@ class TestLoadData(TestCase):
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
         # Check AnnData archive.
-        sample_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, sample.output_single_cell_anndata_computed_file_name
+        sample_zip_path = (
+            common.OUTPUT_DATA_PATH / sample.output_single_cell_anndata_computed_file_name
         )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
@@ -527,14 +523,17 @@ class TestLoadData(TestCase):
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
-    @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
+    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_spatial_metadata(self):
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3_data=True,
+            update_s3=True,
         )
 
         project = Project.objects.get(scpca_id="SCPCP999990")
@@ -588,9 +587,7 @@ class TestLoadData(TestCase):
             "WHO_grade",
         ]
 
-        project_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, project.output_spatial_computed_file_name
-        )
+        project_zip_path = common.OUTPUT_DATA_PATH / project.output_spatial_computed_file_name
         with ZipFile(project_zip_path) as project_zip:
             spatial_metadata_file = project_zip.read(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
@@ -661,9 +658,7 @@ class TestLoadData(TestCase):
             set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
         )
 
-        sample_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, sample.output_spatial_computed_file_name
-        )
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_spatial_computed_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME, "r"

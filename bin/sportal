@@ -2,24 +2,22 @@
 
 import argparse
 import os
+from pathlib import Path
 
-# exit if not called from project root
-if not os.path.exists("./bin/sportal"):
+# Exit if not called from project root.
+if not Path("bin/sportal").exists():
     print("Please call sportal from the project's root")
     exit()
 
-# Docker compose uses the current directory in the network name. We
-# need to pass the network name into containers, so we have to know
-# what it is.
-project_folder = os.getcwd().split("/")[-1]
-
-# every docker-compose run api command looks like this
+# Every docker-compose run api command looks like this.
 run_api = (
-    f"API_NETWORK={project_folder}_default "
+    # Docker compose uses the current directory in the network name. We
+    # need to pass the network name into containers, so we have to know what it is.
+    f"API_NETWORK={Path.cwd().name}_default "
     f"docker-compose --env-file ./docker-compose.env run --rm api {{}}"
 )
 
-# list of available commands
+# List of available commands.
 commands = {
     "up": "docker-compose --env-file ./docker-compose.env up",
     "down": "docker-compose --env-file ./docker-compose.env down",

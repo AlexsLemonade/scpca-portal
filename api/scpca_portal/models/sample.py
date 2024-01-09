@@ -1,5 +1,3 @@
-import os
-
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -96,14 +94,14 @@ class Sample(TimestampedModel):
 
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
-        if modality == Sample.Modalities.MULTIPLEXED:
-            return os.path.join(
-                common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_multiplexed_metadata.tsv"
-            )
-        if modality == Sample.Modalities.SINGLE_CELL:
-            return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_libraries_metadata.tsv")
-        if modality == Sample.Modalities.SPATIAL:
-            return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_spatial_metadata.tsv")
+        return {
+            Sample.Modalities.MULTIPLEXED: common.OUTPUT_DATA_PATH
+            / f"{scpca_sample_id}_multiplexed_metadata.tsv",
+            Sample.Modalities.SINGLE_CELL: common.OUTPUT_DATA_PATH
+            / f"{scpca_sample_id}_libraries_metadata.tsv",
+            Sample.Modalities.SPATIAL: common.OUTPUT_DATA_PATH
+            / f"{scpca_sample_id}_spatial_metadata.tsv",
+        }.get(modality)
 
     @property
     def modalities(self):

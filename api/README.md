@@ -121,40 +121,47 @@ or to reimport and upload all projects:
 sportal load-data --reload-all --update-s3
 ```
 
-If you would like to update a specific project use --scpca-project-id flag (accepts multiple values):
+If you would like to update a specific project use --scpca-project-id flag:
 
 ```
 sportal load-data --scpca-project-id SCPCP000001 --scpca-project-id SCPCP000002
 ```
 
-For a specific sample update use --scpca-sample-id flag (accepts multiple values):
+For a specific sample update use --scpca-sample-id flag:
 
 ```
-sportal load-data --scpca-sample-id SCPCS000001 --scpca-sample-id SCPCS000002
+sportal load-data --scpca-project-id SCPCP000001 --scpca-sample-id SCPCS000001
 ```
 
 If you don't want the data to be re-synced from the input bucket use --skip-sync flag:
 
 ```
-sportal load-data --scpca-sample-id SCPCS000001 --skip-sync
+sportal load-data --scpca-project-id SCPCP000001 --skip-sync
 ```
 
 If you would like to purge a project and remove its files from the S3 bucket, you can use:
 
 ```
-sportal manage-api purge_project --scpca-id SCPCP000001 --delete-from-s3
+sportal manage-api purge_project --scpca-project-id SCPCP000001 --delete-from-s3
 ```
 
-The `--cleanup-input-data` flag can help you control the projects input data size. If flag is set the
+The `--clean-up-input-data` flag can help you control the projects input data size. If flag is set the
 input data cleanup process will be run for each project right after its processing is over.
 ```
-sportal load-data --cleanup-input-data --reload-all --update-s3
+sportal load-data --clean-up-input-data --reload-all --update-s3
 ```
 
-The `--cleanup-output-data` flag can help you control the projects output data size. If flag is set the
+The `--clean-up-output-data` flag can help you control the projects output data size. If flag is set the
 output (no longer needed) data cleanup process will be run for each project right after its processing is over.
 ```
-sportal load-data --cleanup-output-data --reload-all --update-s3
+sportal load-data --clean-up-output-data --reload-all --update-s3
+```
+
+The `--max-workers` flag can be used for setting a number of simultaneously processed projects/samples
+to speed up the data loading process. The provided number will be used to spawn threads within two
+separate thread pool executors -- for project and sample processing.
+```
+sportal load-data --max-workers 10 --reload-all --update-s3
 ```
 
 ## Cloud Data Management

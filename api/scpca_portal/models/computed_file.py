@@ -1,4 +1,4 @@
-import os
+import subprocess
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -56,25 +56,21 @@ class ComputedFile(TimestampedModel):
     OUTPUT_README_FILE_NAME = "README.md"
 
     README_ANNDATA_FILE_NAME = "readme_anndata.md"
-    README_ANNDATA_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_ANNDATA_FILE_NAME)
+    README_ANNDATA_FILE_PATH = common.OUTPUT_DATA_PATH / README_ANNDATA_FILE_NAME
 
     README_FILE_NAME = "readme.md"
-    README_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_FILE_NAME)
+    README_FILE_PATH = common.OUTPUT_DATA_PATH / README_FILE_NAME
 
     README_MULTIPLEXED_FILE_NAME = "readme_multiplexed.md"
-    README_MULTIPLEXED_FILE_PATH = os.path.join(
-        common.OUTPUT_DATA_DIR, README_MULTIPLEXED_FILE_NAME
-    )
+    README_MULTIPLEXED_FILE_PATH = common.OUTPUT_DATA_PATH / README_MULTIPLEXED_FILE_NAME
 
     README_SPATIAL_FILE_NAME = "readme_spatial.md"
-    README_SPATIAL_FILE_PATH = os.path.join(common.OUTPUT_DATA_DIR, README_SPATIAL_FILE_NAME)
+    README_SPATIAL_FILE_PATH = common.OUTPUT_DATA_PATH / README_SPATIAL_FILE_NAME
 
-    README_TEMPLATE_ANNDATA_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_ANNDATA_FILE_NAME)
-    README_TEMPLATE_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_FILE_NAME)
-    README_TEMPLATE_MULTIPLEXED_FILE_PATH = os.path.join(
-        common.TEMPLATE_DIR, README_MULTIPLEXED_FILE_NAME
-    )
-    README_TEMPLATE_SPATIAL_FILE_PATH = os.path.join(common.TEMPLATE_DIR, README_SPATIAL_FILE_NAME)
+    README_TEMPLATE_ANNDATA_FILE_PATH = common.TEMPLATE_PATH / README_ANNDATA_FILE_NAME
+    README_TEMPLATE_FILE_PATH = common.TEMPLATE_PATH / README_FILE_NAME
+    README_TEMPLATE_MULTIPLEXED_FILE_PATH = common.TEMPLATE_PATH / README_MULTIPLEXED_FILE_NAME
+    README_TEMPLATE_SPATIAL_FILE_PATH = common.TEMPLATE_PATH / README_SPATIAL_FILE_NAME
 
     format = models.TextField(choices=OutputFileFormats.CHOICES)
     s3_bucket = models.TextField()
@@ -92,8 +88,8 @@ class ComputedFile(TimestampedModel):
 
     def __str__(self):
         return (
-            f"{self.OutputFileFormats.CHOICES[self.format]} computed file for "
-            f"'{self.project or self.sample}'"
+            f"'{self.project or self.sample}' {dict(self.OutputFileFormats.CHOICES)[self.format]} "
+            f"computed file ({self.size_in_bytes}B)"
         )
 
     @classmethod
@@ -123,14 +119,13 @@ class ComputedFile(TimestampedModel):
             for sample_id, file_paths in sample_to_file_mapping[file_format].items():
                 for file_path in file_paths:
                     # Nest these under their sample id.
-                    archive_path = os.path.join(sample_id, os.path.basename(file_path))
-                    zip_file.write(file_path, archive_path)
+                    zip_file.write(file_path, Path(sample_id, file_path.name))
 
             if project.has_bulk_rna_seq:
                 zip_file.write(project.input_bulk_metadata_file_path, "bulk_metadata.tsv")
                 zip_file.write(project.input_bulk_quant_file_path, "bulk_quant.tsv")
 
-        computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
+        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file
 
@@ -165,14 +160,13 @@ class ComputedFile(TimestampedModel):
             for sample_id, file_paths in sample_to_file_mapping[file_format].items():
                 for file_path in file_paths:
                     # Nest these under their sample id.
-                    archive_path = os.path.join(sample_id, os.path.basename(file_path))
-                    zip_file.write(file_path, archive_path)
+                    zip_file.write(file_path, Path(sample_id, file_path.name))
 
             if project.has_bulk_rna_seq:
                 zip_file.write(project.input_bulk_metadata_file_path, "bulk_metadata.tsv")
                 zip_file.write(project.input_bulk_quant_file_path, "bulk_quant.tsv")
 
-        computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
+        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file
 
@@ -201,11 +195,11 @@ class ComputedFile(TimestampedModel):
             )
 
             for sample_id, file_paths in sample_to_file_mapping[file_format].items():
-                sample_path = Path(project.get_sample_input_data_dir(sample_id))
+                sample_path = project.get_sample_input_data_dir(sample_id)
                 for file_path in file_paths:
                     zip_file.write(file_path, Path(file_path).relative_to(sample_path))
 
-        computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
+        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file
 
@@ -231,11 +225,11 @@ class ComputedFile(TimestampedModel):
             library_id = library["scpca_library_id"]
             for file_suffix in ("_filtered.rds", "_processed.rds", "_qc.html", "_unfiltered.rds"):
                 file_name = f"{library_id}{file_suffix}"
-                file_name_path_mapping[file_name] = os.path.join(
+                file_name_path_mapping[file_name] = Path(
                     library_path_mapping[library_id], file_name
                 )
 
-        if not os.path.exists(computed_file.zip_file_path):
+        if not computed_file.zip_file_path.exists():
             with ZipFile(computed_file.zip_file_path, "w") as zip_file:
                 zip_file.write(
                     ComputedFile.README_MULTIPLEXED_FILE_PATH,
@@ -248,7 +242,7 @@ class ComputedFile(TimestampedModel):
                 for file_name, file_path in file_name_path_mapping.items():
                     zip_file.write(file_path, file_name)
 
-        computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
+        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file, {"_".join(sample.multiplexed_ids): file_name_path_mapping.values()}
 
@@ -309,13 +303,13 @@ class ComputedFile(TimestampedModel):
                 )
                 for file_suffix in file_suffixes:
                     file_name = f"{library['scpca_library_id']}_{file_suffix}"
-                    file_path = os.path.join(
-                        sample.project.get_sample_input_data_dir(sample.scpca_id), file_name
+                    file_path = (
+                        sample.project.get_sample_input_data_dir(sample.scpca_id) / file_name
                     )
                     file_paths.append(file_path)
                     zip_file.write(file_path, file_name)
 
-        computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
+        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file, {sample.scpca_id: file_paths}
 
@@ -347,16 +341,14 @@ class ComputedFile(TimestampedModel):
 
             for library in libraries:
                 library_path = Path(
-                    os.path.join(
-                        sample.project.get_sample_input_data_dir(sample.scpca_id),
-                        f"{library['scpca_library_id']}_spatial",
-                    )
+                    sample.project.get_sample_input_data_dir(sample.scpca_id),
+                    f"{library['scpca_library_id']}_spatial",
                 )
                 for item in library_path.rglob("*"):  # Add the entire directory contents.
                     zip_file.write(item, item.relative_to(library_path.parent))
                     file_paths.append(f"{Path(library_path, item.relative_to(library_path))}")
 
-        computed_file.size_in_bytes = os.path.getsize(computed_file.zip_file_path)
+        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file, {sample.scpca_id: file_paths}
 
@@ -386,24 +378,38 @@ class ComputedFile(TimestampedModel):
 
     @property
     def zip_file_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, self.s3_key)
+        return common.OUTPUT_DATA_PATH / self.s3_key
 
     def create_download_url(self):
         """Creates a temporary URL from which the file can be downloaded."""
         if self.s3_bucket and self.s3_key:
             # Append the download date to the filename on download.
             date = utils.get_today_string()
-            filename, ext = os.path.splitext(self.s3_key)
+            s3_key = Path(self.s3_key)
 
             return s3.generate_presigned_url(
                 ClientMethod="get_object",
                 Params={
                     "Bucket": self.s3_bucket,
                     "Key": self.s3_key,
-                    "ResponseContentDisposition": f"attachment; filename = {filename}_{date}.{ext}",
+                    "ResponseContentDisposition": (
+                        f"attachment; filename = {s3_key.stem}_{date}{s3_key.suffix}"
+                    ),
                 },
                 ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
             )
+
+    def create_s3_file(self):
+        """Uploads the computed file to S3 using AWS CLI tool."""
+        subprocess.check_call(
+            (
+                "aws",
+                "s3",
+                "cp",
+                str(self.zip_file_path),
+                f"s3://{settings.AWS_S3_BUCKET_NAME}/{self.s3_key}",
+            )
+        )
 
     def delete_s3_file(self, force=False):
         # If we're not running in the cloud then we shouldn't try to
