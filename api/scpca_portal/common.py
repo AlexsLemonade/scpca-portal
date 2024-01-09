@@ -4,7 +4,11 @@ from django.conf import settings
 
 # Locally the docker container puts the code in a folder called code.
 # This allows us to run the same command on production or locally.
-CODE_PATH = code_path if (code_path := Path("/home/user/code")) else Path("/home/user")
+CODE_PATH = (
+    code_path
+    if (code_path := Path("/home/user/code")) and code_path.exists()
+    else Path("/home/user")
+)
 
 CSV_MULTI_VALUE_DELIMITER = ";"
 
