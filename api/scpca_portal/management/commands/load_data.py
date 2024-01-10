@@ -13,7 +13,7 @@ import boto3
 from botocore.client import Config
 
 from scpca_portal import common, utils
-from scpca_portal.models import ComputedFile, Project
+from scpca_portal.models import Project
 
 ALLOWED_SUBMITTERS = {
     "christensen",
@@ -62,27 +62,9 @@ class Command(BaseCommand):
     to a stack-specific S3 bucket."""
 
     @staticmethod
-    def clean_up_input_data(self):
-        shutil.rmtree(common.INPUT_DATA_PATH / self.project.scpca_id, ignore_errors=True)
-
-    @staticmethod
-    def clean_up_output_data(computed_files):
-        for computed_file in computed_files:
-            Path(computed_file.zip_file_path).unlink(missing_ok=True)
-
-        for path in Path(common.OUTPUT_DATA_PATH).glob("*.tsv"):
+    def clean_up_output_data():
+        for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
             path.unlink(missing_ok=True)
-
-    @staticmethod
-    def clean_up_output_data_dir():
-        cleanup_items = (
-            ComputedFile.README_FILE_NAME,
-            ComputedFile.README_MULTIPLEXED_FILE_NAME,
-            ComputedFile.README_SPATIAL_FILE_NAME,
-        )
-        for item in cleanup_items:
-            for path in Path(common.OUTPUT_DATA_PATH).glob(item):
-                path.unlink()
 
     @staticmethod
     def download_data(bucket_name, scpca_project_id=None, scpca_sample_id=None):
@@ -128,9 +110,11 @@ class Command(BaseCommand):
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
 
+    def clean_up_input_data(self):
+        shutil.rmtree(common.INPUT_DATA_PATH / self.project.scpca_id, ignore_errors=True)
+
     def handle(self, *args, **kwargs):
         self.load_data(**kwargs)
-        self.clean_up_output_data_dir()
 
     def process_project_data(self, data, sample_id, **kwargs):
         self.project.abstract = data["abstract"]
@@ -174,8 +158,8 @@ class Command(BaseCommand):
         common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
         allowed_submitters = allowed_submitters or ALLOWED_SUBMITTERS
-        project_id = kwargs.get("scpca_project_id", ())
-        sample_id = kwargs.get("scpca_sample_id", ())
+        project_id = kwargs.get("scpca_project_id")
+        sample_id = kwargs.get("scpca_sample_id")
 
         if not kwargs.get("skip_sync"):
             self.download_data(
@@ -193,6 +177,8 @@ class Command(BaseCommand):
 
         for project_data in project_list:
             scpca_project_id = project_data["scpca_project_id"]
+            if project_id and project_id != scpca_project_id:
+                continue
 
             if scpca_project_id not in project_samples_mapping:
                 logger.warning(
@@ -202,9 +188,6 @@ class Command(BaseCommand):
 
             if project_data["submitter"] not in allowed_submitters:
                 logger.warning("Project submitter  is not the white list.")
-                continue
-
-            if project_id and project_id != scpca_project_id:
                 continue
 
             # Purge existing projects so they can be re-added.
@@ -222,7 +205,7 @@ class Command(BaseCommand):
 
             self.project = Project.objects.filter(scpca_id=scpca_project_id).first()
             logger.info(f"Importing '{self.project}' data")
-            computed_files = self.process_project_data(project_data, sample_id, **kwargs)
+            self.process_project_data(project_data, sample_id, **kwargs)
             if samples_count := self.project.samples.count():
                 logger.info(
                     f"Created {samples_count} sample{pluralize(samples_count)} for '{self.project}'"
@@ -233,5 +216,5 @@ class Command(BaseCommand):
                 self.clean_up_input_data()
 
             if kwargs["clean_up_output_data"]:
-                logger.info(f"Cleaning up '{project}' output data")
-                self.clean_up_output_data(computed_files)
+                logger.info("Cleaning up output directory")
+                self.clean_up_output_data()

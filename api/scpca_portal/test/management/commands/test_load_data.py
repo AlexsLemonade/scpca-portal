@@ -15,6 +15,8 @@ INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs"
 
 
 class TestLoadData(TransactionTestCase):
+    project_id = "SCPCP999990"
+
     def setUp(self):
         self.loader = Command()
 
@@ -51,6 +53,21 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(sample.treatment)
 
     @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
+    def test_data_clean_up(self):
+        self.loader.load_data(
+            allowed_submitters=ALLOWED_SUBMITTERS,
+            input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=True,
+            clean_up_output_data=True,
+            max_workers=4,
+            reload_all=False,
+            reload_existing=False,
+            update_s3=False,
+        )
+        self.assertEqual(len(list((common.INPUT_DATA_PATH / self.project_id).glob("*"))), 0)
+        self.assertEqual(len(list(common.OUTPUT_DATA_PATH.glob("*"))), 0)
+
+    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_load_data(self):
         def assert_object_count():
             self.assertEqual(Project.objects.count(), 1)
@@ -71,8 +88,7 @@ class TestLoadData(TransactionTestCase):
         )
         assert_object_count()
 
-        scpca_project_id = "SCPCP999990"
-        project = Project.objects.get(scpca_id=scpca_project_id)
+        project = Project.objects.get(scpca_id=self.project_id)
         project_computed_files = project.computed_files
         project_summary = project.summaries.first()
         sample = project.samples.first()
@@ -91,7 +107,7 @@ class TestLoadData(TransactionTestCase):
         )
         assert_object_count()
 
-        new_project = Project.objects.get(scpca_id=scpca_project_id)
+        new_project = Project.objects.get(scpca_id=self.project_id)
         self.assertEqual(project, new_project)
         self.assertEqual(project_summary, new_project.summaries.first())
 
@@ -101,7 +117,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(list(sample_computed_files), list(new_sample.computed_files))
 
         # Make sure purging works as expected.
-        Project.objects.get(scpca_id=scpca_project_id).purge()
+        Project.objects.get(scpca_id=self.project_id).purge()
 
         self.assertEqual(Project.objects.count(), 0)
         self.assertEqual(ProjectSummary.objects.count(), 0)
@@ -134,7 +150,7 @@ class TestLoadData(TransactionTestCase):
             update_s3=True,
         )
 
-        project = Project.objects.get(scpca_id="SCPCP999990")
+        project = Project.objects.get(scpca_id=self.project_id)
         self.assert_project(project)
         self.assertEqual(project.downloadable_sample_count, 4)
         self.assertTrue(project.has_bulk_rna_seq)
@@ -345,7 +361,7 @@ class TestLoadData(TransactionTestCase):
             update_s3=True,
         )
 
-        project = Project.objects.get(scpca_id="SCPCP999990")
+        project = Project.objects.get(scpca_id=self.project_id)
         self.assert_project(project)
         self.assertEqual(project.downloadable_sample_count, 4)
         self.assertFalse(project.has_cite_seq_data)
@@ -536,7 +552,7 @@ class TestLoadData(TransactionTestCase):
             update_s3=True,
         )
 
-        project = Project.objects.get(scpca_id="SCPCP999990")
+        project = Project.objects.get(scpca_id=self.project_id)
         self.assert_project(project)
         self.assertEqual(project.downloadable_sample_count, 4)
         self.assertFalse(project.has_cite_seq_data)
