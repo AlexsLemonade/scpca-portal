@@ -29,6 +29,7 @@ class ComputedFileSerializer(serializers.ModelSerializer):
             "created_at",
             "format",
             "id",
+            "modality",
             "project",
             "s3_bucket",
             "s3_key",

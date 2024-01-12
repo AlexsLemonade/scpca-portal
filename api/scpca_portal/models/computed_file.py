@@ -26,6 +26,18 @@ class ComputedFile(TimestampedModel):
         SINGLE_CELL_METADATA_FILE_NAME = "single_cell_metadata.tsv"
         SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
 
+    # TODO(ark): these values are redundant and need to be refactored in order not to violate DRY.
+    class OutputFileModalities:
+        MULTIPLEXED = "MULTIPLEXED"
+        SINGLE_CELL = "SINGLE_CELL"
+        SPATIAL = "SPATIAL"
+
+        CHOICES = (
+            (MULTIPLEXED, "Multiplexed"),
+            (SINGLE_CELL, "Single Cell"),
+            (SPATIAL, "Spatial"),
+        )
+
     class OutputFileTypes:
         PROJECT_MULTIPLEXED_ZIP = "PROJECT_MULTIPLEXED_ZIP"
         PROJECT_SPATIAL_ZIP = "PROJECT_SPATIAL_ZIP"
@@ -73,6 +85,7 @@ class ComputedFile(TimestampedModel):
     README_TEMPLATE_SPATIAL_FILE_PATH = common.TEMPLATE_PATH / README_SPATIAL_FILE_NAME
 
     format = models.TextField(choices=OutputFileFormats.CHOICES)
+    modality = models.TextField(choices=OutputFileModalities.CHOICES)
     s3_bucket = models.TextField()
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
@@ -100,6 +113,7 @@ class ComputedFile(TimestampedModel):
 
         computed_file = cls(
             format=file_format,
+            modality=cls.OutputFileModalities.MULTIPLEXED,
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=project.output_multiplexed_computed_file_name,
@@ -144,6 +158,7 @@ class ComputedFile(TimestampedModel):
 
         computed_file = cls(
             format=file_format,
+            modality=cls.OutputFileModalities.SINGLE_CELL,
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=computed_file_name,
@@ -178,6 +193,7 @@ class ComputedFile(TimestampedModel):
 
         computed_file = cls(
             format=file_format,
+            modality=cls.OutputFileModalities.SPATIAL,
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=project.output_spatial_computed_file_name,
@@ -213,6 +229,7 @@ class ComputedFile(TimestampedModel):
         """
         computed_file = cls(
             format=file_format,
+            modality=cls.OutputFileModalities.MULTIPLEXED,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_multiplexed_computed_file_name,
             sample=sample,
@@ -277,6 +294,7 @@ class ComputedFile(TimestampedModel):
 
         computed_file = cls(
             format=file_format,
+            modality=cls.OutputFileModalities.SINGLE_CELL,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=file_name,
             sample=sample,
@@ -321,6 +339,7 @@ class ComputedFile(TimestampedModel):
         """
         computed_file = cls(
             format=file_format,
+            modality=cls.OutputFileModalities.SPATIAL,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_spatial_computed_file_name,
             sample=sample,

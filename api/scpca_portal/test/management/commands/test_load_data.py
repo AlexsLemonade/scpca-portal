@@ -162,6 +162,10 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(len(project.computed_files), 4)
+        self.assertEqual(
+            project.multiplexed_computed_file.modality,
+            ComputedFile.OutputFileModalities.MULTIPLEXED,
+        )
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
 
@@ -302,6 +306,10 @@ class TestLoadData(TransactionTestCase):
         self.assertTrue(sample.has_multiplexed_data)
         self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3.1")
+        self.assertEqual(
+            sample.multiplexed_computed_file.modality,
+            ComputedFile.OutputFileModalities.MULTIPLEXED,
+        )
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
@@ -376,6 +384,14 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
+        self.assertEqual(
+            project.single_cell_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertEqual(
+            project.single_cell_anndata_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
         self.assertEqual(project.technologies, "10Xv3.1, visium")
 
         expected_keys = [
@@ -464,6 +480,14 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(sample.single_cell_computed_file.workflow_version, "development")
+        self.assertEqual(
+            sample.single_cell_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertEqual(
+            sample.single_cell_anndata_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
         self.assertEqual(sample.technologies, "10Xv3.1")
 
         expected_additional_metadata_keys = [
@@ -565,6 +589,10 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "development")
+        self.assertEqual(
+            project.spatial_computed_file.modality,
+            ComputedFile.OutputFileModalities.SPATIAL,
+        )
 
         expected_keys = [
             "scpca_project_id",
@@ -651,6 +679,10 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(sample.spatial_computed_file)
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(sample.spatial_computed_file.workflow_version, "development")
+        self.assertEqual(
+            sample.spatial_computed_file.modality,
+            ComputedFile.OutputFileModalities.SPATIAL,
+        )
         self.assertEqual(sample.technologies, "visium")
 
         expected_additional_metadata_keys = [
