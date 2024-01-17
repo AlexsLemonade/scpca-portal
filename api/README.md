@@ -164,6 +164,27 @@ separate thread pool executors -- for project and sample processing.
 sportal load-data --max-workers 10 --reload-all --update-s3
 ```
 
+AWS S3 configuration options:
+
+The `--s3-max-bandwidth` flag controls the maximum bandwidth (in MB/s) that the S3 commands will
+utilize for S3 transfers. Default - None.
+```
+sportal load-data --max-workers 10 --reload-all --update-s3 --s3-max-bandwidth 100
+```
+
+The `--s3-max-concurrent-requests` specifies the maximum number of downloads/uploads that are
+allowed at any given time. Default - 10.
+```
+sportal load-data --max-workers 10 --reload-all --update-s3 --s3-max-concurrent-requests 20
+```
+
+The `--s3-multipart-chunk-size` specifies the chunk size (in MB) for multipart operations.
+Default - 8MB.
+```
+sportal load-data --max-workers 10 --reload-all --update-s3 --s3-multipart-chunk-size 64
+```
+
+
 ## Cloud Data Management
 
 The `load_data` and `purge_project` commands can also be run in the cloud.

@@ -67,6 +67,27 @@ class Command(BaseCommand):
             path.unlink(missing_ok=True)
 
     @staticmethod
+    def configure_aws_cli(**params):
+        commands = [
+            # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#payload-signing-enabled
+            "aws configure set default.s3.payload_signing_enabled false",
+            # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-concurrent-requests
+            "aws configure set default.s3.max_concurrent_requests "
+            f"{params['s3_max_concurrent_requests']}",
+            # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#multipart-chunksize
+            "aws configure set default.s3.multipart_chunksize "
+            f"{params['s3_multipart_chunk_size']}MB",
+        ]
+        if params["s3_max_bandwidth"] is not None:
+            commands.append(
+                # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-bandwidth
+                f"aws configure set default.s3.max_bandwidth {params['s3_max_bandwidth']}MB/s",
+            )
+
+        for command in commands:
+            subprocess.check_call(command.split())
+
+    @staticmethod
     def download_data(bucket_name, scpca_project_id=None, scpca_sample_id=None):
         command_list = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
         if scpca_sample_id:
@@ -103,6 +124,9 @@ class Command(BaseCommand):
         parser.add_argument("--max-workers", type=int, default=10)
         parser.add_argument("--reload-all", action="store_true")
         parser.add_argument("--reload-existing", action="store_true")
+        parser.add_argument("--s3-max-bandwidth", type=int, default=None, help="In MB/s")
+        parser.add_argument("--s3-max-concurrent-requests", type=int, default=10)
+        parser.add_argument("--s3-multipart-chunk-size", type=int, default=8, help="In MB")
         parser.add_argument("--scpca-project-id", type=str)
         parser.add_argument("--scpca-sample-id", type=str)
         parser.add_argument("--skip-sync", action="store_true", default=False)
@@ -114,6 +138,7 @@ class Command(BaseCommand):
         shutil.rmtree(common.INPUT_DATA_PATH / self.project.scpca_id, ignore_errors=True)
 
     def handle(self, *args, **kwargs):
+        self.configure_aws_cli(**kwargs)
         self.load_data(**kwargs)
 
     def process_project_data(self, data, sample_id, **kwargs):
