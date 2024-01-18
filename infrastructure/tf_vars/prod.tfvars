@@ -1,1 +1,1 @@
-api_instance_type = "t2.small"
+api_instance_type = "t2.medium"
