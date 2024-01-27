@@ -26,6 +26,7 @@ class ComputedFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComputedFile
         fields = (
+            "content_descriptions",
             "created_at",
             "format",
             "id",
@@ -40,6 +41,7 @@ class ComputedFileSerializer(serializers.ModelSerializer):
             "workflow_version",
         )
 
+    content_descriptions = serializers.JSONField()
     project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
     sample = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
 

@@ -11,6 +11,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComputedFile
         fields = (
+            "content_descriptions",
             "created_at",
             "download_url",
             "format",
@@ -34,6 +35,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             }
         }
 
+    content_descriptions = serializers.JSONField()
     project = ProjectLeafSerializer(read_only=True)
     sample = SampleSerializer(read_only=True)
 
