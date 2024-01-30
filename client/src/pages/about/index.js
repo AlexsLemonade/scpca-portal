@@ -9,7 +9,14 @@ import AboutPageFeaturesEnhancements from '../../images/about-page-fig-features-
 import AboutPageFeaturesEnhancementsMobile from '../../images/about-page-fig-features-enchancements-mobile.svg'
 import AboutPageFigureHowItWorks from '../../images/about-page-fig-how-it-works.svg'
 import AboutPageFigureHowItWorksMobile from '../../images/about-page-fig-how-it-works-mobile.svg'
-import AboutPageFigureUndrawChoose from '../../images/about-page-fig-undraw_choose.svg'
+import AboutPageImageChoose from '../../images/about-page-choose.svg'
+import AboutPageImageShowingSupport from '../../images/about-page-showing-support.svg'
+
+const Li = ({ text }) => (
+  <Box as="li" style={{ display: 'list-item' }}>
+    {text}
+  </Box>
+)
 
 export const About = () => {
   const { responsive } = useResponsive()
@@ -210,11 +217,12 @@ export const About = () => {
             )}
             margin={{
               top: responsive('', '72px'),
-              bottom: responsive('xlarge', '72px')
+              bottom: responsive('xlarge', '72px'),
+              horizontal: responsive('large', 'none')
             }}
           >
             <Box align={responsive('center', 'start')} gridArea="left">
-              <AboutPageFigureUndrawChoose alt="" width={responsive('100px')} />
+              <AboutPageImageChoose alt="" width={responsive('100px')} />
             </Box>
 
             <Box
@@ -235,6 +243,66 @@ export const About = () => {
         </Box>
       </Box>
       <Box width={{ max: 'xlarge' }}>
+        <Grid
+          align="end"
+          gap="none"
+          rows={['none ', 'none']}
+          columns={['1', '1']}
+          areas={responsive(
+            [
+              { name: 'left', start: [0, 0], end: [1, 0] },
+              { name: 'right', start: [0, 1], end: [1, 1] }
+            ],
+            [
+              { name: 'left', start: [0, 1], end: [0, 1] },
+              { name: 'right', start: [1, 1], end: [1, 1] }
+            ]
+          )}
+          margin={{
+            top: responsive('xlarge', 'xlarge'),
+            bottom: responsive('none', 'medium'),
+            horizontal: responsive('large', 'none')
+          }}
+        >
+          <Box
+            gridArea="left"
+            margin={{ right: responsive('none', 'xlarge') }}
+            pad={{ left: 'none' }}
+          >
+            <Box
+              width={{ width: 'full', max: 'xlarge' }}
+              fill
+              margin={{ bottom: 'medium' }}
+            >
+              <Text size="xlarge">Support the Data Lab</Text>
+            </Box>
+            <Paragraph margin={{ bottom: 'large' }}>
+              The ScPCA has the potential to serve the pediatric cancer research
+              community and change the lives of children fighting cancer in even
+              more ways!
+            </Paragraph>
+            <Paragraph margin={{ bottom: 'large' }}>
+              With your support, we will:
+            </Paragraph>
+            <Box as="ul" pad={{ left: '26px' }} style={{ listStyle: 'disc' }}>
+              <Li
+                text="Continue to expand features that will help researchers get
+                further with their data"
+              />
+              <Li
+                text="Grow the Portal by making more data available through community
+                contributions"
+              />
+              <Li
+                text="Launch a global, open science initiative to improve the utility
+                of the ScPCA data"
+              />
+            </Box>
+          </Box>
+          <Box align={responsive('center', 'start')} gridArea="right">
+            <AboutPageImageShowingSupport alt="" width={responsive('120px')} />
+          </Box>
+        </Grid>
         <Box pad={{ vertical: 'xlarge' }}>
           <CardBandLarge
             pad={responsive(
