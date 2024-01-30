@@ -27,7 +27,9 @@ export const config = {
     alsfInstagram: 'https://www.instagram.com/AlexsLemonade/',
     ccdlTwitter: 'https://twitter.com/CancerDataLab',
     ccdlGithub: 'https://github.com/AlexsLemonade/',
-    scpca: 'https://scpca.alexslemonade.org/'
+    ccdlGithub_pipeline: 'https://github.com/AlexsLemonade/scpca-nf',
+    scpca: 'https://scpca.alexslemonade.org/',
+    scpca_contribute: 'https://scpca.alexslemonade.org/contribute'
   },
   contact: {
     to: 'Alex’s Lemonade Stand Foundation for Childhood Cancer',
