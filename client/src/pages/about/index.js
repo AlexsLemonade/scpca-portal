@@ -38,10 +38,12 @@ export const About = () => {
           )}
         >
           <Paragraph size="large" textAlign="center">
-            The Single-cell Pediatric Cancer Atlas (ScPCA) is accelerating the
-            discovery of better treatments for pediatric solid tumors and
-            leukemias. Single-cell profiling can provide insight into how
-            certain cells influence cancer progression and treatment response.
+            The Single-cell Pediatric Cancer Atlas (ScPCA) is enabling broad
+            access to single-cell data from pediatric cancer tumors and model
+            systems will increase its impact on the lives of children with
+            cancer. The Single-cell Pediatric Cancer Atlas (ScPCA) was created
+            to generate an unprecedented resource for the pediatric cancer
+            research community
           </Paragraph>
         </Box>
       </HeroBandReversed>
@@ -51,7 +53,7 @@ export const About = () => {
           fill
           pad={responsive({ horizontal: 'medium' })}
         >
-          <Text size="xlarge">How it works</Text>
+          <Text size="xlarge">Building the ScPCA Portal</Text>
         </Box>
       </Box>
       <Box pad={{ horizontal: 'medium' }}>
@@ -60,10 +62,6 @@ export const About = () => {
             style={{ maxWidth: '100%' }}
             role="img"
             title="A diagram image for How it works"
-          />,
-          <AboutPageFigure
-            role="img"
-            aria-label="A diagram image for How it works"
           />
         )}
       </Box>
@@ -74,30 +72,67 @@ export const About = () => {
         width={{ width: 'full', max: 'xlarge' }}
       >
         <Box pad={responsive({ horizontal: 'medium' })}>
-          <Text weight="bold">
-            ALSF funds cutting-edge pediatric cancer research
-          </Text>
-          <Text>
-            Alex’s Lemonade Stand Foundation (ALSF) funded 10 childhood cancer
-            investigators from eight different institutions working on
-            single-cell profiling to create a publicly available atlas of
-            single-cell pediatric cancer data.{' '}
-            <Link
-              href={config.links.grants_program}
-              label="Learn more about the grants
+          <Box margin={{ bottom: responsive('xlarge', '76px') }}>
+            <Text weight="bold">
+              ALSF funds cutting-edge pediatric cancer research
+            </Text>
+            <Text>
+              In 2019, Alex’s Lemonade Stand Foundation (ALSF) funded 10 grants
+              for investigators working on single-cell profiling of patient
+              samples to create a publicly available atlas of single-cell
+              pediatric cancer data. .
+            </Text>
+            <Text margin={{ top: 'medium' }}>
+              <Link
+                href={config.links.grants_program}
+                label="Learn more about the grants
             program"
-            />
-            .
-          </Text>
+              />
+            </Text>
+          </Box>
+          <Box margin={{ bottom: responsive('xlarge', '76px') }}>
+            <Text weight="bold">The Data Lab processes the generated data</Text>
+            <Text>
+              In 2019, Alex’s Lemonade Stand Foundation (ALSF) funded 10 grants
+              for investigators working on single-cell profiling of patient
+              samples to create a publicly available atlas of single-cell
+              pediatric cancer data.
+            </Text>
+            <Text margin={{ top: 'medium' }}>
+              <Link
+                href={config.links.scpca}
+                label="View the current number of tumor types represented and samples being processed here."
+              />
+            </Text>
+          </Box>
+          <Box margin={{ bottom: responsive('xlarge', '76px') }}>
+            <Text weight="bold">The data was made widely available</Text>
+            <Text>
+              The ScPCA Portal launched in 2022. It was built by the Data Lab to
+              make all uniformly processed data widely and readily available in
+              one location.
+            </Text>
+          </Box>
+          <Box margin={{ bottom: responsive('xlarge', '76px') }}>
+            <Text weight="bold">Researchers save precious time</Text>
+            <Text>
+              Researchers anywhere have access to a growing database of
+              single-cell data, which they can immediately begin using for their
+              own research.
+            </Text>
+          </Box>
         </Box>
+
         <Box pad={responsive({ horizontal: 'medium' })}>
-          <Text weight="bold">The Data Lab processes the generated data</Text>
-          <Text>
-            ALSF’s Childhood Cancer Data Lab is trusted to process the
-            single-cell, single-nuclei, and bulk RNA sequencing data submitted
-            by the ALSF-funded investigators. You can view the current number of
-            tumor types represented and samples being processed here.
-          </Text>
+          <Box pad={{ horizontal: 'medium' }}>
+            {responsive(
+              '',
+              <AboutPageFigure
+                role="img"
+                aria-label="A diagram image for How it works"
+              />
+            )}
+          </Box>
         </Box>
       </Grid>
       <Box background="dawn" width="full" align="center" pad={{ top: 'large' }}>
