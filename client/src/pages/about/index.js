@@ -5,12 +5,11 @@ import { CardBandLarge, HeroBandReversed } from 'components/Band'
 import { DonateButton } from 'components/DonateButton'
 import { Link } from 'components/Link'
 import { config } from 'config'
-import AboutPageFigure from '../../images/about-page-figure.svg'
-import AboutPageFigureMobile from '../../images/about-page-fig-mobile.svg'
-import SaveTime from '../../images/save-time.svg'
-import WidelyAvailable from '../../images/widely-available.svg'
-import OpenSource from '../../images/open-source.svg'
-import Access from '../../images/access.svg'
+import AboutPageFeaturesEnhancements from '../../images/about-page-fig-features-enchancements.svg'
+import AboutPageFeaturesEnhancementsMobile from '../../images/about-page-fig-features-enchancements-mobile.svg'
+import AboutPageFigureHowItWorks from '../../images/about-page-fig-how-it-works.svg'
+import AboutPageFigureHowItWorksMobile from '../../images/about-page-fig-how-it-works-mobile.svg'
+import AboutPageFigureUndrawChoose from '../../images/about-page-fig-undraw_choose.svg'
 
 export const About = () => {
   const { responsive } = useResponsive()
@@ -58,7 +57,7 @@ export const About = () => {
       </Box>
       <Box pad={{ horizontal: 'medium' }}>
         {responsive(
-          <AboutPageFigureMobile
+          <AboutPageFigureHowItWorksMobile
             style={{ maxWidth: '100%' }}
             role="img"
             title="A diagram image for How it works"
@@ -122,12 +121,11 @@ export const About = () => {
             </Text>
           </Box>
         </Box>
-
         <Box pad={responsive({ horizontal: 'medium' })}>
           <Box pad={{ horizontal: 'medium' }}>
             {responsive(
               '',
-              <AboutPageFigure
+              <AboutPageFigureHowItWorks
                 role="img"
                 aria-label="A diagram image for How it works"
               />
@@ -142,17 +140,25 @@ export const About = () => {
           fill
           pad={responsive({ horizontal: 'medium' })}
         >
-          <Text size="xlarge">Impact</Text>
+          <Text size="xlarge">Features and Enhancements</Text>
         </Box>
         <Box align="center" width={{ width: 'full', max: 'xlarge' }}>
           <Box
-            margin={{ vertical: 'large' }}
+            margin={{ top: 'large', bottom: 'xlarge' }}
             pad={responsive({ horizontal: 'medium' })}
           >
-            <Text>
-              ALSF’s funding and the Data Lab’s expertise maximize the reach of
-              this open resource to accelerate the rate of new discoveries.
-            </Text>
+            {responsive(
+              <AboutPageFeaturesEnhancementsMobile
+                role="img"
+                aria-label="A diagram image for Features and Enhancements"
+                width={{ max: '320px' }}
+              />,
+              <AboutPageFeaturesEnhancements
+                role="img"
+                aria-label="A diagram image for Features and Enhancements"
+                width={responsive('', 'auto', '750px')}
+              />
+            )}
           </Box>
           <Grid
             columns={responsive('1', '1/2')}
@@ -161,91 +167,69 @@ export const About = () => {
             margin={{ bottom: 'xlarge' }}
             pad={responsive('medium')}
           >
-            <Box
-              direction="row"
-              justify="between"
-              gap={responsive('large', 'medium')}
-            >
-              <Box width="24px">
-                <Access
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
-                />
-              </Box>
-              <Box>
-                <Text weight="bold">Accessible Cutting-edge Technology</Text>
-                <Text>
-                  Single-cell RNA sequencing is a cutting-edge technology and
-                  may not be accessible to all childhood cancer experts. Making
-                  the outputs of this project readily and openly available puts
-                  data in the hands of more researchers.
-                </Text>
-              </Box>
+            <Box>
+              <Text weight="bold">Open Source Pipeline</Text>
+              <Text>
+                The open-source{' '}
+                <Link
+                  href={config.links.ccdlGithub_pipeline}
+                  label="pipeline"
+                />{' '}
+                pipeline used to process the data is fast, reusable, and
+                cost-efficient. Others can utilize the pipeline for their own
+                data, and the pipeline can be easily extended.
+              </Text>
             </Box>
-            <Box
-              direction="row"
-              justify="between"
-              gap={responsive('large', 'medium')}
-            >
-              <Box width="24px">
-                <WidelyAvailable
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
+            <Box>
+              <Text weight="bold">Community Contributions</Text>
+              <Text>
+                More researchers can share their single-cell data on the Portal!
+                We now accept dataset contributions from pediatric cancer
+                researchers outside of the initial ScPCA grant.{' '}
+                <Link
+                  href={config.links.scpca_contribute}
+                  label="Learn more about contributing data."
                 />
-              </Box>
-              <Box>
-                <Text weight="bold">Widely Available</Text>
-                <Text>
-                  The Data Lab developed the ScPCA Portal to make the data from
-                  these patient samples widely and easily available in one
-                  location.
-                </Text>
-              </Box>
+              </Text>
             </Box>
-            <Box
-              direction="row"
-              justify="between"
-              gap={responsive('large', 'medium')}
-            >
-              <Box width="24px">
-                <OpenSource
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
-                />
-              </Box>
-              <Box>
-                <Text weight="bold">Open Source</Text>
-                <Text>
-                  The pipeline used to process the data is open source and well
-                  documented. This not only cultivates trust in the data, but
-                  also enables researchers to utilize the pipeline for their own
-                  analyses and ensure reproducible results.
-                </Text>
-              </Box>
+          </Grid>
+          <Grid
+            align="center"
+            gap="none"
+            rows={['none ', 'none']}
+            columns={['1', '1']}
+            areas={responsive(
+              [
+                { name: 'left', start: [0, 0], end: [1, 0] },
+                { name: 'right', start: [0, 1], end: [1, 1] }
+              ],
+              [
+                { name: 'left', start: [0, 1], end: [0, 1] },
+                { name: 'right', start: [1, 1], end: [1, 1] }
+              ]
+            )}
+            margin={{
+              top: responsive('', '72px'),
+              bottom: responsive('xlarge', '72px')
+            }}
+          >
+            <Box align={responsive('center', 'start')} gridArea="left">
+              <AboutPageFigureUndrawChoose alt="" width={responsive('100px')} />
             </Box>
+
             <Box
-              direction="row"
-              justify="between"
-              gap={responsive('large', 'medium')}
+              gridArea="right"
+              margin={{ left: responsive('none', 'xlarge') }}
             >
-              <Box width="24px">
-                <SaveTime
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
-                />
-              </Box>
-              <Box>
-                <Text weight="bold">Frees up Researcher Time</Text>
-                <Text>
-                  This saves precious time for researchers who would have
-                  otherwise had to process the data themselves and enables them
-                  to begin using it immediately.
-                </Text>
-              </Box>
+              <Text weight="bold">More Choices for Users</Text>
+              <Text>
+                Researchers can choose which file format to receive when
+                downloading data. Downloads can be immediately used with two
+                major software ecosystems for working with single-cell data.
+                This means more users can avoid the time-consuming process of
+                converting their ScPCA data to their preferred format and start
+                working with it faster.
+              </Text>
             </Box>
           </Grid>
         </Box>
