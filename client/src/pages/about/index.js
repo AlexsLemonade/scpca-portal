@@ -129,7 +129,7 @@ export const About = () => {
           </Box>
         </Box>
         <Box pad={responsive({ horizontal: 'medium' })}>
-          <Box pad={{ horizontal: 'medium' }}>
+          <Box pad={{ horizontal: 'medium' }} align="end">
             {responsive(
               '',
               <FigureHowItWorksSvg
