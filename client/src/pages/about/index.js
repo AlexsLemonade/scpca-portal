@@ -195,8 +195,9 @@ export const About = () => {
                 We now accept dataset contributions from pediatric cancer
                 researchers outside of the initial ScPCA grant.{' '}
                 <Link
-                  href={config.links.scpca_contribute}
+                  href="/contribute"
                   label="Learn more about contributing data"
+                  newTab
                 />
               </Text>
             </Box>
