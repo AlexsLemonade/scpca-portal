@@ -164,19 +164,12 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
-
         self.assertEqual(
             project.multiplexed_computed_file.modality,
             ComputedFile.OutputFileModalities.MULTIPLEXED,
         )
-        self.assertListEqual(
-            project.multiplexed_computed_file.content_descriptions,
-            [
-                "Single-cell multiplexed data as SingleCellExperiment (R)",
-                "Bulk RNA-seq data",
-                "Project and Sample Metadata",
-            ],
-        )
+        self.assertTrue(project.multiplexed_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.multiplexed_computed_file.has_cite_seq_data)
 
         # Check contacts.
         self.assertEqual(project.contacts.count(), 2)
@@ -315,18 +308,12 @@ class TestLoadData(TransactionTestCase):
         self.assertTrue(sample.has_multiplexed_data)
         self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3.1")
-
         self.assertEqual(
             sample.multiplexed_computed_file.modality,
             ComputedFile.OutputFileModalities.MULTIPLEXED,
         )
-        self.assertListEqual(
-            sample.multiplexed_computed_file.content_descriptions,
-            [
-                "Single-cell multiplexed data as SingleCellExperiment (R)",
-                "Project and Sample Metadata",
-            ],
-        )
+        self.assertFalse(sample.multiplexed_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.multiplexed_computed_file.has_cite_seq_data)
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
@@ -398,36 +385,23 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
+        self.assertEqual(project.technologies, "10Xv3.1, visium")
         self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
-        self.assertEqual(project.technologies, "10Xv3.1, visium")
-
         self.assertEqual(
             project.single_cell_computed_file.modality,
             ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
-        self.assertListEqual(
-            project.single_cell_computed_file.content_descriptions,
-            [
-                "Single-cell data as SingleCellExperiment (R)",
-                "Bulk RNA-seq data",
-                "Project and Sample Metadata",
-            ],
-        )
+        self.assertTrue(project.single_cell_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.single_cell_computed_file.has_cite_seq_data)
 
         self.assertEqual(
             project.single_cell_anndata_computed_file.modality,
             ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
-        self.assertListEqual(
-            project.single_cell_anndata_computed_file.content_descriptions,
-            [
-                "Single-cell data as AnnData (Python)",
-                "Bulk RNA-seq data",
-                "Project and Sample Metadata",
-            ],
-        )
+        self.assertTrue(project.single_cell_anndata_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.single_cell_anndata_computed_file.has_cite_seq_data)
 
         expected_keys = [
             "scpca_sample_id",
@@ -512,34 +486,22 @@ class TestLoadData(TransactionTestCase):
         self.assertFalse(sample.has_cite_seq_data)
         self.assertEqual(sample.sample_cell_count_estimate, 1638)
         self.assertEqual(sample.seq_units, "cell")
+        self.assertEqual(sample.technologies, "10Xv3.1")
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(sample.single_cell_computed_file.workflow_version, "development")
-
         self.assertEqual(
             sample.single_cell_computed_file.modality,
             ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
-        self.assertListEqual(
-            sample.single_cell_computed_file.content_descriptions,
-            [
-                "Single-cell data as SingleCellExperiment (R)",
-                "Project and Sample Metadata",
-            ],
-        )
-
+        self.assertFalse(sample.single_cell_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.single_cell_computed_file.has_cite_seq_data)
         self.assertEqual(
             sample.single_cell_anndata_computed_file.modality,
             ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
-        self.assertListEqual(
-            sample.single_cell_anndata_computed_file.content_descriptions,
-            [
-                "Single-cell data as AnnData (Python)",
-                "Project and Sample Metadata",
-            ],
-        )
-        self.assertEqual(sample.technologies, "10Xv3.1")
+        self.assertFalse(sample.single_cell_anndata_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.single_cell_anndata_computed_file.has_cite_seq_data)
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
@@ -640,19 +602,12 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "development")
-
         self.assertEqual(
             project.spatial_computed_file.modality,
             ComputedFile.OutputFileModalities.SPATIAL,
         )
-        self.assertListEqual(
-            project.spatial_computed_file.content_descriptions,
-            [
-                "Single-cell data as SingleCellExperiment (R)",
-                "Bulk RNA-seq data",
-                "Project and Sample Metadata",
-            ],
-        )
+        self.assertTrue(project.spatial_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.spatial_computed_file.has_cite_seq_data)
 
         expected_keys = [
             "scpca_project_id",
@@ -740,18 +695,12 @@ class TestLoadData(TransactionTestCase):
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(sample.spatial_computed_file.workflow_version, "development")
         self.assertEqual(sample.technologies, "visium")
-
         self.assertEqual(
             sample.spatial_computed_file.modality,
             ComputedFile.OutputFileModalities.SPATIAL,
         )
-        self.assertListEqual(
-            sample.spatial_computed_file.content_descriptions,
-            [
-                "Single-cell data as SingleCellExperiment (R)",
-                "Project and Sample Metadata",
-            ],
-        )
+        self.assertFalse(sample.spatial_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.spatial_computed_file.has_cite_seq_data)
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",

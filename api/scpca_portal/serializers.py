@@ -26,9 +26,10 @@ class ComputedFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComputedFile
         fields = (
-            "content_descriptions",
             "created_at",
             "format",
+            "has_bulk_rna_seq",
+            "has_cite_seq_data",
             "id",
             "modality",
             "project",
@@ -41,7 +42,6 @@ class ComputedFileSerializer(serializers.ModelSerializer):
             "workflow_version",
         )
 
-    content_descriptions = serializers.JSONField()
     project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
     sample = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
 

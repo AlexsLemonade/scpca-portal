@@ -2,11 +2,11 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common
-from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 
 
-class Sample(TimestampedModel):
+class Sample(CommonDataAttributes, TimestampedModel):
     class Meta:
         db_table = "samples"
         get_latest_by = "updated_at"
@@ -31,8 +31,6 @@ class Sample(TimestampedModel):
     demux_cell_count_estimate = models.IntegerField(null=True)
     diagnosis = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
-    has_bulk_rna_seq = models.BooleanField(default=False)
-    has_cite_seq_data = models.BooleanField(default=False)
     has_multiplexed_data = models.BooleanField(default=False)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)

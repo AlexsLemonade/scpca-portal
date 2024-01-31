@@ -11,10 +11,11 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComputedFile
         fields = (
-            "content_descriptions",
             "created_at",
             "download_url",
             "format",
+            "has_bulk_rna_seq",
+            "has_cite_seq_data",
             "id",
             "modality",
             "project",
@@ -35,7 +36,6 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             }
         }
 
-    content_descriptions = serializers.JSONField()
     project = ProjectLeafSerializer(read_only=True)
     sample = SampleSerializer(read_only=True)
 
