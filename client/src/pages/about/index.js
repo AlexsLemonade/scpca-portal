@@ -195,7 +195,7 @@ export const About = () => {
                 researchers outside of the initial ScPCA grant.{' '}
                 <Link
                   href={config.links.scpca_contribute}
-                  label="Learn more about contributing data."
+                  label="Learn more about contributing data"
                 />
               </Text>
             </Box>
