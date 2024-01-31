@@ -101,7 +101,7 @@ export const About = () => {
             <Text margin={{ top: 'medium' }}>
               <Link
                 href={config.links.scpca}
-                label="View the current number of tumor types represented and samples being processed here."
+                label="View the current number of tumor types represented and samples being processed here"
               />
             </Text>
           </Box>
