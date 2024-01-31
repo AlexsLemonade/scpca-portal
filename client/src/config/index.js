@@ -28,7 +28,6 @@ export const config = {
     ccdlTwitter: 'https://twitter.com/CancerDataLab',
     ccdlGithub: 'https://github.com/AlexsLemonade/',
     ccdlGithub_pipeline: 'https://github.com/AlexsLemonade/scpca-nf',
-    scpca: 'https://scpca.alexslemonade.org/',
     scpca_contribute: 'https://scpca.alexslemonade.org/contribute'
   },
   contact: {
