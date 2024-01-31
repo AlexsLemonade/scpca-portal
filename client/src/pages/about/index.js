@@ -5,12 +5,12 @@ import { CardBandLarge, HeroBandReversed } from 'components/Band'
 import { DonateButton } from 'components/DonateButton'
 import { Link } from 'components/Link'
 import { config } from 'config'
-import AboutPageFeaturesEnhancements from '../../images/about-page-fig-features-enchancements.svg'
-import AboutPageFeaturesEnhancementsMobile from '../../images/about-page-fig-features-enchancements-mobile.svg'
-import AboutPageFigureHowItWorks from '../../images/about-page-fig-how-it-works.svg'
-import AboutPageFigureHowItWorksMobile from '../../images/about-page-fig-how-it-works-mobile.svg'
-import AboutPageImageChoose from '../../images/about-page-choose.svg'
-import AboutPageImageShowingSupport from '../../images/about-page-showing-support.svg'
+import FigureFeaturesEnhancementsSvg from '../../images/about-page-fig-features-enchancements.svg'
+import FigureFeaturesEnhancementsSvgMobile from '../../images/about-page-fig-features-enchancements-mobile.svg'
+import FigureHowItWorksSvg from '../../images/about-page-fig-how-it-works.svg'
+import FigureHowItWorksSvgMobile from '../../images/about-page-fig-how-it-works-mobile.svg'
+import ChooseSvg from '../../images/choose.svg'
+import ShowingSupportSvg from '../../images/showing-support.svg'
 
 const Li = ({ text }) => (
   <Box as="li" style={{ display: 'list-item' }}>
@@ -64,7 +64,7 @@ export const About = () => {
       </Box>
       <Box pad={{ horizontal: 'medium' }}>
         {responsive(
-          <AboutPageFigureHowItWorksMobile
+          <FigureHowItWorksSvgMobile
             style={{ maxWidth: '100%' }}
             role="img"
             title="A diagram image for How it works"
@@ -132,7 +132,7 @@ export const About = () => {
           <Box pad={{ horizontal: 'medium' }}>
             {responsive(
               '',
-              <AboutPageFigureHowItWorks
+              <FigureHowItWorksSvg
                 role="img"
                 aria-label="A diagram image for How it works"
               />
@@ -155,12 +155,12 @@ export const About = () => {
             pad={responsive({ horizontal: 'medium' })}
           >
             {responsive(
-              <AboutPageFeaturesEnhancementsMobile
+              <FigureFeaturesEnhancementsSvgMobile
                 role="img"
                 aria-label="A diagram image for Features and Enhancements"
                 width={{ max: '320px' }}
               />,
-              <AboutPageFeaturesEnhancements
+              <FigureFeaturesEnhancementsSvg
                 role="img"
                 aria-label="A diagram image for Features and Enhancements"
                 width={responsive('', 'auto', '750px')}
@@ -222,7 +222,7 @@ export const About = () => {
             }}
           >
             <Box align={responsive('center', 'start')} gridArea="left">
-              <AboutPageImageChoose alt="" width={responsive('100px')} />
+              <ChooseSvg alt="" width={responsive('100px')} />
             </Box>
 
             <Box
@@ -300,7 +300,7 @@ export const About = () => {
             </Box>
           </Box>
           <Box align={responsive('center', 'start')} gridArea="right">
-            <AboutPageImageShowingSupport alt="" width={responsive('120px')} />
+            <ShowingSupportSvg alt="" width={responsive('120px')} />
           </Box>
         </Grid>
         <Box pad={{ vertical: 'xlarge' }}>
