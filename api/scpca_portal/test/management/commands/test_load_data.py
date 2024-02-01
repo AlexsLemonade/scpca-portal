@@ -162,12 +162,14 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(len(project.computed_files), 4)
+        self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
+        self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
         self.assertEqual(
             project.multiplexed_computed_file.modality,
             ComputedFile.OutputFileModalities.MULTIPLEXED,
         )
-        self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
-        self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
+        self.assertTrue(project.multiplexed_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.multiplexed_computed_file.has_cite_seq_data)
 
         # Check contacts.
         self.assertEqual(project.contacts.count(), 2)
@@ -310,6 +312,8 @@ class TestLoadData(TransactionTestCase):
             sample.multiplexed_computed_file.modality,
             ComputedFile.OutputFileModalities.MULTIPLEXED,
         )
+        self.assertFalse(sample.multiplexed_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.multiplexed_computed_file.has_cite_seq_data)
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
@@ -381,6 +385,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
+        self.assertEqual(project.technologies, "10Xv3.1, visium")
         self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
@@ -388,11 +393,15 @@ class TestLoadData(TransactionTestCase):
             project.single_cell_computed_file.modality,
             ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
+        self.assertTrue(project.single_cell_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.single_cell_computed_file.has_cite_seq_data)
+
         self.assertEqual(
             project.single_cell_anndata_computed_file.modality,
             ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
-        self.assertEqual(project.technologies, "10Xv3.1, visium")
+        self.assertTrue(project.single_cell_anndata_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.single_cell_anndata_computed_file.has_cite_seq_data)
 
         expected_keys = [
             "scpca_sample_id",
@@ -477,6 +486,7 @@ class TestLoadData(TransactionTestCase):
         self.assertFalse(sample.has_cite_seq_data)
         self.assertEqual(sample.sample_cell_count_estimate, 1638)
         self.assertEqual(sample.seq_units, "cell")
+        self.assertEqual(sample.technologies, "10Xv3.1")
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(sample.single_cell_computed_file.workflow_version, "development")
@@ -484,11 +494,14 @@ class TestLoadData(TransactionTestCase):
             sample.single_cell_computed_file.modality,
             ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
+        self.assertFalse(sample.single_cell_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.single_cell_computed_file.has_cite_seq_data)
         self.assertEqual(
             sample.single_cell_anndata_computed_file.modality,
             ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
-        self.assertEqual(sample.technologies, "10Xv3.1")
+        self.assertFalse(sample.single_cell_anndata_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.single_cell_anndata_computed_file.has_cite_seq_data)
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
@@ -593,6 +606,8 @@ class TestLoadData(TransactionTestCase):
             project.spatial_computed_file.modality,
             ComputedFile.OutputFileModalities.SPATIAL,
         )
+        self.assertTrue(project.spatial_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.spatial_computed_file.has_cite_seq_data)
 
         expected_keys = [
             "scpca_project_id",
@@ -679,11 +694,13 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(sample.spatial_computed_file)
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(sample.spatial_computed_file.workflow_version, "development")
+        self.assertEqual(sample.technologies, "visium")
         self.assertEqual(
             sample.spatial_computed_file.modality,
             ComputedFile.OutputFileModalities.SPATIAL,
         )
-        self.assertEqual(sample.technologies, "visium")
+        self.assertFalse(sample.spatial_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.spatial_computed_file.has_cite_seq_data)
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
