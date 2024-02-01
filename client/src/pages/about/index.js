@@ -143,8 +143,7 @@ export const About = () => {
       </Grid>
       <Box background="dawn" width="full" align="center" pad={{ top: 'large' }}>
         <Box
-          align="start"
-          width={{ width: 'full', max: 'xlarge' }}
+          width={{ max: 'xlarge' }}
           fill
           pad={responsive({ horizontal: 'medium' })}
         >
@@ -271,11 +270,7 @@ export const About = () => {
             margin={{ right: responsive('none', 'xlarge') }}
             pad={{ left: 'none' }}
           >
-            <Box
-              width={{ width: 'full', max: 'xlarge' }}
-              fill
-              margin={{ bottom: 'medium' }}
-            >
+            <Box width={{ max: 'xlarge' }} fill margin={{ bottom: 'medium' }}>
               <Text size="xlarge">Support the Data Lab</Text>
             </Box>
             <Paragraph margin={{ bottom: 'large' }}>
