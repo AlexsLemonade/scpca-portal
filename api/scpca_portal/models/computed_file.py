@@ -459,29 +459,3 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return False
 
         return True
-
-    def generate_content_descriptions(self):
-        description_items = []
-        format = (
-            "AnnData (Python)"
-            if self.format == ComputedFile.OutputFileFormats.ANN_DATA
-            else "SingleCellExperiment (R)"
-        )
-        modality = (
-            "Single-cell multiplexed data"
-            if self.modality == ComputedFile.OutputFileModalities.MULTIPLEXED
-            else "Single-cell data"
-        )
-        description_items.append(f"{modality} as {format}")
-
-        # Optional items.
-        entity = self.sample or self.project
-        if entity.has_bulk_rna_seq:
-            description_items.append("Bulk RNA-seq data")
-        if entity.has_cite_seq_data:
-            description_items.append("CITE-seq data as {format}")
-
-        # Always append project/sample metadata item.
-        description_items.append("Project and Sample Metadata")
-
-        return description_items
