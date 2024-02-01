@@ -44,6 +44,8 @@ class Project(TimestampedModel):
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField()
     includes_anndata = models.BooleanField(default=False)
+    includes_cell_lines = models.BooleanField(default=False)
+    includes_xenografts = models.BooleanField(default=False)
     modalities = ArrayField(models.TextField(), default=list)
     multiplexed_sample_count = models.IntegerField(default=0)
     pi_name = models.TextField()

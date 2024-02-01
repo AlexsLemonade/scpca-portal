@@ -153,6 +153,12 @@ class Command(BaseCommand):
         self.project.includes_anndata = utils.boolean_from_string(
             data.get("includes_anndata", False)
         )
+        self.project.includes_cell_lines = utils.boolean_from_string(
+            data.get("includes_cell_lines", False)
+        )
+        self.project.includes_xenografts = utils.boolean_from_string(
+            data.get("includes_xenografts", False)
+        )
         self.project.pi_name = data["submitter"]
         self.project.title = data["project_title"]
         self.project.save()

@@ -106,6 +106,8 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "has_spatial_data",
             "human_readable_pi_name",
             "includes_anndata",
+            "includes_cell_lines",
+            "includes_xenografts",
             "modalities",
             "multiplexed_sample_count",
             "pi_name",
