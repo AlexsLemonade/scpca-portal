@@ -28,13 +28,17 @@ export const Download = ({ icon, resource: initialResource }) => {
   const [togglePublicComputedFile, setTogglePublicComputedFile] =
     useState(false)
   const [showing, setShowing] = useState(false)
-  const [download, setDownload] = useState(false)
-  const label = isProjectID(resource.scpca_id)
-    ? 'Download Project'
-    : 'Download Sample'
-
+  const [download, setDownload] = useState(true)
+  const label = `Download${download ? 'ing' : ''} ${
+    isProjectID(resource.scpca_id) ? 'Project' : 'Sample'
+  }`
   const defaultComputedFile = getDefaultComputedFile(resource)
   const multipleComputedFiles = hasMultiple(resource.computed_files)
+  const isDownloadStarted = download && token && publicComputedFile
+  const isNoToken = !token && publicComputedFile
+  const isDownloadFileHasNotSelected =
+    !publicComputedFile && multipleComputedFiles
+  const hasMultipleDownloadOptions = publicComputedFile && multipleComputedFiles
 
   const handleClick = () => {
     setShowing(true)
@@ -47,6 +51,7 @@ export const Download = ({ icon, resource: initialResource }) => {
   }
 
   const handleBackToOptions = () => {
+    setDownload(false)
     setPublicComputedFile(null)
   }
 
@@ -91,6 +96,8 @@ export const Download = ({ icon, resource: initialResource }) => {
       setDownload(false)
     }
 
+    const shouldFetch = !download && token && showing && publicComputedFile
+
     const asyncFetch = async () => {
       const downloadRequest = await api.computedFiles.get(
         publicComputedFile.id,
@@ -114,7 +121,7 @@ export const Download = ({ icon, resource: initialResource }) => {
       }
     }
 
-    if (!download && token && showing && publicComputedFile) asyncFetch()
+    if (shouldFetch) asyncFetch()
   }, [download, token, showing, publicComputedFile])
 
   return (
@@ -132,7 +139,7 @@ export const Download = ({ icon, resource: initialResource }) => {
         />
       )}
       <Modal title={label} showing={showing} setShowing={setShowing}>
-        {publicComputedFile && multipleComputedFiles && (
+        {hasMultipleDownloadOptions && (
           <ModalHeader>
             <Text
               color="brand"
@@ -146,7 +153,7 @@ export const Download = ({ icon, resource: initialResource }) => {
           </ModalHeader>
         )}
         <ModalBody>
-          {download && token && publicComputedFile ? (
+          {isDownloadStarted ? (
             <DownloadStarted
               resource={resource}
               computedFile={download}
@@ -154,9 +161,9 @@ export const Download = ({ icon, resource: initialResource }) => {
               handleSelectFile={handleSelectFile}
               handleSelectRecommendedResource={handleSelectRecommendedResource}
             />
-          ) : !token && publicComputedFile ? (
+          ) : isNoToken ? (
             <DownloadToken />
-          ) : !publicComputedFile && multipleComputedFiles ? (
+          ) : isDownloadFileHasNotSelected ? (
             <DownloadOptions
               resource={resource}
               handleSelectFile={handleSelectFile}
