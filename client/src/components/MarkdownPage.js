@@ -25,12 +25,10 @@ export const MarkdownPage = ({
     const sections = document.querySelectorAll(
       'ol > li > p:first-child > span:first-child'
     )
-    // we can use this to generate a list of linkable section text node for the config
+    // we can print this to generate a list of linkable section text node for the config
     // const sectionNames = Array.from(sections).map((item) => item.textContent)
-
     for (const section of sections) {
-      const id = formatStringToIdName(section.textContent)
-      section.id = id
+      section.id = formatStringToIdName(section.textContent)
     }
   }, [])
 
@@ -56,7 +54,6 @@ export const MarkdownPage = ({
     ...components
   }
 
-  // makes sure no hydration error
   if (!markdown) return null
 
   return (
