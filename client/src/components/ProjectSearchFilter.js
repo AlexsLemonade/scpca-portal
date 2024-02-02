@@ -11,6 +11,7 @@ export const ProjectSearchFilter = ({
 }) => {
   const { trackFilterChange } = useAnalytics()
   const filterNames = {
+    organisms: 'Organisms',
     diagnoses: 'Diagnosis',
     seq_units: 'Sequencing Unit',
     modalities: 'Other Modalities and Data',
@@ -78,7 +79,13 @@ export const ProjectSearchFilter = ({
 
   if (!filterOptions) return <Loader />
 
-  const filterOrder = ['diagnoses', 'seq_units', 'modalities', 'technologies']
+  const filterOrder = [
+    'organisms',
+    'diagnoses',
+    'seq_units',
+    'modalities',
+    'technologies'
+  ]
 
   return (
     <Box overflow="auto">
