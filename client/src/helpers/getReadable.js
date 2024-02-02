@@ -6,6 +6,8 @@ export const readableNames = {
   has_bulk_rna_seq: 'Bulk RNA-Seq',
   has_multiplexed_data: 'Multiplexed',
   human_readable_pi_name: 'Primary Investigator',
+  includes_cell_line: 'Includes cell line',
+  includes_xenografts: 'Includes xenografts',
   modalities: 'Modalities',
   pi_name: 'Primary Investigator',
   samples: 'Samples',
