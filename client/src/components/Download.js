@@ -28,7 +28,7 @@ export const Download = ({ icon, resource: initialResource }) => {
   const [togglePublicComputedFile, setTogglePublicComputedFile] =
     useState(false)
   const [showing, setShowing] = useState(false)
-  const [download, setDownload] = useState(true)
+  const [download, setDownload] = useState(false)
   const label = `Download${download ? 'ing' : ''} ${
     isProjectID(resource.scpca_id) ? 'Project' : 'Sample'
   }`
