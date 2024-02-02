@@ -4,12 +4,13 @@ import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
+import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
+import { WarningText } from 'components/WarningText'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 import { hasMultiple } from 'helpers/hasMultiple'
 import { isProjectID } from 'helpers/isProjectID'
-import { WarningText } from 'components/WarningText'
 import DownloadSVG from '../images/download-folder.svg'
 
 // View when the donwload should have been initiated
@@ -25,19 +26,11 @@ export const DownloadStarted = ({
     resource,
     computedFile
   )
-
   const { size: responsiveSize } = useResponsive()
   const { size_in_bytes: size, download_url: href } = computedFile
   const isProject = isProjectID(resource.scpca_id)
-  const startedText = isProject
-    ? 'Your download for the project should have started.'
-    : 'Your download for the sample should have started.'
   const idText = `${isProject ? 'Project' : 'Sample'} ID: ${resource.scpca_id}`
-  const otherComputedFiles = resource.computed_files.filter(
-    (cf) => cf.id !== computedFile.id
-  )
-
-  const multipleComputedFiles = hasMultiple(resource.computed_files)
+  const additionalRestrictions = resource.additional_restrictions
   const inlineBorderStyle = multipleComputedFiles
     ? {
         side: 'bottom',
@@ -45,6 +38,13 @@ export const DownloadStarted = ({
         size: 'small'
       }
     : ''
+  const multipleComputedFiles = hasMultiple(resource.computed_files)
+  const otherComputedFiles = resource.computed_files.filter(
+    (cf) => cf.id !== computedFile.id
+  )
+  const startedText = isProject
+    ? 'Your download for the project should have started.'
+    : 'Your download for the sample should have started.'
 
   useEffect(() => {}, [resource])
 
@@ -137,6 +137,14 @@ export const DownloadStarted = ({
                 </Text>
               </Box>
             </WarningText>
+          )}
+          {additionalRestrictions && (
+            <Box margin={{ vertical: 'medium' }}>
+              <ProjectAdditionalRestrictions
+                text={additionalRestrictions}
+                isModal
+              />
+            </Box>
           )}
           <Box>
             {responsiveSize !== 'small' && (
