@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { DetailsTable } from 'components/DetailsTable'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
+import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
@@ -101,6 +102,14 @@ const Project = ({ project }) => {
                         ) : (
                           ''
                         )
+                    },
+                    {
+                      label: 'Additional Restrictions',
+                      value: (
+                        <ProjectAdditionalRestrictions
+                          text={project.additional_restrictions}
+                        />
+                      )
                     }
                   ]}
                 />
