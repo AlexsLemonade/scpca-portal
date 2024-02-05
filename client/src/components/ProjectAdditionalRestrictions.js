@@ -8,21 +8,17 @@ export const ProjectAdditionalRestrictions = ({ text, isModal = false }) => {
     ? `Restricted to ${text[0].toLowerCase()}${text.substring(1)}`
     : text
 
+  if (!textContent) return <Text italic>None</Text>
+
   return (
-    <>
-      {textContent ? (
-        <Box direction="row" gap="xsmall">
-          {isModal && <Icon name="Info" />}
-          <Text>{textContent}</Text>
-          {/* NOTE: add a link for terms of use */}
-          <Link href="#temp">
-            <Icon size="small" name="Help" />
-          </Link>
-        </Box>
-      ) : (
-        <Text italic>None</Text>
-      )}
-    </>
+    <Box direction="row" gap="xsmall">
+      {isModal && <Icon name="Info" />}
+      <Text>{textContent}</Text>
+      {/* NOTE: add a link for terms of use */}
+      <Link href="#temp">
+        <Icon size="small" name="Help" />
+      </Link>
+    </Box>
   )
 }
 
