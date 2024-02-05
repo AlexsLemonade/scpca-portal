@@ -25,7 +25,7 @@ class TestLoadData(TransactionTestCase):
         super().tearDownClass()
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
-    def assert_project(self, project):
+    def assertProjectData(self, project):
         self.assertTrue(project.abstract)
         self.assertIsNotNone(project.contacts)
         self.assertIsNotNone(project.diagnoses)
@@ -34,6 +34,8 @@ class TestLoadData(TransactionTestCase):
         self.assertTrue(project.has_multiplexed_data)
         self.assertTrue(project.has_single_cell_data)
         self.assertTrue(project.has_spatial_data)
+        self.assertFalse(project.includes_cell_lines)
+        self.assertFalse(project.includes_xenografts)
         self.assertIsNotNone(project.seq_units)
         self.assertTrue(project.title)
 
@@ -94,7 +96,7 @@ class TestLoadData(TransactionTestCase):
         sample = project.samples.first()
         sample_computed_files = sample.computed_files
 
-        self.assert_project(project)
+        self.assertProjectData(project)
 
         # Make sure that reload_existing=False won't add anything new when there's nothing new.
         self.loader.load_data(
@@ -151,7 +153,7 @@ class TestLoadData(TransactionTestCase):
         )
 
         project = Project.objects.get(scpca_id=self.project_id)
-        self.assert_project(project)
+        self.assertProjectData(project)
         self.assertEqual(project.downloadable_sample_count, 4)
         self.assertTrue(project.has_bulk_rna_seq)
         self.assertFalse(project.has_cite_seq_data)
@@ -374,7 +376,7 @@ class TestLoadData(TransactionTestCase):
         )
 
         project = Project.objects.get(scpca_id=self.project_id)
-        self.assert_project(project)
+        self.assertProjectData(project)
         self.assertEqual(project.downloadable_sample_count, 4)
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.includes_anndata)
@@ -590,7 +592,7 @@ class TestLoadData(TransactionTestCase):
         )
 
         project = Project.objects.get(scpca_id=self.project_id)
-        self.assert_project(project)
+        self.assertProjectData(project)
         self.assertEqual(project.downloadable_sample_count, 4)
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.has_spatial_data)
