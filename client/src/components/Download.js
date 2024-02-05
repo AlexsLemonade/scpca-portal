@@ -36,8 +36,7 @@ export const Download = ({ icon, resource: initialResource }) => {
   const multipleComputedFiles = hasMultiple(resource.computed_files)
   const isDownloadStarted = download && token && publicComputedFile
   const isNoToken = !token && publicComputedFile
-  const isDownloadFileHasNotSelected =
-    !publicComputedFile && multipleComputedFiles
+  const isNoSelectedDownloadFile = !publicComputedFile && multipleComputedFiles
   const hasMultipleDownloadOptions = publicComputedFile && multipleComputedFiles
 
   const handleClick = () => {
@@ -163,7 +162,7 @@ export const Download = ({ icon, resource: initialResource }) => {
             />
           ) : isNoToken ? (
             <DownloadToken />
-          ) : isDownloadFileHasNotSelected ? (
+          ) : isNoSelectedDownloadFile ? (
             <DownloadOptions
               resource={resource}
               handleSelectFile={handleSelectFile}
