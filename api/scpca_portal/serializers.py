@@ -113,6 +113,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "includes_xenografts",
             "modalities",
             "multiplexed_sample_count",
+            "organisms",
             "pi_name",
             "publications",
             "sample_count",
