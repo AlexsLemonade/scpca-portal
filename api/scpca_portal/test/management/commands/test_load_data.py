@@ -11,7 +11,7 @@ from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"genomics_10X"}
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs"
+INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/project-metadata-changes"
 
 
 class TestLoadData(TransactionTestCase):
@@ -38,6 +38,7 @@ class TestLoadData(TransactionTestCase):
         self.assertFalse(project.includes_xenografts)
         self.assertIsNotNone(project.seq_units)
         self.assertTrue(project.title)
+        self.assertEqual(project.additional_restrictions, "Research or academic purposes only")
 
         project_summary = project.summaries.first()
         self.assertIsNotNone(project_summary.diagnosis)
@@ -234,7 +235,9 @@ class TestLoadData(TransactionTestCase):
             "filtered_cells",
             "has_cellhash",
             "includes_anndata",
+            "is_cell_line",
             "is_multiplexed",
+            "is_xenograft",
             "min_gene_cutoff",
             "normalization_method",
             "organism",
@@ -320,6 +323,8 @@ class TestLoadData(TransactionTestCase):
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
+            "is_cell_line",
+            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "participant_id",
@@ -430,7 +435,9 @@ class TestLoadData(TransactionTestCase):
             "genome_assembly",
             "has_cellhash",
             "includes_anndata",
+            "is_cell_line",
             "is_multiplexed",
+            "is_xenograft",
             "mapped_reads",
             "mapping_index",
             "min_gene_cutoff",
@@ -508,6 +515,8 @@ class TestLoadData(TransactionTestCase):
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
+            "is_cell_line",
+            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "participant_id",
@@ -640,6 +649,8 @@ class TestLoadData(TransactionTestCase):
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
             "includes_anndata",
+            "is_cell_line",
+            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "self_reported_ethnicity_ontology_term_id",
@@ -707,6 +718,8 @@ class TestLoadData(TransactionTestCase):
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
+            "is_cell_line",
+            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "participant_id",
