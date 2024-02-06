@@ -33,6 +33,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     abstract = models.TextField()
     additional_metadata_keys = models.TextField(blank=True, null=True)
+    additional_restrictions = models.TextField(blank=True, null=True)
     diagnoses = models.TextField(blank=True, null=True)
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
