@@ -3,12 +3,16 @@ import { Box, Text } from 'grommet'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
 
-export const ProjectAdditionalRestrictions = ({ text, isModal = false }) => {
+export const ProjectAdditionalRestrictions = ({
+  text,
+  isAdditionalRestrictions,
+  isModal = false
+}) => {
   const textContent = isModal
     ? `Restricted to ${text[0].toLowerCase()}${text.substring(1)}`
     : text
 
-  if (!textContent) return <Text italic>None</Text>
+  if (!isAdditionalRestrictions) return <Text italic>None</Text>
 
   return (
     <Box direction="row" gap="xsmall">
