@@ -24,8 +24,8 @@ export const Download = ({ icon, resource: initialResource }) => {
   const [download, setDownload] = useState(false)
   const [initial, setInital] = useState(true)
   const [publicComputedFile, setPublicComputedFile] = useState(null)
-  const [resource, setResource] = useState(initialResource)
   const [recommendedResource, setRecommendedResource] = useState(null)
+  const [resource, setResource] = useState(initialResource)
   const [showing, setShowing] = useState(false)
   const [togglePublicComputedFile, setTogglePublicComputedFile] =
     useState(false)
