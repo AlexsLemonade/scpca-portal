@@ -28,9 +28,8 @@ export const DownloadStarted = ({
   )
   const { size: responsiveSize } = useResponsive()
   const { size_in_bytes: size, download_url: href } = computedFile
-  const isProject = isProjectID(resource.scpca_id)
-  const idText = `${isProject ? 'Project' : 'Sample'} ID: ${resource.scpca_id}`
   const additionalRestrictions = resource.additional_restrictions
+  const idText = `${isProject ? 'Project' : 'Sample'} ID: ${resource.scpca_id}`
   const inlineBorderStyle = multipleComputedFiles
     ? {
         side: 'bottom',
@@ -38,6 +37,7 @@ export const DownloadStarted = ({
         size: 'small'
       }
     : ''
+  const isProject = isProjectID(resource.scpca_id)
   const multipleComputedFiles = hasMultiple(resource.computed_files)
   const otherComputedFiles = resource.computed_files.filter(
     (cf) => cf.id !== computedFile.id

@@ -21,23 +21,28 @@ import { isProjectID } from 'helpers/isProjectID'
 export const Download = ({ icon, resource: initialResource }) => {
   const { token, email, surveyListForm, createToken } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
+  const [download, setDownload] = useState(false)
+  const [initial, setInital] = useState(true)
+  const [publicComputedFile, setPublicComputedFile] = useState(null)
   const [resource, setResource] = useState(initialResource)
   const [recommendedResource, setRecommendedResource] = useState(null)
-  const [publicComputedFile, setPublicComputedFile] = useState(null)
-  const [initial, setInital] = useState(true)
+  const [showing, setShowing] = useState(false)
   const [togglePublicComputedFile, setTogglePublicComputedFile] =
     useState(false)
-  const [showing, setShowing] = useState(false)
-  const [download, setDownload] = useState(false)
+  const defaultComputedFile = getDefaultComputedFile(resource)
+  const hasMultipleDownloadOptions = publicComputedFile && multipleComputedFiles
+  const isDownloadStarted = download && token && publicComputedFile
+  const isNoSelectedDownloadFile = !publicComputedFile && multipleComputedFiles
+  const isNoToken = !token && publicComputedFile
   const label = `Download${download ? 'ing' : ''} ${
     isProjectID(resource.scpca_id) ? 'Project' : 'Sample'
   }`
-  const defaultComputedFile = getDefaultComputedFile(resource)
   const multipleComputedFiles = hasMultiple(resource.computed_files)
-  const isDownloadStarted = download && token && publicComputedFile
-  const isNoToken = !token && publicComputedFile
-  const isNoSelectedDownloadFile = !publicComputedFile && multipleComputedFiles
-  const hasMultipleDownloadOptions = publicComputedFile && multipleComputedFiles
+
+  const handleBackToOptions = () => {
+    setDownload(false)
+    setPublicComputedFile(null)
+  }
 
   const handleClick = () => {
     setShowing(true)
@@ -47,11 +52,6 @@ export const Download = ({ icon, resource: initialResource }) => {
       surveyListForm.submit({ email, scpca_last_download_date: formatDate() })
       window.open(download.download_url)
     }
-  }
-
-  const handleBackToOptions = () => {
-    setDownload(false)
-    setPublicComputedFile(null)
   }
 
   const handleSelectFile = (file) => {
