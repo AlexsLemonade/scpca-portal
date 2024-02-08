@@ -246,8 +246,17 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         file_name_path_mapping = {}
         for library in libraries:
             library_id = library["scpca_library_id"]
-            for file_suffix in ("_filtered.rds", "_processed.rds", "_qc.html", "_unfiltered.rds"):
-                file_name = f"{library_id}{file_suffix}"
+            file_suffixes = [
+                "filtered.rds",
+                "processed.rds",
+                "qc.html",
+                "unfiltered.rds",
+            ]
+            if not sample.project.includes_cell_lines:
+                file_suffixes.append("celltype-report.html")
+
+            for file_suffix in file_suffixes:
+                file_name = f"{library_id}_{file_suffix}"
                 file_name_path_mapping[file_name] = Path(
                     library_path_mapping[library_id], file_name
                 )
@@ -280,20 +289,23 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         is_anndata_file_format = file_format == cls.OutputFileFormats.ANN_DATA
         if is_anndata_file_format:
             file_name = sample.output_single_cell_anndata_computed_file_name
-            common_file_suffixes = (
+            common_file_suffixes = [
                 "filtered_rna.hdf5",
                 "processed_rna.hdf5",
                 "qc.html",
                 "unfiltered_rna.hdf5",
-            )
+            ]
         else:
             file_name = sample.output_single_cell_computed_file_name
-            common_file_suffixes = (
+            common_file_suffixes = [
                 "filtered.rds",
                 "processed.rds",
                 "qc.html",
                 "unfiltered.rds",
-            )
+            ]
+        if not sample.project.includes_cell_lines:
+            common_file_suffixes.append("celltype-report.html")
+
         cite_seq_anndata_file_suffixes = (
             "filtered_adt.hdf5",
             "processed_adt.hdf5",
