@@ -5,12 +5,18 @@ import { CardBandLarge, HeroBandReversed } from 'components/Band'
 import { DonateButton } from 'components/DonateButton'
 import { Link } from 'components/Link'
 import { config } from 'config'
-import AboutPageFigure from '../../images/about-page-figure.svg'
-import AboutPageFigureMobile from '../../images/about-page-fig-mobile.svg'
-import SaveTime from '../../images/save-time.svg'
-import WidelyAvailable from '../../images/widely-available.svg'
-import OpenSource from '../../images/open-source.svg'
-import Access from '../../images/access.svg'
+import FigureFeaturesEnhancementsSvg from '../../images/about-page-fig-features-enchancements.svg'
+import FigureFeaturesEnhancementsSvgMobile from '../../images/about-page-fig-features-enchancements-mobile.svg'
+import FigureHowItWorksSvg from '../../images/about-page-fig-how-it-works.svg'
+import FigureHowItWorksSvgMobile from '../../images/about-page-fig-how-it-works-mobile.svg'
+import ChooseSvg from '../../images/choose.svg'
+import ShowingSupportSvg from '../../images/showing-support.svg'
+
+const Li = ({ text }) => (
+  <Box as="li" style={{ display: 'list-item' }}>
+    {text}
+  </Box>
+)
 
 export const About = () => {
   const { responsive } = useResponsive()
@@ -38,10 +44,12 @@ export const About = () => {
           )}
         >
           <Paragraph size="large" textAlign="center">
-            The Single-cell Pediatric Cancer Atlas (ScPCA) is accelerating the
-            discovery of better treatments for pediatric solid tumors and
-            leukemias. Single-cell profiling can provide insight into how
-            certain cells influence cancer progression and treatment response.
+            The Single-cell Pediatric Cancer Atlas (ScPCA) is enabling broad
+            access to single-cell data from pediatric cancer tumors and model
+            systems will increase its impact on the lives of children with
+            cancer. The Single-cell Pediatric Cancer Atlas (ScPCA) was created
+            to generate an unprecedented resource for the pediatric cancer
+            research community
           </Paragraph>
         </Box>
       </HeroBandReversed>
@@ -51,19 +59,15 @@ export const About = () => {
           fill
           pad={responsive({ horizontal: 'medium' })}
         >
-          <Text size="xlarge">How it works</Text>
+          <Text size="xlarge">Building the ScPCA Portal</Text>
         </Box>
       </Box>
       <Box pad={{ horizontal: 'medium' }}>
         {responsive(
-          <AboutPageFigureMobile
+          <FigureHowItWorksSvgMobile
             style={{ maxWidth: '100%' }}
             role="img"
             title="A diagram image for How it works"
-          />,
-          <AboutPageFigure
-            role="img"
-            aria-label="A diagram image for How it works"
           />
         )}
       </Box>
@@ -74,50 +78,94 @@ export const About = () => {
         width={{ width: 'full', max: 'xlarge' }}
       >
         <Box pad={responsive({ horizontal: 'medium' })}>
-          <Text weight="bold">
-            ALSF funds cutting-edge pediatric cancer research
-          </Text>
-          <Text>
-            Alex’s Lemonade Stand Foundation (ALSF) funded 10 childhood cancer
-            investigators from eight different institutions working on
-            single-cell profiling to create a publicly available atlas of
-            single-cell pediatric cancer data.{' '}
-            <Link
-              href={config.links.grants_program}
-              label="Learn more about the grants
+          <Box margin={{ bottom: responsive('xlarge', '76px') }}>
+            <Text weight="bold">
+              ALSF funds cutting-edge pediatric cancer research
+            </Text>
+            <Text>
+              In 2019, Alex’s Lemonade Stand Foundation (ALSF) funded 10 grants
+              for investigators working on single-cell profiling of patient
+              samples to create a publicly available atlas of single-cell
+              pediatric cancer data. .
+            </Text>
+            <Text margin={{ top: 'medium' }}>
+              <Link
+                href={config.links.grants_program}
+                label="Learn more about the grants
             program"
-            />
-            .
-          </Text>
+              />
+            </Text>
+          </Box>
+          <Box margin={{ bottom: responsive('xlarge', '76px') }}>
+            <Text weight="bold">The Data Lab processes the generated data</Text>
+            <Text>
+              In 2019, Alex’s Lemonade Stand Foundation (ALSF) funded 10 grants
+              for investigators working on single-cell profiling of patient
+              samples to create a publicly available atlas of single-cell
+              pediatric cancer data.
+            </Text>
+            <Text margin={{ top: 'medium' }}>
+              <Link
+                href="/"
+                label="View the current number of tumor types represented and samples being processed here"
+                newTab
+              />
+            </Text>
+          </Box>
+          <Box margin={{ bottom: responsive('xlarge', '76px') }}>
+            <Text weight="bold">The data was made widely available</Text>
+            <Text>
+              The ScPCA Portal launched in 2022. It was built by the Data Lab to
+              make all uniformly processed data widely and readily available in
+              one location.
+            </Text>
+          </Box>
+          <Box margin={{ bottom: responsive('xlarge', '76px') }}>
+            <Text weight="bold">Researchers save precious time</Text>
+            <Text>
+              Researchers anywhere have access to a growing database of
+              single-cell data, which they can immediately begin using for their
+              own research.
+            </Text>
+          </Box>
         </Box>
         <Box pad={responsive({ horizontal: 'medium' })}>
-          <Text weight="bold">The Data Lab processes the generated data</Text>
-          <Text>
-            ALSF’s Childhood Cancer Data Lab is trusted to process the
-            single-cell, single-nuclei, and bulk RNA sequencing data submitted
-            by the ALSF-funded investigators. You can view the current number of
-            tumor types represented and samples being processed here.
-          </Text>
+          <Box pad={{ horizontal: 'xlarge' }} align="end">
+            {responsive(
+              '',
+              <FigureHowItWorksSvg
+                role="img"
+                aria-label="A diagram image for How it works"
+              />
+            )}
+          </Box>
         </Box>
       </Grid>
       <Box background="dawn" width="full" align="center" pad={{ top: 'large' }}>
         <Box
-          align="start"
-          width={{ width: 'full', max: 'xlarge' }}
+          width={{ max: 'xlarge' }}
           fill
           pad={responsive({ horizontal: 'medium' })}
         >
-          <Text size="xlarge">Impact</Text>
+          <Text size="xlarge">Features and Enhancements</Text>
         </Box>
         <Box align="center" width={{ width: 'full', max: 'xlarge' }}>
           <Box
-            margin={{ vertical: 'large' }}
+            margin={{ top: 'large', bottom: 'xlarge' }}
             pad={responsive({ horizontal: 'medium' })}
           >
-            <Text>
-              ALSF’s funding and the Data Lab’s expertise maximize the reach of
-              this open resource to accelerate the rate of new discoveries.
-            </Text>
+            {responsive(
+              <FigureFeaturesEnhancementsSvgMobile
+                role="img"
+                aria-label="A diagram image for Features and Enhancements"
+                width={{ max: '320px' }}
+              />,
+              <FigureFeaturesEnhancementsSvg
+                role="img"
+                aria-label="A diagram image for Features and Enhancements"
+                width={responsive('', 'auto', '750px')}
+              />
+            )}
           </Box>
           <Grid
             columns={responsive('1', '1/2')}
@@ -126,96 +174,132 @@ export const About = () => {
             margin={{ bottom: 'xlarge' }}
             pad={responsive('medium')}
           >
-            <Box
-              direction="row"
-              justify="between"
-              gap={responsive('large', 'medium')}
-            >
-              <Box width="24px">
-                <Access
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
-                />
-              </Box>
-              <Box>
-                <Text weight="bold">Accessible Cutting-edge Technology</Text>
-                <Text>
-                  Single-cell RNA sequencing is a cutting-edge technology and
-                  may not be accessible to all childhood cancer experts. Making
-                  the outputs of this project readily and openly available puts
-                  data in the hands of more researchers.
-                </Text>
-              </Box>
+            <Box>
+              <Text weight="bold">Open Source Pipeline</Text>
+              <Text>
+                The open-source{' '}
+                <Link
+                  href={config.links.ccdlGithub_pipeline}
+                  label="pipeline"
+                />{' '}
+                pipeline used to process the data is fast, reusable, and
+                cost-efficient. Others can utilize the pipeline for their own
+                data, and the pipeline can be easily extended.
+              </Text>
             </Box>
-            <Box
-              direction="row"
-              justify="between"
-              gap={responsive('large', 'medium')}
-            >
-              <Box width="24px">
-                <WidelyAvailable
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
+            <Box>
+              <Text weight="bold">Community Contributions</Text>
+              <Text>
+                More researchers can share their single-cell data on the Portal!
+                We now accept dataset contributions from pediatric cancer
+                researchers outside of the initial ScPCA grant.{' '}
+                <Link
+                  href="/contribute"
+                  label="Learn more about contributing data"
+                  newTab
                 />
-              </Box>
-              <Box>
-                <Text weight="bold">Widely Available</Text>
-                <Text>
-                  The Data Lab developed the ScPCA Portal to make the data from
-                  these patient samples widely and easily available in one
-                  location.
-                </Text>
-              </Box>
+              </Text>
             </Box>
-            <Box
-              direction="row"
-              justify="between"
-              gap={responsive('large', 'medium')}
-            >
-              <Box width="24px">
-                <OpenSource
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
-                />
-              </Box>
-              <Box>
-                <Text weight="bold">Open Source</Text>
-                <Text>
-                  The pipeline used to process the data is open source and well
-                  documented. This not only cultivates trust in the data, but
-                  also enables researchers to utilize the pipeline for their own
-                  analyses and ensure reproducible results.
-                </Text>
-              </Box>
+          </Grid>
+          <Grid
+            align="center"
+            gap="none"
+            rows={['none ', 'none']}
+            columns={['1', '1']}
+            areas={responsive(
+              [
+                { name: 'left', start: [0, 0], end: [1, 0] },
+                { name: 'right', start: [0, 1], end: [1, 1] }
+              ],
+              [
+                { name: 'left', start: [0, 1], end: [0, 1] },
+                { name: 'right', start: [1, 1], end: [1, 1] }
+              ]
+            )}
+            margin={{
+              top: responsive('', '72px'),
+              bottom: responsive('xlarge', '72px'),
+              horizontal: responsive('large', 'none')
+            }}
+          >
+            <Box align={responsive('center', 'start')} gridArea="left">
+              <ChooseSvg alt="" width={responsive('100px')} />
             </Box>
+
             <Box
-              direction="row"
-              justify="between"
-              gap={responsive('large', 'medium')}
+              gridArea="right"
+              margin={{ left: responsive('none', 'xlarge') }}
             >
-              <Box width="24px">
-                <SaveTime
-                  role="presentation"
-                  aria-hidden="true"
-                  focusable="false"
-                />
-              </Box>
-              <Box>
-                <Text weight="bold">Frees up Researcher Time</Text>
-                <Text>
-                  This saves precious time for researchers who would have
-                  otherwise had to process the data themselves and enables them
-                  to begin using it immediately.
-                </Text>
-              </Box>
+              <Text weight="bold">More Choices for Users</Text>
+              <Text>
+                Researchers can choose which file format to receive when
+                downloading data. Downloads can be immediately used with two
+                major software ecosystems for working with single-cell data.
+                This means more users can avoid the time-consuming process of
+                converting their ScPCA data to their preferred format and start
+                working with it faster.
+              </Text>
             </Box>
           </Grid>
         </Box>
       </Box>
       <Box width={{ max: 'xlarge' }}>
+        <Grid
+          align="end"
+          gap="none"
+          rows={['none ', 'none']}
+          columns={['1', '1']}
+          areas={responsive(
+            [
+              { name: 'left', start: [0, 0], end: [1, 0] },
+              { name: 'right', start: [0, 1], end: [1, 1] }
+            ],
+            [
+              { name: 'left', start: [0, 1], end: [0, 1] },
+              { name: 'right', start: [1, 1], end: [1, 1] }
+            ]
+          )}
+          margin={{
+            top: responsive('xlarge', 'xlarge'),
+            bottom: responsive('none', 'medium'),
+            horizontal: responsive('large', 'none')
+          }}
+        >
+          <Box
+            gridArea="left"
+            margin={{ right: responsive('none', 'xlarge') }}
+            pad={{ left: 'none' }}
+          >
+            <Box width={{ max: 'xlarge' }} fill margin={{ bottom: 'medium' }}>
+              <Text size="xlarge">Support the Data Lab</Text>
+            </Box>
+            <Paragraph margin={{ bottom: 'large' }}>
+              The ScPCA has the potential to serve the pediatric cancer research
+              community and change the lives of children fighting cancer in even
+              more ways!
+            </Paragraph>
+            <Paragraph margin={{ bottom: 'large' }}>
+              With your support, we will:
+            </Paragraph>
+            <Box as="ul" pad={{ left: '26px' }} style={{ listStyle: 'disc' }}>
+              <Li
+                text="Continue to expand features that will help researchers get
+                further with their data"
+              />
+              <Li
+                text="Grow the Portal by making more data available through community
+                contributions"
+              />
+              <Li
+                text="Launch a global, open science initiative to improve the utility
+                of the ScPCA data"
+              />
+            </Box>
+          </Box>
+          <Box align={responsive('center', 'start')} gridArea="right">
+            <ShowingSupportSvg alt="" width={responsive('120px')} />
+          </Box>
+        </Grid>
         <Box pad={{ vertical: 'xlarge' }}>
           <CardBandLarge
             pad={responsive(
