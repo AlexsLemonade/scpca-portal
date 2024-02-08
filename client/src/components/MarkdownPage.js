@@ -3,6 +3,7 @@ import { Box, Paragraph, Text, Markdown } from 'grommet'
 import styled from 'styled-components'
 import formatStringToIdName from 'helpers/formatStringToIdName'
 import getHash from 'helpers/getHash'
+import Error from 'pages/_error'
 
 const StyledLi = styled(Box)`
   list-style: revert;
@@ -54,7 +55,7 @@ export const MarkdownPage = ({
     ...components
   }
 
-  if (!markdown) return null
+  if (!markdown) return <Error />
 
   return (
     <Box pad={{ vertical: 'large' }} justify="center">
