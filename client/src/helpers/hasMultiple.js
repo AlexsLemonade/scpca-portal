@@ -4,7 +4,7 @@
 @param {any[]} a - an array to be checked
 */
 export const hasMultiple = (a) => {
-  return a.length > 1
+  return a.filter((cf) => cf.format !== 'ANN_DATA').length > 1
 }
 
 export default hasMultiple
