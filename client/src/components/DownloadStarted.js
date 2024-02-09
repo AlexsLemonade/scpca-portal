@@ -101,9 +101,9 @@ export const DownloadStarted = ({
           {info && info.texts.multiplexed_with && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
               <Text>{info.texts.multiplexed_with.text}</Text>
-              {resource.additional_metadata.multiplexed_with && (
+              {resource.multiplexed_with && (
                 <ul style={{ margin: '8px 0 4px 16px' }}>
-                  {resource.additional_metadata.multiplexed_with.map((item) => (
+                  {resource.multiplexed_with.map((item) => (
                     <li key={item} style={{ listStyle: 'inside square' }}>
                       {item}
                     </li>

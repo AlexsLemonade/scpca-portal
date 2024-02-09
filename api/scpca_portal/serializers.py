@@ -157,6 +157,7 @@ class SampleLeafSerializer(serializers.ModelSerializer):
             "has_spatial_data",
             "includes_anndata",
             "modalities",
+            "multiplexed_with",
             "project",
             "sample_cell_count_estimate",
             "scpca_id",
