@@ -219,8 +219,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 for file_path in file_paths:
                     zip_file.write(file_path, Path(file_path).relative_to(sample_path))
 
-        computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
-        computed_file.has_cite_seq_data = project.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file
