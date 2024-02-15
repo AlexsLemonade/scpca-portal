@@ -129,6 +129,7 @@ export const About = () => {
             </Text>
           </Box>
         </Box>
+
         <Box pad={responsive({ horizontal: 'medium' })}>
           <Box pad={{ horizontal: 'xlarge' }} align="end">
             {responsive(

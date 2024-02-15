@@ -11,7 +11,7 @@ from django.db import connection, models
 from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, utils
-from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
@@ -25,7 +25,7 @@ IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
 
 
-class Project(TimestampedModel):
+class Project(CommonDataAttributes, TimestampedModel):
     class Meta:
         db_table = "projects"
         get_latest_by = "updated_at"
@@ -37,13 +37,13 @@ class Project(TimestampedModel):
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
     downloadable_sample_count = models.IntegerField(default=0)
-    has_bulk_rna_seq = models.BooleanField(default=False)
-    has_cite_seq_data = models.BooleanField(default=False)
     has_multiplexed_data = models.BooleanField(default=False)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField()
     includes_anndata = models.BooleanField(default=False)
+    includes_cell_lines = models.BooleanField(default=False)
+    includes_xenografts = models.BooleanField(default=False)
     modalities = ArrayField(models.TextField(), default=list)
     multiplexed_sample_count = models.IntegerField(default=0)
     pi_name = models.TextField()
