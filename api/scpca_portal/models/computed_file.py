@@ -10,13 +10,13 @@ from botocore.client import Config
 
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
-class ComputedFile(TimestampedModel):
+class ComputedFile(CommonDataAttributes, TimestampedModel):
     class Meta:
         db_table = "computed_files"
         get_latest_by = "updated_at"
@@ -139,6 +139,8 @@ class ComputedFile(TimestampedModel):
                 zip_file.write(project.input_bulk_metadata_file_path, "bulk_metadata.tsv")
                 zip_file.write(project.input_bulk_quant_file_path, "bulk_quant.tsv")
 
+        computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
+        computed_file.has_cite_seq_data = project.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file
@@ -181,6 +183,8 @@ class ComputedFile(TimestampedModel):
                 zip_file.write(project.input_bulk_metadata_file_path, "bulk_metadata.tsv")
                 zip_file.write(project.input_bulk_quant_file_path, "bulk_quant.tsv")
 
+        computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
+        computed_file.has_cite_seq_data = project.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file
@@ -215,6 +219,8 @@ class ComputedFile(TimestampedModel):
                 for file_path in file_paths:
                     zip_file.write(file_path, Path(file_path).relative_to(sample_path))
 
+        computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
+        computed_file.has_cite_seq_data = project.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file
@@ -259,6 +265,8 @@ class ComputedFile(TimestampedModel):
                 for file_name, file_path in file_name_path_mapping.items():
                     zip_file.write(file_path, file_name)
 
+        computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
+        computed_file.has_cite_seq_data = sample.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file, {"_".join(sample.multiplexed_ids): file_name_path_mapping.values()}
@@ -327,6 +335,8 @@ class ComputedFile(TimestampedModel):
                     file_paths.append(file_path)
                     zip_file.write(file_path, file_name)
 
+        computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
+        computed_file.has_cite_seq_data = sample.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file, {sample.scpca_id: file_paths}
@@ -367,6 +377,8 @@ class ComputedFile(TimestampedModel):
                     zip_file.write(item, item.relative_to(library_path.parent))
                     file_paths.append(f"{Path(library_path, item.relative_to(library_path))}")
 
+        computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
+        computed_file.has_cite_seq_data = False  # Spatial downloads can't contain CITE-seq data.
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file, {sample.scpca_id: file_paths}

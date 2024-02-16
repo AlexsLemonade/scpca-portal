@@ -33,6 +33,8 @@ class ProjectFilter(filters.FilterSet):
             "has_multiplexed_data",
             "has_single_cell_data",
             "has_spatial_data",
+            "includes_cell_lines",
+            "includes_xenografts",
         ]
 
 
