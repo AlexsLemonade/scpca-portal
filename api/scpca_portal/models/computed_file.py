@@ -70,8 +70,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_ANNDATA_FILE_NAME = "readme_anndata.md"
     README_ANNDATA_FILE_PATH = common.OUTPUT_DATA_PATH / README_ANNDATA_FILE_NAME
 
-    README_FILE_NAME = "readme.md"
-    README_FILE_PATH = common.OUTPUT_DATA_PATH / README_FILE_NAME
+    README_SINGLE_CELL_FILE_NAME = "readme_single_cell.md"
+    README_SINGLE_CELL_FILE_PATH = common.OUTPUT_DATA_PATH / README_SINGLE_CELL_FILE_NAME
 
     README_MULTIPLEXED_FILE_NAME = "readme_multiplexed.md"
     README_MULTIPLEXED_FILE_PATH = common.OUTPUT_DATA_PATH / README_MULTIPLEXED_FILE_NAME
@@ -79,10 +79,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_SPATIAL_FILE_NAME = "readme_spatial.md"
     README_SPATIAL_FILE_PATH = common.OUTPUT_DATA_PATH / README_SPATIAL_FILE_NAME
 
-    README_TEMPLATE_ANNDATA_FILE_PATH = common.TEMPLATE_PATH / README_ANNDATA_FILE_NAME
-    README_TEMPLATE_FILE_PATH = common.TEMPLATE_PATH / README_FILE_NAME
-    README_TEMPLATE_MULTIPLEXED_FILE_PATH = common.TEMPLATE_PATH / README_MULTIPLEXED_FILE_NAME
-    README_TEMPLATE_SPATIAL_FILE_PATH = common.TEMPLATE_PATH / README_SPATIAL_FILE_NAME
+    README_TEMPLATE_PATH = common.TEMPLATE_PATH / "readme"
+    README_TEMPLATE_ANNDATA_FILE_PATH = README_TEMPLATE_PATH / "anndata.md"
+    README_TEMPLATE_SINGLE_CELL_FILE_PATH = README_TEMPLATE_PATH / "single_cell.md"
+    README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "multiplexed.md"
+    README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
     format = models.TextField(choices=OutputFileFormats.CHOICES)
     modality = models.TextField(choices=OutputFileModalities.CHOICES)
@@ -156,7 +157,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
         else:
             computed_file_name = project.output_single_cell_computed_file_name
-            readme_file_path = ComputedFile.README_FILE_PATH
+            readme_file_path = ComputedFile.README_SINGLE_CELL_FILE_PATH
 
         computed_file = cls(
             format=file_format,
@@ -313,7 +314,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(
-                ComputedFile.README_FILE_PATH,
+                ComputedFile.README_SINGLE_CELL_FILE_PATH,
                 ComputedFile.OUTPUT_README_FILE_NAME,
             )
             zip_file.write(
