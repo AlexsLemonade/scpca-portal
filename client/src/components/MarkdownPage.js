@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Paragraph, Text, Markdown } from 'grommet'
 import styled from 'styled-components'
-import formatStringToIdName from 'helpers/formatStringToIdName'
 import getHash from 'helpers/getHash'
+import slugify from 'helpers/slugify'
 import Error from 'pages/_error'
 
 const StyledLi = styled(Box)`
@@ -29,7 +29,7 @@ export const MarkdownPage = ({
     // we can print this to generate a list of linkable section text node for the config
     // const sectionNames = Array.from(sections).map((item) => item.textContent)
     for (const section of sections) {
-      section.id = formatStringToIdName(section.textContent)
+      section.id = slugify(section.textContent)
     }
   }, [])
 

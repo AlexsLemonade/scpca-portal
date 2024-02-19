@@ -7,4 +7,5 @@ export default (str) => {
     .replace(/[^a-zA-Z ]/g, '')
     .replace(space, ' ')
     .replace(space, '-')
+    .trim()
 }
