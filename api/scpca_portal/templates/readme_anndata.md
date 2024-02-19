@@ -16,7 +16,8 @@ The files associated with each library are (example shown for a library with ID 
 - An unfiltered counts file: `SCPCL000000_unfiltered_rna.hdf5`,
 - A filtered counts file: `SCPCL000000_filtered_rna.hdf5`,
 - A processed counts file: `SCPCL000000_processed_rna.hdf5`,
-- A quality control report: `SCPCL000000_qc.html`
+- A quality control report: `SCPCL000000_qc.html`,
+- A supplemental cell type report: `SCPCL000000_celltype-report.html`
 
 Also included in each download is `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
