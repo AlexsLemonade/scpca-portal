@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Paragraph, Text, Markdown } from 'grommet'
 import styled from 'styled-components'
 import getHash from 'helpers/getHash'
@@ -20,10 +20,9 @@ export const MarkdownPage = ({
   width = 'large'
 }) => {
   const sectionId = getHash()
+  const [offset, setOffset] = useState(0)
 
   useEffect(() => {
-    window.scrollTo(0, 0)
-
     const sections = document.querySelectorAll(
       'ol > li > p:first-child > span:first-child'
     )
@@ -38,13 +37,13 @@ export const MarkdownPage = ({
     if (sectionId) {
       const target = document.querySelector(sectionId)
       target.scrollIntoView()
-
-      if (target) {
-        const offset = -90
-        const top = target.getBoundingClientRect().top + window.scrollY + offset
-        window.scrollTo({ top, behavior: 'smooth' })
-      }
     }
+    // (hack) prevents the selected section and the site header from overlapping on page load
+    const timer = setTimeout(() => {
+      setOffset(getHash() ? 90 : 0)
+    }, 0)
+
+    return () => clearTimeout(timer)
   }, [sectionId])
 
   const markdownConfig = {
@@ -60,7 +59,7 @@ export const MarkdownPage = ({
 
   return (
     <Box pad={{ vertical: 'large' }} justify="center">
-      <Box width={width}>
+      <Box width={width} margin={{ top: `${offset}px` }}>
         <Markdown components={markdownConfig}>{markdown}</Markdown>
       </Box>
     </Box>
