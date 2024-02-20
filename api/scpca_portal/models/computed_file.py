@@ -252,7 +252,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 "qc.html",
                 "unfiltered.rds",
             ]
-            if not sample.project.includes_cell_lines:
+            if not sample.is_cell_line:
                 file_suffixes.append("celltype-report.html")
 
             for file_suffix in file_suffixes:
@@ -303,7 +303,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 "qc.html",
                 "unfiltered.rds",
             ]
-        if not sample.project.includes_cell_lines:
+        if not sample.is_cell_line:
             common_file_suffixes.append("celltype-report.html")
 
         cite_seq_anndata_file_suffixes = (
