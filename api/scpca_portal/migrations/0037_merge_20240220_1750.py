@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0036_project_additional_restrictions'),
-        ('scpca_portal', '0036_project_organisms'),
+        ("scpca_portal", "0036_project_additional_restrictions"),
+        ("scpca_portal", "0036_project_organisms"),
     ]
 
-    operations = [
-    ]
+    operations = []
