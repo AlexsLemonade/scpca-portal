@@ -47,6 +47,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     includes_xenografts = models.BooleanField(default=False)
     modalities = ArrayField(models.TextField(), default=list)
     multiplexed_sample_count = models.IntegerField(default=0)
+    organisms = ArrayField(models.TextField(), default=list)
     pi_name = models.TextField()
     sample_count = models.IntegerField(default=0)
     scpca_id = models.TextField(unique=True)
@@ -1146,6 +1147,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         diagnoses_counts = Counter()
         disease_timings = set()
         modalities = set()
+        organisms = set()
         seq_units = set()
         summaries_counts = Counter()
         technologies = set()
@@ -1156,6 +1158,8 @@ class Project(CommonDataAttributes, TimestampedModel):
             diagnoses_counts.update({sample.diagnosis: 1})
             disease_timings.add(sample.disease_timing)
             modalities.update(sample.modalities)
+            if "organism" in sample.additional_metadata:
+                organisms.add(sample.additional_metadata["organism"])
 
             sample_seq_units = sample.seq_units.split(", ")
             sample_technologies = sample.technologies.split(", ")
@@ -1195,6 +1199,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.downloadable_sample_count = downloadable_sample_count
         self.modalities = sorted(modalities)
         self.multiplexed_sample_count = multiplexed_sample_count
+        self.organisms = sorted(organisms)
         self.sample_count = sample_count
         self.seq_units = ", ".join(seq_units)
         self.technologies = ", ".join(technologies)
