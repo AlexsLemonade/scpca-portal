@@ -32,13 +32,13 @@ export const MarkdownPage = ({
     for (const section of sections) {
       const id = slugify(section.textContent)
       section.id = id
-      sectionIds.push(id)
+      sectionIds.push(`#${id}`)
     }
   }, [])
 
   useEffect(() => {
     // validates the hash value to prevent an error
-    if (sectionId && sectionIds.includes(sectionId.replace('#', ''))) {
+    if (sectionId && sectionIds.includes(sectionId)) {
       const target = document.querySelector(sectionId)
       target.scrollIntoView()
     }
