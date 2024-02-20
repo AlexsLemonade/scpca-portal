@@ -20,6 +20,7 @@ export const MarkdownPage = ({
   width = 'large'
 }) => {
   const sectionId = getHash()
+  const sectionIds = []
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -29,12 +30,15 @@ export const MarkdownPage = ({
     // we can print this to generate a list of linkable section text node for the config
     // const sectionNames = Array.from(sections).map((item) => item.textContent)
     for (const section of sections) {
-      section.id = slugify(section.textContent)
+      const id = slugify(section.textContent)
+      section.id = id
+      sectionIds.push(id)
     }
   }, [])
 
   useEffect(() => {
-    if (sectionId) {
+    // validates the hash value to prevent an error
+    if (sectionId && sectionIds.includes(sectionId.replace('#', ''))) {
       const target = document.querySelector(sectionId)
       target.scrollIntoView()
     }
