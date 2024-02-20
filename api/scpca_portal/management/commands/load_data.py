@@ -143,6 +143,7 @@ class Command(BaseCommand):
 
     def process_project_data(self, data, sample_id, **kwargs):
         self.project.abstract = data["abstract"]
+        self.project.additional_restrictions = data["additional_restrictions"]
         self.project.has_bulk_rna_seq = utils.boolean_from_string(data.get("has_bulk", False))
         self.project.has_cite_seq_data = utils.boolean_from_string(data.get("has_CITE", False))
         self.project.has_multiplexed_data = utils.boolean_from_string(

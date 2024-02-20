@@ -93,6 +93,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
         fields = (
             "abstract",
             "additional_metadata_keys",
+            "additional_restrictions",
             "computed_files",
             "contacts",
             "created_at",
