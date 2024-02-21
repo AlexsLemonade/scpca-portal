@@ -11,7 +11,7 @@ from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"genomics_10X"}
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/celltype-tests"
+INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs"
 
 
 class TestLoadData(TransactionTestCase):
@@ -265,16 +265,14 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 14 files (including subdirectory names):
+        # There are 12 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
-        # |   ├── SCPCL999990_celltype-report.html
         # │   ├── SCPCL999990_filtered.rds
         # │   ├── SCPCL999990_processed.rds
         # │   ├── SCPCL999990_qc.html
         # │   └── SCPCL999990_unfiltered.rds
         # ├── SCPCS999992_SCPCS999993
-        # |   ├── SCPCL999992_celltype-report.html
         # │   ├── SCPCL999992_filtered.rds
         # │   ├── SCPCL999992_processed.rds
         # │   ├── SCPCL999992_qc.html
@@ -282,14 +280,13 @@ class TestLoadData(TransactionTestCase):
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 14)
+        self.assertEqual(len(project_zip.namelist()), 12)
 
         library_sample_mapping = {
             "SCPCL999990": "SCPCS999990",
             "SCPCL999992": "SCPCS999992_SCPCS999993",
         }
         library_path_templates = (
-            "{sample_id}/{library_id}_celltype-report.html",
             "{sample_id}/{library_id}_filtered.rds",
             "{sample_id}/{library_id}_processed.rds",
             "{sample_id}/{library_id}_qc.html",
@@ -358,7 +355,6 @@ class TestLoadData(TransactionTestCase):
         expected_filenames = {
             "README.md",
             "single_cell_metadata.tsv",
-            f"{library_id}_celltype-report.html",
             f"{library_id}_filtered.rds",
             f"{library_id}_processed.rds",
             f"{library_id}_qc.html",
@@ -473,10 +469,9 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 9 files (including subdirectory names):
+        # There are 8 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
-        # |   ├── SCPCL999990_celltype-report.html
         # │   ├── SCPCL999990_filtered.rds
         # │   ├── SCPCL999990_processed.rds
         # │   ├── SCPCL999990_qc.html
@@ -484,14 +479,14 @@ class TestLoadData(TransactionTestCase):
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 9)
+        self.assertEqual(len(project_zip.namelist()), 8)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
         self.assertEqual(len(sample.computed_files), 2)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 1637)
+        self.assertEqual(sample.sample_cell_count_estimate, 1638)
         self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3.1")
         self.assertIsNotNone(sample.single_cell_computed_file)
@@ -549,7 +544,6 @@ class TestLoadData(TransactionTestCase):
         expected_filenames = {
             "README.md",
             "single_cell_metadata.tsv",
-            f"{library_id}_celltype-report.html",
             f"{library_id}_filtered.rds",
             f"{library_id}_processed.rds",
             f"{library_id}_qc.html",
@@ -577,7 +571,6 @@ class TestLoadData(TransactionTestCase):
         expected_filenames = {
             "README.md",
             "single_cell_metadata.tsv",
-            f"{library_id}_celltype-report.html",
             f"{library_id}_filtered_rna.hdf5",
             f"{library_id}_processed_rna.hdf5",
             f"{library_id}_qc.html",
