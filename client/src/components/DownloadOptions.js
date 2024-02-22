@@ -12,7 +12,7 @@ export const DownloadOptions = ({ resource, handleSelectFile }) => {
     'SAMPLE_SPATIAL_ZIP',
     'PROJECT_MULTIPLEXED_ZIP',
     'SAMPLE_MULTIPLEXED_ZIP'
-  ]).filter((cf) => cf.format !== 'ANN_DATA')
+  ])
 
   return (
     <Grid columns={['auto', 'auto']} gap="large" pad={{ bottom: 'medium' }}>
