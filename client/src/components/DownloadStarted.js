@@ -40,7 +40,7 @@ export const DownloadStarted = ({
   // TODO: Remove filter when ANN_DATA lands
   const multipleComputedFiles = hasMultiple(
     resource.computed_files,
-    f => f.format !== 'ANN_DATA'
+    (f) => f.format !== 'ANN_DATA'
   )
   const inlineBorderStyle = multipleComputedFiles
     ? {
