@@ -34,7 +34,12 @@ export const Download = ({ icon, resource: initialResource }) => {
     : 'Download Sample'
 
   const defaultComputedFile = getDefaultComputedFile(resource)
-  const multipleComputedFiles = hasMultiple(resource.computed_files)
+
+  // TODO:: Remove filter when ANN_DATA lands
+  const multipleComputedFiles = hasMultiple(
+    resource.computed_files,
+    f => f.format !== 'ANN_DATA'
+  )
 
   const handleClick = () => {
     setShowing(true)
