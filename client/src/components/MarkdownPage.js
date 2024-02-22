@@ -25,7 +25,7 @@ export const MarkdownPage = ({
 
   useEffect(() => {
     const sections = document.querySelectorAll(
-      'ol > li > p:first-child > span:first-child'
+      'main ol > li > p:first-child > span:first-child'
     )
     // we can print this to generate a list of linkable section text node for the config
     // const sectionNames = Array.from(sections).map((item) => item.textContent)
