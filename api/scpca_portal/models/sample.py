@@ -171,7 +171,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         try:
             return self.sample_computed_files.get(
                 format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -181,7 +181,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         try:
             return self.sample_computed_files.get(
                 format=ComputedFile.OutputFileFormats.ANN_DATA,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
             )
         except ComputedFile.DoesNotExist:
             pass

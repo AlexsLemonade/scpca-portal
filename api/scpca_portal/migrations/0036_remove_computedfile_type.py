@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0035_merge_0034_auto_20240131_1642_0034_auto_20240131_2320'),
+        ("scpca_portal", "0035_merge_0034_auto_20240131_1642_0034_auto_20240131_2320"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='computedfile',
-            name='type',
+            model_name="computedfile",
+            name="type",
         ),
     ]

@@ -127,7 +127,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -137,7 +137,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.ANN_DATA,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
             )
         except ComputedFile.DoesNotExist:
             pass
