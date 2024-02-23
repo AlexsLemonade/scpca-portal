@@ -5,12 +5,16 @@ import { sortArrayByKey } from 'helpers/sortArrayByKey'
 
 export const DownloadOptions = ({ resource, handleSelectFile }) => {
   const { computed_files: computedFiles } = resource
+
+  // TODO: Remove filter when ANN_DATA lands
   const sortedComputedFiles = sortArrayByKey('type', computedFiles, [
     'PROJECT_ZIP',
     'SAMPLE_ZIP',
     'PROJECT_SPATIAL_ZIP',
-    'SAMPLE_SPATIAL_ZIP'
-  ])
+    'SAMPLE_SPATIAL_ZIP',
+    'PROJECT_MULTIPLEXED_ZIP',
+    'SAMPLE_MULTIPLEXED_ZIP'
+  ]).filter((f) => f.format !== 'ANN_DATA')
 
   return (
     <Grid columns={['auto', 'auto']} gap="large" pad={{ bottom: 'medium' }}>

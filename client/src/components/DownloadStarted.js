@@ -37,7 +37,11 @@ export const DownloadStarted = ({
     (cf) => cf.id !== computedFile.id
   )
 
-  const multipleComputedFiles = hasMultiple(resource.computed_files)
+  // TODO: Remove filter when ANN_DATA lands
+  const multipleComputedFiles = hasMultiple(
+    resource.computed_files,
+    (f) => f.format !== 'ANN_DATA'
+  )
   const inlineBorderStyle = multipleComputedFiles
     ? {
         side: 'bottom',
@@ -101,9 +105,9 @@ export const DownloadStarted = ({
           {info && info.texts.multiplexed_with && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
               <Text>{info.texts.multiplexed_with.text}</Text>
-              {resource.additional_metadata.multiplexed_with && (
+              {resource.multiplexed_with && (
                 <ul style={{ margin: '8px 0 4px 16px' }}>
-                  {resource.additional_metadata.multiplexed_with.map((item) => (
+                  {resource.multiplexed_with.map((item) => (
                     <li key={item} style={{ listStyle: 'inside square' }}>
                       {item}
                     </li>
