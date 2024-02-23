@@ -23,7 +23,6 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "s3_key",
             "sample",
             "size_in_bytes",
-            "type",
             "updated_at",
             "workflow_version",
         )
@@ -54,8 +53,7 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     filterset_fields = (
         "project__id",
         "sample__id",
-        "id",
-        "type",
+        "id"
     )
 
     def get_serializer_class(self):
