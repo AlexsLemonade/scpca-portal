@@ -35,7 +35,7 @@ export const Download = ({ icon, resource: initialResource }) => {
 
   const defaultComputedFile = getDefaultComputedFile(resource)
 
-  // TODO:: Remove filter when ANN_DATA lands
+  // TODO: Remove filter when ANN_DATA lands
   const multipleComputedFiles = hasMultiple(
     resource.computed_files,
     (f) => f.format !== 'ANN_DATA'
