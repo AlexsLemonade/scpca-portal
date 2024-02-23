@@ -363,15 +363,15 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @property
     def is_project_multiplexed_zip(self):
-        return self.type == ComputedFile.OutputFileTypes.PROJECT_MULTIPLEXED_ZIP
+        return self.modality == ComputedFile.OutputFileModalities.MULTIPLEXED
 
     @property
     def is_project_zip(self):
-        return self.type == ComputedFile.OutputFileTypes.PROJECT_ZIP
+        return self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
 
     @property
     def is_project_spatial_zip(self):
-        return self.type == ComputedFile.OutputFileTypes.PROJECT_SPATIAL_ZIP
+        return self.modality == ComputedFile.OutputFileModalities.SPATIAL
 
     @property
     def metadata_file_name(self):
