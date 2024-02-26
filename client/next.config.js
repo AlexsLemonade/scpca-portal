@@ -17,7 +17,8 @@ module.exports = () => {
     SENTRY_ENV: process.env.SENTRY_ENV,
     HUBSPOT_PORTAL_ID: process.env.HUBSPOT_PORTAL_ID,
     HUBSPOT_EMAIL_LIST_ID: process.env.HUBSPOT_EMAIL_LIST_ID,
-    HUBSPOT_SURVEY_LIST_ID: process.env.HUBSPOT_SURVEY_LIST_ID
+    HUBSPOT_SURVEY_LIST_ID: process.env.HUBSPOT_SURVEY_LIST_ID,
+    TOS_RELEASE: process.env.TOS_RELEASE
   }
 
   const stageEnv = {
@@ -27,7 +28,8 @@ module.exports = () => {
     SENTRY_ENV: process.env.STAGE_SENTRY_ENV,
     HUBSPOT_PORTAL_ID: process.env.STAGE_HUBSPOT_PORTAL_ID,
     HUBSPOT_EMAIL_LIST_ID: process.env.STAGE_HUBSPOT_EMAIL_LIST_ID,
-    HUBSPOT_SURVEY_LIST_ID: process.env.STAGE_HUBSPOT_SURVEY_LIST_ID
+    HUBSPOT_SURVEY_LIST_ID: process.env.STAGE_HUBSPOT_SURVEY_LIST_ID,
+    TOS_RELEASE: process.env.STAGE_TOS_RELEASE
   }
 
   const env = isProduction ? productionEnv : stageEnv
