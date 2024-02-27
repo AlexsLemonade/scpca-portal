@@ -5,7 +5,8 @@
 @name getLastUpdatedDate
 @description replaces the '<!-- Last Updated... -->' string in the given markdown and returns the last updated date string in YYYY-MM-DD format (UTC timezone)
 e.g. ) Last Updated: YYYY-MM-DD
-@param {string label - a label for the current date. If none, pass an empty string
+@param {string} markdown - a markdown content
+@param {string} env - an env var name
 */
 
 // a regex pattern for '<!-- Last Updated: (Month DD, YYYY || YYYY-MM-DD) -->'
