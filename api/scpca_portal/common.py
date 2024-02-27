@@ -14,6 +14,7 @@ CSV_MULTI_VALUE_DELIMITER = ";"
 
 DATA_PATH = CODE_PATH / ("test_data" if settings.TEST else "data")
 INPUT_DATA_PATH = DATA_PATH / "input"
+INPUT_MERGED_DATA_PATH = INPUT_DATA_PATH / "merged"
 OUTPUT_DATA_PATH = DATA_PATH / "output"
 
 TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
