@@ -15,7 +15,7 @@ const regex =
 export const getLastUpdatedDate = (markdown, env) => {
   return markdown.replace(
     regex,
-    env || `Last Updated: ${new Date().toISOString().substring(0, 10)}`
+    `Last Updated: ${env || new Date().toISOString().substring(0, 10)}`
   )
 }
 
