@@ -375,4 +375,4 @@ ScPCADP.
     If you have any questions or concerns about the ScPCADP, or these Terms,
     you may contact us by email at ccdl\@alexslemonade.org.
 
-Last Updated: October 5, 2021
+<!-- Last Updated: October 5, 2021 -->
