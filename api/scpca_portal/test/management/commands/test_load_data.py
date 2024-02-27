@@ -10,13 +10,11 @@ from scpca_portal import common
 from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
-ALLOWED_SUBMITTERS = {"genomics_10X"}
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/project-metadata-changes"
+ALLOWED_SUBMITTERS = {"scpca"}
+INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-02-20/"
 
 
 class TestLoadData(TransactionTestCase):
-    project_id = "SCPCP999990"
-
     def setUp(self):
         self.loader = Command()
 
@@ -31,11 +29,6 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(project.diagnoses)
         self.assertIsNotNone(project.diagnoses_counts)
         self.assertTrue(project.disease_timings)
-        self.assertTrue(project.has_multiplexed_data)
-        self.assertTrue(project.has_single_cell_data)
-        self.assertTrue(project.has_spatial_data)
-        self.assertFalse(project.includes_cell_lines)
-        self.assertFalse(project.includes_xenografts)
         self.assertIsNotNone(project.seq_units)
         self.assertTrue(project.title)
         self.assertEqual(project.additional_restrictions, "Research or academic purposes only")
@@ -58,8 +51,10 @@ class TestLoadData(TransactionTestCase):
     def assertProjectReadmeContains(self, text, project_zip):
         self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
 
-    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
-    def test_data_clean_up(self):
+    @patch("scpca_portal.management.commands.load_data.Command.clean_up_output_data")
+    @patch("scpca_portal.management.commands.load_data.Command.clean_up_input_data")
+    def test_data_clean_up(self, mock_clean_up_input_data, mock_clean_up_output_data):
+        project_id = "SCPCP999990"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
@@ -68,18 +63,21 @@ class TestLoadData(TransactionTestCase):
             max_workers=4,
             reload_all=False,
             reload_existing=False,
+            scpca_project_id=project_id,
             update_s3=False,
         )
-        self.assertEqual(len(list((common.INPUT_DATA_PATH / self.project_id).glob("*"))), 0)
-        self.assertEqual(len(list(common.OUTPUT_DATA_PATH.glob("*"))), 0)
 
-    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
+        mock_clean_up_input_data.assert_called_once()
+        mock_clean_up_output_data.assert_called_once()
+
     def test_load_data(self):
+        project_id = "SCPCP999990"
+
         def assert_object_count():
             self.assertEqual(Project.objects.count(), 1)
-            self.assertEqual(ProjectSummary.objects.count(), 5)
-            self.assertEqual(Sample.objects.count(), 5)
-            self.assertEqual(ComputedFile.objects.count(), 9)
+            self.assertEqual(ProjectSummary.objects.count(), 4)
+            self.assertEqual(Sample.objects.count(), 4)
+            self.assertEqual(ComputedFile.objects.count(), 11)
 
         # First, just test that loading data works.
         self.loader.load_data(
@@ -90,11 +88,12 @@ class TestLoadData(TransactionTestCase):
             max_workers=4,
             reload_all=False,
             reload_existing=False,
+            scpca_project_id=project_id,
             update_s3=False,
         )
         assert_object_count()
 
-        project = Project.objects.get(scpca_id=self.project_id)
+        project = Project.objects.get(scpca_id=project_id)
         project_computed_files = project.computed_files
         project_summary = project.summaries.first()
         sample = project.samples.first()
@@ -109,11 +108,12 @@ class TestLoadData(TransactionTestCase):
             max_workers=4,
             reload_all=False,
             reload_existing=False,
+            scpca_project_id=project_id,
             update_s3=False,
         )
         assert_object_count()
 
-        new_project = Project.objects.get(scpca_id=self.project_id)
+        new_project = Project.objects.get(scpca_id=project_id)
         self.assertEqual(project, new_project)
         self.assertEqual(project_summary, new_project.summaries.first())
 
@@ -123,7 +123,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(list(sample_computed_files), list(new_sample.computed_files))
 
         # Make sure purging works as expected.
-        Project.objects.get(scpca_id=self.project_id).purge()
+        Project.objects.get(scpca_id=project_id).purge()
 
         self.assertEqual(Project.objects.count(), 0)
         self.assertEqual(ProjectSummary.objects.count(), 0)
@@ -139,12 +139,13 @@ class TestLoadData(TransactionTestCase):
             max_workers=4,
             reload_all=False,
             reload_existing=True,
+            scpca_project_id=project_id,
             update_s3=False,
         )
         assert_object_count()
 
-    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
-    def test_multiplexed_metadata(self):
+    def test_merged_project_anndata_cite_seq(self):
+        project_id = "SCPCP999992"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
@@ -153,19 +154,209 @@ class TestLoadData(TransactionTestCase):
             max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3=True,
+            update_s3=False,
         )
 
-        project = Project.objects.get(scpca_id=self.project_id)
+        project = Project.objects.get(scpca_id=project_id)
         self.assertProjectData(project)
-        self.assertEqual(project.downloadable_sample_count, 4)
-        self.assertTrue(project.has_bulk_rna_seq)
+        self.assertTrue(project.has_cite_seq_data)
+        self.assertTrue(project.includes_anndata)
+        self.assertTrue(project.includes_merged_anndata)
+        self.assertTrue(project.includes_merged_sce)
+
+        self.assertGreater(project.single_cell_merged_computed_file.size_in_bytes, 0)
+        self.assertEqual(
+            project.single_cell_merged_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertTrue(project.single_cell_merged_computed_file.includes_merged)
+        self.assertTrue(project.single_cell_merged_computed_file.has_cite_seq_data)
+
+        project_zip_path = common.OUTPUT_DATA_PATH / project.output_merged_computed_file_name
+        with ZipFile(project_zip_path) as project_zip:
+            # There are 6 files (including subdirectory names):
+            # ├── README.md
+            # ├── SCPCP999992_merged-summary-report.html
+            # ├── SCPCP999992_merged.rds
+            # ├── individual_reports
+            # │   ├── SCPCS999996
+            # │   │   └── SCPCL999996_qc.html
+            # │   └── SCPCS999998
+            # │       └── SCPCL999998_qc.html
+            # └── single_cell_metadata.tsv
+            files = set(project_zip.namelist())
+            self.assertEqual(len(files), 6)
+            self.assertIn("SCPCP999992_merged.rds", files)
+            self.assertNotIn("SCPCP999992_merged_adt.hdf5", files)
+
+        self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
+        self.assertEqual(
+            project.single_cell_anndata_merged_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertTrue(project.single_cell_anndata_merged_computed_file.includes_merged)
+        self.assertTrue(project.single_cell_anndata_merged_computed_file.has_cite_seq_data)
+        project_zip_path = (
+            common.OUTPUT_DATA_PATH / project.output_merged_anndata_computed_file_name
+        )
+        with ZipFile(project_zip_path) as project_zip:
+            # There are 7 files (including subdirectory names):
+            # ├── README.md
+            # ├── SCPCP999992_merged-summary-report.html
+            # ├── SCPCP999992_merged_adt.hdf5
+            # ├── SCPCP999992_merged_rna.hdf5
+            # ├── individual_reports
+            # │   ├── SCPCS999996
+            # │   │   └── SCPCL999996_qc.html
+            # │   └── SCPCS999998
+            # │       └── SCPCL999998_qc.html
+            # └── single_cell_metadata.tsv
+            files = set(project_zip.namelist())
+            self.assertEqual(len(files), 7)
+            self.assertIn("SCPCP999992_merged_rna.hdf5", files)
+            self.assertIn("SCPCP999992_merged_adt.hdf5", files)
+
+    def test_merged_project_anndata_no_cite_seq(self):
+        project_id = "SCPCP999990"
+        self.loader.load_data(
+            allowed_submitters=ALLOWED_SUBMITTERS,
+            input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
+            reload_all=False,
+            reload_existing=False,
+            update_s3=False,
+        )
+
+        project = Project.objects.get(scpca_id=project_id)
+        self.assertProjectData(project)
+        self.assertFalse(project.has_cite_seq_data)
+        self.assertTrue(project.includes_anndata)
+        self.assertTrue(project.includes_merged_anndata)
+        self.assertTrue(project.includes_merged_sce)
+
+        self.assertGreater(project.single_cell_merged_computed_file.size_in_bytes, 0)
+        self.assertEqual(
+            project.single_cell_merged_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertTrue(project.single_cell_merged_computed_file.includes_merged)
+        self.assertTrue(project.single_cell_merged_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.single_cell_merged_computed_file.has_cite_seq_data)
+        project_zip_path = common.OUTPUT_DATA_PATH / project.output_merged_computed_file_name
+        with ZipFile(project_zip_path) as project_zip:
+            # There are 8 files (including subdirectory names):
+            # ├── README.md
+            # ├── SCPCP999990_merged-summary-report.html
+            # ├── SCPCP999990_merged.rds
+            # ├── bulk_metadata.tsv
+            # ├── bulk_quant.tsv
+            # ├── individual_reports
+            # │   ├── SCPCS999990
+            # │   │   └── SCPCL999990_qc.html
+            # │   └── SCPCS999997
+            # │       └── SCPCL999997_qc.html
+            # └── single_cell_metadata.tsv
+            files = set(project_zip.namelist())
+            self.assertEqual(len(files), 8)
+            self.assertIn("SCPCP999990_merged.rds", files)
+
+        self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
+        self.assertEqual(
+            project.single_cell_anndata_merged_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertTrue(project.single_cell_anndata_merged_computed_file.includes_merged)
+        self.assertTrue(project.single_cell_anndata_merged_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.single_cell_anndata_merged_computed_file.has_cite_seq_data)
+        project_zip_path = (
+            common.OUTPUT_DATA_PATH / project.output_merged_anndata_computed_file_name
+        )
+        with ZipFile(project_zip_path) as project_zip:
+            # There are 8 files (including subdirectory names):
+            # ├── README.md
+            # ├── SCPCP999990_merged-summary-report.html
+            # ├── SCPCP999990_merged_rna.hdf5
+            # ├── bulk_metadata.tsv
+            # ├── bulk_quant.tsv
+            # ├── individual_reports
+            # │   ├── SCPCS999990
+            # │   │   └── SCPCL999990_qc.html
+            # │   └── SCPCS999997
+            # │       └── SCPCL999997_qc.html
+            # └── single_cell_metadata.tsv
+            files = set(project_zip.namelist())
+            self.assertEqual(len(files), 8)
+            self.assertIn("SCPCP999990_merged_rna.hdf5", files)
+
+    def test_merged_project_no_anndata(self):
+        project_id = "SCPCP999991"
+        self.loader.load_data(
+            allowed_submitters=ALLOWED_SUBMITTERS,
+            input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
+            reload_all=False,
+            reload_existing=False,
+            update_s3=False,
+        )
+
+        project = Project.objects.get(scpca_id=project_id)
+        self.assertProjectData(project)
+        self.assertFalse(project.has_cite_seq_data)
+        self.assertTrue(project.includes_anndata)
+        self.assertFalse(project.includes_merged_anndata)
+        self.assertTrue(project.includes_merged_sce)
+
+        self.assertGreater(project.single_cell_merged_computed_file.size_in_bytes, 0)
+        self.assertEqual(
+            project.single_cell_merged_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertTrue(project.single_cell_merged_computed_file.includes_merged)
+        self.assertFalse(project.single_cell_merged_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.single_cell_merged_computed_file.has_cite_seq_data)
+        project_zip_path = common.OUTPUT_DATA_PATH / project.output_merged_computed_file_name
+        with ZipFile(project_zip_path) as project_zip:
+            # There are 5 files (including subdirectory names):
+            # ├── README.md
+            # ├── SCPCP999991_merged-summary-report.html
+            # ├── SCPCP999991_merged.rds
+            # ├── individual_reports
+            # │   └── SCPCS999995
+            # │       └── SCPCL999995_qc.html
+            # └── single_cell_metadata.tsv
+            files = set(project_zip.namelist())
+            self.assertEqual(len(files), 5)
+            self.assertIn("SCPCP999991_merged.rds", files)
+
+        self.assertIsNone(project.single_cell_anndata_merged_computed_file)
+
+    def test_multiplexed_metadata(self):
+        project_id = "SCPCP999991"
+        self.loader.load_data(
+            allowed_submitters=ALLOWED_SUBMITTERS,
+            input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
+            reload_all=False,
+            reload_existing=False,
+            scpca_project_id=project_id,
+            update_s3=False,
+        )
+
+        project = Project.objects.get(scpca_id=project_id)
+        self.assertProjectData(project)
+        self.assertFalse(project.has_bulk_rna_seq)
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.has_multiplexed_data)
         self.assertEqual(project.multiplexed_sample_count, 2)
         self.assertEqual(project.organisms, ["Homo sapiens"])
-        self.assertEqual(project.sample_count, 5)
-        self.assertEqual(project.summaries.count(), 5)
+        self.assertEqual(project.sample_count, 3)
+        self.assertEqual(project.summaries.count(), 3)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(len(project.computed_files), 4)
@@ -175,7 +366,7 @@ class TestLoadData(TransactionTestCase):
             project.multiplexed_computed_file.modality,
             ComputedFile.OutputFileModalities.MULTIPLEXED,
         )
-        self.assertTrue(project.multiplexed_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.multiplexed_computed_file.has_bulk_rna_seq)
         self.assertFalse(project.multiplexed_computed_file.has_cite_seq_data)
 
         # Check contacts.
@@ -296,8 +487,8 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(len(project_zip.namelist()), 14)
 
         library_sample_mapping = {
-            "SCPCL999990": "SCPCS999990",
             "SCPCL999992": "SCPCS999992_SCPCS999993",
+            "SCPCL999995": "SCPCS999995",
         }
         library_path_templates = (
             "{sample_id}/{library_id}_celltype-report.html",
@@ -308,8 +499,6 @@ class TestLoadData(TransactionTestCase):
         )
         expected_filenames = {
             "README.md",
-            "bulk_metadata.tsv",
-            "bulk_quant.tsv",
             "single_cell_metadata.tsv",
         }
         for library_id, sample_id in library_sample_mapping.items():
@@ -322,7 +511,7 @@ class TestLoadData(TransactionTestCase):
         sample = project.samples.filter(has_multiplexed_data=True).first()
         self.assertIsNone(sample.sample_cell_count_estimate)
         self.assertTrue(sample.has_multiplexed_data)
-        self.assertEqual(sample.seq_units, "cell")
+        self.assertEqual(sample.seq_units, "nucleus")
         self.assertEqual(sample.technologies, "10Xv3.1")
         self.assertEqual(
             sample.multiplexed_computed_file.modality,
@@ -334,6 +523,8 @@ class TestLoadData(TransactionTestCase):
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
+            "is_cell_line",
+            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "participant_id",
@@ -377,8 +568,8 @@ class TestLoadData(TransactionTestCase):
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
-    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_single_cell_metadata(self):
+        project_id = "SCPCP999990"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
@@ -387,24 +578,27 @@ class TestLoadData(TransactionTestCase):
             max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3=True,
+            scpca_project_id=project_id,
+            update_s3=False,
         )
 
-        project = Project.objects.get(scpca_id=self.project_id)
+        project = Project.objects.get(scpca_id=project_id)
         self.assertProjectData(project)
-        self.assertEqual(project.downloadable_sample_count, 4)
+        self.assertEqual(project.downloadable_sample_count, 3)
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.includes_anndata)
         self.assertTrue(project.modalities)
         self.assertEqual(project.multiplexed_sample_count, 2)
         self.assertEqual(project.organisms, ["Homo sapiens"])
         self.assertEqual(project.sample_count, 5)
+        self.assertFalse(project.has_multiplexed_data)
+        self.assertEqual(project.sample_count, 4)
         self.assertEqual(project.seq_units, "cell, spot")
-        self.assertEqual(project.summaries.count(), 5)
+        self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(project.technologies, "10Xv3.1, visium")
-        self.assertEqual(len(project.computed_files), 4)
+        self.assertEqual(project.technologies, "10Xv3, visium")
+        self.assertEqual(len(project.computed_files), 5)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
         self.assertEqual(
@@ -486,12 +680,12 @@ class TestLoadData(TransactionTestCase):
                 project_zip,
             )
 
-        self.assertEqual(len(sample_metadata_lines), 2)  # 1 item + header.
+        self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
 
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 9 files (including subdirectory names):
+        # There are 12 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
         # │   ├── SCPCL999990_celltype-report.html
@@ -499,19 +693,24 @@ class TestLoadData(TransactionTestCase):
         # │   ├── SCPCL999990_processed.rds
         # │   ├── SCPCL999990_qc.html
         # │   └── SCPCL999990_unfiltered.rds
+        # ├── SCPCS999997
+        # │   ├── SCPCL999997_filtered.rds
+        # │   ├── SCPCL999997_processed.rds
+        # │   ├── SCPCL999997_qc.html
+        # │   └── SCPCL999997_unfiltered.rds
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 9)
+        self.assertEqual(len(project_zip.namelist()), 12)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
         self.assertEqual(len(sample.computed_files), 2)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 1638)
+        self.assertEqual(sample.sample_cell_count_estimate, 3423)
         self.assertEqual(sample.seq_units, "cell")
-        self.assertEqual(sample.technologies, "10Xv3.1")
+        self.assertEqual(sample.technologies, "10Xv3")
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(sample.single_cell_computed_file.workflow_version, "development")
@@ -531,6 +730,8 @@ class TestLoadData(TransactionTestCase):
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
+            "is_cell_line",
+            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "participant_id",
@@ -603,8 +804,8 @@ class TestLoadData(TransactionTestCase):
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
-    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_spatial_metadata(self):
+        project_id = "SCPCP999990"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
@@ -613,12 +814,13 @@ class TestLoadData(TransactionTestCase):
             max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3=True,
+            scpca_project_id=project_id,
+            update_s3=False,
         )
 
-        project = Project.objects.get(scpca_id=self.project_id)
+        project = Project.objects.get(scpca_id=project_id)
         self.assertProjectData(project)
-        self.assertEqual(project.downloadable_sample_count, 4)
+        self.assertEqual(project.downloadable_sample_count, 3)
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.has_spatial_data)
         self.assertTrue(project.modalities)
@@ -627,7 +829,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 4)
+        self.assertEqual(len(project.computed_files), 5)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "development")
         self.assertEqual(
@@ -691,8 +893,8 @@ class TestLoadData(TransactionTestCase):
 
         self.assertEqual(len(spatial_metadata), 2)  # 1 item + header.
 
-        spatial_metadata_keys = spatial_metadata[0].split(common.TAB)
-        self.assertEqual(spatial_metadata_keys, expected_keys)
+        sample_metadata_keys = spatial_metadata[0].split(common.TAB)
+        self.assertEqual(sample_metadata_keys, expected_keys)
 
         # There are 19 files (including subdirectory names):
         # ├── README.md
@@ -748,6 +950,8 @@ class TestLoadData(TransactionTestCase):
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
+            "is_cell_line",
+            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "participant_id",
@@ -786,7 +990,7 @@ class TestLoadData(TransactionTestCase):
         }
         library_path_templates = {
             "{library_id}_spatial/{library_id}_metadata.json",
-            "{library_id}_spatial/{library_id}_spaceranger_summary.html",
+            "{library_id}_spatial/{library_id}_spaceranger-summary.html",
             "{library_id}_spatial/filtered_feature_bc_matrix/",
             "{library_id}_spatial/filtered_feature_bc_matrix/barcodes.tsv.gz",
             "{library_id}_spatial/filtered_feature_bc_matrix/features.tsv.gz",

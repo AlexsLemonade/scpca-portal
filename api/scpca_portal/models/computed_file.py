@@ -87,6 +87,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
     format = models.TextField(choices=OutputFileFormats.CHOICES)
+    includes_merged = models.BooleanField(default=False)
     modality = models.TextField(choices=OutputFileModalities.CHOICES)
     s3_bucket = models.TextField()
     s3_key = models.TextField()
@@ -109,6 +110,83 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             f"{dict(self.OutputFileFormats.CHOICES)[self.format]} "
             f"computed file ({self.size_in_bytes}B)"
         )
+
+    @classmethod
+    def get_project_merged_file(
+        cls, project, sample_to_file_mapping, workflow_versions, file_format
+    ):
+        """Prepares a ready for saving single data file of project's merged data."""
+
+        project_file_mapping = {
+            project.input_merged_summary_report_file_path: (
+                f"{project.scpca_id}_merged-summary-report.html"
+            ),
+        }
+
+        if file_format == cls.OutputFileFormats.ANN_DATA:
+            if not project.includes_merged_anndata:
+                return None
+            computed_file_name = project.output_merged_anndata_computed_file_name
+            readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
+            project_file_mapping[
+                f"{project.input_merged_data_path}/{project.scpca_id}_merged_rna.hdf5"
+            ] = f"{project.scpca_id}_merged_rna.hdf5"
+
+            if project.has_cite_seq_data:
+                project_file_mapping[
+                    f"{project.input_merged_data_path}/{project.scpca_id}_merged_adt.hdf5"
+                ] = f"{project.scpca_id}_merged_adt.hdf5"
+        else:
+            if not project.includes_merged_sce:
+                return None
+            computed_file_name = project.output_merged_computed_file_name
+            readme_file_path = ComputedFile.README_FILE_PATH
+
+            project_file_mapping[
+                f"{project.input_merged_data_path}/{project.scpca_id}_merged.rds"
+            ] = f"{project.scpca_id}_merged.rds"
+
+        computed_file = cls(
+            format=file_format,
+            includes_merged=True,
+            modality=cls.OutputFileModalities.SINGLE_CELL,
+            project=project,
+            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_key=computed_file_name,
+            type=cls.OutputFileTypes.PROJECT_ZIP,
+            workflow_version=utils.join_workflow_versions(workflow_versions),
+        )
+
+        project_file_mapping[readme_file_path] = ComputedFile.OUTPUT_README_FILE_NAME
+        project_file_mapping[
+            project.output_single_cell_metadata_file_path
+        ] = computed_file.metadata_file_name
+
+        if project.has_bulk_rna_seq:
+            project_file_mapping[project.input_bulk_metadata_file_path] = "bulk_metadata.tsv"
+            project_file_mapping[project.input_bulk_quant_file_path] = "bulk_quant.tsv"
+
+        sample_file_suffixes = {
+            "celltype-report.html",
+            "qc.html",
+        }
+
+        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
+            for src, dst in project_file_mapping.items():
+                zip_file.write(src, dst)
+
+            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+                for file_path in file_paths:
+                    if str(file_path).split("_")[-1] not in sample_file_suffixes:
+                        continue
+                    # Nest these under their sample id.
+                    zip_file.write(file_path, Path("individual_reports", sample_id, file_path.name))
+
+        computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
+        computed_file.has_cite_seq_data = project.has_cite_seq_data
+        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+
+        return computed_file
 
     @classmethod
     def get_project_multiplexed_file(
