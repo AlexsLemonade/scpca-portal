@@ -77,7 +77,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def input_merged_data_path(self):
-        return common.INPUT_MERGED_DATA_PATH / self.scpca_id
+        return self.input_data_path / "merged"
 
     @property
     def input_bulk_metadata_file_path(self):
