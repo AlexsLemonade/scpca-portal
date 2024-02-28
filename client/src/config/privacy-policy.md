@@ -223,4 +223,4 @@ collected after the date of the change.
     should be directed to
     [_ccdl@alexslemonade.org_](mailto:ccdl@alexslemonade.org).
 
-Last Updated: 2021-11-03
+<!-- Last Updated: 2021-11-03 -->
