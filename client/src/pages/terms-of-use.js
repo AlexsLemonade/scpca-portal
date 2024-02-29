@@ -1,15 +1,13 @@
 import React from 'react'
 import { MarkdownPage } from 'components/MarkdownPage'
-import { getLastUpdatedDate } from 'helpers/getLastUpdatedDate'
+import { MarkdownLastUpdatedDate } from 'components/MarkdownLastUpdated'
 import termsOfUse from '../config/terms-of-use.md'
 
-export const TermsOfUse = () => {
-  const markdownContent = getLastUpdatedDate(
-    termsOfUse,
-    process.env.TOS_RELEASE
-  )
-
-  return <MarkdownPage markdown={markdownContent} />
-}
+export const TermsOfUse = () => (
+  <>
+    <MarkdownPage markdown={termsOfUse} />
+    <MarkdownLastUpdatedDate env={process.env.TOS_RELEASE} />
+  </>
+)
 
 export default TermsOfUse
