@@ -1,8 +1,11 @@
+import { useRouter } from 'next/router'
 import React, { useEffect, useRef, useState } from 'react'
 import { Box, Paragraph, Text, Markdown } from 'grommet'
 import styled from 'styled-components'
-import getHash from 'helpers/getHash'
-import slugify from 'helpers/slugify'
+import { camelcase } from 'helpers/camelcase.js'
+import { getHash } from 'helpers/getHash'
+import { getMarkdownConfig } from 'helpers/getMarkdownConfig'
+import { slugify } from 'helpers/slugify'
 import Error from 'pages/_error'
 
 const StyledLi = styled(Box)`
@@ -19,8 +22,11 @@ export const MarkdownPage = ({
   markdown,
   width = 'large'
 }) => {
+  const { route } = useRouter()
+  const sectionLabels = [] // stores the text node of each section for link's labels
+  const sectionNames = [] // stores the camelcase section names
   const sectionId = getHash()
-  const sectionIds = []
+  const sectionIds = [] // stores the section id names
   const [offset, setOffset] = useState(0)
   const wrapperRef = useRef()
 
@@ -34,10 +40,22 @@ export const MarkdownPage = ({
     // we can print this to generate a list of linkable section text node for the config
     // const sectionNames = Array.from(sections).map((item) => item.textContent)
     for (const section of sections) {
-      const id = slugify(section.textContent)
+      const sectionName = section.textContent
+
+      const id = slugify(sectionName)
+
       section.id = id
+      sectionLabels.push(sectionName)
+      sectionNames.push(camelcase(sectionName))
       sectionIds.push(`#${id}`)
     }
+
+    // TEMP: this console shouild be commented out, but temporaily umcommented to log the value for PR review
+    // use this return value in config/markdown-linkable.js
+    // eslint-disable-next-line no-console
+    console.log(
+      getMarkdownConfig(route, sectionLabels, sectionNames, sectionIds)
+    )
   }, [wrapperRef])
 
   useEffect(() => {
