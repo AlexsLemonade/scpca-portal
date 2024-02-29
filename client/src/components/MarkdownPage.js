@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Box, Paragraph, Text, Markdown } from 'grommet'
 import styled from 'styled-components'
 import getHash from 'helpers/getHash'
@@ -22,11 +22,15 @@ export const MarkdownPage = ({
   const sectionId = getHash()
   const sectionIds = []
   const [offset, setOffset] = useState(0)
+  const wrapperRef = useRef()
 
   useEffect(() => {
-    const sections = document.querySelectorAll(
-      'main ol > li > p:first-child > span:first-child'
+    if (!wrapperRef.current) return
+
+    const sections = wrapperRef.current.querySelectorAll(
+      'ol > li > p:first-child > span:first-child'
     )
+
     // we can print this to generate a list of linkable section text node for the config
     // const sectionNames = Array.from(sections).map((item) => item.textContent)
     for (const section of sections) {
@@ -34,7 +38,7 @@ export const MarkdownPage = ({
       section.id = id
       sectionIds.push(`#${id}`)
     }
-  }, [])
+  }, [wrapperRef])
 
   useEffect(() => {
     // validates the hash value to prevent an error
@@ -62,7 +66,7 @@ export const MarkdownPage = ({
   if (!markdown) return <Error />
 
   return (
-    <Box pad={{ vertical: 'large' }} justify="center">
+    <Box ref={wrapperRef} pad={{ vertical: 'large' }} justify="center">
       <Box width={width} margin={{ top: `${offset}px` }}>
         <Markdown components={markdownConfig}>{markdown}</Markdown>
       </Box>
