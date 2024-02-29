@@ -1,5 +1,9 @@
-// Returns a valid id attribute name for HTML
-export default (str) => {
+/*
+@name slugify
+@description slugifies the given string
+@param {string} str - a string to be slugified
+*/
+export const slugify = (str) => {
   const space = /\s+/g
 
   return str
@@ -9,3 +13,5 @@ export default (str) => {
     .replace(space, '-')
     .trim()
 }
+
+export default slugify
