@@ -30,7 +30,7 @@ export const Demo = () => {
         </Box>
       </Box>
       <Box direction="row" gap="xlarge">
-        <Heading level={4}>Terms of use:</Heading>
+        <Heading level={4}>Privacy Policy:</Heading>
         <Box>
           <Heading level={5}>A single link:</Heading>
           <Link
