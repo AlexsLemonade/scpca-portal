@@ -1,6 +1,6 @@
 /*
 @name camelcase
-@description converts the given string to camelcase 
+@description converts the given string to camelcase
 @param {str} str - a string to be converted
 */
 export const camelcase = (str) => {
