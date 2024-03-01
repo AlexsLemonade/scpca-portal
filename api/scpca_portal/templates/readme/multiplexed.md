@@ -1,4 +1,4 @@
-Generated on: {date}
+Generated on: {{ date }}
 
 # Alex's Lemonade Stand Foundation Single-cell Pediatric Cancer Atlas
 
@@ -6,7 +6,7 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{project_accession}]({project_url}) in the ScPCA portal.
+This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{{ project_accession }}]({{ project_url }}) in the ScPCA portal.
 
 This project includes multiplexed samples, where multiple biological samples have been combined into libraries using cellhashing or similar technologies.
 The data files are divided into folders named with an underscore-separated list of the sample ids (each with an `SCPCS` prefix) for each set of multiplexed samples.
@@ -57,7 +57,7 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-To cite data from {project_accession}, please see the project abstract and publication information at [{project_accession} page.]({project_url})
+To cite data from {{ project_accession }}, please see the project abstract and publication information at [{{ project_accession }} page.]({{ project_url }})
 
 ### Citing the ScPCA Portal
 
@@ -76,4 +76,6 @@ The Single-Cell Pediatric Cancer Atlas Portal, Alex’s Lemonade Stand Foundatio
 
 In using these data, you agree to our [Terms of Use.](https://scpca.alexslemonade.org/terms-of-use)
 
-{additional_terms}
+{% if additional_terms %}
+{{ additional_terms }}
+{% endif %}
