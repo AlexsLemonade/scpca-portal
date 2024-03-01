@@ -2,7 +2,6 @@ import { useRouter } from 'next/router'
 import React, { useEffect, useRef, useState } from 'react'
 import { Box, Paragraph, Text, Markdown } from 'grommet'
 import styled from 'styled-components'
-import { camelcase } from 'helpers/camelcase'
 import { getHash } from 'helpers/getHash'
 import { getMarkdownConfig } from 'helpers/getMarkdownConfig'
 import { slugify } from 'helpers/slugify'
@@ -23,8 +22,7 @@ export const MarkdownPage = ({
   width = 'large'
 }) => {
   const { route } = useRouter()
-  const sectionLabels = [] // stores the text node of each section for link's labels
-  const sectionNames = [] // stores the camelcase section names
+  const sectionNames = [] // stores the text nodes of each section for link's labels
   const sectionId = getHash()
   const sectionIds = [] // stores the section id names
   const [offset, setOffset] = useState(0)
@@ -41,21 +39,17 @@ export const MarkdownPage = ({
     // const sectionNames = Array.from(sections).map((item) => item.textContent)
     for (const section of sections) {
       const sectionName = section.textContent
-
       const id = slugify(sectionName)
 
       section.id = id
-      sectionLabels.push(sectionName)
-      sectionNames.push(camelcase(sectionName))
+      sectionNames.push(sectionName)
       sectionIds.push(`#${id}`)
     }
 
     // TEMP: this console shouild be commented out, but temporaily umcommented to log the value for PR review
-    // use this return value in config/markdown-linkable.js
+    // add this return value to config/markdown-linkable.js for markdown links
     // eslint-disable-next-line no-console
-    console.log(
-      getMarkdownConfig(route, sectionLabels, sectionNames, sectionIds)
-    )
+    console.log(getMarkdownConfig(route, sectionNames, sectionIds))
   }, [wrapperRef])
 
   useEffect(() => {
