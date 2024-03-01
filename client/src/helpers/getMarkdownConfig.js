@@ -1,4 +1,4 @@
-import { camelcase } from 'helpers/camelcase.js'
+import { camelcase } from 'helpers/camelcase'
 /*
 @name getMarkdownConfig
 @description returns the markdown config object for the given route
