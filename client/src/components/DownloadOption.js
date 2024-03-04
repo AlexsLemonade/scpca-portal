@@ -5,11 +5,12 @@ import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 
 export const DownloadOption = ({
-  resource,
   computedFile,
   handleSelectFile
 }) => {
-  const { header, items } = getDownloadOptionDetails(resource, computedFile)
+
+  const { type, items, resourceId } = getDownloadOptionDetails(computedFile)
+  const downloadLabel = `Download ${type}`
 
   return (
     <Grid
@@ -25,8 +26,12 @@ export const DownloadOption = ({
     >
       <Box gridArea="header" pad={{ bottom: '8px' }}>
         <Heading level="3" size="small">
-          {header}
+          Download Summary
         </Heading>
+        <Box direction="row" gap="xlarge">
+          <Text weight="bold">{type} ID: {resourceId}</Text>
+          <Text weight="bold">Size: {formatBytes(computedFile.size_in_bytes)}</Text>
+        </Box>
       </Box>
       <Box gridArea="body">
         <Box pad="small">
@@ -41,15 +46,14 @@ export const DownloadOption = ({
             ))}
           </ul>
         </Box>
-        <Text>Size: {formatBytes(computedFile.size_in_bytes)}</Text>
       </Box>
       <Box gridArea="footer" margin={{ top: '16px' }}>
         <Box>
           <Button
             primary
             alignSelf="start"
-            aria-label={header}
-            label={header}
+            aria-label={downloadLabel}
+            label={downloadLabel}
             target="_blank"
             onClick={() => handleSelectFile(computedFile)}
           />
