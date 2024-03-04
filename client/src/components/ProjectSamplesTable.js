@@ -1,4 +1,4 @@
-import React from 'react'
+import { useEffect } from 'react'
 import { api } from 'api'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
@@ -9,15 +9,27 @@ import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
-import { accumulateValue } from 'helpers/accumulateValue'
 import { formatBytes } from 'helpers/formatBytes'
-import { getReadable } from 'helpers/getReadable'
+import getReadable from 'helpers/getReadable'
+import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
+import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 
 export const ProjectSamplesTable = ({
   project,
   samples: defaultSamples,
   stickies = 3
 }) => {
+  const [showDownloadOptions, setShowDownloadOptions] = React.useState(false)
+
+  // We only want to show the applied donwload options.
+  // Also need some helpers for presentation.
+  const {
+    modality,
+    format,
+    getFoundFile,
+    resourceSort,
+  } = useDownloadOptionsContext()
+
   const [samples, setSamples] = React.useState(defaultSamples)
   const [loaded, setLoaded] = React.useState(false)
   const infoText =
@@ -25,29 +37,90 @@ export const ProjectSamplesTable = ({
       ? 'Bulk RNA-seq data available only when you download the entire project'
       : false
 
+  const onOptionsSave = () => {
+    setShowDownloadOptions(false)
+    setLoaded(false)
+  }
+
+  // Update soring after save
+  useEffect(() => {
+    if (samples) {
+      samples.sort(resourceSort)
+      setLoaded(false)
+    }
+  }, [samples, modality, format])
+
+
+  useEffect(() => {
+    const asyncFetch = async () => {
+      const samplesRequest = await api.samples.list({
+        project__scpca_id: project.scpca_id,
+        limit: 1000 // TODO:: 'all' option
+      })
+      if (samplesRequest.isOk) {
+        setSamples(samplesRequest.response.results)
+        setLoaded(true)
+      }
+    }
+    if (!samples && !loaded) asyncFetch()
+    if (samples && !loaded) setLoaded(true)
+  }, [samples, loaded])
+
+  if (!loaded)
+    return (
+      <Box margin="64px">
+        <Loader />
+      </Box>
+    )
+
+
   const columns = [
     {
       Header: 'Download',
       accessor: () => 'computed_files',
-      Cell: ({ row }) =>
-        row.original.computed_files.length !== 0 ? (
-          <Box direction="row" gap="small" align="center">
-            <Download
-              icon={<DownloadIcon color="brand" />}
-              resource={row.original}
-            />
-            <Text>
-              {formatBytes(
-                accumulateValue(row.original.computed_files, 'size_in_bytes')
-              )}
-            </Text>
+      Cell: ({ row }) => {
+
+        // there is nothing available to download
+        if (row.original.computed_files.length === 0) {
+          return (
+          <Box direction="row" align="center" gap="small">
+            <DownloadIcon color="status-disabled" />
+            <Box width={{ min: '120px' }}>
+              <Text>Not Available</Text>
+              <Text>for download</Text>
+            </Box>
           </Box>
-        ) : (
-          <Box width={{ min: '120px' }}>
-            <Text>Not Available</Text>
-            <Text>For Download</Text>
+          )
+        }
+
+        const computedFile = getFoundFile(row.original.computed_files)
+
+        if (computedFile) {
+          return (
+            <Box direction="row" gap="small" align="center">
+              <Download
+                icon={<DownloadIcon color="brand" />}
+                resource={row.original}
+                publicComputedFile={computedFile}
+              />
+              <Text>
+                {formatBytes(computedFile.size_in_bytes)}
+              </Text>
+            </Box>
+          )
+        }
+
+        // No Match for the modality/format
+        return (
+          <Box direction="row" align="center" gap="small">
+            <DownloadIcon color="status-disabled" />
+            <Box width={{ min: '120px' }}>
+              <Text>Not available in</Text>
+              <Text>specified format</Text>
+            </Box>
           </Box>
         )
+      }
     },
     {
       Header: 'Sample ID',
@@ -117,34 +190,6 @@ export const ProjectSamplesTable = ({
     }
   ]
 
-  React.useEffect(() => {
-    const asyncFetch = async () => {
-      const samplesRequest = await api.samples.list({
-        project__scpca_id: project.scpca_id,
-        limit: 1000 // TODO:: 'all' option
-      })
-      if (samplesRequest.isOk) {
-        // if not all samples are downloadable show downloadable first
-        const sortedSamples =
-          project.sample_count !== project.downloadable_sample_count
-            ? samplesRequest.response.results.sort(({ computed_files: a }) =>
-                a && a.length ? -1 : 1
-              )
-            : samplesRequest.response.results
-        setSamples(sortedSamples)
-        setLoaded(true)
-      }
-    }
-    if (!samples && !loaded) asyncFetch()
-    if (samples && !loaded) setLoaded(true)
-  }, [samples, loaded])
-
-  if (!loaded)
-    return (
-      <Box margin="64px">
-        <Loader />
-      </Box>
-    )
   return (
     <Table
       filter
@@ -154,6 +199,23 @@ export const ProjectSamplesTable = ({
       pageSize={5}
       pageSizeOptions={[5, 10, 20, 50]}
       infoText={infoText}
-    />
+    >
+      <Box direction="row" gap="xlarge" pad={{ bottom: "medium" }}>
+        <Box direction="row">
+          <Text weight="bold" margin={{ right: 'small' }}>Modality:</Text>
+          <Text>{getReadable(modality)}</Text>
+        </Box>
+        <Box direction="row">
+          <Text weight="bold" margin={{ right: 'small' }}>Data Format:</Text>
+          <Text>{getReadable(format)}</Text>
+        </Box>
+        <DownloadOptionsModal
+          label="Change"
+          showing={showDownloadOptions}
+          setShowing={setShowDownloadOptions}
+          onSave={onOptionsSave}
+        />
+      </Box>
+    </Table>
   )
 }
