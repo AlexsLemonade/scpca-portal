@@ -203,7 +203,8 @@ export const Table = ({
   filter = false,
   pageSize: initialPageSize = 0,
   pageSizeOptions = [],
-  infoText
+  infoText,
+  children
 }) => {
   const globalFilter = 'fuzzyText'
   const filterTypes = useMemo(
@@ -294,6 +295,7 @@ export const Table = ({
           />
         )}
       </Box>
+      { children }
       <TableBox width={{ max: 'full' }} overflow="auto" stickies={stickies}>
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <StickyTable {...getTableProps()} width="auto">
