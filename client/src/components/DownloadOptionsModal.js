@@ -1,23 +1,23 @@
+import React from 'react'
 import { Box, Button, FormField, Select, Text } from 'grommet'
 import { Modal, ModalBody } from 'components/Modal'
 import { HelpLink } from 'components/HelpLink'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import getReadableOptions from 'helpers/getReadableOptions'
-import config from 'config'
+import { config } from 'config'
 import styled from 'styled-components'
 
 const BlueButton = styled(Button)`
-   color: ${({ theme }) => theme.global.colors.brand.light};
+  color: ${({ theme }) => theme.global.colors.brand.light};
 `
 
 export const DownloadOptionsModal = ({
-  label = "Change",
-  title = "Set Download Options",
+  label = 'Change',
+  title = 'Set Download Options',
   showing = false,
-  setShowing = () => { },
-  onSave = () => { }
+  setShowing = () => {},
+  onSave = () => {}
 }) => {
-
   const {
     modalityOptions,
     formatOptions,
@@ -41,10 +41,7 @@ export const DownloadOptionsModal = ({
         color="brand"
         onClick={() => setShowing(!showing)}
       />
-      <Modal
-        title={title}
-        showing={showing}
-        setShowing={setShowing}>
+      <Modal title={title} showing={showing} setShowing={setShowing}>
         <ModalBody>
           <Text>
             These options will be applied to all the samples in this project
@@ -60,7 +57,7 @@ export const DownloadOptionsModal = ({
                 <Select
                   options={getReadableOptions(modalityOptions)}
                   labelKey="label"
-                  valueKey={{ key: "value", reduce: true }}
+                  valueKey={{ key: 'value', reduce: true }}
                   value={selectedModality}
                   onChange={({ value }) => setSelectedModality(value)}
                 />
@@ -76,7 +73,7 @@ export const DownloadOptionsModal = ({
                 <Select
                   options={getReadableOptions(formatOptions)}
                   labelKey="label"
-                  valueKey={{ key: "value", reduce: true }}
+                  valueKey={{ key: 'value', reduce: true }}
                   value={selectedFormat}
                   onChange={({ value }) => setSelectedFormat(value)}
                 />
@@ -84,15 +81,11 @@ export const DownloadOptionsModal = ({
             </Box>
             <Box direction="row" gap="medium" justify="end">
               <Button label="Cancel" onClick={() => setShowing(false)} />
-              <Button
-                label="Save"
-                primary
-                onClick={handleOptionsSave}
-              />
+              <Button label="Save" primary onClick={handleOptionsSave} />
             </Box>
           </Box>
         </ModalBody>
-      </Modal >
+      </Modal>
     </>
   )
 }

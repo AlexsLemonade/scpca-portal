@@ -8,7 +8,7 @@ export const getDefaultComputedFile = (resource, computedFile) => {
   const { computed_files: computedFiles } = resource
   if (!computedFile) return computedFiles[0]
 
-  const { modality: fileModality, format: fileFormat} = computedFile
+  const { modality: fileModality, format: fileFormat } = computedFile
   const defaultFile = computedFiles.find(
     ({ modality, format }) => modality === fileModality && format === fileFormat
   )

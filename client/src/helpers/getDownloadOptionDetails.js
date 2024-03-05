@@ -4,7 +4,7 @@ import {
   dynamicKeys,
   dataKeys,
   nonFormatKeys,
-  modalityResourceInfo,
+  modalityResourceInfo
 } from 'config/downloadOptions'
 
 import { getReadableFiles } from 'helpers/getReadable'
@@ -28,7 +28,6 @@ const formatFileItemByKey = (key, computedFile) => {
 // takes the config and checks against the resource
 // to present what will be inside of the downloadable file
 export const getDownloadOptionDetails = (computedFile) => {
-
   const { modality, project, sample } = computedFile
   const type = project ? 'Project' : 'Sample'
   const isProject = type === 'Project'
@@ -50,9 +49,9 @@ export const getDownloadOptionDetails = (computedFile) => {
 
   // Add downloadable items
   appliedCombinations.forEach((conditions) => {
-    const formattedKeys = conditions.keys.map(
-      (key) => getReadableFiles(resolveKey(key, computedFile))
-    ).join(', ')
+    const formattedKeys = conditions.keys
+      .map((key) => getReadableFiles(resolveKey(key, computedFile)))
+      .join(', ')
     // Append the combined items to be presented.
     items.push(formatFileItemByKey(formattedKeys, computedFile))
     // Prevent rendering based on these keys again.

@@ -17,20 +17,13 @@ export const combinedFiles = [
 
 // Specifies which keys need to be resolved
 // for downloadable file contents.
-export const dynamicKeys = [
-  'modality'
-]
+export const dynamicKeys = ['modality']
 
 // This is a list of keys to check for true.
-export const dataKeys = [
-  'has_bulk_rna_seq',
-  'has_cite_seq_data',
-]
+export const dataKeys = ['has_bulk_rna_seq', 'has_cite_seq_data']
 
 // This prevents appending "as Single-Cell Experiment" etc.
-export const nonFormatKeys = [
-  'has_bulk_rna_seq'
-]
+export const nonFormatKeys = ['has_bulk_rna_seq']
 
 // All combinations of MODALITY_PROJECT or MODALITY_SAMPLE supported.
 // Used to display additonal information on download modals.

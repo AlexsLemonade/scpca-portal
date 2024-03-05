@@ -295,7 +295,7 @@ export const Table = ({
           />
         )}
       </Box>
-      { children }
+      {children}
       <TableBox width={{ max: 'full' }} overflow="auto" stickies={stickies}>
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <StickyTable {...getTableProps()} width="auto">

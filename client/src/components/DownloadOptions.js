@@ -1,12 +1,19 @@
+import React from 'react'
 import { FormField, Grid, Box, Select } from 'grommet'
+import styled from 'styled-components'
 import { DownloadOption } from 'components/DownloadOption'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import getReadableOptions from 'helpers/getReadableOptions'
-import { HelpLink } from './HelpLink'
-import config from 'config'
+import { config } from 'config'
+import { HelpLink } from 'components/HelpLink'
+
+const BoldFormField = styled(FormField)`
+  label {
+    font-weight: bold;
+  }
+`
 
 export const DownloadOptions = ({ handleSelectFile }) => {
-
   const {
     selectedModality,
     setSelectedModality,
@@ -27,16 +34,16 @@ export const DownloadOptions = ({ handleSelectFile }) => {
         pad={{ bottom: 'large' }}
         border={{ side: 'bottom', color: 'border-black', size: 'small' }}
       >
-        <FormField label="Modality">
+        <BoldFormField label="Modality">
           <Select
             options={getReadableOptions(modalityOptions)}
             labelKey="label"
-            valueKey={{ key: "value", reduce: true }}
+            valueKey={{ key: 'value', reduce: true }}
             value={selectedModality}
             onChange={({ value }) => setSelectedModality(value)}
           />
-        </FormField>
-        <FormField
+        </BoldFormField>
+        <BoldFormField
           label={
             <HelpLink
               label="Data Format"
@@ -47,11 +54,11 @@ export const DownloadOptions = ({ handleSelectFile }) => {
           <Select
             options={getReadableOptions(formatOptions)}
             labelKey="label"
-            valueKey={{ key: "value", reduce: true }}
+            valueKey={{ key: 'value', reduce: true }}
             value={selectedFormat}
             onChange={({ value }) => setSelectedFormat(value)}
           />
-        </FormField>
+        </BoldFormField>
       </Box>
       <Box>
         {computedFile && (

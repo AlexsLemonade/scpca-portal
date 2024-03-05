@@ -1,1 +1,1 @@
-export default (arr = [], key) => arr.map(i => i[key])
+export default (arr = [], key) => arr.map((i) => i[key])

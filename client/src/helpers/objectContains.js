@@ -4,7 +4,5 @@
 */
 
 export default (source, contains = {}) => {
-  return !Object.entries(contains).find(([key, value]) =>
-    source[key] != value
-  )
+  return !Object.entries(contains).find(([key, value]) => source[key] !== value)
 }

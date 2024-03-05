@@ -19,12 +19,13 @@ export const ProjectHeader = ({ project, linked = false }) => {
     Number(project.unavailable_samples_count) > 1 ? 'samples' : 'sample'
 
   return (
-    <DownloadOptionsContextProvider resource={project} >
+    <DownloadOptionsContextProvider resource={project}>
       <Box pad={responsive({ horizontal: 'medium' })}>
         <Box
           direction={responsive('column', 'row')}
           align="start"
           justifyContents="between"
+          margin={{ bottom: responsive('medium', 'large') }}
         >
           <Box flex="shrink" pad={{ right: 'medium' }}>
             {linked ? (
@@ -44,7 +45,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
             align="end"
             width={{ min: '0px' }}
             flex="grow"
-            pad={{ top: responsive('medium', 'none'), bottom: 'medium' }}
+            pad={{ top: responsive('medium', 'none') }}
           >
             <Box align="center" gap="small">
               {project.computed_files.length > 0 && (
@@ -68,39 +69,36 @@ export const ProjectHeader = ({ project, linked = false }) => {
           )}
         </Grid>
 
-        {
-          hasUnavailableSample && (
-            <Box
-              border={{ side: 'top' }}
-              margin={{ top: 'medium' }}
-              pad={{ top: 'medium', bottom: 'small' }}
-            >
-              <InfoText
-                label={`${project.unavailable_samples_count} more ${unavailableSampleCountText} will be made available soon`}
-              />
-            </Box>
-          )
-        }
+        {hasUnavailableSample && (
+          <Box
+            border={{ side: 'top' }}
+            margin={{ top: 'medium' }}
+            pad={{ top: 'medium', bottom: 'small' }}
+          >
+            <InfoText
+              label={`${project.unavailable_samples_count} more ${unavailableSampleCountText} will be made available soon`}
+            />
+          </Box>
+        )}
 
-        {
-          project.has_multiplexed_data && (
-            <Box
-              border={!hasUnavailableSample ? { side: 'top' } : ''}
-              margin={{ top: 'medium' }}
-              pad={!hasUnavailableSample ? { top: 'medium' } : ''}
-            >
-              <WarningText
-                lineBreak={false}
-                text={`${project.multiplexed_sample_count || 'N/A'
-                  } samples are multiplexed.`}
-                link={config.links.how_processed_multiplexed}
-                linkLabel="Learn more"
-                iconMargin="0"
-              />
-            </Box>
-          )
-        }
-      </Box >
+        {project.has_multiplexed_data && (
+          <Box
+            border={!hasUnavailableSample ? { side: 'top' } : ''}
+            margin={{ top: 'medium' }}
+            pad={!hasUnavailableSample ? { top: 'medium' } : ''}
+          >
+            <WarningText
+              lineBreak={false}
+              text={`${
+                project.multiplexed_sample_count || 'N/A'
+              } samples are multiplexed.`}
+              link={config.links.how_processed_multiplexed}
+              linkLabel="Learn more"
+              iconMargin="0"
+            />
+          </Box>
+        )}
+      </Box>
     </DownloadOptionsContextProvider>
   )
 }

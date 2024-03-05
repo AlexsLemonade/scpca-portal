@@ -8,8 +8,8 @@ import { formatBytes } from 'helpers/formatBytes'
 import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 import { WarningText } from 'components/WarningText'
-import DownloadSVG from '../images/download-folder.svg'
 import { api } from 'api'
+import DownloadSVG from '../images/download-folder.svg'
 
 // View when the donwload should have been initiated
 export const DownloadStarted = ({
@@ -18,9 +18,8 @@ export const DownloadStarted = ({
   handleSelectFile
 }) => {
   // open the file in a new tab
-  const { items, info, type, isProject } = getDownloadOptionDetails(
-    computedFile
-  )
+  const { items, info, type, isProject } =
+    getDownloadOptionDetails(computedFile)
 
   const [recommendedResource, setRecommendedResource] = useState(null)
   const [recommendedFile, setRecommendedFile] = useState(null)
@@ -28,9 +27,7 @@ export const DownloadStarted = ({
   useEffect(() => {
     // Recommend project when downloading sample
     const fetchRecommended = async () => {
-      const { isOk, response } = await api.projects.get(
-        resource.project
-      )
+      const { isOk, response } = await api.projects.get(resource.project)
       if (isOk) {
         setRecommendedResource(response)
         const defaultFile = getDefaultComputedFile(response, computedFile)
@@ -106,15 +103,16 @@ export const DownloadStarted = ({
           )}
           {info && info.learn_more && (
             <Paragraph margin={{ bottom: 'small' }}>
-              {info.learn_more.text}
-              {' '}
+              {info.learn_more.text}{' '}
               <Link label={info.learn_more.label} href={info.learn_more.url} />.
             </Paragraph>
           )}
           {recommendedResource && handleSelectFile && (
             <WarningText iconSize="24px" text={info.warning_text.text}>
               <Box
-                onClick={() => handleSelectFile(recommendedFile, recommendedResource)}
+                onClick={() =>
+                  handleSelectFile(recommendedFile, recommendedResource)
+                }
                 align='="center'
                 direction="row"
               >
@@ -123,10 +121,7 @@ export const DownloadStarted = ({
                 <Text color="brand">Download Project</Text>
                 <Text style={{ fontStyle: 'italic' }}>
                   &nbsp;&nbsp;(Size:{' '}
-                  {formatBytes(
-                    recommendedFile.size_in_bytes
-                  )}
-                  )
+                  {formatBytes(recommendedFile.size_in_bytes)})
                 </Text>
               </Box>
             </WarningText>

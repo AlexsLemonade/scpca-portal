@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from 'react'
+import React, { createContext, useState, useEffect, useContext } from 'react'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import pick from 'helpers/pick'
 
@@ -9,14 +9,9 @@ export const DownloadOptionsContextProvider = ({
   attribute: resourceAttribute = '',
   children
 }) => {
-
   // Save users last used as preference.
-  const {
-    userModality,
-    setUserModality,
-    userFormat,
-    setUserFormat
-  } = useContext(ScPCAPortalContext)
+  const { userModality, setUserModality, userFormat, setUserFormat } =
+    useContext(ScPCAPortalContext)
 
   // Download Options
   const [modality, setModality] = useState(null)
@@ -40,11 +35,10 @@ export const DownloadOptionsContextProvider = ({
   // Only on mount or when resource / collection name change
   useEffect(() => {
     if (resource) {
-
-    setComputeFiles(() => {
-      if (!resourceAttribute) return resource.computed_files
-      return pick(resource[resourceAttribute], 'computed_files').flat()
-    })
+      setComputeFiles(() => {
+        if (!resourceAttribute) return resource.computed_files
+        return pick(resource[resourceAttribute], 'computed_files').flat()
+      })
     }
   }, [resource, resourceAttribute])
 
@@ -71,8 +65,7 @@ export const DownloadOptionsContextProvider = ({
         setComputedFile,
         setSelectedFormat,
         setSelectedModality,
-        selectedFormat,
-        resourceAttribute
+        selectedFormat
       }}
     >
       {children}
