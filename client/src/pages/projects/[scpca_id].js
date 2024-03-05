@@ -123,7 +123,10 @@ const Project = ({ project }) => {
                 width={{ max: 'full' }}
                 overflow="auto"
               >
-                <DownloadOptionsContextProvider resource={project} attribute="samples">
+                <DownloadOptionsContextProvider
+                  resource={project}
+                  attribute="samples"
+                >
                   <ProjectSamplesTable
                     project={project}
                     stickies={responsive(0, 3)}

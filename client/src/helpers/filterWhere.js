@@ -1,4 +1,4 @@
-import objectContains from "helpers/objectContains"
+import objectContains from 'helpers/objectContains'
 /*
   Takes an array of objects and filters on filter object keys and values.
 */

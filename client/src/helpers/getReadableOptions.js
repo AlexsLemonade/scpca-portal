@@ -7,6 +7,7 @@ import { getReadable } from 'helpers/getReadable'
   Automatically removes duplicate entries
 */
 export default (options = []) =>
-  [...new Set(options)].map(
-    (option) => ({ label: getReadable(option), value: option}
-  ))
+  [...new Set(options)].map((option) => ({
+    label: getReadable(option),
+    value: option
+  }))

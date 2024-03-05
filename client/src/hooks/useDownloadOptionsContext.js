@@ -4,8 +4,6 @@ import pick from 'helpers/pick'
 import filterWhere from 'helpers/filterWhere'
 
 export const useDownloadOptionsContext = (autoApply = false) => {
-
-
   // Shared Context
   const {
     resource,
@@ -41,7 +39,10 @@ export const useDownloadOptionsContext = (autoApply = false) => {
   // When computed files change, update modality to ensure it is possible
   // Initialize the context when computed files change
   useEffect(() => {
-    const [newModality, newModalityOptions] = getOptionsAndDefault('modality', userModality)
+    const [newModality, newModalityOptions] = getOptionsAndDefault(
+      'modality',
+      userModality
+    )
     setModalityOptions(newModalityOptions)
     setSelectedModality(newModality)
     setModality(newModality)
@@ -50,8 +51,14 @@ export const useDownloadOptionsContext = (autoApply = false) => {
   // Update format when modality changes to ensure that it is possible
   useEffect(() => {
     if (selectedModality) {
-      const modalityMatchedFiles = filterWhere(computedFiles, { modality: selectedModality })
-      const [newFormat, newFormatOptions] = getOptionsAndDefault('format', userFormat, modalityMatchedFiles)
+      const modalityMatchedFiles = filterWhere(computedFiles, {
+        modality: selectedModality
+      })
+      const [newFormat, newFormatOptions] = getOptionsAndDefault(
+        'format',
+        userFormat,
+        modalityMatchedFiles
+      )
       setFormatOptions(newFormatOptions)
       setSelectedFormat(newFormat)
       // Only assign format when unset
@@ -69,19 +76,24 @@ export const useDownloadOptionsContext = (autoApply = false) => {
     }
   }, [modality, format])
 
-
-  const getOptionsAndDefault = (optionName, preference, files = computedFiles) => {
+  const getOptionsAndDefault = (
+    optionName,
+    preference,
+    files = computedFiles
+  ) => {
     const allOptions = [...new Set(pick(files, optionName))]
-    const defaultOption = allOptions.includes(preference) ? preference : allOptions[0]
+    const defaultOption = allOptions.includes(preference)
+      ? preference
+      : allOptions[0]
     return [defaultOption, allOptions]
   }
 
-  const getFilteredFiles = (files = computedFiles) => filterWhere(files, { modality, format })
+  const getFilteredFiles = (files = computedFiles) =>
+    filterWhere(files, { modality, format })
 
   // Get the first computed file that matches modality and format
-  const getFoundFile = (files = computedFiles) => files.find(
-    (file) => file.modality === modality && file.format === format
-  )
+  const getFoundFile = (files = computedFiles) =>
+    files.find((file) => file.modality === modality && file.format === format)
 
   // Sort resources by how compatible they are with download settings
   const resourceSort = (

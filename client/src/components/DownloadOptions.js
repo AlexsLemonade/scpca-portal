@@ -3,8 +3,8 @@ import { FormField, Grid, Box, Select } from 'grommet'
 import { DownloadOption } from 'components/DownloadOption'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import getReadableOptions from 'helpers/getReadableOptions'
-import { HelpLink } from './HelpLink'
 import { config } from 'config'
+import { HelpLink } from './HelpLink'
 
 export const DownloadOptions = ({ handleSelectFile }) => {
   const {
