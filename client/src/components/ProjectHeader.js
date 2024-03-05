@@ -25,6 +25,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           direction={responsive('column', 'row')}
           align="start"
           justifyContents="between"
+          margin={{ bottom: responsive('medium', 'large') }}
         >
           <Box flex="shrink" pad={{ right: 'medium' }}>
             {linked ? (
@@ -44,7 +45,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
             align="end"
             width={{ min: '0px' }}
             flex="grow"
-            pad={{ top: responsive('medium', 'none'), bottom: 'medium' }}
+            pad={{ top: responsive('medium', 'none') }}
           >
             <Box align="center" gap="small">
               {project.computed_files.length > 0 && (
