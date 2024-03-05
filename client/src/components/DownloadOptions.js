@@ -1,11 +1,11 @@
 import React from 'react'
 import { FormField, Grid, Box, Select } from 'grommet'
+import styled from 'styled-components'
 import { DownloadOption } from 'components/DownloadOption'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import getReadableOptions from 'helpers/getReadableOptions'
 import { config } from 'config'
-import { HelpLink } from './HelpLink'
-import styled from 'styled-components'
+import { HelpLink } from 'components/HelpLink'
 
 const BoldFormField = styled(FormField)`
   label {
