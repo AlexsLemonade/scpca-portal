@@ -5,6 +5,13 @@ import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import getReadableOptions from 'helpers/getReadableOptions'
 import { config } from 'config'
 import { HelpLink } from './HelpLink'
+import styled from 'styled-components'
+
+const BoldFormField = styled(FormField)`
+  label {
+    font-weight: bold;
+  }
+`
 
 export const DownloadOptions = ({ handleSelectFile }) => {
   const {
@@ -27,7 +34,7 @@ export const DownloadOptions = ({ handleSelectFile }) => {
         pad={{ bottom: 'large' }}
         border={{ side: 'bottom', color: 'border-black', size: 'small' }}
       >
-        <FormField label="Modality">
+        <BoldFormField label="Modality">
           <Select
             options={getReadableOptions(modalityOptions)}
             labelKey="label"
@@ -35,8 +42,8 @@ export const DownloadOptions = ({ handleSelectFile }) => {
             value={selectedModality}
             onChange={({ value }) => setSelectedModality(value)}
           />
-        </FormField>
-        <FormField
+        </BoldFormField>
+        <BoldFormField
           label={
             <HelpLink
               label="Data Format"
@@ -51,7 +58,7 @@ export const DownloadOptions = ({ handleSelectFile }) => {
             value={selectedFormat}
             onChange={({ value }) => setSelectedFormat(value)}
           />
-        </FormField>
+        </BoldFormField>
       </Box>
       <Box>
         {computedFile && (

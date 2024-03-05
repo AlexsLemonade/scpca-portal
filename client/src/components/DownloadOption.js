@@ -20,11 +20,15 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
       margin={{ left: '8px', right: '8px' }}
       rows={['auto', '1fr', 'auto']}
     >
-      <Box gridArea="header" pad={{ bottom: '8px' }}>
-        <Heading level="3" size="small">
+      <Box gridArea="header">
+        <Heading level="3" size="small" margin={{ bottom: 'small' }}>
           Download Summary
         </Heading>
-        <Box direction="row" gap="xlarge">
+        <Box
+          direction="row"
+          gap="xlarge"
+          margin={{ top: 'medium', bottom: 'small' }}
+        >
           <Text weight="bold">
             {type} ID: {resourceId}
           </Text>
@@ -33,8 +37,11 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
           </Text>
         </Box>
       </Box>
-      <Box gridArea="body">
+      <Box gridArea="body" margin={{ bottom: 'small' }}>
         <Box pad="small">
+          <Text margin={{ bottom: 'small' }}>
+            The download consists of the following items:
+          </Text>
           <ul
             style={{
               listStylePosition: 'inside',
@@ -47,7 +54,7 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
           </ul>
         </Box>
       </Box>
-      <Box gridArea="footer" margin={{ top: '16px' }}>
+      <Box gridArea="footer" margin={{ top: 'medium' }}>
         <Box>
           <Button
             primary
