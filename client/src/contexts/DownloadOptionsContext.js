@@ -65,8 +65,7 @@ export const DownloadOptionsContextProvider = ({
         setComputedFile,
         setSelectedFormat,
         setSelectedModality,
-        selectedFormat,
-        resourceAttribute
+        selectedFormat
       }}
     >
       {children}
