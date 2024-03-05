@@ -15,7 +15,6 @@ import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
 import { hasMultiple } from 'helpers/hasMultiple'
 import { isProjectID } from 'helpers/isProjectID'
 
-
 // Button and Modal to show when downloading
 export const Download = ({
   icon,
@@ -25,10 +24,13 @@ export const Download = ({
   const { token, email, surveyListForm, createToken } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
   const [resource, setResource] = useState(initialResource)
-  const [publicComputedFile, setPublicComputedFile] = useState(initialPublicComputedFile)
+  const [publicComputedFile, setPublicComputedFile] = useState(
+    initialPublicComputedFile
+  )
   const [showing, setShowing] = useState(false)
   const [download, setDownload] = useState(false)
-  const verb = download && token && publicComputedFile ? "Downloading" : "Download"
+  const verb =
+    download && token && publicComputedFile ? 'Downloading' : 'Download'
   const label = isProjectID(resource.scpca_id)
     ? `${verb} Project`
     : `${verb} Sample`
@@ -59,18 +61,14 @@ export const Download = ({
 
   // Configure State
   useEffect(() => {
-    if (initialResource && !resource)
-      setResource(initialResource)
+    if (initialResource && !resource) setResource(initialResource)
 
     if (initialPublicComputedFile && !publicComputedFile)
       setPublicComputedFile(initialPublicComputedFile)
 
     if (!initialPublicComputedFile)
       setPublicComputedFile(hasMultipleFiles ? null : defaultComputedFile)
-
   }, [resource])
-
-
 
   // Download when ready
   useEffect(() => {
@@ -119,19 +117,21 @@ export const Download = ({
         />
       )}
       <Modal title={label} showing={showing} setShowing={setShowing}>
-        {publicComputedFile && hasMultipleFiles && !initialPublicComputedFile && (
-          <ModalHeader>
-            <Text
-              color="brand"
-              role="button"
-              margin={{ bottom: 'medium' }}
-              style={{ cursor: 'pointer' }}
-              onClick={handleBackToOptions}
-            >
-              <Icon size="16px" name="ChevronLeft" /> View Download Options
-            </Text>
-          </ModalHeader>
-        )}
+        {publicComputedFile &&
+          hasMultipleFiles &&
+          !initialPublicComputedFile && (
+            <ModalHeader>
+              <Text
+                color="brand"
+                role="button"
+                margin={{ bottom: 'medium' }}
+                style={{ cursor: 'pointer' }}
+                onClick={handleBackToOptions}
+              >
+                <Icon size="16px" name="ChevronLeft" /> View Download Options
+              </Text>
+            </ModalHeader>
+          )}
         <ModalBody>
           {download && token && publicComputedFile ? (
             <DownloadStarted

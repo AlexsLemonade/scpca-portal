@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { api } from 'api'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
@@ -10,7 +10,7 @@ import { Loader } from 'components/Loader'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
 import { formatBytes } from 'helpers/formatBytes'
-import getReadable from 'helpers/getReadable'
+import { getReadable } from 'helpers/getReadable'
 import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 
@@ -23,12 +23,8 @@ export const ProjectSamplesTable = ({
 
   // We only want to show the applied donwload options.
   // Also need some helpers for presentation.
-  const {
-    modality,
-    format,
-    getFoundFile,
-    resourceSort,
-  } = useDownloadOptionsContext()
+  const { modality, format, getFoundFile, resourceSort } =
+    useDownloadOptionsContext()
 
   const [samples, setSamples] = React.useState(defaultSamples)
   const [loaded, setLoaded] = React.useState(false)
@@ -49,7 +45,6 @@ export const ProjectSamplesTable = ({
       setLoaded(false)
     }
   }, [samples, modality, format])
-
 
   useEffect(() => {
     const asyncFetch = async () => {
@@ -73,23 +68,21 @@ export const ProjectSamplesTable = ({
       </Box>
     )
 
-
   const columns = [
     {
       Header: 'Download',
       accessor: () => 'computed_files',
       Cell: ({ row }) => {
-
         // there is nothing available to download
         if (row.original.computed_files.length === 0) {
           return (
-          <Box direction="row" align="center" gap="small">
-            <DownloadIcon color="status-disabled" />
-            <Box width={{ min: '120px' }}>
-              <Text>Not Available</Text>
-              <Text>for download</Text>
+            <Box direction="row" align="center" gap="small">
+              <DownloadIcon color="status-disabled" />
+              <Box width={{ min: '120px' }}>
+                <Text>Not Available</Text>
+                <Text>for download</Text>
+              </Box>
             </Box>
-          </Box>
           )
         }
 
@@ -103,9 +96,7 @@ export const ProjectSamplesTable = ({
                 resource={row.original}
                 publicComputedFile={computedFile}
               />
-              <Text>
-                {formatBytes(computedFile.size_in_bytes)}
-              </Text>
+              <Text>{formatBytes(computedFile.size_in_bytes)}</Text>
             </Box>
           )
         }
@@ -200,13 +191,17 @@ export const ProjectSamplesTable = ({
       pageSizeOptions={[5, 10, 20, 50]}
       infoText={infoText}
     >
-      <Box direction="row" gap="xlarge" pad={{ bottom: "medium" }}>
+      <Box direction="row" gap="xlarge" pad={{ bottom: 'medium' }}>
         <Box direction="row">
-          <Text weight="bold" margin={{ right: 'small' }}>Modality:</Text>
+          <Text weight="bold" margin={{ right: 'small' }}>
+            Modality:
+          </Text>
           <Text>{getReadable(modality)}</Text>
         </Box>
         <Box direction="row">
-          <Text weight="bold" margin={{ right: 'small' }}>Data Format:</Text>
+          <Text weight="bold" margin={{ right: 'small' }}>
+            Data Format:
+          </Text>
           <Text>{getReadable(format)}</Text>
         </Box>
         <DownloadOptionsModal

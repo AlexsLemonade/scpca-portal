@@ -4,11 +4,7 @@ import { Button } from 'components/Button'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 
-export const DownloadOption = ({
-  computedFile,
-  handleSelectFile
-}) => {
-
+export const DownloadOption = ({ computedFile, handleSelectFile }) => {
   const { type, items, resourceId } = getDownloadOptionDetails(computedFile)
   const downloadLabel = `Download ${type}`
 
@@ -29,8 +25,12 @@ export const DownloadOption = ({
           Download Summary
         </Heading>
         <Box direction="row" gap="xlarge">
-          <Text weight="bold">{type} ID: {resourceId}</Text>
-          <Text weight="bold">Size: {formatBytes(computedFile.size_in_bytes)}</Text>
+          <Text weight="bold">
+            {type} ID: {resourceId}
+          </Text>
+          <Text weight="bold">
+            Size: {formatBytes(computedFile.size_in_bytes)}
+          </Text>
         </Box>
       </Box>
       <Box gridArea="body">

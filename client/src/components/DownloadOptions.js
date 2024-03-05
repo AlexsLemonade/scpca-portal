@@ -1,3 +1,4 @@
+import React from 'react'
 import { FormField, Grid, Box, Select } from 'grommet'
 import { DownloadOption } from 'components/DownloadOption'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
@@ -6,7 +7,6 @@ import { HelpLink } from './HelpLink'
 import config from 'config'
 
 export const DownloadOptions = ({ handleSelectFile }) => {
-
   const {
     selectedModality,
     setSelectedModality,
@@ -31,7 +31,7 @@ export const DownloadOptions = ({ handleSelectFile }) => {
           <Select
             options={getReadableOptions(modalityOptions)}
             labelKey="label"
-            valueKey={{ key: "value", reduce: true }}
+            valueKey={{ key: 'value', reduce: true }}
             value={selectedModality}
             onChange={({ value }) => setSelectedModality(value)}
           />
@@ -47,7 +47,7 @@ export const DownloadOptions = ({ handleSelectFile }) => {
           <Select
             options={getReadableOptions(formatOptions)}
             labelKey="label"
-            valueKey={{ key: "value", reduce: true }}
+            valueKey={{ key: 'value', reduce: true }}
             value={selectedFormat}
             onChange={({ value }) => setSelectedFormat(value)}
           />
