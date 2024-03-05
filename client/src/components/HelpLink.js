@@ -11,7 +11,7 @@ export const HelpLink = ({ label, link }) => {
         </Box>
         <Box margin={{ left: '100%' }} pad="small">
           <Anchor href={link} target="_blank">
-            <Icon name="Help" />
+            <Icon name="Help" size="16px" />
           </Anchor>
         </Box>
       </Stack>
