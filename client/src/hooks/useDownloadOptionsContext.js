@@ -2,6 +2,8 @@ import { useContext, useEffect } from 'react'
 import { DownloadOptionsContext } from 'contexts/DownloadOptionsContext'
 import pick from 'helpers/pick'
 import filterWhere from 'helpers/filterWhere'
+import { optionsSortOrder } from 'config/downloadOptions'
+import arrayListSort from 'helpers/arrayListSort'
 
 export const useDownloadOptionsContext = (autoApply = false) => {
   // Shared Context
@@ -81,7 +83,10 @@ export const useDownloadOptionsContext = (autoApply = false) => {
     preference,
     files = computedFiles
   ) => {
-    const allOptions = [...new Set(pick(files, optionName))]
+    const allOptions = arrayListSort(
+      [...new Set(pick(files, optionName))],
+      optionsSortOrder
+    )
     const defaultOption = allOptions.includes(preference)
       ? preference
       : allOptions[0]
