@@ -1,11 +1,15 @@
 import React from 'react'
 import { Box, Grid, Heading, Text } from 'grommet'
 import { Button } from 'components/Button'
+import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 
 export const DownloadOption = ({ computedFile, handleSelectFile }) => {
   const { type, items, resourceId } = getDownloadOptionDetails(computedFile)
+
+  const { saveUserPreferences } = useDownloadOptionsContext()
+
   const downloadLabel = `Download ${type}`
 
   return (
@@ -62,7 +66,10 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
             aria-label={downloadLabel}
             label={downloadLabel}
             target="_blank"
-            onClick={() => handleSelectFile(computedFile)}
+            onClick={() => {
+              saveUserPreferences()
+              handleSelectFile(computedFile)
+            }}
           />
         </Box>
       </Box>
