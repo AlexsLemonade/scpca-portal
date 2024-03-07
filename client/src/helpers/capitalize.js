@@ -16,4 +16,8 @@ export const capitalize = (string, lower = false) => {
   )
 }
 
+export const capitalizeFirst = (string) => {
+  return `${string.charAt(0).toUpperCase()}${string.slice(1)}`
+}
+
 export default capitalize

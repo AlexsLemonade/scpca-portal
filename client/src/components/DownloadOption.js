@@ -1,15 +1,16 @@
 import React from 'react'
 import { Box, Grid, Heading, Text } from 'grommet'
 import { Button } from 'components/Button'
+import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 
-export const DownloadOption = ({
-  resource,
-  computedFile,
-  handleSelectFile
-}) => {
-  const { header, items } = getDownloadOptionDetails(resource, computedFile)
+export const DownloadOption = ({ computedFile, handleSelectFile }) => {
+  const { type, items, resourceId } = getDownloadOptionDetails(computedFile)
+
+  const { saveUserPreferences } = useDownloadOptionsContext()
+
+  const downloadLabel = `Download ${type}`
 
   return (
     <Grid
@@ -23,13 +24,28 @@ export const DownloadOption = ({
       margin={{ left: '8px', right: '8px' }}
       rows={['auto', '1fr', 'auto']}
     >
-      <Box gridArea="header" pad={{ bottom: '8px' }}>
-        <Heading level="3" size="small">
-          {header}
+      <Box gridArea="header">
+        <Heading level="3" size="small" margin={{ bottom: 'small' }}>
+          Download Summary
         </Heading>
+        <Box
+          direction="row"
+          gap="xlarge"
+          margin={{ top: 'medium', bottom: 'small' }}
+        >
+          <Text weight="bold">
+            {type} ID: {resourceId}
+          </Text>
+          <Text weight="bold">
+            Size: {formatBytes(computedFile.size_in_bytes)}
+          </Text>
+        </Box>
       </Box>
-      <Box gridArea="body">
+      <Box gridArea="body" margin={{ bottom: 'small' }}>
         <Box pad="small">
+          <Text margin={{ bottom: 'small' }}>
+            The download consists of the following items:
+          </Text>
           <ul
             style={{
               listStylePosition: 'inside',
@@ -41,17 +57,19 @@ export const DownloadOption = ({
             ))}
           </ul>
         </Box>
-        <Text>Size: {formatBytes(computedFile.size_in_bytes)}</Text>
       </Box>
-      <Box gridArea="footer" margin={{ top: '16px' }}>
+      <Box gridArea="footer" margin={{ top: 'medium' }}>
         <Box>
           <Button
             primary
             alignSelf="start"
-            aria-label={header}
-            label={header}
+            aria-label={downloadLabel}
+            label={downloadLabel}
             target="_blank"
-            onClick={() => handleSelectFile(computedFile)}
+            onClick={() => {
+              saveUserPreferences()
+              handleSelectFile(computedFile)
+            }}
           />
         </Box>
       </Box>
