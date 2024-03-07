@@ -3,7 +3,7 @@ import { api } from 'api'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
-import { Download } from 'components/Download'
+import { DownloadModal } from 'components/DownloadModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
@@ -91,7 +91,7 @@ export const ProjectSamplesTable = ({
         if (computedFile) {
           return (
             <Box direction="row" gap="small" align="center">
-              <Download
+              <DownloadModal
                 icon={<DownloadIcon color="brand" />}
                 resource={row.original}
                 publicComputedFile={computedFile}

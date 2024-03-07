@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Button, FormField, Select, Text } from 'grommet'
 import { Modal, ModalBody } from 'components/Modal'
 import { HelpLink } from 'components/HelpLink'
@@ -21,15 +21,17 @@ export const DownloadOptionsModal = ({
   const {
     modalityOptions,
     formatOptions,
-    selectedModality,
-    setSelectedModality,
-    selectedFormat,
-    setSelectedFormat,
-    applySelection
+    saveUserPreferences,
+    modality,
+    format
   } = useDownloadOptionsContext()
 
+  // allow user to change before updating
+  const [selectedModality, setSelectedModality] = useState(modality)
+  const [selectedFormat, setSelectedFormat] = useState(format)
+
   const handleOptionsSave = () => {
-    applySelection()
+    saveUserPreferences(selectedModality, selectedFormat)
     onSave()
   }
 

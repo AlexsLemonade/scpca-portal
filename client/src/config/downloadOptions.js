@@ -1,5 +1,13 @@
 import { config } from 'config'
 
+export const optionsSortOrder = [
+  'SINGLE_CELL',
+  'SINGLE_CELL_EXPERIMENT',
+  'ANN_DATA',
+  'SPATIAL',
+  'MULTIPLEXED'
+]
+
 export const combinedFiles = [
   {
     // This specifies what we present to be combined.

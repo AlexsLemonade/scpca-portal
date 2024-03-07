@@ -15,15 +15,15 @@ const BoldFormField = styled(FormField)`
 
 export const DownloadOptions = ({ handleSelectFile }) => {
   const {
-    selectedModality,
-    setSelectedModality,
+    modality,
+    setModality,
     modalityOptions,
-    selectedFormat,
-    setSelectedFormat,
+    format,
+    setFormat,
     formatOptions,
     computedFile,
     resource
-  } = useDownloadOptionsContext(true) // auto apply selections
+  } = useDownloadOptionsContext()
 
   return (
     <Grid columns={['auto']} gap="large" pad={{ bottom: 'medium' }}>
@@ -39,8 +39,8 @@ export const DownloadOptions = ({ handleSelectFile }) => {
             options={getReadableOptions(modalityOptions)}
             labelKey="label"
             valueKey={{ key: 'value', reduce: true }}
-            value={selectedModality}
-            onChange={({ value }) => setSelectedModality(value)}
+            value={modality}
+            onChange={({ value }) => setModality(value)}
           />
         </BoldFormField>
         <BoldFormField
@@ -55,8 +55,8 @@ export const DownloadOptions = ({ handleSelectFile }) => {
             options={getReadableOptions(formatOptions)}
             labelKey="label"
             valueKey={{ key: 'value', reduce: true }}
-            value={selectedFormat}
-            onChange={({ value }) => setSelectedFormat(value)}
+            value={format}
+            onChange={({ value }) => setFormat(value)}
           />
         </BoldFormField>
       </Box>
