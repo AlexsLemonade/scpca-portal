@@ -27,7 +27,7 @@ export const useDownloadModal = (
   const isOptionsReady = !publicComputedFile && hasMultipleFiles
 
   // text information
-  const verb = downloadState ? 'Downloading' : 'Download'
+  const verb = isDownloadReady ? 'Downloading' : 'Download'
   const resourceType = resource.samples ? 'Project' : 'Sample'
   const modalTitle = `${verb} ${resourceType}`
   const buttonLabel = `Download ${resourceType}`
