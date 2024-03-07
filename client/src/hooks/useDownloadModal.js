@@ -22,9 +22,9 @@ export const useDownloadModal = (
   const hasMultipleFiles = hasMultiple(resource.computed_files)
 
   // states that dictate what the modal can show
-  const downloadState = download && token && publicComputedFile
-  const tokenState = !token && publicComputedFile
-  const optionsState = !publicComputedFile && hasMultipleFiles
+  const isDownloadReady = download && token && publicComputedFile
+  const isTokenReady = !token && publicComputedFile
+  const isOptionsReady = !publicComputedFile && hasMultipleFiles
 
   // text information
   const verb = downloadState ? 'Downloading' : 'Download'
@@ -106,9 +106,9 @@ export const useDownloadModal = (
     download,
     setDownload,
     hasDownloadOptions,
-    downloadState,
-    optionsState,
-    tokenState
+    isDownloadReady,
+    isTokenReady,
+    isOptionsReady
   }
 }
 

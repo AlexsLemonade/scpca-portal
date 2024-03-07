@@ -25,11 +25,11 @@ export const DownloadModal = ({
     publicComputedFile,
     setPublicComputedFile,
     hasDownloadOptions,
-    downloadState,
-    optionsState,
-    tokenState,
     download,
-    resource
+    resource,
+    isDownloadReady,
+    isTokenReady,
+    isOptionsReady
   } = useDownloadModal(initialResource, initialPublicComputedFile, showing)
 
   const handleClick = () => {
@@ -72,15 +72,15 @@ export const DownloadModal = ({
           </ModalHeader>
         )}
         <ModalBody>
-          {downloadState ? (
+          {isDownloadReady ? (
             <DownloadStarted
               resource={resource}
               computedFile={download}
               handleSelectFile={handleSelectFile}
             />
-          ) : tokenState ? (
+          ) : isTokenReady ? (
             <DownloadToken />
-          ) : optionsState ? (
+          ) : isOptionsReady ? (
             <DownloadOptions
               resource={resource}
               handleSelectFile={handleSelectFile}
