@@ -17,10 +17,6 @@ export const DownloadOptionsContextProvider = ({
   const [modality, setModality] = useState(null)
   const [format, setFormat] = useState(null)
 
-  // Selected Download Options
-  const [selectedModality, setSelectedModality] = useState(modality)
-  const [selectedFormat, setSelectedFormat] = useState(format)
-
   // Potential Values for Download Options
   const [modalityOptions, setModalityOptions] = useState([])
   const [formatOptions, setFormatOptions] = useState([])
@@ -61,11 +57,7 @@ export const DownloadOptionsContextProvider = ({
         setModalityOptions,
         setFormatOptions,
         computedFiles,
-        selectedModality,
-        setComputedFile,
-        setSelectedFormat,
-        setSelectedModality,
-        selectedFormat
+        setComputedFile
       }}
     >
       {children}
