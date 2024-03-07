@@ -7,7 +7,7 @@ import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
 import { PageLoader } from 'components/PageLoader'
 import styled from 'styled-components'
-import AnnDataProcessingBanner from 'components/AnnDataProcessingBanner'
+import { AnnDataProcessingBanner } from 'components/AnnDataProcessingBanner'
 
 const FixedBox = styled(Box)`
   position: fixed;

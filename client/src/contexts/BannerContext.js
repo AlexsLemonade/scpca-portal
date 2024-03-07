@@ -15,9 +15,8 @@ export const BannerContextProvider = ({ children }) => {
     }))
 
   const hideBanner = (id) =>
-    setBanner((prev) => {
-      delete prev[id]
-      return { ...prev }
+    setBanner(({ [id]: _, ...rest }) => {
+      return rest
     })
 
   return (
