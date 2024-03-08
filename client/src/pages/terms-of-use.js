@@ -1,6 +1,6 @@
 import React from 'react'
 import { MarkdownPage } from 'components/MarkdownPage'
-import { LastUpdated } from 'components/MarkdownLastUpdated'
+import { LastUpdated } from 'components/LastUpdated'
 import termsOfUse from '../config/terms-of-use.md'
 
 export const TermsOfUse = () => (
