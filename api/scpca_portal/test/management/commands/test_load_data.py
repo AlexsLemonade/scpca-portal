@@ -631,7 +631,7 @@ class TestLoadData(TransactionTestCase):
             project.spatial_computed_file.modality,
             ComputedFile.OutputFileModalities.SPATIAL,
         )
-        self.assertTrue(project.spatial_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.spatial_computed_file.has_bulk_rna_seq)
         self.assertFalse(project.spatial_computed_file.has_cite_seq_data)
 
         expected_keys = [

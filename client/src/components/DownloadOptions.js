@@ -1,41 +1,74 @@
 import React from 'react'
-import { Grid, Box } from 'grommet'
+import { FormField, Grid, Box, Select } from 'grommet'
+import styled from 'styled-components'
 import { DownloadOption } from 'components/DownloadOption'
-import { sortArrayByKey } from 'helpers/sortArrayByKey'
+import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import getReadableOptions from 'helpers/getReadableOptions'
+import { config } from 'config'
+import { HelpLink } from 'components/HelpLink'
 
-export const DownloadOptions = ({ resource, handleSelectFile }) => {
-  const { computed_files: computedFiles } = resource
-  const sortedComputedFiles = sortArrayByKey('type', computedFiles, [
-    'PROJECT_ZIP',
-    'SAMPLE_ZIP',
-    'PROJECT_SPATIAL_ZIP',
-    'SAMPLE_SPATIAL_ZIP'
-  ])
+const BoldFormField = styled(FormField)`
+  label {
+    font-weight: bold;
+  }
+`
+
+export const DownloadOptions = ({ handleSelectFile }) => {
+  const {
+    modality,
+    setModality,
+    modalityOptions,
+    format,
+    setFormat,
+    formatOptions,
+    computedFile,
+    resource
+  } = useDownloadOptionsContext()
 
   return (
-    <Grid columns={['auto', 'auto']} gap="large" pad={{ bottom: 'medium' }}>
-      {sortedComputedFiles.map((computedFile, i, arr) => {
-        return (
-          <Box
-            key={computedFile.id}
-            border={
-              i !== arr.length - 1
-                ? {
-                    side: 'right',
-                    color: 'border-black',
-                    size: 'small'
-                  }
-                : false
-            }
-          >
-            <DownloadOption
-              resource={resource}
-              computedFile={computedFile}
-              handleSelectFile={handleSelectFile}
+    <Grid columns={['auto']} gap="large" pad={{ bottom: 'medium' }}>
+      <Box
+        direction="row"
+        alignContent="between"
+        gap="large"
+        pad={{ bottom: 'large' }}
+        border={{ side: 'bottom', color: 'border-black', size: 'small' }}
+      >
+        <BoldFormField label="Modality">
+          <Select
+            options={getReadableOptions(modalityOptions)}
+            labelKey="label"
+            valueKey={{ key: 'value', reduce: true }}
+            value={modality}
+            onChange={({ value }) => setModality(value)}
+          />
+        </BoldFormField>
+        <BoldFormField
+          label={
+            <HelpLink
+              label="Data Format"
+              link={config.links.what_downloading}
             />
-          </Box>
-        )
-      })}
+          }
+        >
+          <Select
+            options={getReadableOptions(formatOptions)}
+            labelKey="label"
+            valueKey={{ key: 'value', reduce: true }}
+            value={format}
+            onChange={({ value }) => setFormat(value)}
+          />
+        </BoldFormField>
+      </Box>
+      <Box>
+        {computedFile && (
+          <DownloadOption
+            resource={resource}
+            computedFile={computedFile}
+            handleSelectFile={handleSelectFile}
+          />
+        )}
+      </Box>
     </Grid>
   )
 }

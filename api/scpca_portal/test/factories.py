@@ -86,6 +86,7 @@ class SampleFactory(factory.django.DjangoModelFactory):
     diagnosis = "pilocytic astrocytoma"
     disease_timing = "primary diagnosis"
     has_cite_seq_data = True
+    multiplexed_with = ["SCPCP000000"]
     project = factory.SubFactory(LeafProjectFactory)
     sample_cell_count_estimate = 42
     scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
