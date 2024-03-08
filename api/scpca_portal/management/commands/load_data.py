@@ -115,6 +115,7 @@ class Command(BaseCommand):
         subprocess.check_call(command_list)
 
     def add_arguments(self, parser):
+        parser.add_argument("--input-bucket-name", type=str, default="scpca-portal-inputs")
         parser.add_argument(
             "--clean-up-input-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
