@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAnalytics } from 'hooks/useAnalytics'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
-import { formatDate } from 'helpers/formatDate'
+import { getDateISO } from 'helpers/getDateISO'
 import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
 import { hasMultiple } from 'helpers/hasMultiple'
 
@@ -41,7 +41,7 @@ export const useDownloadModal = (
     if (download && download.download_url) {
       const { type, project, sample } = publicComputedFile
       trackDownload(type, project, sample)
-      surveyListForm.submit({ email, scpca_last_download_date: formatDate() })
+      surveyListForm.submit({ email, scpca_last_download_date: getDateISO() })
       window.open(download.download_url)
     }
   }
@@ -78,7 +78,7 @@ export const useDownloadModal = (
         // try to open download
         const { type, project, sample } = publicComputedFile
         trackDownload(type, project, sample)
-        surveyListForm.submit({ email, scpca_last_download_date: formatDate() })
+        surveyListForm.submit({ email, scpca_last_download_date: getDateISO() })
         window.open(downloadRequest.response.download_url)
         setDownload(downloadRequest.response)
       } else if (downloadRequest.status === 403) {
