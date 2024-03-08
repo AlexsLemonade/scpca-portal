@@ -1,6 +1,5 @@
 import csv
 import logging
-import os
 import shutil
 import subprocess
 from argparse import BooleanOptionalAction
@@ -14,7 +13,7 @@ import boto3
 from botocore.client import Config
 
 from scpca_portal import common, utils
-from scpca_portal.models import ComputedFile, Project
+from scpca_portal.models import Project
 
 ALLOWED_SUBMITTERS = {
     "christensen",
@@ -62,178 +61,191 @@ class Command(BaseCommand):
     If run in the cloud the zipped ComputedFiles files will be copied
     to a stack-specific S3 bucket."""
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--cleanup-input-data", action=BooleanOptionalAction, default=settings.PRODUCTION
-        )
-        parser.add_argument(
-            "--cleanup-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
-        )
-        parser.add_argument("--reload-all", action="store_true")
-        parser.add_argument("--reload-existing", action="store_true")
-        parser.add_argument("--scpca-project-id", action="extend", nargs="+", type=str)
-        parser.add_argument("--scpca-sample-id", action="extend", nargs="+", type=str)
-        parser.add_argument("--skip-sync", action="store_true", default=False)
-        parser.add_argument("--update-s3", action="store_true", default=settings.UPDATE_S3_DATA)
+    @staticmethod
+    def clean_up_output_data():
+        for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
+            path.unlink(missing_ok=True)
 
-    def handle(self, *args, **options):
-        load_data_from_s3(
-            cleanup_input_data=options["cleanup_input_data"],
-            cleanup_output_data=options["cleanup_output_data"],
-            reload_all=options["reload_all"],
-            reload_existing=options["reload_existing"],
-            scpca_project_ids=options["scpca_project_id"] or (),
-            scpca_sample_ids=options["scpca_sample_id"] or (),
-            skip_input_bucket_sync=options["skip_sync"],
-            update_s3_data=options["update_s3"],
-        )
-        cleanup_output_data_dir()
-
-
-def cleanup_output_data_dir():
-    cleanup_items = (
-        ComputedFile.README_FILE_NAME,
-        ComputedFile.README_MULTIPLEXED_FILE_NAME,
-        ComputedFile.README_SPATIAL_FILE_NAME,
-    )
-    for item in cleanup_items:
-        for path in Path(common.OUTPUT_DATA_DIR).glob(item):
-            path.unlink()
-
-
-def load_data_from_s3(
-    allowed_submitters: set = ALLOWED_SUBMITTERS,
-    cleanup_input_data: bool = False,
-    cleanup_output_data: bool = False,
-    input_bucket_name: str = "scpca-portal-inputs",
-    reload_all: bool = False,
-    reload_existing: bool = False,
-    scpca_project_ids=(),
-    scpca_sample_ids=(),
-    skip_input_bucket_sync: bool = False,
-    update_s3_data: bool = False,
-):
-    """Loads data from S3. Creates projects and loads data for them."""
-
-    # Prepare data input directory.
-    os.makedirs(common.INPUT_DATA_DIR, exist_ok=True)
-
-    # Prepare data output directory.
-    shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
-    os.mkdir(common.OUTPUT_DATA_DIR)
-
-    if not skip_input_bucket_sync:
-        command_list = [
-            "aws",
-            "s3",
-            "sync",
-            f"s3://{input_bucket_name}",
-            common.INPUT_DATA_DIR,
+    @staticmethod
+    def configure_aws_cli(**params):
+        commands = [
+            # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#payload-signing-enabled
+            "aws configure set default.s3.payload_signing_enabled false",
+            # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-concurrent-requests
+            "aws configure set default.s3.max_concurrent_requests "
+            f"{params['s3_max_concurrent_requests']}",
+            # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#multipart-chunksize
+            "aws configure set default.s3.multipart_chunksize "
+            f"{params['s3_multipart_chunk_size']}MB",
         ]
-        if "public-test" in input_bucket_name:
-            command_list.append("--no-sign-request")
+        if params["s3_max_bandwidth"] is not None:
+            commands.append(
+                # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-bandwidth
+                f"aws configure set default.s3.max_bandwidth {params['s3_max_bandwidth']}MB/s",
+            )
 
-        scpca_ids = list(scpca_project_ids) + list(scpca_sample_ids)
-        if scpca_ids:
+        for command in commands:
+            subprocess.check_call(command.split())
+
+    @staticmethod
+    def download_data(bucket_name, scpca_project_id=None, scpca_sample_id=None):
+        command_list = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
+        if scpca_sample_id:
             command_list.extend(
                 (
                     "--exclude=*",  # Must precede include patterns.
                     "--include=project_metadata.csv",
+                    f"--include={scpca_project_id}/{scpca_sample_id}*",
                 )
             )
-
-            if scpca_sample_ids:
-                command_list.extend(
-                    (
-                        "--include=*/samples_metadata.csv",
-                        "--include=*_bulk_metadata.tsv",
-                        "--include=*_bulk_quant.tsv",
-                    )
+        elif scpca_project_id:
+            command_list.extend(
+                (
+                    "--exclude=*",  # Must precede include patterns.
+                    "--include=project_metadata.csv",
+                    f"--include={scpca_project_id}*",
                 )
-            command_list.extend((f"--include=*{scpca_id}*" for scpca_id in scpca_ids))
+            )
         else:
             command_list.append("--delete")
 
+        if "public-test" in bucket_name:
+            command_list.append("--no-sign-request")
+
         subprocess.check_call(command_list)
 
-    if reload_all:
-        logger.info("Purging all projects")
-        for project in Project.objects.order_by("scpca_id"):
-            project.purge(delete_from_s3=update_s3_data)
-
-    with open(Project.get_input_project_metadata_file_path()) as project_csv:
-        project_list = list(csv.DictReader(project_csv))
-    for project_data in project_list:
-        scpca_id = project_data["scpca_project_id"]
-        if scpca_project_ids and not scpca_sample_ids and scpca_id not in scpca_project_ids:
-            continue
-
-        if project_data["submitter"] not in allowed_submitters:
-            continue
-
-        # Purge existing projects so they can be re-added.
-        if reload_existing:
-            try:
-                project = Project.objects.get(scpca_id=scpca_id)
-                logger.info(f"Purging '{project}'")
-                project.purge(delete_from_s3=update_s3_data)
-            except Project.DoesNotExist:
-                pass
-
-        project, created = Project.objects.get_or_create(scpca_id=scpca_id)
-        # Only import new projects. If old ones are desired they should be
-        # purged and re-added.
-        if not created:
-            logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
-            continue
-
-        project.abstract = project_data["abstract"]
-        project.has_bulk_rna_seq = utils.boolean_from_string(project_data.get("has_bulk", False))
-        project.has_cite_seq_data = utils.boolean_from_string(project_data.get("has_CITE", False))
-        project.has_multiplexed_data = utils.boolean_from_string(
-            project_data.get("has_multiplex", False)
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--clean-up-input-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
-        project.has_spatial_data = utils.boolean_from_string(project_data.get("has_spatial", False))
-        project.human_readable_pi_name = project_data["PI"]
-        project.pi_name = project_data["submitter"]
-        project.title = project_data["project_title"]
-        project.save()
-
-        project.add_contacts(project_data["contact_email"], project_data["contact_name"])
-        project.add_external_accessions(
-            project_data["external_accession"],
-            project_data["external_accession_url"],
-            project_data["external_accession_raw"],
+        parser.add_argument(
+            "--clean-up-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
-        project.add_publications(project_data["citation"], project_data["citation_doi"])
+        parser.add_argument("--max-workers", type=int, default=10)
+        parser.add_argument("--reload-all", action="store_true")
+        parser.add_argument("--reload-existing", action="store_true")
+        parser.add_argument("--s3-max-bandwidth", type=int, default=None, help="In MB/s")
+        parser.add_argument("--s3-max-concurrent-requests", type=int, default=10)
+        parser.add_argument("--s3-multipart-chunk-size", type=int, default=8, help="In MB")
+        parser.add_argument("--scpca-project-id", type=str)
+        parser.add_argument("--scpca-sample-id", type=str)
+        parser.add_argument("--skip-sync", action="store_true", default=False)
+        parser.add_argument(
+            "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
+        )
 
-        if project.scpca_id not in os.listdir(common.INPUT_DATA_DIR):
-            logger.warning(f"Metadata found for '{project}' but no s3 folder of that name exists.")
-            continue
+    def clean_up_input_data(self):
+        shutil.rmtree(common.INPUT_DATA_PATH / self.project.scpca_id, ignore_errors=True)
 
-        logger.info(f"Importing '{project}' data")
-        computed_files = project.load_data(scpca_sample_ids=scpca_sample_ids)
-        samples_count = project.samples.count()
-        if samples_count:
-            logger.info(f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'")
+    def handle(self, *args, **kwargs):
+        self.configure_aws_cli(**kwargs)
+        self.load_data(**kwargs)
 
-        if update_s3_data:
-            logger.info(f"Exporting '{project}' computed files to S3")
-            for computed_file in computed_files:
-                s3.upload_file(
-                    computed_file.zip_file_path,
-                    settings.AWS_S3_BUCKET_NAME,
-                    computed_file.s3_key,
+    def process_project_data(self, data, sample_id, **kwargs):
+        self.project.abstract = data["abstract"]
+        self.project.has_bulk_rna_seq = utils.boolean_from_string(data.get("has_bulk", False))
+        self.project.has_cite_seq_data = utils.boolean_from_string(data.get("has_CITE", False))
+        self.project.has_multiplexed_data = utils.boolean_from_string(
+            data.get("has_multiplex", False)
+        )
+        self.project.has_spatial_data = utils.boolean_from_string(data.get("has_spatial", False))
+        self.project.human_readable_pi_name = data["PI"]
+        self.project.includes_anndata = utils.boolean_from_string(
+            data.get("includes_anndata", False)
+        )
+        self.project.includes_cell_lines = utils.boolean_from_string(
+            data.get("includes_cell_lines", False)
+        )
+        self.project.includes_xenografts = utils.boolean_from_string(
+            data.get("includes_xenografts", False)
+        )
+        self.project.pi_name = data["submitter"]
+        self.project.title = data["project_title"]
+        self.project.save()
+
+        self.project.add_contacts(data["contact_email"], data["contact_name"])
+        self.project.add_external_accessions(
+            data["external_accession"],
+            data["external_accession_url"],
+            data["external_accession_raw"],
+        )
+        self.project.add_publications(data["citation"], data["citation_doi"])
+
+        self.project.load_data(sample_id=sample_id, **kwargs)
+
+    def load_data(
+        self,
+        allowed_submitters: set[str] = None,
+        input_bucket_name: str = "scpca-portal-inputs",
+        **kwargs,
+    ):
+        """Loads data from S3. Creates projects and loads data for them."""
+
+        # Prepare data input directory.
+        common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
+
+        # Prepare data output directory.
+        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+        common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
+
+        allowed_submitters = allowed_submitters or ALLOWED_SUBMITTERS
+        project_id = kwargs.get("scpca_project_id")
+        sample_id = kwargs.get("scpca_sample_id")
+
+        if not kwargs.get("skip_sync"):
+            self.download_data(
+                input_bucket_name, scpca_project_id=project_id, scpca_sample_id=sample_id
+            )
+
+        project_samples_mapping = {
+            project_path.name: set((sd.name for sd in project_path.iterdir() if sd.is_dir()))
+            for project_path in common.INPUT_DATA_PATH.iterdir()
+            if project_path.is_dir()
+        }
+
+        with open(Project.get_input_project_metadata_file_path()) as project_csv:
+            project_list = list(csv.DictReader(project_csv))
+
+        for project_data in project_list:
+            scpca_project_id = project_data["scpca_project_id"]
+            if project_id and project_id != scpca_project_id:
+                continue
+
+            if scpca_project_id not in project_samples_mapping:
+                logger.warning(
+                    f"Metadata found for '{scpca_project_id}' but no s3 folder of that name exists."
+                )
+                return
+
+            if project_data["submitter"] not in allowed_submitters:
+                logger.warning("Project submitter  is not the white list.")
+                continue
+
+            # Purge existing projects so they can be re-added.
+            if (project := Project.objects.filter(scpca_id=scpca_project_id).first()) and (
+                kwargs["reload_all"] or kwargs["reload_existing"]
+            ):
+                logger.info(f"Purging '{project}")
+                project.purge(delete_from_s3=kwargs["update_s3"])
+
+            # Only import new projects. If old ones are desired they should be purged and re-added.
+            project, created = Project.objects.get_or_create(scpca_id=scpca_project_id)
+            if not created:
+                logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
+                continue
+
+            self.project = Project.objects.filter(scpca_id=scpca_project_id).first()
+            logger.info(f"Importing '{self.project}' data")
+            self.process_project_data(project_data, sample_id, **kwargs)
+            if samples_count := self.project.samples.count():
+                logger.info(
+                    f"Created {samples_count} sample{pluralize(samples_count)} for '{self.project}'"
                 )
 
-        if cleanup_input_data:
-            logger.info(f"Cleaning up '{project}' input data")
-            shutil.rmtree(os.path.join(common.INPUT_DATA_DIR, project.scpca_id), ignore_errors=True)
+            if kwargs["clean_up_input_data"]:
+                logger.info(f"Cleaning up '{project}' input data")
+                self.clean_up_input_data()
 
-        if cleanup_output_data:
-            logger.info(f"Cleaning up '{project}' output data")
-            for computed_file in computed_files:
-                Path(computed_file.zip_file_path).unlink(missing_ok=True)
-
-            for path in Path(common.OUTPUT_DATA_DIR).glob("*.tsv"):
-                path.unlink(missing_ok=True)
+            if kwargs["clean_up_output_data"]:
+                logger.info("Cleaning up output directory")
+                self.clean_up_output_data()

@@ -1,15 +1,17 @@
 import csv
 import json
 import logging
-import os
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Dict, List
 
-from django.db import models
+from django.contrib.postgres.fields import ArrayField
+from django.db import connection, models
+from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, utils
-from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
@@ -23,7 +25,7 @@ IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
 
 
-class Project(TimestampedModel):
+class Project(CommonDataAttributes, TimestampedModel):
     class Meta:
         db_table = "projects"
         get_latest_by = "updated_at"
@@ -35,13 +37,14 @@ class Project(TimestampedModel):
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
     downloadable_sample_count = models.IntegerField(default=0)
-    has_bulk_rna_seq = models.BooleanField(default=False)
-    has_cite_seq_data = models.BooleanField(default=False)
     has_multiplexed_data = models.BooleanField(default=False)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField()
-    modalities = models.TextField(blank=True, null=True)
+    includes_anndata = models.BooleanField(default=False)
+    includes_cell_lines = models.BooleanField(default=False)
+    includes_xenografts = models.BooleanField(default=False)
+    modalities = ArrayField(models.TextField(), default=list)
     multiplexed_sample_count = models.IntegerField(default=0)
     pi_name = models.TextField()
     sample_count = models.IntegerField(default=0)
@@ -60,27 +63,27 @@ class Project(TimestampedModel):
 
     @staticmethod
     def get_input_project_metadata_file_path():
-        return os.path.join(common.INPUT_DATA_DIR, "project_metadata.csv")
+        return common.INPUT_DATA_PATH / "project_metadata.csv"
 
     @property
     def computed_files(self):
         return self.project_computed_files.order_by("created_at")
 
     @property
-    def input_data_dir(self):
-        return os.path.join(common.INPUT_DATA_DIR, self.scpca_id)
+    def input_data_path(self):
+        return common.INPUT_DATA_PATH / self.scpca_id
 
     @property
     def input_bulk_metadata_file_path(self):
-        return os.path.join(self.input_data_dir, f"{self.scpca_id}_bulk_metadata.tsv")
+        return self.input_data_path / f"{self.scpca_id}_bulk_metadata.tsv"
 
     @property
     def input_bulk_quant_file_path(self):
-        return os.path.join(self.input_data_dir, f"{self.scpca_id}_bulk_quant.tsv")
+        return self.input_data_path / f"{self.scpca_id}_bulk_quant.tsv"
 
     @property
     def input_samples_metadata_file_path(self):
-        return os.path.join(self.input_data_dir, "samples_metadata.csv")
+        return self.input_data_path / "samples_metadata.csv"
 
     @property
     def multiplexed_computed_file(self):
@@ -97,15 +100,19 @@ class Project(TimestampedModel):
 
     @property
     def output_multiplexed_metadata_file_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, f"{self.scpca_id}_multiplexed_metadata.tsv")
+        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_multiplexed_metadata.tsv"
 
     @property
     def output_single_cell_computed_file_name(self):
         return f"{self.scpca_id}.zip"
 
     @property
+    def output_single_cell_anndata_computed_file_name(self):
+        return f"{self.scpca_id}_anndata.zip"
+
+    @property
     def output_single_cell_metadata_file_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, f"{self.scpca_id}_libraries_metadata.tsv")
+        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_libraries_metadata.tsv"
 
     @property
     def output_spatial_computed_file_name(self):
@@ -113,12 +120,25 @@ class Project(TimestampedModel):
 
     @property
     def output_spatial_metadata_file_path(self):
-        return os.path.join(common.OUTPUT_DATA_DIR, f"{self.scpca_id}_spatial_metadata.tsv")
+        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_spatial_metadata.tsv"
 
     @property
     def single_cell_computed_file(self):
         try:
-            return self.project_computed_files.get(type=ComputedFile.OutputFileTypes.PROJECT_ZIP)
+            return self.project_computed_files.get(
+                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
+            )
+        except ComputedFile.DoesNotExist:
+            pass
+
+    @property
+    def single_cell_anndata_computed_file(self):
+        try:
+            return self.project_computed_files.get(
+                format=ComputedFile.OutputFileFormats.ANN_DATA,
+                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
+            )
         except ComputedFile.DoesNotExist:
             pass
 
@@ -145,15 +165,15 @@ class Project(TimestampedModel):
         self,
         samples_metadata: List[Dict],
         multiplexed_libraries_metadata: List[Dict],
-        scpca_sample_ids: List[str],
+        sample_id: str,
     ):
         """Combines the two metadata dicts together to have all multiplexed data
         at the library level. Writes the combination out to the project and
         sample metadata files. The sample file also includes multiplexed samples.
         """
 
-        combined_metadata = list()
-        multiplexed_sample_mapping = dict()
+        combined_metadata = []
+        multiplexed_sample_mapping = {}
         if not multiplexed_libraries_metadata:
             return combined_metadata, multiplexed_sample_mapping
 
@@ -168,7 +188,7 @@ class Project(TimestampedModel):
             library_metadata_keys.union(sample_metadata_keys), modality=modality
         )
 
-        multiplexed_library_mapping = dict()  # Sample ID to library IDs mapping.
+        multiplexed_library_mapping = {}  # Sample ID to library IDs mapping.
         multiplexed_sample_ids = set()  # Unified multiplexed sample ID set.
         for library_metadata in multiplexed_libraries_metadata:
             multiplexed_library_sample_ids = library_metadata["demux_samples"]
@@ -196,13 +216,13 @@ class Project(TimestampedModel):
                 )
 
         # Generate multiplexed sample metadata dict.
-        sample_metadata_mapping = dict()
+        sample_metadata_mapping = {}
         for sample_metadata in samples_metadata:
             multiplexed_sample_id = sample_metadata["scpca_sample_id"]
             if multiplexed_sample_id not in multiplexed_sample_ids:  # Skip non-multiplexed samples.
                 continue
 
-            if scpca_sample_ids and multiplexed_sample_id not in scpca_sample_ids:
+            if sample_id and multiplexed_sample_id != sample_id:
                 continue
 
             sample_metadata_copy = sample_metadata.copy()
@@ -261,6 +281,21 @@ class Project(TimestampedModel):
             )
 
         return combined_metadata, multiplexed_sample_mapping
+
+    @staticmethod
+    def process_computed_file(computed_file, clean_up_output_data, update_s3):
+        """Processes saving, upload and cleanup of a single computed file."""
+        logger.info(f"Processing {computed_file}")
+
+        computed_file.save()
+        if update_s3:
+            logger.info(f"Uploading {computed_file}")
+            computed_file.create_s3_file()
+        if clean_up_output_data:
+            computed_file.zip_file_path.unlink(missing_ok=True)
+
+        # Close DB connection for each thread.
+        connection.close()
 
     def add_contacts(self, contact_email, contact_name):
         """Creates and adds project contacts."""
@@ -331,13 +366,13 @@ class Project(TimestampedModel):
         self,
         samples_metadata: List[Dict],
         single_cell_libraries_metadata: List[Dict],
-        scpca_sample_ids: List[str],
+        sample_id: str,
     ):
         """Combines the two metadata dicts together to have all single cell data
         at the library level. Writes the combination out to the project and
         sample metadata files.
         """
-        combined_metadata = list()
+        combined_metadata = []
 
         if not single_cell_libraries_metadata:
             return combined_metadata
@@ -365,7 +400,7 @@ class Project(TimestampedModel):
 
             for sample_metadata in samples_metadata:
                 scpca_sample_id = sample_metadata["scpca_sample_id"]
-                if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
+                if sample_id and scpca_sample_id != sample_id:
                     continue
 
                 sample_metadata_copy = sample_metadata.copy()
@@ -407,13 +442,13 @@ class Project(TimestampedModel):
         self,
         samples_metadata: List[Dict],
         spatial_libraries_metadata: List[Dict],
-        scpca_sample_ids: List[str],
+        sample_id: str,
     ):
         """Combines the two metadata dicts together to have all spatial data at
         the library level. Writes the combination out to the project and
         sample metadata files.
         """
-        combined_metadata = list()
+        combined_metadata = []
 
         if not spatial_libraries_metadata:
             return combined_metadata
@@ -437,7 +472,7 @@ class Project(TimestampedModel):
 
             for sample_metadata in samples_metadata:
                 scpca_sample_id = sample_metadata["scpca_sample_id"]
-                if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
+                if sample_id and scpca_sample_id != sample_id:
                     continue
 
                 sample_metadata_copy = sample_metadata.copy()
@@ -475,6 +510,19 @@ class Project(TimestampedModel):
 
         return combined_metadata
 
+    def create_anndata_readme_file(self):
+        """Creates a annotation metadata README file."""
+        with open(ComputedFile.README_TEMPLATE_ANNDATA_FILE_PATH, "r") as readme_template_file:
+            readme_template = readme_template_file.read()
+        with open(ComputedFile.README_ANNDATA_FILE_PATH, "w") as readme_file:
+            readme_file.write(
+                readme_template.format(
+                    date=utils.get_today_string(),
+                    project_accession=self.scpca_id,
+                    project_url=self.url,
+                )
+            )
+
     def create_single_cell_readme_file(self):
         """Creates a single cell metadata README file."""
         with open(ComputedFile.README_TEMPLATE_FILE_PATH, "r") as readme_template_file:
@@ -482,9 +530,9 @@ class Project(TimestampedModel):
         with open(ComputedFile.README_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 readme_template.format(
+                    date=utils.get_today_string(),
                     project_accession=self.scpca_id,
                     project_url=self.url,
-                    date=utils.get_today_string(),
                 )
             )
 
@@ -495,9 +543,9 @@ class Project(TimestampedModel):
         with open(ComputedFile.README_MULTIPLEXED_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 readme_template.format(
+                    date=utils.get_today_string(),
                     project_accession=self.scpca_id,
                     project_url=self.url,
-                    date=utils.get_today_string(),
                 )
             )
 
@@ -527,7 +575,7 @@ class Project(TimestampedModel):
                 )
         return bulk_rna_seq_sample_ids
 
-    def get_computed_files(
+    def create_computed_files(
         self,
         single_cell_file_mapping,
         single_cell_workflow_versions,
@@ -535,32 +583,47 @@ class Project(TimestampedModel):
         spatial_workflow_versions,
         multiplexed_file_mapping,
         multiplexed_workflow_versions,
+        max_workers=6,  # 6 = 2 file formats * 3 mappings.
+        clean_up_output_data=True,
+        update_s3=False,
     ):
         """Prepares ready for saving project computed files based on generated file mappings."""
-        computed_files = list()
 
-        if multiplexed_file_mapping:
-            computed_files.append(
-                ComputedFile.get_project_multiplexed_file(
-                    self, multiplexed_file_mapping, multiplexed_workflow_versions
-                )
-            )
+        def create_computed_file(future):
+            computed_file = future.result()
+            self.process_computed_file(computed_file, clean_up_output_data, update_s3)
 
-        if single_cell_file_mapping:
-            computed_files.append(
-                ComputedFile.get_project_single_cell_file(
-                    self, single_cell_file_mapping, single_cell_workflow_versions
-                )
-            )
+        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
+            for file_format in (
+                ComputedFile.OutputFileFormats.ANN_DATA,
+                ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+            ):
+                if multiplexed_file_mapping.get(file_format):
+                    tasks.submit(
+                        ComputedFile.get_project_multiplexed_file,
+                        self,
+                        multiplexed_file_mapping,
+                        multiplexed_workflow_versions,
+                        file_format,
+                    ).add_done_callback(create_computed_file)
 
-        if spatial_file_mapping:
-            computed_files.append(
-                ComputedFile.get_project_spatial_file(
-                    self, spatial_file_mapping, spatial_workflow_versions
-                )
-            )
+                if single_cell_file_mapping.get(file_format):
+                    tasks.submit(
+                        ComputedFile.get_project_single_cell_file,
+                        self,
+                        single_cell_file_mapping,
+                        single_cell_workflow_versions,
+                        file_format,
+                    ).add_done_callback(create_computed_file)
 
-        return computed_files
+                if spatial_file_mapping.get(file_format):
+                    tasks.submit(
+                        ComputedFile.get_project_spatial_file,
+                        self,
+                        spatial_file_mapping,
+                        spatial_workflow_versions,
+                        file_format,
+                    ).add_done_callback(create_computed_file)
 
     def get_library_metadata_keys(self, all_keys, modalities=()):
         """Returns a set of library metadata keys based on the modalities context."""
@@ -717,24 +780,23 @@ class Project(TimestampedModel):
 
     def get_sample_input_data_dir(self, sample_scpca_id):
         """Returns an input data directory based on a sample ID."""
-        return os.path.join(self.input_data_dir, sample_scpca_id)
+        return self.input_data_path / sample_scpca_id
 
     def get_samples(
         self,
         samples_metadata,
-        scpca_sample_ids,
         multiplexed_sample_demux_cell_counter,
         multiplexed_sample_mapping,
         multiplexed_sample_seq_units_mapping,
         multiplexed_sample_technologies_mapping,
+        sample_id=None,
     ):
         """Prepares ready for saving sample objects."""
         samples = []
         for sample_metadata in samples_metadata:
             scpca_sample_id = sample_metadata["scpca_sample_id"]
-            if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
+            if sample_id and scpca_sample_id != sample_id:
                 continue
-
             sample_metadata[
                 "demux_cell_count_estimate"
             ] = multiplexed_sample_demux_cell_counter.get(scpca_sample_id)
@@ -763,7 +825,7 @@ class Project(TimestampedModel):
 
         return samples
 
-    def load_data(self, scpca_sample_ids=None) -> List[ComputedFile]:
+    def load_data(self, sample_id=None, **kwargs) -> None:
         """
         Goes through a project directory contents, parses multiple level metadata
         files, writes combined metadata into resulting files.
@@ -775,24 +837,24 @@ class Project(TimestampedModel):
         with open(self.input_samples_metadata_file_path) as samples_csv_file:
             samples_metadata = [line for line in csv.DictReader(samples_csv_file)]
 
+        self.create_anndata_readme_file()
         self.create_multiplexed_readme_file()
         self.create_single_cell_readme_file()
         self.create_spatial_readme_file()
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
-        computed_files = list()
         non_downloadable_sample_ids = set()
-        single_cell_libraries_metadata = list()
-        spatial_libraries_metadata = list()
+        single_cell_libraries_metadata = []
+        spatial_libraries_metadata = []
         for sample_metadata in samples_metadata:
             scpca_sample_id = sample_metadata["scpca_sample_id"]
-            if scpca_sample_ids and scpca_sample_id not in scpca_sample_ids:
+            if sample_id and scpca_sample_id != sample_id:
                 continue
 
             # Some samples will exist but their contents cannot be shared yet.
             # When this happens their corresponding sample folder will not exist.
             sample_dir = self.get_sample_input_data_dir(scpca_sample_id)
-            if not os.path.exists(sample_dir):
+            if not sample_dir.exists():
                 non_downloadable_sample_ids.add(scpca_sample_id)
 
             has_cite_seq_data = False
@@ -807,7 +869,10 @@ class Project(TimestampedModel):
                     single_cell_json = json.load(sample_json_file)
 
                 has_single_cell_data = True
+                # Some rare samples can have one library with CITE-seq data and another library
+                # next to it without CITE-seq data (e.g. SCPCP000008/SCPCS000368).
                 has_cite_seq_data = single_cell_json.get("has_citeseq", False) or has_cite_seq_data
+
                 single_cell_json["filtered_cell_count"] = single_cell_json.pop("filtered_cells")
                 single_cell_json["scpca_library_id"] = single_cell_json.pop("library_id")
                 single_cell_json["scpca_sample_id"] = single_cell_json.pop("sample_id")
@@ -835,16 +900,17 @@ class Project(TimestampedModel):
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
             sample_metadata["has_single_cell_data"] = has_single_cell_data
             sample_metadata["has_spatial_data"] = has_spatial_data
+            sample_metadata["includes_anndata"] = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
             sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
             sample_metadata["seq_units"] = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample_metadata["technologies"] = ", ".join(sorted(sample_technologies, key=str.lower))
 
-        multiplexed_libraries_metadata = list()
-        multiplexed_library_path_mapping = dict()
+        multiplexed_libraries_metadata = []
+        multiplexed_library_path_mapping = {}
         multiplexed_sample_demux_cell_counter = Counter()
-        multiplexed_sample_seq_units_mapping = dict()
-        multiplexed_sample_technologies_mapping = dict()
-        for multiplexed_sample_dir in sorted(Path(self.input_data_dir).rglob("*,*")):
+        multiplexed_sample_seq_units_mapping = {}
+        multiplexed_sample_technologies_mapping = {}
+        for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
             for filename_path in sorted(Path(multiplexed_sample_dir).rglob("*_metadata.json")):
                 with open(filename_path) as multiplexed_json_file:
                     multiplexed_json = json.load(multiplexed_json_file)
@@ -860,116 +926,176 @@ class Project(TimestampedModel):
                 )
 
                 # Gather seq_units and technologies data.
-                for sample_id in multiplexed_json["demux_samples"]:
-                    if sample_id not in multiplexed_sample_seq_units_mapping:
-                        multiplexed_sample_seq_units_mapping[sample_id] = set()
-                    if sample_id not in multiplexed_sample_technologies_mapping:
-                        multiplexed_sample_technologies_mapping[sample_id] = set()
+                for demux_sample_id in multiplexed_json["demux_samples"]:
+                    if demux_sample_id not in multiplexed_sample_seq_units_mapping:
+                        multiplexed_sample_seq_units_mapping[demux_sample_id] = set()
+                    if demux_sample_id not in multiplexed_sample_technologies_mapping:
+                        multiplexed_sample_technologies_mapping[demux_sample_id] = set()
 
-                    multiplexed_sample_seq_units_mapping[sample_id].add(
+                    multiplexed_sample_seq_units_mapping[demux_sample_id].add(
                         multiplexed_json["seq_unit"].strip()
                     )
-                    multiplexed_sample_technologies_mapping[sample_id].add(
+                    multiplexed_sample_technologies_mapping[demux_sample_id].add(
                         multiplexed_json["technology"].strip()
                     )
 
         combined_single_cell_metadata = self.combine_single_cell_metadata(
-            samples_metadata, single_cell_libraries_metadata, scpca_sample_ids
+            samples_metadata, single_cell_libraries_metadata, sample_id
         )
 
         combined_spatial_metadata = self.combine_spatial_metadata(
-            samples_metadata, spatial_libraries_metadata, scpca_sample_ids
+            samples_metadata, spatial_libraries_metadata, sample_id
         )
 
         (
             combined_multiplexed_metadata,
             multiplexed_sample_mapping,
         ) = self.combine_multiplexed_metadata(
-            samples_metadata, multiplexed_libraries_metadata, scpca_sample_ids
+            samples_metadata, multiplexed_libraries_metadata, sample_id
         )
 
-        multiplexed_file_mapping = dict()
+        multiplexed_file_mapping = {
+            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
+        }
         multiplexed_workflow_versions = set()
-        single_cell_file_mapping = dict()
+        single_cell_file_mapping = {
+            ComputedFile.OutputFileFormats.ANN_DATA: {},
+            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
+        }
         single_cell_workflow_versions = set()
-        spatial_file_mapping = dict()
+        spatial_file_mapping = {
+            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
+        }
         spatial_workflow_versions = set()
 
         samples = self.get_samples(
             samples_metadata,
-            scpca_sample_ids,
             multiplexed_sample_demux_cell_counter,
             multiplexed_sample_mapping,
             multiplexed_sample_seq_units_mapping,
             multiplexed_sample_technologies_mapping,
+            sample_id=sample_id,
         )
-        for sample in Sample.objects.bulk_create(samples):
-            # Skip computed files creation if sample directory does not exist.
-            if sample.scpca_id not in non_downloadable_sample_ids:
-                libraries = [
-                    library
-                    for library in combined_single_cell_metadata
-                    if library["scpca_sample_id"] == sample.scpca_id
-                ]
-                workflow_versions = [library["workflow_version"] for library in libraries]
-                single_cell_workflow_versions.update(workflow_versions)
-                (
-                    computed_file,
-                    single_cell_metadata_files,
-                ) = ComputedFile.get_sample_single_cell_file(sample, libraries, workflow_versions)
-                computed_files.append(computed_file)
-                single_cell_file_mapping.update(single_cell_metadata_files)
 
-                if sample.has_spatial_data:
+        def update_ann_data(future):
+            computed_file, metadata_files = future.result()
+            single_cell_file_mapping[ComputedFile.OutputFileFormats.ANN_DATA].update(metadata_files)
+            self.process_computed_file(
+                computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
+            )
+
+        def update_multiplexed_data(future):
+            computed_file, metadata_files = future.result()
+            multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
+                metadata_files
+            )
+            self.process_computed_file(
+                computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
+            )
+
+        def update_single_cell_data(future):
+            computed_file, metadata_files = future.result()
+            single_cell_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
+                metadata_files
+            )
+            self.process_computed_file(
+                computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
+            )
+
+        def update_spatial_data(future):
+            computed_file, metadata_files = future.result()
+            spatial_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
+                metadata_files
+            )
+            self.process_computed_file(
+                computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
+            )
+
+        max_workers = kwargs["max_workers"]
+        samples_count = len(samples)
+        logger.info(
+            f"Processing {samples_count} sample{pluralize(samples_count)} using "
+            f"{max_workers} worker{pluralize(max_workers)}"
+        )
+        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
+            for sample in Sample.objects.bulk_create(samples):
+                # Skip computed files creation if sample directory does not exist.
+                if sample.scpca_id not in non_downloadable_sample_ids:
                     libraries = [
                         library
-                        for library in combined_spatial_metadata
+                        for library in combined_single_cell_metadata
                         if library["scpca_sample_id"] == sample.scpca_id
                     ]
                     workflow_versions = [library["workflow_version"] for library in libraries]
-                    spatial_workflow_versions.update(workflow_versions)
-                    (
-                        computed_file,
-                        spatial_metadata_files,
-                    ) = ComputedFile.get_sample_spatial_file(sample, libraries, workflow_versions)
-                    computed_files.append(computed_file)
-                    spatial_file_mapping.update(spatial_metadata_files)
+                    single_cell_workflow_versions.update(workflow_versions)
 
-            if sample.has_multiplexed_data:
-                libraries = [
-                    library
-                    for library in combined_multiplexed_metadata
-                    if library.get("scpca_sample_id") == sample.scpca_id
-                ]
-                workflow_versions = [library["workflow_version"] for library in libraries]
-                multiplexed_workflow_versions.update(workflow_versions)
-                (
-                    computed_file,
-                    multiplexed_metadata_files,
-                ) = ComputedFile.get_sample_multiplexed_file(
-                    sample,
-                    libraries,
-                    multiplexed_library_path_mapping,
-                    workflow_versions,
-                )
-                computed_files.append(computed_file)
-                multiplexed_file_mapping.update(multiplexed_metadata_files)
+                    file_formats = [ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]
+                    if sample.includes_anndata:
+                        file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
 
-        if multiplexed_file_mapping:
+                    for file_format in file_formats:
+                        tasks.submit(
+                            ComputedFile.get_sample_single_cell_file,
+                            sample,
+                            libraries,
+                            workflow_versions,
+                            file_format,
+                        ).add_done_callback(
+                            update_single_cell_data
+                            if file_format == ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
+                            else update_ann_data
+                        )
+
+                        if sample.has_spatial_data:
+                            libraries = [
+                                library
+                                for library in combined_spatial_metadata
+                                if library["scpca_sample_id"] == sample.scpca_id
+                            ]
+                            workflow_versions = [
+                                library["workflow_version"] for library in libraries
+                            ]
+                            spatial_workflow_versions.update(workflow_versions)
+                            tasks.submit(
+                                ComputedFile.get_sample_spatial_file,
+                                sample,
+                                libraries,
+                                workflow_versions,
+                                ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                            ).add_done_callback(update_spatial_data)
+
+                if sample.has_multiplexed_data:
+                    libraries = [
+                        library
+                        for library in combined_multiplexed_metadata
+                        if library.get("scpca_sample_id") == sample.scpca_id
+                    ]
+                    workflow_versions = [library["workflow_version"] for library in libraries]
+                    multiplexed_workflow_versions.update(workflow_versions)
+                    tasks.submit(
+                        ComputedFile.get_sample_multiplexed_file,
+                        sample,
+                        libraries,
+                        multiplexed_library_path_mapping,
+                        workflow_versions,
+                        ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                    ).add_done_callback(update_multiplexed_data)
+
+        if multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]:
             # We want a single ZIP archive for a multiplexed samples project.
-            multiplexed_file_mapping.update(single_cell_file_mapping)
-
-        computed_files.extend(
-            self.get_computed_files(
-                single_cell_file_mapping,
-                single_cell_workflow_versions,
-                spatial_file_mapping,
-                spatial_workflow_versions,
-                multiplexed_file_mapping,
-                multiplexed_workflow_versions,
+            multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
+                single_cell_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]
             )
+        self.create_computed_files(
+            single_cell_file_mapping,
+            single_cell_workflow_versions,
+            spatial_file_mapping,
+            spatial_workflow_versions,
+            multiplexed_file_mapping,
+            multiplexed_workflow_versions,
+            clean_up_output_data=kwargs["clean_up_output_data"],
+            update_s3=kwargs["update_s3"],
         )
-        ComputedFile.objects.bulk_create(computed_files)
 
         # Set modality flags based on a real data availability.
         self.has_bulk_rna_seq = self.samples.filter(has_bulk_rna_seq=True).exists()
@@ -977,6 +1103,7 @@ class Project(TimestampedModel):
         self.has_multiplexed_data = self.samples.filter(has_multiplexed_data=True).exists()
         self.has_single_cell_data = self.samples.filter(has_single_cell_data=True).exists()
         self.has_spatial_data = self.samples.filter(has_spatial_data=True).exists()
+        self.includes_anndata = self.samples.filter(includes_anndata=True).exists()
         self.save(
             update_fields=(
                 "has_bulk_rna_seq",
@@ -984,12 +1111,11 @@ class Project(TimestampedModel):
                 "has_multiplexed_data",
                 "has_single_cell_data",
                 "has_spatial_data",
+                "includes_anndata",
             )
         )
 
         self.update_counts()
-
-        return computed_files
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
@@ -1066,7 +1192,7 @@ class Project(TimestampedModel):
         self.diagnoses_counts = ", ".join(diagnoses_strings)
         self.disease_timings = ", ".join(disease_timings)
         self.downloadable_sample_count = downloadable_sample_count
-        self.modalities = ", ".join(sorted(modalities))
+        self.modalities = sorted(modalities)
         self.multiplexed_sample_count = multiplexed_sample_count
         self.sample_count = sample_count
         self.seq_units = ", ".join(seq_units)

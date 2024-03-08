@@ -56,15 +56,19 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     seq_units = "cell"
     technologies = "10Xv2_5prime, CITE-seq"
     has_bulk_rna_seq = True
-
+    modalities = ["CITE-seq"]
     sample_count = 60
 
 
 class ProjectComputedFileFactory(LeafComputedFileFactory):
+    format = ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
+    modality = ComputedFile.OutputFileModalities.SINGLE_CELL
     type = ComputedFile.OutputFileTypes.PROJECT_ZIP
 
 
 class SampleComputedFileFactory(LeafComputedFileFactory):
+    format = ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
+    modality = ComputedFile.OutputFileModalities.SINGLE_CELL
     type = ComputedFile.OutputFileTypes.SAMPLE_ZIP
 
 
@@ -81,6 +85,7 @@ class SampleFactory(factory.django.DjangoModelFactory):
     diagnosis = "pilocytic astrocytoma"
     disease_timing = "primary diagnosis"
     has_cite_seq_data = True
+    multiplexed_with = ["SCPCP000000"]
     project = factory.SubFactory(LeafProjectFactory)
     sample_cell_count_estimate = 42
     scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)

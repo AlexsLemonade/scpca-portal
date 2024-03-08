@@ -1,17 +1,16 @@
 import os
 import sys
 from distutils.util import strtobool
-from os.path import join
+from pathlib import Path
 
 import dj_database_url
 from configurations import Configuration
 from corsheaders.defaults import default_headers
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).parent.parent
 
 
 class Common(Configuration):
-
     INSTALLED_APPS = (
         "django.contrib.auth",
         "django.contrib.contenttypes",
@@ -87,7 +86,7 @@ class Common(Configuration):
     )
 
     # Media files
-    MEDIA_ROOT = join(os.path.dirname(BASE_DIR), "media")
+    MEDIA_ROOT = BASE_DIR / "media"
     MEDIA_URL = "/media/"
 
     TEMPLATES = [

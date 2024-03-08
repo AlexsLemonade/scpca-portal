@@ -1,14 +1,12 @@
-import os
-
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common
-from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 
 
-class Sample(TimestampedModel):
+class Sample(CommonDataAttributes, TimestampedModel):
     class Meta:
         db_table = "samples"
         get_latest_by = "updated_at"
@@ -33,11 +31,10 @@ class Sample(TimestampedModel):
     demux_cell_count_estimate = models.IntegerField(null=True)
     diagnosis = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
-    has_bulk_rna_seq = models.BooleanField(default=False)
-    has_cite_seq_data = models.BooleanField(default=False)
     has_multiplexed_data = models.BooleanField(default=False)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
+    includes_anndata = models.BooleanField(default=False)
     multiplexed_with = ArrayField(models.TextField(), default=list)
     sample_cell_count_estimate = models.IntegerField(null=True)
     scpca_id = models.TextField(unique=True)
@@ -70,6 +67,7 @@ class Sample(TimestampedModel):
             has_multiplexed_data=has_multiplexed_data,
             has_single_cell_data=data.get("has_single_cell_data", False),
             has_spatial_data=data.get("has_spatial_data", False),
+            includes_anndata=data.get("includes_anndata", False),
             multiplexed_with=data.get("multiplexed_with"),
             sample_cell_count_estimate=(
                 data.get("sample_cell_count_estimate") if not has_multiplexed_data else None
@@ -94,14 +92,14 @@ class Sample(TimestampedModel):
 
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
-        if modality == Sample.Modalities.MULTIPLEXED:
-            return os.path.join(
-                common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_multiplexed_metadata.tsv"
-            )
-        if modality == Sample.Modalities.SINGLE_CELL:
-            return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_libraries_metadata.tsv")
-        if modality == Sample.Modalities.SPATIAL:
-            return os.path.join(common.OUTPUT_DATA_DIR, f"{scpca_sample_id}_spatial_metadata.tsv")
+        return {
+            Sample.Modalities.MULTIPLEXED: common.OUTPUT_DATA_PATH
+            / f"{scpca_sample_id}_multiplexed_metadata.tsv",
+            Sample.Modalities.SINGLE_CELL: common.OUTPUT_DATA_PATH
+            / f"{scpca_sample_id}_libraries_metadata.tsv",
+            Sample.Modalities.SPATIAL: common.OUTPUT_DATA_PATH
+            / f"{scpca_sample_id}_spatial_metadata.tsv",
+        }.get(modality)
 
     @property
     def modalities(self):
@@ -144,6 +142,10 @@ class Sample(TimestampedModel):
         return f"{self.scpca_id}.zip"
 
     @property
+    def output_single_cell_anndata_computed_file_name(self):
+        return f"{self.scpca_id}_anndata.zip"
+
+    @property
     def output_single_cell_metadata_file_path(self):
         return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SINGLE_CELL)
 
@@ -167,7 +169,20 @@ class Sample(TimestampedModel):
     @property
     def single_cell_computed_file(self):
         try:
-            return self.sample_computed_files.get(type=ComputedFile.OutputFileTypes.SAMPLE_ZIP)
+            return self.sample_computed_files.get(
+                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                type=ComputedFile.OutputFileTypes.SAMPLE_ZIP,
+            )
+        except ComputedFile.DoesNotExist:
+            pass
+
+    @property
+    def single_cell_anndata_computed_file(self):
+        try:
+            return self.sample_computed_files.get(
+                format=ComputedFile.OutputFileFormats.ANN_DATA,
+                type=ComputedFile.OutputFileTypes.SAMPLE_ZIP,
+            )
         except ComputedFile.DoesNotExist:
             pass
 

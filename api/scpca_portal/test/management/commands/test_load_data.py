@@ -1,38 +1,31 @@
 import csv
-import os
 import shutil
 from io import TextIOWrapper
 from unittest.mock import patch
 from zipfile import ZipFile
 
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from scpca_portal import common
-from scpca_portal.management.commands.load_data import load_data_from_s3
+from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"genomics_10X"}
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/anndata-tests"
+INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs"
 
 
-class MockS3Client:
-    def __init__(self, *args, **kwargs):
-        pass
+class TestLoadData(TransactionTestCase):
+    project_id = "SCPCP999990"
 
-    def list_objects(self, *args, **kwargs):
-        return {"Contents": [{"Size": 1111}]}
+    def setUp(self):
+        self.loader = Command()
 
-    def upload_file(self, *args, **kwargs):
-        pass
-
-
-class TestLoadData(TestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        shutil.rmtree(common.OUTPUT_DATA_DIR, ignore_errors=True)
+        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
-    def assert_project(self, project):
+    def assertProjectData(self, project):
         self.assertTrue(project.abstract)
         self.assertIsNotNone(project.contacts)
         self.assertIsNotNone(project.diagnoses)
@@ -41,6 +34,8 @@ class TestLoadData(TestCase):
         self.assertTrue(project.has_multiplexed_data)
         self.assertTrue(project.has_single_cell_data)
         self.assertTrue(project.has_spatial_data)
+        self.assertFalse(project.includes_cell_lines)
+        self.assertFalse(project.includes_xenografts)
         self.assertIsNotNone(project.seq_units)
         self.assertTrue(project.title)
 
@@ -59,44 +54,62 @@ class TestLoadData(TestCase):
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-    @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
-    def test_load_data_from_s3(self):
+    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
+    def test_data_clean_up(self):
+        self.loader.load_data(
+            allowed_submitters=ALLOWED_SUBMITTERS,
+            input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=True,
+            clean_up_output_data=True,
+            max_workers=4,
+            reload_all=False,
+            reload_existing=False,
+            update_s3=False,
+        )
+        self.assertEqual(len(list((common.INPUT_DATA_PATH / self.project_id).glob("*"))), 0)
+        self.assertEqual(len(list(common.OUTPUT_DATA_PATH.glob("*"))), 0)
+
+    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
+    def test_load_data(self):
         def assert_object_count():
             self.assertEqual(Project.objects.count(), 1)
             self.assertEqual(ProjectSummary.objects.count(), 5)
             self.assertEqual(Sample.objects.count(), 5)
-            self.assertEqual(ComputedFile.objects.count(), 8)
+            self.assertEqual(ComputedFile.objects.count(), 10)
 
         # First, just test that loading data works.
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3_data=False,
+            update_s3=False,
         )
         assert_object_count()
 
-        scpca_project_id = "SCPCP999990"
-        project = Project.objects.get(scpca_id=scpca_project_id)
+        project = Project.objects.get(scpca_id=self.project_id)
         project_computed_files = project.computed_files
         project_summary = project.summaries.first()
         sample = project.samples.first()
         sample_computed_files = sample.computed_files
 
-        self.assert_project(project)
+        self.assertProjectData(project)
 
         # Make sure that reload_existing=False won't add anything new when there's nothing new.
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3_data=False,
+            update_s3=False,
         )
         assert_object_count()
 
-        new_project = Project.objects.get(scpca_id=scpca_project_id)
+        new_project = Project.objects.get(scpca_id=self.project_id)
         self.assertEqual(project, new_project)
         self.assertEqual(project_summary, new_project.summaries.first())
 
@@ -106,7 +119,7 @@ class TestLoadData(TestCase):
         self.assertEqual(list(sample_computed_files), list(new_sample.computed_files))
 
         # Make sure purging works as expected.
-        Project.objects.get(scpca_id=scpca_project_id).purge()
+        Project.objects.get(scpca_id=self.project_id).purge()
 
         self.assertEqual(Project.objects.count(), 0)
         self.assertEqual(ProjectSummary.objects.count(), 0)
@@ -114,27 +127,33 @@ class TestLoadData(TestCase):
         self.assertEqual(ComputedFile.objects.count(), 0)
 
         # Make sure reloading works smoothly.
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
             reload_all=False,
             reload_existing=True,
-            update_s3_data=False,
+            update_s3=False,
         )
         assert_object_count()
 
-    @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
+    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_multiplexed_metadata(self):
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3_data=True,
+            update_s3=True,
         )
 
-        project = Project.objects.get(scpca_id="SCPCP999990")
-        self.assert_project(project)
+        project = Project.objects.get(scpca_id=self.project_id)
+        self.assertProjectData(project)
         self.assertEqual(project.downloadable_sample_count, 4)
         self.assertTrue(project.has_bulk_rna_seq)
         self.assertFalse(project.has_cite_seq_data)
@@ -144,9 +163,15 @@ class TestLoadData(TestCase):
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 3)
+        self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
+        self.assertEqual(
+            project.multiplexed_computed_file.modality,
+            ComputedFile.OutputFileModalities.MULTIPLEXED,
+        )
+        self.assertTrue(project.multiplexed_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.multiplexed_computed_file.has_cite_seq_data)
 
         # Check contacts.
         self.assertEqual(project.contacts.count(), 2)
@@ -208,12 +233,14 @@ class TestLoadData(TestCase):
             "droplet_filtering_method",
             "filtered_cells",
             "has_cellhash",
+            "includes_anndata",
             "is_multiplexed",
             "min_gene_cutoff",
             "normalization_method",
             "organism",
             "organism_ontology_id",
             "prob_compromised_cutoff",
+            "processed_cells",
             "salmon_version",
             "sample_cell_estimates",
             "self_reported_ethnicity_ontology_term_id",
@@ -224,9 +251,7 @@ class TestLoadData(TestCase):
             "WHO_grade",
         ]
 
-        project_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, project.output_multiplexed_computed_file_name
-        )
+        project_zip_path = common.OUTPUT_DATA_PATH / project.output_multiplexed_computed_file_name
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
@@ -258,6 +283,7 @@ class TestLoadData(TestCase):
         self.assertEqual(len(project_zip.namelist()), 12)
 
         library_sample_mapping = {
+            "SCPCL999990": "SCPCS999990",
             "SCPCL999992": "SCPCS999992_SCPCS999993",
         }
         library_path_templates = (
@@ -284,6 +310,12 @@ class TestLoadData(TestCase):
         self.assertTrue(sample.has_multiplexed_data)
         self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3.1")
+        self.assertEqual(
+            sample.multiplexed_computed_file.modality,
+            ComputedFile.OutputFileModalities.MULTIPLEXED,
+        )
+        self.assertFalse(sample.multiplexed_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.multiplexed_computed_file.has_cite_seq_data)
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
@@ -306,9 +338,7 @@ class TestLoadData(TestCase):
             set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
         )
 
-        sample_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, sample.output_multiplexed_computed_file_name
-        )
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_multiplexed_computed_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
@@ -332,20 +362,24 @@ class TestLoadData(TestCase):
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
-    @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
+    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_single_cell_metadata(self):
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3_data=True,
+            update_s3=True,
         )
 
-        project = Project.objects.get(scpca_id="SCPCP999990")
-        self.assert_project(project)
+        project = Project.objects.get(scpca_id=self.project_id)
+        self.assertProjectData(project)
         self.assertEqual(project.downloadable_sample_count, 4)
         self.assertFalse(project.has_cite_seq_data)
+        self.assertTrue(project.includes_anndata)
         self.assertTrue(project.modalities)
         self.assertEqual(project.multiplexed_sample_count, 2)
         self.assertEqual(project.sample_count, 5)
@@ -353,10 +387,23 @@ class TestLoadData(TestCase):
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 3)
+        self.assertEqual(project.technologies, "10Xv3.1, visium")
+        self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
-        self.assertEqual(project.technologies, "10Xv3.1, visium")
+        self.assertEqual(
+            project.single_cell_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertTrue(project.single_cell_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.single_cell_computed_file.has_cite_seq_data)
+
+        self.assertEqual(
+            project.single_cell_anndata_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertTrue(project.single_cell_anndata_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.single_cell_anndata_computed_file.has_cite_seq_data)
 
         expected_keys = [
             "scpca_sample_id",
@@ -382,6 +429,7 @@ class TestLoadData(TestCase):
             "filtered_cell_count",
             "genome_assembly",
             "has_cellhash",
+            "includes_anndata",
             "is_multiplexed",
             "mapped_reads",
             "mapping_index",
@@ -391,6 +439,7 @@ class TestLoadData(TestCase):
             "organism_ontology_id",
             "participant_id",
             "prob_compromised_cutoff",
+            "processed_cells",
             "salmon_version",
             "self_reported_ethnicity_ontology_term_id",
             "sex_ontology_term_id",
@@ -406,9 +455,7 @@ class TestLoadData(TestCase):
             "workflow_version",
         ]
 
-        project_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, project.output_single_cell_computed_file_name
-        )
+        project_zip_path = common.OUTPUT_DATA_PATH / project.output_single_cell_computed_file_name
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
@@ -435,16 +482,28 @@ class TestLoadData(TestCase):
         self.assertEqual(len(project_zip.namelist()), 8)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
-        self.assertEqual(len(sample.computed_files), 1)
+        self.assertEqual(len(sample.computed_files), 2)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 1639)
+        self.assertEqual(sample.sample_cell_count_estimate, 1638)
         self.assertEqual(sample.seq_units, "cell")
+        self.assertEqual(sample.technologies, "10Xv3.1")
         self.assertIsNotNone(sample.single_cell_computed_file)
         self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(sample.single_cell_computed_file.workflow_version, "development")
-        self.assertEqual(sample.technologies, "10Xv3.1")
+        self.assertEqual(
+            sample.single_cell_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertFalse(sample.single_cell_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.single_cell_computed_file.has_cite_seq_data)
+        self.assertEqual(
+            sample.single_cell_anndata_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertFalse(sample.single_cell_anndata_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.single_cell_anndata_computed_file.has_cite_seq_data)
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
@@ -467,9 +526,8 @@ class TestLoadData(TestCase):
             set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
         )
 
-        sample_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, sample.output_single_cell_computed_file_name
-        )
+        # Check SingleCellExperiment archive.
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_single_cell_computed_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
@@ -493,18 +551,48 @@ class TestLoadData(TestCase):
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
-    @patch("scpca_portal.management.commands.load_data.s3", MockS3Client())
+        # Check AnnData archive.
+        sample_zip_path = (
+            common.OUTPUT_DATA_PATH / sample.output_single_cell_anndata_computed_file_name
+        )
+        with ZipFile(sample_zip_path) as sample_zip:
+            with sample_zip.open(
+                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
+            ) as sample_csv:
+                csv_reader = csv.DictReader(
+                    TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
+                )
+                rows = list(csv_reader)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(list(rows[0].keys()), expected_keys)
+
+        library_id = rows[0]["scpca_library_id"]
+        expected_filenames = {
+            "README.md",
+            "single_cell_metadata.tsv",
+            f"{library_id}_filtered_rna.hdf5",
+            f"{library_id}_processed_rna.hdf5",
+            f"{library_id}_qc.html",
+            f"{library_id}_unfiltered_rna.hdf5",
+        }
+        self.assertEqual(set(sample_zip.namelist()), expected_filenames)
+
+    @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_spatial_metadata(self):
-        load_data_from_s3(
+        self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
             input_bucket_name=INPUT_BUCKET_NAME,
+            clean_up_input_data=False,
+            clean_up_output_data=False,
+            max_workers=4,
             reload_all=False,
             reload_existing=False,
-            update_s3_data=True,
+            update_s3=True,
         )
 
-        project = Project.objects.get(scpca_id="SCPCP999990")
-        self.assert_project(project)
+        project = Project.objects.get(scpca_id=self.project_id)
+        self.assertProjectData(project)
         self.assertEqual(project.downloadable_sample_count, 4)
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.has_spatial_data)
@@ -513,9 +601,15 @@ class TestLoadData(TestCase):
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 3)
+        self.assertEqual(len(project.computed_files), 4)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "development")
+        self.assertEqual(
+            project.spatial_computed_file.modality,
+            ComputedFile.OutputFileModalities.SPATIAL,
+        )
+        self.assertFalse(project.spatial_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.spatial_computed_file.has_cite_seq_data)
 
         expected_keys = [
             "scpca_project_id",
@@ -545,6 +639,7 @@ class TestLoadData(TestCase):
             "submitter_id",
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
+            "includes_anndata",
             "organism",
             "organism_ontology_id",
             "self_reported_ethnicity_ontology_term_id",
@@ -553,9 +648,7 @@ class TestLoadData(TestCase):
             "WHO_grade",
         ]
 
-        project_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, project.output_spatial_computed_file_name
-        )
+        project_zip_path = common.OUTPUT_DATA_PATH / project.output_spatial_computed_file_name
         with ZipFile(project_zip_path) as project_zip:
             spatial_metadata_file = project_zip.read(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
@@ -604,6 +697,12 @@ class TestLoadData(TestCase):
         self.assertGreater(sample.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(sample.spatial_computed_file.workflow_version, "development")
         self.assertEqual(sample.technologies, "visium")
+        self.assertEqual(
+            sample.spatial_computed_file.modality,
+            ComputedFile.OutputFileModalities.SPATIAL,
+        )
+        self.assertFalse(sample.spatial_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.spatial_computed_file.has_cite_seq_data)
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
@@ -626,9 +725,7 @@ class TestLoadData(TestCase):
             set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
         )
 
-        sample_zip_path = os.path.join(
-            common.OUTPUT_DATA_DIR, sample.output_spatial_computed_file_name
-        )
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_spatial_computed_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME, "r"

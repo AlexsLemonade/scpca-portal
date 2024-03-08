@@ -11,17 +11,21 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComputedFile
         fields = (
-            "project",
-            "sample",
+            "created_at",
+            "download_url",
+            "format",
+            "has_bulk_rna_seq",
+            "has_cite_seq_data",
             "id",
-            "type",
-            "workflow_version",
+            "modality",
+            "project",
             "s3_bucket",
             "s3_key",
+            "sample",
             "size_in_bytes",
-            "download_url",
-            "created_at",
+            "type",
             "updated_at",
+            "workflow_version",
         )
         extra_kwargs = {
             "download_url": {

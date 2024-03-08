@@ -9,6 +9,10 @@ class TestComputedFileSerializer(TestCase):
     def setUp(self):
         self.computed_file_data = model_to_dict(SampleComputedFileFactory())
 
+    def assertContainsFields(self, serializer):
+        for field in ("format", "has_bulk_rna_seq", "has_cite_seq_data", "modality", "type"):
+            self.assertIn(field, serializer.data)
+
     def test_serializer_with_empty_data(self):
         serializer = ComputedFileSerializer(data={})
         self.assertFalse(serializer.is_valid())
@@ -20,7 +24,9 @@ class TestComputedFileSerializer(TestCase):
     def test_serializer_with_valid_data(self):
         serializer = ComputedFileSerializer(data=self.computed_file_data)
         self.assertTrue(serializer.is_valid())
+        self.assertContainsFields(serializer)
 
     def test_detail_serializer_with_valid_data(self):
         serializer = ComputedFileDetailSerializer(data=self.computed_file_data)
         self.assertTrue(serializer.is_valid())
+        self.assertContainsFields(serializer)

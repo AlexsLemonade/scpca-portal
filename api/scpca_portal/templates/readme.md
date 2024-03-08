@@ -30,7 +30,8 @@ See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_fil
 
 ## Usage
 
-For instructions on using the RDS files, please see [FAQ: How do I use the provided files in R?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-rds-files-in-r) or [FAQ: What if I want to use Python instead of R?](https://scpca.readthedocs.io/en/stable/faq.html#what-if-i-want-to-use-python-instead-of-r)
+For instructions on using the RDS files, please see [FAQ: How do I use the provided files in R?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-rds-files-in-r).
+For more information on working with the processed `SingleCellExperiment` objects, see [`Getting started with an ScPCA dataset`](https://scpca.readthedocs.io/en/stable/getting_started.html).
 
 ## CHANGELOG
 
