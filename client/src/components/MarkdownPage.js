@@ -1,11 +1,8 @@
-import { useRouter } from 'next/router'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef } from 'react'
 import { Box, Paragraph, Text, Markdown } from 'grommet'
 import styled from 'styled-components'
-import { getHash } from 'helpers/getHash'
-import { getMarkdownConfig } from 'helpers/getMarkdownConfig'
-import { slugify } from 'helpers/slugify'
 import Error from 'pages/_error'
+import { useScrollToTextContentHash } from 'hooks/useScrollToTextContentHash'
 
 const StyledLi = styled(Box)`
   list-style: revert;
@@ -21,50 +18,12 @@ export const MarkdownPage = ({
   markdown,
   width = 'large'
 }) => {
-  const { route } = useRouter()
-  const sectionNames = [] // stores the text nodes of each section for link's labels
-  const sectionId = getHash()
-  const sectionIds = [] // stores the section id names
-  const [offset, setOffset] = useState(0)
-  const wrapperRef = useRef()
+  const markdownRef = useRef()
 
-  useEffect(() => {
-    if (!wrapperRef.current) return
-
-    const sections = wrapperRef.current.querySelectorAll(
-      'ol > li > p:first-child > span:first-child'
-    )
-
-    // we can print this to generate a list of linkable section text node for the config
-    // const sectionNames = Array.from(sections).map((item) => item.textContent)
-    for (const section of sections) {
-      const sectionName = section.textContent
-      const id = slugify(sectionName)
-
-      section.id = id
-      sectionNames.push(sectionName)
-      sectionIds.push(`#${id}`)
-    }
-
-    // TEMP: this console shouild be commented out, but temporaily umcommented to log the value for PR review
-    // add this return value to config/markdown-linkable.js for markdown links
-    // eslint-disable-next-line no-console
-    console.log(getMarkdownConfig(route, sectionNames, sectionIds))
-  }, [wrapperRef])
-
-  useEffect(() => {
-    // validates the hash value to prevent an error
-    if (sectionId && sectionIds.includes(sectionId)) {
-      const target = document.querySelector(sectionId)
-      target.scrollIntoView()
-    }
-    // (hack) prevents the selected section and the site header from overlapping on page load
-    const timer = setTimeout(() => {
-      setOffset(getHash() ? 90 : 0)
-    }, 0)
-
-    return () => clearTimeout(timer)
-  }, [sectionId])
+  useScrollToTextContentHash(
+    markdownRef,
+    'ol > li > p:first-child > span:first-child'
+  )
 
   const markdownConfig = {
     p: { component: Paragraph, props: { margin: { bottom: 'medium' } } },
@@ -78,9 +37,11 @@ export const MarkdownPage = ({
   if (!markdown) return <Error />
 
   return (
-    <Box ref={wrapperRef} pad={{ vertical: 'large' }} justify="center">
-      <Box width={width} margin={{ top: `${offset}px` }}>
-        <Markdown components={markdownConfig}>{markdown}</Markdown>
+    <Box pad={{ vertical: 'large' }} justify="center">
+      <Box width={width}>
+        <Markdown ref={markdownRef} components={markdownConfig}>
+          {markdown}
+        </Markdown>
       </Box>
     </Box>
   )
