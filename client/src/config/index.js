@@ -1,4 +1,4 @@
-import { termsOfUse, privacyPolicy } from './markdown-linkable'
+import { termsOfUse } from './markdownLinks'
 
 export const config = {
   links: {
@@ -37,8 +37,7 @@ export const config = {
     numbers: 'Phone: 866.333.1213 • Fax: 610.649.3038',
     email: 'scpca@ccdatalab.org'
   },
-  termsOfUse,
-  privacyPolicy
+  termsOfUse
 }
 
 export default config
