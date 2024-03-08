@@ -1,3 +1,5 @@
+import { termsOfUse } from './markdownLinks'
+
 export const config = {
   links: {
     what_downloading:
@@ -26,14 +28,16 @@ export const config = {
     alsfFacebook: 'https://www.facebook.com/alexslemonade/',
     alsfInstagram: 'https://www.instagram.com/AlexsLemonade/',
     ccdlTwitter: 'https://twitter.com/CancerDataLab',
-    ccdlGithub: 'https://github.com/AlexsLemonade/'
+    ccdlGithub: 'https://github.com/AlexsLemonade/',
+    ccdlGithub_pipeline: 'https://github.com/AlexsLemonade/scpca-nf'
   },
   contact: {
     to: 'Alex’s Lemonade Stand Foundation for Childhood Cancer',
     address: '333 E. Lancaster Ave, #414, Wynnewood, PA 19096 USA',
     numbers: 'Phone: 866.333.1213 • Fax: 610.649.3038',
     email: 'scpca@ccdatalab.org'
-  }
+  },
+  termsOfUse
 }
 
 export default config

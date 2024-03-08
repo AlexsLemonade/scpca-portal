@@ -93,6 +93,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
         fields = (
             "abstract",
             "additional_metadata_keys",
+            "additional_restrictions",
             "computed_files",
             "contacts",
             "created_at",
@@ -112,6 +113,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "includes_xenografts",
             "modalities",
             "multiplexed_sample_count",
+            "organisms",
             "pi_name",
             "publications",
             "sample_count",
