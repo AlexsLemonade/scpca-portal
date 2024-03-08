@@ -55,6 +55,9 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
+    def assertProjectReadmeContains(self, text, project_zip):
+        self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
+
     @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_data_clean_up(self):
         self.loader.load_data(
@@ -263,6 +266,10 @@ class TestLoadData(TransactionTestCase):
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
+            self.assertProjectReadmeContains(
+                "This dataset is designated as research or academic purposes only.",
+                project_zip,
+            )
 
         self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
 
@@ -472,6 +479,10 @@ class TestLoadData(TransactionTestCase):
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
+            self.assertProjectReadmeContains(
+                "This dataset is designated as research or academic purposes only.",
+                project_zip,
+            )
 
         self.assertEqual(len(sample_metadata_lines), 2)  # 1 item + header.
 
@@ -620,7 +631,7 @@ class TestLoadData(TransactionTestCase):
             project.spatial_computed_file.modality,
             ComputedFile.OutputFileModalities.SPATIAL,
         )
-        self.assertTrue(project.spatial_computed_file.has_bulk_rna_seq)
+        self.assertFalse(project.spatial_computed_file.has_bulk_rna_seq)
         self.assertFalse(project.spatial_computed_file.has_cite_seq_data)
 
         expected_keys = [
@@ -670,6 +681,10 @@ class TestLoadData(TransactionTestCase):
             spatial_metadata = [
                 sm for sm in spatial_metadata_file.decode("utf-8").split("\r\n") if sm
             ]
+            self.assertProjectReadmeContains(
+                "This dataset is designated as research or academic purposes only.",
+                project_zip,
+            )
 
         self.assertEqual(len(spatial_metadata), 2)  # 1 item + header.
 

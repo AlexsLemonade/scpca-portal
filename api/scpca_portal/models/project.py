@@ -9,6 +9,7 @@ from typing import Dict, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
 from django.template.defaultfilters import pluralize
+from django.template.loader import render_to_string
 
 from scpca_portal import common, utils
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
@@ -514,54 +515,62 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def create_anndata_readme_file(self):
         """Creates a annotation metadata README file."""
-        with open(ComputedFile.README_TEMPLATE_ANNDATA_FILE_PATH, "r") as readme_template_file:
-            readme_template = readme_template_file.read()
         with open(ComputedFile.README_ANNDATA_FILE_PATH, "w") as readme_file:
             readme_file.write(
-                readme_template.format(
-                    date=utils.get_today_string(),
-                    project_accession=self.scpca_id,
-                    project_url=self.url,
-                )
+                render_to_string(
+                    ComputedFile.README_TEMPLATE_ANNDATA_FILE_PATH,
+                    context={
+                        "additional_terms": self.get_additional_terms(),
+                        "date": utils.get_today_string(),
+                        "project_accession": self.scpca_id,
+                        "project_url": self.url,
+                    },
+                ).strip()
             )
 
     def create_single_cell_readme_file(self):
         """Creates a single cell metadata README file."""
-        with open(ComputedFile.README_TEMPLATE_FILE_PATH, "r") as readme_template_file:
-            readme_template = readme_template_file.read()
-        with open(ComputedFile.README_FILE_PATH, "w") as readme_file:
+        with open(ComputedFile.README_SINGLE_CELL_FILE_PATH, "w") as readme_file:
             readme_file.write(
-                readme_template.format(
-                    date=utils.get_today_string(),
-                    project_accession=self.scpca_id,
-                    project_url=self.url,
-                )
+                render_to_string(
+                    ComputedFile.README_TEMPLATE_SINGLE_CELL_FILE_PATH,
+                    context={
+                        "additional_terms": self.get_additional_terms(),
+                        "date": utils.get_today_string(),
+                        "project_accession": self.scpca_id,
+                        "project_url": self.url,
+                    },
+                ).strip()
             )
 
     def create_multiplexed_readme_file(self):
         """Creates a multiplexed metadata README file."""
-        with open(ComputedFile.README_TEMPLATE_MULTIPLEXED_FILE_PATH, "r") as readme_template_file:
-            readme_template = readme_template_file.read()
         with open(ComputedFile.README_MULTIPLEXED_FILE_PATH, "w") as readme_file:
             readme_file.write(
-                readme_template.format(
-                    date=utils.get_today_string(),
-                    project_accession=self.scpca_id,
-                    project_url=self.url,
-                )
+                render_to_string(
+                    ComputedFile.README_TEMPLATE_MULTIPLEXED_FILE_PATH,
+                    context={
+                        "additional_terms": self.get_additional_terms(),
+                        "date": utils.get_today_string(),
+                        "project_accession": self.scpca_id,
+                        "project_url": self.url,
+                    },
+                ).strip()
             )
 
     def create_spatial_readme_file(self):
         """Creates a spatial metadata README file."""
-        with open(ComputedFile.README_TEMPLATE_SPATIAL_FILE_PATH, "r") as readme_template_file:
-            readme_template = readme_template_file.read()
         with open(ComputedFile.README_SPATIAL_FILE_PATH, "w") as readme_file:
             readme_file.write(
-                readme_template.format(
-                    project_accession=self.scpca_id,
-                    project_url=self.url,
-                    date=utils.get_today_string(),
-                )
+                render_to_string(
+                    ComputedFile.README_TEMPLATE_SPATIAL_FILE_PATH,
+                    context={
+                        "additional_terms": self.get_additional_terms(),
+                        "date": utils.get_today_string(),
+                        "project_accession": self.scpca_id,
+                        "project_url": self.url,
+                    },
+                ).strip()
             )
 
     def get_bulk_rna_seq_sample_ids(self):
@@ -626,6 +635,15 @@ class Project(CommonDataAttributes, TimestampedModel):
                         spatial_workflow_versions,
                         file_format,
                     ).add_done_callback(create_computed_file)
+
+    def get_additional_terms(self):
+        if not self.additional_restrictions:
+            return ""
+
+        with open(
+            common.TEMPLATE_PATH / "readme/additional_terms/research_academic_only.md"
+        ) as additional_terms_file:
+            return additional_terms_file.read()
 
     def get_library_metadata_keys(self, all_keys, modalities=()):
         """Returns a set of library metadata keys based on the modalities context."""
@@ -728,9 +746,11 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return sorted(
             sorted((c for c in columns), key=str.lower),  # Sort by a column name first.
-            key=lambda k: ordering[modality].index(k)  # Then enforce expected ordering.
-            if k in ordering[modality]
-            else float("inf"),
+            key=lambda k: (
+                ordering[modality].index(k)  # Then enforce expected ordering.
+                if k in ordering[modality]
+                else float("inf")
+            ),
         )
 
     def get_sample_metadata_keys(self, all_keys, modalities=()):

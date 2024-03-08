@@ -197,7 +197,7 @@ It passes any arguments through to the `manage.py`, so `./run_command.sh load_da
 The following code can be used to process projects one by one with a minimum disk space footprint:
 ```
 for i in $(seq -f "%02g" 1 20); do
-    ./run_command.sh load_data --cleanup-input-data --cleanup-output-data --reload-existing --scpca-project-id SCPCP0000$i
+    ./run_command.sh load_data --clean-up-input-data --clean-up-output-data --reload-existing --scpca-project-id SCPCP0000$i
 done
 ```
 
