@@ -1,12 +1,12 @@
 import React from 'react'
 import { MarkdownPage } from 'components/MarkdownPage'
-import { MarkdownLastUpdatedDate } from 'components/MarkdownLastUpdated'
+import { LastUpdated } from 'components/LastUpdated'
 import privacyPolicy from '../config/privacy-policy.md'
 
 export const PrivacyPolicy = () => (
   <>
     <MarkdownPage markdown={privacyPolicy} />
-    <MarkdownLastUpdatedDate env={process.env.PRIVACY_POLICY_RELEASE} />
+    <LastUpdated date={process.env.PRIVACY_POLICY_RELEASE} />
   </>
 )
 
