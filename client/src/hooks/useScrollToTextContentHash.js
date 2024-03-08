@@ -11,7 +11,7 @@ export const useScrollToTextContentHash = (ref, selector) => {
   const slug = getHash().replace('#', '')
 
   useEffect(() => {
-    if (!ref.current) return
+    if (!ref.current || !slug) return
 
     const sections = ref.current.querySelectorAll(selector)
 
