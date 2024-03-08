@@ -1,11 +1,11 @@
 // default format(for hubspot): YYYY-MM-DD
 /*
-@name formatDate
+@name getDateISO
 @description returns the current date in YYYY-MM-DD format (UTC timezone)
-@param {date} date - a date to be formatted
+@param {date} date - an alternate date to return as ISO String
 */
 
-export const formatDate = (date = new Date()) =>
+export const getDateISO = (date = new Date()) =>
   date.toISOString().substring(0, 10)
 
-export default formatDate
+export default getDateISO
