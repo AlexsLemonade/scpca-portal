@@ -7,7 +7,6 @@ import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
 import { PageLoader } from 'components/PageLoader'
 import styled from 'styled-components'
-import { AnnDataProcessingBanner } from 'components/AnnDataProcessingBanner'
 
 const FixedBox = styled(Box)`
   position: fixed;
@@ -44,14 +43,10 @@ export const Layout = ({ children }) => {
   const widePaths = ['/', '/about']
   const showWide = widePaths.includes(router.pathname)
 
-  // show banner on all pages
-  const showBanner = true
-
   return (
     <Box height={{ min: '100vh' }}>
       <Box height={fixedBoxHeight}>
         <FixedBox background="white" ref={fixedBoxRef}>
-          {showBanner && <AnnDataProcessingBanner />}
           <Header margin={{ bottom: 'small' }} donate={showDonate} />
           <ProgressBar />
         </FixedBox>
