@@ -6,7 +6,7 @@ or any subdomains thereof (the **"ScPCADP"**), is supported by Alex’s
 Lemonade Stand Foundation (**"we,"** **"our,"** or **"us"**).
 
 Your access to, and use of, the ScPCADP is subject to our Terms of Use,
-located at [_http://refine.bio/terms_](https://www.refine.bio/terms)
+located at [_https://scpca.alexslemonade.org/terms-of-use_](https://scpca.alexslemonade.org/terms-of-use)
 (the **"Terms of Use"**). We have created this Privacy Policy (this
 **"Privacy Policy"**) to explain what information we gather when you
 visit or interact with the ScPCADP, how we and others may use your
