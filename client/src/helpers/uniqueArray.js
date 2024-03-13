@@ -1,6 +1,6 @@
 /**
  *  @name uniqueArray
- *  @param {(string|number)[]} arr - an array to be filtered
+ *  @param {(string | number)[]} arr - an array to be filtered
  *  @return {(string | number)[]}
  *  @description returns a new array containing only the unique values of 'arr'
  *  @usage
