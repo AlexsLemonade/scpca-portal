@@ -1,9 +1,10 @@
 /**
- * Capitalizes first letters of words in string.
+ * @name capitalize
  * @param {string} str - string to be modified
  * @param {boolean} firstOnly - (optional) Whether to capitalize only the first letter of the first word
  * @param {boolean} lower - (optional) Whether all other letters should be lowercased
  * @return {string}
+ * @description  capitalizes first letters of words in string
  * @usage
  *   By default:
  *   capitalize('fix this string');     // -> 'Fix This String'
