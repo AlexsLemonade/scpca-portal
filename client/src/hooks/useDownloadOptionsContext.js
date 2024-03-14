@@ -4,6 +4,7 @@ import pick from 'helpers/pick'
 import filterWhere from 'helpers/filterWhere'
 import { optionsSortOrder } from 'config/downloadOptions'
 import arrayListSort from 'helpers/arrayListSort'
+import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useDownloadOptionsContext = () => {
   const {
@@ -70,7 +71,7 @@ export const useDownloadOptionsContext = () => {
     files = computedFiles
   ) => {
     const allOptions = arrayListSort(
-      [...new Set(pick(files, optionName))],
+      uniqueArray(pick(files, optionName)),
       optionsSortOrder
     )
     const defaultOption = allOptions.includes(preference)
