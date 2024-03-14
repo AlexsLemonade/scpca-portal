@@ -1,9 +1,9 @@
 import { useContext, useEffect } from 'react'
 import { DownloadOptionsContext } from 'contexts/DownloadOptionsContext'
-import pick from 'helpers/pick'
-import filterWhere from 'helpers/filterWhere'
 import { optionsSortOrder } from 'config/downloadOptions'
-import arrayListSort from 'helpers/arrayListSort'
+import { arrayListSort } from 'helpers/arrayListSort'
+import { filterWhere } from 'helpers/filterWhere'
+import { pick } from 'helpers/pick'
 
 export const useDownloadOptionsContext = () => {
   const {
