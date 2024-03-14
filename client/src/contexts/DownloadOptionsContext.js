@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
-import pick from 'helpers/pick'
+import { pick } from 'helpers/pick'
 
 export const DownloadOptionsContext = createContext({})
 

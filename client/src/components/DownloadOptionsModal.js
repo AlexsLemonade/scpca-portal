@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { Box, Button, FormField, Select, Text } from 'grommet'
-import { Modal, ModalBody } from 'components/Modal'
-import { HelpLink } from 'components/HelpLink'
-import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
-import getReadableOptions from 'helpers/getReadableOptions'
-import { config } from 'config'
 import styled from 'styled-components'
+import { config } from 'config'
+import { HelpLink } from 'components/HelpLink'
+import { Modal, ModalBody } from 'components/Modal'
+import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import { getReadableOptions } from 'helpers/getReadableOptions'
 
 const BlueButton = styled(Button)`
   color: ${({ theme }) => theme.global.colors.brand.light};
