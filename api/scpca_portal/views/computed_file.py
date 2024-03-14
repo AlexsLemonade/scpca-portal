@@ -23,7 +23,6 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "s3_key",
             "sample",
             "size_in_bytes",
-            "type",
             "updated_at",
             "workflow_version",
         )
@@ -51,12 +50,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
 class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = ComputedFile.objects.order_by("-created_at")
     ordering_fields = "__all__"
-    filterset_fields = (
-        "project__id",
-        "sample__id",
-        "id",
-        "type",
-    )
+    filterset_fields = ("project__id", "sample__id", "id")
 
     def get_serializer_class(self):
         if self.action == "list":

@@ -15,7 +15,6 @@ class TestComputedFile(TestCase):
             s3_bucket="scpca-bucket",
             s3_key="SCPCP000001.zip",
             size_in_bytes=10000,
-            type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             workflow_version="v1.0",
         )
 

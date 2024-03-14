@@ -92,7 +92,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     def multiplexed_computed_file(self):
         try:
             return self.project_computed_files.get(
-                type=ComputedFile.OutputFileTypes.PROJECT_MULTIPLEXED_ZIP
+                modality=ComputedFile.OutputFileModalities.MULTIPLEXED
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -130,7 +130,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -140,7 +140,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.ANN_DATA,
-                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -149,7 +149,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     def spatial_computed_file(self):
         try:
             return self.project_computed_files.get(
-                type=ComputedFile.OutputFileTypes.PROJECT_SPATIAL_ZIP
+                modality=ComputedFile.OutputFileModalities.SPATIAL
             )
         except ComputedFile.DoesNotExist:
             pass
