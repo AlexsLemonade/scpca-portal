@@ -19,9 +19,10 @@ export const Link = ({
   as,
   children = '',
   color = 'brand',
+  newTab = false,
   underline = false
 }) => {
-  return isExternalPath(href) ? (
+  return isExternalPath(href) || newTab ? (
     <LinkAnchor
       target="_blank"
       color={color}
