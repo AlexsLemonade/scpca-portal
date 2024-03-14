@@ -8,7 +8,7 @@ import {
 } from 'config/downloadOptions'
 
 import { getReadableFiles } from 'helpers/getReadable'
-import { capitalizeFirst } from 'helpers/capitalize'
+import { capitalize } from 'helpers/capitalize'
 import objectContains from 'helpers/objectContains'
 
 export const resolveKey = (key, computedFile) => {
@@ -22,7 +22,7 @@ const formatFileItemByKey = (key, computedFile) => {
   const formattedItem = nonFormatKeys.includes(key)
     ? fileItem
     : `${fileItem} as ${getReadableFiles(format)}`
-  return capitalizeFirst(formattedItem).trim()
+  return capitalize(formattedItem, true).trim()
 }
 
 // takes the config and checks against the resource
