@@ -4,10 +4,11 @@ import { Box, Grid, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
+import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
+import { WarningText } from 'components/WarningText'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
-import { WarningText } from 'components/WarningText'
 import { api } from 'api'
 import DownloadSVG from '../images/download-folder.svg'
 
@@ -20,7 +21,7 @@ export const DownloadStarted = ({
   // open the file in a new tab
   const { items, info, type, isProject } =
     getDownloadOptionDetails(computedFile)
-
+  const additionalRestrictions = resource.additional_restrictions
   const [recommendedResource, setRecommendedResource] = useState(null)
   const [recommendedFile, setRecommendedFile] = useState(null)
 
@@ -125,6 +126,14 @@ export const DownloadStarted = ({
                 </Text>
               </Box>
             </WarningText>
+          )}
+          {additionalRestrictions && (
+            <Box margin={{ vertical: 'medium' }}>
+              <ProjectAdditionalRestrictions
+                text={additionalRestrictions}
+                isModal
+              />
+            </Box>
           )}
           <Box>
             {responsiveSize !== 'small' && (
