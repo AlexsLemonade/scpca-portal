@@ -68,7 +68,7 @@ Alex's Lemonade Stand Foundation Childhood Cancer Data Lab. (n.d.). The Single-c
 
 #### MLA Format
 
-The Single-Cell Pediatric Cancer Atlas Portal, Alex’s Lemonade Stand Foundation Childhood Cancer Data Lab, https://scpca.alexslemonade.org/. Accessed (insert access date).
+The Single-cell Pediatric Cancer Atlas Portal, Alex’s Lemonade Stand Foundation Childhood Cancer Data Lab, https://scpca.alexslemonade.org/. Accessed (insert access date).
 
 ## Terms of Use
 

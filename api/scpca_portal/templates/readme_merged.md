@@ -6,23 +6,21 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{project_accession}]({project_url}) in the ScPCA portal.
+This download includes single-cell or single-nuclei gene expression data and associated metadata for all samples and libraries from a project [{project_accession}]({project_url}) in the ScPCA portal.
+All gene expression data for all samples and libraries have been merged into a single `SingleCellExperiment` object, stored as an `.rds` file.
+In addition to the merged object, each download includes a summary report describing the contents of the merged file and a folder with all quality control reports, and, if applicable, cell type annotation reports, for each library included in the merged object.
 
-This project includes multiplexed samples, where multiple biological samples have been combined into libraries using cellhashing or similar technologies.
-The data files are divided into folders named with an underscore-separated list of the sample ids (each with an `SCPCS` prefix) for each set of multiplexed samples.
-Each of these folders contains the files for all libraries (`SCPCL` prefix) derived from that set of samples.
-See the FAQ sections about [samples and libraries](https://scpca.readthedocs.io/en/stable/faq.html#what-is-the-difference-between-samples-and-libraries) and [multiplexed samples](https://scpca.readthedocs.io/en/stable/faq.html#what-is-a-multiplexed-sample) for more information.
+The download will include the following files for the selected project (example shown for project with ID `SCPCP000000`):
 
-The files associated with each library are (example shown for a library with ID `SCPCL000000`):
-- An unfiltered counts file: `SCPCL000000_unfiltered.rds`,
-- A filtered counts file: `SCPCL000000_filtered.rds`,
-- A processed counts file: `SCPCL000000_processed.rds`,
-- A quality control report: `SCPCL000000_qc.html`
+- A merged file containing all gene expression data: `SCPCP000000_merged.rds`
+- A summary report: `SCPCP000000_merged-summary-report.html`
+- A folder containing all reports for individual libraries:
+  - A quality control report: `SCPCL000000_qc.html`
+  - A supplemental cell type report: `SCPCL000000_celltype-report.html`
 
-Also included in each download is a `single_cell_metadata.tsv`, a tab-separated table, with one row per sample/library pair and columns containing pertinent metadata corresponding to that sample and library.
+Also included in each download is `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
-Gene expression files, available as RDS files containing a `SingleCellExperiment` object, house the expression data, cell and gene metrics, associated metadata, and, in the case of multiplexed samples, data from the the cellhash assay (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
-Please note that the libraries derived from multiplexed samples are _not demultiplexed_, however, [results from demultiplexing algorithms](https://scpca.readthedocs.io/en/stable/sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries) are included in the `_filtered.rds` files.
+Merged objects, available as RDS files containing a `SingleCellExperiment` object, house the expression data, cell and gene metrics, associated metadata, and in the case of multi-modal data like CITE-seq, data from the additional cell-based assays for all samples and libraries from the selected project (see [Merged objects](https://scpca.readthedocs.io/en/stable/merged_objects.html) for more information).
 
 If a project contains bulk RNA-seq data, two tab-separated value files, `bulk_quant.tsv` and `bulk_metadata.tsv`, will be included in the download.
 The `bulk_quant.tsv` file contains a gene by sample matrix (each row a gene, each column a sample) containing raw gene expression counts quantified by Salmon.
@@ -33,13 +31,11 @@ See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_fil
 ## Usage
 
 For instructions on using the RDS files, please see [FAQ: How do I use the provided files in R?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-rds-files-in-r).
-
-For information on how to use the demultiplexing results that the filtered data files contains, see the ["Getting started" section about multiplex samples](https://scpca.readthedocs.io/en/stable/getting_started.html#special-considerations-for-multiplexed-samples).
+For more information on working with the processed `SingleCellExperiment` objects, see [`Getting started with an ScPCA dataset`](https://scpca.readthedocs.io/en/stable/getting_started.html).
 
 ## CHANGELOG
 
 A summary of changes impacting downloads from the ScPCA Portal is available in [the CHANGELOG section of our documentation](https://scpca.readthedocs.io/en/stable/CHANGELOG.html).
-
 
 ## Contact
 
@@ -71,6 +67,7 @@ Alex's Lemonade Stand Foundation Childhood Cancer Data Lab. (n.d.). The Single-c
 
 The Single-cell Pediatric Cancer Atlas Portal, Alex’s Lemonade Stand Foundation Childhood Cancer Data Lab, https://scpca.alexslemonade.org/. Accessed (insert access date).
 
+
 ## Terms of Use
 
-In using these data, you agree to our [Terms of Use.](https://scpca.alexslemonade.org/terms-of-use)
+In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade.org/terms-of-use).
