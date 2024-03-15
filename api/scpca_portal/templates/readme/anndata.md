@@ -1,4 +1,4 @@
-Generated on: {date}
+Generated on: {{ date }}
 
 # Alex's Lemonade Stand Foundation Single-cell Pediatric Cancer Atlas
 
@@ -6,7 +6,7 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{project_accession}]({project_url}) in the ScPCA portal.
+This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{{ project_accession }}]({{ project_url }}) in the ScPCA portal.
 
 Each sample folder (indicated by the `SCPCS` prefix) contains the files for all libraries (`SCPCL` prefix) derived from that biological sample.
 Most samples only have one library that has been sequenced.
@@ -16,7 +16,8 @@ The files associated with each library are (example shown for a library with ID 
 - An unfiltered counts file: `SCPCL000000_unfiltered_rna.hdf5`,
 - A filtered counts file: `SCPCL000000_filtered_rna.hdf5`,
 - A processed counts file: `SCPCL000000_processed_rna.hdf5`,
-- A quality control report: `SCPCL000000_qc.html`
+- A quality control report: `SCPCL000000_qc.html`,
+- A supplemental cell type report: `SCPCL000000_celltype-report.html`
 
 Also included in each download is `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
@@ -55,7 +56,7 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-To cite data from {project_accession}, please see the project abstract and publication information at [{project_accession} page.]({project_url})
+To cite data from {{ project_accession }}, please see the project abstract and publication information at [{{ project_accession }} page.]({{ project_url }})
 
 ### Citing the ScPCA Portal
 
@@ -73,3 +74,7 @@ The Single-Cell Pediatric Cancer Atlas Portal, Alex’s Lemonade Stand Foundatio
 ## Terms of Use
 
 In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade.org/terms-of-use).
+
+{% if additional_terms %}
+{{ additional_terms }}
+{% endif %}

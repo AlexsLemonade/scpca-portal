@@ -1,5 +1,5 @@
 # For more information on CODEOWNERS, see:
 # https://help.github.com/en/articles/about-code-owners
 
-* @arkid15r @davidsmejia
+* @davidsmejia
 /client/ @davidsmejia @nozomione
