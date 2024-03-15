@@ -2,13 +2,14 @@ import { useEffect } from 'react'
 import { slugify } from 'helpers/slugify'
 import { getHash } from 'helpers/getHash'
 
-// Given the hook is loaded at a location with a hash ie. #some-slug
-// This hook takes a DOM ref and css selector
-// Will iterate over matches on the css selector in the ref node
-// a match is a slug version of the textContent matching the slug from hash
-// If there is a match it will scroll to that element
+// This hook takes the following params:
+// - ref: a DOM ref
+// - selector: css selector for the querySelectorAll method
+// - y: (optional) y-coordinate for the scrollBy method, -90 by default
+// If there is a match (a slug version of textContent (for id name) matching a hash in URL),
+// it will scroll to the element with that id name on page load
 
-export const useScrollToTextContentHash = (ref, selector) => {
+export const useScrollToTextContentHash = (ref, selector, y = -90) => {
   const slug = getHash().replace('#', '')
 
   useEffect(() => {
@@ -23,6 +24,6 @@ export const useScrollToTextContentHash = (ref, selector) => {
     if (!section) return
 
     section.scrollIntoView(true)
-    window.scrollBy(0, -90)
+    window.scrollBy(0, y)
   }, [ref, selector])
 }
