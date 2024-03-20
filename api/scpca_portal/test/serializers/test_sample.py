@@ -26,3 +26,8 @@ class TestSampleSerializer(TestCase):
     def test_detail_serializer_with_valid_data(self):
         serializer = SampleDetailSerializer(data=self.sample_data)
         self.assertTrue(serializer.is_valid())
+
+    def test_existence_of_is_cell_line_and_is_xenograft_properties(self):
+        serializer = SampleSerializer(data=self.sample_data)
+        self.assertTrue('is_cell_line' in serializer.fields.keys())
+        self.assertTrue('is_xenograft' in serializer.fields.keys())

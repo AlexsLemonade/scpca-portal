@@ -23,7 +23,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             BULK_RNA_SEQ: "Bulk RNA-seq",
             CITE_SEQ: "CITE-seq",
             MULTIPLEXED: "Multiplexed",
-            SPATIAL: "Spatial Data",
+            SPATIAL: "Spatial Dagita",
         }
 
     additional_metadata = models.JSONField(default=dict)
@@ -35,6 +35,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     includes_anndata = models.BooleanField(default=False)
+    is_cell_line = models.BooleanField(default=False)
+    is_xenograft = models.BooleanField(default=False)
     multiplexed_with = ArrayField(models.TextField(), default=list)
     sample_cell_count_estimate = models.IntegerField(null=True)
     scpca_id = models.TextField(unique=True)
@@ -52,7 +54,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
     @classmethod
     def get_from_dict(cls, data, project):
-        """Prepares a ready for saving sample object."""
+        """Prepares ready for saving sample object."""
 
         has_multiplexed_data = bool(data.get("multiplexed_with"))
         sample = cls(
@@ -68,6 +70,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
             has_single_cell_data=data.get("has_single_cell_data", False),
             has_spatial_data=data.get("has_spatial_data", False),
             includes_anndata=data.get("includes_anndata", False),
+            is_cell_line=data.get("is_cell_line", False),
+            is_xenograft=data.get("is_xenograft", False),
             multiplexed_with=data.get("multiplexed_with"),
             sample_cell_count_estimate=(
                 data.get("sample_cell_count_estimate") if not has_multiplexed_data else None

@@ -158,6 +158,8 @@ class SampleLeafSerializer(serializers.ModelSerializer):
             "has_single_cell_data",
             "has_spatial_data",
             "includes_anndata",
+            "is_cell_line",
+            "is_xenograft",
             "modalities",
             "multiplexed_with",
             "project",

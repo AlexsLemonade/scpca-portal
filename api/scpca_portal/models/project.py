@@ -514,7 +514,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         return combined_metadata
 
     def create_anndata_readme_file(self):
-        """Creates a annotation metadata README file."""
+        """Creates an annotation metadata README file."""
         with open(ComputedFile.README_ANNDATA_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 render_to_string(
@@ -849,7 +849,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def load_data(self, sample_id=None, **kwargs) -> None:
         """
-        Goes through a project directory contents, parses multiple level metadata
+        Goes through a project directory's contents, parses multiple level metadata
         files, writes combined metadata into resulting files.
 
         Returns a list of project's computed files.
@@ -1102,7 +1102,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                         workflow_versions,
                         ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
                     ).add_done_callback(update_multiplexed_data)
-
+                
         if multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]:
             # We want a single ZIP archive for a multiplexed samples project.
             multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
@@ -1126,6 +1126,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.has_single_cell_data = self.samples.filter(has_single_cell_data=True).exists()
         self.has_spatial_data = self.samples.filter(has_spatial_data=True).exists()
         self.includes_anndata = self.samples.filter(includes_anndata=True).exists()
+        self.includes_cell_lines = self.samples.filter(is_cell_line=True).exists()
+        self.includes_xenografts = self.samples.filter(is_xenograft=True).exists()
         self.save(
             update_fields=(
                 "has_bulk_rna_seq",
@@ -1134,6 +1136,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                 "has_single_cell_data",
                 "has_spatial_data",
                 "includes_anndata",
+                "includes_cell_lines",
+                "includes_xenografts",
             )
         )
 
