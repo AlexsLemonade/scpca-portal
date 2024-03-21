@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0037_merge_20240220_1750'),
+        ("scpca_portal", "0037_merge_20240220_1750"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sample',
-            name='is_cell_line',
+            model_name="sample",
+            name="is_cell_line",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='sample',
-            name='is_xenograft',
+            model_name="sample",
+            name="is_xenograft",
             field=models.BooleanField(default=False),
         ),
     ]
