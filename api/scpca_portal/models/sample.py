@@ -23,7 +23,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             BULK_RNA_SEQ: "Bulk RNA-seq",
             CITE_SEQ: "CITE-seq",
             MULTIPLEXED: "Multiplexed",
-            SPATIAL: "Spatial Dagita",
+            SPATIAL: "Spatial Data",
         }
 
     additional_metadata = models.JSONField(default=dict)
