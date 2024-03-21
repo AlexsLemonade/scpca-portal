@@ -1102,7 +1102,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                         workflow_versions,
                         ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
                     ).add_done_callback(update_multiplexed_data)
-                
+
         if multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]:
             # We want a single ZIP archive for a multiplexed samples project.
             multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
