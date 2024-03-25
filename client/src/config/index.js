@@ -2,6 +2,8 @@ import { termsOfUse } from './markdownLinks'
 
 export const config = {
   links: {
+    what_are_merged_objects:
+      'https://scpca.readthedocs.io/en/stable/merged_objects.html',
     what_downloading:
       'https://scpca.readthedocs.io/en/stable/download_files.html',
     what_downloading_project:
@@ -14,6 +16,10 @@ export const config = {
       'https://scpca.readthedocs.io/en/stable/download_files.html#multiplexed-sample-libraries',
     what_est_demux_cell:
       'https://scpca.readthedocs.io/en/stable/faq.html#what-are-estimated-demux-cell-counts',
+    when_downloading_merged_objects:
+      'https://scpca.readthedocs.io/en/stable/faq.html#when-should-i-download-a-project-as-a-merged-object',
+    which_projects_are_merged_objects:
+      'https://scpca.readthedocs.io/en/stable/faq.html#which-projects-can-i-download-as-a-merged-objects',
     how_processed:
       'https://scpca.readthedocs.io/en/stable/processing_information.html',
     how_processed_multiplexed:
