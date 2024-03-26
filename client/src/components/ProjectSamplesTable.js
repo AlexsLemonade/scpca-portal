@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { api } from 'api'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
@@ -19,15 +19,15 @@ export const ProjectSamplesTable = ({
   samples: defaultSamples,
   stickies = 3
 }) => {
-  const [showDownloadOptions, setShowDownloadOptions] = React.useState(false)
+  const [showDownloadOptions, setShowDownloadOptions] = useState(false)
 
   // We only want to show the applied donwload options.
   // Also need some helpers for presentation.
   const { modality, format, getFoundFile, resourceSort } =
     useDownloadOptionsContext()
 
-  const [samples, setSamples] = React.useState(defaultSamples)
-  const [loaded, setLoaded] = React.useState(false)
+  const [samples, setSamples] = useState(defaultSamples)
+  const [loaded, setLoaded] = useState(false)
   const infoText =
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
