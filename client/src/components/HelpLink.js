@@ -1,20 +1,14 @@
 import React from 'react'
 import { Icon } from 'components/Icon'
-import { Text, Anchor, Stack, Box } from 'grommet'
+import { Anchor, Box, Text } from 'grommet'
 
 export const HelpLink = ({ label, link }) => {
   return (
-    <Box align="start">
-      <Stack anchor="bottom-right">
-        <Box width="auto">
-          <Text>{label}</Text>
-        </Box>
-        <Box margin={{ left: '100%' }} pad="small">
-          <Anchor href={link} target="_blank">
-            <Icon name="Help" size="16px" />
-          </Anchor>
-        </Box>
-      </Stack>
+    <Box direction="row" gap="xxsmall">
+      <Text>{label}</Text>
+      <Anchor href={link} target="_blank" margin={{ top: '-4px' }}>
+        <Icon name="Help" size="16px" />
+      </Anchor>
     </Box>
   )
 }

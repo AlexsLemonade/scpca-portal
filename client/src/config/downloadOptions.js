@@ -30,6 +30,9 @@ export const dynamicKeys = ['modality']
 // This is a list of keys to check for true.
 export const dataKeys = ['has_bulk_rna_seq', 'has_cite_seq_data']
 
+// This is a list of modalities that support the merged objects download
+export const mergedObjectsKeys = ['SINGLE_CELL']
+
 // This prevents appending "as Single-Cell Experiment" etc.
 export const nonFormatKeys = ['has_bulk_rna_seq']
 

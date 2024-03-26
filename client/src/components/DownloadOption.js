@@ -1,15 +1,16 @@
 import React from 'react'
 import { Box, Grid, Heading, Text } from 'grommet'
 import { Button } from 'components/Button'
+import { config } from 'config'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
+import { WarningText } from 'components/WarningText'
 
 export const DownloadOption = ({ computedFile, handleSelectFile }) => {
   const { type, items, resourceId } = getDownloadOptionDetails(computedFile)
-
-  const { saveUserPreferences } = useDownloadOptionsContext()
-
+  const { isMergedObjectsAvailable, saveUserPreferences } =
+    useDownloadOptionsContext()
   const downloadLabel = `Download ${type}`
 
   return (
@@ -42,6 +43,18 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
         </Box>
       </Box>
       <Box gridArea="body" margin={{ bottom: 'small' }}>
+        {isMergedObjectsAvailable && (
+          <Box>
+            <WarningText
+              iconMargin="none"
+              iconSize="24px"
+              lineBreak={false}
+              link={config.links.what_are_merged_objects}
+              linkLabel="Learn more"
+              text="Samples are not integrated."
+            />
+          </Box>
+        )}
         <Box pad="small">
           <Text margin={{ bottom: 'small' }}>
             The download consists of the following items:
