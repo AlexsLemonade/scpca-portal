@@ -16,6 +16,7 @@ export const DownloadOptionsContextProvider = ({
   // Download Options
   const [modality, setModality] = useState(null)
   const [format, setFormat] = useState(null)
+  const [selectedMerged, setSelectedMerged] = useState(false)
 
   // Potential Values for Download Options
   const [modalityOptions, setModalityOptions] = useState([])
@@ -41,23 +42,25 @@ export const DownloadOptionsContextProvider = ({
   return (
     <DownloadOptionsContext.Provider
       value={{
+        computedFile,
+        computedFiles,
+        setComputedFile,
+        format,
+        setFormat,
+        formatOptions,
+        setFormatOptions,
+        modality,
+        setModality,
+        modalityOptions,
+        setModalityOptions,
+        resource,
+        resourceAttribute,
+        selectedMerged,
+        setSelectedMerged,
         userModality,
         setUserModality,
         userFormat,
-        setUserFormat,
-        modality,
-        setModality,
-        format,
-        setFormat,
-        modalityOptions,
-        formatOptions,
-        computedFile,
-        resource,
-        resourceAttribute,
-        setModalityOptions,
-        setFormatOptions,
-        computedFiles,
-        setComputedFile
+        setUserFormat
       }}
     >
       {children}
