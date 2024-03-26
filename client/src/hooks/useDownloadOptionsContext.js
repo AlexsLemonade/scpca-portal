@@ -7,23 +7,25 @@ import arrayListSort from 'helpers/arrayListSort'
 
 export const useDownloadOptionsContext = () => {
   const {
+    computedFile,
+    computedFiles,
+    setComputedFile,
+    format,
+    setFormat,
+    formatOptions,
+    setFormatOptions,
+    modality,
+    setModality,
+    modalityOptions,
+    setModalityOptions,
     resource,
+    resourceAttribute,
+    selectedMerged,
+    setSelectedMerged,
     userModality,
     setUserModality,
     userFormat,
-    setUserFormat,
-    modality,
-    setModality,
-    format,
-    setFormat,
-    modalityOptions,
-    formatOptions,
-    computedFile,
-    setModalityOptions,
-    setFormatOptions,
-    computedFiles,
-    setComputedFile,
-    resourceAttribute
+    setUserFormat
   } = useContext(DownloadOptionsContext)
 
   // When computed files change, update modality to ensure it is possible
@@ -54,6 +56,11 @@ export const useDownloadOptionsContext = () => {
     }
   }, [modality])
 
+  // Sets 'selectedMerged' to false if unsupported by the user-selected modality
+  useEffect(() => {
+    if (!isMergedObjectKeys) setSelectedMerged(false)
+  }, [modality])
+
   // Update computed file when download options resolves to a computed file
   // This only needs to be updated when the user is configuring the passed in resource.
   // Otherwise you can call useDownloadOptionsContext.getFoundFile directy ex. samples table
@@ -62,7 +69,7 @@ export const useDownloadOptionsContext = () => {
       const newComputedFile = getFoundFile()
       if (newComputedFile) setComputedFile(newComputedFile)
     }
-  }, [modality, format])
+  }, [modality, format, selectedMerged])
 
   const getOptionsAndDefault = (
     optionName,
@@ -84,12 +91,18 @@ export const useDownloadOptionsContext = () => {
 
   // Get the first computed file that matches modality and format
   const getFoundFile = (files = computedFiles) =>
-    files.find((file) => file.modality === modality && file.format === format)
+    files.find(
+      (file) =>
+        file.modality === modality &&
+        file.format === format &&
+        file.includes_merged === selectedMerged
+    )
+  // Check if the user-selected modality is in 'mergedObjectsKeys'
+  const isMergedObjectKeys = mergedObjectsKeys.includes(modality)
 
-  // Check the availability of the merged objects download based on modalities and 'includes_merged' flag per computed file
+  // Check the availability of the merged objects based on modalities and 'includes_merged' flag per computed file
   const isMergedObjectsAvailable =
-    mergedObjectsKeys.includes(modality) &&
-    computedFiles.some((cf) => cf.includes_merged)
+    isMergedObjectKeys && computedFiles.some((cf) => cf.includes_merged)
 
   // Sorter function for ordering a resource
   // based on availability of prefered download options
@@ -121,6 +134,8 @@ export const useDownloadOptionsContext = () => {
     isMergedObjectsAvailable,
     saveUserPreferences,
     resourceSort,
-    resource
+    resource,
+    selectedMerged,
+    setSelectedMerged
   }
 }
