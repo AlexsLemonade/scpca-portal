@@ -86,8 +86,10 @@ export const useDownloadOptionsContext = () => {
   const getFoundFile = (files = computedFiles) =>
     files.find((file) => file.modality === modality && file.format === format)
 
-  // Check the availability of the merged objects download based on modalities
-  const isMergedObjectsAvailable = mergedObjectsKeys.includes(modality)
+  // Check the availability of the merged objects download based on modalities and 'includes_merged' flag per computed file
+  const isMergedObjectsAvailable =
+    mergedObjectsKeys.includes(modality) &&
+    computedFiles.some((cf) => cf.includes_merged)
 
   // Sorter function for ordering a resource
   // based on availability of prefered download options
