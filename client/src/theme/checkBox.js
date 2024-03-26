@@ -32,7 +32,7 @@ export default {
     applyWhen(
       !props.reverse,
       `
-        align-items: start; 
+        align-items: start;
         margin: 0 2px;
         div:first-child {
           margin-top: 4px;
