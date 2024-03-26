@@ -2,7 +2,7 @@ import { useContext, useEffect } from 'react'
 import { DownloadOptionsContext } from 'contexts/DownloadOptionsContext'
 import pick from 'helpers/pick'
 import filterWhere from 'helpers/filterWhere'
-import { optionsSortOrder } from 'config/downloadOptions'
+import { mergedObjectsKeys, optionsSortOrder } from 'config/downloadOptions'
 import arrayListSort from 'helpers/arrayListSort'
 
 export const useDownloadOptionsContext = () => {
@@ -86,6 +86,9 @@ export const useDownloadOptionsContext = () => {
   const getFoundFile = (files = computedFiles) =>
     files.find((file) => file.modality === modality && file.format === format)
 
+  // Check the availability of the merged objects download based on modalities
+  const isMergedObjectsAvailable = mergedObjectsKeys.includes(modality)
+
   // Sorter function for ordering a resource
   // based on availability of prefered download options
   const resourceSort = (
@@ -113,6 +116,7 @@ export const useDownloadOptionsContext = () => {
     formatOptions,
     computedFile,
     getFoundFile,
+    isMergedObjectsAvailable,
     saveUserPreferences,
     resourceSort,
     resource
