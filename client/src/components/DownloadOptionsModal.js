@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Button, FormField, Select, Text } from 'grommet'
 import { Modal, ModalBody } from 'components/Modal'
 import { HelpLink } from 'components/HelpLink'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import { useUpdateFormatOptions } from 'hooks/useUpdateFormatOptions'
 import getReadableOptions from 'helpers/getReadableOptions'
 import { config } from 'config'
 import styled from 'styled-components'
@@ -19,21 +20,43 @@ export const DownloadOptionsModal = ({
   onSave = () => {}
 }) => {
   const {
-    modalityOptions,
+    computedFiles,
+    format,
     formatOptions,
-    saveUserPreferences,
     modality,
-    format
+    modalityOptions,
+    getOptionsAndDefault,
+    saveUserPreferences
   } = useDownloadOptionsContext()
 
   // allow user to change before updating
   const [selectedModality, setSelectedModality] = useState(modality)
   const [selectedFormat, setSelectedFormat] = useState(format)
+  const [selectedFormatOptions, setSelectedFormatOptions] =
+    useState(formatOptions)
 
   const handleOptionsSave = () => {
     saveUserPreferences(selectedModality, selectedFormat)
     onSave()
   }
+
+  // Reset drop-down values to user preference on cancel
+  useEffect(() => {
+    if (!showing) {
+      setSelectedFormat(format)
+      setSelectedModality(modality)
+    }
+  }, [showing])
+
+  // Update available data format options locally when modality changes via hook
+  useUpdateFormatOptions(
+    selectedFormat,
+    selectedModality,
+    computedFiles,
+    getOptionsAndDefault,
+    setSelectedFormat,
+    setSelectedFormatOptions
+  )
 
   return (
     <>
@@ -73,7 +96,7 @@ export const DownloadOptionsModal = ({
                 }
               >
                 <Select
-                  options={getReadableOptions(formatOptions)}
+                  options={getReadableOptions(selectedFormatOptions)}
                   labelKey="label"
                   valueKey={{ key: 'value', reduce: true }}
                   value={selectedFormat}
