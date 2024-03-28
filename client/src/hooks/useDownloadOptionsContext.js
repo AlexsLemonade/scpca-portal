@@ -1,5 +1,6 @@
 import { useContext, useEffect } from 'react'
 import { DownloadOptionsContext } from 'contexts/DownloadOptionsContext'
+import { useUpdateFormatOptions } from 'hooks/useUpdateFormatOptions'
 import pick from 'helpers/pick'
 import filterWhere from 'helpers/filterWhere'
 import { optionsSortOrder } from 'config/downloadOptions'
@@ -25,44 +26,6 @@ export const useDownloadOptionsContext = () => {
     setComputedFile,
     resourceAttribute
   } = useContext(DownloadOptionsContext)
-
-  // When computed files change, update modality to ensure it is possible
-  // Initialize the context when computed files change
-  useEffect(() => {
-    const [newModalityOptions, newModality] = getOptionsAndDefault(
-      'modality',
-      userModality
-    )
-    setModalityOptions(newModalityOptions)
-    setModality(newModality)
-  }, [computedFiles])
-
-  // Update format when modality changes to ensure that it is possible
-  useEffect(() => {
-    if (modality) {
-      const modalityMatchedFiles = filterWhere(computedFiles, {
-        modality
-      })
-      const [newFormatOptions, newFormat] = getOptionsAndDefault(
-        'format',
-        userFormat,
-        modalityMatchedFiles
-      )
-      setFormatOptions(newFormatOptions)
-      // Only assign format when unset
-      setFormat(newFormat)
-    }
-  }, [modality])
-
-  // Update computed file when download options resolves to a computed file
-  // This only needs to be updated when the user is configuring the passed in resource.
-  // Otherwise you can call useDownloadOptionsContext.getFoundFile directy ex. samples table
-  useEffect(() => {
-    if (!resourceAttribute) {
-      const newComputedFile = getFoundFile()
-      if (newComputedFile) setComputedFile(newComputedFile)
-    }
-  }, [modality, format])
 
   const getOptionsAndDefault = (
     optionName,
@@ -104,6 +67,37 @@ export const useDownloadOptionsContext = () => {
     setUserFormat(newFormat)
   }
 
+  // Update available data format options when modality changes via hook
+  useUpdateFormatOptions(
+    userFormat,
+    modality,
+    computedFiles,
+    getOptionsAndDefault,
+    setFormat,
+    setFormatOptions
+  )
+
+  // When computed files change, update modality to ensure it is possible
+  // Initialize the context when computed files change
+  useEffect(() => {
+    const [newModalityOptions, newModality] = getOptionsAndDefault(
+      'modality',
+      userModality
+    )
+    setModalityOptions(newModalityOptions)
+    setModality(newModality)
+  }, [computedFiles])
+
+  // Update computed file when download options resolves to a computed file
+  // This only needs to be updated when the user is configuring the passed in resource.
+  // Otherwise you can call useDownloadOptionsContext.getFoundFile directy ex. samples table
+  useEffect(() => {
+    if (!resourceAttribute) {
+      const newComputedFile = getFoundFile()
+      if (newComputedFile) setComputedFile(newComputedFile)
+    }
+  }, [modality, format])
+
   return {
     modality,
     setModality,
@@ -112,7 +106,9 @@ export const useDownloadOptionsContext = () => {
     setFormat,
     formatOptions,
     computedFile,
+    computedFiles,
     getFoundFile,
+    getOptionsAndDefault,
     saveUserPreferences,
     resourceSort,
     resource
