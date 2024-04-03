@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 // import { useBanner } from 'hooks/useBanner'
 import { useResizeObserver } from 'hooks/useResizeObserver'
 import { Box, Main } from 'grommet'
+import { ContributeBanner } from 'components/ContributeBanner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
 import { PageLoader } from 'components/PageLoader'
@@ -43,10 +44,14 @@ export const Layout = ({ children }) => {
   const widePaths = ['/', '/about']
   const showWide = widePaths.includes(router.pathname)
 
+  // show the contributeBanner
+  const showContributeBanner = true
+
   return (
     <Box height={{ min: '100vh' }}>
       <Box height={fixedBoxHeight}>
         <FixedBox background="white" ref={fixedBoxRef}>
+          {showContributeBanner && <ContributeBanner />}
           <Header margin={{ bottom: 'small' }} donate={showDonate} />
           <ProgressBar />
         </FixedBox>
