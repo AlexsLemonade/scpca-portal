@@ -44,8 +44,17 @@ export const Layout = ({ children }) => {
   const widePaths = ['/', '/about']
   const showWide = widePaths.includes(router.pathname)
 
+  // exclude the contribue banner on the following pages
+  const excludeContributeBanner = [
+    '/contribute',
+    '/privacy-policy',
+    '/terms-of-use'
+  ]
+
   // show the contributeBanner
-  const showContributeBanner = true
+  const showContributeBanner = !excludeContributeBanner.includes(
+    router.pathname
+  )
 
   return (
     <Box height={{ min: '100vh' }}>
