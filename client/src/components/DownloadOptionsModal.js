@@ -3,8 +3,8 @@ import { Box, Button, FormField, Select, Text } from 'grommet'
 import { Modal, ModalBody } from 'components/Modal'
 import { HelpLink } from 'components/HelpLink'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
-import { useUpdateFormatOptions } from 'hooks/useUpdateFormatOptions'
 import getReadableOptions from 'helpers/getReadableOptions'
+import filterWhere from 'helpers/filterWhere'
 import { config } from 'config'
 import styled from 'styled-components'
 
@@ -48,15 +48,23 @@ export const DownloadOptionsModal = ({
     }
   }, [showing])
 
-  // Update available data format options locally when modality changes via hook
-  useUpdateFormatOptions(
-    selectedFormat,
-    selectedModality,
-    computedFiles,
-    getOptionsAndDefault,
-    setSelectedFormat,
-    setSelectedFormatOptions
-  )
+  // Update available data format options locally when a user changes modality (i.e. selectedModality) via drop-down
+  useEffect(() => {
+    if (!selectedModality) return
+
+    const modalityMatchedFiles = filterWhere(computedFiles, {
+      modality: selectedModality
+    })
+
+    const [newFormatOptions, newFormat] = getOptionsAndDefault(
+      'format',
+      selectedFormat,
+      modalityMatchedFiles
+    )
+    setSelectedFormatOptions(newFormatOptions)
+    // Only assign format when unset
+    setSelectedFormat(newFormat)
+  }, [selectedModality])
 
   return (
     <>
