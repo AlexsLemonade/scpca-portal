@@ -277,8 +277,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         Returns the data file and file mapping for a sample.
         """
         is_anndata_file_format = file_format == cls.OutputFileFormats.ANN_DATA
+
         if is_anndata_file_format:
             file_name = sample.output_single_cell_anndata_computed_file_name
+            readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
             common_file_suffixes = (
                 "filtered_rna.hdf5",
                 "processed_rna.hdf5",
@@ -287,12 +289,14 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             )
         else:
             file_name = sample.output_single_cell_computed_file_name
+            readme_file_path = ComputedFile.README_SINGLE_CELL_FILE_PATH
             common_file_suffixes = (
                 "filtered.rds",
                 "processed.rds",
                 "qc.html",
                 "unfiltered.rds",
             )
+
         cite_seq_anndata_file_suffixes = (
             "filtered_adt.hdf5",
             "processed_adt.hdf5",
@@ -312,7 +316,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(
-                ComputedFile.README_SINGLE_CELL_FILE_PATH,
+                readme_file_path,
                 ComputedFile.OUTPUT_README_FILE_NAME,
             )
             zip_file.write(
