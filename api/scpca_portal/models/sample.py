@@ -90,17 +90,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample
 
-    @staticmethod
-    def get_output_metadata_file_path(scpca_sample_id, modality):
-        return {
-            Sample.Modalities.MULTIPLEXED: common.OUTPUT_DATA_PATH
-            / f"{scpca_sample_id}_multiplexed_metadata.tsv",
-            Sample.Modalities.SINGLE_CELL: common.OUTPUT_DATA_PATH
-            / f"{scpca_sample_id}_libraries_metadata.tsv",
-            Sample.Modalities.SPATIAL: common.OUTPUT_DATA_PATH
-            / f"{scpca_sample_id}_spatial_metadata.tsv",
-        }.get(modality)
-
     @property
     def modalities(self):
         attr_name_modality_mapping = {
