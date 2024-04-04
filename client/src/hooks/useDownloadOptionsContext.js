@@ -1,6 +1,5 @@
 import { useContext, useEffect } from 'react'
 import { DownloadOptionsContext } from 'contexts/DownloadOptionsContext'
-import { useUpdateFormatOptions } from 'hooks/useUpdateFormatOptions'
 import pick from 'helpers/pick'
 import filterWhere from 'helpers/filterWhere'
 import { optionsSortOrder } from 'config/downloadOptions'
@@ -67,16 +66,6 @@ export const useDownloadOptionsContext = () => {
     setUserFormat(newFormat)
   }
 
-  // Update available data format options when modality changes via hook
-  useUpdateFormatOptions(
-    userFormat,
-    modality,
-    computedFiles,
-    getOptionsAndDefault,
-    setFormat,
-    setFormatOptions
-  )
-
   // When computed files change, update modality to ensure it is possible
   // Initialize the context when computed files change
   useEffect(() => {
@@ -87,6 +76,23 @@ export const useDownloadOptionsContext = () => {
     setModalityOptions(newModalityOptions)
     setModality(newModality)
   }, [computedFiles])
+
+  // Update available data format based on the user-selected modality change
+  useEffect(() => {
+    if (modality) {
+      const modalityMatchedFiles = filterWhere(computedFiles, {
+        modality
+      })
+      const [newFormatOptions, newFormat] = getOptionsAndDefault(
+        'format',
+        userFormat,
+        modalityMatchedFiles
+      )
+      setFormatOptions(newFormatOptions)
+      // Only assign format when unset
+      setFormat(newFormat)
+    }
+  }, [modality])
 
   // Update computed file when download options resolves to a computed file
   // This only needs to be updated when the user is configuring the passed in resource.
