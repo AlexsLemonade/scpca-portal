@@ -108,7 +108,7 @@ const Project = ({ project }) => {
                       label: 'Additional Restrictions',
                       value: (
                         <ProjectAdditionalRestrictions
-                          text={project.additional_restrictions}
+                          text={project.additional_restrictions || 'Pending'}
                         />
                       )
                     }
