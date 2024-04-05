@@ -14,8 +14,7 @@ export const ProjectAdditionalRestrictions = ({ text, isModal = false }) => {
     <Box direction="row" gap="xsmall">
       {isModal && <Icon name="Info" />}
       <Text>{textContent}</Text>
-      {/* NOTE: add a link for terms of use */}
-      <Link href="#temp">
+      <Link href="/terms-of-use#access-to-and-use-of-content" newTab>
         <Icon size="small" name="Help" />
       </Link>
     </Box>
