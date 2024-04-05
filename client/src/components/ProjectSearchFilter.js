@@ -4,7 +4,6 @@ import { Loader } from 'components/Loader'
 import { api } from 'api'
 import { useAnalytics } from 'hooks/useAnalytics'
 import { getReadable } from 'helpers/getReadable'
-import { isLastIndex } from 'helpers/isLastIndex'
 
 export const ProjectSearchFilter = ({
   filters: defaultFilters = {},
@@ -91,26 +90,19 @@ export const ProjectSearchFilter = ({
 
   return (
     <Box overflow="auto">
-      {filterOptions.models.map((f, i, arr) => (
-        <Box
-          key={f}
-          border={!isLastIndex(i, arr) ? false : { side: 'bottom' }}
-          pad={{
-            top: `${i === 0 ? 'medium' : 'none'}`,
-            bottom: `${!isLastIndex(i, arr) ? 'none' : 'medium'}`
-          }}
-          height={{ min: 'auto' }}
-        >
-          <Text weight="bold">{filterNames[f]}</Text>
-          <CheckBox
-            key={f}
-            label={`${getReadable(f)}`}
-            value
-            checked={hasFilterOption(f)}
-            onChange={() => toggleFilterOption(f)}
-          />
-        </Box>
-      ))}
+      <Box pad={{ vertical: 'medium' }} border={{ side: 'bottom' }}>
+        {filterOptions.models.map((f) => (
+          <Box key={f} height={{ min: 'auto' }}>
+            <CheckBox
+              key={f}
+              label={`${getReadable(f)}`}
+              value
+              checked={hasFilterOption(f)}
+              onChange={() => toggleFilterOption(f)}
+            />
+          </Box>
+        ))}
+      </Box>
       {filterOrder.map((f, i) => (
         <Box
           key={f}

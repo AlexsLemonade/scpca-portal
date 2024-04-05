@@ -9,7 +9,7 @@ export const readableNames = {
   has_spatial_data: 'Spatial',
   has_single_cell: 'Single-cell',
   human_readable_pi_name: 'Primary Investigator',
-  includes_cell_line: 'Includes cell line',
+  includes_cell_lines: 'Includes cell lines',
   includes_xenografts: 'Includes xenografts',
   modalities: 'Modalities',
   pi_name: 'Primary Investigator',
