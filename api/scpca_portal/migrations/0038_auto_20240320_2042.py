@@ -10,11 +10,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name="sample",
-            name="is_cell_line",
-            field=models.BooleanField(default=False),
-        ),
+        # migrations.AddField(
+        #     model_name="sample",
+        #     name="is_cell_line",
+        #     field=models.BooleanField(default=False),
+        # ),
         migrations.AddField(
             model_name="sample",
             name="is_xenograft",
