@@ -11,7 +11,7 @@ class FilterOptionsViewSet(viewsets.ViewSet):
         seq_units_options = set()
         technologies_options = set()
         organisms_options = set()
-        models_options = ["includes_xenografts", "includes_cell_lines"]
+        models_options = {"includes_xenografts", "includes_cell_lines"}
 
         for project in Project.objects.values(
             "diagnoses", "modalities", "seq_units", "technologies", "organisms"
@@ -29,6 +29,6 @@ class FilterOptionsViewSet(viewsets.ViewSet):
                 "seq_units": sorted(seq_units_options),
                 "technologies": sorted(technologies_options),
                 "organisms": sorted(organisms_options),
-                "models": models_options,
+                "models": sorted(models_options),
             }
         )
