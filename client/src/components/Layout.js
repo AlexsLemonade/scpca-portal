@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 // import { useBanner } from 'hooks/useBanner'
 import { useResizeObserver } from 'hooks/useResizeObserver'
 import { Box, Main } from 'grommet'
-import { AnnDataProcessingBanner } from 'components/AnnDataProcessingBanner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
 import { PageLoader } from 'components/PageLoader'
@@ -48,7 +47,6 @@ export const Layout = ({ children }) => {
     <Box height={{ min: '100vh' }}>
       <Box height={fixedBoxHeight}>
         <FixedBox background="white" ref={fixedBoxRef}>
-          <AnnDataProcessingBanner />
           <Header margin={{ bottom: 'small' }} donate={showDonate} />
           <ProgressBar />
         </FixedBox>
