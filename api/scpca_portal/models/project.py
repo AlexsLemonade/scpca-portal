@@ -1068,23 +1068,21 @@ class Project(CommonDataAttributes, TimestampedModel):
                             else update_ann_data
                         )
 
-                        if sample.has_spatial_data:
-                            libraries = [
-                                library
-                                for library in combined_spatial_metadata
-                                if library["scpca_sample_id"] == sample.scpca_id
-                            ]
-                            workflow_versions = [
-                                library["workflow_version"] for library in libraries
-                            ]
-                            spatial_workflow_versions.update(workflow_versions)
-                            tasks.submit(
-                                ComputedFile.get_sample_spatial_file,
-                                sample,
-                                libraries,
-                                workflow_versions,
-                                ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                            ).add_done_callback(update_spatial_data)
+                    if sample.has_spatial_data:
+                        libraries = [
+                            library
+                            for library in combined_spatial_metadata
+                            if library["scpca_sample_id"] == sample.scpca_id
+                        ]
+                        workflow_versions = [library["workflow_version"] for library in libraries]
+                        spatial_workflow_versions.update(workflow_versions)
+                        tasks.submit(
+                            ComputedFile.get_sample_spatial_file,
+                            sample,
+                            libraries,
+                            workflow_versions,
+                            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                        ).add_done_callback(update_spatial_data)
 
                 if sample.has_multiplexed_data:
                     libraries = [
