@@ -47,7 +47,7 @@ consented to the updated Terms as of the date of the modification. If
 you do not agree to any provision of these Terms, you may not use the
 ScPCADP.
 
-1. **Eligibility**
+1.  **Eligibility**
 
 > Use of the ScPCADP is void where prohibited. You represent and warrant
 > that any information you submit in connection with the ScPCADP is
@@ -56,7 +56,7 @@ ScPCADP.
 > your behalf), and that you are fully able and competent to enter into
 > and abide by these Terms.
 
-2. **Account Registration**
+2.  **Account Registration**
 
 > When you register or seek authentication, you must (a) provide
 > accurate, current and complete information, as prompted
@@ -69,86 +69,86 @@ ScPCADP.
 > account or any other breach of security by emailing us at
 > ccdl@alexslemonade.org.
 
-3. **Access to and Use of Content **
+3.  **Access to and Use of Content **
 
-> a. *Limited License to You*. Subject to the terms and conditions of
+> a.  *Limited License to You*. Subject to the terms and conditions of
 > these Terms, we hereby grant you a limited, non-transferable,
 > non-sublicensable, revocable license to use the ScPCADP solely
 > for authorized purposes in accordance with these Terms.
 
-> b. *Use Restrictions*. In connection with any access to or use of
+> b.  *Use Restrictions*. In connection with any access to or use of
 > the ScPCADP (or any Content), you may not:
 
-- > (i) publish, present or otherwise disclose Data, or results from
-> analysis of Data, obtained through the ScPCADP without
-> properly attributing (i) the Data source using the
-> language provided by the Data contributor of that Data set
-> (as applicable), and (ii) us using the language posted on
-> the ScPCADP or otherwise provided by us;
+- >    (i) publish, present or otherwise disclose Data, or results from
+  >    analysis of Data, obtained through the ScPCADP without
+  >    properly attributing (i) the Data source using the
+  >    language provided by the Data contributor of that Data set
+  >    (as applicable), and (ii) us using the language posted on
+  >    the ScPCADP or otherwise provided by us;
 
-- > (ii) use any Data designated as “research or academic purposes
-> only” (or a similar designation) for any purposes other
-> than the applicable designation;
+- >    (ii) use any Data designated as “research or academic purposes
+  >    only” (or a similar designation) for any purposes other
+  >    than the applicable designation;
 
-- > (iii) use or attempt to use Content to harm, marginalize, or
-> discriminate against individuals or populations;
+- >    (iii) use or attempt to use Content to harm, marginalize, or
+  >    discriminate against individuals or populations;
 
-- > (iv) identify, or make any attempt to identify, any individual
-> to which any Data pertains;
+- >    (iv) identify, or make any attempt to identify, any individual
+  >    to which any Data pertains;
 
-- > (v) create a false identity, impersonate another individual or
-> entity in any way, or falsely imply that any third-party
-> service is associated with the ScPCADP;
+- >    (v) create a false identity, impersonate another individual or
+  >    entity in any way, or falsely imply that any third-party
+  >    service is associated with the ScPCADP;
 
-- > (vi) upload or otherwise transmit to or through the ScPCADP any
-> Content that infringes, misappropriates, or violates any
-> third-party right; that violates, or causes us or our
-> affiliates to violate, any applicable law or regulation;
-> that is unlawful, harmful, harassing, defamatory,
-> threatening, hateful or otherwise objectionable or
-> inappropriate; or that can cause harm or delay to the
-> ScPCADP (or any connected or related systems) or can
-> expose us or other Users to risk of harm, damage,
-> liability or loss;
+- >    (vi) upload or otherwise transmit to or through the ScPCADP any
+  >    Content that infringes, misappropriates, or violates any
+  >    third-party right; that violates, or causes us or our
+  >    affiliates to violate, any applicable law or regulation;
+  >    that is unlawful, harmful, harassing, defamatory,
+  >    threatening, hateful or otherwise objectionable or
+  >    inappropriate; or that can cause harm or delay to the
+  >    ScPCADP (or any connected or related systems) or can
+  >    expose us or other Users to risk of harm, damage,
+  >    liability or loss;
 
-- > (vii) upload or otherwise transmit to or through the ScPCADP any
-> trade secrets or information for which you have any
-> obligation of confidentiality or professional secrecy;
+- >    (vii) upload or otherwise transmit to or through the ScPCADP any
+  >    trade secrets or information for which you have any
+  >    obligation of confidentiality or professional secrecy;
 
-- > (viii) upload or otherwise transmit to or through the ScPCADP
-> any unsolicited or unauthorized advertising,
-> promotional materials, junk mail, spam, or any other
-> form of solicitation (commercial or otherwise);
+- >    (viii) upload or otherwise transmit to or through the ScPCADP
+  >    any unsolicited or unauthorized advertising,
+  >    promotional materials, junk mail, spam, or any other
+  >    form of solicitation (commercial or otherwise);
 
-- > (ix) distribute, disclose, market, rent, lease or otherwise
-> transfer any Content to any other individual or entity
-> (except that you may publish or otherwise disclose Data
-> as authorized in these Terms);
+- >    (ix) distribute, disclose, market, rent, lease or otherwise
+  >    transfer any Content to any other individual or entity
+  >    (except that you may publish or otherwise disclose Data
+  >    as authorized in these Terms);
 
-- > (x) gain unauthorized access to the ScPCADP (or any associated
-> Content), to any other User’s account, or to any related
-> or connected systems;
+- >    (x) gain unauthorized access to the ScPCADP (or any associated
+  >    Content), to any other User’s account, or to any related
+  >    or connected systems;
 
-- > (xi) post, transmit or otherwise make available any virus, worm,
-> spyware or any other computer code, file or program that
-> may or is intended to damage or hijack the operation of
-> any hardware, software, equipment or systems;
+- >    (xi) post, transmit or otherwise make available any virus, worm,
+  >    spyware or any other computer code, file or program that
+  >    may or is intended to damage or hijack the operation of
+  >    any hardware, software, equipment or systems;
 
-- > (xii) remove, disable, damage, bypass, circumvent or otherwise
-> interfere with any security-related features of the
-> ScPCADP, except that you may use passwords and other
-> credentials we provide solely as expressly authorized
-> and intended;
+- >    (xii) remove, disable, damage, bypass, circumvent or otherwise
+  >    interfere with any security-related features of the
+  >    ScPCADP, except that you may use passwords and other
+  >    credentials we provide solely as expressly authorized
+  >    and intended;
 
-- > (xiii) interfere with or disrupt the ScPCADP (or any related or
-> connected systems) or violate the regulations, policies
-> or procedures of any ScPCADP-related systems;
+- >    (xiii) interfere with or disrupt the ScPCADP (or any related or
+  >    connected systems) or violate the regulations, policies
+  >    or procedures of any ScPCADP-related systems;
 
-- > (xiv) violate these Terms or any applicable laws, regulations,
-> standards, principles or guidelines; or
+- >    (xiv) violate these Terms or any applicable laws, regulations,
+  >    standards, principles or guidelines; or
 
-- > (xv) assist or permit any persons in engaging in any of the
-> activities described above.
+- >    (xv) assist or permit any persons in engaging in any of the
+  >    activities described above.
 
 You must, immediately upon discovery, report to us any unauthorized
 access, use, alteration or disclosure of any Content, or other violation
@@ -156,7 +156,7 @@ of these Terms, including as much detailed information as practicable.
 We (or our designee) may use any reasonable, lawful tools or methods to
 monitor use of the ScPCADP and compliance with these Terms.
 
-4. **Confidentiality**
+4.  **Confidentiality**
 
 > Without limiting any other applicable obligations or restrictions, you
 > will keep strictly confidential (using at least reasonable care), and
@@ -166,7 +166,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 > confidential (excluding information specifically identified by us or
 > the source as non-confidential).
 
-5. **Modifications to the ScPCADP**
+5.  **Modifications to the ScPCADP**
 
 > We reserve the right to modify, discontinue and restrict, temporarily
 > or permanently, all or part of the ScPCADP (including any Content)
@@ -176,7 +176,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 > deletion of any Data or other Content stored on, or otherwise
 > associated with, your account on the ScPCADP.
 
-6. **Term and Termination**
+6.  **Term and Termination**
 
 > Your account (or other authorized access to the ScPCADP) remains in
 > effect unless you cancel it or we terminate your access as provided by
@@ -198,7 +198,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 > and intellectual property rights) will continue to remain in full
 > force and effect after any termination.
 
-7. **Feedback**
+7.  **Feedback**
 
 > Any comments, suggestions, ideas or other information, related to the
 > ScPCADP, submitted by you to us or the ScPCADP (collectively,
@@ -211,7 +211,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 > by applicable law or regulation, we will respect any privacy
 > restrictions applicable to Feedback you communicate to us.
 
-8. **Copyright Infringement**
+8.  **Copyright Infringement**
 
 > We respect the intellectual property rights of others and ask you to
 > do the same. It is our policy to terminate the access privileges of
@@ -257,7 +257,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 
 > ccdl@alexslemonade.org
 
-9. **Trademarks**
+9.  **Trademarks**
 
 > ALEX’S LEMONADE STAND®, and any other trademark, logo or other
 > proprietary indicia contained on the ScPCADP, are trademarks or
@@ -269,14 +269,14 @@ monitor use of the ScPCADP and compliance with these Terms.
 > or imply endorsement, sponsorship, or recommendation thereof by us, or
 > vice versa.
 
-10. **Ownership**
+10.  **Ownership**
 
 > We, our affiliates and our licensors collectively own all right,
 > title, and interest, including all intellectual property rights, in
 > and to the ScPCADP. We reserve all rights not expressly granted to you
 > in these Terms.
 
-11. **Third-Party Content**
+11.  **Third-Party Content**
 
 > The ScPCADP may contain links or otherwise provide access to Web
 > pages, services, data or other content of third parties (collectively,
@@ -291,7 +291,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 > partners to provide the hardware, software, networking, storage, and
 > related technology used to operate the ScPCADP.
 
-12. **Indemnification**
+12.  **Indemnification**
 
 > You will defend, indemnify and hold harmless us, our affiliates, and
 > their respective directors, officers, agents, employees, licensors,
@@ -303,7 +303,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 > party, except to the extent arising from our gross negligence or
 > willful misconduct.
 
-13. **Warranty Disclaimers**
+13.  **Warranty Disclaimers**
 
 > EXCEPT AS EXPRESSLY SET FORTH IN THESE TERMS, TO THE FULLEST EXTENT
 > PERMISSIBLE UNDER APPLICABLE LAW, (A) WE HEREBY DISCLAIM ALL
@@ -329,7 +329,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 > PROCEDURE, OR OTHER INFORMATION THAT MAY BE MENTIONED IN CONNECTION
 > WITH THE ScPCADP. **
 
-14. **Limitations of Liability**
+14.  **Limitations of Liability**
 
 > TO THE FULLEST EXTENT PERMISSIBLE UNDER APPLICABLE LAW, NEITHER US NOR
 > OUR OFFICERS, DIRECTORS, LICENSORS, OR SUPPLIERS WILL BE LIABLE TO ANY
@@ -359,7 +359,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 > FAILS OF ITS ESSENTIAL PURPOSE, TO THE FULLEST EXTENT PERMISSIBLE
 > UNDER APPLICABLE LAW.
 
-15. **Electronic Communications**
+15.  **Electronic Communications**
 
 > By accessing or using the ScPCADP, you consent to receiving electronic
 > communications from us. You agree that any notices, agreements,
@@ -367,14 +367,14 @@ monitor use of the ScPCADP and compliance with these Terms.
 > electronically will satisfy any legal communication requirements,
 > including that such communications be in writing.
 
-16. **Governing Law & Jurisdiction**
+16.  **Governing Law & Jurisdiction**
 
-> a. *Governing Law*. Unless otherwise agreed in writing between you
+> a.  *Governing Law*. Unless otherwise agreed in writing between you
 > and us, these Terms are governed by and construed in
 > accordance with the laws of the Commonwealth of Pennsylvania,
 > excluding conflicts of law principles.
 
-> b. *Jurisdiction*. Unless otherwise agreed in writing between you
+> b.  *Jurisdiction*. Unless otherwise agreed in writing between you
 > and us, any dispute or claim arising out of or relating to the
 > ScPCADP or these Terms must be brought exclusively in the
 > state or federal courts within the Eastern District of
@@ -383,7 +383,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 > relation to intellectual property rights or confidentiality
 > obligations).
 
-17. **General**
+17.  **General**
 
 > Our failure to act in a particular circumstance does not waive our
 > ability to act with respect to that circumstance or similar
@@ -412,7 +412,7 @@ monitor use of the ScPCADP and compliance with these Terms.
 > prior agreements or communications between you and us regarding the
 > subject matter of these Terms.
 
-18. **Questions & Contact Information**
+18.  **Questions & Contact Information**
 
 > If you have any questions or concerns about the ScPCADP, or these
 > Terms, you may contact us by email at ccdl@alexslemonade.org.
