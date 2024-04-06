@@ -276,14 +276,16 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 12 files (including subdirectory names):
+        # There are 14 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
+        # │   ├── SCPCL999990_celltype-report.rds
         # │   ├── SCPCL999990_filtered.rds
         # │   ├── SCPCL999990_processed.rds
         # │   ├── SCPCL999990_qc.html
         # │   └── SCPCL999990_unfiltered.rds
         # ├── SCPCS999992_SCPCS999993
+        # │   ├── SCPCL999992_celltype-report.rds
         # │   ├── SCPCL999992_filtered.rds
         # │   ├── SCPCL999992_processed.rds
         # │   ├── SCPCL999992_qc.html
@@ -291,13 +293,14 @@ class TestLoadData(TransactionTestCase):
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 12)
+        self.assertEqual(len(project_zip.namelist()), 14)
 
         library_sample_mapping = {
             "SCPCL999990": "SCPCS999990",
             "SCPCL999992": "SCPCS999992_SCPCS999993",
         }
         library_path_templates = (
+            "{sample_id}/{library_id}_celltype-report.html",
             "{sample_id}/{library_id}_filtered.rds",
             "{sample_id}/{library_id}_processed.rds",
             "{sample_id}/{library_id}_qc.html",
@@ -366,6 +369,7 @@ class TestLoadData(TransactionTestCase):
         expected_filenames = {
             "README.md",
             "single_cell_metadata.tsv",
+            f"{library_id}_celltype-report.html",
             f"{library_id}_filtered.rds",
             f"{library_id}_processed.rds",
             f"{library_id}_qc.html",
@@ -487,9 +491,10 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 8 files (including subdirectory names):
+        # There are 9 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
+        # │   ├── SCPCL999990_celltype-report.html
         # │   ├── SCPCL999990_filtered.rds
         # │   ├── SCPCL999990_processed.rds
         # │   ├── SCPCL999990_qc.html
@@ -497,7 +502,7 @@ class TestLoadData(TransactionTestCase):
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 8)
+        self.assertEqual(len(project_zip.namelist()), 9)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
         self.assertEqual(len(sample.computed_files), 2)
@@ -562,6 +567,7 @@ class TestLoadData(TransactionTestCase):
         expected_filenames = {
             "README.md",
             "single_cell_metadata.tsv",
+            f"{library_id}_celltype-report.html",
             f"{library_id}_filtered.rds",
             f"{library_id}_processed.rds",
             f"{library_id}_qc.html",
@@ -589,6 +595,7 @@ class TestLoadData(TransactionTestCase):
         expected_filenames = {
             "README.md",
             "single_cell_metadata.tsv",
+            f"{library_id}_celltype-report.html",
             f"{library_id}_filtered_rna.hdf5",
             f"{library_id}_processed_rna.hdf5",
             f"{library_id}_qc.html",
