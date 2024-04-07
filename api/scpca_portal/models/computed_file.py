@@ -103,7 +103,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     def __str__(self):
         return (
-            f"'{self.project or self.sample}' {dict(self.OutputFileFormats.CHOICES)[self.format]} "
+            f"'{self.project or self.sample}' "
+            f"{dict(self.OutputFileModalities.CHOICES)[self.modality]} "
+            f"{dict(self.OutputFileFormats.CHOICES)[self.format]} "
             f"computed file ({self.size_in_bytes}B)"
         )
 
@@ -255,11 +257,27 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             if includes_celltype_report:
                 file_suffixes.append("celltype-report.html")
 
+            # TEMP: Currently there are no celltype-reports for multiplexed samples.
+            # TEMP: Part 1 of 2
+            includes_celltype_report = False
+
             for file_suffix in file_suffixes:
                 file_name = f"{library_id}_{file_suffix}"
                 file_name_path_mapping[file_name] = Path(
                     library_path_mapping[library_id], file_name
                 )
+
+                # TEMP: Currently there are no celltype-reports for multiplexed samples.
+                # TEMP: Part 2 of 2
+                # This prevents us from trying to copy over a report that does not exist.
+                # This is only here to prevent us from not catching an error of missing other files.
+                if (
+                    file_suffix == "celltype-report.html"
+                    and not file_name_path_mapping[file_name].exists()
+                ):
+                    del file_name_path_mapping[file_name]
+                else:
+                    includes_celltype_report = True
 
         if not computed_file.zip_file_path.exists():
             with ZipFile(computed_file.zip_file_path, "w") as zip_file:
