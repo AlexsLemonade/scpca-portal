@@ -79,7 +79,7 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(Project.objects.count(), 1)
             self.assertEqual(ProjectSummary.objects.count(), 5)
             self.assertEqual(Sample.objects.count(), 5)
-            self.assertEqual(ComputedFile.objects.count(), 10)
+            self.assertEqual(ComputedFile.objects.count(), 9)
 
         # First, just test that loading data works.
         self.loader.load_data(
@@ -718,7 +718,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(len(project_zip.namelist()), 19)
 
         sample = project.samples.filter(has_spatial_data=True).first()
-        self.assertEqual(len(sample.computed_files), 2)
+        self.assertEqual(len(sample.computed_files), 1)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
@@ -735,6 +735,15 @@ class TestLoadData(TransactionTestCase):
         )
         self.assertFalse(sample.spatial_computed_file.has_bulk_rna_seq)
         self.assertFalse(sample.spatial_computed_file.has_cite_seq_data)
+
+        # Assert that single-cell modality computed files
+        # do not get created when `has_single_cell_data` is False.
+        self.assertFalse(sample.has_single_cell_data)
+        self.assertFalse(
+            sample.computed_files.filter(
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL
+            ).exists()
+        )
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",

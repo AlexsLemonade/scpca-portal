@@ -198,3 +198,12 @@ class Sample(CommonDataAttributes, TimestampedModel):
             )
         except ComputedFile.DoesNotExist:
             pass
+
+    @property
+    def single_cell_file_formats(self):
+        file_formats = []
+        if self.has_single_cell_data:
+            file_formats.append(ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT)
+        if self.includes_anndata:
+            file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
+        return file_formats
