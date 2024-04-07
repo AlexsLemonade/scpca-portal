@@ -1051,11 +1051,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     workflow_versions = [library["workflow_version"] for library in libraries]
                     single_cell_workflow_versions.update(workflow_versions)
 
-                    file_formats = [ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]
-                    if sample.includes_anndata:
-                        file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
-
-                    for file_format in file_formats:
+                    for file_format in sample.single_cell_file_formats:
                         tasks.submit(
                             ComputedFile.get_sample_single_cell_file,
                             sample,
