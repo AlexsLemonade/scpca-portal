@@ -20,10 +20,7 @@ export const MarkdownPage = ({
 }) => {
   const markdownRef = useRef()
 
-  useScrollToTextContentHash(
-    markdownRef,
-    'ol > li > p:first-child > span:first-child'
-  )
+  useScrollToTextContentHash(markdownRef, 'ol > li > span:first-child')
 
   const markdownConfig = {
     p: { component: Paragraph, props: { margin: { bottom: 'medium' } } },
