@@ -26,6 +26,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "type",
             "updated_at",
             "workflow_version",
+            "includes_celltype_report",
         )
         extra_kwargs = {
             "download_url": {
@@ -56,6 +57,7 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "sample__id",
         "id",
         "type",
+        "includes_celltype_report",
     )
 
     def get_serializer_class(self):

@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Button, FormField, Select, Text } from 'grommet'
 import { Modal, ModalBody } from 'components/Modal'
 import { HelpLink } from 'components/HelpLink'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import getReadableOptions from 'helpers/getReadableOptions'
+import filterWhere from 'helpers/filterWhere'
 import { config } from 'config'
 import styled from 'styled-components'
 
@@ -19,21 +20,51 @@ export const DownloadOptionsModal = ({
   onSave = () => {}
 }) => {
   const {
-    modalityOptions,
+    computedFiles,
+    format,
     formatOptions,
-    saveUserPreferences,
     modality,
-    format
+    modalityOptions,
+    getOptionsAndDefault,
+    saveUserPreferences
   } = useDownloadOptionsContext()
 
   // allow user to change before updating
   const [selectedModality, setSelectedModality] = useState(modality)
   const [selectedFormat, setSelectedFormat] = useState(format)
+  const [selectedFormatOptions, setSelectedFormatOptions] =
+    useState(formatOptions)
 
   const handleOptionsSave = () => {
     saveUserPreferences(selectedModality, selectedFormat)
     onSave()
   }
+
+  // Reset drop-down values to user preference on cancel
+  useEffect(() => {
+    if (!showing) {
+      setSelectedFormat(format)
+      setSelectedModality(modality)
+    }
+  }, [showing])
+
+  // Update available data format options locally when a user changes modality (i.e. selectedModality) via drop-down
+  useEffect(() => {
+    if (!selectedModality) return
+
+    const modalityMatchedFiles = filterWhere(computedFiles, {
+      modality: selectedModality
+    })
+
+    const [newFormatOptions, newFormat] = getOptionsAndDefault(
+      'format',
+      selectedFormat,
+      modalityMatchedFiles
+    )
+    setSelectedFormatOptions(newFormatOptions)
+    // Only assign format when unset
+    setSelectedFormat(newFormat)
+  }, [selectedModality])
 
   return (
     <>
@@ -73,7 +104,7 @@ export const DownloadOptionsModal = ({
                 }
               >
                 <Select
-                  options={getReadableOptions(formatOptions)}
+                  options={getReadableOptions(selectedFormatOptions)}
                   labelKey="label"
                   valueKey={{ key: 'value', reduce: true }}
                   value={selectedFormat}

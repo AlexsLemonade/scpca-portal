@@ -1,6 +1,8 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { Box, Paragraph, Text, Markdown } from 'grommet'
 import styled from 'styled-components'
+import Error from 'pages/_error'
+import { useScrollToTextContentHash } from 'hooks/useScrollToTextContentHash'
 
 const StyledLi = styled(Box)`
   list-style: revert;
@@ -16,7 +18,11 @@ export const MarkdownPage = ({
   markdown,
   width = 'large'
 }) => {
-  const config = {
+  const markdownRef = useRef()
+
+  useScrollToTextContentHash(markdownRef, 'ol > li > span:first-child')
+
+  const markdownConfig = {
     p: { component: Paragraph, props: { margin: { bottom: 'medium' } } },
     strong: { component: Text, props: { weight: 'bold' } },
     ol: { component: StyledList, props: { as: 'ol' } },
@@ -25,12 +31,14 @@ export const MarkdownPage = ({
     ...components
   }
 
-  if (!markdown) return 'missing'
+  if (!markdown) return <Error />
 
   return (
     <Box pad={{ vertical: 'large' }} justify="center">
       <Box width={width}>
-        <Markdown components={config}>{markdown}</Markdown>
+        <Markdown ref={markdownRef} components={markdownConfig}>
+          {markdown}
+        </Markdown>
       </Box>
     </Box>
   )

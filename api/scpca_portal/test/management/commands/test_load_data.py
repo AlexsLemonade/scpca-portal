@@ -11,7 +11,7 @@ from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"genomics_10X"}
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs"
+INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/project-metadata-changes"
 
 
 class TestLoadData(TransactionTestCase):
@@ -38,6 +38,7 @@ class TestLoadData(TransactionTestCase):
         self.assertFalse(project.includes_xenografts)
         self.assertIsNotNone(project.seq_units)
         self.assertTrue(project.title)
+        self.assertEqual(project.additional_restrictions, "Research or academic purposes only")
 
         project_summary = project.summaries.first()
         self.assertIsNotNone(project_summary.diagnosis)
@@ -53,6 +54,9 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(sample.subdiagnosis)
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
+
+    def assertProjectReadmeContains(self, text, project_zip):
+        self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
 
     @patch("scpca_portal.models.computed_file.ComputedFile.create_s3_file", lambda *_, **__: None)
     def test_data_clean_up(self):
@@ -75,7 +79,7 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(Project.objects.count(), 1)
             self.assertEqual(ProjectSummary.objects.count(), 5)
             self.assertEqual(Sample.objects.count(), 5)
-            self.assertEqual(ComputedFile.objects.count(), 10)
+            self.assertEqual(ComputedFile.objects.count(), 9)
 
         # First, just test that loading data works.
         self.loader.load_data(
@@ -159,6 +163,7 @@ class TestLoadData(TransactionTestCase):
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.has_multiplexed_data)
         self.assertEqual(project.multiplexed_sample_count, 2)
+        self.assertEqual(project.organisms, ["Homo sapiens"])
         self.assertEqual(project.sample_count, 5)
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
@@ -234,7 +239,9 @@ class TestLoadData(TransactionTestCase):
             "filtered_cells",
             "has_cellhash",
             "includes_anndata",
+            "is_cell_line",
             "is_multiplexed",
+            "is_xenograft",
             "min_gene_cutoff",
             "normalization_method",
             "organism",
@@ -259,20 +266,26 @@ class TestLoadData(TransactionTestCase):
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
+            self.assertProjectReadmeContains(
+                "This dataset is designated as research or academic purposes only.",
+                project_zip,
+            )
 
         self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
 
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 12 files (including subdirectory names):
+        # There are 14 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
+        # │   ├── SCPCL999990_celltype-report.rds
         # │   ├── SCPCL999990_filtered.rds
         # │   ├── SCPCL999990_processed.rds
         # │   ├── SCPCL999990_qc.html
         # │   └── SCPCL999990_unfiltered.rds
         # ├── SCPCS999992_SCPCS999993
+        # │   ├── SCPCL999992_celltype-report.rds
         # │   ├── SCPCL999992_filtered.rds
         # │   ├── SCPCL999992_processed.rds
         # │   ├── SCPCL999992_qc.html
@@ -280,13 +293,14 @@ class TestLoadData(TransactionTestCase):
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 12)
+        self.assertEqual(len(project_zip.namelist()), 14)
 
         library_sample_mapping = {
             "SCPCL999990": "SCPCS999990",
             "SCPCL999992": "SCPCS999992_SCPCS999993",
         }
         library_path_templates = (
+            "{sample_id}/{library_id}_celltype-report.html",
             "{sample_id}/{library_id}_filtered.rds",
             "{sample_id}/{library_id}_processed.rds",
             "{sample_id}/{library_id}_qc.html",
@@ -355,6 +369,7 @@ class TestLoadData(TransactionTestCase):
         expected_filenames = {
             "README.md",
             "single_cell_metadata.tsv",
+            f"{library_id}_celltype-report.html",
             f"{library_id}_filtered.rds",
             f"{library_id}_processed.rds",
             f"{library_id}_qc.html",
@@ -382,6 +397,7 @@ class TestLoadData(TransactionTestCase):
         self.assertTrue(project.includes_anndata)
         self.assertTrue(project.modalities)
         self.assertEqual(project.multiplexed_sample_count, 2)
+        self.assertEqual(project.organisms, ["Homo sapiens"])
         self.assertEqual(project.sample_count, 5)
         self.assertEqual(project.seq_units, "cell, spot")
         self.assertEqual(project.summaries.count(), 5)
@@ -430,7 +446,9 @@ class TestLoadData(TransactionTestCase):
             "genome_assembly",
             "has_cellhash",
             "includes_anndata",
+            "is_cell_line",
             "is_multiplexed",
+            "is_xenograft",
             "mapped_reads",
             "mapping_index",
             "min_gene_cutoff",
@@ -463,15 +481,20 @@ class TestLoadData(TransactionTestCase):
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
+            self.assertProjectReadmeContains(
+                "This dataset is designated as research or academic purposes only.",
+                project_zip,
+            )
 
         self.assertEqual(len(sample_metadata_lines), 2)  # 1 item + header.
 
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 8 files (including subdirectory names):
+        # There are 9 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
+        # │   ├── SCPCL999990_celltype-report.html
         # │   ├── SCPCL999990_filtered.rds
         # │   ├── SCPCL999990_processed.rds
         # │   ├── SCPCL999990_qc.html
@@ -479,7 +502,7 @@ class TestLoadData(TransactionTestCase):
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 8)
+        self.assertEqual(len(project_zip.namelist()), 9)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
         self.assertEqual(len(sample.computed_files), 2)
@@ -544,6 +567,7 @@ class TestLoadData(TransactionTestCase):
         expected_filenames = {
             "README.md",
             "single_cell_metadata.tsv",
+            f"{library_id}_celltype-report.html",
             f"{library_id}_filtered.rds",
             f"{library_id}_processed.rds",
             f"{library_id}_qc.html",
@@ -571,6 +595,7 @@ class TestLoadData(TransactionTestCase):
         expected_filenames = {
             "README.md",
             "single_cell_metadata.tsv",
+            f"{library_id}_celltype-report.html",
             f"{library_id}_filtered_rna.hdf5",
             f"{library_id}_processed_rna.hdf5",
             f"{library_id}_qc.html",
@@ -597,6 +622,7 @@ class TestLoadData(TransactionTestCase):
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.has_spatial_data)
         self.assertTrue(project.modalities)
+        self.assertEqual(project.organisms, ["Homo sapiens"])
         self.assertEqual(project.sample_count, 5)
         self.assertEqual(project.summaries.count(), 5)
         self.assertEqual(project.summaries.first().sample_count, 1)
@@ -640,6 +666,8 @@ class TestLoadData(TransactionTestCase):
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
             "includes_anndata",
+            "is_cell_line",
+            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "self_reported_ethnicity_ontology_term_id",
@@ -656,6 +684,10 @@ class TestLoadData(TransactionTestCase):
             spatial_metadata = [
                 sm for sm in spatial_metadata_file.decode("utf-8").split("\r\n") if sm
             ]
+            self.assertProjectReadmeContains(
+                "This dataset is designated as research or academic purposes only.",
+                project_zip,
+            )
 
         self.assertEqual(len(spatial_metadata), 2)  # 1 item + header.
 
@@ -686,7 +718,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(len(project_zip.namelist()), 19)
 
         sample = project.samples.filter(has_spatial_data=True).first()
-        self.assertEqual(len(sample.computed_files), 2)
+        self.assertEqual(len(sample.computed_files), 1)
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
@@ -703,6 +735,15 @@ class TestLoadData(TransactionTestCase):
         )
         self.assertFalse(sample.spatial_computed_file.has_bulk_rna_seq)
         self.assertFalse(sample.spatial_computed_file.has_cite_seq_data)
+
+        # Assert that single-cell modality computed files
+        # do not get created when `has_single_cell_data` is False.
+        self.assertFalse(sample.has_single_cell_data)
+        self.assertFalse(
+            sample.computed_files.filter(
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL
+            ).exists()
+        )
 
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",

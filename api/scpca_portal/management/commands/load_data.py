@@ -24,6 +24,8 @@ ALLOWED_SUBMITTERS = {
     "murphy_chen",
     "pugh",
     "teachey_tan",
+    "wu",
+    "rokita",
 }
 
 logger = logging.getLogger()
@@ -115,6 +117,7 @@ class Command(BaseCommand):
         subprocess.check_call(command_list)
 
     def add_arguments(self, parser):
+        parser.add_argument("--input-bucket-name", type=str, default="scpca-portal-inputs")
         parser.add_argument(
             "--clean-up-input-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
@@ -143,6 +146,7 @@ class Command(BaseCommand):
 
     def process_project_data(self, data, sample_id, **kwargs):
         self.project.abstract = data["abstract"]
+        self.project.additional_restrictions = data["additional_restrictions"]
         self.project.has_bulk_rna_seq = utils.boolean_from_string(data.get("has_bulk", False))
         self.project.has_cite_seq_data = utils.boolean_from_string(data.get("has_CITE", False))
         self.project.has_multiplexed_data = utils.boolean_from_string(

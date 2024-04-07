@@ -70,8 +70,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_ANNDATA_FILE_NAME = "readme_anndata.md"
     README_ANNDATA_FILE_PATH = common.OUTPUT_DATA_PATH / README_ANNDATA_FILE_NAME
 
-    README_FILE_NAME = "readme.md"
-    README_FILE_PATH = common.OUTPUT_DATA_PATH / README_FILE_NAME
+    README_SINGLE_CELL_FILE_NAME = "readme_single_cell.md"
+    README_SINGLE_CELL_FILE_PATH = common.OUTPUT_DATA_PATH / README_SINGLE_CELL_FILE_NAME
 
     README_MULTIPLEXED_FILE_NAME = "readme_multiplexed.md"
     README_MULTIPLEXED_FILE_PATH = common.OUTPUT_DATA_PATH / README_MULTIPLEXED_FILE_NAME
@@ -79,10 +79,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_SPATIAL_FILE_NAME = "readme_spatial.md"
     README_SPATIAL_FILE_PATH = common.OUTPUT_DATA_PATH / README_SPATIAL_FILE_NAME
 
-    README_TEMPLATE_ANNDATA_FILE_PATH = common.TEMPLATE_PATH / README_ANNDATA_FILE_NAME
-    README_TEMPLATE_FILE_PATH = common.TEMPLATE_PATH / README_FILE_NAME
-    README_TEMPLATE_MULTIPLEXED_FILE_PATH = common.TEMPLATE_PATH / README_MULTIPLEXED_FILE_NAME
-    README_TEMPLATE_SPATIAL_FILE_PATH = common.TEMPLATE_PATH / README_SPATIAL_FILE_NAME
+    README_TEMPLATE_PATH = common.TEMPLATE_PATH / "readme"
+    README_TEMPLATE_ANNDATA_FILE_PATH = README_TEMPLATE_PATH / "anndata.md"
+    README_TEMPLATE_SINGLE_CELL_FILE_PATH = README_TEMPLATE_PATH / "single_cell.md"
+    README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "multiplexed.md"
+    README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
     format = models.TextField(choices=OutputFileFormats.CHOICES)
     modality = models.TextField(choices=OutputFileModalities.CHOICES)
@@ -91,6 +92,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     size_in_bytes = models.BigIntegerField()
     type = models.TextField(choices=OutputFileTypes.CHOICES)
     workflow_version = models.TextField()
+    includes_celltype_report = models.BooleanField(default=False)
 
     project = models.ForeignKey(
         "Project", null=True, on_delete=models.CASCADE, related_name="project_computed_files"
@@ -142,6 +144,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
         computed_file.has_cite_seq_data = project.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+        computed_file.includes_celltype_report = project.samples.filter(is_cell_line=False).exists()
 
         return computed_file
 
@@ -156,7 +159,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
         else:
             computed_file_name = project.output_single_cell_computed_file_name
-            readme_file_path = ComputedFile.README_FILE_PATH
+            readme_file_path = ComputedFile.README_SINGLE_CELL_FILE_PATH
 
         computed_file = cls(
             format=file_format,
@@ -241,11 +244,19 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
+        # cell lines do not have celltype reports
+        includes_celltype_report = not sample.is_cell_line
+
         file_name_path_mapping = {}
         for library in libraries:
             library_id = library["scpca_library_id"]
-            for file_suffix in ("_filtered.rds", "_processed.rds", "_qc.html", "_unfiltered.rds"):
-                file_name = f"{library_id}{file_suffix}"
+            file_suffixes = ["filtered.rds", "processed.rds", "qc.html", "unfiltered.rds"]
+
+            if includes_celltype_report:
+                file_suffixes.append("celltype-report.html")
+
+            for file_suffix in file_suffixes:
+                file_name = f"{library_id}_{file_suffix}"
                 file_name_path_mapping[file_name] = Path(
                     library_path_mapping[library_id], file_name
                 )
@@ -266,6 +277,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
         computed_file.has_cite_seq_data = sample.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+        computed_file.includes_celltype_report = includes_celltype_report
 
         return computed_file, {"_".join(sample.multiplexed_ids): file_name_path_mapping.values()}
 
@@ -276,27 +288,36 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         Returns the data file and file mapping for a sample.
         """
         is_anndata_file_format = file_format == cls.OutputFileFormats.ANN_DATA
+        # cell lines do not have celltype reports
+        includes_celltype_report = not sample.is_cell_line
+
         if is_anndata_file_format:
             file_name = sample.output_single_cell_anndata_computed_file_name
-            common_file_suffixes = (
+            readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
+            common_file_suffixes = [
                 "filtered_rna.hdf5",
                 "processed_rna.hdf5",
                 "qc.html",
                 "unfiltered_rna.hdf5",
-            )
+            ]
         else:
             file_name = sample.output_single_cell_computed_file_name
-            common_file_suffixes = (
+            readme_file_path = ComputedFile.README_SINGLE_CELL_FILE_PATH
+            common_file_suffixes = [
                 "filtered.rds",
                 "processed.rds",
                 "qc.html",
                 "unfiltered.rds",
-            )
-        cite_seq_anndata_file_suffixes = (
+            ]
+
+        if includes_celltype_report:
+            common_file_suffixes.append("celltype-report.html")
+
+        cite_seq_anndata_file_suffixes = [
             "filtered_adt.hdf5",
             "processed_adt.hdf5",
             "unfiltered_adt.hdf5",
-        )
+        ]
 
         computed_file = cls(
             format=file_format,
@@ -311,7 +332,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(
-                ComputedFile.README_FILE_PATH,
+                readme_file_path,
                 ComputedFile.OUTPUT_README_FILE_NAME,
             )
             zip_file.write(
@@ -336,6 +357,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
         computed_file.has_cite_seq_data = sample.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+        computed_file.includes_celltype_report = includes_celltype_report
 
         return computed_file, {sample.scpca_id: file_paths}
 
