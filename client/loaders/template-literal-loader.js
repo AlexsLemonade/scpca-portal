@@ -2,6 +2,9 @@
 // markdown to be consumed by grommet/Markdown
 
 module.exports = (source) => {
+  // escape backticks to prevent build errors
+  const formatted = source.replaceAll('`', '\\`')
+
   // eslint-disable-next-line
-  return eval(`\`${source}\``)
+  return eval(`\`${formatted}\``)
 }
