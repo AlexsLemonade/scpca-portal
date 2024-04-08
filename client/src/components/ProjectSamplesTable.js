@@ -138,6 +138,14 @@ export const ProjectSamplesTable = ({
         </Box>
       )
     },
+    {
+      Header: 'Multiplexed with',
+      accessor: ({ multiplexed_with: multiplexedWith }) => (
+        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
+          {multiplexedWith.join(', ')}
+        </Box>
+      )
+    },
     { Header: 'Sequencing Units', accessor: 'seq_units' },
     { Header: 'Technology', accessor: 'technologies' },
     {
