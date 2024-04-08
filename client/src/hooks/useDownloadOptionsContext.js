@@ -25,6 +25,9 @@ export const useDownloadOptionsContext = () => {
     setComputedFile,
     resourceAttribute
   } = useContext(DownloadOptionsContext)
+  // TEMP: remove once API is updated
+  const multiplexed = optionsSortOrder[4]
+  const singleCell = optionsSortOrder[0]
 
   const getOptionsAndDefault = (
     optionName,
@@ -35,10 +38,15 @@ export const useDownloadOptionsContext = () => {
       [...new Set(pick(files, optionName))],
       optionsSortOrder
     )
-    const defaultOption = allOptions.includes(preference)
+    // TEMP: remove once API is updated
+    const updatedOptions = allOptions.map((option) =>
+      option === multiplexed ? singleCell : option
+    )
+
+    const defaultOption = updatedOptions.includes(preference)
       ? preference
-      : allOptions[0]
-    return [allOptions, defaultOption]
+      : updatedOptions[0]
+    return [updatedOptions, defaultOption]
   }
 
   const getFilteredFiles = (files = computedFiles) =>
@@ -46,7 +54,13 @@ export const useDownloadOptionsContext = () => {
 
   // Get the first computed file that matches modality and format
   const getFoundFile = (files = computedFiles) =>
-    files.find((file) => file.modality === modality && file.format === format)
+    files.find(
+      (file) =>
+        // TEMP: remove once API is updated
+        (file.modality === multiplexed
+          ? file.modality === multiplexed
+          : file.modality === modality) && file.format === format
+    )
 
   // Sorter function for ordering a resource
   // based on availability of prefered download options
@@ -100,7 +114,14 @@ export const useDownloadOptionsContext = () => {
   useEffect(() => {
     if (!resourceAttribute) {
       const newComputedFile = getFoundFile()
-      if (newComputedFile) setComputedFile(newComputedFile)
+      if (newComputedFile) {
+        // TEMP: remove once API is updated
+        const mltiplexedFile = computedFiles.filter(
+          (file) => file.modality === multiplexed && file.format === format
+        )
+        const file = mltiplexedFile.length ? mltiplexedFile[0] : newComputedFile
+        setComputedFile(file)
+      }
     }
   }, [modality, format])
 
