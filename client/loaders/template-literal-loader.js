@@ -3,7 +3,7 @@
 
 module.exports = (source) => {
   // escape backticks to prevent build errors
-  const formatted = source.replaceAll('`', '\\`')
+  const formatted = source.replace(/[^\\]`/g, '\\`')
 
   // eslint-disable-next-line
   return eval(`\`${formatted}\``)
