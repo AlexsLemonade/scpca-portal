@@ -125,8 +125,8 @@ class Command(BaseCommand):
             "--clean-up-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
         parser.add_argument("--max-workers", type=int, default=10)
-        parser.add_argument("--reload-all", action="store_true")
-        parser.add_argument("--reload-existing", action="store_true")
+        parser.add_argument("--reload-all", action="store_true", default=False)
+        parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--s3-max-bandwidth", type=int, default=None, help="In MB/s")
         parser.add_argument("--s3-max-concurrent-requests", type=int, default=10)
         parser.add_argument("--s3-multipart-chunk-size", type=int, default=8, help="In MB")
