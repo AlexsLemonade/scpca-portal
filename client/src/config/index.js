@@ -1,9 +1,3 @@
-import contact from './contact'
-import links from './links'
-import { termsOfUse } from './markdownLinks'
-
-export default {
-  links,
-  contact,
-  termsOfUse
-}
+export { default as contact } from './contact'
+export { default as links } from './links'
+export { termsOfUse } from './markdownLinks'
