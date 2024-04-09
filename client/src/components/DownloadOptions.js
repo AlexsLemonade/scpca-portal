@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { DownloadOption } from 'components/DownloadOption'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import getReadableOptions from 'helpers/getReadableOptions'
-import config from 'config'
+import { links } from 'config'
 import { HelpLink } from 'components/HelpLink'
 
 const BoldFormField = styled(FormField)`
@@ -44,9 +44,7 @@ export const DownloadOptions = ({ handleSelectFile }) => {
           />
         </BoldFormField>
         <BoldFormField
-          label={
-            <HelpLink label="Data Format" link={config.links.whatDownloading} />
-          }
+          label={<HelpLink label="Data Format" link={links.whatDownloading} />}
         >
           <Select
             options={getReadableOptions(formatOptions)}

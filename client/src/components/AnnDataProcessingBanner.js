@@ -4,7 +4,7 @@ import { Box, Paragraph } from 'grommet'
 import { Banner } from 'components/Banner'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
-import config from 'config'
+import { links } from 'config'
 
 export const AnnDataProcessingBanner = ({
   id = 'ann-data-processing',
@@ -36,7 +36,7 @@ export const AnnDataProcessingBanner = ({
             We are making{' '}
             <Link
               color="black"
-              href={config.links.recruitmentHsForm}
+              href={links.recruitmentHsForm}
               label="AnnData"
             />{' '}
             available on the portal and it will take several hours to complete.

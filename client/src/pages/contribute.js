@@ -12,7 +12,7 @@ import { Button } from 'components/Button'
 import { ContributeDownloadPDFButton } from 'components/ContributeDownloadPDFButton'
 import { Link } from 'components/Link'
 import { MarkdownPage } from 'components/MarkdownPage'
-import config from 'config'
+import { links } from 'config'
 import contributionGuidelines from 'config/contribution-guidelines.md'
 import styled from 'styled-components'
 
@@ -29,7 +29,7 @@ const TableRow = styled(GrommetTableRow)`
 
 const IntakeFormLink = () => (
   <Button
-    href={config.links.contributeHsForm}
+    href={links.contributeHsForm}
     label="Complete the Intake Form"
     margin={{ top: 'small', bottom: 'medium' }}
     target="_blank"
