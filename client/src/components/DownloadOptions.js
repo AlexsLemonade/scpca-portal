@@ -45,10 +45,7 @@ export const DownloadOptions = ({ handleSelectFile }) => {
         </BoldFormField>
         <BoldFormField
           label={
-            <HelpLink
-              label="Data Format"
-              link={config.links.what_downloading}
-            />
+            <HelpLink label="Data Format" link={config.links.whatDownloading} />
           }
         >
           <Select

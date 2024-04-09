@@ -92,7 +92,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               text={`${
                 project.multiplexed_sample_count || 'N/A'
               } samples are multiplexed.`}
-              link={config.links.how_processed_multiplexed}
+              link={config.links.howProcessedMultiplexed}
               linkLabel="Learn more"
               iconMargin="0"
             />

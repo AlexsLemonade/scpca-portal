@@ -165,7 +165,7 @@ export const ProjectSamplesTable = ({
       Header: () => (
         <Box direction="row" align="center">
           Est. Demux Sample Counts&nbsp;
-          <Link href={config.links.what_est_demux_cell}>
+          <Link href={config.links.whatEstDemuxCell}>
             <Icon size="small" name="Help" />
           </Link>
           &nbsp;&nbsp;

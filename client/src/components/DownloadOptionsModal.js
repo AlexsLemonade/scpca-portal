@@ -99,7 +99,7 @@ export const DownloadOptionsModal = ({
                 label={
                   <HelpLink
                     label="Data Format"
-                    link={config.links.what_downloading}
+                    link={config.links.whatDownloading}
                   />
                 }
               >

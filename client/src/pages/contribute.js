@@ -29,7 +29,7 @@ const TableRow = styled(GrommetTableRow)`
 
 const IntakeFormLink = () => (
   <Button
-    href={config.links.contribute_hsform}
+    href={config.links.contributeHsForm}
     label="Complete the Intake Form"
     margin={{ top: 'small', bottom: 'medium' }}
     target="_blank"

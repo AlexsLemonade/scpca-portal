@@ -42,7 +42,7 @@ export const modalityResourceInfo = {
     learn_more: {
       label: 'here',
       text: 'Learn more about what you can expect in your download file',
-      url: config.links.what_downloading_project
+      url: config.links.whatDownloadingProject
     }
   },
   SINGLE_CELL_SAMPLE: {
@@ -50,7 +50,7 @@ export const modalityResourceInfo = {
     learn_more: {
       label: 'here',
       text: 'Learn more about what you can expect in your download file',
-      url: config.links.what_downloading_sample
+      url: config.links.whatDownloadingSample
     }
   },
   SPATIAL_PROJECT: {
@@ -58,7 +58,7 @@ export const modalityResourceInfo = {
     learn_more: {
       label: 'here',
       text: 'Learn more about what you can expect in your download file',
-      url: config.links.what_downloading_spatial
+      url: config.links.whatDownloadingSpatial
     }
   },
   SPATIAL_SAMPLE: {
@@ -66,7 +66,7 @@ export const modalityResourceInfo = {
     learn_more: {
       label: 'here',
       text: 'Learn more about what you can expect in your download file',
-      url: config.links.what_downloading_spatial
+      url: config.links.whatDownloadingSpatial
     }
   },
   MULTIPLEXED_PROJECT: {
@@ -74,7 +74,7 @@ export const modalityResourceInfo = {
     warning_text: {
       link: {
         label: 'Learn more',
-        url: config.links.what_downloading_mulitplexed
+        url: config.links.whatDownloadingMulitplexed
       },
       text: 'This project contains multiplexed samples.'
     }
@@ -90,7 +90,7 @@ export const modalityResourceInfo = {
     learn_more: {
       label: 'here',
       text: 'Learn more about multiplexed samples ',
-      url: config.links.what_downloading_mulitplexed
+      url: config.links.whatDownloadingMulitplexed
     },
     warning_text: {
       text: 'If you are planning to work with more than one multiplexed sample, we recommend downloading the entire project.'
