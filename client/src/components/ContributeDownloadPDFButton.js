@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from 'grommet'
-import { config } from 'config'
+import config from 'config'
 
 export const ContributeDownloadPDFButton = () => (
   <Button

@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { DownloadOption } from 'components/DownloadOption'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import getReadableOptions from 'helpers/getReadableOptions'
-import { config } from 'config'
+import config from 'config'
 import { HelpLink } from 'components/HelpLink'
 
 const BoldFormField = styled(FormField)`

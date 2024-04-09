@@ -19,7 +19,7 @@ import { getStatsBlocks } from 'helpers/getStatsBlocks'
 import { fillArrayRandom } from 'helpers/fillArrayRandom'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useResponsive } from 'hooks/useResponsive'
-import { config } from 'config'
+import config from 'config'
 import PipelineSvg from '../images/pipeline.svg'
 import FilesSvg from '../images/files.svg'
 

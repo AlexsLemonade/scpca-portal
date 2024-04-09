@@ -4,7 +4,7 @@ import { Box, Paragraph } from 'grommet'
 import { Banner } from 'components/Banner'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
-import { config } from 'config'
+import config from 'config'
 
 export const AnnDataProcessingBanner = ({
   id = 'ann-data-processing',

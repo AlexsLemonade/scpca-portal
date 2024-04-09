@@ -5,7 +5,7 @@ import { HelpLink } from 'components/HelpLink'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import getReadableOptions from 'helpers/getReadableOptions'
 import filterWhere from 'helpers/filterWhere'
-import { config } from 'config'
+import config from 'config'
 import styled from 'styled-components'
 
 const BlueButton = styled(Button)`

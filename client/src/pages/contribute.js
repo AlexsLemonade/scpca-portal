@@ -12,7 +12,7 @@ import { Button } from 'components/Button'
 import { ContributeDownloadPDFButton } from 'components/ContributeDownloadPDFButton'
 import { Link } from 'components/Link'
 import { MarkdownPage } from 'components/MarkdownPage'
-import { config } from 'config'
+import config from 'config'
 import contributionGuidelines from 'config/contribution-guidelines.md'
 import styled from 'styled-components'
 
