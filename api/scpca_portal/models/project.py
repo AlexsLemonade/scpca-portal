@@ -4,7 +4,8 @@ import logging
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Set, Optional
+from itertools import accumulate
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
@@ -879,51 +880,44 @@ class Project(CommonDataAttributes, TimestampedModel):
             if not sample_dir.exists():
                 non_downloadable_sample_ids.add(scpca_sample_id)
 
-            has_cite_seq_data = False
-            has_single_cell_data = False
-            has_spatial_data = False
-            sample_cell_count_estimate = 0
+            has_modality_data = {
+                "has_cite_seq_data": False,
+                "has_single_cell_data": False,
+                "has_spatial_data": False
+            }
+            sample_cell_count_estimates = []
             sample_seq_units = set()
             sample_technologies = set()
+
             # Handle single cell metadata.
-            for filename_path in sorted(Path(sample_dir).glob("*_metadata.json")):
-                with open(filename_path) as sample_json_file:
-                    single_cell_json = json.load(sample_json_file)
-
-                has_single_cell_data = True
-                # Some rare samples can have one library with CITE-seq data and another library
-                # next to it without CITE-seq data (e.g. SCPCP000008/SCPCS000368).
-                has_cite_seq_data = single_cell_json.get("has_citeseq", False) or has_cite_seq_data
-
-                single_cell_json["filtered_cell_count"] = single_cell_json.pop("filtered_cells")
-                single_cell_json["scpca_library_id"] = single_cell_json.pop("library_id")
-                single_cell_json["scpca_sample_id"] = single_cell_json.pop("sample_id")
-                single_cell_libraries_metadata.append(single_cell_json)
-
-                sample_cell_count_estimate += single_cell_json["filtered_cell_count"]
-                sample_seq_units.add(single_cell_json["seq_unit"].strip())
-                sample_technologies.add(single_cell_json["technology"].strip())
+            self.parse_library_metadata(
+                "single_cell",
+                spatial_libraries_metadata,
+                has_modality_data,
+                sample_dir,
+                sample_seq_units,
+                sample_technologies,
+                sample_cell_count_estimates,
+            )
 
             # Handle spatial metadata.
-            for filename_path in sorted(Path(sample_dir).rglob("*_spatial/*_metadata.json")):
-                with open(filename_path) as spatial_json_file:
-                    spatial_json = json.load(spatial_json_file)
-                has_spatial_data = True
-
-                spatial_json["scpca_library_id"] = spatial_json.pop("library_id")
-                spatial_json["scpca_sample_id"] = spatial_json.pop("sample_id")
-                spatial_libraries_metadata.append(spatial_json)
-
-                sample_seq_units.add(spatial_json["seq_unit"].strip())
-                sample_technologies.add(spatial_json["technology"].strip())
+            self.parse_library_metadata(
+                "spatial",
+                spatial_libraries_metadata,
+                has_modality_data,
+                sample_dir,
+                sample_seq_units,
+                sample_technologies,
+                sample_cell_count_estimates,
+            )
 
             sample_metadata["age_at_diagnosis"] = sample_metadata.pop("age")
             sample_metadata["has_bulk_rna_seq"] = scpca_sample_id in bulk_rna_seq_sample_ids
-            sample_metadata["has_cite_seq_data"] = has_cite_seq_data
-            sample_metadata["has_single_cell_data"] = has_single_cell_data
-            sample_metadata["has_spatial_data"] = has_spatial_data
+            sample_metadata["has_cite_seq_data"] = has_modality_data["has_cite_seq_data"]
+            sample_metadata["has_single_cell_data"] = has_modality_data["has_single_cell_data"]
+            sample_metadata["has_spatial_data"] = has_modality_data["has_spatial_data"]
             sample_metadata["includes_anndata"] = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
-            sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
+            sample_metadata["sample_cell_count_estimate"] = accumulate(sample_cell_count_estimates)
             sample_metadata["seq_units"] = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample_metadata["technologies"] = ", ".join(sorted(sample_technologies, key=str.lower))
 
@@ -998,6 +992,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             multiplexed_sample_technologies_mapping,
             sample_id=sample_id,
         )
+        Sample.objects.bulk_create(samples)
 
         def update_ann_data(future):
             computed_file, metadata_files = future.result()
@@ -1034,13 +1029,14 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
 
         max_workers = kwargs["max_workers"]
+        samples = Sample.objects.filter(project__scpca_id=kwargs["scpca_project_id"])
         samples_count = len(samples)
         logger.info(
             f"Processing {samples_count} sample{pluralize(samples_count)} using "
             f"{max_workers} worker{pluralize(max_workers)}"
         )
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            for sample in Sample.objects.bulk_create(samples):
+            for sample in samples:
                 # Skip computed files creation if sample directory does not exist.
                 if sample.scpca_id not in non_downloadable_sample_ids:
                     libraries = [
@@ -1136,6 +1132,50 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
         self.update_counts()
+
+    def parse_library_metadata(
+        self,
+        modality: str,
+        modality_libraries_metadata: List,
+        has_modality_data: Dict,
+        sample_dir: Path,
+        sample_seq_units: Set,
+        sample_technologies: Set,
+        sample_cell_count_estimates: Optional[List] = None,
+    ) -> None:
+
+        library_metadata_paths = (
+            sorted(Path(sample_dir).glob("*_metadata.json"))
+            if modality == "single_cell"
+            else sorted(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
+        )
+        # If no paths exist, then there is no data from this modality in this project/sample
+        if not library_metadata_paths:
+            return False
+
+        for filename_path in library_metadata_paths:
+            with open(filename_path) as library_metadata_json_file:
+                library_json = json.load(library_metadata_json_file)
+
+            if modality == "single_cell":
+                # Some rare samples can have one library with CITE-seq data and another library
+                # next to it without CITE-seq data (e.g. SCPCP000008/SCPCS000368).
+                has_modality_data["has_cite_seq_data"] = (
+                    library_json.get("has_citeseq", False)
+                    or has_modality_data['has_cite_seq_data']
+                )
+                # Grab cell count estimates to be later accumulated
+                sample_cell_count_estimates.append(library_json["filtered_cell_count"])
+
+            library_json["filtered_cell_count"] = library_json.pop("filtered_cells")
+            library_json["scpca_library_id"] = library_json.pop("library_id")
+            library_json["scpca_sample_id"] = library_json.pop("sample_id")
+            modality_libraries_metadata.append(library_json)
+
+            sample_seq_units.add(library_json["seq_unit"].strip())
+            sample_technologies.add(library_json["technology"].strip())
+
+        return True
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
