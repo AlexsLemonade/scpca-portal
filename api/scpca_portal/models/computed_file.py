@@ -1,5 +1,6 @@
 import subprocess
 from pathlib import Path
+from threading import Lock
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -230,7 +231,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @classmethod
     def get_sample_multiplexed_file(
-        cls, sample, libraries, library_path_mapping, workflow_versions, file_format
+        cls, sample, libraries, library_path_mapping, workflow_versions, file_format, lock: Lock
     ):
         """
         Prepares a ready for saving single data file of sample's combined multiplexed data.
@@ -279,18 +280,22 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 else:
                     includes_celltype_report = True
 
-        if not computed_file.zip_file_path.exists():
-            with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-                zip_file.write(
-                    ComputedFile.README_MULTIPLEXED_FILE_PATH,
-                    ComputedFile.OUTPUT_README_FILE_NAME,
-                )
-                zip_file.write(
-                    sample.output_multiplexed_metadata_file_path,
-                    ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
-                )
-                for file_name, file_path in file_name_path_mapping.items():
-                    zip_file.write(file_path, file_name)
+        # This check does not function as expected when multiple threads
+        # check before the compilation is complete. Here we use a lock that
+        # is specific to all samples that share the same zip_file_path.
+        with lock:
+            if not computed_file.zip_file_path.exists():
+                with ZipFile(computed_file.zip_file_path, "w") as zip_file:
+                    zip_file.write(
+                        ComputedFile.README_MULTIPLEXED_FILE_PATH,
+                        ComputedFile.OUTPUT_README_FILE_NAME,
+                    )
+                    zip_file.write(
+                        sample.output_multiplexed_metadata_file_path,
+                        ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
+                    )
+                    for file_name, file_path in file_name_path_mapping.items():
+                        zip_file.write(file_path, file_name)
 
         computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
         computed_file.has_cite_seq_data = sample.has_cite_seq_data
