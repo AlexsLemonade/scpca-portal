@@ -5,7 +5,6 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Dict, List, Set, Optional
-from itertools import accumulate
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
@@ -883,7 +882,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             has_modality_data = {
                 "has_cite_seq_data": False,
                 "has_single_cell_data": False,
-                "has_spatial_data": False
+                "has_spatial_data": False,
             }
             sample_cell_count_estimates = []
             sample_seq_units = set()
@@ -892,7 +891,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             # Handle single cell metadata.
             self.parse_library_metadata(
                 "single_cell",
-                spatial_libraries_metadata,
+                single_cell_libraries_metadata,
                 has_modality_data,
                 sample_dir,
                 sample_seq_units,
@@ -917,7 +916,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_metadata["has_single_cell_data"] = has_modality_data["has_single_cell_data"]
             sample_metadata["has_spatial_data"] = has_modality_data["has_spatial_data"]
             sample_metadata["includes_anndata"] = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
-            sample_metadata["sample_cell_count_estimate"] = accumulate(sample_cell_count_estimates)
+            sample_metadata["sample_cell_count_estimate"] = sum(sample_cell_count_estimates)
             sample_metadata["seq_units"] = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample_metadata["technologies"] = ", ".join(sorted(sample_technologies, key=str.lower))
 
@@ -992,7 +991,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             multiplexed_sample_technologies_mapping,
             sample_id=sample_id,
         )
-        Sample.objects.bulk_create(samples)
 
         def update_ann_data(future):
             computed_file, metadata_files = future.result()
@@ -1029,14 +1027,13 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
 
         max_workers = kwargs["max_workers"]
-        samples = Sample.objects.filter(project__scpca_id=kwargs["scpca_project_id"])
         samples_count = len(samples)
         logger.info(
             f"Processing {samples_count} sample{pluralize(samples_count)} using "
             f"{max_workers} worker{pluralize(max_workers)}"
         )
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            for sample in samples:
+            for sample in Sample.objects.bulk_create(samples):
                 # Skip computed files creation if sample directory does not exist.
                 if sample.scpca_id not in non_downloadable_sample_ids:
                     libraries = [
@@ -1151,7 +1148,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
         # If no paths exist, then there is no data from this modality in this project/sample
         if not library_metadata_paths:
-            return False
+            return
 
         for filename_path in library_metadata_paths:
             with open(filename_path) as library_metadata_json_file:
@@ -1161,13 +1158,12 @@ class Project(CommonDataAttributes, TimestampedModel):
                 # Some rare samples can have one library with CITE-seq data and another library
                 # next to it without CITE-seq data (e.g. SCPCP000008/SCPCS000368).
                 has_modality_data["has_cite_seq_data"] = (
-                    library_json.get("has_citeseq", False)
-                    or has_modality_data['has_cite_seq_data']
+                    library_json.get("has_citeseq", False) or has_modality_data["has_cite_seq_data"]
                 )
                 # Grab cell count estimates to be later accumulated
+                library_json["filtered_cell_count"] = library_json.pop("filtered_cells")
                 sample_cell_count_estimates.append(library_json["filtered_cell_count"])
 
-            library_json["filtered_cell_count"] = library_json.pop("filtered_cells")
             library_json["scpca_library_id"] = library_json.pop("library_id")
             library_json["scpca_sample_id"] = library_json.pop("sample_id")
             modality_libraries_metadata.append(library_json)
@@ -1175,7 +1171,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_seq_units.add(library_json["seq_unit"].strip())
             sample_technologies.add(library_json["technology"].strip())
 
-        return True
+        has_modality_data[f"has_{modality}_data"] = True
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
