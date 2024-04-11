@@ -1,6 +1,6 @@
 import subprocess
-from multiprocessing import Lock
 from pathlib import Path
+from threading import Lock
 from zipfile import ZipFile
 
 from django.conf import settings
