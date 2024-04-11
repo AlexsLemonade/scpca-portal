@@ -295,7 +295,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         if update_s3:
             logger.info(f"Uploading {computed_file}")
             computed_file.create_s3_file()
-        if clean_up_output_data:
+
+        # Don't clean up multiplexed sample zips until the project is done
+        is_multiplexed_sample = computed_file.sample and computed_file.sample.has_multiplexed_data
+
+        if clean_up_output_data and not is_multiplexed_sample:
             computed_file.zip_file_path.unlink(missing_ok=True)
 
         # Close DB connection for each thread.
