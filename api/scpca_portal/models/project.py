@@ -4,6 +4,7 @@ import logging
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Lock
 from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
@@ -1039,6 +1040,14 @@ class Project(CommonDataAttributes, TimestampedModel):
             f"Processing {samples_count} sample{pluralize(samples_count)} using "
             f"{max_workers} worker{pluralize(max_workers)}"
         )
+
+        # Prepare a threading.Lock for each multiplexed sample that shares a zip file.
+        # The keys are the sample.multiplexed_ids since that will be unique across shared zip files.
+        multiplexed_ids = set(
+            ["_".join(s.multiplexed_ids) for s in samples if s.has_multiplexed_data]
+        )
+        locks = {multiplexed_ids: Lock() for multiplexed_ids in multiplexed_ids}
+
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for sample in Sample.objects.bulk_create(samples):
                 # Skip computed files creation if sample directory does not exist.
@@ -1088,6 +1097,10 @@ class Project(CommonDataAttributes, TimestampedModel):
                     ]
                     workflow_versions = [library["workflow_version"] for library in libraries]
                     multiplexed_workflow_versions.update(workflow_versions)
+
+                    # Get the lock for current sample.
+                    sample_lock = locks["_".join(sample.multiplexed_ids)]
+
                     tasks.submit(
                         ComputedFile.get_sample_multiplexed_file,
                         sample,
@@ -1095,6 +1108,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                         multiplexed_library_path_mapping,
                         workflow_versions,
                         ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                        lock=sample_lock,
                     ).add_done_callback(update_multiplexed_data)
 
         if multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]:
