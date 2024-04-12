@@ -55,6 +55,8 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "project__id",
         "sample__id",
         "id",
+        "format",
+        "modality",
         "includes_celltype_report",
     )
 
