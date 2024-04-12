@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0036_remove_computedfile_type'),
-        ('scpca_portal', '0039_computedfile_includes_celltype_report'),
+        ("scpca_portal", "0036_remove_computedfile_type"),
+        ("scpca_portal", "0039_computedfile_includes_celltype_report"),
     ]
 
-    operations = [
-    ]
+    operations = []
