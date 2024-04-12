@@ -19,15 +19,14 @@ export const ProjectSamplesTable = ({
   samples: defaultSamples,
   stickies = 3
 }) => {
-  const [showDownloadOptions, setShowDownloadOptions] = useState(false)
-
   // We only want to show the applied donwload options.
   // Also need some helpers for presentation.
   const { modality, format, getFoundFile, resourceSort } =
     useDownloadOptionsContext()
-
-  const [samples, setSamples] = useState(defaultSamples)
   const [loaded, setLoaded] = useState(false)
+  const [samples, setSamples] = useState(defaultSamples)
+  const [showDownloadOptions, setShowDownloadOptions] = useState(false)
+  const hasMultiplexedData = project.has_multiplexed_data
   const infoText =
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
@@ -138,14 +137,6 @@ export const ProjectSamplesTable = ({
         </Box>
       )
     },
-    {
-      Header: 'Multiplexed with',
-      accessor: ({ multiplexed_with: multiplexedWith }) => (
-        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
-          {multiplexedWith.join(', ')}
-        </Box>
-      )
-    },
     { Header: 'Sequencing Units', accessor: 'seq_units' },
     { Header: 'Technology', accessor: 'technologies' },
     {
@@ -188,6 +179,21 @@ export const ProjectSamplesTable = ({
       accessor: ({ additional_metadata: data }) => Object.keys(data).join(', ')
     }
   ]
+
+  // Add 'Multiplexed with' column only for the project with multiplexed libraries
+  if (hasMultiplexedData) {
+    const position = 3
+    const column = {
+      Header: 'Multiplexed with',
+      accessor: ({ multiplexed_with: multiplexedWith }) => (
+        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
+          {multiplexedWith.join(', ')}
+        </Box>
+      )
+    }
+
+    columns.splice(position, 0, column)
+  }
 
   return (
     <Table
