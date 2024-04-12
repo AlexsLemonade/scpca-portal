@@ -1,5 +1,6 @@
 import subprocess
 from pathlib import Path
+from threading import Lock
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -52,8 +53,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_ANNDATA_FILE_NAME = "readme_anndata.md"
     README_ANNDATA_FILE_PATH = common.OUTPUT_DATA_PATH / README_ANNDATA_FILE_NAME
 
-    README_FILE_NAME = "readme.md"
-    README_FILE_PATH = common.OUTPUT_DATA_PATH / README_FILE_NAME
+    README_SINGLE_CELL_FILE_NAME = "readme_single_cell.md"
+    README_SINGLE_CELL_FILE_PATH = common.OUTPUT_DATA_PATH / README_SINGLE_CELL_FILE_NAME
 
     README_MULTIPLEXED_FILE_NAME = "readme_multiplexed.md"
     README_MULTIPLEXED_FILE_PATH = common.OUTPUT_DATA_PATH / README_MULTIPLEXED_FILE_NAME
@@ -61,10 +62,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_SPATIAL_FILE_NAME = "readme_spatial.md"
     README_SPATIAL_FILE_PATH = common.OUTPUT_DATA_PATH / README_SPATIAL_FILE_NAME
 
-    README_TEMPLATE_ANNDATA_FILE_PATH = common.TEMPLATE_PATH / README_ANNDATA_FILE_NAME
-    README_TEMPLATE_FILE_PATH = common.TEMPLATE_PATH / README_FILE_NAME
-    README_TEMPLATE_MULTIPLEXED_FILE_PATH = common.TEMPLATE_PATH / README_MULTIPLEXED_FILE_NAME
-    README_TEMPLATE_SPATIAL_FILE_PATH = common.TEMPLATE_PATH / README_SPATIAL_FILE_NAME
+    README_TEMPLATE_PATH = common.TEMPLATE_PATH / "readme"
+    README_TEMPLATE_ANNDATA_FILE_PATH = README_TEMPLATE_PATH / "anndata.md"
+    README_TEMPLATE_SINGLE_CELL_FILE_PATH = README_TEMPLATE_PATH / "single_cell.md"
+    README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "multiplexed.md"
+    README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
     format = models.TextField(choices=OutputFileFormats.CHOICES)
     modality = models.TextField(choices=OutputFileModalities.CHOICES)
@@ -72,6 +74,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
     workflow_version = models.TextField()
+    includes_celltype_report = models.BooleanField(default=False)
 
     project = models.ForeignKey(
         "Project", null=True, on_delete=models.CASCADE, related_name="project_computed_files"
@@ -82,7 +85,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     def __str__(self):
         return (
-            f"'{self.project or self.sample}' {dict(self.OutputFileFormats.CHOICES)[self.format]} "
+            f"'{self.project or self.sample}' "
+            f"{dict(self.OutputFileModalities.CHOICES)[self.modality]} "
+            f"{dict(self.OutputFileFormats.CHOICES)[self.format]} "
             f"computed file ({self.size_in_bytes}B)"
         )
 
@@ -122,6 +127,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
         computed_file.has_cite_seq_data = project.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+        computed_file.includes_celltype_report = project.samples.filter(is_cell_line=False).exists()
 
         return computed_file
 
@@ -136,7 +142,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
         else:
             computed_file_name = project.output_single_cell_computed_file_name
-            readme_file_path = ComputedFile.README_FILE_PATH
+            readme_file_path = ComputedFile.README_SINGLE_CELL_FILE_PATH
 
         computed_file = cls(
             format=file_format,
@@ -203,7 +209,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @classmethod
     def get_sample_multiplexed_file(
-        cls, sample, libraries, library_path_mapping, workflow_versions, file_format
+        cls, sample, libraries, library_path_mapping, workflow_versions, file_format, lock: Lock
     ):
         """
         Prepares a ready for saving single data file of sample's combined multiplexed data.
@@ -218,31 +224,60 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
+        # cell lines do not have celltype reports
+        includes_celltype_report = not sample.is_cell_line
+
         file_name_path_mapping = {}
         for library in libraries:
             library_id = library["scpca_library_id"]
-            for file_suffix in ("_filtered.rds", "_processed.rds", "_qc.html", "_unfiltered.rds"):
-                file_name = f"{library_id}{file_suffix}"
+            file_suffixes = ["filtered.rds", "processed.rds", "qc.html", "unfiltered.rds"]
+
+            if includes_celltype_report:
+                file_suffixes.append("celltype-report.html")
+
+            # TEMP: Currently there are no celltype-reports for multiplexed samples.
+            # TEMP: Part 1 of 2
+            includes_celltype_report = False
+
+            for file_suffix in file_suffixes:
+                file_name = f"{library_id}_{file_suffix}"
                 file_name_path_mapping[file_name] = Path(
                     library_path_mapping[library_id], file_name
                 )
 
-        if not computed_file.zip_file_path.exists():
-            with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-                zip_file.write(
-                    ComputedFile.README_MULTIPLEXED_FILE_PATH,
-                    ComputedFile.OUTPUT_README_FILE_NAME,
-                )
-                zip_file.write(
-                    sample.output_multiplexed_metadata_file_path,
-                    ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
-                )
-                for file_name, file_path in file_name_path_mapping.items():
-                    zip_file.write(file_path, file_name)
+                # TEMP: Currently there are no celltype-reports for multiplexed samples.
+                # TEMP: Part 2 of 2
+                # This prevents us from trying to copy over a report that does not exist.
+                # This is only here to prevent us from not catching an error of missing other files.
+                if (
+                    file_suffix == "celltype-report.html"
+                    and not file_name_path_mapping[file_name].exists()
+                ):
+                    del file_name_path_mapping[file_name]
+                else:
+                    includes_celltype_report = True
+
+        # This check does not function as expected when multiple threads
+        # check before the compilation is complete. Here we use a lock that
+        # is specific to all samples that share the same zip_file_path.
+        with lock:
+            if not computed_file.zip_file_path.exists():
+                with ZipFile(computed_file.zip_file_path, "w") as zip_file:
+                    zip_file.write(
+                        ComputedFile.README_MULTIPLEXED_FILE_PATH,
+                        ComputedFile.OUTPUT_README_FILE_NAME,
+                    )
+                    zip_file.write(
+                        sample.output_multiplexed_metadata_file_path,
+                        ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
+                    )
+                    for file_name, file_path in file_name_path_mapping.items():
+                        zip_file.write(file_path, file_name)
 
         computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
         computed_file.has_cite_seq_data = sample.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+        computed_file.includes_celltype_report = includes_celltype_report
 
         return computed_file, {"_".join(sample.multiplexed_ids): file_name_path_mapping.values()}
 
@@ -253,27 +288,36 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         Returns the data file and file mapping for a sample.
         """
         is_anndata_file_format = file_format == cls.OutputFileFormats.ANN_DATA
+        # cell lines do not have celltype reports
+        includes_celltype_report = not sample.is_cell_line
+
         if is_anndata_file_format:
             file_name = sample.output_single_cell_anndata_computed_file_name
-            common_file_suffixes = (
+            readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
+            common_file_suffixes = [
                 "filtered_rna.hdf5",
                 "processed_rna.hdf5",
                 "qc.html",
                 "unfiltered_rna.hdf5",
-            )
+            ]
         else:
             file_name = sample.output_single_cell_computed_file_name
-            common_file_suffixes = (
+            readme_file_path = ComputedFile.README_SINGLE_CELL_FILE_PATH
+            common_file_suffixes = [
                 "filtered.rds",
                 "processed.rds",
                 "qc.html",
                 "unfiltered.rds",
-            )
-        cite_seq_anndata_file_suffixes = (
+            ]
+
+        if includes_celltype_report:
+            common_file_suffixes.append("celltype-report.html")
+
+        cite_seq_anndata_file_suffixes = [
             "filtered_adt.hdf5",
             "processed_adt.hdf5",
             "unfiltered_adt.hdf5",
-        )
+        ]
 
         computed_file = cls(
             format=file_format,
@@ -287,7 +331,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         file_paths = []
         with ZipFile(computed_file.zip_file_path, "w") as zip_file:
             zip_file.write(
-                ComputedFile.README_FILE_PATH,
+                readme_file_path,
                 ComputedFile.OUTPUT_README_FILE_NAME,
             )
             zip_file.write(
@@ -312,6 +356,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
         computed_file.has_cite_seq_data = sample.has_cite_seq_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+        computed_file.includes_celltype_report = includes_celltype_report
 
         return computed_file, {sample.scpca_id: file_paths}
 

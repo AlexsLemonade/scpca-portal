@@ -25,6 +25,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "size_in_bytes",
             "updated_at",
             "workflow_version",
+            "includes_celltype_report",
         )
         extra_kwargs = {
             "download_url": {
@@ -50,7 +51,12 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
 class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = ComputedFile.objects.order_by("-created_at")
     ordering_fields = "__all__"
-    filterset_fields = ("project__id", "sample__id", "id")
+    filterset_fields = (
+        "project__id",
+        "sample__id",
+        "id",
+        "includes_celltype_report",
+    )
 
     def get_serializer_class(self):
         if self.action == "list":

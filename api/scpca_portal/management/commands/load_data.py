@@ -24,6 +24,8 @@ ALLOWED_SUBMITTERS = {
     "murphy_chen",
     "pugh",
     "teachey_tan",
+    "wu",
+    "rokita",
 }
 
 logger = logging.getLogger()
@@ -115,6 +117,7 @@ class Command(BaseCommand):
         subprocess.check_call(command_list)
 
     def add_arguments(self, parser):
+        parser.add_argument("--input-bucket-name", type=str, default="scpca-portal-inputs")
         parser.add_argument(
             "--clean-up-input-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
@@ -122,8 +125,8 @@ class Command(BaseCommand):
             "--clean-up-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
         parser.add_argument("--max-workers", type=int, default=10)
-        parser.add_argument("--reload-all", action="store_true")
-        parser.add_argument("--reload-existing", action="store_true")
+        parser.add_argument("--reload-all", action="store_true", default=False)
+        parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--s3-max-bandwidth", type=int, default=None, help="In MB/s")
         parser.add_argument("--s3-max-concurrent-requests", type=int, default=10)
         parser.add_argument("--s3-multipart-chunk-size", type=int, default=8, help="In MB")
@@ -143,6 +146,7 @@ class Command(BaseCommand):
 
     def process_project_data(self, data, sample_id, **kwargs):
         self.project.abstract = data["abstract"]
+        self.project.additional_restrictions = data["additional_restrictions"]
         self.project.has_bulk_rna_seq = utils.boolean_from_string(data.get("has_bulk", False))
         self.project.has_cite_seq_data = utils.boolean_from_string(data.get("has_CITE", False))
         self.project.has_multiplexed_data = utils.boolean_from_string(

@@ -10,14 +10,17 @@ class FilterOptionsViewSet(viewsets.ViewSet):
         modalities = set()
         seq_units_options = set()
         technologies_options = set()
+        organisms_options = set()
+        models_options = {"includes_xenografts", "includes_cell_lines"}
 
         for project in Project.objects.values(
-            "diagnoses", "modalities", "seq_units", "technologies"
+            "diagnoses", "modalities", "seq_units", "technologies", "organisms"
         ):
             diagnoses_options.update((d for d in (project["diagnoses"] or "").split(", ") if d))
             modalities.update(project["modalities"])
             seq_units_options.update(su for su in (project["seq_units"] or "").split(", ") if su)
             technologies_options.update(t for t in (project["technologies"] or "").split(", ") if t)
+            organisms_options.update(o for o in project["organisms"] or "" if o)
 
         return JsonResponse(
             {
@@ -25,5 +28,7 @@ class FilterOptionsViewSet(viewsets.ViewSet):
                 "modalities": sorted(modalities),
                 "seq_units": sorted(seq_units_options),
                 "technologies": sorted(technologies_options),
+                "organisms": sorted(organisms_options),
+                "models": sorted(models_options),
             }
         )

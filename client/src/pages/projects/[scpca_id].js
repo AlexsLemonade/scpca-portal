@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { DetailsTable } from 'components/DetailsTable'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
+import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
@@ -12,6 +13,7 @@ import { Link } from 'components/Link'
 import { api } from 'api'
 import { useResponsive } from 'hooks/useResponsive'
 import { PageTitle } from 'components/PageTitle'
+import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
 
 const Project = ({ project }) => {
   if (!project) return '404'
@@ -101,6 +103,14 @@ const Project = ({ project }) => {
                         ) : (
                           ''
                         )
+                    },
+                    {
+                      label: 'Additional Restrictions',
+                      value: (
+                        <ProjectAdditionalRestrictions
+                          text={project.additional_restrictions || 'Pending'}
+                        />
+                      )
                     }
                   ]}
                 />
@@ -122,10 +132,15 @@ const Project = ({ project }) => {
                 width={{ max: 'full' }}
                 overflow="auto"
               >
-                <ProjectSamplesTable
-                  project={project}
-                  stickies={responsive(0, 3)}
-                />
+                <DownloadOptionsContextProvider
+                  resource={project}
+                  attribute="samples"
+                >
+                  <ProjectSamplesTable
+                    project={project}
+                    stickies={responsive(0, 3)}
+                  />
+                </DownloadOptionsContextProvider>
               </Box>
             </Tab>
           </Tabs>

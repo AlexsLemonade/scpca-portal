@@ -1,3 +1,5 @@
+import { termsOfUse } from './markdownLinks'
+
 export const config = {
   links: {
     what_downloading:
@@ -19,21 +21,24 @@ export const config = {
     donate: 'https://www.ccdatalab.org/donate-link',
     grants_program: 'https://www.alexslemonade.org/researchers-reviewers',
     help: 'https://scpca.readthedocs.io',
-    contribute_hsform: 'https://share.hsforms.com/1Fs_Z94OzS7abnh5qEieOTA336z0',
+    contribute_pdf: 'contributing-guidelines.pdf',
+    contribute_hsform: 'https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0',
     recruitment_hsform:
       'https://share.hsforms.com/19if2XeF2Rl2YkWxppHW-HQ336z0',
     alsfTwitter: 'https://twitter.com/alexslemonade',
     alsfFacebook: 'https://www.facebook.com/alexslemonade/',
     alsfInstagram: 'https://www.instagram.com/AlexsLemonade/',
     ccdlTwitter: 'https://twitter.com/CancerDataLab',
-    ccdlGithub: 'https://github.com/AlexsLemonade/'
+    ccdlGithub: 'https://github.com/AlexsLemonade/',
+    ccdlGithub_pipeline: 'https://github.com/AlexsLemonade/scpca-nf'
   },
   contact: {
     to: 'Alex’s Lemonade Stand Foundation for Childhood Cancer',
     address: '333 E. Lancaster Ave, #414, Wynnewood, PA 19096 USA',
     numbers: 'Phone: 866.333.1213 • Fax: 610.649.3038',
     email: 'scpca@ccdatalab.org'
-  }
+  },
+  termsOfUse
 }
 
 export default config
