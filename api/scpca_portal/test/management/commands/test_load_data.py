@@ -592,7 +592,6 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.organisms, ["Homo sapiens"])
         self.assertEqual(project.sample_count, 5)
         self.assertFalse(project.has_multiplexed_data)
-        self.assertEqual(project.sample_count, 4)
         self.assertEqual(project.seq_units, "cell, spot")
         self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
