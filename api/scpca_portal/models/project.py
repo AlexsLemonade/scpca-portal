@@ -4,7 +4,7 @@ import logging
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Set
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
@@ -586,6 +586,22 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
         return bulk_rna_seq_sample_ids
 
+    def get_non_downloadable_sample_ids(self, samples_metadata: List[Dict]) -> Set:
+        """
+        Retrieves set of all ids which are not currently downloadable.
+        Some samples will exist but their contents cannot be shared yet.
+        When this happens their corresponding sample folder will not exist.
+        """
+        non_downloadable_sample_ids = set()
+
+        for sample_metadata in samples_metadata:
+            scpca_sample_id = sample_metadata["scpca_sample_id"]
+            sample_dir = self.get_sample_input_data_dir(scpca_sample_id)
+            if not sample_dir.exists():
+                non_downloadable_sample_ids.add(scpca_sample_id)
+
+        return non_downloadable_sample_ids
+
     def create_computed_files(
         self,
         single_cell_file_mapping,
@@ -865,7 +881,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.create_spatial_readme_file()
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
-        non_downloadable_sample_ids = set()
+        non_downloadable_sample_ids = self.get_non_downloadable_sample_ids(samples_metadata)
         single_cell_libraries_metadata = []
         spatial_libraries_metadata = []
         for sample_metadata in samples_metadata:
@@ -873,11 +889,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             if sample_id and scpca_sample_id != sample_id:
                 continue
 
-            # Some samples will exist but their contents cannot be shared yet.
-            # When this happens their corresponding sample folder will not exist.
             sample_dir = self.get_sample_input_data_dir(scpca_sample_id)
-            if not sample_dir.exists():
-                non_downloadable_sample_ids.add(scpca_sample_id)
 
             sample_single_cell_library_metadata = self.load_library_metadata_json(
                 Sample.Modalities.SINGLE_CELL, sample_dir
@@ -885,6 +897,9 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_spatial_library_metadata = self.load_library_metadata_json(
                 Sample.Modalities.SPATIAL, sample_dir
             )
+            single_cell_libraries_metadata.extend(sample_single_cell_library_metadata)
+            spatial_libraries_metadata.extend(sample_spatial_library_metadata)
+
             sample_libraries_metadata = (
                 sample_single_cell_library_metadata + sample_spatial_library_metadata
             )
@@ -894,9 +909,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
             has_single_cell_data = bool(sample_single_cell_library_metadata)
             has_spatial_data = bool(sample_spatial_library_metadata)
-
-            single_cell_libraries_metadata.extend(sample_single_cell_library_metadata)
-            spatial_libraries_metadata.extend(sample_spatial_library_metadata)
 
             sample_cell_count_estimate = utils.sum_key(
                 "filtered_cell_count", sample_single_cell_library_metadata
