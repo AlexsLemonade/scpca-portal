@@ -1159,17 +1159,25 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Parses tsv sample metadata file, massages field names
         samples_metadata = self.load_samples_metadata()
         # samples_metadata = {
-        #    Sample.MODALITY.SINGLE_CELL: [{}],
-        #    Sample.MODALITY.SPATIAL: [{}],
-        #    Sample.MODALITY.MULTIPLEXED: [{}],
+        #    Sample.MODALITY.<MODALITY>: {
+        #       <SCPCA_SAMPLE_ID>: {<SAMPLE_METADATA>} 
+        #    }
+        # }
+        # OR
+        # samples_metadata = {
+        #    <SCPCA_SAMPLE_ID>: {<SAMPLE_METADATA>}
         # }
 
         # Parses json library metadata files, massages field names, calculates aggregate values
         libraries_metadata = self.load_libraries_metadata(samples_metadata)
         # libraries_metadata = {
-        #    Sample.MODALITY.SINGLE_CELL: [{}],
-        #    Sample.MODALITY.SPATIAL: [{}],
-        #    Sample.MODALITY.MULTIPLEXED: [{}],
+        #    Sample.MODALITY.<MODALITY>: {
+        #       <SCPCA_SAMPLE_ID>: [{<LIBRARY_METADATA>}] 
+        #    }
+        # }
+        # OR
+        # libraries_metadata = {
+        #    <SCPCA_SAMPLE_ID>: [{<LIBRARY_METADATA>}]
         # }
 
         # Combines samples and libraries metadata
@@ -1178,6 +1186,15 @@ class Project(CommonDataAttributes, TimestampedModel):
         #    Sample.MODALITY.SINGLE_CELL: [{}],
         #    Sample.MODALITY.SPATIAL: [{}],
         #    Sample.MODALITY.MULTIPLEXED: [{}],
+        # }
+        # combined_metadata = {
+        #    Sample.MODALITY.<MODALITY>: {
+        #       <SCPCA_SAMPLE_ID>: [{<COMBINED_LIBRARY_METADATA>}] 
+        #    }
+        # }
+        # OR
+        # libraries_metadata = {
+        #    <SCPCA_SAMPLE_ID>: [{<COMBINED_LIBRARY_METADATA>}]
         # }
 
         # Create sample objects from samples_metadata and save to them db
