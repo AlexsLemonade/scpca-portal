@@ -1225,6 +1225,52 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return samples_metadata
 
+    def load_libraries_metadata(self, samples_metadata: Dict[Dict[Dict]]):
+
+        libraries_metadata = {
+            sample_id: []
+            for sample_id in samples_metadata
+        }
+
+        updated_samples_metadata = samples_metadata.copy()
+
+        for sample_id in updated_samples_metadata:
+            sample_libraries_metadata = libraries_metadata[sample_id]
+            updated_sample_metadata = updated_samples_metadata[sample_id]
+
+            sample_dir = self.get_sample_input_data_dir(sample_id)
+            sample_cell_count_estimate = 0
+            sample_seq_units = set()
+            sample_technologies = set()
+
+            library_metadata_paths = sorted(
+                Path(sample_dir).glob("*_metadata.json")
+                + Path(sample_dir).rglob("*_spatial/*_metadata.json")
+            )
+            for filename_path in library_metadata_paths:
+                with open(filename_path) as library_metadata_json_file:
+                    library_json = json.load(library_metadata_json_file)
+
+                library_json["scpca_library_id"] = library_json.pop("library_id")
+                library_json["scpca_sample_id"] = library_json.pop("sample_id")
+
+                if "filtered_cell_count" in library_json:
+                    library_json["filtered_cell_count"] = library_json.pop("filtered_cells")
+                    sample_cell_count_estimate += library_json["filtered_cell_count"]
+
+                sample_seq_units.add(library_json["seq_unit"].strip())
+                sample_technologies.add(library_json["technology"].strip())
+
+                sample_libraries_metadata.append(library_json)
+
+            updated_sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
+            updated_sample_metadata["seq_units"] = \
+                ", ".join(sorted(sample_seq_units, key=str.lower))
+            updated_sample_metadata["technologies"] = \
+                ", ".join(sorted(sample_technologies, key=str.lower))
+
+        return (updated_samples_metadata, libraries_metadata)
+
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
         for sample in self.samples.all():
