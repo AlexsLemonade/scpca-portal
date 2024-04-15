@@ -5,7 +5,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from threading import Lock
-from typing import Dict, List
+from typing import Dict, List, Set
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
@@ -650,6 +650,22 @@ class Project(CommonDataAttributes, TimestampedModel):
         ) as additional_terms_file:
             return additional_terms_file.read()
 
+    def get_non_downloadable_sample_ids(self, samples_metadata: List[Dict]) -> Set:
+        """
+        Retrieves set of all ids which are not currently downloadable.
+        Some samples will exist but their contents cannot be shared yet.
+        When this happens their corresponding sample folder will not exist.
+        """
+        non_downloadable_sample_ids = set()
+
+        for sample_metadata in samples_metadata:
+            scpca_sample_id = sample_metadata["scpca_sample_id"]
+            sample_dir = self.get_sample_input_data_dir(scpca_sample_id)
+            if not sample_dir.exists():
+                non_downloadable_sample_ids.add(scpca_sample_id)
+
+        return non_downloadable_sample_ids
+
     def get_library_metadata_keys(self, all_keys, modalities=()):
         """Returns a set of library metadata keys based on the modalities context."""
         excluded_keys = {
@@ -870,6 +886,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.create_spatial_readme_file()
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
+
         non_downloadable_sample_ids = set()
         single_cell_libraries_metadata = []
         spatial_libraries_metadata = []
@@ -1038,6 +1055,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
             )
 
+#       non_downloadable_sample_ids = self.get_non_downloadable_sample_ids(samples_metadata)
         max_workers = kwargs["max_workers"]
         samples_count = len(samples)
         logger.info(
@@ -1160,7 +1178,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         samples_metadata = self.load_samples_metadata()
         # samples_metadata = {
         #    Sample.MODALITY.<MODALITY>: {
-        #       <SCPCA_SAMPLE_ID>: {<SAMPLE_METADATA>} 
+        #       <SCPCA_SAMPLE_ID>: {<SAMPLE_METADATA>}
         #    }
         # }
         # OR
@@ -1172,7 +1190,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         libraries_metadata = self.load_libraries_metadata(samples_metadata)
         # libraries_metadata = {
         #    Sample.MODALITY.<MODALITY>: {
-        #       <SCPCA_SAMPLE_ID>: [{<LIBRARY_METADATA>}] 
+        #       <SCPCA_SAMPLE_ID>: [{<LIBRARY_METADATA>}]
         #    }
         # }
         # OR
@@ -1189,7 +1207,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         # }
         # combined_metadata = {
         #    Sample.MODALITY.<MODALITY>: {
-        #       <SCPCA_SAMPLE_ID>: [{<COMBINED_LIBRARY_METADATA>}] 
+        #       <SCPCA_SAMPLE_ID>: [{<COMBINED_LIBRARY_METADATA>}]
         #    }
         # }
         # OR
