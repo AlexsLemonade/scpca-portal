@@ -5,7 +5,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from threading import Lock
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
@@ -1170,44 +1170,34 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         self.update_counts()
 
-    def handle_samples_metadata(self):
+    def handle_samples_metadata(self, sample_id=None):
         # Parses tsv sample metadata file, massages field names
         samples_metadata = self.load_samples_metadata()
-        # samples_metadata = {
-        #    <SCPCA_SAMPLE_ID>: {<SAMPLE_METADATA>}
-        # }
 
         # Parses json library metadata files, massages field names, calculates aggregate values
         libraries_metadata, updated_samples_metadata = \
             self.load_libraries_metadata(samples_metadata)
-        # libraries_metadata = {
-        #    <SCPCA_SAMPLE_ID>: [{<LIBRARY_METADATA>}]
-        # }
 
         # Combines samples and libraries metadata
-        combined_metadata = self.combine_metadata(updated_samples_metadata, libraries_metadata)
-        # combined_metadata = {
-        #    <SCPCA_SAMPLE_ID>: [{<COMBINED_LIBRARY_METADATA>}]
-        # }
+        combined_metadata = self.combine_metadata(
+            updated_samples_metadata,
+            libraries_metadata,
+            sample_id
+        )
 
         # Create sample objects from samples_metadata and save to them db
-        self.create_samples(samples_metadata)
+        self.create_samples(updated_samples_metadata)
 
         return combined_metadata
 
-    def load_samples_metadata(self):
+    def load_samples_metadata(self) -> List[Dict]:
         # Start with a list of samples and their metadata.
         with open(self.input_samples_metadata_file_path) as samples_csv_file:
-            raw_samples_metadata = [sample for sample in csv.DictReader(samples_csv_file)]
-
-        samples_metadata = {
-            sample["scpca_sample_id"]: sample
-            for sample in raw_samples_metadata
-        }
+            samples_metadata = [sample for sample in csv.DictReader(samples_csv_file)]
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
-        for sample_id in samples_metadata:
-            sample_metadata = samples_metadata[sample_id]
+        for sample_metadata in samples_metadata:
+            sample_id = sample_metadata["scpca_sample_id"]
             sample_dir = self.get_sample_input_data_dir(sample_id)
 
             has_bulk_rna_seq = sample_id in bulk_rna_seq_sample_ids
@@ -1225,11 +1215,14 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return samples_metadata
 
-    def load_libraries_metadata(self, samples_metadata: Dict[Dict[Dict]]):
+    def load_libraries_metadata(
+        self,
+        samples_metadata: List[Dict]
+    ) -> Tuple[List[Dict], Dict[List[Dict]]]:
 
         libraries_metadata = {
-            sample_id: []
-            for sample_id in samples_metadata
+            sample_metadata["scpca_sample_id"]: []
+            for sample_metadata in samples_metadata
         }
 
         updated_samples_metadata = samples_metadata.copy()
