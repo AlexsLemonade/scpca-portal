@@ -1155,6 +1155,36 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         self.update_counts()
 
+    def handle_samples_metadata(self):
+        # Parses tsv sample metadata file, massages field names
+        samples_metadata = self.load_samples_metadata()
+        # samples_metadata = {
+        #    Sample.MODALITY.SINGLE_CELL: [{}],
+        #    Sample.MODALITY.SPATIAL: [{}],
+        #    Sample.MODALITY.MULTIPLEXED: [{}],
+        # }
+
+        # Parses json library metadata files, massages field names, calculates aggregate values
+        libraries_metadata = self.load_libraries_metadata(samples_metadata)
+        # libraries_metadata = {
+        #    Sample.MODALITY.SINGLE_CELL: [{}],
+        #    Sample.MODALITY.SPATIAL: [{}],
+        #    Sample.MODALITY.MULTIPLEXED: [{}],
+        # }
+
+        # Combines samples and libraries metadata
+        combined_metadata = self.combine_metadata(samples_metadata, libraries_metadata)
+        # combined_metadata = {
+        #    Sample.MODALITY.SINGLE_CELL: [{}],
+        #    Sample.MODALITY.SPATIAL: [{}],
+        #    Sample.MODALITY.MULTIPLEXED: [{}],
+        # }
+
+        # Create sample objects from samples_metadata and save to them db
+        self.create_samples(samples_metadata)
+
+        return combined_metadata
+
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
         for sample in self.samples.all():
