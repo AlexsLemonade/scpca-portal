@@ -887,7 +887,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
 
-        non_downloadable_sample_ids = set()
         single_cell_libraries_metadata = []
         spatial_libraries_metadata = []
         for sample_metadata in samples_metadata:
@@ -898,8 +897,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             # Some samples will exist but their contents cannot be shared yet.
             # When this happens their corresponding sample folder will not exist.
             sample_dir = self.get_sample_input_data_dir(scpca_sample_id)
-            if not sample_dir.exists():
-                non_downloadable_sample_ids.add(scpca_sample_id)
 
             has_cite_seq_data = False
             has_single_cell_data = False
@@ -1177,41 +1174,19 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Parses tsv sample metadata file, massages field names
         samples_metadata = self.load_samples_metadata()
         # samples_metadata = {
-        #    Sample.MODALITY.<MODALITY>: {
-        #       <SCPCA_SAMPLE_ID>: {<SAMPLE_METADATA>}
-        #    }
-        # }
-        # OR
-        # samples_metadata = {
         #    <SCPCA_SAMPLE_ID>: {<SAMPLE_METADATA>}
         # }
 
         # Parses json library metadata files, massages field names, calculates aggregate values
-        libraries_metadata = self.load_libraries_metadata(samples_metadata)
-        # libraries_metadata = {
-        #    Sample.MODALITY.<MODALITY>: {
-        #       <SCPCA_SAMPLE_ID>: [{<LIBRARY_METADATA>}]
-        #    }
-        # }
-        # OR
+        libraries_metadata, updated_samples_metadata = \
+            self.load_libraries_metadata(samples_metadata)
         # libraries_metadata = {
         #    <SCPCA_SAMPLE_ID>: [{<LIBRARY_METADATA>}]
         # }
 
         # Combines samples and libraries metadata
-        combined_metadata = self.combine_metadata(samples_metadata, libraries_metadata)
+        combined_metadata = self.combine_metadata(updated_samples_metadata, libraries_metadata)
         # combined_metadata = {
-        #    Sample.MODALITY.SINGLE_CELL: [{}],
-        #    Sample.MODALITY.SPATIAL: [{}],
-        #    Sample.MODALITY.MULTIPLEXED: [{}],
-        # }
-        # combined_metadata = {
-        #    Sample.MODALITY.<MODALITY>: {
-        #       <SCPCA_SAMPLE_ID>: [{<COMBINED_LIBRARY_METADATA>}]
-        #    }
-        # }
-        # OR
-        # libraries_metadata = {
         #    <SCPCA_SAMPLE_ID>: [{<COMBINED_LIBRARY_METADATA>}]
         # }
 
@@ -1219,6 +1194,36 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.create_samples(samples_metadata)
 
         return combined_metadata
+
+    def load_samples_metadata(self):
+        # Start with a list of samples and their metadata.
+        with open(self.input_samples_metadata_file_path) as samples_csv_file:
+            raw_samples_metadata = [sample for sample in csv.DictReader(samples_csv_file)]
+
+        samples_metadata = {
+            sample["scpca_sample_id"]: sample
+            for sample in raw_samples_metadata
+        }
+
+        bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
+        for sample_id in samples_metadata:
+            sample_metadata = samples_metadata[sample_id]
+            sample_dir = self.get_sample_input_data_dir(sample_id)
+
+            has_bulk_rna_seq = sample_id in bulk_rna_seq_sample_ids
+            has_cite_seq_data = len(list(Path(sample_dir).glob("*_adt.*"))) > 0
+            has_single_cell_data = len(list(Path(sample_dir).glob("*_metadata.json"))) > 0
+            has_spatial_data = len(list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))) > 0
+            include_anndata = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
+
+            sample_metadata["age_at_diagnosis"] = sample_metadata.pop("age")
+            sample_metadata["has_bulk_rna_seq"] = has_bulk_rna_seq
+            sample_metadata["has_cite_seq_data"] = has_cite_seq_data
+            sample_metadata["has_single_cell_data"] = has_single_cell_data
+            sample_metadata["has_spatial_data"] = has_spatial_data
+            sample_metadata["includes_anndata"] = include_anndata
+
+        return samples_metadata
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
