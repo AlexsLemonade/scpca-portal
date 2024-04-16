@@ -11,7 +11,7 @@ from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"scpca"}
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-02-27/"
+INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-03-08/"
 
 
 class TestLoadData(TransactionTestCase):
