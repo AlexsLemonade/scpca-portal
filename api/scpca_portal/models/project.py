@@ -1185,10 +1185,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_id
         )
 
-        # Create sample objects from samples_metadata and save to them db
-        self.create_samples(updated_samples_metadata)
-
-        return combined_metadata
+        return (combined_metadata, updated_samples_metadata)
 
     def load_samples_metadata(self) -> List[Dict]:
         # Start with a list of samples and their metadata.
@@ -1221,17 +1218,15 @@ class Project(CommonDataAttributes, TimestampedModel):
     ) -> Tuple[List[Dict], Dict[List[Dict]]]:
 
         libraries_metadata = {
-            sample_metadata["scpca_sample_id"]: []
-            for sample_metadata in samples_metadata
+            Sample.Modalities.SINGLE_CELL: [],
+            Sample.Modalities.SPATIAL: []
         }
 
         updated_samples_metadata = samples_metadata.copy()
 
-        for sample_id in updated_samples_metadata:
-            sample_libraries_metadata = libraries_metadata[sample_id]
-            updated_sample_metadata = updated_samples_metadata[sample_id]
+        for updated_sample_metadata in updated_samples_metadata:
 
-            sample_dir = self.get_sample_input_data_dir(sample_id)
+            sample_dir = self.get_sample_input_data_dir(updated_sample_metadata["scpca_sample_id"])
             sample_cell_count_estimate = 0
             sample_seq_units = set()
             sample_technologies = set()
@@ -1254,7 +1249,9 @@ class Project(CommonDataAttributes, TimestampedModel):
                 sample_seq_units.add(library_json["seq_unit"].strip())
                 sample_technologies.add(library_json["technology"].strip())
 
-                sample_libraries_metadata.append(library_json)
+                libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_json) \
+                    if 'spatial' not in filename_path \
+                    else libraries_metadata[Sample.Modalities.SPATIAL].append(library_json)
 
             updated_sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
             updated_sample_metadata["seq_units"] = \
@@ -1263,6 +1260,82 @@ class Project(CommonDataAttributes, TimestampedModel):
                 ", ".join(sorted(sample_technologies, key=str.lower))
 
         return (updated_samples_metadata, libraries_metadata)
+
+    def combine_metadata(
+        self,
+        updated_samples_metadata: Dict[Dict],
+        libraries_metadata: Dict[List[Dict]],
+        sample_id: str
+    ):
+        combined_metadata = {
+            Sample.Modalities.SINGLE_CELL: [],
+            Sample.Modalities.SPATIAL: []
+        }
+
+        for modality in [Sample.Modalities.SINGLE_CELL, Sample.Modalities.SPATIAL]:
+            if not libraries_metadata[modality]:
+                continue
+
+            modalities = {modality}
+            if modality is Sample.Modalities.SINGLE_CELL and self.has_cite_seq_data:
+                modalities.add(Sample.Modalities.CITE_SEQ)
+
+            library_metadata_keys = self.get_library_metadata_keys(
+                set(libraries_metadata[modality][0].keys()), modalities=modalities
+            )
+            sample_metadata_keys = self.get_sample_metadata_keys(
+                set(updated_samples_metadata[0].keys()), modalities=modalities
+            )
+            field_names = self.get_metadata_field_names(
+                library_metadata_keys.union(sample_metadata_keys), modality=modality
+            )
+
+            with open(self.output_single_cell_metadata_file_path, "w", newline="") as project_file:
+                project_csv_writer = csv.DictWriter(
+                    project_file, fieldnames=field_names, delimiter=common.TAB
+                )
+                project_csv_writer.writeheader()
+
+                for updated_sample_metadata in updated_samples_metadata:
+                    scpca_sample_id = updated_sample_metadata["scpca_sample_id"]
+                    if sample_id and scpca_sample_id != sample_id:
+                        continue
+
+                    updated_sample_metadata_copy = updated_sample_metadata.copy()
+                    for key in updated_sample_metadata.keys():  # Exclude fields.
+                        if key not in sample_metadata_keys:
+                            updated_sample_metadata_copy.pop(key)
+
+                    self.add_project_metadata(updated_sample_metadata_copy)
+
+                    sample_metadata_path = Sample.get_output_metadata_file_path(
+                        scpca_sample_id, modality
+                    )
+                    with open(sample_metadata_path, "w", newline="") as sample_file:
+                        sample_csv_writer = csv.DictWriter(
+                            sample_file, fieldnames=field_names, delimiter=common.TAB
+                        )
+                        sample_csv_writer.writeheader()
+
+                        sample_libraries_metadata = (
+                            library
+                            for library in libraries_metadata[modality]
+                            if library["scpca_sample_id"] == scpca_sample_id
+                        )
+                        for sample_library_metadata in sample_libraries_metadata:
+                            sample_library_metadata_copy = sample_library_metadata.copy()
+                            for key in sample_library_metadata.keys():  # Exclude fields.
+                                if key not in library_metadata_keys:
+                                    sample_library_metadata_copy.pop(key)
+
+                            sample_library_combined_metadata = \
+                                sample_library_metadata_copy + updated_sample_metadata_copy
+                            combined_metadata[modality].append(sample_library_combined_metadata)
+
+                            sample_csv_writer.writerow(sample_library_combined_metadata)
+                            project_csv_writer.writerow(sample_library_combined_metadata)
+
+            return combined_metadata
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
