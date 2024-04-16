@@ -575,12 +575,42 @@ class Project(CommonDataAttributes, TimestampedModel):
                 ).strip()
             )
 
+    def create_anndata_merged_readme_file(self):
+        """Creates an annotation metadata README file."""
+        with open(ComputedFile.README_ANNDATA_MERGED_FILE_PATH, "w") as readme_file:
+            readme_file.write(
+                render_to_string(
+                    ComputedFile.README_TEMPLATE_ANNDATA_MERGED_FILE_PATH,
+                    context={
+                        "additional_terms": self.get_additional_terms(),
+                        "date": utils.get_today_string(),
+                        "project_accession": self.scpca_id,
+                        "project_url": self.url,
+                    },
+                ).strip()
+            )
+
     def create_single_cell_readme_file(self):
         """Creates a single cell metadata README file."""
         with open(ComputedFile.README_SINGLE_CELL_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 render_to_string(
                     ComputedFile.README_TEMPLATE_SINGLE_CELL_FILE_PATH,
+                    context={
+                        "additional_terms": self.get_additional_terms(),
+                        "date": utils.get_today_string(),
+                        "project_accession": self.scpca_id,
+                        "project_url": self.url,
+                    },
+                ).strip()
+            )
+
+    def create_single_cell_merged_readme_file(self):
+        """Creates a single cell metadata README file."""
+        with open(ComputedFile.README_SINGLE_CELL_MERGED_FILE_PATH, "w") as readme_file:
+            readme_file.write(
+                render_to_string(
+                    ComputedFile.README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH,
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
@@ -916,8 +946,10 @@ class Project(CommonDataAttributes, TimestampedModel):
             samples_metadata = [line for line in csv.DictReader(samples_csv_file)]
 
         self.create_anndata_readme_file()
+        self.create_anndata_merged_readme_file()
         self.create_multiplexed_readme_file()
         self.create_single_cell_readme_file()
+        self.create_single_cell_merged_readme_file()
         self.create_spatial_readme_file()
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()

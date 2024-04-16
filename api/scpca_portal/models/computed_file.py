@@ -71,8 +71,16 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_ANNDATA_FILE_NAME = "readme_anndata.md"
     README_ANNDATA_FILE_PATH = common.OUTPUT_DATA_PATH / README_ANNDATA_FILE_NAME
 
+    README_ANNDATA_MERGED_FILE_NAME = "readme_anndata_merged.md"
+    README_ANNDATA_MERGED_FILE_PATH = common.OUTPUT_DATA_PATH / README_ANNDATA_MERGED_FILE_NAME
+
     README_SINGLE_CELL_FILE_NAME = "readme_single_cell.md"
     README_SINGLE_CELL_FILE_PATH = common.OUTPUT_DATA_PATH / README_SINGLE_CELL_FILE_NAME
+
+    README_SINGLE_CELL_MERGED_FILE_NAME = "readme_single_cell_merged.md"
+    README_SINGLE_CELL_MERGED_FILE_PATH = (
+        common.OUTPUT_DATA_PATH / README_SINGLE_CELL_MERGED_FILE_NAME
+    )
 
     README_MULTIPLEXED_FILE_NAME = "readme_multiplexed.md"
     README_MULTIPLEXED_FILE_PATH = common.OUTPUT_DATA_PATH / README_MULTIPLEXED_FILE_NAME
@@ -82,7 +90,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     README_TEMPLATE_PATH = common.TEMPLATE_PATH / "readme"
     README_TEMPLATE_ANNDATA_FILE_PATH = README_TEMPLATE_PATH / "anndata.md"
+    README_TEMPLATE_ANNDATA_MERGED_FILE_PATH = README_TEMPLATE_PATH / "anndata_merged.md"
     README_TEMPLATE_SINGLE_CELL_FILE_PATH = README_TEMPLATE_PATH / "single_cell.md"
+    README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH = README_TEMPLATE_PATH / "single_cell_merged.md"
     README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "multiplexed.md"
     README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
@@ -127,7 +137,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             if not project.includes_merged_anndata:
                 return None
             computed_file_name = project.output_merged_anndata_computed_file_name
-            readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
+            readme_file_path = ComputedFile.README_ANNDATA_MERGED_FILE_PATH
             project_file_mapping[
                 f"{project.input_merged_data_path}/{project.scpca_id}_merged_rna.hdf5"
             ] = f"{project.scpca_id}_merged_rna.hdf5"
@@ -140,7 +150,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             if not project.includes_merged_sce:
                 return None
             computed_file_name = project.output_merged_computed_file_name
-            readme_file_path = ComputedFile.README_SINGLE_CELL_FILE_PATH
+            readme_file_path = ComputedFile.README_SINGLE_CELL_MERGED_FILE_PATH
 
             project_file_mapping[
                 f"{project.input_merged_data_path}/{project.scpca_id}_merged.rds"
