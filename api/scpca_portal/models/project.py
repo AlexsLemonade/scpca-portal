@@ -1106,14 +1106,13 @@ class Project(CommonDataAttributes, TimestampedModel):
         samples_metadata = self.load_samples_metadata()
 
         # Parses json library metadata files, massages field names, calculates aggregate values
-        updated_samples_metadata, libraries_metadata = \
-            self.load_libraries_metadata(samples_metadata)
+        updated_samples_metadata, libraries_metadata = self.load_libraries_metadata(
+            samples_metadata
+        )
 
         # Combines samples and libraries metadata
         combined_metadata = self.combine_metadata(
-            updated_samples_metadata,
-            libraries_metadata,
-            sample_id
+            updated_samples_metadata, libraries_metadata, sample_id
         )
 
         return (combined_metadata, updated_samples_metadata)
@@ -1146,15 +1145,9 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return samples_metadata
 
-    def load_libraries_metadata(
-        self,
-        samples_metadata: List[Dict]
-    ):
+    def load_libraries_metadata(self, samples_metadata: List[Dict]):
 
-        libraries_metadata = {
-            Sample.Modalities.SINGLE_CELL: [],
-            Sample.Modalities.SPATIAL: []
-        }
+        libraries_metadata = {Sample.Modalities.SINGLE_CELL: [], Sample.Modalities.SPATIAL: []}
 
         updated_samples_metadata = samples_metadata.copy()
 
@@ -1176,37 +1169,36 @@ class Project(CommonDataAttributes, TimestampedModel):
                 library_json["scpca_library_id"] = library_json.pop("library_id")
                 library_json["scpca_sample_id"] = library_json.pop("sample_id")
 
-                if "filtered_cell_count" in library_json:
+                if "filtered_cells" in library_json:
                     library_json["filtered_cell_count"] = library_json.pop("filtered_cells")
                     sample_cell_count_estimate += library_json["filtered_cell_count"]
 
                 sample_seq_units.add(library_json["seq_unit"].strip())
                 sample_technologies.add(library_json["technology"].strip())
 
-                libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_json) \
-                    if 'spatial' not in str(filename_path) \
-                    else libraries_metadata[Sample.Modalities.SPATIAL].append(library_json)
+                libraries_metadata[Sample.Modalities.SINGLE_CELL].append(
+                    library_json
+                ) if "spatial" not in str(filename_path) else libraries_metadata[
+                    Sample.Modalities.SPATIAL
+                ].append(
+                    library_json
+                )
 
             updated_sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
-            updated_sample_metadata["seq_units"] = \
-                ", ".join(sorted(sample_seq_units, key=str.lower))
-            updated_sample_metadata["technologies"] = \
-                ", ".join(sorted(sample_technologies, key=str.lower))
+            updated_sample_metadata["seq_units"] = ", ".join(
+                sorted(sample_seq_units, key=str.lower)
+            )
+            updated_sample_metadata["technologies"] = ", ".join(
+                sorted(sample_technologies, key=str.lower)
+            )
 
         return (updated_samples_metadata, libraries_metadata)
 
-    def combine_metadata(
-        self,
-        updated_samples_metadata,
-        libraries_metadata,
-        sample_id
-    ):
-        combined_metadata = {
-            Sample.Modalities.SINGLE_CELL: [],
-            Sample.Modalities.SPATIAL: []
-        }
+    def combine_metadata(self, updated_samples_metadata, libraries_metadata, sample_id):
+        combined_metadata = {Sample.Modalities.SINGLE_CELL: [], Sample.Modalities.SPATIAL: []}
 
         for modality in [Sample.Modalities.SINGLE_CELL, Sample.Modalities.SPATIAL]:
+
             if not libraries_metadata[modality]:
                 continue
 
@@ -1224,7 +1216,9 @@ class Project(CommonDataAttributes, TimestampedModel):
                 library_metadata_keys.union(sample_metadata_keys), modality=modality
             )
 
-            with open(self.output_single_cell_metadata_file_path, "w", newline="") as project_file:
+            project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
+
+            with open(getattr(self, project_metadata_path), "w", newline="") as project_file:
                 project_csv_writer = csv.DictWriter(
                     project_file, fieldnames=field_names, delimiter=common.TAB
                 )
@@ -1262,14 +1256,15 @@ class Project(CommonDataAttributes, TimestampedModel):
                                 if key not in library_metadata_keys:
                                     sample_library_metadata_copy.pop(key)
 
-                            sample_library_combined_metadata = \
+                            sample_library_combined_metadata = (
                                 sample_library_metadata_copy | updated_sample_metadata_copy
+                            )
                             combined_metadata[modality].append(sample_library_combined_metadata)
 
                             sample_csv_writer.writerow(sample_library_combined_metadata)
                             project_csv_writer.writerow(sample_library_combined_metadata)
 
-            return combined_metadata
+        return combined_metadata
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
