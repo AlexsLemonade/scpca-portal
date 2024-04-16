@@ -5,7 +5,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from threading import Lock
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
@@ -650,12 +650,15 @@ class Project(CommonDataAttributes, TimestampedModel):
         ) as additional_terms_file:
             return additional_terms_file.read()
 
-    def get_non_downloadable_sample_ids(self, samples_metadata: List[Dict]) -> Set:
+    def get_non_downloadable_sample_ids(self) -> Set:
         """
         Retrieves set of all ids which are not currently downloadable.
         Some samples will exist but their contents cannot be shared yet.
         When this happens their corresponding sample folder will not exist.
         """
+        with open(self.input_samples_metadata_file_path) as samples_csv_file:
+            samples_metadata = [sample for sample in csv.DictReader(samples_csv_file)]
+
         non_downloadable_sample_ids = set()
 
         for sample_metadata in samples_metadata:
@@ -980,7 +983,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
             )
 
-        non_downloadable_sample_ids = self.get_non_downloadable_sample_ids(updated_samples_metadata)
+        non_downloadable_sample_ids = self.get_non_downloadable_sample_ids()
         max_workers = kwargs["max_workers"]
         samples_count = len(samples)
         logger.info(
@@ -1103,7 +1106,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         samples_metadata = self.load_samples_metadata()
 
         # Parses json library metadata files, massages field names, calculates aggregate values
-        libraries_metadata, updated_samples_metadata = \
+        updated_samples_metadata, libraries_metadata = \
             self.load_libraries_metadata(samples_metadata)
 
         # Combines samples and libraries metadata
@@ -1146,7 +1149,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     def load_libraries_metadata(
         self,
         samples_metadata: List[Dict]
-    ) -> Tuple[List[Dict], Dict[List[Dict]]]:
+    ):
 
         libraries_metadata = {
             Sample.Modalities.SINGLE_CELL: [],
@@ -1163,8 +1166,8 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_technologies = set()
 
             library_metadata_paths = sorted(
-                Path(sample_dir).glob("*_metadata.json")
-                + Path(sample_dir).rglob("*_spatial/*_metadata.json")
+                list(Path(sample_dir).glob("*_metadata.json"))
+                + list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
             )
             for filename_path in library_metadata_paths:
                 with open(filename_path) as library_metadata_json_file:
@@ -1181,7 +1184,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 sample_technologies.add(library_json["technology"].strip())
 
                 libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_json) \
-                    if 'spatial' not in filename_path \
+                    if 'spatial' not in str(filename_path) \
                     else libraries_metadata[Sample.Modalities.SPATIAL].append(library_json)
 
             updated_sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
@@ -1194,9 +1197,9 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def combine_metadata(
         self,
-        updated_samples_metadata: Dict[Dict],
-        libraries_metadata: Dict[List[Dict]],
-        sample_id: str
+        updated_samples_metadata,
+        libraries_metadata,
+        sample_id
     ):
         combined_metadata = {
             Sample.Modalities.SINGLE_CELL: [],
@@ -1260,7 +1263,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                                     sample_library_metadata_copy.pop(key)
 
                             sample_library_combined_metadata = \
-                                sample_library_metadata_copy + updated_sample_metadata_copy
+                                sample_library_metadata_copy | updated_sample_metadata_copy
                             combined_metadata[modality].append(sample_library_combined_metadata)
 
                             sample_csv_writer.writerow(sample_library_combined_metadata)
