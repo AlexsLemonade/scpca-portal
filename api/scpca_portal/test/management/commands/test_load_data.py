@@ -356,7 +356,11 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.summaries.count(), 3)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 4)
+        # Expected Computed Files
+        single_cell = 2  # 1 project x 2 formats
+        multiplexed = 1  # 1 project x 1 multiplexed version
+        expected_computed_files = single_cell + multiplexed
+        self.assertEqual(len(project.computed_files), expected_computed_files)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
         self.assertEqual(
