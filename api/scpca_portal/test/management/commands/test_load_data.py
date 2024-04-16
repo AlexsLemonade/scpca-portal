@@ -687,7 +687,7 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 12 files (including subdirectory names):
+        # There are 14 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
         # │   ├── SCPCL999990_celltype-report.html
@@ -696,6 +696,7 @@ class TestLoadData(TransactionTestCase):
         # │   ├── SCPCL999990_qc.html
         # │   └── SCPCL999990_unfiltered.rds
         # ├── SCPCS999997
+        # │   ├── SCPCL999997_celltype-report.html
         # │   ├── SCPCL999997_filtered.rds
         # │   ├── SCPCL999997_processed.rds
         # │   ├── SCPCL999997_qc.html
@@ -703,7 +704,8 @@ class TestLoadData(TransactionTestCase):
         # ├── bulk_metadata.tsv
         # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 12)
+
+        self.assertEqual(len(project_zip.namelist()), 14)
 
         sample = project.samples.filter(has_single_cell_data=True).first()
         self.assertEqual(len(sample.computed_files), 2)
