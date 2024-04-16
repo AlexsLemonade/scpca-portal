@@ -76,8 +76,14 @@ class TestLoadData(TransactionTestCase):
         def assert_object_count():
             self.assertEqual(Project.objects.count(), 1)
             self.assertEqual(ProjectSummary.objects.count(), 4)
+            # There are 3 Single-cell Samples and 1 Sample that is available in Bulk RNA only.
             self.assertEqual(Sample.objects.count(), 4)
-            self.assertEqual(ComputedFile.objects.count(), 11)
+            # Expected Computed Files
+            samples = 3 * 2  # 3 Samples in 2 formats
+            projects = 1 * 2  # 1 Project 2 formats
+            merged_projects = 1 * 2  # merged sce and merged anndata
+            expected_computed_files_count = samples + projects + merged_projects
+            self.assertEqual(ComputedFile.objects.count(), expected_computed_files_count)
 
         # First, just test that loading data works.
         self.loader.load_data(
