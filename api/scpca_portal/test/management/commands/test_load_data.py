@@ -181,11 +181,13 @@ class TestLoadData(TransactionTestCase):
             # ├── individual_reports
             # │   ├── SCPCS999996
             # │   │   └── SCPCL999996_qc.html
+            # │   │   └── SCPCL999996_celltype-report.html
             # │   └── SCPCS999998
             # │       └── SCPCL999998_qc.html
+            # │       └── SCPCL999998_celltype-report.html
             # └── single_cell_metadata.tsv
             files = set(project_zip.namelist())
-            self.assertEqual(len(files), 6)
+            self.assertEqual(len(files), 8)
             self.assertIn("SCPCP999992_merged.rds", files)
             self.assertNotIn("SCPCP999992_merged_adt.hdf5", files)
 
@@ -208,11 +210,13 @@ class TestLoadData(TransactionTestCase):
             # ├── individual_reports
             # │   ├── SCPCS999996
             # │   │   └── SCPCL999996_qc.html
+            # │   │   └── SCPCL999996_celltype-report.html
             # │   └── SCPCS999998
             # │       └── SCPCL999998_qc.html
+            # │       └── SCPCL999998_celltype-report.html
             # └── single_cell_metadata.tsv
             files = set(project_zip.namelist())
-            self.assertEqual(len(files), 7)
+            self.assertEqual(len(files), 9)
             self.assertIn("SCPCP999992_merged_rna.hdf5", files)
             self.assertIn("SCPCP999992_merged_adt.hdf5", files)
 
@@ -255,11 +259,13 @@ class TestLoadData(TransactionTestCase):
             # ├── individual_reports
             # │   ├── SCPCS999990
             # │   │   └── SCPCL999990_qc.html
+            # │   │   └── SCPCL999990_celltype-report.html
             # │   └── SCPCS999997
             # │       └── SCPCL999997_qc.html
+            # │       └── SCPCL999997_celltype-report.html
             # └── single_cell_metadata.tsv
             files = set(project_zip.namelist())
-            self.assertEqual(len(files), 8)
+            self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged.rds", files)
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
@@ -283,11 +289,13 @@ class TestLoadData(TransactionTestCase):
             # ├── individual_reports
             # │   ├── SCPCS999990
             # │   │   └── SCPCL999990_qc.html
+            # │   │   └── SCPCL999990_celltype-report.html
             # │   └── SCPCS999997
             # │       └── SCPCL999997_qc.html
+            # │       └── SCPCL999997_celltype-report.html
             # └── single_cell_metadata.tsv
             files = set(project_zip.namelist())
-            self.assertEqual(len(files), 8)
+            self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged_rna.hdf5", files)
 
     def test_merged_project_no_anndata(self):
