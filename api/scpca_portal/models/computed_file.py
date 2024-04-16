@@ -140,7 +140,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             if not project.includes_merged_sce:
                 return None
             computed_file_name = project.output_merged_computed_file_name
-            readme_file_path = ComputedFile.README_FILE_PATH
+            readme_file_path = ComputedFile.README_SINGLE_CELL_FILE_PATH
 
             project_file_mapping[
                 f"{project.input_merged_data_path}/{project.scpca_id}_merged.rds"
