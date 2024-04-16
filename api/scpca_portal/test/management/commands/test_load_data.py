@@ -586,9 +586,13 @@ class TestLoadData(TransactionTestCase):
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.includes_anndata)
         self.assertTrue(project.modalities)
-        self.assertEqual(project.multiplexed_sample_count, 2)
+        self.assertEqual(project.multiplexed_sample_count, 0)
         self.assertEqual(project.organisms, ["Homo sapiens"])
-        self.assertEqual(project.sample_count, 5)
+        # This project contains 3 samples
+        single_cell = 3
+        bulk = 1
+        expected_samples = single_cell + bulk
+        self.assertEqual(project.sample_count, expected_samples)
         self.assertFalse(project.has_multiplexed_data)
         self.assertEqual(project.sample_count, 4)
         self.assertEqual(project.seq_units, "cell, spot")
