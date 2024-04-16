@@ -980,7 +980,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
             )
 
-#       non_downloadable_sample_ids = self.get_non_downloadable_sample_ids(samples_metadata)
+        non_downloadable_sample_ids = self.get_non_downloadable_sample_ids(updated_samples_metadata)
         max_workers = kwargs["max_workers"]
         samples_count = len(samples)
         logger.info(
