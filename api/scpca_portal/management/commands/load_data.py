@@ -97,6 +97,7 @@ class Command(BaseCommand):
                 (
                     "--exclude=*",  # Must precede include patterns.
                     "--include=project_metadata.csv",
+                    f"--include=merged/{scpca_project_id}*",
                     f"--include={scpca_project_id}/{scpca_sample_id}*",
                 )
             )
@@ -105,6 +106,7 @@ class Command(BaseCommand):
                 (
                     "--exclude=*",  # Must precede include patterns.
                     "--include=project_metadata.csv",
+                    f"--include=merged/{scpca_project_id}*",
                     f"--include={scpca_project_id}*",
                 )
             )
@@ -159,6 +161,12 @@ class Command(BaseCommand):
         )
         self.project.includes_cell_lines = utils.boolean_from_string(
             data.get("includes_cell_lines", False)
+        )
+        self.project.includes_merged_anndata = utils.boolean_from_string(
+            data.get("includes_merged_anndata", False)
+        )
+        self.project.includes_merged_sce = utils.boolean_from_string(
+            data.get("includes_merged_sce", False)
         )
         self.project.includes_xenografts = utils.boolean_from_string(
             data.get("includes_xenografts", False)
