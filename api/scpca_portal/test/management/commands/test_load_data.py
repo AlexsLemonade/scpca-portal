@@ -531,8 +531,6 @@ class TestLoadData(TransactionTestCase):
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
-            "is_cell_line",
-            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "participant_id",
@@ -738,8 +736,6 @@ class TestLoadData(TransactionTestCase):
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
-            "is_cell_line",
-            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "participant_id",
@@ -958,8 +954,6 @@ class TestLoadData(TransactionTestCase):
         expected_additional_metadata_keys = [
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
-            "is_cell_line",
-            "is_xenograft",
             "organism",
             "organism_ontology_id",
             "participant_id",
