@@ -27,7 +27,8 @@ export const config = {
     donate: 'https://www.ccdatalab.org/donate-link',
     grants_program: 'https://www.alexslemonade.org/researchers-reviewers',
     help: 'https://scpca.readthedocs.io',
-    contribute_hsform: 'https://share.hsforms.com/1Fs_Z94OzS7abnh5qEieOTA336z0',
+    contribute_pdf: 'contributing-guidelines.pdf',
+    contribute_hsform: 'https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0',
     recruitment_hsform:
       'https://share.hsforms.com/19if2XeF2Rl2YkWxppHW-HQ336z0',
     alsfTwitter: 'https://twitter.com/alexslemonade',

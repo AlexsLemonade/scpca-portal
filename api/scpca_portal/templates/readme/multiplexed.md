@@ -18,7 +18,6 @@ The files associated with each library are (example shown for a library with ID 
 - A filtered counts file: `SCPCL000000_filtered.rds`,
 - A processed counts file: `SCPCL000000_processed.rds`,
 - A quality control report: `SCPCL000000_qc.html`,
-- A supplemental cell type report: `SCPCL000000_celltype-report.html`
 
 Also included in each download is a `single_cell_metadata.tsv`, a tab-separated table, with one row per sample/library pair and columns containing pertinent metadata corresponding to that sample and library.
 
@@ -70,7 +69,7 @@ Alex's Lemonade Stand Foundation Childhood Cancer Data Lab. (n.d.). The Single-c
 
 #### MLA Format
 
-The Single-Cell Pediatric Cancer Atlas Portal, Alex’s Lemonade Stand Foundation Childhood Cancer Data Lab, https://scpca.alexslemonade.org/. Accessed (insert access date).
+The Single-cell Pediatric Cancer Atlas Portal, Alex’s Lemonade Stand Foundation Childhood Cancer Data Lab, https://scpca.alexslemonade.org/. Accessed (insert access date).
 
 ## Terms of Use
 
