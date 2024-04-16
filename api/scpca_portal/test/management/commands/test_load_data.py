@@ -79,9 +79,9 @@ class TestLoadData(TransactionTestCase):
             # There are 3 Single-cell Samples and 1 Sample that is available in Bulk RNA only.
             self.assertEqual(Sample.objects.count(), 4)
             # Expected Computed Files
-            samples = 3 * 2  # 3 Samples in 2 formats
-            projects = 1 * 2  # 1 Project 2 formats
-            merged_projects = 1 * 2  # merged sce and merged anndata
+            samples = (2 * 2) + 1  # 2 Single-cell Samples in 2 formats and 1 spatial
+            projects = 2 + 1  # Single-cell in 2 formats and 1 Spatial
+            merged_projects = 1 * 2  # Merged SCE and merged AnnData
             expected_computed_files_count = samples + projects + merged_projects
             self.assertEqual(ComputedFile.objects.count(), expected_computed_files_count)
 
@@ -589,9 +589,10 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.multiplexed_sample_count, 0)
         self.assertEqual(project.organisms, ["Homo sapiens"])
         # This project contains 3 samples
-        single_cell = 3
+        single_cell = 2
+        spatial = 1
         bulk = 1
-        expected_samples = single_cell + bulk
+        expected_samples = single_cell + spatial + bulk
         self.assertEqual(project.sample_count, expected_samples)
         self.assertFalse(project.has_multiplexed_data)
         self.assertEqual(project.sample_count, 4)
@@ -827,8 +828,13 @@ class TestLoadData(TransactionTestCase):
         self.assertTrue(project.has_spatial_data)
         self.assertTrue(project.modalities)
         self.assertEqual(project.organisms, ["Homo sapiens"])
-        self.assertEqual(project.sample_count, 5)
-        self.assertEqual(project.summaries.count(), 5)
+        # Expected Samples
+        single_cell = 2
+        spatial = 1
+        bulk = 1
+        expected_samples = single_cell + spatial + bulk
+        self.assertEqual(project.sample_count, expected_samples)
+        self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(len(project.computed_files), 5)
