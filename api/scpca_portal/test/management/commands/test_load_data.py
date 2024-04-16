@@ -471,21 +471,20 @@ class TestLoadData(TransactionTestCase):
         # There are 14 files (including subdirectory names):
         # ├── README.md
         # ├── SCPCS999990
-        # │   ├── SCPCL999990_celltype-report.rds
+        # │   ├── SCPCL999990_celltype-report.html
         # │   ├── SCPCL999990_filtered.rds
         # │   ├── SCPCL999990_processed.rds
         # │   ├── SCPCL999990_qc.html
         # │   └── SCPCL999990_unfiltered.rds
         # ├── SCPCS999992_SCPCS999993
-        # │   ├── SCPCL999992_celltype-report.rds
+        # │   ├── SCPCL999992_celltype-report.html
         # │   ├── SCPCL999992_filtered.rds
         # │   ├── SCPCL999992_processed.rds
         # │   ├── SCPCL999992_qc.html
         # │   └── SCPCL999992_unfiltered.rds
-        # ├── bulk_metadata.tsv
-        # ├── bulk_quant.tsv
         # └── single_cell_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 14)
+
+        self.assertEqual(len(project_zip.namelist()), 12)
 
         library_sample_mapping = {
             "SCPCL999992": "SCPCS999992_SCPCS999993",
