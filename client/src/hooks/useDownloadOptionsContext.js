@@ -55,11 +55,11 @@ export const useDownloadOptionsContext = () => {
         file.includes_merged === selectedMerged
     )
   // Check if the user-selected modality is in 'mergedObjectsKeys'
-  const isMergedObjectKeys = mergedObjectsKeys.includes(modality)
+  const isMergedObjectKey = mergedObjectsKeys.includes(modality)
 
   // Check the availability of the merged objects based on modalities and 'includes_merged' flag per computed file
   const isMergedObjectsAvailable =
-    isMergedObjectKeys && computedFiles.some((cf) => cf.includes_merged)
+    isMergedObjectKey && computedFiles.some((cf) => cf.includes_merged)
 
   // Sorter function for ordering a resource
   // based on availability of prefered download options
@@ -115,7 +115,7 @@ export const useDownloadOptionsContext = () => {
       const newComputedFile = getFoundFile()
       if (newComputedFile) setComputedFile(newComputedFile)
     }
-  }, [modality, format])
+  }, [modality, format, selectedMerged])
 
   return {
     modality,

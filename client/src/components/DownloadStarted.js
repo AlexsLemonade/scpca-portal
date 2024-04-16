@@ -6,6 +6,7 @@ import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
 import { WarningText } from 'components/WarningText'
+import { WarningMergedObjects } from 'components/WarningMergedObjects'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
@@ -22,6 +23,7 @@ export const DownloadStarted = ({
   const { items, info, type, isProject } =
     getDownloadOptionDetails(computedFile)
   const additionalRestrictions = resource.additional_restrictions
+  const isMergedObjects = computedFile.s3_key.includes('merged')
   const [recommendedResource, setRecommendedResource] = useState(null)
   const [recommendedFile, setRecommendedFile] = useState(null)
 
@@ -70,6 +72,7 @@ export const DownloadStarted = ({
               text={info.warning_text.text}
             />
           )}
+          {isMergedObjects && <WarningMergedObjects />}
           <Paragraph>
             {info && info.text_only && <span>{info.text_only}</span>} The
             download consists of the following items:

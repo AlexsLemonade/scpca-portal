@@ -1,11 +1,10 @@
 import React from 'react'
 import { Box, Grid, Heading, Text } from 'grommet'
 import { Button } from 'components/Button'
-import { config } from 'config'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
-import { WarningText } from 'components/WarningText'
+import { WarningMergedObjects } from 'components/WarningMergedObjects'
 
 export const DownloadOption = ({ computedFile, handleSelectFile }) => {
   const { type, items, resourceId } = getDownloadOptionDetails(computedFile)
@@ -45,14 +44,7 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
       <Box gridArea="body" margin={{ bottom: 'small' }}>
         {isMergedObjectsAvailable && (
           <Box>
-            <WarningText
-              iconMargin="none"
-              iconSize="24px"
-              lineBreak={false}
-              link={config.links.what_are_merged_objects}
-              linkLabel="Learn more"
-              text="Samples are not integrated."
-            />
+            <WarningMergedObjects />
           </Box>
         )}
         <Box pad="small">
