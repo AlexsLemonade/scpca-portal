@@ -304,7 +304,7 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged_rna.hdf5", files)
 
-    def test_merged_project_no_anndata(self):
+    def test_no_merged_single_cell(self):
         project_id = "SCPCP999991"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
@@ -322,31 +322,14 @@ class TestLoadData(TransactionTestCase):
         self.assertFalse(project.has_cite_seq_data)
         self.assertTrue(project.includes_anndata)
         self.assertFalse(project.includes_merged_anndata)
-        self.assertTrue(project.includes_merged_sce)
-
-        self.assertGreater(project.single_cell_merged_computed_file.size_in_bytes, 0)
-        self.assertEqual(
-            project.single_cell_merged_computed_file.modality,
-            ComputedFile.OutputFileModalities.SINGLE_CELL,
-        )
-        self.assertTrue(project.single_cell_merged_computed_file.includes_merged)
-        self.assertFalse(project.single_cell_merged_computed_file.has_bulk_rna_seq)
-        self.assertFalse(project.single_cell_merged_computed_file.has_cite_seq_data)
-        project_zip_path = common.OUTPUT_DATA_PATH / project.output_merged_computed_file_name
-        with ZipFile(project_zip_path) as project_zip:
-            # There are 5 files (including subdirectory names):
-            # ├── README.md
-            # ├── SCPCP999991_merged-summary-report.html
-            # ├── SCPCP999991_merged.rds
-            # ├── individual_reports
-            # │   └── SCPCS999995
-            # │       └── SCPCL999995_qc.html
-            # └── single_cell_metadata.tsv
-            files = set(project_zip.namelist())
-            self.assertEqual(len(files), 5)
-            self.assertIn("SCPCP999991_merged.rds", files)
-
+        self.assertFalse(project.includes_merged_sce)
+        self.assertIsNone(project.single_cell_merged_computed_file)
         self.assertIsNone(project.single_cell_anndata_merged_computed_file)
+        single_cell = 2  # 1 computed file for AnnData and one for SCE
+        multiplexed = 1  # 1 computed file for multiplexed
+        merged = 0  # This project has no merged data for either format
+        expected_computed_files = single_cell + multiplexed + merged
+        self.assertEqual(project.computed_files.count(), expected_computed_files)
 
     def test_multiplexed_metadata(self):
         project_id = "SCPCP999991"
