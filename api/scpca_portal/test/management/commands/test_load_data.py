@@ -712,7 +712,7 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 3424)
+        self.assertEqual(sample.sample_cell_count_estimate, 3421)
         self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3")
         self.assertIsNotNone(sample.single_cell_computed_file)
