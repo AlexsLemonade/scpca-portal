@@ -76,9 +76,8 @@ class TestLoadData(TransactionTestCase):
         def assert_object_count():
             self.assertEqual(Project.objects.count(), 1)
             self.assertEqual(ProjectSummary.objects.count(), 4)
-            # There are 3 Single-cell Samples and 1 Sample that is available in Bulk RNA only.
             self.assertEqual(Sample.objects.count(), 4)
-            # Expected Computed Files
+            # Expects 10 Computed Files
             samples = (2 * 2) + 1  # 2 Single-cell Samples in 2 formats and 1 spatial
             projects = 2 + 1  # Single-cell in 2 formats and 1 Spatial
             merged_projects = 1 * 2  # Merged SCE and merged AnnData
