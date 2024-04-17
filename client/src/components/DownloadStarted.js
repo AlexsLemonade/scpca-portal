@@ -23,7 +23,7 @@ export const DownloadStarted = ({
   const { items, info, type, isProject } =
     getDownloadOptionDetails(computedFile)
   const additionalRestrictions = resource.additional_restrictions
-  const isMergedObjects = computedFile.s3_key.includes('merged')
+  const isIncludesMerged = computedFile.includes_merged
   const [recommendedResource, setRecommendedResource] = useState(null)
   const [recommendedFile, setRecommendedFile] = useState(null)
 
@@ -72,7 +72,7 @@ export const DownloadStarted = ({
               text={info.warning_text.text}
             />
           )}
-          {isMergedObjects && <WarningMergedObjects />}
+          {isIncludesMerged && <WarningMergedObjects />}
           <Paragraph>
             {info && info.text_only && <span>{info.text_only}</span>} The
             download consists of the following items:
