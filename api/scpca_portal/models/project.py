@@ -650,19 +650,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 ).strip()
             )
 
-    def get_bulk_rna_seq_sample_ids(self):
-        """Returns bulk RNA sequencing sample IDs."""
-        bulk_rna_seq_sample_ids = set()
-        if self.has_bulk_rna_seq:
-            with open(self.input_bulk_metadata_file_path, "r") as bulk_metadata_file:
-                bulk_rna_seq_sample_ids.update(
-                    (
-                        line["sample_id"]
-                        for line in csv.DictReader(bulk_metadata_file, delimiter=common.TAB)
-                    )
-                )
-        return bulk_rna_seq_sample_ids
-
     def create_computed_files(
         self,
         single_cell_file_mapping,
@@ -722,6 +709,19 @@ class Project(CommonDataAttributes, TimestampedModel):
                         file_format,
                     ).add_done_callback(create_computed_file)
 
+    def get_bulk_rna_seq_sample_ids(self):
+        """Returns bulk RNA sequencing sample IDs."""
+        bulk_rna_seq_sample_ids = set()
+        if self.has_bulk_rna_seq:
+            with open(self.input_bulk_metadata_file_path, "r") as bulk_metadata_file:
+                bulk_rna_seq_sample_ids.update(
+                    (
+                        line["sample_id"]
+                        for line in csv.DictReader(bulk_metadata_file, delimiter=common.TAB)
+                    )
+                )
+        return bulk_rna_seq_sample_ids
+
     def get_additional_terms(self):
         if not self.additional_restrictions:
             return ""
@@ -730,6 +730,17 @@ class Project(CommonDataAttributes, TimestampedModel):
             common.TEMPLATE_PATH / "readme/additional_terms/research_academic_only.md"
         ) as additional_terms_file:
             return additional_terms_file.read()
+
+    def get_multiplexed_library_path_mapping(self) -> Dict:
+        multiplexed_library_path_mapping = {}
+        # Sort and iterate over multiplexed directories
+        for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
+            # Sort and iterate over libraries within those directories
+            for filename_path in sorted(Path(multiplexed_sample_dir).rglob("*_metadata.json")):
+                library_id = str(filename_path).split('_')[0]
+                multiplexed_library_path_mapping[library_id] = multiplexed_sample_dir
+
+        return multiplexed_library_path_mapping
 
     def get_non_downloadable_sample_ids(self) -> Set:
         """
@@ -969,7 +980,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         combined_metadata, updated_samples_metadata = self.handle_samples_metadata(sample_id)
 
         multiplexed_libraries_metadata = []
-        multiplexed_library_path_mapping = {}
         multiplexed_sample_demux_cell_counter = Counter()
         multiplexed_sample_seq_units_mapping = {}
         multiplexed_sample_technologies_mapping = {}
@@ -978,11 +988,9 @@ class Project(CommonDataAttributes, TimestampedModel):
                 with open(filename_path) as multiplexed_json_file:
                     multiplexed_json = json.load(multiplexed_json_file)
 
-                library_id = multiplexed_json.pop("library_id")
-                multiplexed_json["scpca_library_id"] = library_id
+                multiplexed_json["scpca_library_id"] = multiplexed_json.pop("library_id")
                 multiplexed_json["scpca_sample_id"] = multiplexed_json.pop("sample_id")
 
-                multiplexed_library_path_mapping[library_id] = multiplexed_sample_dir
                 multiplexed_libraries_metadata.append(multiplexed_json)
                 multiplexed_sample_demux_cell_counter.update(
                     multiplexed_json["sample_cell_estimates"]
@@ -1138,7 +1146,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                         ComputedFile.get_sample_multiplexed_file,
                         sample,
                         libraries,
-                        multiplexed_library_path_mapping,
+                        self.get_multiplexed_library_path_mapping(),
                         workflow_versions,
                         ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
                         lock=sample_lock,
