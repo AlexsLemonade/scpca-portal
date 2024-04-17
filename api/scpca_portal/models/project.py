@@ -1176,13 +1176,10 @@ class Project(CommonDataAttributes, TimestampedModel):
                 sample_seq_units.add(library_json["seq_unit"].strip())
                 sample_technologies.add(library_json["technology"].strip())
 
-                libraries_metadata[Sample.Modalities.SINGLE_CELL].append(
-                    library_json
-                ) if "spatial" not in str(filename_path) else libraries_metadata[
-                    Sample.Modalities.SPATIAL
-                ].append(
-                    library_json
-                )
+                if "spatial" in str(filename_path):
+                    libraries_metadata[Sample.Modalities.SPATIAL].append(library_json)
+                else:
+                    libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_json)
 
             updated_sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
             updated_sample_metadata["seq_units"] = ", ".join(
@@ -1197,8 +1194,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     def combine_metadata(self, updated_samples_metadata, libraries_metadata, sample_id):
         combined_metadata = {Sample.Modalities.SINGLE_CELL: [], Sample.Modalities.SPATIAL: []}
 
-        for modality in [Sample.Modalities.SINGLE_CELL, Sample.Modalities.SPATIAL]:
-
+        for modality in combined_metadata.keys():
             if not libraries_metadata[modality]:
                 continue
 
