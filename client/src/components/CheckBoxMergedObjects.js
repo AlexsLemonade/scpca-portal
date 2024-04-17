@@ -5,15 +5,15 @@ import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { HelpLink } from 'components/HelpLink'
 
 export const CheckBoxMergedObjects = ({ downloadable = false }) => {
-  const { selectedMerged, setSelectedMerged } = useDownloadOptionsContext()
+  const { includesMerged, setIncludesMerged } = useDownloadOptionsContext()
   const link = downloadable
     ? config.links.when_downloading_merged_objects
     : config.links.which_projects_are_merged_objects
-  const handleChange = () => setSelectedMerged(!selectedMerged)
+  const handleChange = () => setIncludesMerged(!includesMerged)
 
   return (
     <CheckBox
-      checked={selectedMerged && downloadable}
+      checked={includesMerged && downloadable}
       disabled={!downloadable}
       label={<HelpLink label="Merge samples into 1 object" link={link} />}
       onChange={handleChange}

@@ -20,8 +20,8 @@ export const useDownloadOptionsContext = () => {
     setModalityOptions,
     resource,
     resourceAttribute,
-    selectedMerged,
-    setSelectedMerged,
+    includesMerged,
+    setIncludesMerged,
     userModality,
     setUserModality,
     userFormat,
@@ -52,7 +52,7 @@ export const useDownloadOptionsContext = () => {
       (file) =>
         file.modality === modality &&
         file.format === format &&
-        file.includes_merged === selectedMerged
+        file.includes_merged === includesMerged
     )
   // Check if the user-selected modality is in 'mergedObjectsKeys'
   const isMergedObjectKey = mergedObjectsKeys.includes(modality)
@@ -115,7 +115,7 @@ export const useDownloadOptionsContext = () => {
       const newComputedFile = getFoundFile()
       if (newComputedFile) setComputedFile(newComputedFile)
     }
-  }, [modality, format, selectedMerged])
+  }, [modality, format, includesMerged])
 
   return {
     modality,
@@ -132,7 +132,7 @@ export const useDownloadOptionsContext = () => {
     saveUserPreferences,
     resourceSort,
     resource,
-    selectedMerged,
-    setSelectedMerged
+    includesMerged,
+    setIncludesMerged
   }
 }
