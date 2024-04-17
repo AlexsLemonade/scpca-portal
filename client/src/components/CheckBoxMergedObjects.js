@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { CheckBox } from 'grommet'
 import { config } from 'config'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
@@ -11,9 +11,14 @@ export const CheckBoxMergedObjects = ({ downloadable = false }) => {
     : config.links.which_projects_are_merged_objects
   const handleChange = () => setIncludesMerged(!includesMerged)
 
+  // Uncheck the checkbox when no merged objects available
+  useEffect(() => {
+    if (!downloadable) setIncludesMerged(false)
+  }, [downloadable])
+
   return (
     <CheckBox
-      checked={includesMerged && downloadable}
+      checked={includesMerged}
       disabled={!downloadable}
       label={<HelpLink label="Merge samples into 1 object" link={link} />}
       onChange={handleChange}
