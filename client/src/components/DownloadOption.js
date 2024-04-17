@@ -8,8 +8,7 @@ import { WarningMergedObjects } from 'components/WarningMergedObjects'
 
 export const DownloadOption = ({ computedFile, handleSelectFile }) => {
   const { type, items, resourceId } = getDownloadOptionDetails(computedFile)
-  const { isMergedObjectsAvailable, saveUserPreferences } =
-    useDownloadOptionsContext()
+  const { saveUserPreferences } = useDownloadOptionsContext()
   const downloadLabel = `Download ${type}`
 
   return (
@@ -42,7 +41,7 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
         </Box>
       </Box>
       <Box gridArea="body" margin={{ bottom: 'small' }}>
-        {isMergedObjectsAvailable && (
+        {computedFile.includes_merged && (
           <Box>
             <WarningMergedObjects />
           </Box>
