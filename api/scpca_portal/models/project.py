@@ -73,7 +73,8 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def computed_files(self):
-        return self.project_computed_files.order_by("created_at")
+        # return self.project_computed_files.order_by("created_at")
+        return self.project_computed_files.filter(includes_merged=False).order_by("created_at")
 
     @property
     def input_data_path(self):
