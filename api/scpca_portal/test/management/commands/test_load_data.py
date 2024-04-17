@@ -600,8 +600,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(project.technologies, "10Xv3, visium")
-        # TEMP: This should be 5 after merged projects are supported on the client
-        self.assertEqual(len(project.computed_files), 3)
+        self.assertEqual(len(project.computed_files), 5)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
         self.assertEqual(
@@ -837,8 +836,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        # TEMP: This should be 5 after merged projects are supported on the client
-        self.assertEqual(len(project.computed_files), 3)
+        self.assertEqual(len(project.computed_files), 5)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "development")
         self.assertEqual(
