@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect } from 'react'
 import { DownloadOptionsContext } from 'contexts/DownloadOptionsContext'
 import pick from 'helpers/pick'
 import filterWhere from 'helpers/filterWhere'
@@ -27,7 +27,6 @@ export const useDownloadOptionsContext = () => {
     userFormat,
     setUserFormat
   } = useContext(DownloadOptionsContext)
-  const [commputedFilesByModality, setComputedFilesByModality] = useState(null)
 
   const getOptionsAndDefault = (
     optionName,
@@ -56,14 +55,19 @@ export const useDownloadOptionsContext = () => {
         file.includes_merged === includesMerged
     )
 
-  // Filter available computed files based on the selected modality
-  const filterComputedFilesByModality = (files = computedFiles) =>
-    files.filter((file) => file.modality === modality)
+  // Filter available computed files based on the selected modality, format, and 'includes_merged'
+  const filterComputedFiles = (files = computedFiles) =>
+    files.filter(
+      (file) =>
+        file.modality === modality &&
+        file.format === format &&
+        file.includes_merged
+    )
 
-  // Check the availability of the merged objects based on computedFilesByModality
-  const isMergedObjectsAvailable =
-    commputedFilesByModality &&
-    commputedFilesByModality.some((cf) => cf.includes_merged)
+  // Check the availability of the merged objects
+  const isMergedObjectsAvailable = filterComputedFiles().some(
+    (cf) => cf.includes_merged
+  )
 
   // Sorter function for ordering a resource
   // based on availability of prefered download options
@@ -109,11 +113,6 @@ export const useDownloadOptionsContext = () => {
       // Only assign format when unset
       setFormat(newFormat)
     }
-  }, [modality])
-
-  // Update available computed files based on the selected modality
-  useEffect(() => {
-    setComputedFilesByModality(filterComputedFilesByModality())
   }, [modality])
 
   // Update computed file when download options resolves to a computed file
