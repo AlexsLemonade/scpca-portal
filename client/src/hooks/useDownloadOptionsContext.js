@@ -1,15 +1,15 @@
-import { useContext, useEffect } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { DownloadOptionsContext } from 'contexts/DownloadOptionsContext'
 import pick from 'helpers/pick'
 import filterWhere from 'helpers/filterWhere'
-import { mergedObjectsKeys, optionsSortOrder } from 'config/downloadOptions'
+import { optionsSortOrder } from 'config/downloadOptions'
 import arrayListSort from 'helpers/arrayListSort'
 
 export const useDownloadOptionsContext = () => {
   const {
     computedFile,
-    computedFiles,
     setComputedFile,
+    computedFiles,
     format,
     setFormat,
     formatOptions,
@@ -27,6 +27,7 @@ export const useDownloadOptionsContext = () => {
     userFormat,
     setUserFormat
   } = useContext(DownloadOptionsContext)
+  const [commputedFilesByModality, setComputedFilesByModality] = useState(null)
 
   const getOptionsAndDefault = (
     optionName,
@@ -54,12 +55,15 @@ export const useDownloadOptionsContext = () => {
         file.format === format &&
         file.includes_merged === includesMerged
     )
-  // Check if the user-selected modality is in 'mergedObjectsKeys'
-  const isMergedObjectKey = mergedObjectsKeys.includes(modality)
 
-  // Check the availability of the merged objects based on modalities and 'includes_merged' flag per computed file
+  // Filter computedFiles based on the selected modality
+  const filterComputedFilesByModality = (files = computedFiles) =>
+    files.filter((file) => file.modality === modality)
+
+  // Check the availability of the merged objects based on computedFilesByModality
   const isMergedObjectsAvailable =
-    isMergedObjectKey && computedFiles.some((cf) => cf.includes_merged)
+    commputedFilesByModality &&
+    commputedFilesByModality.some((cf) => cf.includes_merged)
 
   // Sorter function for ordering a resource
   // based on availability of prefered download options
@@ -105,6 +109,11 @@ export const useDownloadOptionsContext = () => {
       // Only assign format when unset
       setFormat(newFormat)
     }
+  }, [modality])
+
+  // Update the available computedFiles by the selected modality
+  useEffect(() => {
+    setComputedFilesByModality(filterComputedFilesByModality())
   }, [modality])
 
   // Update computed file when download options resolves to a computed file
