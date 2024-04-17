@@ -56,7 +56,7 @@ export const useDownloadOptionsContext = () => {
         file.includes_merged === includesMerged
     )
 
-  // Filter computedFiles based on the selected modality
+  // Filter available computed files based on the selected modality
   const filterComputedFilesByModality = (files = computedFiles) =>
     files.filter((file) => file.modality === modality)
 
@@ -111,7 +111,7 @@ export const useDownloadOptionsContext = () => {
     }
   }, [modality])
 
-  // Update the available computedFiles by the selected modality
+  // Update available computed files based on the selected modality
   useEffect(() => {
     setComputedFilesByModality(filterComputedFilesByModality())
   }, [modality])
