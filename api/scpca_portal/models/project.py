@@ -731,6 +731,14 @@ class Project(CommonDataAttributes, TimestampedModel):
         ) as additional_terms_file:
             return additional_terms_file.read()
 
+    def get_demux_sample_ids(self) -> Set:
+        demux_sample_ids = set()
+        for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
+            multiplexed_sample_dir_demux_ids = str(multiplexed_sample_dir).split(',')
+            demux_sample_ids.update(multiplexed_sample_dir_demux_ids)
+
+        return demux_sample_ids
+
     def get_multiplexed_library_path_mapping(self) -> Dict:
         multiplexed_library_path_mapping = {}
         # Sort and iterate over multiplexed directories
@@ -1214,6 +1222,8 @@ class Project(CommonDataAttributes, TimestampedModel):
             samples_metadata = [sample for sample in csv.DictReader(samples_csv_file)]
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
+        demux_sample_ids = self.get_demux_sample_ids
+
         for sample_metadata in samples_metadata:
             sample_id = sample_metadata["scpca_sample_id"]
 
@@ -1223,7 +1233,8 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             has_bulk_rna_seq = sample_id in bulk_rna_seq_sample_ids
             has_cite_seq_data = len(list(Path(sample_dir).glob("*_adt.*"))) > 0
-            has_single_cell_data = len(list(Path(sample_dir).glob("*_metadata.json"))) > 0
+            has_single_cell_data = len(list(Path(sample_dir).glob("*_metadata.json"))) > 0 \
+                or sample_id in demux_sample_ids
             has_spatial_data = len(list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))) > 0
             include_anndata = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
 
@@ -1246,6 +1257,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             sample_dir = self.get_sample_input_data_dir(updated_sample_metadata["scpca_sample_id"])
             sample_cell_count_estimate = 0
+            # sample_cell_count_estimate = Counter(count=0)
             sample_seq_units = set()
             sample_technologies = set()
 
@@ -1263,6 +1275,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 if "filtered_cells" in library_json:
                     library_json["filtered_cell_count"] = library_json.pop("filtered_cells")
                     sample_cell_count_estimate += library_json["filtered_cell_count"]
+                    # sample_cell_count_estimate.update(count=library_json["filtered_cell_count"])
 
                 sample_seq_units.add(library_json["seq_unit"].strip())
                 sample_technologies.add(library_json["technology"].strip())
