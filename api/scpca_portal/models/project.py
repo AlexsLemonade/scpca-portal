@@ -46,6 +46,8 @@ class Project(CommonDataAttributes, TimestampedModel):
     human_readable_pi_name = models.TextField()
     includes_anndata = models.BooleanField(default=False)
     includes_cell_lines = models.BooleanField(default=False)
+    includes_merged_anndata = models.BooleanField(default=False)
+    includes_merged_sce = models.BooleanField(default=False)
     includes_xenografts = models.BooleanField(default=False)
     modalities = ArrayField(models.TextField(), default=list)
     multiplexed_sample_count = models.IntegerField(default=0)
@@ -71,11 +73,16 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def computed_files(self):
-        return self.project_computed_files.order_by("created_at")
+        # return self.project_computed_files.order_by("created_at")
+        return self.project_computed_files.filter(includes_merged=False).order_by("created_at")
 
     @property
     def input_data_path(self):
         return common.INPUT_DATA_PATH / self.scpca_id
+
+    @property
+    def input_merged_data_path(self):
+        return self.input_data_path / "merged"
 
     @property
     def input_bulk_metadata_file_path(self):
@@ -84,6 +91,10 @@ class Project(CommonDataAttributes, TimestampedModel):
     @property
     def input_bulk_quant_file_path(self):
         return self.input_data_path / f"{self.scpca_id}_bulk_quant.tsv"
+
+    @property
+    def input_merged_summary_report_file_path(self):
+        return self.input_merged_data_path / f"{self.scpca_id}_merged-summary-report.html"
 
     @property
     def input_samples_metadata_file_path(self):
@@ -97,6 +108,14 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
         except ComputedFile.DoesNotExist:
             pass
+
+    @property
+    def output_merged_computed_file_name(self):
+        return f"{self.scpca_id}_merged.zip"
+
+    @property
+    def output_merged_anndata_computed_file_name(self):
+        return f"{self.scpca_id}_merged_anndata.zip"
 
     @property
     def output_multiplexed_computed_file_name(self):
@@ -131,6 +150,18 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                includes_merged=False,
+                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
+            )
+        except ComputedFile.DoesNotExist:
+            pass
+
+    @property
+    def single_cell_merged_computed_file(self):
+        try:
+            return self.project_computed_files.get(
+                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                includes_merged=True,
                 type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             )
         except ComputedFile.DoesNotExist:
@@ -141,6 +172,18 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.ANN_DATA,
+                includes_merged=False,
+                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
+            )
+        except ComputedFile.DoesNotExist:
+            pass
+
+    @property
+    def single_cell_anndata_merged_computed_file(self):
+        try:
+            return self.project_computed_files.get(
+                format=ComputedFile.OutputFileFormats.ANN_DATA,
+                includes_merged=True,
                 type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             )
         except ComputedFile.DoesNotExist:
@@ -533,12 +576,42 @@ class Project(CommonDataAttributes, TimestampedModel):
                 ).strip()
             )
 
+    def create_anndata_merged_readme_file(self):
+        """Creates an annotation metadata README file."""
+        with open(ComputedFile.README_ANNDATA_MERGED_FILE_PATH, "w") as readme_file:
+            readme_file.write(
+                render_to_string(
+                    ComputedFile.README_TEMPLATE_ANNDATA_MERGED_FILE_PATH,
+                    context={
+                        "additional_terms": self.get_additional_terms(),
+                        "date": utils.get_today_string(),
+                        "project_accession": self.scpca_id,
+                        "project_url": self.url,
+                    },
+                ).strip()
+            )
+
     def create_single_cell_readme_file(self):
         """Creates a single cell metadata README file."""
         with open(ComputedFile.README_SINGLE_CELL_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 render_to_string(
                     ComputedFile.README_TEMPLATE_SINGLE_CELL_FILE_PATH,
+                    context={
+                        "additional_terms": self.get_additional_terms(),
+                        "date": utils.get_today_string(),
+                        "project_accession": self.scpca_id,
+                        "project_url": self.url,
+                    },
+                ).strip()
+            )
+
+    def create_single_cell_merged_readme_file(self):
+        """Creates a single cell metadata README file."""
+        with open(ComputedFile.README_SINGLE_CELL_MERGED_FILE_PATH, "w") as readme_file:
+            readme_file.write(
+                render_to_string(
+                    ComputedFile.README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH,
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
@@ -599,7 +672,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         spatial_workflow_versions,
         multiplexed_file_mapping,
         multiplexed_workflow_versions,
-        max_workers=6,  # 6 = 2 file formats * 3 mappings.
+        max_workers=8,  # 8 = 2 file formats * 4 mappings.
         clean_up_output_data=True,
         update_s3=False,
     ):
@@ -607,13 +680,22 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         def create_computed_file(future):
             computed_file = future.result()
-            self.process_computed_file(computed_file, clean_up_output_data, update_s3)
+            if computed_file:
+                self.process_computed_file(computed_file, clean_up_output_data, update_s3)
 
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for file_format in (
                 ComputedFile.OutputFileFormats.ANN_DATA,
                 ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
             ):
+                tasks.submit(
+                    ComputedFile.get_project_merged_file,
+                    self,
+                    single_cell_file_mapping,
+                    single_cell_workflow_versions,
+                    file_format,
+                ).add_done_callback(create_computed_file)
+
                 if multiplexed_file_mapping.get(file_format):
                     tasks.submit(
                         ComputedFile.get_project_multiplexed_file,
@@ -865,8 +947,10 @@ class Project(CommonDataAttributes, TimestampedModel):
             samples_metadata = [line for line in csv.DictReader(samples_csv_file)]
 
         self.create_anndata_readme_file()
+        self.create_anndata_merged_readme_file()
         self.create_multiplexed_readme_file()
         self.create_single_cell_readme_file()
+        self.create_single_cell_merged_readme_file()
         self.create_spatial_readme_file()
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()

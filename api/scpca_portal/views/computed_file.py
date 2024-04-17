@@ -27,6 +27,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "updated_at",
             "workflow_version",
             "includes_celltype_report",
+            "includes_merged",
         )
         extra_kwargs = {
             "download_url": {
