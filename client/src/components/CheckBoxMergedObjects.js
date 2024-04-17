@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { CheckBox } from 'grommet'
+import { Box, CheckBox } from 'grommet'
 import { config } from 'config'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { HelpLink } from 'components/HelpLink'
@@ -17,12 +17,15 @@ export const CheckBoxMergedObjects = ({ downloadable = false }) => {
   }, [downloadable])
 
   return (
-    <CheckBox
-      checked={includesMerged}
-      disabled={!downloadable}
-      label={<HelpLink label="Merge samples into 1 object" link={link} />}
-      onChange={handleChange}
-    />
+    <Box direction="row">
+      <CheckBox
+        checked={includesMerged}
+        disabled={!downloadable}
+        label="Merge samples into 1 object"
+        onChange={handleChange}
+      />
+      <HelpLink link={link} />
+    </Box>
   )
 }
 
