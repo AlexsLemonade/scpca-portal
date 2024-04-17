@@ -23,7 +23,7 @@ export const DownloadOptionsContextProvider = ({
   const [formatOptions, setFormatOptions] = useState([])
 
   // Computed Files used to derive available options.
-  const [computedFiles, setComputeFiles] = useState([])
+  const [computedFiles, setComputedFiles] = useState([])
 
   // Automatically updated computed file for resource
   // This does *not* work when attribute specified.
@@ -32,7 +32,7 @@ export const DownloadOptionsContextProvider = ({
   // Only on mount or when resource / collection name change
   useEffect(() => {
     if (resource) {
-      setComputeFiles(() => {
+      setComputedFiles(() => {
         if (!resourceAttribute) return resource.computed_files
         return pick(resource[resourceAttribute], 'computed_files').flat()
       })
@@ -43,8 +43,9 @@ export const DownloadOptionsContextProvider = ({
     <DownloadOptionsContext.Provider
       value={{
         computedFile,
-        computedFiles,
         setComputedFile,
+        computedFiles,
+        setComputedFiles,
         format,
         setFormat,
         formatOptions,
