@@ -56,7 +56,7 @@ export const useDownloadOptionsContext = () => {
     )
 
   // Filter available computed files based on the selected modality, format, and 'includes_merged'
-  const filterComputedFiles = (files = computedFiles) =>
+  const getFilteredComputedFiles = (files = computedFiles) =>
     files.filter(
       (file) =>
         file.modality === modality &&
@@ -65,7 +65,7 @@ export const useDownloadOptionsContext = () => {
     )
 
   // Check the availability of the merged objects
-  const isMergedObjectsAvailable = filterComputedFiles().some(
+  const isMergedObjectsAvailable = getFilteredComputedFiles().some(
     (cf) => cf.includes_merged
   )
 
