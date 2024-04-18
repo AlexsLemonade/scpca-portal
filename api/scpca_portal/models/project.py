@@ -1006,6 +1006,8 @@ class Project(CommonDataAttributes, TimestampedModel):
 
                 # Gather seq_units and technologies data.
                 for demux_sample_id in multiplexed_json["demux_samples"]:
+                    # This if check is necessary because it's possible for one sample
+                    # to be multiplexed multiple times in the same project
                     if demux_sample_id not in multiplexed_sample_seq_units_mapping:
                         multiplexed_sample_seq_units_mapping[demux_sample_id] = set()
                     if demux_sample_id not in multiplexed_sample_technologies_mapping:
@@ -1222,8 +1224,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             samples_metadata = [sample for sample in csv.DictReader(samples_csv_file)]
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
-        demux_sample_ids = self.get_demux_sample_ids
-
         for sample_metadata in samples_metadata:
             sample_id = sample_metadata["scpca_sample_id"]
 
@@ -1233,16 +1233,18 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             has_bulk_rna_seq = sample_id in bulk_rna_seq_sample_ids
             has_cite_seq_data = len(list(Path(sample_dir).glob("*_adt.*"))) > 0
-            has_single_cell_data = len(list(Path(sample_dir).glob("*_metadata.json"))) > 0 \
-                or sample_id in demux_sample_ids
+            has_multiplexed_data = len(list(Path(self.input_data_path).rglob("*,*"))) > 0
+            has_single_cell_data = len(list(Path(sample_dir).glob("*_metadata.json"))) > 0
             has_spatial_data = len(list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))) > 0
             include_anndata = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
 
             sample_metadata["age_at_diagnosis"] = sample_metadata.pop("age")
             sample_metadata["has_bulk_rna_seq"] = has_bulk_rna_seq
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
+            sample_metadata["has_multiplexed_data"] = has_multiplexed_data
             sample_metadata["has_single_cell_data"] = has_single_cell_data
             sample_metadata["has_spatial_data"] = has_spatial_data
+
             sample_metadata["includes_anndata"] = include_anndata
 
         return samples_metadata

@@ -56,17 +56,17 @@ class Sample(CommonDataAttributes, TimestampedModel):
     def get_from_dict(cls, data, project):
         """Prepares ready for saving sample object."""
 
-        has_multiplexed_data = bool(data.get("multiplexed_with"))
         sample = cls(
             age_at_diagnosis=data["age_at_diagnosis"],
             demux_cell_count_estimate=(
-                data.get("demux_cell_count_estimate") if has_multiplexed_data else None
+                data.get("demux_cell_count_estimate")
+                if data.get("has_multiplexed_data", False) else None
             ),
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],
             has_bulk_rna_seq=data.get("has_bulk_rna_seq", False),
             has_cite_seq_data=data.get("has_cite_seq_data", False),
-            has_multiplexed_data=has_multiplexed_data,
+            has_multiplexed_data=data.get("has_multiplexed_data", False),
             has_single_cell_data=data.get("has_single_cell_data", False),
             has_spatial_data=data.get("has_spatial_data", False),
             includes_anndata=data.get("includes_anndata", False),
@@ -74,7 +74,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
             is_xenograft=utils.boolean_from_string(data.get("is_xenograft", False)),
             multiplexed_with=data.get("multiplexed_with"),
             sample_cell_count_estimate=(
-                data.get("sample_cell_count_estimate") if not has_multiplexed_data else None
+                data.get("sample_cell_count_estimate")
+                if not data.get("has_multiplexed_data", False) else None
             ),
             project=project,
             scpca_id=data.pop("scpca_sample_id"),
