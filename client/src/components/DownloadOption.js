@@ -4,12 +4,11 @@ import { Button } from 'components/Button'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
+import { WarningMergedObjects } from 'components/WarningMergedObjects'
 
 export const DownloadOption = ({ computedFile, handleSelectFile }) => {
   const { type, items, resourceId } = getDownloadOptionDetails(computedFile)
-
   const { saveUserPreferences } = useDownloadOptionsContext()
-
   const downloadLabel = `Download ${type}`
 
   return (
@@ -42,6 +41,11 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
         </Box>
       </Box>
       <Box gridArea="body" margin={{ bottom: 'small' }}>
+        {computedFile.includes_merged && (
+          <Box>
+            <WarningMergedObjects />
+          </Box>
+        )}
         <Box pad="small">
           <Text margin={{ bottom: 'small' }}>
             The download consists of the following items:
