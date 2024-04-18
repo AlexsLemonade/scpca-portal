@@ -16,13 +16,14 @@ export const DownloadOptionsContextProvider = ({
   // Download Options
   const [modality, setModality] = useState(null)
   const [format, setFormat] = useState(null)
+  const [includesMerged, setIncludesMerged] = useState(false)
 
   // Potential Values for Download Options
   const [modalityOptions, setModalityOptions] = useState([])
   const [formatOptions, setFormatOptions] = useState([])
 
   // Computed Files used to derive available options.
-  const [computedFiles, setComputeFiles] = useState([])
+  const [computedFiles, setComputedFiles] = useState([])
 
   // Automatically updated computed file for resource
   // This does *not* work when attribute specified.
@@ -31,7 +32,7 @@ export const DownloadOptionsContextProvider = ({
   // Only on mount or when resource / collection name change
   useEffect(() => {
     if (resource) {
-      setComputeFiles(() => {
+      setComputedFiles(() => {
         if (!resourceAttribute) return resource.computed_files
         return pick(resource[resourceAttribute], 'computed_files').flat()
       })
@@ -41,23 +42,26 @@ export const DownloadOptionsContextProvider = ({
   return (
     <DownloadOptionsContext.Provider
       value={{
+        computedFile,
+        setComputedFile,
+        computedFiles,
+        setComputedFiles,
+        format,
+        setFormat,
+        formatOptions,
+        setFormatOptions,
+        modality,
+        setModality,
+        modalityOptions,
+        setModalityOptions,
+        resource,
+        resourceAttribute,
+        includesMerged,
+        setIncludesMerged,
         userModality,
         setUserModality,
         userFormat,
-        setUserFormat,
-        modality,
-        setModality,
-        format,
-        setFormat,
-        modalityOptions,
-        formatOptions,
-        computedFile,
-        resource,
-        resourceAttribute,
-        setModalityOptions,
-        setFormatOptions,
-        computedFiles,
-        setComputedFile
+        setUserFormat
       }}
     >
       {children}
