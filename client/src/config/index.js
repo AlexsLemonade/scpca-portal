@@ -19,7 +19,7 @@ export const config = {
     when_downloading_merged_objects:
       'https://scpca.readthedocs.io/en/stable/faq.html#when-should-i-download-a-project-as-a-merged-object',
     which_projects_are_merged_objects:
-      'https://scpca.readthedocs.io/en/stable/faq.html#which-projects-can-i-download-as-a-merged-objects',
+      'https://scpca.readthedocs.io/en/stable/faq.html#which-projects-can-i-download-as-merged-objects',
     how_processed:
       'https://scpca.readthedocs.io/en/stable/processing_information.html',
     how_processed_multiplexed:
