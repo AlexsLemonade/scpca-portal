@@ -55,8 +55,8 @@ export const useDownloadOptionsContext = () => {
         file.includes_merged === includesMerged
     )
 
-  // Filter available computed files based on the selected modality, format, and 'includes_merged'
-  const getFilteredComputedFiles = (files = computedFiles) =>
+  // Get the computed files for merged objects
+  const getMergedObjectsComputedFiles = (files = computedFiles) =>
     files.filter(
       (file) =>
         file.modality === modality &&
@@ -65,9 +65,7 @@ export const useDownloadOptionsContext = () => {
     )
 
   // Check the availability of the merged objects
-  const isMergedObjectsAvailable = getFilteredComputedFiles().some(
-    (cf) => cf.includes_merged
-  )
+  const isMergedObjectsAvailable = getMergedObjectsComputedFiles().length > 0
 
   // Sorter function for ordering a resource
   // based on availability of prefered download options
