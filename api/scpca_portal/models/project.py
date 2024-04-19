@@ -219,9 +219,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
 
         combined_metadata = []
-        multiplexed_sample_mapping = {}
+        multiplexed_with_mapping = {}  # Sample ID to multiplexed with Sample Ids
         if not multiplexed_libraries_metadata:
-            return combined_metadata, multiplexed_sample_mapping
+            return combined_metadata, multiplexed_with_mapping
 
         modality = Sample.Modalities.MULTIPLEXED
         library_metadata_keys = self.get_library_metadata_keys(
@@ -234,32 +234,11 @@ class Project(CommonDataAttributes, TimestampedModel):
             library_metadata_keys.union(sample_metadata_keys), modality=modality
         )
 
-        multiplexed_library_mapping = {}  # Sample ID to library IDs mapping.
-        multiplexed_sample_ids = set()  # Unified multiplexed sample ID set.
-        for library_metadata in multiplexed_libraries_metadata:
-            multiplexed_library_sample_ids = library_metadata["demux_samples"]
-            for multiplexed_sample_id in multiplexed_library_sample_ids:
-                # Populate multiplexed library mapping.
-                if multiplexed_sample_id not in multiplexed_library_mapping:
-                    multiplexed_library_mapping[multiplexed_sample_id] = set()
-                multiplexed_library_mapping[multiplexed_sample_id].add(
-                    library_metadata["scpca_library_id"]
-                )
-
-                # Add sample IDs to a unified set.
-                multiplexed_sample_ids.update(multiplexed_library_sample_ids)
-
-                # Remove sample ID from a mapping as sample cannot be
-                # multiplexed with itself.
-                multiplexed_library_sample_ids_copy = set(multiplexed_library_sample_ids)
-                multiplexed_library_sample_ids_copy.discard(multiplexed_sample_id)
-
-                # Populate multiplexed sample mapping.
-                if multiplexed_sample_id not in multiplexed_sample_mapping:
-                    multiplexed_sample_mapping[multiplexed_sample_id] = set()
-                multiplexed_sample_mapping[multiplexed_sample_id].update(
-                    multiplexed_library_sample_ids_copy
-                )
+        multiplexed_with_mapping = self.get_multiplexed_with_mapping(multiplexed_libraries_metadata)
+        multiplexed_sample_library_mapping = self.get_multiplexed_sample_library_mapping(
+            multiplexed_libraries_metadata
+        )
+        multiplexed_sample_ids = self.get_demux_sample_ids()  # Unified multiplexed sample ID set.
 
         # Generate multiplexed sample metadata dict.
         sample_metadata_mapping = {}
@@ -289,14 +268,15 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
                 sample_csv_writer.writeheader()
 
-                multiplexed_sample_ids = sorted(multiplexed_sample_mapping[sample_id])
+                multiplexed_sample_ids = sorted(multiplexed_with_mapping[sample_id])
                 multiplexed_sample_ids.insert(0, sample_id)  # Current sample libraries go first.
                 for multiplexed_sample_id in multiplexed_sample_ids:
                     libraries_metadata = sorted(
                         (
                             library
                             for library in multiplexed_libraries_metadata
-                            if library["scpca_library_id"] in multiplexed_library_mapping[sample_id]
+                            if library["scpca_library_id"] in
+                            multiplexed_sample_library_mapping[sample_id]
                         ),
                         key=lambda library: library["scpca_library_id"],
                     )
@@ -326,7 +306,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 sorted([cm for cm in combined_metadata], key=lambda cm: cm["scpca_library_id"])
             )
 
-        return combined_metadata, multiplexed_sample_mapping
+        return combined_metadata, multiplexed_with_mapping
 
     @staticmethod
     def process_computed_file(computed_file, clean_up_output_data, update_s3):
@@ -738,6 +718,41 @@ class Project(CommonDataAttributes, TimestampedModel):
             demux_sample_ids.update(multiplexed_sample_dir_demux_ids)
 
         return demux_sample_ids
+
+    def get_multiplexed_sample_library_mapping(
+        self, multiplexed_libraries_metadata: List[Dict]
+    ):
+        multiplexed_sample_library_mapping = {}  # Sample ID to library IDs mapping.
+        for library_metadata in multiplexed_libraries_metadata:
+            multiplexed_library_sample_ids = library_metadata["demux_samples"]
+            for multiplexed_sample_id in multiplexed_library_sample_ids:
+                # Populate multiplexed library mapping.
+                if multiplexed_sample_id not in multiplexed_sample_library_mapping:
+                    multiplexed_sample_library_mapping[multiplexed_sample_id] = set()
+                multiplexed_sample_library_mapping[multiplexed_sample_id].add(
+                    library_metadata["scpca_library_id"]
+                )
+
+        return multiplexed_sample_library_mapping
+
+    def get_multiplexed_with_mapping(self, multiplexed_libraries_metadata: List[Dict]):
+        multiplexed_with_mapping = {}
+        for library_metadata in multiplexed_libraries_metadata:
+            multiplexed_library_sample_ids = library_metadata["demux_samples"]
+            for multiplexed_sample_id in multiplexed_library_sample_ids:
+                # Remove sample ID from a mapping as sample cannot be
+                # multiplexed with itself.
+                multiplexed_library_sample_ids_copy = set(multiplexed_library_sample_ids)
+                multiplexed_library_sample_ids_copy.discard(multiplexed_sample_id)
+
+                # Populate multiplexed sample mapping.
+                if multiplexed_sample_id not in multiplexed_with_mapping:
+                    multiplexed_with_mapping[multiplexed_sample_id] = set()
+                multiplexed_with_mapping[multiplexed_sample_id].update(
+                    multiplexed_library_sample_ids_copy
+                )
+
+        return multiplexed_with_mapping
 
     def get_multiplexed_library_path_mapping(self) -> Dict:
         multiplexed_library_path_mapping = {}
