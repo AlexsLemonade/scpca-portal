@@ -275,8 +275,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                         (
                             library
                             for library in multiplexed_libraries_metadata
-                            if library["scpca_library_id"] in
-                            multiplexed_sample_library_mapping[sample_id]
+                            if library["scpca_library_id"]
+                            in multiplexed_sample_library_mapping[sample_id]
                         ),
                         key=lambda library: library["scpca_library_id"],
                     )
@@ -306,7 +306,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 sorted([cm for cm in combined_metadata], key=lambda cm: cm["scpca_library_id"])
             )
 
-        return combined_metadata, multiplexed_with_mapping
+        return combined_metadata
 
     @staticmethod
     def process_computed_file(computed_file, clean_up_output_data, update_s3):
@@ -714,7 +714,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     def get_demux_sample_ids(self) -> Set:
         demux_sample_ids = set()
         for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
-            multiplexed_sample_dir_demux_ids = multiplexed_sample_dir.name.split(',')
+            multiplexed_sample_dir_demux_ids = multiplexed_sample_dir.name.split(",")
             demux_sample_ids.update(multiplexed_sample_dir_demux_ids)
 
         return demux_sample_ids
@@ -765,12 +765,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         return {
             "sample_demux_cell_counter": multiplexed_sample_demux_cell_counter,
             "sample_seq_units_mapping": multiplexed_sample_seq_units_mapping,
-            "sample_technologies_mapping": multiplexed_sample_technologies_mapping
+            "sample_technologies_mapping": multiplexed_sample_technologies_mapping,
         }
 
-    def get_multiplexed_sample_library_mapping(
-        self, multiplexed_libraries_metadata: List[Dict]
-    ):
+    def get_multiplexed_sample_library_mapping(self, multiplexed_libraries_metadata: List[Dict]):
         multiplexed_sample_library_mapping = {}  # Sample ID to library IDs mapping.
         for library_metadata in multiplexed_libraries_metadata:
             multiplexed_library_sample_ids = library_metadata["demux_samples"]
@@ -809,7 +807,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
             # Sort and iterate over libraries within those directories
             for filename_path in sorted(Path(multiplexed_sample_dir).rglob("*_metadata.json")):
-                library_id = filename_path.name.split('_')[0]
+                library_id = filename_path.name.split("_")[0]
                 multiplexed_library_path_mapping[library_id] = multiplexed_sample_dir
 
         return multiplexed_library_path_mapping
@@ -944,11 +942,13 @@ class Project(CommonDataAttributes, TimestampedModel):
     def get_sample_metadata_keys(self, all_keys, modalities=()):
         """Returns a set of metadata keys based on the modalities context."""
         excluded_keys = {
+            "demux_cell_count_estimate",
             "has_bulk_rna_seq",
             "has_cite_seq_data",
             "has_multiplexed_data",
             "has_single_cell_data",
             "has_spatial_data",
+            "multiplexed_with",
             "seq_units",
             "technologies",
         }
@@ -996,10 +996,6 @@ class Project(CommonDataAttributes, TimestampedModel):
     def get_samples(
         self,
         samples_metadata,
-        multiplexed_sample_demux_cell_counter,
-        multiplexed_sample_mapping,
-        multiplexed_sample_seq_units_mapping,
-        multiplexed_sample_technologies_mapping,
         sample_id=None,
     ):
         """Prepares ready for saving sample objects."""
@@ -1027,8 +1023,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.create_single_cell_merged_readme_file()
         self.create_spatial_readme_file()
 
-        combined_metadata, updated_samples_metadata, samples = \
-            self.handle_samples_metadata(sample_id)
+        combined_metadata, updated_samples_metadata, samples = self.handle_samples_metadata(
+            sample_id
+        )
 
         multiplexed_file_mapping = {
             ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
@@ -1210,16 +1207,12 @@ class Project(CommonDataAttributes, TimestampedModel):
             updated_samples_metadata, libraries_metadata, sample_id
         )
 
-        (
-            combined_metadata[Sample.Modalities.MULTIPLEXED],
-            multiplexed_sample_mapping,
-        ) = self.combine_multiplexed_metadata(
+        combined_metadata[Sample.Modalities.MULTIPLEXED] = self.combine_multiplexed_metadata(
             updated_samples_metadata, libraries_metadata[Sample.Modalities.MULTIPLEXED], sample_id
         )
 
         samples = self.get_samples(
             updated_samples_metadata,
-            multiplexed_sample_mapping,
             sample_id=sample_id,
         )
 
@@ -1262,16 +1255,18 @@ class Project(CommonDataAttributes, TimestampedModel):
         libraries_metadata = {
             Sample.Modalities.SINGLE_CELL: [],
             Sample.Modalities.SPATIAL: [],
-            Sample.Modalities.MULTIPLEXED: self.get_multiplexed_libraries_metadata()
+            Sample.Modalities.MULTIPLEXED: self.get_multiplexed_libraries_metadata(),
         }
 
         updated_samples_metadata = samples_metadata.copy()
         multiplexed_remaining_fields = self.get_multiplexed_remaining_fields()
-        multiplexed_with_mapping = \
-            self.get_multiplexed_with_mapping(libraries_metadata[Sample.Modalities.MULTIPLEXED])
+        multiplexed_with_mapping = self.get_multiplexed_with_mapping(
+            libraries_metadata[Sample.Modalities.MULTIPLEXED]
+        )
 
         for updated_sample_metadata in updated_samples_metadata:
 
+            sample_id = updated_sample_metadata["scpca_sample_id"]
             sample_dir = self.get_sample_input_data_dir(updated_sample_metadata["scpca_sample_id"])
             sample_cell_count_estimate = 0
             sample_seq_units = set()
@@ -1285,7 +1280,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 with open(filename_path) as library_metadata_json_file:
                     library_json = json.load(library_metadata_json_file)
 
-                library_id = library_json["library_id"]
                 library_json["scpca_library_id"] = library_json.pop("library_id")
                 library_json["scpca_sample_id"] = library_json.pop("sample_id")
 
@@ -1304,17 +1298,21 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             # Update aggregate values
             if updated_sample_metadata["has_multiplexed_data"]:
-                sample_seq_units = multiplexed_remaining_fields["sample_seq_units"].get(library_id)
-                sample_technologies = \
-                    multiplexed_remaining_fields["sample_technologies"].get(library_id)
-                updated_sample_metadata["multiplexed_with"] = sorted(
-                    multiplexed_with_mapping.get(updated_sample_metadata["scpca_sample_id"], ())
+                sample_seq_units = multiplexed_remaining_fields["sample_seq_units_mapping"].get(
+                    sample_id
                 )
-                updated_sample_metadata["demux_cell_count_estimate"] = \
-                    multiplexed_remaining_fields["sample_demux_cell_counter"].get(library_id)
+                sample_technologies = multiplexed_remaining_fields[
+                    "sample_technologies_mapping"
+                ].get(sample_id)
+                updated_sample_metadata["demux_cell_count_estimate"] = multiplexed_remaining_fields[
+                    "sample_demux_cell_counter"
+                ].get(sample_id)
             else:
                 updated_sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
 
+            updated_sample_metadata["multiplexed_with"] = sorted(
+                multiplexed_with_mapping.get(updated_sample_metadata["scpca_sample_id"], ())
+            )
             updated_sample_metadata["seq_units"] = ", ".join(
                 sorted(sample_seq_units, key=str.lower)
             )
