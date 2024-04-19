@@ -59,8 +59,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         sample = cls(
             age_at_diagnosis=data["age_at_diagnosis"],
             demux_cell_count_estimate=(
-                data.get("demux_cell_count_estimate")
-                if data.get("has_multiplexed_data", False) else None
+                data.get("demux_cell_count_estimate", None)
             ),
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],

@@ -734,7 +734,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     def get_demux_sample_ids(self) -> Set:
         demux_sample_ids = set()
         for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
-            multiplexed_sample_dir_demux_ids = str(multiplexed_sample_dir).split(',')
+            multiplexed_sample_dir_demux_ids = multiplexed_sample_dir.name.split(',')
             demux_sample_ids.update(multiplexed_sample_dir_demux_ids)
 
         return demux_sample_ids
@@ -745,7 +745,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
             # Sort and iterate over libraries within those directories
             for filename_path in sorted(Path(multiplexed_sample_dir).rglob("*_metadata.json")):
-                library_id = str(filename_path).split('_')[0]
+                library_id = filename_path.name.split('_')[0]
                 multiplexed_library_path_mapping[library_id] = multiplexed_sample_dir
 
         return multiplexed_library_path_mapping
@@ -882,6 +882,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         excluded_keys = {
             "has_bulk_rna_seq",
             "has_cite_seq_data",
+            "has_multiplexed_data",
             "has_single_cell_data",
             "has_spatial_data",
             "seq_units",
@@ -1224,6 +1225,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             samples_metadata = [sample for sample in csv.DictReader(samples_csv_file)]
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
+        demux_sample_ids = self.get_demux_sample_ids()
         for sample_metadata in samples_metadata:
             sample_id = sample_metadata["scpca_sample_id"]
 
@@ -1233,7 +1235,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             has_bulk_rna_seq = sample_id in bulk_rna_seq_sample_ids
             has_cite_seq_data = len(list(Path(sample_dir).glob("*_adt.*"))) > 0
-            has_multiplexed_data = len(list(Path(self.input_data_path).rglob("*,*"))) > 0
+            has_multiplexed_data = sample_id in demux_sample_ids
             has_single_cell_data = len(list(Path(sample_dir).glob("*_metadata.json"))) > 0
             has_spatial_data = len(list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))) > 0
             include_anndata = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
