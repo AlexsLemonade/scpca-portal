@@ -219,9 +219,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
 
         combined_metadata = []
-        multiplexed_with_mapping = {}  # Sample ID to multiplexed with Sample Ids
         if not multiplexed_libraries_metadata:
-            return combined_metadata, multiplexed_with_mapping
+            return combined_metadata
 
         modality = Sample.Modalities.MULTIPLEXED
         library_metadata_keys = self.get_library_metadata_keys(
@@ -238,15 +237,13 @@ class Project(CommonDataAttributes, TimestampedModel):
         multiplexed_sample_library_mapping = self.get_multiplexed_sample_library_mapping(
             multiplexed_libraries_metadata
         )
-
-        # Generate multiplexed sample metadata dict.
-        sample_metadata_mapping = self.get_multiplexed_sample_metadata_mapping(
+        multiplexed_sample_metadata_mapping = self.get_multiplexed_sample_metadata_mapping(
             samples_metadata, sample_metadata_keys, sample_id
         )
 
         # Combine and write the metadata.
         combined_metadata_added_pair_ids = set()
-        for sample_id in sorted(sample_metadata_mapping.keys()):
+        for sample_id in sorted(multiplexed_sample_metadata_mapping.keys()):
             sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
             with open(sample_metadata_path, "w", newline="") as sample_file:
                 sample_csv_writer = csv.DictWriter(
@@ -273,7 +270,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                                 library_metadata_copy.pop(key)
 
                         library_metadata_copy.update(
-                            sample_metadata_mapping.get(multiplexed_sample_id, {})
+                            multiplexed_sample_metadata_mapping.get(multiplexed_sample_id, {})
                         )
                         sample_csv_writer.writerow(library_metadata_copy)
 
@@ -1351,53 +1348,57 @@ class Project(CommonDataAttributes, TimestampedModel):
                 library_metadata_keys.union(sample_metadata_keys), modality=modality
             )
 
-            project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
+            # Combine metadata, write sample metadata files
+            for updated_sample_metadata in updated_samples_metadata:
+                scpca_sample_id = updated_sample_metadata["scpca_sample_id"]
+                if sample_id and scpca_sample_id != sample_id:
+                    continue
 
+                updated_sample_metadata_copy = updated_sample_metadata.copy()
+                for key in updated_sample_metadata.keys():  # Exclude fields.
+                    if key not in sample_metadata_keys:
+                        updated_sample_metadata_copy.pop(key)
+
+                self.add_project_metadata(updated_sample_metadata_copy)
+
+                sample_metadata_path = Sample.get_output_metadata_file_path(
+                    scpca_sample_id, modality
+                )
+                with open(sample_metadata_path, "w", newline="") as sample_file:
+                    sample_csv_writer = csv.DictWriter(
+                        sample_file, fieldnames=field_names, delimiter=common.TAB
+                    )
+                    sample_csv_writer.writeheader()
+
+                    sample_libraries_metadata = (
+                        library
+                        for library in libraries_metadata[modality]
+                        if library["scpca_sample_id"] == scpca_sample_id
+                    )
+                    for sample_library_metadata in sample_libraries_metadata:
+                        sample_library_metadata_copy = sample_library_metadata.copy()
+                        for key in sample_library_metadata.keys():  # Exclude fields.
+                            if key not in library_metadata_keys:
+                                sample_library_metadata_copy.pop(key)
+
+                        sample_library_combined_metadata = (
+                            sample_library_metadata_copy | updated_sample_metadata_copy
+                        )
+                        combined_metadata[modality].append(sample_library_combined_metadata)
+
+                        sample_csv_writer.writerow(sample_library_combined_metadata)
+
+            project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
+            # Write project metadata file
             with open(getattr(self, project_metadata_path), "w", newline="") as project_file:
                 project_csv_writer = csv.DictWriter(
                     project_file, fieldnames=field_names, delimiter=common.TAB
                 )
                 project_csv_writer.writeheader()
-
-                for updated_sample_metadata in updated_samples_metadata:
-                    scpca_sample_id = updated_sample_metadata["scpca_sample_id"]
-                    if sample_id and scpca_sample_id != sample_id:
-                        continue
-
-                    updated_sample_metadata_copy = updated_sample_metadata.copy()
-                    for key in updated_sample_metadata.keys():  # Exclude fields.
-                        if key not in sample_metadata_keys:
-                            updated_sample_metadata_copy.pop(key)
-
-                    self.add_project_metadata(updated_sample_metadata_copy)
-
-                    sample_metadata_path = Sample.get_output_metadata_file_path(
-                        scpca_sample_id, modality
-                    )
-                    with open(sample_metadata_path, "w", newline="") as sample_file:
-                        sample_csv_writer = csv.DictWriter(
-                            sample_file, fieldnames=field_names, delimiter=common.TAB
-                        )
-                        sample_csv_writer.writeheader()
-
-                        sample_libraries_metadata = (
-                            library
-                            for library in libraries_metadata[modality]
-                            if library["scpca_sample_id"] == scpca_sample_id
-                        )
-                        for sample_library_metadata in sample_libraries_metadata:
-                            sample_library_metadata_copy = sample_library_metadata.copy()
-                            for key in sample_library_metadata.keys():  # Exclude fields.
-                                if key not in library_metadata_keys:
-                                    sample_library_metadata_copy.pop(key)
-
-                            sample_library_combined_metadata = (
-                                sample_library_metadata_copy | updated_sample_metadata_copy
-                            )
-                            combined_metadata[modality].append(sample_library_combined_metadata)
-
-                            sample_csv_writer.writerow(sample_library_combined_metadata)
-                            project_csv_writer.writerow(sample_library_combined_metadata)
+                # Project file data has to be sorted by the library_id.
+                project_csv_writer.writerows(
+                    [cm for cm in combined_metadata[modality]]
+                )
 
         return combined_metadata
 
