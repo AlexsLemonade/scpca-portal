@@ -242,7 +242,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
         # Combine and write the metadata.
-        combined_metadata_added_pair_ids = set()
         for sample_id in sorted(multiplexed_sample_metadata_mapping.keys()):
             sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
             with open(sample_metadata_path, "w", newline="") as sample_file:
@@ -269,15 +268,15 @@ class Project(CommonDataAttributes, TimestampedModel):
                             if key not in library_metadata_keys:
                                 library_metadata_copy.pop(key)
 
-                        library_metadata_copy.update(
-                            multiplexed_sample_metadata_mapping.get(multiplexed_sample_id, {})
+                        sample_library_combined_metadata = (
+                            library_metadata_copy
+                            | multiplexed_sample_metadata_mapping.get(multiplexed_sample_id, {})
                         )
-                        sample_csv_writer.writerow(library_metadata_copy)
 
-                        pair_id = (library_metadata_copy["scpca_library_id"], multiplexed_sample_id)
-                        if pair_id not in combined_metadata_added_pair_ids:
-                            combined_metadata_added_pair_ids.add(pair_id)
-                            combined_metadata.append(library_metadata_copy)
+                        if sample_id == multiplexed_sample_id:
+                            combined_metadata.append(sample_library_combined_metadata)
+
+                        sample_csv_writer.writerow(sample_library_combined_metadata)
 
         with open(self.output_multiplexed_metadata_file_path, "w", newline="") as project_file:
             project_csv_writer = csv.DictWriter(
@@ -922,6 +921,15 @@ class Project(CommonDataAttributes, TimestampedModel):
             ),
         )
 
+    def get_sample_libraries_mapping(self, sample_ids: List, libraries_metadata):
+        sample_libraries_id_mapping = {sample_id: set() for sample_id in sample_ids}
+        for library_metadata in libraries_metadata:
+            sample_libraries_id_mapping[library_metadata["scpca_sample_id"]].add(
+                library_metadata["scpca_library_id"]
+            )
+
+        return sample_libraries_id_mapping
+
     def get_sample_metadata_keys(self, all_keys, modalities=()):
         """Returns a set of metadata keys based on the modalities context."""
         excluded_keys = {
@@ -1348,18 +1356,24 @@ class Project(CommonDataAttributes, TimestampedModel):
                 library_metadata_keys.union(sample_metadata_keys), modality=modality
             )
 
+            sample_libraries_mapping = self.get_sample_libraries_mapping(
+                [sample["scpca_sample_id"] for sample in updated_samples_metadata],
+                libraries_metadata[modality],
+            )
+            samples_metadata_filtered_keys = utils.filter_dict_list_by_keys(
+                updated_samples_metadata, sample_metadata_keys
+            )
+            libraries_metadata_filtered_keys = utils.filter_dict_list_by_keys(
+                libraries_metadata[modality], library_metadata_keys
+            )
+
             # Combine metadata, write sample metadata files
-            for updated_sample_metadata in updated_samples_metadata:
-                scpca_sample_id = updated_sample_metadata["scpca_sample_id"]
+            for sample_metadata_filtered_keys in samples_metadata_filtered_keys:
+                scpca_sample_id = sample_metadata_filtered_keys["scpca_sample_id"]
                 if sample_id and scpca_sample_id != sample_id:
                     continue
 
-                updated_sample_metadata_copy = updated_sample_metadata.copy()
-                for key in updated_sample_metadata.keys():  # Exclude fields.
-                    if key not in sample_metadata_keys:
-                        updated_sample_metadata_copy.pop(key)
-
-                self.add_project_metadata(updated_sample_metadata_copy)
+                self.add_project_metadata(sample_metadata_filtered_keys)
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(
                     scpca_sample_id, modality
@@ -1372,17 +1386,12 @@ class Project(CommonDataAttributes, TimestampedModel):
 
                     sample_libraries_metadata = (
                         library
-                        for library in libraries_metadata[modality]
-                        if library["scpca_sample_id"] == scpca_sample_id
+                        for library in libraries_metadata_filtered_keys
+                        if library["scpca_library_id"] in sample_libraries_mapping[scpca_sample_id]
                     )
                     for sample_library_metadata in sample_libraries_metadata:
-                        sample_library_metadata_copy = sample_library_metadata.copy()
-                        for key in sample_library_metadata.keys():  # Exclude fields.
-                            if key not in library_metadata_keys:
-                                sample_library_metadata_copy.pop(key)
-
                         sample_library_combined_metadata = (
-                            sample_library_metadata_copy | updated_sample_metadata_copy
+                            sample_library_metadata | sample_metadata_filtered_keys
                         )
                         combined_metadata[modality].append(sample_library_combined_metadata)
 
@@ -1396,9 +1405,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
                 project_csv_writer.writeheader()
                 # Project file data has to be sorted by the library_id.
-                project_csv_writer.writerows(
-                    [cm for cm in combined_metadata[modality]]
-                )
+                project_csv_writer.writerows([cm for cm in combined_metadata[modality]])
 
         return combined_metadata
 
