@@ -58,9 +58,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         sample = cls(
             age_at_diagnosis=data["age_at_diagnosis"],
-            demux_cell_count_estimate=(
-                data.get("demux_cell_count_estimate", None)
-            ),
+            demux_cell_count_estimate=(data.get("demux_cell_count_estimate", None)),
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],
             has_bulk_rna_seq=data.get("has_bulk_rna_seq", False),
@@ -74,7 +72,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
             multiplexed_with=data.get("multiplexed_with"),
             sample_cell_count_estimate=(
                 data.get("sample_cell_count_estimate")
-                if not data.get("has_multiplexed_data", False) else None
+                if not data.get("has_multiplexed_data", False)
+                else None
             ),
             project=project,
             scpca_id=data.pop("scpca_sample_id"),

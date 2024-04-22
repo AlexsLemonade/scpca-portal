@@ -238,25 +238,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         multiplexed_sample_library_mapping = self.get_multiplexed_sample_library_mapping(
             multiplexed_libraries_metadata
         )
-        multiplexed_sample_ids = self.get_demux_sample_ids()  # Unified multiplexed sample ID set.
 
         # Generate multiplexed sample metadata dict.
-        sample_metadata_mapping = {}
-        for sample_metadata in samples_metadata:
-            multiplexed_sample_id = sample_metadata["scpca_sample_id"]
-            if multiplexed_sample_id not in multiplexed_sample_ids:  # Skip non-multiplexed samples.
-                continue
-
-            if sample_id and multiplexed_sample_id != sample_id:
-                continue
-
-            sample_metadata_copy = sample_metadata.copy()
-            for key in sample_metadata.keys():  # Exclude fields.
-                if key not in sample_metadata_keys:
-                    sample_metadata_copy.pop(key)
-
-            self.add_project_metadata(sample_metadata_copy)
-            sample_metadata_mapping[multiplexed_sample_id] = sample_metadata_copy
+        sample_metadata_mapping = self.get_multiplexed_sample_metadata_mapping(
+            samples_metadata, sample_metadata_keys, sample_id
+        )
 
         # Combine and write the metadata.
         combined_metadata_added_pair_ids = set()
@@ -989,6 +975,30 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return all_keys.union(project_keys).difference(excluded_keys)
 
+    def get_multiplexed_sample_metadata_mapping(
+        self, updated_samples_metadata: List[Dict], sample_metadata_keys: Set, sample_id: str
+    ):
+        multiplexed_sample_ids = self.get_demux_sample_ids()  # Unified multiplexed sample ID set.
+
+        sample_metadata_mapping = {}
+        for sample_metadata in updated_samples_metadata:
+            multiplexed_sample_id = sample_metadata["scpca_sample_id"]
+            if multiplexed_sample_id not in multiplexed_sample_ids:  # Skip non-multiplexed samples.
+                continue
+
+            if sample_id and multiplexed_sample_id != sample_id:
+                continue
+
+            sample_metadata_copy = sample_metadata.copy()
+            for key in sample_metadata.keys():  # Exclude fields.
+                if key not in sample_metadata_keys:
+                    sample_metadata_copy.pop(key)
+
+            self.add_project_metadata(sample_metadata_copy)
+            sample_metadata_mapping[multiplexed_sample_id] = sample_metadata_copy
+
+        return sample_metadata_mapping
+
     def get_sample_input_data_dir(self, sample_scpca_id):
         """Returns an input data directory based on a sample ID."""
         return self.input_data_path / sample_scpca_id
@@ -1023,9 +1033,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.create_single_cell_merged_readme_file()
         self.create_spatial_readme_file()
 
-        combined_metadata, updated_samples_metadata, samples = self.handle_samples_metadata(
-            sample_id
-        )
+        combined_metadata, samples = self.handle_samples_metadata(sample_id)
 
         multiplexed_file_mapping = {
             ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
@@ -1216,7 +1224,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_id=sample_id,
         )
 
-        return (combined_metadata, updated_samples_metadata, samples)
+        return (combined_metadata, samples)
 
     def load_samples_metadata(self) -> List[Dict]:
         # Start with a list of samples and their metadata.
