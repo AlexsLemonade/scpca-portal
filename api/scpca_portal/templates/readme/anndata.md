@@ -26,6 +26,9 @@ Gene expression files, available as HDF5 files containing an `AnnData` object, h
 In the case of multi-modal data like CITE-seq (ADT tags), the ADT expression matrices will be provided in separate files corresponding to the same three stages of data processing: an unfiltered object (`_unfiltered_adt.hdf5`), a filtered object (`_filtered_adt.hdf5`), and a processed object (`_processed_adt.hdf5`).
 These files will only contain ADT expression data and not RNA expression data.
 
+Samples that are part of multiplexed libraries are not available as `AnnData` objects and are not included in this download.
+Please see [FAQ: Which samples can I download as AnnData objects?](https://scpca.readthedocs.io/en/stable/faq.html#which-samples-can-i-download-as-anndata-objects).
+
 If a project contains bulk RNA-seq data, two tab-separated value files, `bulk_quant.tsv` and `bulk_metadata.tsv`, will be included in the download.
 The `bulk_quant.tsv` file contains a gene by sample matrix (each row a gene, each column a sample) containing raw gene expression counts quantified by Salmon.
 The `bulk_metadata.tsv` file contains associated metadata for all samples with bulk RNA-seq data.
