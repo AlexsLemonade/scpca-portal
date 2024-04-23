@@ -11,7 +11,7 @@ from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"scpca"}
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-03-08/"
+INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
 
 
 class TestLoadData(TransactionTestCase):
@@ -194,7 +194,7 @@ class TestLoadData(TransactionTestCase):
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 8)
             self.assertIn("SCPCP999992_merged.rds", files)
-            self.assertNotIn("SCPCP999992_merged_adt.hdf5", files)
+            self.assertNotIn("SCPCP999992_merged_adt.h5ad", files)
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -210,8 +210,8 @@ class TestLoadData(TransactionTestCase):
             # There are 7 files (including subdirectory names):
             # ├── README.md
             # ├── SCPCP999992_merged-summary-report.html
-            # ├── SCPCP999992_merged_adt.hdf5
-            # ├── SCPCP999992_merged_rna.hdf5
+            # ├── SCPCP999992_merged_adt.h5ad
+            # ├── SCPCP999992_merged_rna.h5ad
             # ├── individual_reports
             # │   ├── SCPCS999996
             # │   │   └── SCPCL999996_qc.html
@@ -222,8 +222,8 @@ class TestLoadData(TransactionTestCase):
             # └── single_cell_metadata.tsv
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 9)
-            self.assertIn("SCPCP999992_merged_rna.hdf5", files)
-            self.assertIn("SCPCP999992_merged_adt.hdf5", files)
+            self.assertIn("SCPCP999992_merged_rna.h5ad", files)
+            self.assertIn("SCPCP999992_merged_adt.h5ad", files)
 
     def test_merged_project_anndata_no_cite_seq(self):
         project_id = "SCPCP999990"
@@ -288,7 +288,7 @@ class TestLoadData(TransactionTestCase):
             # There are 8 files (including subdirectory names):
             # ├── README.md
             # ├── SCPCP999990_merged-summary-report.html
-            # ├── SCPCP999990_merged_rna.hdf5
+            # ├── SCPCP999990_merged_rna.h5ad
             # ├── bulk_metadata.tsv
             # ├── bulk_quant.tsv
             # ├── individual_reports
@@ -301,7 +301,7 @@ class TestLoadData(TransactionTestCase):
             # └── single_cell_metadata.tsv
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 10)
-            self.assertIn("SCPCP999990_merged_rna.hdf5", files)
+            self.assertIn("SCPCP999990_merged_rna.h5ad", files)
 
     def test_no_merged_single_cell(self):
         project_id = "SCPCP999991"
@@ -799,10 +799,10 @@ class TestLoadData(TransactionTestCase):
             "README.md",
             "single_cell_metadata.tsv",
             f"{library_id}_celltype-report.html",
-            f"{library_id}_filtered_rna.hdf5",
-            f"{library_id}_processed_rna.hdf5",
+            f"{library_id}_filtered_rna.h5ad",
+            f"{library_id}_processed_rna.h5ad",
             f"{library_id}_qc.html",
-            f"{library_id}_unfiltered_rna.hdf5",
+            f"{library_id}_unfiltered_rna.h5ad",
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 

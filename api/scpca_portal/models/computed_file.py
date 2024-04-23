@@ -139,13 +139,13 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             computed_file_name = project.output_merged_anndata_computed_file_name
             readme_file_path = ComputedFile.README_ANNDATA_MERGED_FILE_PATH
             project_file_mapping[
-                f"{project.input_merged_data_path}/{project.scpca_id}_merged_rna.hdf5"
-            ] = f"{project.scpca_id}_merged_rna.hdf5"
+                f"{project.input_merged_data_path}/{project.scpca_id}_merged_rna.h5ad"
+            ] = f"{project.scpca_id}_merged_rna.h5ad"
 
             if project.has_cite_seq_data:
                 project_file_mapping[
-                    f"{project.input_merged_data_path}/{project.scpca_id}_merged_adt.hdf5"
-                ] = f"{project.scpca_id}_merged_adt.hdf5"
+                    f"{project.input_merged_data_path}/{project.scpca_id}_merged_adt.h5ad"
+                ] = f"{project.scpca_id}_merged_adt.h5ad"
         else:
             if not project.includes_merged_sce:
                 return None
@@ -406,10 +406,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             file_name = sample.output_single_cell_anndata_computed_file_name
             readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
             common_file_suffixes = [
-                "filtered_rna.hdf5",
-                "processed_rna.hdf5",
+                "filtered_rna.h5ad",
+                "processed_rna.h5ad",
                 "qc.html",
-                "unfiltered_rna.hdf5",
+                "unfiltered_rna.h5ad",
             ]
         else:
             file_name = sample.output_single_cell_computed_file_name
@@ -425,9 +425,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             common_file_suffixes.append("celltype-report.html")
 
         cite_seq_anndata_file_suffixes = [
-            "filtered_adt.hdf5",
-            "processed_adt.hdf5",
-            "unfiltered_adt.hdf5",
+            "filtered_adt.h5ad",
+            "processed_adt.h5ad",
+            "unfiltered_adt.h5ad",
         ]
 
         computed_file = cls(
