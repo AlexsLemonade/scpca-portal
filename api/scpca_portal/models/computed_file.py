@@ -27,14 +27,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         SINGLE_CELL_METADATA_FILE_NAME = "single_cell_metadata.tsv"
         SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
 
-    # TODO(ark): these values are redundant and need to be refactored in order not to violate DRY.
     class OutputFileModalities:
-        MULTIPLEXED = "MULTIPLEXED"
         SINGLE_CELL = "SINGLE_CELL"
         SPATIAL = "SPATIAL"
 
         CHOICES = (
-            (MULTIPLEXED, "Multiplexed"),
             (SINGLE_CELL, "Single Cell"),
             (SPATIAL, "Spatial"),
         )
@@ -186,7 +183,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file = cls(
             format=file_format,
-            modality=cls.OutputFileModalities.MULTIPLEXED,
+            modality=cls.OutputFileModalities.SINGLE_CELL,
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=project.output_multiplexed_computed_file_name,
@@ -213,6 +210,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
         computed_file.has_cite_seq_data = project.has_cite_seq_data
+        computed_file.has_multiplexed_data = project.has_multiplexed_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
         computed_file.includes_celltype_report = project.samples.filter(is_cell_line=False).exists()
 
@@ -304,7 +302,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         """
         computed_file = cls(
             format=file_format,
-            modality=cls.OutputFileModalities.MULTIPLEXED,
+            modality=cls.OutputFileModalities.SINGLE_CELL,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_multiplexed_computed_file_name,
             sample=sample,
@@ -363,6 +361,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
         computed_file.has_cite_seq_data = sample.has_cite_seq_data
+        computed_file.has_multiplexed_data = sample.has_multiplexed_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
         computed_file.includes_celltype_report = includes_celltype_report
 
@@ -495,11 +494,17 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @property
     def is_project_multiplexed_zip(self):
-        return self.modality == ComputedFile.OutputFileModalities.MULTIPLEXED
+        return (
+            self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
+            and self.has_multiplexed_data
+        )
 
     @property
-    def is_project_zip(self):
-        return self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
+    def is_project_single_cell_zip(self):
+        return (
+            self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
+            and not self.has_multiplexed_data
+        )
 
     @property
     def is_project_spatial_zip(self):
@@ -507,7 +512,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @property
     def metadata_file_name(self):
-        if self.is_project_multiplexed_zip or self.is_project_zip:
+        if self.is_project_multiplexed_zip or self.is_project_single_cell_zip:
             return ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
         if self.is_project_spatial_zip:
             return ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
