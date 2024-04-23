@@ -1010,7 +1010,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
             sample_metadata["has_single_cell_data"] = has_single_cell_data
             sample_metadata["has_spatial_data"] = has_spatial_data
-            sample_metadata["includes_anndata"] = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
+            sample_metadata["includes_anndata"] = len(list(Path(sample_dir).glob("*.h5ad"))) > 0
             sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
             sample_metadata["seq_units"] = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample_metadata["technologies"] = ", ".join(sorted(sample_technologies, key=str.lower))
