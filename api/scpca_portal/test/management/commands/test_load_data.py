@@ -11,6 +11,8 @@ from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"scpca"}
+# NOTE: When INPUT_BUCKET_NAME is changed, please delete the contents of
+# api/test_data/input before testing to ensure test files are updated correctly.
 INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
 
 
@@ -712,7 +714,7 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 3421)
+        self.assertEqual(sample.sample_cell_count_estimate, 3426)
         self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3")
         self.assertIsNotNone(sample.single_cell_computed_file)
