@@ -38,7 +38,6 @@ class ComputedFileSerializer(serializers.ModelSerializer):
             "s3_key",
             "sample",
             "size_in_bytes",
-            "type",
             "updated_at",
             "workflow_version",
         )

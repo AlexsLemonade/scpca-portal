@@ -39,24 +39,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             (SPATIAL, "Spatial"),
         )
 
-    class OutputFileTypes:
-        PROJECT_MULTIPLEXED_ZIP = "PROJECT_MULTIPLEXED_ZIP"
-        PROJECT_SPATIAL_ZIP = "PROJECT_SPATIAL_ZIP"
-        PROJECT_ZIP = "PROJECT_ZIP"
-
-        SAMPLE_MULTIPLEXED_ZIP = "SAMPLE_MULTIPLEXED_ZIP"
-        SAMPLE_SPATIAL_ZIP = "SAMPLE_SPATIAL_ZIP"
-        SAMPLE_ZIP = "SAMPLE_ZIP"
-
-        CHOICES = (
-            (PROJECT_MULTIPLEXED_ZIP, "Project Multiplexed ZIP"),
-            (PROJECT_SPATIAL_ZIP, "Project Spatial ZIP"),
-            (PROJECT_ZIP, "Project ZIP"),
-            (SAMPLE_MULTIPLEXED_ZIP, "Sample Multiplexed ZIP"),
-            (SAMPLE_SPATIAL_ZIP, "Sample Spatial ZIP"),
-            (SAMPLE_ZIP, "Sample ZIP"),
-        )
-
     class OutputFileFormats:
         ANN_DATA = "ANN_DATA"
         SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
@@ -102,7 +84,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     s3_bucket = models.TextField()
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
-    type = models.TextField(choices=OutputFileTypes.CHOICES)
     workflow_version = models.TextField()
     includes_celltype_report = models.BooleanField(default=False)
 
@@ -163,7 +144,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=computed_file_name,
-            type=cls.OutputFileTypes.PROJECT_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -210,7 +190,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=project.output_multiplexed_computed_file_name,
-            type=cls.OutputFileTypes.PROJECT_MULTIPLEXED_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -258,7 +237,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=computed_file_name,
-            type=cls.OutputFileTypes.PROJECT_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -295,7 +273,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=project.output_spatial_computed_file_name,
-            type=cls.OutputFileTypes.PROJECT_SPATIAL_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -331,7 +308,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_multiplexed_computed_file_name,
             sample=sample,
-            type=cls.OutputFileTypes.SAMPLE_MULTIPLEXED_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -436,7 +412,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=file_name,
             sample=sample,
-            type=cls.OutputFileTypes.SAMPLE_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -484,7 +459,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_spatial_computed_file_name,
             sample=sample,
-            type=cls.OutputFileTypes.SAMPLE_SPATIAL_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -521,15 +495,15 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @property
     def is_project_multiplexed_zip(self):
-        return self.type == ComputedFile.OutputFileTypes.PROJECT_MULTIPLEXED_ZIP
+        return self.modality == ComputedFile.OutputFileModalities.MULTIPLEXED
 
     @property
     def is_project_zip(self):
-        return self.type == ComputedFile.OutputFileTypes.PROJECT_ZIP
+        return self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
 
     @property
     def is_project_spatial_zip(self):
-        return self.type == ComputedFile.OutputFileTypes.PROJECT_SPATIAL_ZIP
+        return self.modality == ComputedFile.OutputFileModalities.SPATIAL
 
     @property
     def metadata_file_name(self):

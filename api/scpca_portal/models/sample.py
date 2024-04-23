@@ -165,7 +165,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
     def multiplexed_computed_file(self):
         try:
             return self.sample_computed_files.get(
-                type=ComputedFile.OutputFileTypes.SAMPLE_MULTIPLEXED_ZIP
+                modality=ComputedFile.OutputFileModalities.MULTIPLEXED
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -175,7 +175,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         try:
             return self.sample_computed_files.get(
                 format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                type=ComputedFile.OutputFileTypes.SAMPLE_ZIP,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -185,7 +185,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         try:
             return self.sample_computed_files.get(
                 format=ComputedFile.OutputFileFormats.ANN_DATA,
-                type=ComputedFile.OutputFileTypes.SAMPLE_ZIP,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -194,7 +194,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
     def spatial_computed_file(self):
         try:
             return self.sample_computed_files.get(
-                type=ComputedFile.OutputFileTypes.SAMPLE_SPATIAL_ZIP
+                modality=ComputedFile.OutputFileModalities.SPATIAL
             )
         except ComputedFile.DoesNotExist:
             pass
