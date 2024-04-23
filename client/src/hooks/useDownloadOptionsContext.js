@@ -7,23 +7,25 @@ import arrayListSort from 'helpers/arrayListSort'
 
 export const useDownloadOptionsContext = () => {
   const {
+    computedFile,
+    setComputedFile,
+    computedFiles,
+    format,
+    setFormat,
+    formatOptions,
+    setFormatOptions,
+    modality,
+    setModality,
+    modalityOptions,
+    setModalityOptions,
     resource,
+    resourceAttribute,
+    includesMerged,
+    setIncludesMerged,
     userModality,
     setUserModality,
     userFormat,
-    setUserFormat,
-    modality,
-    setModality,
-    format,
-    setFormat,
-    modalityOptions,
-    formatOptions,
-    computedFile,
-    setModalityOptions,
-    setFormatOptions,
-    computedFiles,
-    setComputedFile,
-    resourceAttribute
+    setUserFormat
   } = useContext(DownloadOptionsContext)
 
   const getOptionsAndDefault = (
@@ -46,7 +48,24 @@ export const useDownloadOptionsContext = () => {
 
   // Get the first computed file that matches modality and format
   const getFoundFile = (files = computedFiles) =>
-    files.find((file) => file.modality === modality && file.format === format)
+    files.find(
+      (file) =>
+        file.modality === modality &&
+        file.format === format &&
+        file.includes_merged === includesMerged
+    )
+
+  // Get the computed files for merged objects
+  const getMergedObjectsComputedFiles = (files = computedFiles) =>
+    files.filter(
+      (file) =>
+        file.modality === modality &&
+        file.format === format &&
+        file.includes_merged
+    )
+
+  // Check the availability of the merged objects
+  const isMergedObjectsAvailable = getMergedObjectsComputedFiles().length > 0
 
   // Sorter function for ordering a resource
   // based on availability of prefered download options
@@ -102,7 +121,7 @@ export const useDownloadOptionsContext = () => {
       const newComputedFile = getFoundFile()
       if (newComputedFile) setComputedFile(newComputedFile)
     }
-  }, [modality, format])
+  }, [modality, format, includesMerged])
 
   return {
     modality,
@@ -114,9 +133,12 @@ export const useDownloadOptionsContext = () => {
     computedFile,
     computedFiles,
     getFoundFile,
+    isMergedObjectsAvailable,
     getOptionsAndDefault,
     saveUserPreferences,
     resourceSort,
-    resource
+    resource,
+    includesMerged,
+    setIncludesMerged
   }
 }
