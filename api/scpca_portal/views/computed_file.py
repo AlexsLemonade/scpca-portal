@@ -16,6 +16,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "format",
             "has_bulk_rna_seq",
             "has_cite_seq_data",
+            "has_multiplexed_data",
             "id",
             "modality",
             "project",
