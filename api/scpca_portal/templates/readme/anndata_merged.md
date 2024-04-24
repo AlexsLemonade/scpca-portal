@@ -61,8 +61,12 @@ To cite data from {project_accession}, please see the project abstract and publi
 
 When citing the ScPCA Portal, please cite the following preprint:
 
-Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al., 2024 The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors. bioRxiv. https://doi.org/10.1101/2024.04.19.590243
+Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al., 2024 The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors. _bioRxiv._ https://doi.org/10.1101/2024.04.19.590243
 
 ## Terms of Use
 
 In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade.org/terms-of-use).
+
+{% if additional_terms %}
+{{ additional_terms }}
+{% endif %}
