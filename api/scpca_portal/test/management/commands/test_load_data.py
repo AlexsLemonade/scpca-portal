@@ -366,7 +366,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
         self.assertEqual(
             project.multiplexed_computed_file.modality,
-            ComputedFile.OutputFileModalities.MULTIPLEXED,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
         self.assertFalse(project.multiplexed_computed_file.has_bulk_rna_seq)
         self.assertFalse(project.multiplexed_computed_file.has_cite_seq_data)
@@ -516,7 +516,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(sample.technologies, "10Xv3.1")
         self.assertEqual(
             sample.multiplexed_computed_file.modality,
-            ComputedFile.OutputFileModalities.MULTIPLEXED,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
         self.assertFalse(sample.multiplexed_computed_file.has_bulk_rna_seq)
         self.assertFalse(sample.multiplexed_computed_file.has_cite_seq_data)

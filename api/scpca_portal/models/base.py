@@ -9,6 +9,7 @@ class CommonDataAttributes(models.Model):
 
     has_bulk_rna_seq = models.BooleanField(default=False)
     has_cite_seq_data = models.BooleanField(default=False)
+    has_multiplexed_data = models.BooleanField(default=False)
 
 
 class TimestampedModel(models.Model):

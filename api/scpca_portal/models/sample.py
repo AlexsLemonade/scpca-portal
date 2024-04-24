@@ -165,7 +165,9 @@ class Sample(CommonDataAttributes, TimestampedModel):
     def multiplexed_computed_file(self):
         try:
             return self.sample_computed_files.get(
-                modality=ComputedFile.OutputFileModalities.MULTIPLEXED
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
+                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                has_multiplexed_data=True,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -176,6 +178,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             return self.sample_computed_files.get(
                 format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
                 modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
+                has_multiplexed_data=False,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -186,6 +189,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             return self.sample_computed_files.get(
                 format=ComputedFile.OutputFileFormats.ANN_DATA,
                 modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
+                has_multiplexed_data=False,
             )
         except ComputedFile.DoesNotExist:
             pass

@@ -40,7 +40,6 @@ class Project(CommonDataAttributes, TimestampedModel):
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
     downloadable_sample_count = models.IntegerField(default=0)
-    has_multiplexed_data = models.BooleanField(default=False)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField()
@@ -103,7 +102,9 @@ class Project(CommonDataAttributes, TimestampedModel):
     def multiplexed_computed_file(self):
         try:
             return self.project_computed_files.get(
-                modality=ComputedFile.OutputFileModalities.MULTIPLEXED
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
+                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                has_multiplexed_data=True,
             )
         except ComputedFile.DoesNotExist:
             pass
