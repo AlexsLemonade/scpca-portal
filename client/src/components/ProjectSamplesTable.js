@@ -137,6 +137,20 @@ export const ProjectSamplesTable = ({
         </Box>
       )
     },
+    {
+      Header: 'Multiplexed with',
+      accessor: 'multiplexed_with',
+      Cell: ({
+        row: {
+          original: { multiplexed_with: multiplexedWith }
+        }
+      }) => (
+        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
+          {multiplexedWith.length ? multiplexedWith.join(', ') : 'N/A'}
+        </Box>
+      ),
+      isVisible: hasMultiplexedData
+    },
     { Header: 'Sequencing Units', accessor: 'seq_units' },
     { Header: 'Technology', accessor: 'technologies' },
     {
@@ -172,28 +186,13 @@ export const ProjectSamplesTable = ({
       ),
       accessor: 'demux_cell_count_estimate',
       Cell: ({ demux_cell_count_estimate: count }) => count || 'N/A',
-      isVisible: project.has_multiplexed_data
+      isVisible: hasMultiplexedData
     },
     {
       Header: 'Additional Metadata Fields',
       accessor: ({ additional_metadata: data }) => Object.keys(data).join(', ')
     }
   ]
-
-  // Add 'Multiplexed with' column only for the project with multiplexed libraries
-  if (hasMultiplexedData) {
-    const position = 3
-    const column = {
-      Header: 'Multiplexed with',
-      accessor: ({ multiplexed_with: multiplexedWith }) => (
-        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
-          {multiplexedWith.join(', ')}
-        </Box>
-      )
-    }
-
-    columns.splice(position, 0, column)
-  }
 
   return (
     <Table
