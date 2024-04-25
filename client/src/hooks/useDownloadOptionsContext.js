@@ -1,9 +1,11 @@
 import { useContext, useEffect } from 'react'
 import { DownloadOptionsContext } from 'contexts/DownloadOptionsContext'
+import { optionsSortOrder } from 'config/downloadOptions'
 import pick from 'helpers/pick'
 import filterWhere from 'helpers/filterWhere'
-import { optionsSortOrder } from 'config/downloadOptions'
 import arrayListSort from 'helpers/arrayListSort'
+import objectContains from 'helpers/objectContains'
+import uniqueValuesForKey from 'helpers/uniqueValuesForKey'
 
 export const useDownloadOptionsContext = () => {
   const {
@@ -22,6 +24,8 @@ export const useDownloadOptionsContext = () => {
     resourceAttribute,
     includesMerged,
     setIncludesMerged,
+    excludeMultiplexed,
+    setExcludeMultiplexed,
     userModality,
     setUserModality,
     userFormat,
@@ -47,25 +51,26 @@ export const useDownloadOptionsContext = () => {
     filterWhere(files, { modality, format })
 
   // Get the first computed file that matches modality and format
-  const getFoundFile = (files = computedFiles) =>
-    files.find(
-      (file) =>
-        file.modality === modality &&
-        file.format === format &&
-        file.includes_merged === includesMerged
-    )
-
-  // Get the computed files for merged objects
-  const getMergedObjectsComputedFiles = (files = computedFiles) =>
-    files.filter(
-      (file) =>
-        file.modality === modality &&
-        file.format === format &&
-        file.includes_merged
-    )
+  const getFoundFile = (
+    files = computedFiles,
+    ignoreAdditionalOptions = false
+  ) => {
+    const filterObject = { modality, format }
+    // when checking has_multiplexed_data we wither want both or just true
+    if (!ignoreAdditionalOptions) {
+      filterObject['includes_merged'] = includesMerged
+      filterObject['has_multiplexed_data'] = !excludeMultiplexed
+    }
+    return files.find((file) => objectContains(file, filterObject))
+  }
 
   // Check the availability of the merged objects
-  const isMergedObjectsAvailable = getMergedObjectsComputedFiles().length > 0
+  const isMergedObjectsAvailable =
+    uniqueValuesForKey(getFilteredFiles(), 'includes_merged').length > 1
+
+  // Check availability of multiplexed data
+  const isExcludeMultiplexedAvailable =
+    uniqueValuesForKey(getFilteredFiles(), 'has_multiplexed_data').length > 1
 
   // Sorter function for ordering a resource
   // based on availability of prefered download options
@@ -96,7 +101,7 @@ export const useDownloadOptionsContext = () => {
     setModality(newModality)
   }, [computedFiles])
 
-  // Update available data format based on the user-selected modality change
+  // Update available data format when the user-selected modality changes
   useEffect(() => {
     if (modality) {
       const modalityMatchedFiles = filterWhere(computedFiles, {
@@ -134,11 +139,14 @@ export const useDownloadOptionsContext = () => {
     computedFiles,
     getFoundFile,
     isMergedObjectsAvailable,
+    isExcludeMultiplexedAvailable,
     getOptionsAndDefault,
     saveUserPreferences,
     resourceSort,
     resource,
     includesMerged,
-    setIncludesMerged
+    setIncludesMerged,
+    excludeMultiplexed,
+    setExcludeMultiplexed
   }
 }
