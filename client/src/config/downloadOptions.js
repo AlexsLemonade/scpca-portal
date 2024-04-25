@@ -4,8 +4,7 @@ export const optionsSortOrder = [
   'SINGLE_CELL',
   'SINGLE_CELL_EXPERIMENT',
   'ANN_DATA',
-  'SPATIAL',
-  'MULTIPLEXED'
+  'SPATIAL'
 ]
 
 export const combinedFiles = [
@@ -28,7 +27,12 @@ export const combinedFiles = [
 export const dynamicKeys = ['modality']
 
 // This is a list of keys to check for true.
-export const dataKeys = ['has_bulk_rna_seq', 'has_cite_seq_data']
+// Order determines how they are rendered.
+export const dataKeys = [
+  'has_multiplexed_data',
+  'has_bulk_rna_seq',
+  'has_cite_seq_data'
+]
 
 // This prevents appending "as Single-Cell Experiment" etc.
 export const nonFormatKeys = ['has_bulk_rna_seq']
@@ -45,12 +49,39 @@ export const modalityResourceInfo = {
       url: config.links.what_downloading_project
     }
   },
+  SINGLE_CELL_PROJECT_MULTIPLEXED: {
+    texts: {},
+    warning_text: {
+      link: {
+        label: 'Learn more',
+        url: config.links.what_downloading_multiplexed
+      },
+      text: 'This project contains multiplexed samples.'
+    }
+  },
   SINGLE_CELL_SAMPLE: {
     texts: {},
     learn_more: {
       label: 'here',
       text: 'Learn more about what you can expect in your download file',
       url: config.links.what_downloading_sample
+    }
+  },
+  SINGLE_CELL_SAMPLE_MULTIPLEXED: {
+    recommendedOptions: { has_multiplexed_data: true },
+    texts: {
+      text_only: 'This is a multiplexed sample.',
+      multiplexed_with: {
+        text: 'It has been multiplexed with the following samples.'
+      }
+    },
+    learn_more: {
+      label: 'here',
+      text: 'Learn more about multiplexed samples ',
+      url: config.links.what_downloading_multiplexed
+    },
+    warning_text: {
+      text: 'If you are planning to work with more than one multiplexed sample, we recommend downloading the entire project.'
     }
   },
   SPATIAL_PROJECT: {
@@ -67,33 +98,6 @@ export const modalityResourceInfo = {
       label: 'here',
       text: 'Learn more about what you can expect in your download file',
       url: config.links.what_downloading_spatial
-    }
-  },
-  MULTIPLEXED_PROJECT: {
-    texts: {},
-    warning_text: {
-      link: {
-        label: 'Learn more',
-        url: config.links.what_downloading_mulitplexed
-      },
-      text: 'This project contains multiplexed samples.'
-    }
-  },
-  MULTIPLEXED_SAMPLE: {
-    fetchRecommended: true,
-    texts: {
-      text_only: 'This is a multiplexed sample.',
-      multiplexed_with: {
-        text: 'It has been multiplexed with the following samples.'
-      }
-    },
-    learn_more: {
-      label: 'here',
-      text: 'Learn more about multiplexed samples ',
-      url: config.links.what_downloading_mulitplexed
-    },
-    warning_text: {
-      text: 'If you are planning to work with more than one multiplexed sample, we recommend downloading the entire project.'
     }
   }
 }
