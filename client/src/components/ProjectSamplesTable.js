@@ -13,7 +13,7 @@ import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
 import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
-import WarningText from 'components/WarningText'
+import { WarningText } from 'components/WarningText'
 
 export const ProjectSamplesTable = ({
   project,
