@@ -13,6 +13,7 @@ import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
 import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import WarningText from 'components/WarningText'
 
 export const ProjectSamplesTable = ({
   project,
@@ -211,6 +212,15 @@ export const ProjectSamplesTable = ({
           onSave={onOptionsSave}
         />
       </Box>
+      {project.has_multiplexed_data && format === 'ANN_DATA' && (
+        <WarningText
+          lineBreak={false}
+          iconMargin={{ right: 'none' }}
+          text="Multiplexed samples are not available as AnnData (Python)."
+          linkLabel="Learn more"
+          link={config.links.which_samples_can_download_as_anndata}
+        />
+      )}
     </Table>
   )
 }
