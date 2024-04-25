@@ -21,8 +21,7 @@ export const ProjectSamplesTable = ({
 }) => {
   // We only want to show the applied donwload options.
   // Also need some helpers for presentation.
-  const { modality, format, getFoundFile, resourceSort } =
-    useDownloadOptionsContext()
+  const { modality, format, getFoundFile } = useDownloadOptionsContext()
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
   const [showDownloadOptions, setShowDownloadOptions] = useState(false)
@@ -37,12 +36,9 @@ export const ProjectSamplesTable = ({
     setLoaded(false)
   }
 
-  // Update soring after save
+  // Update after save
   useEffect(() => {
-    if (samples) {
-      samples.sort(resourceSort)
-      setLoaded(false)
-    }
+    if (samples) setLoaded(false)
   }, [samples, modality, format])
 
   useEffect(() => {
@@ -70,7 +66,12 @@ export const ProjectSamplesTable = ({
   const columns = [
     {
       Header: 'Download',
-      accessor: () => 'computed_files',
+      id: 'download',
+      accessor: ({ computed_files: computedFiles }) => {
+        if (computedFiles.length === 0) return -1
+        const computedFile = getFoundFile(computedFiles)
+        return computedFile ? computedFile.size_in_bytes : 0
+      },
       Cell: ({ row }) => {
         // there is nothing available to download
         if (row.original.computed_files.length === 0) {
