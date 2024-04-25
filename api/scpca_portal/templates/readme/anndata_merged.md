@@ -20,7 +20,7 @@ The download will include the following files for the selected project (example 
 
 Also included in each download is `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
-Merged objects, available as h5ad files containing a `AnnData` object, house the expression data, cell and gene metrics, associated metadata for all samples and libraries from the selected project (see [Merged objects](https://scpca.readthedocs.io/en/stable/merged_objects.html) for more information).
+Merged objects, available as H5AD files containing a `AnnData` object, house the expression data, cell and gene metrics, associated metadata for all samples and libraries from the selected project (see [Merged objects](https://scpca.readthedocs.io/en/stable/merged_objects.html) for more information).
 
 In the case of multi-modal data like CITE-seq (ADT tags), the merged ADT expression matrix will be provided in a separate file, `_merged_adt.h5ad`.
 This file will only contain ADT expression data and not RNA expression data.
@@ -33,7 +33,7 @@ See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_fil
 
 ## Usage
 
-For instructions on using the h5ad files, please see [FAQ: How do I use the provided h5ad files in Python?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-h5ad-files-in-python)
+For instructions on using the H5AD files, please see [FAQ: How do I use the provided h5ad files in Python?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-H5AD-files-in-python)
 For more information on working with the processed `AnnData` objects, see [`Getting started with an ScPCA dataset`](https://scpca.readthedocs.io/en/stable/getting_started.html).
 
 ## CHANGELOG
