@@ -19,15 +19,14 @@ export const ProjectSamplesTable = ({
   samples: defaultSamples,
   stickies = 3
 }) => {
-  const [showDownloadOptions, setShowDownloadOptions] = useState(false)
-
   // We only want to show the applied donwload options.
   // Also need some helpers for presentation.
   const { modality, format, getFoundFile, resourceSort } =
     useDownloadOptionsContext()
-
-  const [samples, setSamples] = useState(defaultSamples)
   const [loaded, setLoaded] = useState(false)
+  const [samples, setSamples] = useState(defaultSamples)
+  const [showDownloadOptions, setShowDownloadOptions] = useState(false)
+  const hasMultiplexedData = project.has_multiplexed_data
   const infoText =
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
@@ -138,6 +137,20 @@ export const ProjectSamplesTable = ({
         </Box>
       )
     },
+    {
+      Header: 'Multiplexed with',
+      accessor: 'multiplexed_with',
+      Cell: ({
+        row: {
+          original: { multiplexed_with: multiplexedWith }
+        }
+      }) => (
+        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
+          {multiplexedWith.length ? multiplexedWith.join(', ') : 'N/A'}
+        </Box>
+      ),
+      isVisible: hasMultiplexedData
+    },
     { Header: 'Sequencing Units', accessor: 'seq_units' },
     { Header: 'Technology', accessor: 'technologies' },
     {
@@ -172,8 +185,8 @@ export const ProjectSamplesTable = ({
           &nbsp;&nbsp;
         </Box>
       ),
-      accessor: ({ demux_cell_count_estimate: count }) => count || 'N/A',
-      isVisible: project.has_multiplexed_data
+      accessor: 'demux_cell_count_estimate',
+      isVisible: hasMultiplexedData
     },
     {
       Header: 'Additional Metadata Fields',
