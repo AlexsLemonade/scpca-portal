@@ -37,7 +37,7 @@ See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_fil
 
 ## Usage
 
-For instructions on using the H5AD files, please see [FAQ: How do I use the provided h5ad files in Python?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-h5ad-files-in-python)
+For instructions on using the H5AD files, please see [FAQ: How do I use the provided H5AD files in Python?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-H5AD-files-in-python)
 For more information on working with the processed `AnnData` objects, see [`Getting started with an ScPCA dataset`](https://scpca.readthedocs.io/en/stable/getting_started.html).
 
 ## CHANGELOG
