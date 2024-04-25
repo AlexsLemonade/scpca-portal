@@ -34,9 +34,16 @@ export const getDownloadOptionDetails = (computedFile) => {
   const isSample = type === 'Sample'
   const resourceId = project || sample
 
+  // determine if there should be warnings
+  const warningFlags = {
+    merged: computedFile.includes_merged,
+    multiplexed: computedFile.has_multiplexed_data
+  }
+
   // Determine additional information to show.
   const modalityResourceKey = `${modality}_${type.toUpperCase()}`
-  const info = modalityResourceInfo[modalityResourceKey]
+  const suffix = computedFile.has_multiplexed_data ? '_MULTIPLEXED' : ''
+  const info = modalityResourceInfo[modalityResourceKey + suffix]
 
   // Sort out what is in the file.
   const items = []
@@ -67,5 +74,5 @@ export const getDownloadOptionDetails = (computedFile) => {
 
   items.push(metadata)
 
-  return { type, items, info, resourceId, isProject, isSample }
+  return { type, items, info, resourceId, isProject, isSample, warningFlags }
 }
