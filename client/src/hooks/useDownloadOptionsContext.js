@@ -126,7 +126,17 @@ export const useDownloadOptionsContext = () => {
       const newComputedFile = getFoundFile()
       if (newComputedFile) setComputedFile(newComputedFile)
     }
-  }, [modality, format, includesMerged])
+  }, [modality, format, includesMerged, excludeMultiplexed])
+
+  // Update excludeMultiplexed depending on availability.
+  useEffect(() => {
+    setExcludeMultiplexed(!isExcludeMultiplexedAvailable)
+  }, [isExcludeMultiplexedAvailable])
+
+  // Update includesMerged depending on availability.
+  useEffect(() => {
+    if (!isMergedObjectsAvailable) setIncludesMerged(false)
+  }, [isMergedObjectsAvailable])
 
   return {
     modality,
