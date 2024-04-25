@@ -58,8 +58,8 @@ export const useDownloadOptionsContext = () => {
     const filterObject = { modality, format }
     // when checking has_multiplexed_data we wither want both or just true
     if (!ignoreAdditionalOptions) {
-      filterObject['includes_merged'] = includesMerged
-      filterObject['has_multiplexed_data'] = !excludeMultiplexed
+      filterObject.includes_merged = includesMerged
+      filterObject.has_multiplexed_data = !excludeMultiplexed
     }
     return files.find((file) => objectContains(file, filterObject))
   }
