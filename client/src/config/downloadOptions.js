@@ -37,6 +37,19 @@ export const dataKeys = [
 // This prevents appending "as Single-Cell Experiment" etc.
 export const nonFormatKeys = ['has_bulk_rna_seq']
 
+// Omit a key when conditions match on computed file
+export const omitKeys = [
+  {
+    key: 'modality',
+    description:
+      "Multiplexed samples don't contain additional Single-cell data.",
+    rules: {
+      has_multiplexed_data: true,
+      project: null
+    }
+  }
+]
+
 // All combinations of MODALITY_PROJECT or MODALITY_SAMPLE supported.
 // Used to display additonal information on download modals.
 // TODO: Break this into two separate objects

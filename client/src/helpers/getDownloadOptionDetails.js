@@ -4,7 +4,8 @@ import {
   dynamicKeys,
   dataKeys,
   nonFormatKeys,
-  modalityResourceInfo
+  modalityResourceInfo,
+  omitKeys
 } from 'config/downloadOptions'
 
 import { getReadableFiles } from 'helpers/getReadable'
@@ -65,9 +66,19 @@ export const getDownloadOptionDetails = (computedFile) => {
     seenKeys.push(...conditions.keys)
   })
 
+  // Sometimes we want to skip specfic keys as line items.
+  const omittedKeys = omitKeys
+    .filter((conditions) => objectContains(computedFile, conditions.rules))
+    .map((conditions) => conditions.key)
+
   // display readable version of values
   Array.from([...dynamicKeys, ...dataKeys])
-    .filter((key) => !seenKeys.includes(key) && computedFile[key])
+    .filter(
+      (key) =>
+        !seenKeys.includes(key) &&
+        !omittedKeys.includes(key) &&
+        computedFile[key]
+    )
     .forEach((key) => {
       items.push(formatFileItemByKey(key, computedFile))
     })
