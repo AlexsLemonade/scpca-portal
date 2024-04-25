@@ -26,6 +26,7 @@ export const CheckBoxExcludeMultiplexed = () => {
         <WarningText
           iconMargin={{ right: 'none' }}
           text="Multiplexed samples are not available as AnnData (Python)."
+          linkLabel="Learn more"
           link={config.links.which_samples_can_download_as_anndata}
         />
       )}
