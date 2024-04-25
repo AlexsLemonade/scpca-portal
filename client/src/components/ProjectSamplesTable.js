@@ -86,7 +86,7 @@ export const ProjectSamplesTable = ({
           )
         }
 
-        const computedFile = getFoundFile(row.original.computed_files)
+        const computedFile = getFoundFile(row.original.computed_files, true)
 
         if (computedFile) {
           return (
