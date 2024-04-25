@@ -185,7 +185,7 @@ export const ProjectSamplesTable = ({
           &nbsp;&nbsp;
         </Box>
       ),
-      accessor: 'demux_cell_count_estimate',
+      accessor: ({ demux_cell_count_estimate: count }) => count || 'N/A',
       isVisible: hasMultiplexedData
     },
     {
