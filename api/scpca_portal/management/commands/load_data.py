@@ -97,6 +97,7 @@ class Command(BaseCommand):
                 (
                     "--exclude=*",  # Must precede include patterns.
                     "--include=project_metadata.csv",
+                    f"--include=merged/{scpca_project_id}*",
                     f"--include={scpca_project_id}/{scpca_sample_id}*",
                 )
             )
@@ -105,6 +106,7 @@ class Command(BaseCommand):
                 (
                     "--exclude=*",  # Must precede include patterns.
                     "--include=project_metadata.csv",
+                    f"--include=merged/{scpca_project_id}*",
                     f"--include={scpca_project_id}*",
                 )
             )
@@ -125,8 +127,8 @@ class Command(BaseCommand):
             "--clean-up-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
         parser.add_argument("--max-workers", type=int, default=10)
-        parser.add_argument("--reload-all", action="store_true")
-        parser.add_argument("--reload-existing", action="store_true")
+        parser.add_argument("--reload-all", action="store_true", default=False)
+        parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--s3-max-bandwidth", type=int, default=None, help="In MB/s")
         parser.add_argument("--s3-max-concurrent-requests", type=int, default=10)
         parser.add_argument("--s3-multipart-chunk-size", type=int, default=8, help="In MB")
@@ -159,6 +161,12 @@ class Command(BaseCommand):
         )
         self.project.includes_cell_lines = utils.boolean_from_string(
             data.get("includes_cell_lines", False)
+        )
+        self.project.includes_merged_anndata = utils.boolean_from_string(
+            data.get("includes_merged_anndata", False)
+        )
+        self.project.includes_merged_sce = utils.boolean_from_string(
+            data.get("includes_merged_sce", False)
         )
         self.project.includes_xenografts = utils.boolean_from_string(
             data.get("includes_xenografts", False)

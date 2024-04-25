@@ -10,7 +10,13 @@ class TestComputedFileSerializer(TestCase):
         self.computed_file_data = model_to_dict(SampleComputedFileFactory())
 
     def assertContainsFields(self, serializer):
-        for field in ("format", "has_bulk_rna_seq", "has_cite_seq_data", "modality", "type"):
+        for field in (
+            "format",
+            "has_bulk_rna_seq",
+            "has_cite_seq_data",
+            "has_multiplexed_data",
+            "modality",
+        ):
             self.assertIn(field, serializer.data)
 
     def test_serializer_with_empty_data(self):
