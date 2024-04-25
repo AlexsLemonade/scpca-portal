@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
