@@ -175,6 +175,7 @@ export const ProjectSamplesTable = ({
       accessor: ({ sample_cell_count_estimate: count }) => count || 'N/A'
     },
     {
+      id: 'demux_cell_count_estimate',
       Header: () => (
         <Box direction="row" align="center">
           Est. Demux Sample Counts&nbsp;
@@ -184,8 +185,7 @@ export const ProjectSamplesTable = ({
           &nbsp;&nbsp;
         </Box>
       ),
-      accessor: 'demux_cell_count_estimate',
-      Cell: ({ demux_cell_count_estimate: count }) => count || 'N/A',
+      accessor: ({ demux_cell_count_estimate: count }) => count || 'N/A',
       isVisible: hasMultiplexedData
     },
     {
