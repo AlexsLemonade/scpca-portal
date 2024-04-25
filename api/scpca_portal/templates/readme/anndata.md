@@ -21,7 +21,7 @@ The files associated with each library are (example shown for a library with ID 
 
 Also included in each download is `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
-Gene expression files, available as h5ad files containing an `AnnData` object, house the expression data, cell and gene metrics, and associated metadata (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
+Gene expression files, available as H5AD files containing an `AnnData` object, house the expression data, cell and gene metrics, and associated metadata (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
 
 In the case of multi-modal data like CITE-seq (ADT tags), the ADT expression matrices will be provided in separate files corresponding to the same three stages of data processing: an unfiltered object (`_unfiltered_adt.h5ad`), a filtered object (`_filtered_adt.h5ad`), and a processed object (`_processed_adt.h5ad`).
 These files will only contain ADT expression data and not RNA expression data.
