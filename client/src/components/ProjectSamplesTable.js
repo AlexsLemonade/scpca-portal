@@ -204,6 +204,7 @@ export const ProjectSamplesTable = ({
       pageSize={5}
       pageSizeOptions={[5, 10, 20, 50]}
       infoText={infoText}
+      defaultSort={[{ id: 'download', desc: true }]}
     >
       <Box direction="row" gap="xlarge" pad={{ bottom: 'medium' }}>
         <Box direction="row">
