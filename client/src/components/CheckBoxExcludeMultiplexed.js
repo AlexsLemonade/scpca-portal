@@ -1,8 +1,7 @@
 import React from 'react'
 import { Box, CheckBox } from 'grommet'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
-import { config } from 'config'
-import { WarningText } from 'components/WarningText'
+import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const CheckBoxExcludeMultiplexed = () => {
   const {
@@ -22,14 +21,7 @@ export const CheckBoxExcludeMultiplexed = () => {
           onChange={handleChange}
         />
       </Box>
-      {!isExcludeMultiplexedAvailable && (
-        <WarningText
-          iconMargin={{ right: 'none' }}
-          text="Multiplexed samples are not available as AnnData (Python)."
-          linkLabel="Learn more"
-          link={config.links.which_samples_can_download_as_anndata}
-        />
-      )}
+      {!isExcludeMultiplexedAvailable && <WarningAnnDataMultiplexed />}
     </>
   )
 }
