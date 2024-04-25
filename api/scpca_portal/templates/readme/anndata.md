@@ -13,17 +13,17 @@ Most samples only have one library that has been sequenced.
 See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/en/stable/faq.html#what-is-the-difference-between-samples-and-libraries) for more information.
 
 The files associated with each library are (example shown for a library with ID `SCPCL000000`):
-- An unfiltered counts file: `SCPCL000000_unfiltered_rna.hdf5`,
-- A filtered counts file: `SCPCL000000_filtered_rna.hdf5`,
-- A processed counts file: `SCPCL000000_processed_rna.hdf5`,
+- An unfiltered counts file: `SCPCL000000_unfiltered_rna.h5ad`,
+- A filtered counts file: `SCPCL000000_filtered_rna.h5ad`,
+- A processed counts file: `SCPCL000000_processed_rna.h5ad`,
 - A quality control report: `SCPCL000000_qc.html`,
 - A supplemental cell type report: `SCPCL000000_celltype-report.html`
 
 Also included in each download is `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
-Gene expression files, available as HDF5 files containing an `AnnData` object, house the expression data, cell and gene metrics, and associated metadata (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
+Gene expression files, available as h5ad files containing an `AnnData` object, house the expression data, cell and gene metrics, and associated metadata (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
 
-In the case of multi-modal data like CITE-seq (ADT tags), the ADT expression matrices will be provided in separate files corresponding to the same three stages of data processing: an unfiltered object (`_unfiltered_adt.hdf5`), a filtered object (`_filtered_adt.hdf5`), and a processed object (`_processed_adt.hdf5`).
+In the case of multi-modal data like CITE-seq (ADT tags), the ADT expression matrices will be provided in separate files corresponding to the same three stages of data processing: an unfiltered object (`_unfiltered_adt.h5ad`), a filtered object (`_filtered_adt.h5ad`), and a processed object (`_processed_adt.h5ad`).
 These files will only contain ADT expression data and not RNA expression data.
 
 Samples that are part of multiplexed libraries are not available as `AnnData` objects and are not included in this download.
@@ -37,7 +37,7 @@ See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_fil
 
 ## Usage
 
-For instructions on using the HDF5 files, please see [FAQ: How do I use the provided HDF5 files in Python?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-HDF5-files-in-python)
+For instructions on using the h5ad files, please see [FAQ: How do I use the provided h5ad files in Python?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-h5ad-files-in-python)
 For more information on working with the processed `AnnData` objects, see [`Getting started with an ScPCA dataset`](https://scpca.readthedocs.io/en/stable/getting_started.html).
 
 ## CHANGELOG
