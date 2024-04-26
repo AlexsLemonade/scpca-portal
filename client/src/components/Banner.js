@@ -11,6 +11,7 @@ export const Banner = ({
   elevation = '',
   width = '100%',
   hidden = false,
+  zIndex = 5,
   children
 }) => {
   const { banner, hideBanner, openBanner } = useBanner()
@@ -28,16 +29,17 @@ export const Banner = ({
       justify="center"
       width="100%"
       elevation={elevation}
-      style={{ zIndex: 5 }}
+      style={{ zIndex }}
     >
       <Box direction="row" justify="center" width={width}>
         {children}
-        <Box
-          pad={{ vertical: 'medium', right: '24px' }}
-          onClick={() => hideBanner(id)}
-        >
-          <Icon name="Cross" color={closeIconColor} size="16px" />
-        </Box>
+      </Box>
+      <Box
+        pad={{ vertical: 'medium', right: '24px' }}
+        onClick={() => hideBanner(id)}
+        align="end"
+      >
+        <Icon name="Cross" color={closeIconColor} size="16px" />
       </Box>
     </Box>
   )
