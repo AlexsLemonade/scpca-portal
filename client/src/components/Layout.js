@@ -57,7 +57,7 @@ export const Layout = ({ children }) => {
     router.pathname
   )
 
-  const showEnvVarBanner = process.env.BANNER_STATE === 'ON'
+  const showEnvarBanner = process.env.BANNER_STATE === 'ON'
 
   const width = showWide ? 'full' : 'xlarge'
 
@@ -65,7 +65,7 @@ export const Layout = ({ children }) => {
     <Box height={{ min: '100vh' }}>
       <Box height={fixedBoxHeight}>
         <FixedBox background="white" ref={fixedBoxRef}>
-          {showEnvVarBanner && <EnvVarBanner width={width} />}
+          {showEnvarBanner && <EnvarBanner width={width} />}
           <Header margin={{ bottom: 'small' }} donate={showDonate} />
           <ProgressBar />
         </FixedBox>
