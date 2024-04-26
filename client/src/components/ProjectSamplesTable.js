@@ -13,6 +13,7 @@ import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
 import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({
   project,
@@ -85,7 +86,7 @@ export const ProjectSamplesTable = ({
           )
         }
 
-        const computedFile = getFoundFile(row.original.computed_files)
+        const computedFile = getFoundFile(row.original.computed_files, true)
 
         if (computedFile) {
           return (
@@ -224,6 +225,9 @@ export const ProjectSamplesTable = ({
           onSave={onOptionsSave}
         />
       </Box>
+      {project.has_multiplexed_data && format === 'ANN_DATA' && (
+        <WarningAnnDataMultiplexed />
+      )}
     </Table>
   )
 }
