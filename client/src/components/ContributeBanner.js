@@ -42,8 +42,8 @@ export const ContributeBanner = ({
     <Banner
       id={id}
       background="alexs-lemonade-tint-60"
-      width="large"
       elevation="xlarge"
+      zIndex={2}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
     >

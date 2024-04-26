@@ -1,31 +1,39 @@
-import React, { useEffect } from 'react'
-import { Box, CheckBox } from 'grommet'
+import React from 'react'
+import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { HelpLink } from 'components/HelpLink'
+import { InfoText } from 'components/InfoText'
+import { Link } from 'components/Link'
 
-export const CheckBoxMergedObjects = ({ downloadable = false }) => {
-  const { includesMerged, setIncludesMerged } = useDownloadOptionsContext()
-  const link = downloadable
-    ? config.links.when_downloading_merged_objects
-    : config.links.which_projects_are_merged_objects
+export const CheckBoxMergedObjects = () => {
+  const { includesMerged, setIncludesMerged, isMergedObjectsAvailable } =
+    useDownloadOptionsContext()
   const handleChange = () => setIncludesMerged(!includesMerged)
 
-  // Uncheck the checkbox when no merged objects available
-  useEffect(() => {
-    if (!downloadable) setIncludesMerged(false)
-  }, [downloadable])
-
   return (
-    <Box direction="row">
-      <CheckBox
-        checked={includesMerged}
-        disabled={!downloadable}
-        label="Merge samples into 1 object"
-        onChange={handleChange}
-      />
-      <HelpLink link={link} />
-    </Box>
+    <>
+      <Box direction="row">
+        <CheckBox
+          checked={includesMerged}
+          disabled={!isMergedObjectsAvailable}
+          label="Merge samples into 1 object"
+          onChange={handleChange}
+        />
+        <HelpLink link={config.links.when_downloading_merged_objects} />
+      </Box>
+      {!isMergedObjectsAvailable && (
+        <InfoText>
+          <Text>
+            Merged objects are not available for every project.{' '}
+            <Link
+              href={config.links.which_projects_are_merged_objects}
+              label="Learn more"
+            />
+          </Text>
+        </InfoText>
+      )}
+    </>
   )
 }
 

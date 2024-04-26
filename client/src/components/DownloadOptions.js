@@ -5,6 +5,7 @@ import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { useResponsive } from 'hooks/useResponsive'
 import getReadableOptions from 'helpers/getReadableOptions'
 import { CheckBoxMergedObjects } from 'components/CheckBoxMergedObjects'
+import { CheckBoxExcludeMultiplexed } from 'components/CheckBoxExcludeMultiplexed'
 import { DownloadOption } from 'components/DownloadOption'
 import { HelpLink } from 'components/HelpLink'
 
@@ -31,9 +32,10 @@ export const DownloadOptions = ({ handleSelectFile }) => {
     setFormat,
     formatOptions,
     computedFile,
-    resource,
-    isMergedObjectsAvailable
+    resource
   } = useDownloadOptionsContext()
+
+  const { has_multiplexed_data: hasMultiplexed } = resource
   const { responsive } = useResponsive()
 
   return (
@@ -79,7 +81,10 @@ export const DownloadOptions = ({ handleSelectFile }) => {
             />
           </FormField>
         </Box>
-        <CheckBoxMergedObjects downloadable={isMergedObjectsAvailable} />
+        <Box gap="medium">
+          <CheckBoxMergedObjects />
+          {hasMultiplexed && <CheckBoxExcludeMultiplexed />}
+        </Box>
       </Box>
       <Box>
         {computedFile && (

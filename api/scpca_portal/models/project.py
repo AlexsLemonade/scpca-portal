@@ -40,7 +40,6 @@ class Project(CommonDataAttributes, TimestampedModel):
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
     downloadable_sample_count = models.IntegerField(default=0)
-    has_multiplexed_data = models.BooleanField(default=False)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField()
@@ -103,7 +102,9 @@ class Project(CommonDataAttributes, TimestampedModel):
     def multiplexed_computed_file(self):
         try:
             return self.project_computed_files.get(
-                type=ComputedFile.OutputFileTypes.PROJECT_MULTIPLEXED_ZIP
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
+                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                has_multiplexed_data=True,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -149,8 +150,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
                 includes_merged=False,
-                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -160,8 +161,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
                 includes_merged=True,
-                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -171,8 +172,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.ANN_DATA,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
                 includes_merged=False,
-                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -182,8 +183,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.ANN_DATA,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
                 includes_merged=True,
-                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -192,7 +193,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     def spatial_computed_file(self):
         try:
             return self.project_computed_files.get(
-                type=ComputedFile.OutputFileTypes.PROJECT_SPATIAL_ZIP
+                modality=ComputedFile.OutputFileModalities.SPATIAL
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -1010,7 +1011,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_metadata["has_cite_seq_data"] = has_cite_seq_data
             sample_metadata["has_single_cell_data"] = has_single_cell_data
             sample_metadata["has_spatial_data"] = has_spatial_data
-            sample_metadata["includes_anndata"] = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
+            sample_metadata["includes_anndata"] = len(list(Path(sample_dir).glob("*.h5ad"))) > 0
             sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
             sample_metadata["seq_units"] = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample_metadata["technologies"] = ", ".join(sorted(sample_technologies, key=str.lower))

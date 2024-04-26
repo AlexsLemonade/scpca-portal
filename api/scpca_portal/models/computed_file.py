@@ -27,34 +27,13 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         SINGLE_CELL_METADATA_FILE_NAME = "single_cell_metadata.tsv"
         SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
 
-    # TODO(ark): these values are redundant and need to be refactored in order not to violate DRY.
     class OutputFileModalities:
-        MULTIPLEXED = "MULTIPLEXED"
         SINGLE_CELL = "SINGLE_CELL"
         SPATIAL = "SPATIAL"
 
         CHOICES = (
-            (MULTIPLEXED, "Multiplexed"),
             (SINGLE_CELL, "Single Cell"),
             (SPATIAL, "Spatial"),
-        )
-
-    class OutputFileTypes:
-        PROJECT_MULTIPLEXED_ZIP = "PROJECT_MULTIPLEXED_ZIP"
-        PROJECT_SPATIAL_ZIP = "PROJECT_SPATIAL_ZIP"
-        PROJECT_ZIP = "PROJECT_ZIP"
-
-        SAMPLE_MULTIPLEXED_ZIP = "SAMPLE_MULTIPLEXED_ZIP"
-        SAMPLE_SPATIAL_ZIP = "SAMPLE_SPATIAL_ZIP"
-        SAMPLE_ZIP = "SAMPLE_ZIP"
-
-        CHOICES = (
-            (PROJECT_MULTIPLEXED_ZIP, "Project Multiplexed ZIP"),
-            (PROJECT_SPATIAL_ZIP, "Project Spatial ZIP"),
-            (PROJECT_ZIP, "Project ZIP"),
-            (SAMPLE_MULTIPLEXED_ZIP, "Sample Multiplexed ZIP"),
-            (SAMPLE_SPATIAL_ZIP, "Sample Spatial ZIP"),
-            (SAMPLE_ZIP, "Sample ZIP"),
         )
 
     class OutputFileFormats:
@@ -102,7 +81,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     s3_bucket = models.TextField()
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
-    type = models.TextField(choices=OutputFileTypes.CHOICES)
     workflow_version = models.TextField()
     includes_celltype_report = models.BooleanField(default=False)
 
@@ -139,13 +117,13 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             computed_file_name = project.output_merged_anndata_computed_file_name
             readme_file_path = ComputedFile.README_ANNDATA_MERGED_FILE_PATH
             project_file_mapping[
-                f"{project.input_merged_data_path}/{project.scpca_id}_merged_rna.hdf5"
-            ] = f"{project.scpca_id}_merged_rna.hdf5"
+                f"{project.input_merged_data_path}/{project.scpca_id}_merged_rna.h5ad"
+            ] = f"{project.scpca_id}_merged_rna.h5ad"
 
             if project.has_cite_seq_data:
                 project_file_mapping[
-                    f"{project.input_merged_data_path}/{project.scpca_id}_merged_adt.hdf5"
-                ] = f"{project.scpca_id}_merged_adt.hdf5"
+                    f"{project.input_merged_data_path}/{project.scpca_id}_merged_adt.h5ad"
+                ] = f"{project.scpca_id}_merged_adt.h5ad"
         else:
             if not project.includes_merged_sce:
                 return None
@@ -163,7 +141,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=computed_file_name,
-            type=cls.OutputFileTypes.PROJECT_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -206,11 +183,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file = cls(
             format=file_format,
-            modality=cls.OutputFileModalities.MULTIPLEXED,
+            modality=cls.OutputFileModalities.SINGLE_CELL,
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=project.output_multiplexed_computed_file_name,
-            type=cls.OutputFileTypes.PROJECT_MULTIPLEXED_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -234,6 +210,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
         computed_file.has_cite_seq_data = project.has_cite_seq_data
+        computed_file.has_multiplexed_data = project.has_multiplexed_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
         computed_file.includes_celltype_report = project.samples.filter(is_cell_line=False).exists()
 
@@ -258,7 +235,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=computed_file_name,
-            type=cls.OutputFileTypes.PROJECT_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -295,7 +271,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=project.output_spatial_computed_file_name,
-            type=cls.OutputFileTypes.PROJECT_SPATIAL_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -327,11 +302,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         """
         computed_file = cls(
             format=file_format,
-            modality=cls.OutputFileModalities.MULTIPLEXED,
+            modality=cls.OutputFileModalities.SINGLE_CELL,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_multiplexed_computed_file_name,
             sample=sample,
-            type=cls.OutputFileTypes.SAMPLE_MULTIPLEXED_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -387,6 +361,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
         computed_file.has_cite_seq_data = sample.has_cite_seq_data
+        computed_file.has_multiplexed_data = sample.has_multiplexed_data
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
         computed_file.includes_celltype_report = includes_celltype_report
 
@@ -406,10 +381,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             file_name = sample.output_single_cell_anndata_computed_file_name
             readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
             common_file_suffixes = [
-                "filtered_rna.hdf5",
-                "processed_rna.hdf5",
+                "filtered_rna.h5ad",
+                "processed_rna.h5ad",
                 "qc.html",
-                "unfiltered_rna.hdf5",
+                "unfiltered_rna.h5ad",
             ]
         else:
             file_name = sample.output_single_cell_computed_file_name
@@ -425,9 +400,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             common_file_suffixes.append("celltype-report.html")
 
         cite_seq_anndata_file_suffixes = [
-            "filtered_adt.hdf5",
-            "processed_adt.hdf5",
-            "unfiltered_adt.hdf5",
+            "filtered_adt.h5ad",
+            "processed_adt.h5ad",
+            "unfiltered_adt.h5ad",
         ]
 
         computed_file = cls(
@@ -436,7 +411,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=file_name,
             sample=sample,
-            type=cls.OutputFileTypes.SAMPLE_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -484,7 +458,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=sample.output_spatial_computed_file_name,
             sample=sample,
-            type=cls.OutputFileTypes.SAMPLE_SPATIAL_ZIP,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 
@@ -521,19 +494,25 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @property
     def is_project_multiplexed_zip(self):
-        return self.type == ComputedFile.OutputFileTypes.PROJECT_MULTIPLEXED_ZIP
+        return (
+            self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
+            and self.has_multiplexed_data
+        )
 
     @property
-    def is_project_zip(self):
-        return self.type == ComputedFile.OutputFileTypes.PROJECT_ZIP
+    def is_project_single_cell_zip(self):
+        return (
+            self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
+            and not self.has_multiplexed_data
+        )
 
     @property
     def is_project_spatial_zip(self):
-        return self.type == ComputedFile.OutputFileTypes.PROJECT_SPATIAL_ZIP
+        return self.modality == ComputedFile.OutputFileModalities.SPATIAL
 
     @property
     def metadata_file_name(self):
-        if self.is_project_multiplexed_zip or self.is_project_zip:
+        if self.is_project_multiplexed_zip or self.is_project_single_cell_zip:
             return ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
         if self.is_project_spatial_zip:
             return ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
