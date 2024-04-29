@@ -429,6 +429,7 @@ class TestLoadData(TransactionTestCase):
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
             "droplet_filtering_method",
+            "filtered_cell_count",  # with non-multiplexed
             "filtered_cells",
             "has_cellhash",
             "includes_anndata",
@@ -442,6 +443,7 @@ class TestLoadData(TransactionTestCase):
             "prob_compromised_cutoff",
             "processed_cells",
             "salmon_version",
+            "sample_cell_count_estimate",  # with non-multiplexed
             "sample_cell_estimates",
             "self_reported_ethnicity_ontology_term_id",
             "sex_ontology_term_id",
@@ -463,8 +465,7 @@ class TestLoadData(TransactionTestCase):
                 "This dataset is designated as research or academic purposes only.",
                 project_zip,
             )
-
-        self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
+        self.assertEqual(len(sample_metadata_lines), 4)  # 3 items + header.
 
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
