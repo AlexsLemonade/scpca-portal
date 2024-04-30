@@ -233,7 +233,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             set(samples_metadata[0].keys()), modalities={modality}
         )
 
-        # add in non-multiplexed metadata to multiplexed download
+        # add in non-multiplexed single-cell metadata keys to samples_metadata field_names
         combined_single_cell_metadata_keys = set(combined_single_cell_metadata[0].keys())
         all_single_cell_keys = library_metadata_keys.union(
             sample_metadata_keys, combined_single_cell_metadata_keys
