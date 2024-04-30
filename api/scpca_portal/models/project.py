@@ -212,6 +212,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         self,
         samples_metadata: List[Dict],
         multiplexed_libraries_metadata: List[Dict],
+        combined_single_cell_metadata: List[Dict],
         sample_id: str,
     ):
         """Combines the two metadata dicts together to have all multiplexed data
@@ -231,8 +232,15 @@ class Project(CommonDataAttributes, TimestampedModel):
         sample_metadata_keys = self.get_sample_metadata_keys(
             set(samples_metadata[0].keys()), modalities={modality}
         )
+
+        # add in non-multiplexed single-cell metadata keys to samples_metadata field_names
+        combined_single_cell_metadata_keys = set(combined_single_cell_metadata[0].keys())
+        all_single_cell_keys = library_metadata_keys.union(
+            sample_metadata_keys, combined_single_cell_metadata_keys
+        )
         field_names = self.get_metadata_field_names(
-            library_metadata_keys.union(sample_metadata_keys), modality=modality
+            all_single_cell_keys,
+            modality=modality,
         )
 
         multiplexed_library_mapping = {}  # Sample ID to library IDs mapping.
@@ -317,6 +325,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                             combined_metadata_added_pair_ids.add(pair_id)
                             combined_metadata.append(library_metadata_copy)
 
+        # Add non-multiplexed samples metadata to project metadata file.
+        combined_metadata.extend(combined_single_cell_metadata)
         with open(self.output_multiplexed_metadata_file_path, "w", newline="") as project_file:
             project_csv_writer = csv.DictWriter(
                 project_file, fieldnames=field_names, delimiter=common.TAB
@@ -324,7 +334,10 @@ class Project(CommonDataAttributes, TimestampedModel):
             project_csv_writer.writeheader()
             # Project file data has to be sorted by the library_id.
             project_csv_writer.writerows(
-                sorted([cm for cm in combined_metadata], key=lambda cm: cm["scpca_library_id"])
+                sorted(
+                    [cm for cm in combined_metadata],
+                    key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
+                )
             )
 
         return combined_metadata, multiplexed_sample_mapping
@@ -1062,7 +1075,10 @@ class Project(CommonDataAttributes, TimestampedModel):
             combined_multiplexed_metadata,
             multiplexed_sample_mapping,
         ) = self.combine_multiplexed_metadata(
-            samples_metadata, multiplexed_libraries_metadata, sample_id
+            samples_metadata,
+            multiplexed_libraries_metadata,
+            combined_single_cell_metadata,
+            sample_id,
         )
 
         multiplexed_file_mapping = {
