@@ -325,15 +325,19 @@ class Project(CommonDataAttributes, TimestampedModel):
                             combined_metadata_added_pair_ids.add(pair_id)
                             combined_metadata.append(library_metadata_copy)
 
+        # Add non-multiplexed samples metadata to project metadata file.
+        combined_metadata.extend(combined_single_cell_metadata)
         with open(self.output_multiplexed_metadata_file_path, "w", newline="") as project_file:
             project_csv_writer = csv.DictWriter(
                 project_file, fieldnames=field_names, delimiter=common.TAB
             )
             project_csv_writer.writeheader()
             # Project file data has to be sorted by the library_id.
-            all_metadata = combined_single_cell_metadata + combined_metadata
             project_csv_writer.writerows(
-                sorted([cm for cm in all_metadata], key=lambda cm: cm["scpca_library_id"])
+                sorted(
+                    [cm for cm in combined_metadata],
+                    key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
+                )
             )
 
         return combined_metadata, multiplexed_sample_mapping
