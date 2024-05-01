@@ -1238,7 +1238,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             updated_samples_metadata,
             libraries_metadata[Sample.Modalities.MULTIPLEXED],
             combined_metadata[Sample.Modalities.SINGLE_CELL],
-            sample_id
+            sample_id,
         )
 
         samples = self.get_samples(
@@ -1337,8 +1337,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                 updated_sample_metadata["demux_cell_count_estimate"] = multiplexed_remaining_fields[
                     "sample_demux_cell_counter"
                 ].get(sample_id)
-            else:
-                updated_sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
+
+            updated_sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
 
             updated_sample_metadata["multiplexed_with"] = sorted(
                 multiplexed_with_mapping.get(updated_sample_metadata["scpca_sample_id"], ())
