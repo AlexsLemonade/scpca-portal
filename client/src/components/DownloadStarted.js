@@ -33,12 +33,16 @@ export const DownloadStarted = ({
       const { isOk, response } = await api.projects.get(resource.project)
       if (isOk) {
         setRecommendedResource(response)
-        const defaultFile = getDefaultComputedFile(response, computedFile)
+        const defaultFile = getDefaultComputedFile(
+          response,
+          computedFile,
+          info.recommendedOptions
+        )
         setRecommendedFile(defaultFile)
       }
     }
 
-    if (info.fetchRecommended && !recommendedResource) fetchRecommended()
+    if (info.recommendedOptions && !recommendedResource) fetchRecommended()
   }, [])
 
   const { size: responsiveSize } = useResponsive()

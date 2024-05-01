@@ -11,7 +11,9 @@ from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"scpca"}
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-03-08/"
+# NOTE: When INPUT_BUCKET_NAME is changed, please delete the contents of
+# api/test_data/input before testing to ensure test files are updated correctly.
+INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
 
 
 class TestLoadData(TransactionTestCase):
@@ -194,7 +196,7 @@ class TestLoadData(TransactionTestCase):
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 8)
             self.assertIn("SCPCP999992_merged.rds", files)
-            self.assertNotIn("SCPCP999992_merged_adt.hdf5", files)
+            self.assertNotIn("SCPCP999992_merged_adt.h5ad", files)
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -210,8 +212,8 @@ class TestLoadData(TransactionTestCase):
             # There are 7 files (including subdirectory names):
             # ├── README.md
             # ├── SCPCP999992_merged-summary-report.html
-            # ├── SCPCP999992_merged_adt.hdf5
-            # ├── SCPCP999992_merged_rna.hdf5
+            # ├── SCPCP999992_merged_adt.h5ad
+            # ├── SCPCP999992_merged_rna.h5ad
             # ├── individual_reports
             # │   ├── SCPCS999996
             # │   │   └── SCPCL999996_qc.html
@@ -222,8 +224,8 @@ class TestLoadData(TransactionTestCase):
             # └── single_cell_metadata.tsv
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 9)
-            self.assertIn("SCPCP999992_merged_rna.hdf5", files)
-            self.assertIn("SCPCP999992_merged_adt.hdf5", files)
+            self.assertIn("SCPCP999992_merged_rna.h5ad", files)
+            self.assertIn("SCPCP999992_merged_adt.h5ad", files)
 
     def test_merged_project_anndata_no_cite_seq(self):
         project_id = "SCPCP999990"
@@ -288,7 +290,7 @@ class TestLoadData(TransactionTestCase):
             # There are 8 files (including subdirectory names):
             # ├── README.md
             # ├── SCPCP999990_merged-summary-report.html
-            # ├── SCPCP999990_merged_rna.hdf5
+            # ├── SCPCP999990_merged_rna.h5ad
             # ├── bulk_metadata.tsv
             # ├── bulk_quant.tsv
             # ├── individual_reports
@@ -301,7 +303,7 @@ class TestLoadData(TransactionTestCase):
             # └── single_cell_metadata.tsv
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 10)
-            self.assertIn("SCPCP999990_merged_rna.hdf5", files)
+            self.assertIn("SCPCP999990_merged_rna.h5ad", files)
 
     def test_no_merged_single_cell(self):
         project_id = "SCPCP999991"
@@ -364,7 +366,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
         self.assertEqual(
             project.multiplexed_computed_file.modality,
-            ComputedFile.OutputFileModalities.MULTIPLEXED,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
         self.assertFalse(project.multiplexed_computed_file.has_bulk_rna_seq)
         self.assertFalse(project.multiplexed_computed_file.has_cite_seq_data)
@@ -427,6 +429,7 @@ class TestLoadData(TransactionTestCase):
             "development_stage_ontology_term_id",
             "disease_ontology_term_id",
             "droplet_filtering_method",
+            "filtered_cell_count",  # with non-multiplexed
             "filtered_cells",
             "has_cellhash",
             "includes_anndata",
@@ -440,6 +443,7 @@ class TestLoadData(TransactionTestCase):
             "prob_compromised_cutoff",
             "processed_cells",
             "salmon_version",
+            "sample_cell_count_estimate",  # with non-multiplexed
             "sample_cell_estimates",
             "self_reported_ethnicity_ontology_term_id",
             "sex_ontology_term_id",
@@ -461,8 +465,7 @@ class TestLoadData(TransactionTestCase):
                 "This dataset is designated as research or academic purposes only.",
                 project_zip,
             )
-
-        self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
+        self.assertEqual(len(sample_metadata_lines), 4)  # 3 items + header.
 
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
@@ -514,7 +517,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(sample.technologies, "10Xv3.1")
         self.assertEqual(
             sample.multiplexed_computed_file.modality,
-            ComputedFile.OutputFileModalities.MULTIPLEXED,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
         )
         self.assertFalse(sample.multiplexed_computed_file.has_bulk_rna_seq)
         self.assertFalse(sample.multiplexed_computed_file.has_cite_seq_data)
@@ -712,7 +715,7 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 3421)
+        self.assertEqual(sample.sample_cell_count_estimate, 3426)
         self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3")
         self.assertIsNotNone(sample.single_cell_computed_file)
@@ -799,10 +802,10 @@ class TestLoadData(TransactionTestCase):
             "README.md",
             "single_cell_metadata.tsv",
             f"{library_id}_celltype-report.html",
-            f"{library_id}_filtered_rna.hdf5",
-            f"{library_id}_processed_rna.hdf5",
+            f"{library_id}_filtered_rna.h5ad",
+            f"{library_id}_processed_rna.h5ad",
             f"{library_id}_qc.html",
-            f"{library_id}_unfiltered_rna.hdf5",
+            f"{library_id}_unfiltered_rna.h5ad",
         }
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 

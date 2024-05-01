@@ -40,7 +40,6 @@ class Project(CommonDataAttributes, TimestampedModel):
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
     downloadable_sample_count = models.IntegerField(default=0)
-    has_multiplexed_data = models.BooleanField(default=False)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField()
@@ -103,7 +102,9 @@ class Project(CommonDataAttributes, TimestampedModel):
     def multiplexed_computed_file(self):
         try:
             return self.project_computed_files.get(
-                type=ComputedFile.OutputFileTypes.PROJECT_MULTIPLEXED_ZIP
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
+                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                has_multiplexed_data=True,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -149,8 +150,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
                 includes_merged=False,
-                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -160,8 +161,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
                 includes_merged=True,
-                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -171,8 +172,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.ANN_DATA,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
                 includes_merged=False,
-                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -182,8 +183,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         try:
             return self.project_computed_files.get(
                 format=ComputedFile.OutputFileFormats.ANN_DATA,
+                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
                 includes_merged=True,
-                type=ComputedFile.OutputFileTypes.PROJECT_ZIP,
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -192,7 +193,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     def spatial_computed_file(self):
         try:
             return self.project_computed_files.get(
-                type=ComputedFile.OutputFileTypes.PROJECT_SPATIAL_ZIP
+                modality=ComputedFile.OutputFileModalities.SPATIAL
             )
         except ComputedFile.DoesNotExist:
             pass
@@ -211,6 +212,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         self,
         samples_metadata: List[Dict],
         multiplexed_libraries_metadata: List[Dict],
+        combined_single_cell_metadata: List[Dict],
         sample_id: str,
     ):
         """Combines the two metadata dicts together to have all multiplexed data
@@ -230,8 +232,15 @@ class Project(CommonDataAttributes, TimestampedModel):
         sample_metadata_keys = self.get_sample_metadata_keys(
             set(samples_metadata[0].keys()), modalities={modality}
         )
+
+        # add in non-multiplexed single-cell metadata keys to samples_metadata field_names
+        combined_single_cell_metadata_keys = set(combined_single_cell_metadata[0].keys())
+        all_single_cell_keys = library_metadata_keys.union(
+            sample_metadata_keys, combined_single_cell_metadata_keys
+        )
         field_names = self.get_metadata_field_names(
-            library_metadata_keys.union(sample_metadata_keys), modality=modality
+            all_single_cell_keys,
+            modality=modality,
         )
 
         multiplexed_library_mapping = {}  # Sample ID to library IDs mapping.
@@ -316,6 +325,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                             combined_metadata_added_pair_ids.add(pair_id)
                             combined_metadata.append(library_metadata_copy)
 
+        # Add non-multiplexed samples metadata to project metadata file.
+        combined_metadata.extend(combined_single_cell_metadata)
         with open(self.output_multiplexed_metadata_file_path, "w", newline="") as project_file:
             project_csv_writer = csv.DictWriter(
                 project_file, fieldnames=field_names, delimiter=common.TAB
@@ -323,7 +334,10 @@ class Project(CommonDataAttributes, TimestampedModel):
             project_csv_writer.writeheader()
             # Project file data has to be sorted by the library_id.
             project_csv_writer.writerows(
-                sorted([cm for cm in combined_metadata], key=lambda cm: cm["scpca_library_id"])
+                sorted(
+                    [cm for cm in combined_metadata],
+                    key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
+                )
             )
 
         return combined_metadata, multiplexed_sample_mapping
@@ -1006,7 +1020,10 @@ class Project(CommonDataAttributes, TimestampedModel):
             combined_multiplexed_metadata,
             multiplexed_sample_mapping,
         ) = self.combine_multiplexed_metadata(
-            updated_samples_metadata, multiplexed_libraries_metadata, sample_id
+            updated_samples_metadata,
+            multiplexed_libraries_metadata,
+            combined_metadata[Sample.Modalities.SINGLE_CELL],
+            sample_id,
         )
 
         multiplexed_file_mapping = {
@@ -1217,7 +1234,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             has_cite_seq_data = len(list(Path(sample_dir).glob("*_adt.*"))) > 0
             has_single_cell_data = len(list(Path(sample_dir).glob("*_metadata.json"))) > 0
             has_spatial_data = len(list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))) > 0
-            include_anndata = len(list(Path(sample_dir).glob("*.hdf5"))) > 0
+            include_anndata = len(list(Path(sample_dir).glob("*.h5ad"))) > 0
 
             sample_metadata["age_at_diagnosis"] = sample_metadata.pop("age")
             sample_metadata["has_bulk_rna_seq"] = has_bulk_rna_seq
