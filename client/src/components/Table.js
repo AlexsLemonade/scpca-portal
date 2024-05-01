@@ -201,6 +201,7 @@ export const Table = ({
   Head = THead,
   Body = TBody,
   filter = false,
+  defaultSort = [],
   pageSize: initialPageSize = 0,
   pageSizeOptions = [],
   infoText,
@@ -225,13 +226,15 @@ export const Table = ({
     hooks.push(usePagination)
   }
 
+  const sortRules = useMemo(() => defaultSort, [userData])
+
   const instance = useTable(
     {
       columns,
       data,
       globalFilter,
       filterTypes,
-      initialState: { pageSize }
+      initialState: { pageSize, sortBy: sortRules }
     },
     ...hooks
   )
