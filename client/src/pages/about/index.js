@@ -46,8 +46,8 @@ export const About = () => {
           <Paragraph size="large" textAlign="center">
             The Single-cell Pediatric Cancer Atlas (ScPCA) is enabling broad
             access to single-cell data from pediatric cancer tumors and model
-            systems, which will increase its impact on the lives of children with
-            cancer.
+            systems, which will increase its impact on the lives of children
+            with cancer.
           </Paragraph>
         </Box>
       </HeroBandReversed>
@@ -181,9 +181,9 @@ export const About = () => {
                   href={config.links.ccdlGithub_pipeline}
                   label="pipeline"
                 />{' '}
-                used to process the data is fast, reusable, and
-                cost-efficient. Others can utilize the pipeline for their own
-                data, and the pipeline can be easily extended.
+                used to process the data is fast, reusable, and cost-efficient.
+                Others can utilize the pipeline for their own data, and the
+                pipeline can be easily extended.
               </Text>
             </Box>
             <Box>
