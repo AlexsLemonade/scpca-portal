@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useResizeObserver } from 'hooks/useResizeObserver'
 import { Box, Main } from 'grommet'
 import { ContributeBanner } from 'components/ContributeBanner'
+import { EnvarBanner } from 'components/EnvarBanner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
 import { PageLoader } from 'components/PageLoader'
@@ -56,15 +57,20 @@ export const Layout = ({ children }) => {
     router.pathname
   )
 
+  const showEnvarBanner = process.env.BANNER_STATE === 'ON'
+
+  const width = showWide ? 'full' : 'xlarge'
+
   return (
     <Box height={{ min: '100vh' }}>
       <Box height={fixedBoxHeight}>
         <FixedBox background="white" ref={fixedBoxRef}>
-          {showContributeBanner && <ContributeBanner />}
+          {showEnvarBanner && <EnvarBanner width={width} />}
           <Header margin={{ bottom: 'small' }} donate={showDonate} />
           <ProgressBar />
         </FixedBox>
       </Box>
+      {showContributeBanner && <ContributeBanner width={width} />}
       <Main
         width={showWide ? 'full' : 'xlarge'}
         alignSelf="center"

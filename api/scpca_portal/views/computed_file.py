@@ -16,6 +16,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "format",
             "has_bulk_rna_seq",
             "has_cite_seq_data",
+            "has_multiplexed_data",
             "id",
             "modality",
             "project",
@@ -23,7 +24,6 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "s3_key",
             "sample",
             "size_in_bytes",
-            "type",
             "updated_at",
             "workflow_version",
             "includes_celltype_report",
@@ -57,7 +57,8 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "project__id",
         "sample__id",
         "id",
-        "type",
+        "format",
+        "modality",
         "includes_celltype_report",
     )
 
