@@ -442,7 +442,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     ).add_done_callback(create_computed_file)
 
     def get_bulk_rna_seq_sample_ids(self):
-        """Returns bulk RNA sequencing sample IDs."""
+        """Returns set of bulk RNA sequencing sample IDs."""
         bulk_rna_seq_sample_ids = set()
         if self.has_bulk_rna_seq:
             with open(self.input_bulk_metadata_file_path, "r") as bulk_metadata_file:
@@ -464,6 +464,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             return additional_terms_file.read()
 
     def get_demux_sample_ids(self) -> Set:
+        """Returns a set of all demuxed sample ids used in the project's multiplexed samples."""
         demux_sample_ids = set()
         for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
             multiplexed_sample_dir_demux_ids = multiplexed_sample_dir.name.split(",")
@@ -472,6 +473,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         return demux_sample_ids
 
     def get_multiplexed_libraries_metadata(self):
+        """
+        Loads and collects individual multiplexed libraries from json files,
+        then returns them in a list
+        """
         multiplexed_libraries_metadata = []
         for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
             for filename_path in sorted(Path(multiplexed_sample_dir).rglob("*_metadata.json")):
@@ -486,6 +491,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         return multiplexed_libraries_metadata
 
     def get_multiplexed_remaining_fields(self):
+        """
+        Retrieves the project's aggregate values of demux cell counter, seq units, and technologies,
+        (found within the library json files), and returns the three as a dictionary.
+        """
         multiplexed_sample_demux_cell_counter = Counter()
         multiplexed_sample_seq_units_mapping = {}
         multiplexed_sample_technologies_mapping = {}
@@ -521,6 +530,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         }
 
     def get_multiplexed_sample_libraries_mapping(self, multiplexed_libraries_metadata: List[Dict]):
+        """
+        Returns a dictionary with keys as sample ids
+         and values as all of the samples associated libraries
+        """
         multiplexed_sample_library_mapping = {}  # Sample ID to library IDs mapping.
         for library_metadata in multiplexed_libraries_metadata:
             multiplexed_library_sample_ids = library_metadata["demux_samples"]
@@ -535,6 +548,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         return multiplexed_sample_library_mapping
 
     def get_multiplexed_with_mapping(self, multiplexed_libraries_metadata: List[Dict]):
+        """
+        Return a dictionary with keys being specific demux ids,
+        and the values being all ids that this sample was multiplexed with.
+        """
         multiplexed_with_mapping = {}
         for library_metadata in multiplexed_libraries_metadata:
             multiplexed_library_sample_ids = library_metadata["demux_samples"]
@@ -561,6 +578,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         samples_metadata_filtered_keys,
         libraries_metadata_filtered_keys,
     ):
+        """
+        Returns a list of combined metadata of all samples that
+        the scpca_sample_id sample was multiplexed with.
+        The returned list is then immediately written to the open csv file in the caller method.
+        """
         multiplexed_with_combined_metadata = []
         multiplexed_sample_ids = sorted(multiplexed_with_mapping[scpca_sample_id])
 
@@ -1158,15 +1180,15 @@ class Project(CommonDataAttributes, TimestampedModel):
                 set(updated_samples_metadata[0].keys()), modalities=modalities
             )
 
-            all_relevant_keys = library_metadata_keys.union(sample_metadata_keys)
+            all_included_keys = library_metadata_keys.union(sample_metadata_keys)
             if modality == Sample.Modalities.MULTIPLEXED:
                 # add in non-multiplexed single-cell metadata keys to samples_metadata field_names
-                all_relevant_keys = all_relevant_keys.union(
+                all_included_keys = all_included_keys.union(
                     set(combined_metadata[Sample.Modalities.SINGLE_CELL][0].keys())
                 )
 
             field_names = self.get_metadata_field_names(
-                all_relevant_keys,
+                all_included_keys,
                 modality=modality,
             )
 
