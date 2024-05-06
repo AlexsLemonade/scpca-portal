@@ -531,8 +531,9 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def get_multiplexed_sample_libraries_mapping(self, multiplexed_libraries_metadata: List[Dict]):
         """
-        Returns a dictionary with keys as sample ids
-         and values as all of the samples associated libraries
+        Returns a dictionary which maps sample ids to a set of associated library ids.
+        get_sample_libraries_mapping() is suitable for all other modalities but not for Multiplexed,
+        which is why this method is necessary.
         """
         multiplexed_sample_library_mapping = {}  # Sample ID to library IDs mapping.
         for library_metadata in multiplexed_libraries_metadata:
@@ -613,6 +614,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         return multiplexed_with_combined_metadata
 
     def get_multiplexed_library_path_mapping(self) -> Dict:
+        """Returns dictionary which maps library ids to their location in the filesystem."""
         multiplexed_library_path_mapping = {}
         # Sort and iterate over multiplexed directories
         for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
@@ -750,12 +752,31 @@ class Project(CommonDataAttributes, TimestampedModel):
             ),
         )
 
-    def get_sample_libraries_mapping(self, sample_ids: List, libraries_metadata):
-        sample_libraries_id_mapping = {sample_id: set() for sample_id in sample_ids}
+    def get_sample_libraries_mapping(self, libraries_metadata):
+        """
+        Returns a dictionary which maps sample ids to a set of associated library ids.
+        """
+        # sample_libraries_id_mapping = {sample_id: set() for sample_id in sample_ids}
+        sample_libraries_id_mapping = {}
+
         for library_metadata in libraries_metadata:
-            sample_libraries_id_mapping[library_metadata["scpca_sample_id"]].add(
-                library_metadata["scpca_library_id"]
-            )
+            isMultiplexed = "demux_samples" in library_metadata
+
+            if not isMultiplexed:
+                if library_metadata["scpca_sample_id"] not in sample_libraries_id_mapping:
+                    sample_libraries_id_mapping[library_metadata["scpca_sample_id"]] = set()
+
+                sample_libraries_id_mapping[library_metadata["scpca_sample_id"]].add(
+                    library_metadata["scpca_library_id"]
+                )
+            else:
+                multiplexed_library_sample_ids = library_metadata["demux_samples"]
+                for multiplexed_sample_id in multiplexed_library_sample_ids:
+                    if multiplexed_sample_id not in sample_libraries_id_mapping:
+                        sample_libraries_id_mapping[multiplexed_sample_id] = set()
+                    sample_libraries_id_mapping[multiplexed_sample_id].add(
+                        library_metadata["scpca_library_id"]
+                    )
 
         return sample_libraries_id_mapping
 
@@ -1192,24 +1213,19 @@ class Project(CommonDataAttributes, TimestampedModel):
                 modality=modality,
             )
 
-            sample_libraries_mapping = {}
+            sample_libraries_mapping = self.get_sample_libraries_mapping(
+                libraries_metadata[modality]
+            )
             samples_metadata_filtered_keys = set()
             libraries_metadata_filtered_keys = utils.filter_dict_list_by_keys(
                 libraries_metadata[modality], library_metadata_keys
             )
 
             if modality is not Sample.Modalities.MULTIPLEXED:
-                sample_libraries_mapping = self.get_sample_libraries_mapping(
-                    [sample["scpca_sample_id"] for sample in updated_samples_metadata],
-                    libraries_metadata[modality],
-                )
                 samples_metadata_filtered_keys = utils.filter_dict_list_by_keys(
                     updated_samples_metadata, sample_metadata_keys
                 )
             else:
-                sample_libraries_mapping = self.get_multiplexed_sample_libraries_mapping(
-                    libraries_metadata[Sample.Modalities.MULTIPLEXED]
-                )
                 multiplexed_samples_metadata = self.get_multiplexed_samples_metadata(
                     updated_samples_metadata, sample_metadata_keys, sample_id
                 )
@@ -1237,7 +1253,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                     sample_libraries_metadata = (
                         library
                         for library in libraries_metadata_filtered_keys
-                        if library["scpca_library_id"] in sample_libraries_mapping[scpca_sample_id]
+                        if library["scpca_library_id"]
+                        in sample_libraries_mapping.get(scpca_sample_id, set())
                     )
 
                     for sample_library_metadata in sample_libraries_metadata:
