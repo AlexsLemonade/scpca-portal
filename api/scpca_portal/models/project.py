@@ -490,7 +490,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return multiplexed_libraries_metadata
 
-    def get_multiplexed_remaining_fields(self):
+    def get_multiplexed_aggregate_fields(self):
         """
         Retrieves the project's aggregate values of demux cell counter, seq units, and technologies,
         (found within the library json files), and returns the three as a dictionary.
@@ -587,6 +587,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         multiplexed_with_combined_metadata = []
         multiplexed_sample_ids = sorted(multiplexed_with_mapping[scpca_sample_id])
 
+        # Includes filtered samples metadata entries of all samples multiplexed with scpca_sample_id
         multiplexed_with_samples_metadata_filtered_keys = {
             sample["scpca_sample_id"]: sample
             for sample in samples_metadata_filtered_keys
@@ -760,9 +761,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         sample_libraries_id_mapping = {}
 
         for library_metadata in libraries_metadata:
-            isMultiplexed = "demux_samples" in library_metadata
+            is_multiplexed = "demux_samples" in library_metadata
 
-            if not isMultiplexed:
+            if not is_multiplexed:
                 if library_metadata["scpca_sample_id"] not in sample_libraries_id_mapping:
                     sample_libraries_id_mapping[library_metadata["scpca_sample_id"]] = set()
 
@@ -1079,28 +1080,26 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
         demux_sample_ids = self.get_demux_sample_ids()
+
         for sample_metadata in samples_metadata:
             sample_id = sample_metadata["scpca_sample_id"]
-
             # Some samples will exist but their contents cannot be shared yet.
             # When this happens their corresponding sample folder will not exist.
-            sample_dir = self.get_sample_input_data_dir(sample_id)
+            sample_path = Path(self.get_sample_input_data_dir(sample_id))
 
-            has_bulk_rna_seq = sample_id in bulk_rna_seq_sample_ids
-            has_cite_seq_data = len(list(Path(sample_dir).glob("*_adt.*"))) > 0
-            has_multiplexed_data = sample_id in demux_sample_ids
-            has_single_cell_data = len(list(Path(sample_dir).glob("*_metadata.json"))) > 0
-            has_spatial_data = len(list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))) > 0
-            include_anndata = len(list(Path(sample_dir).glob("*.h5ad"))) > 0
-
+            # rename attribute
             sample_metadata["age_at_diagnosis"] = sample_metadata.pop("age")
-            sample_metadata["has_bulk_rna_seq"] = has_bulk_rna_seq
-            sample_metadata["has_cite_seq_data"] = has_cite_seq_data
-            sample_metadata["has_multiplexed_data"] = has_multiplexed_data
-            sample_metadata["has_single_cell_data"] = has_single_cell_data
-            sample_metadata["has_spatial_data"] = has_spatial_data
 
-            sample_metadata["includes_anndata"] = include_anndata
+            sample_metadata.update(
+                {
+                    "has_bulk_rna_seq": sample_id in bulk_rna_seq_sample_ids,
+                    "has_multiplexed_data": sample_id in demux_sample_ids,
+                    "has_cite_seq_data": any(sample_path.glob("*_adt.*")),
+                    "has_single_cell_data": any(sample_path.glob("*_metadata.json")),
+                    "has_spatial_data": any(sample_path.rglob("*_spatial/*_metadata.json")),
+                    "includes_anndata": any(sample_path.glob("*.h5ad")),
+                }
+            )
 
         return samples_metadata
 
@@ -1113,7 +1112,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         }
 
         updated_samples_metadata = samples_metadata.copy()
-        multiplexed_remaining_fields = self.get_multiplexed_remaining_fields()
+        multiplexed_remaining_fields = self.get_multiplexed_aggregate_fields()
         multiplexed_with_mapping = self.get_multiplexed_with_mapping(
             libraries_metadata[Sample.Modalities.MULTIPLEXED]
         )
@@ -1183,8 +1182,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             Sample.Modalities.MULTIPLEXED: [],
         }
 
-        # move library and sample metadata key generation up here?
-        # make a function that just deals with getting keys an
+        # move library and sample metadata key filtered up here?
 
         for modality in combined_metadata.keys():
             if not libraries_metadata[modality]:
@@ -1213,7 +1211,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 modality=modality,
             )
 
-            pre_filtered_samples_metadata = (
+            unfiltered_samples_metadata = (
                 updated_samples_metadata
                 if modality is not Sample.Modalities.MULTIPLEXED
                 else self.get_multiplexed_samples_metadata(
@@ -1221,7 +1219,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
             )
             samples_metadata_filtered_keys = utils.filter_dict_list_by_keys(
-                pre_filtered_samples_metadata, sample_metadata_keys
+                unfiltered_samples_metadata, sample_metadata_keys
             )
             libraries_metadata_filtered_keys = utils.filter_dict_list_by_keys(
                 libraries_metadata[modality], library_metadata_keys
