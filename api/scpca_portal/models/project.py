@@ -1213,25 +1213,22 @@ class Project(CommonDataAttributes, TimestampedModel):
                 modality=modality,
             )
 
-            sample_libraries_mapping = self.get_sample_libraries_mapping(
-                libraries_metadata[modality]
+            pre_filtered_samples_metadata = (
+                updated_samples_metadata
+                if modality is not Sample.Modalities.MULTIPLEXED
+                else self.get_multiplexed_samples_metadata(
+                    updated_samples_metadata, sample_metadata_keys, sample_id
+                )
             )
-            samples_metadata_filtered_keys = set()
+            samples_metadata_filtered_keys = utils.filter_dict_list_by_keys(
+                pre_filtered_samples_metadata, sample_metadata_keys
+            )
             libraries_metadata_filtered_keys = utils.filter_dict_list_by_keys(
                 libraries_metadata[modality], library_metadata_keys
             )
-
-            if modality is not Sample.Modalities.MULTIPLEXED:
-                samples_metadata_filtered_keys = utils.filter_dict_list_by_keys(
-                    updated_samples_metadata, sample_metadata_keys
-                )
-            else:
-                multiplexed_samples_metadata = self.get_multiplexed_samples_metadata(
-                    updated_samples_metadata, sample_metadata_keys, sample_id
-                )
-                samples_metadata_filtered_keys = utils.filter_dict_list_by_keys(
-                    multiplexed_samples_metadata, sample_metadata_keys
-                )
+            sample_libraries_mapping = self.get_sample_libraries_mapping(
+                libraries_metadata[modality]
+            )
 
             # Combine metadata, write sample metadata files
             for sample_metadata_filtered_keys in samples_metadata_filtered_keys:
