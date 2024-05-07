@@ -47,3 +47,46 @@ class TestGetToday(TestCase):
     def test_format(self, mock_date):
         mock_date.today.return_value = date(2022, 10, 8)
         self.assertEqual(utils.get_today_string(), "2022-10-08")
+
+
+class TestFilterDictListByKeys(TestCase):
+    def test_included_keys_exist(self):
+        list_of_dicts = [{"a": 1, "b": 2, "c": 3}, {"a": 4, "b": 5, "c": 6}]
+        included_keys = ["a", "b"]
+
+        expected_result = [{"a": 1, "b": 2}, {"a": 4, "b": 5}]
+        actual_result = utils.filter_dict_list_by_keys(list_of_dicts, included_keys)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_included_keys_do_not_exist(self):
+        list_of_dicts = [{"a": 1, "b": 2, "c": 3}, {"a": 4, "b": 5, "c": 6}]
+        included_keys = ["x", "y"]
+
+        with self.assertRaises(ValueError):
+            utils.filter_dict_list_by_keys(list_of_dicts, included_keys, False)
+
+    def test_included_keys_not_subset(self):
+        list_of_dicts = [{"a": 1, "b": 2, "c": 3}, {"a": 4, "b": 5, "c": 6}]
+        included_keys = ["a", "b", "x"]
+
+        with self.assertRaises(ValueError):
+            utils.filter_dict_list_by_keys(list_of_dicts, included_keys, False)
+
+    def test_included_keys_do_not_exist_ignore_value_error(self):
+        list_of_dicts = [{"a": 1, "b": 2, "c": 3}, {"a": 4, "b": 5, "c": 6}]
+        included_keys = ["x", "y"]
+
+        expected_result = [{}, {}]
+        actual_result = utils.filter_dict_list_by_keys(list_of_dicts, included_keys, True)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_included_keys_not_subset_ignore_value_error(self):
+        list_of_dicts = [{"a": 1, "b": 2, "c": 3}, {"a": 4, "b": 5, "c": 6}]
+        included_keys = ["a", "b", "x"]
+
+        expected_result = [{"a": 1, "b": 2}, {"a": 4, "b": 5}]
+        actual_result = utils.filter_dict_list_by_keys(list_of_dicts, included_keys, True)
+
+        self.assertEqual(actual_result, expected_result)

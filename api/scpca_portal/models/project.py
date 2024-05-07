@@ -595,9 +595,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         }
 
         for multiplexed_sample_id in multiplexed_sample_ids:
-            self.add_project_metadata(
-                multiplexed_with_samples_metadata_filtered_keys[multiplexed_sample_id]
-            )
             sample_libraries_metadata = (
                 library
                 for library in libraries_metadata_filtered_keys
@@ -794,10 +791,10 @@ class Project(CommonDataAttributes, TimestampedModel):
             "seq_units",
             "technologies",
         }
-        project_keys = {
-            "pi_name",
-            "project_title",
-        }
+        # project_keys = {
+        #     "pi_name",
+        #     "project_title",
+        # }
 
         if Sample.Modalities.MULTIPLEXED in modalities:
             excluded_keys.update(
@@ -829,7 +826,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
             )
 
-        return all_keys.union(project_keys).difference(excluded_keys)
+        # return all_keys.union(project_keys).difference(excluded_keys)
+        return all_keys.difference(excluded_keys)
 
     def get_multiplexed_samples_metadata(
         self, updated_samples_metadata: List[Dict], sample_metadata_keys: Set, sample_id: str
@@ -1087,7 +1085,9 @@ class Project(CommonDataAttributes, TimestampedModel):
             # When this happens their corresponding sample folder will not exist.
             sample_path = Path(self.get_sample_input_data_dir(sample_id))
 
-            # rename attribute
+            self.add_project_metadata(sample_metadata)
+
+            # Rename attribute
             sample_metadata["age_at_diagnosis"] = sample_metadata.pop("age")
 
             sample_metadata.update(
@@ -1182,8 +1182,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             Sample.Modalities.MULTIPLEXED: [],
         }
 
-        # move library and sample metadata key filtered up here?
-
         for modality in combined_metadata.keys():
             if not libraries_metadata[modality]:
                 continue
@@ -1233,8 +1231,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 scpca_sample_id = sample_metadata_filtered_keys["scpca_sample_id"]
                 if sample_id and scpca_sample_id != sample_id:
                     continue
-
-                self.add_project_metadata(sample_metadata_filtered_keys)
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(
                     scpca_sample_id, modality

@@ -56,6 +56,12 @@ class Sample(CommonDataAttributes, TimestampedModel):
     def get_from_dict(cls, data, project):
         """Prepares ready for saving sample object."""
 
+        # If any project metadata exists in provided data dict, remove it
+        if any(key in data for key in ["scpca_project_id", "project_title", "pi_name"]):
+            data.pop("scpca_project_id", None)
+            data.pop("project_title", None)
+            data.pop("pi_name", None)
+
         sample = cls(
             age_at_diagnosis=data["age_at_diagnosis"],
             demux_cell_count_estimate=(data.get("demux_cell_count_estimate", None)),
