@@ -432,10 +432,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     else common_file_suffixes
                 )
                 for file_suffix in file_suffixes:
+                    file_folder = sample.project.get_sample_input_data_dir(sample.scpca_id)
                     file_name = f"{library['scpca_library_id']}_{file_suffix}"
-                    file_path = (
-                        sample.project.get_sample_input_data_dir(sample.scpca_id) / file_name
-                    )
+                    file_path = file_folder / file_name
                     file_paths.append(file_path)
                     zip_file.write(file_path, file_name)
 
