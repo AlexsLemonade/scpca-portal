@@ -30,15 +30,16 @@ def get_today_string(format: str = "%Y-%m-%d"):
     return datetime.today().strftime(format)
 
 
-def filter_dict_list_by_keys(list_of_dicts, included_keys, ignore_value_error=False):
+def filter_dict_list_by_keys(list_of_dicts, included_keys, *, ignore_value_error=True):
     """
     Returns a list of dictionaries with keys filtered according to provided include_keys.
     If included-keys are not a subset of dictionary keys, returns a ValueError.
     Throwing of ValueError can be disabled.
     """
-    # Make sure included_keys is subset of dictionary keys
-    if not ignore_value_error and not set(included_keys).issubset(set(list_of_dicts[0].keys())):
-        raise ValueError("Included keys must be a subset of dictionary keys")
+    # Make sure included_keys is subset of each dictionaries' set of keys
+    if not ignore_value_error:
+        if any(not set(included_keys).issubset(dictionary) for dictionary in list_of_dicts):
+            raise ValueError("Included keys must be a subset of each dictionary's key set")
 
     new_list_of_dicts = []
     for dictionary in list_of_dicts:

@@ -475,18 +475,17 @@ class Project(CommonDataAttributes, TimestampedModel):
     def get_multiplexed_libraries_metadata(self):
         """
         Loads and collects individual multiplexed libraries from json files,
-        then returns them in a list
+        then returns them in a list.
         """
         multiplexed_libraries_metadata = []
-        for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
-            for filename_path in sorted(Path(multiplexed_sample_dir).rglob("*_metadata.json")):
-                with open(filename_path) as multiplexed_json_file:
-                    multiplexed_json = json.load(multiplexed_json_file)
+        for filename_path in sorted(Path(self.input_data_path).rglob("*,*/*_metadata.json")):
+            with open(filename_path) as multiplexed_json_file:
+                multiplexed_json = json.load(multiplexed_json_file)
 
-                multiplexed_json["scpca_library_id"] = multiplexed_json.pop("library_id")
-                multiplexed_json["scpca_sample_id"] = multiplexed_json.pop("sample_id")
+            multiplexed_json["scpca_library_id"] = multiplexed_json.pop("library_id")
+            multiplexed_json["scpca_sample_id"] = multiplexed_json.pop("sample_id")
 
-                multiplexed_libraries_metadata.append(multiplexed_json)
+            multiplexed_libraries_metadata.append(multiplexed_json)
 
         return multiplexed_libraries_metadata
 
@@ -498,30 +497,27 @@ class Project(CommonDataAttributes, TimestampedModel):
         multiplexed_sample_demux_cell_counter = Counter()
         multiplexed_sample_seq_units_mapping = {}
         multiplexed_sample_technologies_mapping = {}
-        for multiplexed_sample_dir in sorted(Path(self.input_data_path).rglob("*,*")):
-            for filename_path in sorted(Path(multiplexed_sample_dir).rglob("*_metadata.json")):
-                with open(filename_path) as multiplexed_json_file:
-                    multiplexed_json = json.load(multiplexed_json_file)
+        for filename_path in sorted(Path(self.input_data_path).rglob("*,*/*_metadata.json")):
+            with open(filename_path) as multiplexed_json_file:
+                multiplexed_json = json.load(multiplexed_json_file)
 
-                multiplexed_sample_demux_cell_counter.update(
-                    multiplexed_json["sample_cell_estimates"]
+            multiplexed_sample_demux_cell_counter.update(multiplexed_json["sample_cell_estimates"])
+
+            # Gather seq_units and technologies data.
+            for demux_sample_id in multiplexed_json["demux_samples"]:
+                # This if check is necessary because it's possible for one sample
+                # to be multiplexed multiple times in the same project
+                if demux_sample_id not in multiplexed_sample_seq_units_mapping:
+                    multiplexed_sample_seq_units_mapping[demux_sample_id] = set()
+                if demux_sample_id not in multiplexed_sample_technologies_mapping:
+                    multiplexed_sample_technologies_mapping[demux_sample_id] = set()
+
+                multiplexed_sample_seq_units_mapping[demux_sample_id].add(
+                    multiplexed_json["seq_unit"].strip()
                 )
-
-                # Gather seq_units and technologies data.
-                for demux_sample_id in multiplexed_json["demux_samples"]:
-                    # This if check is necessary because it's possible for one sample
-                    # to be multiplexed multiple times in the same project
-                    if demux_sample_id not in multiplexed_sample_seq_units_mapping:
-                        multiplexed_sample_seq_units_mapping[demux_sample_id] = set()
-                    if demux_sample_id not in multiplexed_sample_technologies_mapping:
-                        multiplexed_sample_technologies_mapping[demux_sample_id] = set()
-
-                    multiplexed_sample_seq_units_mapping[demux_sample_id].add(
-                        multiplexed_json["seq_unit"].strip()
-                    )
-                    multiplexed_sample_technologies_mapping[demux_sample_id].add(
-                        multiplexed_json["technology"].strip()
-                    )
+                multiplexed_sample_technologies_mapping[demux_sample_id].add(
+                    multiplexed_json["technology"].strip()
+                )
 
         return {
             "sample_demux_cell_counter": multiplexed_sample_demux_cell_counter,
@@ -758,9 +754,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         sample_libraries_id_mapping = {}
 
         for library_metadata in libraries_metadata:
-            is_multiplexed = "demux_samples" in library_metadata
+            is_not_multiplexed = "demux_samples" not in library_metadata
 
-            if not is_multiplexed:
+            if is_not_multiplexed:
                 if library_metadata["scpca_sample_id"] not in sample_libraries_id_mapping:
                     sample_libraries_id_mapping[library_metadata["scpca_sample_id"]] = set()
 
@@ -791,10 +787,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             "seq_units",
             "technologies",
         }
-        # project_keys = {
-        #     "pi_name",
-        #     "project_title",
-        # }
 
         if Sample.Modalities.MULTIPLEXED in modalities:
             excluded_keys.update(
@@ -826,7 +818,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
             )
 
-        # return all_keys.union(project_keys).difference(excluded_keys)
         return all_keys.difference(excluded_keys)
 
     def get_multiplexed_samples_metadata(
