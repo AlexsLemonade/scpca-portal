@@ -455,45 +455,45 @@ class Project(CommonDataAttributes, TimestampedModel):
         clean_up_output_data=True,
         update_s3=False,
     ):
-        multiplexed_file_mapping = {
-            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
-        }
-        multiplexed_workflow_versions = set()
         single_cell_file_mapping = {
             ComputedFile.OutputFileFormats.ANN_DATA: {},
             ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
         }
-        single_cell_workflow_versions = set()
         spatial_file_mapping = {
             ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
         }
+        multiplexed_file_mapping = {
+            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
+        }
+
+        single_cell_workflow_versions = set()
         spatial_workflow_versions = set()
+        multiplexed_workflow_versions = set()
 
-        def update_ann_data(future):
-            computed_file, metadata_files = future.result()
-            single_cell_file_mapping[ComputedFile.OutputFileFormats.ANN_DATA].update(metadata_files)
-            self.process_computed_file(computed_file, clean_up_output_data, update_s3)
+        modality_file_mappings = {
+            Sample.Modalities.SINGLE_CELL: single_cell_file_mapping,
+            Sample.Modalities.SPATIAL: spatial_file_mapping,
+            Sample.Modalities.MULTIPLEXED: multiplexed_file_mapping,
+        }
 
-        def update_multiplexed_data(future):
-            computed_file, metadata_files = future.result()
-            multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
-                metadata_files
+        modality_workflow_versions = {
+            Sample.Modalities.SINGLE_CELL: single_cell_workflow_versions,
+            Sample.Modalities.SPATIAL: spatial_workflow_versions,
+            Sample.Modalities.MULTIPLEXED: multiplexed_workflow_versions,
+        }
+
+        def create_sample_computed_file(future):
+            computed_file, sample_to_files_mapping = future.result()
+            if computed_file:
+                self.process_computed_file(computed_file, clean_up_output_data, update_s3)
+
+            modality = (
+                computed_file.modality
+                if not computed_file.sample.has_multiplexed_data
+                else Sample.Modalities.MULTIPLEXED
             )
-            self.process_computed_file(computed_file, clean_up_output_data, update_s3)
-
-        def update_single_cell_data(future):
-            computed_file, metadata_files = future.result()
-            single_cell_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
-                metadata_files
-            )
-            self.process_computed_file(computed_file, clean_up_output_data, update_s3)
-
-        def update_spatial_data(future):
-            computed_file, metadata_files = future.result()
-            spatial_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
-                metadata_files
-            )
-            self.process_computed_file(computed_file, clean_up_output_data, update_s3)
+            file_format = computed_file.format
+            modality_file_mappings[modality][file_format].update(sample_to_files_mapping)
 
         non_downloadable_sample_ids = self.get_non_downloadable_sample_ids()
         samples_count = len(samples)
@@ -528,11 +528,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                             libraries,
                             workflow_versions,
                             file_format,
-                        ).add_done_callback(
-                            update_single_cell_data
-                            if file_format == ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
-                            else update_ann_data
-                        )
+                        ).add_done_callback(create_sample_computed_file)
 
                     if sample.has_spatial_data:
                         libraries = [
@@ -548,7 +544,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                             libraries,
                             workflow_versions,
                             ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                        ).add_done_callback(update_spatial_data)
+                        ).add_done_callback(create_sample_computed_file)
 
                 if sample.has_multiplexed_data:
                     libraries = [
@@ -570,19 +566,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                         workflow_versions,
                         ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
                         lock=sample_lock,
-                    ).add_done_callback(update_multiplexed_data)
-
-        modality_file_mappings = {
-            Sample.Modalities.SINGLE_CELL: single_cell_file_mapping,
-            Sample.Modalities.SPATIAL: spatial_file_mapping,
-            Sample.Modalities.MULTIPLEXED: multiplexed_file_mapping,
-        }
-
-        modality_workflow_versions = {
-            Sample.Modalities.SINGLE_CELL: single_cell_workflow_versions,
-            Sample.Modalities.SPATIAL: spatial_workflow_versions,
-            Sample.Modalities.MULTIPLEXED: multiplexed_workflow_versions,
-        }
+                    ).add_done_callback(create_sample_computed_file)
 
         return (modality_file_mappings, modality_workflow_versions)
 
