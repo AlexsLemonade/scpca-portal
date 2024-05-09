@@ -1266,20 +1266,19 @@ class Project(CommonDataAttributes, TimestampedModel):
                 combined_metadata[Sample.Modalities.MULTIPLEXED].extend(
                     combined_metadata[Sample.Modalities.SINGLE_CELL]
                 )
-            project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
+
             # Write project metadata file
-            with open(getattr(self, project_metadata_path), "w", newline="") as project_file:
-                project_csv_writer = csv.DictWriter(
-                    project_file, fieldnames=field_names, delimiter=common.TAB
-                )
-                project_csv_writer.writeheader()
-                # Project file data has to be sorted by the library_id.
-                project_csv_writer.writerows(
-                    sorted(
-                        [cm for cm in combined_metadata[modality]],
-                        key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
-                    )
-                )
+            # Project file data has to be sorted by the library_id.
+            combined_metadata[modality].sort(
+                key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"])
+            )
+            project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
+            utils.write_dict_list_to_file(
+                combined_metadata[modality],
+                getattr(self, project_metadata_path),
+                field_names,
+                common.TAB,
+            )
 
         return combined_metadata
 
