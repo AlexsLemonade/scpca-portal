@@ -1,8 +1,9 @@
 """Misc utils."""
 from datetime import datetime
+from typing import Dict, List, Set
 
 
-def boolean_from_string(value):
+def boolean_from_string(value: str) -> bool:
     """
     Returns True if string value represents truthy value. Otherwise returns False.
     Raises ValueError if value cannot be casted to boolean.
@@ -19,18 +20,20 @@ def boolean_from_string(value):
     return value.lower() in ("t", "true")
 
 
-def join_workflow_versions(workflow_versions):
+def join_workflow_versions(workflow_versions: Set) -> str:
     """Returns list of sorted unique workflow versions."""
 
     return ", ".join(sorted(set(workflow_versions)))
 
 
-def get_today_string(format: str = "%Y-%m-%d"):
+def get_today_string(format: str = "%Y-%m-%d") -> str:
     """Returns today's date formatted. Defaults to ISO 8601."""
     return datetime.today().strftime(format)
 
 
-def filter_dict_list_by_keys(list_of_dicts, included_keys, *, ignore_value_error=True):
+def filter_dict_list_by_keys(
+    list_of_dicts: List[Dict], included_keys: Set, *, ignore_value_error: bool = True
+) -> List[Dict]:
     """
     Returns a list of dictionaries with keys filtered according to provided include_keys.
     If included-keys are not a subset of dictionary keys, returns a ValueError.
