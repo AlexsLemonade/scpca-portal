@@ -1,4 +1,5 @@
 """Misc utils."""
+import csv
 from datetime import datetime
 from typing import Dict, List, Set
 
@@ -53,3 +54,15 @@ def filter_dict_list_by_keys(
         new_list_of_dicts.append(dictionary_copy)
 
     return new_list_of_dicts
+
+
+def write_dict_list_to_file(
+    list_of_dicts: List[Dict],
+    output_file_name: str,
+    field_names: Set,
+    delimiter: str,
+) -> None:
+    with open(output_file_name, "w", newline="") as raw_file:
+        csv_writer = csv.DictWriter(raw_file, fieldnames=field_names, delimiter=delimiter)
+        csv_writer.writeheader()
+        csv_writer.writerows(list_of_dicts)
