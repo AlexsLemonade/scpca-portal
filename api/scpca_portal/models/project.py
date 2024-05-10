@@ -843,22 +843,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Returns an input data directory based on a sample ID."""
         return self.input_data_path / sample_scpca_id
 
-    def create_samples(
-        self,
-        samples_metadata,
-        sample_id=None,
-    ):
-        """Prepares ready for saving sample objects."""
-        samples = []
-        for sample_metadata in samples_metadata:
-            scpca_sample_id = sample_metadata["scpca_sample_id"]
-            if sample_id and scpca_sample_id != sample_id:
-                continue
-
-            samples.append(Sample.get_from_dict(sample_metadata, self))
-
-        Sample.objects.bulk_create(samples)
-
     def load_data(self, sample_id=None, **kwargs) -> None:
         """
         Goes through a project directory's contents, parses multiple level metadata
@@ -929,7 +913,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         samples = (
             Sample.objects.filter(project__scpca_id=self.scpca_id)
             if sample_id is None
-            else Sample.objects.filter(scpca_id=sample_id).first()
+            else Sample.objects.filter(scpca_id=sample_id)
         )
         samples_count = len(samples)
         logger.info(
@@ -1062,8 +1046,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
         # Creates sample objects and saves them to the db
-        self.create_samples(
+        Sample.bulk_create_from_dicts(
             updated_samples_metadata,
+            self,
             sample_id=sample_id,
         )
 
