@@ -525,25 +525,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             "sample_technologies_mapping": multiplexed_sample_technologies_mapping,
         }
 
-    def get_multiplexed_sample_libraries_mapping(self, multiplexed_libraries_metadata: List[Dict]):
-        """
-        Returns a dictionary which maps sample ids to a set of associated library ids.
-        get_sample_libraries_mapping() is suitable for all other modalities but not for Multiplexed,
-        which is why this method is necessary.
-        """
-        multiplexed_sample_library_mapping = {}  # Sample ID to library IDs mapping.
-        for library_metadata in multiplexed_libraries_metadata:
-            multiplexed_library_sample_ids = library_metadata["demux_samples"]
-            for multiplexed_sample_id in multiplexed_library_sample_ids:
-                # Populate multiplexed library mapping.
-                if multiplexed_sample_id not in multiplexed_sample_library_mapping:
-                    multiplexed_sample_library_mapping[multiplexed_sample_id] = set()
-                multiplexed_sample_library_mapping[multiplexed_sample_id].add(
-                    library_metadata["scpca_library_id"]
-                )
-
-        return multiplexed_sample_library_mapping
-
     def get_multiplexed_with_mapping(self, multiplexed_libraries_metadata: List[Dict]):
         """
         Return a dictionary with keys being specific demux ids,
@@ -571,39 +552,30 @@ class Project(CommonDataAttributes, TimestampedModel):
         self,
         scpca_sample_id,
         multiplexed_with_mapping,
-        multiplexed_sample_libraries_mapping,
-        samples_metadata_filtered_keys,
-        libraries_metadata_filtered_keys,
+        multiplexed_combined_metadata_by_sample,
     ):
         """
-        Returns a list of combined metadata of all samples that
-        the scpca_sample_id sample was multiplexed with.
-        The returned list is then immediately written to the open csv file in the caller method.
+        Returns a list of combined_metadata of all samples
+        that the given sample was multiplexed with.
         """
+
         multiplexed_with_combined_metadata = []
+        current_sample_library_ids = set(
+            library["scpca_library_id"]
+            for library in multiplexed_combined_metadata_by_sample[scpca_sample_id]
+        )
         multiplexed_sample_ids = sorted(multiplexed_with_mapping[scpca_sample_id])
 
-        # Includes filtered samples metadata entries of all samples multiplexed with scpca_sample_id
-        multiplexed_with_samples_metadata_filtered_keys = {
-            sample["scpca_sample_id"]: sample
-            for sample in samples_metadata_filtered_keys
-            if sample["scpca_sample_id"] in multiplexed_sample_ids
-        }
-
         for multiplexed_sample_id in multiplexed_sample_ids:
-            sample_libraries_metadata = (
-                library
-                for library in libraries_metadata_filtered_keys
-                if library["scpca_library_id"]
-                in multiplexed_sample_libraries_mapping[multiplexed_sample_id]
+            multiplexed_with_combined_metadata.extend(
+                [
+                    library
+                    for library in multiplexed_combined_metadata_by_sample[multiplexed_sample_id]
+                    # In general, the multiplexed_sample_id was multiplexed with the current sample,
+                    # but we have to clarify that the right libraries are accounted for.
+                    if library["scpca_library_id"] in current_sample_library_ids
+                ]
             )
-
-            for sample_library_metadata in sample_libraries_metadata:
-                sample_library_combined_metadata = (
-                    sample_library_metadata
-                    | multiplexed_with_samples_metadata_filtered_keys[multiplexed_sample_id]
-                )
-                multiplexed_with_combined_metadata.append(sample_library_combined_metadata)
 
         return multiplexed_with_combined_metadata
 
@@ -746,6 +718,18 @@ class Project(CommonDataAttributes, TimestampedModel):
             ),
         )
 
+    def get_combined_metadata_by_sample(
+        self, all_samples_combined_metadata_by_modality: List[Dict]
+    ) -> Dict[str, List[Dict]]:
+        """ """
+        combined_metadata_by_sample = {}
+        for library in all_samples_combined_metadata_by_modality:
+            if library["scpca_sample_id"] not in combined_metadata_by_sample:
+                combined_metadata_by_sample[library["scpca_sample_id"]] = []
+            combined_metadata_by_sample[library["scpca_sample_id"]].append(library)
+
+        return combined_metadata_by_sample
+
     def get_sample_libraries_mapping(self, libraries_metadata):
         """
         Returns a dictionary which maps sample ids to a set of associated library ids.
@@ -874,6 +858,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.create_spatial_readme_file()
 
         combined_metadata, samples = self.handle_samples_metadata(sample_id)
+
+        self.write_combined_metadata_libraries(combined_metadata)
 
         multiplexed_file_mapping = {
             ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
@@ -1130,7 +1116,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 if "filtered_cells" in library_json:
                     library_json["filtered_cell_count"] = library_json.pop("filtered_cells")
                     sample_cell_count_estimate += library_json["filtered_cell_count"]
-                    # sample_cell_count_estimate.update(count=library_json["filtered_cell_count"])
 
                 sample_seq_units.add(library_json["seq_unit"].strip())
                 sample_technologies.add(library_json["technology"].strip())
@@ -1167,13 +1152,13 @@ class Project(CommonDataAttributes, TimestampedModel):
         return (updated_samples_metadata, libraries_metadata)
 
     def combine_metadata(self, updated_samples_metadata, libraries_metadata, sample_id):
-        combined_metadata = {
+        all_samples_combined_metadata = {
             Sample.Modalities.SINGLE_CELL: [],
             Sample.Modalities.SPATIAL: [],
             Sample.Modalities.MULTIPLEXED: [],
         }
 
-        for modality in combined_metadata.keys():
+        for modality in all_samples_combined_metadata.keys():
             if not libraries_metadata[modality]:
                 continue
 
@@ -1186,18 +1171,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
             sample_metadata_keys = self.get_sample_metadata_keys(
                 set(updated_samples_metadata[0].keys()), modalities=modalities
-            )
-
-            all_included_keys = library_metadata_keys.union(sample_metadata_keys)
-            if modality == Sample.Modalities.MULTIPLEXED:
-                # add in non-multiplexed single-cell metadata keys to samples_metadata field_names
-                all_included_keys = all_included_keys.union(
-                    set(combined_metadata[Sample.Modalities.SINGLE_CELL][0].keys())
-                )
-
-            field_names = self.get_metadata_field_names(
-                all_included_keys,
-                modality=modality,
             )
 
             unfiltered_samples_metadata = (
@@ -1217,70 +1190,88 @@ class Project(CommonDataAttributes, TimestampedModel):
                 libraries_metadata[modality]
             )
 
-            # Combine metadata, write sample metadata files
+            # Combine metadata
             for sample_metadata_filtered_keys in samples_metadata_filtered_keys:
                 scpca_sample_id = sample_metadata_filtered_keys["scpca_sample_id"]
                 if sample_id and scpca_sample_id != sample_id:
                     continue
 
-                sample_metadata_path = Sample.get_output_metadata_file_path(
-                    scpca_sample_id, modality
+                sample_libraries_metadata = (
+                    library
+                    for library in libraries_metadata_filtered_keys
+                    if library["scpca_library_id"]
+                    in sample_libraries_mapping.get(scpca_sample_id, set())
                 )
-                with open(sample_metadata_path, "w", newline="") as sample_file:
-                    sample_csv_writer = csv.DictWriter(
-                        sample_file, fieldnames=field_names, delimiter=common.TAB
+
+                for sample_library_metadata in sample_libraries_metadata:
+                    sample_library_combined_metadata = (
+                        sample_library_metadata | sample_metadata_filtered_keys
                     )
-                    sample_csv_writer.writeheader()
+                    all_samples_combined_metadata[modality].append(sample_library_combined_metadata)
 
-                    sample_libraries_metadata = (
-                        library
-                        for library in libraries_metadata_filtered_keys
-                        if library["scpca_library_id"]
-                        in sample_libraries_mapping.get(scpca_sample_id, set())
-                    )
+        return all_samples_combined_metadata
 
-                    for sample_library_metadata in sample_libraries_metadata:
-                        sample_library_combined_metadata = (
-                            sample_library_metadata | sample_metadata_filtered_keys
-                        )
-                        combined_metadata[modality].append(sample_library_combined_metadata)
+    def write_combined_metadata_libraries(self, combined_metadata: Dict[str, List[Dict]]) -> None:
+        # TODO: add docstring when method functionality is clarified
 
-                        sample_csv_writer.writerow(sample_library_combined_metadata)
+        # Pre-calculate mapping to be used for multiplexed samples
+        multiplexed_with_mapping = self.get_multiplexed_with_mapping(
+            combined_metadata[Sample.Modalities.MULTIPLEXED]
+        )
 
-                    if modality == Sample.Modalities.MULTIPLEXED:
-                        multiplexed_with_mapping = self.get_multiplexed_with_mapping(
-                            libraries_metadata[Sample.Modalities.MULTIPLEXED]
-                        )
-                        sample_csv_writer.writerows(
-                            self.get_multiplexed_with_combined_metadata(
-                                scpca_sample_id,
-                                multiplexed_with_mapping,
-                                sample_libraries_mapping,
-                                samples_metadata_filtered_keys,
-                                libraries_metadata_filtered_keys,
-                            )
-                        )
+        for modality in combined_metadata.keys():
+            if not combined_metadata[modality]:
+                continue
 
-            # Add non-multiplexed samples metadata to project metadata file.
+            key_set = set(combined_metadata[modality][0].keys())
             if modality == Sample.Modalities.MULTIPLEXED:
+                # add in non-multiplexed single-cell metadata keys to samples_metadata field_names
+                key_set = key_set.union(
+                    set(combined_metadata[Sample.Modalities.SINGLE_CELL][0].keys())
+                )
+            field_names = self.get_metadata_field_names(key_set, modality=modality)
+
+            # Write metadata to files by sample
+            combined_metadata_by_sample = self.get_combined_metadata_by_sample(
+                combined_metadata[modality]
+            )
+            for sample_id in combined_metadata_by_sample.keys():
+                sample_libraries = combined_metadata_by_sample[sample_id].copy()
+
+                if modality == Sample.Modalities.MULTIPLEXED:
+                    sample_libraries.extend(
+                        self.get_multiplexed_with_combined_metadata(
+                            sample_id,
+                            multiplexed_with_mapping,
+                            combined_metadata_by_sample,
+                        )
+                    )
+
+                sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
+                utils.write_dict_list_to_file(
+                    sample_libraries, sample_metadata_path, field_names, common.TAB
+                )
+
+            # Write project metadata to file
+            if modality == Sample.Modalities.MULTIPLEXED:
+                # Add non-multiplexed samples metadata to project metadata file
                 combined_metadata[Sample.Modalities.MULTIPLEXED].extend(
                     combined_metadata[Sample.Modalities.SINGLE_CELL]
                 )
 
-            # Write project metadata file
-            # Project file data has to be sorted by the library_id.
-            combined_metadata[modality].sort(
-                key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"])
+            # Project file data has to be sorted by library_id
+            sorted_combined_metadata_by_modality = sorted(
+                combined_metadata[modality],
+                key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
             )
+
             project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
             utils.write_dict_list_to_file(
-                combined_metadata[modality],
+                sorted_combined_metadata_by_modality,
                 getattr(self, project_metadata_path),
                 field_names,
                 common.TAB,
             )
-
-        return combined_metadata
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
