@@ -1180,9 +1180,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             unfiltered_samples_metadata = (
                 updated_samples_metadata
                 if modality is not Sample.Modalities.MULTIPLEXED
-                else self.get_multiplexed_samples_metadata(
-                    updated_samples_metadata, sample_metadata_keys, sample_id
-                )
+                else self.get_multiplexed_samples_metadata(updated_samples_metadata, sample_id)
             )
             samples_metadata_filtered_keys = utils.filter_dict_list_by_keys(
                 unfiltered_samples_metadata, sample_metadata_keys
