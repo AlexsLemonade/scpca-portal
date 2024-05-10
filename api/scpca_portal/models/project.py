@@ -721,7 +721,11 @@ class Project(CommonDataAttributes, TimestampedModel):
     def get_combined_metadata_by_sample(
         self, all_samples_combined_metadata_by_modality: List[Dict]
     ) -> Dict[str, List[Dict]]:
-        """ """
+        """
+        Iterates over a list of unsorted library metadata dicts
+        and organizes them into a dictionary with keys being sample ids
+        and values being a list of the sample's associated libraries.
+        """
         combined_metadata_by_sample = {}
         for library in all_samples_combined_metadata_by_modality:
             if library["scpca_sample_id"] not in combined_metadata_by_sample:
@@ -734,7 +738,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         Returns a dictionary which maps sample ids to a set of associated library ids.
         """
-        # sample_libraries_id_mapping = {sample_id: set() for sample_id in sample_ids}
         sample_libraries_id_mapping = {}
 
         for library_metadata in libraries_metadata:
@@ -805,8 +808,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         return all_keys.difference(excluded_keys)
 
     def get_multiplexed_samples_metadata(
-        self, updated_samples_metadata: List[Dict], sample_metadata_keys: Set, sample_id: str
-    ):
+        self, updated_samples_metadata: List[Dict], sample_id: str
+    ) -> List:
+        """Returns a list of samples metadata after filtering out all nonmultiplexed samples."""
         multiplexed_sample_ids = self.get_demux_sample_ids()  # Unified multiplexed sample ID set.
 
         multiplexed_samples_metadata = []
@@ -1212,7 +1216,12 @@ class Project(CommonDataAttributes, TimestampedModel):
         return all_samples_combined_metadata
 
     def write_combined_metadata_libraries(self, combined_metadata: Dict[str, List[Dict]]) -> None:
-        # TODO: add docstring when method functionality is clarified
+        """
+        Takes all combined_metadata as lists of libraries (accessed by modality),
+        and writes them to tsv files, beginning at the sample level,
+        and concluding at the project level. If a project or sample has multiple modalities
+        then multiple tsv files will be written as each modality is processed.
+        """
 
         # Pre-calculate mapping to be used for multiplexed samples
         multiplexed_with_mapping = self.get_multiplexed_with_mapping(
@@ -1223,6 +1232,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             if not combined_metadata[modality]:
                 continue
 
+            # Establish field names for tsv
             key_set = set(combined_metadata[modality][0].keys())
             if modality == Sample.Modalities.MULTIPLEXED:
                 # add in non-multiplexed single-cell metadata keys to samples_metadata field_names
@@ -1258,13 +1268,11 @@ class Project(CommonDataAttributes, TimestampedModel):
                 combined_metadata[Sample.Modalities.MULTIPLEXED].extend(
                     combined_metadata[Sample.Modalities.SINGLE_CELL]
                 )
-
             # Project file data has to be sorted by library_id
             sorted_combined_metadata_by_modality = sorted(
                 combined_metadata[modality],
                 key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
             )
-
             project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
             utils.write_dict_list_to_file(
                 sorted_combined_metadata_by_modality,
