@@ -62,6 +62,7 @@ def write_dict_list_to_file(
     field_names: Set,
     delimiter: str,
 ) -> None:
+    """Writes a list of dictionaries to a csv-like file (exact delimiter provided)."""
     with open(output_file_name, "w", newline="") as raw_file:
         csv_writer = csv.DictWriter(raw_file, fieldnames=field_names, delimiter=delimiter)
         csv_writer.writeheader()
