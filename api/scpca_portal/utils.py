@@ -58,13 +58,15 @@ def filter_dict_list_by_keys(
     return new_list_of_dicts
 
 
-def write_dicts_to_tsv(
-    list_of_dicts: List[Dict],
-    output_file_name: str,
-    field_names: Set,
-) -> None:
-    """Writes a list of dictionaries to a csv-like file (exact delimiter provided)."""
-    with open(output_file_name, "w", newline="") as raw_file:
-        csv_writer = csv.DictWriter(raw_file, fieldnames=field_names, delimiter=common.TAB)
+def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
+    """
+    Writes a list of dictionaries to a csv-like file.
+    Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
+    """
+    kwargs["fieldnames"] = kwargs.get("fieldnames")
+    kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
+
+    with open(output_file_path, "w", newline="") as raw_file:
+        csv_writer = csv.DictWriter(raw_file, **kwargs)
         csv_writer.writeheader()
         csv_writer.writerows(list_of_dicts)

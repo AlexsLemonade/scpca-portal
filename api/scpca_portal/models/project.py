@@ -1248,7 +1248,9 @@ class Project(CommonDataAttributes, TimestampedModel):
                     )
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
-                utils.write_dicts_to_tsv(sample_libraries, sample_metadata_path, field_names)
+                utils.write_dicts_to_file(
+                    sample_libraries, sample_metadata_path, fieldnames=field_names
+                )
 
             # Write project metadata to file
             if modality == Sample.Modalities.MULTIPLEXED:
@@ -1262,10 +1264,10 @@ class Project(CommonDataAttributes, TimestampedModel):
                 key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
             )
             project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
-            utils.write_dicts_to_tsv(
+            utils.write_dicts_to_file(
                 sorted_combined_metadata_by_modality,
                 getattr(self, project_metadata_path),
-                field_names,
+                fieldnames=field_names,
             )
 
     def purge(self, delete_from_s3=False):
