@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from scpca_portal import utils
+from scpca_portal import common, utils
 
 
 class TestBooleanFromString(TestCase):
@@ -100,7 +100,7 @@ class TestFilterDictListByKeys(TestCase):
         self.assertEqual(actual_result, expected_result)
 
 
-class TestWriteDictListToFile(TestCase):
+class TestWriteDictsToTsv(TestCase):
     def setUp(self):
         self.dummy_list_of_dicts = [
             {"country": "USA", "language": "English", "capital": "Washington DC"},
@@ -110,43 +110,37 @@ class TestWriteDictListToFile(TestCase):
         ]
         self.dummy_field_names = {"country", "language", "capital"}
         self.dummy_dir = Path(tempfile.mkdtemp())
-        self.test_output_file = Path(self.dummy_dir, "test_output.tsv")
+        self.dummy_output_file = Path(self.dummy_dir, "dummy_output.tsv")
 
     def tearDown(self):
-        if Path.exists(self.test_output_file):
-            Path.unlink(self.test_output_file)
+        if Path.exists(self.dummy_output_file):
+            Path.unlink(self.dummy_output_file)
         if Path.exists(self.dummy_dir):
             Path.rmdir(self.dummy_dir)
 
-    def test_write_dict_list_to_file_successful_write(self):
-        delimiter = ","
-        utils.write_dict_list_to_file(
-            self.dummy_list_of_dicts, self.test_output_file, self.dummy_field_names, delimiter
+    def test_write_dicts_to_tsv_successful_write(self):
+        utils.write_dicts_to_tsv(
+            self.dummy_list_of_dicts, self.dummy_output_file, self.dummy_field_names
         )
-        self.assertTrue(os.path.exists(self.test_output_file))
+        self.assertTrue(os.path.exists(self.dummy_output_file))
 
-    def test_write_dict_list_to_file_read_write_values_match(self):
-        delimiter = ","
-        utils.write_dict_list_to_file(
-            self.dummy_list_of_dicts, self.test_output_file, self.dummy_field_names, delimiter
+    def test_write_dicts_to_tsv_read_write_values_match(self):
+        utils.write_dicts_to_tsv(
+            self.dummy_list_of_dicts, self.dummy_output_file, self.dummy_field_names
         )
 
-        with open(self.test_output_file) as output_file:
-            output_list_of_dicts = list(csv.DictReader(output_file))
+        with open(self.dummy_output_file) as output_file:
+            output_list_of_dicts = list(csv.DictReader(output_file, delimiter=common.TAB))
             self.assertEqual(self.dummy_list_of_dicts, output_list_of_dicts)
 
-    def test_write_dict_list_to_file_missing_field_names(self):
+    def test_write_dicts_to_tsv_missing_field_names(self):
         field_names = {"country", "language"}
-        delimiter = ","
         with self.assertRaises(ValueError):
-            utils.write_dict_list_to_file(
-                self.dummy_list_of_dicts, self.test_output_file, field_names, delimiter
-            )
+            utils.write_dicts_to_tsv(self.dummy_list_of_dicts, self.dummy_output_file, field_names)
 
-    def test_write_dict_list_to_file_invalid_output_file(self):
+    def test_write_dicts_to_tsv_invalid_output_file(self):
         invalid_output_file = os.path.join(self.dummy_dir, "invalid", "path", "output.csv")
-        delimiter = ","
         with self.assertRaises(FileNotFoundError):
-            utils.write_dict_list_to_file(
-                self.dummy_list_of_dicts, invalid_output_file, self.dummy_field_names, delimiter
+            utils.write_dicts_to_tsv(
+                self.dummy_list_of_dicts, invalid_output_file, self.dummy_field_names
             )

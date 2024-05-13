@@ -3,6 +3,8 @@ import csv
 from datetime import datetime
 from typing import Dict, List, Set
 
+from scpca_portal import common
+
 
 def boolean_from_string(value: str) -> bool:
     """
@@ -56,14 +58,13 @@ def filter_dict_list_by_keys(
     return new_list_of_dicts
 
 
-def write_dict_list_to_file(
+def write_dicts_to_tsv(
     list_of_dicts: List[Dict],
     output_file_name: str,
     field_names: Set,
-    delimiter: str,
 ) -> None:
     """Writes a list of dictionaries to a csv-like file (exact delimiter provided)."""
     with open(output_file_name, "w", newline="") as raw_file:
-        csv_writer = csv.DictWriter(raw_file, fieldnames=field_names, delimiter=delimiter)
+        csv_writer = csv.DictWriter(raw_file, fieldnames=field_names, delimiter=common.TAB)
         csv_writer.writeheader()
         csv_writer.writerows(list_of_dicts)

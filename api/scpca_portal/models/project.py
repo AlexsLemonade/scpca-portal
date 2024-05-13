@@ -1148,13 +1148,13 @@ class Project(CommonDataAttributes, TimestampedModel):
         return (updated_samples_metadata, libraries_metadata)
 
     def combine_metadata(self, updated_samples_metadata, libraries_metadata, sample_id):
-        all_samples_combined_metadata = {
+        combined_metadata = {
             Sample.Modalities.SINGLE_CELL: [],
             Sample.Modalities.SPATIAL: [],
             Sample.Modalities.MULTIPLEXED: [],
         }
 
-        for modality in all_samples_combined_metadata.keys():
+        for modality in combined_metadata.keys():
             if not libraries_metadata[modality]:
                 continue
 
@@ -1162,11 +1162,11 @@ class Project(CommonDataAttributes, TimestampedModel):
             if modality is Sample.Modalities.SINGLE_CELL and self.has_cite_seq_data:
                 modalities.add(Sample.Modalities.CITE_SEQ)
 
-            library_metadata_keys = self.get_library_metadata_keys(
-                set(libraries_metadata[modality][0].keys()), modalities=modalities
-            )
             sample_metadata_keys = self.get_sample_metadata_keys(
                 set(updated_samples_metadata[0].keys()), modalities=modalities
+            )
+            library_metadata_keys = self.get_library_metadata_keys(
+                set(libraries_metadata[modality][0].keys()), modalities=modalities
             )
 
             unfiltered_samples_metadata = (
@@ -1201,9 +1201,9 @@ class Project(CommonDataAttributes, TimestampedModel):
                     sample_library_combined_metadata = (
                         sample_library_metadata | sample_metadata_filtered_keys
                     )
-                    all_samples_combined_metadata[modality].append(sample_library_combined_metadata)
+                    combined_metadata[modality].append(sample_library_combined_metadata)
 
-        return all_samples_combined_metadata
+        return combined_metadata
 
     def write_combined_metadata_libraries(self, combined_metadata: Dict[str, List[Dict]]) -> None:
         """
@@ -1248,9 +1248,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     )
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
-                utils.write_dict_list_to_file(
-                    sample_libraries, sample_metadata_path, field_names, common.TAB
-                )
+                utils.write_dicts_to_tsv(sample_libraries, sample_metadata_path, field_names)
 
             # Write project metadata to file
             if modality == Sample.Modalities.MULTIPLEXED:
@@ -1264,11 +1262,10 @@ class Project(CommonDataAttributes, TimestampedModel):
                 key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
             )
             project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
-            utils.write_dict_list_to_file(
+            utils.write_dicts_to_tsv(
                 sorted_combined_metadata_by_modality,
                 getattr(self, project_metadata_path),
                 field_names,
-                common.TAB,
             )
 
     def purge(self, delete_from_s3=False):
