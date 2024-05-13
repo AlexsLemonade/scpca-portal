@@ -843,22 +843,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Returns an input data directory based on a sample ID."""
         return self.input_data_path / sample_scpca_id
 
-    def get_samples(
-        self,
-        samples_metadata,
-        sample_id=None,
-    ):
-        """Prepares ready for saving sample objects."""
-        samples = []
-        for sample_metadata in samples_metadata:
-            scpca_sample_id = sample_metadata["scpca_sample_id"]
-            if sample_id and scpca_sample_id != sample_id:
-                continue
-
-            samples.append(Sample.get_from_dict(sample_metadata, self))
-
-        return samples
-
     def load_data(self, sample_id=None, **kwargs) -> None:
         """
         Goes through a project directory's contents, parses multiple level metadata
@@ -873,7 +857,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.create_single_cell_merged_readme_file()
         self.create_spatial_readme_file()
 
-        combined_metadata, samples = self.handle_samples_metadata(sample_id)
+        combined_metadata = self.handle_samples_metadata(sample_id)
 
         multiplexed_file_mapping = {
             ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
@@ -925,6 +909,12 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         non_downloadable_sample_ids = self.get_non_downloadable_sample_ids()
         max_workers = kwargs["max_workers"]
+
+        samples = (
+            Sample.objects.filter(project__scpca_id=self.scpca_id)
+            if sample_id is None
+            else Sample.objects.filter(scpca_id=sample_id)
+        )
         samples_count = len(samples)
         logger.info(
             f"Processing {samples_count} sample{pluralize(samples_count)} using "
@@ -939,7 +929,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         locks = {multiplexed_ids: Lock() for multiplexed_ids in multiplexed_ids}
 
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            for sample in Sample.objects.bulk_create(samples):
+            for sample in samples:
                 # Skip computed files creation if sample directory does not exist.
                 if sample.scpca_id not in non_downloadable_sample_ids:
                     libraries = [
@@ -1055,12 +1045,14 @@ class Project(CommonDataAttributes, TimestampedModel):
             updated_samples_metadata, libraries_metadata, sample_id
         )
 
-        samples = self.get_samples(
+        # Creates sample objects and saves them to the db
+        Sample.bulk_create_from_dicts(
             updated_samples_metadata,
+            self,
             sample_id=sample_id,
         )
 
-        return (combined_metadata, samples)
+        return combined_metadata
 
     def load_samples_metadata(self) -> List[Dict]:
         # Start with a list of samples and their metadata.
