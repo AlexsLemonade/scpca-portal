@@ -831,13 +831,60 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Returns an input data directory based on a sample ID."""
         return self.input_data_path / sample_scpca_id
 
-    def load_data(self, sample_id=None, **kwargs) -> None:
+    def assign_project_properties(self, project_properties: Dict) -> None:
+        """
+        Assigns project level properties (parsed from the project's entry in the top level
+        `project_metadata.csv` file) to the current project object, and thene saves the object.
+        """
+        self.abstract = project_properties["abstract"]
+        self.additional_restrictions = project_properties["additional_restrictions"]
+        self.has_bulk_rna_seq = utils.boolean_from_string(project_properties.get("has_bulk", False))
+        self.has_cite_seq_data = utils.boolean_from_string(
+            project_properties.get("has_CITE", False)
+        )
+        self.has_multiplexed_data = utils.boolean_from_string(
+            project_properties.get("has_multiplex", False)
+        )
+        self.has_spatial_data = utils.boolean_from_string(
+            project_properties.get("has_spatial", False)
+        )
+        self.human_readable_pi_name = project_properties["PI"]
+        self.includes_anndata = utils.boolean_from_string(
+            project_properties.get("includes_anndata", False)
+        )
+        self.includes_cell_lines = utils.boolean_from_string(
+            project_properties.get("includes_cell_lines", False)
+        )
+        self.includes_merged_anndata = utils.boolean_from_string(
+            project_properties.get("includes_merged_anndata", False)
+        )
+        self.includes_merged_sce = utils.boolean_from_string(
+            project_properties.get("includes_merged_sce", False)
+        )
+        self.includes_xenografts = utils.boolean_from_string(
+            project_properties.get("includes_xenografts", False)
+        )
+        self.pi_name = project_properties["submitter"]
+        self.title = project_properties["project_title"]
+        self.save()
+
+        self.add_contacts(project_properties["contact_email"], project_properties["contact_name"])
+        self.add_external_accessions(
+            project_properties["external_accession"],
+            project_properties["external_accession_url"],
+            project_properties["external_accession_raw"],
+        )
+        self.add_publications(project_properties["citation"], project_properties["citation_doi"])
+
+    def load_data(self, project_properties: Dict, sample_id: str = None, **kwargs) -> None:
         """
         Goes through a project directory's contents, parses multiple level metadata
         files, writes combined metadata into resulting files.
 
         Returns a list of project's computed files.
         """
+        self.assign_project_properties(project_properties)
+
         self.create_anndata_readme_file()
         self.create_anndata_merged_readme_file()
         self.create_multiplexed_readme_file()
