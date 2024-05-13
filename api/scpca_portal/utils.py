@@ -58,12 +58,21 @@ def filter_dict_list_by_keys(
     return new_list_of_dicts
 
 
+def get_key_superset_from_dicts(list_of_dicts: List[Dict]) -> Set:
+    """Extracts each provided dictionary's key set and returns the superset of all key sets."""
+    key_superset = set()
+    for dictionary in list_of_dicts:
+        key_superset.update(set(dictionary.keys()))
+
+    return key_superset
+
+
 def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
     """
     Writes a list of dictionaries to a csv-like file.
     Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
     """
-    kwargs["fieldnames"] = kwargs.get("fieldnames")
+    kwargs["fieldnames"] = kwargs.get("fieldnames", get_key_superset_from_dicts(list_of_dicts))
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
 
     with open(output_file_path, "w", newline="") as raw_file:

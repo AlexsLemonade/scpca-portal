@@ -141,7 +141,8 @@ class TestWriteDictsToFile(TestCase):
             )
 
     def test_write_dicts_to_file_not_inputted_field_names(self):
-        pass
+        utils.write_dicts_to_file(self.dummy_list_of_dicts, self.dummy_output_path)
+        self.assertTrue(os.path.exists(self.dummy_output_path))
 
     def test_write_dicts_to_file_invalid_output_file(self):
         invalid_output_file = os.path.join(self.dummy_dir, "invalid", "path", "output.csv")
