@@ -1163,10 +1163,10 @@ class Project(CommonDataAttributes, TimestampedModel):
                 modalities.add(Sample.Modalities.CITE_SEQ)
 
             sample_metadata_keys = self.get_sample_metadata_keys(
-                utils.get_key_superset_from_dicts(updated_samples_metadata), modalities=modalities
+                utils.get_keys_from_dicts(updated_samples_metadata), modalities=modalities
             )
             library_metadata_keys = self.get_library_metadata_keys(
-                utils.get_key_superset_from_dicts(libraries_metadata[modality]),
+                utils.get_keys_from_dicts(libraries_metadata[modality]),
                 modalities=modalities,
             )
 
@@ -1224,13 +1224,11 @@ class Project(CommonDataAttributes, TimestampedModel):
                 continue
 
             # Establish field names for tsv
-            key_set = utils.get_key_superset_from_dicts(combined_metadata[modality])
+            key_set = utils.get_keys_from_dicts(combined_metadata[modality])
             if modality == Sample.Modalities.MULTIPLEXED:
                 # add in non-multiplexed single-cell metadata keys to samples_metadata field_names
                 key_set = key_set.union(
-                    utils.get_key_superset_from_dicts(
-                        combined_metadata[Sample.Modalities.SINGLE_CELL]
-                    )
+                    utils.get_keys_from_dicts(combined_metadata[Sample.Modalities.SINGLE_CELL])
                 )
             field_names = self.get_metadata_field_names(key_set, modality=modality)
 
