@@ -100,6 +100,18 @@ class TestFilterDictListByKeys(TestCase):
         self.assertEqual(actual_result, expected_result)
 
 
+class TestGetKeySupersetFromDicts(TestCase):
+    def test_get_key_superset_from_dicts_same_keys(self):
+        list_of_dicts = [{"a": 1, "b": 2, "c": 3}, {"c": 4, "b": 5, "a": 6}]
+        expected_superset = {"a", "b", "c"}
+        self.assertEqual(utils.get_key_superset_from_dicts(list_of_dicts), expected_superset)
+
+    def test_get_key_superset_from_dicts_different_keys(self):
+        list_of_dicts = [{"a": 1, "b": 2, "c": 3}, {"c": 4, "d": 5, "e": 6}]
+        expected_superset = {"a", "b", "c", "d", "e"}
+        self.assertEqual(utils.get_key_superset_from_dicts(list_of_dicts), expected_superset)
+
+
 class TestWriteDictsToFile(TestCase):
     def setUp(self):
         self.dummy_list_of_dicts = [
