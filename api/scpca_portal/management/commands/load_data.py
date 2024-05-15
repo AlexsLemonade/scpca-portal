@@ -194,26 +194,25 @@ class Command(BaseCommand):
                 logger.warning("Project submitter  is not the white list.")
                 continue
 
-            # Purge existing projects so they can be re-added.
-            if (project := Project.objects.filter(scpca_id=scpca_project_id).first()) and (
-                kwargs["reload_all"] or kwargs["reload_existing"]
-            ):
-                logger.info(f"Purging '{project}")
-                project.purge(delete_from_s3=kwargs["update_s3"])
+            if project := Project.objects.filter(scpca_id=scpca_project_id).first():
+                # Purge existing projects so they can be re-added.
+                if kwargs["reload_all"] or kwargs["reload_existing"]:
+                    logger.info(f"Purging '{project}")
+                    project.purge(delete_from_s3=kwargs["update_s3"])
+                # Only import new projects.
+                # If old ones are desired they should be purged and re-added.
+                else:
+                    logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
+                    continue
 
-            # Only import new projects. If old ones are desired they should be purged and re-added.
-            project, created = Project.objects.get_or_create(scpca_id=scpca_project_id)
-            if not created:
-                logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
-                continue
+            project = Project.get_from_dict(project_data)
+            logger.info(f"Importing '{project}' data")
+            project.save()
 
-            self.project = Project.objects.filter(scpca_id=scpca_project_id).first()
-            logger.info(f"Importing '{self.project}' data")
-
-            self.project.load_data(project_data, sample_id=sample_id, **kwargs)
-            if samples_count := self.project.samples.count():
+            project.load_data(sample_id=sample_id, **kwargs)
+            if samples_count := project.samples.count():
                 logger.info(
-                    f"Created {samples_count} sample{pluralize(samples_count)} for '{self.project}'"
+                    f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'"
                 )
 
             if kwargs["clean_up_input_data"]:
