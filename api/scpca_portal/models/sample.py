@@ -236,14 +236,12 @@ class Sample(CommonDataAttributes, TimestampedModel):
     ):
         # Organize zipfile locations by file format, then by modality
         # This data structure is needed to build the project zip in create_project_computed_files
-        file_mappings_by_modality = {
-            Sample.Modalities.SINGLE_CELL: {
-                ComputedFile.OutputFileFormats.ANN_DATA: {},
-                ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
-            },
-            Sample.Modalities.SPATIAL: {ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {}},
-            Sample.Modalities.MULTIPLEXED: {
-                ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {}
+        file_mappings_by_format = {
+            ComputedFile.OutputFileFormats.ANN_DATA: {Sample.Modalities.SINGLE_CELL: {}},
+            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {
+                Sample.Modalities.SINGLE_CELL: {},
+                Sample.Modalities.SPATIAL: {},
+                Sample.Modalities.MULTIPLEXED: {},
             },
         }
 
@@ -266,7 +264,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
                 else Sample.Modalities.MULTIPLEXED
             )
             file_format = computed_file.format
-            file_mappings_by_modality[modality][file_format].update(sample_to_files_mapping)
+            file_mappings_by_format[file_format][modality].update(sample_to_files_mapping)
 
         samples_count = len(samples)
         logger.info(
@@ -346,4 +344,4 @@ class Sample(CommonDataAttributes, TimestampedModel):
                         lock=sample_lock,
                     ).add_done_callback(create_sample_computed_file)
 
-        return (file_mappings_by_modality, workflow_versions_by_modality)
+        return (file_mappings_by_format, workflow_versions_by_modality)

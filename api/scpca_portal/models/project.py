@@ -363,12 +363,8 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def create_project_computed_files(
         self,
-        single_cell_file_mapping,
-        single_cell_workflow_versions,
-        spatial_file_mapping,
-        spatial_workflow_versions,
-        multiplexed_file_mapping,
-        multiplexed_workflow_versions,
+        file_mappings_by_format,
+        workflow_versions_by_modality,
         max_workers=8,  # 8 = 2 file formats * 4 mappings.
         clean_up_output_data=True,
         update_s3=False,
@@ -382,12 +378,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 computed_file.save()
                 computed_file.process_computed_file(clean_up_output_data, update_s3)
 
-        if multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]:
-            # We want a single ZIP archive for a multiplexed samples project.
-            multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
-                single_cell_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]
-            )
-
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for file_format in (
                 ComputedFile.OutputFileFormats.ANN_DATA,
@@ -396,35 +386,40 @@ class Project(CommonDataAttributes, TimestampedModel):
                 tasks.submit(
                     ComputedFile.get_project_merged_file,
                     self,
-                    single_cell_file_mapping,
-                    single_cell_workflow_versions,
+                    file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL),
+                    workflow_versions_by_modality.get(Sample.Modalities.SINGLE_CELL),
                     file_format,
                 ).add_done_callback(create_project_computed_file)
 
-                if multiplexed_file_mapping.get(file_format):
+                if file_mappings_by_format[file_format].get(Sample.Modalities.MULTIPLEXED):
+                    # We want a single ZIP archive for a multiplexed samples project.
+                    file_mappings_by_format[file_format].get(Sample.Modalities.MULTIPLEXED).update(
+                        file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL)
+                    )
+
                     tasks.submit(
                         ComputedFile.get_project_multiplexed_file,
                         self,
-                        multiplexed_file_mapping,
-                        multiplexed_workflow_versions,
+                        file_mappings_by_format[file_format].get(Sample.Modalities.MULTIPLEXED),
+                        workflow_versions_by_modality[Sample.Modalities.MULTIPLEXED],
                         file_format,
                     ).add_done_callback(create_project_computed_file)
 
-                if single_cell_file_mapping.get(file_format):
+                if file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL):
                     tasks.submit(
                         ComputedFile.get_project_single_cell_file,
                         self,
-                        single_cell_file_mapping,
-                        single_cell_workflow_versions,
+                        file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL),
+                        workflow_versions_by_modality[Sample.Modalities.SINGLE_CELL],
                         file_format,
                     ).add_done_callback(create_project_computed_file)
 
-                if spatial_file_mapping.get(file_format):
+                if file_mappings_by_format[file_format].get(Sample.Modalities.SPATIAL):
                     tasks.submit(
                         ComputedFile.get_project_spatial_file,
                         self,
-                        spatial_file_mapping,
-                        spatial_workflow_versions,
+                        file_mappings_by_format[file_format].get(Sample.Modalities.SPATIAL),
+                        workflow_versions_by_modality[Sample.Modalities.SPATIAL],
                         file_format,
                     ).add_done_callback(create_project_computed_file)
 
@@ -863,7 +858,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         combined_metadata, samples = self.handle_samples_metadata(sample_id)
 
         (
-            file_mappings_by_modality,
+            file_mappings_by_format,
             workflow_versions_by_modality,
         ) = Sample.create_sample_computed_files(
             combined_metadata,
@@ -876,12 +871,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
         self.create_project_computed_files(
-            file_mappings_by_modality[Sample.Modalities.SINGLE_CELL],
-            workflow_versions_by_modality[Sample.Modalities.SINGLE_CELL],
-            file_mappings_by_modality[Sample.Modalities.SPATIAL],
-            workflow_versions_by_modality[Sample.Modalities.SPATIAL],
-            file_mappings_by_modality[Sample.Modalities.MULTIPLEXED],
-            workflow_versions_by_modality[Sample.Modalities.MULTIPLEXED],
+            file_mappings_by_format,
+            workflow_versions_by_modality,
             clean_up_output_data=kwargs["clean_up_output_data"],
             update_s3=kwargs["update_s3"],
         )

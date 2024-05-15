@@ -163,7 +163,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             for src, dst in project_file_mapping.items():
                 zip_file.write(src, dst)
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
                     if str(file_path).split("_")[-1] not in sample_file_suffixes:
                         continue
@@ -200,7 +200,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 project.output_multiplexed_metadata_file_path, computed_file.metadata_file_name
             )
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
                     # Nest these under their sample id.
                     zip_file.write(file_path, Path(sample_id, file_path.name))
@@ -245,7 +245,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 project.output_single_cell_metadata_file_path, computed_file.metadata_file_name
             )
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
                     # Nest these under their sample id.
                     zip_file.write(file_path, Path(sample_id, file_path.name))
@@ -284,7 +284,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 project.output_spatial_metadata_file_path, computed_file.metadata_file_name
             )
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 sample_path = project.get_sample_input_data_dir(sample_id)
                 for file_path in file_paths:
                     zip_file.write(file_path, Path(file_path).relative_to(sample_path))
