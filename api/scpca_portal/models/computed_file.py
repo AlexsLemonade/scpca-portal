@@ -4,7 +4,7 @@ from threading import Lock
 from zipfile import ZipFile
 
 from django.conf import settings
-from django.db import models
+from django.db import connection, models
 
 import boto3
 from botocore.client import Config
@@ -35,6 +35,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             (SINGLE_CELL, "Single Cell"),
             (SPATIAL, "Spatial"),
         )
+
+    class OutputFileSubModalities:
+        MULTIPLEXED = "MULTIPLEXED"
 
     class OutputFileFormats:
         ANN_DATA = "ANN_DATA"
@@ -539,8 +542,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
             )
 
-    def create_s3_file(self):
+    def upload_s3_file(self):
         """Uploads the computed file to S3 using AWS CLI tool."""
+
+        logger.info(f"Uploading {self}")
         subprocess.check_call(
             (
                 "aws",
@@ -568,3 +573,18 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return False
 
         return True
+
+    def process_computed_file(self, clean_up_output_data, update_s3):
+        """Processes saving, upload and cleanup of a single computed file."""
+        self.save()
+        if update_s3:
+            self.upload_s3_file()
+
+        # Don't clean up multiplexed sample zips until the project is done
+        is_multiplexed_sample = self.sample and self.sample.has_multiplexed_data
+
+        if clean_up_output_data and not is_multiplexed_sample:
+            self.zip_file_path.unlink(missing_ok=True)
+
+        # Close DB connection for each thread.
+        connection.close()
