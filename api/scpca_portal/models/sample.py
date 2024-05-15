@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
+from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -105,6 +106,21 @@ class Sample(CommonDataAttributes, TimestampedModel):
         }
 
         return sample
+
+    @classmethod
+    def bulk_create_from_dicts(
+        cls, samples_metadata: List[Dict], project, sample_id: str = None
+    ) -> None:
+        """Creates a list of sample objects from sample metadata libraries and then saves them."""
+        samples = []
+        for sample_metadata in samples_metadata:
+            scpca_sample_id = sample_metadata["scpca_sample_id"]
+            if sample_id and scpca_sample_id != sample_id:
+                continue
+
+            samples.append(Sample.get_from_dict(sample_metadata, project))
+
+        Sample.objects.bulk_create(samples)
 
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
@@ -227,12 +243,13 @@ class Sample(CommonDataAttributes, TimestampedModel):
     @staticmethod
     def create_sample_computed_files(
         combined_metadata,
-        samples,
+        project,
         non_downloadable_sample_ids,
         multiplexed_library_path_mapping,
         max_workers=8,  # 8 = 2 file formats * 4 mappings.
         clean_up_output_data=True,
         update_s3=False,
+        sample_id=None,
     ):
         # Organize zipfile locations by file format, then by modality
         # This data structure is needed to build the project zip in create_project_computed_files
@@ -266,6 +283,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
             file_format = computed_file.format
             file_mappings_by_format[file_format][modality].update(sample_to_files_mapping)
 
+        samples = (
+            Sample.objects.filter(project__scpca_id=project.scpca_id)
+            if sample_id is None
+            else Sample.objects.filter(scpca_id=sample_id)
+        )
         samples_count = len(samples)
         logger.info(
             f"Processing {samples_count} sample{pluralize(samples_count)} using "
@@ -280,7 +302,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         locks = {multiplexed_ids: Lock() for multiplexed_ids in multiplexed_ids}
 
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            for sample in Sample.objects.bulk_create(samples):
+            for sample in samples:
                 # Skip computed files creation if sample directory does not exist.
                 if sample.scpca_id not in non_downloadable_sample_ids:
                     libraries = [
