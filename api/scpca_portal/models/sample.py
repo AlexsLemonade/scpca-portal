@@ -251,6 +251,12 @@ class Sample(CommonDataAttributes, TimestampedModel):
         update_s3=False,
         sample_id=None,
     ):
+        """
+        Generate computed files for each file format & modality within a given project's sample set.
+        Populate file mappings for each sample's computed files,
+        to be used when later generating the project zip.
+        """
+
         # Organize zipfile locations by file format, then by modality
         # This data structure is needed to build the project zip in create_project_computed_files
         file_mappings_by_format = {
