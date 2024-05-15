@@ -36,9 +36,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             (SPATIAL, "Spatial"),
         )
 
-    class OutputFileSubModalities:
-        MULTIPLEXED = "MULTIPLEXED"
-
     class OutputFileFormats:
         ANN_DATA = "ANN_DATA"
         SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"

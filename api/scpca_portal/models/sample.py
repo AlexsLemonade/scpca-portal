@@ -237,22 +237,20 @@ class Sample(CommonDataAttributes, TimestampedModel):
         # Organize zipfile locations by file format, then by modality
         # This data structure is needed to build the project zip in create_project_computed_files
         file_mappings_by_modality = {
-            ComputedFile.OutputFileModalities.SINGLE_CELL: {
+            Sample.Modalities.SINGLE_CELL: {
                 ComputedFile.OutputFileFormats.ANN_DATA: {},
                 ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
             },
-            ComputedFile.OutputFileModalities.SPATIAL: {
-                ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {}
-            },
-            ComputedFile.OutputFileSubModalities.MULTIPLEXED: {
+            Sample.Modalities.SPATIAL: {ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {}},
+            Sample.Modalities.MULTIPLEXED: {
                 ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {}
             },
         }
 
         workflow_versions_by_modality = {
-            ComputedFile.OutputFileModalities.SINGLE_CELL: set(),
-            ComputedFile.OutputFileModalities.SPATIAL: set(),
-            ComputedFile.OutputFileSubModalities.MULTIPLEXED: set(),
+            Sample.Modalities.SINGLE_CELL: set(),
+            Sample.Modalities.SPATIAL: set(),
+            Sample.Modalities.MULTIPLEXED: set(),
         }
 
         def create_sample_computed_file(future):
@@ -265,7 +263,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             modality = (
                 computed_file.modality
                 if not computed_file.sample.has_multiplexed_data
-                else ComputedFile.OutputFileSubModalities.MULTIPLEXED
+                else Sample.Modalities.MULTIPLEXED
             )
             file_format = computed_file.format
             file_mappings_by_modality[modality][file_format].update(sample_to_files_mapping)
