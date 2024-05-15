@@ -81,6 +81,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     format = models.TextField(choices=OutputFileFormats.CHOICES)
     includes_merged = models.BooleanField(default=False)
     modality = models.TextField(choices=OutputFileModalities.CHOICES)
+    public = models.BooleanField(default=False)
     s3_bucket = models.TextField()
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
@@ -576,9 +577,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     def process_computed_file(self, clean_up_output_data, update_s3):
         """Processes saving, upload and cleanup of a single computed file."""
-        self.save()
         if update_s3:
             self.upload_s3_file()
+            self.public = True
+            self.save()
 
         # Don't clean up multiplexed sample zips until the project is done
         is_multiplexed_sample = self.sample and self.sample.has_multiplexed_data

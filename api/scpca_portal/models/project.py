@@ -378,6 +378,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         def create_project_computed_file(future):
             computed_file = future.result()
             if computed_file:
+                # Save computed file with public attribute defaulted to False
+                computed_file.save()
                 computed_file.process_computed_file(clean_up_output_data, update_s3)
 
         if multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]:
