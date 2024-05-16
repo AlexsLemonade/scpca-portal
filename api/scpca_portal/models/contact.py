@@ -34,7 +34,7 @@ class Contact(TimestampedModel):
 
     @staticmethod
     def bulk_create_from_project_data(project_data, project):
-        """Creates a list of contact objects and then save them."""
+        """Creates a list of contact objects and saves them."""
         emails = [
             email.lower().strip()
             for email in project_data["contact_email"].split(common.CSV_MULTI_VALUE_DELIMITER)

@@ -23,9 +23,6 @@ from scpca_portal.models.sample import Sample
 
 logger = logging.getLogger()
 
-IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
-STRIPPED_INPUT_VALUES = "< >"
-
 
 class Project(CommonDataAttributes, TimestampedModel):
     class Meta:
@@ -227,26 +224,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Close DB connection for each thread.
         connection.close()
 
-    def add_publications(self, citation, citation_doi):
-        """Creates and adds project publications."""
-        citations = citation.split(common.CSV_MULTI_VALUE_DELIMITER)
-        dois = citation_doi.split(common.CSV_MULTI_VALUE_DELIMITER)
-
-        if len(citations) != len(dois):
-            logger.error("Unable to add ambiguous publications.")
-            return
-
-        for idx, doi in enumerate(dois):
-            if doi in IGNORED_INPUT_VALUES:
-                continue
-
-            publication, _ = Publication.objects.get_or_create(doi=doi.strip())
-            publication.citation = citations[idx].strip(STRIPPED_INPUT_VALUES)
-            publication.submitter_id = self.pi_name
-            publication.save()
-
-            self.publications.add(publication)
-
     def create_anndata_readme_file(self):
         """Creates an annotation metadata README file."""
         with open(ComputedFile.README_ANNDATA_FILE_PATH, "w") as readme_file:
@@ -418,11 +395,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                     setattr(project, key, utils.boolean_from_string(data.get(key, False)))
                 else:
                     setattr(project, key, data.get(key))
-
-        # Project needs to be saved and given an id before many-to-manys can be established.
-        project.save()
-
-        project.add_publications(data.get("citation"), data.get("citation_doi"))
 
         return project
 

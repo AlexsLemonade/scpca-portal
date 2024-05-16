@@ -34,7 +34,7 @@ class ExternalAccession(TimestampedModel):
 
     @staticmethod
     def bulk_create_from_project_data(project_data, project):
-        """Creates a list of contact objects and then save them."""
+        """Creates a list of external accession objects and saves them."""
         accessions = [
             a.strip()
             for a in project_data["external_accession"].split(common.CSV_MULTI_VALUE_DELIMITER)
