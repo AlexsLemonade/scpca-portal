@@ -13,7 +13,7 @@ import boto3
 from botocore.client import Config
 
 from scpca_portal import common
-from scpca_portal.models import Contact, Project
+from scpca_portal.models import Contact, ExternalAccession, Project
 
 ALLOWED_SUBMITTERS = {
     "christensen",
@@ -209,6 +209,7 @@ class Command(BaseCommand):
             logger.info(f"Importing '{project}' data")
             project.save()
             Contact.bulk_create_from_project_data(project_data, project)
+            ExternalAccession.bulk_create_from_project_data(project_data, project)
 
             project.load_data(sample_id=sample_id, **kwargs)
             if samples_count := project.samples.count():

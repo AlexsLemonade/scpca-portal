@@ -227,31 +227,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Close DB connection for each thread.
         connection.close()
 
-    def add_external_accessions(
-        self, external_accession, external_accession_url, external_accession_raw
-    ):
-        """Creates and adds project external accessions."""
-        accessions = external_accession.split(common.CSV_MULTI_VALUE_DELIMITER)
-        urls = external_accession_url.split(common.CSV_MULTI_VALUE_DELIMITER)
-        accessions_raw = external_accession_raw.split(common.CSV_MULTI_VALUE_DELIMITER)
-
-        if len(set((len(accessions), len(urls), len(accessions_raw)))) != 1:
-            logger.error("Unable to add ambiguous external accessions.")
-            return
-
-        for idx, accession in enumerate(accessions):
-            if accession in IGNORED_INPUT_VALUES:
-                continue
-
-            external_accession, _ = ExternalAccession.objects.get_or_create(
-                accession=accession.strip()
-            )
-            external_accession.url = urls[idx].strip(STRIPPED_INPUT_VALUES)
-            external_accession.has_raw = utils.boolean_from_string(accessions_raw[idx].strip())
-            external_accession.save()
-
-            self.external_accessions.add(external_accession)
-
     def add_publications(self, citation, citation_doi):
         """Creates and adds project publications."""
         citations = citation.split(common.CSV_MULTI_VALUE_DELIMITER)
@@ -447,11 +422,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Project needs to be saved and given an id before many-to-manys can be established.
         project.save()
 
-        project.add_external_accessions(
-            data.get("external_accession"),
-            data.get("external_accession_url"),
-            data.get("external_accession_raw"),
-        )
         project.add_publications(data.get("citation"), data.get("citation_doi"))
 
         return project

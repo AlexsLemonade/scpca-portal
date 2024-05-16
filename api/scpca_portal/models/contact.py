@@ -50,11 +50,11 @@ class Contact(TimestampedModel):
             return
 
         for idx, email in enumerate(emails):
-            # Skip contact if already in db
-            if Contact.objects.filter(email=email):
+            if email in common.IGNORED_INPUT_VALUES:
                 continue
 
-            if email in common.IGNORED_INPUT_VALUES:
+            # Skip contact if already in db
+            if Contact.objects.filter(email=email):
                 continue
 
             contact_data = {"name": names[idx], "email": email, "pi_name": project.pi_name}
