@@ -227,26 +227,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Close DB connection for each thread.
         connection.close()
 
-    def add_contacts(self, contact_email, contact_name):
-        """Creates and adds project contacts."""
-        emails = contact_email.split(common.CSV_MULTI_VALUE_DELIMITER)
-        names = contact_name.split(common.CSV_MULTI_VALUE_DELIMITER)
-
-        if len(emails) != len(names):
-            logger.error("Unable to add ambiguous contacts.")
-            return
-
-        for idx, email in enumerate(emails):
-            if email in IGNORED_INPUT_VALUES:
-                continue
-
-            contact, _ = Contact.objects.get_or_create(email=email.lower().strip())
-            contact.name = names[idx].strip()
-            contact.submitter_id = self.pi_name
-            contact.save()
-
-            self.contacts.add(contact)
-
     def add_external_accessions(
         self, external_accession, external_accession_url, external_accession_raw
     ):
@@ -467,7 +447,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Project needs to be saved and given an id before many-to-manys can be established.
         project.save()
 
-        project.add_contacts(data.get("contact_email"), data.get("contact_name"))
         project.add_external_accessions(
             data.get("external_accession"),
             data.get("external_accession_url"),
