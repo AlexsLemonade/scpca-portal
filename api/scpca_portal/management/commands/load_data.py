@@ -205,8 +205,8 @@ class Command(BaseCommand):
                     logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
                     continue
 
-            project = Project.get_from_dict(project_data)
             logger.info(f"Importing '{project}' data")
+            project = Project.get_from_dict(project_data)
             project.save()
             Contact.bulk_create_from_project_data(project_data, project)
             ExternalAccession.bulk_create_from_project_data(project_data, project)

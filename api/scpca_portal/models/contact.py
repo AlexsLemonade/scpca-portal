@@ -2,7 +2,7 @@ from typing import Dict
 
 from django.db import models
 
-from scpca_portal import common
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import TimestampedModel
 
@@ -32,24 +32,15 @@ class Contact(TimestampedModel):
 
         return contact
 
-    @staticmethod
-    def bulk_create_from_project_data(project_data, project):
+    @classmethod
+    def bulk_create_from_project_data(cls, project_data, project):
         """Creates a list of contact objects and saves them."""
-        emails = [
-            email.lower().strip()
-            for email in project_data["contact_email"].split(common.CSV_MULTI_VALUE_DELIMITER)
-        ]
-        names = [
-            name.strip()
-            for name in project_data["contact_name"].split(common.CSV_MULTI_VALUE_DELIMITER)
-        ]
         contacts = []
 
-        if len(emails) != len(names):
-            logger.error("Unable to add ambiguous contacts.")
-            return
-
-        for idx, email in enumerate(emails):
+        keys = ["contact_email", "contact_name"]
+        for email, name in utils.get_csv_zipped_values(
+            project_data, *keys, model_name=cls.__name__
+        ):
             if email in common.IGNORED_INPUT_VALUES:
                 continue
 
@@ -57,7 +48,11 @@ class Contact(TimestampedModel):
             if Contact.objects.filter(email=email):
                 continue
 
-            contact_data = {"name": names[idx], "email": email, "pi_name": project.pi_name}
+            contact_data = {
+                "name": name.strip(),
+                "email": email.lower().strip(),
+                "pi_name": project.pi_name,
+            }
             contacts.append(Contact.get_from_dict(contact_data))
 
         Contact.objects.bulk_create(contacts)

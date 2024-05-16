@@ -32,28 +32,15 @@ class ExternalAccession(TimestampedModel):
 
         return external_accession
 
-    @staticmethod
-    def bulk_create_from_project_data(project_data, project):
+    @classmethod
+    def bulk_create_from_project_data(cls, project_data, project):
         """Creates a list of external accession objects and saves them."""
-        accessions = [
-            a.strip()
-            for a in project_data["external_accession"].split(common.CSV_MULTI_VALUE_DELIMITER)
-        ]
-        urls = [
-            u.strip(common.STRIPPED_INPUT_VALUES)
-            for u in project_data["external_accession_url"].split(common.CSV_MULTI_VALUE_DELIMITER)
-        ]
-        accessions_raw = [
-            utils.boolean_from_string(ar.strip())
-            for ar in project_data["external_accession_raw"].split(common.CSV_MULTI_VALUE_DELIMITER)
-        ]
         external_accessions = []
 
-        if len(set((len(accessions), len(urls), len(accessions_raw)))) != 1:
-            logger.error("Unable to add ambiguous external accessions.")
-            return
-
-        for idx, accession in enumerate(accessions):
+        keys = ["external_accession", "external_accession_raw", "external_accession_url"]
+        for accession, has_raw, url in utils.get_csv_zipped_values(
+            project_data, *keys, model_name=cls.__name__
+        ):
             if accession in common.IGNORED_INPUT_VALUES:
                 continue
 
@@ -62,9 +49,9 @@ class ExternalAccession(TimestampedModel):
                 continue
 
             external_accession_data = {
-                "accession": accession,
-                "has_raw": accessions_raw[idx],
-                "url": urls[idx],
+                "accession": accession.strip(),
+                "has_raw": utils.boolean_from_string(has_raw.strip()),
+                "url": url.strip(common.STRIPPED_INPUT_VALUES),
             }
 
             external_accessions.append(ExternalAccession.get_from_dict(external_accession_data))

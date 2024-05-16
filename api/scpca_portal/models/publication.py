@@ -2,7 +2,7 @@ from typing import Dict
 
 from django.db import models
 
-from scpca_portal import common
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import TimestampedModel
 
@@ -37,23 +37,15 @@ class Publication(TimestampedModel):
 
         return publication
 
-    @staticmethod
-    def bulk_create_from_project_data(project_data, project):
+    @classmethod
+    def bulk_create_from_project_data(cls, project_data, project):
         """Creates a list of publication objects and saves them."""
-        citations = [
-            c.strip(common.STRIPPED_INPUT_VALUES)
-            for c in project_data["citation"].split(common.CSV_MULTI_VALUE_DELIMITER)
-        ]
-        dois = [
-            d.strip() for d in project_data["citation_doi"].split(common.CSV_MULTI_VALUE_DELIMITER)
-        ]
         publications = []
 
-        if len(citations) != len(dois):
-            logger.error("Unable to add ambiguous publications.")
-            return
-
-        for idx, doi in enumerate(dois):
+        keys = ["citation_doi", "citation"]
+        for doi, citation in utils.get_csv_zipped_values(
+            project_data, *keys, model_name=cls.__name__
+        ):
             if doi in common.IGNORED_INPUT_VALUES:
                 continue
 
@@ -61,7 +53,11 @@ class Publication(TimestampedModel):
             if Publication.objects.filter(doi=doi):
                 continue
 
-            publication_data = {"doi": doi, "citation": citations[idx], "pi_name": project.pi_name}
+            publication_data = {
+                "doi": doi.strip(),
+                "citation": citation.strip(common.STRIPPED_INPUT_VALUES),
+                "pi_name": project.pi_name,
+            }
             publications.append(Publication.get_from_dict(publication_data))
 
         Publication.objects.bulk_create(publications)
