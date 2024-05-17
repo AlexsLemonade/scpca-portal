@@ -3,6 +3,14 @@
 from django.db import migrations, models
 
 
+def make_current_computed_files_public(apps, schema_editor):
+    ComputedFile = apps.get_model("scpca_portal", "project")
+
+    for computed_file in ComputedFile.objects.all():
+        computed_file.public = True
+        computed_file.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -15,4 +23,5 @@ class Migration(migrations.Migration):
             name="public",
             field=models.BooleanField(default=False),
         ),
+        migrations.RunPython(make_current_computed_files_public),
     ]
