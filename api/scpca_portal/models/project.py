@@ -423,6 +423,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                         file_format,
                     ).add_done_callback(create_project_computed_file)
 
+        self.update_downloadable_sample_count()
+
     def get_bulk_rna_seq_sample_ids(self):
         """Returns set of bulk RNA sequencing sample IDs."""
         bulk_rna_seq_sample_ids = set()
@@ -852,9 +854,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             update_s3=kwargs["update_s3"],
         )
 
-        self.update_project_modality_properties()
-        self.update_project_aggregate_properties()
-
     def handle_samples_metadata(self, sample_id=None):
         # Parses tsv sample metadata file, massages field names
         samples_metadata = self.load_samples_metadata()
@@ -875,6 +874,9 @@ class Project(CommonDataAttributes, TimestampedModel):
             self,
             sample_id=sample_id,
         )
+
+        # Updates project properties that are derived from recently saved samples
+        self.update_project_derived_properties()
 
         return combined_metadata
 
@@ -1122,6 +1124,14 @@ class Project(CommonDataAttributes, TimestampedModel):
         ProjectSummary.objects.filter(project=self).delete()
         self.delete()
 
+    def update_project_derived_properties(self):
+        """
+        Updates project properties that are derived from the querying of Sample data
+        after all Samples have been processed.
+        """
+        self.update_project_modality_properties()
+        self.update_project_aggregate_properties()
+
     def update_project_modality_properties(self):
         """
         Updates project modality properties,
@@ -1189,19 +1199,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         diagnoses_strings = sorted(
             (f"{diagnosis} ({count})" for diagnosis, count in diagnoses_counts.items())
         )
-        downloadable_sample_count = (
-            self.samples.filter(sample_computed_files__isnull=False).distinct().count()
-        )
         multiplexed_sample_count = self.samples.filter(has_multiplexed_data=True).count()
-        non_downloadable_samples_count = self.samples.filter(
-            has_multiplexed_data=False, has_single_cell_data=False, has_spatial_data=False
-        ).count()
         sample_count = self.samples.count()
         seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
         technologies = sorted((technology for technology in technologies if technology))
-        unavailable_samples_count = max(
-            sample_count - downloadable_sample_count - non_downloadable_samples_count, 0
-        )
 
         if self.has_multiplexed_data and "multiplexed_with" in additional_metadata_keys:
             additional_metadata_keys.remove("multiplexed_with")
@@ -1210,14 +1211,12 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.diagnoses = ", ".join(sorted(diagnoses))
         self.diagnoses_counts = ", ".join(diagnoses_strings)
         self.disease_timings = ", ".join(disease_timings)
-        self.downloadable_sample_count = downloadable_sample_count
         self.modalities = sorted(modalities)
         self.multiplexed_sample_count = multiplexed_sample_count
         self.organisms = sorted(organisms)
         self.sample_count = sample_count
         self.seq_units = ", ".join(seq_units)
         self.technologies = ", ".join(technologies)
-        self.unavailable_samples_count = unavailable_samples_count
         self.save()
 
         for (diagnosis, seq_unit, technology), count in summaries_counts.items():
@@ -1226,3 +1225,23 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
             project_summary.sample_count = count
             project_summary.save(update_fields=("sample_count",))
+
+    def update_downloadable_sample_count(self):
+        """
+        Retrieves downloadable sample counts after the uploading of computed files to s3,
+        updates the corresponding attributes on the project object, and saves the object to the db.
+        """
+        downloadable_sample_count = (
+            self.samples.filter(sample_computed_files__isnull=False).distinct().count()
+        )
+        sample_count = self.samples.count()
+        non_downloadable_samples_count = self.samples.filter(
+            has_multiplexed_data=False, has_single_cell_data=False, has_spatial_data=False
+        ).count()
+        unavailable_samples_count = max(
+            sample_count - downloadable_sample_count - non_downloadable_samples_count, 0
+        )
+
+        self.downloadable_sample_count = downloadable_sample_count
+        self.unavailable_samples_count = unavailable_samples_count
+        self.save()
