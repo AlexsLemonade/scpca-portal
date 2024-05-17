@@ -852,29 +852,8 @@ class Project(CommonDataAttributes, TimestampedModel):
             update_s3=kwargs["update_s3"],
         )
 
-        # Set modality flags based on a real data availability.
-        self.has_bulk_rna_seq = self.samples.filter(has_bulk_rna_seq=True).exists()
-        self.has_cite_seq_data = self.samples.filter(has_cite_seq_data=True).exists()
-        self.has_multiplexed_data = self.samples.filter(has_multiplexed_data=True).exists()
-        self.has_single_cell_data = self.samples.filter(has_single_cell_data=True).exists()
-        self.has_spatial_data = self.samples.filter(has_spatial_data=True).exists()
-        self.includes_anndata = self.samples.filter(includes_anndata=True).exists()
-        self.includes_cell_lines = self.samples.filter(is_cell_line=True).exists()
-        self.includes_xenografts = self.samples.filter(is_xenograft=True).exists()
-        self.save(
-            update_fields=(
-                "has_bulk_rna_seq",
-                "has_cite_seq_data",
-                "has_multiplexed_data",
-                "has_single_cell_data",
-                "has_spatial_data",
-                "includes_anndata",
-                "includes_cell_lines",
-                "includes_xenografts",
-            )
-        )
-
-        self.update_counts()
+        self.update_project_modality_properties()
+        self.update_project_aggregate_properties()
 
     def handle_samples_metadata(self, sample_id=None):
         # Parses tsv sample metadata file, massages field names
@@ -1143,7 +1122,35 @@ class Project(CommonDataAttributes, TimestampedModel):
         ProjectSummary.objects.filter(project=self).delete()
         self.delete()
 
-    def update_counts(self):
+    def update_project_modality_properties(self):
+        """
+        Updates project modality properties,
+        which are derived from the existence of a certain attribute within a collection of Samples.
+        """
+
+        # Set modality flags based on a real data availability.
+        self.has_bulk_rna_seq = self.samples.filter(has_bulk_rna_seq=True).exists()
+        self.has_cite_seq_data = self.samples.filter(has_cite_seq_data=True).exists()
+        self.has_multiplexed_data = self.samples.filter(has_multiplexed_data=True).exists()
+        self.has_single_cell_data = self.samples.filter(has_single_cell_data=True).exists()
+        self.has_spatial_data = self.samples.filter(has_spatial_data=True).exists()
+        self.includes_anndata = self.samples.filter(includes_anndata=True).exists()
+        self.includes_cell_lines = self.samples.filter(is_cell_line=True).exists()
+        self.includes_xenografts = self.samples.filter(is_xenograft=True).exists()
+        self.save(
+            update_fields=(
+                "has_bulk_rna_seq",
+                "has_cite_seq_data",
+                "has_multiplexed_data",
+                "has_single_cell_data",
+                "has_spatial_data",
+                "includes_anndata",
+                "includes_cell_lines",
+                "includes_xenografts",
+            )
+        )
+
+    def update_project_aggregate_properties(self):
         """
         The Project and ProjectSummary models cache aggregated sample metadata.
         We need to update these after any project's sample gets added/deleted.
