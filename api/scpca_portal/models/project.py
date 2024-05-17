@@ -391,12 +391,13 @@ class Project(CommonDataAttributes, TimestampedModel):
                     file_format,
                 ).add_done_callback(create_project_computed_file)
 
-                if file_mappings_by_format[file_format].get(Sample.Modalities.MULTIPLEXED):
+                if multiplexed_file_mapping := file_mappings_by_format[file_format].get(
+                    Sample.Modalities.MULTIPLEXED
+                ):
                     # We want a single ZIP archive for a multiplexed samples project.
-                    file_mappings_by_format[file_format].get(Sample.Modalities.MULTIPLEXED).update(
+                    multiplexed_file_mapping.update(
                         file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL)
                     )
-
                     tasks.submit(
                         ComputedFile.get_project_multiplexed_file,
                         self,
@@ -405,20 +406,24 @@ class Project(CommonDataAttributes, TimestampedModel):
                         file_format,
                     ).add_done_callback(create_project_computed_file)
 
-                if file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL):
+                if single_cell_file_mapping := file_mappings_by_format[file_format].get(
+                    Sample.Modalities.SINGLE_CELL
+                ):
                     tasks.submit(
                         ComputedFile.get_project_single_cell_file,
                         self,
-                        file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL),
+                        single_cell_file_mapping,
                         workflow_versions_by_modality[Sample.Modalities.SINGLE_CELL],
                         file_format,
                     ).add_done_callback(create_project_computed_file)
 
-                if file_mappings_by_format[file_format].get(Sample.Modalities.SPATIAL):
+                if spatial_file_mapping := file_mappings_by_format[file_format].get(
+                    Sample.Modalities.SPATIAL
+                ):
                     tasks.submit(
                         ComputedFile.get_project_spatial_file,
                         self,
-                        file_mappings_by_format[file_format].get(Sample.Modalities.SPATIAL),
+                        spatial_file_mapping,
                         workflow_versions_by_modality[Sample.Modalities.SPATIAL],
                         file_format,
                     ).add_done_callback(create_project_computed_file)
