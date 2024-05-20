@@ -37,15 +37,22 @@ class Contact(TimestampedModel):
         """Creates a list of contact objects and saves them."""
         contacts = []
 
-        keys = ["contact_email", "contact_name"]
-        for email, name in utils.get_csv_zipped_values(
-            project_data, *keys, model_name=cls.__name__
-        ):
+        try:
+            zipped_contact_details = utils.get_csv_zipped_values(
+                project_data, "contact_email", "contact_name"
+            )
+        except Exception:
+            logger.error("Unable to add ambiguous contacts.")
+            raise
+
+        for email, name in zipped_contact_details:
             if email in common.IGNORED_INPUT_VALUES:
                 continue
 
-            # Skip contact if already in db
-            if Contact.objects.filter(email=email):
+            # Handle case where contact is already in db
+            if existing_contact := Contact.objects.filter(email=email).first():
+                if existing_contact not in project.contacts.all():
+                    project.contacts.add(existing_contact)
                 continue
 
             contact_data = {

@@ -42,15 +42,22 @@ class Publication(TimestampedModel):
         """Creates a list of publication objects and saves them."""
         publications = []
 
-        keys = ["citation_doi", "citation"]
-        for doi, citation in utils.get_csv_zipped_values(
-            project_data, *keys, model_name=cls.__name__
-        ):
+        try:
+            zipped_publication_details = utils.get_csv_zipped_values(
+                project_data, "citation_doi", "citation"
+            )
+        except Exception:
+            logger.error("Unable to add ambiguous publications.")
+            raise
+
+        for doi, citation in zipped_publication_details:
             if doi in common.IGNORED_INPUT_VALUES:
                 continue
 
-            # Skip if already in db
-            if Publication.objects.filter(doi=doi):
+            # Handle case where contact is already in db
+            if existing_publication := Publication.objects.filter(doi=doi).first():
+                if existing_publication not in project.publications.all():
+                    project.publications.add(existing_publication)
                 continue
 
             publication_data = {

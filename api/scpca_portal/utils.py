@@ -1,7 +1,7 @@
 """Misc utils."""
 import csv
 from datetime import datetime
-from typing import Dict, Iterable, List, Set
+from typing import Dict, List, Set
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -88,23 +88,10 @@ def get_csv_zipped_values(
     data: Dict,
     *args: str,
     delimiter: str = common.CSV_MULTI_VALUE_DELIMITER,
-    model_name: str = None,
-) -> Iterable:
+) -> List:
     """
     Splits a collection of concatenated strings into new iterables,
     zips together the values within the new iterables which share the same index,
-    and returns the zipped values.
+    and returns the zipped values as a list.
     """
-    zipped_values = []
-
-    try:
-        zipped_values = zip(*(data.get(key).split(delimiter) for key in args), strict=True)
-    except ValueError:
-        if model_name:
-            logger.error(
-                f"Zip Error: iterables of non-equal lengths, unable to add {model_name} objects."
-            )
-        else:
-            logger.error(ValueError)
-
-    return zipped_values
+    return list(zip(*(data.get(key).split(delimiter) for key in args), strict=True))

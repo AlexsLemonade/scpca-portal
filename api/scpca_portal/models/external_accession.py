@@ -37,15 +37,25 @@ class ExternalAccession(TimestampedModel):
         """Creates a list of external accession objects and saves them."""
         external_accessions = []
 
-        keys = ["external_accession", "external_accession_raw", "external_accession_url"]
-        for accession, has_raw, url in utils.get_csv_zipped_values(
-            project_data, *keys, model_name=cls.__name__
-        ):
+        try:
+            zipped_external_accession_details = utils.get_csv_zipped_values(
+                project_data,
+                "external_accession",
+                "external_accession_raw",
+                "external_accession_url",
+            )
+        except Exception:
+            logger.error("Unable to add ambiguous external accessions.")
+            raise
+
+        for accession, has_raw, url in zipped_external_accession_details:
             if accession in common.IGNORED_INPUT_VALUES:
                 continue
 
-            # Skip if already in db
-            if ExternalAccession.objects.filter(accession=accession):
+            # Handle case where external accession is already in db
+            if existing_accession := ExternalAccession.objects.filter(accession=accession).first():
+                if existing_accession not in project.external_accessions.all():
+                    project.external_accessions.add(existing_accession)
                 continue
 
             external_accession_data = {
