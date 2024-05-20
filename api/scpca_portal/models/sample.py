@@ -277,8 +277,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         def create_sample_computed_file(future):
             computed_file, sample_to_files_mapping = future.result()
             if computed_file:
-                # Save computed file with public attribute defaulted to False
-                computed_file.save()
                 computed_file.process_computed_file(clean_up_output_data, update_s3)
 
             modality = (

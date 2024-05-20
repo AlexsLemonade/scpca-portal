@@ -21,9 +21,6 @@ from scpca_portal.models.sample import Sample
 
 logger = logging.getLogger()
 
-IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
-STRIPPED_INPUT_VALUES = "< >"
-
 
 class Project(CommonDataAttributes, TimestampedModel):
     class Meta:
@@ -206,71 +203,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         sample_metadata["project_title"] = self.title
         sample_metadata["scpca_project_id"] = self.scpca_id
 
-    def add_contacts(self, contact_email, contact_name):
-        """Creates and adds project contacts."""
-        emails = contact_email.split(common.CSV_MULTI_VALUE_DELIMITER)
-        names = contact_name.split(common.CSV_MULTI_VALUE_DELIMITER)
-
-        if len(emails) != len(names):
-            logger.error("Unable to add ambiguous contacts.")
-            return
-
-        for idx, email in enumerate(emails):
-            if email in IGNORED_INPUT_VALUES:
-                continue
-
-            contact, _ = Contact.objects.get_or_create(email=email.lower().strip())
-            contact.name = names[idx].strip()
-            contact.submitter_id = self.pi_name
-            contact.save()
-
-            self.contacts.add(contact)
-
-    def add_external_accessions(
-        self, external_accession, external_accession_url, external_accession_raw
-    ):
-        """Creates and adds project external accessions."""
-        accessions = external_accession.split(common.CSV_MULTI_VALUE_DELIMITER)
-        urls = external_accession_url.split(common.CSV_MULTI_VALUE_DELIMITER)
-        accessions_raw = external_accession_raw.split(common.CSV_MULTI_VALUE_DELIMITER)
-
-        if len(set((len(accessions), len(urls), len(accessions_raw)))) != 1:
-            logger.error("Unable to add ambiguous external accessions.")
-            return
-
-        for idx, accession in enumerate(accessions):
-            if accession in IGNORED_INPUT_VALUES:
-                continue
-
-            external_accession, _ = ExternalAccession.objects.get_or_create(
-                accession=accession.strip()
-            )
-            external_accession.url = urls[idx].strip(STRIPPED_INPUT_VALUES)
-            external_accession.has_raw = utils.boolean_from_string(accessions_raw[idx].strip())
-            external_accession.save()
-
-            self.external_accessions.add(external_accession)
-
-    def add_publications(self, citation, citation_doi):
-        """Creates and adds project publications."""
-        citations = citation.split(common.CSV_MULTI_VALUE_DELIMITER)
-        dois = citation_doi.split(common.CSV_MULTI_VALUE_DELIMITER)
-
-        if len(citations) != len(dois):
-            logger.error("Unable to add ambiguous publications.")
-            return
-
-        for idx, doi in enumerate(dois):
-            if doi in IGNORED_INPUT_VALUES:
-                continue
-
-            publication, _ = Publication.objects.get_or_create(doi=doi.strip())
-            publication.citation = citations[idx].strip(STRIPPED_INPUT_VALUES)
-            publication.submitter_id = self.pi_name
-            publication.save()
-
-            self.publications.add(publication)
-
     def create_anndata_readme_file(self):
         """Creates an annotation metadata README file."""
         with open(ComputedFile.README_ANNDATA_FILE_PATH, "w") as readme_file:
@@ -374,8 +306,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         def create_project_computed_file(future):
             computed_file = future.result()
             if computed_file:
-                # Save computed file with public attribute defaulted to False
-                computed_file.save()
                 computed_file.process_computed_file(clean_up_output_data, update_s3)
 
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
@@ -391,12 +321,13 @@ class Project(CommonDataAttributes, TimestampedModel):
                     file_format,
                 ).add_done_callback(create_project_computed_file)
 
-                if file_mappings_by_format[file_format].get(Sample.Modalities.MULTIPLEXED):
+                if multiplexed_file_mapping := file_mappings_by_format[file_format].get(
+                    Sample.Modalities.MULTIPLEXED
+                ):
                     # We want a single ZIP archive for a multiplexed samples project.
-                    file_mappings_by_format[file_format].get(Sample.Modalities.MULTIPLEXED).update(
+                    multiplexed_file_mapping.update(
                         file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL)
                     )
-
                     tasks.submit(
                         ComputedFile.get_project_multiplexed_file,
                         self,
@@ -405,25 +336,54 @@ class Project(CommonDataAttributes, TimestampedModel):
                         file_format,
                     ).add_done_callback(create_project_computed_file)
 
-                if file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL):
+                if single_cell_file_mapping := file_mappings_by_format[file_format].get(
+                    Sample.Modalities.SINGLE_CELL
+                ):
                     tasks.submit(
                         ComputedFile.get_project_single_cell_file,
                         self,
-                        file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL),
+                        single_cell_file_mapping,
                         workflow_versions_by_modality[Sample.Modalities.SINGLE_CELL],
                         file_format,
                     ).add_done_callback(create_project_computed_file)
 
-                if file_mappings_by_format[file_format].get(Sample.Modalities.SPATIAL):
+                if spatial_file_mapping := file_mappings_by_format[file_format].get(
+                    Sample.Modalities.SPATIAL
+                ):
                     tasks.submit(
                         ComputedFile.get_project_spatial_file,
                         self,
-                        file_mappings_by_format[file_format].get(Sample.Modalities.SPATIAL),
+                        spatial_file_mapping,
                         workflow_versions_by_modality[Sample.Modalities.SPATIAL],
                         file_format,
                     ).add_done_callback(create_project_computed_file)
 
         self.update_downloadable_sample_count()
+
+    @classmethod
+    def get_from_dict(cls, data: Dict):
+        project = cls(
+            scpca_id=data.pop("scpca_project_id"),
+        )
+
+        # Massage keys
+        data["has_bulk_rna_seq"] = data.pop("has_bulk", False)
+        data["has_cite_seq_data"] = data.pop("has_CITE", False)
+        data["has_multiplexed_data"] = data.pop("has_multiplex", False)
+        data["has_spatial_data"] = data.pop("has_spatial", False)
+        data["human_readable_pi_name"] = data.pop("PI", None)
+        data["pi_name"] = data.pop("submitter", None)
+        data["title"] = data.pop("project_title", None)
+
+        # Assign values to remaining properties
+        for key in data.keys():
+            if hasattr(project, key):
+                if key.startswith("includes_") or key.startswith("has_"):
+                    setattr(project, key, utils.boolean_from_string(data.get(key, False)))
+                else:
+                    setattr(project, key, data.get(key))
+
+        return project
 
     def get_bulk_rna_seq_sample_ids(self):
         """Returns set of bulk RNA sequencing sample IDs."""
@@ -815,7 +775,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Returns an input data directory based on a sample ID."""
         return self.input_data_path / sample_scpca_id
 
-    def load_data(self, sample_id=None, **kwargs) -> None:
+    def load_data(self, sample_id: str = None, **kwargs) -> None:
         """
         Goes through a project directory's contents, parses multiple level metadata
         files, writes combined metadata into resulting files.

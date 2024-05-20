@@ -162,3 +162,45 @@ class TestWriteDictsToFile(TestCase):
             utils.write_dicts_to_file(
                 self.dummy_list_of_dicts, invalid_output_file, fieldnames=self.dummy_field_names
             )
+
+
+class TestGetCsvZippedValues(TestCase):
+    def test_get_csv_zipped_values_same_length_values(self):
+        data = {
+            "country": "USA;Spain;France;Japan",
+            "language": "English;Spanish;French;Japanese",
+            "capital": "Washington DC;Madrid;Paris;Tokyo",
+        }
+        args = ["country", "language", "capital"]
+
+        expected_result = [
+            ("USA", "English", "Washington DC"),
+            ("Spain", "Spanish", "Madrid"),
+            ("France", "French", "Paris"),
+            ("Japan", "Japanese", "Tokyo"),
+        ]
+        actual_result = utils.get_csv_zipped_values(data, *args)
+
+        self.assertEqual(expected_result, actual_result)
+
+    def test_get_csv_zipped_value_different_length_values(self):
+        data = {
+            "country": "USA;Spain;France;Japan",
+            "language": "English;Spanish;French;Japanese",
+            "capital": "Washington DC;Madrid",
+        }
+        args = ["country", "language", "capital"]
+
+        with self.assertRaises(ValueError):
+            utils.get_csv_zipped_values(data, *args)
+
+    def test_get_csv_zipped_values_keys_not_present(self):
+        data = {
+            "country": "USA;Spain;France;Japan",
+            "language": "English;Spanish;French;Japanese",
+            "capital": "Washington DC;Madrid;Paris;Tokyo",
+        }
+        args = ["country", "language", "population", "currency"]
+
+        with self.assertRaises(AttributeError):
+            utils.get_csv_zipped_values(data, *args)
