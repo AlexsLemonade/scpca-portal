@@ -86,7 +86,7 @@ def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwar
 
 def get_csv_zipped_values(
     data: Dict,
-    *args: str,
+    *args: List[str],
     delimiter: str = common.CSV_MULTI_VALUE_DELIMITER,
 ) -> List:
     """
