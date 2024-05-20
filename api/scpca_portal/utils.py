@@ -4,6 +4,9 @@ from datetime import datetime
 from typing import Dict, List, Set
 
 from scpca_portal import common
+from scpca_portal.config.logging import get_and_configure_logger
+
+logger = get_and_configure_logger(__name__)
 
 
 def boolean_from_string(value: str) -> bool:
@@ -75,3 +78,16 @@ def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwar
         csv_writer = csv.DictWriter(raw_file, **kwargs)
         csv_writer.writeheader()
         csv_writer.writerows(list_of_dicts)
+
+
+def get_csv_zipped_values(
+    data: Dict,
+    *args: List[str],
+    delimiter: str = common.CSV_MULTI_VALUE_DELIMITER,
+) -> List:
+    """
+    Splits a collection of concatenated strings into new iterables,
+    zips together the values within the new iterables which share the same index,
+    and returns the zipped values as a list.
+    """
+    return list(zip(*(data.get(key).split(delimiter) for key in args), strict=True))
