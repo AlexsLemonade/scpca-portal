@@ -1,11 +1,17 @@
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, utils
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
+
+logger = get_and_configure_logger(__name__)
 
 
 class Sample(CommonDataAttributes, TimestampedModel):
@@ -233,3 +239,135 @@ class Sample(CommonDataAttributes, TimestampedModel):
         if self.includes_anndata:
             file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
         return file_formats
+
+    @staticmethod
+    def create_sample_computed_files(
+        combined_metadata,
+        project,
+        non_downloadable_sample_ids,
+        multiplexed_library_path_mapping,
+        max_workers=8,  # 8 = 2 file formats * 4 mappings.
+        clean_up_output_data=True,
+        update_s3=False,
+        sample_id=None,
+    ):
+        """
+        Generate computed files for each file format & modality within a given project's sample set.
+        Populate file mappings for each sample's computed files,
+        to be used when later generating the project zip.
+        """
+
+        # Organize zipfile locations by file format, then by modality
+        # This data structure is needed to build the project zip in create_project_computed_files
+        file_mappings_by_format = {
+            ComputedFile.OutputFileFormats.ANN_DATA: {Sample.Modalities.SINGLE_CELL: {}},
+            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {
+                Sample.Modalities.SINGLE_CELL: {},
+                Sample.Modalities.SPATIAL: {},
+                Sample.Modalities.MULTIPLEXED: {},
+            },
+        }
+
+        workflow_versions_by_modality = {
+            Sample.Modalities.SINGLE_CELL: set(),
+            Sample.Modalities.SPATIAL: set(),
+            Sample.Modalities.MULTIPLEXED: set(),
+        }
+
+        def create_sample_computed_file(future):
+            computed_file, sample_to_files_mapping = future.result()
+            if computed_file:
+                computed_file.process_computed_file(clean_up_output_data, update_s3)
+
+            modality = (
+                computed_file.modality
+                if not computed_file.sample.has_multiplexed_data
+                else Sample.Modalities.MULTIPLEXED
+            )
+            file_format = computed_file.format
+            file_mappings_by_format[file_format][modality].update(sample_to_files_mapping)
+
+        samples = (
+            Sample.objects.filter(project__scpca_id=project.scpca_id)
+            if sample_id is None
+            else Sample.objects.filter(scpca_id=sample_id)
+        )
+        samples_count = len(samples)
+        logger.info(
+            f"Processing {samples_count} sample{pluralize(samples_count)} using "
+            f"{max_workers} worker{pluralize(max_workers)}"
+        )
+
+        # Prepare a threading.Lock for each multiplexed sample that shares a zip file.
+        # The keys are the sample.multiplexed_ids since that will be unique across shared zip files.
+        multiplexed_ids = set(
+            ["_".join(s.multiplexed_ids) for s in samples if s.has_multiplexed_data]
+        )
+        locks = {multiplexed_ids: Lock() for multiplexed_ids in multiplexed_ids}
+
+        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
+            for sample in samples:
+                # Skip computed files creation if sample directory does not exist.
+                if sample.scpca_id not in non_downloadable_sample_ids:
+                    libraries = [
+                        library
+                        for library in combined_metadata[Sample.Modalities.SINGLE_CELL]
+                        if library["scpca_sample_id"] == sample.scpca_id
+                    ]
+                    workflow_versions = [library["workflow_version"] for library in libraries]
+                    workflow_versions_by_modality[Sample.Modalities.SINGLE_CELL].update(
+                        workflow_versions
+                    )
+
+                    for file_format in sample.single_cell_file_formats:
+                        tasks.submit(
+                            ComputedFile.get_sample_single_cell_file,
+                            sample,
+                            libraries,
+                            workflow_versions,
+                            file_format,
+                        ).add_done_callback(create_sample_computed_file)
+
+                    if sample.has_spatial_data:
+                        libraries = [
+                            library
+                            for library in combined_metadata[Sample.Modalities.SPATIAL]
+                            if library["scpca_sample_id"] == sample.scpca_id
+                        ]
+                        workflow_versions = [library["workflow_version"] for library in libraries]
+                        workflow_versions_by_modality[Sample.Modalities.SPATIAL].update(
+                            workflow_versions
+                        )
+                        tasks.submit(
+                            ComputedFile.get_sample_spatial_file,
+                            sample,
+                            libraries,
+                            workflow_versions,
+                            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                        ).add_done_callback(create_sample_computed_file)
+
+                if sample.has_multiplexed_data:
+                    libraries = [
+                        library
+                        for library in combined_metadata[Sample.Modalities.MULTIPLEXED]
+                        if library.get("scpca_sample_id") == sample.scpca_id
+                    ]
+                    workflow_versions = [library["workflow_version"] for library in libraries]
+                    workflow_versions_by_modality[Sample.Modalities.MULTIPLEXED].update(
+                        workflow_versions
+                    )
+
+                    # Get the lock for current sample.
+                    sample_lock = locks["_".join(sample.multiplexed_ids)]
+
+                    tasks.submit(
+                        ComputedFile.get_sample_multiplexed_file,
+                        sample,
+                        libraries,
+                        multiplexed_library_path_mapping,
+                        workflow_versions,
+                        ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+                        lock=sample_lock,
+                    ).add_done_callback(create_sample_computed_file)
+
+        return (file_mappings_by_format, workflow_versions_by_modality)

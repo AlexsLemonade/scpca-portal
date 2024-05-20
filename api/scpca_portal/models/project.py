@@ -4,12 +4,10 @@ import logging
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from threading import Lock
 from typing import Dict, List, Set
 
 from django.contrib.postgres.fields import ArrayField
-from django.db import connection, models
-from django.template.defaultfilters import pluralize
+from django.db import models
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils
@@ -205,25 +203,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         sample_metadata["project_title"] = self.title
         sample_metadata["scpca_project_id"] = self.scpca_id
 
-    @staticmethod
-    def process_computed_file(computed_file, clean_up_output_data, update_s3):
-        """Processes saving, upload and cleanup of a single computed file."""
-        logger.info(f"Processing {computed_file}")
-
-        computed_file.save()
-        if update_s3:
-            logger.info(f"Uploading {computed_file}")
-            computed_file.create_s3_file()
-
-        # Don't clean up multiplexed sample zips until the project is done
-        is_multiplexed_sample = computed_file.sample and computed_file.sample.has_multiplexed_data
-
-        if clean_up_output_data and not is_multiplexed_sample:
-            computed_file.zip_file_path.unlink(missing_ok=True)
-
-        # Close DB connection for each thread.
-        connection.close()
-
     def create_anndata_readme_file(self):
         """Creates an annotation metadata README file."""
         with open(ComputedFile.README_ANNDATA_FILE_PATH, "w") as readme_file:
@@ -314,24 +293,20 @@ class Project(CommonDataAttributes, TimestampedModel):
                 ).strip()
             )
 
-    def create_computed_files(
+    def create_project_computed_files(
         self,
-        single_cell_file_mapping,
-        single_cell_workflow_versions,
-        spatial_file_mapping,
-        spatial_workflow_versions,
-        multiplexed_file_mapping,
-        multiplexed_workflow_versions,
+        file_mappings_by_format,
+        workflow_versions_by_modality,
         max_workers=8,  # 8 = 2 file formats * 4 mappings.
         clean_up_output_data=True,
         update_s3=False,
     ):
         """Prepares ready for saving project computed files based on generated file mappings."""
 
-        def create_computed_file(future):
+        def create_project_computed_file(future):
             computed_file = future.result()
             if computed_file:
-                self.process_computed_file(computed_file, clean_up_output_data, update_s3)
+                computed_file.process_computed_file(clean_up_output_data, update_s3)
 
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for file_format in (
@@ -341,37 +316,47 @@ class Project(CommonDataAttributes, TimestampedModel):
                 tasks.submit(
                     ComputedFile.get_project_merged_file,
                     self,
-                    single_cell_file_mapping,
-                    single_cell_workflow_versions,
+                    file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL),
+                    workflow_versions_by_modality.get(Sample.Modalities.SINGLE_CELL),
                     file_format,
-                ).add_done_callback(create_computed_file)
+                ).add_done_callback(create_project_computed_file)
 
-                if multiplexed_file_mapping.get(file_format):
+                if multiplexed_file_mapping := file_mappings_by_format[file_format].get(
+                    Sample.Modalities.MULTIPLEXED
+                ):
+                    # We want a single ZIP archive for a multiplexed samples project.
+                    multiplexed_file_mapping.update(
+                        file_mappings_by_format[file_format].get(Sample.Modalities.SINGLE_CELL)
+                    )
                     tasks.submit(
                         ComputedFile.get_project_multiplexed_file,
                         self,
-                        multiplexed_file_mapping,
-                        multiplexed_workflow_versions,
+                        file_mappings_by_format[file_format].get(Sample.Modalities.MULTIPLEXED),
+                        workflow_versions_by_modality[Sample.Modalities.MULTIPLEXED],
                         file_format,
-                    ).add_done_callback(create_computed_file)
+                    ).add_done_callback(create_project_computed_file)
 
-                if single_cell_file_mapping.get(file_format):
+                if single_cell_file_mapping := file_mappings_by_format[file_format].get(
+                    Sample.Modalities.SINGLE_CELL
+                ):
                     tasks.submit(
                         ComputedFile.get_project_single_cell_file,
                         self,
                         single_cell_file_mapping,
-                        single_cell_workflow_versions,
+                        workflow_versions_by_modality[Sample.Modalities.SINGLE_CELL],
                         file_format,
-                    ).add_done_callback(create_computed_file)
+                    ).add_done_callback(create_project_computed_file)
 
-                if spatial_file_mapping.get(file_format):
+                if spatial_file_mapping := file_mappings_by_format[file_format].get(
+                    Sample.Modalities.SPATIAL
+                ):
                     tasks.submit(
                         ComputedFile.get_project_spatial_file,
                         self,
                         spatial_file_mapping,
-                        spatial_workflow_versions,
+                        workflow_versions_by_modality[Sample.Modalities.SPATIAL],
                         file_format,
-                    ).add_done_callback(create_computed_file)
+                    ).add_done_callback(create_project_computed_file)
 
     @classmethod
     def get_from_dict(cls, data: Dict):
@@ -806,150 +791,23 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         self.write_combined_metadata_libraries(combined_metadata)
 
-        multiplexed_file_mapping = {
-            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
-        }
-        multiplexed_workflow_versions = set()
-        single_cell_file_mapping = {
-            ComputedFile.OutputFileFormats.ANN_DATA: {},
-            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
-        }
-        single_cell_workflow_versions = set()
-        spatial_file_mapping = {
-            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {},
-        }
-        spatial_workflow_versions = set()
-
-        def update_ann_data(future):
-            computed_file, metadata_files = future.result()
-            single_cell_file_mapping[ComputedFile.OutputFileFormats.ANN_DATA].update(metadata_files)
-            self.process_computed_file(
-                computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
-            )
-
-        def update_multiplexed_data(future):
-            computed_file, metadata_files = future.result()
-            multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
-                metadata_files
-            )
-            self.process_computed_file(
-                computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
-            )
-
-        def update_single_cell_data(future):
-            computed_file, metadata_files = future.result()
-            single_cell_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
-                metadata_files
-            )
-            self.process_computed_file(
-                computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
-            )
-
-        def update_spatial_data(future):
-            computed_file, metadata_files = future.result()
-            spatial_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
-                metadata_files
-            )
-            self.process_computed_file(
-                computed_file, kwargs["clean_up_output_data"], kwargs["update_s3"]
-            )
-
-        non_downloadable_sample_ids = self.get_non_downloadable_sample_ids()
-        max_workers = kwargs["max_workers"]
-
-        samples = (
-            Sample.objects.filter(project__scpca_id=self.scpca_id)
-            if sample_id is None
-            else Sample.objects.filter(scpca_id=sample_id)
-        )
-        samples_count = len(samples)
-        logger.info(
-            f"Processing {samples_count} sample{pluralize(samples_count)} using "
-            f"{max_workers} worker{pluralize(max_workers)}"
+        (
+            file_mappings_by_format,
+            workflow_versions_by_modality,
+        ) = Sample.create_sample_computed_files(
+            combined_metadata,
+            self,
+            self.get_non_downloadable_sample_ids(),
+            self.get_multiplexed_library_path_mapping(),
+            kwargs["max_workers"],
+            kwargs["clean_up_output_data"],
+            kwargs["update_s3"],
+            sample_id=sample_id,
         )
 
-        # Prepare a threading.Lock for each multiplexed sample that shares a zip file.
-        # The keys are the sample.multiplexed_ids since that will be unique across shared zip files.
-        multiplexed_ids = set(
-            ["_".join(s.multiplexed_ids) for s in samples if s.has_multiplexed_data]
-        )
-        locks = {multiplexed_ids: Lock() for multiplexed_ids in multiplexed_ids}
-
-        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            for sample in samples:
-                # Skip computed files creation if sample directory does not exist.
-                if sample.scpca_id not in non_downloadable_sample_ids:
-                    libraries = [
-                        library
-                        for library in combined_metadata[Sample.Modalities.SINGLE_CELL]
-                        if library["scpca_sample_id"] == sample.scpca_id
-                    ]
-                    workflow_versions = [library["workflow_version"] for library in libraries]
-                    single_cell_workflow_versions.update(workflow_versions)
-
-                    for file_format in sample.single_cell_file_formats:
-                        tasks.submit(
-                            ComputedFile.get_sample_single_cell_file,
-                            sample,
-                            libraries,
-                            workflow_versions,
-                            file_format,
-                        ).add_done_callback(
-                            update_single_cell_data
-                            if file_format == ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
-                            else update_ann_data
-                        )
-
-                    if sample.has_spatial_data:
-                        libraries = [
-                            library
-                            for library in combined_metadata[Sample.Modalities.SPATIAL]
-                            if library["scpca_sample_id"] == sample.scpca_id
-                        ]
-                        workflow_versions = [library["workflow_version"] for library in libraries]
-                        spatial_workflow_versions.update(workflow_versions)
-                        tasks.submit(
-                            ComputedFile.get_sample_spatial_file,
-                            sample,
-                            libraries,
-                            workflow_versions,
-                            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                        ).add_done_callback(update_spatial_data)
-
-                if sample.has_multiplexed_data:
-                    libraries = [
-                        library
-                        for library in combined_metadata[Sample.Modalities.MULTIPLEXED]
-                        if library.get("scpca_sample_id") == sample.scpca_id
-                    ]
-                    workflow_versions = [library["workflow_version"] for library in libraries]
-                    multiplexed_workflow_versions.update(workflow_versions)
-
-                    # Get the lock for current sample.
-                    sample_lock = locks["_".join(sample.multiplexed_ids)]
-
-                    tasks.submit(
-                        ComputedFile.get_sample_multiplexed_file,
-                        sample,
-                        libraries,
-                        self.get_multiplexed_library_path_mapping(),
-                        workflow_versions,
-                        ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                        lock=sample_lock,
-                    ).add_done_callback(update_multiplexed_data)
-
-        if multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]:
-            # We want a single ZIP archive for a multiplexed samples project.
-            multiplexed_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT].update(
-                single_cell_file_mapping[ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT]
-            )
-        self.create_computed_files(
-            single_cell_file_mapping,
-            single_cell_workflow_versions,
-            spatial_file_mapping,
-            spatial_workflow_versions,
-            multiplexed_file_mapping,
-            multiplexed_workflow_versions,
+        self.create_project_computed_files(
+            file_mappings_by_format,
+            workflow_versions_by_modality,
             clean_up_output_data=kwargs["clean_up_output_data"],
             update_s3=kwargs["update_s3"],
         )

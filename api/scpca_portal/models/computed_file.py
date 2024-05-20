@@ -4,7 +4,7 @@ from threading import Lock
 from zipfile import ZipFile
 
 from django.conf import settings
-from django.db import models
+from django.db import connection, models
 
 import boto3
 from botocore.client import Config
@@ -162,7 +162,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             for src, dst in project_file_mapping.items():
                 zip_file.write(src, dst)
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
                     if str(file_path).split("_")[-1] not in sample_file_suffixes:
                         continue
@@ -199,7 +199,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 project.output_multiplexed_metadata_file_path, computed_file.metadata_file_name
             )
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
                     # Nest these under their sample id.
                     zip_file.write(file_path, Path(sample_id, file_path.name))
@@ -244,7 +244,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 project.output_single_cell_metadata_file_path, computed_file.metadata_file_name
             )
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
                     # Nest these under their sample id.
                     zip_file.write(file_path, Path(sample_id, file_path.name))
@@ -283,7 +283,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 project.output_spatial_metadata_file_path, computed_file.metadata_file_name
             )
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 sample_path = project.get_sample_input_data_dir(sample_id)
                 for file_path in file_paths:
                     zip_file.write(file_path, Path(file_path).relative_to(sample_path))
@@ -432,10 +432,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     else common_file_suffixes
                 )
                 for file_suffix in file_suffixes:
+                    file_folder = sample.project.get_sample_input_data_dir(sample.scpca_id)
                     file_name = f"{library['scpca_library_id']}_{file_suffix}"
-                    file_path = (
-                        sample.project.get_sample_input_data_dir(sample.scpca_id) / file_name
-                    )
+                    file_path = file_folder / file_name
                     file_paths.append(file_path)
                     zip_file.write(file_path, file_name)
 
@@ -540,8 +539,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
             )
 
-    def create_s3_file(self):
+    def upload_s3_file(self):
         """Uploads the computed file to S3 using AWS CLI tool."""
+
+        logger.info(f"Uploading {self}")
         subprocess.check_call(
             (
                 "aws",
@@ -569,3 +570,18 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return False
 
         return True
+
+    def process_computed_file(self, clean_up_output_data, update_s3):
+        """Processes saving, upload and cleanup of a single computed file."""
+        self.save()
+        if update_s3:
+            self.upload_s3_file()
+
+        # Don't clean up multiplexed sample zips until the project is done
+        is_multiplexed_sample = self.sample and self.sample.has_multiplexed_data
+
+        if clean_up_output_data and not is_multiplexed_sample:
+            self.zip_file_path.unlink(missing_ok=True)
+
+        # Close DB connection for each thread.
+        connection.close()
