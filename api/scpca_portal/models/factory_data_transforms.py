@@ -11,3 +11,9 @@ def project_data_transform(data: Dict) -> Dict:
     data["title"] = data.pop("project_title", None)
 
     return data
+
+
+def sample_data_transform(data: Dict) -> Dict:
+    data["age_at_diagnosis"] = data.pop("age")
+
+    return data

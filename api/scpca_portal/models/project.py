@@ -15,6 +15,7 @@ from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
+from scpca_portal.models.factory_data_transforms import sample_data_transform
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
@@ -834,7 +835,9 @@ class Project(CommonDataAttributes, TimestampedModel):
     def load_samples_metadata(self) -> List[Dict]:
         # Start with a list of samples and their metadata.
         with open(self.input_samples_metadata_file_path) as samples_csv_file:
-            samples_metadata = [sample for sample in csv.DictReader(samples_csv_file)]
+            samples_metadata = [
+                sample_data_transform(sample) for sample in csv.DictReader(samples_csv_file)
+            ]
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
         demux_sample_ids = self.get_demux_sample_ids()
@@ -846,9 +849,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_path = Path(self.get_sample_input_data_dir(sample_id))
 
             self.add_project_metadata(sample_metadata)
-
-            # Rename attribute
-            sample_metadata["age_at_diagnosis"] = sample_metadata.pop("age")
 
             sample_metadata.update(
                 {
