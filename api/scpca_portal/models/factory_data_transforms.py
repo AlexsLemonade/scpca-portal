@@ -17,3 +17,13 @@ def sample_data_transform(data: Dict) -> Dict:
     data["age_at_diagnosis"] = data.pop("age")
 
     return data
+
+
+def library_data_transform(data: Dict) -> Dict:
+    data["scpca_library_id"] = data.pop("library_id")
+    data["scpca_sample_id"] = data.pop("sample_id")
+
+    if "filtered_cells" in data:
+        data["filtered_cell_count"] = data.pop("filtered_cells")
+
+    return data

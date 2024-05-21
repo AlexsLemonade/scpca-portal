@@ -15,7 +15,10 @@ from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
-from scpca_portal.models.factory_data_transforms import sample_data_transform
+from scpca_portal.models.factory_data_transforms import (
+    library_data_transform,
+    sample_data_transform,
+)
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
@@ -891,13 +894,9 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
             for filename_path in library_metadata_paths:
                 with open(filename_path) as library_metadata_json_file:
-                    library_json = json.load(library_metadata_json_file)
+                    library_json = library_data_transform(json.load(library_metadata_json_file))
 
-                library_json["scpca_library_id"] = library_json.pop("library_id")
-                library_json["scpca_sample_id"] = library_json.pop("sample_id")
-
-                if "filtered_cells" in library_json:
-                    library_json["filtered_cell_count"] = library_json.pop("filtered_cells")
+                if "filtered_cell_count" in library_json:
                     sample_cell_count_estimate += library_json["filtered_cell_count"]
 
                 sample_seq_units.add(library_json["seq_unit"].strip())
