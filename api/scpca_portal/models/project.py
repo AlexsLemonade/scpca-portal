@@ -366,15 +366,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             scpca_id=data.pop("scpca_project_id"),
         )
 
-        # Massage keys
-        data["has_bulk_rna_seq"] = data.pop("has_bulk", False)
-        data["has_cite_seq_data"] = data.pop("has_CITE", False)
-        data["has_multiplexed_data"] = data.pop("has_multiplex", False)
-        data["has_spatial_data"] = data.pop("has_spatial", False)
-        data["human_readable_pi_name"] = data.pop("PI", None)
-        data["pi_name"] = data.pop("submitter", None)
-        data["title"] = data.pop("project_title", None)
-
         # Assign values to remaining properties
         for key in data.keys():
             if hasattr(project, key):

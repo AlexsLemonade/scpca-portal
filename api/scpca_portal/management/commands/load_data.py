@@ -14,6 +14,7 @@ from botocore.client import Config
 
 from scpca_portal import common
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
+from scpca_portal.models.factory_data_transforms import project_data_transform
 
 ALLOWED_SUBMITTERS = {
     "christensen",
@@ -177,7 +178,10 @@ class Command(BaseCommand):
         }
 
         with open(Project.get_input_project_metadata_file_path()) as project_csv:
-            project_list = list(csv.DictReader(project_csv))
+            project_list = [
+                project_data_transform(project_data)
+                for project_data in list(csv.DictReader(project_csv))
+            ]
 
         for project_data in project_list:
             scpca_project_id = project_data["scpca_project_id"]
@@ -190,8 +194,8 @@ class Command(BaseCommand):
                 )
                 return
 
-            if project_data["submitter"] not in allowed_submitters:
-                logger.warning("Project submitter  is not the white list.")
+            if project_data["pi_name"] not in allowed_submitters:
+                logger.warning("Project submitter is not the white list.")
                 continue
 
             if project := Project.objects.filter(scpca_id=scpca_project_id).first():
