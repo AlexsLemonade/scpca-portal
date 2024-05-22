@@ -15,13 +15,10 @@ from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
-from scpca_portal.models.factory_data_transforms import (
-    library_data_transform,
-    sample_data_transform,
-)
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
+from scpca_portal.transforms import transform_keys
 
 logger = logging.getLogger()
 
@@ -839,7 +836,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Start with a list of samples and their metadata.
         with open(self.input_samples_metadata_file_path) as samples_csv_file:
             samples_metadata = [
-                sample_data_transform(sample) for sample in csv.DictReader(samples_csv_file)
+                transform_keys(Sample, sample) for sample in csv.DictReader(samples_csv_file)
             ]
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
@@ -894,7 +891,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
             for filename_path in library_metadata_paths:
                 with open(filename_path) as library_metadata_json_file:
-                    library_json = library_data_transform(json.load(library_metadata_json_file))
+                    library_json = transform_keys(Sample, json.load(library_metadata_json_file))
 
                 if "filtered_cell_count" in library_json:
                     sample_cell_count_estimate += library_json["filtered_cell_count"]
