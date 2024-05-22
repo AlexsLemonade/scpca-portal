@@ -29,11 +29,15 @@ class Library(CommonDataAttributes, TimestampedModel):
             (SPATIAL, "Spatial"),
         )
 
+    dir_path = models.FilePathField(path=common.INPUT_DATA_PATH, recursive=True, allow_folders=True)
     format = models.TextField(choices=FileFormats.CHOICES)
     is_multiplexed = models.BooleanField(default=False)
     modality = models.TextField(choices=Modalities.CHOICES)
-    path = models.FilePathField(path=common.INPUT_DATA_PATH, recursive=True)
-    seq_unit = models.TextField(blank=True, null=True)
-    technology = models.TextField()
+    scpca_id = models.TextField(unique=True)
+    seq_unit = models.TextField(null=True)
+    technology = models.TextField(null=True)
+
+    filtered_cell_count = models.IntegerField(null=True)
+    multiplexed_cell_count_estimate = models.IntegerField(null=True)
 
     samples = models.ManyToManyField(Sample)
