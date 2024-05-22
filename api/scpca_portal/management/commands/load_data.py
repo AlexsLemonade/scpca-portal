@@ -139,8 +139,8 @@ class Command(BaseCommand):
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
 
-    def clean_up_input_data(self):
-        shutil.rmtree(common.INPUT_DATA_PATH / self.project.scpca_id, ignore_errors=True)
+    def clean_up_input_data(self, project):
+        shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
 
     def handle(self, *args, **kwargs):
         self.configure_aws_cli(**kwargs)
@@ -220,7 +220,7 @@ class Command(BaseCommand):
 
             if kwargs["clean_up_input_data"]:
                 logger.info(f"Cleaning up '{project}' input data")
-                self.clean_up_input_data()
+                self.clean_up_input_data(project)
 
             if kwargs["clean_up_output_data"]:
                 logger.info("Cleaning up output directory")
