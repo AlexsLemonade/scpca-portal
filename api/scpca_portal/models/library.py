@@ -35,6 +35,7 @@ class Library(TimestampedModel):
     )
     formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
     is_multiplexed = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict)
     modality = models.TextField(choices=Modalities.CHOICES)
     scpca_id = models.TextField(unique=True)
     workflow_version = models.TextField()
