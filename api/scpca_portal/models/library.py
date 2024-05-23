@@ -37,5 +37,6 @@ class Library(TimestampedModel):
     is_multiplexed = models.BooleanField(default=False)
     modality = models.TextField(choices=Modalities.CHOICES)
     scpca_id = models.TextField(unique=True)
+    workflow_version = models.TextField()
 
     samples = models.ManyToManyField(Sample)
