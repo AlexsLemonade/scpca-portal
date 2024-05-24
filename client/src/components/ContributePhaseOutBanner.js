@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Button, Heading, Paragraph } from 'grommet'
 import { WarningCard } from 'components/WarningCard'
-import { config } from 'config'
+import config from 'config'
 
 export const ContributePhaseOutBanner = () => (
   <WarningCard label="We are NOT currently accepting contributions">

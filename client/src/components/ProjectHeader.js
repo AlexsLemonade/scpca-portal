@@ -1,6 +1,6 @@
 import React from 'react'
 import { useResponsive } from 'hooks/useResponsive'
-import { config } from 'config'
+import config from 'config'
 import { Box, Grid, Text } from 'grommet'
 import { Badge } from 'components/Badge'
 import { DownloadModal } from 'components/DownloadModal'

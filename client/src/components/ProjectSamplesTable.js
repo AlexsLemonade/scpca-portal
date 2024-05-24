@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { api } from 'api'
-import { config } from 'config'
+import config from 'config'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { DownloadModal } from 'components/DownloadModal'

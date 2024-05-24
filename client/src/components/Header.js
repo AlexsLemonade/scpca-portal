@@ -6,7 +6,7 @@ import { Link } from 'components/Link'
 import Logo from 'components/Logo'
 import { ResponsiveSheet } from 'components/ResponsiveSheet'
 import { Menu } from 'grommet-icons'
-import { config } from 'config'
+import config from 'config'
 
 export const Header = ({ className, margin, donate = false }) => {
   const { size, responsive } = useResponsive()
