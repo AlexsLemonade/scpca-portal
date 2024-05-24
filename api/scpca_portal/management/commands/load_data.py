@@ -13,8 +13,8 @@ import boto3
 from botocore.client import Config
 
 from scpca_portal import common
+from scpca_portal.metadata_file import transform_keys
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
-from scpca_portal.transforms import transform_keys
 
 ALLOWED_SUBMITTERS = {
     "christensen",

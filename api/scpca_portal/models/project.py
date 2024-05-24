@@ -11,6 +11,7 @@ from django.db import models
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils
+from scpca_portal.metadata_file import transform_keys, write_dicts_to_file
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -18,7 +19,6 @@ from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
-from scpca_portal.transforms import transform_keys
 
 logger = logging.getLogger()
 
@@ -1032,9 +1032,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     )
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
-                utils.write_dicts_to_file(
-                    sample_libraries, sample_metadata_path, fieldnames=field_names
-                )
+                write_dicts_to_file(sample_libraries, sample_metadata_path, fieldnames=field_names)
 
             # Write project metadata to file
             if modality == Sample.Modalities.MULTIPLEXED:
@@ -1048,7 +1046,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
             )
             project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
-            utils.write_dicts_to_file(
+            write_dicts_to_file(
                 sorted_combined_metadata_by_modality,
                 getattr(self, project_metadata_path),
                 fieldnames=field_names,
