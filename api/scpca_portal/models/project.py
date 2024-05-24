@@ -203,6 +203,17 @@ class Project(CommonDataAttributes, TimestampedModel):
         sample_metadata["project_title"] = self.title
         sample_metadata["scpca_project_id"] = self.scpca_id
 
+    def create_readmes(self) -> None:
+        """
+        Creates all possible readmes to be included later when archiving the desired computed file.
+        """
+        self.create_anndata_readme_file()
+        self.create_anndata_merged_readme_file()
+        self.create_multiplexed_readme_file()
+        self.create_single_cell_readme_file()
+        self.create_single_cell_merged_readme_file()
+        self.create_spatial_readme_file()
+
     def create_anndata_readme_file(self):
         """Creates an annotation metadata README file."""
         with open(ComputedFile.README_ANNDATA_FILE_PATH, "w") as readme_file:
@@ -782,12 +793,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         Returns a list of project's computed files.
         """
-        self.create_anndata_readme_file()
-        self.create_anndata_merged_readme_file()
-        self.create_multiplexed_readme_file()
-        self.create_single_cell_readme_file()
-        self.create_single_cell_merged_readme_file()
-        self.create_spatial_readme_file()
+        self.create_readmes()
 
         combined_metadata = self.handle_samples_metadata(sample_id)
 
