@@ -1026,7 +1026,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     )
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
-                metadata_file.write_dicts_to_file(
+                metadata_file.write_metadata_dicts(
                     sample_libraries, sample_metadata_path, fieldnames=field_names
                 )
 
@@ -1042,7 +1042,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
             )
             project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
-            metadata_file.write_dicts_to_file(
+            metadata_file.write_metadata_dicts(
                 sorted_combined_metadata_by_modality,
                 getattr(self, project_metadata_path),
                 fieldnames=field_names,

@@ -64,7 +64,7 @@ def load_metadata(metadata_file_path: Path):
     return data_dicts
 
 
-def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
+def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
     """
     Writes a list of dictionaries to a csv-like file.
     Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
