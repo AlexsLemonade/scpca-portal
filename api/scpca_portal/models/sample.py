@@ -10,6 +10,7 @@ from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.library import Library
 
 logger = get_and_configure_logger(__name__)
 
@@ -56,6 +57,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
     treatment = models.TextField(blank=True, null=True)
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="samples")
+    libraries = models.ManyToManyField(Library)
 
     def __str__(self):
         return f"Sample {self.scpca_id} of {self.project}"

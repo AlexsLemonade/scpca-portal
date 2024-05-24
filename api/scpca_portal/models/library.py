@@ -3,7 +3,6 @@ from django.db import models
 
 from scpca_portal import common
 from scpca_portal.models.base import TimestampedModel
-from scpca_portal.models.sample import Sample
 
 
 class Library(TimestampedModel):
@@ -39,5 +38,3 @@ class Library(TimestampedModel):
     modality = models.TextField(choices=Modalities.CHOICES)
     scpca_id = models.TextField(unique=True)
     workflow_version = models.TextField()
-
-    samples = models.ManyToManyField(Sample)
