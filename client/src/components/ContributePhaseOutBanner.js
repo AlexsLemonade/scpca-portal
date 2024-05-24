@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Button, Heading, Paragraph } from 'grommet'
 import { WarningCard } from 'components/WarningCard'
-import config from 'config'
+import { links } from 'config'
 
 export const ContributePhaseOutBanner = () => (
   <WarningCard label="We are NOT currently accepting contributions">
@@ -25,7 +25,7 @@ export const ContributePhaseOutBanner = () => (
         </Paragraph>
       </Box>
       <Button
-        href={config.links.contributeHsForm}
+        href={links.contributeHsForm}
         label="Sign Up For Notifications"
         target="_blank"
         primary

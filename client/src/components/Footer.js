@@ -3,7 +3,7 @@ import { Box, Button, Nav, Image, Paragraph, Text } from 'grommet'
 import { Link } from 'components/Link'
 import { FooterBand } from 'components/Band'
 import { Icon } from 'components/Icon'
-import config from 'config'
+import { contact, links } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
 import styled from 'styled-components'
 
@@ -15,7 +15,6 @@ const FooterImage = styled(Image)`
 export const Footer = () => {
   const { responsive } = useResponsive()
   const direction = responsive('column', 'row')
-  const { contact, links } = config
 
   return (
     <FooterBand

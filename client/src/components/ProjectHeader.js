@@ -1,6 +1,6 @@
 import React from 'react'
 import { useResponsive } from 'hooks/useResponsive'
-import config from 'config'
+import { links } from 'config'
 import { Box, Grid, Text } from 'grommet'
 import { Badge } from 'components/Badge'
 import { DownloadModal } from 'components/DownloadModal'
@@ -92,7 +92,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               text={`${
                 project.multiplexed_sample_count || 'N/A'
               } samples are multiplexed.`}
-              link={config.links.howProcessedMultiplexed}
+              link={links.howProcessedMultiplexed}
               linkLabel="Learn more"
               iconMargin="0"
             />

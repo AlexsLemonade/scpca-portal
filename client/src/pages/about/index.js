@@ -4,7 +4,7 @@ import { Box, Grid, Paragraph, Text } from 'grommet'
 import { CardBandLarge, HeroBandReversed } from 'components/Band'
 import { DonateButton } from 'components/DonateButton'
 import { Link } from 'components/Link'
-import config from 'config'
+import { links } from 'config'
 import FigureFeaturesEnhancementsSvg from '../../images/about-page-fig-features-enchancements.svg'
 import FigureFeaturesEnhancementsSvgMobile from '../../images/about-page-fig-features-enchancements-mobile.svg'
 import FigureHowItWorksSvg from '../../images/about-page-fig-how-it-works.svg'
@@ -90,7 +90,7 @@ export const About = () => {
             </Text>
             <Text margin={{ top: 'medium' }}>
               <Link
-                href={config.links.grantsProgram}
+                href={links.grantsProgram}
                 label="Learn more about the grants
             program"
               />
@@ -179,7 +179,7 @@ export const About = () => {
               <Text weight="bold">Open Source Pipeline</Text>
               <Text>
                 The open-source{' '}
-                <Link href={config.links.ccdlGithubPipeline} label="pipeline" />{' '}
+                <Link href={links.ccdlGithubPipeline} label="pipeline" />{' '}
                 pipeline used to process the data is fast, reusable, and
                 cost-efficient. Others can utilize the pipeline for their own
                 data, and the pipeline can be easily extended.

@@ -4,7 +4,7 @@ import { Box, Paragraph } from 'grommet'
 import { Banner } from 'components/Banner'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
-import config from 'config'
+import { links } from 'config'
 
 export const RecruitNFContentBlock = () => {
   const { responsive } = useResponsive()
@@ -20,7 +20,7 @@ export const RecruitNFContentBlock = () => {
         Processing your own single-cell data?{' '}
         <Link
           color="black"
-          href={config.links.recruitmentHsForm}
+          href={links.recruitmentHsForm}
           label="Sign up to test our pipeline"
           underline
         />

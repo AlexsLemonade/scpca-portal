@@ -19,7 +19,7 @@ import { getStatsBlocks } from 'helpers/getStatsBlocks'
 import { fillArrayRandom } from 'helpers/fillArrayRandom'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useResponsive } from 'hooks/useResponsive'
-import config from 'config'
+import { links } from 'config'
 import PipelineSvg from '../images/pipeline.svg'
 import FilesSvg from '../images/files.svg'
 
@@ -263,7 +263,7 @@ const Home = ({ stats }) => {
                 alignSelf="start"
                 label="Learn More"
                 aria-label="Learn More"
-                href={config.links.howProcessed}
+                href={links.howProcessed}
                 target="_blank"
               />
             </Box>
@@ -290,7 +290,7 @@ const Home = ({ stats }) => {
                 alignSelf="start"
                 label="Learn More"
                 aria-label="Learn More"
-                href={config.links.whatDownloading}
+                href={links.whatDownloading}
                 target="_blank"
               />
             </Box>

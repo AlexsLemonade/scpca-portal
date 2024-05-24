@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { api } from 'api'
-import config from 'config'
+import { links } from 'config'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { DownloadModal } from 'components/DownloadModal'
@@ -165,7 +165,7 @@ export const ProjectSamplesTable = ({
       Header: () => (
         <Box direction="row" align="center">
           Est. Demux Sample Counts&nbsp;
-          <Link href={config.links.whatEstDemuxCell}>
+          <Link href={links.whatEstDemuxCell}>
             <Icon size="small" name="Help" />
           </Link>
           &nbsp;&nbsp;

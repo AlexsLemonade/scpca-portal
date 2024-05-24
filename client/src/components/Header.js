@@ -6,7 +6,7 @@ import { Link } from 'components/Link'
 import Logo from 'components/Logo'
 import { ResponsiveSheet } from 'components/ResponsiveSheet'
 import { Menu } from 'grommet-icons'
-import config from 'config'
+import { links } from 'config'
 
 export const Header = ({ className, margin, donate = false }) => {
   const { size, responsive } = useResponsive()
@@ -49,7 +49,7 @@ export const Header = ({ className, margin, donate = false }) => {
               <Link color={linksColor} href="/" label="Home" />
               <Link color={linksColor} href="/about" label="About" />
               <Link color={linksColor} href="/projects" label="Browse" />
-              <Link color={linksColor} href={config.links.help} label="Docs" />
+              <Link color={linksColor} href={links.help} label="Docs" />
               <Link color={linksColor} href="/contribute" label="Contribute" />
             </Nav>
           </ResponsiveSheet>
