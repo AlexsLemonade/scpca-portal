@@ -1,5 +1,5 @@
 import { getReadable } from 'helpers/getReadable'
-
+import { uniqueArray } from 'helpers/uniqueArray'
 /*
   This function takes an array of values and returns a mapped version
   that contains the presentation label and value in an object.
@@ -7,7 +7,7 @@ import { getReadable } from 'helpers/getReadable'
   Automatically removes duplicate entries
 */
 export default (options = []) =>
-  [...new Set(options)].map((option) => ({
+  uniqueArray(options).map((option) => ({
     label: getReadable(option),
     value: option
   }))
