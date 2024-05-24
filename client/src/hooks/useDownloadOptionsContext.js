@@ -8,7 +8,6 @@ import { uniqueArray } from 'helpers/uniqueArray'
 import { objectContains } from 'helpers/objectContains'
 import { uniqueValuesForKey } from 'helpers/uniqueValuesForKey'
 
-
 export const useDownloadOptionsContext = () => {
   const {
     computedFile,

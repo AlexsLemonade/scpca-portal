@@ -1,5 +1,5 @@
 import React from 'react'
-import { FormField, Grid, Box, Select } from 'grommet'
+import { Heading, Grid, Box, Select } from 'grommet'
 import { config } from 'config'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { useResponsive } from 'hooks/useResponsive'

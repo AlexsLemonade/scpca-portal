@@ -16,7 +16,7 @@ import { uniqueArray } from 'helpers/uniqueArray'
  *   { label: "NOT_IN_THE_LIST", value :"NOT_IN_THE_LIST" }
  * ]
  */
-export default (options = []) =>
+export const getReadableOptions = (options = []) =>
   uniqueArray(options).map((option) => ({
     label: getReadable(option),
     value: option

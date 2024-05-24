@@ -1,3 +1,7 @@
-export default (items = [], key) => {
-  return [...new Set(items.map((i) => i[key]))]
+import { uniqueArray } from 'helpers/uniqueArray'
+
+export const uniqueValuesForKey = (items = [], key) => {
+  return uniqueArray(items.map((i) => i[key]))
 }
+
+export default uniqueValuesForKey
