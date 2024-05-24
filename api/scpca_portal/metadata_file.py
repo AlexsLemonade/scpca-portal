@@ -39,6 +39,10 @@ LIBRARY_METADATA_KEYS = [
 
 
 def load_metadata(metadata_file_path: Path):
+    """
+    Opens, loads and parses metadata file located at inputted metadata_file_path.
+    Transforms keys in data dicts to match associated model attributes.
+    """
     data_dicts = []
     KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
 
