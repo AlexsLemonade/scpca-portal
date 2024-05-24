@@ -38,7 +38,7 @@ const DetailsTableBody = styled(TableBody)`
   border: none;
 
   > tr > td:first-child {
-    width: 150px;
+    width: 165px;
   }
 
   > tr,

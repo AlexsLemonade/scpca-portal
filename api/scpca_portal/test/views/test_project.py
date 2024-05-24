@@ -10,7 +10,7 @@ class ProjectsTestCase(APITestCase):
 
     def setUp(self):
         self.project = ProjectFactory()
-        self.project.update_counts()
+        self.project.update_project_aggregate_properties()
 
     def test_get_single(self):
         url = reverse("projects-detail", args=[self.project.scpca_id])

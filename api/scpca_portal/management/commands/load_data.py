@@ -12,8 +12,8 @@ from django.template.defaultfilters import pluralize
 import boto3
 from botocore.client import Config
 
-from scpca_portal import common, utils
-from scpca_portal.models import Project
+from scpca_portal import common
+from scpca_portal.models import Contact, ExternalAccession, Project, Publication
 
 ALLOWED_SUBMITTERS = {
     "christensen",
@@ -24,6 +24,8 @@ ALLOWED_SUBMITTERS = {
     "murphy_chen",
     "pugh",
     "teachey_tan",
+    "wu",
+    "rokita",
 }
 
 logger = logging.getLogger()
@@ -95,6 +97,7 @@ class Command(BaseCommand):
                 (
                     "--exclude=*",  # Must precede include patterns.
                     "--include=project_metadata.csv",
+                    f"--include=merged/{scpca_project_id}*",
                     f"--include={scpca_project_id}/{scpca_sample_id}*",
                 )
             )
@@ -103,6 +106,7 @@ class Command(BaseCommand):
                 (
                     "--exclude=*",  # Must precede include patterns.
                     "--include=project_metadata.csv",
+                    f"--include=merged/{scpca_project_id}*",
                     f"--include={scpca_project_id}*",
                 )
             )
@@ -123,8 +127,8 @@ class Command(BaseCommand):
             "--clean-up-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
         parser.add_argument("--max-workers", type=int, default=10)
-        parser.add_argument("--reload-all", action="store_true")
-        parser.add_argument("--reload-existing", action="store_true")
+        parser.add_argument("--reload-all", action="store_true", default=False)
+        parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--s3-max-bandwidth", type=int, default=None, help="In MB/s")
         parser.add_argument("--s3-max-concurrent-requests", type=int, default=10)
         parser.add_argument("--s3-multipart-chunk-size", type=int, default=8, help="In MB")
@@ -135,45 +139,12 @@ class Command(BaseCommand):
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
 
-    def clean_up_input_data(self):
-        shutil.rmtree(common.INPUT_DATA_PATH / self.project.scpca_id, ignore_errors=True)
+    def clean_up_input_data(self, project):
+        shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
 
     def handle(self, *args, **kwargs):
         self.configure_aws_cli(**kwargs)
         self.load_data(**kwargs)
-
-    def process_project_data(self, data, sample_id, **kwargs):
-        self.project.abstract = data["abstract"]
-        self.project.additional_restrictions = data["additional_restrictions"]
-        self.project.has_bulk_rna_seq = utils.boolean_from_string(data.get("has_bulk", False))
-        self.project.has_cite_seq_data = utils.boolean_from_string(data.get("has_CITE", False))
-        self.project.has_multiplexed_data = utils.boolean_from_string(
-            data.get("has_multiplex", False)
-        )
-        self.project.has_spatial_data = utils.boolean_from_string(data.get("has_spatial", False))
-        self.project.human_readable_pi_name = data["PI"]
-        self.project.includes_anndata = utils.boolean_from_string(
-            data.get("includes_anndata", False)
-        )
-        self.project.includes_cell_lines = utils.boolean_from_string(
-            data.get("includes_cell_lines", False)
-        )
-        self.project.includes_xenografts = utils.boolean_from_string(
-            data.get("includes_xenografts", False)
-        )
-        self.project.pi_name = data["submitter"]
-        self.project.title = data["project_title"]
-        self.project.save()
-
-        self.project.add_contacts(data["contact_email"], data["contact_name"])
-        self.project.add_external_accessions(
-            data["external_accession"],
-            data["external_accession_url"],
-            data["external_accession_raw"],
-        )
-        self.project.add_publications(data["citation"], data["citation_doi"])
-
-        self.project.load_data(sample_id=sample_id, **kwargs)
 
     def load_data(
         self,
@@ -223,30 +194,33 @@ class Command(BaseCommand):
                 logger.warning("Project submitter  is not the white list.")
                 continue
 
-            # Purge existing projects so they can be re-added.
-            if (project := Project.objects.filter(scpca_id=scpca_project_id).first()) and (
-                kwargs["reload_all"] or kwargs["reload_existing"]
-            ):
-                logger.info(f"Purging '{project}")
-                project.purge(delete_from_s3=kwargs["update_s3"])
+            if project := Project.objects.filter(scpca_id=scpca_project_id).first():
+                # Purge existing projects so they can be re-added.
+                if kwargs["reload_all"] or kwargs["reload_existing"]:
+                    logger.info(f"Purging '{project}")
+                    project.purge(delete_from_s3=kwargs["update_s3"])
+                # Only import new projects.
+                # If old ones are desired they should be purged and re-added.
+                else:
+                    logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
+                    continue
 
-            # Only import new projects. If old ones are desired they should be purged and re-added.
-            project, created = Project.objects.get_or_create(scpca_id=scpca_project_id)
-            if not created:
-                logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
-                continue
+            logger.info(f"Importing '{project}' data")
+            project = Project.get_from_dict(project_data)
+            project.save()
+            Contact.bulk_create_from_project_data(project_data, project)
+            ExternalAccession.bulk_create_from_project_data(project_data, project)
+            Publication.bulk_create_from_project_data(project_data, project)
 
-            self.project = Project.objects.filter(scpca_id=scpca_project_id).first()
-            logger.info(f"Importing '{self.project}' data")
-            self.process_project_data(project_data, sample_id, **kwargs)
-            if samples_count := self.project.samples.count():
+            project.load_data(sample_id=sample_id, **kwargs)
+            if samples_count := project.samples.count():
                 logger.info(
-                    f"Created {samples_count} sample{pluralize(samples_count)} for '{self.project}'"
+                    f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'"
                 )
 
             if kwargs["clean_up_input_data"]:
                 logger.info(f"Cleaning up '{project}' input data")
-                self.clean_up_input_data()
+                self.clean_up_input_data(project)
 
             if kwargs["clean_up_output_data"]:
                 logger.info("Cleaning up output directory")

@@ -30,13 +30,35 @@ export default {
     'Ependymoma, Ganglioglioma, Ganglioglioma/ATRT, Low grade glioma, Pilocytic astrocytoma',
   disease_timings: 'Initial diagnosis',
   downloadable_sample_count: 26,
+  external_accessions: [
+    {
+      accession: 'SRP436316',
+      has_raw: true,
+      url: 'https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=SRP436316&o=acc_s%3Aa'
+    },
+    {
+      accession: 'SRP436322',
+      has_raw: true,
+      url: 'https://www.ncbi.nlm.nih.gov/Traces/study/?acc=SRP436322&o=acc_s%3Aa'
+    },
+    {
+      accession: 'GSE231858',
+      has_raw: false,
+      url: 'https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE231858'
+    },
+    {
+      accession: 'GSE231859',
+      has_raw: false,
+      url: 'https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE231859'
+    }
+  ],
   has_bulk_rna_seq: true,
   has_cite_seq_data: false,
   has_multiplexed_data: false,
   has_single_cell_data: true,
   has_spatial_data: false,
+  modalities: ['Bulk RNA-seq'],
   human_readable_pi_name: 'Green/Mulcahy Levy',
-  modalities: 'Bulk',
   multiplexed_sample_count: 0,
   pi_name: 'green_mulcahy_levy',
   publications: [],

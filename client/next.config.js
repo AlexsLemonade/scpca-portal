@@ -19,7 +19,9 @@ module.exports = () => {
     HUBSPOT_EMAIL_LIST_ID: process.env.HUBSPOT_EMAIL_LIST_ID,
     HUBSPOT_SURVEY_LIST_ID: process.env.HUBSPOT_SURVEY_LIST_ID,
     PRIVACY_POLICY_RELEASE: process.env.PRIVACY_POLICY_RELEASE,
-    TOS_RELEASE: process.env.TOS_RELEASE
+    TOS_RELEASE: process.env.TOS_RELEASE,
+    BANNER_STATE: process.env.BANNER_STATE,
+    BANNER_CONTENT: process.env.BANNER_CONTENT
   }
 
   const stageEnv = {
@@ -31,7 +33,9 @@ module.exports = () => {
     HUBSPOT_EMAIL_LIST_ID: process.env.STAGE_HUBSPOT_EMAIL_LIST_ID,
     HUBSPOT_SURVEY_LIST_ID: process.env.STAGE_HUBSPOT_SURVEY_LIST_ID,
     PRIVACY_POLICY_RELEASE: process.env.STAGE_PRIVACY_POLICY_RELEASE,
-    TOS_RELEASE: process.env.STAGE_TOS_RELEASE
+    TOS_RELEASE: process.env.STAGE_TOS_RELEASE,
+    BANNER_STATE: process.env.STAGE_BANNER_STATE,
+    BANNER_CONTENT: process.env.STAGE_BANNER_CONTENT
   }
 
   const env = isProduction ? productionEnv : stageEnv
