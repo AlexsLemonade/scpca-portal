@@ -1,4 +1,4 @@
-Generated on: {{ date }}
+Generated on: {date}
 
 # Alex's Lemonade Stand Foundation Single-cell Pediatric Cancer Atlas
 
@@ -6,25 +6,21 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{{ project_accession }}]({{ project_url }}) in the ScPCA portal.
+This download includes single-cell or single-nuclei gene expression data and associated metadata for all samples and libraries from a project [{project_accession}]({project_url}) in the ScPCA portal.
+All gene expression data for all samples and libraries have been merged into a single `SingleCellExperiment` object, stored as an `.rds` file.
+In addition to the merged object, each download includes a summary report describing the contents of the merged file and a folder with all quality control reports, and, if applicable, cell type annotation reports, for each library included in the merged object.
 
-Each sample folder (indicated by the `SCPCS` prefix) contains the files for all libraries (`SCPCL` prefix) derived from that biological sample.
-Most samples only have one library that has been sequenced.
-See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/en/stable/faq.html#what-is-the-difference-between-samples-and-libraries) for more information.
+The download will include the following files for the selected project (example shown for project with ID `SCPCP000000`):
 
-The files associated with each library are (example shown for a library with ID `SCPCL000000`):
-- An unfiltered counts file: `SCPCL000000_unfiltered.rds`,
-- A filtered counts file: `SCPCL000000_filtered.rds`,
-- A processed counts file: `SCPCL000000_processed.rds`,
-- A quality control report: `SCPCL000000_qc.html`,
-- A supplemental cell type report: `SCPCL000000_celltype-report.html`
+- A merged file containing all gene expression data: `SCPCP000000_merged.rds`
+- A summary report: `SCPCP000000_merged-summary-report.html`
+- A folder containing all reports for individual libraries:
+  - A quality control report: `SCPCL000000_qc.html`
+  - A supplemental cell type report: `SCPCL000000_celltype-report.html`
 
 Also included in each download is `single_cell_metadata.tsv`, a tab-separated table, with one row per library and columns containing pertinent metadata corresponding to that library.
 
-Gene expression files, available as RDS files containing a `SingleCellExperiment` object, house the expression data, cell and gene metrics, associated metadata, and in the case of multi-modal data like CITE-seq, data from the additional cell-based assays (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
-
-This download does not include any samples that are part of multiplexed libraries.
-To download all samples in this project, including multiplexed libraries, if present, visit the [project page]({{project_url}}).
+Merged objects, available as RDS files containing a `SingleCellExperiment` object, house the expression data, cell and gene metrics, associated metadata, and in the case of multi-modal data like CITE-seq, data from the additional cell-based assays for all samples and libraries from the selected project (see [Merged objects](https://scpca.readthedocs.io/en/stable/merged_objects.html) for more information).
 
 If a project contains bulk RNA-seq data, two tab-separated value files, `bulk_quant.tsv` and `bulk_metadata.tsv`, will be included in the download.
 The `bulk_quant.tsv` file contains a gene by sample matrix (each row a gene, each column a sample) containing raw gene expression counts quantified by Salmon.
@@ -56,7 +52,7 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-To cite data from {{ project_accession }}, please see the project abstract and publication information at [{{ project_accession }} page.]({{ project_url }})
+To cite data from {project_accession}, please see the project abstract and publication information at [{project_accession} page.]({project_url})
 
 ### Citing the ScPCA Portal
 

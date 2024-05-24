@@ -13,21 +13,20 @@ import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
 import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({
   project,
   samples: defaultSamples,
   stickies = 3
 }) => {
-  const [showDownloadOptions, setShowDownloadOptions] = useState(false)
-
   // We only want to show the applied donwload options.
   // Also need some helpers for presentation.
-  const { modality, format, getFoundFile, resourceSort } =
-    useDownloadOptionsContext()
-
-  const [samples, setSamples] = useState(defaultSamples)
+  const { modality, format, getFoundFile } = useDownloadOptionsContext()
   const [loaded, setLoaded] = useState(false)
+  const [samples, setSamples] = useState(defaultSamples)
+  const [showDownloadOptions, setShowDownloadOptions] = useState(false)
+  const hasMultiplexedData = project.has_multiplexed_data
   const infoText =
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
@@ -38,12 +37,9 @@ export const ProjectSamplesTable = ({
     setLoaded(false)
   }
 
-  // Update soring after save
+  // Update after save
   useEffect(() => {
-    if (samples) {
-      samples.sort(resourceSort)
-      setLoaded(false)
-    }
+    if (samples) setLoaded(false)
   }, [samples, modality, format])
 
   useEffect(() => {
@@ -71,7 +67,12 @@ export const ProjectSamplesTable = ({
   const columns = [
     {
       Header: 'Download',
-      accessor: () => 'computed_files',
+      id: 'download',
+      accessor: ({ computed_files: computedFiles }) => {
+        if (computedFiles.length === 0) return -1
+        const computedFile = getFoundFile(computedFiles)
+        return computedFile ? computedFile.size_in_bytes : 0
+      },
       Cell: ({ row }) => {
         // there is nothing available to download
         if (row.original.computed_files.length === 0) {
@@ -86,7 +87,7 @@ export const ProjectSamplesTable = ({
           )
         }
 
-        const computedFile = getFoundFile(row.original.computed_files)
+        const computedFile = getFoundFile(row.original.computed_files, true)
 
         if (computedFile) {
           return (
@@ -138,6 +139,20 @@ export const ProjectSamplesTable = ({
         </Box>
       )
     },
+    {
+      Header: 'Multiplexed with',
+      accessor: 'multiplexed_with',
+      Cell: ({
+        row: {
+          original: { multiplexed_with: multiplexedWith }
+        }
+      }) => (
+        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
+          {multiplexedWith.length ? multiplexedWith.join(', ') : 'N/A'}
+        </Box>
+      ),
+      isVisible: hasMultiplexedData
+    },
     { Header: 'Sequencing Units', accessor: 'seq_units' },
     { Header: 'Technology', accessor: 'technologies' },
     {
@@ -162,6 +177,7 @@ export const ProjectSamplesTable = ({
       accessor: ({ sample_cell_count_estimate: count }) => count || 'N/A'
     },
     {
+      id: 'demux_cell_count_estimate',
       Header: () => (
         <Box direction="row" align="center">
           Est. Demux Sample Counts&nbsp;
@@ -171,9 +187,8 @@ export const ProjectSamplesTable = ({
           &nbsp;&nbsp;
         </Box>
       ),
-      accessor: 'demux_cell_count_estimate',
-      Cell: ({ demux_cell_count_estimate: count }) => count || 'N/A',
-      isVisible: project.has_multiplexed_data
+      accessor: ({ demux_cell_count_estimate: count }) => count || 'N/A',
+      isVisible: hasMultiplexedData
     },
     {
       Header: 'Additional Metadata Fields',
@@ -190,6 +205,7 @@ export const ProjectSamplesTable = ({
       pageSize={5}
       pageSizeOptions={[5, 10, 20, 50]}
       infoText={infoText}
+      defaultSort={[{ id: 'download', desc: true }]}
     >
       <Box direction="row" gap="xlarge" pad={{ bottom: 'medium' }}>
         <Box direction="row">
@@ -211,6 +227,9 @@ export const ProjectSamplesTable = ({
           onSave={onOptionsSave}
         />
       </Box>
+      {project.has_multiplexed_data && format === 'ANN_DATA' && (
+        <WarningAnnDataMultiplexed />
+      )}
     </Table>
   )
 }

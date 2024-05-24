@@ -27,6 +27,7 @@ commands = {
     "test-api": run_api.format('bash -c "./run_tests.sh {}"'),
     "makemigrations": run_api.format('bash -c "./manage.py makemigrations scpca_portal {}"'),
     "migrate": run_api.format('bash -c "./manage.py migrate {}"'),
+    "showmigrations": run_api.format('bash -c "./manage.py showmigrations {}"'),
     "postgres-cli": "./run_psql_client.sh",
     "graph-models": run_api.format("./manage.py graph_models scpca_portal > models.dot"),
     "run-api": run_api,

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Box, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import styled from 'styled-components'
-import ASLFLogo from '../images/alsf-logo.svg'
+import ALSFLogo from '../images/alsf-logo.svg'
 import ALSFLogoBlue from '../images/alsf-logo-blue.svg'
 
 const ALSFLogoBlueStyled = styled(ALSFLogoBlue)``
@@ -53,9 +53,10 @@ const Logo = () => {
             />
           </Box>
         ) : (
-          <ASLFLogo
+          <ALSFLogo
             role="img"
             aria-label="Alex's Lemonade Stand Foundation Logo"
+            width="91px"
           />
         )}
       </Box>

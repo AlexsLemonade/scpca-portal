@@ -22,7 +22,7 @@ export const useDownloadModal = (
   const hasMultipleFiles = hasMultiple(resource.computed_files)
 
   // states that dictate what the modal can show
-  const isDownloadReady = download && token && publicComputedFile
+  const isDownloadReady = download && token
   const isTokenReady = !token && publicComputedFile
   const isOptionsReady = !publicComputedFile && hasMultipleFiles
 
@@ -78,9 +78,15 @@ export const useDownloadModal = (
         // try to open download
         const { type, project, sample } = publicComputedFile
         trackDownload(type, project, sample)
-        surveyListForm.submit({ email, scpca_last_download_date: getDateISO() })
+        surveyListForm.submit({
+          email,
+          scpca_last_download_date: getDateISO()
+        })
         window.open(downloadRequest.response.download_url)
         setDownload(downloadRequest.response)
+        // Clear out the selected file if it was not explicitly set.
+        // This allows to select a different configuration.
+        if (!initialPublicComputedFile) setPublicComputedFile(null)
       } else if (downloadRequest.status === 403) {
         await createToken()
       } else {
