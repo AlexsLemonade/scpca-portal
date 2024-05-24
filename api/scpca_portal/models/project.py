@@ -10,8 +10,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.template.loader import render_to_string
 
-from scpca_portal import common, utils
-from scpca_portal.metadata_file import transform_keys, write_dicts_to_file
+from scpca_portal import common, metadata_file, utils
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -833,11 +832,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         return combined_metadata
 
     def load_samples_metadata(self) -> List[Dict]:
-        # Start with a list of samples and their metadata.
-        with open(self.input_samples_metadata_file_path) as samples_csv_file:
-            samples_metadata = [
-                transform_keys(Sample, sample) for sample in csv.DictReader(samples_csv_file)
-            ]
+        samples_metadata = metadata_file.load_metadata(self.input_samples_metadata_file_path)
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
         demux_sample_ids = self.get_demux_sample_ids()
@@ -890,8 +885,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 + list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
             )
             for filename_path in library_metadata_paths:
-                with open(filename_path) as library_metadata_json_file:
-                    library_json = transform_keys(Sample, json.load(library_metadata_json_file))
+                library_json = metadata_file.load_metadata(filename_path).pop()
 
                 if "filtered_cell_count" in library_json:
                     sample_cell_count_estimate += library_json["filtered_cell_count"]
@@ -1032,7 +1026,9 @@ class Project(CommonDataAttributes, TimestampedModel):
                     )
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
-                write_dicts_to_file(sample_libraries, sample_metadata_path, fieldnames=field_names)
+                metadata_file.write_dicts_to_file(
+                    sample_libraries, sample_metadata_path, fieldnames=field_names
+                )
 
             # Write project metadata to file
             if modality == Sample.Modalities.MULTIPLEXED:
@@ -1046,7 +1042,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
             )
             project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
-            write_dicts_to_file(
+            metadata_file.write_dicts_to_file(
                 sorted_combined_metadata_by_modality,
                 getattr(self, project_metadata_path),
                 fieldnames=field_names,

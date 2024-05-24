@@ -1,9 +1,8 @@
 import csv
+import json
 from collections import namedtuple
-from typing import Dict, List, Type
-
-from django.apps import apps
-from django.db import models
+from pathlib import Path
+from typing import Dict, List
 
 from scpca_portal import common, utils
 
@@ -38,25 +37,31 @@ LIBRARY_METADATA_KEYS = [
     ("filtered_cells", "filtered_cell_count", None),
 ]
 
-KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
 
+def load_metadata(metadata_file_path: Path):
+    data_dicts = []
+    KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
 
-def transform_keys(model: Type[models.Model], data_dict: Dict) -> Dict:
-    key_transforms = []
-    if model == apps.get_model("scpca_portal", "Project"):
-        key_transforms = [KeyTransform._make(element) for element in PROJECT_METADATA_KEYS]
-    elif model == apps.get_model("scpca_portal", "Sample"):
-        key_transforms = (
-            [KeyTransform._make(element) for element in LIBRARY_METADATA_KEYS]
-            if "library_id" in data_dict
-            else [KeyTransform._make(element) for element in SAMPLE_METADATA_KEYS]
+    with open(metadata_file_path) as raw_file:
+        data_dicts = (
+            list(csv.DictReader(raw_file))
+            if metadata_file_path.suffix == ".csv"
+            else [json.load(raw_file)]
         )
 
-    for element in key_transforms:
-        if element.old_key in data_dict:
-            data_dict[element.new_key] = data_dict.pop(element.old_key, element.default_value)
+    for data_dict in data_dicts:
+        if "project" in metadata_file_path.name:
+            key_transforms = [KeyTransform._make(element) for element in PROJECT_METADATA_KEYS]
+        elif "sample" in metadata_file_path.name:
+            key_transforms = [KeyTransform._make(element) for element in SAMPLE_METADATA_KEYS]
+        else:
+            key_transforms = [KeyTransform._make(element) for element in LIBRARY_METADATA_KEYS]
 
-    return data_dict
+        for element in key_transforms:
+            if element.old_key in data_dict:
+                data_dict[element.new_key] = data_dict.pop(element.old_key, element.default_value)
+
+    return data_dicts
 
 
 def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
