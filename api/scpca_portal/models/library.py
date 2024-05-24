@@ -1,7 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common
 from scpca_portal.models.base import TimestampedModel
 
 
@@ -29,9 +28,6 @@ class Library(TimestampedModel):
             (SPATIAL, "Spatial"),
         )
 
-    data_file_paths = ArrayField(
-        models.FilePathField(path=common.INPUT_DATA_PATH, recursive=True), default=list
-    )
     formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
     is_multiplexed = models.BooleanField(default=False)
     metadata = models.JSONField(default=dict)
