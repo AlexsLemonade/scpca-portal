@@ -4,7 +4,7 @@ import config from 'config'
 
 export const ContributeDownloadPDFButton = () => (
   <Button
-    href={config.links.contribute_pdf}
+    href={config.links.contributePdf}
     label="Download Guidelines as PDF"
     target="_blank"
     primary

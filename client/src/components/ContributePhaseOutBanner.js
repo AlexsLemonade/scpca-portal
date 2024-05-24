@@ -25,7 +25,7 @@ export const ContributePhaseOutBanner = () => (
         </Paragraph>
       </Box>
       <Button
-        href={config.links.contribute_hsform}
+        href={config.links.contributeHsForm}
         label="Sign Up For Notifications"
         target="_blank"
         primary

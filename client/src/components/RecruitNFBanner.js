@@ -20,7 +20,7 @@ export const RecruitNFContentBlock = () => {
         Processing your own single-cell data?{' '}
         <Link
           color="black"
-          href={config.links.recruitment_hsform}
+          href={config.links.recruitmentHsForm}
           label="Sign up to test our pipeline"
           underline
         />

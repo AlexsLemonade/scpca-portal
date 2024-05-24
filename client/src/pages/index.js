@@ -263,7 +263,7 @@ const Home = ({ stats }) => {
                 alignSelf="start"
                 label="Learn More"
                 aria-label="Learn More"
-                href={config.links.how_processed}
+                href={config.links.howProcessed}
                 target="_blank"
               />
             </Box>
@@ -290,7 +290,7 @@ const Home = ({ stats }) => {
                 alignSelf="start"
                 label="Learn More"
                 aria-label="Learn More"
-                href={config.links.what_downloading}
+                href={config.links.whatDownloading}
                 target="_blank"
               />
             </Box>

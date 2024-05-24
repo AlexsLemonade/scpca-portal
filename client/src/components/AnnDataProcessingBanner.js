@@ -36,7 +36,7 @@ export const AnnDataProcessingBanner = ({
             We are making{' '}
             <Link
               color="black"
-              href={config.links.recruitment_hsform}
+              href={config.links.recruitmentHsForm}
               label="AnnData"
             />{' '}
             available on the portal and it will take several hours to complete.

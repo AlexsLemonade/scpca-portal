@@ -90,7 +90,7 @@ export const About = () => {
             </Text>
             <Text margin={{ top: 'medium' }}>
               <Link
-                href={config.links.grants_program}
+                href={config.links.grantsProgram}
                 label="Learn more about the grants
             program"
               />
@@ -179,10 +179,7 @@ export const About = () => {
               <Text weight="bold">Open Source Pipeline</Text>
               <Text>
                 The open-source{' '}
-                <Link
-                  href={config.links.ccdlGithub_pipeline}
-                  label="pipeline"
-                />{' '}
+                <Link href={config.links.ccdlGithubPipeline} label="pipeline" />{' '}
                 pipeline used to process the data is fast, reusable, and
                 cost-efficient. Others can utilize the pipeline for their own
                 data, and the pipeline can be easily extended.

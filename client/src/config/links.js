@@ -1,30 +1,29 @@
 export default {
-  what_downloading:
-    'https://scpca.readthedocs.io/en/stable/download_files.html',
-  what_downloading_project:
+  whatDownloading: 'https://scpca.readthedocs.io/en/stable/download_files.html',
+  whatDownloadingProject:
     'https://scpca.readthedocs.io/en/stable/download_files.html#download-folder-structure-for-project-downloads',
-  what_downloading_sample:
+  whatDownloadingSample:
     'https://scpca.readthedocs.io/en/stable/download_files.html#download-folder-structure-for-individual-sample-downloads',
-  what_downloading_spatial:
+  whatDownloadingSpatial:
     'https://scpca.readthedocs.io/en/stable/download_files.html#spatial-transcriptomics-libraries',
-  what_downloading_mulitplexed:
+  whatDownloadingMulitplexed:
     'https://scpca.readthedocs.io/en/stable/download_files.html#multiplexed-sample-libraries',
-  what_est_demux_cell:
+  whatEstDemuxCell:
     'https://scpca.readthedocs.io/en/stable/faq.html#what-are-estimated-demux-cell-counts',
-  how_processed:
+  howProcessed:
     'https://scpca.readthedocs.io/en/stable/processing_information.html',
-  how_processed_multiplexed:
+  howProcessedMultiplexed:
     'https://scpca.readthedocs.io/en/stable/processing_information.html#multiplexed-libraries',
   donate: 'https://www.ccdatalab.org/donate-link',
-  grants_program: 'https://www.alexslemonade.org/researchers-reviewers',
+  grantsProgram: 'https://www.alexslemonade.org/researchers-reviewers',
   help: 'https://scpca.readthedocs.io',
-  contribute_pdf: 'contributing-guidelines.pdf',
-  contribute_hsform: 'https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0',
-  recruitment_hsform: 'https://share.hsforms.com/19if2XeF2Rl2YkWxppHW-HQ336z0',
+  contributePdf: 'contributing-guidelines.pdf',
+  contributeHsForm: 'https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0',
+  recruitmentHsForm: 'https://share.hsforms.com/19if2XeF2Rl2YkWxppHW-HQ336z0',
   alsfTwitter: 'https://twitter.com/alexslemonade',
   alsfFacebook: 'https://www.facebook.com/alexslemonade/',
   alsfInstagram: 'https://www.instagram.com/AlexsLemonade/',
   ccdlTwitter: 'https://twitter.com/CancerDataLab',
   ccdlGithub: 'https://github.com/AlexsLemonade/',
-  ccdlGithub_pipeline: 'https://github.com/AlexsLemonade/scpca-nf'
+  ccdlGithubPipeline: 'https://github.com/AlexsLemonade/scpca-nf'
 }
