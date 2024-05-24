@@ -18,7 +18,6 @@ The files associated with each library are (example shown for a library with ID 
 - A filtered counts file: `SCPCL000000_filtered.rds`,
 - A processed counts file: `SCPCL000000_processed.rds`,
 - A quality control report: `SCPCL000000_qc.html`,
-- A supplemental cell type report: `SCPCL000000_celltype-report.html`
 
 Also included in each download is a `single_cell_metadata.tsv`, a tab-separated table, with one row per sample/library pair and columns containing pertinent metadata corresponding to that sample and library.
 
@@ -61,16 +60,9 @@ To cite data from {{ project_accession }}, please see the project abstract and p
 
 ### Citing the ScPCA Portal
 
-The date you accessed and downloaded this data is included in the name of the top-most directory of your download for your convenience.
-Use this date to populate the access date below.
+When citing the ScPCA Portal, please cite the following preprint:
 
-#### APA Format
-
-Alex's Lemonade Stand Foundation Childhood Cancer Data Lab. (n.d.). The Single-cell Pediatric Cancer Atlas Portal. Retrieved (insert access date), from https://scpca.alexslemonade.org/
-
-#### MLA Format
-
-The Single-Cell Pediatric Cancer Atlas Portal, Alex’s Lemonade Stand Foundation Childhood Cancer Data Lab, https://scpca.alexslemonade.org/. Accessed (insert access date).
+Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al., 2024 The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors. _bioRxiv._ https://doi.org/10.1101/2024.04.19.590243
 
 ## Terms of Use
 

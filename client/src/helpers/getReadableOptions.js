@@ -1,4 +1,6 @@
 import { getReadable } from 'helpers/getReadable'
+import { uniqueArray } from 'helpers/uniqueArray'
+
 /**
  * @name getReadableOptions
  * @param {string[]} options - an array of values (for 'readableNames' in 'getReadable')
@@ -14,8 +16,8 @@ import { getReadable } from 'helpers/getReadable'
  *   { label: "NOT_IN_THE_LIST", value :"NOT_IN_THE_LIST" }
  * ]
  */
-export const getReadableOptions = (options = []) =>
-  [...new Set(options)].map((option) => ({
+export default (options = []) =>
+  uniqueArray(options).map((option) => ({
     label: getReadable(option),
     value: option
   }))

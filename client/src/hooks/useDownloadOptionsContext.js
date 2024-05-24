@@ -4,26 +4,34 @@ import { optionsSortOrder } from 'config/downloadOptions'
 import { arrayListSort } from 'helpers/arrayListSort'
 import { filterWhere } from 'helpers/filterWhere'
 import { pick } from 'helpers/pick'
+import { uniqueArray } from 'helpers/uniqueArray'
+import { objectContains } from 'helpers/objectContains'
+import { uniqueValuesForKey } from 'helpers/uniqueValuesForKey'
+
 
 export const useDownloadOptionsContext = () => {
   const {
+    computedFile,
+    setComputedFile,
+    computedFiles,
+    format,
+    setFormat,
+    formatOptions,
+    setFormatOptions,
+    modality,
+    setModality,
+    modalityOptions,
+    setModalityOptions,
     resource,
+    resourceAttribute,
+    includesMerged,
+    setIncludesMerged,
+    excludeMultiplexed,
+    setExcludeMultiplexed,
     userModality,
     setUserModality,
     userFormat,
-    setUserFormat,
-    modality,
-    setModality,
-    format,
-    setFormat,
-    modalityOptions,
-    formatOptions,
-    computedFile,
-    setModalityOptions,
-    setFormatOptions,
-    computedFiles,
-    setComputedFile,
-    resourceAttribute
+    setUserFormat
   } = useContext(DownloadOptionsContext)
 
   const getOptionsAndDefault = (
@@ -32,7 +40,7 @@ export const useDownloadOptionsContext = () => {
     files = computedFiles
   ) => {
     const allOptions = arrayListSort(
-      [...new Set(pick(files, optionName))],
+      uniqueArray(pick(files, optionName)),
       optionsSortOrder
     )
     const defaultOption = allOptions.includes(preference)
@@ -45,8 +53,26 @@ export const useDownloadOptionsContext = () => {
     filterWhere(files, { modality, format })
 
   // Get the first computed file that matches modality and format
-  const getFoundFile = (files = computedFiles) =>
-    files.find((file) => file.modality === modality && file.format === format)
+  const getFoundFile = (
+    files = computedFiles,
+    ignoreAdditionalOptions = false
+  ) => {
+    const filterObject = { modality, format }
+    // when checking has_multiplexed_data we wither want both or just true
+    if (!ignoreAdditionalOptions) {
+      filterObject.includes_merged = includesMerged
+      filterObject.has_multiplexed_data = !excludeMultiplexed
+    }
+    return files.find((file) => objectContains(file, filterObject))
+  }
+
+  // Check the availability of the merged objects
+  const isMergedObjectsAvailable =
+    uniqueValuesForKey(getFilteredFiles(), 'includes_merged').length > 1
+
+  // Check availability of multiplexed data
+  const isExcludeMultiplexedAvailable =
+    uniqueValuesForKey(getFilteredFiles(), 'has_multiplexed_data').length > 1
 
   // Sorter function for ordering a resource
   // based on availability of prefered download options
@@ -77,7 +103,7 @@ export const useDownloadOptionsContext = () => {
     setModality(newModality)
   }, [computedFiles])
 
-  // Update available data format based on the user-selected modality change
+  // Update available data format when the user-selected modality changes
   useEffect(() => {
     if (modality) {
       const modalityMatchedFiles = filterWhere(computedFiles, {
@@ -102,7 +128,17 @@ export const useDownloadOptionsContext = () => {
       const newComputedFile = getFoundFile()
       if (newComputedFile) setComputedFile(newComputedFile)
     }
-  }, [modality, format])
+  }, [modality, format, includesMerged, excludeMultiplexed])
+
+  // Update excludeMultiplexed depending on availability.
+  useEffect(() => {
+    setExcludeMultiplexed(!isExcludeMultiplexedAvailable)
+  }, [isExcludeMultiplexedAvailable])
+
+  // Update includesMerged depending on availability.
+  useEffect(() => {
+    if (!isMergedObjectsAvailable) setIncludesMerged(false)
+  }, [isMergedObjectsAvailable])
 
   return {
     modality,
@@ -114,9 +150,15 @@ export const useDownloadOptionsContext = () => {
     computedFile,
     computedFiles,
     getFoundFile,
+    isMergedObjectsAvailable,
+    isExcludeMultiplexedAvailable,
     getOptionsAndDefault,
     saveUserPreferences,
     resourceSort,
-    resource
+    resource,
+    includesMerged,
+    setIncludesMerged,
+    excludeMultiplexed,
+    setExcludeMultiplexed
   }
 }

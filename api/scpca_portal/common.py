@@ -19,3 +19,6 @@ OUTPUT_DATA_PATH = DATA_PATH / "output"
 TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
 
 TAB = "\t"
+
+IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
+STRIPPED_INPUT_VALUES = "< >"

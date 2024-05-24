@@ -4,10 +4,12 @@ import { Box, Grid, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
+import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
+import { WarningText } from 'components/WarningText'
+import { WarningMergedObjects } from 'components/WarningMergedObjects'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
-import { WarningText } from 'components/WarningText'
 import { api } from 'api'
 import DownloadSVG from '../images/download-folder.svg'
 
@@ -20,7 +22,8 @@ export const DownloadStarted = ({
   // open the file in a new tab
   const { items, info, type, isProject } =
     getDownloadOptionDetails(computedFile)
-
+  const additionalRestrictions = resource.additional_restrictions
+  const isIncludesMerged = computedFile.includes_merged
   const [recommendedResource, setRecommendedResource] = useState(null)
   const [recommendedFile, setRecommendedFile] = useState(null)
 
@@ -30,12 +33,16 @@ export const DownloadStarted = ({
       const { isOk, response } = await api.projects.get(resource.project)
       if (isOk) {
         setRecommendedResource(response)
-        const defaultFile = getDefaultComputedFile(response, computedFile)
+        const defaultFile = getDefaultComputedFile(
+          response,
+          computedFile,
+          info.recommendedOptions
+        )
         setRecommendedFile(defaultFile)
       }
     }
 
-    if (info.fetchRecommended && !recommendedResource) fetchRecommended()
+    if (info.recommendedOptions && !recommendedResource) fetchRecommended()
   }, [])
 
   const { size: responsiveSize } = useResponsive()
@@ -69,6 +76,7 @@ export const DownloadStarted = ({
               text={info.warning_text.text}
             />
           )}
+          {isIncludesMerged && <WarningMergedObjects />}
           <Paragraph>
             {info && info.text_only && <span>{info.text_only}</span>} The
             download consists of the following items:
@@ -125,6 +133,14 @@ export const DownloadStarted = ({
                 </Text>
               </Box>
             </WarningText>
+          )}
+          {additionalRestrictions && (
+            <Box margin={{ vertical: 'medium' }}>
+              <ProjectAdditionalRestrictions
+                text={additionalRestrictions}
+                isModal
+              />
+            </Box>
           )}
           <Box>
             {responsiveSize !== 'small' && (
