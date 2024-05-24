@@ -7,10 +7,9 @@ import {
   modalityResourceInfo,
   omitKeys
 } from 'config/downloadOptions'
-
+import { objectContains } from 'helpers/objectContains'
 import { getReadableFiles } from 'helpers/getReadable'
 import { capitalize } from 'helpers/capitalize'
-import objectContains from 'helpers/objectContains'
 
 export const resolveKey = (key, computedFile) => {
   return dynamicKeys.includes(key) ? computedFile[key] : key
