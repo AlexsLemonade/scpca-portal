@@ -832,7 +832,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         return combined_metadata
 
     def load_samples_metadata(self) -> List[Dict]:
-        samples_metadata = metadata_file.load_metadata(self.input_samples_metadata_file_path)
+        samples_metadata = metadata_file.load_samples_metadata(
+            self.input_samples_metadata_file_path
+        )
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
         demux_sample_ids = self.get_demux_sample_ids()
@@ -885,7 +887,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 + list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
             )
             for filename_path in library_metadata_paths:
-                library_json = metadata_file.load_metadata(filename_path).pop()
+                library_json = metadata_file.load_library_metadata(filename_path)
 
                 if "filtered_cell_count" in library_json:
                     sample_cell_count_estimate += library_json["filtered_cell_count"]

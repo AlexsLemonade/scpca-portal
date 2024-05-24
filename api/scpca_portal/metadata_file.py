@@ -2,7 +2,7 @@ import csv
 import json
 from collections import namedtuple
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from scpca_portal import common, utils
 
@@ -36,36 +36,55 @@ LIBRARY_METADATA_KEYS = [
     # Field only included in Single cell (and Multiplexed) libraries
     ("filtered_cells", "filtered_cell_count", None),
 ]
+KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
 
 
-def load_metadata(metadata_file_path: Path):
+def load_projects_metadata(metadata_file_path: Path):
     """
-    Opens, loads and parses metadata file located at inputted metadata_file_path.
+    Opens, loads and parses list of project metadata located at inputted metadata_file_path.
     Transforms keys in data dicts to match associated model attributes.
     """
-    data_dicts = []
-    KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
-
     with open(metadata_file_path) as raw_file:
-        data_dicts = (
-            list(csv.DictReader(raw_file))
-            if metadata_file_path.suffix == ".csv"
-            else [json.load(raw_file)]
-        )
+        data_dicts = list(csv.DictReader(raw_file))
 
     for data_dict in data_dicts:
-        if "project" in metadata_file_path.name:
-            key_transforms = [KeyTransform._make(element) for element in PROJECT_METADATA_KEYS]
-        elif "sample" in metadata_file_path.name:
-            key_transforms = [KeyTransform._make(element) for element in SAMPLE_METADATA_KEYS]
-        else:
-            key_transforms = [KeyTransform._make(element) for element in LIBRARY_METADATA_KEYS]
-
-        for element in key_transforms:
-            if element.old_key in data_dict:
-                data_dict[element.new_key] = data_dict.pop(element.old_key, element.default_value)
+        transform_keys(data_dict, PROJECT_METADATA_KEYS)
 
     return data_dicts
+
+
+def load_samples_metadata(metadata_file_path: Path):
+    """
+    Opens, loads and parses list of sample metadata located at inputted metadata_file_path.
+    Transforms keys in data dicts to match associated model attributes.
+    """
+    with open(metadata_file_path) as raw_file:
+        data_dicts = list(csv.DictReader(raw_file))
+
+    for data_dict in data_dicts:
+        transform_keys(data_dict, SAMPLE_METADATA_KEYS)
+
+    return data_dicts
+
+
+def load_library_metadata(metadata_file_path: Path):
+    """
+    Opens, loads and parses single library's metadata located at inputted metadata_file_path.
+    Transforms keys in data dicts to match associated model attributes.
+    """
+    with open(metadata_file_path) as raw_file:
+        return transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
+
+
+def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
+    """
+    Transforms keys in inputted data dict according to inputted key transforms tuple list.
+    """
+    for element in [KeyTransform._make(element) for element in key_transforms]:
+        if element.old_key in data_dict:
+            data_dict[element.new_key] = data_dict.pop(element.old_key, element.default_value)
+
+    return data_dict
 
 
 def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:

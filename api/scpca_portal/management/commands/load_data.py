@@ -175,7 +175,9 @@ class Command(BaseCommand):
             if project_path.is_dir()
         }
 
-        project_list = metadata_file.load_metadata(Project.get_input_project_metadata_file_path())
+        project_list = metadata_file.load_projects_metadata(
+            Project.get_input_project_metadata_file_path()
+        )
         for project_data in project_list:
             scpca_project_id = project_data["scpca_project_id"]
             if project_id and project_id != scpca_project_id:
