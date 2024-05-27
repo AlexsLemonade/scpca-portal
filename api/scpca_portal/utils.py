@@ -1,4 +1,5 @@
 """Misc utils."""
+
 import csv
 from datetime import datetime
 from typing import Dict, List, Set
@@ -64,6 +65,19 @@ def filter_dict_list_by_keys(
 def get_keys_from_dicts(dicts: List[Dict]) -> Set:
     """Takes a list of dictionaries and returns a set equal to the union of their keys."""
     return set(k for d in dicts for k in d.keys())
+
+
+def get_sorted_field_names(fieldnames: Set) -> List:
+    """
+    Returns a list of field names based on the global sort order list, and append names
+    that are not in the list to the end.
+    """
+    return sorted(
+        sorted((c for c in fieldnames), key=str.lower),  # sort fieldnames first
+        key=lambda k: (
+            common.METADATA_SORT_ORDER.index(k) if k in common.METADATA_SORT_ORDER else float("inf")
+        ),
+    )
 
 
 def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
