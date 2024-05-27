@@ -112,6 +112,41 @@ class TestGetKeysFromDicts(TestCase):
         self.assertEqual(utils.get_keys_from_dicts(list_of_dicts), expected_superset)
 
 
+class TestGetSortedFieldNames(TestCase):
+    def test_get_sorted_field_names_from_set_of_keys(self):
+        list_of_dicts = [
+            {
+                "scpca_project_id": "SCPCP999990",
+                "unknown_key_1": 1,
+                "organism": "Homo sapiens",
+                "subdiagnosis": "NA",
+                "diagnosis": "diagnosis1",
+            },
+            {
+                "organism": "Homo sapiens",
+                "technology": "techonology1",
+                "submitter_id": "NA",
+                "unknown_key_2": 2,
+                "scpca_sample_id": "SCPCS000490",
+            },
+        ]
+        expected_result = [
+            "scpca_sample_id",
+            "diagnosis",
+            "subdiagnosis",
+            "submitter_id",
+            "organism",
+            "technology",
+            "scpca_project_id",
+            "unknown_key_1",
+            "unknown_key_2",
+        ]
+
+        self.assertEqual(
+            utils.get_sorted_field_names(utils.get_keys_from_dicts(list_of_dicts)), expected_result
+        )
+
+
 class TestWriteDictsToFile(TestCase):
     def setUp(self):
         self.dummy_list_of_dicts = [
