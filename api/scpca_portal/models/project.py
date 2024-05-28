@@ -892,19 +892,21 @@ class Project(CommonDataAttributes, TimestampedModel):
                 list(Path(sample_dir).glob("*_metadata.json"))
                 + list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
             )
-            for filename_path in library_metadata_paths:
-                library_json = metadata_file.load_library_metadata(filename_path)
+            library_json_files = [
+                metadata_file.load_library_metadata(path) for path in library_metadata_paths
+            ]
 
+            for library_json in library_json_files:
+                # If library metadata is of modality "Single cell"
                 if "filtered_cell_count" in library_json:
                     sample_cell_count_estimate += library_json["filtered_cell_count"]
+                    libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_json)
+                # Else if library metadata is of modality "Spatial"
+                else:
+                    libraries_metadata[Sample.Modalities.SPATIAL].append(library_json)
 
                 sample_seq_units.add(library_json["seq_unit"].strip())
                 sample_technologies.add(library_json["technology"].strip())
-
-                if "spatial" in str(filename_path):
-                    libraries_metadata[Sample.Modalities.SPATIAL].append(library_json)
-                else:
-                    libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_json)
 
             # Update aggregate values
             if updated_sample_metadata["has_multiplexed_data"]:
