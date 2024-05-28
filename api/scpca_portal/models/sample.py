@@ -85,9 +85,9 @@ class Sample(CommonDataAttributes, TimestampedModel):
             includes_anndata=data.get("includes_anndata", False),
             is_cell_line=utils.boolean_from_string(data.get("is_cell_line", False)),
             is_xenograft=utils.boolean_from_string(data.get("is_xenograft", False)),
-            multiplexed_with=data.get("multiplexed_with"),
+            multiplexed_with=data.get("multiplexed_with", None),
             sample_cell_count_estimate=(
-                data.get("sample_cell_count_estimate")
+                data.get("sample_cell_count_estimate", None)
                 if not data.get("has_multiplexed_data", False)
                 else None
             ),
