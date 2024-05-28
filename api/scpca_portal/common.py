@@ -23,8 +23,9 @@ TAB = "\t"
 IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
 
-# Global sort order for the field names in Metadata TSVs
-METADATA_SORT_ORDER = [
+# Global sort order for Metadata TSVs
+# Columns
+METADATA_COLUMN_SORT_ORDER = [
     # sample metadata
     "scpca_sample_id",
     "scpca_library_id",
@@ -75,3 +76,5 @@ METADATA_SORT_ORDER = [
     "workflow_version",
     "workflow_commit",
 ]
+# Rows
+METADATA_ROW_SORT_ORDER = ["scpca_project_id", "scpca_sample_id", "scpca_library_id"]

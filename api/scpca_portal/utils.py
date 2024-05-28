@@ -69,13 +69,15 @@ def get_keys_from_dicts(dicts: List[Dict]) -> Set:
 
 def get_sorted_field_names(fieldnames: List | Set) -> List:
     """
-    Returns a list of field names based on the METADATA_SORT_ORDER list, and append names
+    Returns a list of field names based on the METADATA_COLUMN_SORT_ORDER list, and append names
     that are not in the list to the end.
     """
     return sorted(
         sorted((c for c in fieldnames), key=str.lower),  # Sort fieldnames first
         key=lambda k: (
-            common.METADATA_SORT_ORDER.index(k) if k in common.METADATA_SORT_ORDER else float("inf")
+            common.METADATA_COLUMN_SORT_ORDER.index(k)
+            if k in common.METADATA_COLUMN_SORT_ORDER
+            else float("inf")
         ),
     )
 
@@ -90,10 +92,24 @@ def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwar
     )
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
 
+    # Set default row sort if METADATA_ROW_SORT_ORDER[0] (i.e. scpca_project_id) in list_of_dicts
+    sorted_list_of_dicts = (
+        sorted(
+            list_of_dicts,
+            key=lambda k: (
+                k[common.METADATA_ROW_SORT_ORDER[0]],
+                k[common.METADATA_ROW_SORT_ORDER[1]],
+                k[common.METADATA_ROW_SORT_ORDER[2]],
+            ),
+        )
+        if any(common.METADATA_ROW_SORT_ORDER[0] in d for d in list_of_dicts)
+        else list_of_dicts
+    )
+
     with open(output_file_path, "w", newline="") as raw_file:
         csv_writer = csv.DictWriter(raw_file, **kwargs)
         csv_writer.writeheader()
-        csv_writer.writerows(list_of_dicts)
+        csv_writer.writerows(sorted_list_of_dicts)
 
 
 def get_csv_zipped_values(

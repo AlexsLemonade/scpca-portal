@@ -1061,14 +1061,10 @@ class Project(CommonDataAttributes, TimestampedModel):
                 combined_metadata[Sample.Modalities.MULTIPLEXED].extend(
                     combined_metadata[Sample.Modalities.SINGLE_CELL]
                 )
-            # Project file data has to be sorted by library_id
-            sorted_combined_metadata_by_modality = sorted(
-                combined_metadata[modality],
-                key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
-            )
+
             project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
             utils.write_dicts_to_file(
-                sorted_combined_metadata_by_modality, getattr(self, project_metadata_path)
+                combined_metadata[modality], getattr(self, project_metadata_path)
             )
 
     def purge(self, delete_from_s3=False):
