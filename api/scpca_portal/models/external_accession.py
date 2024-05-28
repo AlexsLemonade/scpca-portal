@@ -39,10 +39,7 @@ class ExternalAccession(TimestampedModel):
 
         try:
             zipped_external_accession_details = utils.get_csv_zipped_values(
-                project_data,
-                "external_accession",
-                "external_accession_raw",
-                "external_accession_url",
+                project_data, "accession", "has_raw", "accession_url"
             )
         except Exception:
             logger.error("Unable to add ambiguous external accessions.")

@@ -38,9 +38,7 @@ class Contact(TimestampedModel):
         contacts = []
 
         try:
-            zipped_contact_details = utils.get_csv_zipped_values(
-                project_data, "contact_email", "contact_name"
-            )
+            zipped_contact_details = utils.get_csv_zipped_values(project_data, "email", "name")
         except Exception:
             logger.error("Unable to add ambiguous contacts.")
             raise

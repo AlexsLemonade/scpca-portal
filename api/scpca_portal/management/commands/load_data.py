@@ -1,4 +1,3 @@
-import csv
 import logging
 import shutil
 import subprocess
@@ -12,7 +11,7 @@ from django.template.defaultfilters import pluralize
 import boto3
 from botocore.client import Config
 
-from scpca_portal import common
+from scpca_portal import common, metadata_file
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
 
 ALLOWED_SUBMITTERS = {
@@ -176,9 +175,9 @@ class Command(BaseCommand):
             if project_path.is_dir()
         }
 
-        with open(Project.get_input_project_metadata_file_path()) as project_csv:
-            project_list = list(csv.DictReader(project_csv))
-
+        project_list = metadata_file.load_projects_metadata(
+            Project.get_input_project_metadata_file_path()
+        )
         for project_data in project_list:
             scpca_project_id = project_data["scpca_project_id"]
             if project_id and project_id != scpca_project_id:
@@ -190,8 +189,8 @@ class Command(BaseCommand):
                 )
                 return
 
-            if project_data["submitter"] not in allowed_submitters:
-                logger.warning("Project submitter  is not the white list.")
+            if project_data["pi_name"] not in allowed_submitters:
+                logger.warning("Project submitter is not the white list.")
                 continue
 
             if project := Project.objects.filter(scpca_id=scpca_project_id).first():
