@@ -34,3 +34,16 @@ class Library(TimestampedModel):
     modality = models.TextField(choices=Modalities.CHOICES)
     scpca_id = models.TextField(unique=True)
     workflow_version = models.TextField()
+
+    @classmethod
+    def get_from_dict(cls, data, formats, is_multiplexed, modality):
+        library = cls(
+            formats=formats,
+            is_multiplexed=is_multiplexed,
+            metadata=data,
+            modality=modality,
+            scpca_id=data["library_id"],
+            workflow_version=data["workflow_version"],
+        )
+
+        return library
