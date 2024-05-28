@@ -1068,9 +1068,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
             project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
             utils.write_dicts_to_file(
-                sorted_combined_metadata_by_modality,
-                getattr(self, project_metadata_path),
-                fieldnames=field_names,
+                sorted_combined_metadata_by_modality, getattr(self, project_metadata_path)
             )
 
     def purge(self, delete_from_s3=False):

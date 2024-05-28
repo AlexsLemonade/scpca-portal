@@ -67,13 +67,13 @@ def get_keys_from_dicts(dicts: List[Dict]) -> Set:
     return set(k for d in dicts for k in d.keys())
 
 
-def get_sorted_field_names(fieldnames: Set) -> List:
+def get_sorted_field_names(fieldnames: List | Set) -> List:
     """
-    Returns a list of field names based on the global sort order list, and append names
+    Returns a list of field names based on the METADATA_SORT_ORDER list, and append names
     that are not in the list to the end.
     """
     return sorted(
-        sorted((c for c in fieldnames), key=str.lower),  # sort fieldnames first
+        sorted((c for c in fieldnames), key=str.lower),  # Sort fieldnames first
         key=lambda k: (
             common.METADATA_SORT_ORDER.index(k) if k in common.METADATA_SORT_ORDER else float("inf")
         ),
@@ -85,7 +85,9 @@ def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwar
     Writes a list of dictionaries to a csv-like file.
     Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
     """
-    kwargs["fieldnames"] = kwargs.get("fieldnames", get_keys_from_dicts(list_of_dicts))
+    kwargs["fieldnames"] = get_sorted_field_names(
+        kwargs.get("fieldnames", get_keys_from_dicts(list_of_dicts))
+    )
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
 
     with open(output_file_path, "w", newline="") as raw_file:
