@@ -1,6 +1,5 @@
 """Misc utils."""
 
-import csv
 from datetime import datetime
 from typing import Dict, List, Set
 
@@ -80,36 +79,6 @@ def get_sorted_field_names(fieldnames: List | Set) -> List:
             else common.METADATA_COLUMN_SORT_ORDER.index("*")  # Insert additional metadata
         ),
     )
-
-
-def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
-    """
-    Writes a list of dictionaries to a csv-like file.
-    Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
-    """
-    kwargs["fieldnames"] = get_sorted_field_names(
-        kwargs.get("fieldnames", get_keys_from_dicts(list_of_dicts))
-    )
-    kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
-
-    # Set default row sort if METADATA_ROW_SORT_ORDER[0] (i.e. scpca_project_id) in list_of_dicts
-    sorted_list_of_dicts = (
-        sorted(
-            list_of_dicts,
-            key=lambda k: (
-                k[common.METADATA_ROW_SORT_ORDER[0]],
-                k[common.METADATA_ROW_SORT_ORDER[1]],
-                k[common.METADATA_ROW_SORT_ORDER[2]],
-            ),
-        )
-        if any(common.METADATA_ROW_SORT_ORDER[0] in d for d in list_of_dicts)
-        else list_of_dicts
-    )
-
-    with open(output_file_path, "w", newline="") as raw_file:
-        csv_writer = csv.DictWriter(raw_file, **kwargs)
-        csv_writer.writeheader()
-        csv_writer.writerows(sorted_list_of_dicts)
 
 
 def get_csv_zipped_values(
