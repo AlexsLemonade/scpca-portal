@@ -77,7 +77,7 @@ def get_sorted_field_names(fieldnames: List | Set) -> List:
         key=lambda k: (
             common.METADATA_COLUMN_SORT_ORDER.index(k)
             if k in common.METADATA_COLUMN_SORT_ORDER
-            else float("inf")
+            else common.METADATA_COLUMN_SORT_ORDER.index("*")  # Insert additional metadata
         ),
     )
 
@@ -91,7 +91,7 @@ def write_dicts_to_file(list_of_dicts: List[Dict], output_file_path: str, **kwar
         kwargs.get("fieldnames", get_keys_from_dicts(list_of_dicts))
     )
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
-
+    print(kwargs["fieldnames"])
     # Set default row sort if METADATA_ROW_SORT_ORDER[0] (i.e. scpca_project_id) in list_of_dicts
     sorted_list_of_dicts = (
         sorted(

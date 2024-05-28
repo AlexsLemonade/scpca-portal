@@ -117,17 +117,19 @@ class TestGetSortedFieldNames(TestCase):
         list_of_dicts = [
             {
                 "scpca_project_id": "SCPCP999990",
-                "unknown_key_1": 1,
                 "organism": "Homo sapiens",
                 "subdiagnosis": "NA",
                 "diagnosis": "diagnosis1",
+                "tissue_ontology_term_id": "NA",
+                "location_class": "NA",
             },
             {
                 "organism": "Homo sapiens",
                 "technology": "techonology1",
                 "submitter_id": "NA",
-                "unknown_key_2": 2,
                 "scpca_sample_id": "SCPCS000490",
+                "WHO_grade": "1",
+                "organism_ontology_id": "NA",
             },
         ]
         expected_result = [
@@ -136,10 +138,12 @@ class TestGetSortedFieldNames(TestCase):
             "subdiagnosis",
             "submitter_id",
             "organism",
+            "location_class",
+            "organism_ontology_id",
+            "tissue_ontology_term_id",
+            "WHO_grade",
             "technology",
             "scpca_project_id",
-            "unknown_key_1",
-            "unknown_key_2",
         ]
 
         self.assertEqual(

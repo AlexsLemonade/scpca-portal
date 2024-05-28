@@ -39,7 +39,8 @@ METADATA_COLUMN_SORT_ORDER = [
     "submitter",
     "submitter_id",
     "organism",
-    # library metadata
+    "*",  # Addtional metadata
+    # Library metadata
     "seq_unit",
     "technology",
     "total_reads",
@@ -54,11 +55,11 @@ METADATA_COLUMN_SORT_ORDER = [
     "is_cell_line",
     "is_multiplexed",
     "is_xenograft",
-    # project metadata
+    # Project metadata
     "scpca_project_id",
     "pi_name",
     "project_title",
-    # processing metadata
+    # Processing metadata
     "genome_assembly",
     "mapping_index",
     "spaceranger_version",  # FOR SPATIAL ONLY
