@@ -10,7 +10,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.template.loader import render_to_string
 
-from scpca_portal import common, utils
+from scpca_portal import common, metadata_file, utils
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -203,6 +203,17 @@ class Project(CommonDataAttributes, TimestampedModel):
         sample_metadata["project_title"] = self.title
         sample_metadata["scpca_project_id"] = self.scpca_id
 
+    def create_readmes(self) -> None:
+        """
+        Creates all possible readmes to be included later when archiving the desired computed file.
+        """
+        self.create_anndata_readme_file()
+        self.create_anndata_merged_readme_file()
+        self.create_multiplexed_readme_file()
+        self.create_single_cell_readme_file()
+        self.create_single_cell_merged_readme_file()
+        self.create_spatial_readme_file()
+
     def create_anndata_readme_file(self):
         """Creates an annotation metadata README file."""
         with open(ComputedFile.README_ANNDATA_FILE_PATH, "w") as readme_file:
@@ -365,15 +376,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         project = cls(
             scpca_id=data.pop("scpca_project_id"),
         )
-
-        # Massage keys
-        data["has_bulk_rna_seq"] = data.pop("has_bulk", False)
-        data["has_cite_seq_data"] = data.pop("has_CITE", False)
-        data["has_multiplexed_data"] = data.pop("has_multiplex", False)
-        data["has_spatial_data"] = data.pop("has_spatial", False)
-        data["human_readable_pi_name"] = data.pop("PI", None)
-        data["pi_name"] = data.pop("submitter", None)
-        data["title"] = data.pop("project_title", None)
 
         # Assign values to remaining properties
         for key in data.keys():
@@ -782,12 +784,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         Returns a list of project's computed files.
         """
-        self.create_anndata_readme_file()
-        self.create_anndata_merged_readme_file()
-        self.create_multiplexed_readme_file()
-        self.create_single_cell_readme_file()
-        self.create_single_cell_merged_readme_file()
-        self.create_spatial_readme_file()
+        self.create_readmes()
 
         combined_metadata = self.handle_samples_metadata(sample_id)
 
@@ -841,9 +838,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         return combined_metadata
 
     def load_samples_metadata(self) -> List[Dict]:
-        # Start with a list of samples and their metadata.
-        with open(self.input_samples_metadata_file_path) as samples_csv_file:
-            samples_metadata = [sample for sample in csv.DictReader(samples_csv_file)]
+        samples_metadata = metadata_file.load_samples_metadata(
+            self.input_samples_metadata_file_path
+        )
 
         bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
         demux_sample_ids = self.get_demux_sample_ids()
@@ -855,9 +852,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_path = Path(self.get_sample_input_data_dir(sample_id))
 
             self.add_project_metadata(sample_metadata)
-
-            # Rename attribute
-            sample_metadata["age_at_diagnosis"] = sample_metadata.pop("age")
 
             sample_metadata.update(
                 {
@@ -899,14 +893,9 @@ class Project(CommonDataAttributes, TimestampedModel):
                 + list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
             )
             for filename_path in library_metadata_paths:
-                with open(filename_path) as library_metadata_json_file:
-                    library_json = json.load(library_metadata_json_file)
+                library_json = metadata_file.load_library_metadata(filename_path)
 
-                library_json["scpca_library_id"] = library_json.pop("library_id")
-                library_json["scpca_sample_id"] = library_json.pop("sample_id")
-
-                if "filtered_cells" in library_json:
-                    library_json["filtered_cell_count"] = library_json.pop("filtered_cells")
+                if "filtered_cell_count" in library_json:
                     sample_cell_count_estimate += library_json["filtered_cell_count"]
 
                 sample_seq_units.add(library_json["seq_unit"].strip())
@@ -1045,7 +1034,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     )
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
-                utils.write_dicts_to_file(
+                metadata_file.write_metadata_dicts(
                     sample_libraries, sample_metadata_path, fieldnames=field_names
                 )
 
@@ -1061,7 +1050,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 key=lambda cm: (cm["scpca_sample_id"], cm["scpca_library_id"]),
             )
             project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
-            utils.write_dicts_to_file(
+            metadata_file.write_metadata_dicts(
                 sorted_combined_metadata_by_modality,
                 getattr(self, project_metadata_path),
                 fieldnames=field_names,

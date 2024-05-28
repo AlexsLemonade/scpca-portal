@@ -1,11 +1,12 @@
 import { useContext, useEffect } from 'react'
 import { DownloadOptionsContext } from 'contexts/DownloadOptionsContext'
 import { optionsSortOrder } from 'config/downloadOptions'
-import pick from 'helpers/pick'
-import filterWhere from 'helpers/filterWhere'
-import arrayListSort from 'helpers/arrayListSort'
-import objectContains from 'helpers/objectContains'
-import uniqueValuesForKey from 'helpers/uniqueValuesForKey'
+import { arrayListSort } from 'helpers/arrayListSort'
+import { filterWhere } from 'helpers/filterWhere'
+import { pick } from 'helpers/pick'
+import { uniqueArray } from 'helpers/uniqueArray'
+import { objectContains } from 'helpers/objectContains'
+import { uniqueValuesForKey } from 'helpers/uniqueValuesForKey'
 
 export const useDownloadOptionsContext = () => {
   const {
@@ -38,7 +39,7 @@ export const useDownloadOptionsContext = () => {
     files = computedFiles
   ) => {
     const allOptions = arrayListSort(
-      [...new Set(pick(files, optionName))],
+      uniqueArray(pick(files, optionName)),
       optionsSortOrder
     )
     const defaultOption = allOptions.includes(preference)

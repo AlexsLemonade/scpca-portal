@@ -44,7 +44,7 @@ class Publication(TimestampedModel):
 
         try:
             zipped_publication_details = utils.get_csv_zipped_values(
-                project_data, "citation_doi", "citation"
+                project_data, "doi", "citation"
             )
         except Exception:
             logger.error("Unable to add ambiguous publications.")

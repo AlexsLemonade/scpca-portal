@@ -7,10 +7,9 @@ import {
   modalityResourceInfo,
   omitKeys
 } from 'config/downloadOptions'
-
+import { objectContains } from 'helpers/objectContains'
 import { getReadableFiles } from 'helpers/getReadable'
-import { capitalizeFirst } from 'helpers/capitalize'
-import objectContains from 'helpers/objectContains'
+import { capitalize } from 'helpers/capitalize'
 
 export const resolveKey = (key, computedFile) => {
   return dynamicKeys.includes(key) ? computedFile[key] : key
@@ -23,7 +22,7 @@ const formatFileItemByKey = (key, computedFile) => {
   const formattedItem = nonFormatKeys.includes(key)
     ? fileItem
     : `${fileItem} as ${getReadableFiles(format)}`
-  return capitalizeFirst(formattedItem).trim()
+  return capitalize(formattedItem, true).trim()
 }
 
 // takes the config and checks against the resource
