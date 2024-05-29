@@ -72,7 +72,7 @@ def get_sorted_field_names(fieldnames: List | Set) -> List:
     that are not in the list to the end.
     """
     return sorted(
-        sorted((c for c in fieldnames), key=str.lower),  # Sort fieldnames first
+        sorted(fieldnames, key=str.lower),  # Sort fieldnames first
         key=lambda k: (
             common.METADATA_COLUMN_SORT_ORDER.index(k)
             if k in common.METADATA_COLUMN_SORT_ORDER

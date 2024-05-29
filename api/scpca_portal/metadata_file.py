@@ -92,15 +92,11 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
     Writes a list of dictionaries to a csv-like file.
     Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
     """
-
-    # TODO: Only pass the default utils.get_keys_from_dicts(list_of_dicts)
-    # to utils.get_sorted_field_names once Sample.Modalities.MULTIPLEXED is removed
-    kwargs["fieldnames"] = utils.get_sorted_field_names(
-        kwargs.get("fieldnames", utils.get_keys_from_dicts(list_of_dicts))
+    kwargs["fieldnames"] = kwargs.get(
+        "fieldnames", utils.get_sorted_field_names(utils.get_keys_from_dicts(list_of_dicts))
     )
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
 
-    # Set default row sort if METADATA_ROW_SORT_ORDER[0] (i.e. scpca_project_id) in list_of_dicts
     sorted_list_of_dicts = (
         sorted(
             list_of_dicts,
