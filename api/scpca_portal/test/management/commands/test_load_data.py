@@ -6,7 +6,7 @@ from zipfile import ZipFile
 
 from django.test import TransactionTestCase
 
-from scpca_portal import common, utils
+from scpca_portal import common
 from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
@@ -397,63 +397,61 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(publication2.doi, "{doi 2}")
         self.assertEqual(publication2.citation, "{formatted citation 2}")
 
-        expected_keys = utils.get_sorted_field_names(
-            [
-                "scpca_sample_id",
-                "scpca_library_id",
-                "scpca_project_id",
-                "technology",
-                "seq_unit",
-                "total_reads",
-                "mapped_reads",
-                "genome_assembly",
-                "mapping_index",
-                "date_processed",
-                "workflow",
-                "workflow_version",
-                "workflow_commit",
-                "diagnosis",
-                "subdiagnosis",
-                "pi_name",
-                "project_title",
-                "disease_timing",
-                "age_at_diagnosis",
-                "sex",
-                "tissue_location",
-                "participant_id",
-                "submitter",
-                "submitter_id",
-                "alevin_fry_version",
-                "cell_filtering_method",
-                "demux_method",
-                "demux_samples",
-                "development_stage_ontology_term_id",
-                "disease_ontology_term_id",
-                "droplet_filtering_method",
-                "filtered_cell_count",  # with non-multiplexed
-                "filtered_cells",
-                "has_cellhash",
-                "includes_anndata",
-                "is_cell_line",
-                "is_multiplexed",
-                "is_xenograft",
-                "min_gene_cutoff",
-                "normalization_method",
-                "organism",
-                "organism_ontology_id",
-                "prob_compromised_cutoff",
-                "processed_cells",
-                "salmon_version",
-                "sample_cell_count_estimate",  # with non-multiplexed
-                "sample_cell_estimates",
-                "self_reported_ethnicity_ontology_term_id",
-                "sex_ontology_term_id",
-                "tissue_ontology_term_id",
-                "transcript_type",
-                "unfiltered_cells",
-                "WHO_grade",
-            ]
-        )
+        expected_project_keys = [
+            "scpca_project_id",
+            "scpca_sample_id",
+            "scpca_library_id",
+            "diagnosis",
+            "subdiagnosis",
+            "disease_timing",
+            "age_at_diagnosis",
+            "sex",
+            "tissue_location",
+            "participant_id",
+            "submitter",
+            "submitter_id",
+            "organism",
+            "demux_samples",
+            "development_stage_ontology_term_id",
+            "disease_ontology_term_id",
+            "filtered_cells",
+            "organism_ontology_id",
+            "self_reported_ethnicity_ontology_term_id",
+            "sex_ontology_term_id",
+            "tissue_ontology_term_id",
+            "WHO_grade",
+            "seq_unit",
+            "technology",
+            "total_reads",
+            "mapped_reads",
+            "sample_cell_count_estimate",  # with non-multiplexed
+            "sample_cell_estimates",
+            "unfiltered_cells",
+            "filtered_cell_count",  # with non-multiplexed
+            "processed_cells",
+            "has_cellhash",
+            "includes_anndata",
+            "is_cell_line",
+            "is_multiplexed",
+            "is_xenograft",
+            "pi_name",
+            "project_title",
+            "genome_assembly",
+            "mapping_index",
+            "alevin_fry_version",
+            "salmon_version",
+            "transcript_type",
+            "droplet_filtering_method",
+            "cell_filtering_method",
+            "prob_compromised_cutoff",
+            "min_gene_cutoff",
+            "normalization_method",
+            "demux_method",
+            "date_processed",
+            "workflow",
+            "workflow_version",
+            "workflow_commit",
+        ]
 
         project_zip_path = common.OUTPUT_DATA_PATH / project.output_multiplexed_computed_file_name
         with ZipFile(project_zip_path) as project_zip:
@@ -470,7 +468,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(len(sample_metadata_lines), 4)  # 3 items + header.
 
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
-        self.assertEqual(sample_metadata_keys, expected_keys)
+        self.assertEqual(sample_metadata_keys, expected_project_keys)
 
         # There are 14 files (including subdirectory names):
         # ├── README.md
@@ -544,6 +542,60 @@ class TestLoadData(TransactionTestCase):
             set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
         )
 
+        expected_sample_keys = [
+            "scpca_project_id",
+            "scpca_sample_id",
+            "scpca_library_id",
+            "diagnosis",
+            "subdiagnosis",
+            "disease_timing",
+            "age_at_diagnosis",
+            "sex",
+            "tissue_location",
+            "participant_id",
+            "submitter",
+            "submitter_id",
+            "organism",
+            "demux_samples",
+            "development_stage_ontology_term_id",
+            "disease_ontology_term_id",
+            "filtered_cells",
+            "organism_ontology_id",
+            "self_reported_ethnicity_ontology_term_id",
+            "sex_ontology_term_id",
+            "tissue_ontology_term_id",
+            "WHO_grade",
+            "seq_unit",
+            "technology",
+            "total_reads",
+            "mapped_reads",
+            "sample_cell_estimates",
+            "unfiltered_cells",
+            "processed_cells",
+            "has_cellhash",
+            "includes_anndata",
+            "is_cell_line",
+            "is_multiplexed",
+            "is_xenograft",
+            "pi_name",
+            "project_title",
+            "genome_assembly",
+            "mapping_index",
+            "alevin_fry_version",
+            "salmon_version",
+            "transcript_type",
+            "droplet_filtering_method",
+            "cell_filtering_method",
+            "prob_compromised_cutoff",
+            "min_gene_cutoff",
+            "normalization_method",
+            "demux_method",
+            "date_processed",
+            "workflow",
+            "workflow_version",
+            "workflow_commit",
+        ]
+
         sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_multiplexed_computed_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
@@ -555,12 +607,7 @@ class TestLoadData(TransactionTestCase):
                 rows = list(csv_reader)
 
         self.assertEqual(len(rows), 2)
-        sample_expected_keys = [
-            item
-            for item in expected_keys
-            if item not in ["sample_cell_count_estimate", "filtered_cell_count"]
-        ]
-        self.assertEqual(list(rows[0].keys()), sample_expected_keys)
+        self.assertEqual(list(rows[0].keys()), expected_sample_keys)
 
         library_id = rows[0]["scpca_library_id"]
         expected_filenames = {
@@ -626,59 +673,57 @@ class TestLoadData(TransactionTestCase):
         self.assertTrue(project.single_cell_anndata_computed_file.has_bulk_rna_seq)
         self.assertFalse(project.single_cell_anndata_computed_file.has_cite_seq_data)
 
-        expected_keys = utils.get_sorted_field_names(
-            [
-                "scpca_sample_id",
-                "scpca_library_id",
-                "diagnosis",
-                "subdiagnosis",
-                "seq_unit",
-                "technology",
-                "sample_cell_count_estimate",
-                "scpca_project_id",
-                "pi_name",
-                "project_title",
-                "disease_timing",
-                "age_at_diagnosis",
-                "sex",
-                "tissue_location",
-                "alevin_fry_version",
-                "cell_filtering_method",
-                "date_processed",
-                "development_stage_ontology_term_id",
-                "disease_ontology_term_id",
-                "droplet_filtering_method",
-                "filtered_cell_count",
-                "genome_assembly",
-                "has_cellhash",
-                "includes_anndata",
-                "is_cell_line",
-                "is_multiplexed",
-                "is_xenograft",
-                "mapped_reads",
-                "mapping_index",
-                "min_gene_cutoff",
-                "normalization_method",
-                "organism",
-                "organism_ontology_id",
-                "participant_id",
-                "prob_compromised_cutoff",
-                "processed_cells",
-                "salmon_version",
-                "self_reported_ethnicity_ontology_term_id",
-                "sex_ontology_term_id",
-                "submitter",
-                "submitter_id",
-                "tissue_ontology_term_id",
-                "total_reads",
-                "transcript_type",
-                "unfiltered_cells",
-                "WHO_grade",
-                "workflow",
-                "workflow_commit",
-                "workflow_version",
-            ]
-        )
+        expected_keys = [
+            "scpca_project_id",
+            "scpca_sample_id",
+            "scpca_library_id",
+            "diagnosis",
+            "subdiagnosis",
+            "disease_timing",
+            "age_at_diagnosis",
+            "sex",
+            "tissue_location",
+            "participant_id",
+            "submitter",
+            "submitter_id",
+            "organism",
+            "development_stage_ontology_term_id",
+            "disease_ontology_term_id",
+            "organism_ontology_id",
+            "self_reported_ethnicity_ontology_term_id",
+            "sex_ontology_term_id",
+            "tissue_ontology_term_id",
+            "WHO_grade",
+            "seq_unit",
+            "technology",
+            "total_reads",
+            "mapped_reads",
+            "sample_cell_count_estimate",
+            "unfiltered_cells",
+            "filtered_cell_count",
+            "processed_cells",
+            "has_cellhash",
+            "includes_anndata",
+            "is_cell_line",
+            "is_multiplexed",
+            "is_xenograft",
+            "pi_name",
+            "project_title",
+            "genome_assembly",
+            "mapping_index",
+            "alevin_fry_version",
+            "salmon_version",
+            "transcript_type",
+            "droplet_filtering_method",
+            "cell_filtering_method",
+            "prob_compromised_cutoff",
+            "min_gene_cutoff",
+            "normalization_method",
+            "date_processed",
+            "workflow",
+            "workflow_version",
+            "workflow_commit",
+        ]
 
         project_zip_path = common.OUTPUT_DATA_PATH / project.output_single_cell_computed_file_name
         with ZipFile(project_zip_path) as project_zip:
@@ -856,46 +901,44 @@ class TestLoadData(TransactionTestCase):
         self.assertFalse(project.spatial_computed_file.has_bulk_rna_seq)
         self.assertFalse(project.spatial_computed_file.has_cite_seq_data)
 
-        expected_keys = utils.get_sorted_field_names(
-            [
-                "scpca_project_id",
-                "scpca_sample_id",
-                "scpca_library_id",
-                "technology",
-                "seq_unit",
-                "total_reads",
-                "mapped_reads",
-                "genome_assembly",
-                "mapping_index",
-                "date_processed",
-                "spaceranger_version",
-                "workflow",
-                "workflow_version",
-                "workflow_commit",
-                "diagnosis",
-                "subdiagnosis",
-                "pi_name",
-                "project_title",
-                "disease_timing",
-                "age_at_diagnosis",
-                "sex",
-                "tissue_location",
-                "participant_id",
-                "submitter",
-                "submitter_id",
-                "development_stage_ontology_term_id",
-                "disease_ontology_term_id",
-                "includes_anndata",
-                "is_cell_line",
-                "is_xenograft",
-                "organism",
-                "organism_ontology_id",
-                "self_reported_ethnicity_ontology_term_id",
-                "sex_ontology_term_id",
-                "tissue_ontology_term_id",
-                "WHO_grade",
-            ]
-        )
+        expected_keys = [
+            "scpca_project_id",
+            "scpca_sample_id",
+            "scpca_library_id",
+            "diagnosis",
+            "subdiagnosis",
+            "disease_timing",
+            "age_at_diagnosis",
+            "sex",
+            "tissue_location",
+            "participant_id",
+            "submitter",
+            "submitter_id",
+            "organism",
+            "development_stage_ontology_term_id",
+            "disease_ontology_term_id",
+            "organism_ontology_id",
+            "self_reported_ethnicity_ontology_term_id",
+            "sex_ontology_term_id",
+            "tissue_ontology_term_id",
+            "WHO_grade",
+            "seq_unit",
+            "technology",
+            "total_reads",
+            "mapped_reads",
+            "includes_anndata",
+            "is_cell_line",
+            "is_xenograft",
+            "pi_name",
+            "project_title",
+            "genome_assembly",
+            "mapping_index",
+            "spaceranger_version",
+            "date_processed",
+            "workflow",
+            "workflow_version",
+            "workflow_commit",
+        ]
 
         project_zip_path = common.OUTPUT_DATA_PATH / project.output_spatial_computed_file_name
         with ZipFile(project_zip_path) as project_zip:
