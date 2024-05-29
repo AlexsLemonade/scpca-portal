@@ -26,6 +26,7 @@ STRIPPED_INPUT_VALUES = "< >"
 # Global sort order for Metadata TSVs
 # Columns
 METADATA_COLUMN_SORT_ORDER = [
+    "scpca_project_id",
     # sample metadata
     "scpca_sample_id",
     "scpca_library_id",
@@ -56,7 +57,6 @@ METADATA_COLUMN_SORT_ORDER = [
     "is_multiplexed",
     "is_xenograft",
     # Project metadata
-    "scpca_project_id",
     "pi_name",
     "project_title",
     # Processing metadata

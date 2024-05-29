@@ -129,6 +129,7 @@ class TestGetSortedFieldNames(TestCase):
             },
         ]
         expected_result = [
+            "scpca_project_id",
             "scpca_sample_id",
             "diagnosis",
             "subdiagnosis",
@@ -139,7 +140,6 @@ class TestGetSortedFieldNames(TestCase):
             "tissue_ontology_term_id",
             "WHO_grade",
             "technology",
-            "scpca_project_id",
         ]
 
         self.assertEqual(
