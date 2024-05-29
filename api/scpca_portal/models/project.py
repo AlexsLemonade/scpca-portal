@@ -813,7 +813,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def handle_samples_metadata(self, sample_id=None):
         # Parses tsv sample metadata file, massages field names
-        samples_metadata = self.load_samples_metadata()
+        samples_metadata = self.load_samples_metadata(sample_id)
 
         # Parses json library metadata files, massages field names, calculates aggregate values
         updated_samples_metadata, libraries_metadata = self.load_libraries_metadata(
@@ -825,19 +825,12 @@ class Project(CommonDataAttributes, TimestampedModel):
             updated_samples_metadata, libraries_metadata, sample_id
         )
 
-        # Creates sample objects and saves them to the db
-        Sample.bulk_create_from_dicts(
-            updated_samples_metadata,
-            self,
-            sample_id=sample_id,
-        )
-
         # Updates project properties that are derived from recently saved samples
         self.update_project_derived_properties()
 
         return combined_metadata
 
-    def load_samples_metadata(self) -> List[Dict]:
+    def load_samples_metadata(self, sample_id: str = None) -> List[Dict]:
         samples_metadata = metadata_file.load_samples_metadata(
             self.input_samples_metadata_file_path
         )
@@ -846,23 +839,26 @@ class Project(CommonDataAttributes, TimestampedModel):
         demux_sample_ids = self.get_demux_sample_ids()
 
         for sample_metadata in samples_metadata:
-            sample_id = sample_metadata["scpca_sample_id"]
+            scpca_sample_id = sample_metadata["scpca_sample_id"]
             # Some samples will exist but their contents cannot be shared yet.
             # When this happens their corresponding sample folder will not exist.
-            sample_path = Path(self.get_sample_input_data_dir(sample_id))
+            sample_path = Path(self.get_sample_input_data_dir(scpca_sample_id))
 
             self.add_project_metadata(sample_metadata)
 
             sample_metadata.update(
                 {
-                    "has_bulk_rna_seq": sample_id in bulk_rna_seq_sample_ids,
-                    "has_multiplexed_data": sample_id in demux_sample_ids,
+                    "has_bulk_rna_seq": scpca_sample_id in bulk_rna_seq_sample_ids,
+                    "has_multiplexed_data": scpca_sample_id in demux_sample_ids,
                     "has_cite_seq_data": any(sample_path.glob("*_adt.*")),
                     "has_single_cell_data": any(sample_path.glob("*_metadata.json")),
                     "has_spatial_data": any(sample_path.rglob("*_spatial/*_metadata.json")),
                     "includes_anndata": any(sample_path.glob("*.h5ad")),
                 }
             )
+
+        # Creates sample objects and saves them to the db
+        Sample.bulk_create_from_dicts(samples_metadata, self, sample_id=sample_id)
 
         return samples_metadata
 
@@ -931,6 +927,21 @@ class Project(CommonDataAttributes, TimestampedModel):
             updated_sample_metadata["technologies"] = ", ".join(
                 sorted(sample_technologies, key=str.lower)
             )
+
+            sample = Sample.objects.get(scpca_id=sample_id)
+            sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
+            sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
+            sample.multiplexed_with = sorted(
+                multiplexed_with_mapping.get(updated_sample_metadata["scpca_sample_id"], ())
+            )
+            if sample.has_multiplexed_data:
+                sample.demux_cell_count_estimate = multiplexed_remaining_fields[
+                    "sample_demux_cell_counter"
+                ].get(sample_id)
+            else:
+                sample.sample_cell_count_estimate = sample_cell_count_estimate
+
+            sample.save()
 
         return (updated_samples_metadata, libraries_metadata)
 
