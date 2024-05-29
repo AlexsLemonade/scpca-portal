@@ -578,6 +578,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return all_keys.difference(excluded_keys)
 
+    # TODO: Remove once Sample.Modalities.MULTIPLEXED is removed
     def get_metadata_field_names(self, columns, modality):
         """Returns a list of metadata field names based on the modality context."""
         ordering = {
@@ -1010,11 +1011,13 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             # Establish field names for tsv
             key_set = utils.get_keys_from_dicts(combined_metadata[modality])
-            if modality == Sample.Modalities.MULTIPLEXED:
+            if modality == Sample.Modalities.MULTIPLEXED:  # TODO: Remove this logic
                 # add in non-multiplexed single-cell metadata keys to samples_metadata field_names
                 key_set = key_set.union(
                     utils.get_keys_from_dicts(combined_metadata[Sample.Modalities.SINGLE_CELL])
                 )
+
+            # TODO: Remove once Sample.Modalities.MULTIPLEXED is removed
             field_names = self.get_metadata_field_names(key_set, modality=modality)
 
             # Write metadata to files by sample
@@ -1035,7 +1038,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
                 sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
                 metadata_file.write_metadata_dicts(
-                    sample_libraries, sample_metadata_path, fieldnames=field_names
+                    sample_libraries,
+                    sample_metadata_path,
+                    # TODO: Remove once Sample.Modalities.MULTIPLEXED is removed
+                    fieldnames=field_names,
                 )
 
             # Write project metadata to file

@@ -92,6 +92,9 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
     Writes a list of dictionaries to a csv-like file.
     Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
     """
+
+    # TODO: Only pass the default utils.get_keys_from_dicts(list_of_dicts)
+    # to utils.get_sorted_field_names once Sample.Modalities.MULTIPLEXED is removed
     kwargs["fieldnames"] = utils.get_sorted_field_names(
         kwargs.get("fieldnames", utils.get_keys_from_dicts(list_of_dicts))
     )
