@@ -97,17 +97,13 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
     )
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
 
-    sorted_list_of_dicts = (
-        sorted(
-            list_of_dicts,
-            key=lambda k: (
-                k[common.METADATA_ROW_SORT_ORDER[0]],
-                k[common.METADATA_ROW_SORT_ORDER[1]],
-                k[common.METADATA_ROW_SORT_ORDER[2]],
-            ),
-        )
-        if any(common.METADATA_ROW_SORT_ORDER[0] in d for d in list_of_dicts)
-        else list_of_dicts
+    sorted_list_of_dicts = sorted(
+        list_of_dicts,
+        key=lambda k: (
+            k[common.PROJECT_ID_KEY],
+            k[common.SAMPLE_ID_KEY],
+            k[common.LIBRARY_ID_KEY],
+        ),
     )
 
     with open(output_file_path, "w", newline="") as raw_file:

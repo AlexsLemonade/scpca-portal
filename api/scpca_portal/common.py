@@ -78,4 +78,6 @@ METADATA_COLUMN_SORT_ORDER = [
     "workflow_commit",
 ]
 # Rows
-METADATA_ROW_SORT_ORDER = ["scpca_project_id", "scpca_sample_id", "scpca_library_id"]
+PROJECT_ID_KEY = "scpca_project_id"
+SAMPLE_ID_KEY = "scpca_sample_id"
+LIBRARY_ID_KEY = "scpca_library_id"
