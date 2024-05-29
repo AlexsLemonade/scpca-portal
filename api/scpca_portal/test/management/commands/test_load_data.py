@@ -555,7 +555,12 @@ class TestLoadData(TransactionTestCase):
                 rows = list(csv_reader)
 
         self.assertEqual(len(rows), 2)
-        self.assertEqual(list(rows[0].keys()), expected_keys)
+        sample_expected_keys = [
+            item
+            for item in expected_keys
+            if item not in ["sample_cell_count_estimate", "filtered_cell_count"]
+        ]
+        self.assertEqual(list(rows[0].keys()), sample_expected_keys)
 
         library_id = rows[0]["scpca_library_id"]
         expected_filenames = {
