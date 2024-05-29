@@ -426,12 +426,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         multiplexed_libraries_metadata = []
         for filename_path in sorted(Path(self.input_data_path).rglob("*,*/*_metadata.json")):
-            with open(filename_path) as multiplexed_json_file:
-                multiplexed_json = json.load(multiplexed_json_file)
-
-            multiplexed_json["scpca_library_id"] = multiplexed_json.pop("library_id")
-            multiplexed_json["scpca_sample_id"] = multiplexed_json.pop("sample_id")
-
+            multiplexed_json = metadata_file.load_library_metadata(filename_path)
             multiplexed_libraries_metadata.append(multiplexed_json)
 
         return multiplexed_libraries_metadata
