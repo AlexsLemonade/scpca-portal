@@ -578,93 +578,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return all_keys.difference(excluded_keys)
 
-    # TODO: Remove once Sample.Modalities.MULTIPLEXED is removed
-    def get_metadata_field_names(self, columns, modality):
-        """Returns a list of metadata field names based on the modality context."""
-        ordering = {
-            Sample.Modalities.MULTIPLEXED: (
-                "scpca_sample_id",
-                "scpca_library_id",
-                "scpca_project_id",
-                "technology",
-                "seq_unit",
-                "total_reads",
-                "mapped_reads",
-                "genome_assembly",
-                "mapping_index",
-                "date_processed",
-                "spaceranger_version",
-                "workflow",
-                "workflow_version",
-                "workflow_commit",
-                "diagnosis",
-                "subdiagnosis",
-                "pi_name",
-                "project_title",
-                "disease_timing",
-                "age_at_diagnosis",
-                "sex",
-                "tissue_location",
-                "treatment",
-                "participant_id",
-                "submitter",
-                "submitter_id",
-            ),
-            Sample.Modalities.SINGLE_CELL: (
-                "scpca_sample_id",
-                "scpca_library_id",
-                "diagnosis",
-                "subdiagnosis",
-                "seq_unit",
-                "technology",
-                "sample_cell_count_estimate",
-                "scpca_project_id",
-                "pi_name",
-                "project_title",
-                "disease_timing",
-                "age_at_diagnosis",
-                "sex",
-                "tissue_location",
-            ),
-            Sample.Modalities.SPATIAL: (
-                "scpca_project_id",
-                "scpca_sample_id",
-                "scpca_library_id",
-                "technology",
-                "seq_unit",
-                "total_reads",
-                "mapped_reads",
-                "genome_assembly",
-                "mapping_index",
-                "date_processed",
-                "spaceranger_version",
-                "workflow",
-                "workflow_version",
-                "workflow_commit",
-                "diagnosis",
-                "subdiagnosis",
-                "pi_name",
-                "project_title",
-                "disease_timing",
-                "age_at_diagnosis",
-                "sex",
-                "tissue_location",
-                "treatment",
-                "participant_id",
-                "submitter",
-                "submitter_id",
-            ),
-        }
-
-        return sorted(
-            sorted((c for c in columns), key=str.lower),  # Sort by a column name first.
-            key=lambda k: (
-                ordering[modality].index(k)  # Then enforce expected ordering.
-                if k in ordering[modality]
-                else float("inf")
-            ),
-        )
-
     def get_combined_metadata_by_sample(
         self, all_samples_combined_metadata_by_modality: List[Dict]
     ) -> Dict[str, List[Dict]]:
@@ -1009,17 +922,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             if not combined_metadata[modality]:
                 continue
 
-            # Establish field names for tsv
-            key_set = utils.get_keys_from_dicts(combined_metadata[modality])
-            if modality == Sample.Modalities.MULTIPLEXED:  # TODO: Remove this logic
-                # add in non-multiplexed single-cell metadata keys to samples_metadata field_names
-                key_set = key_set.union(
-                    utils.get_keys_from_dicts(combined_metadata[Sample.Modalities.SINGLE_CELL])
-                )
-
-            # TODO: Remove once Sample.Modalities.MULTIPLEXED is removed
-            field_names = self.get_metadata_field_names(key_set, modality=modality)
-
             # Write metadata to files by sample
             combined_metadata_by_sample = self.get_combined_metadata_by_sample(
                 combined_metadata[modality]
@@ -1040,8 +942,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 metadata_file.write_metadata_dicts(
                     sample_libraries,
                     sample_metadata_path,
-                    # TODO: Remove once Sample.Modalities.MULTIPLEXED is removed
-                    fieldnames=field_names,
                 )
 
             # Write project metadata to file
