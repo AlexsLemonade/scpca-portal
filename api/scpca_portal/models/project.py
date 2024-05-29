@@ -15,6 +15,7 @@ from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
+from scpca_portal.models.library import Library
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
@@ -929,6 +930,8 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
 
             sample = Sample.objects.get(scpca_id=sample_id)
+            Library.bulk_create_from_dicts(library_json_files, sample, sample_dir)
+
             sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
             sample.multiplexed_with = sorted(
@@ -1076,6 +1079,10 @@ class Project(CommonDataAttributes, TimestampedModel):
                 if delete_from_s3:
                     computed_file.delete_s3_file(force=True)
                 computed_file.delete()
+            for library in sample.libraries.all():
+                # If library has other samples that it is related to, then don't delete it
+                if len(library.samples.all()) == 1:
+                    library.delete()
             sample.delete()
 
         for computed_file in self.computed_files:

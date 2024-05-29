@@ -49,7 +49,7 @@ class Library(TimestampedModel):
                 if "filtered_cell_count" in data
                 else Library.Modalities.SPATIAL
             ),
-            scpca_id=data["library_id"],
+            scpca_id=data["scpca_library_id"],
             workflow_version=data["workflow_version"],
         )
 
@@ -66,8 +66,7 @@ class Library(TimestampedModel):
                 if any(sample_dir.glob("*.h5ad")):
                     formats.append(Library.FileFormats.ANN_DATA)
             else:
-                if any(sample_dir.glob("*_spatial/*.rds")):
-                    formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
+                formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
 
             libraries.append(Library.get_from_dict(library_json, formats))
 

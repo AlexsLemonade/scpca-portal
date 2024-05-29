@@ -57,7 +57,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
     treatment = models.TextField(blank=True, null=True)
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="samples")
-    libraries = models.ManyToManyField(Library)
+    libraries = models.ManyToManyField(Library, related_name="samples")
 
     def __str__(self):
         return f"Sample {self.scpca_id} of {self.project}"
@@ -99,7 +99,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             if not hasattr(sample, key)
             # Don't include project metadata keys (needed for writing)
             and key not in ("scpca_project_id", "project_title", "pi_name")
-            # Deliberate model attribute and file field name mismatch
+            # Exclude deliberate model attribute and file field name mismatch
             and key != "scpca_sample_id"
         }
 
