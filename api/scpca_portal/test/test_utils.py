@@ -108,6 +108,45 @@ class TestGetKeysFromDicts(TestCase):
         self.assertEqual(utils.get_keys_from_dicts(list_of_dicts), expected_superset)
 
 
+class TestGetSortedFieldNames(TestCase):
+    def test_get_sorted_field_names_from_set_of_keys(self):
+        list_of_dicts = [
+            {
+                "scpca_project_id": "SCPCP999990",
+                "organism": "Homo sapiens",
+                "subdiagnosis": "NA",
+                "diagnosis": "diagnosis1",
+                "tissue_ontology_term_id": "NA",
+                "location_class": "NA",
+            },
+            {
+                "organism": "Homo sapiens",
+                "technology": "techonology1",
+                "submitter_id": "NA",
+                "scpca_sample_id": "SCPCS000490",
+                "WHO_grade": "1",
+                "organism_ontology_id": "NA",
+            },
+        ]
+        expected_result = [
+            "scpca_project_id",
+            "scpca_sample_id",
+            "diagnosis",
+            "subdiagnosis",
+            "submitter_id",
+            "organism",
+            "location_class",
+            "organism_ontology_id",
+            "tissue_ontology_term_id",
+            "WHO_grade",
+            "technology",
+        ]
+
+        self.assertEqual(
+            utils.get_sorted_field_names(utils.get_keys_from_dicts(list_of_dicts)), expected_result
+        )
+
+
 class TestGetCsvZippedValues(TestCase):
     def test_get_csv_zipped_values_same_length_values(self):
         data = {

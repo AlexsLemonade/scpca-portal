@@ -1,4 +1,5 @@
 """Misc utils."""
+
 from datetime import datetime
 from typing import Dict, List, Set
 
@@ -63,6 +64,21 @@ def filter_dict_list_by_keys(
 def get_keys_from_dicts(dicts: List[Dict]) -> Set:
     """Takes a list of dictionaries and returns a set equal to the union of their keys."""
     return set(k for d in dicts for k in d.keys())
+
+
+def get_sorted_field_names(fieldnames: List | Set) -> List:
+    """
+    Returns a list of field names based on the METADATA_COLUMN_SORT_ORDER list, and append names
+    that are not in the list to the end.
+    """
+    return sorted(
+        sorted(fieldnames, key=str.lower),  # Sort fieldnames first
+        key=lambda k: (
+            common.METADATA_COLUMN_SORT_ORDER.index(k)
+            if k in common.METADATA_COLUMN_SORT_ORDER
+            else common.METADATA_COLUMN_SORT_ORDER.index("*")  # Insert additional metadata
+        ),
+    )
 
 
 def get_csv_zipped_values(
