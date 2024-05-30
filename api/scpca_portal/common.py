@@ -27,7 +27,7 @@ STRIPPED_INPUT_VALUES = "< >"
 # Columns
 METADATA_COLUMN_SORT_ORDER = [
     "scpca_project_id",
-    # sample metadata
+    # Sample metadata
     "scpca_sample_id",
     "scpca_library_id",
     "diagnosis",
@@ -40,6 +40,12 @@ METADATA_COLUMN_SORT_ORDER = [
     "submitter",
     "submitter_id",
     "organism",
+    "development_stage_ontology_term_id",
+    "sex_ontology_term_id",
+    "organism_ontology_id",
+    "self_reported_ethnicity_ontology_term_id",
+    "disease_ontology_term_id",
+    "tissue_ontology_term_id",
     "*",  # Addtional metadata
     # Library metadata
     "seq_unit",
