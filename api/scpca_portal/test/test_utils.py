@@ -135,9 +135,9 @@ class TestGetSortedFieldNames(TestCase):
             "subdiagnosis",
             "submitter_id",
             "organism",
-            "location_class",
             "organism_ontology_id",
             "tissue_ontology_term_id",
+            "location_class",
             "WHO_grade",
             "technology",
         ]
