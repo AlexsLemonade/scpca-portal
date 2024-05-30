@@ -882,23 +882,25 @@ class Project(CommonDataAttributes, TimestampedModel):
             spatial_metadata_paths = set(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
 
             library_metadata_paths = list(single_cell_metadata_paths | spatial_metadata_paths)
-            library_json_files = [
+            all_libraries_metadata = [
                 metadata_file.load_library_metadata(path) for path in library_metadata_paths
             ]
 
-            for library_json, library_path in zip(library_json_files, library_metadata_paths):
+            for library_metadata, library_path in zip(
+                all_libraries_metadata, library_metadata_paths
+            ):
                 if library_path in single_cell_metadata_paths:
-                    sample_cell_count_estimate += library_json["filtered_cell_count"]
-                    libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_json)
-                    library_json["modality"] = Library.Modalities.SINGLE_CELL
-                    library_json["formats"] = Library.get_file_formats(sample_dir)
+                    sample_cell_count_estimate += library_metadata["filtered_cell_count"]
+                    libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_metadata)
+                    library_metadata["modality"] = Library.Modalities.SINGLE_CELL
+                    library_metadata["formats"] = Library.get_file_formats(sample_dir)
                 elif library_path in spatial_metadata_paths:
-                    libraries_metadata[Sample.Modalities.SPATIAL].append(library_json)
-                    library_json["modality"] = Library.Modalities.SPATIAL
-                    library_json["formats"] = Library.get_file_formats(sample_dir)
+                    libraries_metadata[Sample.Modalities.SPATIAL].append(library_metadata)
+                    library_metadata["modality"] = Library.Modalities.SPATIAL
+                    library_metadata["formats"] = Library.get_file_formats(sample_dir)
 
-                sample_seq_units.add(library_json["seq_unit"].strip())
-                sample_technologies.add(library_json["technology"].strip())
+                sample_seq_units.add(library_metadata["seq_unit"].strip())
+                sample_technologies.add(library_metadata["technology"].strip())
 
             # Update aggregate values
             if updated_sample_metadata["has_multiplexed_data"]:
@@ -925,7 +927,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
 
             sample = Sample.objects.get(scpca_id=sample_id)
-            Library.bulk_create_from_dicts(library_json_files, sample)
+            Library.bulk_create_from_dicts(all_libraries_metadata, sample)
 
             sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
