@@ -853,7 +853,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 }
             )
 
-        # Creates sample objects and saves them to the db
         Sample.bulk_create_from_dicts(samples_metadata, self, sample_id=sample_id)
 
         return samples_metadata
@@ -873,29 +872,30 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
         for updated_sample_metadata in updated_samples_metadata:
-
             sample_id = updated_sample_metadata["scpca_sample_id"]
             sample_dir = self.get_sample_input_data_dir(updated_sample_metadata["scpca_sample_id"])
             sample_cell_count_estimate = 0
             sample_seq_units = set()
             sample_technologies = set()
 
-            library_metadata_paths = sorted(
-                list(Path(sample_dir).glob("*_metadata.json"))
-                + list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
-            )
+            single_cell_metadata_paths = set(Path(sample_dir).glob("*_metadata.json"))
+            spatial_metadata_paths = set(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
+
+            library_metadata_paths = list(single_cell_metadata_paths | spatial_metadata_paths)
             library_json_files = [
                 metadata_file.load_library_metadata(path) for path in library_metadata_paths
             ]
 
-            for library_json in library_json_files:
-                # If library metadata is of modality "Single cell"
-                if "filtered_cell_count" in library_json:
+            for library_json, library_path in zip(library_json_files, library_metadata_paths):
+                if library_path in single_cell_metadata_paths:
                     sample_cell_count_estimate += library_json["filtered_cell_count"]
                     libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_json)
-                # Else if library metadata is of modality "Spatial"
-                else:
+                    library_json["modality"] = Library.Modalities.SINGLE_CELL
+                    library_json["formats"] = Library.get_file_formats(sample_dir)
+                elif library_path in spatial_metadata_paths:
                     libraries_metadata[Sample.Modalities.SPATIAL].append(library_json)
+                    library_json["modality"] = Library.Modalities.SPATIAL
+                    library_json["formats"] = Library.get_file_formats(sample_dir)
 
                 sample_seq_units.add(library_json["seq_unit"].strip())
                 sample_technologies.add(library_json["technology"].strip())
@@ -925,7 +925,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
 
             sample = Sample.objects.get(scpca_id=sample_id)
-            Library.bulk_create_from_dicts(library_json_files, sample, sample_dir)
+            Library.bulk_create_from_dicts(library_json_files, sample)
 
             sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))

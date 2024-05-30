@@ -39,16 +39,15 @@ class Library(TimestampedModel):
     workflow_version = models.TextField()
 
     @classmethod
-    def get_from_dict(cls, data, formats):
+    def get_from_dict(cls, data):
         library = cls(
-            formats=formats,
+            # Populate and pop temporary fields
+            formats=data.pop("formats"),
+            modality=data.pop("modality"),
+            # Populate calculated fields
             is_multiplexed=("demux_samples" in data),
+            # Populate persisted fields
             metadata=data,
-            modality=(
-                Library.Modalities.SINGLE_CELL
-                if "filtered_cell_count" in data
-                else Library.Modalities.SPATIAL
-            ),
             scpca_id=data["scpca_library_id"],
             workflow_version=data["workflow_version"],
         )
@@ -56,19 +55,20 @@ class Library(TimestampedModel):
         return library
 
     @classmethod
-    def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample, sample_dir: Path) -> None:
+    def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample) -> None:
         libraries = []
         for library_json in library_jsons:
-            formats = []
-            if "filtered_cell_count" in library_json:
-                if any(sample_dir.glob("*.rds")):
-                    formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
-                if any(sample_dir.glob("*.h5ad")):
-                    formats.append(Library.FileFormats.ANN_DATA)
-            else:
-                formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
-
-            libraries.append(Library.get_from_dict(library_json, formats))
+            libraries.append(Library.get_from_dict(library_json))
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
+
+    @staticmethod
+    def get_file_formats(sample_dir: Path):
+        file_formats = []
+        if any(sample_dir.glob("*.rds")):
+            file_formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
+        if any(sample_dir.glob("*.h5ad")):
+            file_formats.append(Library.FileFormats.ANN_DATA)
+
+        return file_formats
