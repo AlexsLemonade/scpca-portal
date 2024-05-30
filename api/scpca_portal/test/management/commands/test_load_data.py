@@ -430,7 +430,6 @@ class TestLoadData(TransactionTestCase):
             "disease_ontology_term_id",
             "droplet_filtering_method",
             "filtered_cell_count",  # with non-multiplexed
-            # "filtered_cells",
             "has_cellhash",
             "includes_anndata",
             "is_cell_line",
