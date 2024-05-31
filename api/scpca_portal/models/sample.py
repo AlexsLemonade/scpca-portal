@@ -57,7 +57,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
     treatment = models.TextField(blank=True, null=True)
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="samples")
-    libraries = models.ManyToManyField(Library)
+    libraries = models.ManyToManyField(Library, related_name="samples")
 
     def __str__(self):
         return f"Sample {self.scpca_id} of {self.project}"
@@ -65,12 +65,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
     @classmethod
     def get_from_dict(cls, data, project):
         """Prepares ready for saving sample object."""
-
-        # If any project metadata exists in provided data dict, remove it
-        if any(key in data for key in ["scpca_project_id", "project_title", "pi_name"]):
-            data.pop("scpca_project_id", None)
-            data.pop("project_title", None)
-            data.pop("pi_name", None)
 
         sample = cls(
             age_at_diagnosis=data["age_at_diagnosis"],
@@ -85,14 +79,10 @@ class Sample(CommonDataAttributes, TimestampedModel):
             includes_anndata=data.get("includes_anndata", False),
             is_cell_line=utils.boolean_from_string(data.get("is_cell_line", False)),
             is_xenograft=utils.boolean_from_string(data.get("is_xenograft", False)),
-            multiplexed_with=data.get("multiplexed_with"),
-            sample_cell_count_estimate=(
-                data.get("sample_cell_count_estimate")
-                if not data.get("has_multiplexed_data", False)
-                else None
-            ),
+            multiplexed_with=data.get("multiplexed_with", []),
+            sample_cell_count_estimate=(data.get("sample_cell_count_estimate", None)),
             project=project,
-            scpca_id=data.pop("scpca_sample_id"),
+            scpca_id=data.get("scpca_sample_id"),
             seq_units=data.get("seq_units", ""),
             sex=data["sex"],
             subdiagnosis=data["subdiagnosis"],
@@ -104,7 +94,13 @@ class Sample(CommonDataAttributes, TimestampedModel):
         # Additional metadata varies project by project.
         # Generally, whatever's not on the Sample model is additional.
         sample.additional_metadata = {
-            key: value for key, value in data.items() if not hasattr(sample, key)
+            key: value
+            for key, value in data.items()
+            if not hasattr(sample, key)
+            # Don't include project metadata keys (needed for writing)
+            and key not in ("scpca_project_id", "project_title", "pi_name")
+            # Exclude deliberate model attribute and file field name mismatch
+            and key != "scpca_sample_id"
         }
 
         return sample
