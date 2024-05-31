@@ -15,6 +15,7 @@ from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
+from scpca_portal.models.library import Library
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
@@ -425,12 +426,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         multiplexed_libraries_metadata = []
         for filename_path in sorted(Path(self.input_data_path).rglob("*,*/*_metadata.json")):
-            with open(filename_path) as multiplexed_json_file:
-                multiplexed_json = json.load(multiplexed_json_file)
-
-            multiplexed_json["scpca_library_id"] = multiplexed_json.pop("library_id")
-            multiplexed_json["scpca_sample_id"] = multiplexed_json.pop("sample_id")
-
+            multiplexed_json = metadata_file.load_library_metadata(filename_path)
             multiplexed_libraries_metadata.append(multiplexed_json)
 
         return multiplexed_libraries_metadata
@@ -727,7 +723,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def handle_samples_metadata(self, sample_id=None):
         # Parses tsv sample metadata file, massages field names
-        samples_metadata = self.load_samples_metadata()
+        samples_metadata = self.load_samples_metadata(sample_id)
 
         # Parses json library metadata files, massages field names, calculates aggregate values
         updated_samples_metadata, libraries_metadata = self.load_libraries_metadata(
@@ -739,19 +735,12 @@ class Project(CommonDataAttributes, TimestampedModel):
             updated_samples_metadata, libraries_metadata, sample_id
         )
 
-        # Creates sample objects and saves them to the db
-        Sample.bulk_create_from_dicts(
-            updated_samples_metadata,
-            self,
-            sample_id=sample_id,
-        )
-
         # Updates project properties that are derived from recently saved samples
         self.update_project_derived_properties()
 
         return combined_metadata
 
-    def load_samples_metadata(self) -> List[Dict]:
+    def load_samples_metadata(self, sample_id: str = None) -> List[Dict]:
         samples_metadata = metadata_file.load_samples_metadata(
             self.input_samples_metadata_file_path
         )
@@ -760,17 +749,17 @@ class Project(CommonDataAttributes, TimestampedModel):
         demux_sample_ids = self.get_demux_sample_ids()
 
         for sample_metadata in samples_metadata:
-            sample_id = sample_metadata["scpca_sample_id"]
+            scpca_sample_id = sample_metadata["scpca_sample_id"]
             # Some samples will exist but their contents cannot be shared yet.
             # When this happens their corresponding sample folder will not exist.
-            sample_path = Path(self.get_sample_input_data_dir(sample_id))
+            sample_path = Path(self.get_sample_input_data_dir(scpca_sample_id))
 
             self.add_project_metadata(sample_metadata)
 
             sample_metadata.update(
                 {
-                    "has_bulk_rna_seq": sample_id in bulk_rna_seq_sample_ids,
-                    "has_multiplexed_data": sample_id in demux_sample_ids,
+                    "has_bulk_rna_seq": scpca_sample_id in bulk_rna_seq_sample_ids,
+                    "has_multiplexed_data": scpca_sample_id in demux_sample_ids,
                     "has_cite_seq_data": any(sample_path.glob("*_adt.*")),
                     "has_single_cell_data": any(sample_path.glob("*_metadata.json")),
                     "has_spatial_data": any(sample_path.rglob("*_spatial/*_metadata.json")),
@@ -778,10 +767,11 @@ class Project(CommonDataAttributes, TimestampedModel):
                 }
             )
 
+        Sample.bulk_create_from_dicts(samples_metadata, self, sample_id=sample_id)
+
         return samples_metadata
 
     def load_libraries_metadata(self, samples_metadata: List[Dict]):
-
         libraries_metadata = {
             Sample.Modalities.SINGLE_CELL: [],
             Sample.Modalities.SPATIAL: [],
@@ -795,30 +785,33 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
         for updated_sample_metadata in updated_samples_metadata:
-
             sample_id = updated_sample_metadata["scpca_sample_id"]
             sample_dir = self.get_sample_input_data_dir(updated_sample_metadata["scpca_sample_id"])
             sample_cell_count_estimate = 0
             sample_seq_units = set()
             sample_technologies = set()
 
-            library_metadata_paths = sorted(
-                list(Path(sample_dir).glob("*_metadata.json"))
-                + list(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
-            )
-            for filename_path in library_metadata_paths:
-                library_json = metadata_file.load_library_metadata(filename_path)
+            single_cell_metadata_paths = set(Path(sample_dir).glob("*_metadata.json"))
+            spatial_metadata_paths = set(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
+            library_metadata_paths = list(single_cell_metadata_paths | spatial_metadata_paths)
+            all_libraries_metadata = []
 
-                if "filtered_cell_count" in library_json:
-                    sample_cell_count_estimate += library_json["filtered_cell_count"]
+            for library_path in library_metadata_paths:
+                library_metadata = metadata_file.load_library_metadata(library_path)
+                all_libraries_metadata.append(library_metadata)
 
-                sample_seq_units.add(library_json["seq_unit"].strip())
-                sample_technologies.add(library_json["technology"].strip())
+                if library_path in single_cell_metadata_paths:
+                    sample_cell_count_estimate += library_metadata["filtered_cell_count"]
+                    libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_metadata)
+                    library_metadata["modality"] = Library.Modalities.SINGLE_CELL
+                    library_metadata["formats"] = Library.get_file_formats(sample_dir)
+                elif library_path in spatial_metadata_paths:
+                    libraries_metadata[Sample.Modalities.SPATIAL].append(library_metadata)
+                    library_metadata["modality"] = Library.Modalities.SPATIAL
+                    library_metadata["formats"] = Library.get_file_formats(sample_dir)
 
-                if "spatial" in str(filename_path):
-                    libraries_metadata[Sample.Modalities.SPATIAL].append(library_json)
-                else:
-                    libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_json)
+                sample_seq_units.add(library_metadata["seq_unit"].strip())
+                sample_technologies.add(library_metadata["technology"].strip())
 
             # Update aggregate values
             if updated_sample_metadata["has_multiplexed_data"]:
@@ -843,6 +836,23 @@ class Project(CommonDataAttributes, TimestampedModel):
             updated_sample_metadata["technologies"] = ", ".join(
                 sorted(sample_technologies, key=str.lower)
             )
+
+            sample = Sample.objects.get(scpca_id=sample_id)
+            Library.bulk_create_from_dicts(all_libraries_metadata, sample)
+
+            sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
+            sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
+            sample.multiplexed_with = sorted(
+                multiplexed_with_mapping.get(updated_sample_metadata["scpca_sample_id"], ())
+            )
+            if sample.has_multiplexed_data:
+                sample.demux_cell_count_estimate = multiplexed_remaining_fields[
+                    "sample_demux_cell_counter"
+                ].get(sample_id)
+            else:
+                sample.sample_cell_count_estimate = sample_cell_count_estimate
+
+            sample.save()
 
         return (updated_samples_metadata, libraries_metadata)
 
@@ -963,6 +973,10 @@ class Project(CommonDataAttributes, TimestampedModel):
                 if delete_from_s3:
                     computed_file.delete_s3_file(force=True)
                 computed_file.delete()
+            for library in sample.libraries.all():
+                # If library has other samples that it is related to, then don't delete it
+                if len(library.samples.all()) == 1:
+                    library.delete()
             sample.delete()
 
         for computed_file in self.computed_files:
