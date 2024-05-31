@@ -411,14 +411,14 @@ class TestLoadData(TransactionTestCase):
             "submitter",
             "submitter_id",
             "organism",
-            "demux_samples",
             "development_stage_ontology_term_id",
-            "disease_ontology_term_id",
-            "filtered_cells",
+            "sex_ontology_term_id",
             "organism_ontology_id",
             "self_reported_ethnicity_ontology_term_id",
-            "sex_ontology_term_id",
+            "disease_ontology_term_id",
             "tissue_ontology_term_id",
+            "demux_samples",
+            "filtered_cells",
             "WHO_grade",
             "seq_unit",
             "technology",
@@ -556,14 +556,14 @@ class TestLoadData(TransactionTestCase):
             "submitter",
             "submitter_id",
             "organism",
-            "demux_samples",
             "development_stage_ontology_term_id",
-            "disease_ontology_term_id",
-            "filtered_cells",
+            "sex_ontology_term_id",
             "organism_ontology_id",
             "self_reported_ethnicity_ontology_term_id",
-            "sex_ontology_term_id",
+            "disease_ontology_term_id",
             "tissue_ontology_term_id",
+            "demux_samples",
+            "filtered_cells",
             "WHO_grade",
             "seq_unit",
             "technology",
@@ -595,7 +595,6 @@ class TestLoadData(TransactionTestCase):
             "workflow_version",
             "workflow_commit",
         ]
-
         sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_multiplexed_computed_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
@@ -688,10 +687,10 @@ class TestLoadData(TransactionTestCase):
             "submitter_id",
             "organism",
             "development_stage_ontology_term_id",
-            "disease_ontology_term_id",
+            "sex_ontology_term_id",
             "organism_ontology_id",
             "self_reported_ethnicity_ontology_term_id",
-            "sex_ontology_term_id",
+            "disease_ontology_term_id",
             "tissue_ontology_term_id",
             "WHO_grade",
             "seq_unit",
@@ -916,10 +915,10 @@ class TestLoadData(TransactionTestCase):
             "submitter_id",
             "organism",
             "development_stage_ontology_term_id",
-            "disease_ontology_term_id",
+            "sex_ontology_term_id",
             "organism_ontology_id",
             "self_reported_ethnicity_ontology_term_id",
-            "sex_ontology_term_id",
+            "disease_ontology_term_id",
             "tissue_ontology_term_id",
             "WHO_grade",
             "seq_unit",
@@ -939,7 +938,6 @@ class TestLoadData(TransactionTestCase):
             "workflow_version",
             "workflow_commit",
         ]
-
         project_zip_path = common.OUTPUT_DATA_PATH / project.output_spatial_computed_file_name
         with ZipFile(project_zip_path) as project_zip:
             spatial_metadata_file = project_zip.read(
