@@ -858,7 +858,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         return samples_metadata
 
     def load_libraries_metadata(self, samples_metadata: List[Dict]):
-
         libraries_metadata = {
             Sample.Modalities.SINGLE_CELL: [],
             Sample.Modalities.SPATIAL: [],
@@ -880,15 +879,13 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             single_cell_metadata_paths = set(Path(sample_dir).glob("*_metadata.json"))
             spatial_metadata_paths = set(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
-
             library_metadata_paths = list(single_cell_metadata_paths | spatial_metadata_paths)
-            all_libraries_metadata = [
-                metadata_file.load_library_metadata(path) for path in library_metadata_paths
-            ]
+            all_libraries_metadata = []
 
-            for library_metadata, library_path in zip(
-                all_libraries_metadata, library_metadata_paths
-            ):
+            for library_path in library_metadata_paths:
+                library_metadata = metadata_file.load_library_metadata(library_path)
+                all_libraries_metadata.append(library_metadata)
+
                 if library_path in single_cell_metadata_paths:
                     sample_cell_count_estimate += library_metadata["filtered_cell_count"]
                     libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_metadata)
