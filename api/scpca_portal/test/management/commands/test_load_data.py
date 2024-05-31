@@ -418,7 +418,6 @@ class TestLoadData(TransactionTestCase):
             "disease_ontology_term_id",
             "tissue_ontology_term_id",
             "demux_samples",
-            "filtered_cells",
             "WHO_grade",
             "seq_unit",
             "technology",
@@ -563,7 +562,6 @@ class TestLoadData(TransactionTestCase):
             "disease_ontology_term_id",
             "tissue_ontology_term_id",
             "demux_samples",
-            "filtered_cells",
             "WHO_grade",
             "seq_unit",
             "technology",
@@ -571,6 +569,7 @@ class TestLoadData(TransactionTestCase):
             "mapped_reads",
             "sample_cell_estimates",
             "unfiltered_cells",
+            "filtered_cell_count",  # with non-multiplexed
             "processed_cells",
             "has_cellhash",
             "includes_anndata",
