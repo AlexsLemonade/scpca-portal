@@ -1,6 +1,8 @@
 """Misc utils."""
-
+import subprocess
+from collections import namedtuple
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Set
 
 from scpca_portal import common
@@ -92,3 +94,41 @@ def get_csv_zipped_values(
     and returns the zipped values as a list.
     """
     return list(zip(*(data.get(key).split(delimiter) for key in args), strict=True))
+
+
+BucketObjectEntry = namedtuple("BucketObjectEntry", ["date", "time", "size_in_bytes", "file_path"])
+BucketPrefixEntry = namedtuple("BucketPrefixEntry", ["prefix_designation", "file_path"])
+
+
+def list_s3_paths(
+    relative_path: Path = None,
+    *,
+    bucket: Path = Path("scpca-portal-inputs"),
+    recursive: bool = True,
+):
+    """
+    Queries a path on an inputted s3 bucket
+    and returns bucket's existing content as a list of Path objects.
+    """
+    absolute_s3_path = f"s3://{bucket}" if not relative_path else f"s3://{bucket / relative_path}"
+    command_inputs = ["aws", "s3", "ls", absolute_s3_path]
+
+    if recursive:
+        command_inputs.append("--recursive")
+
+    if "public" in absolute_s3_path:
+        command_inputs.append("--no-sign-request")
+
+    result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
+    output = result.stdout
+
+    bucket_entries = []
+    for line in output.splitlines():
+        if line.strip().startswith("PRE"):
+            bucket_entries.append(BucketPrefixEntry._make(line.split()))
+        else:
+            bucket_entries.append(BucketObjectEntry._make(line.split()))
+
+    file_paths = [Path(entry.file_path) for entry in bucket_entries]
+
+    return file_paths
