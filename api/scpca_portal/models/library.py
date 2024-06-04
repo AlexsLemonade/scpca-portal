@@ -31,6 +31,7 @@ class Library(TimestampedModel):
             (SPATIAL, "Spatial"),
         )
 
+    data_file_paths = ArrayField(models.TextField(), default=list)
     formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
     is_multiplexed = models.BooleanField(default=False)
     metadata = models.JSONField(default=dict)
