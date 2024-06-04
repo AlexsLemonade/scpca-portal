@@ -7,18 +7,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0043_auto_20240524_1459'),
+        ("scpca_portal", "0043_auto_20240524_1459"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='library',
-            name='data_file_paths',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(), default=list, size=None),
+            model_name="library",
+            name="data_file_paths",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.TextField(), default=list, size=None
+            ),
         ),
         migrations.AlterField(
-            model_name='sample',
-            name='libraries',
-            field=models.ManyToManyField(related_name='samples', to='scpca_portal.Library'),
+            model_name="sample",
+            name="libraries",
+            field=models.ManyToManyField(related_name="samples", to="scpca_portal.Library"),
         ),
     ]
