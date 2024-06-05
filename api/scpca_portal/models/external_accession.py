@@ -56,9 +56,9 @@ class ExternalAccession(TimestampedModel):
             }
 
             # Handle case where external accession is already in db
-            if existing_accession := ExternalAccession.objects.get(
+            if existing_accession := ExternalAccession.objects.filter(
                 accession=external_accession_data["accession"]
-            ):
+            ).first():
                 if existing_accession not in project.external_accessions.all():
                     project.external_accessions.add(existing_accession)
                 continue

@@ -54,7 +54,7 @@ class Contact(TimestampedModel):
             }
 
             # Handle case where contact is already in db
-            if existing_contact := Contact.objects.get(email=contact_data["email"]):
+            if existing_contact := Contact.objects.filter(email=contact_data["email"]).first():
                 if existing_contact not in project.contacts.all():
                     project.contacts.add(existing_contact)
                 continue

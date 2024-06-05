@@ -61,7 +61,9 @@ class Publication(TimestampedModel):
             }
 
             # Handle case where contact is already in db
-            if existing_publication := Publication.objects.get(doi=publication_data["doi"]):
+            if existing_publication := Publication.objects.filter(
+                doi=publication_data["doi"]
+            ).first():
                 if existing_publication not in project.publications.all():
                     project.publications.add(existing_publication)
                 continue
