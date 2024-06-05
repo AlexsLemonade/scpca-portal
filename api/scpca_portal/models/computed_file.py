@@ -61,6 +61,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         common.OUTPUT_DATA_PATH / README_SINGLE_CELL_MERGED_FILE_NAME
     )
 
+    README_METADATA_NAME = "readme_metadata_only.md"
+    README_METADATA_PATH = common.OUTPUT_DATA_PATH / README_METADATA_NAME
+
     README_MULTIPLEXED_FILE_NAME = "readme_multiplexed.md"
     README_MULTIPLEXED_FILE_PATH = common.OUTPUT_DATA_PATH / README_MULTIPLEXED_FILE_NAME
 
@@ -72,12 +75,14 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_TEMPLATE_ANNDATA_MERGED_FILE_PATH = README_TEMPLATE_PATH / "anndata_merged.md"
     README_TEMPLATE_SINGLE_CELL_FILE_PATH = README_TEMPLATE_PATH / "single_cell.md"
     README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH = README_TEMPLATE_PATH / "single_cell_merged.md"
+    README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "metadata_only.md"
     README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "multiplexed.md"
     README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
-    format = models.TextField(choices=OutputFileFormats.CHOICES)
+    format = models.TextField(choices=OutputFileFormats.CHOICES, null=True)
     includes_merged = models.BooleanField(default=False)
-    modality = models.TextField(choices=OutputFileModalities.CHOICES)
+    modality = models.TextField(choices=OutputFileModalities.CHOICES, null=True)
+    metadata_only = models.BooleanField(default=False)
     s3_bucket = models.TextField()
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
