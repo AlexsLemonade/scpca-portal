@@ -18,6 +18,10 @@ OUTPUT_DATA_PATH = DATA_PATH / "output"
 
 TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
 
+STANDARD_INPUT_BUCKET_NAME = "scpca-portal-inputs"
+TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
+INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else STANDARD_INPUT_BUCKET_NAME
+
 TAB = "\t"
 
 IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}

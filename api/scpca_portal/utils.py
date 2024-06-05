@@ -103,7 +103,7 @@ BucketPrefixEntry = namedtuple("BucketPrefixEntry", ["prefix_designation", "file
 def list_s3_paths(
     relative_path: Path = None,
     *,
-    bucket: Path = Path("scpca-portal-inputs"),
+    bucket: Path = Path(common.INPUT_BUCKET_NAME),
     recursive: bool = True,
 ):
     """

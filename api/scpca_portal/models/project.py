@@ -427,12 +427,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         multiplexed_libraries_metadata = []
         for filename_path in sorted(Path(self.input_data_path).rglob("*,*/*_metadata.json")):
             multiplexed_json = metadata_file.load_library_metadata(filename_path)
-            multiplexed_dir = filename_path.parts[-2]
-            for sample_id in multiplexed_dir.split(","):
-                sample = Sample.objects.get(scpca_id=sample_id)
-                multiplexed_json["modality"] = Library.Modalities.SINGLE_CELL
-                multiplexed_json["formats"] = [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
-                Library.bulk_create_from_dicts([multiplexed_json], sample)
+            multiplexed_json["modality"] = Library.Modalities.SINGLE_CELL
+            multiplexed_json["formats"] = [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
+            samples = Sample.objects.filter(scpca_id__in=multiplexed_json["demux_samples"])
+
+            Library.bulk_create_from_dicts([multiplexed_json], samples)
 
             multiplexed_libraries_metadata.append(multiplexed_json)
 
@@ -845,7 +844,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
 
             sample = Sample.objects.get(scpca_id=sample_id)
-            Library.bulk_create_from_dicts(all_libraries_metadata, sample)
+            Library.bulk_create_from_dicts(all_libraries_metadata, [sample])
 
             sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))

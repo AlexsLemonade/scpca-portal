@@ -13,7 +13,7 @@ from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 ALLOWED_SUBMITTERS = {"scpca"}
 # NOTE: When INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
+INPUT_BUCKET_NAME = common.INPUT_BUCKET_NAME
 
 
 class TestLoadData(TransactionTestCase):

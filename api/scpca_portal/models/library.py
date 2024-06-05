@@ -4,6 +4,8 @@ from typing import Dict, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
+from typing_extensions import Self
+
 from scpca_portal import utils
 from scpca_portal.models.base import TimestampedModel
 
@@ -60,18 +62,15 @@ class Library(TimestampedModel):
         return library
 
     @classmethod
-    def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample) -> None:
+    def bulk_create_from_dicts(cls, library_jsons: List[Dict], samples: List) -> None:
         libraries = []
         for library_json in library_jsons:
-            if library := Library.objects.filter(scpca_id=library_json["scpca_library_id"]).first():
-                library.samples.add(sample)
-                library_json.pop("modality", None)
-                library_json.pop("formats", None)
-            else:
-                libraries.append(Library.get_from_dict(library_json))
+            libraries.append(Library.get_from_dict(library_json))
 
         Library.objects.bulk_create(libraries)
-        sample.libraries.add(*libraries)
+        for sample in samples:
+            sample.libraries.add(*libraries)
+        Library.add_data_file_paths(libraries)
 
     @staticmethod
     def get_file_formats(sample_dir: Path):
@@ -106,3 +105,9 @@ class Library(TimestampedModel):
         ]
 
         return data_file_paths
+
+    @classmethod
+    def add_data_file_paths(cls, libraries: List[Self]) -> None:
+        for library in libraries:
+            if not library.data_file_paths:
+                library.data_file_paths = library.get_data_file_paths()
