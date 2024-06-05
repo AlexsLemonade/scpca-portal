@@ -4,6 +4,7 @@ from typing import Dict, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
+from scpca_portal import utils
 from scpca_portal.models.base import TimestampedModel
 
 
@@ -38,6 +39,9 @@ class Library(TimestampedModel):
     modality = models.TextField(choices=Modalities.CHOICES)
     scpca_id = models.TextField(unique=True)
     workflow_version = models.TextField()
+
+    def __str__(self):
+        return f"Library id {self.scpca_id}"
 
     @classmethod
     def get_from_dict(cls, data):
@@ -78,3 +82,27 @@ class Library(TimestampedModel):
             file_formats.append(Library.FileFormats.ANN_DATA)
 
         return file_formats
+
+    def get_data_file_paths(self) -> List[Path]:
+        """
+        Retrieves all data file paths on the aws input bucket associated with the Library object
+        and returns them as a list
+        """
+        project_id = self.samples.first().project.scpca_id
+        sample_id = (
+            self.samples.first().scpca_id
+            if self.samples.count() == 1
+            else ",".join([sample.scpca_id for sample in self.samples.all()])
+        )
+        library_id = self.scpca_id
+        relative_path = Path(f"{project_id}/{sample_id}/{library_id}")
+
+        data_file_paths = [
+            # Final directory in bucket name, which aws inserts at beginning of each returned path,
+            # is removed here by way of slicing
+            Path().joinpath(*((file_path.parts)[1:]))
+            for file_path in utils.list_s3_paths(relative_path)
+            if "metadata" not in file_path.name
+        ]
+
+        return data_file_paths
