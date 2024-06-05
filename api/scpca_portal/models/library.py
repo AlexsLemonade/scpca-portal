@@ -58,7 +58,12 @@ class Library(TimestampedModel):
     def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample) -> None:
         libraries = []
         for library_json in library_jsons:
-            libraries.append(Library.get_from_dict(library_json))
+            if library := Library.objects.filter(scpca_id=library_json["scpca_library_id"]).first():
+                library.samples.add(sample)
+                library_json.pop("modality", None)
+                library_json.pop("formats", None)
+            else:
+                libraries.append(Library.get_from_dict(library_json))
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)

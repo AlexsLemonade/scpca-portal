@@ -427,6 +427,13 @@ class Project(CommonDataAttributes, TimestampedModel):
         multiplexed_libraries_metadata = []
         for filename_path in sorted(Path(self.input_data_path).rglob("*,*/*_metadata.json")):
             multiplexed_json = metadata_file.load_library_metadata(filename_path)
+            multiplexed_dir = filename_path.parts[-2]
+            for sample_id in multiplexed_dir.split(","):
+                sample = Sample.objects.get(scpca_id=sample_id)
+                multiplexed_json["modality"] = Library.Modalities.SINGLE_CELL
+                multiplexed_json["formats"] = [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
+                Library.bulk_create_from_dicts([multiplexed_json], sample)
+
             multiplexed_libraries_metadata.append(multiplexed_json)
 
         return multiplexed_libraries_metadata
