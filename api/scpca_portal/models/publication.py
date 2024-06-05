@@ -54,17 +54,20 @@ class Publication(TimestampedModel):
             if doi in common.IGNORED_INPUT_VALUES:
                 continue
 
-            # Handle case where contact is already in db
-            if existing_publication := Publication.objects.filter(doi=doi).first():
-                if existing_publication not in project.publications.all():
-                    project.publications.add(existing_publication)
-                continue
-
             publication_data = {
                 "doi": doi.strip(),
                 "citation": citation.strip(common.STRIPPED_INPUT_VALUES),
                 "pi_name": project.pi_name,
             }
+
+            # Handle case where contact is already in db
+            if existing_publication := Publication.objects.filter(
+                doi=publication_data["doi"]
+            ).first():
+                if existing_publication not in project.publications.all():
+                    project.publications.add(existing_publication)
+                continue
+
             publications.append(Publication.get_from_dict(publication_data))
 
         Publication.objects.bulk_create(publications)
