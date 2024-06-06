@@ -357,16 +357,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                     file_format,
                 ).add_done_callback(create_project_computed_file)
 
-                tasks.submit(
-                    ComputedFile.get_project_metadata_file,
-                    self,
-                    (
-                        workflow_versions_by_modality[Sample.Modalities.SINGLE_CELL]
-                        | workflow_versions_by_modality[Sample.Modalities.SPATIAL]
-                        | workflow_versions_by_modality[Sample.Modalities.MULTIPLEXED]
-                    ),
-                ).add_done_callback(create_project_computed_file)
-
                 if multiplexed_file_mapping := file_mappings_by_format[file_format].get(
                     Sample.Modalities.MULTIPLEXED
                 ):
@@ -403,6 +393,16 @@ class Project(CommonDataAttributes, TimestampedModel):
                         workflow_versions_by_modality[Sample.Modalities.SPATIAL],
                         file_format,
                     ).add_done_callback(create_project_computed_file)
+
+            tasks.submit(
+                ComputedFile.get_project_metadata_file,
+                self,
+                (
+                    workflow_versions_by_modality[Sample.Modalities.SINGLE_CELL]
+                    | workflow_versions_by_modality[Sample.Modalities.SPATIAL]
+                    | workflow_versions_by_modality[Sample.Modalities.MULTIPLEXED]
+                ),
+            ).add_done_callback(create_project_computed_file)
 
         self.update_downloadable_sample_count()
 
