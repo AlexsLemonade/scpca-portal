@@ -1,5 +1,4 @@
 {% load custom_filters %}
-
 Generated on: {{ date }}
 
 # Alex's Lemonade Stand Foundation Single-cell Pediatric Cancer Atlas
