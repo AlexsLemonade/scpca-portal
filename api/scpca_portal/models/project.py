@@ -990,6 +990,14 @@ class Project(CommonDataAttributes, TimestampedModel):
                 combined_metadata[modality], getattr(self, project_metadata_path)
             )
 
+        project_metadata = (
+            combined_metadata[Sample.Modalities.SPATIAL]
+            # At this point "Multiplexed" contains the union of Single Cell and Multiplexed metadata
+            # See end of above for loop
+            + combined_metadata[Sample.Modalities.MULTIPLEXED]
+        )
+        metadata_file.write_metadata_dicts(project_metadata, self.output_all_metadata_file_path)
+
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
         for sample in self.samples.all():
