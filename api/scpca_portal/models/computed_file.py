@@ -75,7 +75,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_TEMPLATE_ANNDATA_MERGED_FILE_PATH = README_TEMPLATE_PATH / "anndata_merged.md"
     README_TEMPLATE_SINGLE_CELL_FILE_PATH = README_TEMPLATE_PATH / "single_cell.md"
     README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH = README_TEMPLATE_PATH / "single_cell_merged.md"
-    README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "metadata_only.md"
+    README_TEMPLATE_METADATA_PATH = README_TEMPLATE_PATH / "metadata_only.md"
     README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "multiplexed.md"
     README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
@@ -190,7 +190,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             modality=None,
             project=project,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=project.output_all_metadata_file_name,
+            s3_key=project.output_all_metadata_computed_file_name,
             workflow_version=utils.join_workflow_versions(workflow_versions),
         )
 

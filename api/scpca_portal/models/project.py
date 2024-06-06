@@ -106,6 +106,14 @@ class Project(CommonDataAttributes, TimestampedModel):
             pass
 
     @property
+    def output_all_metadata_computed_file_name(self):
+        return f"{self.scpca_id}_all_metadata.zip"
+
+    @property
+    def output_all_metadata_file_path(self):
+        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_all_metadata.tsv"
+
+    @property
     def output_merged_computed_file_name(self):
         return f"{self.scpca_id}_merged.zip"
 
@@ -210,6 +218,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         self.create_anndata_readme_file()
         self.create_anndata_merged_readme_file()
+        self.create_metadata_readme_file()
         self.create_multiplexed_readme_file()
         self.create_single_cell_readme_file()
         self.create_single_cell_merged_readme_file()
@@ -266,6 +275,21 @@ class Project(CommonDataAttributes, TimestampedModel):
             readme_file.write(
                 render_to_string(
                     ComputedFile.README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH,
+                    context={
+                        "additional_terms": self.get_additional_terms(),
+                        "date": utils.get_today_string(),
+                        "project_accession": self.scpca_id,
+                        "project_url": self.url,
+                    },
+                ).strip()
+            )
+
+    def create_metadata_readme_file(self):
+        """Creates a metadata only README file."""
+        with open(ComputedFile.README_METADATA_PATH, "w") as readme_file:
+            readme_file.write(
+                render_to_string(
+                    ComputedFile.README_TEMPLATE_METADATA_PATH,
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
