@@ -181,6 +181,30 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
+    def get_project_metadata_file(cls, project, workflow_versions):
+        """Prepares a ready for saving single data file of project's metadata only download."""
+
+        computed_file = cls(
+            format=None,
+            metadata_only=True,
+            modality=None,
+            project=project,
+            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_key=project.output_all_metadata_file_name,
+            workflow_version=utils.join_workflow_versions(workflow_versions),
+        )
+
+        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
+            zip_file.write(ComputedFile.README_METADATA_PATH, ComputedFile.OUTPUT_README_FILE_NAME)
+            zip_file.write(project.output_all_metadata_file_path, computed_file.metadata_file_name)
+
+        computed_file.has_bulk_rna_seq = False
+        computed_file.has_cite_seq_data = False
+        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+
+        return computed_file
+
+    @classmethod
     def get_project_multiplexed_file(
         cls, project, sample_to_file_mapping, workflow_versions, file_format
     ):
