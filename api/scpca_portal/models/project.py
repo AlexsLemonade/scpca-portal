@@ -1000,11 +1000,15 @@ class Project(CommonDataAttributes, TimestampedModel):
                 combined_metadata[modality], getattr(self, project_metadata_path)
             )
 
+        single_cell_combined_metadata = (
+            combined_metadata[Sample.Modalities.MULTIPLEXED]
+            # If a project has Multiplexed data, then it will be unioned with Single Cell above
+            if combined_metadata[Sample.Modalities.MULTIPLEXED]
+            else combined_metadata[Sample.Modalities.SINGLE_CELL]
+        )
+
         project_metadata = (
-            combined_metadata[Sample.Modalities.SPATIAL]
-            # At this point "Multiplexed" contains the union of Single Cell and Multiplexed metadata
-            # See end of above for loop
-            + combined_metadata[Sample.Modalities.MULTIPLEXED]
+            single_cell_combined_metadata + combined_metadata[Sample.Modalities.SPATIAL]
         )
         metadata_file.write_metadata_dicts(project_metadata, self.output_all_metadata_file_path)
 
