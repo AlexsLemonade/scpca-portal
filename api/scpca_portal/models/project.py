@@ -293,8 +293,11 @@ class Project(CommonDataAttributes, TimestampedModel):
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
+                        # Value will be updated dynamically when we support portal wide downloads
+                        "entire_portal": False,
+                        # This list of included projects will need to be built differently
+                        # when the time comes to handle multiple projects at the same time
+                        "included_projects": [(self.scpca_id, self.url)],
                     },
                 ).strip()
             )
