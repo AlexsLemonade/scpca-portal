@@ -88,11 +88,7 @@ class Library(TimestampedModel):
         and returns them as a list
         """
         project_id = self.samples.first().project.scpca_id
-        sample_id = (
-            self.samples.first().scpca_id
-            if self.samples.count() == 1
-            else ",".join([sample.scpca_id for sample in self.samples.all()])
-        )
+        sample_id = self.metadata.get("scpca_sample_id")
         library_id = self.scpca_id
         relative_path = Path(f"{project_id}/{sample_id}/{library_id}")
 
@@ -111,3 +107,4 @@ class Library(TimestampedModel):
         for library in libraries:
             if not library.data_file_paths:
                 library.data_file_paths = library.get_data_file_paths()
+        Library.objects.bulk_update(libraries, ["data_file_paths"])
