@@ -71,16 +71,6 @@ class Library(TimestampedModel):
         Library.add_modality_and_formats(libraries)
         Library.objects.bulk_update(libraries, ["data_file_paths", "formats", "modality"])
 
-    @staticmethod
-    def get_file_formats(sample_dir: Path):
-        file_formats = []
-        if any(sample_dir.glob("*.rds")):
-            file_formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
-        if any(sample_dir.glob("*.h5ad")):
-            file_formats.append(Library.FileFormats.ANN_DATA)
-
-        return file_formats
-
     def get_data_file_paths(self) -> List[Path]:
         """
         Retrieves all data file paths on the aws input bucket associated with the Library object
