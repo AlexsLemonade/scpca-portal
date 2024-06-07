@@ -93,9 +93,7 @@ class Library(TimestampedModel):
         relative_path = Path(f"{project_id}/{sample_id}/{library_id}")
 
         data_file_paths = [
-            # Final directory in bucket name, which aws inserts at beginning of each returned path,
-            # is removed here by way of slicing
-            Path().joinpath(*((file_path.parts)[1:]))
+            file_path
             for file_path in utils.list_s3_paths(relative_path)
             if "metadata" not in file_path.name
         ]

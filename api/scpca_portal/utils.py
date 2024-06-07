@@ -96,6 +96,14 @@ def get_csv_zipped_values(
     return list(zip(*(data.get(key).split(delimiter) for key in args), strict=True))
 
 
+"""
+The `aws s3 ls <bucket>` command called in `list_s3_paths()` returns a list of two types of entries:
+- Bucket Object Entries
+- Bucket Prefix Entries
+In order to create a standard API, where `entry.file_path` could be accessed
+irrespective of the entry type, we've created two named tuples which follow the return format
+of each of the bucket entry types.
+"""
 BucketObjectEntry = namedtuple("BucketObjectEntry", ["date", "time", "size_in_bytes", "file_path"])
 BucketPrefixEntry = namedtuple("BucketPrefixEntry", ["prefix_designation", "file_path"])
 
@@ -130,5 +138,10 @@ def list_s3_paths(
             bucket_entries.append(BucketObjectEntry._make(line.split()))
 
     file_paths = [Path(entry.file_path) for entry in bucket_entries]
+
+    # If there are nested directories in the bucket name, remove them from the returned file paths
+    if bucket_nested_dirs := bucket.parts[1:]:
+        removable_prefix = Path().joinpath(*bucket_nested_dirs)
+        file_paths = [path.relative_to(removable_prefix) for path in file_paths]
 
     return file_paths
