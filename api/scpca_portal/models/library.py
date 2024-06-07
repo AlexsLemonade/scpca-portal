@@ -48,9 +48,6 @@ class Library(TimestampedModel):
     @classmethod
     def get_from_dict(cls, data):
         library = cls(
-            # Populate and pop temporary fields
-            formats=data.pop("formats"),
-            modality=data.pop("modality"),
             # Populate calculated fields
             is_multiplexed=("demux_samples" in data),
             # Populate persisted fields
@@ -71,6 +68,8 @@ class Library(TimestampedModel):
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
         Library.add_data_file_paths(libraries)
+        Library.add_modality_and_formats(libraries)
+        Library.objects.bulk_update(libraries, ["data_file_paths", "formats", "modality"])
 
     @staticmethod
     def get_file_formats(sample_dir: Path):
@@ -105,4 +104,20 @@ class Library(TimestampedModel):
         for library in libraries:
             if not library.data_file_paths:
                 library.data_file_paths = library.get_data_file_paths()
-        Library.objects.bulk_update(libraries, ["data_file_paths"])
+
+    @classmethod
+    def add_modality_and_formats(cls, libraries: List[Self]) -> None:
+        for library in libraries:
+            if not library.modality:
+                if any(path for path in library.data_file_paths if "spatial" in path.name):
+                    library.modality = Library.Modalities.SPATIAL
+                else:
+                    library.modality = Library.Modalities.SINGLE_CELL
+
+            if not library.formats:
+                formats = []
+                if any(path for path in library.data_file_paths if "rds" in path.name):
+                    formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
+                if any(path for path in library.data_file_paths if "h5ad" in path.name):
+                    formats.append(Library.FileFormats.ANN_DATA)
+                library.formats = formats

@@ -793,12 +793,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                     # Check first to see if previous multiplexed sample already added this library
                     elif library_metadata not in libraries_metadata[Sample.Modalities.MULTIPLEXED]:
                         libraries_metadata[Sample.Modalities.MULTIPLEXED].append(library_metadata)
-                    library_metadata["modality"] = Library.Modalities.SINGLE_CELL
-                    library_metadata["formats"] = Library.get_file_formats(sample_dir)
                 elif library_path in spatial_metadata_paths:
                     libraries_metadata[Sample.Modalities.SPATIAL].append(library_metadata)
-                    library_metadata["modality"] = Library.Modalities.SPATIAL
-                    library_metadata["formats"] = Library.get_file_formats(sample_dir)
 
                 sample_seq_units.add(library_metadata["seq_unit"].strip())
                 sample_technologies.add(library_metadata["technology"].strip())
