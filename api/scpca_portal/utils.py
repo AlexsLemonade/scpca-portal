@@ -127,8 +127,14 @@ def list_s3_paths(
     if "public" in absolute_s3_path:
         command_inputs.append("--no-sign-request")
 
-    result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
-    output = result.stdout
+    try:
+        result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
+        output = result.stdout
+    except subprocess.CalledProcessError:
+        logger.error(
+            "`aws s3 ls` command failed: likely due to not finding entries which match file path"
+        )
+        return []
 
     bucket_entries = []
     for line in output.splitlines():

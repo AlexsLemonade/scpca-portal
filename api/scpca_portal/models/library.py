@@ -84,7 +84,7 @@ class Library(TimestampedModel):
     def get_data_file_paths(self) -> List[Path]:
         """
         Retrieves all data file paths on the aws input bucket associated with the Library object
-        and returns them as a list
+        and returns them as a list.
         """
         project_id = self.samples.first().project.scpca_id
         sample_id = self.metadata.get("scpca_sample_id")

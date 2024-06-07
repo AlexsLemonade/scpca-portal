@@ -32,6 +32,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     abstract = models.TextField()
     additional_metadata_keys = models.TextField(blank=True, null=True)
     additional_restrictions = models.TextField(blank=True, null=True)
+    data_file_paths = ArrayField(models.TextField(), default=list)
     diagnoses = models.TextField(blank=True, null=True)
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
@@ -386,7 +387,23 @@ class Project(CommonDataAttributes, TimestampedModel):
                 else:
                     setattr(project, key, data.get(key))
 
+        project.data_file_paths = project.get_data_file_paths()
+
         return project
+
+    def get_data_file_paths(self) -> List[Path]:
+        """
+        Retrieves existing merged and bulk data file paths on the aws input bucket
+        and returns them as a list.
+        """
+        merged_relative_path = Path(f"{self.scpca_id}/merged/")
+        bulk_relative_path = Path(f"{self.scpca_id}/{self.scpca_id}_bulk")
+
+        data_file_paths = utils.list_s3_paths(merged_relative_path) + utils.list_s3_paths(
+            bulk_relative_path
+        )
+
+        return data_file_paths
 
     def get_bulk_rna_seq_sample_ids(self):
         """Returns set of bulk RNA sequencing sample IDs."""
