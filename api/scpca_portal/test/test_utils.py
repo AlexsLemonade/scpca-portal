@@ -204,7 +204,16 @@ class TestListS3Paths(TestCase):
         self.assertEqual(result, expected)
 
     @patch("subprocess.run")
-    def test_list_s3_paths_with_relative_paths(self, mock_run):
+    def test_list_s3_paths_command_failure(self, mock_run):
+        mock_run.side_effect = subprocess.CalledProcessError(
+            returncode=1, cmd="aws s3 ls s3://input-bucket"
+        )
+        result = utils.list_s3_paths(bucket=Path("input-bucket"))
+        expected = []
+        self.assertEqual(result, expected)
+
+    @patch("subprocess.run")
+    def test_list_s3_paths_with_relative_path(self, mock_run):
         mock_run.return_value = subprocess.CompletedProcess(
             args=["aws", "s3", "ls", "s3://input-bucket/relative/path"],
             returncode=0,
@@ -225,15 +234,6 @@ class TestListS3Paths(TestCase):
         )
         result = utils.list_s3_paths(bucket=Path("public-input-bucket"))
         expected = [Path("file.txt"), Path("dir/")]
-        self.assertEqual(result, expected)
-
-    @patch("subprocess.run")
-    def test_list_s3_paths_command_failure(self, mock_run):
-        mock_run.side_effect = subprocess.CalledProcessError(
-            returncode=1, cmd="aws s3 ls s3://input-bucket"
-        )
-        result = utils.list_s3_paths(bucket=Path("input-bucket"))
-        expected = []
         self.assertEqual(result, expected)
 
     @patch("subprocess.run")
