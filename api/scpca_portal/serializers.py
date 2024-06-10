@@ -33,6 +33,7 @@ class ComputedFileSerializer(serializers.ModelSerializer):
             "has_multiplexed_data",
             "id",
             "includes_merged",
+            "metadata_only",
             "modality",
             "project",
             "s3_bucket",

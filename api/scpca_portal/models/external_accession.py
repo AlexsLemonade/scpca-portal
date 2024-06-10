@@ -49,17 +49,19 @@ class ExternalAccession(TimestampedModel):
             if accession in common.IGNORED_INPUT_VALUES:
                 continue
 
-            # Handle case where external accession is already in db
-            if existing_accession := ExternalAccession.objects.filter(accession=accession).first():
-                if existing_accession not in project.external_accessions.all():
-                    project.external_accessions.add(existing_accession)
-                continue
-
             external_accession_data = {
                 "accession": accession.strip(),
                 "has_raw": utils.boolean_from_string(has_raw.strip()),
                 "url": url.strip(common.STRIPPED_INPUT_VALUES),
             }
+
+            # Handle case where external accession is already in db
+            if existing_accession := ExternalAccession.objects.filter(
+                accession=external_accession_data["accession"]
+            ).first():
+                if existing_accession not in project.external_accessions.all():
+                    project.external_accessions.add(existing_accession)
+                continue
 
             external_accessions.append(ExternalAccession.get_from_dict(external_accession_data))
 
