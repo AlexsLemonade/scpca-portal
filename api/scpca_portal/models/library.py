@@ -41,7 +41,7 @@ class Library(TimestampedModel):
     workflow_version = models.TextField()
 
     def __str__(self):
-        return f"Library id {self.scpca_id}"
+        return f"Library {self.scpca_id}"
 
     @classmethod
     def get_from_dict(cls, data):

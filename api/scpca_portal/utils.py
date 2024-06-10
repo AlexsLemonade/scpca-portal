@@ -109,30 +109,41 @@ BucketPrefixEntry = namedtuple("BucketPrefixEntry", ["prefix_designation", "file
 
 
 def list_s3_paths(
-    relative_path: Path = None,
+    relative_path: Path = Path(),
     *,
-    bucket: Path = Path(common.INPUT_BUCKET_NAME),
+    bucket_path: Path = Path(common.INPUT_BUCKET_NAME),
     recursive: bool = True,
 ):
     """
     Queries a path on an inputted s3 bucket
     and returns bucket's existing content as a list of Path objects.
+
+    The `aws s3 ls <bucket>` command returns a list of two types of entries:
+    - Bucket Object Entries
+    - Bucket Prefix Entries
+    In order to create a standard API, where `entry.file_path` could be accessed
+    irrespective of the entry type, we've created two named tuples which follow the return format
+    of each of the bucket entry types.
     """
-    absolute_s3_path = f"s3://{bucket}" if not relative_path else f"s3://{bucket / relative_path}"
-    command_inputs = ["aws", "s3", "ls", absolute_s3_path]
+    root_path = Path().joinpath(*bucket_path.parts, *relative_path.parts)
+    command_inputs = ["aws", "s3", "ls", f"s3://{root_path}"]
 
     if recursive:
         command_inputs.append("--recursive")
 
-    if "public" in absolute_s3_path:
+    if "public" in str(bucket_path):
         command_inputs.append("--no-sign-request")
 
     try:
         result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
         output = result.stdout
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as error:
         logger.error(
-            "`aws s3 ls` command failed: likely due to not finding entries which match file path"
+            """
+            `{}`: Cause of error not returned, note: folder must exist and be non-empty
+            """.format(
+                error
+            )
         )
         return []
 
@@ -143,11 +154,6 @@ def list_s3_paths(
         else:
             bucket_entries.append(BucketObjectEntry._make(line.split()))
 
-    file_paths = [Path(entry.file_path) for entry in bucket_entries]
-
-    # If there are nested directories in the bucket name, remove them from the returned file paths
-    if bucket_nested_dirs := bucket.parts[1:]:
-        removable_prefix = Path().joinpath(*bucket_nested_dirs)
-        file_paths = [path.relative_to(removable_prefix) for path in file_paths]
-
-    return file_paths
+    # bucket_path may contain nested keys, we want to omit these in returned paths
+    bucket_keys = Path().joinpath(*bucket_path.parts[1:])
+    return [Path(entry.file_path).relative_to(bucket_keys) for entry in bucket_entries]
