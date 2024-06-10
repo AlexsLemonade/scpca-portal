@@ -4,9 +4,7 @@ from typing import Dict, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from typing_extensions import Self
-
-from scpca_portal import utils
+from scpca_portal import common, utils
 from scpca_portal.models.base import TimestampedModel
 
 
@@ -47,11 +45,13 @@ class Library(TimestampedModel):
 
     @classmethod
     def get_from_dict(cls, data):
+        data_file_paths = Library.get_data_file_paths(data)
         library = cls(
-            # Populate calculated fields
+            data_file_paths=data_file_paths,
+            formats=Library.get_formats_from_file_paths(data_file_paths),
             is_multiplexed=("demux_samples" in data),
-            # Populate persisted fields
             metadata=data,
+            modality=Library.get_modality_from_file_paths(data_file_paths),
             scpca_id=data["scpca_library_id"],
             workflow_version=data["workflow_version"],
         )
@@ -63,22 +63,23 @@ class Library(TimestampedModel):
         libraries = []
         for library_json in library_jsons:
             if not Library.objects.filter(scpca_id=library_json["scpca_library_id"]).exists():
+                # TODO: remove when scpca_project_id is in source json
+                library_json["scpca_project_id"] = sample.project.scpca_id
                 libraries.append(Library.get_from_dict(library_json))
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
-        Library.add_data_file_paths(libraries)
-        Library.add_modality_and_formats(libraries)
-        Library.objects.bulk_update(libraries, ["data_file_paths", "formats", "modality"])
 
-    def get_data_file_paths(self) -> List[Path]:
+    @classmethod
+    def get_data_file_paths(cls, data) -> List[Path]:
         """
-        Retrieves all data file paths on the aws input bucket associated with the Library object
-        and returns them as a list.
+        Retrieves all data file paths on the aws input bucket associated
+        with the inputted Library object metadata dict, and returns them as a list.
         """
-        project_id = self.samples.first().project.scpca_id
-        sample_id = self.metadata.get("scpca_sample_id")
-        library_id = self.scpca_id
+        # TODO: Pop property for now until attribute added to source json
+        project_id = data.pop("scpca_project_id")
+        sample_id = data.get("scpca_sample_id")
+        library_id = data.get("scpca_library_id")
         relative_path = Path(f"{project_id}/{sample_id}/{library_id}")
 
         data_file_paths = [
@@ -90,24 +91,16 @@ class Library(TimestampedModel):
         return data_file_paths
 
     @classmethod
-    def add_data_file_paths(cls, libraries: List[Self]) -> None:
-        for library in libraries:
-            if not library.data_file_paths:
-                library.data_file_paths = library.get_data_file_paths()
+    def get_modality_from_file_paths(cls, file_paths: List[Path]) -> str:
+        if any(path for path in file_paths if "spatial" in path.name):
+            return Library.Modalities.SPATIAL
+        return Library.Modalities.SINGLE_CELL
 
     @classmethod
-    def add_modality_and_formats(cls, libraries: List[Self]) -> None:
-        for library in libraries:
-            if not library.modality:
-                if any(path for path in library.data_file_paths if "spatial" in path.name):
-                    library.modality = Library.Modalities.SPATIAL
-                else:
-                    library.modality = Library.Modalities.SINGLE_CELL
-
-            if not library.formats:
-                formats = []
-                if any(path for path in library.data_file_paths if "rds" in path.name):
-                    formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
-                if any(path for path in library.data_file_paths if "h5ad" in path.name):
-                    formats.append(Library.FileFormats.ANN_DATA)
-                library.formats = formats
+    def get_formats_from_file_paths(cls, file_paths: List[Path]) -> List[str]:
+        formats = []
+        if any(path for path in file_paths if common.SCE_EXT == path.suffix):
+            formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
+        if any(path for path in file_paths if common.ANNDATA_EXT == path.suffix):
+            formats.append(Library.FileFormats.ANN_DATA)
+        return formats

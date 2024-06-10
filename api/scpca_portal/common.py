@@ -26,6 +26,9 @@ TAB = "\t"
 IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
 
+SCE_EXT = ".rds"
+ANNDATA_EXT = ".h5ad"
+
 # Global sort order for Metadata TSVs
 # Columns
 METADATA_COLUMN_SORT_ORDER = [
