@@ -107,6 +107,14 @@ class Project(CommonDataAttributes, TimestampedModel):
             pass
 
     @property
+    def output_all_metadata_computed_file_name(self):
+        return f"{self.scpca_id}_all_metadata.zip"
+
+    @property
+    def output_all_metadata_file_path(self):
+        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_all_metadata.tsv"
+
+    @property
     def output_merged_computed_file_name(self):
         return f"{self.scpca_id}_merged.zip"
 
@@ -211,6 +219,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         self.create_anndata_readme_file()
         self.create_anndata_merged_readme_file()
+        self.create_metadata_readme_file()
         self.create_multiplexed_readme_file()
         self.create_single_cell_readme_file()
         self.create_single_cell_merged_readme_file()
@@ -272,6 +281,22 @@ class Project(CommonDataAttributes, TimestampedModel):
                         "date": utils.get_today_string(),
                         "project_accession": self.scpca_id,
                         "project_url": self.url,
+                    },
+                ).strip()
+            )
+
+    def create_metadata_readme_file(self):
+        """Creates a metadata only README file."""
+        with open(ComputedFile.README_METADATA_PATH, "w") as readme_file:
+            readme_file.write(
+                render_to_string(
+                    ComputedFile.README_TEMPLATE_METADATA_PATH,
+                    context={
+                        "additional_terms": self.get_additional_terms(),
+                        "date": utils.get_today_string(),
+                        # This list of included projects will need to be built differently
+                        # when the time comes to handle multiple projects at the same time
+                        "included_projects": [(self.scpca_id, self.url)],
                     },
                 ).strip()
             )
@@ -370,6 +395,16 @@ class Project(CommonDataAttributes, TimestampedModel):
                         workflow_versions_by_modality[Sample.Modalities.SPATIAL],
                         file_format,
                     ).add_done_callback(create_project_computed_file)
+
+            tasks.submit(
+                ComputedFile.get_project_metadata_file,
+                self,
+                (
+                    workflow_versions_by_modality[Sample.Modalities.SINGLE_CELL]
+                    | workflow_versions_by_modality[Sample.Modalities.SPATIAL]
+                    | workflow_versions_by_modality[Sample.Modalities.MULTIPLEXED]
+                ),
+            ).add_done_callback(create_project_computed_file)
 
         self.update_downloadable_sample_count()
 
@@ -968,6 +1003,18 @@ class Project(CommonDataAttributes, TimestampedModel):
             metadata_file.write_metadata_dicts(
                 combined_metadata[modality], getattr(self, project_metadata_path)
             )
+
+        single_cell_combined_metadata = (
+            combined_metadata[Sample.Modalities.MULTIPLEXED]
+            # If a project has Multiplexed data, then it will be unioned with Single Cell above
+            if combined_metadata[Sample.Modalities.MULTIPLEXED]
+            else combined_metadata[Sample.Modalities.SINGLE_CELL]
+        )
+
+        project_metadata = (
+            single_cell_combined_metadata + combined_metadata[Sample.Modalities.SPATIAL]
+        )
+        metadata_file.write_metadata_dicts(project_metadata, self.output_all_metadata_file_path)
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""

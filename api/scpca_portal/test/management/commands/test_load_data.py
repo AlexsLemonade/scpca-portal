@@ -83,7 +83,8 @@ class TestLoadData(TransactionTestCase):
             samples = (2 * 2) + 1  # 2 Single-cell Samples in 2 formats and 1 spatial
             projects = 2 + 1  # Single-cell in 2 formats and 1 Spatial
             merged_projects = 1 * 2  # Merged SCE and merged AnnData
-            expected_computed_files_count = samples + projects + merged_projects
+            metadata_only = 1  # 1 metadata only download per project
+            expected_computed_files_count = samples + projects + merged_projects + metadata_only
             self.assertEqual(ComputedFile.objects.count(), expected_computed_files_count)
 
         # First, just test that loading data works.
@@ -329,7 +330,8 @@ class TestLoadData(TransactionTestCase):
         single_cell = 2  # 1 computed file for AnnData and one for SCE
         multiplexed = 1  # 1 computed file for multiplexed
         merged = 0  # This project has no merged data for either format
-        expected_computed_files = single_cell + multiplexed + merged
+        metadata_only = 1  # 1 metadata only download per project
+        expected_computed_files = single_cell + multiplexed + merged + metadata_only
         self.assertEqual(project.computed_files.count(), expected_computed_files)
 
     def test_multiplexed_metadata(self):
@@ -360,7 +362,8 @@ class TestLoadData(TransactionTestCase):
         # Expected Computed Files
         single_cell = 2  # 1 project x 2 formats
         multiplexed = 1  # 1 project x 1 multiplexed version
-        expected_computed_files = single_cell + multiplexed
+        metadata_only = 1  # 1 metadata only download per project
+        expected_computed_files = single_cell + multiplexed + metadata_only
         self.assertEqual(len(project.computed_files), expected_computed_files)
         self.assertGreater(project.multiplexed_computed_file.size_in_bytes, 0)
         self.assertEqual(project.multiplexed_computed_file.workflow_version, "development")
@@ -654,7 +657,8 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(project.technologies, "10Xv3, visium")
-        self.assertEqual(len(project.computed_files), 5)
+        metadata_only = 1  # 1 metadata only download per project
+        self.assertEqual(len(project.computed_files), 5 + metadata_only)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
         self.assertEqual(
@@ -889,7 +893,8 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.summaries.count(), 4)
         self.assertEqual(project.summaries.first().sample_count, 1)
         self.assertEqual(project.unavailable_samples_count, 0)
-        self.assertEqual(len(project.computed_files), 5)
+        metadata_only = 1  # 1 metadata only download per project
+        self.assertEqual(len(project.computed_files), 5 + metadata_only)
         self.assertGreater(project.spatial_computed_file.size_in_bytes, 0)
         self.assertEqual(project.spatial_computed_file.workflow_version, "development")
         self.assertEqual(

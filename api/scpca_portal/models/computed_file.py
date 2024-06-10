@@ -61,6 +61,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         common.OUTPUT_DATA_PATH / README_SINGLE_CELL_MERGED_FILE_NAME
     )
 
+    README_METADATA_NAME = "readme_metadata_only.md"
+    README_METADATA_PATH = common.OUTPUT_DATA_PATH / README_METADATA_NAME
+
     README_MULTIPLEXED_FILE_NAME = "readme_multiplexed.md"
     README_MULTIPLEXED_FILE_PATH = common.OUTPUT_DATA_PATH / README_MULTIPLEXED_FILE_NAME
 
@@ -72,12 +75,14 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_TEMPLATE_ANNDATA_MERGED_FILE_PATH = README_TEMPLATE_PATH / "anndata_merged.md"
     README_TEMPLATE_SINGLE_CELL_FILE_PATH = README_TEMPLATE_PATH / "single_cell.md"
     README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH = README_TEMPLATE_PATH / "single_cell_merged.md"
+    README_TEMPLATE_METADATA_PATH = README_TEMPLATE_PATH / "metadata_only.md"
     README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "multiplexed.md"
     README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
-    format = models.TextField(choices=OutputFileFormats.CHOICES)
+    format = models.TextField(choices=OutputFileFormats.CHOICES, null=True)
     includes_merged = models.BooleanField(default=False)
-    modality = models.TextField(choices=OutputFileModalities.CHOICES)
+    modality = models.TextField(choices=OutputFileModalities.CHOICES, null=True)
+    metadata_only = models.BooleanField(default=False)
     s3_bucket = models.TextField()
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
@@ -171,6 +176,30 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
         computed_file.has_cite_seq_data = project.has_cite_seq_data
+        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+
+        return computed_file
+
+    @classmethod
+    def get_project_metadata_file(cls, project, workflow_versions):
+        """Prepares a ready for saving single data file of project's metadata only download."""
+
+        computed_file = cls(
+            format=None,
+            metadata_only=True,
+            modality=None,
+            project=project,
+            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_key=project.output_all_metadata_computed_file_name,
+            workflow_version=utils.join_workflow_versions(workflow_versions),
+        )
+
+        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
+            zip_file.write(ComputedFile.README_METADATA_PATH, ComputedFile.OUTPUT_README_FILE_NAME)
+            zip_file.write(project.output_all_metadata_file_path, computed_file.metadata_file_name)
+
+        computed_file.has_bulk_rna_seq = False
+        computed_file.has_cite_seq_data = False
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file

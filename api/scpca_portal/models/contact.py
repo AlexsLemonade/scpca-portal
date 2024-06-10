@@ -47,17 +47,18 @@ class Contact(TimestampedModel):
             if email in common.IGNORED_INPUT_VALUES:
                 continue
 
-            # Handle case where contact is already in db
-            if existing_contact := Contact.objects.filter(email=email).first():
-                if existing_contact not in project.contacts.all():
-                    project.contacts.add(existing_contact)
-                continue
-
             contact_data = {
                 "name": name.strip(),
                 "email": email.lower().strip(),
                 "pi_name": project.pi_name,
             }
+
+            # Handle case where contact is already in db
+            if existing_contact := Contact.objects.filter(email=contact_data["email"]).first():
+                if existing_contact not in project.contacts.all():
+                    project.contacts.add(existing_contact)
+                continue
+
             contacts.append(Contact.get_from_dict(contact_data))
 
         Contact.objects.bulk_create(contacts)
