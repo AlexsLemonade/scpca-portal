@@ -40,11 +40,13 @@ class Library(TimestampedModel):
     scpca_id = models.TextField(unique=True)
     workflow_version = models.TextField()
 
+    project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="libraries")
+
     def __str__(self):
         return f"Library {self.scpca_id}"
 
     @classmethod
-    def get_from_dict(cls, data):
+    def get_from_dict(cls, data, project):
         data_file_paths = Library.get_data_file_paths(data)
         library = cls(
             data_file_paths=data_file_paths,
@@ -52,6 +54,7 @@ class Library(TimestampedModel):
             is_multiplexed=("demux_samples" in data),
             metadata=data,
             modality=Library.get_modality_from_file_paths(data_file_paths),
+            project=project,
             scpca_id=data["scpca_library_id"],
             workflow_version=data["workflow_version"],
         )
@@ -65,7 +68,7 @@ class Library(TimestampedModel):
             if not Library.objects.filter(scpca_id=library_json["scpca_library_id"]).exists():
                 # TODO: remove when scpca_project_id is in source json
                 library_json["scpca_project_id"] = sample.project.scpca_id
-                libraries.append(Library.get_from_dict(library_json))
+                libraries.append(Library.get_from_dict(library_json, sample.project))
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
