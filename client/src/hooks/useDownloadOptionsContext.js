@@ -42,9 +42,10 @@ export const useDownloadOptionsContext = () => {
       uniqueArray(pick(files, optionName)),
       optionsSortOrder
     )
-    const defaultOption = allOptions.includes(preference)
+    const filteredAllOptions = allOptions.filter((o) => o) // Exclude the metadata_only file
+    const defaultOption = filteredAllOptions.includes(preference)
       ? preference
-      : allOptions[0]
+      : filteredAllOptions[0]
     return [allOptions, defaultOption]
   }
 
