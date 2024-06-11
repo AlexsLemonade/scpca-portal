@@ -3,16 +3,18 @@ import { api } from 'api'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
+import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import { formatBytes } from 'helpers/formatBytes'
+import { getReadable } from 'helpers/getReadable'
 import { DownloadModal } from 'components/DownloadModal'
+import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
+import { MetadataDownloadModal } from 'components/MetadataDownloadModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
-import { formatBytes } from 'helpers/formatBytes'
-import { getReadable } from 'helpers/getReadable'
-import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
-import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({
@@ -26,11 +28,16 @@ export const ProjectSamplesTable = ({
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
   const [showDownloadOptions, setShowDownloadOptions] = useState(false)
+  const [currentFilter, setCurrentFilter] = useState('') // For storing globalFiter for metadata only download
   const hasMultiplexedData = project.has_multiplexed_data
   const infoText =
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
       : false
+
+  const onFilterChange = (value) => {
+    setCurrentFilter(value)
+  }
 
   const onOptionsSave = () => {
     setShowDownloadOptions(false)
@@ -206,26 +213,32 @@ export const ProjectSamplesTable = ({
       pageSizeOptions={[5, 10, 20, 50]}
       infoText={infoText}
       defaultSort={[{ id: 'download', desc: true }]}
+      onFilterChange={onFilterChange}
     >
-      <Box direction="row" gap="xlarge" pad={{ bottom: 'medium' }}>
-        <Box direction="row">
-          <Text weight="bold" margin={{ right: 'small' }}>
-            Modality:
-          </Text>
-          <Text>{getReadable(modality)}</Text>
+      <Box direction="row" justify="between" pad={{ bottom: 'medium' }}>
+        <Box direction="row" gap="xlarge" align="center">
+          <Box direction="row">
+            <Text weight="bold" margin={{ right: 'small' }}>
+              Modality:
+            </Text>
+            <Text>{getReadable(modality)}</Text>
+          </Box>
+          <Box direction="row">
+            <Text weight="bold" margin={{ right: 'small' }}>
+              Data Format:
+            </Text>
+            <Text>{getReadable(format)}</Text>
+          </Box>
+          <DownloadOptionsModal
+            label="Change"
+            showing={showDownloadOptions}
+            setShowing={setShowDownloadOptions}
+            onSave={onOptionsSave}
+          />
         </Box>
-        <Box direction="row">
-          <Text weight="bold" margin={{ right: 'small' }}>
-            Data Format:
-          </Text>
-          <Text>{getReadable(format)}</Text>
+        <Box>
+          <MetadataDownloadModal project={project} disabled={currentFilter} />
         </Box>
-        <DownloadOptionsModal
-          label="Change"
-          showing={showDownloadOptions}
-          setShowing={setShowDownloadOptions}
-          onSave={onOptionsSave}
-        />
       </Box>
       {project.has_multiplexed_data && format === 'ANN_DATA' && (
         <WarningAnnDataMultiplexed />
