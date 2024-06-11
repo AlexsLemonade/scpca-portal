@@ -99,8 +99,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def __str__(self):
         return (
             f"'{self.project or self.sample}' "
-            f"{dict(self.OutputFileModalities.CHOICES)[self.modality]} "
-            f"{dict(self.OutputFileFormats.CHOICES)[self.format]} "
+            f"{dict(self.OutputFileModalities.CHOICES).get(self.modality, 'No Modality')} "
+            f"{dict(self.OutputFileFormats.CHOICES).get(self.format, 'No Format')} "
             f"computed file ({self.size_in_bytes}B)"
         )
 
