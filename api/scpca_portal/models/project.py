@@ -507,7 +507,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             "sample_technologies_mapping": multiplexed_sample_technologies_mapping,
         }
 
-    def get_multiplexed_with_mapping(self, multiplexed_libraries_metadata: List[Dict]):
+    def get_multiplexed_with_mapping(self) -> Dict[str, Set]:
         """
         Return a dictionary with keys being specific demux ids,
         and the values being all ids that this sample was multiplexed with.
@@ -810,9 +810,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         updated_samples_metadata = samples_metadata.copy()
         multiplexed_remaining_fields = self.get_multiplexed_aggregate_fields()
-        multiplexed_with_mapping = self.get_multiplexed_with_mapping(
-            libraries_metadata[Sample.Modalities.MULTIPLEXED]
-        )
+        multiplexed_with_mapping = self.get_multiplexed_with_mapping()
 
         for updated_sample_metadata in updated_samples_metadata:
             sample_id = updated_sample_metadata["scpca_sample_id"]
@@ -960,9 +958,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
 
         # Pre-calculate mapping to be used for multiplexed samples
-        multiplexed_with_mapping = self.get_multiplexed_with_mapping(
-            combined_metadata[Sample.Modalities.MULTIPLEXED]
-        )
+        multiplexed_with_mapping = self.get_multiplexed_with_mapping()
 
         for modality in combined_metadata.keys():
             if not combined_metadata[modality]:
