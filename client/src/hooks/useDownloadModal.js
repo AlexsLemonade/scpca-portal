@@ -9,7 +9,8 @@ import { hasMultiple } from 'helpers/hasMultiple'
 export const useDownloadModal = (
   initialResource,
   initialPublicComputedFile,
-  isActive
+  isActive,
+  sampleMetadataOnly = false
 ) => {
   const { token, email, surveyListForm, createToken } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
@@ -18,19 +19,18 @@ export const useDownloadModal = (
     initialPublicComputedFile
   )
   const [download, setDownload] = useState(false)
-
   const hasMultipleFiles = hasMultiple(resource.computed_files)
-
   // states that dictate what the modal can show
   const isDownloadReady = download && token
   const isTokenReady = !token && publicComputedFile
   const isOptionsReady = !publicComputedFile && hasMultipleFiles
-
   // text information
   const verb = isDownloadReady ? 'Downloading' : 'Download'
   const resourceType = resource.samples ? 'Project' : 'Sample'
   const modalTitle = `${verb} ${resourceType}`
-  const buttonLabel = `Download ${resourceType}`
+  const buttonLabel = `Download ${
+    sampleMetadataOnly ? 'Sample Metadata' : resourceType
+  }`
 
   const defaultComputedFile = getDefaultComputedFile(resource)
 

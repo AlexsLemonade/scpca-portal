@@ -1,13 +1,16 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
+import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
+import { MetadataDownloadModal } from 'components/MetadataDownloadModal'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
 
 export const ProjectSearchResult = ({ project }) => {
+  const { responsive } = useResponsive()
   const searchDetails = [
     {
       title: 'Diagnosis',
@@ -60,10 +63,19 @@ export const ProjectSearchResult = ({ project }) => {
           </Box>
         ))}
       </Box>
-      <Box pad={{ top: 'medium' }}>
+      <Box
+        align={responsive('start', 'center')}
+        direction={responsive('column', 'row')}
+        gap="small"
+        pad={{ top: 'medium' }}
+      >
         <Link href={`/projects/${project.scpca_id}#samples`}>
           <Button label="View Samples" aria-label="View Samples" />
         </Link>
+        <MetadataDownloadModal
+          project={project}
+          disabled={!project.computed_files}
+        />
       </Box>
     </Box>
   )

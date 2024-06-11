@@ -13,10 +13,11 @@ import { useDownloadModal } from 'hooks/useDownloadModal'
 export const DownloadModal = ({
   icon,
   resource: initialResource,
-  publicComputedFile: initialPublicComputedFile
+  publicComputedFile: initialPublicComputedFile,
+  disabled = false,
+  sampleMetadataOnly = false // For rendering metadata only download button
 }) => {
   const [showing, setShowing] = useState(false)
-
   const {
     handleSelectFile,
     modalTitle,
@@ -30,7 +31,12 @@ export const DownloadModal = ({
     isDownloadReady,
     isTokenReady,
     isOptionsReady
-  } = useDownloadModal(initialResource, initialPublicComputedFile, showing)
+  } = useDownloadModal(
+    initialResource,
+    initialPublicComputedFile,
+    showing,
+    sampleMetadataOnly
+  )
 
   const handleClick = () => {
     setShowing(true)
@@ -45,7 +51,17 @@ export const DownloadModal = ({
 
   return (
     <>
-      {icon ? (
+      {icon && sampleMetadataOnly ? (
+        <Anchor
+          icon={icon}
+          onClick={handleClick}
+          disabled={disabled}
+          label={
+            sampleMetadataOnly ? <Text color="brand">{buttonLabel}</Text> : ''
+          }
+          margin={{ top: 'small' }}
+        />
+      ) : icon ? (
         <Anchor icon={icon} onClick={handleClick} />
       ) : (
         <Button
