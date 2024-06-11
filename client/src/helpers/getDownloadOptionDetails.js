@@ -4,6 +4,7 @@ import {
   dynamicKeys,
   dataKeys,
   nonFormatKeys,
+  metadataResourceInfo,
   modalityResourceInfo,
   omitKeys
 } from 'config/downloadOptions'
@@ -28,8 +29,15 @@ const formatFileItemByKey = (key, computedFile) => {
 // takes the config and checks against the resource
 // to present what will be inside of the downloadable file
 export const getDownloadOptionDetails = (computedFile) => {
-  const { modality, project, sample } = computedFile
-  const type = project ? 'Project' : 'Sample'
+  const {
+    metadata_only: metadataOnly,
+    modality,
+    project,
+    sample
+  } = computedFile
+  // eslint-disable-next-line no-nested-ternary
+  const type = metadataOnly ? 'Sample Metadata' : project ? 'Project' : 'Sample'
+  const isSampleMetadata = type === 'Sample Metadata'
   const isProject = type === 'Project'
   const isSample = type === 'Sample'
   const resourceId = project || sample
@@ -43,7 +51,9 @@ export const getDownloadOptionDetails = (computedFile) => {
   // Determine additional information to show.
   const modalityResourceKey = `${modality}_${type.toUpperCase()}`
   const suffix = computedFile.has_multiplexed_data ? '_MULTIPLEXED' : ''
-  const info = modalityResourceInfo[modalityResourceKey + suffix]
+  const info = isSampleMetadata
+    ? metadataResourceInfo
+    : modalityResourceInfo[modalityResourceKey + suffix]
 
   // Sort out what is in the file.
   const items = []
@@ -84,5 +94,14 @@ export const getDownloadOptionDetails = (computedFile) => {
 
   items.push(metadata)
 
-  return { type, items, info, resourceId, isProject, isSample, warningFlags }
+  return {
+    type,
+    items,
+    info,
+    resourceId,
+    isSampleMetadata,
+    isProject,
+    isSample,
+    warningFlags
+  }
 }
