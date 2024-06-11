@@ -118,7 +118,7 @@ class Command(BaseCommand):
         subprocess.check_call(command_list)
 
     def add_arguments(self, parser):
-        parser.add_argument("--input-bucket-name", type=str, default="scpca-portal-inputs")
+        parser.add_argument("--input-bucket-name", type=str, default=common.INPUT_BUCKET_NAME)
         parser.add_argument(
             "--clean-up-input-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
@@ -148,7 +148,7 @@ class Command(BaseCommand):
     def load_data(
         self,
         allowed_submitters: set[str] = None,
-        input_bucket_name: str = "scpca-portal-inputs",
+        input_bucket_name: str = common.INPUT_BUCKET_NAME,
         **kwargs,
     ):
         """Loads data from S3. Creates projects and loads data for them."""

@@ -18,10 +18,16 @@ OUTPUT_DATA_PATH = DATA_PATH / "output"
 
 TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
 
+TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
+INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else "scpca-portal-inputs"
+
 TAB = "\t"
 
 IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
+
+SCE_EXT = ".rds"
+ANNDATA_EXT = ".h5ad"
 
 # Global sort order for Metadata TSVs
 # Columns

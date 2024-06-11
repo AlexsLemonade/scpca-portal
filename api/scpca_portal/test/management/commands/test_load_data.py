@@ -10,10 +10,11 @@ from scpca_portal import common
 from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
-ALLOWED_SUBMITTERS = {"scpca"}
-# NOTE: When INPUT_BUCKET_NAME is changed, please delete the contents of
+# NOTE: Test data bucket is defined in `scpca_porta/common.py`.
+# When common.INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
-INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
+
+ALLOWED_SUBMITTERS = {"scpca"}
 
 
 class TestLoadData(TransactionTestCase):
@@ -59,7 +60,6 @@ class TestLoadData(TransactionTestCase):
         project_id = "SCPCP999990"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
             clean_up_input_data=True,
             clean_up_output_data=True,
             max_workers=4,
@@ -90,7 +90,6 @@ class TestLoadData(TransactionTestCase):
         # First, just test that loading data works.
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
@@ -112,7 +111,6 @@ class TestLoadData(TransactionTestCase):
         # Make sure that reload_existing=False won't add anything new when there's nothing new.
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
             max_workers=4,
             reload_all=False,
             reload_existing=False,
@@ -141,7 +139,6 @@ class TestLoadData(TransactionTestCase):
         # Make sure reloading works smoothly.
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
@@ -156,7 +153,6 @@ class TestLoadData(TransactionTestCase):
         project_id = "SCPCP999992"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
@@ -232,7 +228,6 @@ class TestLoadData(TransactionTestCase):
         project_id = "SCPCP999990"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
@@ -310,7 +305,6 @@ class TestLoadData(TransactionTestCase):
         project_id = "SCPCP999991"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
@@ -338,7 +332,6 @@ class TestLoadData(TransactionTestCase):
         project_id = "SCPCP999991"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
@@ -626,7 +619,6 @@ class TestLoadData(TransactionTestCase):
         project_id = "SCPCP999990"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
@@ -867,7 +859,6 @@ class TestLoadData(TransactionTestCase):
         project_id = "SCPCP999990"
         self.loader.load_data(
             allowed_submitters=ALLOWED_SUBMITTERS,
-            input_bucket_name=INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,

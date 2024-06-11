@@ -32,6 +32,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     abstract = models.TextField()
     additional_metadata_keys = models.TextField(blank=True, null=True)
     additional_restrictions = models.TextField(blank=True, null=True)
+    data_file_paths = ArrayField(models.TextField(), default=list)
     diagnoses = models.TextField(blank=True, null=True)
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
@@ -421,7 +422,23 @@ class Project(CommonDataAttributes, TimestampedModel):
                 else:
                     setattr(project, key, data.get(key))
 
+        project.data_file_paths = project.get_data_file_paths()
+
         return project
+
+    def get_data_file_paths(self) -> List[Path]:
+        """
+        Retrieves existing merged and bulk data file paths on the aws input bucket
+        and returns them as a list.
+        """
+        merged_relative_path = Path(f"{self.scpca_id}/merged/")
+        bulk_relative_path = Path(f"{self.scpca_id}/{self.scpca_id}_bulk")
+
+        data_file_paths = utils.list_s3_paths(merged_relative_path) + utils.list_s3_paths(
+            bulk_relative_path
+        )
+
+        return data_file_paths
 
     def get_bulk_rna_seq_sample_ids(self):
         """Returns set of bulk RNA sequencing sample IDs."""
@@ -453,18 +470,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             demux_sample_ids.update(multiplexed_sample_dir_demux_ids)
 
         return demux_sample_ids
-
-    def get_multiplexed_libraries_metadata(self):
-        """
-        Loads and collects individual multiplexed libraries from json files,
-        then returns them in a list.
-        """
-        multiplexed_libraries_metadata = []
-        for filename_path in sorted(Path(self.input_data_path).rglob("*,*/*_metadata.json")):
-            multiplexed_json = metadata_file.load_library_metadata(filename_path)
-            multiplexed_libraries_metadata.append(multiplexed_json)
-
-        return multiplexed_libraries_metadata
 
     def get_multiplexed_aggregate_fields(self):
         """
@@ -502,26 +507,16 @@ class Project(CommonDataAttributes, TimestampedModel):
             "sample_technologies_mapping": multiplexed_sample_technologies_mapping,
         }
 
-    def get_multiplexed_with_mapping(self, multiplexed_libraries_metadata: List[Dict]):
+    def get_multiplexed_with_mapping(self) -> Dict[str, Set]:
         """
         Return a dictionary with keys being specific demux ids,
         and the values being all ids that this sample was multiplexed with.
         """
         multiplexed_with_mapping = {}
-        for library_metadata in multiplexed_libraries_metadata:
-            multiplexed_library_sample_ids = library_metadata["demux_samples"]
-            for multiplexed_sample_id in multiplexed_library_sample_ids:
-                # Remove sample ID from a mapping as sample cannot be
-                # multiplexed with itself.
-                multiplexed_library_sample_ids_copy = set(multiplexed_library_sample_ids)
-                multiplexed_library_sample_ids_copy.discard(multiplexed_sample_id)
-
-                # Populate multiplexed sample mapping.
-                if multiplexed_sample_id not in multiplexed_with_mapping:
-                    multiplexed_with_mapping[multiplexed_sample_id] = set()
-                multiplexed_with_mapping[multiplexed_sample_id].update(
-                    multiplexed_library_sample_ids_copy
-                )
+        for multiplexed_dir in sorted(Path(self.input_data_path).rglob("*,*/")):
+            multiplexed_ids = set(multiplexed_dir.name.split(","))
+            for id in multiplexed_ids:
+                multiplexed_with_mapping[id] = multiplexed_ids.difference({id})
 
         return multiplexed_with_mapping
 
@@ -810,22 +805,26 @@ class Project(CommonDataAttributes, TimestampedModel):
         libraries_metadata = {
             Sample.Modalities.SINGLE_CELL: [],
             Sample.Modalities.SPATIAL: [],
-            Sample.Modalities.MULTIPLEXED: self.get_multiplexed_libraries_metadata(),
+            Sample.Modalities.MULTIPLEXED: [],
         }
 
         updated_samples_metadata = samples_metadata.copy()
         multiplexed_remaining_fields = self.get_multiplexed_aggregate_fields()
-        multiplexed_with_mapping = self.get_multiplexed_with_mapping(
-            libraries_metadata[Sample.Modalities.MULTIPLEXED]
-        )
+        multiplexed_with_mapping = self.get_multiplexed_with_mapping()
 
         for updated_sample_metadata in updated_samples_metadata:
             sample_id = updated_sample_metadata["scpca_sample_id"]
-            sample_dir = self.get_sample_input_data_dir(updated_sample_metadata["scpca_sample_id"])
+            # print(sample_id in multiplexed_with_mapping)
+            sample_dir = self.get_sample_input_data_dir(
+                sample_id
+                if sample_id not in multiplexed_with_mapping
+                else ",".join(sorted({sample_id} | (multiplexed_with_mapping[sample_id])))
+            )
             sample_cell_count_estimate = 0
             sample_seq_units = set()
             sample_technologies = set()
 
+            # Possible gotcha: single_cell_metadata_paths have both single cell & multiplexed paths
             single_cell_metadata_paths = set(Path(sample_dir).glob("*_metadata.json"))
             spatial_metadata_paths = set(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
             library_metadata_paths = list(single_cell_metadata_paths | spatial_metadata_paths)
@@ -836,14 +835,14 @@ class Project(CommonDataAttributes, TimestampedModel):
                 all_libraries_metadata.append(library_metadata)
 
                 if library_path in single_cell_metadata_paths:
-                    sample_cell_count_estimate += library_metadata["filtered_cell_count"]
-                    libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_metadata)
-                    library_metadata["modality"] = Library.Modalities.SINGLE_CELL
-                    library_metadata["formats"] = Library.get_file_formats(sample_dir)
+                    if sample_id not in multiplexed_with_mapping:
+                        libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_metadata)
+                        sample_cell_count_estimate += library_metadata["filtered_cell_count"]
+                    # Check first to see if previous multiplexed sample already added this library
+                    elif library_metadata not in libraries_metadata[Sample.Modalities.MULTIPLEXED]:
+                        libraries_metadata[Sample.Modalities.MULTIPLEXED].append(library_metadata)
                 elif library_path in spatial_metadata_paths:
                     libraries_metadata[Sample.Modalities.SPATIAL].append(library_metadata)
-                    library_metadata["modality"] = Library.Modalities.SPATIAL
-                    library_metadata["formats"] = Library.get_file_formats(sample_dir)
 
                 sample_seq_units.add(library_metadata["seq_unit"].strip())
                 sample_technologies.add(library_metadata["technology"].strip())
@@ -959,9 +958,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
 
         # Pre-calculate mapping to be used for multiplexed samples
-        multiplexed_with_mapping = self.get_multiplexed_with_mapping(
-            combined_metadata[Sample.Modalities.MULTIPLEXED]
-        )
+        multiplexed_with_mapping = self.get_multiplexed_with_mapping()
 
         for modality in combined_metadata.keys():
             if not combined_metadata[modality]:
