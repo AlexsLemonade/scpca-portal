@@ -4,6 +4,8 @@ from typing import Dict, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
+from typing_extensions import Self
+
 from scpca_portal import common, utils
 from scpca_portal.models.base import TimestampedModel
 
@@ -107,3 +109,29 @@ class Library(TimestampedModel):
         if any(path for path in file_paths if common.ANNDATA_EXT == path.suffix):
             formats.append(Library.FileFormats.ANN_DATA)
         return formats
+
+    @classmethod
+    def get_project_libraries_from_download_config(
+        cls, project, download_configuration: Dict
+    ) -> List[Self]:
+        if download_configuration not in common.VALID_PROJECT_DOWNLOAD_CONFIGURATIONS:
+            raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
+
+        return [
+            library
+            for library in project.libraries.filter(modality=download_configuration["modality"])
+            if download_configuration["format"] in library.formats
+        ]
+
+    @classmethod
+    def get_sample_libraries_from_download_config(
+        cls, sample, download_configuration: Dict
+    ) -> List[Self]:
+        if download_configuration not in common.VALID_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+            raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
+
+        return [
+            library
+            for library in sample.libraries.filter(modality=download_configuration["modality"])
+            if download_configuration["format"] in library.formats
+        ]

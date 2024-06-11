@@ -94,8 +94,8 @@ PROJECT_ID_KEY = "scpca_project_id"
 SAMPLE_ID_KEY = "scpca_sample_id"
 LIBRARY_ID_KEY = "scpca_library_id"
 
-# Project and Sample Download Configurations
-SINGLE_CELL_SCE_CONFIGURATIONS = [
+VALID_PROJECT_DOWNLOAD_CONFIGURATIONS = [
+    # SINGLE CELL SCE CONFIGURATIONS
     {
         "modality": "SINGLE_CELL",
         "format": "SINGLE_CELL_EXPERIMENT",
@@ -126,9 +126,7 @@ SINGLE_CELL_SCE_CONFIGURATIONS = [
         "includes_merged": False,
         "metadata_only": True,
     },
-]
-
-SINGLE_CELL_ANN_DATA_CONFIGURATIONS = [
+    # SINGLE CELL ANN DATA CONFIGURATIONS
     {
         "modality": "SINGLE_CELL",
         "format": "ANN_DATA",
@@ -151,9 +149,7 @@ SINGLE_CELL_ANN_DATA_CONFIGURATIONS = [
         "includes_merged": False,
         "metadata_only": True,
     },
-]
-
-SPATIAL_SCE_CONFIGURATIONS = [
+    # SPATIAL SCE CONFIGURATIONS
     {
         "modality": "SPATIAL",
         "format": "SINGLE_CELL_EXPERIMENT",
@@ -168,12 +164,6 @@ SPATIAL_SCE_CONFIGURATIONS = [
         "includes_merged": False,
         "metadata_only": True,
     },
-]
-
-VALID_PROJECT_DOWNLOAD_CONFIGURATIONS = [
-    SINGLE_CELL_SCE_CONFIGURATIONS
-    + SINGLE_CELL_ANN_DATA_CONFIGURATIONS
-    + SPATIAL_SCE_CONFIGURATIONS
 ]
 
 VALID_SAMPLE_DOWNLOAD_CONFIGURATIONS = [
