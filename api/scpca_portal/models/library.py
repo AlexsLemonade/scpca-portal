@@ -135,3 +135,7 @@ class Library(TimestampedModel):
             for library in sample.libraries.filter(modality=download_configuration["modality"])
             if download_configuration["format"] in library.formats
         ]
+
+    @staticmethod
+    def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
+        return common.INPUT_DATA_PATH / data_file_path
