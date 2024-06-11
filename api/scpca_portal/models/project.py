@@ -514,11 +514,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         multiplexed_with_mapping = {}
         for multiplexed_dir in sorted(Path(self.input_data_path).rglob("*,*/")):
-            multiplexed_ids = multiplexed_dir.name.split(",")
-            for multiplexed_id in multiplexed_ids:
-                multiplexed_with_mapping[multiplexed_id] = set(
-                    id for id in multiplexed_ids if id is not multiplexed_id
-                )
+            multiplexed_ids = set(multiplexed_dir.name.split(","))
+            for id in multiplexed_ids:
+                multiplexed_with_mapping[id] = multiplexed_ids.difference({id})
 
         return multiplexed_with_mapping
 
