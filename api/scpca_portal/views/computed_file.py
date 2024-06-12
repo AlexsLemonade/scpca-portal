@@ -18,6 +18,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "has_cite_seq_data",
             "has_multiplexed_data",
             "id",
+            "metadata_only",
             "modality",
             "project",
             "s3_bucket",
