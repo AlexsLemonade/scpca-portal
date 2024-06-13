@@ -1,17 +1,15 @@
 import { filterWhere } from 'helpers/filterWhere'
 
-// TODO: If necessary, add logic later or convert it to a helper file
+// TODO: Implement the logic to handle multiple metadata files (i.e. project and portal-wide) later
 export const useMetadataOnly = (computedFiles) => {
-  // Check the availability of metadata_only file
-  const isMetadataOnlyAvailable =
-    filterWhere(computedFiles, {
-      metadata_only: true
-    }).length > 0
-
   const metadataComputedFile = filterWhere(computedFiles, {
     metadata_only: true
   })
+  // Check the availability of metadata_only file
+  const isMetadataOnlyAvailable = metadataComputedFile.length > 0
 
+  // NOTE: The current logic only supports the project level metadata file,
+  // thus the first item is returned
   return {
     metadataComputedFile: metadataComputedFile[0],
     isMetadataOnlyAvailable
