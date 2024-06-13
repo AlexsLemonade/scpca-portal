@@ -14,7 +14,7 @@ export const MetadataDownloadModal = ({ project, disabled }) => {
       icon={<DownloadIcon color="brand" />}
       resource={project}
       publicComputedFile={metadataComputedFile}
-      sampleMetadataOnly
+      sampleMetadataOnly // Pass it to render the button label "Download Sample Metadata" even if it's undefined
     />
   )
 }

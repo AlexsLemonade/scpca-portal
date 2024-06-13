@@ -10,7 +10,7 @@ export const useDownloadModal = (
   initialResource,
   initialPublicComputedFile,
   isActive,
-  sampleMetadataOnly = false
+  isSampleMetadataOnly // Set metadata-only download button's label if true
 ) => {
   const { token, email, surveyListForm, createToken } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
@@ -29,7 +29,7 @@ export const useDownloadModal = (
   const resourceType = resource.samples ? 'Project' : 'Sample'
   const modalTitle = `${verb} ${resourceType}`
   const buttonLabel = `Download ${
-    sampleMetadataOnly ? 'Sample Metadata' : resourceType
+    isSampleMetadataOnly ? 'Sample Metadata' : resourceType
   }`
 
   const defaultComputedFile = getDefaultComputedFile(resource)

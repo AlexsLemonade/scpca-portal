@@ -15,7 +15,7 @@ export const DownloadModal = ({
   resource: initialResource,
   publicComputedFile: initialPublicComputedFile,
   disabled = false,
-  sampleMetadataOnly = false // For rendering metadata only download button
+  sampleMetadataOnly = false // Optional prop to render metadata-only download button's label
 }) => {
   const [showing, setShowing] = useState(false)
   const {
@@ -51,7 +51,7 @@ export const DownloadModal = ({
 
   return (
     <>
-      {icon && sampleMetadataOnly ? (
+      {icon ? (
         <Anchor
           icon={icon}
           onClick={handleClick}
@@ -61,8 +61,6 @@ export const DownloadModal = ({
           }
           margin={{ top: 'small' }}
         />
-      ) : icon ? (
-        <Anchor icon={icon} onClick={handleClick} />
       ) : (
         <Button
           aria-label={buttonLabel}
