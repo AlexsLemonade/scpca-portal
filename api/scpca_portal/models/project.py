@@ -207,6 +207,13 @@ class Project(CommonDataAttributes, TimestampedModel):
     def url(self):
         return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
 
+    def get_metadata(self):
+        return {
+            "scpca_project_id": self.scpca_id,
+            "pi_name": self.pi_name,
+            "project_title": self.title,
+        }
+
     def add_project_metadata(self, sample_metadata):
         """Adds project level metadata to the `sample_metadata`."""
         sample_metadata["pi_name"] = self.pi_name

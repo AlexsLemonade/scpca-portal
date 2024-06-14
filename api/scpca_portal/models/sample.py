@@ -120,6 +120,29 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         Sample.objects.bulk_create(samples)
 
+    def get_metadata(self):
+        sample_metadata = {
+            "scpca_sample_id": self.scpca_id,
+        }
+
+        included_sample_attributes = [
+            "age_at_diagnosis",
+            "diagnosis",
+            "disease_timing",
+            "sex",
+            "subdiagnosis",
+            "tissue_location",
+        ]
+        sample_metadata.update(
+            {key: getattr(self, key) for key in dict(self) if key in included_sample_attributes}
+        )
+
+        sample_metadata.update(
+            {key: self.additional_metadata[key] for key in self.additional_metadata}
+        )
+
+        return sample_metadata
+
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
         return {
