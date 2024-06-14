@@ -114,12 +114,17 @@ class Library(TimestampedModel):
     def get_project_libraries_from_download_config(
         cls, project, download_configuration: Dict
     ) -> List[Self]:
-        if download_configuration not in common.VALID_PROJECT_DOWNLOAD_CONFIGURATIONS:
+        if download_configuration not in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
             raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
 
         if download_configuration["includes_merged"]:
+            # If the download config requests merged and there is no merged file in the project,
+            # return an empty list
             if (not project.includes_merged_sce) and (not project.includes_merged_anndata):
                 return []
+
+        if download_configuration["metadata_only"]:
+            return project.libraries.all()
 
         libraries_queryset = project.libraries.filter(
             modality=download_configuration["modality"],
@@ -135,7 +140,7 @@ class Library(TimestampedModel):
     def get_sample_libraries_from_download_config(
         cls, sample, download_configuration: Dict
     ) -> List[Self]:
-        if download_configuration not in common.VALID_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+        if download_configuration not in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
             raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
 
         return sample.libraries.filter(
