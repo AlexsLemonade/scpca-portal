@@ -117,14 +117,22 @@ class Library(TimestampedModel):
         if download_configuration not in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
             raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
 
-        if download_configuration["includes_merged"]:
-            # If the download config requests merged and there is no merged file in the project,
-            # return an empty list
-            if (not project.includes_merged_sce) and (not project.includes_merged_anndata):
-                return []
-
         if download_configuration["metadata_only"]:
             return project.libraries.all()
+
+        if download_configuration["includes_merged"]:
+            # If the download config requests merged and there is no merged file in the project,
+            # return an empty queryset
+            if (
+                download_configuration["format"] == "SINGLE_CELL_EXPERIMENT"
+                and not project.includes_merged_sce
+            ):
+                return project.libraries.none()
+            elif (
+                download_configuration["format"] == "ANN_DATA"
+                and not project.includes_merged_anndata
+            ):
+                return project.libraries.none()
 
         libraries_queryset = project.libraries.filter(
             modality=download_configuration["modality"],
