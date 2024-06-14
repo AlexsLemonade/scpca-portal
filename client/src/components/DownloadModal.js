@@ -11,17 +11,17 @@ import { useDownloadModal } from 'hooks/useDownloadModal'
 
 // Button and Modal to show when downloading
 export const DownloadModal = ({
-  icon,
+  label,
   resource: initialResource,
   publicComputedFile: initialPublicComputedFile,
-  disabled = false,
-  sampleMetadataOnly = false // Optional prop to render metadata-only download button's label
+  icon = null,
+  color = 'brand',
+  disabled = false
 }) => {
   const [showing, setShowing] = useState(false)
   const {
     handleSelectFile,
     modalTitle,
-    buttonLabel,
     tryDownload,
     publicComputedFile,
     setPublicComputedFile,
@@ -31,12 +31,7 @@ export const DownloadModal = ({
     isDownloadReady,
     isTokenReady,
     isOptionsReady
-  } = useDownloadModal(
-    initialResource,
-    initialPublicComputedFile,
-    showing,
-    sampleMetadataOnly
-  )
+  } = useDownloadModal(initialResource, initialPublicComputedFile, showing)
 
   const handleClick = () => {
     setShowing(true)
@@ -56,17 +51,15 @@ export const DownloadModal = ({
           icon={icon}
           onClick={handleClick}
           disabled={disabled}
-          label={
-            sampleMetadataOnly ? <Text color="brand">{buttonLabel}</Text> : ''
-          }
+          label={<Text color={color}>{label}</Text>}
           margin={{ top: 'small' }}
         />
       ) : (
         <Button
-          aria-label={buttonLabel}
+          aria-label={label}
           flex="grow"
           primary
-          label={buttonLabel}
+          label={label}
           disabled={publicComputedFile === undefined}
           onClick={handleClick}
         />
@@ -75,7 +68,7 @@ export const DownloadModal = ({
         {hasDownloadOptions && (
           <ModalHeader>
             <Text
-              color="brand"
+              color={color}
               role="button"
               margin={{ bottom: 'medium' }}
               style={{ cursor: 'pointer' }}
