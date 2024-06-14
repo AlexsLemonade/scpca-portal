@@ -22,11 +22,16 @@ export const useDownloadModal = (
   // states that dictate what the modal can show
   const isDownloadReady = download && token
   const isOptionsReady = !publicComputedFile && hasMultipleFiles
-  const isSampleMetadataOnly = initialPublicComputedFile?.metadata_only
+  const isSampleMetadataOnly = publicComputedFile?.metadata_only
   const isTokenReady = !token && publicComputedFile
   // text information
   const verb = isDownloadReady ? 'Downloading' : 'Download'
-  const resourceType = resource.samples ? 'Project' : 'Sample'
+  // eslint-disable-next-line no-nested-ternary
+  const resourceType = isSampleMetadataOnly
+    ? 'Sample'
+    : resource.samples
+    ? 'Project'
+    : 'Sample'
   const metadata = isSampleMetadataOnly ? 'Metadata' : ''
   const modalTitle = `${verb} ${resourceType} ${metadata}`
   const defaultComputedFile = getDefaultComputedFile(resource)
