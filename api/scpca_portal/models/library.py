@@ -117,11 +117,19 @@ class Library(TimestampedModel):
         if download_configuration not in common.VALID_PROJECT_DOWNLOAD_CONFIGURATIONS:
             raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
 
-        return [
-            library
-            for library in project.libraries.filter(modality=download_configuration["modality"])
-            if download_configuration["format"] in library.formats
-        ]
+        if download_configuration["includes_merged"]:
+            if (not project.includes_merged_sce) and (not project.includes_merged_anndata):
+                return []
+
+        libraries_queryset = project.libraries.filter(
+            modality=download_configuration["modality"],
+            format__contains=download_configuration["format"],
+        )
+
+        if download_configuration["excludes_multiplexed"]:
+            return libraries_queryset.exclude(is_multiplexed=True)
+
+        return libraries_queryset
 
     @classmethod
     def get_sample_libraries_from_download_config(
@@ -130,11 +138,10 @@ class Library(TimestampedModel):
         if download_configuration not in common.VALID_SAMPLE_DOWNLOAD_CONFIGURATIONS:
             raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
 
-        return [
-            library
-            for library in sample.libraries.filter(modality=download_configuration["modality"])
-            if download_configuration["format"] in library.formats
-        ]
+        return sample.libraries.filter(
+            modality=download_configuration["modality"],
+            format__contains=download_configuration["format"],
+        )
 
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
