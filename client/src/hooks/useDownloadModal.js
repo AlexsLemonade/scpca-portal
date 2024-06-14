@@ -9,8 +9,7 @@ import { hasMultiple } from 'helpers/hasMultiple'
 export const useDownloadModal = (
   initialResource,
   initialPublicComputedFile,
-  isActive,
-  isSampleMetadataOnly // Set metadata-only download button's label if true
+  isActive
 ) => {
   const { token, email, surveyListForm, createToken } = useScPCAPortal()
   const { trackDownload } = useAnalytics()
@@ -22,18 +21,15 @@ export const useDownloadModal = (
   const hasMultipleFiles = hasMultiple(resource.computed_files)
   // states that dictate what the modal can show
   const isDownloadReady = download && token
-  const isTokenReady = !token && publicComputedFile
   const isOptionsReady = !publicComputedFile && hasMultipleFiles
+  const isSampleMetadataOnly = initialPublicComputedFile?.metadata_only
+  const isTokenReady = !token && publicComputedFile
   // text information
   const verb = isDownloadReady ? 'Downloading' : 'Download'
   const resourceType = resource.samples ? 'Project' : 'Sample'
-  const modalTitle = `${verb} ${resourceType}`
-  const buttonLabel = `Download ${
-    isSampleMetadataOnly ? 'Sample Metadata' : resourceType
-  }`
-
+  const metadata = isSampleMetadataOnly ? 'Metadata' : ''
+  const modalTitle = `${verb} ${resourceType} ${metadata}`
   const defaultComputedFile = getDefaultComputedFile(resource)
-
   const hasDownloadOptions =
     publicComputedFile && hasMultipleFiles && !initialPublicComputedFile
 
@@ -105,7 +101,6 @@ export const useDownloadModal = (
     resource,
     handleSelectFile,
     modalTitle,
-    buttonLabel,
     tryDownload,
     publicComputedFile,
     setPublicComputedFile,
