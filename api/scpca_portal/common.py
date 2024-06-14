@@ -94,7 +94,7 @@ PROJECT_ID_KEY = "scpca_project_id"
 SAMPLE_ID_KEY = "scpca_sample_id"
 LIBRARY_ID_KEY = "scpca_library_id"
 
-VALID_PROJECT_DOWNLOAD_CONFIGURATIONS = [
+GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS = [
     # SINGLE CELL SCE CONFIGURATIONS
     {
         "modality": "SINGLE_CELL",
@@ -110,21 +110,16 @@ VALID_PROJECT_DOWNLOAD_CONFIGURATIONS = [
         "includes_merged": False,
         "metadata_only": False,
     },
+    # Notes about merged objects (accoring to scpca portal documentation):
+    #   Only Single-cell (not spatial) for sce and anndata
+    #   Only projects with non-multiplexed libraries can be merged
+    #   Merged objects are unavailable for projects with > 100 samples
     {
         "modality": "SINGLE_CELL",
         "format": "SINGLE_CELL_EXPERIMENT",
         "excludes_multiplexed": True,
-        # FYI Documentation says that merged objects are unavailable for projects with > 100 samples
         "includes_merged": True,
         "metadata_only": False,
-    },
-    {
-        "modality": "SINGLE_CELL",
-        "format": "SINGLE_CELL_EXPERIMENT",
-        # Question: Do we want to also support metadata_only downloads that exclude multiplexed?
-        "excludes_multiplexed": False,
-        "includes_merged": False,
-        "metadata_only": True,
     },
     # SINGLE CELL ANN DATA CONFIGURATIONS
     {
@@ -138,16 +133,8 @@ VALID_PROJECT_DOWNLOAD_CONFIGURATIONS = [
         "modality": "SINGLE_CELL",
         "format": "ANN_DATA",
         "excludes_multiplexed": True,
-        # FYI Documentation says that merged objects are unavailable for projects with > 100 samples
         "includes_merged": True,
         "metadata_only": False,
-    },
-    {
-        "modality": "SINGLE_CELL",
-        "format": "ANN_DATA",
-        "excludes_multiplexed": True,
-        "includes_merged": False,
-        "metadata_only": True,
     },
     # SPATIAL SCE CONFIGURATIONS
     {
@@ -157,16 +144,17 @@ VALID_PROJECT_DOWNLOAD_CONFIGURATIONS = [
         "includes_merged": False,
         "metadata_only": False,
     },
+    # METADATA ONLY DOWNLOADS
     {
-        "modality": "SPATIAL",
-        "format": "SINGLE_CELL_EXPERIMENT",
-        "excludes_multiplexed": True,
-        "includes_merged": False,
+        "modality": None,
+        "format": None,
+        "excludes_multiplexed": None,
+        "includes_merged": None,
         "metadata_only": True,
     },
 ]
 
-VALID_SAMPLE_DOWNLOAD_CONFIGURATIONS = [
+GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS = [
     {"modality": "SINGLE_CELL", "format": "SINGLE_CELL_EXPERIMENT"},
     {"modality": "SINGLE_CELL", "format": "ANN_DATA"},
     {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"},
