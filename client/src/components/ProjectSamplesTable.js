@@ -4,11 +4,11 @@ import { config } from 'config'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import { useMetadataOnly } from 'hooks/useMetadataOnly'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
 import { DownloadModal } from 'components/DownloadModal'
 import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
-import { MetadataDownloadModal } from 'components/MetadataDownloadModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
@@ -25,6 +25,7 @@ export const ProjectSamplesTable = ({
   // We only want to show the applied donwload options.
   // Also need some helpers for presentation.
   const { modality, format, getFoundFile } = useDownloadOptionsContext()
+  const { metadataComputedFile } = useMetadataOnly(project.computed_files)
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
   const [showDownloadOptions, setShowDownloadOptions] = useState(false)
@@ -237,7 +238,13 @@ export const ProjectSamplesTable = ({
           />
         </Box>
         <Box>
-          <MetadataDownloadModal project={project} disabled={currentFilter} />
+          <DownloadModal
+            disabled={currentFilter}
+            label="Download Sample Metadata"
+            icon={<DownloadIcon color="brand" />}
+            resource={project}
+            publicComputedFile={metadataComputedFile}
+          />
         </Box>
       </Box>
       {project.has_multiplexed_data && format === 'ANN_DATA' && (
