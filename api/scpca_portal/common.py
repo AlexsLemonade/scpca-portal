@@ -43,7 +43,6 @@ METADATA_COLUMN_SORT_ORDER = [
     "sex",
     "tissue_location",
     "participant_id",
-    "submitter",
     "submitter_id",
     "organism",
     "development_stage_ontology_term_id",
