@@ -30,6 +30,9 @@ SAMPLE_METADATA_KEYS = [
     ("age", "age_at_diagnosis", None),
 ]
 
+# Keys that already exist in PROJECT_METADATA_KEYS
+SAMPLE_METADATA_DUPLICATE_KEYS = ["submitter"]
+
 LIBRARY_METADATA_KEYS = [
     ("library_id", "scpca_library_id", None),
     ("sample_id", "scpca_sample_id", None),
@@ -62,6 +65,8 @@ def load_samples_metadata(metadata_file_path: Path):
         data_dicts = list(csv.DictReader(raw_file))
 
     for data_dict in data_dicts:
+        for key in SAMPLE_METADATA_DUPLICATE_KEYS:
+            data_dict.pop(key)
         transform_keys(data_dict, SAMPLE_METADATA_KEYS)
 
     return data_dicts

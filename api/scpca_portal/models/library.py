@@ -51,7 +51,7 @@ class Library(TimestampedModel):
         library = cls(
             data_file_paths=data_file_paths,
             formats=Library.get_formats_from_file_paths(data_file_paths),
-            is_multiplexed=data["is_multiplexed"],
+            is_multiplexed=data.get("is_multiplexed", False),
             metadata=data,
             modality=Library.get_modality_from_file_paths(data_file_paths),
             project=project,
