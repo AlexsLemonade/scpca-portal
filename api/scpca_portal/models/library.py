@@ -164,7 +164,7 @@ class Library(TimestampedModel):
         }
 
         excluded_metadata_attributes = [
-            "sample_id",
+            "scpca_sample_id",
             "has_citeseq",
             "filtered_spots",
             "unfiltered_spots",
