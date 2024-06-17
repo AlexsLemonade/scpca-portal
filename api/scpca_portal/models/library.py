@@ -122,12 +122,12 @@ class Library(TimestampedModel):
             # If the download config requests merged and there is no merged file in the project,
             # return an empty queryset
             if (
-                download_configuration["format"] == "SINGLE_CELL_EXPERIMENT"
+                download_configuration["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT
                 and not project.includes_merged_sce
             ):
                 return project.libraries.none()
             elif (
-                download_configuration["format"] == "ANN_DATA"
+                download_configuration["format"] == Library.FileFormats.ANN_DATA
                 and not project.includes_merged_anndata
             ):
                 return project.libraries.none()
