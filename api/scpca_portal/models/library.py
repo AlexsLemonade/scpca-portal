@@ -158,7 +158,7 @@ class Library(TimestampedModel):
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
         return common.INPUT_DATA_PATH / data_file_path
 
-    def get_metadata(self):
+    def get_metadata(self) -> Dict:
         library_metadata = {
             "scpca_library_id": self.scpca_id,
         }
@@ -177,3 +177,9 @@ class Library(TimestampedModel):
                 if key not in excluded_metadata_attributes
             }
         )
+
+    def get_combined_library_metadata(self) -> List[Dict]:
+        return [
+            self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
+            for sample in self.samples
+        ]

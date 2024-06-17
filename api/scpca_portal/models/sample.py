@@ -120,7 +120,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         Sample.objects.bulk_create(samples)
 
-    def get_metadata(self):
+    def get_metadata(self) -> Dict:
         sample_metadata = {
             "scpca_sample_id": self.scpca_id,
         }

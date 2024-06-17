@@ -207,7 +207,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     def url(self):
         return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
 
-    def get_metadata(self):
+    def get_metadata(self) -> Dict:
         return {
             "scpca_project_id": self.scpca_id,
             "pi_name": self.pi_name,
