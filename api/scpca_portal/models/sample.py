@@ -132,6 +132,10 @@ class Sample(CommonDataAttributes, TimestampedModel):
             "sex",
             "subdiagnosis",
             "tissue_location",
+            "includes_anndata",
+            "is_cell_line",
+            "is_xenograft",
+            "sample_cell_count_estimate",
         ]
         sample_metadata.update(
             {key: getattr(self, key) for key in dict(self) if key in included_sample_attributes}

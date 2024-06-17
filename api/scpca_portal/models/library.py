@@ -157,3 +157,23 @@ class Library(TimestampedModel):
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
         return common.INPUT_DATA_PATH / data_file_path
+
+    def get_metadata(self):
+        library_metadata = {
+            "scpca_library_id": self.scpca_id,
+        }
+
+        excluded_metadata_attributes = [
+            "sample_id",
+            "has_citeseq",
+            "filtered_spots",
+            "unfiltered_spots",
+            "tissue_spots",
+        ]
+        library_metadata.update(
+            {
+                key: self.metadata[key]
+                for key in self.metadata
+                if key not in excluded_metadata_attributes
+            }
+        )
