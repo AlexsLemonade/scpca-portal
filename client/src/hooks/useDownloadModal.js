@@ -26,14 +26,10 @@ export const useDownloadModal = (
   const isTokenReady = !token && publicComputedFile
   // text information
   const verb = isDownloadReady ? 'Downloading' : 'Download'
-  // eslint-disable-next-line no-nested-ternary
-  const resourceType = isSampleMetadataOnly
-    ? 'Sample'
-    : resource.samples
-    ? 'Project'
-    : 'Sample'
-  const metadata = isSampleMetadataOnly ? 'Metadata' : ''
-  const modalTitle = `${verb} ${resourceType} ${metadata}`
+  const resourceType = resource.samples ? 'Project' : 'Sample'
+  const modalTitle = isSampleMetadataOnly
+    ? `${verb} Sample Metadata`
+    : `${verb} ${resourceType}`
   const defaultComputedFile = getDefaultComputedFile(resource)
   const hasDownloadOptions =
     publicComputedFile && hasMultipleFiles && !initialPublicComputedFile
