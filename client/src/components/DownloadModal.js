@@ -31,6 +31,7 @@ export const DownloadModal = ({
     isTokenReady,
     isOptionsReady
   } = useDownloadModal(initialResource, initialPublicComputedFile, showing)
+  const isDisabled = disabled || publicComputedFile === undefined
 
   const handleClick = () => {
     setShowing(true)
@@ -49,7 +50,7 @@ export const DownloadModal = ({
         <Anchor
           icon={icon}
           onClick={handleClick}
-          disabled={disabled}
+          disabled={isDisabled}
           label={<Text color="brand">{label}</Text>}
         />
       ) : (
@@ -58,7 +59,7 @@ export const DownloadModal = ({
           flex="grow"
           primary
           label={label}
-          disabled={publicComputedFile === undefined}
+          disabled={isDisabled}
           onClick={handleClick}
         />
       )}
