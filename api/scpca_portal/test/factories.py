@@ -1,6 +1,6 @@
 import factory
 
-from scpca_portal.models import ComputedFile
+from scpca_portal.models import ComputedFile, Library
 
 
 class ProjectSummaryFactory(factory.django.DjangoModelFactory):
@@ -93,6 +93,28 @@ class SampleFactory(factory.django.DjangoModelFactory):
     subdiagnosis = "NA"
     technologies = "10Xv3"
     tissue_location = "posterior fossa"
+
+
+class LibraryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.Library"
+
+    data_file_paths = [factory.Sequence(lambda n: f"SCPCP0000{n}/SCPCS0000{n}/SCPCL0000{n}")]
+    formats = [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
+    is_multiplexed = False
+    modality = Library.Modalities.SINGLE_CELL
+    project = factory.SubFactory(LeafProjectFactory)
+    scpca_id = factory.Sequence(lambda n: "SCPCL0000%d" % n)
+    workflow_version = "development"
+    metadata = {
+        "technology": "10Xv3.1",
+        "seq_unit": "nucleus",
+        "is_multiplexed": True,
+        "has_citeseq": False,
+        "has_cellhash": True,
+        "workflow": "https://github.com/AlexsLemonade/scpca-nf",
+        "workflow_version": "development",
+    }
 
 
 class ProjectFactory(LeafProjectFactory):
