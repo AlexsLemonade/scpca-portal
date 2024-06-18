@@ -51,7 +51,7 @@ export const DownloadModal = ({
           icon={icon}
           onClick={handleClick}
           disabled={isDisabled}
-          label={<Text color="brand">{label}</Text>}
+          label={label}
         />
       ) : (
         <Button
