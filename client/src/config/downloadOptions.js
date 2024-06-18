@@ -114,9 +114,10 @@ export const modalityResourceInfo = {
     }
   }
 }
-// For metadata only download
+
 // For now, this is always the same.
 export const metadata = 'Project and Sample Metadata'
+// For metadata only download
 export const metadataResourceInfo = {
   texts: {},
   learn_more: {

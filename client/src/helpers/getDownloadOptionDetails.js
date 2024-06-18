@@ -37,7 +37,6 @@ export const getDownloadOptionDetails = (computedFile) => {
   } = computedFile
   // eslint-disable-next-line no-nested-ternary
   const type = metadataOnly ? 'Sample Metadata' : project ? 'Project' : 'Sample'
-  const isSampleMetadata = type === 'Sample Metadata'
   const isProject = type === 'Project'
   const isSample = type === 'Sample'
   const resourceId = project || sample
@@ -51,7 +50,7 @@ export const getDownloadOptionDetails = (computedFile) => {
   // Determine additional information to show.
   const modalityResourceKey = `${modality}_${type.toUpperCase()}`
   const suffix = computedFile.has_multiplexed_data ? '_MULTIPLEXED' : ''
-  const info = isSampleMetadata
+  const info = metadataOnly
     ? metadataResourceInfo
     : modalityResourceInfo[modalityResourceKey + suffix]
 
@@ -98,8 +97,8 @@ export const getDownloadOptionDetails = (computedFile) => {
     type,
     items,
     info,
+    metadataOnly,
     resourceId,
-    isSampleMetadata,
     isProject,
     isSample,
     warningFlags
