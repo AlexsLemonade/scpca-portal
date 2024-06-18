@@ -29,7 +29,7 @@ export const ProjectSamplesTable = ({
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
   const [showDownloadOptions, setShowDownloadOptions] = useState(false)
-  const [currentFilter, setCurrentFilter] = useState('') // For storing globalFiter for metadata only download
+  const [hasFilter, setHasFilter] = useState(false) // For setting the metadata only download button state
   const hasMultiplexedData = project.has_multiplexed_data
   const infoText =
     project && project.has_bulk_rna_seq
@@ -37,7 +37,7 @@ export const ProjectSamplesTable = ({
       : false
 
   const onFilterChange = (value) => {
-    setCurrentFilter(value)
+    setHasFilter(!!value)
   }
 
   const onOptionsSave = () => {
@@ -239,7 +239,7 @@ export const ProjectSamplesTable = ({
         </Box>
         <Box>
           <DownloadModal
-            disabled={currentFilter}
+            disabled={hasFilter}
             label="Download Sample Metadata"
             icon={<DownloadIcon color="brand" />}
             resource={project}
