@@ -51,7 +51,6 @@ export const DownloadModal = ({
           onClick={handleClick}
           disabled={disabled}
           label={<Text color="brand">{label}</Text>}
-          margin={{ top: 'small' }}
         />
       ) : (
         <Button

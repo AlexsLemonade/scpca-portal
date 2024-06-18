@@ -99,7 +99,12 @@ export const ProjectSamplesTable = ({
 
         if (computedFile) {
           return (
-            <Box direction="row" gap="small" align="center">
+            <Box
+              align="center"
+              direction="row"
+              gap="small"
+              margin={{ top: 'small' }}
+            >
               <DownloadModal
                 icon={<DownloadIcon color="brand" />}
                 resource={row.original}
