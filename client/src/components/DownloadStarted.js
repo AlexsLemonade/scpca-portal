@@ -20,7 +20,7 @@ export const DownloadStarted = ({
   handleSelectFile
 }) => {
   // open the file in a new tab
-  const { items, info, type, isSampleMetadata, isProject } =
+  const { items, info, type, isProject } =
     getDownloadOptionDetails(computedFile)
   const additionalRestrictions = resource.additional_restrictions
   const isIncludesMerged = computedFile.includes_merged
@@ -134,7 +134,7 @@ export const DownloadStarted = ({
               </Box>
             </WarningText>
           )}
-          {!isSampleMetadata && additionalRestrictions && (
+          {additionalRestrictions && (
             <Box margin={{ vertical: 'medium' }}>
               <ProjectAdditionalRestrictions
                 text={additionalRestrictions}
