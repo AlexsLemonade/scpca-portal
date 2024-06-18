@@ -157,9 +157,7 @@ export const ProjectSamplesTable = ({
     { Header: 'Technology', accessor: 'technologies' },
     {
       Header: 'Other Modalities',
-      accessor: ({ modalities }) => (
-        <>{modalities.length ? modalities.join(', ') : 'N/A'}</>
-      )
+      accessor: ({ modalities }) => modalities.join(', ') || 'N/A'
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
