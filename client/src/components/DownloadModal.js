@@ -15,7 +15,6 @@ export const DownloadModal = ({
   resource: initialResource,
   publicComputedFile: initialPublicComputedFile,
   icon = null,
-  color = 'brand',
   disabled = false
 }) => {
   const [showing, setShowing] = useState(false)
@@ -51,7 +50,7 @@ export const DownloadModal = ({
           icon={icon}
           onClick={handleClick}
           disabled={disabled}
-          label={<Text color={color}>{label}</Text>}
+          label={<Text color="brand">{label}</Text>}
           margin={{ top: 'small' }}
         />
       ) : (
@@ -68,7 +67,7 @@ export const DownloadModal = ({
         {hasDownloadOptions && (
           <ModalHeader>
             <Text
-              color={color}
+              color="brand"
               role="button"
               margin={{ bottom: 'medium' }}
               style={{ cursor: 'pointer' }}
