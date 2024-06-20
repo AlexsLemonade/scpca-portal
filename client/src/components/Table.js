@@ -205,7 +205,8 @@ export const Table = ({
   pageSize: initialPageSize = 0,
   pageSizeOptions = [],
   infoText,
-  children
+  children,
+  onFilterChange = () => {}
 }) => {
   const globalFilter = 'fuzzyText'
   const filterTypes = useMemo(
@@ -263,6 +264,10 @@ export const Table = ({
         .map((column) => column.accessor)
     )
   }, [setHiddenColumns, columns])
+
+  useEffect(() => {
+    onFilterChange(state.globalFilter)
+  }, [state.globalFilter])
 
   const justify = filter && infoText ? 'between' : 'end'
   const pad = filter ? { vertical: 'medium' } : {}

@@ -6,6 +6,8 @@ export const config = {
       'https://scpca.readthedocs.io/en/stable/merged_objects.html',
     what_downloading:
       'https://scpca.readthedocs.io/en/stable/download_files.html',
+    what_downloading_metadata:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#metadata',
     what_downloading_project:
       'https://scpca.readthedocs.io/en/stable/download_files.html#download-folder-structure-for-project-downloads',
     what_downloading_sample:
