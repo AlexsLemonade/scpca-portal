@@ -1159,3 +1159,13 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.downloadable_sample_count = downloadable_sample_count
         self.unavailable_samples_count = unavailable_samples_count
         self.save()
+
+    def get_filtered_data_file_paths(self, download_config: Dict) -> List[Path]:
+        if download_config["includes_merged"]:
+            return [Path(fp) for fp in self.data_file_paths]
+
+        return [
+            file_path
+            for file_path in [Path(fp) for fp in self.data_file_paths]
+            if not file_path.parent.name == "merged"
+        ]

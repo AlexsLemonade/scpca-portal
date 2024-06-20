@@ -183,3 +183,16 @@ class Library(TimestampedModel):
             self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
             for sample in self.samples
         ]
+
+    def get_filtered_data_file_paths(self, download_config: Dict) -> List[Path]:
+        file_extension = (
+            common.SCE_EXT
+            if download_config["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT
+            else common.ANNDATA_EXT
+        )
+
+        return [
+            file_path
+            for file_path in [Path(fp) for fp in self.data_file_paths]
+            if file_path.suffix == file_extension
+        ]
