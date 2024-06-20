@@ -1,13 +1,22 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
+import { Download as DownloadIcon } from 'grommet-icons'
+import { useMetadataOnly } from 'hooks/useMetadataOnly'
+import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
+import { DownloadModal } from 'components/DownloadModal'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
 
 export const ProjectSearchResult = ({ project }) => {
+  const { responsive } = useResponsive()
+  const { isMetadataOnlyAvailable, metadataComputedFile } = useMetadataOnly(
+    project.computed_files
+  )
+
   const searchDetails = [
     {
       title: 'Diagnosis',
@@ -60,10 +69,22 @@ export const ProjectSearchResult = ({ project }) => {
           </Box>
         ))}
       </Box>
-      <Box pad={{ top: 'medium' }}>
+      <Box
+        align={responsive('start', 'center')}
+        direction={responsive('column', 'row')}
+        gap="small"
+        pad={{ top: 'medium' }}
+      >
         <Link href={`/projects/${project.scpca_id}#samples`}>
           <Button label="View Samples" aria-label="View Samples" />
         </Link>
+        <DownloadModal
+          disabled={!isMetadataOnlyAvailable}
+          label="Download Sample Metadata"
+          icon={<DownloadIcon color="brand" />}
+          resource={project}
+          publicComputedFile={metadataComputedFile}
+        />
       </Box>
     </Box>
   )
