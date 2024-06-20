@@ -35,11 +35,12 @@ export const getDownloadOptionDetails = (computedFile) => {
     project,
     sample
   } = computedFile
-  // eslint-disable-next-line no-nested-ternary
-  const type = metadataOnly ? 'Sample Metadata' : project ? 'Project' : 'Sample'
-  const isProject = type === 'Project'
-  const isSample = type === 'Sample'
+
+  const isProject = !!project
+  const isSample = !!sample
   const resourceId = project || sample
+  const resourceType = project ? 'Project' : 'Sample' // This will be always either Project or Sample
+  const type = metadataOnly ? 'Sample Metadata' : resourceType
 
   // determine if there should be warnings
   const warningFlags = {
@@ -99,6 +100,7 @@ export const getDownloadOptionDetails = (computedFile) => {
     info,
     metadataOnly,
     resourceId,
+    resourceType,
     isProject,
     isSample,
     warningFlags

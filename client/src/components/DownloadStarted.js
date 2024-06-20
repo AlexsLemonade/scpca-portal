@@ -20,7 +20,7 @@ export const DownloadStarted = ({
   handleSelectFile
 }) => {
   // open the file in a new tab
-  const { items, info, type, isProject } =
+  const { items, info, type, resourceType, isProject } =
     getDownloadOptionDetails(computedFile)
   const additionalRestrictions = resource.additional_restrictions
   const isIncludesMerged = computedFile.includes_merged
@@ -48,7 +48,7 @@ export const DownloadStarted = ({
   const { size: responsiveSize } = useResponsive()
   const { size_in_bytes: size, download_url: href } = computedFile
   const startedText = `Your download for the ${type.toLowerCase()} should have started.`
-  const idText = `${type} ID: ${resource.scpca_id}`
+  const idText = `${resourceType} ID: ${resource.scpca_id}`
 
   return (
     <>
