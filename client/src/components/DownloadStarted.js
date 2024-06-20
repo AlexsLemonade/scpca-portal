@@ -68,7 +68,7 @@ export const DownloadStarted = ({
             <Text weight="bold">{idText}</Text>
             <Text weight="bold">Size: {formatBytes(size)}</Text>
           </Box>
-          {isProject && info && info.warning_text && (
+          {isProject && info?.warning_text && (
             <WarningText
               iconSize="24px"
               link={info.warning_text.link.url}
@@ -78,8 +78,8 @@ export const DownloadStarted = ({
           )}
           {isIncludesMerged && <WarningMergedObjects />}
           <Paragraph>
-            {info && info.text_only && <span>{info.text_only}</span>} The
-            download consists of the following items:
+            {info?.text_only && <span>{info.text_only}</span>} The download
+            consists of the following items:
           </Paragraph>
           <Box pad="medium">
             <ul
@@ -95,7 +95,7 @@ export const DownloadStarted = ({
               ))}
             </ul>
           </Box>
-          {info && info.texts.multiplexed_with && (
+          {info?.texts.multiplexed_with && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
               <Text>{info.texts.multiplexed_with.text}</Text>
               {resource.multiplexed_with && (
@@ -109,7 +109,7 @@ export const DownloadStarted = ({
               )}
             </Box>
           )}
-          {info && info.learn_more && (
+          {info?.learn_more && (
             <Paragraph margin={{ bottom: 'small' }}>
               {info.learn_more.text}{' '}
               <Link label={info.learn_more.label} href={info.learn_more.url} />.
