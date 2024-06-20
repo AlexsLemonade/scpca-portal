@@ -35,7 +35,7 @@ export const DownloadOptionsContextProvider = ({
     if (resource) {
       setComputedFiles(() => {
         if (!resourceAttribute)
-          return resource.computed_files.filter((f) => f.modality) // Exclude the metadata_only file
+          return resource.computed_files.filter((f) => !f.metadata_only) // Exclude the metadata_only file (modality and format values are null for metadata_only)
         return pick(resource[resourceAttribute], 'computed_files').flat()
       })
     }
