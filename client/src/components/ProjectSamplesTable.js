@@ -25,7 +25,9 @@ export const ProjectSamplesTable = ({
   // We only want to show the applied donwload options.
   // Also need some helpers for presentation.
   const { modality, format, getFoundFile } = useDownloadOptionsContext()
-  const { metadataComputedFile } = useMetadataOnly(project.computed_files)
+  const { metadataComputedFile, isMetadataOnlyAvailable } = useMetadataOnly(
+    project.computed_files
+  )
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
   const [showDownloadOptions, setShowDownloadOptions] = useState(false)
@@ -242,7 +244,7 @@ export const ProjectSamplesTable = ({
         </Box>
         <Box>
           <DownloadModal
-            disabled={hasFilter}
+            disabled={!isMetadataOnlyAvailable || hasFilter}
             label="Download Sample Metadata"
             icon={<DownloadIcon color="brand" />}
             resource={project}
