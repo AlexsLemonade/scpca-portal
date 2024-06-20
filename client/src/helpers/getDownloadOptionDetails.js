@@ -4,13 +4,13 @@ import {
   dynamicKeys,
   dataKeys,
   nonFormatKeys,
+  metadataResourceInfo,
   modalityResourceInfo,
   omitKeys
 } from 'config/downloadOptions'
-
+import { objectContains } from 'helpers/objectContains'
 import { getReadableFiles } from 'helpers/getReadable'
-import { capitalizeFirst } from 'helpers/capitalize'
-import objectContains from 'helpers/objectContains'
+import { capitalize } from 'helpers/capitalize'
 
 export const resolveKey = (key, computedFile) => {
   return dynamicKeys.includes(key) ? computedFile[key] : key
@@ -23,17 +23,24 @@ const formatFileItemByKey = (key, computedFile) => {
   const formattedItem = nonFormatKeys.includes(key)
     ? fileItem
     : `${fileItem} as ${getReadableFiles(format)}`
-  return capitalizeFirst(formattedItem).trim()
+  return capitalize(formattedItem, true).trim()
 }
 
 // takes the config and checks against the resource
 // to present what will be inside of the downloadable file
 export const getDownloadOptionDetails = (computedFile) => {
-  const { modality, project, sample } = computedFile
-  const type = project ? 'Project' : 'Sample'
-  const isProject = type === 'Project'
-  const isSample = type === 'Sample'
+  const {
+    metadata_only: metadataOnly,
+    modality,
+    project,
+    sample
+  } = computedFile
+
+  const isProject = !!project
+  const isSample = !!sample
   const resourceId = project || sample
+  const resourceType = project ? 'Project' : 'Sample' // This will be always either Project or Sample
+  const type = metadataOnly ? 'Sample Metadata' : resourceType
 
   // determine if there should be warnings
   const warningFlags = {
@@ -44,7 +51,9 @@ export const getDownloadOptionDetails = (computedFile) => {
   // Determine additional information to show.
   const modalityResourceKey = `${modality}_${type.toUpperCase()}`
   const suffix = computedFile.has_multiplexed_data ? '_MULTIPLEXED' : ''
-  const info = modalityResourceInfo[modalityResourceKey + suffix]
+  const info = metadataOnly
+    ? metadataResourceInfo
+    : modalityResourceInfo[modalityResourceKey + suffix]
 
   // Sort out what is in the file.
   const items = []
@@ -85,5 +94,15 @@ export const getDownloadOptionDetails = (computedFile) => {
 
   items.push(metadata)
 
-  return { type, items, info, resourceId, isProject, isSample, warningFlags }
+  return {
+    type,
+    items,
+    info,
+    metadataOnly,
+    resourceId,
+    resourceType,
+    isProject,
+    isSample,
+    warningFlags
+  }
 }

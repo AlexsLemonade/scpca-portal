@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
-import pick from 'helpers/pick'
+import { pick } from 'helpers/pick'
 
 export const DownloadOptionsContext = createContext({})
 
@@ -34,7 +34,8 @@ export const DownloadOptionsContextProvider = ({
   useEffect(() => {
     if (resource) {
       setComputedFiles(() => {
-        if (!resourceAttribute) return resource.computed_files
+        if (!resourceAttribute)
+          return resource.computed_files.filter((f) => !f.metadata_only) // Exclude the metadata_only file (modality and format values are null for metadata_only)
         return pick(resource[resourceAttribute], 'computed_files').flat()
       })
     }

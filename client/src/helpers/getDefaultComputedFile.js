@@ -1,4 +1,4 @@
-import objectContains from 'helpers/objectContains'
+import { objectContains } from 'helpers/objectContains'
 
 /*
 @name getDefaultComputedFile

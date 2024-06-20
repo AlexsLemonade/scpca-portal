@@ -49,7 +49,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           >
             <Box align="center" gap="small">
               {project.computed_files.length > 0 && (
-                <DownloadModal resource={project} />
+                <DownloadModal label="Download Project" resource={project} />
               )}
               {project.has_bulk_rna_seq && (
                 <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
@@ -62,7 +62,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
             badge="Samples"
             label={`${project.downloadable_sample_count} Downloadable Samples`}
           />
-          <Badge badge="SeqUnit" label={capitalize(project.seq_units)} />
+          <Badge badge="SeqUnit" label={capitalize(project.seq_units || '')} />
           <Badge badge="Kit" label={project.technologies} />
           {project.modalities.length > 0 && (
             <Badge badge="Modality" label={project.modalities.join(', ')} />

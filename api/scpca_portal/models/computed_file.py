@@ -4,7 +4,7 @@ from threading import Lock
 from zipfile import ZipFile
 
 from django.conf import settings
-from django.db import models
+from django.db import connection, models
 
 import boto3
 from botocore.client import Config
@@ -26,6 +26,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     class MetadataFilenames:
         SINGLE_CELL_METADATA_FILE_NAME = "single_cell_metadata.tsv"
         SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
+        METADATA_ONLY_FILE_NAME = "metadata.tsv"
 
     class OutputFileModalities:
         SINGLE_CELL = "SINGLE_CELL"
@@ -61,6 +62,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         common.OUTPUT_DATA_PATH / README_SINGLE_CELL_MERGED_FILE_NAME
     )
 
+    README_METADATA_NAME = "readme_metadata_only.md"
+    README_METADATA_PATH = common.OUTPUT_DATA_PATH / README_METADATA_NAME
+
     README_MULTIPLEXED_FILE_NAME = "readme_multiplexed.md"
     README_MULTIPLEXED_FILE_PATH = common.OUTPUT_DATA_PATH / README_MULTIPLEXED_FILE_NAME
 
@@ -72,12 +76,14 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_TEMPLATE_ANNDATA_MERGED_FILE_PATH = README_TEMPLATE_PATH / "anndata_merged.md"
     README_TEMPLATE_SINGLE_CELL_FILE_PATH = README_TEMPLATE_PATH / "single_cell.md"
     README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH = README_TEMPLATE_PATH / "single_cell_merged.md"
+    README_TEMPLATE_METADATA_PATH = README_TEMPLATE_PATH / "metadata_only.md"
     README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "multiplexed.md"
     README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
-    format = models.TextField(choices=OutputFileFormats.CHOICES)
+    format = models.TextField(choices=OutputFileFormats.CHOICES, null=True)
     includes_merged = models.BooleanField(default=False)
-    modality = models.TextField(choices=OutputFileModalities.CHOICES)
+    modality = models.TextField(choices=OutputFileModalities.CHOICES, null=True)
+    metadata_only = models.BooleanField(default=False)
     s3_bucket = models.TextField()
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
@@ -94,8 +100,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def __str__(self):
         return (
             f"'{self.project or self.sample}' "
-            f"{dict(self.OutputFileModalities.CHOICES)[self.modality]} "
-            f"{dict(self.OutputFileFormats.CHOICES)[self.format]} "
+            f"{dict(self.OutputFileModalities.CHOICES).get(self.modality, 'No Modality')} "
+            f"{dict(self.OutputFileFormats.CHOICES).get(self.format, 'No Format')} "
             f"computed file ({self.size_in_bytes}B)"
         )
 
@@ -162,7 +168,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             for src, dst in project_file_mapping.items():
                 zip_file.write(src, dst)
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
                     if str(file_path).split("_")[-1] not in sample_file_suffixes:
                         continue
@@ -171,6 +177,30 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
         computed_file.has_cite_seq_data = project.has_cite_seq_data
+        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+
+        return computed_file
+
+    @classmethod
+    def get_project_metadata_file(cls, project, workflow_versions):
+        """Prepares a ready for saving single data file of project's metadata only download."""
+
+        computed_file = cls(
+            format=None,
+            metadata_only=True,
+            modality=None,
+            project=project,
+            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_key=project.output_all_metadata_computed_file_name,
+            workflow_version=utils.join_workflow_versions(workflow_versions),
+        )
+
+        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
+            zip_file.write(ComputedFile.README_METADATA_PATH, ComputedFile.OUTPUT_README_FILE_NAME)
+            zip_file.write(project.output_all_metadata_file_path, computed_file.metadata_file_name)
+
+        computed_file.has_bulk_rna_seq = False
+        computed_file.has_cite_seq_data = False
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
 
         return computed_file
@@ -199,7 +229,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 project.output_multiplexed_metadata_file_path, computed_file.metadata_file_name
             )
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
                     # Nest these under their sample id.
                     zip_file.write(file_path, Path(sample_id, file_path.name))
@@ -244,7 +274,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 project.output_single_cell_metadata_file_path, computed_file.metadata_file_name
             )
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 for file_path in file_paths:
                     # Nest these under their sample id.
                     zip_file.write(file_path, Path(sample_id, file_path.name))
@@ -283,7 +313,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 project.output_spatial_metadata_file_path, computed_file.metadata_file_name
             )
 
-            for sample_id, file_paths in sample_to_file_mapping[file_format].items():
+            for sample_id, file_paths in sample_to_file_mapping.items():
                 sample_path = project.get_sample_input_data_dir(sample_id)
                 for file_path in file_paths:
                     zip_file.write(file_path, Path(file_path).relative_to(sample_path))
@@ -432,10 +462,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     else common_file_suffixes
                 )
                 for file_suffix in file_suffixes:
+                    file_folder = sample.project.get_sample_input_data_dir(sample.scpca_id)
                     file_name = f"{library['scpca_library_id']}_{file_suffix}"
-                    file_path = (
-                        sample.project.get_sample_input_data_dir(sample.scpca_id) / file_name
-                    )
+                    file_path = file_folder / file_name
                     file_paths.append(file_path)
                     zip_file.write(file_path, file_name)
 
@@ -516,6 +545,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
         if self.is_project_spatial_zip:
             return ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
+        return ComputedFile.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
     @property
     def zip_file_path(self):
@@ -540,8 +570,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
             )
 
-    def create_s3_file(self):
+    def upload_s3_file(self):
         """Uploads the computed file to S3 using AWS CLI tool."""
+
+        logger.info(f"Uploading {self}")
         subprocess.check_call(
             (
                 "aws",
@@ -569,3 +601,18 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return False
 
         return True
+
+    def process_computed_file(self, clean_up_output_data, update_s3):
+        """Processes saving, upload and cleanup of a single computed file."""
+        self.save()
+        if update_s3:
+            self.upload_s3_file()
+
+        # Don't clean up multiplexed sample zips until the project is done
+        is_multiplexed_sample = self.sample and self.sample.has_multiplexed_data
+
+        if clean_up_output_data and not is_multiplexed_sample:
+            self.zip_file_path.unlink(missing_ok=True)
+
+        # Close DB connection for each thread.
+        connection.close()
