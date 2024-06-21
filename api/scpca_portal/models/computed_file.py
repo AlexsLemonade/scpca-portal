@@ -1,6 +1,7 @@
 import subprocess
 from pathlib import Path
 from threading import Lock
+from typing import Dict
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -9,9 +10,10 @@ from django.db import connection, models
 import boto3
 from botocore.client import Config
 
-from scpca_portal import common, utils
+from scpca_portal import common, metadata_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
+from scpca_portal.models.library import Library
 
 logger = get_and_configure_logger(__name__)
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
@@ -103,6 +105,90 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             f"{dict(self.OutputFileFormats.CHOICES)[self.format]} "
             f"computed file ({self.size_in_bytes}B)"
         )
+
+    @classmethod
+    def get_readme_from_download_config(cls, download_config: Dict):
+        match download_config:
+            case {"metadata_only": True}:
+                return (cls.README_METADATA_PATH, cls.README_METADATA_NAME)
+            case {"excludes_multiplexed": False}:
+                return (cls.README_MULTIPLEXED_FILE_PATH, cls.README_MULTIPLEXED_FILE_NAME)
+            case {"format": "ANN_DATA", "includes_merged": True}:
+                return (cls.README_ANNDATA_MERGED_FILE_PATH, cls.README_ANNDATA_MERGED_FILE_NAME)
+            case {"modality": "SINGLE_CELL", "includes_merged": True}:
+                return (
+                    cls.README_SINGLE_CELL_MERGED_FILE_PATH,
+                    cls.README_SINGLE_CELL_MERGED_FILE_NAME,
+                )
+            case {"format": "ANN_DATA"}:
+                return (cls.README_ANNDATA_FILE_PATH, cls.README_ANNDATA_FILE_NAME)
+            case {"modality": "SINGLE_CELL"}:
+                return (cls.README_SINGLE_CELL_FILE_PATH, cls.README_SINGLE_CELL_FILE_NAME)
+            case {"modality": "SPATIAL"}:
+                return (cls.README_SPATIAL_FILE_PATH, cls.README_SPATIAL_FILE_NAME)
+
+    @classmethod
+    def get_project_file(cls, project, download_config: Dict, computed_file_name: str):
+        """
+        Queries for a project's libraries according to the given download options configuration,
+        writes the queried libraries to a libraries metadata file,
+        computes a zip archive with library data, metadata and readme files, and
+        creates a ComputedFile object which it then saves to the db.
+        """
+        libraries = Library.get_project_libraries_from_download_config(project, download_config)
+        # If the query return empty, then an error occurred, and we should abort early
+        if not libraries.exists():
+            return
+        libraries_metadata = [
+            lib for library in libraries for lib in library.get_combined_library_metadata()
+        ]
+        metadata_path_var = (
+            f'{download_config["modality"]}_METADATA_FILE_NAME'
+            if not download_config["metadata_only"]
+            else "METADATA_ONLY_FILE_NAME"
+        )
+        metadata_file.write_metadata_dicts(
+            libraries_metadata, getattr(cls.MetadataFilenames, metadata_path_var)
+        )
+
+        library_data_file_paths = [
+            fp for lib in libraries for fp in lib.get_filtered_data_file_paths(download_config)
+        ]
+        project_data_file_paths = project.get_filtered_data_file_paths(download_config)
+
+        zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
+        with ZipFile(zip_file_path, "w") as zip_file:
+            # Readme file
+            zip_file.write(*(ComputedFile.get_readme_from_download_config(download_config)))
+            # Metadata file
+            zip_file.write(getattr(cls.MetadataFilenames, metadata_path_var))
+
+            if not download_config.get("metadata_only", False):
+                for file_path in library_data_file_paths:
+                    zip_file.write(file_path)
+
+            for file_path in project_data_file_paths:
+                zip_file.write(file_path)
+
+        computed_file = cls(
+            has_bulk_rna_seq=project.has_bulk_rna_seq,
+            has_cite_seq_data=project.has_cite_seq_data,
+            format=download_config.get("file_format"),
+            includes_merged=download_config.get("includes_merged"),
+            modality=download_config.get("modality"),
+            metadata_only=download_config.get("metadata_only"),
+            project=project,
+            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_key=computed_file_name,
+            size_in_bytes=zip_file_path.stat().st_size,
+            workflow_version=utils.join_workflow_versions(
+                library.workflow_version for library in libraries
+            ),
+        )
+
+        computed_file.save()
+
+        return computed_file
 
     @classmethod
     def get_project_merged_file(
