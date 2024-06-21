@@ -185,14 +185,14 @@ class Library(TimestampedModel):
         ]
 
     def get_filtered_data_file_paths(self, download_config: Dict) -> List[Path]:
-        file_extension = (
-            common.SCE_EXT
+        file_extension_to_be_excluded = (
+            common.ANNDATA_EXT
             if download_config["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT
-            else common.ANNDATA_EXT
+            else common.SCE_EXT
         )
 
         return [
             file_path
             for file_path in [Path(fp) for fp in self.data_file_paths]
-            if file_path.suffix == file_extension
+            if file_path.suffix != file_extension_to_be_excluded
         ]
