@@ -9,6 +9,7 @@ from django.db import connection, models
 
 import boto3
 from botocore.client import Config
+from typing_extensions import Self
 
 from scpca_portal import common, metadata_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
@@ -128,7 +129,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 return (cls.README_SPATIAL_FILE_PATH, cls.README_SPATIAL_FILE_NAME)
 
     @classmethod
-    def get_project_file(cls, project, download_config: Dict, computed_file_name: str):
+    def get_project_file(cls, project, download_config: Dict, computed_file_name: str) -> Self:
         """
         Queries for a project's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -404,6 +405,62 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     zip_file.write(file_path, Path(file_path).relative_to(sample_path))
 
         computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
+
+        return computed_file
+
+    @classmethod
+    def get_sample_file(cls, sample, download_config: Dict, computed_file_name: str) -> Self:
+        """
+        Queries for a sample's libraries according to the given download options configuration,
+        writes the queried libraries to a libraries metadata file,
+        computes a zip archive with library data, metadata and readme files, and
+        creates a ComputedFile object which it then saves to the db.
+        """
+        libraries = sample.libraries.filter(
+            modality=download_config["modality"],
+            format__contains=download_config["format"],
+        )
+        # If the query return empty, then an error occurred, and we should abort early
+        if not libraries.exists():
+            return
+        libraries_metadata = [
+            lib for library in libraries for lib in library.get_combined_library_metadata()
+        ]
+        metadata_file.write_metadata_dicts(
+            libraries_metadata,
+            getattr(cls.MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME'),
+        )
+
+        library_data_file_paths = [
+            fp for lib in libraries for fp in lib.get_filtered_data_file_paths(download_config)
+        ]
+        zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
+        with ZipFile(zip_file_path, "w") as zip_file:
+            # Readme file
+            zip_file.write(*(ComputedFile.get_readme_from_download_config(download_config)))
+            # Metadata file
+            zip_file.write(
+                getattr(cls.MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME')
+            )
+
+            for file_path in library_data_file_paths:
+                zip_file.write(file_path)
+
+        computed_file = cls(
+            has_cite_seq_data=sample.has_cite_seq_data,
+            format=download_config.get("file_format"),
+            includes_celltype_report=(not sample.is_cell_line),
+            modality=download_config.get("modality"),
+            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_key=computed_file_name,
+            sample=sample,
+            size_in_bytes=zip_file_path.stat().st_size,
+            workflow_version=utils.join_workflow_versions(
+                library.workflow_version for library in libraries
+            ),
+        )
+
+        computed_file.save()
 
         return computed_file
 
