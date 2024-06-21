@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from scpca_portal import common
 from scpca_portal.models import Library
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
 
@@ -79,39 +80,37 @@ class TestGetProjectLibrariesFromDownloadConfig(TestCase):
 class TestGetSampleLibrariesFromDownloadConfig(TestCase):
     def setUp(self):
         self.sample = SampleFactory()
-        self.library1 = LibraryFactory(
+
+        library1 = LibraryFactory(
             modality=Library.Modalities.SINGLE_CELL,
             formats=[Library.FileFormats.SINGLE_CELL_EXPERIMENT, Library.FileFormats.ANN_DATA],
         )
-        self.library2 = LibraryFactory(
+        library2 = LibraryFactory(
             modality=Library.Modalities.SINGLE_CELL,
             formats=[Library.FileFormats.SINGLE_CELL_EXPERIMENT],
         )
-        self.library3 = LibraryFactory(
+        library3 = LibraryFactory(
             modality=Library.Modalities.SINGLE_CELL, formats=[Library.FileFormats.ANN_DATA]
         )
-        self.library4 = LibraryFactory(
+        library4 = LibraryFactory(
             modality=Library.Modalities.SPATIAL,
             formats=[Library.FileFormats.SINGLE_CELL_EXPERIMENT],
         )
-        self.sample.libraries.add(self.library1, self.library2, self.library3, self.library4)
+        self.sample.libraries.add(library1, library2, library3, library4)
 
-    def test_get_sample_libraries_from_download_config_single_cell_sce(self):
-        config = {"modality": "SINGLE_CELL", "format": "SINGLE_CELL_EXPERIMENT"}
-        result = Library.get_sample_libraries_from_download_config(self.sample, config)
-        self.assertIn(self.library1, result)
-        self.assertIn(self.library2, result)
+        self.libraries = {
+            "SINGLE_CELL": {
+                "SINGLE_CELL_EXPERIMENT": [library1, library2],
+                "ANN_DATA": [library1, library3],
+            },
+            "SPATIAL": {"SINGLE_CELL_EXPERIMENT": [library4]},
+        }
 
-    def test_get_sample_libraries_from_download_config_single_cell_anndata(self):
-        config = {"modality": "SINGLE_CELL", "format": "ANN_DATA"}
-        result = Library.get_sample_libraries_from_download_config(self.sample, config)
-        self.assertIn(self.library1, result)
-        self.assertIn(self.library3, result)
-
-    def test_get_sample_libraries_from_download_config_spatial_sce(self):
-        config = {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"}
-        result = Library.get_sample_libraries_from_download_config(self.sample, config)
-        self.assertIn(self.library4, result)
+    def test_get_sample_libraries_from_download_config_all_configs(self):
+        for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+            result = Library.get_sample_libraries_from_download_config(self.sample, config)
+            for library in self.libraries.get(config["modality"]).get(config["format"]):
+                self.assertIn(library, result)
 
     def test_get_sample_libraries_from_download_config_invalid_configuration(self):
         invalid_config = {"modality": None, "format": None}
