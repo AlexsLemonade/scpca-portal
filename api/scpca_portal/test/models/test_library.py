@@ -8,73 +8,90 @@ from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFa
 class TestGetProjectLibrariesFromDownloadConfig(TestCase):
     def setUp(self):
         self.project = ProjectFactory()
-        self.library1 = LibraryFactory(
+        self.library_single_cell_no_multiplexed = LibraryFactory(
             project=self.project, modality=Library.Modalities.SINGLE_CELL, is_multiplexed=False
         )
-        self.library2 = LibraryFactory(
+        self.library_single_cell_multiplexed = LibraryFactory(
             project=self.project, modality=Library.Modalities.SINGLE_CELL, is_multiplexed=True
         )
-        self.library3 = LibraryFactory(project=self.project, modality=Library.Modalities.SPATIAL)
+        self.library_spatial = LibraryFactory(
+            project=self.project, modality=Library.Modalities.SPATIAL
+        )
 
-        self.default_config = {
+    def test_get_project_libraries_from_download_config_valid_config(self):
+        download_config = {
             "modality": "SINGLE_CELL",
             "format": "SINGLE_CELL_EXPERIMENT",
             "excludes_multiplexed": False,
             "includes_merged": False,
             "metadata_only": False,
         }
-
-    def test_get_project_libraries_from_download_config_valid_config(self):
-        config = self.default_config
-        result = Library.get_project_libraries_from_download_config(self.project, config)
-        self.assertIn(self.library1, result)
-        self.assertIn(self.library2, result)
+        result = Library.get_project_libraries_from_download_config(self.project, download_config)
+        self.assertIn(self.library_single_cell_no_multiplexed, result)
+        self.assertIn(self.library_single_cell_multiplexed, result)
 
     def test_get_project_libraries_from_download_config_invalid_config(self):
-        config = self.default_config.copy()
-        config["modality"] = None
+        download_config = {
+            "modality": None,
+            "format": None,
+            "excludes_multiplexed": False,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
         with self.assertRaises(ValueError):
-            Library.get_project_libraries_from_download_config(self.project, config)
+            Library.get_project_libraries_from_download_config(self.project, download_config)
 
     def test_get_project_libraries_from_download_config_excludes_multiplexed(self):
-        config = self.default_config.copy()
-        config["excludes_multiplexed"] = True
-
-        result = Library.get_project_libraries_from_download_config(self.project, config)
-        self.assertIn(self.library1, result)
-        self.assertNotIn(self.library2, result)
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
+        result = Library.get_project_libraries_from_download_config(self.project, download_config)
+        self.assertIn(self.library_single_cell_no_multiplexed, result)
+        self.assertNotIn(self.library_single_cell_multiplexed, result)
 
     def test_get_project_libraries_from_download_config_includes_merged_merged_file_exists(self):
-        config = self.default_config.copy()
-        config["includes_merged"] = True
-        config["excludes_multiplexed"] = True
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": True,
+            "metadata_only": False,
+        }
         self.project.includes_merged_sce = True
 
-        result = Library.get_project_libraries_from_download_config(self.project, config)
-        self.assertIn(self.library1, result)
+        result = Library.get_project_libraries_from_download_config(self.project, download_config)
+        self.assertIn(self.library_single_cell_no_multiplexed, result)
 
     def test_get_project_libraries_from_download_config_includes_merged_no_merged_file(self):
-        config = self.default_config.copy()
-        config["includes_merged"] = True
-        config["excludes_multiplexed"] = True
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": True,
+            "metadata_only": False,
+        }
         self.project.includes_merged_sce = False
         self.project.includes_merged_anndata = False
 
-        result = Library.get_project_libraries_from_download_config(self.project, config)
-        self.assertEqual(result.count(), 0)
+        result = Library.get_project_libraries_from_download_config(self.project, download_config)
+        self.assertFalse(result.exists())
 
     def test_get_project_libraries_from_download_config_metadata_only(self):
-        config = {
+        download_config = {
             "modality": None,
             "format": None,
             "excludes_multiplexed": None,
             "includes_merged": None,
             "metadata_only": True,
         }
-        result = Library.get_project_libraries_from_download_config(self.project, config)
-        self.assertIn(self.library1, result)
-        self.assertIn(self.library2, result)
-        self.assertIn(self.library3, result)
+        result = Library.get_project_libraries_from_download_config(self.project, download_config)
+        self.assertIn(self.library_single_cell_no_multiplexed, result)
+        self.assertIn(self.library_single_cell_multiplexed, result)
+        self.assertIn(self.library_spatial, result)
 
 
 class TestGetSampleLibrariesFromDownloadConfig(TestCase):
