@@ -174,7 +174,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computed_file = cls(
             has_bulk_rna_seq=project.has_bulk_rna_seq,
             has_cite_seq_data=project.has_cite_seq_data,
+            has_multiplexed=any(lib for lib in libraries if lib.is_multiplexed),
             format=download_config.get("file_format"),
+            includes_celltype_report=project.samples.filter(is_cell_line=False).exists(),
             includes_merged=download_config.get("includes_merged"),
             modality=download_config.get("modality"),
             metadata_only=download_config.get("metadata_only"),
@@ -448,6 +450,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file = cls(
             has_cite_seq_data=sample.has_cite_seq_data,
+            has_multiplexed=any(lib for lib in libraries if lib.is_multiplexed),
             format=download_config.get("file_format"),
             includes_celltype_report=(not sample.is_cell_line),
             modality=download_config.get("modality"),
