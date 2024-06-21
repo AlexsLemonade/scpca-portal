@@ -51,7 +51,7 @@ METADATA_COLUMN_SORT_ORDER = [
     "self_reported_ethnicity_ontology_term_id",
     "disease_ontology_term_id",
     "tissue_ontology_term_id",
-    "*",  # Additional metadata from input samples_metadata.csv file
+    "*",  # Any metadata key not explicitly enumerated in the sort order is inserted here
     # Library metadata
     "seq_unit",
     "technology",
