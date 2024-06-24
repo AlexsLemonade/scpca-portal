@@ -265,6 +265,48 @@ class Sample(CommonDataAttributes, TimestampedModel):
             file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
         return file_formats
 
+    def get_computed_file_name_from_download_config(self, download_config: Dict):
+        match download_config:
+            case {"modality": "SPATIAL"}:
+                return self.output_spatial_computed_file_name
+            case {"format": "ANN_DATA"}:
+                return self.output_single_cell_anndata_computed_file_name
+            case {"modality": "SINGLE_CELL"}:
+                return (
+                    self.output_single_cell_computed_file_name
+                    if not self.has_multiplexed_data
+                    else self.output_multiplexed_computed_file_name
+                )
+
+    def create_computed_files(
+        self,
+        project,
+        max_workers=8,  # 8 = 2 file formats * 4 mappings.
+        clean_up_output_data=True,
+        update_s3=False,
+    ):
+        """Prepares ready for saving project computed files based on generated file mappings."""
+
+        def on_get_sample_file(future):
+            computed_file = future.result()
+            if computed_file:
+                computed_file.process_computed_file(clean_up_output_data, update_s3)
+
+        samples = Sample.objects.filter(project__scpca_id=project.scpca_id)
+        logger.info(
+            f"Processing {len(samples)} sample{pluralize(len(samples))} using "
+            f"{max_workers} worker{pluralize(max_workers)}"
+        )
+
+        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
+            for download_config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+                tasks.submit(
+                    ComputedFile.get_sample_file,
+                    self,
+                    download_config,
+                    self.get_computed_file_name_from_download_config(download_config),
+                ).add_done_callback(on_get_sample_file)
+
     @staticmethod
     def create_sample_computed_files(
         combined_metadata,
