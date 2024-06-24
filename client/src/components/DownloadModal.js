@@ -11,16 +11,16 @@ import { useDownloadModal } from 'hooks/useDownloadModal'
 
 // Button and Modal to show when downloading
 export const DownloadModal = ({
-  icon,
+  label,
   resource: initialResource,
-  publicComputedFile: initialPublicComputedFile
+  publicComputedFile: initialPublicComputedFile,
+  icon = null,
+  disabled = false
 }) => {
   const [showing, setShowing] = useState(false)
-
   const {
     handleSelectFile,
     modalTitle,
-    buttonLabel,
     tryDownload,
     publicComputedFile,
     setPublicComputedFile,
@@ -31,6 +31,7 @@ export const DownloadModal = ({
     isTokenReady,
     isOptionsReady
   } = useDownloadModal(initialResource, initialPublicComputedFile, showing)
+  const isDisabled = disabled || publicComputedFile === undefined
 
   const handleClick = () => {
     setShowing(true)
@@ -46,14 +47,19 @@ export const DownloadModal = ({
   return (
     <>
       {icon ? (
-        <Anchor icon={icon} onClick={handleClick} />
+        <Anchor
+          icon={icon}
+          onClick={handleClick}
+          disabled={isDisabled}
+          label={label}
+        />
       ) : (
         <Button
-          aria-label={buttonLabel}
+          aria-label={label}
           flex="grow"
           primary
-          label={buttonLabel}
-          disabled={publicComputedFile === undefined}
+          label={label}
+          disabled={isDisabled}
           onClick={handleClick}
         />
       )}

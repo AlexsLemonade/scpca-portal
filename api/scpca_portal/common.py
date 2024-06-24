@@ -56,6 +56,7 @@ METADATA_COLUMN_SORT_ORDER = [
     # Library metadata
     "seq_unit",
     "technology",
+    "demux_samples",
     "total_reads",
     "mapped_reads",
     "sample_cell_count_estimate",

@@ -26,6 +26,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     class MetadataFilenames:
         SINGLE_CELL_METADATA_FILE_NAME = "single_cell_metadata.tsv"
         SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
+        METADATA_ONLY_FILE_NAME = "metadata.tsv"
 
     class OutputFileModalities:
         SINGLE_CELL = "SINGLE_CELL"
@@ -99,8 +100,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def __str__(self):
         return (
             f"'{self.project or self.sample}' "
-            f"{dict(self.OutputFileModalities.CHOICES)[self.modality]} "
-            f"{dict(self.OutputFileFormats.CHOICES)[self.format]} "
+            f"{dict(self.OutputFileModalities.CHOICES).get(self.modality, 'No Modality')} "
+            f"{dict(self.OutputFileFormats.CHOICES).get(self.format, 'No Format')} "
             f"computed file ({self.size_in_bytes}B)"
         )
 
@@ -544,6 +545,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
         if self.is_project_spatial_zip:
             return ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
+        return ComputedFile.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
     @property
     def zip_file_path(self):

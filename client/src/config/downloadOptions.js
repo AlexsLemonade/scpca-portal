@@ -117,3 +117,12 @@ export const modalityResourceInfo = {
 
 // For now, this is always the same.
 export const metadata = 'Project and Sample Metadata'
+// For metadata only download
+export const metadataResourceInfo = {
+  texts: {},
+  learn_more: {
+    label: 'here',
+    text: 'Learn more about what you can expect in your download file',
+    url: config.links.what_downloading_metadata
+  }
+}
