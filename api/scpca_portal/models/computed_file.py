@@ -411,7 +411,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_sample_file(cls, sample, download_config: Dict, computed_file_name: str) -> Self:
+    def get_sample_file(
+        cls, sample, download_config: Dict, computed_file_name: str, lock: Lock
+    ) -> Self:
         """
         Queries for a sample's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -437,16 +439,20 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             fp for lib in libraries for fp in lib.get_filtered_data_file_paths(download_config)
         ]
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
-        with ZipFile(zip_file_path, "w") as zip_file:
-            # Readme file
-            zip_file.write(*(ComputedFile.get_readme_from_download_config(download_config)))
-            # Metadata file
-            zip_file.write(
-                getattr(cls.MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME')
-            )
+        # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
+        with lock:  # It should be removed later for a cleaner solution.
+            with ZipFile(zip_file_path, "w") as zip_file:
+                # Readme file
+                zip_file.write(*(ComputedFile.get_readme_from_download_config(download_config)))
+                # Metadata file
+                zip_file.write(
+                    getattr(
+                        cls.MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME'
+                    )
+                )
 
-            for file_path in library_data_file_paths:
-                zip_file.write(file_path)
+                for file_path in library_data_file_paths:
+                    zip_file.write(file_path)
 
         computed_file = cls(
             has_cite_seq_data=sample.has_cite_seq_data,
