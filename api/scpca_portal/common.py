@@ -43,7 +43,6 @@ METADATA_COLUMN_SORT_ORDER = [
     "sex",
     "tissue_location",
     "participant_id",
-    "submitter",
     "submitter_id",
     "organism",
     "development_stage_ontology_term_id",
@@ -52,7 +51,7 @@ METADATA_COLUMN_SORT_ORDER = [
     "self_reported_ethnicity_ontology_term_id",
     "disease_ontology_term_id",
     "tissue_ontology_term_id",
-    "*",  # Addtional metadata
+    "*",  # Any metadata key not explicitly enumerated in the sort order is inserted here
     # Library metadata
     "seq_unit",
     "technology",
@@ -64,6 +63,9 @@ METADATA_COLUMN_SORT_ORDER = [
     "unfiltered_cells",
     "filtered_cell_count",
     "processed_cells",
+    "filtered_spots",  # SPATIAL
+    "unfiltered_spots",  # SPATIAL
+    "tissue_spots",  # SPATIAL
     "has_cellhash",
     "includes_anndata",
     "is_cell_line",

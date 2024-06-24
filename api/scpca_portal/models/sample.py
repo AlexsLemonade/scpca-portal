@@ -98,7 +98,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             for key, value in data.items()
             if not hasattr(sample, key)
             # Don't include project metadata keys (needed for writing)
-            and key not in ("scpca_project_id", "project_title", "pi_name")
+            and key not in ("scpca_project_id", "project_title", "pi_name", "submitter")
             # Exclude deliberate model attribute and file field name mismatch
             and key != "scpca_sample_id"
         }
@@ -119,6 +119,33 @@ class Sample(CommonDataAttributes, TimestampedModel):
             samples.append(Sample.get_from_dict(sample_metadata, project))
 
         Sample.objects.bulk_create(samples)
+
+    def get_metadata(self) -> Dict:
+        sample_metadata = {
+            "scpca_sample_id": self.scpca_id,
+        }
+
+        included_sample_attributes = [
+            "age_at_diagnosis",
+            "diagnosis",
+            "disease_timing",
+            "sex",
+            "subdiagnosis",
+            "tissue_location",
+            "includes_anndata",
+            "is_cell_line",
+            "is_xenograft",
+            "sample_cell_count_estimate",
+        ]
+        sample_metadata.update(
+            {key: getattr(self, key) for key in dict(self) if key in included_sample_attributes}
+        )
+
+        sample_metadata.update(
+            {key: self.additional_metadata[key] for key in self.additional_metadata}
+        )
+
+        return sample_metadata
 
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):

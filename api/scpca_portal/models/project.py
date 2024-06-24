@@ -207,6 +207,13 @@ class Project(CommonDataAttributes, TimestampedModel):
     def url(self):
         return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
 
+    def get_metadata(self) -> Dict:
+        return {
+            "scpca_project_id": self.scpca_id,
+            "pi_name": self.pi_name,
+            "project_title": self.title,
+        }
+
     def add_project_metadata(self, sample_metadata):
         """Adds project level metadata to the `sample_metadata`."""
         sample_metadata["pi_name"] = self.pi_name
@@ -786,6 +793,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             self.add_project_metadata(sample_metadata)
 
+            # TODO: This is a temporary fix until we get rid of `load_samples_metadata` imminently.
+            # Without popping this key, it will be written to the metadata file when
+            # `samples_metadata` (List[Dict]) is written (irrelevant of creation of Sample objects).
+            sample_metadata.pop("submitter")
             sample_metadata.update(
                 {
                     "has_bulk_rna_seq": scpca_sample_id in bulk_rna_seq_sample_ids,

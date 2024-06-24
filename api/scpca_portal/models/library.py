@@ -51,7 +51,7 @@ class Library(TimestampedModel):
         library = cls(
             data_file_paths=data_file_paths,
             formats=Library.get_formats_from_file_paths(data_file_paths),
-            is_multiplexed=("demux_samples" in data),
+            is_multiplexed=data.get("is_multiplexed", False),
             metadata=data,
             modality=Library.get_modality_from_file_paths(data_file_paths),
             project=project,
@@ -157,3 +157,26 @@ class Library(TimestampedModel):
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
         return common.INPUT_DATA_PATH / data_file_path
+
+    def get_metadata(self) -> Dict:
+        library_metadata = {
+            "scpca_library_id": self.scpca_id,
+        }
+
+        excluded_metadata_attributes = [
+            "scpca_sample_id",
+            "has_citeseq",
+        ]
+        library_metadata.update(
+            {
+                key: self.metadata[key]
+                for key in self.metadata
+                if key not in excluded_metadata_attributes
+            }
+        )
+
+    def get_combined_library_metadata(self) -> List[Dict]:
+        return [
+            self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
+            for sample in self.samples
+        ]
