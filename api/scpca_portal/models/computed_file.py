@@ -420,7 +420,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         """
         libraries = sample.libraries.filter(
             modality=download_config["modality"],
-            format__contains=download_config["format"],
+            formats__contains=download_config["format"],
         )
         # If the query return empty, then an error occurred, and we should abort early
         if not libraries.exists():
