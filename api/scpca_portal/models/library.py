@@ -40,11 +40,13 @@ class Library(TimestampedModel):
     scpca_id = models.TextField(unique=True)
     workflow_version = models.TextField()
 
+    project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="libraries")
+
     def __str__(self):
         return f"Library {self.scpca_id}"
 
     @classmethod
-    def get_from_dict(cls, data):
+    def get_from_dict(cls, data, project):
         data_file_paths = Library.get_data_file_paths(data)
         library = cls(
             data_file_paths=data_file_paths,
@@ -52,6 +54,7 @@ class Library(TimestampedModel):
             is_multiplexed=("demux_samples" in data),
             metadata=data,
             modality=Library.get_modality_from_file_paths(data_file_paths),
+            project=project,
             scpca_id=data["scpca_library_id"],
             workflow_version=data["workflow_version"],
         )
@@ -65,7 +68,7 @@ class Library(TimestampedModel):
             if not Library.objects.filter(scpca_id=library_json["scpca_library_id"]).exists():
                 # TODO: remove when scpca_project_id is in source json
                 library_json["scpca_project_id"] = sample.project.scpca_id
-                libraries.append(Library.get_from_dict(library_json))
+                libraries.append(Library.get_from_dict(library_json, sample.project))
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
@@ -104,3 +107,53 @@ class Library(TimestampedModel):
         if any(path for path in file_paths if common.ANNDATA_EXT == path.suffix):
             formats.append(Library.FileFormats.ANN_DATA)
         return formats
+
+    @classmethod
+    def get_project_libraries_from_download_config(
+        cls, project, download_configuration: Dict
+    ):  # -> QuerySet[Self]:
+        if download_configuration not in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+            raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
+
+        if download_configuration["metadata_only"]:
+            return project.libraries.all()
+
+        if download_configuration["includes_merged"]:
+            # If the download config requests merged and there is no merged file in the project,
+            # return an empty queryset
+            if (
+                download_configuration["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT
+                and not project.includes_merged_sce
+            ):
+                return project.libraries.none()
+            elif (
+                download_configuration["format"] == Library.FileFormats.ANN_DATA
+                and not project.includes_merged_anndata
+            ):
+                return project.libraries.none()
+
+        libraries_queryset = project.libraries.filter(
+            modality=download_configuration["modality"],
+            formats__contains=[download_configuration["format"]],
+        )
+
+        if download_configuration["excludes_multiplexed"]:
+            return libraries_queryset.exclude(is_multiplexed=True)
+
+        return libraries_queryset
+
+    @classmethod
+    def get_sample_libraries_from_download_config(
+        cls, sample, download_configuration: Dict
+    ):  # -> QuerySet[Self]:
+        if download_configuration not in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+            raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
+
+        return sample.libraries.filter(
+            modality=download_configuration["modality"],
+            formats__contains=[download_configuration["format"]],
+        )
+
+    @staticmethod
+    def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
+        return common.INPUT_DATA_PATH / data_file_path
