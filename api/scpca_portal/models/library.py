@@ -166,9 +166,6 @@ class Library(TimestampedModel):
         excluded_metadata_attributes = [
             "scpca_sample_id",
             "has_citeseq",
-            "filtered_spots",
-            "unfiltered_spots",
-            "tissue_spots",
         ]
         library_metadata.update(
             {

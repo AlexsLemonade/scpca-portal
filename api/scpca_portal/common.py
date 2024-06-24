@@ -62,6 +62,9 @@ METADATA_COLUMN_SORT_ORDER = [
     "unfiltered_cells",
     "filtered_cell_count",
     "processed_cells",
+    "filtered_spots",  # SPATIAL
+    "unfiltered_spots",  # SPATIAL
+    "tissue_spots",  # SPATIAL
     "has_cellhash",
     "includes_anndata",
     "is_cell_line",
