@@ -298,14 +298,37 @@ class Sample(CommonDataAttributes, TimestampedModel):
             f"{max_workers} worker{pluralize(max_workers)}"
         )
 
+        # Prepare a threading.Lock for each sample, with the chief purpose being to protect
+        # multiplexed samples that shares a zip file.
+        # The keys are the sample.multiplexed_ids since that will be unique across shared zip files.
+        non_multiplexed_ids = set(s.scpca_id for s in samples)
+        multiplexed_ids = set(
+            ["_".join(s.multiplexed_ids) for s in samples if s.has_multiplexed_data]
+        )
+        locks = {
+            f'{id_entry}-{config["modality"]}-{config["format"]}': Lock()
+            for id_entry in non_multiplexed_ids.union(multiplexed_ids)
+            for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS
+        }
+
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            for download_config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
-                tasks.submit(
-                    ComputedFile.get_sample_file,
-                    self,
-                    download_config,
-                    self.get_computed_file_name_from_download_config(download_config),
-                ).add_done_callback(on_get_sample_file)
+            for sample in samples:
+                for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+                    lock_entry = (
+                        f'{"_".join(sample.multiplexed_ids)}-SINGLE_CELL-SINGLE_CELL_EXPERIMENT'
+                        if sample.has_multiplexed_data
+                        and config["modality"] == "SINGLE_CELL"
+                        and config["format"] == "SINGLE_CELL_EXPERIMENT"
+                        else f'{sample.scpca_id}-{config["modality"]}-{config["format"]}'
+                    )
+                    sample_lock = locks[lock_entry]
+                    tasks.submit(
+                        ComputedFile.get_sample_file,
+                        self,
+                        config,
+                        self.get_computed_file_name_from_download_config(config),
+                        sample_lock,
+                    ).add_done_callback(on_get_sample_file)
 
     @staticmethod
     def create_sample_computed_files(
