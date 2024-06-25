@@ -42,6 +42,7 @@ export const useDownloadOptionsContext = () => {
       uniqueArray(pick(files, optionName)),
       optionsSortOrder
     )
+
     const defaultOption = allOptions.includes(preference)
       ? preference
       : allOptions[0]

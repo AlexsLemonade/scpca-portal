@@ -3,16 +3,18 @@ import { api } from 'api'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
+import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import { useMetadataOnly } from 'hooks/useMetadataOnly'
+import { formatBytes } from 'helpers/formatBytes'
+import { getReadable } from 'helpers/getReadable'
 import { DownloadModal } from 'components/DownloadModal'
+import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
-import { formatBytes } from 'helpers/formatBytes'
-import { getReadable } from 'helpers/getReadable'
-import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
-import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({
@@ -23,14 +25,22 @@ export const ProjectSamplesTable = ({
   // We only want to show the applied donwload options.
   // Also need some helpers for presentation.
   const { modality, format, getFoundFile } = useDownloadOptionsContext()
+  const { metadataComputedFile, isMetadataOnlyAvailable } = useMetadataOnly(
+    project.computed_files
+  )
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
   const [showDownloadOptions, setShowDownloadOptions] = useState(false)
+  const [hasFilter, setHasFilter] = useState(false) // For setting the metadata only download button state
   const hasMultiplexedData = project.has_multiplexed_data
   const infoText =
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
       : false
+
+  const onFilterChange = (value) => {
+    setHasFilter(!!value)
+  }
 
   const onOptionsSave = () => {
     setShowDownloadOptions(false)
@@ -91,7 +101,12 @@ export const ProjectSamplesTable = ({
 
         if (computedFile) {
           return (
-            <Box direction="row" gap="small" align="center">
+            <Box
+              align="center"
+              direction="row"
+              gap="small"
+              margin={{ top: 'small' }}
+            >
               <DownloadModal
                 icon={<DownloadIcon color="brand" />}
                 resource={row.original}
@@ -157,9 +172,7 @@ export const ProjectSamplesTable = ({
     { Header: 'Technology', accessor: 'technologies' },
     {
       Header: 'Other Modalities',
-      accessor: ({ modalities }) => (
-        <>{modalities.length ? modalities.join(', ') : 'N/A'}</>
-      )
+      accessor: ({ modalities }) => modalities.join(', ') || 'N/A'
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
@@ -206,26 +219,38 @@ export const ProjectSamplesTable = ({
       pageSizeOptions={[5, 10, 20, 50]}
       infoText={infoText}
       defaultSort={[{ id: 'download', desc: true }]}
+      onFilterChange={onFilterChange}
     >
-      <Box direction="row" gap="xlarge" pad={{ bottom: 'medium' }}>
-        <Box direction="row">
-          <Text weight="bold" margin={{ right: 'small' }}>
-            Modality:
-          </Text>
-          <Text>{getReadable(modality)}</Text>
+      <Box direction="row" justify="between" pad={{ bottom: 'medium' }}>
+        <Box direction="row" gap="xlarge" align="center">
+          <Box direction="row">
+            <Text weight="bold" margin={{ right: 'small' }}>
+              Modality:
+            </Text>
+            <Text>{getReadable(modality)}</Text>
+          </Box>
+          <Box direction="row">
+            <Text weight="bold" margin={{ right: 'small' }}>
+              Data Format:
+            </Text>
+            <Text>{getReadable(format)}</Text>
+          </Box>
+          <DownloadOptionsModal
+            label="Change"
+            showing={showDownloadOptions}
+            setShowing={setShowDownloadOptions}
+            onSave={onOptionsSave}
+          />
         </Box>
-        <Box direction="row">
-          <Text weight="bold" margin={{ right: 'small' }}>
-            Data Format:
-          </Text>
-          <Text>{getReadable(format)}</Text>
+        <Box>
+          <DownloadModal
+            disabled={!isMetadataOnlyAvailable || hasFilter}
+            label="Download Sample Metadata"
+            icon={<DownloadIcon color="brand" />}
+            resource={project}
+            publicComputedFile={metadataComputedFile}
+          />
         </Box>
-        <DownloadOptionsModal
-          label="Change"
-          showing={showDownloadOptions}
-          setShowing={setShowDownloadOptions}
-          onSave={onOptionsSave}
-        />
       </Box>
       {project.has_multiplexed_data && format === 'ANN_DATA' && (
         <WarningAnnDataMultiplexed />

@@ -134,7 +134,7 @@ class Library(TimestampedModel):
 
         libraries_queryset = project.libraries.filter(
             modality=download_configuration["modality"],
-            format__contains=download_configuration["format"],
+            formats__contains=[download_configuration["format"]],
         )
 
         if download_configuration["excludes_multiplexed"]:
@@ -151,7 +151,7 @@ class Library(TimestampedModel):
 
         return sample.libraries.filter(
             modality=download_configuration["modality"],
-            format__contains=download_configuration["format"],
+            formats__contains=[download_configuration["format"]],
         )
 
     @staticmethod
@@ -166,9 +166,6 @@ class Library(TimestampedModel):
         excluded_metadata_attributes = [
             "scpca_sample_id",
             "has_citeseq",
-            "filtered_spots",
-            "unfiltered_spots",
-            "tissue_spots",
         ]
         library_metadata.update(
             {

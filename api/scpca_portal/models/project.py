@@ -793,6 +793,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             self.add_project_metadata(sample_metadata)
 
+            # TODO: This is a temporary fix until we get rid of `load_samples_metadata` imminently.
+            # Without popping this key, it will be written to the metadata file when
+            # `samples_metadata` (List[Dict]) is written (irrelevant of creation of Sample objects).
+            sample_metadata.pop("submitter")
             sample_metadata.update(
                 {
                     "has_bulk_rna_seq": scpca_sample_id in bulk_rna_seq_sample_ids,

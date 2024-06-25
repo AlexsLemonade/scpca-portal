@@ -98,7 +98,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             for key, value in data.items()
             if not hasattr(sample, key)
             # Don't include project metadata keys (needed for writing)
-            and key not in ("scpca_project_id", "project_title", "pi_name")
+            and key not in ("scpca_project_id", "project_title", "pi_name", "submitter")
             # Exclude deliberate model attribute and file field name mismatch
             and key != "scpca_sample_id"
         }

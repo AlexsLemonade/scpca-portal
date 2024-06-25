@@ -1,132 +1,133 @@
-from unittest.mock import MagicMock, Mock
-
 from django.test import TestCase
 
-from scpca_portal.models import Library, Project
+from scpca_portal import common
+from scpca_portal.models import Library
+from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
 
 
 class TestGetProjectLibrariesFromDownloadConfig(TestCase):
     def setUp(self):
-        self.project = Mock(spec=Project)
-        self.library1 = Mock(spec=Library, modality="SINGLE_CELL", is_multiplexed=False)
-        self.library2 = Mock(spec=Library, modality="SINGLE_CELL", is_multiplexed=True)
-        self.library3 = Mock(spec=Library, modality="SPATIAL")
-        self.empty_queryset = Library.objects.none()
+        self.project = ProjectFactory()
+        self.library_single_cell_no_multiplexed = LibraryFactory(
+            project=self.project, modality=Library.Modalities.SINGLE_CELL, is_multiplexed=False
+        )
+        self.library_single_cell_multiplexed = LibraryFactory(
+            project=self.project, modality=Library.Modalities.SINGLE_CELL, is_multiplexed=True
+        )
+        self.library_spatial = LibraryFactory(
+            project=self.project, modality=Library.Modalities.SPATIAL
+        )
 
-        self.project.libraries.filter.return_value = self.empty_queryset | {
-            self.library1,
-            self.library2,
-        }
-        self.project.libraries.all.return_value = self.empty_queryset | {
-            self.library1,
-            self.library2,
-            self.library3,
-        }
-        self.project.libraries.none.return_value = self.empty_queryset
-
-        self.default_config = {
+    def test_get_project_libraries_from_download_config_valid_config(self):
+        download_config = {
             "modality": "SINGLE_CELL",
             "format": "SINGLE_CELL_EXPERIMENT",
             "excludes_multiplexed": False,
             "includes_merged": False,
             "metadata_only": False,
         }
-
-    def setUpExcludeMultiplexedLibraries(self):
-        # Use MagicMack to adequately mock the chaining property of querysets
-        self.mock_queryset = MagicMock()
-        self.project.libraries.filter.return_value = self.mock_queryset
-        self.mock_queryset.exclude.return_value = self.empty_queryset | {self.library1}
-
-    def test_get_project_libraries_from_download_config_valid_config(self):
-        config = self.default_config
-        result = Library.get_project_libraries_from_download_config(self.project, config)
-        self.assertIn(self.library1, result)
-        self.assertIn(self.library2, result)
+        result = Library.get_project_libraries_from_download_config(self.project, download_config)
+        self.assertIn(self.library_single_cell_no_multiplexed, result)
+        self.assertIn(self.library_single_cell_multiplexed, result)
 
     def test_get_project_libraries_from_download_config_invalid_config(self):
-        config = self.default_config.copy()
-        config["modality"] = None
+        download_config = {
+            "modality": None,
+            "format": None,
+            "excludes_multiplexed": False,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
         with self.assertRaises(ValueError):
-            Library.get_project_libraries_from_download_config(self.project, config)
+            Library.get_project_libraries_from_download_config(self.project, download_config)
 
     def test_get_project_libraries_from_download_config_excludes_multiplexed(self):
-        self.setUpExcludeMultiplexedLibraries()
-        config = self.default_config.copy()
-        config["excludes_multiplexed"] = True
-
-        result = Library.get_project_libraries_from_download_config(self.project, config)
-        self.assertIn(self.library1, result)
-        self.assertNotIn(self.library2, result)
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
+        result = Library.get_project_libraries_from_download_config(self.project, download_config)
+        self.assertIn(self.library_single_cell_no_multiplexed, result)
+        self.assertNotIn(self.library_single_cell_multiplexed, result)
 
     def test_get_project_libraries_from_download_config_includes_merged_merged_file_exists(self):
-        self.setUpExcludeMultiplexedLibraries()
-        config = self.default_config.copy()
-        config["includes_merged"] = True
-        config["excludes_multiplexed"] = True
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": True,
+            "metadata_only": False,
+        }
         self.project.includes_merged_sce = True
 
-        result = Library.get_project_libraries_from_download_config(self.project, config)
-        self.assertIn(self.library1, result)
+        result = Library.get_project_libraries_from_download_config(self.project, download_config)
+        self.assertIn(self.library_single_cell_no_multiplexed, result)
 
     def test_get_project_libraries_from_download_config_includes_merged_no_merged_file(self):
-        self.setUpExcludeMultiplexedLibraries()
-        config = self.default_config.copy()
-        config["includes_merged"] = True
-        config["excludes_multiplexed"] = True
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": True,
+            "metadata_only": False,
+        }
         self.project.includes_merged_sce = False
         self.project.includes_merged_anndata = False
 
-        result = Library.get_project_libraries_from_download_config(self.project, config)
-        self.assertEqual(result, self.empty_queryset)
+        result = Library.get_project_libraries_from_download_config(self.project, download_config)
+        self.assertFalse(result.exists())
 
     def test_get_project_libraries_from_download_config_metadata_only(self):
-        config = {
+        download_config = {
             "modality": None,
             "format": None,
             "excludes_multiplexed": None,
             "includes_merged": None,
             "metadata_only": True,
         }
-        result = Library.get_project_libraries_from_download_config(self.project, config)
-        self.assertIn(self.library1, result)
-        self.assertIn(self.library2, result)
-        self.assertIn(self.library3, result)
+        result = Library.get_project_libraries_from_download_config(self.project, download_config)
+        self.assertIn(self.library_single_cell_no_multiplexed, result)
+        self.assertIn(self.library_single_cell_multiplexed, result)
+        self.assertIn(self.library_spatial, result)
 
 
 class TestGetSampleLibrariesFromDownloadConfig(TestCase):
     def setUp(self):
-        self.sample = Mock(spec=Project)
-        self.library1 = Mock(spec=Library, modality="SINGLE_CELL", format="SINGLE_CELL_EXPERIMENT")
-        self.library2 = Mock(spec=Library, modality="SINGLE_CELL", format="ANN_DATA")
-        self.library3 = Mock(spec=Library, modality="SPATIAL", format="SINGLE_CELL_EXPERIMENT")
-        self.empty_queryset = Library.objects.none()
+        self.sample = SampleFactory()
 
-        def filter_side_effect(*args, **kwargs):
-            if kwargs == {"modality": "SINGLE_CELL", "format__contains": "SINGLE_CELL_EXPERIMENT"}:
-                return self.empty_queryset | {self.library1}
-            elif kwargs == {"modality": "SINGLE_CELL", "format__contains": "ANN_DATA"}:
-                return self.empty_queryset | {self.library2}
-            elif kwargs == {"modality": "SPATIAL", "format__contains": "SINGLE_CELL_EXPERIMENT"}:
-                return self.empty_queryset | {self.library3}
-            return self.empty_queryset
+        library1 = LibraryFactory(
+            modality=Library.Modalities.SINGLE_CELL,
+            formats=[Library.FileFormats.SINGLE_CELL_EXPERIMENT, Library.FileFormats.ANN_DATA],
+        )
+        library2 = LibraryFactory(
+            modality=Library.Modalities.SINGLE_CELL,
+            formats=[Library.FileFormats.SINGLE_CELL_EXPERIMENT],
+        )
+        library3 = LibraryFactory(
+            modality=Library.Modalities.SINGLE_CELL, formats=[Library.FileFormats.ANN_DATA]
+        )
+        library4 = LibraryFactory(
+            modality=Library.Modalities.SPATIAL,
+            formats=[Library.FileFormats.SINGLE_CELL_EXPERIMENT],
+        )
+        self.sample.libraries.add(library1, library2, library3, library4)
 
-        self.sample.libraries.filter.side_effect = filter_side_effect
+        self.libraries = {
+            "SINGLE_CELL": {
+                "SINGLE_CELL_EXPERIMENT": [library1, library2],
+                "ANN_DATA": [library1, library3],
+            },
+            "SPATIAL": {"SINGLE_CELL_EXPERIMENT": [library4]},
+        }
 
-    def test_get_sample_libraries_from_download_config_single_cell_sce(self):
-        config = {"modality": "SINGLE_CELL", "format": "SINGLE_CELL_EXPERIMENT"}
-        result = Library.get_sample_libraries_from_download_config(self.sample, config)
-        self.assertEqual(result, self.empty_queryset | {self.library1})
-
-    def test_get_sample_libraries_from_download_config_single_cell_anndata(self):
-        config = {"modality": "SINGLE_CELL", "format": "ANN_DATA"}
-        result = Library.get_sample_libraries_from_download_config(self.sample, config)
-        self.assertEqual(result, self.empty_queryset | {self.library2})
-
-    def test_get_sample_libraries_from_download_config_spatial_sce(self):
-        config = {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"}
-        result = Library.get_sample_libraries_from_download_config(self.sample, config)
-        self.assertEqual(result, self.empty_queryset | {self.library3})
+    def test_get_sample_libraries_from_download_config_all_configs(self):
+        for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+            result = Library.get_sample_libraries_from_download_config(self.sample, config)
+            for library in self.libraries.get(config["modality"]).get(config["format"]):
+                self.assertIn(library, result)
 
     def test_get_sample_libraries_from_download_config_invalid_configuration(self):
         invalid_config = {"modality": None, "format": None}
