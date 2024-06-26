@@ -151,7 +151,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
 
         library_data_file_paths = [
-            fp for lib in libraries for fp in lib.get_filtered_data_file_paths(download_config)
+            fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
         project_data_file_paths = project.get_filtered_data_file_paths(download_config)
 
@@ -437,7 +437,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
 
         library_data_file_paths = [
-            fp for lib in libraries for fp in lib.get_filtered_data_file_paths(download_config)
+            fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
