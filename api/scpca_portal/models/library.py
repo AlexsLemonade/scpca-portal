@@ -181,15 +181,15 @@ class Library(TimestampedModel):
             for sample in self.samples
         ]
 
-    def get_filtered_data_file_paths(self, download_config: Dict) -> List[Path]:
-        file_extension_to_be_excluded = (
-            common.ANNDATA_EXT
-            if download_config["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT
-            else common.SCE_EXT
-        )
+    def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
+        omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
+        omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config, None))
+
+        if download_config["metadata_only"]:
+            omit_suffixes.clear()
 
         return [
             file_path
             for file_path in [Path(fp) for fp in self.data_file_paths]
-            if file_path.suffix != file_extension_to_be_excluded
+            if file_path.suffix not in omit_suffixes
         ]
