@@ -101,12 +101,9 @@ class Library(TimestampedModel):
 
     @classmethod
     def get_formats_from_file_paths(cls, file_paths: List[Path]) -> List[str]:
-        formats = []
-        if any(path for path in file_paths if common.SCE_EXT == path.suffix):
-            formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
-        if any(path for path in file_paths if common.ANNDATA_EXT == path.suffix):
-            formats.append(Library.FileFormats.ANN_DATA)
-        return formats
+        format_extensions_swapped = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
+        formats = set(format_extensions_swapped.get(path.suffix, None) for path in file_paths)
+        return list(formats)
 
     @classmethod
     def get_project_libraries_from_download_config(
