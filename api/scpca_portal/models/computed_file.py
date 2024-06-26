@@ -153,7 +153,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
-        project_data_file_paths = project.get_filtered_data_file_paths(download_config)
+        project_data_file_paths = project.get_download_config_file_paths(download_config)
 
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         with ZipFile(zip_file_path, "w") as zip_file:
