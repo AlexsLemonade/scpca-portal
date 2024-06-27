@@ -95,10 +95,18 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
     kwargs["fieldnames"] = kwargs.get(
         "fieldnames", utils.get_sorted_field_names(utils.get_keys_from_dicts(list_of_dicts))
     )
+
+    updated_list_of_dicts = list_of_dicts.copy()
+    # Replace any empty values with "NA"
+    for d in updated_list_of_dicts:
+        for k, v in d.items():
+            if v == "":
+                d[k] = common.NA
+
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
 
     sorted_list_of_dicts = sorted(
-        list_of_dicts,
+        updated_list_of_dicts,
         key=lambda k: (
             k[common.PROJECT_ID_KEY],
             k[common.SAMPLE_ID_KEY],

@@ -39,9 +39,9 @@ class TestWriteMetadataDicts(TestCase):
                 "scpca_project_id": "SCPCP999993",
                 "scpca_sample_id": "SCPCS999993",
                 "scpca_library_id": "SCPCL999993",
-                "country": "Japan",
-                "language": "Japanese",
-                "capital": "Tokyo",
+                "country": "Antarctica",
+                "language": "Antarctic English",
+                "capital": "",
             },
         ]
         self.dummy_field_names = {
@@ -75,6 +75,17 @@ class TestWriteMetadataDicts(TestCase):
         with open(self.dummy_output_path) as output_file:
             output_list_of_dicts = list(csv.DictReader(output_file, delimiter=common.TAB))
             self.assertEqual(self.dummy_list_of_dicts, output_list_of_dicts)
+
+    def test_write_metadata_dicts_read_write_no_empty_values(self):
+        field_name = "capital"
+        item = 3
+        metadata_file.write_metadata_dicts(
+            self.dummy_list_of_dicts, self.dummy_output_path, fieldnames=self.dummy_field_names
+        )
+
+        with open(self.dummy_output_path) as output_file:
+            output_list_of_dicts = list(csv.DictReader(output_file, delimiter=common.TAB))
+            self.assertEqual(common.NA, output_list_of_dicts[item][field_name])
 
     def test_write_metadata_dicts_incomplete_field_names(self):
         field_names = {"country", "language"}
