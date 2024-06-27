@@ -97,10 +97,10 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
     )
 
     updated_list_of_dicts = list_of_dicts.copy()
-    # Replace any empty values with "NA"
+    # Replace any "" or None values with "NA"
     for d in updated_list_of_dicts:
         for k, v in d.items():
-            if v == "":
+            if v == "" or v is None:
                 d[k] = common.NA
 
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
