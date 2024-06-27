@@ -23,6 +23,7 @@ TAB = "\t"
 IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
 
+NA = "NA"  # A substitute for an empty field value in metadata
 # Global sort order for Metadata TSVs
 # Columns
 METADATA_COLUMN_SORT_ORDER = [
