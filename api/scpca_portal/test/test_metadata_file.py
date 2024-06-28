@@ -43,6 +43,13 @@ class TestWriteMetadataDicts(TestCase):
                 "language": "Japanese",
                 "capital": "Tokyo",
             },
+            {
+                "scpca_project_id": "SCPCP999994",
+                "scpca_sample_id": "SCPCS999994",
+                "scpca_library_id": "SCPCL999994",
+                "country": "Antarctica",
+                "language": "Antarctic English",
+            },
         ]
         self.dummy_field_names = {
             "scpca_project_id",
@@ -68,34 +75,24 @@ class TestWriteMetadataDicts(TestCase):
         self.assertTrue(os.path.exists(self.dummy_output_path))
 
     def test_write_metadata_dicts_read_write_values_match(self):
+        expected_output = self.dummy_list_of_dicts.copy()
+        expected_output[len(expected_output) - 1]["capital"] = common.NA
         metadata_file.write_metadata_dicts(
             self.dummy_list_of_dicts, self.dummy_output_path, fieldnames=self.dummy_field_names
         )
 
         with open(self.dummy_output_path) as output_file:
             output_list_of_dicts = list(csv.DictReader(output_file, delimiter=common.TAB))
-            self.assertEqual(self.dummy_list_of_dicts, output_list_of_dicts)
+            self.assertEqual(expected_output, output_list_of_dicts)
 
-    def test_write_metadata_dicts_read_write_no_empty_values(self):
-        destinations = [
-            {
-                "scpca_project_id": "SCPCP999994",
-                "scpca_sample_id": "SCPCS999994",
-                "scpca_library_id": "SCPCL999994",
-                "country": "Antarctica",
-                "language": "Antarctic English",
-                "capital": None,
-                "empty": "",
-            },
-        ]
+    def test_write_metadata_dicts_read_write_add_missing_field_names(self):
         metadata_file.write_metadata_dicts(
-            destinations, self.dummy_output_path, fieldnames=(self.dummy_field_names | {"empty"})
+            self.dummy_list_of_dicts, self.dummy_output_path, fieldnames=self.dummy_field_names
         )
 
         with open(self.dummy_output_path) as output_file:
-            for destination in list(csv.DictReader(output_file, delimiter=common.TAB)):
-                self.assertEqual(common.NA, destination["capital"])
-                self.assertEqual(common.NA, destination["empty"])
+            output_list_of_dicts = list(csv.DictReader(output_file, delimiter=common.TAB))
+            self.assertIn(common.NA, [d["capital"] for d in output_list_of_dicts])
 
     def test_write_metadata_dicts_incomplete_field_names(self):
         field_names = {"country", "language"}
