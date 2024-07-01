@@ -174,9 +174,9 @@ export const ProjectSamplesTable = ({
       Header: 'Modalities',
       accessor: ({ modalities }) => {
         const prefix = 'Single-cell'
-        return modalities.length > 0
-          ? `${prefix} ${modalities.join(` , ${prefix} `)}`
-          : prefix
+        return `${prefix} ${modalities.length > 0 ? ',' : ''} ${modalities.join(
+          `, `
+        )}`
       }
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
