@@ -175,7 +175,7 @@ export const ProjectSamplesTable = ({
       accessor: ({ modalities }) => {
         const prefix = 'Single-cell'
         return modalities.length > 0
-          ? `${prefix} ${modalities.join(` , ${prefix}`)}`
+          ? `${prefix} ${modalities.join(` , ${prefix} `)}`
           : prefix
       }
     },
