@@ -265,6 +265,71 @@ class Sample(CommonDataAttributes, TimestampedModel):
             file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
         return file_formats
 
+    def get_computed_file_name_from_download_config(self, download_config: Dict):
+        match download_config:
+            case {"modality": "SPATIAL"}:
+                return self.output_spatial_computed_file_name
+            case {"format": "ANN_DATA"}:
+                return self.output_single_cell_anndata_computed_file_name
+            case {"modality": "SINGLE_CELL"}:
+                return (
+                    self.output_single_cell_computed_file_name
+                    if not self.has_multiplexed_data
+                    else self.output_multiplexed_computed_file_name
+                )
+
+    def create_computed_files(
+        self,
+        project,
+        max_workers=8,  # 8 = 2 file formats * 4 mappings.
+        clean_up_output_data=True,
+        update_s3=False,
+    ):
+        """Prepares ready for saving project computed files based on generated file mappings."""
+
+        def on_get_sample_file(future):
+            computed_file = future.result()
+            if computed_file:
+                computed_file.process_computed_file(clean_up_output_data, update_s3)
+
+        samples = Sample.objects.filter(project__scpca_id=project.scpca_id)
+        logger.info(
+            f"Processing {len(samples)} sample{pluralize(len(samples))} using "
+            f"{max_workers} worker{pluralize(max_workers)}"
+        )
+
+        # Prepare a threading.Lock for each sample, with the chief purpose being to protect
+        # multiplexed samples that shares a zip file.
+        # The keys are the sample.multiplexed_ids since that will be unique across shared zip files.
+        non_multiplexed_ids = set(s.scpca_id for s in samples)
+        multiplexed_ids = set(
+            ["_".join(s.multiplexed_ids) for s in samples if s.has_multiplexed_data]
+        )
+        locks = {
+            f'{id_entry}-{config["modality"]}-{config["format"]}': Lock()
+            for id_entry in non_multiplexed_ids.union(multiplexed_ids)
+            for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS
+        }
+
+        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
+            for sample in samples:
+                for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+                    lock_entry = (
+                        f'{"_".join(sample.multiplexed_ids)}-SINGLE_CELL-SINGLE_CELL_EXPERIMENT'
+                        if sample.has_multiplexed_data
+                        and config["modality"] == "SINGLE_CELL"
+                        and config["format"] == "SINGLE_CELL_EXPERIMENT"
+                        else f'{sample.scpca_id}-{config["modality"]}-{config["format"]}'
+                    )
+                    sample_lock = locks[lock_entry]
+                    tasks.submit(
+                        ComputedFile.get_sample_file,
+                        self,
+                        config,
+                        self.get_computed_file_name_from_download_config(config),
+                        sample_lock,
+                    ).add_done_callback(on_get_sample_file)
+
     @staticmethod
     def create_sample_computed_files(
         combined_metadata,

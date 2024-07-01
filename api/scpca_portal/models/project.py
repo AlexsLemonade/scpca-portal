@@ -338,6 +338,47 @@ class Project(CommonDataAttributes, TimestampedModel):
                 ).strip()
             )
 
+    def get_computed_file_name_from_download_config(self, download_config: Dict):
+        match download_config:
+            case {"metadata_only": True}:
+                return self.output_all_metadata_computed_file_name
+            case {"excludes_multiplexed": False}:
+                return self.output_multiplexed_computed_file_name
+            case {"format": "ANN_DATA", "includes_merged": True}:
+                return self.output_merged_anndata_computed_file_name
+            case {"modality": "SINGLE_CELL", "includes_merged": True}:
+                return self.output_merged_computed_file_name
+            case {"format": "ANN_DATA"}:
+                return self.output_single_cell_anndata_computed_file_name
+            case {"modality": "SINGLE_CELL"}:
+                return self.output_single_cell_computed_file_name
+            case {"modality": "SPATIAL"}:
+                return self.output_spatial_computed_file_name
+
+    def create_computed_files(
+        self,
+        max_workers=8,  # 8 = 2 file formats * 4 mappings.
+        clean_up_output_data=True,
+        update_s3=False,
+    ):
+        """Prepares ready for saving project computed files based on generated file mappings."""
+
+        def on_get_project_file(future):
+            computed_file = future.result()
+            if computed_file:
+                computed_file.process_computed_file(clean_up_output_data, update_s3)
+
+        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
+            for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+                tasks.submit(
+                    ComputedFile.get_project_file,
+                    self,
+                    download_config,
+                    self.get_computed_file_name_from_download_config(download_config),
+                ).add_done_callback(on_get_project_file)
+
+        self.update_downloadable_sample_count()
+
     def create_project_computed_files(
         self,
         file_mappings_by_format,
