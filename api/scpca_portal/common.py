@@ -26,8 +26,12 @@ TAB = "\t"
 IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
 
-SCE_EXT = ".rds"
-ANNDATA_EXT = ".h5ad"
+# common.py
+# Formats
+ANN_DATA = "ANN_DATA"
+SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
+
+FORMAT_EXTENSIONS = {ANN_DATA: ".h5ad", SINGLE_CELL_EXPERIMENT: ".rds"}
 
 # Global sort order for Metadata TSVs
 # Columns

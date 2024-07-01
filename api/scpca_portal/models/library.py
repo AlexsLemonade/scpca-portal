@@ -101,12 +101,9 @@ class Library(TimestampedModel):
 
     @classmethod
     def get_formats_from_file_paths(cls, file_paths: List[Path]) -> List[str]:
-        formats = []
-        if any(path for path in file_paths if common.SCE_EXT == path.suffix):
-            formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
-        if any(path for path in file_paths if common.ANNDATA_EXT == path.suffix):
-            formats.append(Library.FileFormats.ANN_DATA)
-        return formats
+        format_extensions_swapped = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
+        formats = set(format_extensions_swapped.get(path.suffix, None) for path in file_paths)
+        return list(formats)
 
     @classmethod
     def get_project_libraries_from_download_config(
@@ -179,4 +176,17 @@ class Library(TimestampedModel):
         return [
             self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
             for sample in self.samples
+        ]
+
+    def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
+        omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
+        omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"], None))
+
+        if download_config["metadata_only"]:
+            omit_suffixes.clear()
+
+        return [
+            file_path
+            for file_path in [Path(fp) for fp in self.data_file_paths]
+            if file_path.suffix not in omit_suffixes
         ]
