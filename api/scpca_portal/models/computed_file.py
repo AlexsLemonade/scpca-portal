@@ -169,8 +169,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 for file_path in library_data_file_paths:
                     zip_file.write(file_path)
 
-            for file_path in project_data_file_paths:
-                zip_file.write(file_path)
+                for file_path in project_data_file_paths:
+                    zip_file.write(file_path)
 
         computed_file = cls(
             has_bulk_rna_seq=project.has_bulk_rna_seq,
