@@ -107,44 +107,16 @@ class Project(CommonDataAttributes, TimestampedModel):
             pass
 
     @property
-    def output_all_metadata_computed_file_name(self):
-        return f"{self.scpca_id}_all_metadata.zip"
-
-    @property
     def output_all_metadata_file_path(self):
         return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_all_metadata.tsv"
-
-    @property
-    def output_merged_computed_file_name(self):
-        return f"{self.scpca_id}_merged.zip"
-
-    @property
-    def output_merged_anndata_computed_file_name(self):
-        return f"{self.scpca_id}_merged_anndata.zip"
-
-    @property
-    def output_multiplexed_computed_file_name(self):
-        return f"{self.scpca_id}_multiplexed.zip"
 
     @property
     def output_multiplexed_metadata_file_path(self):
         return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_multiplexed_metadata.tsv"
 
     @property
-    def output_single_cell_computed_file_name(self):
-        return f"{self.scpca_id}.zip"
-
-    @property
-    def output_single_cell_anndata_computed_file_name(self):
-        return f"{self.scpca_id}_anndata.zip"
-
-    @property
     def output_single_cell_metadata_file_path(self):
         return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_libraries_metadata.tsv"
-
-    @property
-    def output_spatial_computed_file_name(self):
-        return f"{self.scpca_id}_spatial.zip"
 
     @property
     def output_spatial_metadata_file_path(self):
@@ -338,22 +310,22 @@ class Project(CommonDataAttributes, TimestampedModel):
                 ).strip()
             )
 
-    def get_computed_file_name_from_download_config(self, download_config: Dict):
-        match download_config:
-            case {"metadata_only": True}:
-                return self.output_all_metadata_computed_file_name
-            case {"excludes_multiplexed": False}:
-                return self.output_multiplexed_computed_file_name
-            case {"format": "ANN_DATA", "includes_merged": True}:
-                return self.output_merged_anndata_computed_file_name
-            case {"modality": "SINGLE_CELL", "includes_merged": True}:
-                return self.output_merged_computed_file_name
-            case {"format": "ANN_DATA"}:
-                return self.output_single_cell_anndata_computed_file_name
-            case {"modality": "SINGLE_CELL"}:
-                return self.output_single_cell_computed_file_name
-            case {"modality": "SPATIAL"}:
-                return self.output_spatial_computed_file_name
+    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+        """
+        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
+        and returns the string as a unique zip file name.
+        """
+        if download_config.get("metadata_only", False):
+            return f"{self.scpca_id}_ALL_METADATA.zip"
+
+        name_segments = [self.scpca_id, download_config["modality"], download_config["format"]]
+        if download_config.get("includes_merged", False):
+            name_segments.append("MERGED")
+
+        if self.has_multiplexed_data and not download_config.get("excludes_multiplexed", False):
+            name_segments.append("MULTIPLEXED")
+
+        return f"{'_'.join(name_segments)}.zip"
 
     def create_computed_files(
         self,
@@ -374,7 +346,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     ComputedFile.get_project_file,
                     self,
                     download_config,
-                    self.get_computed_file_name_from_download_config(download_config),
+                    self.get_download_config_file_output_name(download_config),
                 ).add_done_callback(on_get_project_file)
 
         self.update_downloadable_sample_count()
