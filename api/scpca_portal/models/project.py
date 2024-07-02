@@ -107,6 +107,34 @@ class Project(CommonDataAttributes, TimestampedModel):
             pass
 
     @property
+    def output_all_metadata_computed_file_name(self):
+        return f"{self.scpca_id}_all_metadata.zip"
+
+    @property
+    def output_merged_computed_file_name(self):
+        return f"{self.scpca_id}_merged.zip"
+
+    @property
+    def output_merged_anndata_computed_file_name(self):
+        return f"{self.scpca_id}_merged_anndata.zip"
+
+    @property
+    def output_multiplexed_computed_file_name(self):
+        return f"{self.scpca_id}_multiplexed.zip"
+
+    @property
+    def output_single_cell_computed_file_name(self):
+        return f"{self.scpca_id}.zip"
+
+    @property
+    def output_single_cell_anndata_computed_file_name(self):
+        return f"{self.scpca_id}_anndata.zip"
+
+    @property
+    def output_spatial_computed_file_name(self):
+        return f"{self.scpca_id}_spatial.zip"
+
+    @property
     def output_all_metadata_file_path(self):
         return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_all_metadata.tsv"
 
