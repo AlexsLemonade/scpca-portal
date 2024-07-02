@@ -192,28 +192,12 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return sorted(multiplexed_sample_ids)
 
     @property
-    def output_multiplexed_computed_file_name(self):
-        return f"{'_'.join(self.multiplexed_ids)}_multiplexed.zip"
-
-    @property
     def output_multiplexed_metadata_file_path(self):
         return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.MULTIPLEXED)
 
     @property
-    def output_single_cell_computed_file_name(self):
-        return f"{self.scpca_id}.zip"
-
-    @property
-    def output_single_cell_anndata_computed_file_name(self):
-        return f"{self.scpca_id}_anndata.zip"
-
-    @property
     def output_single_cell_metadata_file_path(self):
         return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SINGLE_CELL)
-
-    @property
-    def output_spatial_computed_file_name(self):
-        return f"{self.scpca_id}_spatial.zip"
 
     @property
     def output_spatial_metadata_file_path(self):
@@ -270,18 +254,16 @@ class Sample(CommonDataAttributes, TimestampedModel):
             file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
         return file_formats
 
-    def get_computed_file_name_from_download_config(self, download_config: Dict):
-        match download_config:
-            case {"modality": "SPATIAL"}:
-                return self.output_spatial_computed_file_name
-            case {"format": "ANN_DATA"}:
-                return self.output_single_cell_anndata_computed_file_name
-            case {"modality": "SINGLE_CELL"}:
-                return (
-                    self.output_single_cell_computed_file_name
-                    if not self.has_multiplexed_data
-                    else self.output_multiplexed_computed_file_name
-                )
+    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+        """
+        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
+        and returns the string as a unique zip file name.
+        """
+        name_segments = [self.scpca_id, download_config["modality"], download_config["format"]]
+        if self.has_multiplexed_data:
+            name_segments.append("MULTIPLEXED")
+
+        return f"{'_'.join(name_segments)}.zip"
 
     def create_computed_files(
         self,
@@ -314,7 +296,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
                         ComputedFile.get_sample_file,
                         self,
                         config,
-                        self.get_computed_file_name_from_download_config(config),
+                        self.get_download_config_file_output_name(config),
                         sample_lock,
                     ).add_done_callback(on_get_sample_file)
 
