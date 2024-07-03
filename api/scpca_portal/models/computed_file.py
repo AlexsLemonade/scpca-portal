@@ -166,11 +166,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             zip_file.write(getattr(cls.MetadataFilenames, metadata_path_var))
 
             if not download_config.get("metadata_only", False):
-                for file_path in library_data_file_paths:
-                    zip_file.write(file_path)
+                for local_file_path in Library.get_local_file_paths(library_data_file_paths):
+                    zip_file.write(local_file_path)
 
-                for file_path in project_data_file_paths:
-                    zip_file.write(file_path)
+                for local_file_path in Library.get_local_file_paths(project_data_file_paths):
+                    zip_file.write(local_file_path)
 
         computed_file = cls(
             has_bulk_rna_seq=project.has_bulk_rna_seq,
@@ -455,8 +455,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     )
                 )
 
-                for file_path in library_data_file_paths:
-                    zip_file.write(file_path)
+                for local_file_path in Library.get_local_file_paths(library_data_file_paths):
+                    zip_file.write(local_file_path)
 
         computed_file = cls(
             has_cite_seq_data=sample.has_cite_seq_data,

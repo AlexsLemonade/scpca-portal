@@ -190,3 +190,7 @@ class Library(TimestampedModel):
             for file_path in [Path(fp) for fp in self.data_file_paths]
             if file_path.suffix not in omit_suffixes
         ]
+
+    @staticmethod
+    def get_local_file_paths(file_paths: List[Path]):
+        return [common.INPUT_DATA_PATH / file_path for file_path in file_paths]
