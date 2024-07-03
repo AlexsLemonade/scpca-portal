@@ -149,7 +149,9 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
     def get_lock_name(self, download_config: Dict) -> str:
         """Returns a unique lock name based on multiplexed status and download config"""
-        lock_prefix = self.scpca_id if not self.is_multiplexed else "_".join(self.multiplexed_ids)
+        lock_prefix = (
+            self.scpca_id if not self.has_multiplexed_data else "_".join(self.multiplexed_ids)
+        )
         return f'{lock_prefix}-{download_config["modality"]}-{download_config["format"]}'
 
     @staticmethod
