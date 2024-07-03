@@ -172,12 +172,7 @@ export const ProjectSamplesTable = ({
     { Header: 'Technology', accessor: 'technologies' },
     {
       Header: 'Modalities',
-      accessor: ({ modalities }) => {
-        const prefix = 'Single-cell'
-        return `${prefix} ${modalities.length > 0 ? ',' : ''} ${modalities.join(
-          `, `
-        )}`
-      }
+      accessor: ({ modalities }) => ['Single-cell', ...modalities].join(', ')
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
