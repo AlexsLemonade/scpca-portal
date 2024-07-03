@@ -84,7 +84,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
     format = models.TextField(choices=OutputFileFormats.CHOICES, null=True)
-    includes_merged = models.BooleanField(default=False)
+    includes_merged = models.BooleanField(default=False, null=True)
     modality = models.TextField(choices=OutputFileModalities.CHOICES, null=True)
     metadata_only = models.BooleanField(default=False)
     s3_bucket = models.TextField()
