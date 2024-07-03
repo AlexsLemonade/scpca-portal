@@ -23,6 +23,7 @@ TAB = "\t"
 IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
 
+NA = "NA"  # "Not Available"
 # Global sort order for Metadata TSVs
 # Columns
 METADATA_COLUMN_SORT_ORDER = [

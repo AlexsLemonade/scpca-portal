@@ -11,14 +11,7 @@ from scpca_portal import common, metadata_file
 class TestWriteMetadataDicts(TestCase):
     def setUp(self):
         self.dummy_list_of_dicts = [
-            {
-                "scpca_project_id": "SCPCP999990",
-                "scpca_sample_id": "SCPCS999990",
-                "scpca_library_id": "SCPCL999990",
-                "country": "USA",
-                "language": "English",
-                "capital": "Washington DC",
-            },
+            # This list is intentionally out of order to test the sorting.
             {
                 "scpca_project_id": "SCPCP999991",
                 "scpca_sample_id": "SCPCS999991",
@@ -31,17 +24,16 @@ class TestWriteMetadataDicts(TestCase):
                 "scpca_project_id": "SCPCP999992",
                 "scpca_sample_id": "SCPCS999992",
                 "scpca_library_id": "SCPCL999992",
-                "country": "France",
-                "language": "French",
-                "capital": "Paris",
+                "country": "Antarctica",
+                "language": "Antarctic English",
             },
             {
-                "scpca_project_id": "SCPCP999993",
-                "scpca_sample_id": "SCPCS999993",
-                "scpca_library_id": "SCPCL999993",
-                "country": "Japan",
-                "language": "Japanese",
-                "capital": "Tokyo",
+                "scpca_project_id": "SCPCP999990",
+                "scpca_sample_id": "SCPCS999990",
+                "scpca_library_id": "SCPCL999990",
+                "country": "USA",
+                "language": "English",
+                "capital": "Washington DC",
             },
         ]
         self.dummy_field_names = {
@@ -68,13 +60,49 @@ class TestWriteMetadataDicts(TestCase):
         self.assertTrue(os.path.exists(self.dummy_output_path))
 
     def test_write_metadata_dicts_read_write_values_match(self):
+        expected_output = [
+            {
+                "scpca_project_id": "SCPCP999990",
+                "scpca_sample_id": "SCPCS999990",
+                "scpca_library_id": "SCPCL999990",
+                "country": "USA",
+                "language": "English",
+                "capital": "Washington DC",
+            },
+            {
+                "scpca_project_id": "SCPCP999991",
+                "scpca_sample_id": "SCPCS999991",
+                "scpca_library_id": "SCPCL999991",
+                "country": "Spain",
+                "language": "Spanish",
+                "capital": "Madrid",
+            },
+            {
+                "scpca_project_id": "SCPCP999992",
+                "scpca_sample_id": "SCPCS999992",
+                "scpca_library_id": "SCPCL999992",
+                "country": "Antarctica",
+                "language": "Antarctic English",
+                "capital": "NA",
+            },
+        ]
+
         metadata_file.write_metadata_dicts(
             self.dummy_list_of_dicts, self.dummy_output_path, fieldnames=self.dummy_field_names
         )
 
         with open(self.dummy_output_path) as output_file:
             output_list_of_dicts = list(csv.DictReader(output_file, delimiter=common.TAB))
-            self.assertEqual(self.dummy_list_of_dicts, output_list_of_dicts)
+            self.assertEqual(expected_output, output_list_of_dicts)
+
+    def test_write_metadata_dicts_read_write_add_missing_field_names(self):
+        metadata_file.write_metadata_dicts(
+            self.dummy_list_of_dicts, self.dummy_output_path, fieldnames=self.dummy_field_names
+        )
+
+        with open(self.dummy_output_path) as output_file:
+            output_list_of_dicts = list(csv.DictReader(output_file, delimiter=common.TAB))
+            self.assertIn(common.NA, [d["capital"] for d in output_list_of_dicts])
 
     def test_write_metadata_dicts_incomplete_field_names(self):
         field_names = {"country", "language"}
