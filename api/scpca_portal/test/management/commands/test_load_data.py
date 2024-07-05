@@ -932,6 +932,9 @@ class TestLoadData(TransactionTestCase):
             "technology",
             "total_reads",
             "mapped_reads",
+            "filtered_spots",
+            "unfiltered_spots",
+            "tissue_spots",
             "includes_anndata",
             "is_cell_line",
             "is_xenograft",
@@ -945,7 +948,17 @@ class TestLoadData(TransactionTestCase):
             "workflow_version",
             "workflow_commit",
         ]
-        project_zip_path = common.OUTPUT_DATA_PATH / project.output_spatial_computed_file_name
+
+        download_config = {
+            "modality": "SPATIAL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(project_zip_path) as project_zip:
             spatial_metadata_file = project_zip.read(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
@@ -963,7 +976,7 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = spatial_metadata[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 19 files (including subdirectory names):
+        # There are 16 files:
         # ├── README.md
         # ├── SCPCL999991_spatial
         # │   ├── SCPCL999991_metadata.json
@@ -984,7 +997,7 @@ class TestLoadData(TransactionTestCase):
         # │       ├── tissue_lowres_image.png
         # │       └── tissue_positions_list.csv
         # └── spatial_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 19)
+        self.assertEqual(len(project_zip.namelist()), 16)
 
         sample = project.samples.filter(has_spatial_data=True).first()
         self.assertEqual(len(sample.computed_files), 1)
@@ -1033,7 +1046,14 @@ class TestLoadData(TransactionTestCase):
             set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
         )
 
-        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_spatial_computed_file_name
+        # Check Spatial archive.
+        download_config = {
+            "modality": "SPATIAL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+        }
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME, "r"
@@ -1054,15 +1074,12 @@ class TestLoadData(TransactionTestCase):
         library_path_templates = {
             "{library_id}_spatial/{library_id}_metadata.json",
             "{library_id}_spatial/{library_id}_spaceranger-summary.html",
-            "{library_id}_spatial/filtered_feature_bc_matrix/",
             "{library_id}_spatial/filtered_feature_bc_matrix/barcodes.tsv.gz",
             "{library_id}_spatial/filtered_feature_bc_matrix/features.tsv.gz",
             "{library_id}_spatial/filtered_feature_bc_matrix/matrix.mtx.gz",
-            "{library_id}_spatial/raw_feature_bc_matrix/",
             "{library_id}_spatial/raw_feature_bc_matrix/barcodes.tsv.gz",
             "{library_id}_spatial/raw_feature_bc_matrix/features.tsv.gz",
             "{library_id}_spatial/raw_feature_bc_matrix/matrix.mtx.gz",
-            "{library_id}_spatial/spatial/",
             "{library_id}_spatial/spatial/aligned_fiducials.jpg",
             "{library_id}_spatial/spatial/detected_tissue_image.jpg",
             "{library_id}_spatial/spatial/scalefactors_json.json",
