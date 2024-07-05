@@ -3,7 +3,7 @@ from threading import Lock
 from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import connection, models
 from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, utils
@@ -295,6 +295,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
         def on_get_sample_file(future):
             if computed_file := future.result():
                 computed_file.process_computed_file(clean_up_output_data, update_s3)
+            # Close DB connection for each thread.
+            connection.close()
 
         samples = Sample.objects.filter(project__scpca_id=project.scpca_id)
         logger.info(

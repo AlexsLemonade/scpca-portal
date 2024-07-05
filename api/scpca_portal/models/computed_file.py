@@ -5,7 +5,7 @@ from typing import Dict
 from zipfile import ZipFile
 
 from django.conf import settings
-from django.db import connection, models
+from django.db import models
 
 import boto3
 from botocore.client import Config
@@ -768,6 +768,3 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         if clean_up_output_data and not is_multiplexed_sample:
             self.zip_file_path.unlink(missing_ok=True)
-
-        # Close DB connection for each thread.
-        connection.close()

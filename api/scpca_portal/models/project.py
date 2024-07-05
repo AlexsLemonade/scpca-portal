@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Set
 
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import connection, models
 from django.template.loader import render_to_string
 
 from scpca_portal import common, metadata_file, utils
@@ -366,6 +366,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         def on_get_project_file(future):
             if computed_file := future.result():
                 computed_file.process_computed_file(clean_up_output_data, update_s3)
+            # Close DB connection for each thread.
+            connection.close()
 
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
