@@ -780,29 +780,15 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         self.create_readmes()
 
-        combined_metadata = self.handle_samples_metadata(sample_id)
+        # TODO: extract sample and library object creation from handle_samples_metadata
+        self.handle_samples_metadata(sample_id)
 
-        self.write_combined_metadata_libraries(combined_metadata)
-
-        (
-            file_mappings_by_format,
-            workflow_versions_by_modality,
-        ) = Sample.create_sample_computed_files(
-            combined_metadata,
-            self,
-            self.get_non_downloadable_sample_ids(),
-            self.get_multiplexed_library_path_mapping(),
-            kwargs["max_workers"],
-            kwargs["clean_up_output_data"],
-            kwargs["update_s3"],
-            sample_id=sample_id,
+        Sample.create_computed_files(
+            self, kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
         )
 
-        self.create_project_computed_files(
-            file_mappings_by_format,
-            workflow_versions_by_modality,
-            clean_up_output_data=kwargs["clean_up_output_data"],
-            update_s3=kwargs["update_s3"],
+        self.create_computed_files(
+            kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
         )
 
     def handle_samples_metadata(self, sample_id=None):
@@ -872,7 +858,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         for updated_sample_metadata in updated_samples_metadata:
             sample_id = updated_sample_metadata["scpca_sample_id"]
-            # print(sample_id in multiplexed_with_mapping)
             sample_dir = self.get_sample_input_data_dir(
                 sample_id
                 if sample_id not in multiplexed_with_mapping
