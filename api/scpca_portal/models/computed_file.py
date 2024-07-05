@@ -173,7 +173,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     zip_file.write(local_file_path)
 
         computed_file = cls(
-            has_bulk_rna_seq=project.has_bulk_rna_seq,
+            has_bulk_rna_seq=(
+                download_config["modality"] == "SINGLE_CELL" and project.has_bulk_rna_seq
+            ),
             has_cite_seq_data=project.has_cite_seq_data,
             has_multiplexed_data=libraries.filter(is_multiplexed=True).exists(),
             format=download_config.get("format"),
