@@ -199,5 +199,5 @@ class Library(TimestampedModel):
         ]
 
     @staticmethod
-    def get_local_file_paths(file_paths: List[Path]):
-        return [common.INPUT_DATA_PATH / file_path for file_path in file_paths]
+    def get_local_file_path(file_path: Path):
+        return common.INPUT_DATA_PATH / file_path

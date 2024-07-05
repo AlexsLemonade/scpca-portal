@@ -166,11 +166,35 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             zip_file.write(getattr(cls.MetadataFilenames, metadata_path_var))
 
             if not download_config.get("metadata_only", False):
-                for local_file_path in Library.get_local_file_paths(library_data_file_paths):
-                    zip_file.write(local_file_path)
+                for file_path in library_data_file_paths:
+                    zip_file.write(
+                        Library.get_local_file_path(file_path),
+                        file_path.relative_to(f"{project.scpca_id}/"),
+                    )
 
-                for local_file_path in Library.get_local_file_paths(project_data_file_paths):
-                    zip_file.write(local_file_path)
+                for file_path in project_data_file_paths:
+                    if "bulk" in file_path.name and download_config["modality"] == "SPATIAL":
+                        continue
+                    zip_file.write(
+                        Library.get_local_file_path(file_path),
+                        file_path.relative_to(f"{project.scpca_id}/"),
+                    )
+                if download_config["modality"] == "SPATIAL":
+                    for library in libraries:
+                        file_path = Path(
+                            "/".join(
+                                [
+                                    project.scpca_id,
+                                    library.samples.first().scpca_id,
+                                    f"{library.scpca_id}_spatial",
+                                    f"{library.scpca_id}_metadata.json",
+                                ]
+                            )
+                        )
+                        zip_file.write(
+                            Library.get_local_file_path(file_path),
+                            file_path.relative_to(f"{project.scpca_id}/"),
+                        )
 
         computed_file = cls(
             has_bulk_rna_seq=(
@@ -423,13 +447,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computes a zip archive with library data, metadata and readme files, and
         creates a ComputedFile object which it then saves to the db.
         """
-        libraries = sample.libraries.filter(
-            modality=download_config["modality"],
-            formats__contains=download_config["format"],
-        )
+        libraries = Library.get_sample_libraries_from_download_config(sample, download_config)
         # If the query return empty, then an error occurred, and we should abort early
         if not libraries.exists():
             return
+
         libraries_metadata = [
             lib for library in libraries for lib in library.get_combined_library_metadata()
         ]
@@ -457,8 +479,28 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     )
                 )
 
-                for local_file_path in Library.get_local_file_paths(library_data_file_paths):
-                    zip_file.write(local_file_path)
+                for file_path in library_data_file_paths:
+                    zip_file.write(
+                        Library.get_local_file_path(file_path),
+                        file_path.relative_to(f"{sample.project.scpca_id}/{sample.scpca_id}/"),
+                    )
+
+                if download_config["modality"] == "SPATIAL":
+                    for library in libraries:
+                        file_path = Path(
+                            "/".join(
+                                [
+                                    sample.project.scpca_id,
+                                    sample.scpca_id,
+                                    f"{library.scpca_id}_spatial",
+                                    f"{library.scpca_id}_metadata.json",
+                                ]
+                            )
+                        )
+                        zip_file.write(
+                            Library.get_local_file_path(file_path),
+                            file_path.relative_to(f"{sample.project.scpca_id}/{sample.scpca_id}/"),
+                        )
 
         computed_file = cls(
             has_cite_seq_data=sample.has_cite_seq_data,
