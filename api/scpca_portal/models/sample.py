@@ -283,8 +283,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return f"{'_'.join(name_segments)}.zip"
 
+    @staticmethod
     def create_computed_files(
-        self,
         project,
         max_workers=8,  # 8 = 2 file formats * 4 mappings.
         clean_up_output_data=True,
@@ -313,9 +313,9 @@ class Sample(CommonDataAttributes, TimestampedModel):
                     sample_lock = locks.setdefault(sample.get_lock_name(config), Lock())
                     tasks.submit(
                         ComputedFile.get_sample_file,
-                        self,
+                        sample,
                         config,
-                        self.get_download_config_file_output_name(config),
+                        sample.get_download_config_file_output_name(config),
                         sample_lock,
                     ).add_done_callback(on_get_sample_file)
 
