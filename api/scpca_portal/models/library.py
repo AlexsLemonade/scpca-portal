@@ -167,10 +167,11 @@ class Library(TimestampedModel):
             "scpca_library_id": self.scpca_id,
         }
 
-        excluded_metadata_attributes = [
+        excluded_metadata_attributes = {
             "scpca_sample_id",
             "has_citeseq",
-        ]
+        }
+
         library_metadata.update(
             {
                 key: self.metadata[key]
@@ -179,11 +180,24 @@ class Library(TimestampedModel):
             }
         )
 
+        return library_metadata
+
     def get_combined_library_metadata(self) -> List[Dict]:
-        return [
-            self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
-            for sample in self.samples
-        ]
+        combined_metadatas = []
+        for sample in self.samples.all():
+            metadata = self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
+            # Estimate attributes per modality:
+            #   Single Cell: "sample_cell_count_estimate"
+            #   Single Cell Multiplexed: "sample_cell_estimates"
+            #   Spatial: None
+            if self.modality == Library.Modalities.SPATIAL or self.is_multiplexed:
+                del metadata["sample_cell_count_estimate"]
+            if not self.is_multiplexed:
+                del metadata["sample_cell_estimates"]
+
+            combined_metadatas.append(metadata)
+
+        return combined_metadatas
 
     def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
         omit_suffixes = set()
