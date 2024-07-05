@@ -647,7 +647,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(project.technologies, "10Xv3, visium")
         metadata_only = 1  # 1 metadata only download per project
-        self.assertEqual(len(project.computed_files), 5 + metadata_only)
+        self.assertEqual(len(project.computed_files), (single_cell * 2) + spatial + metadata_only)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
         self.assertEqual(
@@ -715,7 +715,16 @@ class TestLoadData(TransactionTestCase):
             "workflow_commit",
         ]
 
-        project_zip_path = common.OUTPUT_DATA_PATH / project.output_single_cell_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": False,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
@@ -797,7 +806,13 @@ class TestLoadData(TransactionTestCase):
         )
 
         # Check SingleCellExperiment archive.
-        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_single_cell_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+        }
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
@@ -806,7 +821,6 @@ class TestLoadData(TransactionTestCase):
                     TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
                 )
                 rows = list(csv_reader)
-
         self.assertEqual(len(rows), 1)
         self.assertEqual(list(rows[0].keys()), expected_keys)
 
@@ -823,8 +837,12 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
         # Check AnnData archive.
-        sample_zip_path = (
-            common.OUTPUT_DATA_PATH / sample.output_single_cell_anndata_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "ANN_DATA",
+        }
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_download_config_file_output_name(
+            download_config
         )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
