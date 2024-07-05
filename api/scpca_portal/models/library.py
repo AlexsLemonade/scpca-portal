@@ -186,11 +186,11 @@ class Library(TimestampedModel):
         ]
 
     def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
-        omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
-        omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"], None))
-
-        if download_config["metadata_only"]:
-            omit_suffixes.clear()
+        omit_suffixes = set()
+        # If download_config is for metadata_only download, then leave as empty set, else populate
+        if not download_config.get("metadata_only", False):
+            omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
+            omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"]))
 
         return [
             file_path
