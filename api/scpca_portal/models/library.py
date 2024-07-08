@@ -125,6 +125,10 @@ class Library(TimestampedModel):
         if download_configuration["metadata_only"]:
             return project.libraries.all()
 
+        # "excludes multiplexed" being False while not having multiplexed data is an invalid request
+        if not download_configuration["excludes_multiplexed"] and not project.has_multiplexed_data:
+            return project.libraries.none()
+
         if download_configuration["includes_merged"]:
             # If the download config requests merged and there is no merged file in the project,
             # return an empty queryset

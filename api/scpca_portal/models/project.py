@@ -371,11 +371,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
-                if (
-                    download_config["excludes_multiplexed"] is False
-                    and not self.has_multiplexed_data
-                ):
-                    continue
                 tasks.submit(
                     ComputedFile.get_project_file,
                     self,
