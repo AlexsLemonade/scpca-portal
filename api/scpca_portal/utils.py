@@ -26,6 +26,10 @@ def boolean_from_string(value: str) -> bool:
     return value.lower() in ("t", "true")
 
 
+def string_from_list(value, delimiter=";"):
+    return delimiter.join(value) if isinstance(value, list) else value
+
+
 def join_workflow_versions(workflow_versions: Set) -> str:
     """Returns list of sorted unique workflow versions."""
 
