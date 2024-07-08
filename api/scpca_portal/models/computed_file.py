@@ -108,6 +108,25 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             f"computed file ({self.size_in_bytes}B)"
         )
 
+    @staticmethod
+    def get_local_project_metadata_path(project, download_config: Dict) -> Path:
+        file_name_parts = [project.scpca_id]
+        if not download_config["metadata_only"]:
+            file_name_parts.extend([download_config["modality"], download_config["format"]])
+            if project.has_multiplexed_data and not download_config["excludes_multiplexed"]:
+                file_name_parts.append("MULTIPLEXED")
+        file_name_parts.append("METADATA.tsv")
+
+        return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
+
+    @staticmethod
+    def get_local_sample_metadata_path(sample, download_config: Dict) -> Path:
+        file_name_parts = ["_".join(sample.multiplexed_ids)]
+        file_name_parts.extend(
+            [download_config["modality"], download_config["format"], "METADATA.tsv"]
+        )
+        return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
+
     @classmethod
     def get_readme_from_download_config(cls, download_config: Dict):
         match download_config:
@@ -142,14 +161,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries_metadata = [
             lib for library in libraries for lib in library.get_combined_library_metadata()
         ]
-        metadata_path_var = (
-            f'{download_config["modality"]}_METADATA_FILE_NAME'
-            if not download_config["metadata_only"]
-            else "METADATA_ONLY_FILE_NAME"
-        )
-        metadata_file.write_metadata_dicts(
-            libraries_metadata, getattr(cls.MetadataFilenames, metadata_path_var)
-        )
+        local_metadata_path = ComputedFile.get_local_project_metadata_path(project, download_config)
+        metadata_file.write_metadata_dicts(libraries_metadata, local_metadata_path)
 
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
@@ -164,7 +177,14 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 cls.OUTPUT_README_FILE_NAME,
             )
             # Metadata file
-            zip_file.write(getattr(cls.MetadataFilenames, metadata_path_var))
+            output_file_constant = (
+                f'{download_config["modality"]}_METADATA_FILE_NAME'
+                if not download_config["metadata_only"]
+                else "METADATA_ONLY_FILE_NAME"
+            )
+            zip_file.write(
+                local_metadata_path, getattr(cls.MetadataFilenames, output_file_constant)
+            )
 
             if not download_config.get("metadata_only", False):
                 for file_path in library_data_file_paths:
@@ -456,10 +476,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries_metadata = [
             lib for library in libraries for lib in library.get_combined_library_metadata()
         ]
-        metadata_file.write_metadata_dicts(
-            libraries_metadata,
-            getattr(cls.MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME'),
-        )
+        local_metadata_path = ComputedFile.get_local_sample_metadata_path(sample, download_config)
+        metadata_file.write_metadata_dicts(libraries_metadata, local_metadata_path)
 
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
@@ -474,12 +492,14 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                         ComputedFile.get_readme_from_download_config(download_config),
                         cls.OUTPUT_README_FILE_NAME,
                     )
+
                     # Metadata file
                     zip_file.write(
+                        local_metadata_path,
                         getattr(
                             cls.MetadataFilenames,
                             f'{download_config["modality"]}_METADATA_FILE_NAME',
-                        )
+                        ),
                     )
 
                     for file_path in library_data_file_paths:
