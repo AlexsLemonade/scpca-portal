@@ -21,6 +21,15 @@ class TestBooleanFromString(TestCase):
             self.assertTrue(utils.boolean_from_string(v))
 
 
+class TestStringFromList(TestCase):
+    def test_return_joined_string(self):
+        list = ["a", "b", "c"]
+        expected_result = "a;b;c"
+        actual_result = utils.string_from_list(list)
+
+        self.assertEqual(actual_result, expected_result)
+
+
 class TestJoinWorkflowVersions(TestCase):
     def test_join_duplicate_values(self):
         items = ("an item", "an item", "another item")
