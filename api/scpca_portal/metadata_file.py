@@ -76,6 +76,25 @@ def load_library_metadata(metadata_file_path: Path):
         return transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
 
 
+def transform_metadata_dict(dict) -> Dict:
+    """
+    Returns the transformed dict after converting its value to a joined string from the list
+    """
+    for k, v in dict.items():
+        if isinstance(v, list):
+            dict[k] = utils.string_from_list(v)
+    return dict
+
+
+def transform_metadata_dicts(list_of_dicts: List[Dict]) -> List[Dict]:
+    """
+    Loops through and transforms the given list of dictionaries using transform_metadata_dict
+    """
+    for dict in list_of_dicts:
+        transform_metadata_dict(dict)
+    return list_of_dicts
+
+
 def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
     """
     Transforms keys in inputted data dict according to inputted key transforms tuple list.
@@ -111,4 +130,4 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
     with open(output_file_path, "w", newline="") as raw_file:
         csv_writer = csv.DictWriter(raw_file, **kwargs)
         csv_writer.writeheader()
-        csv_writer.writerows(sorted_list_of_dicts)
+        csv_writer.writerows(transform_metadata_dicts(sorted_list_of_dicts))
