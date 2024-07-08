@@ -466,41 +466,47 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
         with lock:  # It should be removed later for a cleaner solution.
-            with ZipFile(zip_file_path, "w") as zip_file:
-                # Readme file
-                zip_file.write(
-                    ComputedFile.get_readme_from_download_config(download_config),
-                    cls.OUTPUT_README_FILE_NAME,
-                )
-                # Metadata file
-                zip_file.write(
-                    getattr(
-                        cls.MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME'
-                    )
-                )
-
-                for file_path in library_data_file_paths:
+            if not zip_file_path.exists():
+                with ZipFile(zip_file_path, "w") as zip_file:
+                    # Readme file
                     zip_file.write(
-                        Library.get_local_file_path(file_path),
-                        file_path.relative_to(f"{sample.project.scpca_id}/{sample.scpca_id}/"),
+                        ComputedFile.get_readme_from_download_config(download_config),
+                        cls.OUTPUT_README_FILE_NAME,
+                    )
+                    # Metadata file
+                    zip_file.write(
+                        getattr(
+                            cls.MetadataFilenames,
+                            f'{download_config["modality"]}_METADATA_FILE_NAME',
+                        )
                     )
 
-                if download_config["modality"] == "SPATIAL":
-                    for library in libraries:
-                        file_path = Path(
-                            "/".join(
-                                [
-                                    sample.project.scpca_id,
-                                    sample.scpca_id,
-                                    f"{library.scpca_id}_spatial",
-                                    f"{library.scpca_id}_metadata.json",
-                                ]
-                            )
-                        )
+                    for file_path in library_data_file_paths:
                         zip_file.write(
                             Library.get_local_file_path(file_path),
-                            file_path.relative_to(f"{sample.project.scpca_id}/{sample.scpca_id}/"),
+                            file_path.relative_to(
+                                f"{sample.project.scpca_id}/{','.join(sample.multiplexed_ids)}/"
+                            ),
                         )
+
+                    if download_config["modality"] == "SPATIAL":
+                        for library in libraries:
+                            file_path = Path(
+                                "/".join(
+                                    [
+                                        sample.project.scpca_id,
+                                        sample.scpca_id,
+                                        f"{library.scpca_id}_spatial",
+                                        f"{library.scpca_id}_metadata.json",
+                                    ]
+                                )
+                            )
+                            zip_file.write(
+                                Library.get_local_file_path(file_path),
+                                file_path.relative_to(
+                                    f"{sample.project.scpca_id}/{sample.scpca_id}/"
+                                ),
+                            )
 
         computed_file = cls(
             has_cite_seq_data=sample.has_cite_seq_data,

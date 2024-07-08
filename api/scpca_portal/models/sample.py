@@ -279,7 +279,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
         Accumulates all applicable name segments, concatenates them with an underscore delimiter,
         and returns the string as a unique zip file name.
         """
-        name_segments = [self.scpca_id, download_config["modality"], download_config["format"]]
+        name_segments = [
+            "_".join(self.multiplexed_ids),
+            download_config["modality"],
+            download_config["format"],
+        ]
         if self.has_multiplexed_data:
             name_segments.append("MULTIPLEXED")
 
