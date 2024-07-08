@@ -65,7 +65,10 @@ class Library(TimestampedModel):
     def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample) -> None:
         libraries = []
         for library_json in library_jsons:
-            if not Library.objects.filter(scpca_id=library_json["scpca_library_id"]).exists():
+            library_id = library_json["scpca_library_id"]
+            if existing_library := Library.objects.filter(scpca_id=library_id).exists():
+                sample.libraries.add(existing_library)
+            else:
                 # TODO: remove when scpca_project_id is in source json
                 library_json["scpca_project_id"] = sample.project.scpca_id
                 libraries.append(Library.get_from_dict(library_json, sample.project))
