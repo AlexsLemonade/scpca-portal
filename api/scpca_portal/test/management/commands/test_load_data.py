@@ -447,7 +447,16 @@ class TestLoadData(TransactionTestCase):
             "workflow_commit",
         ]
 
-        project_zip_path = common.OUTPUT_DATA_PATH / project.output_multiplexed_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": False,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
