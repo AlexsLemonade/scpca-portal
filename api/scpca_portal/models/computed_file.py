@@ -138,6 +138,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         # If the query return empty, then an error occurred, and we should abort early
         if not libraries.exists():
             return
+
         libraries_metadata = [
             lib for library in libraries for lib in library.get_combined_library_metadata()
         ]
@@ -167,18 +168,18 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
             if not download_config.get("metadata_only", False):
                 for file_path in library_data_file_paths:
-                    zip_file.write(
-                        Library.get_local_file_path(file_path),
-                        file_path.relative_to(f"{project.scpca_id}/"),
-                    )
+                    output_path = file_path.relative_to(f"{project.scpca_id}/")
+                    # Swap delimiter in multiplexed sample libraries from comma to underscore
+                    if "," in file_path.parent.name:
+                        new_delimiter_dir = Path("_".join(file_path.parent.name.split(",")))
+                        output_path = new_delimiter_dir / file_path.name
+                    zip_file.write(Library.get_local_file_path(file_path), output_path)
 
                 for file_path in project_data_file_paths:
                     if "bulk" in file_path.name and download_config["modality"] == "SPATIAL":
                         continue
-                    zip_file.write(
-                        Library.get_local_file_path(file_path),
-                        file_path.relative_to(f"{project.scpca_id}/"),
-                    )
+                    output_path = file_path.relative_to(f"{project.scpca_id}/")
+                    zip_file.write(Library.get_local_file_path(file_path), output_path)
                 if download_config["modality"] == "SPATIAL":
                     for library in libraries:
                         file_path = Path(
@@ -482,12 +483,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     )
 
                     for file_path in library_data_file_paths:
-                        zip_file.write(
-                            Library.get_local_file_path(file_path),
-                            file_path.relative_to(
-                                f"{sample.project.scpca_id}/{','.join(sample.multiplexed_ids)}/"
-                            ),
+                        output_path = file_path.relative_to(
+                            f"{sample.project.scpca_id}/{','.join(sample.multiplexed_ids)}/"
                         )
+                        zip_file.write(Library.get_local_file_path(file_path), output_path)
 
                     if download_config["modality"] == "SPATIAL":
                         for library in libraries:
