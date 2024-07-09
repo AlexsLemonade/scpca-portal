@@ -196,34 +196,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return sorted(multiplexed_sample_ids)
 
     @property
-    def output_multiplexed_computed_file_name(self):
-        return f"{'_'.join(self.multiplexed_ids)}_multiplexed.zip"
-
-    @property
-    def output_single_cell_computed_file_name(self):
-        return f"{self.scpca_id}.zip"
-
-    @property
-    def output_single_cell_anndata_computed_file_name(self):
-        return f"{self.scpca_id}_anndata.zip"
-
-    @property
-    def output_spatial_computed_file_name(self):
-        return f"{self.scpca_id}_spatial.zip"
-
-    @property
-    def output_multiplexed_metadata_file_path(self):
-        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.MULTIPLEXED)
-
-    @property
-    def output_single_cell_metadata_file_path(self):
-        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SINGLE_CELL)
-
-    @property
-    def output_spatial_metadata_file_path(self):
-        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SPATIAL)
-
-    @property
     def multiplexed_computed_file(self):
         try:
             return self.sample_computed_files.get(
