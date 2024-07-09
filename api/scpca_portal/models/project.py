@@ -1192,6 +1192,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.save()
 
     def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
+        """
+        Return all of a project's file paths that are suitable for the passed download config.
+        """
         if download_config["includes_merged"]:
             omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
             omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"], None))
