@@ -207,11 +207,17 @@ class Library(TimestampedModel):
         return combined_metadatas
 
     def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
+        """
+        Return all of a library's file paths that are suitable for the passed download config.
+        """
         omit_suffixes = set()
-        # If download_config is for metadata_only download, then leave as empty set, else populate
+        # If metadata_only download, then leave omit suffixes as empty set, else populate
         if not download_config.get("metadata_only", False):
             omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
-            omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"]))
+            # If merged download, keep omit suffixes set full as no library data files are included
+            # If not, remove download config format from omit suffixes set
+            if not download_config.get("includes_merged", False):
+                omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"]))
 
         return [
             file_path
