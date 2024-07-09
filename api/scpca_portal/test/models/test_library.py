@@ -7,7 +7,7 @@ from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFa
 
 class TestGetProjectLibrariesFromDownloadConfig(TestCase):
     def setUp(self):
-        self.project = ProjectFactory()
+        self.project = ProjectFactory(has_multiplexed_data=True)
         self.library_single_cell_no_multiplexed = LibraryFactory(
             project=self.project, modality=Library.Modalities.SINGLE_CELL, is_multiplexed=False
         )
