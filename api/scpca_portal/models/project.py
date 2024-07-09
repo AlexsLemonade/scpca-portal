@@ -170,12 +170,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             "project_title": self.title,
         }
 
-    def add_project_metadata(self, sample_metadata):
-        """Adds project level metadata to the `sample_metadata`."""
-        sample_metadata["pi_name"] = self.pi_name
-        sample_metadata["project_title"] = self.title
-        sample_metadata["scpca_project_id"] = self.scpca_id
-
     def create_readmes(self) -> None:
         """
         Creates all possible readmes to be included later when archiving the desired computed file.
@@ -667,7 +661,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def handle_samples_metadata(self, sample_id=None):
         # Parses tsv sample metadata file, massages field names
-        samples_metadata = self.load_samples_metadata(sample_id)
+        samples_metadata = self.load_samples_metadata()
 
         # Parses json library metadata files, massages field names, calculates aggregate values
         updated_samples_metadata, libraries_metadata = self.load_libraries_metadata(
@@ -684,7 +678,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return combined_metadata
 
-    def load_samples_metadata(self, sample_id: str = None) -> List[Dict]:
+    def load_samples_metadata(self) -> List[Dict]:
         samples_metadata = metadata_file.load_samples_metadata(
             self.input_samples_metadata_file_path
         )
@@ -698,12 +692,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             # When this happens their corresponding sample folder will not exist.
             sample_path = Path(self.get_sample_input_data_dir(scpca_sample_id))
 
-            self.add_project_metadata(sample_metadata)
-
-            # TODO: This is a temporary fix until we get rid of `load_samples_metadata` imminently.
-            # Without popping this key, it will be written to the metadata file when
-            # `samples_metadata` (List[Dict]) is written (irrelevant of creation of Sample objects).
-            sample_metadata.pop("submitter")
             sample_metadata.update(
                 {
                     "has_bulk_rna_seq": scpca_sample_id in bulk_rna_seq_sample_ids,
@@ -715,7 +703,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 }
             )
 
-        Sample.bulk_create_from_dicts(samples_metadata, self, sample_id=sample_id)
+        Sample.bulk_create_from_dicts(samples_metadata, self)
 
         return samples_metadata
 

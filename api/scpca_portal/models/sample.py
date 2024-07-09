@@ -106,16 +106,10 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return sample
 
     @classmethod
-    def bulk_create_from_dicts(
-        cls, samples_metadata: List[Dict], project, sample_id: str = None
-    ) -> None:
+    def bulk_create_from_dicts(cls, samples_metadata: List[Dict], project) -> None:
         """Creates a list of sample objects from sample metadata libraries and then saves them."""
         samples = []
         for sample_metadata in samples_metadata:
-            scpca_sample_id = sample_metadata["scpca_sample_id"]
-            if sample_id and scpca_sample_id != sample_id:
-                continue
-
             samples.append(Sample.get_from_dict(sample_metadata, project))
 
         Sample.objects.bulk_create(samples)
