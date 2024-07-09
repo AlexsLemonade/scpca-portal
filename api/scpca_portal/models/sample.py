@@ -66,23 +66,30 @@ class Sample(CommonDataAttributes, TimestampedModel):
     def get_from_dict(cls, data, project):
         """Prepares ready for saving sample object."""
 
+        scpca_sample_id = data["scpca_sample_id"]
+        # Some samples will exist but their contents cannot be shared yet.
+        # When this happens their corresponding sample folder will not exist.
+        sample_path = common.INPUT_DATA_PATH / project.scpca_id / scpca_sample_id
+        bulk_rna_seq_sample_ids = project.get_bulk_rna_seq_sample_ids()
+        demux_sample_ids = project.get_demux_sample_ids()
+
         sample = cls(
             age_at_diagnosis=data["age_at_diagnosis"],
             demux_cell_count_estimate=(data.get("demux_cell_count_estimate", None)),
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],
-            has_bulk_rna_seq=data.get("has_bulk_rna_seq", False),
-            has_cite_seq_data=data.get("has_cite_seq_data", False),
-            has_multiplexed_data=data.get("has_multiplexed_data", False),
-            has_single_cell_data=data.get("has_single_cell_data", False),
-            has_spatial_data=data.get("has_spatial_data", False),
-            includes_anndata=data.get("includes_anndata", False),
+            has_bulk_rna_seq=(scpca_sample_id in bulk_rna_seq_sample_ids),
+            has_cite_seq_data=(any(sample_path.glob("*_adt.*"))),
+            has_multiplexed_data=(scpca_sample_id in demux_sample_ids),
+            has_single_cell_data=(any(sample_path.glob("*_metadata.json"))),
+            has_spatial_data=(any(sample_path.rglob("*_spatial/*_metadata.json"))),
+            includes_anndata=(any(sample_path.glob("*.h5ad"))),
             is_cell_line=utils.boolean_from_string(data.get("is_cell_line", False)),
             is_xenograft=utils.boolean_from_string(data.get("is_xenograft", False)),
             multiplexed_with=data.get("multiplexed_with", []),
             sample_cell_count_estimate=(data.get("sample_cell_count_estimate", None)),
             project=project,
-            scpca_id=data.get("scpca_sample_id"),
+            scpca_id=scpca_sample_id,
             seq_units=data.get("seq_units", ""),
             sex=data["sex"],
             subdiagnosis=data["subdiagnosis"],
@@ -142,6 +149,10 @@ class Sample(CommonDataAttributes, TimestampedModel):
         )
 
         return sample_metadata
+
+    def get_sample_input_data_dir(self, sample_scpca_id):
+        """Returns an input data directory based on a sample ID."""
+        return self.project.input_data_path / sample_scpca_id
 
     def get_lock_name(self, download_config: Dict) -> str:
         """Returns a unique lock name based on multiplexed status and download config"""

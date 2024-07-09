@@ -670,26 +670,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             self.input_samples_metadata_file_path
         )
 
-        bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
-        demux_sample_ids = self.get_demux_sample_ids()
-
-        for sample_metadata in samples_metadata:
-            scpca_sample_id = sample_metadata["scpca_sample_id"]
-            # Some samples will exist but their contents cannot be shared yet.
-            # When this happens their corresponding sample folder will not exist.
-            sample_path = Path(self.get_sample_input_data_dir(scpca_sample_id))
-
-            sample_metadata.update(
-                {
-                    "has_bulk_rna_seq": scpca_sample_id in bulk_rna_seq_sample_ids,
-                    "has_multiplexed_data": scpca_sample_id in demux_sample_ids,
-                    "has_cite_seq_data": any(sample_path.glob("*_adt.*")),
-                    "has_single_cell_data": any(sample_path.glob("*_metadata.json")),
-                    "has_spatial_data": any(sample_path.rglob("*_spatial/*_metadata.json")),
-                    "includes_anndata": any(sample_path.glob("*.h5ad")),
-                }
-            )
-
         Sample.bulk_create_from_dicts(samples_metadata, self)
 
         return samples_metadata
