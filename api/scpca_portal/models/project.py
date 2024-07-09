@@ -741,40 +741,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
                 if library_path in single_cell_metadata_paths:
                     if sample_id not in multiplexed_with_mapping:
-                        libraries_metadata[Sample.Modalities.SINGLE_CELL].append(library_metadata)
                         sample_cell_count_estimate += library_metadata["filtered_cell_count"]
-                    # Check first to see if previous multiplexed sample already added this library
-                    elif library_metadata not in libraries_metadata[Sample.Modalities.MULTIPLEXED]:
-                        libraries_metadata[Sample.Modalities.MULTIPLEXED].append(library_metadata)
-                elif library_path in spatial_metadata_paths:
-                    libraries_metadata[Sample.Modalities.SPATIAL].append(library_metadata)
 
                 sample_seq_units.add(library_metadata["seq_unit"].strip())
                 sample_technologies.add(library_metadata["technology"].strip())
-
-            # Update aggregate values
-            if updated_sample_metadata["has_multiplexed_data"]:
-                sample_seq_units = multiplexed_remaining_fields["sample_seq_units_mapping"].get(
-                    sample_id
-                )
-                sample_technologies = multiplexed_remaining_fields[
-                    "sample_technologies_mapping"
-                ].get(sample_id)
-                updated_sample_metadata["demux_cell_count_estimate"] = multiplexed_remaining_fields[
-                    "sample_demux_cell_counter"
-                ].get(sample_id)
-
-            updated_sample_metadata["sample_cell_count_estimate"] = sample_cell_count_estimate
-
-            updated_sample_metadata["multiplexed_with"] = sorted(
-                multiplexed_with_mapping.get(updated_sample_metadata["scpca_sample_id"], ())
-            )
-            updated_sample_metadata["seq_units"] = ", ".join(
-                sorted(sample_seq_units, key=str.lower)
-            )
-            updated_sample_metadata["technologies"] = ", ".join(
-                sorted(sample_technologies, key=str.lower)
-            )
 
             sample = Sample.objects.get(scpca_id=sample_id)
             Library.bulk_create_from_dicts(all_libraries_metadata, sample)
