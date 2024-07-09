@@ -130,4 +130,5 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
     with open(output_file_path, "w", newline="") as raw_file:
         csv_writer = csv.DictWriter(raw_file, **kwargs)
         csv_writer.writeheader()
+        # Make sure to use transformed dictionaries to write the file
         csv_writer.writerows(transform_metadata_dicts(sorted_list_of_dicts))

@@ -27,6 +27,9 @@ def boolean_from_string(value: str) -> bool:
 
 
 def string_from_list(value, delimiter=";"):
+    """
+    Returns a delimited string converted from a list.
+    """
     return delimiter.join(value) if isinstance(value, list) else value
 
 
