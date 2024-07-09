@@ -654,6 +654,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Parses json library metadata files, massages field names, calculates aggregate values
         self.load_libraries_metadata(samples_metadata)
 
+        self.update_sample_derived_properties()
+
         # Updates project properties that are derived from recently saved samples
         self.update_project_derived_properties()
 
@@ -715,7 +717,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample.multiplexed_with = sorted(
                 multiplexed_with_mapping.get(updated_sample_metadata["scpca_sample_id"], ())
             )
-            if sample.has_multiplexed_data:
+            if len(sample.multiplexed_with) > 0:
                 sample.demux_cell_count_estimate = multiplexed_remaining_fields[
                     "sample_demux_cell_counter"
                 ].get(sample_id)
@@ -805,6 +807,45 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         ProjectSummary.objects.filter(project=self).delete()
         self.delete()
+
+    def update_sample_derived_properties(self):
+        """
+        Updates sample properties that are derived from the querying of library data
+        after all samples have been processed.
+        """
+        self.update_sample_modality_properties()
+        self.update_sample_aggregate_properties()
+
+    def update_sample_modality_properties(self):
+        # Set modality flags based on a real data availability.
+        bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
+
+        for sample in self.samples.all():
+            sample.has_bulk_rna_seq = sample.scpca_id in bulk_rna_seq_sample_ids
+            sample.has_cite_seq_data = sample.libraries.filter(has_cite_seq_data=True).exists()
+            sample.has_multiplexed_data = sample.libraries.filter(is_multiplexed=True).exists()
+            sample.has_single_cell_data = sample.libraries.filter(
+                modality=Library.Modalities.SINGLE_CELL
+            ).exists()
+            sample.has_spatial_data = sample.libraries.filter(
+                modality=Library.Modalities.SPATIAL
+            ).exists()
+            sample.includes_anndata = sample.libraries.filter(
+                formats__contains=[Library.FileFormats.ANN_DATA]
+            ).exists()
+            sample.save(
+                update_fields=(
+                    "has_bulk_rna_seq",
+                    "has_cite_seq_data",
+                    "has_multiplexed_data",
+                    "has_single_cell_data",
+                    "has_spatial_data",
+                    "includes_anndata",
+                )
+            )
+
+    def update_sample_aggregate_properties(self):
+        pass
 
     def update_project_derived_properties(self):
         """

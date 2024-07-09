@@ -65,31 +65,17 @@ class Sample(CommonDataAttributes, TimestampedModel):
     @classmethod
     def get_from_dict(cls, data, project):
         """Prepares ready for saving sample object."""
-
-        scpca_sample_id = data["scpca_sample_id"]
-        # Some samples will exist but their contents cannot be shared yet.
-        # When this happens their corresponding sample folder will not exist.
-        sample_path = common.INPUT_DATA_PATH / project.scpca_id / scpca_sample_id
-        bulk_rna_seq_sample_ids = project.get_bulk_rna_seq_sample_ids()
-        demux_sample_ids = project.get_demux_sample_ids()
-
         sample = cls(
             age_at_diagnosis=data["age_at_diagnosis"],
             demux_cell_count_estimate=(data.get("demux_cell_count_estimate", None)),
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],
-            has_bulk_rna_seq=(scpca_sample_id in bulk_rna_seq_sample_ids),
-            has_cite_seq_data=(any(sample_path.glob("*_adt.*"))),
-            has_multiplexed_data=(scpca_sample_id in demux_sample_ids),
-            has_single_cell_data=(any(sample_path.glob("*_metadata.json"))),
-            has_spatial_data=(any(sample_path.rglob("*_spatial/*_metadata.json"))),
-            includes_anndata=(any(sample_path.glob("*.h5ad"))),
             is_cell_line=utils.boolean_from_string(data.get("is_cell_line", False)),
             is_xenograft=utils.boolean_from_string(data.get("is_xenograft", False)),
             multiplexed_with=data.get("multiplexed_with", []),
             sample_cell_count_estimate=(data.get("sample_cell_count_estimate", None)),
             project=project,
-            scpca_id=scpca_sample_id,
+            scpca_id=data["scpca_sample_id"],
             seq_units=data.get("seq_units", ""),
             sex=data["sex"],
             subdiagnosis=data["subdiagnosis"],
