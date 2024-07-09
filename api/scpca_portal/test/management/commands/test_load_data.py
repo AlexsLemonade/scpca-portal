@@ -176,9 +176,18 @@ class TestLoadData(TransactionTestCase):
         self.assertTrue(project.single_cell_merged_computed_file.includes_merged)
         self.assertTrue(project.single_cell_merged_computed_file.has_cite_seq_data)
 
-        project_zip_path = common.OUTPUT_DATA_PATH / project.output_merged_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": True,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(project_zip_path) as project_zip:
-            # There are 6 files (including subdirectory names):
+            # There are 8 files:
             # ├── README.md
             # ├── SCPCP999992_merged-summary-report.html
             # ├── SCPCP999992_merged.rds
@@ -192,8 +201,8 @@ class TestLoadData(TransactionTestCase):
             # └── single_cell_metadata.tsv
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 8)
-            self.assertIn("SCPCP999992_merged.rds", files)
-            self.assertNotIn("SCPCP999992_merged_adt.h5ad", files)
+            self.assertIn("merged/SCPCP999992_merged.rds", files)
+            self.assertNotIn("merged/SCPCP999992_merged_adt.h5ad", files)
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -202,8 +211,15 @@ class TestLoadData(TransactionTestCase):
         )
         self.assertTrue(project.single_cell_anndata_merged_computed_file.includes_merged)
         self.assertTrue(project.single_cell_anndata_merged_computed_file.has_cite_seq_data)
-        project_zip_path = (
-            common.OUTPUT_DATA_PATH / project.output_merged_anndata_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "ANN_DATA",
+            "excludes_multiplexed": True,
+            "includes_merged": True,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
         )
         with ZipFile(project_zip_path) as project_zip:
             # There are 7 files (including subdirectory names):
@@ -221,8 +237,8 @@ class TestLoadData(TransactionTestCase):
             # └── single_cell_metadata.tsv
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 9)
-            self.assertIn("SCPCP999992_merged_rna.h5ad", files)
-            self.assertIn("SCPCP999992_merged_adt.h5ad", files)
+            self.assertIn("merged/SCPCP999992_merged_rna.h5ad", files)
+            self.assertIn("merged/SCPCP999992_merged_adt.h5ad", files)
 
     def test_merged_project_anndata_no_cite_seq(self):
         project_id = "SCPCP999990"
