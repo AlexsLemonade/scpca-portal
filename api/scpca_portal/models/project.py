@@ -648,8 +648,14 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         self.create_readmes()
 
-        # TODO: extract sample and library object creation from handle_samples_metadata
-        self.handle_samples_metadata(sample_id)
+        # Parses tsv sample metadata file, massages field names
+        samples_metadata = self.load_samples_metadata()
+
+        # Parses json library metadata files, massages field names, calculates aggregate values
+        self.load_libraries_metadata(samples_metadata)
+
+        # Updates project properties that are derived from recently saved samples
+        self.update_project_derived_properties()
 
         Sample.create_computed_files(
             self, kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
@@ -658,25 +664,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.create_computed_files(
             kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
         )
-
-    def handle_samples_metadata(self, sample_id=None):
-        # Parses tsv sample metadata file, massages field names
-        samples_metadata = self.load_samples_metadata()
-
-        # Parses json library metadata files, massages field names, calculates aggregate values
-        updated_samples_metadata, libraries_metadata = self.load_libraries_metadata(
-            samples_metadata
-        )
-
-        # Combines samples and libraries metadata
-        combined_metadata = self.combine_metadata(
-            updated_samples_metadata, libraries_metadata, sample_id
-        )
-
-        # Updates project properties that are derived from recently saved samples
-        self.update_project_derived_properties()
-
-        return combined_metadata
 
     def load_samples_metadata(self) -> List[Dict]:
         samples_metadata = metadata_file.load_samples_metadata(
@@ -708,12 +695,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         return samples_metadata
 
     def load_libraries_metadata(self, samples_metadata: List[Dict]):
-        libraries_metadata = {
-            Sample.Modalities.SINGLE_CELL: [],
-            Sample.Modalities.SPATIAL: [],
-            Sample.Modalities.MULTIPLEXED: [],
-        }
-
         updated_samples_metadata = samples_metadata.copy()
         multiplexed_remaining_fields = self.get_multiplexed_aggregate_fields()
         multiplexed_with_mapping = self.get_multiplexed_with_mapping()
@@ -762,67 +743,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 sample.sample_cell_count_estimate = sample_cell_count_estimate
 
             sample.save()
-
-        return (updated_samples_metadata, libraries_metadata)
-
-    def combine_metadata(self, updated_samples_metadata, libraries_metadata, sample_id):
-        combined_metadata = {
-            Sample.Modalities.SINGLE_CELL: [],
-            Sample.Modalities.SPATIAL: [],
-            Sample.Modalities.MULTIPLEXED: [],
-        }
-
-        for modality in combined_metadata.keys():
-            if not libraries_metadata[modality]:
-                continue
-
-            modalities = {modality}
-            if modality is Sample.Modalities.SINGLE_CELL and self.has_cite_seq_data:
-                modalities.add(Sample.Modalities.CITE_SEQ)
-
-            sample_metadata_keys = self.get_sample_metadata_keys(
-                utils.get_keys_from_dicts(updated_samples_metadata), modalities=modalities
-            )
-            library_metadata_keys = self.get_library_metadata_keys(
-                utils.get_keys_from_dicts(libraries_metadata[modality]),
-                modalities=modalities,
-            )
-
-            unfiltered_samples_metadata = (
-                updated_samples_metadata
-                if modality is not Sample.Modalities.MULTIPLEXED
-                else self.get_multiplexed_samples_metadata(updated_samples_metadata, sample_id)
-            )
-            samples_metadata_filtered_keys = utils.filter_dict_list_by_keys(
-                unfiltered_samples_metadata, sample_metadata_keys
-            )
-            libraries_metadata_filtered_keys = utils.filter_dict_list_by_keys(
-                libraries_metadata[modality], library_metadata_keys
-            )
-            sample_libraries_mapping = self.get_sample_libraries_mapping(
-                libraries_metadata[modality]
-            )
-
-            # Combine metadata
-            for sample_metadata_filtered_keys in samples_metadata_filtered_keys:
-                scpca_sample_id = sample_metadata_filtered_keys["scpca_sample_id"]
-                if sample_id and scpca_sample_id != sample_id:
-                    continue
-
-                sample_libraries_metadata = (
-                    library
-                    for library in libraries_metadata_filtered_keys
-                    if library["scpca_library_id"]
-                    in sample_libraries_mapping.get(scpca_sample_id, set())
-                )
-
-                for sample_library_metadata in sample_libraries_metadata:
-                    sample_library_combined_metadata = (
-                        sample_library_metadata | sample_metadata_filtered_keys
-                    )
-                    combined_metadata[modality].append(sample_library_combined_metadata)
-
-        return combined_metadata
 
     def write_combined_metadata_libraries(self, combined_metadata: Dict[str, List[Dict]]) -> None:
         """
