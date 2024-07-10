@@ -654,6 +654,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Parses json library metadata files, massages field names, calculates aggregate values
         self.load_libraries_metadata(samples_metadata)
 
+        # Updates sample properties that are derived from recently saved libraries
         self.update_sample_derived_properties()
 
         # Updates project properties that are derived from recently saved samples
@@ -677,54 +678,16 @@ class Project(CommonDataAttributes, TimestampedModel):
         return samples_metadata
 
     def load_libraries_metadata(self, samples_metadata: List[Dict]):
-        updated_samples_metadata = samples_metadata.copy()
-        multiplexed_remaining_fields = self.get_multiplexed_aggregate_fields()
-        multiplexed_with_mapping = self.get_multiplexed_with_mapping()
-
-        for updated_sample_metadata in updated_samples_metadata:
-            sample_id = updated_sample_metadata["scpca_sample_id"]
-            sample_dir = self.get_sample_input_data_dir(
-                sample_id
-                if sample_id not in multiplexed_with_mapping
-                else ",".join(sorted({sample_id} | (multiplexed_with_mapping[sample_id])))
-            )
-            sample_cell_count_estimate = 0
-            sample_seq_units = set()
-            sample_technologies = set()
-
-            # Possible gotcha: single_cell_metadata_paths have both single cell & multiplexed paths
-            single_cell_metadata_paths = set(Path(sample_dir).glob("*_metadata.json"))
-            spatial_metadata_paths = set(Path(sample_dir).rglob("*_spatial/*_metadata.json"))
-            library_metadata_paths = list(single_cell_metadata_paths | spatial_metadata_paths)
-            all_libraries_metadata = []
-
-            for library_path in library_metadata_paths:
-                library_metadata = metadata_file.load_library_metadata(library_path)
-                all_libraries_metadata.append(library_metadata)
-
-                if library_path in single_cell_metadata_paths:
-                    if sample_id not in multiplexed_with_mapping:
-                        sample_cell_count_estimate += library_metadata["filtered_cell_count"]
-
-                sample_seq_units.add(library_metadata["seq_unit"].strip())
-                sample_technologies.add(library_metadata["technology"].strip())
-
-            sample = Sample.objects.get(scpca_id=sample_id)
-            Library.bulk_create_from_dicts(all_libraries_metadata, sample)
-
-            sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
-            sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
-            sample.multiplexed_with = sorted(
-                multiplexed_with_mapping.get(updated_sample_metadata["scpca_sample_id"], ())
-            )
-            if len(sample.multiplexed_with) > 0:
-                sample.demux_cell_count_estimate = multiplexed_remaining_fields[
-                    "sample_demux_cell_counter"
-                ].get(sample_id)
-            else:
-                sample.sample_cell_count_estimate = sample_cell_count_estimate
-
-            sample.save()
+        library_metadata_paths = set(Path(self.input_data_path).rglob("*_metadata.json"))
+        all_libraries_metadata = [
+            metadata_file.load_library_metadata(lib_path) for lib_path in library_metadata_paths
+        ]
+        for library_metadata in all_libraries_metadata:
+            # Multiplexed samples are represented in scpca_sample_id as comma separated lists
+            # This ensures that all samples with be related to the correct library
+            for sample_id in library_metadata["scpca_sample_id"].split(","):
+                sample = self.samples.get(scpca_id=sample_id)
+                Library.bulk_create_from_dicts([library_metadata], sample)
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
@@ -784,7 +747,32 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
 
     def update_sample_aggregate_properties(self):
-        pass
+        for sample in self.samples.all():
+            sample_cell_count_estimate = 0
+            sample_seq_units = set()
+            sample_technologies = set()
+
+            for library in sample.libraries.all():
+                if library.modality == Library.Modalities.SINGLE_CELL:
+                    if not library.is_multiplexed:
+                        sample_cell_count_estimate += library.metadata.get("filtered_cell_count")
+
+                sample_seq_units.add(library.metadata["seq_unit"].strip())
+                sample_technologies.add(library.metadata["technology"].strip())
+
+            sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
+            sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
+
+            if multiplexed_library := sample.libraries.filter(is_multiplexed=True).first():
+                multiplexed_ids = set(s.scpca_id for s in multiplexed_library.samples.all())
+                sample.multiplexed_with = sorted(multiplexed_ids.difference({sample.scpca_id}))
+                sample.demux_cell_count_estimate = multiplexed_library.metadata[
+                    "sample_cell_estimates"
+                ].get(sample.scpca_id)
+            else:
+                sample.sample_cell_count_estimate = sample_cell_count_estimate
+
+            sample.save()
 
     def update_project_derived_properties(self):
         """
