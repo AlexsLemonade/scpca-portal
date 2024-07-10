@@ -726,67 +726,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             sample.save()
 
-    def write_combined_metadata_libraries(self, combined_metadata: Dict[str, List[Dict]]) -> None:
-        """
-        Takes all combined_metadata as lists of libraries (accessed by modality),
-        and writes them to tsv files, beginning at the sample level,
-        and concluding at the project level. If a project or sample has multiple modalities
-        then multiple tsv files will be written as each modality is processed.
-        """
-
-        # Pre-calculate mapping to be used for multiplexed samples
-        multiplexed_with_mapping = self.get_multiplexed_with_mapping()
-
-        for modality in combined_metadata.keys():
-            if not combined_metadata[modality]:
-                continue
-
-            # Write metadata to files by sample
-            combined_metadata_by_sample = self.get_combined_metadata_by_sample(
-                combined_metadata[modality]
-            )
-            for sample_id in combined_metadata_by_sample.keys():
-                sample_libraries = combined_metadata_by_sample[sample_id].copy()
-
-                if modality == Sample.Modalities.MULTIPLEXED:
-                    sample_libraries.extend(
-                        self.get_multiplexed_with_combined_metadata(
-                            sample_id,
-                            multiplexed_with_mapping,
-                            combined_metadata_by_sample,
-                        )
-                    )
-
-                sample_metadata_path = Sample.get_output_metadata_file_path(sample_id, modality)
-                metadata_file.write_metadata_dicts(
-                    sample_libraries,
-                    sample_metadata_path,
-                )
-
-            # Write project metadata to file
-            if modality == Sample.Modalities.MULTIPLEXED:
-                # Add non-multiplexed samples metadata to project metadata file
-                combined_metadata[Sample.Modalities.MULTIPLEXED].extend(
-                    combined_metadata[Sample.Modalities.SINGLE_CELL]
-                )
-
-            project_metadata_path = f"output_{modality.lower()}_metadata_file_path"
-            metadata_file.write_metadata_dicts(
-                combined_metadata[modality], getattr(self, project_metadata_path)
-            )
-
-        single_cell_combined_metadata = (
-            combined_metadata[Sample.Modalities.MULTIPLEXED]
-            # If a project has Multiplexed data, then it will be unioned with Single Cell above
-            if combined_metadata[Sample.Modalities.MULTIPLEXED]
-            else combined_metadata[Sample.Modalities.SINGLE_CELL]
-        )
-
-        project_metadata = (
-            single_cell_combined_metadata + combined_metadata[Sample.Modalities.SPATIAL]
-        )
-        metadata_file.write_metadata_dicts(project_metadata, self.output_all_metadata_file_path)
-
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""
         for sample in self.samples.all():
