@@ -402,18 +402,16 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def load_data(self, sample_id: str = None, **kwargs) -> None:
         """
-        Goes through a project directory's contents, parses multiple level metadata
-        files, writes combined metadata into resulting files.
-
-        Returns a list of project's computed files.
+        Loads sample and library metadata files, creates Sample and Library objects,
+        and archives Project and Sample computed files.
         """
         self.create_readmes()
 
         # Parses tsv sample metadata file, massages field names
-        samples_metadata = self.load_samples_metadata()
+        self.load_samples()
 
         # Parses json library metadata files, massages field names, calculates aggregate values
-        self.load_libraries_metadata(samples_metadata)
+        self.load_libraries()
 
         # Updates sample properties that are derived from recently saved libraries
         self.update_sample_derived_properties()
@@ -429,16 +427,14 @@ class Project(CommonDataAttributes, TimestampedModel):
             kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
         )
 
-    def load_samples_metadata(self) -> List[Dict]:
+    def load_samples(self) -> List[Dict]:
         samples_metadata = metadata_file.load_samples_metadata(
             self.input_samples_metadata_file_path
         )
 
         Sample.bulk_create_from_dicts(samples_metadata, self)
 
-        return samples_metadata
-
-    def load_libraries_metadata(self, samples_metadata: List[Dict]):
+    def load_libraries(self):
         library_metadata_paths = set(Path(self.input_data_path).rglob("*_metadata.json"))
         all_libraries_metadata = [
             metadata_file.load_library_metadata(lib_path) for lib_path in library_metadata_paths
@@ -480,11 +476,13 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.update_sample_aggregate_properties()
 
     def update_sample_modality_properties(self):
+        """
+        Updates sample modality properties,
+        derived from the existence of a certain attribute within a collection of Libraries.
+        """
         # Set modality flags based on a real data availability.
-        bulk_rna_seq_sample_ids = self.get_bulk_rna_seq_sample_ids()
-
         for sample in self.samples.all():
-            sample.has_bulk_rna_seq = sample.scpca_id in bulk_rna_seq_sample_ids
+            sample.has_bulk_rna_seq = sample.scpca_id in self.get_bulk_rna_seq_sample_ids()
             sample.has_cite_seq_data = sample.libraries.filter(has_cite_seq_data=True).exists()
             sample.has_multiplexed_data = sample.libraries.filter(is_multiplexed=True).exists()
             sample.has_single_cell_data = sample.libraries.filter(
@@ -508,6 +506,10 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
 
     def update_sample_aggregate_properties(self):
+        """
+        The Sample model caches aggregated library metadata.
+        We need to update these after libraries are added/deleted.
+        """
         for sample in self.samples.all():
             sample_cell_count_estimate = 0
             sample_seq_units = set()
