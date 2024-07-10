@@ -364,8 +364,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Prepares ready for saving project computed files based on generated file mappings."""
 
         def on_get_project_file(future):
-            computed_file = future.result()
-            if computed_file:
+            if computed_file := future.result():
                 computed_file.process_computed_file(clean_up_output_data, update_s3)
 
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
