@@ -136,10 +136,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample_metadata
 
-    def get_sample_input_data_dir(self, sample_scpca_id):
-        """Returns an input data directory based on a sample ID."""
-        return self.project.input_data_path / sample_scpca_id
-
     def get_lock_name(self, download_config: Dict) -> str:
         """Returns a unique lock name based on multiplexed status and download config"""
         lock_prefix = (
