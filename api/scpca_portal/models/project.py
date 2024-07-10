@@ -407,16 +407,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         self.create_readmes()
 
-        # Parses tsv sample metadata file, massages field names
         self.load_samples()
-
-        # Parses json library metadata files, massages field names, calculates aggregate values
         self.load_libraries()
 
-        # Updates sample properties that are derived from recently saved libraries
         self.update_sample_derived_properties()
-
-        # Updates project properties that are derived from recently saved samples
         self.update_project_derived_properties()
 
         Sample.create_computed_files(
@@ -428,6 +422,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
     def load_samples(self) -> List[Dict]:
+        """
+        Parses sample metadata csv and creates Sample objects
+        """
         samples_metadata = metadata_file.load_samples_metadata(
             self.input_samples_metadata_file_path
         )
@@ -435,6 +432,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         Sample.bulk_create_from_dicts(samples_metadata, self)
 
     def load_libraries(self):
+        """
+        Parses library metadata json files and creates Library objects
+        """
         library_metadata_paths = set(Path(self.input_data_path).rglob("*_metadata.json"))
         all_libraries_metadata = [
             metadata_file.load_library_metadata(lib_path) for lib_path in library_metadata_paths
