@@ -29,6 +29,12 @@ class TestStringFromList(TestCase):
 
         self.assertEqual(actual_result, expected_result)
 
+    def test_ignores_nonlist(self):
+        items = ["abc", 123, None, {"a": 1, "b": 2, "c": 3}]
+        actual_result = [utils.string_from_list(item) for item in items]
+
+        self.assertEqual(actual_result, items)
+
 
 class TestJoinWorkflowVersions(TestCase):
     def test_join_duplicate_values(self):
