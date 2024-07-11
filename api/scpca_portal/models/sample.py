@@ -147,6 +147,14 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample_metadata
 
+    def get_config_identifier(self, download_config: Dict) -> str:
+        """
+        Returns a unique identifier for the sample and download config combination.
+        Multiplexed samples are not considered unique as they share the same output.
+        """
+        ids = [self.scpca_id] if not self.has_multiplexed_data else self.multiplexed_ids
+        return "_".join(ids + sorted(download_config.values()))
+
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
         return {
@@ -191,10 +199,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return f"{'_'.join(self.multiplexed_ids)}_multiplexed.zip"
 
     @property
-    def output_multiplexed_metadata_file_path(self):
-        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.MULTIPLEXED)
-
-    @property
     def output_single_cell_computed_file_name(self):
         return f"{self.scpca_id}.zip"
 
@@ -203,12 +207,16 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return f"{self.scpca_id}_anndata.zip"
 
     @property
-    def output_single_cell_metadata_file_path(self):
-        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SINGLE_CELL)
-
-    @property
     def output_spatial_computed_file_name(self):
         return f"{self.scpca_id}_spatial.zip"
+
+    @property
+    def output_multiplexed_metadata_file_path(self):
+        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.MULTIPLEXED)
+
+    @property
+    def output_single_cell_metadata_file_path(self):
+        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SINGLE_CELL)
 
     @property
     def output_spatial_metadata_file_path(self):
@@ -264,6 +272,51 @@ class Sample(CommonDataAttributes, TimestampedModel):
         if self.includes_anndata:
             file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
         return file_formats
+
+    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+        """
+        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
+        and returns the string as a unique zip file name.
+        """
+        name_segments = [self.scpca_id, download_config["modality"], download_config["format"]]
+        if self.has_multiplexed_data:
+            name_segments.append("MULTIPLEXED")
+
+        return f"{'_'.join(name_segments)}.zip"
+
+    def create_computed_files(
+        self,
+        project,
+        max_workers=8,  # 8 = 2 file formats * 4 mappings.
+        clean_up_output_data=True,
+        update_s3=False,
+    ):
+        """Prepares ready for saving project computed files based on generated file mappings."""
+
+        def on_get_sample_file(future):
+            if computed_file := future.result():
+                computed_file.process_computed_file(clean_up_output_data, update_s3)
+
+        samples = Sample.objects.filter(project__scpca_id=project.scpca_id)
+        logger.info(
+            f"Processing {len(samples)} sample{pluralize(len(samples))} using "
+            f"{max_workers} worker{pluralize(max_workers)}"
+        )
+
+        # Prepare a threading.Lock for each sample, with the chief purpose being to protect
+        # multiplexed samples that shares a zip file.
+        locks = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
+            for sample in samples:
+                for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+                    sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
+                    tasks.submit(
+                        ComputedFile.get_sample_file,
+                        self,
+                        config,
+                        self.get_download_config_file_output_name(config),
+                        sample_lock,
+                    ).add_done_callback(on_get_sample_file)
 
     @staticmethod
     def create_sample_computed_files(

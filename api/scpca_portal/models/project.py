@@ -111,10 +111,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         return f"{self.scpca_id}_all_metadata.zip"
 
     @property
-    def output_all_metadata_file_path(self):
-        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_all_metadata.tsv"
-
-    @property
     def output_merged_computed_file_name(self):
         return f"{self.scpca_id}_merged.zip"
 
@@ -127,10 +123,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         return f"{self.scpca_id}_multiplexed.zip"
 
     @property
-    def output_multiplexed_metadata_file_path(self):
-        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_multiplexed_metadata.tsv"
-
-    @property
     def output_single_cell_computed_file_name(self):
         return f"{self.scpca_id}.zip"
 
@@ -139,12 +131,20 @@ class Project(CommonDataAttributes, TimestampedModel):
         return f"{self.scpca_id}_anndata.zip"
 
     @property
-    def output_single_cell_metadata_file_path(self):
-        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_libraries_metadata.tsv"
-
-    @property
     def output_spatial_computed_file_name(self):
         return f"{self.scpca_id}_spatial.zip"
+
+    @property
+    def output_all_metadata_file_path(self):
+        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_all_metadata.tsv"
+
+    @property
+    def output_multiplexed_metadata_file_path(self):
+        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_multiplexed_metadata.tsv"
+
+    @property
+    def output_single_cell_metadata_file_path(self):
+        return common.OUTPUT_DATA_PATH / f"{self.scpca_id}_libraries_metadata.tsv"
 
     @property
     def output_spatial_metadata_file_path(self):
@@ -337,6 +337,46 @@ class Project(CommonDataAttributes, TimestampedModel):
                     },
                 ).strip()
             )
+
+    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+        """
+        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
+        and returns the string as a unique zip file name.
+        """
+        if download_config.get("metadata_only", False):
+            return f"{self.scpca_id}_ALL_METADATA.zip"
+
+        name_segments = [self.scpca_id, download_config["modality"], download_config["format"]]
+        if download_config.get("includes_merged", False):
+            name_segments.append("MERGED")
+
+        if self.has_multiplexed_data and not download_config.get("excludes_multiplexed", False):
+            name_segments.append("MULTIPLEXED")
+
+        return f"{'_'.join(name_segments)}.zip"
+
+    def create_computed_files(
+        self,
+        max_workers=8,  # 8 = 2 file formats * 4 mappings.
+        clean_up_output_data=True,
+        update_s3=False,
+    ):
+        """Prepares ready for saving project computed files based on generated file mappings."""
+
+        def on_get_project_file(future):
+            if computed_file := future.result():
+                computed_file.process_computed_file(clean_up_output_data, update_s3)
+
+        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
+            for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+                tasks.submit(
+                    ComputedFile.get_project_file,
+                    self,
+                    download_config,
+                    self.get_download_config_file_output_name(download_config),
+                ).add_done_callback(on_get_project_file)
+
+        self.update_downloadable_sample_count()
 
     def create_project_computed_files(
         self,
