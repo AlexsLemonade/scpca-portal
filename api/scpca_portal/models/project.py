@@ -384,6 +384,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         Return all of a project's file paths that are suitable for the passed download config.
         """
+        # Spatial samples do not have bulk or merged project files
+        if download_config["modality"] == Library.Modalities.SPATIAL:
+            return []
+
         if download_config["includes_merged"]:
             omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
             omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"], None))

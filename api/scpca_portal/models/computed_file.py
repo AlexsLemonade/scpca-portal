@@ -196,8 +196,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     zip_file.write(Library.get_local_file_path(file_path), output_path)
 
                 for file_path in project_data_file_paths:
-                    if "bulk" in file_path.name and download_config["modality"] == "SPATIAL":
-                        continue
                     output_path = file_path.relative_to(f"{project.scpca_id}/")
                     zip_file.write(Library.get_local_file_path(file_path), output_path)
                 if download_config["modality"] == "SPATIAL":
