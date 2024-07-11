@@ -190,12 +190,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 for file_path in library_data_file_paths:
                     zip_file.write(
                         Library.get_local_file_path(file_path),
-                        Library.get_zip_file_path(file_path, file_path.parts[0]),
+                        Library.get_zip_file_path(file_path, download_config),
                     )
                 for file_path in project_data_file_paths:
                     zip_file.write(
                         Library.get_local_file_path(file_path),
-                        Library.get_zip_file_path(file_path, file_path.parts[0]),
+                        Library.get_zip_file_path(file_path, download_config),
                     )
                 if download_config["modality"] == "SPATIAL":
                     for library in libraries:
@@ -285,7 +285,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     for file_path in library_data_file_paths:
                         zip_file.write(
                             Library.get_local_file_path(file_path),
-                            Library.get_zip_file_path(file_path, file_path.parts[0:1]),
+                            Library.get_zip_file_path(file_path, download_config),
                         )
 
                     if download_config["modality"] == "SPATIAL":
