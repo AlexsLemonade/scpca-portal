@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("scpca_portal", "0048_alter_computedfile_includes_merged"),
+        ("scpca_portal", "0047_library_project"),
     ]
 
     operations = [

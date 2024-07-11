@@ -84,8 +84,8 @@ class TestGetProjectLibrariesFromDownloadConfig(TestCase):
         download_config = {
             "modality": None,
             "format": None,
-            "excludes_multiplexed": None,
-            "includes_merged": None,
+            "excludes_multiplexed": False,
+            "includes_merged": False,
             "metadata_only": True,
         }
         result = Library.get_project_libraries_from_download_config(self.project, download_config)
