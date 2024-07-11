@@ -237,7 +237,7 @@ class Library(TimestampedModel):
         path_parts = [Path(path) for path in file_path.parts]
 
         # Project output paths are relative to project directory
-        if "metadata_only" in download_config:
+        if download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
             output_path = file_path.relative_to(path_parts[0])
         # Sample output paths are relative to project and sample directories
         else:
