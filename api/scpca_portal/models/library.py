@@ -230,3 +230,10 @@ class Library(TimestampedModel):
     @staticmethod
     def get_local_file_path(file_path: Path):
         return common.INPUT_DATA_PATH / file_path
+
+    @staticmethod
+    def get_zip_file_path(file_path: Path, relative_path_parts: List[Path]) -> Path:
+        # we don't want the file nested in the project directory
+        output_path = file_path.relative_to(Path.joinpath(*relative_path_parts))
+        # With multiplexed sample comma separated lists should become underscore separated
+        return Path(str(output_path).replace(",", "_"))

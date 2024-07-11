@@ -188,16 +188,15 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
             if not download_config.get("metadata_only", False):
                 for file_path in library_data_file_paths:
-                    output_path = file_path.relative_to(f"{project.scpca_id}/")
-                    # Swap delimiter in multiplexed sample libraries from comma to underscore
-                    if "," in file_path.parent.name:
-                        new_delimiter_dir = Path("_".join(file_path.parent.name.split(",")))
-                        output_path = new_delimiter_dir / file_path.name
-                    zip_file.write(Library.get_local_file_path(file_path), output_path)
-
+                    zip_file.write(
+                        Library.get_local_file_path(file_path),
+                        Library.get_zip_file_path(file_path, file_path.parts[0]),
+                    )
                 for file_path in project_data_file_paths:
-                    output_path = file_path.relative_to(f"{project.scpca_id}/")
-                    zip_file.write(Library.get_local_file_path(file_path), output_path)
+                    zip_file.write(
+                        Library.get_local_file_path(file_path),
+                        Library.get_zip_file_path(file_path, file_path.parts[0]),
+                    )
                 if download_config["modality"] == "SPATIAL":
                     for library in libraries:
                         file_path = Path(
@@ -284,10 +283,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     )
 
                     for file_path in library_data_file_paths:
-                        output_path = file_path.relative_to(
-                            f"{sample.project.scpca_id}/{','.join(sample.multiplexed_ids)}/"
+                        zip_file.write(
+                            Library.get_local_file_path(file_path),
+                            Library.get_zip_file_path(file_path, file_path.parts[0:1]),
                         )
-                        zip_file.write(Library.get_local_file_path(file_path), output_path)
 
                     if download_config["modality"] == "SPATIAL":
                         for library in libraries:
