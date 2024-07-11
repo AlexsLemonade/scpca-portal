@@ -131,19 +131,19 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def get_readme_from_download_config(cls, download_config: Dict):
         match download_config:
             case {"metadata_only": True}:
-                return cls.README_METADATA_PATH
+                return ComputedFile.README_METADATA_PATH
             case {"excludes_multiplexed": False}:
-                return cls.README_MULTIPLEXED_FILE_PATH
+                return ComputedFile.README_MULTIPLEXED_FILE_PATH
             case {"format": "ANN_DATA", "includes_merged": True}:
-                return cls.README_ANNDATA_MERGED_FILE_PATH
+                return ComputedFile.README_ANNDATA_MERGED_FILE_PATH
             case {"modality": "SINGLE_CELL", "includes_merged": True}:
-                return cls.README_SINGLE_CELL_MERGED_FILE_PATH
+                return ComputedFile.README_SINGLE_CELL_MERGED_FILE_PATH
             case {"format": "ANN_DATA"}:
-                return cls.README_ANNDATA_FILE_PATH
+                return ComputedFile.README_ANNDATA_FILE_PATH
             case {"modality": "SINGLE_CELL"}:
-                return cls.README_SINGLE_CELL_FILE_PATH
+                return ComputedFile.README_SINGLE_CELL_FILE_PATH
             case {"modality": "SPATIAL"}:
-                return cls.README_SPATIAL_FILE_PATH
+                return ComputedFile.README_SPATIAL_FILE_PATH
 
     @classmethod
     def get_project_file(cls, project, download_config: Dict, computed_file_name: str) -> Self:
@@ -174,7 +174,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Readme file
             zip_file.write(
                 ComputedFile.get_readme_from_download_config(download_config),
-                cls.OUTPUT_README_FILE_NAME,
+                ComputedFile.OUTPUT_README_FILE_NAME,
             )
             # Metadata file
             output_file_constant = (
@@ -183,7 +183,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 else "METADATA_ONLY_FILE_NAME"
             )
             zip_file.write(
-                local_metadata_path, getattr(cls.MetadataFilenames, output_file_constant)
+                local_metadata_path, getattr(ComputedFile.MetadataFilenames, output_file_constant)
             )
 
             if not download_config.get("metadata_only", False):
@@ -270,14 +270,14 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     # Readme file
                     zip_file.write(
                         ComputedFile.get_readme_from_download_config(download_config),
-                        cls.OUTPUT_README_FILE_NAME,
+                        ComputedFile.OUTPUT_README_FILE_NAME,
                     )
 
                     # Metadata file
                     zip_file.write(
                         local_metadata_path,
                         getattr(
-                            cls.MetadataFilenames,
+                            ComputedFile.MetadataFilenames,
                             f'{download_config["modality"]}_METADATA_FILE_NAME',
                         ),
                     )
