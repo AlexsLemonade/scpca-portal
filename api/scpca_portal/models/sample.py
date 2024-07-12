@@ -67,7 +67,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         """Prepares ready for saving sample object."""
         sample = cls(
             age_at_diagnosis=data["age_at_diagnosis"],
-            demux_cell_count_estimate=(data.get("demux_cell_count_estimate", None)),
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],
             is_cell_line=utils.boolean_from_string(data.get("is_cell_line", False)),
