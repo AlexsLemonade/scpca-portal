@@ -451,7 +451,7 @@ class TestLoadData(TransactionTestCase):
             "total_reads",
             "mapped_reads",
             "sample_cell_count_estimate",  # with non-multiplexed
-            "sample_cell_estimates",
+            "sample_cell_estimate",
             "unfiltered_cells",
             "filtered_cell_count",  # with non-multiplexed
             "processed_cells",
@@ -601,7 +601,7 @@ class TestLoadData(TransactionTestCase):
             "demux_samples",
             "total_reads",
             "mapped_reads",
-            "sample_cell_estimates",
+            "sample_cell_estimate",
             "unfiltered_cells",
             "filtered_cell_count",  # with non-multiplexed
             "processed_cells",

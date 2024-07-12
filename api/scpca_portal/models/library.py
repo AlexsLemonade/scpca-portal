@@ -179,6 +179,8 @@ class Library(TimestampedModel):
         excluded_metadata_attributes = {
             "scpca_sample_id",
             "has_citeseq",
+            # for multiplexed samples, this is handled at the sample level
+            "sample_cell_estimates",
         }
 
         library_metadata.update(
@@ -202,7 +204,7 @@ class Library(TimestampedModel):
             if self.modality == Library.Modalities.SPATIAL or self.is_multiplexed:
                 del metadata["sample_cell_count_estimate"]
             if not self.is_multiplexed:
-                del metadata["sample_cell_estimates"]
+                del metadata["sample_cell_estimate"]
 
             combined_metadatas.append(metadata)
 
