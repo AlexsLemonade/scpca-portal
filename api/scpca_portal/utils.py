@@ -1,7 +1,7 @@
 """Misc utils."""
 
 from datetime import datetime
-from typing import Any, Dict, List, Set, Union
+from typing import Any, Dict, List, Set
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -26,7 +26,7 @@ def boolean_from_string(value: str) -> bool:
     return value.lower() in ("t", "true")
 
 
-def string_from_list(value: Union[List[Any], Any], delimiter=";") -> Union[str, Any]:
+def string_from_list(value: Any, delimiter=";") -> Any:
     """
     Returns a delimited string converted from a list. Otherwise returns value.
     """
