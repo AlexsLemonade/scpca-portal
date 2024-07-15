@@ -404,7 +404,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             if file_path.parent.name != "merged"
         ]
 
-    def load_data(self, sample_id: str = None, **kwargs) -> None:
+    def load_data(self, **kwargs) -> None:
         """
         Loads sample and library metadata files, creates Sample and Library objects,
         and archives Project and Sample computed files.

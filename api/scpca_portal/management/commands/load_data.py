@@ -89,18 +89,9 @@ class Command(BaseCommand):
             subprocess.check_call(command.split())
 
     @staticmethod
-    def download_data(bucket_name, scpca_project_id=None, scpca_sample_id=None):
+    def download_data(bucket_name, scpca_project_id=None):
         command_list = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
-        if scpca_sample_id:
-            command_list.extend(
-                (
-                    "--exclude=*",  # Must precede include patterns.
-                    "--include=project_metadata.csv",
-                    f"--include=merged/{scpca_project_id}*",
-                    f"--include={scpca_project_id}/{scpca_sample_id}*",
-                )
-            )
-        elif scpca_project_id:
+        if scpca_project_id:
             command_list.extend(
                 (
                     "--exclude=*",  # Must precede include patterns.
@@ -132,7 +123,6 @@ class Command(BaseCommand):
         parser.add_argument("--s3-max-concurrent-requests", type=int, default=10)
         parser.add_argument("--s3-multipart-chunk-size", type=int, default=8, help="In MB")
         parser.add_argument("--scpca-project-id", type=str)
-        parser.add_argument("--scpca-sample-id", type=str)
         parser.add_argument("--skip-sync", action="store_true", default=False)
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
@@ -162,12 +152,9 @@ class Command(BaseCommand):
 
         allowed_submitters = allowed_submitters or ALLOWED_SUBMITTERS
         project_id = kwargs.get("scpca_project_id")
-        sample_id = kwargs.get("scpca_sample_id")
 
         if not kwargs.get("skip_sync"):
-            self.download_data(
-                input_bucket_name, scpca_project_id=project_id, scpca_sample_id=sample_id
-            )
+            self.download_data(input_bucket_name, scpca_project_id=project_id)
 
         project_samples_mapping = {
             project_path.name: set((sd.name for sd in project_path.iterdir() if sd.is_dir()))
@@ -211,7 +198,7 @@ class Command(BaseCommand):
             ExternalAccession.bulk_create_from_project_data(project_data, project)
             Publication.bulk_create_from_project_data(project_data, project)
 
-            project.load_data(sample_id=sample_id, **kwargs)
+            project.load_data(**kwargs)
             if samples_count := project.samples.count():
                 logger.info(
                     f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'"
