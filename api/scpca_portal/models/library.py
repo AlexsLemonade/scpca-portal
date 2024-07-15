@@ -219,8 +219,8 @@ class Library(TimestampedModel):
         omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
 
         if not download_config.get("includes_merged", False):
-            requested_format = common.FORMAT_EXTENSIONS.get(download_config["format"])
-            omit_suffixes.remove(requested_format)
+            requested_suffix = common.FORMAT_EXTENSIONS.get(download_config["format"])
+            omit_suffixes.remove(requested_suffix)
 
         return [
             file_path

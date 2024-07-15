@@ -388,20 +388,20 @@ class Project(CommonDataAttributes, TimestampedModel):
         if download_config["modality"] == Library.Modalities.SPATIAL:
             return []
 
+        data_file_path_objects = [Path(fp) for fp in self.data_file_paths]
+
         if download_config["includes_merged"]:
             omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
             omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"], None))
 
             return [
                 file_path
-                for file_path in [Path(fp) for fp in self.data_file_paths]
+                for file_path in data_file_path_objects
                 if file_path.suffix not in omit_suffixes
             ]
 
         return [
-            file_path
-            for file_path in [Path(fp) for fp in self.data_file_paths]
-            if file_path.parent.name != "merged"
+            file_path for file_path in data_file_path_objects if file_path.parent.name != "merged"
         ]
 
     def load_data(self, **kwargs) -> None:

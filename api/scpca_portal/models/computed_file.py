@@ -121,7 +121,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @staticmethod
     def get_local_sample_metadata_path(sample, download_config: Dict) -> Path:
-        file_name_parts = ["_".join(sample.multiplexed_ids)]
+        file_name_parts = sample.multiplexed_ids
         file_name_parts.extend(
             [download_config["modality"], download_config["format"], "METADATA.tsv"]
         )
@@ -216,7 +216,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file = cls(
             has_bulk_rna_seq=(
-                download_config["modality"] == "SINGLE_CELL" and project.has_bulk_rna_seq
+                download_config["modality"] == Library.Modalities.SINGLE_CELL
+                and project.has_bulk_rna_seq
             ),
             has_cite_seq_data=project.has_cite_seq_data,
             has_multiplexed_data=libraries.filter(is_multiplexed=True).exists(),
