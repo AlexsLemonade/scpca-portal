@@ -8,6 +8,6 @@
 {% endfor %}
 {% else %}
 {% if additional_terms %}
-{{ additional_terms }}
+{{ additional_terms }}.
 {% endif %}
 {% endif %}
