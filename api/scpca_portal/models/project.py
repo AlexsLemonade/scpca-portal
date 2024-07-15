@@ -435,13 +435,16 @@ class Project(CommonDataAttributes, TimestampedModel):
         return bulk_rna_seq_sample_ids
 
     def get_additional_terms(self):
+        """Returns addtional terms readme content."""
         if not self.additional_restrictions:
             return ""
 
-        with open(
-            common.TEMPLATE_PATH / "readme/additional_terms/research_academic_only.md"
-        ) as additional_terms_file:
-            return additional_terms_file.read()
+        return render_to_string(
+            common.TEMPLATE_PATH / "readme/additional_terms/research_academic_only.md",
+            context={
+                "additional_terms": self.additional_restrictions,
+            },
+        )
 
     def get_demux_sample_ids(self) -> Set:
         """Returns a set of all demuxed sample ids used in the project's multiplexed samples."""
