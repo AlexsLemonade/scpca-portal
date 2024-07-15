@@ -293,9 +293,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
-                        # This list of included projects will need to be built differently
-                        # when the time comes to handle multiple projects at the same time
-                        "included_projects": [(self.scpca_id, self.url)],
+                        "projects": [self],
                     },
                 ).strip()
             )

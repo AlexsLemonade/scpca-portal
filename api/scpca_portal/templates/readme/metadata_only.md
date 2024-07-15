@@ -6,11 +6,11 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-{% if included_projects|length > 1 %}
+{% if projects|length > 0 %}
 This download includes associated metadata for samples from all projects currently available at time of download in the ScPCA portal.
 {% else %}
-{% for project_accession, project_url in included_projects %}
-This download includes associated metadata for samples from project [{{ project_accession }}]({{ project_url }}) in the ScPCA portal.
+{% for project in projects %}
+This download includes associated metadata for samples from project [{{ project.scpca_id }}]({{ project.url }}) in the ScPCA portal.
 {% endfor %}
 {% endif %}
 
@@ -37,8 +37,8 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-{% for project_accession, project_url in included_projects %}
-To cite data from {{ project_accession }}, please see the project abstract and publication information at [{{ project_accession }} page.]({{ project_url }})
+{% for project in projects %}
+To cite data from {{ project.scpca_id }}, please see the project abstract and publication information at [{{ project.scpca_id }} page.]({{ project.url }})
 {% endfor %}
 
 ### Citing the ScPCA Portal
