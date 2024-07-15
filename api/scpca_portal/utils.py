@@ -156,7 +156,7 @@ def list_s3_paths(
 
     # bucket_path may contain nested keys, we want to omit these in returned paths
     bucket_keys = Path().joinpath(*bucket_path.parts[1:])
-    # recursive returns an absolutely path, as such need to remove bucket prefix
+    # recursive returns an absolute path, so we need to remove the bucket prefix before returning
     if recursive:
         return [Path(entry.file_path).relative_to(bucket_keys) for entry in bucket_entries]
     # non recursive already returns a relative path
