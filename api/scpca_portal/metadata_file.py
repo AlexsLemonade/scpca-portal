@@ -76,14 +76,6 @@ def load_library_metadata(metadata_file_path: Path):
         return transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
 
 
-def format_metadata_dict(metadata_dict: Dict) -> Dict:
-    """
-    Returns a copy of transformed dict after converting its value to a joined string from the list.
-    Otherwise returns metadata_dict.
-    """
-    return {k: utils.string_from_list(v) for k, v in metadata_dict.items()}
-
-
 def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
     """
     Transforms keys in inputted data dict according to inputted key transforms tuple list.
@@ -93,6 +85,13 @@ def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
             data_dict[element.new_key] = data_dict.pop(element.old_key, element.default_value)
 
     return data_dict
+
+
+def format_metadata_dict(metadata_dict: Dict) -> Dict:
+    """
+    Returns a copy of metadata dict that is formatted and ready to be written to file.
+    """
+    return {k: utils.string_from_list(v) for k, v in metadata_dict.items()}
 
 
 def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
@@ -120,5 +119,5 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
         csv_writer = csv.DictWriter(raw_file, **kwargs)
         csv_writer.writeheader()
         # Make sure to format metadata values when writing each row
-        for d in sorted_list_of_dicts:
-            csv_writer.writerow(format_metadata_dict(d))
+        for metadata_dict in sorted_list_of_dicts:
+            csv_writer.writerow(format_metadata_dict(metadata_dict))
