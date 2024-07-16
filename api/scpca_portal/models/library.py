@@ -243,5 +243,9 @@ class Library(TimestampedModel):
         else:
             output_path = file_path.relative_to(path_parts[0] / path_parts[1])
 
+        # Transform merged project data files to no longer be nested in a merged directory
+        if file_path.parent.name == "merged":
+            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
+
         # Comma separated lists of multiplexed samples should become underscore separated
         return Path(str(output_path).replace(",", "_"))
