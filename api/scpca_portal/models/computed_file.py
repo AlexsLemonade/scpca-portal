@@ -382,18 +382,15 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             )
 
     def upload_s3_file(self):
-        """Uploads the computed file to S3 using AWS CLI tool."""
+        """Upload a computed file to S3 using the AWS CLI tool."""
+
+        aws_path = f"s3://{settings.AWS_S3_BUCKET_NAME}/{self.s3_key}"
+        command_parts = ["aws", "s3", "cp", str(self.zip_file_path), aws_path]
 
         logger.info(f"Uploading {self}")
-        subprocess.check_call(
-            (
-                "aws",
-                "s3",
-                "cp",
-                str(self.zip_file_path),
-                f"s3://{settings.AWS_S3_BUCKET_NAME}/{self.s3_key}",
-            )
-        )
+        subprocess.check_call(command_parts)
+        # When computed file has been sent to S3 to be uploaded, save to db
+        self.save()
 
     def delete_s3_file(self, force=False):
         # If we're not running in the cloud then we shouldn't try to
@@ -412,6 +409,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return False
 
         return True
+
+    def clean_up_local_computed_file(self):
+        """Delete local computed file."""
+        self.zip_file_path.unlink(missing_ok=True)
 
     def process_computed_file(self, clean_up_output_data, update_s3):
         """Processes saving, upload and cleanup of a single computed file."""
