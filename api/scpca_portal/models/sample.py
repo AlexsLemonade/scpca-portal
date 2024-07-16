@@ -135,12 +135,13 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample_metadata
 
-    def get_lock_name(self, download_config: Dict) -> str:
-        """Returns a unique lock name based on multiplexed status and download config"""
-        lock_prefix = (
-            self.scpca_id if not self.has_multiplexed_data else "_".join(self.multiplexed_ids)
-        )
-        return f'{lock_prefix}-{download_config["modality"]}-{download_config["format"]}'
+    def get_config_identifier(self, download_config: Dict) -> str:
+        """
+        Returns a unique identifier for the sample and download config combination.
+        Multiplexed samples are not considered unique as they share the same output.
+        """
+        ids = [self.scpca_id] if not self.has_multiplexed_data else self.multiplexed_ids
+        return "_".join(ids + sorted(download_config.values()))
 
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
@@ -274,7 +275,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for sample in samples:
                 for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
-                    sample_lock = locks.setdefault(sample.get_lock_name(config), Lock())
+                    sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
                     tasks.submit(
                         ComputedFile.get_sample_file,
                         sample,

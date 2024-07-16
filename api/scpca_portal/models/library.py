@@ -109,11 +109,11 @@ class Library(TimestampedModel):
         if Library.get_modality_from_file_paths(file_paths) is Library.Modalities.SPATIAL:
             return [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
 
-        format_extensions_swapped = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
+        extensions_format = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
         formats = set(
-            format_extensions_swapped[path.suffix]
+            extensions_format[path.suffix]
             for path in file_paths
-            if path.suffix in format_extensions_swapped
+            if path.suffix in extensions_format
         )
         return list(formats)
 
