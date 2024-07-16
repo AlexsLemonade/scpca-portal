@@ -96,7 +96,6 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
         "fieldnames", utils.get_sorted_field_names(utils.get_keys_from_dicts(list_of_dicts))
     )
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
-    kwargs["restval"] = kwargs.get("restval", "NA")
 
     sorted_list_of_dicts = sorted(
         list_of_dicts,
