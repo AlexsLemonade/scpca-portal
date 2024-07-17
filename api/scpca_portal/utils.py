@@ -124,8 +124,13 @@ def list_s3_paths(
     In order to create a standard API, where `entry.file_path` could be accessed
     irrespective of the entry type, we've created two named tuples which follow the return format
     of each of the bucket entry types.
+
+    If recursive is set to True then an absolute path will be generated,
+    in which case the bucket prefix should be removed before returning.
+    When recursive is set to False then a relative path is generated
+    and no further action is needed.
     """
-    root_path = Path().joinpath(*bucket_path.parts, *relative_path.parts)
+    root_path = Path(*bucket_path.parts, *relative_path.parts)
     command_inputs = ["aws", "s3", "ls", f"s3://{root_path}"]
 
     if recursive:
@@ -154,11 +159,11 @@ def list_s3_paths(
         else:
             bucket_entries.append(BucketObjectEntry._make(line.split()))
 
-    # bucket_path may contain nested keys, we want to omit these in returned paths
-    bucket_keys = Path().joinpath(*bucket_path.parts[1:])
-    # recursive returns an absolute path, so we need to remove the bucket prefix before returning
+    file_paths = [Path(entry.file_path) for entry in bucket_entries]
+
+    # recursive returns an absolute path (see docstring)
     if recursive:
-        return [Path(entry.file_path).relative_to(bucket_keys) for entry in bucket_entries]
-    # non recursive already returns a relative path
-    else:
-        return [Path(entry.file_path) for entry in bucket_entries]
+        bucket_keys = Path(*bucket_path.parts[1:])
+        return [entry.relative_to(bucket_keys) for entry in file_paths]
+
+    return file_paths
