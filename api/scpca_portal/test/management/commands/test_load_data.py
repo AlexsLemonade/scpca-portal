@@ -222,7 +222,7 @@ class TestLoadData(TransactionTestCase):
             download_config
         )
         with ZipFile(project_zip_path) as project_zip:
-            # There are 7 files (including subdirectory names):
+            # There are 9 files:
             # ├── README.md
             # ├── SCPCP999992_merged-summary-report.html
             # ├── SCPCP999992_merged_adt.h5ad
@@ -278,7 +278,7 @@ class TestLoadData(TransactionTestCase):
             download_config
         )
         with ZipFile(project_zip_path) as project_zip:
-            # There are 8 files (including subdirectory names):
+            # There are 10 files:
             # ├── README.md
             # ├── SCPCP999990_merged-summary-report.html
             # ├── SCPCP999990_merged.rds
@@ -315,7 +315,7 @@ class TestLoadData(TransactionTestCase):
             download_config
         )
         with ZipFile(project_zip_path) as project_zip:
-            # There are 8 files (including subdirectory names):
+            # There are 10 files:
             # ├── README.md
             # ├── SCPCP999990_merged-summary-report.html
             # ├── SCPCP999990_merged_rna.h5ad
@@ -505,7 +505,7 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_project_keys)
 
-        # There are 14 files (including subdirectory names):
+        # There are 12 files:
         # ├── README.md
         # ├── SCPCS999990
         # │   ├── SCPCL999990_celltype-report.html
@@ -790,7 +790,7 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 14 files (including subdirectory names):
+        # There are 14 files:
         # ├── README.md
         # ├── SCPCS999990
         # │   ├── SCPCL999990_celltype-report.html
