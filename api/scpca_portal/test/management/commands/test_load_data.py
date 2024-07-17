@@ -1026,24 +1026,25 @@ class TestLoadData(TransactionTestCase):
 
         # There are 16 files:
         # ├── README.md
-        # ├── SCPCL999991_spatial
-        # │   ├── SCPCL999991_metadata.json
-        # │   ├── SCPCL999991_spaceranger_summary.html
-        # │   ├── filtered_feature_bc_matrix
-        # │   │   ├── barcodes.tsv.gz
-        # │   │   ├── features.tsv.gz
-        # │   │   └── matrix.mtx.gz
-        # │   ├── raw_feature_bc_matrix
-        # │   │   ├── barcodes.tsv.gz
-        # │   │   ├── features.tsv.gz
-        # │   │   └── matrix.mtx.gz
-        # │   └── spatial
-        # │       ├── aligned_fiducials.jpg
-        # │       ├── detected_tissue_image.jpg
-        # │       ├── scalefactors_json.json
-        # │       ├── tissue_hires_image.png
-        # │       ├── tissue_lowres_image.png
-        # │       └── tissue_positions_list.csv
+        # ├── SCPCS999991
+        # │   └── SCPCL999991_spatial
+        # │       ├── SCPCL999991_metadata.json
+        # │       ├── SCPCL999991_spaceranger-summary.html
+        # │       ├── filtered_feature_bc_matrix
+        # │       │   ├── barcodes.tsv.gz
+        # │       │   ├── features.tsv.gz
+        # │       │   └── matrix.mtx.gz
+        # │       ├── raw_feature_bc_matrix
+        # │       │   ├── barcodes.tsv.gz
+        # │       │   ├── features.tsv.gz
+        # │       │   └── matrix.mtx.gz
+        # │       └── spatial
+        # │           ├── aligned_fiducials.jpg
+        # │           ├── detected_tissue_image.jpg
+        # │           ├── scalefactors_json.json
+        # │           ├── tissue_hires_image.png
+        # │           ├── tissue_lowres_image.png
+        # │           └── tissue_positions_list.csv
         # └── spatial_metadata.tsv
         self.assertEqual(len(project_zip.namelist()), 16)
 
