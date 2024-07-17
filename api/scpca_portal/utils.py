@@ -116,7 +116,8 @@ def list_s3_paths(
 ):
     """
     Queries a path on an inputted s3 bucket
-    and returns bucket's existing content as a list of Path objects.
+    and returns bucket's existing content as a list of Path objects,
+    relative to (without) the bucket prefix.
 
     The `aws s3 ls <bucket>` command returns a list of two types of entries:
     - Bucket Object Entries
@@ -125,7 +126,7 @@ def list_s3_paths(
     irrespective of the entry type, we've created two named tuples which follow the return format
     of each of the bucket entry types.
     """
-    root_path = Path().joinpath(*bucket_path.parts, *relative_path.parts)
+    root_path = Path(*bucket_path.parts, *relative_path.parts)
     command_inputs = ["aws", "s3", "ls", f"s3://{root_path}"]
 
     if recursive:
@@ -154,6 +155,11 @@ def list_s3_paths(
         else:
             bucket_entries.append(BucketObjectEntry._make(line.split()))
 
-    # bucket_path may contain nested keys, we want to omit these in returned paths
-    bucket_keys = Path().joinpath(*bucket_path.parts[1:])
-    return [Path(entry.file_path).relative_to(bucket_keys) for entry in bucket_entries]
+    file_paths = [Path(entry.file_path) for entry in bucket_entries]
+
+    # recursive returns an absolute path (see docstring)
+    if recursive:
+        bucket_keys = Path(*bucket_path.parts[1:])
+        return [entry.relative_to(bucket_keys) for entry in file_paths]
+
+    return file_paths
