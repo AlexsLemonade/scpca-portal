@@ -16,6 +16,7 @@ from scpca_portal.models import Contact, ExternalAccession, Project, Publication
 
 ALLOWED_SUBMITTERS = {
     "christensen",
+    "collins",
     "dyer_chen",
     "gawad",
     "green_mulcahy_levy",
