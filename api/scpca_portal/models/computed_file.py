@@ -409,15 +409,3 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def clean_up_local_computed_file(self):
         """Delete local computed file."""
         self.zip_file_path.unlink(missing_ok=True)
-
-    def process_computed_file(self, clean_up_output_data, update_s3):
-        """Processes saving, upload and cleanup of a single computed file."""
-        self.save()
-        if update_s3:
-            self.upload_s3_file()
-
-        # Don't clean up multiplexed sample zips until the project is done
-        is_multiplexed_sample = self.sample and self.sample.has_multiplexed_data
-
-        if clean_up_output_data and not is_multiplexed_sample:
-            self.zip_file_path.unlink(missing_ok=True)
