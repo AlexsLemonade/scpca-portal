@@ -140,8 +140,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         Returns a unique identifier for the sample and download config combination.
         Multiplexed samples are not considered unique as they share the same output.
         """
-        ids = [self.scpca_id] if not self.has_multiplexed_data else self.multiplexed_ids
-        return "_".join(ids + sorted(download_config.values()))
+        return "_".join(self.multiplexed_ids + sorted(download_config.values()))
 
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
