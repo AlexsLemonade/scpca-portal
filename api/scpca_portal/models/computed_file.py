@@ -235,8 +235,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             ),
         )
 
-        computed_file.save()
-
         return computed_file
 
     @classmethod
@@ -322,8 +320,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 library.workflow_version for library in libraries
             ),
         )
-
-        computed_file.save()
 
         return computed_file
 

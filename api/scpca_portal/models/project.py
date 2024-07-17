@@ -329,6 +329,8 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         def on_get_project_file(future):
             if computed_file := future.result():
+                computed_file.save()
+
                 if update_s3:
                     computed_file.upload_s3_file()
                 if clean_up_output_data:
