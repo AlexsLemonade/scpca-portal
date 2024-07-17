@@ -22,11 +22,11 @@ TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
 INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else "scpca-portal-inputs"
 
 TAB = "\t"
+NA = "NA"  # "Not Available"
 
 IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
 
-# common.py
 # Formats
 ANN_DATA = "ANN_DATA"
 SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"

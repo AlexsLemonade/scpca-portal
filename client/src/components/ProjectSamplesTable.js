@@ -171,8 +171,8 @@ export const ProjectSamplesTable = ({
     { Header: 'Sequencing Units', accessor: 'seq_units' },
     { Header: 'Technology', accessor: 'technologies' },
     {
-      Header: 'Other Modalities',
-      accessor: ({ modalities }) => modalities.join(', ') || 'N/A'
+      Header: 'Modalities',
+      accessor: ({ modalities }) => ['Single-cell', ...modalities].join(', ')
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
