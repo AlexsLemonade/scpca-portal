@@ -5,7 +5,7 @@ from typing import Dict
 from zipfile import ZipFile
 
 from django.conf import settings
-from django.db import connection, models
+from django.db import models
 
 import boto3
 from botocore.client import Config
@@ -108,23 +108,42 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             f"computed file ({self.size_in_bytes}B)"
         )
 
+    @staticmethod
+    def get_local_project_metadata_path(project, download_config: Dict) -> Path:
+        file_name_parts = [project.scpca_id]
+        if not download_config["metadata_only"]:
+            file_name_parts.extend([download_config["modality"], download_config["format"]])
+            if project.has_multiplexed_data and not download_config["excludes_multiplexed"]:
+                file_name_parts.append("MULTIPLEXED")
+        file_name_parts.append("METADATA.tsv")
+
+        return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
+
+    @staticmethod
+    def get_local_sample_metadata_path(sample, download_config: Dict) -> Path:
+        file_name_parts = sample.multiplexed_ids
+        file_name_parts.extend(
+            [download_config["modality"], download_config["format"], "METADATA.tsv"]
+        )
+        return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
+
     @classmethod
     def get_readme_from_download_config(cls, download_config: Dict):
         match download_config:
             case {"metadata_only": True}:
-                return cls.README_METADATA_PATH
+                return ComputedFile.README_METADATA_PATH
             case {"excludes_multiplexed": False}:
-                return cls.README_MULTIPLEXED_FILE_PATH
+                return ComputedFile.README_MULTIPLEXED_FILE_PATH
             case {"format": "ANN_DATA", "includes_merged": True}:
-                return cls.README_ANNDATA_MERGED_FILE_PATH
+                return ComputedFile.README_ANNDATA_MERGED_FILE_PATH
             case {"modality": "SINGLE_CELL", "includes_merged": True}:
-                return cls.README_SINGLE_CELL_MERGED_FILE_PATH
+                return ComputedFile.README_SINGLE_CELL_MERGED_FILE_PATH
             case {"format": "ANN_DATA"}:
-                return cls.README_ANNDATA_FILE_PATH
+                return ComputedFile.README_ANNDATA_FILE_PATH
             case {"modality": "SINGLE_CELL"}:
-                return cls.README_SINGLE_CELL_FILE_PATH
+                return ComputedFile.README_SINGLE_CELL_FILE_PATH
             case {"modality": "SPATIAL"}:
-                return cls.README_SPATIAL_FILE_PATH
+                return ComputedFile.README_SPATIAL_FILE_PATH
 
     @classmethod
     def get_project_file(cls, project, download_config: Dict, computed_file_name: str) -> Self:
@@ -138,17 +157,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         # If the query return empty, then an error occurred, and we should abort early
         if not libraries.exists():
             return
+
         libraries_metadata = [
             lib for library in libraries for lib in library.get_combined_library_metadata()
         ]
-        metadata_path_var = (
-            f'{download_config["modality"]}_METADATA_FILE_NAME'
-            if not download_config["metadata_only"]
-            else "METADATA_ONLY_FILE_NAME"
-        )
-        metadata_file.write_metadata_dicts(
-            libraries_metadata, getattr(cls.MetadataFilenames, metadata_path_var)
-        )
+        local_metadata_path = ComputedFile.get_local_project_metadata_path(project, download_config)
+        metadata_file.write_metadata_dicts(libraries_metadata, local_metadata_path)
 
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
@@ -160,23 +174,54 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Readme file
             zip_file.write(
                 ComputedFile.get_readme_from_download_config(download_config),
-                cls.OUTPUT_README_FILE_NAME,
+                ComputedFile.OUTPUT_README_FILE_NAME,
             )
             # Metadata file
-            zip_file.write(getattr(cls.MetadataFilenames, metadata_path_var))
+            output_file_constant = (
+                f'{download_config["modality"]}_METADATA_FILE_NAME'
+                if not download_config["metadata_only"]
+                else "METADATA_ONLY_FILE_NAME"
+            )
+            zip_file.write(
+                local_metadata_path, getattr(ComputedFile.MetadataFilenames, output_file_constant)
+            )
 
             if not download_config.get("metadata_only", False):
                 for file_path in library_data_file_paths:
-                    zip_file.write(file_path)
-
+                    zip_file.write(
+                        Library.get_local_file_path(file_path),
+                        Library.get_zip_file_path(file_path, download_config),
+                    )
                 for file_path in project_data_file_paths:
-                    zip_file.write(file_path)
+                    zip_file.write(
+                        Library.get_local_file_path(file_path),
+                        Library.get_zip_file_path(file_path, download_config),
+                    )
+                if download_config["modality"] == "SPATIAL":
+                    for library in libraries:
+                        file_path = Path(
+                            "/".join(
+                                [
+                                    project.scpca_id,
+                                    library.samples.first().scpca_id,
+                                    f"{library.scpca_id}_spatial",
+                                    f"{library.scpca_id}_metadata.json",
+                                ]
+                            )
+                        )
+                        zip_file.write(
+                            Library.get_local_file_path(file_path),
+                            file_path.relative_to(f"{project.scpca_id}/"),
+                        )
 
         computed_file = cls(
-            has_bulk_rna_seq=project.has_bulk_rna_seq,
+            has_bulk_rna_seq=(
+                download_config["modality"] == Library.Modalities.SINGLE_CELL
+                and project.has_bulk_rna_seq
+            ),
             has_cite_seq_data=project.has_cite_seq_data,
-            has_multiplexed=libraries.filter(is_multiplexed=True).exists(),
-            format=download_config.get("file_format"),
+            has_multiplexed_data=libraries.filter(is_multiplexed=True).exists(),
+            format=download_config.get("format"),
             includes_celltype_report=project.samples.filter(is_cell_line=False).exists(),
             includes_merged=download_config.get("includes_merged"),
             modality=download_config.get("modality"),
@@ -195,223 +240,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_project_merged_file(
-        cls, project, sample_to_file_mapping, workflow_versions, file_format
-    ):
-        """Prepares a ready for saving single data file of project's merged data."""
-
-        project_file_mapping = {
-            project.input_merged_summary_report_file_path: (
-                f"{project.scpca_id}_merged-summary-report.html"
-            ),
-        }
-
-        if file_format == cls.OutputFileFormats.ANN_DATA:
-            if not project.includes_merged_anndata:
-                return None
-            computed_file_name = project.output_merged_anndata_computed_file_name
-            readme_file_path = ComputedFile.README_ANNDATA_MERGED_FILE_PATH
-            project_file_mapping[
-                f"{project.input_merged_data_path}/{project.scpca_id}_merged_rna.h5ad"
-            ] = f"{project.scpca_id}_merged_rna.h5ad"
-
-            if project.has_cite_seq_data:
-                project_file_mapping[
-                    f"{project.input_merged_data_path}/{project.scpca_id}_merged_adt.h5ad"
-                ] = f"{project.scpca_id}_merged_adt.h5ad"
-        else:
-            if not project.includes_merged_sce:
-                return None
-            computed_file_name = project.output_merged_computed_file_name
-            readme_file_path = ComputedFile.README_SINGLE_CELL_MERGED_FILE_PATH
-
-            project_file_mapping[
-                f"{project.input_merged_data_path}/{project.scpca_id}_merged.rds"
-            ] = f"{project.scpca_id}_merged.rds"
-
-        computed_file = cls(
-            format=file_format,
-            includes_merged=True,
-            modality=cls.OutputFileModalities.SINGLE_CELL,
-            project=project,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=computed_file_name,
-            workflow_version=utils.join_workflow_versions(workflow_versions),
-        )
-
-        project_file_mapping[readme_file_path] = ComputedFile.OUTPUT_README_FILE_NAME
-        project_file_mapping[
-            project.output_single_cell_metadata_file_path
-        ] = computed_file.metadata_file_name
-
-        if project.has_bulk_rna_seq:
-            project_file_mapping[project.input_bulk_metadata_file_path] = "bulk_metadata.tsv"
-            project_file_mapping[project.input_bulk_quant_file_path] = "bulk_quant.tsv"
-
-        sample_file_suffixes = {
-            "celltype-report.html",
-            "qc.html",
-        }
-
-        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            for src, dst in project_file_mapping.items():
-                zip_file.write(src, dst)
-
-            for sample_id, file_paths in sample_to_file_mapping.items():
-                for file_path in file_paths:
-                    if str(file_path).split("_")[-1] not in sample_file_suffixes:
-                        continue
-                    # Nest these under their sample id.
-                    zip_file.write(file_path, Path("individual_reports", sample_id, file_path.name))
-
-        computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
-        computed_file.has_cite_seq_data = project.has_cite_seq_data
-        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
-
-        return computed_file
-
-    @classmethod
-    def get_project_metadata_file(cls, project, workflow_versions):
-        """Prepares a ready for saving single data file of project's metadata only download."""
-
-        computed_file = cls(
-            format=None,
-            metadata_only=True,
-            modality=None,
-            project=project,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=project.output_all_metadata_computed_file_name,
-            workflow_version=utils.join_workflow_versions(workflow_versions),
-        )
-
-        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(ComputedFile.README_METADATA_PATH, ComputedFile.OUTPUT_README_FILE_NAME)
-            zip_file.write(project.output_all_metadata_file_path, computed_file.metadata_file_name)
-
-        computed_file.has_bulk_rna_seq = False
-        computed_file.has_cite_seq_data = False
-        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
-
-        return computed_file
-
-    @classmethod
-    def get_project_multiplexed_file(
-        cls, project, sample_to_file_mapping, workflow_versions, file_format
-    ):
-        """Prepares a ready for saving single data file of project's combined multiplexed data."""
-
-        computed_file = cls(
-            format=file_format,
-            modality=cls.OutputFileModalities.SINGLE_CELL,
-            project=project,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=project.output_multiplexed_computed_file_name,
-            workflow_version=utils.join_workflow_versions(workflow_versions),
-        )
-
-        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(
-                ComputedFile.README_MULTIPLEXED_FILE_PATH,
-                ComputedFile.OUTPUT_README_FILE_NAME,
-            )
-            zip_file.write(
-                project.output_multiplexed_metadata_file_path, computed_file.metadata_file_name
-            )
-
-            for sample_id, file_paths in sample_to_file_mapping.items():
-                for file_path in file_paths:
-                    # Nest these under their sample id.
-                    zip_file.write(file_path, Path(sample_id, file_path.name))
-
-            if project.has_bulk_rna_seq:
-                zip_file.write(project.input_bulk_metadata_file_path, "bulk_metadata.tsv")
-                zip_file.write(project.input_bulk_quant_file_path, "bulk_quant.tsv")
-
-        computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
-        computed_file.has_cite_seq_data = project.has_cite_seq_data
-        computed_file.has_multiplexed_data = project.has_multiplexed_data
-        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
-        computed_file.includes_celltype_report = project.samples.filter(is_cell_line=False).exists()
-
-        return computed_file
-
-    @classmethod
-    def get_project_single_cell_file(
-        cls, project, sample_to_file_mapping, workflow_versions, file_format
-    ):
-        """Prepares a ready for saving single data file of project's combined single cell data."""
-
-        if file_format == cls.OutputFileFormats.ANN_DATA:
-            computed_file_name = project.output_single_cell_anndata_computed_file_name
-            readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
-        else:
-            computed_file_name = project.output_single_cell_computed_file_name
-            readme_file_path = ComputedFile.README_SINGLE_CELL_FILE_PATH
-
-        computed_file = cls(
-            format=file_format,
-            modality=cls.OutputFileModalities.SINGLE_CELL,
-            project=project,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=computed_file_name,
-            workflow_version=utils.join_workflow_versions(workflow_versions),
-        )
-
-        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(readme_file_path, ComputedFile.OUTPUT_README_FILE_NAME)
-            zip_file.write(
-                project.output_single_cell_metadata_file_path, computed_file.metadata_file_name
-            )
-
-            for sample_id, file_paths in sample_to_file_mapping.items():
-                for file_path in file_paths:
-                    # Nest these under their sample id.
-                    zip_file.write(file_path, Path(sample_id, file_path.name))
-
-            if project.has_bulk_rna_seq:
-                zip_file.write(project.input_bulk_metadata_file_path, "bulk_metadata.tsv")
-                zip_file.write(project.input_bulk_quant_file_path, "bulk_quant.tsv")
-
-        computed_file.has_bulk_rna_seq = project.has_bulk_rna_seq
-        computed_file.has_cite_seq_data = project.has_cite_seq_data
-        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
-
-        return computed_file
-
-    @classmethod
-    def get_project_spatial_file(
-        cls, project, sample_to_file_mapping, workflow_versions, file_format
-    ):
-        """Prepares a ready for saving single data file of project's combined spatial data."""
-
-        computed_file = cls(
-            format=file_format,
-            modality=cls.OutputFileModalities.SPATIAL,
-            project=project,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=project.output_spatial_computed_file_name,
-            workflow_version=utils.join_workflow_versions(workflow_versions),
-        )
-
-        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(
-                ComputedFile.README_SPATIAL_FILE_PATH,
-                ComputedFile.OUTPUT_README_FILE_NAME,
-            )
-            zip_file.write(
-                project.output_spatial_metadata_file_path, computed_file.metadata_file_name
-            )
-
-            for sample_id, file_paths in sample_to_file_mapping.items():
-                sample_path = project.get_sample_input_data_dir(sample_id)
-                for file_path in file_paths:
-                    zip_file.write(file_path, Path(file_path).relative_to(sample_path))
-
-        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
-
-        return computed_file
-
-    @classmethod
     def get_sample_file(
         cls, sample, download_config: Dict, computed_file_name: str, lock: Lock
     ) -> Self:
@@ -421,20 +249,16 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computes a zip archive with library data, metadata and readme files, and
         creates a ComputedFile object which it then saves to the db.
         """
-        libraries = sample.libraries.filter(
-            modality=download_config["modality"],
-            formats__contains=download_config["format"],
-        )
+        libraries = Library.get_sample_libraries_from_download_config(sample, download_config)
         # If the query return empty, then an error occurred, and we should abort early
         if not libraries.exists():
             return
+
         libraries_metadata = [
             lib for library in libraries for lib in library.get_combined_library_metadata()
         ]
-        metadata_file.write_metadata_dicts(
-            libraries_metadata,
-            getattr(cls.MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME'),
-        )
+        local_metadata_path = ComputedFile.get_local_sample_metadata_path(sample, download_config)
+        metadata_file.write_metadata_dicts(libraries_metadata, local_metadata_path)
 
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
@@ -442,26 +266,52 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
         with lock:  # It should be removed later for a cleaner solution.
-            with ZipFile(zip_file_path, "w") as zip_file:
-                # Readme file
-                zip_file.write(
-                    ComputedFile.get_readme_from_download_config(download_config),
-                    cls.OUTPUT_README_FILE_NAME,
-                )
-                # Metadata file
-                zip_file.write(
-                    getattr(
-                        cls.MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME'
+            if not zip_file_path.exists():
+                with ZipFile(zip_file_path, "w") as zip_file:
+                    # Readme file
+                    zip_file.write(
+                        ComputedFile.get_readme_from_download_config(download_config),
+                        ComputedFile.OUTPUT_README_FILE_NAME,
                     )
-                )
 
-                for file_path in library_data_file_paths:
-                    zip_file.write(file_path)
+                    # Metadata file
+                    zip_file.write(
+                        local_metadata_path,
+                        getattr(
+                            ComputedFile.MetadataFilenames,
+                            f'{download_config["modality"]}_METADATA_FILE_NAME',
+                        ),
+                    )
+
+                    for file_path in library_data_file_paths:
+                        zip_file.write(
+                            Library.get_local_file_path(file_path),
+                            Library.get_zip_file_path(file_path, download_config),
+                        )
+
+                    if download_config["modality"] == "SPATIAL":
+                        for library in libraries:
+                            file_path = Path(
+                                "/".join(
+                                    [
+                                        sample.project.scpca_id,
+                                        sample.scpca_id,
+                                        f"{library.scpca_id}_spatial",
+                                        f"{library.scpca_id}_metadata.json",
+                                    ]
+                                )
+                            )
+                            zip_file.write(
+                                Library.get_local_file_path(file_path),
+                                file_path.relative_to(
+                                    f"{sample.project.scpca_id}/{sample.scpca_id}/"
+                                ),
+                            )
 
         computed_file = cls(
             has_cite_seq_data=sample.has_cite_seq_data,
-            has_multiplexed=libraries.filter(is_multiplexed=True).exists(),
-            format=download_config.get("file_format"),
+            has_multiplexed_data=libraries.filter(is_multiplexed=True).exists(),
+            format=download_config.get("format"),
             includes_celltype_report=(not sample.is_cell_line),
             modality=download_config.get("modality"),
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
@@ -476,200 +326,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computed_file.save()
 
         return computed_file
-
-    @classmethod
-    def get_sample_multiplexed_file(
-        cls, sample, libraries, library_path_mapping, workflow_versions, file_format, lock: Lock
-    ):
-        """
-        Prepares a ready for saving single data file of sample's combined multiplexed data.
-        Returns the data file and file mapping for a sample.
-        """
-        computed_file = cls(
-            format=file_format,
-            modality=cls.OutputFileModalities.SINGLE_CELL,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=sample.output_multiplexed_computed_file_name,
-            sample=sample,
-            workflow_version=utils.join_workflow_versions(workflow_versions),
-        )
-
-        # cell lines do not have celltype reports
-        includes_celltype_report = not sample.is_cell_line
-
-        file_name_path_mapping = {}
-        for library in libraries:
-            library_id = library["scpca_library_id"]
-            file_suffixes = ["filtered.rds", "processed.rds", "qc.html", "unfiltered.rds"]
-
-            if includes_celltype_report:
-                file_suffixes.append("celltype-report.html")
-
-            # TEMP: Currently there are no celltype-reports for multiplexed samples.
-            # TEMP: Part 1 of 2
-            includes_celltype_report = False
-
-            for file_suffix in file_suffixes:
-                file_name = f"{library_id}_{file_suffix}"
-                file_name_path_mapping[file_name] = Path(
-                    library_path_mapping[library_id], file_name
-                )
-
-                # TEMP: Currently there are no celltype-reports for multiplexed samples.
-                # TEMP: Part 2 of 2
-                # This prevents us from trying to copy over a report that does not exist.
-                # This is only here to prevent us from not catching an error of missing other files.
-                if (
-                    file_suffix == "celltype-report.html"
-                    and not file_name_path_mapping[file_name].exists()
-                ):
-                    del file_name_path_mapping[file_name]
-                else:
-                    includes_celltype_report = True
-
-        # This check does not function as expected when multiple threads
-        # check before the compilation is complete. Here we use a lock that
-        # is specific to all samples that share the same zip_file_path.
-        with lock:
-            if not computed_file.zip_file_path.exists():
-                with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-                    zip_file.write(
-                        ComputedFile.README_MULTIPLEXED_FILE_PATH,
-                        ComputedFile.OUTPUT_README_FILE_NAME,
-                    )
-                    zip_file.write(
-                        sample.output_multiplexed_metadata_file_path,
-                        ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
-                    )
-                    for file_name, file_path in file_name_path_mapping.items():
-                        zip_file.write(file_path, file_name)
-
-        computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
-        computed_file.has_cite_seq_data = sample.has_cite_seq_data
-        computed_file.has_multiplexed_data = sample.has_multiplexed_data
-        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
-        computed_file.includes_celltype_report = includes_celltype_report
-
-        return computed_file, {"_".join(sample.multiplexed_ids): file_name_path_mapping.values()}
-
-    @classmethod
-    def get_sample_single_cell_file(cls, sample, libraries, workflow_versions, file_format):
-        """
-        Prepares a ready for saving single data file of sample's combined single cell data.
-        Returns the data file and file mapping for a sample.
-        """
-        is_anndata_file_format = file_format == cls.OutputFileFormats.ANN_DATA
-        # cell lines do not have celltype reports
-        includes_celltype_report = not sample.is_cell_line
-
-        if is_anndata_file_format:
-            file_name = sample.output_single_cell_anndata_computed_file_name
-            readme_file_path = ComputedFile.README_ANNDATA_FILE_PATH
-            common_file_suffixes = [
-                "filtered_rna.h5ad",
-                "processed_rna.h5ad",
-                "qc.html",
-                "unfiltered_rna.h5ad",
-            ]
-        else:
-            file_name = sample.output_single_cell_computed_file_name
-            readme_file_path = ComputedFile.README_SINGLE_CELL_FILE_PATH
-            common_file_suffixes = [
-                "filtered.rds",
-                "processed.rds",
-                "qc.html",
-                "unfiltered.rds",
-            ]
-
-        if includes_celltype_report:
-            common_file_suffixes.append("celltype-report.html")
-
-        cite_seq_anndata_file_suffixes = [
-            "filtered_adt.h5ad",
-            "processed_adt.h5ad",
-            "unfiltered_adt.h5ad",
-        ]
-
-        computed_file = cls(
-            format=file_format,
-            modality=cls.OutputFileModalities.SINGLE_CELL,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=file_name,
-            sample=sample,
-            workflow_version=utils.join_workflow_versions(workflow_versions),
-        )
-
-        file_paths = []
-        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(
-                readme_file_path,
-                ComputedFile.OUTPUT_README_FILE_NAME,
-            )
-            zip_file.write(
-                sample.output_single_cell_metadata_file_path,
-                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME,
-            )
-
-            for library in libraries:
-                file_suffixes = (
-                    common_file_suffixes + cite_seq_anndata_file_suffixes
-                    if is_anndata_file_format and library.get("has_citeseq")
-                    else common_file_suffixes
-                )
-                for file_suffix in file_suffixes:
-                    file_folder = sample.project.get_sample_input_data_dir(sample.scpca_id)
-                    file_name = f"{library['scpca_library_id']}_{file_suffix}"
-                    file_path = file_folder / file_name
-                    file_paths.append(file_path)
-                    zip_file.write(file_path, file_name)
-
-        computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
-        computed_file.has_cite_seq_data = sample.has_cite_seq_data
-        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
-        computed_file.includes_celltype_report = includes_celltype_report
-
-        return computed_file, {sample.scpca_id: file_paths}
-
-    @classmethod
-    def get_sample_spatial_file(cls, sample, libraries, workflow_versions, file_format):
-        """
-        Prepares a ready for saving single data file of sample's combined spatial data.
-        Returns the data file and file mapping for a sample.
-        """
-        computed_file = cls(
-            format=file_format,
-            modality=cls.OutputFileModalities.SPATIAL,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            s3_key=sample.output_spatial_computed_file_name,
-            sample=sample,
-            workflow_version=utils.join_workflow_versions(workflow_versions),
-        )
-
-        file_paths = []
-        with ZipFile(computed_file.zip_file_path, "w") as zip_file:
-            zip_file.write(
-                ComputedFile.README_SPATIAL_FILE_PATH,
-                ComputedFile.OUTPUT_README_FILE_NAME,
-            )
-            zip_file.write(
-                sample.output_spatial_metadata_file_path,
-                ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME,
-            )
-
-            for library in libraries:
-                library_path = Path(
-                    sample.project.get_sample_input_data_dir(sample.scpca_id),
-                    f"{library['scpca_library_id']}_spatial",
-                )
-                for item in library_path.rglob("*"):  # Add the entire directory contents.
-                    zip_file.write(item, item.relative_to(library_path.parent))
-                    file_paths.append(f"{Path(library_path, item.relative_to(library_path))}")
-
-        computed_file.has_bulk_rna_seq = False  # Sample downloads can't contain bulk data.
-        computed_file.has_cite_seq_data = False  # Spatial downloads can't contain CITE-seq data.
-        computed_file.size_in_bytes = computed_file.zip_file_path.stat().st_size
-
-        return computed_file, {sample.scpca_id: file_paths}
 
     @property
     def download_url(self):
@@ -768,6 +424,3 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         if clean_up_output_data and not is_multiplexed_sample:
             self.zip_file_path.unlink(missing_ok=True)
-
-        # Close DB connection for each thread.
-        connection.close()

@@ -155,8 +155,8 @@ GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS = [
     {
         "modality": None,
         "format": None,
-        "excludes_multiplexed": None,
-        "includes_merged": None,
+        "excludes_multiplexed": False,
+        "includes_merged": False,
         "metadata_only": True,
     },
 ]

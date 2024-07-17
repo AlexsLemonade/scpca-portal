@@ -176,9 +176,18 @@ class TestLoadData(TransactionTestCase):
         self.assertTrue(project.single_cell_merged_computed_file.includes_merged)
         self.assertTrue(project.single_cell_merged_computed_file.has_cite_seq_data)
 
-        project_zip_path = common.OUTPUT_DATA_PATH / project.output_merged_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": True,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(project_zip_path) as project_zip:
-            # There are 6 files (including subdirectory names):
+            # There are 8 files:
             # ├── README.md
             # ├── SCPCP999992_merged-summary-report.html
             # ├── SCPCP999992_merged.rds
@@ -202,11 +211,18 @@ class TestLoadData(TransactionTestCase):
         )
         self.assertTrue(project.single_cell_anndata_merged_computed_file.includes_merged)
         self.assertTrue(project.single_cell_anndata_merged_computed_file.has_cite_seq_data)
-        project_zip_path = (
-            common.OUTPUT_DATA_PATH / project.output_merged_anndata_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "ANN_DATA",
+            "excludes_multiplexed": True,
+            "includes_merged": True,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
         )
         with ZipFile(project_zip_path) as project_zip:
-            # There are 7 files (including subdirectory names):
+            # There are 9 files:
             # ├── README.md
             # ├── SCPCP999992_merged-summary-report.html
             # ├── SCPCP999992_merged_adt.h5ad
@@ -251,9 +267,18 @@ class TestLoadData(TransactionTestCase):
         self.assertTrue(project.single_cell_merged_computed_file.includes_merged)
         self.assertTrue(project.single_cell_merged_computed_file.has_bulk_rna_seq)
         self.assertFalse(project.single_cell_merged_computed_file.has_cite_seq_data)
-        project_zip_path = common.OUTPUT_DATA_PATH / project.output_merged_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": True,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(project_zip_path) as project_zip:
-            # There are 8 files (including subdirectory names):
+            # There are 10 files:
             # ├── README.md
             # ├── SCPCP999990_merged-summary-report.html
             # ├── SCPCP999990_merged.rds
@@ -279,11 +304,18 @@ class TestLoadData(TransactionTestCase):
         self.assertTrue(project.single_cell_anndata_merged_computed_file.includes_merged)
         self.assertTrue(project.single_cell_anndata_merged_computed_file.has_bulk_rna_seq)
         self.assertFalse(project.single_cell_anndata_merged_computed_file.has_cite_seq_data)
-        project_zip_path = (
-            common.OUTPUT_DATA_PATH / project.output_merged_anndata_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "ANN_DATA",
+            "excludes_multiplexed": True,
+            "includes_merged": True,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
         )
         with ZipFile(project_zip_path) as project_zip:
-            # There are 8 files (including subdirectory names):
+            # There are 10 files:
             # ├── README.md
             # ├── SCPCP999990_merged-summary-report.html
             # ├── SCPCP999990_merged_rna.h5ad
@@ -447,7 +479,16 @@ class TestLoadData(TransactionTestCase):
             "workflow_commit",
         ]
 
-        project_zip_path = common.OUTPUT_DATA_PATH / project.output_multiplexed_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": False,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
@@ -464,7 +505,7 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_project_keys)
 
-        # There are 14 files (including subdirectory names):
+        # There are 12 files:
         # ├── README.md
         # ├── SCPCS999990
         # │   ├── SCPCL999990_celltype-report.html
@@ -587,7 +628,14 @@ class TestLoadData(TransactionTestCase):
             "workflow_version",
             "workflow_commit",
         ]
-        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_multiplexed_computed_file_name
+        # Check SingleCellExperiment archive.
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+        }
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
@@ -647,7 +695,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(project.unavailable_samples_count, 0)
         self.assertEqual(project.technologies, "10Xv3, visium")
         metadata_only = 1  # 1 metadata only download per project
-        self.assertEqual(len(project.computed_files), 5 + metadata_only)
+        self.assertEqual(len(project.computed_files), (single_cell * 2) + spatial + metadata_only)
         self.assertGreater(project.single_cell_computed_file.size_in_bytes, 0)
         self.assertEqual(project.single_cell_computed_file.workflow_version, "development")
         self.assertEqual(
@@ -715,7 +763,16 @@ class TestLoadData(TransactionTestCase):
             "workflow_commit",
         ]
 
-        project_zip_path = common.OUTPUT_DATA_PATH / project.output_single_cell_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": False,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
@@ -733,7 +790,7 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 14 files (including subdirectory names):
+        # There are 14 files:
         # ├── README.md
         # ├── SCPCS999990
         # │   ├── SCPCL999990_celltype-report.html
@@ -797,7 +854,13 @@ class TestLoadData(TransactionTestCase):
         )
 
         # Check SingleCellExperiment archive.
-        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_single_cell_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+        }
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
@@ -806,7 +869,6 @@ class TestLoadData(TransactionTestCase):
                     TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
                 )
                 rows = list(csv_reader)
-
         self.assertEqual(len(rows), 1)
         self.assertEqual(list(rows[0].keys()), expected_keys)
 
@@ -823,8 +885,12 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(set(sample_zip.namelist()), expected_filenames)
 
         # Check AnnData archive.
-        sample_zip_path = (
-            common.OUTPUT_DATA_PATH / sample.output_single_cell_anndata_computed_file_name
+        download_config = {
+            "modality": "SINGLE_CELL",
+            "format": "ANN_DATA",
+        }
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_download_config_file_output_name(
+            download_config
         )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
@@ -914,6 +980,9 @@ class TestLoadData(TransactionTestCase):
             "technology",
             "total_reads",
             "mapped_reads",
+            "filtered_spots",
+            "unfiltered_spots",
+            "tissue_spots",
             "includes_anndata",
             "is_cell_line",
             "is_xenograft",
@@ -927,7 +996,17 @@ class TestLoadData(TransactionTestCase):
             "workflow_version",
             "workflow_commit",
         ]
-        project_zip_path = common.OUTPUT_DATA_PATH / project.output_spatial_computed_file_name
+
+        download_config = {
+            "modality": "SPATIAL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+            "excludes_multiplexed": True,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(project_zip_path) as project_zip:
             spatial_metadata_file = project_zip.read(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
@@ -945,28 +1024,29 @@ class TestLoadData(TransactionTestCase):
         sample_metadata_keys = spatial_metadata[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_keys)
 
-        # There are 19 files (including subdirectory names):
+        # There are 16 files:
         # ├── README.md
-        # ├── SCPCL999991_spatial
-        # │   ├── SCPCL999991_metadata.json
-        # │   ├── SCPCL999991_spaceranger_summary.html
-        # │   ├── filtered_feature_bc_matrix
-        # │   │   ├── barcodes.tsv.gz
-        # │   │   ├── features.tsv.gz
-        # │   │   └── matrix.mtx.gz
-        # │   ├── raw_feature_bc_matrix
-        # │   │   ├── barcodes.tsv.gz
-        # │   │   ├── features.tsv.gz
-        # │   │   └── matrix.mtx.gz
-        # │   └── spatial
-        # │       ├── aligned_fiducials.jpg
-        # │       ├── detected_tissue_image.jpg
-        # │       ├── scalefactors_json.json
-        # │       ├── tissue_hires_image.png
-        # │       ├── tissue_lowres_image.png
-        # │       └── tissue_positions_list.csv
+        # ├── SCPCS999991
+        # │   └── SCPCL999991_spatial
+        # │       ├── SCPCL999991_metadata.json
+        # │       ├── SCPCL999991_spaceranger-summary.html
+        # │       ├── filtered_feature_bc_matrix
+        # │       │   ├── barcodes.tsv.gz
+        # │       │   ├── features.tsv.gz
+        # │       │   └── matrix.mtx.gz
+        # │       ├── raw_feature_bc_matrix
+        # │       │   ├── barcodes.tsv.gz
+        # │       │   ├── features.tsv.gz
+        # │       │   └── matrix.mtx.gz
+        # │       └── spatial
+        # │           ├── aligned_fiducials.jpg
+        # │           ├── detected_tissue_image.jpg
+        # │           ├── scalefactors_json.json
+        # │           ├── tissue_hires_image.png
+        # │           ├── tissue_lowres_image.png
+        # │           └── tissue_positions_list.csv
         # └── spatial_metadata.tsv
-        self.assertEqual(len(project_zip.namelist()), 19)
+        self.assertEqual(len(project_zip.namelist()), 16)
 
         sample = project.samples.filter(has_spatial_data=True).first()
         self.assertEqual(len(sample.computed_files), 1)
@@ -1015,7 +1095,14 @@ class TestLoadData(TransactionTestCase):
             set(expected_additional_metadata_keys), set(sample.additional_metadata.keys())
         )
 
-        sample_zip_path = common.OUTPUT_DATA_PATH / sample.output_spatial_computed_file_name
+        # Check Spatial archive.
+        download_config = {
+            "modality": "SPATIAL",
+            "format": "SINGLE_CELL_EXPERIMENT",
+        }
+        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_download_config_file_output_name(
+            download_config
+        )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
                 ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME, "r"
@@ -1036,15 +1123,12 @@ class TestLoadData(TransactionTestCase):
         library_path_templates = {
             "{library_id}_spatial/{library_id}_metadata.json",
             "{library_id}_spatial/{library_id}_spaceranger-summary.html",
-            "{library_id}_spatial/filtered_feature_bc_matrix/",
             "{library_id}_spatial/filtered_feature_bc_matrix/barcodes.tsv.gz",
             "{library_id}_spatial/filtered_feature_bc_matrix/features.tsv.gz",
             "{library_id}_spatial/filtered_feature_bc_matrix/matrix.mtx.gz",
-            "{library_id}_spatial/raw_feature_bc_matrix/",
             "{library_id}_spatial/raw_feature_bc_matrix/barcodes.tsv.gz",
             "{library_id}_spatial/raw_feature_bc_matrix/features.tsv.gz",
             "{library_id}_spatial/raw_feature_bc_matrix/matrix.mtx.gz",
-            "{library_id}_spatial/spatial/",
             "{library_id}_spatial/spatial/aligned_fiducials.jpg",
             "{library_id}_spatial/spatial/detected_tissue_image.jpg",
             "{library_id}_spatial/spatial/scalefactors_json.json",

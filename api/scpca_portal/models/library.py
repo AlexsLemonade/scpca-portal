@@ -34,6 +34,7 @@ class Library(TimestampedModel):
 
     data_file_paths = ArrayField(models.TextField(), default=list)
     formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
+    has_cite_seq_data = models.BooleanField(default=False)
     is_multiplexed = models.BooleanField(default=False)
     metadata = models.JSONField(default=dict)
     modality = models.TextField(choices=Modalities.CHOICES)
@@ -52,6 +53,7 @@ class Library(TimestampedModel):
             data_file_paths=data_file_paths,
             formats=Library.get_formats_from_file_paths(data_file_paths),
             is_multiplexed=data.get("is_multiplexed", False),
+            has_cite_seq_data=any(fp for fp in data_file_paths if "_adt." in fp.name),
             metadata=data,
             modality=Library.get_modality_from_file_paths(data_file_paths),
             project=project,
@@ -65,7 +67,10 @@ class Library(TimestampedModel):
     def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample) -> None:
         libraries = []
         for library_json in library_jsons:
-            if not Library.objects.filter(scpca_id=library_json["scpca_library_id"]).exists():
+            library_id = library_json["scpca_library_id"]
+            if existing_library := Library.objects.filter(scpca_id=library_id).first():
+                sample.libraries.add(existing_library)
+            else:
                 # TODO: remove when scpca_project_id is in source json
                 library_json["scpca_project_id"] = sample.project.scpca_id
                 libraries.append(Library.get_from_dict(library_json, sample.project))
@@ -95,14 +100,21 @@ class Library(TimestampedModel):
 
     @classmethod
     def get_modality_from_file_paths(cls, file_paths: List[Path]) -> str:
-        if any(path for path in file_paths if "spatial" in path.name):
+        if any(path for path in file_paths if "spatial" in path.parts):
             return Library.Modalities.SPATIAL
         return Library.Modalities.SINGLE_CELL
 
     @classmethod
     def get_formats_from_file_paths(cls, file_paths: List[Path]) -> List[str]:
-        format_extensions_swapped = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
-        formats = set(format_extensions_swapped.get(path.suffix, None) for path in file_paths)
+        if Library.get_modality_from_file_paths(file_paths) is Library.Modalities.SPATIAL:
+            return [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
+
+        extensions_format = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
+        formats = set(
+            extensions_format[path.suffix]
+            for path in file_paths
+            if path.suffix in extensions_format
+        )
         return list(formats)
 
     @classmethod
@@ -114,6 +126,10 @@ class Library(TimestampedModel):
 
         if download_configuration["metadata_only"]:
             return project.libraries.all()
+
+        # You cannot include multiplexed when there are no multiplexed libraries
+        if not download_configuration["excludes_multiplexed"] and not project.has_multiplexed_data:
+            return project.libraries.none()
 
         if download_configuration["includes_merged"]:
             # If the download config requests merged and there is no merged file in the project,
@@ -160,10 +176,11 @@ class Library(TimestampedModel):
             "scpca_library_id": self.scpca_id,
         }
 
-        excluded_metadata_attributes = [
+        excluded_metadata_attributes = {
             "scpca_sample_id",
             "has_citeseq",
-        ]
+        }
+
         library_metadata.update(
             {
                 key: self.metadata[key]
@@ -172,21 +189,67 @@ class Library(TimestampedModel):
             }
         )
 
+        return library_metadata
+
     def get_combined_library_metadata(self) -> List[Dict]:
-        return [
-            self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
-            for sample in self.samples
-        ]
+        combined_metadatas = []
+        for sample in self.samples.all():
+            metadata = self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
+            # Estimate attributes per modality:
+            #   Single Cell: "sample_cell_count_estimate"
+            #   Single Cell Multiplexed: "sample_cell_estimates"
+            #   Spatial: None
+            if self.modality == Library.Modalities.SPATIAL or self.is_multiplexed:
+                del metadata["sample_cell_count_estimate"]
+            if not self.is_multiplexed:
+                del metadata["sample_cell_estimates"]
+
+            combined_metadatas.append(metadata)
+
+        return combined_metadatas
 
     def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
-        omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
-        omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"], None))
+        """
+        Return all of a library's file paths that are suitable for the passed download config.
+        """
 
-        if download_config["metadata_only"]:
-            omit_suffixes.clear()
+        if download_config.get("metadata_only", False):
+            return []
+
+        omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
+
+        if not download_config.get("includes_merged", False):
+            requested_suffix = common.FORMAT_EXTENSIONS.get(download_config["format"])
+            omit_suffixes.remove(requested_suffix)
 
         return [
             file_path
             for file_path in [Path(fp) for fp in self.data_file_paths]
             if file_path.suffix not in omit_suffixes
         ]
+
+    @staticmethod
+    def get_local_file_path(file_path: Path):
+        return common.INPUT_DATA_PATH / file_path
+
+    @staticmethod
+    def get_zip_file_path(file_path: Path, download_config: Dict) -> Path:
+        path_parts = [Path(path) for path in file_path.parts]
+
+        # Project output paths are relative to project directory
+        if download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+            output_path = file_path.relative_to(path_parts[0])
+        # Sample output paths are relative to project and sample directories
+        else:
+            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
+
+        # Transform merged project data files to no longer be nested in a merged directory
+        if file_path.parent.name == "merged":
+            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
+        # Nest sample reports into individual_reports directory in merged download
+        # The merged summmary html file should not go into this directory
+        elif download_config.get("includes_merged", False) and output_path.suffix == ".html":
+            output_path = Path("individual_reports") / output_path
+
+        # Comma separated lists of multiplexed samples should become underscore separated
+        return Path(str(output_path).replace(",", "_"))
