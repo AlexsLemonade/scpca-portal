@@ -6,7 +6,7 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-{% if projects|length > 0 %}
+{% if projects|length > 1 %}
 This download includes associated metadata for samples from all projects currently available at time of download in the ScPCA portal.
 {% else %}
 {% for project in projects %}
