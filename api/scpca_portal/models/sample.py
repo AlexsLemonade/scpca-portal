@@ -127,7 +127,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         sample_metadata.update({key: getattr(self, key) for key in included_sample_attributes})
         # Update name from attribute name to expected output name
-        sample_metadata["sample_cell_estimates"] = sample_metadata.pop("demux_cell_count_estimate")
+        sample_metadata["sample_cell_estimate"] = sample_metadata.pop("demux_cell_count_estimate")
 
         sample_metadata.update(
             {key: self.additional_metadata[key] for key in self.additional_metadata}
