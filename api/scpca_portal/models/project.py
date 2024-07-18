@@ -7,9 +7,8 @@ from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
-from django.template.loader import render_to_string
 
-from scpca_portal import common, metadata_file, readme_creation, utils
+from scpca_portal import common, metadata_file, utils
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -184,124 +183,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             "project_title": self.title,
         }
 
-    def create_readmes(self) -> None:
-        """
-        Creates all possible readmes to be included later when archiving the desired computed file.
-        """
-        self.create_anndata_readme_file()
-        self.create_anndata_merged_readme_file()
-        self.create_metadata_readme_file()
-        self.create_multiplexed_readme_file()
-        self.create_single_cell_readme_file()
-        self.create_single_cell_merged_readme_file()
-        self.create_spatial_readme_file()
-
-    def create_anndata_readme_file(self):
-        """Creates an annotation metadata README file."""
-        with open(readme_creation.README_ANNDATA_FILE_PATH, "w") as readme_file:
-            readme_file.write(
-                render_to_string(
-                    readme_creation.README_TEMPLATE_ANNDATA_FILE_PATH,
-                    context={
-                        "additional_terms": self.get_additional_terms(),
-                        "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
-                    },
-                ).strip()
-            )
-
-    def create_anndata_merged_readme_file(self):
-        """Creates an annotation metadata README file."""
-        with open(readme_creation.README_ANNDATA_MERGED_FILE_PATH, "w") as readme_file:
-            readme_file.write(
-                render_to_string(
-                    readme_creation.README_TEMPLATE_ANNDATA_MERGED_FILE_PATH,
-                    context={
-                        "additional_terms": self.get_additional_terms(),
-                        "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
-                    },
-                ).strip()
-            )
-
-    def create_single_cell_readme_file(self):
-        """Creates a single cell metadata README file."""
-        with open(readme_creation.README_SINGLE_CELL_FILE_PATH, "w") as readme_file:
-            readme_file.write(
-                render_to_string(
-                    readme_creation.README_TEMPLATE_SINGLE_CELL_FILE_PATH,
-                    context={
-                        "additional_terms": self.get_additional_terms(),
-                        "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
-                    },
-                ).strip()
-            )
-
-    def create_single_cell_merged_readme_file(self):
-        """Creates a single cell metadata README file."""
-        with open(readme_creation.README_SINGLE_CELL_MERGED_FILE_PATH, "w") as readme_file:
-            readme_file.write(
-                render_to_string(
-                    readme_creation.README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH,
-                    context={
-                        "additional_terms": self.get_additional_terms(),
-                        "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
-                    },
-                ).strip()
-            )
-
-    def create_metadata_readme_file(self):
-        """Creates a metadata only README file."""
-        with open(readme_creation.README_METADATA_PATH, "w") as readme_file:
-            readme_file.write(
-                render_to_string(
-                    readme_creation.README_TEMPLATE_METADATA_PATH,
-                    context={
-                        "additional_terms": self.get_additional_terms(),
-                        "date": utils.get_today_string(),
-                        # This list of included projects will need to be built differently
-                        # when the time comes to handle multiple projects at the same time
-                        "included_projects": [(self.scpca_id, self.url)],
-                    },
-                ).strip()
-            )
-
-    def create_multiplexed_readme_file(self):
-        """Creates a multiplexed metadata README file."""
-        with open(readme_creation.README_MULTIPLEXED_FILE_PATH, "w") as readme_file:
-            readme_file.write(
-                render_to_string(
-                    readme_creation.README_TEMPLATE_MULTIPLEXED_FILE_PATH,
-                    context={
-                        "additional_terms": self.get_additional_terms(),
-                        "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
-                    },
-                ).strip()
-            )
-
-    def create_spatial_readme_file(self):
-        """Creates a spatial metadata README file."""
-        with open(readme_creation.README_SPATIAL_FILE_PATH, "w") as readme_file:
-            readme_file.write(
-                render_to_string(
-                    readme_creation.README_TEMPLATE_SPATIAL_FILE_PATH,
-                    context={
-                        "additional_terms": self.get_additional_terms(),
-                        "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
-                    },
-                ).strip()
-            )
-
     def get_download_config_file_output_name(self, download_config: Dict) -> str:
         """
         Accumulates all applicable name segments, concatenates them with an underscore delimiter,
@@ -415,8 +296,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         Loads sample and library metadata files, creates Sample and Library objects,
         and archives Project and Sample computed files.
         """
-        self.create_readmes()
-
         self.load_samples()
         self.load_libraries()
 
