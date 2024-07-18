@@ -68,12 +68,13 @@ TEMPLATE_PATHS = {
 
 def create_readme_file(download_config: Dict, project=None, sample=None) -> str:
     readme_template_key_parts = [download_config["modality"], download_config["format"]]
-    if download_config["includes_merged"]:
-        readme_template_key_parts.append("MERGED")
-    elif not download_config["excludes_multiplexed"]:
-        readme_template_key_parts.append("MULTIPLEXED")
-    elif download_config["metadata_only"]:
-        readme_template_key_parts = ["METADATA_ONLY"]
+    if project:
+        if download_config["includes_merged"]:
+            readme_template_key_parts.append("MERGED")
+        if not download_config["excludes_multiplexed"]:
+            readme_template_key_parts.append("MULTIPLEXED")
+        if download_config["metadata_only"]:
+            readme_template_key_parts = ["METADATA_ONLY"]
 
     if sample:
         project = sample.project
