@@ -464,7 +464,7 @@ class TestLoadData(TransactionTestCase):
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
             self.assertProjectReadmeContains(
-                "Research or academic purposes only.",
+                "This dataset is designated as research or academic purposes only.",
                 project_zip,
             )
         self.assertEqual(len(sample_metadata_lines), 4)  # 3 items + header.
@@ -736,7 +736,7 @@ class TestLoadData(TransactionTestCase):
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
             self.assertProjectReadmeContains(
-                "Research or academic purposes only.",
+                "This dataset is designated as research or academic purposes only.",
                 project_zip,
             )
 
@@ -951,7 +951,7 @@ class TestLoadData(TransactionTestCase):
                 sm for sm in spatial_metadata_file.decode("utf-8").split("\r\n") if sm
             ]
             self.assertProjectReadmeContains(
-                "Research or academic purposes only.",
+                "This dataset is designated as research or academic purposes only.",
                 project_zip,
             )
 

@@ -7,7 +7,5 @@
 |[{{ project.scpca_id }}](https://scpca.alexslemonade.org/projects/{{ project.scpca_id }})|{{ project.additional_restrictions }}|
 {% endfor %}
 {% else %}
-{% if additional_terms %}
-{{ additional_terms }}.
-{% endif %}
+This dataset is designated as research or academic purposes only.
 {% endif %}
