@@ -1,10 +1,10 @@
+{% with project_accession=projects.0.scpca_id project_url=projects.0.url additional_restrictions=projects.0.additional_restrictions %}
+
 Generated on: {{ date }}
 
 # Alex's Lemonade Stand Foundation Single-cell Pediatric Cancer Atlas
 
 The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a database of single-cell and single-nuclei data from pediatric cancer clinical samples and xenografts, built by the [Childhood Cancer Data Lab](https://www.ccdatalab.org/) at [Alex's Lemonade Stand Foundation](https://www.alexslemonade.org/).
-
-{% with project_accession=projects.0.scpca_id project_url=projects.0.url additional_restrictions=projects.0.additional_restrictions %}
 
 ## Contents
 
@@ -69,16 +69,8 @@ Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al.,
 
 In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade.org/terms-of-use).
 
-{% endwith %}
-
-{% with has_additional_restrictions=False %}
-{% for project in projects %}
-{% if project.additional_restrictions %}
-{% with has_additional_restrictions=True %}
-{% endif %}
-{% empty %}
-{% endfor %}
-{% if has_additional_restrictions %}
+{% if additional_restrictions %}
 {% include "readme/additional_terms/research_academic_only.md" %}
 {% endif %}
+
 {% endwith %}
