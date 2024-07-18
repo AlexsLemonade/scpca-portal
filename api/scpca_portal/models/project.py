@@ -233,8 +233,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
+                        "projects": [self],
                     },
                 ).strip()
             )
@@ -248,8 +247,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
+                        "projects": [self],
                     },
                 ).strip()
             )
@@ -263,8 +261,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
+                        "projects": [self],
                     },
                 ).strip()
             )
@@ -278,8 +275,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
+                        "projects": [self],
                     },
                 ).strip()
             )
@@ -307,8 +303,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
+                        "projects": [self],
                     },
                 ).strip()
             )
@@ -322,8 +317,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
-                        "project_accession": self.scpca_id,
-                        "project_url": self.url,
+                        "projects": [self],
                     },
                 ).strip()
             )
