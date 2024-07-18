@@ -13,18 +13,14 @@
 {% endfor %}
 
 {% if has_additional_restrictions %}
-
 {{ heading }}
-
 | Project ID | Data Usage Restrictions |
 | :--------- | :---------------------- |
-
 {% for project in projects %}
 {% if project.additional_restrictions %}
 |[{{ project.scpca_id }}](https://scpca.alexslemonade.org/projects/{{ project.scpca_id }})|{{ project.additional_restrictions }}|
 {% endif %}
 {% endfor %}
-
 {% endif %}
 
 {% endwith %}
