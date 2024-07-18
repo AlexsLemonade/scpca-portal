@@ -235,8 +235,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             ),
         )
 
-        computed_file.save()
-
         return computed_file
 
     @classmethod
@@ -323,8 +321,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             ),
         )
 
-        computed_file.save()
-
         return computed_file
 
     @property
@@ -382,18 +378,13 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             )
 
     def upload_s3_file(self):
-        """Uploads the computed file to S3 using AWS CLI tool."""
+        """Upload a computed file to S3 using the AWS CLI tool."""
+
+        aws_path = f"s3://{settings.AWS_S3_BUCKET_NAME}/{self.s3_key}"
+        command_parts = ["aws", "s3", "cp", str(self.zip_file_path), aws_path]
 
         logger.info(f"Uploading {self}")
-        subprocess.check_call(
-            (
-                "aws",
-                "s3",
-                "cp",
-                str(self.zip_file_path),
-                f"s3://{settings.AWS_S3_BUCKET_NAME}/{self.s3_key}",
-            )
-        )
+        subprocess.check_call(command_parts)
 
     def delete_s3_file(self, force=False):
         # If we're not running in the cloud then we shouldn't try to
@@ -413,14 +404,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         return True
 
-    def process_computed_file(self, clean_up_output_data, update_s3):
-        """Processes saving, upload and cleanup of a single computed file."""
-        self.save()
-        if update_s3:
-            self.upload_s3_file()
-
-        # Don't clean up multiplexed sample zips until the project is done
-        is_multiplexed_sample = self.sample and self.sample.has_multiplexed_data
-
-        if clean_up_output_data and not is_multiplexed_sample:
-            self.zip_file_path.unlink(missing_ok=True)
+    def clean_up_local_computed_file(self):
+        """Delete local computed file."""
+        self.zip_file_path.unlink(missing_ok=True)

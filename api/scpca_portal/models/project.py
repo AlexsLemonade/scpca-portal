@@ -329,7 +329,13 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         def on_get_project_file(future):
             if computed_file := future.result():
-                computed_file.process_computed_file(clean_up_output_data, update_s3)
+                computed_file.save()
+
+                if update_s3:
+                    computed_file.upload_s3_file()
+                if clean_up_output_data:
+                    computed_file.clean_up_local_computed_file()
+
             # Close DB connection for each thread.
             connection.close()
 

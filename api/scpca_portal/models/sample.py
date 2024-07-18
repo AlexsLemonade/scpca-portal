@@ -182,6 +182,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return sorted(multiplexed_sample_ids)
 
     @property
+    def is_last_multiplexed_sample(self):
+        """Return True if sample id is highest in list of multiplexed ids, False if not"""
+        return self.scpca_id == self.multiplexed_ids[-1]
+
+    @property
     def multiplexed_computed_file(self):
         try:
             return self.sample_computed_files.get(
@@ -258,7 +263,15 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         def on_get_sample_file(future):
             if computed_file := future.result():
-                computed_file.process_computed_file(clean_up_output_data, update_s3)
+
+                # Only upload and clean up the last if multiplexed
+                if computed_file.sample.is_last_multiplexed_sample:
+                    if update_s3:
+                        computed_file.upload_s3_file()
+                    if clean_up_output_data:
+                        computed_file.clean_up_local_computed_file()
+                computed_file.save()
+
             # Close DB connection for each thread.
             connection.close()
 
