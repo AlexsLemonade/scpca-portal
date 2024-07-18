@@ -120,10 +120,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         with ZipFile(zip_file_path, "w") as zip_file:
             # Readme file
-            zip_file.write(
-                readme_creation.get_readme_from_download_config(download_config),
+            zip_file.writestr(
                 readme_creation.OUTPUT_README_FILE_NAME,
+                readme_creation.create_readme_file(download_config, project=project),
             )
+
             # Metadata file
             output_file_constant = (
                 f'{download_config["modality"]}_METADATA_FILE_NAME'
@@ -215,11 +216,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             if not zip_file_path.exists():
                 with ZipFile(zip_file_path, "w") as zip_file:
                     # Readme file
-                    zip_file.write(
-                        readme_creation.get_readme_from_download_config(download_config),
+                    zip_file.writestr(
                         readme_creation.OUTPUT_README_FILE_NAME,
+                        readme_creation.create_readme_file(download_config, sample=sample),
                     )
-
                     # Metadata file
                     zip_file.write(
                         local_metadata_path,
