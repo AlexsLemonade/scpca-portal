@@ -4,6 +4,8 @@ Generated on: {{ date }}
 
 The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a database of single-cell and single-nuclei data from pediatric cancer clinical samples and xenografts, built by the [Childhood Cancer Data Lab](https://www.ccdatalab.org/) at [Alex's Lemonade Stand Foundation](https://www.alexslemonade.org/).
 
+{% with project_accession=projects.0.scpca_id project_url=projects.0.url %}
+
 ## Contents
 
 This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [{{ project_accession }}]({{ project_url }}) in the ScPCA portal.
@@ -14,6 +16,7 @@ Each of these folders contains the files for all libraries (`SCPCL` prefix) deri
 See the FAQ sections about [samples and libraries](https://scpca.readthedocs.io/en/stable/faq.html#what-is-the-difference-between-samples-and-libraries) and [multiplexed samples](https://scpca.readthedocs.io/en/stable/faq.html#what-is-a-multiplexed-sample) for more information.
 
 The files associated with each library are (example shown for a library with ID `SCPCL000000`):
+
 - An unfiltered counts file: `SCPCL000000_unfiltered.rds`,
 - A filtered counts file: `SCPCL000000_filtered.rds`,
 - A processed counts file: `SCPCL000000_processed.rds`,
@@ -39,7 +42,6 @@ For information on how to use the demultiplexing results that the filtered data 
 ## CHANGELOG
 
 A summary of changes impacting downloads from the ScPCA Portal is available in [the CHANGELOG section of our documentation](https://scpca.readthedocs.io/en/stable/CHANGELOG.html).
-
 
 ## Contact
 
@@ -71,3 +73,5 @@ In using these data, you agree to our [Terms of Use.](https://scpca.alexslemonad
 {% if additional_terms %}
 {{ additional_terms }}
 {% endif %}
+
+{% endwith %}
