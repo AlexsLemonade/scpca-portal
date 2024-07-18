@@ -22,13 +22,6 @@ class TestWriteMetadataDicts(TestCase):
                 "holidays": [
                     "New Year’s Day",
                     "Epiphany",
-                    "Good Friday",
-                    "Labor Day",
-                    "Assumption Day",
-                    "Hispanic Day",
-                    "All Saints’ Day",
-                    "Constitution Day",
-                    "Immaculate Conception Day",
                     "Christmas Day",
                 ],
             },
@@ -49,15 +42,6 @@ class TestWriteMetadataDicts(TestCase):
                 "capital": "Washington DC",
                 "holidays": [
                     "New Year's Day",
-                    "Birthday of Martin Luther King, Jr.",
-                    "Inauguration Day",
-                    "Washington's Birthday",
-                    "Memorial Day",
-                    "Juneteenth National Independence Day",
-                    "Independence Day",
-                    "Labor Day",
-                    "Columbus Day",
-                    "Veterans Day",
                     "Thanksgiving Day",
                     "Christmas Day",
                 ],
@@ -96,20 +80,7 @@ class TestWriteMetadataDicts(TestCase):
                 "country": "USA",
                 "language": "English",
                 "capital": "Washington DC",
-                "holidays": (
-                    "New Year's Day;"
-                    "Birthday of Martin Luther King, Jr.;"
-                    "Inauguration Day;"
-                    "Washington's Birthday;"
-                    "Memorial Day;"
-                    "Juneteenth National Independence Day;"
-                    "Independence Day;"
-                    "Labor Day;"
-                    "Columbus Day;"
-                    "Veterans Day;"
-                    "Thanksgiving Day;"
-                    "Christmas Day"
-                ),
+                "holidays": ("New Year's Day;" "Thanksgiving Day;" "Christmas Day"),
             },
             {
                 "scpca_project_id": "SCPCP999991",
@@ -118,18 +89,7 @@ class TestWriteMetadataDicts(TestCase):
                 "country": "Spain",
                 "language": "Spanish",
                 "capital": "Madrid",
-                "holidays": (
-                    "New Year’s Day;"
-                    "Epiphany;"
-                    "Good Friday;"
-                    "Labor Day;"
-                    "Assumption Day;"
-                    "Hispanic Day;"
-                    "All Saints’ Day;"
-                    "Constitution Day;"
-                    "Immaculate Conception Day;"
-                    "Christmas Day"
-                ),
+                "holidays": ("New Year’s Day;" "Epiphany;" "Christmas Day"),
             },
             {
                 "scpca_project_id": "SCPCP999992",
