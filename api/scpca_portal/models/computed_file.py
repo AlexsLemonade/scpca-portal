@@ -385,8 +385,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         logger.info(f"Uploading {self}")
         subprocess.check_call(command_parts)
-        # When computed file has been sent to S3 to be uploaded, save to db
-        self.save()
 
     def delete_s3_file(self, force=False):
         # If we're not running in the cloud then we shouldn't try to

@@ -183,6 +183,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return sorted(multiplexed_sample_ids)
 
     @property
+    def is_last_multiplexed_sample(self):
+        """Return True if sample id is highest in list of multiplexed ids, False if not"""
+        return self.scpca_id == self.multiplexed_ids[-1]
+
+    @property
     def multiplexed_computed_file(self):
         try:
             return self.sample_computed_files.get(
@@ -257,33 +262,16 @@ class Sample(CommonDataAttributes, TimestampedModel):
     ):
         """Prepares ready for saving project computed files based on generated file mappings."""
 
-        # Prepare a threading.Lock for each sample, with the chief purpose being to protect
-        # multiplexed samples that shares a zip file.
-        locks = {}
-
         def on_get_sample_file(future):
             if computed_file := future.result():
-                # Once created, save immediately, so that it can be queried below
-                computed_file.save()
 
-                config = {
-                    "modality": computed_file.modality,
-                    "format": computed_file.format,
-                }
-                # Protect from duplicate computed file uploads with multiplexed samples
-                with locks.get(sample.get_config_identifier(config)):
-                    nonlocal update_s3
+                # Only upload and clean up the last if multiplexed
+                if computed_file.sample.is_last_multiplexed_sample:
                     if update_s3:
-                        computed_file.upload_s3
-                        update_s3 = False
-
-                all_samples_created = (
-                    len(computed_file.sample.multiplexed_ids)
-                    == ComputedFile.objects.filter(s3_key=computed_file.s3_key).count()
-                )
-                # Only clean up local file if all multiplexed samples have been created
-                if clean_up_output_data and all_samples_created:
-                    computed_file.clean_up_local_computed_file()
+                        computed_file.upload_s3_file()
+                    if clean_up_output_data:
+                        computed_file.clean_up_local_computed_file()
+                computed_file.save()
 
             # Close DB connection for each thread.
             connection.close()
@@ -294,6 +282,9 @@ class Sample(CommonDataAttributes, TimestampedModel):
             f"{max_workers} worker{pluralize(max_workers)}"
         )
 
+        # Prepare a threading.Lock for each sample, with the chief purpose being to protect
+        # multiplexed samples that shares a zip file.
+        locks = {}
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for sample in samples:
                 for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
