@@ -231,7 +231,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 render_to_string(
                     ComputedFile.README_TEMPLATE_ANNDATA_FILE_PATH,
                     context={
-                        "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
                         "projects": [self],
                     },
@@ -245,7 +244,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 render_to_string(
                     ComputedFile.README_TEMPLATE_ANNDATA_MERGED_FILE_PATH,
                     context={
-                        "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
                         "projects": [self],
                     },
@@ -259,7 +257,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 render_to_string(
                     ComputedFile.README_TEMPLATE_SINGLE_CELL_FILE_PATH,
                     context={
-                        "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
                         "projects": [self],
                     },
@@ -273,7 +270,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 render_to_string(
                     ComputedFile.README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH,
                     context={
-                        "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
                         "projects": [self],
                     },
@@ -287,7 +283,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 render_to_string(
                     ComputedFile.README_TEMPLATE_METADATA_PATH,
                     context={
-                        "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
                         "projects": [self],
                     },
@@ -301,7 +296,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 render_to_string(
                     ComputedFile.README_TEMPLATE_MULTIPLEXED_FILE_PATH,
                     context={
-                        "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
                         "projects": [self],
                     },
@@ -315,7 +309,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 render_to_string(
                     ComputedFile.README_TEMPLATE_SPATIAL_FILE_PATH,
                     context={
-                        "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
                         "projects": [self],
                     },
@@ -427,18 +420,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                     )
                 )
         return bulk_rna_seq_sample_ids
-
-    def get_additional_terms(self):
-        """Returns addtional terms readme content."""
-        if not self.additional_restrictions:
-            return ""
-
-        return render_to_string(
-            common.TEMPLATE_PATH / "readme/additional_terms/research_academic_only.md",
-            context={
-                "additional_terms": self.additional_restrictions,
-            },
-        )
 
     def get_demux_sample_ids(self) -> Set:
         """Returns a set of all demuxed sample ids used in the project's multiplexed samples."""
