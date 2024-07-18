@@ -11,7 +11,7 @@ import boto3
 from botocore.client import Config
 from typing_extensions import Self
 
-from scpca_portal import common, metadata_file, utils
+from scpca_portal import common, metadata_file, readme_creation, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
@@ -48,40 +48,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             (ANN_DATA, "AnnData"),
             (SINGLE_CELL_EXPERIMENT, "Single cell experiment"),
         )
-
-    OUTPUT_README_FILE_NAME = "README.md"
-
-    README_ANNDATA_FILE_NAME = "readme_anndata.md"
-    README_ANNDATA_FILE_PATH = common.OUTPUT_DATA_PATH / README_ANNDATA_FILE_NAME
-
-    README_ANNDATA_MERGED_FILE_NAME = "readme_anndata_merged.md"
-    README_ANNDATA_MERGED_FILE_PATH = common.OUTPUT_DATA_PATH / README_ANNDATA_MERGED_FILE_NAME
-
-    README_SINGLE_CELL_FILE_NAME = "readme_single_cell.md"
-    README_SINGLE_CELL_FILE_PATH = common.OUTPUT_DATA_PATH / README_SINGLE_CELL_FILE_NAME
-
-    README_SINGLE_CELL_MERGED_FILE_NAME = "readme_single_cell_merged.md"
-    README_SINGLE_CELL_MERGED_FILE_PATH = (
-        common.OUTPUT_DATA_PATH / README_SINGLE_CELL_MERGED_FILE_NAME
-    )
-
-    README_METADATA_NAME = "readme_metadata_only.md"
-    README_METADATA_PATH = common.OUTPUT_DATA_PATH / README_METADATA_NAME
-
-    README_MULTIPLEXED_FILE_NAME = "readme_multiplexed.md"
-    README_MULTIPLEXED_FILE_PATH = common.OUTPUT_DATA_PATH / README_MULTIPLEXED_FILE_NAME
-
-    README_SPATIAL_FILE_NAME = "readme_spatial.md"
-    README_SPATIAL_FILE_PATH = common.OUTPUT_DATA_PATH / README_SPATIAL_FILE_NAME
-
-    README_TEMPLATE_PATH = common.TEMPLATE_PATH / "readme"
-    README_TEMPLATE_ANNDATA_FILE_PATH = README_TEMPLATE_PATH / "anndata.md"
-    README_TEMPLATE_ANNDATA_MERGED_FILE_PATH = README_TEMPLATE_PATH / "anndata_merged.md"
-    README_TEMPLATE_SINGLE_CELL_FILE_PATH = README_TEMPLATE_PATH / "single_cell.md"
-    README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH = README_TEMPLATE_PATH / "single_cell_merged.md"
-    README_TEMPLATE_METADATA_PATH = README_TEMPLATE_PATH / "metadata_only.md"
-    README_TEMPLATE_MULTIPLEXED_FILE_PATH = README_TEMPLATE_PATH / "multiplexed.md"
-    README_TEMPLATE_SPATIAL_FILE_PATH = README_TEMPLATE_PATH / "spatial.md"
 
     format = models.TextField(choices=OutputFileFormats.CHOICES, null=True)
     includes_merged = models.BooleanField(default=False)
@@ -128,24 +94,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
 
     @classmethod
-    def get_readme_from_download_config(cls, download_config: Dict):
-        match download_config:
-            case {"metadata_only": True}:
-                return ComputedFile.README_METADATA_PATH
-            case {"excludes_multiplexed": False}:
-                return ComputedFile.README_MULTIPLEXED_FILE_PATH
-            case {"format": "ANN_DATA", "includes_merged": True}:
-                return ComputedFile.README_ANNDATA_MERGED_FILE_PATH
-            case {"modality": "SINGLE_CELL", "includes_merged": True}:
-                return ComputedFile.README_SINGLE_CELL_MERGED_FILE_PATH
-            case {"format": "ANN_DATA"}:
-                return ComputedFile.README_ANNDATA_FILE_PATH
-            case {"modality": "SINGLE_CELL"}:
-                return ComputedFile.README_SINGLE_CELL_FILE_PATH
-            case {"modality": "SPATIAL"}:
-                return ComputedFile.README_SPATIAL_FILE_PATH
-
-    @classmethod
     def get_project_file(cls, project, download_config: Dict, computed_file_name: str) -> Self:
         """
         Queries for a project's libraries according to the given download options configuration,
@@ -173,8 +121,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         with ZipFile(zip_file_path, "w") as zip_file:
             # Readme file
             zip_file.write(
-                ComputedFile.get_readme_from_download_config(download_config),
-                ComputedFile.OUTPUT_README_FILE_NAME,
+                readme_creation.get_readme_from_download_config(download_config),
+                readme_creation.OUTPUT_README_FILE_NAME,
             )
             # Metadata file
             output_file_constant = (
@@ -268,8 +216,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 with ZipFile(zip_file_path, "w") as zip_file:
                     # Readme file
                     zip_file.write(
-                        ComputedFile.get_readme_from_download_config(download_config),
-                        ComputedFile.OUTPUT_README_FILE_NAME,
+                        readme_creation.get_readme_from_download_config(download_config),
+                        readme_creation.OUTPUT_README_FILE_NAME,
                     )
 
                     # Metadata file

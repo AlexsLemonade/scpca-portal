@@ -9,7 +9,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
 from django.template.loader import render_to_string
 
-from scpca_portal import common, metadata_file, utils
+from scpca_portal import common, metadata_file, readme_creation, utils
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -198,10 +198,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def create_anndata_readme_file(self):
         """Creates an annotation metadata README file."""
-        with open(ComputedFile.README_ANNDATA_FILE_PATH, "w") as readme_file:
+        with open(readme_creation.README_ANNDATA_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 render_to_string(
-                    ComputedFile.README_TEMPLATE_ANNDATA_FILE_PATH,
+                    readme_creation.README_TEMPLATE_ANNDATA_FILE_PATH,
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
@@ -213,10 +213,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def create_anndata_merged_readme_file(self):
         """Creates an annotation metadata README file."""
-        with open(ComputedFile.README_ANNDATA_MERGED_FILE_PATH, "w") as readme_file:
+        with open(readme_creation.README_ANNDATA_MERGED_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 render_to_string(
-                    ComputedFile.README_TEMPLATE_ANNDATA_MERGED_FILE_PATH,
+                    readme_creation.README_TEMPLATE_ANNDATA_MERGED_FILE_PATH,
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
@@ -228,10 +228,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def create_single_cell_readme_file(self):
         """Creates a single cell metadata README file."""
-        with open(ComputedFile.README_SINGLE_CELL_FILE_PATH, "w") as readme_file:
+        with open(readme_creation.README_SINGLE_CELL_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 render_to_string(
-                    ComputedFile.README_TEMPLATE_SINGLE_CELL_FILE_PATH,
+                    readme_creation.README_TEMPLATE_SINGLE_CELL_FILE_PATH,
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
@@ -243,10 +243,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def create_single_cell_merged_readme_file(self):
         """Creates a single cell metadata README file."""
-        with open(ComputedFile.README_SINGLE_CELL_MERGED_FILE_PATH, "w") as readme_file:
+        with open(readme_creation.README_SINGLE_CELL_MERGED_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 render_to_string(
-                    ComputedFile.README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH,
+                    readme_creation.README_TEMPLATE_SINGLE_CELL_MERGED_FILE_PATH,
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
@@ -258,10 +258,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def create_metadata_readme_file(self):
         """Creates a metadata only README file."""
-        with open(ComputedFile.README_METADATA_PATH, "w") as readme_file:
+        with open(readme_creation.README_METADATA_PATH, "w") as readme_file:
             readme_file.write(
                 render_to_string(
-                    ComputedFile.README_TEMPLATE_METADATA_PATH,
+                    readme_creation.README_TEMPLATE_METADATA_PATH,
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
@@ -274,10 +274,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def create_multiplexed_readme_file(self):
         """Creates a multiplexed metadata README file."""
-        with open(ComputedFile.README_MULTIPLEXED_FILE_PATH, "w") as readme_file:
+        with open(readme_creation.README_MULTIPLEXED_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 render_to_string(
-                    ComputedFile.README_TEMPLATE_MULTIPLEXED_FILE_PATH,
+                    readme_creation.README_TEMPLATE_MULTIPLEXED_FILE_PATH,
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
@@ -289,10 +289,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def create_spatial_readme_file(self):
         """Creates a spatial metadata README file."""
-        with open(ComputedFile.README_SPATIAL_FILE_PATH, "w") as readme_file:
+        with open(readme_creation.README_SPATIAL_FILE_PATH, "w") as readme_file:
             readme_file.write(
                 render_to_string(
-                    ComputedFile.README_TEMPLATE_SPATIAL_FILE_PATH,
+                    readme_creation.README_TEMPLATE_SPATIAL_FILE_PATH,
                     context={
                         "additional_terms": self.get_additional_terms(),
                         "date": utils.get_today_string(),
