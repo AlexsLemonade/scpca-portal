@@ -80,7 +80,7 @@ class TestWriteMetadataDicts(TestCase):
                 "country": "USA",
                 "language": "English",
                 "capital": "Washington DC",
-                "holidays": "New Year's Day;" "Thanksgiving Day;" "Christmas Day",
+                "holidays": "New Year's Day;Thanksgiving Day;Christmas Day",
             },
             {
                 "scpca_project_id": "SCPCP999991",
@@ -89,7 +89,7 @@ class TestWriteMetadataDicts(TestCase):
                 "country": "Spain",
                 "language": "Spanish",
                 "capital": "Madrid",
-                "holidays": "New Year’s Day;" "Epiphany;" "Christmas Day",
+                "holidays": "New Year’s Day;Epiphany;Christmas Day",
             },
             {
                 "scpca_project_id": "SCPCP999992",
