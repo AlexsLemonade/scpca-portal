@@ -12,7 +12,7 @@ import boto3
 from botocore.client import Config
 from typing_extensions import Self
 
-from scpca_portal import common, metadata_file, readme_creation, utils
+from scpca_portal import common, metadata_file, readme_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
@@ -111,8 +111,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         with ZipFile(zip_file_path, "w") as zip_file:
             # Readme file
             zip_file.writestr(
-                readme_creation.OUTPUT_NAME,
-                readme_creation.get_file_contents(download_config, project=project),
+                readme_file.OUTPUT_NAME,
+                readme_file.get_file_contents(download_config, project=project),
             )
 
             # Metadata file
@@ -203,8 +203,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 with ZipFile(zip_file_path, "w") as zip_file:
                     # Readme file
                     zip_file.writestr(
-                        readme_creation.OUTPUT_NAME,
-                        readme_creation.get_file_contents(download_config, sample.project),
+                        readme_file.OUTPUT_NAME,
+                        readme_file.get_file_contents(download_config, sample.project),
                     )
                     # Metadata file
                     with io.StringIO() as metadata_buffer:
