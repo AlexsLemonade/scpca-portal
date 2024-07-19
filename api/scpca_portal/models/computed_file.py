@@ -26,11 +26,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at", "id"]
 
-    class MetadataFilenames:
-        SINGLE_CELL_METADATA_FILE_NAME = "single_cell_metadata.tsv"
-        SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
-        METADATA_ONLY_FILE_NAME = "metadata.tsv"
-
     class OutputFileModalities:
         SINGLE_CELL = "SINGLE_CELL"
         SPATIAL = "SPATIAL"
@@ -109,7 +104,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries_metadata = [
             lib for library in libraries for lib in library.get_combined_library_metadata()
         ]
+
         local_metadata_path = ComputedFile.get_local_project_metadata_path(project, download_config)
+        output_metadata_file_name = metadata_file.get_metadata_file_name(download_config)
         metadata_file.write_metadata_dicts(libraries_metadata, local_metadata_path)
 
         library_data_file_paths = [
@@ -126,14 +123,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             )
 
             # Metadata file
-            output_file_constant = (
-                f'{download_config["modality"]}_METADATA_FILE_NAME'
-                if not download_config["metadata_only"]
-                else "METADATA_ONLY_FILE_NAME"
-            )
-            zip_file.write(
-                local_metadata_path, getattr(ComputedFile.MetadataFilenames, output_file_constant)
-            )
+            zip_file.write(local_metadata_path, output_metadata_file_name)
 
             if not download_config.get("metadata_only", False):
                 for file_path in library_data_file_paths:
@@ -204,7 +194,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries_metadata = [
             lib for library in libraries for lib in library.get_combined_library_metadata()
         ]
+
         local_metadata_path = ComputedFile.get_local_sample_metadata_path(sample, download_config)
+        output_metadata_file_name = metadata_file.get_metadata_file_name(download_config)
         metadata_file.write_metadata_dicts(libraries_metadata, local_metadata_path)
 
         library_data_file_paths = [
@@ -221,13 +213,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                         readme_creation.get_file_contents(download_config, sample.project),
                     )
                     # Metadata file
-                    zip_file.write(
-                        local_metadata_path,
-                        getattr(
-                            ComputedFile.MetadataFilenames,
-                            f'{download_config["modality"]}_METADATA_FILE_NAME',
-                        ),
-                    )
+                    zip_file.write(local_metadata_path, output_metadata_file_name)
 
                     for file_path in library_data_file_paths:
                         zip_file.write(

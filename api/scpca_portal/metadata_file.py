@@ -87,6 +87,23 @@ def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
     return data_dict
 
 
+class MetadataFilenames:
+    SINGLE_CELL_METADATA_FILE_NAME = "single_cell_metadata.tsv"
+    SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
+    METADATA_ONLY_FILE_NAME = "metadata.tsv"
+
+
+def get_metadata_file_name(download_config: Dict) -> str:
+    """Return metadata file name according to passed download_config."""
+    output_file_constant = (
+        f'{download_config["modality"]}_METADATA_FILE_NAME'
+        if not download_config.get("metadata_only", False)
+        else "METADATA_ONLY_FILE_NAME"
+    )
+
+    return getattr(MetadataFilenames, output_file_constant)
+
+
 def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
     """
     Writes a list of dictionaries to a csv-like file.
