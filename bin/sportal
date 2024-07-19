@@ -32,6 +32,7 @@ commands = {
     "graph-models": run_api.format("./manage.py graph_models scpca_portal > models.dot"),
     "run-api": run_api,
     "manage-api": run_api.format("./manage.py {}"),
+    "create-portal-metadata": run_api.format("./manage.py create_portal_metadata {}"),
     "load-data": run_api.format("./manage.py load_data {}"),
     "mock-data": run_api.format("./manage.py load_mock_data {}"),
     "run-black": run_api.format("black --line-length=100 --exclude=volumes_postgres ."),
