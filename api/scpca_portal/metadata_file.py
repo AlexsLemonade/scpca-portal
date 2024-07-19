@@ -1,4 +1,5 @@
 import csv
+import io
 import json
 from collections import namedtuple
 from pathlib import Path
@@ -104,7 +105,9 @@ def get_metadata_file_name(download_config: Dict) -> str:
     return getattr(MetadataFilenames, output_file_constant)
 
 
-def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
+def write_metadata_dicts(
+    list_of_dicts: List[Dict], output_file_path: str = None, *, buffer: io.StringIO = None, **kwargs
+) -> None:
     """
     Writes a list of dictionaries to a csv-like file.
     Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
@@ -125,7 +128,11 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
         ),
     )
 
-    with open(output_file_path, "w", newline="") as raw_file:
-        csv_writer = csv.DictWriter(raw_file, **kwargs)
-        csv_writer.writeheader()
-        csv_writer.writerows(sorted_list_of_dicts)
+    output_stream = open(output_file_path, "w", newline="") if output_file_path else buffer
+
+    csv_writer = csv.DictWriter(output_stream, **kwargs)
+    csv_writer.writeheader()
+    csv_writer.writerows(sorted_list_of_dicts)
+
+    if output_file_path:
+        output_stream.close()
