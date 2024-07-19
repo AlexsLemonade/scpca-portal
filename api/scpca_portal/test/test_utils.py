@@ -1,4 +1,6 @@
+import subprocess
 from datetime import date
+from pathlib import Path
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -19,6 +21,21 @@ class TestBooleanFromString(TestCase):
     def test_return_true(self):
         for v in (True, "True", "TRUE", "t", "tRUe"):
             self.assertTrue(utils.boolean_from_string(v))
+
+
+class TestStringFromList(TestCase):
+    def test_return_joined_string(self):
+        list = ["a", "b", "c"]
+        expected_result = "a;b;c"
+        actual_result = utils.string_from_list(list)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_ignores_nonlist(self):
+        items = ["abc", 123, None, {"a": 1, "b": 2, "c": 3}]
+        actual_result = [utils.string_from_list(item) for item in items]
+
+        self.assertEqual(actual_result, items)
 
 
 class TestJoinWorkflowVersions(TestCase):
@@ -187,3 +204,73 @@ class TestGetCsvZippedValues(TestCase):
 
         with self.assertRaises(AttributeError):
             utils.get_csv_zipped_values(data, *args)
+
+
+class TestListS3Paths(TestCase):
+    @patch("subprocess.run")
+    def test_list_s3_paths_success(self, mock_run):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["aws", "s3", "ls", "s3://input-bucket"],
+            returncode=0,
+            stdout="2024-06-10 10:00:00 1234 file.txt\nPRE dir/",
+        )
+        result = utils.list_s3_paths(bucket_path=Path("input-bucket"))
+        expected = [Path("file.txt"), Path("dir/")]
+        self.assertEqual(result, expected)
+
+    @patch("subprocess.run")
+    def test_list_s3_paths_command_failure(self, mock_run):
+        mock_run.side_effect = subprocess.CalledProcessError(
+            returncode=1, cmd="aws s3 ls s3://input-bucket"
+        )
+        result = utils.list_s3_paths(bucket_path=Path("input-bucket"))
+        expected = []
+        self.assertEqual(result, expected)
+
+    @patch("subprocess.run")
+    def test_list_s3_paths_with_relative_path(self, mock_run):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["aws", "s3", "ls", "s3://input-bucket/relative/path"],
+            returncode=0,
+            stdout="2024-06-10 10:00:00 1234 file.txt\nPRE dir/",
+        )
+        result = utils.list_s3_paths(
+            relative_path=Path("relative/path"), bucket_path=Path("input-bucket")
+        )
+        expected = [Path("file.txt"), Path("dir/")]
+        self.assertEqual(result, expected)
+
+    @patch("subprocess.run")
+    def test_list_s3_paths_with_public_bucket(self, mock_run):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["aws", "s3", "ls", "s3://public-input-bucket", "--no-sign-request"],
+            returncode=0,
+            stdout="2024-06-10 10:00:00 1234 file.txt\nPRE dir/",
+        )
+        result = utils.list_s3_paths(bucket_path=Path("public-input-bucket"))
+        expected = [Path("file.txt"), Path("dir/")]
+        self.assertEqual(result, expected)
+
+    @patch("subprocess.run")
+    def test_list_s3_paths_with_nested_directory(self, mock_run):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["aws", "s3", "ls", "s3://input-bucket/nested-dir"],
+            returncode=0,
+            stdout="2024-06-10 10:00:00 1234 nested-dir/file.txt\nPRE nested-dir/dir/",
+        )
+        expected = [Path("nested-dir/file.txt"), Path("nested-dir/dir/")]
+        result = utils.list_s3_paths(bucket_path=Path("input-bucket"))
+        self.assertEqual(expected, result)
+
+    @patch("subprocess.run")
+    def test_list_s3_paths_non_recursive_path(self, mock_run):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["aws", "s3", "ls", "s3://input-bucket/nested-dir"],
+            returncode=0,
+            stdout="PRE nested-dir",
+        )
+        expected = [Path("nested-dir")]
+        result = utils.list_s3_paths(
+            bucket_path=Path("input-bucket"), relative_path=Path("nested-dir"), recursive=False
+        )
+        self.assertEqual(expected, result)

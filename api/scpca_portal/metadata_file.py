@@ -87,6 +87,13 @@ def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
     return data_dict
 
 
+def format_metadata_dict(metadata_dict: Dict) -> Dict:
+    """
+    Returns a copy of metadata dict that is formatted and ready to be written to file.
+    """
+    return {k: utils.string_from_list(v) for k, v in metadata_dict.items()}
+
+
 def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
     """
     Writes a list of dictionaries to a csv-like file.
@@ -111,4 +118,5 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwa
     with open(output_file_path, "w", newline="") as raw_file:
         csv_writer = csv.DictWriter(raw_file, **kwargs)
         csv_writer.writeheader()
-        csv_writer.writerows(sorted_list_of_dicts)
+        for metadata_dict in sorted_list_of_dicts:
+            csv_writer.writerow(format_metadata_dict(metadata_dict))
