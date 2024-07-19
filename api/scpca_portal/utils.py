@@ -1,9 +1,10 @@
 """Misc utils."""
+
 import subprocess
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Any, Dict, List, Set
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -26,6 +27,13 @@ def boolean_from_string(value: str) -> bool:
         raise ValueError(f"Invalid value: expected str got {value_type}.")
 
     return value.lower() in ("t", "true")
+
+
+def string_from_list(value: Any, delimiter=";") -> Any:
+    """
+    Returns a delimited string converted from a list. Otherwise returns value.
+    """
+    return delimiter.join(value) if isinstance(value, list) else value
 
 
 def join_workflow_versions(workflow_versions: Set) -> str:
