@@ -3,7 +3,7 @@ from threading import Lock
 from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import connection, models
 from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, utils
@@ -65,24 +65,16 @@ class Sample(CommonDataAttributes, TimestampedModel):
     @classmethod
     def get_from_dict(cls, data, project):
         """Prepares ready for saving sample object."""
-
         sample = cls(
             age_at_diagnosis=data["age_at_diagnosis"],
-            demux_cell_count_estimate=(data.get("demux_cell_count_estimate", None)),
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],
-            has_bulk_rna_seq=data.get("has_bulk_rna_seq", False),
-            has_cite_seq_data=data.get("has_cite_seq_data", False),
-            has_multiplexed_data=data.get("has_multiplexed_data", False),
-            has_single_cell_data=data.get("has_single_cell_data", False),
-            has_spatial_data=data.get("has_spatial_data", False),
-            includes_anndata=data.get("includes_anndata", False),
             is_cell_line=utils.boolean_from_string(data.get("is_cell_line", False)),
             is_xenograft=utils.boolean_from_string(data.get("is_xenograft", False)),
             multiplexed_with=data.get("multiplexed_with", []),
             sample_cell_count_estimate=(data.get("sample_cell_count_estimate", None)),
             project=project,
-            scpca_id=data.get("scpca_sample_id"),
+            scpca_id=data["scpca_sample_id"],
             seq_units=data.get("seq_units", ""),
             sex=data["sex"],
             subdiagnosis=data["subdiagnosis"],
@@ -98,7 +90,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             for key, value in data.items()
             if not hasattr(sample, key)
             # Don't include project metadata keys (needed for writing)
-            and key not in ("scpca_project_id", "project_title", "pi_name")
+            and key not in ("scpca_project_id", "project_title", "pi_name", "submitter")
             # Exclude deliberate model attribute and file field name mismatch
             and key != "scpca_sample_id"
         }
@@ -106,19 +98,49 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return sample
 
     @classmethod
-    def bulk_create_from_dicts(
-        cls, samples_metadata: List[Dict], project, sample_id: str = None
-    ) -> None:
+    def bulk_create_from_dicts(cls, samples_metadata: List[Dict], project) -> None:
         """Creates a list of sample objects from sample metadata libraries and then saves them."""
         samples = []
         for sample_metadata in samples_metadata:
-            scpca_sample_id = sample_metadata["scpca_sample_id"]
-            if sample_id and scpca_sample_id != sample_id:
-                continue
-
             samples.append(Sample.get_from_dict(sample_metadata, project))
 
         Sample.objects.bulk_create(samples)
+
+    def get_metadata(self) -> Dict:
+        sample_metadata = {
+            "scpca_sample_id": self.scpca_id,
+        }
+
+        included_sample_attributes = {
+            "age_at_diagnosis",
+            "demux_cell_count_estimate",
+            "diagnosis",
+            "disease_timing",
+            "sex",
+            "subdiagnosis",
+            "tissue_location",
+            "includes_anndata",
+            "is_cell_line",
+            "is_xenograft",
+            "sample_cell_count_estimate",
+        }
+
+        sample_metadata.update({key: getattr(self, key) for key in included_sample_attributes})
+        # Update name from attribute name to expected output name
+        sample_metadata["sample_cell_estimate"] = sample_metadata.pop("demux_cell_count_estimate")
+
+        sample_metadata.update(
+            {key: self.additional_metadata[key] for key in self.additional_metadata}
+        )
+
+        return sample_metadata
+
+    def get_config_identifier(self, download_config: Dict) -> str:
+        """
+        Returns a unique identifier for the sample and download config combination.
+        Multiplexed samples are not considered unique as they share the same output.
+        """
+        return "_".join(self.multiplexed_ids + sorted(download_config.values()))
 
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
@@ -160,32 +182,9 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return sorted(multiplexed_sample_ids)
 
     @property
-    def output_multiplexed_computed_file_name(self):
-        return f"{'_'.join(self.multiplexed_ids)}_multiplexed.zip"
-
-    @property
-    def output_multiplexed_metadata_file_path(self):
-        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.MULTIPLEXED)
-
-    @property
-    def output_single_cell_computed_file_name(self):
-        return f"{self.scpca_id}.zip"
-
-    @property
-    def output_single_cell_anndata_computed_file_name(self):
-        return f"{self.scpca_id}_anndata.zip"
-
-    @property
-    def output_single_cell_metadata_file_path(self):
-        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SINGLE_CELL)
-
-    @property
-    def output_spatial_computed_file_name(self):
-        return f"{self.scpca_id}_spatial.zip"
-
-    @property
-    def output_spatial_metadata_file_path(self):
-        return Sample.get_output_metadata_file_path(self.scpca_id, Sample.Modalities.SPATIAL)
+    def is_last_multiplexed_sample(self):
+        """Return True if sample id is highest in list of multiplexed ids, False if not"""
+        return self.scpca_id == self.multiplexed_ids[-1]
 
     @property
     def multiplexed_computed_file(self):
@@ -238,134 +237,61 @@ class Sample(CommonDataAttributes, TimestampedModel):
             file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
         return file_formats
 
+    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+        """
+        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
+        and returns the string as a unique zip file name.
+        """
+        name_segments = [
+            "_".join(self.multiplexed_ids),
+            download_config["modality"],
+            download_config["format"],
+        ]
+        if self.has_multiplexed_data:
+            name_segments.append("MULTIPLEXED")
+
+        return f"{'_'.join(name_segments)}.zip"
+
     @staticmethod
-    def create_sample_computed_files(
-        combined_metadata,
+    def create_computed_files(
         project,
-        non_downloadable_sample_ids,
-        multiplexed_library_path_mapping,
         max_workers=8,  # 8 = 2 file formats * 4 mappings.
         clean_up_output_data=True,
         update_s3=False,
-        sample_id=None,
     ):
-        """
-        Generate computed files for each file format & modality within a given project's sample set.
-        Populate file mappings for each sample's computed files,
-        to be used when later generating the project zip.
-        """
+        """Prepares ready for saving project computed files based on generated file mappings."""
 
-        # Organize zipfile locations by file format, then by modality
-        # This data structure is needed to build the project zip in create_project_computed_files
-        file_mappings_by_format = {
-            ComputedFile.OutputFileFormats.ANN_DATA: {Sample.Modalities.SINGLE_CELL: {}},
-            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT: {
-                Sample.Modalities.SINGLE_CELL: {},
-                Sample.Modalities.SPATIAL: {},
-                Sample.Modalities.MULTIPLEXED: {},
-            },
-        }
+        def on_get_sample_file(future):
+            if computed_file := future.result():
 
-        workflow_versions_by_modality = {
-            Sample.Modalities.SINGLE_CELL: set(),
-            Sample.Modalities.SPATIAL: set(),
-            Sample.Modalities.MULTIPLEXED: set(),
-        }
+                # Only upload and clean up the last if multiplexed
+                if computed_file.sample.is_last_multiplexed_sample:
+                    if update_s3:
+                        computed_file.upload_s3_file()
+                    if clean_up_output_data:
+                        computed_file.clean_up_local_computed_file()
+                computed_file.save()
 
-        def create_sample_computed_file(future):
-            computed_file, sample_to_files_mapping = future.result()
-            if computed_file:
-                computed_file.process_computed_file(clean_up_output_data, update_s3)
+            # Close DB connection for each thread.
+            connection.close()
 
-            modality = (
-                computed_file.modality
-                if not computed_file.sample.has_multiplexed_data
-                else Sample.Modalities.MULTIPLEXED
-            )
-            file_format = computed_file.format
-            file_mappings_by_format[file_format][modality].update(sample_to_files_mapping)
-
-        samples = (
-            Sample.objects.filter(project__scpca_id=project.scpca_id)
-            if sample_id is None
-            else Sample.objects.filter(scpca_id=sample_id)
-        )
-        samples_count = len(samples)
+        samples = Sample.objects.filter(project__scpca_id=project.scpca_id)
         logger.info(
-            f"Processing {samples_count} sample{pluralize(samples_count)} using "
+            f"Processing {len(samples)} sample{pluralize(len(samples))} using "
             f"{max_workers} worker{pluralize(max_workers)}"
         )
 
-        # Prepare a threading.Lock for each multiplexed sample that shares a zip file.
-        # The keys are the sample.multiplexed_ids since that will be unique across shared zip files.
-        multiplexed_ids = set(
-            ["_".join(s.multiplexed_ids) for s in samples if s.has_multiplexed_data]
-        )
-        locks = {multiplexed_ids: Lock() for multiplexed_ids in multiplexed_ids}
-
+        # Prepare a threading.Lock for each sample, with the chief purpose being to protect
+        # multiplexed samples that shares a zip file.
+        locks = {}
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for sample in samples:
-                # Skip computed files creation if sample directory does not exist.
-                if sample.scpca_id not in non_downloadable_sample_ids:
-                    libraries = [
-                        library
-                        for library in combined_metadata[Sample.Modalities.SINGLE_CELL]
-                        if library["scpca_sample_id"] == sample.scpca_id
-                    ]
-                    workflow_versions = [library["workflow_version"] for library in libraries]
-                    workflow_versions_by_modality[Sample.Modalities.SINGLE_CELL].update(
-                        workflow_versions
-                    )
-
-                    for file_format in sample.single_cell_file_formats:
-                        tasks.submit(
-                            ComputedFile.get_sample_single_cell_file,
-                            sample,
-                            libraries,
-                            workflow_versions,
-                            file_format,
-                        ).add_done_callback(create_sample_computed_file)
-
-                    if sample.has_spatial_data:
-                        libraries = [
-                            library
-                            for library in combined_metadata[Sample.Modalities.SPATIAL]
-                            if library["scpca_sample_id"] == sample.scpca_id
-                        ]
-                        workflow_versions = [library["workflow_version"] for library in libraries]
-                        workflow_versions_by_modality[Sample.Modalities.SPATIAL].update(
-                            workflow_versions
-                        )
-                        tasks.submit(
-                            ComputedFile.get_sample_spatial_file,
-                            sample,
-                            libraries,
-                            workflow_versions,
-                            ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                        ).add_done_callback(create_sample_computed_file)
-
-                if sample.has_multiplexed_data:
-                    libraries = [
-                        library
-                        for library in combined_metadata[Sample.Modalities.MULTIPLEXED]
-                        if library.get("scpca_sample_id") == sample.scpca_id
-                    ]
-                    workflow_versions = [library["workflow_version"] for library in libraries]
-                    workflow_versions_by_modality[Sample.Modalities.MULTIPLEXED].update(
-                        workflow_versions
-                    )
-
-                    # Get the lock for current sample.
-                    sample_lock = locks["_".join(sample.multiplexed_ids)]
-
+                for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+                    sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
                     tasks.submit(
-                        ComputedFile.get_sample_multiplexed_file,
+                        ComputedFile.get_sample_file,
                         sample,
-                        libraries,
-                        multiplexed_library_path_mapping,
-                        workflow_versions,
-                        ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                        lock=sample_lock,
-                    ).add_done_callback(create_sample_computed_file)
-
-        return (file_mappings_by_format, workflow_versions_by_modality)
+                        config,
+                        sample.get_download_config_file_output_name(config),
+                        sample_lock,
+                    ).add_done_callback(on_get_sample_file)

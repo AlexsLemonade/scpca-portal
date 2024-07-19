@@ -1,7 +1,10 @@
 """Misc utils."""
 
+import subprocess
+from collections import namedtuple
 from datetime import datetime
-from typing import Dict, List, Set
+from pathlib import Path
+from typing import Any, Dict, List, Set
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -24,6 +27,13 @@ def boolean_from_string(value: str) -> bool:
         raise ValueError(f"Invalid value: expected str got {value_type}.")
 
     return value.lower() in ("t", "true")
+
+
+def string_from_list(value: Any, delimiter=";") -> Any:
+    """
+    Returns a delimited string converted from a list. Otherwise returns value.
+    """
+    return delimiter.join(value) if isinstance(value, list) else value
 
 
 def join_workflow_versions(workflow_versions: Set) -> str:
@@ -92,3 +102,72 @@ def get_csv_zipped_values(
     and returns the zipped values as a list.
     """
     return list(zip(*(data.get(key).split(delimiter) for key in args), strict=True))
+
+
+"""
+The `aws s3 ls <bucket>` command called in `list_s3_paths()` returns a list of two types of entries:
+- Bucket Object Entries
+- Bucket Prefix Entries
+In order to create a standard API, where `entry.file_path` could be accessed
+irrespective of the entry type, we've created two named tuples which follow the return format
+of each of the bucket entry types.
+"""
+BucketObjectEntry = namedtuple("BucketObjectEntry", ["date", "time", "size_in_bytes", "file_path"])
+BucketPrefixEntry = namedtuple("BucketPrefixEntry", ["prefix_designation", "file_path"])
+
+
+def list_s3_paths(
+    relative_path: Path = Path(),
+    *,
+    bucket_path: Path = Path(common.INPUT_BUCKET_NAME),
+    recursive: bool = True,
+):
+    """
+    Queries a path on an inputted s3 bucket
+    and returns bucket's existing content as a list of Path objects,
+    relative to (without) the bucket prefix.
+
+    The `aws s3 ls <bucket>` command returns a list of two types of entries:
+    - Bucket Object Entries
+    - Bucket Prefix Entries
+    In order to create a standard API, where `entry.file_path` could be accessed
+    irrespective of the entry type, we've created two named tuples which follow the return format
+    of each of the bucket entry types.
+    """
+    root_path = Path(*bucket_path.parts, *relative_path.parts)
+    command_inputs = ["aws", "s3", "ls", f"s3://{root_path}"]
+
+    if recursive:
+        command_inputs.append("--recursive")
+
+    if "public" in str(bucket_path):
+        command_inputs.append("--no-sign-request")
+
+    try:
+        result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
+        output = result.stdout
+    except subprocess.CalledProcessError as error:
+        logger.error(
+            """
+            `{}`: Cause of error not returned, note: folder must exist and be non-empty
+            """.format(
+                error
+            )
+        )
+        return []
+
+    bucket_entries = []
+    for line in output.splitlines():
+        if line.strip().startswith("PRE"):
+            bucket_entries.append(BucketPrefixEntry._make(line.split()))
+        else:
+            bucket_entries.append(BucketObjectEntry._make(line.split()))
+
+    file_paths = [Path(entry.file_path) for entry in bucket_entries]
+
+    # recursive returns an absolute path (see docstring)
+    if recursive:
+        bucket_keys = Path(*bucket_path.parts[1:])
+        return [entry.relative_to(bucket_keys) for entry in file_paths]
+
+    return file_paths
