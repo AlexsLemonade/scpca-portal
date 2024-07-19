@@ -121,8 +121,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         with ZipFile(zip_file_path, "w") as zip_file:
             # Readme file
             zip_file.writestr(
-                readme_creation.OUTPUT_README_FILE_NAME,
-                readme_creation.create_readme_file(download_config, project=project),
+                readme_creation.OUTPUT_NAME,
+                readme_creation.get_file_contents(download_config, project=project),
             )
 
             # Metadata file
@@ -217,8 +217,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 with ZipFile(zip_file_path, "w") as zip_file:
                     # Readme file
                     zip_file.writestr(
-                        readme_creation.OUTPUT_README_FILE_NAME,
-                        readme_creation.create_readme_file(download_config, sample=sample),
+                        readme_creation.OUTPUT_NAME,
+                        readme_creation.get_file_contents(download_config, sample.project),
                     )
                     # Metadata file
                     zip_file.write(
