@@ -34,7 +34,6 @@ def get_file_contents(download_config: Dict, project) -> str:
         context={
             "additional_terms": project.get_additional_terms(),
             "date": utils.get_today_string(),
-            "project_accession": project.scpca_id,
-            "project_url": project.url,
+            "projects": [project],
         },
     ).strip()
