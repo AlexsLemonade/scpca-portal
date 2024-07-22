@@ -28,6 +28,7 @@ def get_file_contents(download_config: Dict, project) -> str:
         TEMPLATE_FILE_PATH,
         context={
             "date": utils.get_today_string(),
+            "download_config": download_config,
             "contents_template": contents_template,
             "projects": [project],
         },
