@@ -96,13 +96,10 @@ class MetadataFilenames:
 
 def get_file_name(download_config: Dict) -> str:
     """Return metadata file name according to passed download_config."""
-    output_file_constant = (
-        f'{download_config["modality"]}_METADATA_FILE_NAME'
-        if not download_config.get("metadata_only", False)
-        else "METADATA_ONLY_FILE_NAME"
-    )
+    if download_config.get("metadata_only", False):
+        return MetadataFilenames.METADATA_ONLY_FILE_NAME
 
-    return getattr(MetadataFilenames, output_file_constant)
+    return getattr(MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME')
 
 
 def get_file_contents(libraries, **kwargs) -> str:
