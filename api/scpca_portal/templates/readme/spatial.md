@@ -60,4 +60,4 @@ In using these data, you agree to our [Terms of Use.](https://scpca.alexslemonad
 
 {% endwith %}
 
-{% include "readme/additional_terms/research_academic_only.md" %}
+{% include "readme/additional_terms/index.md" %}

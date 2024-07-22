@@ -51,4 +51,4 @@ Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al.,
 
 In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade.org/terms-of-use).
 
-{% include "readme/additional_terms/research_academic_only.md" %}
+{% include "readme/additional_terms/index.md" %}
