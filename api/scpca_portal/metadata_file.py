@@ -105,15 +105,13 @@ def get_file_name(download_config: Dict) -> str:
 def get_file_contents(libraries, **kwargs) -> str:
     """Return newly genereated metadata file as a string for immediate writing to a zip archive."""
     libraries_metadata = [
-        lib for library in libraries for lib in library.get_combined_library_metadata()
+        format_metadata_dict(library_metadata)
+        for library in libraries
+        for library_metadata in library.get_combined_library_metadata()
     ]
     sorted_libraries_metadata = sorted(
         libraries_metadata,
-        key=lambda k: (
-            k[common.PROJECT_ID_KEY],
-            k[common.SAMPLE_ID_KEY],
-            k[common.LIBRARY_ID_KEY],
-        ),
+        key=lambda k: (k[common.PROJECT_ID_KEY], k[common.SAMPLE_ID_KEY], k[common.LIBRARY_ID_KEY]),
     )
 
     kwargs["fieldnames"] = kwargs.get(
@@ -133,7 +131,14 @@ def get_file_contents(libraries, **kwargs) -> str:
         return metadata_buffer.getvalue()
 
 
-def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str = None, **kwargs) -> None:
+def format_metadata_dict(metadata_dict: Dict) -> Dict:
+    """
+    Returns a copy of metadata dict that is formatted and ready to be written to file.
+    """
+    return {k: utils.string_from_list(v) for k, v in metadata_dict.items()}
+
+
+def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
     """
     Writes a list of dictionaries to a csv-like file.
     Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
@@ -157,4 +162,5 @@ def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str = None
     with open(output_file_path, "w", newline="") as raw_file:
         csv_writer = csv.DictWriter(raw_file, **kwargs)
         csv_writer.writeheader()
-        csv_writer.writerows(sorted_list_of_dicts)
+        for metadata_dict in sorted_list_of_dicts:
+            csv_writer.writerow(format_metadata_dict(metadata_dict))
