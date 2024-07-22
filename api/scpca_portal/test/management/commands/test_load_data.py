@@ -1043,7 +1043,7 @@ class TestLoadData(TransactionTestCase):
                 project_zip,
             )
             self.assertProjectReadmeContains(
-                "This download includes gene expression data from libraries processed using spatial transcriptomics",
+                "For all spatial transcriptomics libraries",
                 project_zip,
             )
 
