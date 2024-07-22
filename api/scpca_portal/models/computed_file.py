@@ -1,4 +1,3 @@
-import io
 import subprocess
 from pathlib import Path
 from threading import Lock
@@ -116,15 +115,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             )
 
             # Metadata file
-            with io.StringIO() as metadata_buffer:
-                libraries_metadata = [
-                    lib for library in libraries for lib in library.get_combined_library_metadata()
-                ]
-                # Write libraries metadata to buffer
-                metadata_file.write_metadata_dicts(libraries_metadata, buffer=metadata_buffer)
-                output_metadata_file_name = metadata_file.get_metadata_file_name(download_config)
-                # Write buffer directly to zip archive
-                zip_file.writestr(output_metadata_file_name, metadata_buffer.getvalue())
+            zip_file.writestr(
+                metadata_file.get_file_name(download_config),
+                metadata_file.get_file_contents(libraries),
+            )
 
             if not download_config.get("metadata_only", False):
                 for file_path in library_data_file_paths:
@@ -206,22 +200,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                         readme_file.OUTPUT_NAME,
                         readme_file.get_file_contents(download_config, sample.project),
                     )
+
                     # Metadata file
-                    with io.StringIO() as metadata_buffer:
-                        libraries_metadata = [
-                            lib
-                            for library in libraries
-                            for lib in library.get_combined_library_metadata()
-                        ]
-                        # Write libraries metadata to buffer
-                        metadata_file.write_metadata_dicts(
-                            libraries_metadata, buffer=metadata_buffer
-                        )
-                        output_metadata_file_name = metadata_file.get_metadata_file_name(
-                            download_config
-                        )
-                        # Write buffer directly to zip archive
-                        zip_file.writestr(output_metadata_file_name, metadata_buffer.getvalue())
+                    zip_file.writestr(
+                        metadata_file.get_file_name(download_config),
+                        metadata_file.get_file_contents(libraries),
+                    )
 
                     for file_path in library_data_file_paths:
                         zip_file.write(

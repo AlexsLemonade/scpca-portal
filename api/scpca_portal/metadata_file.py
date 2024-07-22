@@ -94,7 +94,7 @@ class MetadataFilenames:
     METADATA_ONLY_FILE_NAME = "metadata.tsv"
 
 
-def get_metadata_file_name(download_config: Dict) -> str:
+def get_file_name(download_config: Dict) -> str:
     """Return metadata file name according to passed download_config."""
     output_file_constant = (
         f'{download_config["modality"]}_METADATA_FILE_NAME'
@@ -105,9 +105,38 @@ def get_metadata_file_name(download_config: Dict) -> str:
     return getattr(MetadataFilenames, output_file_constant)
 
 
-def write_metadata_dicts(
-    list_of_dicts: List[Dict], output_file_path: str = None, *, buffer: io.StringIO = None, **kwargs
-) -> None:
+def get_file_contents(libraries, **kwargs) -> str:
+    """Return newly genereated metadata file as a string for immediate writing to a zip archive."""
+    libraries_metadata = [
+        lib for library in libraries for lib in library.get_combined_library_metadata()
+    ]
+    sorted_libraries_metadata = sorted(
+        libraries_metadata,
+        key=lambda k: (
+            k[common.PROJECT_ID_KEY],
+            k[common.SAMPLE_ID_KEY],
+            k[common.LIBRARY_ID_KEY],
+        ),
+    )
+
+    kwargs["fieldnames"] = kwargs.get(
+        "fieldnames",
+        utils.get_sorted_field_names(utils.get_keys_from_dicts(sorted_libraries_metadata)),
+    )
+    kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
+    # By default fill missing values with "NA"
+    kwargs["restval"] = kwargs.get("restval", common.NA)
+
+    with io.StringIO() as metadata_buffer:
+        # Write libraries metadata to buffer
+        csv_writer = csv.DictWriter(metadata_buffer, **kwargs)
+        csv_writer.writeheader()
+        csv_writer.writerows(sorted_libraries_metadata)
+
+        return metadata_buffer.getvalue()
+
+
+def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str = None, **kwargs) -> None:
     """
     Writes a list of dictionaries to a csv-like file.
     Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
@@ -128,11 +157,7 @@ def write_metadata_dicts(
         ),
     )
 
-    output_stream = open(output_file_path, "w", newline="") if output_file_path else buffer
-
-    csv_writer = csv.DictWriter(output_stream, **kwargs)
-    csv_writer.writeheader()
-    csv_writer.writerows(sorted_list_of_dicts)
-
-    if output_file_path:
-        output_stream.close()
+    with open(output_file_path, "w", newline="") as raw_file:
+        csv_writer = csv.DictWriter(raw_file, **kwargs)
+        csv_writer.writeheader()
+        csv_writer.writerows(sorted_list_of_dicts)
