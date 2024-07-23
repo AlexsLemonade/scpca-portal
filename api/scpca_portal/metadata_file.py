@@ -102,15 +102,11 @@ def get_file_name(download_config: Dict) -> str:
     return getattr(MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME')
 
 
-def get_file_contents(libraries, **kwargs) -> str:
+def get_file_contents(libraries_metadata: List[Dict], **kwargs) -> str:
     """Return newly genereated metadata file as a string for immediate writing to a zip archive."""
-    libraries_metadata = [
-        format_metadata_dict(library_metadata)
-        for library in libraries
-        for library_metadata in library.get_combined_library_metadata()
-    ]
+    formatted_libraries_metadata = [format_metadata_dict(lib_md) for lib_md in libraries_metadata]
     sorted_libraries_metadata = sorted(
-        libraries_metadata,
+        formatted_libraries_metadata,
         key=lambda k: (k[common.PROJECT_ID_KEY], k[common.SAMPLE_ID_KEY], k[common.LIBRARY_ID_KEY]),
     )
 

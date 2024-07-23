@@ -101,6 +101,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         if not libraries.exists():
             return
 
+        libraries_metadata = [
+            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
+        ]
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
@@ -117,7 +120,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Metadata file
             zip_file.writestr(
                 metadata_file.get_file_name(download_config),
-                metadata_file.get_file_contents(libraries),
+                metadata_file.get_file_contents(libraries_metadata),
             )
 
             if not download_config.get("metadata_only", False):
@@ -186,6 +189,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         if not libraries.exists():
             return
 
+        libraries_metadata = [
+            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
+        ]
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
@@ -204,7 +210,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     # Metadata file
                     zip_file.writestr(
                         metadata_file.get_file_name(download_config),
-                        metadata_file.get_file_contents(libraries),
+                        metadata_file.get_file_contents(libraries_metadata),
                     )
 
                     for file_path in library_data_file_paths:
