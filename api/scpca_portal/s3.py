@@ -1,6 +1,7 @@
 import subprocess
 from collections import namedtuple
 from pathlib import Path
+from typing import List
 
 from django.conf import settings
 
@@ -35,7 +36,7 @@ def configure_aws_cli(**params):
         subprocess.check_call(command.split())
 
 
-def download_data(bucket_name, scpca_project_id=None):
+def download_data(bucket_name: str = common.INPUT_BUCKET_NAME, scpca_project_id: str = None):
     command_list = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
     if scpca_project_id:
         command_list.extend(
@@ -55,6 +56,31 @@ def download_data(bucket_name, scpca_project_id=None):
     subprocess.check_call(command_list)
 
 
+def download_s3_files(bucket_name: str = common.INPUT_BUCKET_NAME, filters: List[str] = None):
+    """Download all passed metadata files that don't exist locally.'"""
+    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
+
+    if filters:
+        command_parts.append("--exclude=*")
+        command_parts.extend(*filters)
+
+    if "public-test" in bucket_name:
+        command_parts.append("--no-sign-request")
+
+    subprocess.check_call(command_parts)
+
+
+def download_metadata_files():
+    """Download all metadata files to the local file system."""
+    filters = ["--include=*_metadata.csv", "--include=*_metadata.json"]
+    download_s3_files(filters=filters)
+
+
+def download_data_files(data_file_paths: List[Path]):
+    filters = [f"--include={fp}" for fp in data_file_paths]
+    download_s3_files(filters=filters)
+
+
 def upload_s3_file(computed_file) -> None:
     """Upload a computed file to S3 using the AWS CLI tool."""
 
@@ -65,7 +91,7 @@ def upload_s3_file(computed_file) -> None:
     subprocess.check_call(command_parts)
 
 
-def delete_s3_file(computed_file, force=False):
+def delete_s3_file(computed_file, force: bool = False):
     # If we're not running in the cloud then we shouldn't try to
     # delete something from S3 unless force is set.
     if not settings.UPDATE_S3_DATA and not force:
