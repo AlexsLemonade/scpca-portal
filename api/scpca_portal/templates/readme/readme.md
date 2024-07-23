@@ -19,5 +19,3 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 {% include "readme/terms_of_use/index.md" %}
 
 {% endwith %}
-
-{% include "readme/additional_terms/index.md" %}
