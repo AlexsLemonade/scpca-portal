@@ -94,6 +94,22 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
 
     @classmethod
+    def get_portal_metadata_file(cls, projects) -> Self:
+        """
+        Queries all libraries to aggregate the combined metadata,
+        writes the aggregated combined metadata to an output TSV file,
+        computes a zip archive using the output TSV and the readme buffer, and
+        instantiates and returns a computed file object.
+        """
+        with ZipFile(common.PORTAL_METADATA_ZIP_FILE_PATH, "w") as zip_file:
+            zip_file.writestr(
+                readme_file.OUTPUT_NAME,
+                readme_file.get_portal_metadata_file_content(
+                    projects, common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS[-1]
+                ),
+            )
+
+    @classmethod
     def get_project_file(cls, project, download_config: Dict, computed_file_name: str) -> Self:
         """
         Queries for a project's libraries according to the given download options configuration,

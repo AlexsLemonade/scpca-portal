@@ -166,3 +166,7 @@ GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS = [
     {"modality": "SINGLE_CELL", "format": "ANN_DATA"},
     {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"},
 ]
+
+# NOTE: Temporarily added here until all consolidate readme PRs/memory metadata generation
+# are merged to prevent duplicate changes etc
+PORTAL_METADATA_ZIP_FILE_PATH = OUTPUT_DATA_PATH / "portal_metadata.zip"

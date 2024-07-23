@@ -38,3 +38,20 @@ def get_file_contents(download_config: Dict, project) -> str:
             "project_url": project.url,
         },
     ).strip()
+
+
+# NOTE: Temporarily added this until all consolidate readme PRs are finalized and merged
+# to prevent duplicate changes etc
+def get_portal_metadata_file_content(download_config: Dict, projects=[]) -> str:
+    """Return newly generated readme file for portal-wide metadata as a string
+    for immediate writing to a zip archive."""
+    template_file = TEMPLATE_ROOT / "metadata_only.md"
+
+    return render_to_string(
+        template_file,
+        context={
+            "date": utils.get_today_string(),
+            "download_config": download_config,
+            "projects": projects,
+        },
+    ).strip()
