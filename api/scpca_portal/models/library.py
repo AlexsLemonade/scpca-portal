@@ -4,7 +4,7 @@ from typing import Dict, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, utils
+from scpca_portal import common, s3
 from scpca_portal.models.base import TimestampedModel
 
 
@@ -92,7 +92,7 @@ class Library(TimestampedModel):
 
         data_file_paths = [
             file_path
-            for file_path in utils.list_s3_paths(relative_path)
+            for file_path in s3.list_s3_paths(relative_path)
             if "metadata" not in file_path.name
         ]
 

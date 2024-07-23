@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from scpca_portal import utils
+from scpca_portal import s3, utils
 
 
 class TestBooleanFromString(TestCase):
@@ -214,7 +214,7 @@ class TestListS3Paths(TestCase):
             returncode=0,
             stdout="2024-06-10 10:00:00 1234 file.txt\nPRE dir/",
         )
-        result = utils.list_s3_paths(bucket_path=Path("input-bucket"))
+        result = s3.list_s3_paths(bucket_path=Path("input-bucket"))
         expected = [Path("file.txt"), Path("dir/")]
         self.assertEqual(result, expected)
 
@@ -223,7 +223,7 @@ class TestListS3Paths(TestCase):
         mock_run.side_effect = subprocess.CalledProcessError(
             returncode=1, cmd="aws s3 ls s3://input-bucket"
         )
-        result = utils.list_s3_paths(bucket_path=Path("input-bucket"))
+        result = s3.list_s3_paths(bucket_path=Path("input-bucket"))
         expected = []
         self.assertEqual(result, expected)
 
@@ -234,7 +234,7 @@ class TestListS3Paths(TestCase):
             returncode=0,
             stdout="2024-06-10 10:00:00 1234 file.txt\nPRE dir/",
         )
-        result = utils.list_s3_paths(
+        result = s3.list_s3_paths(
             relative_path=Path("relative/path"), bucket_path=Path("input-bucket")
         )
         expected = [Path("file.txt"), Path("dir/")]
@@ -247,7 +247,7 @@ class TestListS3Paths(TestCase):
             returncode=0,
             stdout="2024-06-10 10:00:00 1234 file.txt\nPRE dir/",
         )
-        result = utils.list_s3_paths(bucket_path=Path("public-input-bucket"))
+        result = s3.list_s3_paths(bucket_path=Path("public-input-bucket"))
         expected = [Path("file.txt"), Path("dir/")]
         self.assertEqual(result, expected)
 
@@ -259,7 +259,7 @@ class TestListS3Paths(TestCase):
             stdout="2024-06-10 10:00:00 1234 nested-dir/file.txt\nPRE nested-dir/dir/",
         )
         expected = [Path("nested-dir/file.txt"), Path("nested-dir/dir/")]
-        result = utils.list_s3_paths(bucket_path=Path("input-bucket"))
+        result = s3.list_s3_paths(bucket_path=Path("input-bucket"))
         self.assertEqual(expected, result)
 
     @patch("subprocess.run")
@@ -270,7 +270,7 @@ class TestListS3Paths(TestCase):
             stdout="PRE nested-dir",
         )
         expected = [Path("nested-dir")]
-        result = utils.list_s3_paths(
+        result = s3.list_s3_paths(
             bucket_path=Path("input-bucket"), relative_path=Path("nested-dir"), recursive=False
         )
         self.assertEqual(expected, result)

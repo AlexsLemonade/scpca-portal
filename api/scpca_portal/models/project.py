@@ -239,7 +239,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         merged_relative_path = Path(f"{self.scpca_id}/merged/")
         bulk_relative_path = Path(f"{self.scpca_id}/{self.scpca_id}_bulk")
 
-        data_file_paths = utils.list_s3_paths(merged_relative_path) + utils.list_s3_paths(
+        data_file_paths = s3.list_s3_paths(merged_relative_path) + s3.list_s3_paths(
             bulk_relative_path
         )
 
