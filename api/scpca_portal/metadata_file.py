@@ -132,31 +132,3 @@ def format_metadata_dict(metadata_dict: Dict) -> Dict:
     Returns a copy of metadata dict that is formatted and ready to be written to file.
     """
     return {k: utils.string_from_list(v) for k, v in metadata_dict.items()}
-
-
-def write_metadata_dicts(list_of_dicts: List[Dict], output_file_path: str, **kwargs) -> None:
-    """
-    Writes a list of dictionaries to a csv-like file.
-    Optional modifiers to the csv.DictWriter can be passed to function as kwargs.
-    """
-    kwargs["fieldnames"] = kwargs.get(
-        "fieldnames", utils.get_sorted_field_names(utils.get_keys_from_dicts(list_of_dicts))
-    )
-    kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
-    # By default fill missing values with "NA"
-    kwargs["restval"] = kwargs.get("restval", common.NA)
-
-    sorted_list_of_dicts = sorted(
-        list_of_dicts,
-        key=lambda k: (
-            k[common.PROJECT_ID_KEY],
-            k[common.SAMPLE_ID_KEY],
-            k[common.LIBRARY_ID_KEY],
-        ),
-    )
-
-    with open(output_file_path, "w", newline="") as raw_file:
-        csv_writer = csv.DictWriter(raw_file, **kwargs)
-        csv_writer.writeheader()
-        for metadata_dict in sorted_list_of_dicts:
-            csv_writer.writerow(format_metadata_dict(metadata_dict))
