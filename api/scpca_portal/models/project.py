@@ -8,7 +8,7 @@ from typing import Dict, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
 
-from scpca_portal import common, metadata_file, utils
+from scpca_portal import common, metadata_file, s3, utils
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -213,7 +213,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 computed_file.save()
 
                 if update_s3:
-                    computed_file.upload_s3_file()
+                    s3.upload_s3_file(computed_file)
                 if clean_up_output_data:
                     computed_file.clean_up_local_computed_file()
 
@@ -340,7 +340,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         for sample in self.samples.all():
             for computed_file in sample.computed_files:
                 if delete_from_s3:
-                    computed_file.delete_s3_file(force=True)
+                    s3.delete_s3_file(computed_file, force=True)
                 computed_file.delete()
             for library in sample.libraries.all():
                 # If library has other samples that it is related to, then don't delete it
@@ -350,7 +350,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         for computed_file in self.computed_files:
             if delete_from_s3:
-                computed_file.delete_s3_file(force=True)
+                s3.delete_s3_file(computed_file, force=True)
             computed_file.delete()
 
         ProjectSummary.objects.filter(project=self).delete()

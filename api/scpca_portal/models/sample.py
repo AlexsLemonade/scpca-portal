@@ -6,7 +6,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
 from django.template.defaultfilters import pluralize
 
-from scpca_portal import common, utils
+from scpca_portal import common, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -267,7 +267,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
                 # Only upload and clean up the last if multiplexed
                 if computed_file.sample.is_last_multiplexed_sample:
                     if update_s3:
-                        computed_file.upload_s3_file()
+                        s3.upload_s3_file(computed_file)
                     if clean_up_output_data:
                         computed_file.clean_up_local_computed_file()
                 computed_file.save()
