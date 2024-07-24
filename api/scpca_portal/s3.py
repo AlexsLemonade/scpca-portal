@@ -70,9 +70,31 @@ def download_s3_files(bucket_name: str = common.INPUT_BUCKET_NAME, filters: List
     subprocess.check_call(command_parts)
 
 
-def download_metadata_files():
+def download_metadata_files(project_id: str = None) -> None:
     """Download all metadata files to the local file system."""
-    filters = ["--include=*_metadata.csv", "--include=*_metadata.json"]
+
+    filters = (
+        ["--include=project_metadata.csv", f"--include={project_id}/*_metadata.*"]
+        if project_id
+        else ["--include=*_metadata.*"]
+    )
+    download_s3_files(filters=filters)
+
+
+def download_sample_data_files(sample) -> None:
+    project_path_part = sample.project.scpca_id
+    sample_path_part = ",".join(sample.multiplexed_ids)
+    include_path = f"{project_path_part}/{sample_path_part}"
+
+    filters = [f"--include={include_path}/*"]
+    download_s3_files(filters=filters)
+
+
+def download_project_data_files(project) -> None:
+    filters = [
+        f"--include={project.scpca_id}/merged/*",
+        f"--include={project.scpca_id}/*_bulk_*",
+    ]
     download_s3_files(filters=filters)
 
 
