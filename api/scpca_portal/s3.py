@@ -60,6 +60,17 @@ def download_metadata_files(project_id: str = None) -> None:
     download_s3_files(filters=filters)
 
 
+def download_data_files(data_file_paths: List[Path]):
+    """Download all passed data files paths which have not previously been downloaded.'"""
+    data_file_download_queue = [fp for fp in data_file_paths if not fp.exists()]
+    # If download_queue is empty, exit early
+    if not data_file_download_queue:
+        return
+
+    filters = [f"--include={data_file}" for data_file in data_file_download_queue]
+    download_s3_files(filters=filters)
+
+
 def download_sample_data_files(sample) -> None:
     """Download all library data files associated with a given sample."""
     project_path_part = sample.project.scpca_id
