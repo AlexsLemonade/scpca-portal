@@ -294,11 +294,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         locks = {}
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for sample in samples:
-                # download all library data files associated with current sample
-                # if data files already exist locally, files are not redownloadede
-                if sample.has_downloaded_data:
-                    s3.download_sample_data_files(sample)
-
                 for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
                     sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
                     tasks.submit(

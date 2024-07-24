@@ -100,10 +100,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries_metadata = [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
+
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
         project_data_file_paths = project.get_download_config_file_paths(download_config)
+        s3.download_data_files(library_data_file_paths + project_data_file_paths)
 
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -191,6 +193,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
+        s3.download_data_files(library_data_file_paths)
 
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
