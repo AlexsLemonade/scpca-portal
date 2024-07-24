@@ -107,9 +107,7 @@ class Command(BaseCommand):
         allowed_submitters = allowed_submitters or ALLOWED_SUBMITTERS
         project_id = kwargs.get("scpca_project_id")
 
-        if not kwargs.get("skip_sync"):
-            s3.download_data(input_bucket_name, scpca_project_id=project_id)
-
+        s3.download_metadata_files(project_id)
         project_samples_mapping = {
             project_path.name: set((sd.name for sd in project_path.iterdir() if sd.is_dir()))
             for project_path in common.INPUT_DATA_PATH.iterdir()

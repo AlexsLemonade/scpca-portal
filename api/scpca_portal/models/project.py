@@ -220,6 +220,9 @@ class Project(CommonDataAttributes, TimestampedModel):
             # Close DB connection for each thread.
             connection.close()
 
+        # download all project level data files
+        s3.download_project_data_files(self)
+
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
                 tasks.submit(

@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from threading import Lock
 from typing import Dict, List
 
@@ -237,6 +238,13 @@ class Sample(CommonDataAttributes, TimestampedModel):
             file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
         return file_formats
 
+    @property
+    def has_downloaded_data(self):
+        sample_dir = Path(
+            common.INPUT_DATA_PATH, self.project.scpca_id, ",".join(self.multiplexed_ids)
+        )
+        return Path.exists(sample_dir)
+
     def get_download_config_file_output_name(self, download_config: Dict) -> str:
         """
         Accumulates all applicable name segments, concatenates them with an underscore delimiter,
@@ -286,6 +294,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
         locks = {}
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for sample in samples:
+                # download all library data files associated with current sample
+                # if data files already exist locally, files are not redownloadede
+                if sample.has_downloaded_data:
+                    s3.download_sample_data_files(sample)
+
                 for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
                     sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
                     tasks.submit(
