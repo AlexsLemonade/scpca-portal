@@ -36,28 +36,8 @@ def configure_aws_cli(**params):
         subprocess.check_call(command.split())
 
 
-def download_data(bucket_name: str = common.INPUT_BUCKET_NAME, scpca_project_id: str = None):
-    command_list = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
-    if scpca_project_id:
-        command_list.extend(
-            (
-                "--exclude=*",  # Must precede include patterns.
-                "--include=project_metadata.csv",
-                f"--include=merged/{scpca_project_id}*",
-                f"--include={scpca_project_id}*",
-            )
-        )
-    else:
-        command_list.append("--delete")
-
-    if "public-test" in bucket_name:
-        command_list.append("--no-sign-request")
-
-    subprocess.check_call(command_list)
-
-
 def download_s3_files(bucket_name: str = common.INPUT_BUCKET_NAME, filters: List[str] = None):
-    """Download all passed metadata files that don't exist locally.'"""
+    """Download all files in a given bucket or a group of files according to a filter set.'"""
     command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
 
     if filters:
@@ -72,7 +52,6 @@ def download_s3_files(bucket_name: str = common.INPUT_BUCKET_NAME, filters: List
 
 def download_metadata_files(project_id: str = None) -> None:
     """Download all metadata files to the local file system."""
-
     filters = (
         ["--include=project_metadata.csv", f"--include={project_id}/*_metadata.*"]
         if project_id
@@ -82,6 +61,7 @@ def download_metadata_files(project_id: str = None) -> None:
 
 
 def download_sample_data_files(sample) -> None:
+    """Download all library data files associated with a given sample."""
     project_path_part = sample.project.scpca_id
     sample_path_part = ",".join(sample.multiplexed_ids)
     include_path = f"{project_path_part}/{sample_path_part}"
@@ -91,15 +71,11 @@ def download_sample_data_files(sample) -> None:
 
 
 def download_project_data_files(project) -> None:
+    """Download all project level data files."""
     filters = [
         f"--include={project.scpca_id}/merged/*",
         f"--include={project.scpca_id}/*_bulk_*",
     ]
-    download_s3_files(filters=filters)
-
-
-def download_data_files(data_file_paths: List[Path]):
-    filters = [f"--include={fp}" for fp in data_file_paths]
     download_s3_files(filters=filters)
 
 
