@@ -71,25 +71,6 @@ def download_data_files(data_file_paths: List[Path]):
     download_s3_files(filters=filters)
 
 
-def download_sample_data_files(sample) -> None:
-    """Download all library data files associated with a given sample."""
-    project_path_part = sample.project.scpca_id
-    sample_path_part = ",".join(sample.multiplexed_ids)
-    include_path = f"{project_path_part}/{sample_path_part}"
-
-    filters = [f"--include={include_path}/*"]
-    download_s3_files(filters=filters)
-
-
-def download_project_data_files(project) -> None:
-    """Download all project level data files."""
-    filters = [
-        f"--include={project.scpca_id}/merged/*",
-        f"--include={project.scpca_id}/*_bulk_*",
-    ]
-    download_s3_files(filters=filters)
-
-
 def upload_s3_file(computed_file) -> None:
     """Upload a computed file to S3 using the AWS CLI tool."""
 
