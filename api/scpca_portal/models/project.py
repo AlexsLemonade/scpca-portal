@@ -242,11 +242,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         merged_relative_path = Path(f"{self.scpca_id}/merged/")
         bulk_relative_path = Path(f"{self.scpca_id}/{self.scpca_id}_bulk")
 
-        data_file_paths = s3.list_s3_paths(merged_relative_path) + s3.list_s3_paths(
-            bulk_relative_path
-        )
+        merged_data_file_paths = s3.list_s3_paths(merged_relative_path)
+        bulk_data_file_paths = s3.list_s3_paths(bulk_relative_path)
 
-        return data_file_paths
+        return merged_data_file_paths + bulk_data_file_paths
 
     def get_bulk_rna_seq_sample_ids(self):
         """Returns set of bulk RNA sequencing sample IDs."""
