@@ -169,4 +169,6 @@ GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS = [
 
 # NOTE: Temporarily added here until all consolidate readme PRs/memory metadata generation
 # are merged to prevent duplicate changes etc
-PORTAL_METADATA_ZIP_FILE_PATH = OUTPUT_DATA_PATH / "portal_metadata.zip"
+PORTAL_METADATA_COMPUTED_FILE_NAME = "portal_metadata.zip"
+OUTPUT_PORTAL_METADATA_FILE_PATH = OUTPUT_DATA_PATH / "portal_metadata.tsv"
+OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH = OUTPUT_DATA_PATH / PORTAL_METADATA_COMPUTED_FILE_NAME
