@@ -62,7 +62,7 @@ def download_s3_files(bucket_name: str = common.INPUT_BUCKET_NAME, filters: List
 
     if filters:
         command_parts.append("--exclude=*")
-        command_parts.extend(*filters)
+        command_parts.extend([filter for filter in filters])
 
     if "public-test" in bucket_name:
         command_parts.append("--no-sign-request")
