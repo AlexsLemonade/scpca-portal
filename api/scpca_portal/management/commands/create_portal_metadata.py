@@ -4,6 +4,7 @@ from argparse import BooleanOptionalAction
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from scpca_portal import common
 from scpca_portal.models import ComputedFile, Project
 
 logger = logging.getLogger()
@@ -33,7 +34,9 @@ class Command(BaseCommand):
 
     def create_portal_metadata(self, **kwargs):
         logger.info("Creating the portal-wide metadata computed file")
-        ComputedFile.get_portal_metadata_file(Project.objects.all())
+        ComputedFile.get_portal_metadata_file(
+            Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
+        )
 
         if kwargs["clean_up_output_data"]:
             self.clean_up_output_data()
