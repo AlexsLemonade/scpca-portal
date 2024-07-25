@@ -100,7 +100,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries_metadata = [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
-
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
