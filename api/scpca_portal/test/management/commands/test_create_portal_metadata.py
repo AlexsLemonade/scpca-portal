@@ -24,8 +24,8 @@ class TestCreatePortalMetadata(TransactionTestCase):
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def load_test_data(self):
-        # Set up the database
-        PROJECT_COUNT = 3
+        # Expected object counts
+        PROJECTS_COUNT = 3
         SAMPLES_COUNT = 9
         LIBRARIES_COUNT = 7
 
@@ -39,12 +39,10 @@ class TestCreatePortalMetadata(TransactionTestCase):
             update_s3=False,
         )
 
-        self.assertEqual(Project.objects.all().count(), PROJECT_COUNT)
+        self.assertEqual(Project.objects.all().count(), PROJECTS_COUNT)
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
     def test_create_portal_metadata(self):
         self.load_test_data()
-        # Once the database is set up correctly, run the create_portal_metadata management command
         self.processor.create_portal_metadata(clean_up_output_data=False)
-        # Test the content of the generated zip file here
