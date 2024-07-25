@@ -31,9 +31,5 @@ def get_file_contents(download_config: Dict, project) -> str:
 
     return render_to_string(
         TEMPLATE_PATHS["_".join(readme_template_key_parts)],
-        context={
-            "additional_terms": project.get_additional_terms(),
-            "date": utils.get_today_string(),
-            "projects": [project],
-        },
+        context={"date": utils.get_today_string(), "projects": [project]},
     ).strip()
