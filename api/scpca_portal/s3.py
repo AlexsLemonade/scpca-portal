@@ -157,6 +157,18 @@ def upload_output_file(key: str) -> None:
     subprocess.check_call(command_parts)
 
 
+def generate_pre_signed_link(key, filename):
+    return s3.generate_presigned_url(
+        ClientMethod="get_object",
+        Params={
+            "Bucket": settings.AWS_S3_BUCKET_NAME,
+            "Key": key,
+            "ResponseContentDisposition": (f"attachment; filename = {filename}"),
+        },
+        ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
+    )
+
+
 def create_download_url(self):
     """Creates a temporary URL from which the file can be downloaded."""
     if self.s3_bucket and self.s3_key:
