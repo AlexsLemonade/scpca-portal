@@ -128,23 +128,33 @@ def download_input_metadata(*, bucket_name: str = common.INPUT_BUCKET_NAME):
     subprocess.check_call(command_parts)
 
 
-def delete_s3_file(computed_file, force: bool = False):
+def delete_output_file(key) -> bool:
     # If we're not running in the cloud then we shouldn't try to
     # delete something from S3 unless force is set.
-    if not settings.UPDATE_S3_DATA and not force:
+    if not settings.UPDATE_S3_DATA:
         return False
 
     try:
-        s3.delete_object(Bucket=computed_file.s3_bucket, Key=computed_file.s3_key)
+        s3.delete_object(Bucket=settings.AWS_S3_BUCKET, Key=key)
     except Exception:
         logger.exception(
             "Failed to delete S3 object for Computed File.",
-            computed_file=computed_file.id,
-            s3_object=computed_file.s3_key,
+            s3_object=key,
         )
         return False
 
     return True
+
+
+def upload_output_file(key: str) -> None:
+    """Upload a computed file to S3 using the AWS CLI tool."""
+
+    local_path = common.OUTPUT_DATA_PATH / key
+    aws_path = f"s3://{settings.AWS_S3_BUCKET_NAME}/{key}"
+    command_parts = ["aws", "s3", "cp", local_path, aws_path]
+
+    logger.info(f"Uploading Computed File {key}")
+    subprocess.check_call(command_parts)
 
 
 def create_download_url(self):
