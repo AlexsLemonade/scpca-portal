@@ -6,7 +6,7 @@ from zipfile import ZipFile
 
 from django.test import TransactionTestCase
 
-from scpca_portal import common
+from scpca_portal import common, metadata_file
 from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
@@ -507,7 +507,7 @@ class TestLoadData(TransactionTestCase):
         )
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
-                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
+                metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
             )
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
@@ -658,7 +658,7 @@ class TestLoadData(TransactionTestCase):
         )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
-                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
+                metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
                     TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
@@ -795,7 +795,7 @@ class TestLoadData(TransactionTestCase):
         )
         with ZipFile(project_zip_path) as project_zip:
             sample_metadata = project_zip.read(
-                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
+                metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
             )
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
@@ -887,7 +887,7 @@ class TestLoadData(TransactionTestCase):
         )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
-                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
+                metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
                     TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
@@ -918,7 +918,7 @@ class TestLoadData(TransactionTestCase):
         )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
-                ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
+                metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
                     TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
@@ -1033,7 +1033,7 @@ class TestLoadData(TransactionTestCase):
         )
         with ZipFile(project_zip_path) as project_zip:
             spatial_metadata_file = project_zip.read(
-                ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
+                metadata_file.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
             )
             spatial_metadata = [
                 sm for sm in spatial_metadata_file.decode("utf-8").split("\r\n") if sm
@@ -1133,7 +1133,7 @@ class TestLoadData(TransactionTestCase):
         )
         with ZipFile(sample_zip_path) as sample_zip:
             with sample_zip.open(
-                ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME, "r"
+                metadata_file.MetadataFilenames.SPATIAL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
                     TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
