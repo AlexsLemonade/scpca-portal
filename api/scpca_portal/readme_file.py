@@ -1,5 +1,6 @@
 from typing import Dict
 
+from django.db.models import QuerySet
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils
@@ -18,10 +19,22 @@ TEMPLATE_PATHS = {
 }
 
 
-def get_file_contents(download_config: Dict, project) -> str:
+# TODO: Temporarily edited until readme updates is finalized to prevent duplicate changes
+# and test failures. Once the following PR is merged, all unique readme files per computed
+# file are cleaned up and all the template contexts will be adjusted accordingly
+# (currently still using old template contexts etc)
+# https://github.com/AlexsLemonade/scpca-portal/pull/806
+def get_file_contents(download_config: Dict, queryset: QuerySet) -> str:
     """Return newly generated readme file as a string for immediate writing to a zip archive."""
+    is_portal_metadata = any("portal_metadata_only" in key for key in download_config)
+    common_download_config = (
+        common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
+        if is_portal_metadata
+        else common.GENERATED_PROJECT_DOWNLOAD_CONFIG
+    )
+
     readme_template_key_parts = [download_config["modality"], download_config["format"]]
-    if download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+    if download_config in common_download_config:
         if download_config["includes_merged"]:
             readme_template_key_parts.append("MERGED")
         if not download_config["excludes_multiplexed"]:
@@ -29,28 +42,19 @@ def get_file_contents(download_config: Dict, project) -> str:
         if download_config["metadata_only"]:
             readme_template_key_parts = ["METADATA_ONLY"]
 
+    # Temporarily modified template contexts values here
+    additional_terms = None if is_portal_metadata else queryset.get_additional_terms()
+    project_accession = None if is_portal_metadata else queryset.scpca_id
+    project_url = None if is_portal_metadata else queryset.url
+    projects = queryset if is_portal_metadata else [queryset]
+
     return render_to_string(
         TEMPLATE_PATHS["_".join(readme_template_key_parts)],
         context={
-            "additional_terms": project.get_additional_terms(),
+            "additional_terms": additional_terms,
             "date": utils.get_today_string(),
-            "project_accession": project.scpca_id,
-            "project_url": project.url,
-        },
-    ).strip()
-
-
-# NOTE: Temporarily added this until all consolidate readme PRs are finalized and merged
-# to prevent duplicate changes etc
-def get_portal_metadata_file_content(download_config: Dict, projects=[]) -> str:
-    """Return newly generated readme file for portal-wide metadata as a string
-    for immediate writing to a zip archive."""
-    template_file = TEMPLATE_ROOT / "metadata_only.md"
-
-    return render_to_string(
-        template_file,
-        context={
-            "date": utils.get_today_string(),
+            "project_accession": project_accession,
+            "project_url": project_url,
             "download_config": download_config,
             "projects": projects,
         },

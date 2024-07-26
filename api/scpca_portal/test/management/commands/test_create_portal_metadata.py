@@ -3,9 +3,9 @@ from zipfile import ZipFile
 
 from django.test import TransactionTestCase
 
-from scpca_portal import common, readme_file
+from scpca_portal import common, metadata_file, readme_file
 from scpca_portal.management.commands import create_portal_metadata, load_data
-from scpca_portal.models import ComputedFile, Library
+from scpca_portal.models import Library, Project, Sample
 
 # NOTE: Test data bucket is defined in `scpca_porta/common.py`.
 # When common.INPUT_BUCKET_NAME is changed, please delete the contents of
@@ -28,9 +28,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertIn(text, zip_file.read("README.md").decode("utf-8"))
 
     def load_test_data(self):
-        # Load the test data and make sure the database is set up correctly
-        PROJECT_COUNT = 3
-        SAMPLES_COUNT = 8
+        # Expected object counts
+        PROJECTS_COUNT = 3
+        SAMPLES_COUNT = 9
         LIBRARIES_COUNT = 7
 
         self.loader.load_data(
@@ -42,29 +42,21 @@ class TestCreatePortalMetadata(TransactionTestCase):
             reload_existing=False,
             update_s3=False,
         )
-        libraries = Library.objects.all()
-        libraries_metadata = [
-            lib for library in libraries for lib in library.get_combined_library_metadata()
-        ]
 
-        self.assertEqual(
-            len(set(lib["scpca_project_id"] for lib in libraries_metadata)), PROJECT_COUNT
-        )
-        self.assertEqual(
-            len(set(lib["scpca_sample_id"] for lib in libraries_metadata)), SAMPLES_COUNT
-        )
-        self.assertEqual(libraries.count(), LIBRARIES_COUNT)
+        self.assertEqual(Project.objects.all().count(), PROJECTS_COUNT)
+        self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
+        self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
     def test_zip_file(self):
         # Test the content of the generated zip file here
-        # There are 2 files:
+        # There is 2 files:
         # ├── README.md
         # |── metadata.tsv
         expected_file_count = 2
         # The filenames should match the following constants specified for the computed file
         expected_files = {
             readme_file.OUTPUT_NAME,
-            ComputedFile.MetadataFilenames.METADATA_ONLY_FILE_NAME,
+            metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME,
         }
 
         with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH) as zip:
@@ -144,7 +136,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH) as zip:
             content = [
                 row
-                for row in zip.read(ComputedFile.MetadataFilenames.METADATA_ONLY_FILE_NAME)
+                for row in zip.read(metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME)
                 .decode("utf-8")
                 .split("\r\n")
                 if row

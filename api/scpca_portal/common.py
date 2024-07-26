@@ -101,7 +101,7 @@ PROJECT_ID_KEY = "scpca_project_id"
 SAMPLE_ID_KEY = "scpca_sample_id"
 LIBRARY_ID_KEY = "scpca_library_id"
 
-GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS = [
+GENERATED_PROJECT_DOWNLOAD_CONFIG = [
     # SINGLE CELL SCE CONFIGURATIONS
     {
         "modality": "SINGLE_CELL",
@@ -161,14 +161,23 @@ GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS = [
     },
 ]
 
-GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS = [
+GENERATED_SAMPLE_DOWNLOAD_CONFIG = [
     {"modality": "SINGLE_CELL", "format": "SINGLE_CELL_EXPERIMENT"},
     {"modality": "SINGLE_CELL", "format": "ANN_DATA"},
     {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"},
 ]
 
-# NOTE: Temporarily added here until all consolidate readme PRs/memory metadata generation
-# are merged to prevent duplicate changes etc
+GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG = [
+    {
+        "modality": None,
+        "format": None,
+        "excludes_multiplexed": False,
+        "includes_merged": False,
+        "metadata_only": True,
+        "portal_metadata_only": True,
+    }
+]
+
 PORTAL_METADATA_COMPUTED_FILE_NAME = "portal_metadata.zip"
 OUTPUT_PORTAL_METADATA_FILE_PATH = OUTPUT_DATA_PATH / "portal_metadata.tsv"
 OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH = OUTPUT_DATA_PATH / PORTAL_METADATA_COMPUTED_FILE_NAME

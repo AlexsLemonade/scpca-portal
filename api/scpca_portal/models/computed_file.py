@@ -26,11 +26,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at", "id"]
 
-    class MetadataFilenames:
-        SINGLE_CELL_METADATA_FILE_NAME = "single_cell_metadata.tsv"
-        SPATIAL_METADATA_FILE_NAME = "spatial_metadata.tsv"
-        METADATA_ONLY_FILE_NAME = "metadata.tsv"
-
     class OutputFileModalities:
         SINGLE_CELL = "SINGLE_CELL"
         SPATIAL = "SPATIAL"
@@ -112,20 +107,19 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             common.METADATA_COLUMN_SORT_ORDER,
         )
 
-        metadata_file.write_metadata_dicts(
-            libraries_metadata, common.OUTPUT_PORTAL_METADATA_FILE_PATH
-        )
-
         with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH, "w") as zip_file:
             # Readme file
             zip_file.writestr(
                 readme_file.OUTPUT_NAME,
-                readme_file.get_portal_metadata_file_content(projects, download_config),
+                readme_file.get_file_contents(
+                    download_config,
+                    projects,
+                ),
             )
             # Metadata file
-            zip_file.write(
-                common.OUTPUT_PORTAL_METADATA_FILE_PATH,
-                ComputedFile.MetadataFilenames.METADATA_ONLY_FILE_NAME,
+            zip_file.writestr(
+                metadata_file.get_file_name(download_config),
+                metadata_file.get_file_contents(libraries_metadata),
             )
 
         computed_file = cls(
@@ -151,11 +145,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return
 
         libraries_metadata = [
-            lib for library in libraries for lib in library.get_combined_library_metadata()
+            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
-        local_metadata_path = ComputedFile.get_local_project_metadata_path(project, download_config)
-        metadata_file.write_metadata_dicts(libraries_metadata, local_metadata_path)
-
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
@@ -170,13 +161,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             )
 
             # Metadata file
-            output_file_constant = (
-                f'{download_config["modality"]}_METADATA_FILE_NAME'
-                if not download_config["metadata_only"]
-                else "METADATA_ONLY_FILE_NAME"
-            )
-            zip_file.write(
-                local_metadata_path, getattr(ComputedFile.MetadataFilenames, output_file_constant)
+            zip_file.writestr(
+                metadata_file.get_file_name(download_config),
+                metadata_file.get_file_contents(libraries_metadata),
             )
 
             if not download_config.get("metadata_only", False):
@@ -246,14 +233,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return
 
         libraries_metadata = [
-            lib for library in libraries for lib in library.get_combined_library_metadata()
+            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
-        local_metadata_path = ComputedFile.get_local_sample_metadata_path(sample, download_config)
-        metadata_file.write_metadata_dicts(libraries_metadata, local_metadata_path)
-
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
+
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
         with lock:  # It should be removed later for a cleaner solution.
@@ -265,12 +250,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                         readme_file.get_file_contents(download_config, sample.project),
                     )
                     # Metadata file
-                    zip_file.write(
-                        local_metadata_path,
-                        getattr(
-                            ComputedFile.MetadataFilenames,
-                            f'{download_config["modality"]}_METADATA_FILE_NAME',
-                        ),
+                    zip_file.writestr(
+                        metadata_file.get_file_name(download_config),
+                        metadata_file.get_file_contents(libraries_metadata),
                     )
 
                     for file_path in library_data_file_paths:
