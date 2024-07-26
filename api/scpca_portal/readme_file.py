@@ -1,6 +1,5 @@
 from typing import Dict
 
-from django.apps import apps
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils
@@ -24,13 +23,17 @@ TEMPLATE_PATHS = {
 # file are cleaned up and all the template contexts will be adjusted accordingly
 # (currently still using old template contexts etc)
 # https://github.com/AlexsLemonade/scpca-portal/pull/806
-def get_file_contents(download_config: Dict, project_queryset) -> str:
+def get_file_contents(download_config: Dict, queryset) -> str:
     """Return newly generated readme file as a string for immediate writing to a zip archive."""
-    Project = apps.get_model("scpca_portal", "Project")
-    is_single_project = isinstance(project_queryset, Project)
+    is_portal_metadata = any("portal_metadata_only" in key for key in download_config)
+    common_download_config = (
+        common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
+        if is_portal_metadata
+        else common.GENERATED_PROJECT_DOWNLOAD_CONFIG
+    )
 
     readme_template_key_parts = [download_config["modality"], download_config["format"]]
-    if download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIG:
+    if download_config in common_download_config:
         if download_config["includes_merged"]:
             readme_template_key_parts.append("MERGED")
         if not download_config["excludes_multiplexed"]:
@@ -39,10 +42,10 @@ def get_file_contents(download_config: Dict, project_queryset) -> str:
             readme_template_key_parts = ["METADATA_ONLY"]
 
     # Temporarily modified template contexts values here
-    additional_terms = project_queryset.get_additional_terms() if is_single_project else None
-    project_accession = project_queryset.scpca_id if is_single_project else None
-    project_url = project_queryset.url if is_single_project else None
-    projects = [project_queryset] if is_single_project else project_queryset
+    additional_terms = None if is_portal_metadata else queryset.get_additional_terms()
+    project_accession = None if is_portal_metadata else queryset.scpca_id
+    project_url = None if is_portal_metadata else queryset.url
+    projects = queryset if is_portal_metadata else [queryset]
 
     return render_to_string(
         TEMPLATE_PATHS["_".join(readme_template_key_parts)],
