@@ -1,5 +1,6 @@
 from typing import Dict
 
+from django.db.models import QuerySet
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils
@@ -23,7 +24,7 @@ TEMPLATE_PATHS = {
 # file are cleaned up and all the template contexts will be adjusted accordingly
 # (currently still using old template contexts etc)
 # https://github.com/AlexsLemonade/scpca-portal/pull/806
-def get_file_contents(download_config: Dict, queryset) -> str:
+def get_file_contents(download_config: Dict, queryset: QuerySet) -> str:
     """Return newly generated readme file as a string for immediate writing to a zip archive."""
     is_portal_metadata = any("portal_metadata_only" in key for key in download_config)
     common_download_config = (
