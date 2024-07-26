@@ -34,7 +34,9 @@ class Command(BaseCommand):
 
     def create_portal_metadata(self, **kwargs):
         logger.info("Creating the portal-wide metadata computed file")
-        ComputedFile.get_portal_metadata_file(
+        # TODO: Remove the noqa comment to supress Flake8 (unused variable warning)
+        # when implementing https://github.com/AlexsLemonade/scpca-portal/issues/813
+        computed_file = ComputedFile.get_portal_metadata_file(  # noqa: F841
             Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG[0]
         )
 
