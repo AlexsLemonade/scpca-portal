@@ -5,13 +5,15 @@ from django.test import TransactionTestCase
 
 from scpca_portal import common, metadata_file, readme_file
 from scpca_portal.management.commands import create_portal_metadata, load_data
-from scpca_portal.models import Library, Project, Sample
+from scpca_portal.models import ComputedFile, Library, Project, Sample
 
 # NOTE: Test data bucket is defined in `scpca_porta/common.py`.
 # When common.INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
 
 ALLOWED_SUBMITTERS = {"scpca"}
+
+LOCAL_ZIP_FILE_PATH = ComputedFile.get_local_portal_metadata_path()
 
 
 class TestCreatePortalMetadata(TransactionTestCase):
@@ -59,7 +61,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
             metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME,
         }
 
-        with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH) as zip:
+        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
             files = set(zip.namelist())
             self.assertEqual(len(files), expected_file_count)
             self.assertEqual(files, expected_files)
@@ -70,7 +72,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         # Test the content of README.md here
         expected_text = "The metadata included in this download contains"
 
-        with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH) as zip:
+        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
             self.assertProjectReadmeContains(expected_text, zip)
 
     def test_metadata_file(self):
@@ -133,7 +135,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
             "workflow_commit",
         ]
 
-        with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH) as zip:
+        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
             content = [
                 row
                 for row in zip.read(metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME)
