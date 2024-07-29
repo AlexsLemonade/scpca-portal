@@ -92,7 +92,7 @@ class Library(TimestampedModel):
 
         data_file_paths = [
             file_path
-            for file_path in s3.list_s3_paths(relative_path)
+            for file_path in s3.list_input_paths(relative_path)
             if "metadata" not in file_path.name
         ]
 

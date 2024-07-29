@@ -213,7 +213,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 computed_file.save()
 
                 if update_s3:
-                    s3.upload_s3_file(computed_file)
+                    s3.upload_output_file(computed_file)
                 if clean_up_output_data:
                     computed_file.clean_up_local_computed_file()
 
@@ -239,8 +239,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         merged_relative_path = Path(f"{self.scpca_id}/merged/")
         bulk_relative_path = Path(f"{self.scpca_id}/{self.scpca_id}_bulk")
 
-        merged_data_file_paths = s3.list_s3_paths(merged_relative_path)
-        bulk_data_file_paths = s3.list_s3_paths(bulk_relative_path)
+        merged_data_file_paths = s3.list_input_paths(merged_relative_path)
+        bulk_data_file_paths = s3.list_input_paths(bulk_relative_path)
 
         return merged_data_file_paths + bulk_data_file_paths
 
@@ -339,7 +339,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         for sample in self.samples.all():
             for computed_file in sample.computed_files:
                 if delete_from_s3:
-                    s3.delete_s3_file(computed_file, force=True)
+                    s3.delete_output_file(computed_file, force=True)
                 computed_file.delete()
             for library in sample.libraries.all():
                 # If library has other samples that it is related to, then don't delete it
@@ -349,7 +349,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         for computed_file in self.computed_files:
             if delete_from_s3:
-                s3.delete_s3_file(computed_file, force=True)
+                s3.delete_output_file(computed_file, force=True)
             computed_file.delete()
 
         ProjectSummary.objects.filter(project=self).delete()
