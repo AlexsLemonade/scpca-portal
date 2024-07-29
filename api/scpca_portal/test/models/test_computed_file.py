@@ -8,7 +8,7 @@ from scpca_portal.models import ComputedFile
 
 class TestComputedFile(TestCase):
     @patch("scpca_portal.models.computed_file.utils.get_today_string", return_value="2024-01-18")
-    @patch("scpca_portal.s3.s3.generate_presigned_url")
+    @patch("scpca_portal.s3.aws_s3.generate_presigned_url")
     def test_computed_file_create_download_url(self, s3_endpoint, _):
         computed_file = ComputedFile(
             format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
