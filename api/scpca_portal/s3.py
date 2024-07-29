@@ -8,7 +8,7 @@ from django.conf import settings
 import boto3
 from botocore.client import Config
 
-from scpca_portal import common, utils
+from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
@@ -167,23 +167,3 @@ def generate_pre_signed_link(key, filename):
         },
         ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
     )
-
-
-def create_download_url(self):
-    """Creates a temporary URL from which the file can be downloaded."""
-    if self.s3_bucket and self.s3_key:
-        # Append the download date to the filename on download.
-        date = utils.get_today_string()
-        s3_key = Path(self.s3_key)
-
-        return aws_s3.generate_presigned_url(
-            ClientMethod="get_object",
-            Params={
-                "Bucket": self.s3_bucket,
-                "Key": self.s3_key,
-                "ResponseContentDisposition": (
-                    f"attachment; filename = {s3_key.stem}_{date}{s3_key.suffix}"
-                ),
-            },
-            ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
-        )
