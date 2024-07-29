@@ -94,11 +94,11 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def input_bulk_metadata_file_path(self):
-        return self.input_data_path / f"{self.scpca_id}_bulk_metadata.tsv"
+        return self.input_data_path / "bulk" / f"{self.scpca_id}_bulk_metadata.tsv"
 
     @property
     def input_bulk_quant_file_path(self):
-        return self.input_data_path / f"{self.scpca_id}_bulk_quant.tsv"
+        return self.input_data_path / "bulk" / f"{self.scpca_id}_bulk_quant.tsv"
 
     @property
     def input_merged_summary_report_file_path(self):
@@ -237,7 +237,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         and returns them as a list.
         """
         merged_relative_path = Path(f"{self.scpca_id}/merged/")
-        bulk_relative_path = Path(f"{self.scpca_id}/{self.scpca_id}_bulk")
+        bulk_relative_path = Path(f"{self.scpca_id}/bulk/")
 
         data_file_paths = utils.list_s3_paths(merged_relative_path) + utils.list_s3_paths(
             bulk_relative_path

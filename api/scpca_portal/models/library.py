@@ -246,7 +246,7 @@ class Library(TimestampedModel):
             output_path = file_path.relative_to(path_parts[0] / path_parts[1])
 
         # Transform merged project data files to no longer be nested in a merged directory
-        if file_path.parent.name == "merged":
+        if file_path.parent.name in ["bulk", "merged"]:
             output_path = file_path.relative_to(path_parts[0] / path_parts[1])
         # Nest sample reports into individual_reports directory in merged download
         # The merged summmary html file should not go into this directory
