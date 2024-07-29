@@ -12,7 +12,7 @@ from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
-s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
+aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
 def configure_aws_cli(**params):
@@ -135,7 +135,7 @@ def delete_output_file(key) -> bool:
         return False
 
     try:
-        s3.delete_object(Bucket=settings.AWS_S3_BUCKET, Key=key)
+        aws_s3.delete_object(Bucket=settings.AWS_S3_BUCKET, Key=key)
     except Exception:
         logger.exception(
             "Failed to delete S3 object for Computed File.",
@@ -158,7 +158,7 @@ def upload_output_file(key: str) -> None:
 
 
 def generate_pre_signed_link(key, filename):
-    return s3.generate_presigned_url(
+    return aws_s3.generate_presigned_url(
         ClientMethod="get_object",
         Params={
             "Bucket": settings.AWS_S3_BUCKET_NAME,
@@ -176,7 +176,7 @@ def create_download_url(self):
         date = utils.get_today_string()
         s3_key = Path(self.s3_key)
 
-        return s3.generate_presigned_url(
+        return aws_s3.generate_presigned_url(
             ClientMethod="get_object",
             Params={
                 "Bucket": self.s3_bucket,
