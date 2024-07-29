@@ -1,8 +1,9 @@
+from pathlib import Path
 from unittest.mock import patch
 
+from django.conf import settings
 from django.test import TestCase
 
-from scpca_portal import s3
 from scpca_portal.models import ComputedFile
 
 
@@ -13,19 +14,19 @@ class TestComputedFile(TestCase):
         computed_file = ComputedFile(
             format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
             modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-            s3_bucket="scpca-bucket",
+            s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key="SCPCP000001.zip",
             size_in_bytes=10000,
             workflow_version="v1.0",
         )
 
-        s3.create_download_url(computed_file)
+        computed_file.download_url
         expected_filename = "SCPCP000001_2024-01-18.zip"
         s3_endpoint.assert_called_with(
             ClientMethod="get_object",
             Params={
-                "Bucket": "scpca-bucket",
-                "Key": "SCPCP000001.zip",
+                "Bucket": settings.AWS_S3_BUCKET_NAME,
+                "Key": Path("SCPCP000001.zip"),
                 "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
             },
             ExpiresIn=604800,
