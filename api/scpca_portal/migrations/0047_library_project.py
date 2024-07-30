@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="libraries",
-                to="scpca_portal.project",
+                to="scpca_portal.Project",
             ),
         ),
         migrations.RunPython(apply_project),
