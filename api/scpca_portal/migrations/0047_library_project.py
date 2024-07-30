@@ -8,8 +8,9 @@ def apply_project(apps, schema_editor):
     Library = apps.get_model("scpca_portal", "library")
 
     for library in Library.objects.all():
-        library.project = library.samples.first().project
-        library.save()
+        if sample := library.samples.first():
+            library.project = sample.project
+            library.save()
 
 
 class Migration(migrations.Migration):
