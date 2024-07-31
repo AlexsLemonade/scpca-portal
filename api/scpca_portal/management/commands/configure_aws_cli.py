@@ -1,6 +1,11 @@
+import logging
 import subprocess
 
 from django.core.management.base import BaseCommand
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
 
 
 class Command(BaseCommand):
@@ -39,5 +44,8 @@ class Command(BaseCommand):
                 f"aws configure set default.s3.max_bandwidth {kwargs['s3_max_bandwidth']}MB/s",
             )
 
+        logger.info("Configuring AWS CLI...")
         for command in commands:
             subprocess.check_call(command.split())
+
+        logger.info("AWS CLI successfully configured!")
