@@ -1,7 +1,6 @@
 ## Citation
 
 If you use these data in your research, you must cite:
-
 - The data submitter using language provided as part of the project abstract (as applicable), the publication listed for the project (as applicable), or both.
 - The ScPCA Portal using the language below.
 
@@ -9,13 +8,7 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-{% if projects|length > 1 %}
-{% for project in projects %}
-To cite data from {{ project.scpca_id }}, please see the project abstract and publication information at [{{ project.scpca_id }} page.]({{ project.url }})
-{% endfor %}
-{% else %}
-To cite data from {{ projects.0.scpca_id }}, please see the project abstract and publication information at [{{ projects.0.scpca_id }} page.]({{ projects.0.url }})
-{% endif %}
+{% for project in projects %}To cite data from {{ project.scpca_id }}, please see the project abstract and publication information at [{{ project.scpca_id }} page.]({{ project.url }}){% endfor %}
 
 ### Citing the ScPCA Portal
 
