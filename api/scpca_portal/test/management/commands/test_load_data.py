@@ -42,7 +42,8 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(project_summary.technology)
 
         sample = project.samples.first()
-        self.assertIsNotNone(sample.age_at_diagnosis)
+        self.assertIsNotNone(sample.age)
+        self.assertIsNotNone(sample.age_timing)
         self.assertIsNotNone(sample.diagnosis)
         self.assertIsNotNone(sample.disease_timing)
         self.assertTrue(sample.scpca_id)
@@ -432,7 +433,8 @@ class TestLoadData(TransactionTestCase):
             "diagnosis",
             "subdiagnosis",
             "disease_timing",
-            "age_at_diagnosis",
+            "age",
+            "age_timing",
             "sex",
             "tissue_location",
             "participant_id",
@@ -583,7 +585,8 @@ class TestLoadData(TransactionTestCase):
             "diagnosis",
             "subdiagnosis",
             "disease_timing",
-            "age_at_diagnosis",
+            "age",
+            "age_timing",
             "sex",
             "tissue_location",
             "participant_id",
@@ -719,7 +722,7 @@ class TestLoadData(TransactionTestCase):
             "diagnosis",
             "subdiagnosis",
             "disease_timing",
-            "age_at_diagnosis",
+            "age",
             "sex",
             "tissue_location",
             "participant_id",
@@ -963,7 +966,8 @@ class TestLoadData(TransactionTestCase):
             "diagnosis",
             "subdiagnosis",
             "disease_timing",
-            "age_at_diagnosis",
+            "age",
+            "age_timing",
             "sex",
             "tissue_location",
             "participant_id",
