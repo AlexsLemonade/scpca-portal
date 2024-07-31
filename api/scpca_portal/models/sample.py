@@ -120,7 +120,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         included_sample_attributes = {
             "age",
-            "age_timing" "demux_cell_count_estimate",
+            "age_timing",
+            "demux_cell_count_estimate",
             "diagnosis",
             "disease_timing",
             "sex",

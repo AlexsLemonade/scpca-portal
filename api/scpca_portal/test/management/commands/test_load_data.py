@@ -723,6 +723,7 @@ class TestLoadData(TransactionTestCase):
             "subdiagnosis",
             "disease_timing",
             "age",
+            "age_timing",
             "sex",
             "tissue_location",
             "participant_id",
