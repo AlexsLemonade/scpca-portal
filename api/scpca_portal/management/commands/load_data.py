@@ -26,6 +26,7 @@ ALLOWED_SUBMITTERS = {
     "teachey_tan",
     "wu",
     "rokita",
+    "soragni",
 }
 
 logger = logging.getLogger()

@@ -20,6 +20,7 @@ class Common(Configuration):
         # Third party apps
         "rest_framework",  # utilities for rest apis
         "django_filters",  # for filtering rest endpoints
+        "django_extensions",  # additional managment commands
         "drf_yasg",
         "corsheaders",
         # Your apps
