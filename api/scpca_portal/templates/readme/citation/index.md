@@ -9,13 +9,9 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-{% if projects|length > 1 %}
 {% for project in projects %}
 To cite data from {{ project.scpca_id }}, please see the project abstract and publication information at [{{ project.scpca_id }} page.]({{ project.url }})
 {% endfor %}
-{% else %}
-To cite data from {{ projects.0.scpca_id }}, please see the project abstract and publication information at [{{ projects.0.scpca_id }} page.]({{ projects.0.url }})
-{% endif %}
 
 ### Citing the ScPCA Portal
 
