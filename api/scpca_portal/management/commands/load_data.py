@@ -86,7 +86,6 @@ class Command(BaseCommand):
         shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
 
     def handle(self, *args, **kwargs):
-        s3.configure_aws_cli(**kwargs)
         self.load_data(**kwargs)
 
     def load_data(

@@ -15,27 +15,6 @@ logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
-def configure_aws_cli(**params):
-    commands = [
-        # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#payload-signing-enabled
-        "aws configure set default.s3.payload_signing_enabled false",
-        # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-concurrent-requests
-        "aws configure set default.s3.max_concurrent_requests "
-        f"{params['s3_max_concurrent_requests']}",
-        # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#multipart-chunksize
-        "aws configure set default.s3.multipart_chunksize "
-        f"{params['s3_multipart_chunk_size']}MB",
-    ]
-    if params["s3_max_bandwidth"] is not None:
-        commands.append(
-            # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-bandwidth
-            f"aws configure set default.s3.max_bandwidth {params['s3_max_bandwidth']}MB/s",
-        )
-
-    for command in commands:
-        subprocess.check_call(command.split())
-
-
 def list_input_paths(
     relative_path: Path = Path(),
     *,
