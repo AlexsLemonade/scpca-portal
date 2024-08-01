@@ -115,7 +115,7 @@ def get_file_contents(libraries_metadata: List[Dict], **kwargs) -> str:
         utils.get_sorted_field_names(utils.get_keys_from_dicts(sorted_libraries_metadata)),
     )
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
-    # By default fill missing values with "NA"
+    # By default fill dicts with missing fieldnames with "NA" values
     kwargs["restval"] = kwargs.get("restval", common.NA)
 
     with io.StringIO() as metadata_buffer:
@@ -131,4 +131,6 @@ def format_metadata_dict(metadata_dict: Dict) -> Dict:
     """
     Returns a copy of metadata dict that is formatted and ready to be written to file.
     """
+    # Replace empty blank or None values with "NA"
+    metadata_dict.update({k: common.NA for k, v in metadata_dict.items() if v in ["", None]})
     return {k: utils.string_from_list(v) for k, v in metadata_dict.items()}
