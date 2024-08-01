@@ -23,76 +23,59 @@ class TestGetFileContents(TestCase):
         return [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
-        self.dummy_field_names = {
-            "scpca_project_id",
-            "scpca_sample_id",
-            "scpca_library_id",
-            "country",
-            "language",
-            "capital",
-            "holidays",
-        }
 
     def test_get_file_contents_successful_write(self):
-        output_file_contents = metadata_file.get_file_contents(
-            self.dummy_list_of_dicts, fieldnames=self.dummy_field_names
-        )
+        output_file_contents = metadata_file.get_file_contents(self.libraries_metadata)
         self.assertIsNotNone(output_file_contents)
         self.assertIsInstance(output_file_contents, str)
 
     def test_get_file_contents_read_write_values_match(self):
-        expected_output = [
-            {
-                "scpca_project_id": "SCPCP999990",
-                "scpca_sample_id": "SCPCS999990",
-                "scpca_library_id": "SCPCL999990",
-                "country": "USA",
-                "language": "English",
-                "capital": "Washington DC",
-                "holidays": "New Year's Day;Thanksgiving Day;Christmas Day",
-            },
-            {
-                "scpca_project_id": "SCPCP999991",
-                "scpca_sample_id": "SCPCS999991",
-                "scpca_library_id": "SCPCL999991",
-                "country": "Spain",
-                "language": "Spanish",
-                "capital": "Madrid",
-                "holidays": "New Year’s Day;Epiphany;Christmas Day",
-            },
-            {
-                "scpca_project_id": "SCPCP999992",
-                "scpca_sample_id": "SCPCS999992",
-                "scpca_library_id": "SCPCL999992",
-                "country": "Antarctica",
-                "language": "Antarctic English",
-                "capital": "NA",
-                "holidays": "NA",
-            },
-        ]
-
-        output_file_contents = metadata_file.get_file_contents(
-            self.dummy_list_of_dicts, fieldnames=self.dummy_field_names
-        )
+        output_file_contents = metadata_file.get_file_contents(self.libraries_metadata)
         with io.StringIO(output_file_contents) as output_buffer:
             output_list_of_dicts = list(csv.DictReader(output_buffer, delimiter=common.TAB))
-            self.assertEqual(expected_output, output_list_of_dicts)
+            for output_dict in output_list_of_dicts:
+                input_dict = next(
+                    library_metadata
+                    for library_metadata in self.libraries_metadata
+                    if library_metadata["scpca_library_id"] == output_dict["scpca_library_id"]
+                )
+                # Cast all values in input_dict to string to match types in string buffer
+                formatted_input_dict = {k: str(v) for k, v in input_dict.items()}
+                self.assertEqual(output_dict, formatted_input_dict)
 
-    def test_get_file_contents_read_write_add_missing_field_names(self):
-        output_file_contents = metadata_file.get_file_contents(
-            self.dummy_list_of_dicts, fieldnames=self.dummy_field_names
-        )
+    def test_get_file_contents_multi_value_field(self):
+        self.first_library.metadata["technology"] = ["first", "second", "third"]
+        libraries_metadata = self.get_libraries_metadata(self.libraries)
+        output_file_contents = metadata_file.get_file_contents(libraries_metadata)
+
+        with io.StringIO(output_file_contents) as output_buffer:
+            first_output_dict = next(csv.DictReader(output_buffer, delimiter=common.TAB))
+            self.assertEqual(first_output_dict["technology"], "first;second;third")
+
+    def test_get_file_contents_missing_value(self):
+        self.first_library.metadata["seq_units"] = ""
+        libraries_metadata = self.get_libraries_metadata(self.libraries)
+        output_file_contents = metadata_file.get_file_contents(libraries_metadata)
+
+        with io.StringIO(output_file_contents) as output_buffer:
+            first_output_dict = next(csv.DictReader(output_buffer, delimiter=common.TAB))
+            self.assertEqual(first_output_dict["seq_units"], "NA")
+
+    def test_get_file_contents_missing_field_name(self):
+        self.first_library.metadata.pop("workflow_version")
+        libraries_metadata = self.get_libraries_metadata(self.libraries)
+        output_file_contents = metadata_file.get_file_contents(libraries_metadata)
+
+        with io.StringIO(output_file_contents) as output_buffer:
+            first_output_dict = next(csv.DictReader(output_buffer, delimiter=common.TAB))
+            self.assertEqual(first_output_dict["workflow_version"], "NA")
+
+    def test_get_file_contents_test_sort_order(self):
+        libraries_reversed = list(reversed(self.libraries))
+        libraries_metadata = self.get_libraries_metadata(libraries_reversed)
+        output_file_contents = metadata_file.get_file_contents(libraries_metadata)
 
         with io.StringIO(output_file_contents) as output_buffer:
             output_list_of_dicts = list(csv.DictReader(output_buffer, delimiter=common.TAB))
-            self.assertIn(common.NA, [d["capital"] for d in output_list_of_dicts])
-
-    def test_get_file_contents_incomplete_field_names(self):
-        field_names = {"country", "language"}
-        with self.assertRaises(ValueError):
-            metadata_file.get_file_contents(self.dummy_list_of_dicts, fieldnames=field_names)
-
-    def test_get_file_contents_not_inputted_field_names(self):
-        output_file_contents = metadata_file.get_file_contents(self.dummy_list_of_dicts)
-        self.assertIsNotNone(output_file_contents)
-        self.assertIsInstance(output_file_contents, str)
+            for library, output_dict in zip(self.libraries, output_list_of_dicts):
+                self.assertEqual(library.scpca_id, output_dict["scpca_library_id"])
