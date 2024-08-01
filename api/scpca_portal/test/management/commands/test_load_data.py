@@ -203,6 +203,10 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(len(files), 8)
             self.assertIn("SCPCP999992_merged.rds", files)
             self.assertNotIn("SCPCP999992_merged_adt.h5ad", files)
+            self.assertProjectReadmeContains(
+                "For more information on working with the processed `SingleCellExperiment` objects",
+                project_zip,
+            )
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -239,6 +243,10 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(len(files), 9)
             self.assertIn("SCPCP999992_merged_rna.h5ad", files)
             self.assertIn("SCPCP999992_merged_adt.h5ad", files)
+            self.assertProjectReadmeContains(
+                "For more information on working with the processed `AnnData` objects",
+                project_zip,
+            )
 
     def test_merged_project_anndata_no_cite_seq(self):
         project_id = "SCPCP999990"
@@ -295,6 +303,10 @@ class TestLoadData(TransactionTestCase):
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged.rds", files)
+            self.assertProjectReadmeContains(
+                "For more information on working with the processed `SingleCellExperiment` objects",
+                project_zip,
+            )
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -332,6 +344,10 @@ class TestLoadData(TransactionTestCase):
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged_rna.h5ad", files)
+            self.assertProjectReadmeContains(
+                "For more information on working with the processed `AnnData` objects",
+                project_zip,
+            )
 
     def test_no_merged_single_cell(self):
         project_id = "SCPCP999991"
@@ -498,6 +514,10 @@ class TestLoadData(TransactionTestCase):
             ]
             self.assertProjectReadmeContains(
                 "This dataset is designated as research or academic purposes only.",
+                project_zip,
+            )
+            self.assertProjectReadmeContains(
+                "For information on how to use the demultiplexing results",
                 project_zip,
             )
         self.assertEqual(len(sample_metadata_lines), 4)  # 3 items + header.
@@ -784,6 +804,10 @@ class TestLoadData(TransactionTestCase):
                 "This dataset is designated as research or academic purposes only.",
                 project_zip,
             )
+            self.assertProjectReadmeContains(
+                "For more information on working with the processed `SingleCellExperiment` objects",
+                project_zip,
+            )
 
         self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
 
@@ -815,7 +839,7 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 3426)
+        self.assertEqual(sample.sample_cell_count_estimate, 3417)
         self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3")
         self.assertIsNotNone(sample.single_cell_computed_file)
@@ -1016,6 +1040,10 @@ class TestLoadData(TransactionTestCase):
             ]
             self.assertProjectReadmeContains(
                 "This dataset is designated as research or academic purposes only.",
+                project_zip,
+            )
+            self.assertProjectReadmeContains(
+                "For all spatial transcriptomics libraries",
                 project_zip,
             )
 
