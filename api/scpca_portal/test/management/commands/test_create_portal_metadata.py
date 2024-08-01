@@ -47,8 +47,11 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
-    def test_zip_file(self):
-        # Test the content of the generated zip file here
+    def test_create_portal_metadata(self):
+        self.load_test_data()
+        self.processor.create_portal_metadata(clean_up_output_data=False)
+
+        # Test the content of the generated zip file
         # There is 1 file:
         # ├── README.md
         expected_file_count = 1
@@ -60,21 +63,8 @@ class TestCreatePortalMetadata(TransactionTestCase):
             self.assertEqual(len(files), expected_file_count)
             self.assertIn(expected_file, files)
 
-    def test_readme_file(self):
-        # Test the content of README.md here
-        # TODO: Temporarily added value until readme updates is finalized to prevent duplicate
-        # changes and test failures. Once the following PR is merged, all unique readme files
-        # per computed file are cleaned up up and all the template contexts will be adjusted
-        # (currently still using old template contexts etc)
-        # https://github.com/AlexsLemonade/scpca-portal/pull/806
-        expected_text = "The metadata included in this download contains"
+        # Test the content of README.md
+        expected_text = "This download includes associated metadata for samples from all projects"
 
         with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH) as zip:
             self.assertProjectReadmeContains(expected_text, zip)
-
-    def test_create_portal_metadata(self):
-        self.load_test_data()
-        self.processor.create_portal_metadata(clean_up_output_data=False)
-
-        self.test_zip_file()
-        self.test_readme_file()
