@@ -143,10 +143,10 @@ class TestCreatePortalMetadata(TransactionTestCase):
             for expected_file in expected_files:
                 self.assertIn(expected_file, files)
 
-        # Test the content of README.md
-        expected_text = "This download includes associated metadata for samples from all projects"
-
-        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
+            # Test the content of README.md
+            expected_text = (
+                "This download includes associated metadata for samples from all projects"
+            )
             self.assertProjectReadmeContains(expected_text, zip)
 
         self.test_metadata_file()
