@@ -13,6 +13,10 @@ def apply_project(apps, schema_editor):
             library.save()
 
 
+def reverse_project(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -24,10 +28,20 @@ class Migration(migrations.Migration):
             model_name="library",
             name="project",
             field=models.ForeignKey(
+                null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="libraries",
                 to="scpca_portal.Project",
             ),
         ),
-        migrations.RunPython(apply_project),
+        migrations.RunPython(apply_project, reverse_project),
+        migrations.AlterField(
+            model_name="library",
+            name="project",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="libraries",
+                to="scpca_portal.Project",
+            ),
+        ),
     ]
