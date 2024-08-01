@@ -1,49 +1,27 @@
 import csv
 import io
+from typing import Dict, List
 
 from django.test import TestCase
 
 from scpca_portal import common, metadata_file
+from scpca_portal.test.factories import LibraryFactory, SampleFactory
 
 
 class TestGetFileContents(TestCase):
     def setUp(self):
-        self.dummy_list_of_dicts = [
-            # This list is intentionally out of order to test the sorting.
-            {
-                "scpca_project_id": "SCPCP999991",
-                "scpca_sample_id": "SCPCS999991",
-                "scpca_library_id": "SCPCL999991",
-                "country": "Spain",
-                "language": "Spanish",
-                "capital": "Madrid",
-                "holidays": [
-                    "New Year’s Day",
-                    "Epiphany",
-                    "Christmas Day",
-                ],
-            },
-            {
-                "scpca_project_id": "SCPCP999992",
-                "scpca_sample_id": "SCPCS999992",
-                "scpca_library_id": "SCPCL999992",
-                "country": "Antarctica",
-                "language": "Antarctic English",
-                "holidays": "NA",
-            },
-            {
-                "scpca_project_id": "SCPCP999990",
-                "scpca_sample_id": "SCPCS999990",
-                "scpca_library_id": "SCPCL999990",
-                "country": "USA",
-                "language": "English",
-                "capital": "Washington DC",
-                "holidays": [
-                    "New Year's Day",
-                    "Thanksgiving Day",
-                    "Christmas Day",
-                ],
-            },
+        self.libraries = [LibraryFactory() for _ in range(3)]
+        for library in self.libraries:
+            library.samples.add(SampleFactory(project=library.project))
+
+        # Allow easy access to one library for easy modification
+        self.first_library = self.libraries[0]
+
+        self.libraries_metadata = self.get_libraries_metadata(self.libraries)
+
+    def get_libraries_metadata(self, libraries: List) -> List[Dict]:
+        return [
+            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
         self.dummy_field_names = {
             "scpca_project_id",
