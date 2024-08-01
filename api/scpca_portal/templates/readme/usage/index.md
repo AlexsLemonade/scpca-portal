@@ -12,4 +12,4 @@ For more information on working with the processed `SingleCellExperiment` object
 For information on how to use the demultiplexing results that the filtered data files contain, see the ["Getting started" section about multiplex samples](https://scpca.readthedocs.io/en/stable/getting_started.html#special-considerations-for-multiplexed-samples).
 {% endif %}
 {% endif %}
- 
+
