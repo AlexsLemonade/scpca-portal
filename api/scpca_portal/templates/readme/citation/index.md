@@ -8,7 +8,8 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-{% for project in projects %}To cite data from {{ project.scpca_id }}, please see the project abstract and publication information at [{{ project.scpca_id }} page.]({{ project.url }}){% endfor %}
+{% for project in projects %}To cite data from {{ project.scpca_id }}, please see the project abstract and publication information at [{{ project.scpca_id }} page.]({{ project.url }})
+{% endfor %}
 
 ### Citing the ScPCA Portal
 
