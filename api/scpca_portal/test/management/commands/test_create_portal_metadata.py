@@ -49,32 +49,6 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
-    def test_zip_file(self):
-        # Test the content of the generated zip file here
-        # There is 2 files:
-        # ├── README.md
-        # |── metadata.tsv
-        expected_file_count = 2
-        # The filenames should match the following constants specified for the computed file
-        expected_files = {
-            readme_file.OUTPUT_NAME,
-            metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME,
-        }
-
-        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
-            files = set(zip.namelist())
-            self.assertEqual(len(files), expected_file_count)
-            self.assertEqual(files, expected_files)
-            for expected_file in expected_files:
-                self.assertIn(expected_file, files)
-
-    def test_readme_file(self):
-        # Test the content of README.md here
-        expected_text = "The metadata included in this download contains"
-
-        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
-            self.assertProjectReadmeContains(expected_text, zip)
-
     def test_metadata_file(self):
         # Test the content of metadata.tsv here
         expected_row_count = 9  # Header + 8 records
@@ -150,6 +124,29 @@ class TestCreatePortalMetadata(TransactionTestCase):
     def test_create_portal_metadata(self):
         self.load_test_data()
         self.processor.create_portal_metadata(clean_up_output_data=False)
-        self.test_zip_file()
-        self.test_readme_file()
+
+        # Test the content of the generated zip file
+        # There is 2 files:
+        # ├── README.md
+        # |── metadata.tsv
+        expected_file_count = 2
+        # The filenames should match the following constants specified for the computed file
+        expected_files = {
+            readme_file.OUTPUT_NAME,
+            metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME,
+        }
+
+        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
+            files = set(zip.namelist())
+            self.assertEqual(len(files), expected_file_count)
+            self.assertEqual(files, expected_files)
+            for expected_file in expected_files:
+                self.assertIn(expected_file, files)
+
+        # Test the content of README.md
+        expected_text = "This download includes associated metadata for samples from all projects"
+
+        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
+            self.assertProjectReadmeContains(expected_text, zip)
+
         self.test_metadata_file()
