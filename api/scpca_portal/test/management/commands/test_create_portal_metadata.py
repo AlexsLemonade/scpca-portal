@@ -49,78 +49,6 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
-    def test_metadata_file(self):
-        # Test the content of metadata.tsv here
-        expected_row_count = 9  # Header + 8 records
-        expected_keys = [
-            "scpca_project_id",
-            "scpca_sample_id",
-            "scpca_library_id",
-            "diagnosis",
-            "subdiagnosis",
-            "disease_timing",
-            "age_at_diagnosis",
-            "sex",
-            "tissue_location",
-            "participant_id",
-            "submitter_id",
-            "organism",
-            "development_stage_ontology_term_id",
-            "sex_ontology_term_id",
-            "organism_ontology_id",
-            "self_reported_ethnicity_ontology_term_id",
-            "disease_ontology_term_id",
-            "tissue_ontology_term_id",
-            "seq_unit",
-            "technology",
-            "demux_samples",
-            "total_reads",
-            "mapped_reads",
-            "sample_cell_count_estimate",
-            "sample_cell_estimate",
-            "unfiltered_cells",
-            "filtered_cell_count",
-            "processed_cells",
-            "filtered_spots",
-            "unfiltered_spots",
-            "tissue_spots",
-            "has_cellhash",
-            "includes_anndata",
-            "is_cell_line",
-            "is_multiplexed",
-            "is_xenograft",
-            "pi_name",
-            "project_title",
-            "genome_assembly",
-            "mapping_index",
-            "spaceranger_version",
-            "alevin_fry_version",
-            "salmon_version",
-            "transcript_type",
-            "droplet_filtering_method",
-            "cell_filtering_method",
-            "prob_compromised_cutoff",
-            "min_gene_cutoff",
-            "normalization_method",
-            "demux_method",
-            "date_processed",
-            "workflow",
-            "workflow_version",
-            "workflow_commit",
-        ]
-
-        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
-            content = [
-                row
-                for row in zip.read(metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME)
-                .decode("utf-8")
-                .split("\r\n")
-                if row
-            ]
-
-            self.assertEqual(len(content), expected_row_count)
-            self.assertEqual(content[0].split(common.TAB), expected_keys)
-
     def test_create_portal_metadata(self):
         self.load_test_data()
         self.processor.create_portal_metadata(clean_up_output_data=False)
@@ -149,4 +77,18 @@ class TestCreatePortalMetadata(TransactionTestCase):
             )
             self.assertProjectReadmeContains(expected_text, zip)
 
-        self.test_metadata_file()
+            # Test the content of metadata.tsv
+            expected_row_count = 9  # Header + 8 records
+            # The keys should match the common metadata column sort order list(exclude '*')
+            expected_keys = list(filter(lambda k: k != "*", common.METADATA_COLUMN_SORT_ORDER))
+
+            content = [
+                row
+                for row in zip.read(metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME)
+                .decode("utf-8")
+                .split("\r\n")
+                if row
+            ]
+
+            self.assertEqual(len(content), expected_row_count)
+            self.assertEqual(content[0].split(common.TAB), expected_keys)
