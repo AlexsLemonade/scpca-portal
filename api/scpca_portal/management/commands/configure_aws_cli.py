@@ -1,11 +1,14 @@
-import logging
 import subprocess
 
 from django.core.management.base import BaseCommand
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
+import boto3
+from botocore.client import Config
+
+from scpca_portal.config.logging import get_and_configure_logger
+
+logger = get_and_configure_logger(__name__)
+boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
 class Command(BaseCommand):
