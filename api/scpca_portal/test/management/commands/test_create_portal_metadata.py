@@ -1,17 +1,20 @@
+import csv
 import shutil
 from zipfile import ZipFile
 
 from django.test import TransactionTestCase
 
-from scpca_portal import common, readme_file
+from scpca_portal import common, metadata_file, readme_file
 from scpca_portal.management.commands import create_portal_metadata, load_data
-from scpca_portal.models import Library, Project, Sample
+from scpca_portal.models import ComputedFile, Library, Project, Sample
 
 # NOTE: Test data bucket is defined in `scpca_porta/common.py`.
 # When common.INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
 
 ALLOWED_SUBMITTERS = {"scpca"}
+
+LOCAL_ZIP_FILE_PATH = ComputedFile.get_local_portal_metadata_path()
 
 
 class TestCreatePortalMetadata(TransactionTestCase):
@@ -51,19 +54,38 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.load_test_data()
         self.processor.create_portal_metadata(clean_up_output_data=False)
 
-        with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH) as zip:
+        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
             # Test the content of the generated zip file
-            # There is 1 file:
+            # There are 2 file:
             # ├── README.md
-            expected_file_count = 1
+            # |── metadata.tsv
+            expected_file_count = 2
             # The filenames should match the following constants specified for the computed file
-            expected_file = readme_file.OUTPUT_NAME
+            expected_files = {
+                readme_file.OUTPUT_NAME,
+                metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME,
+            }
             files = set(zip.namelist())
             self.assertEqual(len(files), expected_file_count)
-            self.assertIn(expected_file, files)
+            self.assertEqual(files, expected_files)
+            for expected_file in expected_files:
+                self.assertIn(expected_file, files)
 
             # Test the content of README.md
             expected_text = (
                 "This download includes associated metadata for samples from all projects"
             )
             self.assertProjectReadmeContains(expected_text, zip)
+
+            # Test the content of metadata.tsv
+            tsv = (
+                zip.read(metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME)
+                .decode("utf-8")
+                .splitlines()
+            )
+            rows = list(csv.DictReader(tsv, delimiter=common.TAB))
+            # The header keys should match the common sort order list (excludes '*')
+            expected_keys = list(filter(lambda k: k != "*", common.METADATA_COLUMN_SORT_ORDER))
+            expected_row_count = 8  # 8 records (excludes the header)
+            self.assertEqual(list(rows[0].keys()), expected_keys)
+            self.assertEqual(len(rows), expected_row_count)

@@ -47,8 +47,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     format = models.TextField(choices=OutputFileFormats.CHOICES, null=True)
     includes_merged = models.BooleanField(default=False)
     modality = models.TextField(choices=OutputFileModalities.CHOICES, null=True)
-    portal_metadata_only = models.BooleanField(default=False)
     metadata_only = models.BooleanField(default=False)
+    portal_metadata_only = models.BooleanField(default=False)
     s3_bucket = models.TextField()
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
@@ -89,6 +89,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
         return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
 
+    @staticmethod
+    def get_local_portal_metadata_path() -> Path:
+        return common.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
+
     @classmethod
     def get_portal_metadata_file(cls, projects, download_config: Dict) -> Self:
         """
@@ -97,7 +101,18 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computes a zip archive with metadata and readme files, and
         creates a ComputedFile object which it then saves to the db.
         """
-        with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH, "w") as zip_file:
+        libraries = Library.objects.all()
+        # If the query return empty, then an error occurred, and we should abort early
+        if not libraries.exists():
+            return
+
+        libraries_metadata = utils.filter_dict_list_by_keys(
+            [lib for library in libraries for lib in library.get_combined_library_metadata()],
+            common.METADATA_COLUMN_SORT_ORDER,
+        )
+
+        with ZipFile(cls.get_local_portal_metadata_path(), "w") as zip_file:
+            # Readme file
             zip_file.writestr(
                 readme_file.OUTPUT_NAME,
                 readme_file.get_file_contents(
@@ -105,11 +120,18 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     projects,
                 ),
             )
+            # Metadata file
+            zip_file.writestr(
+                metadata_file.get_file_name(download_config),
+                metadata_file.get_file_contents(libraries_metadata),
+            )
+
         computed_file = cls(
             portal_metadata_only=True,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            # Would it be better to create this as a class attribute instead of common property?
             s3_key=common.PORTAL_METADATA_COMPUTED_FILE_NAME,
-            size_in_bytes=common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH.stat().st_size,
+            size_in_bytes=cls.get_local_portal_metadata_path().stat().st_size,
         )
 
         return computed_file
