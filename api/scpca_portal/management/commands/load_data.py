@@ -57,11 +57,6 @@ class Command(BaseCommand):
     If run in the cloud the zipped ComputedFiles files will be copied
     to a stack-specific S3 bucket."""
 
-    @staticmethod
-    def clean_up_output_data():
-        for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
-            path.unlink(missing_ok=True)
-
     def add_arguments(self, parser):
         parser.add_argument("--input-bucket-name", type=str, default=common.INPUT_BUCKET_NAME)
         parser.add_argument(
@@ -79,11 +74,27 @@ class Command(BaseCommand):
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
 
-    def clean_up_input_data(self, project):
-        shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
-
     def handle(self, *args, **kwargs):
         self.load_data(**kwargs)
+
+    @staticmethod
+    def project_has_s3_files(project_id: str) -> bool:
+        return any(
+            True
+            for project_path in common.INPUT_DATA_PATH.iterdir()
+            if project_path.name == project_id and project_path.is_dir()
+            for nested_path in project_path.iterdir()
+            if nested_path.is_dir()
+        )
+
+    @staticmethod
+    def clean_up_input_data(project):
+        shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
+
+    @staticmethod
+    def clean_up_output_data():
+        for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
+            path.unlink(missing_ok=True)
 
     def load_data(
         self,
@@ -104,11 +115,6 @@ class Command(BaseCommand):
         project_id = kwargs.get("scpca_project_id")
 
         s3.download_input_metadata()
-        project_samples_mapping = {
-            project_path.name: set((sd.name for sd in project_path.iterdir() if sd.is_dir()))
-            for project_path in common.INPUT_DATA_PATH.iterdir()
-            if project_path.is_dir()
-        }
 
         project_list = metadata_file.load_projects_metadata(
             Project.get_input_project_metadata_file_path()
@@ -118,7 +124,7 @@ class Command(BaseCommand):
             if project_id and project_id != scpca_project_id:
                 continue
 
-            if scpca_project_id not in project_samples_mapping:
+            if not self.project_has_s3_files(scpca_project_id):
                 logger.warning(
                     f"Metadata found for '{scpca_project_id}' but no s3 folder of that name exists."
                 )
