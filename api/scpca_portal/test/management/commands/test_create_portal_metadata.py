@@ -1,3 +1,4 @@
+import csv
 import shutil
 from zipfile import ZipFile
 
@@ -55,7 +56,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
 
         with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
             # Test the content of the generated zip file
-            # There is 2 file:
+            # There are 2 file:
             # ├── README.md
             # |── metadata.tsv
             expected_file_count = 2
@@ -64,7 +65,6 @@ class TestCreatePortalMetadata(TransactionTestCase):
                 readme_file.OUTPUT_NAME,
                 metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME,
             }
-
             files = set(zip.namelist())
             self.assertEqual(len(files), expected_file_count)
             self.assertEqual(files, expected_files)
@@ -78,17 +78,14 @@ class TestCreatePortalMetadata(TransactionTestCase):
             self.assertProjectReadmeContains(expected_text, zip)
 
             # Test the content of metadata.tsv
-            expected_row_count = 9  # Header + 8 records
-            # The keys should match the common metadata column sort order list(exclude '*')
-            expected_keys = list(filter(lambda k: k != "*", common.METADATA_COLUMN_SORT_ORDER))
-
-            content = [
-                row
-                for row in zip.read(metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME)
+            tsv = (
+                zip.read(metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME)
                 .decode("utf-8")
-                .split("\r\n")
-                if row
-            ]
-
-            self.assertEqual(len(content), expected_row_count)
-            self.assertEqual(content[0].split(common.TAB), expected_keys)
+                .splitlines()
+            )
+            rows = list(csv.DictReader(tsv, delimiter=common.TAB))
+            # The header keys should match the common sort order list (excludes '*')
+            expected_keys = list(filter(lambda k: k != "*", common.METADATA_COLUMN_SORT_ORDER))
+            expected_row_count = 8  # 8 records (excludes the header)
+            self.assertEqual(list(rows[0].keys()), expected_keys)
+            self.assertEqual(len(rows), expected_row_count)
