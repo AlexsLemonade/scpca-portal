@@ -50,18 +50,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
-    # TODO: Once the following PR is merged, the commend will be removed and further adjusted
-    # (currently it's not saved) https://github.com/AlexsLemonade/scpca-portal/pull/806
-    # def test_computed_file(self, computed_file):
-    #     if computed_file:
-    #         expected_size = 8403
-    #         self.assertEqual(computed_file.size_in_bytes, expected_size)
-    #     else:
-    #         self.fail("No computed file")
-
     def test_create_portal_metadata(self):
         self.load_test_data()
-        self.processor.create_portal_metadata(clean_up_output_data=False)
+        computed_file = self.processor.create_portal_metadata(clean_up_output_data=False)
 
         with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
             # Test the content of the generated zip file
@@ -98,3 +89,10 @@ class TestCreatePortalMetadata(TransactionTestCase):
             expected_row_count = 8  # 8 records (excludes the header)
             self.assertEqual(list(rows[0].keys()), expected_keys)
             self.assertEqual(len(rows), expected_row_count)
+
+            # Test the computed file
+            if computed_file:
+                expected_size = 8395
+                self.assertEqual(computed_file.size_in_bytes, expected_size)
+            else:
+                self.fail("No computed file")
