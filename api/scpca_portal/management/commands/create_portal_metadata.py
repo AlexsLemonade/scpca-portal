@@ -31,10 +31,8 @@ class Command(BaseCommand):
         upload_s3 = kwargs.get("clean_up_output_data", False)
 
         logger.info("Creating the portal-wide metadata computed file")
-        # TODO: Once the following PR is merged, the computed file will be saved correctly
-        # (*currently it's not saved) https://github.com/AlexsLemonade/scpca-portal/pull/806
         computed_file = ComputedFile.get_portal_metadata_file(
-            Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG[0]
+            Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
         )
 
         if computed_file:

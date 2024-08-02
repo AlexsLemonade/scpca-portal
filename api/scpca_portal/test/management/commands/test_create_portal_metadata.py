@@ -1,3 +1,4 @@
+import csv
 import shutil
 from zipfile import ZipFile
 
@@ -58,114 +59,42 @@ class TestCreatePortalMetadata(TransactionTestCase):
     #     else:
     #         self.fail("No computed file")
 
-    def test_zip_file(self):
-        # Test the content of the generated zip file here
-        # There is 2 files:
-        # ├── README.md
-        # |── metadata.tsv
-        expected_file_count = 2
-        # The filenames should match the following constants specified for the computed file
-        expected_files = {
-            readme_file.OUTPUT_NAME,
-            metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME,
-        }
+    def test_create_portal_metadata(self):
+        self.load_test_data()
+        self.processor.create_portal_metadata(clean_up_output_data=False)
 
         with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
+            # Test the content of the generated zip file
+            # There are 2 file:
+            # ├── README.md
+            # |── metadata.tsv
+            expected_file_count = 2
+            # The filenames should match the following constants specified for the computed file
+            expected_files = {
+                readme_file.OUTPUT_NAME,
+                metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME,
+            }
             files = set(zip.namelist())
             self.assertEqual(len(files), expected_file_count)
             self.assertEqual(files, expected_files)
             for expected_file in expected_files:
                 self.assertIn(expected_file, files)
 
-    def test_readme_file(self):
-        # Test the content of README.md here
-        expected_text = "The metadata included in this download contains"
-
-        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
+            # Test the content of README.md
+            expected_text = (
+                "This download includes associated metadata for samples from all projects"
+            )
             self.assertProjectReadmeContains(expected_text, zip)
 
-    def test_metadata_file(self):
-        # Test the content of metadata.tsv here
-        expected_row_count = 9  # Header + 8 records
-        expected_keys = [
-            "scpca_project_id",
-            "scpca_sample_id",
-            "scpca_library_id",
-            "diagnosis",
-            "subdiagnosis",
-            "disease_timing",
-            "age_at_diagnosis",
-            "sex",
-            "tissue_location",
-            "participant_id",
-            "submitter_id",
-            "organism",
-            "development_stage_ontology_term_id",
-            "sex_ontology_term_id",
-            "organism_ontology_id",
-            "self_reported_ethnicity_ontology_term_id",
-            "disease_ontology_term_id",
-            "tissue_ontology_term_id",
-            "seq_unit",
-            "technology",
-            "demux_samples",
-            "total_reads",
-            "mapped_reads",
-            "sample_cell_count_estimate",
-            "sample_cell_estimate",
-            "unfiltered_cells",
-            "filtered_cell_count",
-            "processed_cells",
-            "filtered_spots",
-            "unfiltered_spots",
-            "tissue_spots",
-            "has_cellhash",
-            "includes_anndata",
-            "is_cell_line",
-            "is_multiplexed",
-            "is_xenograft",
-            "pi_name",
-            "project_title",
-            "genome_assembly",
-            "mapping_index",
-            "spaceranger_version",
-            "alevin_fry_version",
-            "salmon_version",
-            "transcript_type",
-            "droplet_filtering_method",
-            "cell_filtering_method",
-            "prob_compromised_cutoff",
-            "min_gene_cutoff",
-            "normalization_method",
-            "demux_method",
-            "date_processed",
-            "workflow",
-            "workflow_version",
-            "workflow_commit",
-        ]
-
-        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
-            content = [
-                row
-                for row in zip.read(metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME)
+            # Test the content of metadata.tsv
+            tsv = (
+                zip.read(metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME)
                 .decode("utf-8")
-                .split("\r\n")
-                if row
-            ]
-
-            self.assertEqual(len(content), expected_row_count)
-            self.assertEqual(content[0].split(common.TAB), expected_keys)
-
-    def test_create_portal_metadata(self):
-        self.load_test_data()
-
-        # TODO: Once the following PR is merged, the computed file will be saved correctly
-        # (currently it's not saved) https://github.com/AlexsLemonade/scpca-portal/pull/806
-        computed_file = self.processor.create_portal_metadata(  # noqa: F841
-            clean_up_output_data=False
-        )
-
-        self.test_zip_file()
-        self.test_readme_file()
-        self.test_metadata_file()
-        # self.test_computed_file(computed_file)
+                .splitlines()
+            )
+            rows = list(csv.DictReader(tsv, delimiter=common.TAB))
+            # The header keys should match the common sort order list (excludes '*')
+            expected_keys = list(filter(lambda k: k != "*", common.METADATA_COLUMN_SORT_ORDER))
+            expected_row_count = 8  # 8 records (excludes the header)
+            self.assertEqual(list(rows[0].keys()), expected_keys)
+            self.assertEqual(len(rows), expected_row_count)
