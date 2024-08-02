@@ -107,7 +107,7 @@ def download_input_metadata(*, bucket_name: str = common.INPUT_BUCKET_NAME):
     subprocess.check_call(command_parts)
 
 
-def delete_output_file(key) -> bool:
+def delete_output_file(key: str) -> bool:
     # If we're not running in the cloud then we shouldn't try to
     # delete something from S3 unless force is set.
     if not settings.UPDATE_S3_DATA:
@@ -136,7 +136,7 @@ def upload_output_file(key: str) -> None:
     subprocess.check_call(command_parts)
 
 
-def generate_pre_signed_link(key, filename):
+def generate_pre_signed_link(key: str, filename: str) -> str:
     return aws_s3.generate_presigned_url(
         ClientMethod="get_object",
         Params={

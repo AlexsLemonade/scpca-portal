@@ -255,7 +255,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @property
-    def download_url(self):
+    def download_url(self) -> str:
         """A temporary URL from which the file can be downloaded."""
         if self.s3_bucket and self.s3_key:
             # Append the download date to the filename on download.
@@ -263,7 +263,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             s3_key = Path(self.s3_key)
             filename = f"{s3_key.stem}_{date}{s3_key.suffix}"
 
-            return s3.generate_pre_signed_link(s3_key, filename)
+            return s3.generate_pre_signed_link(str(s3_key), filename)
 
     @property
     def is_project_multiplexed_zip(self):

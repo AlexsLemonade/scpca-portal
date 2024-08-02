@@ -1,4 +1,3 @@
-from pathlib import Path
 from unittest.mock import patch
 
 from django.conf import settings
@@ -26,7 +25,7 @@ class TestComputedFile(TestCase):
             ClientMethod="get_object",
             Params={
                 "Bucket": settings.AWS_S3_BUCKET_NAME,
-                "Key": Path("SCPCP000001.zip"),
+                "Key": "SCPCP000001.zip",
                 "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
             },
             ExpiresIn=604800,
