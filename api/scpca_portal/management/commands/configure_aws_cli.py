@@ -30,21 +30,27 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.configure_aws_cli(**kwargs)
 
-    def configure_aws_cli(self, **kwargs):
+    def configure_aws_cli(
+        self,
+        *,
+        s3_max_concurrent_requests: int = 10,
+        s3_multipart_chunk_size: int = 8,
+        s3_max_bandwidth: int,
+        **kwargs,
+    ):
         commands = [
             # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#payload-signing-enabled
             "aws configure set default.s3.payload_signing_enabled false",
             # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-concurrent-requests
-            "aws configure set default.s3.max_concurrent_requests "
-            f"{kwargs['s3_max_concurrent_requests']}",
+            f"aws configure set default.s3.max_concurrent_requests {s3_max_concurrent_requests}",
             # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#multipart-chunksize
-            "aws configure set default.s3.multipart_chunksize "
-            f"{kwargs['s3_multipart_chunk_size']}MB",
+            f"aws configure set default.s3.multipart_chunksize {s3_multipart_chunk_size}MB",
         ]
-        if kwargs["s3_max_bandwidth"]:
+
+        if s3_max_bandwidth:
             commands.append(
                 # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-bandwidth
-                f"aws configure set default.s3.max_bandwidth {kwargs['s3_max_bandwidth']}MB/s",
+                f"aws configure set default.s3.max_bandwidth {s3_max_bandwidth}MB/s",
             )
 
         logger.info("Configuring AWS CLI...")
