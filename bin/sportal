@@ -14,14 +14,14 @@ run_api = (
     # Docker compose uses the current directory in the network name. We
     # need to pass the network name into containers, so we have to know what it is.
     f"API_NETWORK={Path.cwd().name}_default "
-    f"docker-compose --env-file ./docker-compose.env run --rm api {{}}"
+    f"docker compose --env-file ./docker-compose.env run --rm api {{}}"
 )
 
 # List of available commands.
 commands = {
-    "up": "docker-compose --env-file ./docker-compose.env up",
-    "down": "docker-compose --env-file ./docker-compose.env down",
-    "build": "docker-compose --env-file ./docker-compose.env build",
+    "up": "docker compose --env-file ./docker-compose.env up",
+    "down": "docker compose --env-file ./docker-compose.env down",
+    "build": "docker compose --env-file ./docker-compose.env build",
     "shell": run_api.format('bash -c "./manage.py shell"'),
     "recreate-schema": "./recreate_schema.sh",
     "test-api": run_api.format('bash -c "./run_tests.sh {}"'),
