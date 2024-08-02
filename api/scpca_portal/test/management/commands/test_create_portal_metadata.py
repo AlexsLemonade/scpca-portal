@@ -51,14 +51,13 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.load_test_data()
         self.processor.create_portal_metadata(clean_up_output_data=False)
 
-        # Test the content of the generated zip file
-        # There is 1 file:
-        # ├── README.md
-        expected_file_count = 1
-        # The filenames should match the following constants specified for the computed file
-        expected_file = readme_file.OUTPUT_NAME
-
         with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH) as zip:
+            # Test the content of the generated zip file
+            # There is 1 file:
+            # ├── README.md
+            expected_file_count = 1
+            # The filenames should match the following constants specified for the computed file
+            expected_file = readme_file.OUTPUT_NAME
             files = set(zip.namelist())
             self.assertEqual(len(files), expected_file_count)
             self.assertIn(expected_file, files)
