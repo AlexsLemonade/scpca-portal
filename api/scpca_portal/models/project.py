@@ -309,7 +309,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
         )
 
-    def load_samples(self) -> List[Dict]:
+    def load_samples(self) -> None:
         """
         Parses sample metadata csv and creates Sample objects
         """
@@ -319,7 +319,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         Sample.bulk_create_from_dicts(samples_metadata, self)
 
-    def load_libraries(self):
+    def load_libraries(self) -> None:
         """
         Parses library metadata json files and creates Library objects
         """
@@ -334,12 +334,12 @@ class Project(CommonDataAttributes, TimestampedModel):
                 sample = self.samples.get(scpca_id=sample_id)
                 Library.bulk_create_from_dicts([library_metadata], sample)
 
-    def purge(self, delete_from_s3=False):
+    def purge(self, delete_from_s3=False) -> None:
         """Purges project and its related data."""
         for sample in self.samples.all():
             for computed_file in sample.computed_files:
                 if delete_from_s3:
-                    s3.delete_output_file(computed_file, force=True)
+                    s3.delete_output_file(computed_file)
                 computed_file.delete()
             for library in sample.libraries.all():
                 # If library has other samples that it is related to, then don't delete it
@@ -349,7 +349,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         for computed_file in self.computed_files:
             if delete_from_s3:
-                s3.delete_output_file(computed_file, force=True)
+                s3.delete_output_file(computed_file)
             computed_file.delete()
 
         ProjectSummary.objects.filter(project=self).delete()
