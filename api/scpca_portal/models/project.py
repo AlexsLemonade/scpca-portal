@@ -339,7 +339,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         for sample in self.samples.all():
             for computed_file in sample.computed_files:
                 if delete_from_s3:
-                    s3.delete_output_file(computed_file)
+                    s3.delete_output_file(computed_file.s3_key)
                 computed_file.delete()
             for library in sample.libraries.all():
                 # If library has other samples that it is related to, then don't delete it
@@ -349,7 +349,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         for computed_file in self.computed_files:
             if delete_from_s3:
-                s3.delete_output_file(computed_file)
+                s3.delete_output_file(computed_file.s3_key)
             computed_file.delete()
 
         ProjectSummary.objects.filter(project=self).delete()
