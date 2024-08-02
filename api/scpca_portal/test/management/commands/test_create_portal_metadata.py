@@ -14,8 +14,6 @@ from scpca_portal.models import ComputedFile, Library, Project, Sample
 
 ALLOWED_SUBMITTERS = {"scpca"}
 
-LOCAL_ZIP_FILE_PATH = ComputedFile.get_local_portal_metadata_path()
-
 
 class TestCreatePortalMetadata(TransactionTestCase):
     def setUp(self):
@@ -52,9 +50,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
 
     def test_create_portal_metadata(self):
         self.load_test_data()
-        self.processor.create_portal_metadata(clean_up_output_data=False)
+        computed_file = self.processor.create_portal_metadata(clean_up_output_data=False)
 
-        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
+        with ZipFile(ComputedFile.get_local_portal_metadata_path()) as zip:
             # Test the content of the generated zip file
             # There are 2 file:
             # ├── README.md
@@ -89,3 +87,10 @@ class TestCreatePortalMetadata(TransactionTestCase):
             expected_row_count = 8  # 8 records (excludes the header)
             self.assertEqual(list(rows[0].keys()), expected_keys)
             self.assertEqual(len(rows), expected_row_count)
+
+            # Test the computed file
+            if computed_file:
+                expected_size = 8395
+                self.assertEqual(computed_file.size_in_bytes, expected_size)
+            else:
+                self.fail("No computed file")
