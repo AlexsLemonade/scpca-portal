@@ -28,7 +28,7 @@ class Command(BaseCommand):
 
     def create_portal_metadata(self, **kwargs):
         clean_up_output_data = kwargs.get("clean_up_output_data", True)
-        upload_s3 = kwargs.get("clean_up_output_data", False)
+        upload_s3 = kwargs.get("upload_s3", False)
 
         logger.info("Creating the portal-wide metadata computed file")
         computed_file = ComputedFile.get_portal_metadata_file(
