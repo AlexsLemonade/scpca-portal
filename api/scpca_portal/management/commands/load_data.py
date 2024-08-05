@@ -147,8 +147,9 @@ class Command(BaseCommand):
             metadata_project_id = project_metadata["scpca_project_id"]
             passed_project_id = kwargs["scpca_project_id"]
 
+            pi_name = project_metadata["pi_name"]
             if self.skip_project(
-                metadata_project_id, passed_project_id, kwargs["pi_name"], allowed_submitters
+                metadata_project_id, passed_project_id, pi_name, allowed_submitters
             ):
                 continue
 
