@@ -144,6 +144,20 @@ class Command(BaseCommand):
             logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
             return False
 
+    def create_computed_file(future, *, update_s3, clean_up_output_data):
+        if computed_file := future.result():
+
+            # Only upload and clean up projects and the last sample if multiplexed
+            if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
+                if update_s3:
+                    s3.upload_output_file(computed_file)
+                if clean_up_output_data:
+                    computed_file.clean_up_local_computed_file()
+            computed_file.save()
+
+        # Close DB connection for each thread.
+        connection.close()
+
     @staticmethod
     def clean_up_input_data(project):
         shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
