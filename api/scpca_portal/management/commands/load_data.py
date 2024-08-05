@@ -2,6 +2,7 @@ import logging
 import shutil
 from argparse import BooleanOptionalAction
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 from operator import itemgetter
 from pathlib import Path
 from threading import Lock
@@ -15,7 +16,6 @@ from django.template.defaultfilters import pluralize
 from scpca_portal import common, metadata_file, s3
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
 from scpca_portal.models.computed_file import ComputedFile
-from scpca_portal.models.sample import Sample
 
 ALLOWED_SUBMITTERS = {
     "christensen",
@@ -217,32 +217,18 @@ class Command(BaseCommand):
                     f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'"
                 )
 
-            def on_get_file(future):
-                if computed_file := future.result():
-
-                    # Only upload and clean up projects and the last sample if multiplexed
-                    if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
-                        if kwargs["update_s3"]:
-                            s3.upload_output_file(computed_file)
-                        if kwargs["clean_up_output_data"]:
-                            computed_file.clean_up_local_computed_file()
-                    computed_file.save()
-
-                # Close DB connection for each thread.
-                connection.close()
-
-            samples = Sample.objects.filter(project__scpca_id=project.scpca_id)
-            logger.info(
-                f"Processing {len(samples)} sample{pluralize(len(samples))} using "
-                f"{kwargs['max_workers']} worker{pluralize(kwargs['max_workers'])}"
-            )
+            # Prep callback function
+            partial_kwargs = {
+                k: v for k, v in kwargs.items() if k in ["update_s3", "clean_up_output_data"]
+            }
+            on_get_file = partial(Command.create_computed_file, **partial_kwargs)
 
             # Prepare a threading.Lock for each sample, with the chief purpose being to protect
-            # multiplexed samples that shares a zip file.
+            # multiplexed samples that share a zip file.
             locks = {}
             with ThreadPoolExecutor(max_workers=kwargs["max_workers"]) as tasks:
                 # Generated project computed files
-                for sample in samples:
+                for sample in project.samples.all():
                     for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
                         sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
                         tasks.submit(
@@ -254,12 +240,12 @@ class Command(BaseCommand):
                         ).add_done_callback(on_get_file)
 
                 # Generated project computed files
-                for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+                for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
                     tasks.submit(
                         ComputedFile.get_project_file,
                         project,
-                        download_config,
-                        project.get_download_config_file_output_name(download_config),
+                        config,
+                        project.get_download_config_file_output_name(config),
                     ).add_done_callback(on_get_file)
 
             project.update_downloadable_sample_count()
