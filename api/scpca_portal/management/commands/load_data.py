@@ -1,16 +1,20 @@
 import logging
 import shutil
 from argparse import BooleanOptionalAction
+from concurrent.futures import ThreadPoolExecutor
 from operator import itemgetter
 from pathlib import Path
+from threading import Lock
 from typing import Set
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import connection
 from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, metadata_file, s3
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
+from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.sample import Sample
 
 ALLOWED_SUBMITTERS = {
@@ -199,13 +203,52 @@ class Command(BaseCommand):
                     f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'"
                 )
 
-            Sample.create_computed_files(
-                project, kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
+            def on_get_file(future):
+                if computed_file := future.result():
+
+                    # Only upload and clean up projects and the last sample if multiplexed
+                    if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
+                        if kwargs["update_s3"]:
+                            s3.upload_output_file(computed_file)
+                        if kwargs["clean_up_output_data"]:
+                            computed_file.clean_up_local_computed_file()
+                    computed_file.save()
+
+                # Close DB connection for each thread.
+                connection.close()
+
+            samples = Sample.objects.filter(project__scpca_id=project.scpca_id)
+            logger.info(
+                f"Processing {len(samples)} sample{pluralize(len(samples))} using "
+                f"{kwargs['max_workers']} worker{pluralize(kwargs['max_workers'])}"
             )
 
-            project.create_computed_files(
-                kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
-            )
+            # Prepare a threading.Lock for each sample, with the chief purpose being to protect
+            # multiplexed samples that shares a zip file.
+            locks = {}
+            with ThreadPoolExecutor(max_workers=kwargs["max_workers"]) as tasks:
+                # Generated project computed files
+                for sample in samples:
+                    for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+                        sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
+                        tasks.submit(
+                            ComputedFile.get_sample_file,
+                            sample,
+                            config,
+                            sample.get_download_config_file_output_name(config),
+                            sample_lock,
+                        ).add_done_callback(on_get_file)
+
+                # Generated project computed files
+                for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+                    tasks.submit(
+                        ComputedFile.get_project_file,
+                        project,
+                        download_config,
+                        project.get_download_config_file_output_name(download_config),
+                    ).add_done_callback(on_get_file)
+
+            project.update_downloadable_sample_count()
 
             if kwargs["clean_up_input_data"]:
                 logger.info(f"Cleaning up '{project}' input data")
