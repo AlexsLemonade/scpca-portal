@@ -290,7 +290,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             file_path for file_path in data_file_path_objects if file_path.parent.name != "merged"
         ]
 
-    def load_data(self, **kwargs) -> None:
+    def load_metadata(self) -> None:
         """
         Loads sample and library metadata files, creates Sample and Library objects,
         and archives Project and Sample computed files.
@@ -300,14 +300,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         self.update_sample_derived_properties()
         self.update_project_derived_properties()
-
-        Sample.create_computed_files(
-            self, kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
-        )
-
-        self.create_computed_files(
-            kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
-        )
 
     def load_samples(self) -> None:
         """

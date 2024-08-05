@@ -11,6 +11,7 @@ from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, metadata_file, s3
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
+from scpca_portal.models.sample import Sample
 
 ALLOWED_SUBMITTERS = {
     "christensen",
@@ -184,18 +185,27 @@ class Command(BaseCommand):
                 if not self.purge_project(project, *get_purge_project_kwargs(kwargs)):
                     continue
 
-            logger.info(f"Importing '{project}' data")
+            logger.info(f"Importing 'Project {metadata_project_id}' data")
             project = Project.get_from_dict(project_metadata)
             project.save()
+
             Contact.bulk_create_from_project_data(project_metadata, project)
             ExternalAccession.bulk_create_from_project_data(project_metadata, project)
             Publication.bulk_create_from_project_data(project_metadata, project)
 
-            project.load_data(**kwargs)
+            project.load_metadata()
             if samples_count := project.samples.count():
                 logger.info(
                     f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'"
                 )
+
+            Sample.create_computed_files(
+                project, kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
+            )
+
+            project.create_computed_files(
+                kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
+            )
 
             if kwargs["clean_up_input_data"]:
                 logger.info(f"Cleaning up '{project}' input data")
