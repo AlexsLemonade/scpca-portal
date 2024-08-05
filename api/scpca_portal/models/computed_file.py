@@ -129,7 +129,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computed_file = cls(
             portal_metadata_only=True,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            # Would it be better to create this as a class attribute instead of common property?
             s3_key=common.PORTAL_METADATA_COMPUTED_FILE_NAME,
             size_in_bytes=cls.get_local_portal_metadata_path().stat().st_size,
         )
