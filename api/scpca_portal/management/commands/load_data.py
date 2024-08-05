@@ -144,7 +144,11 @@ class Command(BaseCommand):
             logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
             return False
 
-    def create_computed_file(future, *, update_s3, clean_up_output_data):
+    def create_computed_file(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
+        """
+        Saves computed file returned from future to the db.
+        Uploads file to s3 and cleans up output data depending on passed options.
+        """
         if computed_file := future.result():
 
             # Only upload and clean up projects and the last sample if multiplexed
