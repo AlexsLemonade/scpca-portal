@@ -2,6 +2,7 @@ import logging
 import shutil
 from argparse import BooleanOptionalAction
 from pathlib import Path
+from typing import Set
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -87,6 +88,32 @@ class Command(BaseCommand):
             if nested_path.is_dir()
         )
 
+    def skip_project(
+        self,
+        metadata_project_id: str,
+        passed_project_id: str,
+        pi_name: str,
+        allowed_submitters: Set,
+    ):
+        """
+        Carries out a series of checks to determine whether or not a project should be processed.
+        """
+        # If project id was passed to command, verify that correct project is being processed
+        if passed_project_id and passed_project_id != metadata_project_id:
+            return True
+
+        if not self.project_has_s3_files(metadata_project_id):
+            logger.warning(
+                f"Metadata found for '{metadata_project_id}', but no s3 folder of that name exists."
+            )
+            return True
+
+        if pi_name not in allowed_submitters:
+            logger.warning("Project submitter is not the white list.")
+            return True
+
+        return False
+
     @staticmethod
     def clean_up_input_data(project):
         shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
@@ -112,29 +139,22 @@ class Command(BaseCommand):
         common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
         allowed_submitters = allowed_submitters or ALLOWED_SUBMITTERS
-        project_id = kwargs.get("scpca_project_id")
 
         s3.download_input_metadata()
 
-        project_list = metadata_file.load_projects_metadata(
+        projects_metadata = metadata_file.load_projects_metadata(
             Project.get_input_project_metadata_file_path()
         )
-        for project_data in project_list:
-            scpca_project_id = project_data["scpca_project_id"]
-            if project_id and project_id != scpca_project_id:
+        for project_metadata in projects_metadata:
+            metadata_project_id = project_metadata["scpca_project_id"]
+            passed_project_id = kwargs["scpca_project_id"]
+
+            if self.skip_project(
+                metadata_project_id, passed_project_id, kwargs["pi_name"], allowed_submitters
+            ):
                 continue
 
-            if not self.project_has_s3_files(scpca_project_id):
-                logger.warning(
-                    f"Metadata found for '{scpca_project_id}' but no s3 folder of that name exists."
-                )
-                return
-
-            if project_data["pi_name"] not in allowed_submitters:
-                logger.warning("Project submitter is not the white list.")
-                continue
-
-            if project := Project.objects.filter(scpca_id=scpca_project_id).first():
+            if project := Project.objects.filter(scpca_id=metadata_project_id).first():
                 # Purge existing projects so they can be re-added.
                 if kwargs["reload_all"] or kwargs["reload_existing"]:
                     logger.info(f"Purging '{project}")
@@ -146,11 +166,11 @@ class Command(BaseCommand):
                     continue
 
             logger.info(f"Importing '{project}' data")
-            project = Project.get_from_dict(project_data)
+            project = Project.get_from_dict(project_metadata)
             project.save()
-            Contact.bulk_create_from_project_data(project_data, project)
-            ExternalAccession.bulk_create_from_project_data(project_data, project)
-            Publication.bulk_create_from_project_data(project_data, project)
+            Contact.bulk_create_from_project_data(project_metadata, project)
+            ExternalAccession.bulk_create_from_project_data(project_metadata, project)
+            Publication.bulk_create_from_project_data(project_metadata, project)
 
             project.load_data(**kwargs)
             if samples_count := project.samples.count():
