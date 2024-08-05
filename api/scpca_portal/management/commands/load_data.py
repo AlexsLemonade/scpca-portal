@@ -1,6 +1,7 @@
 import logging
 import shutil
 from argparse import BooleanOptionalAction
+from operator import itemgetter
 from pathlib import Path
 from typing import Set
 
@@ -120,6 +121,24 @@ class Command(BaseCommand):
 
         return False
 
+    def purge_project(
+        self, project, reload_all: bool, reload_existing: bool, update_s3: bool
+    ) -> bool:
+        """
+        Purges project if it exists in the database. Updates S3 accordingly.
+        Returns boolean as success status.
+        """
+        # Purge existing projects so they can be re-added.
+        if reload_all or reload_existing:
+            logger.info(f"Purging '{project}")
+            project.purge(delete_from_s3=update_s3)
+            return True
+        # Only import new projects.
+        # If old ones are desired they should be purged and re-added.
+        else:
+            logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
+            return False
+
     @staticmethod
     def clean_up_input_data(project):
         shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
@@ -151,7 +170,7 @@ class Command(BaseCommand):
         )
         for project_metadata in projects_metadata:
             metadata_project_id = project_metadata["scpca_project_id"]
-            passed_project_id = kwargs["scpca_project_id"]
+            passed_project_id = kwargs.get("scpca_project_id")
 
             pi_name = project_metadata["pi_name"]
             if self.skip_project(
@@ -160,14 +179,9 @@ class Command(BaseCommand):
                 continue
 
             if project := Project.objects.filter(scpca_id=metadata_project_id).first():
-                # Purge existing projects so they can be re-added.
-                if kwargs["reload_all"] or kwargs["reload_existing"]:
-                    logger.info(f"Purging '{project}")
-                    project.purge(delete_from_s3=kwargs["update_s3"])
-                # Only import new projects.
-                # If old ones are desired they should be purged and re-added.
-                else:
-                    logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
+                get_purge_project_kwargs = itemgetter("reload_all", "reload_existing", "update_s3")
+                # If there is a problem purging the project, then skip it
+                if not self.purge_project(project, *get_purge_project_kwargs(kwargs)):
                     continue
 
             logger.info(f"Importing '{project}' data")
