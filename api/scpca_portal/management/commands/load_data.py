@@ -125,7 +125,7 @@ class Command(BaseCommand):
 
     def load_data(
         self,
-        allowed_submitters: set[str] = None,
+        allowed_submitters: set[str] = ALLOWED_SUBMITTERS,
         input_bucket_name: str = common.INPUT_BUCKET_NAME,
         **kwargs,
     ):
@@ -137,8 +137,6 @@ class Command(BaseCommand):
         # Prepare data output directory.
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
         common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
-
-        allowed_submitters = allowed_submitters or ALLOWED_SUBMITTERS
 
         s3.download_input_metadata()
 
