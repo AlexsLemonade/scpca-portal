@@ -35,14 +35,9 @@ class Sample(CommonDataAttributes, TimestampedModel):
             SPATIAL: "Spatial Data",
         }
 
-    class AgeTimings(models.TextChoices):
-        COLLECTION = "collection"
-        DIAGNOSIS = "diagnosis"
-        UNKNOWN = "unknown"
-
     additional_metadata = models.JSONField(default=dict)
-    age = models.TextField(blank=True, null=True)
-    age_timing = models.TextField(choices=AgeTimings.choices, default=AgeTimings.UNKNOWN)
+    age = models.TextField(default=common.NA)
+    age_timing = models.TextField(default=common.NA)
     demux_cell_count_estimate = models.IntegerField(null=True)
     diagnosis = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)

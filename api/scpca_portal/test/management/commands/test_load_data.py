@@ -819,6 +819,9 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
+        # This line will probably fail when switching test data versions
+        # The reason is that the filtered_cells attribute from the library json files,
+        # from which sample_cell_count_estimate is calculated, changes from version to version
         self.assertEqual(sample.sample_cell_count_estimate, 3432)
         self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3")
