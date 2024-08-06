@@ -36,8 +36,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
         }
 
     additional_metadata = models.JSONField(default=dict)
-    age = models.TextField(default=common.NA)
-    age_timing = models.TextField(default=common.NA)
+    age = models.TextField()
+    age_timing = models.TextField()
     demux_cell_count_estimate = models.IntegerField(null=True)
     diagnosis = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
