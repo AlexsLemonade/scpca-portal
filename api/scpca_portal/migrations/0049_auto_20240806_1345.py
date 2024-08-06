@@ -10,14 +10,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name="sample",
-            name="age_at_diagnosis",
+            old_name="age_at_diagnosis",
+            new_name="age",
         ),
-        migrations.AddField(
+        migrations.AlterField(
             model_name="sample",
             name="age",
-            field=models.TextField(default="NA"),
+            field=models.TextField(default="NA", blank=False, null=False),
         ),
         migrations.AddField(
             model_name="sample",
