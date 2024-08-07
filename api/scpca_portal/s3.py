@@ -20,7 +20,7 @@ def list_input_paths(
     *,
     bucket_path: Path = Path(common.INPUT_BUCKET_NAME),
     recursive: bool = True,
-):
+) -> List[Path]:
     """
     Queries a path on an inputted s3 bucket
     and returns bucket's existing content as a list of Path objects,
@@ -76,14 +76,16 @@ def list_input_paths(
     return file_paths
 
 
-def download_input_files(file_paths: List[Path], *, bucket_name: str = common.INPUT_BUCKET_NAME):
+def download_input_files(
+    file_paths: List[Path], *, bucket_name: str = common.INPUT_BUCKET_NAME
+) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
     command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
 
     download_queue = [fp for fp in file_paths if not fp.exists()]
     # If download_queue is empty, exit early
     if not download_queue:
-        return
+        return True
 
     command_parts.append("--exclude=*")
     command_parts.extend([f"--include={file_path}" for file_path in download_queue])
@@ -91,10 +93,16 @@ def download_input_files(file_paths: List[Path], *, bucket_name: str = common.IN
     if "public-test" in bucket_name:
         command_parts.append("--no-sign-request")
 
-    subprocess.check_call(command_parts)
+    try:
+        subprocess.check_call(command_parts)
+    except subprocess.CalledProcessError as error:
+        logger.error(f"Data files failed to download due to the following error:\n\t{error}")
+        return False
+
+    return True
 
 
-def download_input_metadata(*, bucket_name: str = common.INPUT_BUCKET_NAME):
+def download_input_metadata(*, bucket_name: str = common.INPUT_BUCKET_NAME) -> bool:
     """Download all metadata files to the local file system."""
     command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
 
@@ -104,7 +112,13 @@ def download_input_metadata(*, bucket_name: str = common.INPUT_BUCKET_NAME):
     if "public-test" in bucket_name:
         command_parts.append("--no-sign-request")
 
-    subprocess.check_call(command_parts)
+    try:
+        subprocess.check_call(command_parts)
+    except subprocess.CalledProcessError as error:
+        logger.error(f"Metadata files failed to download due to the following error:\n\t{error}")
+        return False
+
+    return True
 
 
 def delete_output_file(key: str) -> bool:
@@ -125,7 +139,7 @@ def delete_output_file(key: str) -> bool:
     return True
 
 
-def upload_output_file(key: str) -> None:
+def upload_output_file(key: str) -> bool:
     """Upload a computed file to S3 using the AWS CLI tool."""
 
     local_path = common.OUTPUT_DATA_PATH / key
@@ -133,7 +147,13 @@ def upload_output_file(key: str) -> None:
     command_parts = ["aws", "s3", "cp", local_path, aws_path]
 
     logger.info(f"Uploading Computed File {key}")
-    subprocess.check_call(command_parts)
+    try:
+        subprocess.check_call(command_parts)
+    except subprocess.CalledProcessError as error:
+        logger.error(f"Computed file failed to upload due to the following error:\n\t{error}")
+        return False
+
+    return True
 
 
 def generate_pre_signed_link(key: str, filename: str) -> str:
