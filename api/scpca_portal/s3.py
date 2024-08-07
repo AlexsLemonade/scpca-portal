@@ -39,7 +39,7 @@ def list_input_paths(
         result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
         output = result.stdout
     except subprocess.CalledProcessError as error:
-        logger.error(
+        logger.warning(
             """
             `{}`: Cause of error not returned, note: folder must exist and be non-empty
             """.format(
