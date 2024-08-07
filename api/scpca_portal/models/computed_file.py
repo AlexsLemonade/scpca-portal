@@ -260,10 +260,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         if self.s3_bucket and self.s3_key:
             # Append the download date to the filename on download.
             date = utils.get_today_string()
-            s3_key = Path(self.s3_key)
-            filename = f"{s3_key.stem}_{date}{s3_key.suffix}"
+            key_path = Path(self.s3_key)
+            filename = f"{key_path.stem}_{date}{key_path.suffix}"
 
-            return s3.generate_pre_signed_link(str(s3_key), filename)
+            return s3.generate_pre_signed_link(self.s3_key, filename)
 
     @property
     def is_project_multiplexed_zip(self):
