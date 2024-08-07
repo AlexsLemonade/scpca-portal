@@ -7,7 +7,8 @@ from zipfile import ZipFile
 from django.test import TransactionTestCase
 
 from scpca_portal import common, metadata_file
-from scpca_portal.management.commands.load_data import Command
+from scpca_portal.management.commands.configure_aws_cli import Command as configure_aws_cli
+from scpca_portal.management.commands.load_data import Command as load_data
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 # NOTE: Test data bucket is defined in `scpca_porta/common.py`.
@@ -19,7 +20,8 @@ ALLOWED_SUBMITTERS = {"scpca"}
 
 class TestLoadData(TransactionTestCase):
     def setUp(self):
-        self.loader = Command()
+        self.loader = load_data()
+        configure_aws_cli()
 
     @classmethod
     def tearDownClass(cls):
