@@ -150,7 +150,8 @@ class SampleLeafSerializer(serializers.ModelSerializer):
         model = Sample
         fields = (
             "additional_metadata",
-            "age_at_diagnosis",
+            "age",
+            "age_timing",
             "computed_files",
             "created_at",
             "demux_cell_count_estimate",

@@ -27,10 +27,6 @@ PROJECT_METADATA_KEYS = [
     ("citation_doi", "doi", None),
 ]
 
-SAMPLE_METADATA_KEYS = [
-    ("age", "age_at_diagnosis", None),
-]
-
 LIBRARY_METADATA_KEYS = [
     ("library_id", "scpca_library_id", None),
     ("sample_id", "scpca_sample_id", None),
@@ -61,9 +57,6 @@ def load_samples_metadata(metadata_file_path: Path):
     """
     with open(metadata_file_path) as raw_file:
         data_dicts = list(csv.DictReader(raw_file))
-
-    for data_dict in data_dicts:
-        transform_keys(data_dict, SAMPLE_METADATA_KEYS)
 
     return data_dicts
 

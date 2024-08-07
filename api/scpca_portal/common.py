@@ -18,7 +18,7 @@ OUTPUT_DATA_PATH = DATA_PATH / "output"
 
 TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
 
-TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-06-28/"
+TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-07-19/"
 INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else "scpca-portal-inputs"
 
 TAB = "\t"
@@ -43,7 +43,8 @@ METADATA_COLUMN_SORT_ORDER = [
     "diagnosis",
     "subdiagnosis",
     "disease_timing",
-    "age_at_diagnosis",
+    "age",
+    "age_timing",
     "sex",
     "tissue_location",
     "participant_id",
