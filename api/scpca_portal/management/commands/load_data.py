@@ -105,9 +105,10 @@ class Command(BaseCommand):
         passed_project_id: str,
         pi_name: str,
         allowed_submitters: Set,
-    ):
+    ) -> bool:
         """
-        Carries out a series of checks to determine whether or not a project should be processed.
+        Carries out a series of checks to determine whether or not a project
+        should be skipped and not processed.
         """
         # If project id was passed to command, verify that correct project is being processed
         if passed_project_id and passed_project_id != metadata_project_id:
@@ -126,7 +127,7 @@ class Command(BaseCommand):
         return False
 
     def purge_project(
-        self, project, reload_all: bool, reload_existing: bool, update_s3: bool
+        self, project, *, reload_all: bool, reload_existing: bool, update_s3: bool
     ) -> bool:
         """
         Purges project if it exists in the database. Updates S3 accordingly.
@@ -135,15 +136,16 @@ class Command(BaseCommand):
         # Purge existing projects so they can be re-added.
         if reload_all or reload_existing:
             logger.info(f"Purging '{project}")
-            project.purge(delete_from_s3=update_s3)
-            return True
+            if project.purge(delete_from_s3=update_s3):
+                return True
         # Only import new projects.
         # If old ones are desired they should be purged and re-added.
         else:
             logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
-            return False
 
-    def create_computed_file(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
+        return False
+
+    def create_computed_file(self, future, *, update_s3: bool, clean_up_output_data: bool) -> None:
         """
         Saves computed file returned from future to the db.
         Uploads file to s3 and cleans up output data depending on passed options.
@@ -162,11 +164,11 @@ class Command(BaseCommand):
         connection.close()
 
     @staticmethod
-    def clean_up_input_data(project):
+    def clean_up_input_data(project) -> None:
         shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
 
     @staticmethod
-    def clean_up_output_data():
+    def clean_up_output_data() -> None:
         for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
             path.unlink(missing_ok=True)
 
@@ -175,7 +177,7 @@ class Command(BaseCommand):
         allowed_submitters: set[str] = ALLOWED_SUBMITTERS,
         input_bucket_name: str = common.INPUT_BUCKET_NAME,
         **kwargs,
-    ):
+    ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
 
         # Prepare data input directory.
