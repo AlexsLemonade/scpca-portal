@@ -64,7 +64,7 @@ class Command(BaseCommand):
     to a stack-specific S3 bucket."""
 
     def add_arguments(self, parser):
-        parser.add_argument("--input-bucket-name", type=str, default=common.INPUT_BUCKET_NAME)
+        parser.add_argument("--input-bucket-name", type=str, default=None)
         parser.add_argument(
             "--clean-up-input-data",
             action=BooleanOptionalAction,
@@ -78,10 +78,10 @@ class Command(BaseCommand):
             default=settings.PRODUCTION,
         )
         parser.add_argument("--max-workers", type=int, default=10)
-        parser.add_argument("--reload-all", action="store_true", type=bool, default=False)
-        parser.add_argument("--reload-existing", action="store_true", type=bool, default=False)
+        parser.add_argument("--reload-all", action="store_true", default=False)
+        parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--scpca-project-id", type=str)
-        parser.add_argument("--skip-sync", action="store_true", type=bool, default=False)
+        parser.add_argument("--skip-sync", action="store_true", default=False)
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
         )
