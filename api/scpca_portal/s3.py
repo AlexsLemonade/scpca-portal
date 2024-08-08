@@ -14,6 +14,9 @@ from scpca_portal.config.logging import get_and_configure_logger
 logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
+TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
+INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else "scpca-portal-inputs"
+
 
 def list_input_paths(
     relative_path: Path = Path(),
