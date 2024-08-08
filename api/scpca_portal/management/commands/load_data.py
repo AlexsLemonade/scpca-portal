@@ -3,7 +3,6 @@ import shutil
 from argparse import BooleanOptionalAction
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from operator import itemgetter
 from pathlib import Path
 from threading import Lock
 from typing import Set
@@ -13,7 +12,7 @@ from django.core.management.base import BaseCommand
 from django.db import connection
 from django.template.defaultfilters import pluralize
 
-from scpca_portal import common, metadata_file, s3
+from scpca_portal import common, metadata_file, s3, utils
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
 from scpca_portal.models.computed_file import ComputedFile
 
@@ -202,9 +201,11 @@ class Command(BaseCommand):
                 continue
 
             if project := Project.objects.filter(scpca_id=metadata_project_id).first():
-                get_purge_project_kwargs = itemgetter("reload_all", "reload_existing", "update_s3")
+                purge_project_kwargs = utils.filter_dict_by_keys(
+                    kwargs, {"reload_all", "reload_existing", "update_s3"}
+                )
                 # If there is a problem purging the project, then skip it
-                if not self.purge_project(project, *get_purge_project_kwargs(kwargs)):
+                if not self.purge_project(project, **purge_project_kwargs):
                     continue
 
             logger.info(f"Importing 'Project {metadata_project_id}' data")
@@ -222,10 +223,10 @@ class Command(BaseCommand):
                 )
 
             # Prep callback function
-            partial_kwargs = {
-                k: v for k, v in kwargs.items() if k in ["update_s3", "clean_up_output_data"]
-            }
-            on_get_file = partial(Command.create_computed_file, **partial_kwargs)
+            create_computed_file_kwargs = utils.filter_dict_by_keys(
+                kwargs, {"update_s3", "clean_up_output_data"}
+            )
+            on_get_file = partial(self.create_computed_file, **create_computed_file_kwargs)
 
             # Prepare a threading.Lock for each sample, with the chief purpose being to protect
             # multiplexed samples that share a zip file.
