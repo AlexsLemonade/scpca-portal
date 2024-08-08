@@ -235,6 +235,15 @@ class Command(BaseCommand):
             locks = {}
             with ThreadPoolExecutor(max_workers=kwargs["max_workers"]) as tasks:
                 # Generated project computed files
+                for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+                    tasks.submit(
+                        ComputedFile.get_project_file,
+                        project,
+                        config,
+                        project.get_download_config_file_output_name(config),
+                    ).add_done_callback(on_get_file)
+
+                # Generated sample computed files
                 for sample in project.samples.all():
                     for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
                         sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
@@ -245,15 +254,6 @@ class Command(BaseCommand):
                             sample.get_download_config_file_output_name(config),
                             sample_lock,
                         ).add_done_callback(on_get_file)
-
-                # Generated project computed files
-                for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
-                    tasks.submit(
-                        ComputedFile.get_project_file,
-                        project,
-                        config,
-                        project.get_download_config_file_output_name(config),
-                    ).add_done_callback(on_get_file)
 
             project.update_downloadable_sample_count()
 
