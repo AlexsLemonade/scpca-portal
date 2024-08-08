@@ -49,6 +49,7 @@ def list_input_paths(
     and returns bucket's existing content as a list of Path objects,
     relative to (without) the bucket prefix.
     """
+    bucket_path = Path(INPUT_BUCKET_NAME)
     root_path = Path(*bucket_path.parts, *relative_path.parts)
     command_inputs = ["aws", "s3", "ls", f"s3://{root_path}"]
 
@@ -99,9 +100,9 @@ def list_input_paths(
     return file_paths
 
 
-def download_input_files(file_paths: List[Path], *, bucket_name: str = common.INPUT_BUCKET_NAME):
+def download_input_files(file_paths: List[Path]):
     """Download all passed data file paths which have not previously been downloaded.'"""
-    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
+    command_parts = ["aws", "s3", "sync", f"s3://{INPUT_BUCKET_NAME}", common.INPUT_DATA_PATH]
 
     download_queue = [fp for fp in file_paths if not fp.exists()]
     # If download_queue is empty, exit early
@@ -111,20 +112,20 @@ def download_input_files(file_paths: List[Path], *, bucket_name: str = common.IN
     command_parts.append("--exclude=*")
     command_parts.extend([f"--include={file_path}" for file_path in download_queue])
 
-    if "public-test" in bucket_name:
+    if "public-test" in INPUT_BUCKET_NAME:
         command_parts.append("--no-sign-request")
 
     subprocess.check_call(command_parts)
 
 
-def download_input_metadata(*, bucket_name: str = common.INPUT_BUCKET_NAME):
+def download_input_metadata():
     """Download all metadata files to the local file system."""
-    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
+    command_parts = ["aws", "s3", "sync", f"s3://{INPUT_BUCKET_NAME}", common.INPUT_DATA_PATH]
 
     command_parts.append("--exclude=*")
     command_parts.append("--include=*_metadata.*")
 
-    if "public-test" in bucket_name:
+    if "public-test" in INPUT_BUCKET_NAME:
         command_parts.append("--no-sign-request")
 
     subprocess.check_call(command_parts)
