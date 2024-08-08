@@ -172,10 +172,10 @@ class Command(BaseCommand):
         for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
             path.unlink(missing_ok=True)
 
+    @s3.set_input_bucket
     def load_data(
         self,
         allowed_submitters: set[str] = ALLOWED_SUBMITTERS,
-        input_bucket_name: str = common.INPUT_BUCKET_NAME,
         **kwargs,
     ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""

@@ -1,7 +1,8 @@
 import subprocess
 from collections import namedtuple
+from functools import wraps
 from pathlib import Path
-from typing import List
+from typing import Callable, List
 
 from django.conf import settings
 
@@ -16,6 +17,25 @@ aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
 INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else "scpca-portal-inputs"
+
+
+def set_input_bucket(func: Callable) -> Callable:
+    """Set the input bucket if passed to the wrapped function."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs) -> None:
+        global INPUT_BUCKET_NAME
+        default_input_bucket_name = INPUT_BUCKET_NAME
+        # Override input bucket setting defined in common.py
+        if passed_input_bucket := kwargs["input_bucket_name"]:
+            INPUT_BUCKET_NAME = passed_input_bucket
+
+        func(*args, **kwargs)
+
+        # Restore bucket name to default
+        INPUT_BUCKET_NAME = default_input_bucket_name
+
+    return wrapper
 
 
 def list_input_paths(
