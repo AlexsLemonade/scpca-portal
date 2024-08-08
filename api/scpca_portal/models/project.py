@@ -1,12 +1,11 @@
 import csv
 import logging
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
-from django.db import connection, models
+from django.db import models
 
 from scpca_portal import common, metadata_file, s3, utils
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
@@ -200,37 +199,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return f"{'_'.join(name_segments)}.zip"
 
-    def create_computed_files(
-        self,
-        max_workers=8,  # 8 = 2 file formats * 4 mappings.
-        clean_up_output_data=True,
-        update_s3=False,
-    ):
-        """Prepares ready for saving project computed files based on generated file mappings."""
-
-        def on_get_project_file(future):
-            if computed_file := future.result():
-                computed_file.save()
-
-                if update_s3:
-                    s3.upload_output_file(computed_file)
-                if clean_up_output_data:
-                    computed_file.clean_up_local_computed_file()
-
-            # Close DB connection for each thread.
-            connection.close()
-
-        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
-                tasks.submit(
-                    ComputedFile.get_project_file,
-                    self,
-                    download_config,
-                    self.get_download_config_file_output_name(download_config),
-                ).add_done_callback(on_get_project_file)
-
-        self.update_downloadable_sample_count()
-
     def get_data_file_paths(self) -> List[Path]:
         """
         Retrieves existing merged and bulk data file paths on the aws input bucket
@@ -290,7 +258,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             file_path for file_path in data_file_path_objects if file_path.parent.name != "merged"
         ]
 
-    def load_data(self, **kwargs) -> None:
+    def load_metadata(self) -> None:
         """
         Loads sample and library metadata files, creates Sample and Library objects,
         and archives Project and Sample computed files.
@@ -300,14 +268,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         self.update_sample_derived_properties()
         self.update_project_derived_properties()
-
-        Sample.create_computed_files(
-            self, kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
-        )
-
-        self.create_computed_files(
-            kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
-        )
 
     def load_samples(self) -> None:
         """
