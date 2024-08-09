@@ -30,27 +30,30 @@ class TestLoadData(TransactionTestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        cls.save_readme_files()
+        cls.test_readme_files()
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     @classmethod
-    def save_readme_files(cls):
-        # Make sure to create README_DIR if it doesn't exist to prevent error
+    def test_readme_files(cls):
+        # Make sure to instantiate TestLoadData to use an instance method
+        self = cls()
+        # Make sure to create README_DIR if it doesn't exist to prevent an error
         README_DIR.mkdir(parents=True, exist_ok=True)
 
         for zip_path in common.OUTPUT_DATA_PATH.glob("*.zip"):
-            # Rename the 'RERADME.md' file with the name of the zip file
+            # Rename 'RERADME.md' with the name of the zip file
             readme_name = f"{zip_path.stem}.md"
             readme_output_path = README_DIR / readme_name
             with ZipFile(zip_path, "r") as zip_file:
                 if README in zip_file.namelist():
-                    with zip_file.open(README) as readme_content:
-                        # Replace 3 or more lines with double newlines
+                    with zip_file.open(README) as readme_file:
+                        # Replace 3 or more lines with double newlines before saving
                         formatted_content = re.sub(
-                            r"\n{3,}", "\n\n", readme_content.read().decode(ENCODING)
+                            r"\n{3,}", "\n\n", readme_file.read().decode(ENCODING)
                         ).strip()
                         with readme_output_path.open("w", encoding=ENCODING) as output_file:
                             output_file.write(formatted_content)
+                    self.assertProjectReadmeContent(readme_output_path, formatted_content)
 
     def assertProjectData(self, project):
         self.assertTrue(project.abstract)
@@ -79,6 +82,11 @@ class TestLoadData(TransactionTestCase):
 
     def assertProjectReadmeContains(self, text, project_zip):
         self.assertIn(text, project_zip.read("README.md").decode(ENCODING))
+
+    def assertProjectReadmeContent(self, readme_output_path, expected_content):
+        with readme_output_path.open("r", encoding=ENCODING) as saved_readme_file:
+            saved_readme_content = saved_readme_file.read()
+            self.assertEqual(saved_readme_content, expected_content)
 
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_output_data")
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_input_data")
