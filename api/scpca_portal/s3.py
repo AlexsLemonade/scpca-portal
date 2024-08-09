@@ -20,15 +20,15 @@ INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else "scpca-portal-i
 
 
 def set_input_bucket(func: Callable) -> Callable:
-    """Set the input bucket if passed to the wrapped function."""
+    """Sets the input bucket if passed to the wrapped function."""
 
     @wraps(func)
     def wrapper(*args, **kwargs) -> None:
         global INPUT_BUCKET_NAME
         default_input_bucket_name = INPUT_BUCKET_NAME
-        # Override input bucket setting defined in common.py
-        if passed_input_bucket := kwargs.get("input_bucket_name"):
-            INPUT_BUCKET_NAME = passed_input_bucket
+        # Override input bucket setting defined at the top of the file
+        if passed_input_bucket_name := kwargs.get("input_bucket_name"):
+            INPUT_BUCKET_NAME = passed_input_bucket_name
 
         func(*args, **kwargs)
 
