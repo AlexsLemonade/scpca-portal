@@ -20,7 +20,6 @@ ALLOWED_SUBMITTERS = {"scpca"}
 ENCODING = "utf-8"
 README_DIR = common.DATA_PATH / "readmes"
 README = readme_file.OUTPUT_NAME
-SAVE_README_OUTPUT = True  # Save readme files to output for formatting testing
 
 
 class TestLoadData(TransactionTestCase):
