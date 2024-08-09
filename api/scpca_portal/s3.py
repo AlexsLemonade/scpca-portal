@@ -27,7 +27,7 @@ def set_input_bucket(func: Callable) -> Callable:
         global INPUT_BUCKET_NAME
         default_input_bucket_name = INPUT_BUCKET_NAME
         # Override input bucket setting defined in common.py
-        if passed_input_bucket := kwargs["input_bucket_name"]:
+        if passed_input_bucket := kwargs.get("input_bucket_name"):
             INPUT_BUCKET_NAME = passed_input_bucket
 
         func(*args, **kwargs)
@@ -41,7 +41,6 @@ def set_input_bucket(func: Callable) -> Callable:
 def list_input_paths(
     relative_path: Path = Path(),
     *,
-    bucket_path: Path = Path(common.INPUT_BUCKET_NAME),
     recursive: bool = True,
 ):
     """
