@@ -20,6 +20,7 @@ ALLOWED_SUBMITTERS = {"scpca"}
 ENCODING = "utf-8"
 README_DIR = common.DATA_PATH / "readmes"
 README = readme_file.OUTPUT_NAME
+SAVE_README_OUTPUT = True  # Make sure to generate readmes when the contents changes
 
 
 class TestLoadData(TransactionTestCase):
@@ -29,11 +30,14 @@ class TestLoadData(TransactionTestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        cls.test_readme_files()
+        if SAVE_README_OUTPUT:
+            cls.test_readme_files()
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     @classmethod
     def test_readme_files(cls):
+        if not SAVE_README_OUTPUT:
+            return
         # Make sure to instantiate TestLoadData to use an instance method
         self = cls()
         # Make sure to create README_DIR if it doesn't exist to prevent an error
