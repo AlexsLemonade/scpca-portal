@@ -69,6 +69,7 @@ api/uploaded_files
 # Local Data
 api/data
 api/test_data*
+!api/test_data/readmes
 
 # Flask stuff:
 instance/
