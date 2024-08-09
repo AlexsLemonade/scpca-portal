@@ -323,8 +323,11 @@ class Project(CommonDataAttributes, TimestampedModel):
             # Multiplexed samples are represented in scpca_sample_id as comma separated lists
             # This ensures that all samples with be related to the correct library
             for sample_id in library_metadata["scpca_sample_id"].split(","):
-                sample = self.samples.get(scpca_id=sample_id)
-                Library.bulk_create_from_dicts([library_metadata], sample)
+                # We create samples based on what is in samples_metadata.csv
+                # If the sample folder is in the input bucket, but not listed
+                # we should skip creating that library as the sample won't exist.
+                if sample := self.samples.filter(scpca_id=sample_id).first():
+                    Library.bulk_create_from_dicts([library_metadata], sample)
 
     def purge(self, delete_from_s3=False):
         """Purges project and its related data."""

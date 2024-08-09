@@ -1,4 +1,5 @@
 import csv
+import re
 import shutil
 from io import TextIOWrapper
 from unittest.mock import patch
@@ -6,7 +7,7 @@ from zipfile import ZipFile
 
 from django.test import TransactionTestCase
 
-from scpca_portal import common, metadata_file
+from scpca_portal import common, metadata_file, readme_file
 from scpca_portal.management.commands.load_data import Command
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
@@ -16,6 +17,11 @@ from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 ALLOWED_SUBMITTERS = {"scpca"}
 
+ENCODING = "utf-8"
+README_DIR = common.DATA_PATH / "readmes"
+README = readme_file.OUTPUT_NAME
+SAVE_README_OUTPUT = True  # Make sure to generate readmes when the contents changes
+
 
 class TestLoadData(TransactionTestCase):
     def setUp(self):
@@ -24,7 +30,33 @@ class TestLoadData(TransactionTestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
+        if SAVE_README_OUTPUT:
+            cls.test_readme_files()
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+
+    @classmethod
+    def test_readme_files(cls):
+        if not SAVE_README_OUTPUT:
+            return
+        # Make sure to instantiate TestLoadData to use an instance method
+        self = cls()
+        # Make sure to create README_DIR if it doesn't exist to prevent an error
+        README_DIR.mkdir(parents=True, exist_ok=True)
+
+        for zip_path in common.OUTPUT_DATA_PATH.glob("*.zip"):
+            # Rename 'RERADME.md' with the name of the zip file
+            readme_name = f"{zip_path.stem}.md"
+            readme_output_path = README_DIR / readme_name
+            with ZipFile(zip_path, "r") as zip_file:
+                if README in zip_file.namelist():
+                    with zip_file.open(README) as readme_file:
+                        # Replace 3 or more lines with double newlines before saving
+                        formatted_content = re.sub(
+                            r"\n{3,}", "\n\n", readme_file.read().decode(ENCODING)
+                        ).strip()
+                        with readme_output_path.open("w", encoding=ENCODING) as output_file:
+                            output_file.write(formatted_content)
+                    self.assertProjectReadmeContent(readme_output_path, formatted_content)
 
     def assertProjectData(self, project):
         self.assertTrue(project.abstract)
@@ -52,7 +84,12 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(sample.treatment)
 
     def assertProjectReadmeContains(self, text, project_zip):
-        self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
+        self.assertIn(text, project_zip.read("README.md").decode(ENCODING))
+
+    def assertProjectReadmeContent(self, readme_output_path, expected_content):
+        with readme_output_path.open("r", encoding=ENCODING) as saved_readme_file:
+            saved_readme_content = saved_readme_file.read()
+            self.assertEqual(saved_readme_content, expected_content)
 
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_output_data")
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_input_data")
@@ -186,6 +223,7 @@ class TestLoadData(TransactionTestCase):
         project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
             download_config
         )
+
         with ZipFile(project_zip_path) as project_zip:
             # There are 8 files:
             # ├── README.md
@@ -510,7 +548,7 @@ class TestLoadData(TransactionTestCase):
                 metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
             )
             sample_metadata_lines = [
-                sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
+                sm for sm in sample_metadata.decode(ENCODING).split("\r\n") if sm
             ]
             self.assertProjectReadmeContains(
                 "This dataset is designated as research or academic purposes only.",
@@ -661,7 +699,7 @@ class TestLoadData(TransactionTestCase):
                 metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
-                    TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
+                    TextIOWrapper(sample_csv, ENCODING), delimiter=common.TAB
                 )
                 rows = list(csv_reader)
 
@@ -798,7 +836,7 @@ class TestLoadData(TransactionTestCase):
                 metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
             )
             sample_metadata_lines = [
-                sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
+                sm for sm in sample_metadata.decode(ENCODING).split("\r\n") if sm
             ]
             self.assertProjectReadmeContains(
                 "This dataset is designated as research or academic purposes only.",
@@ -890,7 +928,7 @@ class TestLoadData(TransactionTestCase):
                 metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
-                    TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
+                    TextIOWrapper(sample_csv, ENCODING), delimiter=common.TAB
                 )
                 rows = list(csv_reader)
         self.assertEqual(len(rows), 1)
@@ -921,7 +959,7 @@ class TestLoadData(TransactionTestCase):
                 metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
-                    TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
+                    TextIOWrapper(sample_csv, ENCODING), delimiter=common.TAB
                 )
                 rows = list(csv_reader)
 
@@ -1036,7 +1074,7 @@ class TestLoadData(TransactionTestCase):
                 metadata_file.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
             )
             spatial_metadata = [
-                sm for sm in spatial_metadata_file.decode("utf-8").split("\r\n") if sm
+                sm for sm in spatial_metadata_file.decode(ENCODING).split("\r\n") if sm
             ]
             self.assertProjectReadmeContains(
                 "This dataset is designated as research or academic purposes only.",
@@ -1136,7 +1174,7 @@ class TestLoadData(TransactionTestCase):
                 metadata_file.MetadataFilenames.SPATIAL_METADATA_FILE_NAME, "r"
             ) as sample_csv:
                 csv_reader = csv.DictReader(
-                    TextIOWrapper(sample_csv, "utf-8"), delimiter=common.TAB
+                    TextIOWrapper(sample_csv, ENCODING), delimiter=common.TAB
                 )
                 rows = list(csv_reader)
 
