@@ -81,7 +81,6 @@ class Command(BaseCommand):
         parser.add_argument("--reload-all", action="store_true", default=False)
         parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--scpca-project-id", type=str)
-        parser.add_argument("--skip-sync", action="store_true", default=False)
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
         )
