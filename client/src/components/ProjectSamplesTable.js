@@ -181,8 +181,12 @@ export const ProjectSamplesTable = ({
       accessor: ({ treatment }) => treatment || 'N/A'
     },
     {
-      Header: 'Age at Diagnosis',
-      accessor: 'age_at_diagnosis'
+      Header: 'Age',
+      accessor: 'age'
+    },
+    {
+      Header: 'Age Timing',
+      accessor: 'age_timing'
     },
     { Header: 'Sex', accessor: 'sex' },
     {
