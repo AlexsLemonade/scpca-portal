@@ -253,7 +253,12 @@ class Sample(CommonDataAttributes, TimestampedModel):
         if self.has_multiplexed_data:
             name_segments.append("MULTIPLEXED")
 
-        return f"{'_'.join(name_segments)}.zip"
+        # Change to filename format must be accompanied by an entry in the docs.
+        # Each segment should have hyphens and no underscores
+        # Each segment should be joined by underscores
+        file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
+
+        return f"{file_name}.zip"
 
     @staticmethod
     def create_computed_files(
