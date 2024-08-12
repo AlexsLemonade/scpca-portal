@@ -213,7 +213,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 computed_file.save()
 
                 if update_s3:
-                    s3.upload_output_file(computed_file)
+                    s3.upload_output_file(computed_file.s3_key)
                 if clean_up_output_data:
                     computed_file.clean_up_local_computed_file()
 

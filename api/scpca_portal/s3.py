@@ -125,7 +125,7 @@ def delete_output_file(key: str) -> bool:
     # If we're not running in the cloud then we shouldn't try to
     # delete something from S3 unless force is set.
     if not settings.UPDATE_S3_DATA:
-        return False
+        return True
 
     try:
         aws_s3.delete_object(Bucket=settings.AWS_S3_BUCKET, Key=key)
