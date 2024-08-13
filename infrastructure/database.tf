@@ -2,7 +2,9 @@
 # postgres RDS instance.
 
 data "aws_rds_certificate" "cert" {
-  latest_valid_till = true
+  id = "rds-ca-rsa2048-g1"
+  # This returns multiple certs and the aws provider throws an error.
+  # latest_valid_till = true
 }
 
 resource "aws_db_parameter_group" "postgres12_parameters" {
