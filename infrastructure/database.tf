@@ -1,7 +1,7 @@
 # This terraform file hosts the resources directly related to the
 # postgres RDS instance.
 
-data "aws_rds_certificate" "latest" {
+data "aws_rds_certificate" "cert" {
   latest_valid_till = true
 }
 
@@ -53,7 +53,7 @@ resource "aws_db_instance" "postgres_db" {
   multi_az = true
   publicly_accessible = true
 
-  ca_cert_identifier  = data.aws_rds_certificate.latest.id
+  ca_cert_identifier  = data.aws_rds_certificate.cert.id
 
   backup_retention_period  = var.stage == "prod" ? "7" : "0"
 
