@@ -7,7 +7,8 @@ from zipfile import ZipFile
 from django.test import TransactionTestCase
 
 from scpca_portal import common, metadata_file
-from scpca_portal.management.commands.load_data import Command
+from scpca_portal.management.commands.configure_aws_cli import Command as configure_aws_cli
+from scpca_portal.management.commands.load_data import Command as load_data
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
 # NOTE: Test data bucket is defined in `scpca_porta/common.py`.
@@ -19,7 +20,8 @@ ALLOWED_SUBMITTERS = {"scpca"}
 
 class TestLoadData(TransactionTestCase):
     def setUp(self):
-        self.loader = Command()
+        self.loader = load_data()
+        configure_aws_cli()
 
     @classmethod
     def tearDownClass(cls):
@@ -42,7 +44,8 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(project_summary.technology)
 
         sample = project.samples.first()
-        self.assertIsNotNone(sample.age_at_diagnosis)
+        self.assertIsNotNone(sample.age)
+        self.assertIsNotNone(sample.age_timing)
         self.assertIsNotNone(sample.diagnosis)
         self.assertIsNotNone(sample.disease_timing)
         self.assertTrue(sample.scpca_id)
@@ -432,7 +435,8 @@ class TestLoadData(TransactionTestCase):
             "diagnosis",
             "subdiagnosis",
             "disease_timing",
-            "age_at_diagnosis",
+            "age",
+            "age_timing",
             "sex",
             "tissue_location",
             "participant_id",
@@ -583,7 +587,8 @@ class TestLoadData(TransactionTestCase):
             "diagnosis",
             "subdiagnosis",
             "disease_timing",
-            "age_at_diagnosis",
+            "age",
+            "age_timing",
             "sex",
             "tissue_location",
             "participant_id",
@@ -719,7 +724,8 @@ class TestLoadData(TransactionTestCase):
             "diagnosis",
             "subdiagnosis",
             "disease_timing",
-            "age_at_diagnosis",
+            "age",
+            "age_timing",
             "sex",
             "tissue_location",
             "participant_id",
@@ -815,7 +821,10 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNone(sample.demux_cell_count_estimate)
         self.assertFalse(sample.has_bulk_rna_seq)
         self.assertFalse(sample.has_cite_seq_data)
-        self.assertEqual(sample.sample_cell_count_estimate, 3417)
+        # This line will probably fail when switching test data versions
+        # The reason is that the filtered_cells attribute from the library json files,
+        # from which sample_cell_count_estimate is calculated, changes from version to version
+        self.assertEqual(sample.sample_cell_count_estimate, 3432)
         self.assertEqual(sample.seq_units, "cell")
         self.assertEqual(sample.technologies, "10Xv3")
         self.assertIsNotNone(sample.single_cell_computed_file)
@@ -963,7 +972,8 @@ class TestLoadData(TransactionTestCase):
             "diagnosis",
             "subdiagnosis",
             "disease_timing",
-            "age_at_diagnosis",
+            "age",
+            "age_timing",
             "sex",
             "tissue_location",
             "participant_id",

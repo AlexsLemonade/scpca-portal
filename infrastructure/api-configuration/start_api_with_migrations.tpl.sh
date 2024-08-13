@@ -38,3 +38,6 @@ docker run \
 
 # Collect static.
 docker exec scpca_portal_api python3 manage.py collectstatic --noinput
+
+# Configure AWS CLI.
+docker exec scpca_portal_api python3 manage.py configure_aws_cli
