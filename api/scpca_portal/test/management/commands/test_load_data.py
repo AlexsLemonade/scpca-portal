@@ -20,7 +20,7 @@ ALLOWED_SUBMITTERS = {"scpca"}
 
 ENCODING = "utf-8"
 README_DIR = common.DATA_PATH / "readmes"
-README = readme_file.OUTPUT_NAME
+README_FILE = readme_file.OUTPUT_NAME
 SAVE_README_OUTPUT = True  # Make sure to generate readmes when the contents changes
 
 
@@ -50,8 +50,8 @@ class TestLoadData(TransactionTestCase):
             readme_name = f"{zip_path.stem}.md"
             readme_output_path = README_DIR / readme_name
             with ZipFile(zip_path, "r") as zip_file:
-                if README in zip_file.namelist():
-                    with zip_file.open(README) as readme_file:
+                if README_FILE in zip_file.namelist():
+                    with zip_file.open(README_FILE) as readme_file:
                         # Replace 3 or more lines with double newlines before saving
                         formatted_content = re.sub(
                             r"\n{3,}", "\n\n", readme_file.read().decode(ENCODING)
