@@ -15,8 +15,8 @@ from scpca_portal.models import ComputedFile, Library, Project, Sample
 ALLOWED_SUBMITTERS = {"scpca"}
 
 ENCODING = "utf-8"
-README = readme_file.OUTPUT_NAME
-METADATA = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
+README_FILE = readme_file.OUTPUT_NAME
+METADATA_FILE = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
 
 class TestCreatePortalMetadata(TransactionTestCase):
@@ -30,7 +30,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def assertProjectReadmeContains(self, text, zip_file):
-        self.assertIn(text, zip_file.read(README).decode(ENCODING))
+        self.assertIn(text, zip_file.read(README_FILE).decode(ENCODING))
 
     def load_test_data(self):
         # Expected object counts
@@ -64,8 +64,8 @@ class TestCreatePortalMetadata(TransactionTestCase):
             expected_file_count = 2
             # The filenames should match the following constants specified for the computed file
             expected_files = {
-                README,
-                METADATA,
+                README_FILE,
+                METADATA_FILE,
             }
             files = set(zip_file.namelist())
             self.assertEqual(len(files), expected_file_count)
@@ -80,7 +80,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
             self.assertProjectReadmeContains(expected_text, zip_file)
 
             # Test the content of metadata.tsv
-            tsv = zip_file.read(METADATA).decode(ENCODING).splitlines()
+            tsv = zip_file.read(METADATA_FILE).decode(ENCODING).splitlines()
             rows = list(csv.DictReader(tsv, delimiter=common.TAB))
 
             # The header keys should match the common sort order list (excludes '*')
