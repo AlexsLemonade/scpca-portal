@@ -11,6 +11,10 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
+# Default values for arguments
+CLEAN_UP_OUTPUT_DATA = settings.PRODUCTION
+UPLOAD_S3 = False
+
 
 class Command(BaseCommand):
     help = """Creates a computed file and zip for portal-wide metadata,
@@ -20,15 +24,16 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--clean-up-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
+            "--clean-up-output-data", action=BooleanOptionalAction, default=CLEAN_UP_OUTPUT_DATA
         )
+        parser.add_argument("--upload-s3", action=BooleanOptionalAction, default=UPLOAD_S3)
 
     def handle(self, *args, **kwargs):
         self.create_portal_metadata(**kwargs)
 
     def create_portal_metadata(self, **kwargs):
-        clean_up_output_data = kwargs.get("clean_up_output_data", True)
-        upload_s3 = kwargs.get("upload_s3", False)
+        clean_up_output_data = kwargs.get("clean_up_output_data", CLEAN_UP_OUTPUT_DATA)
+        upload_s3 = kwargs.get("upload_s3", UPLOAD_S3)
 
         logger.info("Creating the portal-wide metadata computed file")
         computed_file = ComputedFile.get_portal_metadata_file(
