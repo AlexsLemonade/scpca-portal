@@ -8,7 +8,7 @@ from typing import Dict, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection, models
 
-from scpca_portal import common, metadata_file, utils
+from scpca_portal import common, metadata_file, s3, utils
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -198,7 +198,12 @@ class Project(CommonDataAttributes, TimestampedModel):
         if self.has_multiplexed_data and not download_config.get("excludes_multiplexed", False):
             name_segments.append("MULTIPLEXED")
 
-        return f"{'_'.join(name_segments)}.zip"
+        # Change to filename format must be accompanied by an entry in the docs.
+        # Each segment should have hyphens and no underscores
+        # Each segment should be joined by underscores
+        file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
+
+        return f"{file_name}.zip"
 
     def create_computed_files(
         self,
@@ -213,7 +218,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 computed_file.save()
 
                 if update_s3:
-                    computed_file.upload_s3_file()
+                    s3.upload_output_file(computed_file.s3_key)
                 if clean_up_output_data:
                     computed_file.clean_up_local_computed_file()
 
@@ -239,11 +244,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         merged_relative_path = Path(f"{self.scpca_id}/merged/")
         bulk_relative_path = Path(f"{self.scpca_id}/bulk/")
 
-        data_file_paths = utils.list_s3_paths(merged_relative_path) + utils.list_s3_paths(
-            bulk_relative_path
-        )
+        merged_data_file_paths = s3.list_input_paths(merged_relative_path)
+        bulk_data_file_paths = s3.list_input_paths(bulk_relative_path)
 
-        return data_file_paths
+        return merged_data_file_paths + bulk_data_file_paths
 
     def get_bulk_rna_seq_sample_ids(self):
         """Returns set of bulk RNA sequencing sample IDs."""
@@ -301,7 +305,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
         )
 
-    def load_samples(self) -> List[Dict]:
+    def load_samples(self) -> None:
         """
         Parses sample metadata csv and creates Sample objects
         """
@@ -311,7 +315,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         Sample.bulk_create_from_dicts(samples_metadata, self)
 
-    def load_libraries(self):
+    def load_libraries(self) -> None:
         """
         Parses library metadata json files and creates Library objects
         """
@@ -323,15 +327,18 @@ class Project(CommonDataAttributes, TimestampedModel):
             # Multiplexed samples are represented in scpca_sample_id as comma separated lists
             # This ensures that all samples with be related to the correct library
             for sample_id in library_metadata["scpca_sample_id"].split(","):
-                sample = self.samples.get(scpca_id=sample_id)
-                Library.bulk_create_from_dicts([library_metadata], sample)
+                # We create samples based on what is in samples_metadata.csv
+                # If the sample folder is in the input bucket, but not listed
+                # we should skip creating that library as the sample won't exist.
+                if sample := self.samples.filter(scpca_id=sample_id).first():
+                    Library.bulk_create_from_dicts([library_metadata], sample)
 
-    def purge(self, delete_from_s3=False):
+    def purge(self, delete_from_s3=False) -> None:
         """Purges project and its related data."""
         for sample in self.samples.all():
             for computed_file in sample.computed_files:
                 if delete_from_s3:
-                    computed_file.delete_s3_file(force=True)
+                    s3.delete_output_file(computed_file.s3_key)
                 computed_file.delete()
             for library in sample.libraries.all():
                 # If library has other samples that it is related to, then don't delete it
@@ -341,7 +348,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         for computed_file in self.computed_files:
             if delete_from_s3:
-                computed_file.delete_s3_file(force=True)
+                s3.delete_output_file(computed_file.s3_key)
             computed_file.delete()
 
         ProjectSummary.objects.filter(project=self).delete()
