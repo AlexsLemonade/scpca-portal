@@ -73,7 +73,8 @@ export default {
         scpca_project_id: 'SCPCP000002',
         spinal_leptomeningeal_mets: 'No'
       },
-      age_at_diagnosis: '14',
+      age: '14',
+      age_timing: 'diagnosis',
       computed_files: [
         {
           created_at: '2022-12-20T16:02:26.292774Z',
@@ -118,7 +119,8 @@ export default {
         scpca_project_id: 'SCPCP000002',
         spinal_leptomeningeal_mets: 'No'
       },
-      age_at_diagnosis: '5',
+      age: '5',
+      age_timing: 'diagnosis',
       computed_files: [
         {
           created_at: '2022-12-20T16:02:26.292799Z',
@@ -163,7 +165,8 @@ export default {
         scpca_project_id: 'SCPCP000002',
         spinal_leptomeningeal_mets: 'No'
       },
-      age_at_diagnosis: '8',
+      age: '8',
+      age_timing: 'diagnosis',
       computed_files: [
         {
           created_at: '2022-12-20T16:02:26.292825Z',
@@ -208,7 +211,8 @@ export default {
         scpca_project_id: 'SCPCP000002',
         spinal_leptomeningeal_mets: 'No'
       },
-      age_at_diagnosis: '15',
+      age: '15',
+      age_timing: 'diagnosis',
       computed_files: [
         {
           created_at: '2022-12-20T16:02:26.292851Z',
@@ -253,7 +257,8 @@ export default {
         scpca_project_id: 'SCPCP000002',
         spinal_leptomeningeal_mets: 'No'
       },
-      age_at_diagnosis: '6',
+      age: '6',
+      age_timing: 'diagnosis',
       computed_files: [
         {
           created_at: '2022-12-20T16:02:26.292876Z',
@@ -298,7 +303,8 @@ export default {
         scpca_project_id: 'SCPCP000002',
         spinal_leptomeningeal_mets: 'No'
       },
-      age_at_diagnosis: '13',
+      age: '13',
+      age_timing: 'diagnosis',
       computed_files: [
         {
           created_at: '2022-12-20T16:02:26.292902Z',
@@ -343,7 +349,8 @@ export default {
         scpca_project_id: 'SCPCP000002',
         spinal_leptomeningeal_mets: 'No'
       },
-      age_at_diagnosis: '4',
+      age: '4',
+      age_timing: 'diagnosis',
       computed_files: [
         {
           created_at: '2022-12-20T16:02:26.293004Z',

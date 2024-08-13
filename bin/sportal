@@ -36,6 +36,7 @@ commands = {
     "mock-data": run_api.format("./manage.py load_mock_data {}"),
     "run-black": run_api.format("black --line-length=100 --exclude=volumes_postgres ."),
     "env": "cat ./docker-compose.env",
+    "configure-aws-cli": run_api.format("./manage.py configure_aws_cli {}"),
 }
 
 parser = argparse.ArgumentParser(
