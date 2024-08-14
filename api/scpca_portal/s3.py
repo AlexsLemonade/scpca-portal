@@ -15,7 +15,7 @@ from scpca_portal.config.logging import get_and_configure_logger
 logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
-TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-04-19/"
+TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-07-19/"
 INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else "scpca-portal-inputs"
 
 
@@ -42,7 +42,7 @@ def list_input_paths(
     relative_path: Path = Path(),
     *,
     recursive: bool = True,
-):
+) -> List[Path]:
     """
     Queries a path on an inputted s3 bucket
     and returns bucket's existing content as a list of Path objects,
@@ -62,7 +62,7 @@ def list_input_paths(
         result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
         output = result.stdout
     except subprocess.CalledProcessError as error:
-        logger.error(
+        logger.warning(
             """
             `{}`: Cause of error not returned, note: folder must exist and be non-empty
             """.format(
@@ -99,14 +99,14 @@ def list_input_paths(
     return file_paths
 
 
-def download_input_files(file_paths: List[Path]):
+def download_input_files(file_paths: List[Path]) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
     command_parts = ["aws", "s3", "sync", f"s3://{INPUT_BUCKET_NAME}", common.INPUT_DATA_PATH]
 
     download_queue = [fp for fp in file_paths if not fp.exists()]
     # If download_queue is empty, exit early
     if not download_queue:
-        return
+        return True
 
     command_parts.append("--exclude=*")
     command_parts.extend([f"--include={file_path}" for file_path in download_queue])
@@ -114,10 +114,16 @@ def download_input_files(file_paths: List[Path]):
     if "public-test" in INPUT_BUCKET_NAME:
         command_parts.append("--no-sign-request")
 
-    subprocess.check_call(command_parts)
+    try:
+        subprocess.check_call(command_parts)
+    except subprocess.CalledProcessError as error:
+        logger.error(f"Data files failed to download due to the following error:\n\t{error}")
+        return False
+
+    return True
 
 
-def download_input_metadata():
+def download_input_metadata() -> bool:
     """Download all metadata files to the local file system."""
     command_parts = ["aws", "s3", "sync", f"s3://{INPUT_BUCKET_NAME}", common.INPUT_DATA_PATH]
 
@@ -127,17 +133,23 @@ def download_input_metadata():
     if "public-test" in INPUT_BUCKET_NAME:
         command_parts.append("--no-sign-request")
 
-    subprocess.check_call(command_parts)
+    try:
+        subprocess.check_call(command_parts)
+    except subprocess.CalledProcessError as error:
+        logger.error(f"Metadata files failed to download due to the following error:\n\t{error}")
+        return False
+
+    return True
 
 
 def delete_output_file(key: str) -> bool:
     # If we're not running in the cloud then we shouldn't try to
     # delete something from S3 unless force is set.
     if not settings.UPDATE_S3_DATA:
-        return False
+        return True
 
     try:
-        aws_s3.delete_object(Bucket=settings.AWS_S3_BUCKET, Key=key)
+        aws_s3.delete_object(Bucket=settings.AWS_S3_BUCKET_NAME, Key=key)
     except Exception:
         logger.exception(
             "Failed to delete S3 object for Computed File.",
@@ -148,7 +160,7 @@ def delete_output_file(key: str) -> bool:
     return True
 
 
-def upload_output_file(key: str) -> None:
+def upload_output_file(key: str) -> bool:
     """Upload a computed file to S3 using the AWS CLI tool."""
 
     local_path = common.OUTPUT_DATA_PATH / key
@@ -156,7 +168,13 @@ def upload_output_file(key: str) -> None:
     command_parts = ["aws", "s3", "cp", local_path, aws_path]
 
     logger.info(f"Uploading Computed File {key}")
-    subprocess.check_call(command_parts)
+    try:
+        subprocess.check_call(command_parts)
+    except subprocess.CalledProcessError as error:
+        logger.error(f"Computed file failed to upload due to the following error:\n\t{error}")
+        return False
+
+    return True
 
 
 def generate_pre_signed_link(key: str, filename: str) -> str:

@@ -93,11 +93,11 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def input_bulk_metadata_file_path(self):
-        return self.input_data_path / f"{self.scpca_id}_bulk_metadata.tsv"
+        return self.input_data_path / "bulk" / f"{self.scpca_id}_bulk_metadata.tsv"
 
     @property
     def input_bulk_quant_file_path(self):
-        return self.input_data_path / f"{self.scpca_id}_bulk_quant.tsv"
+        return self.input_data_path / "bulk" / f"{self.scpca_id}_bulk_quant.tsv"
 
     @property
     def input_merged_summary_report_file_path(self):
@@ -197,7 +197,12 @@ class Project(CommonDataAttributes, TimestampedModel):
         if self.has_multiplexed_data and not download_config.get("excludes_multiplexed", False):
             name_segments.append("MULTIPLEXED")
 
-        return f"{'_'.join(name_segments)}.zip"
+        # Change to filename format must be accompanied by an entry in the docs.
+        # Each segment should have hyphens and no underscores
+        # Each segment should be joined by underscores
+        file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
+
+        return f"{file_name}.zip"
 
     def get_data_file_paths(self) -> List[Path]:
         """
@@ -205,7 +210,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         and returns them as a list.
         """
         merged_relative_path = Path(f"{self.scpca_id}/merged/")
-        bulk_relative_path = Path(f"{self.scpca_id}/{self.scpca_id}_bulk")
+        bulk_relative_path = Path(f"{self.scpca_id}/bulk/")
 
         merged_data_file_paths = s3.list_input_paths(merged_relative_path)
         bulk_data_file_paths = s3.list_input_paths(bulk_relative_path)
@@ -291,8 +296,11 @@ class Project(CommonDataAttributes, TimestampedModel):
             # Multiplexed samples are represented in scpca_sample_id as comma separated lists
             # This ensures that all samples with be related to the correct library
             for sample_id in library_metadata["scpca_sample_id"].split(","):
-                sample = self.samples.get(scpca_id=sample_id)
-                Library.bulk_create_from_dicts([library_metadata], sample)
+                # We create samples based on what is in samples_metadata.csv
+                # If the sample folder is in the input bucket, but not listed
+                # we should skip creating that library as the sample won't exist.
+                if sample := self.samples.filter(scpca_id=sample_id).first():
+                    Library.bulk_create_from_dicts([library_metadata], sample)
 
     def purge(self, delete_from_s3=False) -> None:
         """Purges project and its related data."""

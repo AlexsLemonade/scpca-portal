@@ -43,8 +43,8 @@ Interested parties can join drop-in office hours sessions with Data Lab team mem
 
 #### Important Dates
 
-* **Dataset Submission Deadline:** September 1, 2024
-* **Application Submission Deadline** (if eligible): September 15, 2024
+* **Dataset Submission Deadline:** October 15, 2024
+* **Application Submission Deadline** (if eligible): November 1, 2024
 
 #### Contact the Data Lab
 
@@ -120,9 +120,9 @@ All submissions are required to include the following metadata fields:
 
 | Metadata Field | Description |
 |----------------|-------------|
-| `submitter_id` | A research sample identifier; ideally, identifiers would allow for linkage to published results or samples in widely-used repositories for sequencing data |
-| `diagnosis`    | Tumor type of origin or disease being modeled                                                |
-| `subdiagnosis` | Subcategory of diagnosis or mutation status (if applicable)    |
+| `submitter_id`    | A research sample identifier; ideally, identifiers would allow for linkage to published results or samples in widely-used repositories for sequencing data |
+| `diagnosis`       | Tumor type of origin or disease being modeled                                                |
+| `subdiagnosis`    | Subcategory of diagnosis or mutation status (if applicable)    |
 
 
 ##### Tumor Samples
@@ -142,14 +142,14 @@ Submissions of human cell line samples are required to include the following add
 
 | Metadata Field | Description |
 |----------------|-------------|
-| `cell_line`             | Cell line name |
-| `cell_line_id`          | [Cellosaurus (CVCL)](https://www.cellosaurus.org) or [Cell Line Ontology (CLO)](https://www.ebi.ac.uk/ols/ontologies/clo) identifier |
-| `age_at_collection`     | Age of the patient at the time the sample used to establish the line was obtained |
-| `sex`                   | Sex of the patient from which the line was isolated |
-| `tissue_location`       | Where in the body the source of culture was derived from |
-| `disease_timing`        | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
+| `cell_line` | Cell line name |
+| `cell_line_id` | [Cellosaurus (CVCL)](https://www.cellosaurus.org) or [Cell Line Ontology (CLO)](https://www.ebi.ac.uk/ols/ontologies/clo) identifier |
+| `age_at_collection` | Age of the patient at the time the sample used to establish the line was obtained |
+| `sex`             | Sex of the patient from which the line was isolated |
+| `tissue_location` | Where in the body the source of culture was derived from |
+| `disease_timing`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
 | `cell_type` or `tissue` | The type of cell (e.g., epithelial) or tissue if mixed cell types are expected |
-| `passage_number`        | The number of times the cells were split or passaged prior to library preparation |
+| `passage_number` | The number of times the cells were split or passaged prior to library preparation |
 
 Please include any perturbations (e.g., treatment with small molecule inhibitors) that were performed.
 
@@ -159,11 +159,11 @@ Submissions of samples obtained from mouse models are required to include the fo
 
 | Metadata Field | Description |
 |----------------|-------------|
-| `tissue_source`     | The source of the tissue (e.g., tissue location or isolation methodology) |
-| `genotype`          | Genotype of the mouse (if applicable) |
+| `tissue_source` | The source of the tissue (e.g., tissue location or isolation methodology) |
+| `genotype` | Genotype of the mouse (if applicable) |
 | `model_description` | Description of the model type (e.g., syngeneic model or humanized model with specifics about engraftment) |
-| `strain`            | Formal name of mouse strain (i.e., "C57BL/6" not "B6") |
-| `sex`               | Sex of the mouse from which the sample was isolated |
+| `strain` | Formal name of mouse strain (i.e., "C57BL/6" not "B6") |
+| `sex` | Sex of the mouse from which the sample was isolated |
 
 Please include any perturbations (e.g., treatment with small molecule inhibitors) that were performed or any relevant phenotypic information.
 If a submitter has data from a non-traditional mouse model, such as cell line injections into mice, they will be required to submit additional sample data, such as injection site.
@@ -175,10 +175,10 @@ Submissions of patient-derived xenograft samples are required to include the fol
 | Metadata Field | Description |
 |----------------|-------------|
 | `age_at_collection` | Age of the patient at the time the sample used to establish the xenograft was obtained |
-| `sex`               | Sex of the patient from which the xenograft was isolated |
-| `tissue_location`   | Where in the body the source of the xenograft was derived from |
-| `disease_timing`    | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
-| `xenograft_type`    | The type of xenograft (e.g., orthotopic) |
+| `sex`             | Sex of the patient from which the xenograft was isolated |
+| `tissue_location` | Where in the body the source of the xenograft was derived from |
+| `disease_timing`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
+| `xenograft_type` | The type of xenograft (e.g., orthotopic) |
 
 #### De-identification Standard for Human Samples
 
@@ -197,9 +197,9 @@ Submitters will be required to submit a table with the following information:
 
 | Field | Description |
 |-------|-------------|
-| `submitter_id`         | The research sample identifier included in your sample metadata |
-| `cell_barcode`         | 10x Genomics cell barcode associated with each cell |
+| `submitter_id` | The research sample identifier included in your sample metadata |
+| `cell_barcode` | 10x Genomics cell barcode associated with each cell |
 | `cell_type_assignment` | The cell type or label assigned to the cell |
-| `CL_ontology_id`       | (_Optional_) The [Cell Ontology (CL)](https://obofoundry.org/ontology/cl.html) identifier associated with the designated cell type. Although these are not required, the cell type ontology can help standardize cell type assignment across datasets available on our portal. |
+| `CL_ontology_id` | (_Optional_) The [Cell Ontology (CL)](https://obofoundry.org/ontology/cl.html) identifier associated with the designated cell type. Although these are not required, the cell type ontology can help standardize cell type assignment across datasets available on our portal. |
 
 <IntakeFormLink />

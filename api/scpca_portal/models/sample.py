@@ -33,7 +33,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
         }
 
     additional_metadata = models.JSONField(default=dict)
-    age_at_diagnosis = models.TextField(blank=True, null=True)
+    age = models.TextField()
+    age_timing = models.TextField()
     demux_cell_count_estimate = models.IntegerField(null=True)
     diagnosis = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
@@ -63,7 +64,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
     def get_from_dict(cls, data, project):
         """Prepares ready for saving sample object."""
         sample = cls(
-            age_at_diagnosis=data["age_at_diagnosis"],
+            age=data["age"],
+            age_timing=data["age_timing"],
             diagnosis=data["diagnosis"],
             disease_timing=data["disease_timing"],
             is_cell_line=utils.boolean_from_string(data.get("is_cell_line", False)),
@@ -109,7 +111,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
         }
 
         included_sample_attributes = {
-            "age_at_diagnosis",
+            "age",
+            "age_timing",
             "demux_cell_count_estimate",
             "diagnosis",
             "disease_timing",
@@ -247,4 +250,9 @@ class Sample(CommonDataAttributes, TimestampedModel):
         if self.has_multiplexed_data:
             name_segments.append("MULTIPLEXED")
 
-        return f"{'_'.join(name_segments)}.zip"
+        # Change to filename format must be accompanied by an entry in the docs.
+        # Each segment should have hyphens and no underscores
+        # Each segment should be joined by underscores
+        file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
+
+        return f"{file_name}.zip"

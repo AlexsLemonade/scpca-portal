@@ -8,8 +8,13 @@ def apply_project(apps, schema_editor):
     Library = apps.get_model("scpca_portal", "library")
 
     for library in Library.objects.all():
-        library.project = library.samples.first().project
-        library.save()
+        if sample := library.samples.first():
+            library.project = sample.project
+            library.save()
+
+
+def reverse_project(apps, schema_editor):
+    pass
 
 
 class Migration(migrations.Migration):
@@ -23,10 +28,20 @@ class Migration(migrations.Migration):
             model_name="library",
             name="project",
             field=models.ForeignKey(
+                null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="libraries",
-                to="scpca_portal.project",
+                to="scpca_portal.Project",
             ),
         ),
-        migrations.RunPython(apply_project),
+        migrations.RunPython(apply_project, reverse_project),
+        migrations.AlterField(
+            model_name="library",
+            name="project",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="libraries",
+                to="scpca_portal.Project",
+            ),
+        ),
     ]
