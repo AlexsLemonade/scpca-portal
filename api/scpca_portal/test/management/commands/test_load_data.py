@@ -46,19 +46,23 @@ class TestLoadData(TransactionTestCase):
         README_DIR.mkdir(parents=True, exist_ok=True)
 
         for zip_path in common.OUTPUT_DATA_PATH.glob("*.zip"):
-            # Rename 'RERADME.md' with the name of the zip file
-            readme_name = f"{zip_path.stem}.md"
-            readme_output_path = README_DIR / readme_name
             with ZipFile(zip_path, "r") as zip_file:
                 if README_FILE in zip_file.namelist():
                     with zip_file.open(README_FILE) as readme_file:
+                        # Rename 'RERADME.md' with the name of the zip file (excludes project IDs)
+                        # e.g.) 'PROJECTID_', 'PROJECTID-PROJECTID-...PROJECTID_' (for multiplexed)
+                        readme_name = re.sub(r"^[A-Z\d]+(?:-[A-Z\d]+)*_", "", zip_path.stem) + ".md"
+                        readme_output_path = README_DIR / readme_name
                         # Replace 3 or more lines with double newlines before saving
                         formatted_content = re.sub(
                             r"\n{3,}", "\n\n", readme_file.read().decode(ENCODING)
                         ).strip()
-                        with readme_output_path.open("w", encoding=ENCODING) as output_file:
-                            output_file.write(formatted_content)
-                    self.assertProjectReadmeContent(readme_output_path, formatted_content)
+                        # Save only if the readme file doesn't exist
+                        if not readme_output_path.exists():
+                            with readme_output_path.open("w", encoding=ENCODING) as output_file:
+                                output_file.write(formatted_content)
+                            # Check the formatting of the content in READNE.md
+                            self.assertProjectReadmeContent(readme_output_path, formatted_content)
 
     def assertProjectData(self, project):
         self.assertTrue(project.abstract)
