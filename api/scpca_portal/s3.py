@@ -128,7 +128,7 @@ def delete_output_file(key: str) -> bool:
         return True
 
     try:
-        aws_s3.delete_object(Bucket=settings.AWS_S3_BUCKET, Key=key)
+        aws_s3.delete_object(Bucket=settings.AWS_S3_BUCKET_NAME, Key=key)
     except Exception:
         logger.exception(
             "Failed to delete S3 object for Computed File.",
