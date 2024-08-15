@@ -13,7 +13,7 @@ class TestComputedFile(TestCase):
         computed_file = ComputedFile(
             format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
             modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
             s3_key="SCPCP000001.zip",
             size_in_bytes=10000,
             workflow_version="v1.0",
@@ -24,7 +24,7 @@ class TestComputedFile(TestCase):
         s3_endpoint.assert_called_with(
             ClientMethod="get_object",
             Params={
-                "Bucket": settings.AWS_S3_BUCKET_NAME,
+                "Bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
                 "Key": "SCPCP000001.zip",
                 "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
             },

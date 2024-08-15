@@ -162,7 +162,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             modality=download_config.get("modality"),
             metadata_only=download_config.get("metadata_only"),
             project=project,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
             s3_key=computed_file_name,
             size_in_bytes=zip_file_path.stat().st_size,
             workflow_version=utils.join_workflow_versions(
@@ -243,7 +243,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             format=download_config.get("format"),
             includes_celltype_report=(not sample.is_cell_line),
             modality=download_config.get("modality"),
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
             s3_key=computed_file_name,
             sample=sample,
             size_in_bytes=zip_file_path.stat().st_size,

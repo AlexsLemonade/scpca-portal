@@ -15,8 +15,7 @@ from scpca_portal.config.logging import get_and_configure_logger
 logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
-TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-07-19/"
-INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else "scpca-portal-inputs"
+INPUT_BUCKET_NAME = settings.AWS_S3_INPUT_BUCKET_NAME
 
 
 def set_input_bucket(func: Callable) -> Callable:
@@ -40,7 +39,6 @@ def set_input_bucket(func: Callable) -> Callable:
 
 def list_input_paths(
     relative_path: Path = Path(),
-    *,
     recursive: bool = True,
 ) -> List[Path]:
     """
@@ -149,7 +147,7 @@ def delete_output_file(key: str) -> bool:
         return True
 
     try:
-        aws_s3.delete_object(Bucket=settings.AWS_S3_BUCKET_NAME, Key=key)
+        aws_s3.delete_object(Bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME, Key=key)
     except Exception:
         logger.exception(
             "Failed to delete S3 object for Computed File.",
@@ -164,7 +162,7 @@ def upload_output_file(key: str) -> bool:
     """Upload a computed file to S3 using the AWS CLI tool."""
 
     local_path = common.OUTPUT_DATA_PATH / key
-    aws_path = f"s3://{settings.AWS_S3_BUCKET_NAME}/{key}"
+    aws_path = f"s3://{settings.AWS_S3_OUTPUT_BUCKET_NAME}/{key}"
     command_parts = ["aws", "s3", "cp", local_path, aws_path]
 
     logger.info(f"Uploading Computed File {key}")
@@ -181,7 +179,7 @@ def generate_pre_signed_link(key: str, filename: str) -> str:
     return aws_s3.generate_presigned_url(
         ClientMethod="get_object",
         Params={
-            "Bucket": settings.AWS_S3_BUCKET_NAME,
+            "Bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "Key": key,
             "ResponseContentDisposition": (f"attachment; filename = {filename}"),
         },
