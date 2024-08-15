@@ -33,15 +33,14 @@ class TestLoadData(TransactionTestCase):
     def tearDownClass(cls):
         super().tearDownClass()
         if SAVE_README_OUTPUT:
-            cls.test_readme_files()
+            cls.save_readme_files()
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     @classmethod
-    def test_readme_files(cls):
+    def save_readme_files(cls):
         if not SAVE_README_OUTPUT:
             return
-        # Make sure to instantiate TestLoadData to use an instance method
-        self = cls()
+
         # Make sure to create README_DIR if it doesn't exist to prevent an error
         README_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -49,20 +48,19 @@ class TestLoadData(TransactionTestCase):
             with ZipFile(zip_path, "r") as zip_file:
                 if README_FILE in zip_file.namelist():
                     with zip_file.open(README_FILE) as readme_file:
-                        # Rename 'RERADME.md' with the name of the zip file (excludes project IDs)
-                        # e.g.) 'PROJECTID_', 'PROJECTID-PROJECTID-...PROJECTID_' (for multiplexed)
-                        readme_name = re.sub(r"^[A-Z\d]+(?:-[A-Z\d]+)*_", "", zip_path.stem) + ".md"
-                        readme_output_path = README_DIR / readme_name
-                        # Replace 3 or more lines with double newlines before saving
-                        formatted_content = re.sub(
-                            r"\n{3,}", "\n\n", readme_file.read().decode(ENCODING)
-                        ).strip()
-                        # Save only if the readme file doesn't exist
-                        if not readme_output_path.exists():
-                            with readme_output_path.open("w", encoding=ENCODING) as output_file:
-                                output_file.write(formatted_content)
-                            # Check the formatting of the content in READNE.md
-                            self.assertProjectReadmeContent(readme_output_path, formatted_content)
+                        # Match 'PROJECTID_' (excludes 'PROJECTID-PROJECTID-...PROJECTID_')
+                        if re.match(r"^[A-Z\d]+_.+", zip_path.stem):
+                            # Rename 'RERADME.md' with the zip filename (excludes 'PROJECTID_')
+                            readme_name = re.sub(r"^[A-Z\d]+_", "", zip_path.stem) + ".md"
+                            readme_output_path = README_DIR / readme_name
+                            # Replace 3 or more lines with double newlines before saving
+                            formatted_content = re.sub(
+                                r"\n{3,}", "\n\n", readme_file.read().decode(ENCODING)
+                            ).strip()
+                            # Save only if the readme file doesn't exist in test_data/readmes
+                            if not readme_output_path.exists():
+                                with readme_output_path.open("w", encoding=ENCODING) as output_file:
+                                    output_file.write(formatted_content)
 
     def assertProjectData(self, project):
         self.assertTrue(project.abstract)
@@ -567,7 +565,6 @@ class TestLoadData(TransactionTestCase):
                 project_zip,
             )
         self.assertEqual(len(sample_metadata_lines), 4)  # 3 items + header.
-
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
         self.assertEqual(sample_metadata_keys, expected_project_keys)
 

@@ -1,4 +1,4 @@
-Generated on: 2024-08-14
+Generated on: 2024-08-15
 
 # Alex's Lemonade Stand Foundation Single-cell Pediatric Cancer Atlas
 
@@ -6,7 +6,7 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992) in the ScPCA portal.
+This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990) in the ScPCA portal.
 
 Each sample folder (indicated by the `SCPCS` prefix) contains the files for all libraries (`SCPCL` prefix) derived from that biological sample.
 Most samples only have one library that has been sequenced.
@@ -25,7 +25,7 @@ Also included in each download is `single_cell_metadata.tsv`, a tab-separated ta
 Gene expression files, available as RDS files containing a `SingleCellExperiment` object, house the expression data, cell and gene metrics, associated metadata, and in the case of multi-modal data like CITE-seq, data from the additional cell-based assays (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
 
 This download does not include any samples that are part of multiplexed libraries.
-To download all samples in this project, including multiplexed libraries, if present, visit the [project page](https://scpca.alexslemonade.org/projects/SCPCP999992).
+To download all samples in this project, including multiplexed libraries, if present, visit the [project page](https://scpca.alexslemonade.org/projects/SCPCP999990).
 
 If a project contains bulk RNA-seq data, two tab-separated value files, `bulk_quant.tsv` and `bulk_metadata.tsv`, will be included in the download.
 The `bulk_quant.tsv` file contains a gene by sample matrix (each row a gene, each column a sample) containing raw gene expression counts quantified by Salmon.
@@ -36,7 +36,7 @@ See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_fil
 ## Usage
 
 For instructions on using the RDS files, please see [FAQ: How do I use the provided files in R?](https://scpca.readthedocs.io/en/stable/faq.html#how-do-i-use-the-provided-rds-files-in-r).
-For information on how to use the demultiplexing results that the filtered data files contain, see the ["Getting started" section about multiplex samples](https://scpca.readthedocs.io/en/stable/getting_started.html#special-considerations-for-multiplexed-samples).
+For more information on working with the processed `SingleCellExperiment` objects, see [`Getting started with an ScPCA dataset`](https://scpca.readthedocs.io/en/stable/getting_started.html).
 
 ## CHANGELOG
 
@@ -56,7 +56,7 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-To cite data from SCPCP999992, please see the project abstract and publication information at [SCPCP999992 page.](https://scpca.alexslemonade.org/projects/SCPCP999992)
+To cite data from SCPCP999990, please see the project abstract and publication information at [SCPCP999990 page.](https://scpca.alexslemonade.org/projects/SCPCP999990)
 
 ### Citing the ScPCA Portal
 
