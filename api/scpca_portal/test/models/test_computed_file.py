@@ -24,7 +24,7 @@ class TestComputedFile(TestCase):
         s3_endpoint.assert_called_with(
             ClientMethod="get_object",
             Params={
-                "Bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
+                "Bucket": computed_file.s3_bucket,
                 "Key": "SCPCP000001.zip",
                 "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
             },

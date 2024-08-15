@@ -174,14 +174,12 @@ class Command(BaseCommand):
         for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
             path.unlink(missing_ok=True)
 
-    @s3.set_input_bucket
     def load_data(
         self,
         allowed_submitters: set[str] = ALLOWED_SUBMITTERS,
         **kwargs,
     ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
-
         # Prepare data input directory.
         common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
@@ -189,7 +187,8 @@ class Command(BaseCommand):
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
         common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
-        s3.download_input_metadata()
+        input_bucket_name = kwargs.get("input_bucket_name", settings.AWS_S3_INPUT_BUCKET_NAME)
+        s3.download_input_metadata(input_bucket_name)
 
         projects_metadata = metadata_file.load_projects_metadata(
             Project.get_input_project_metadata_file_path()
@@ -213,7 +212,7 @@ class Command(BaseCommand):
                     continue
 
             logger.info(f"Importing 'Project {metadata_project_id}' data")
-            project_metadata["s3_input_bucket"] = kwargs.get("input_bucket_name")
+            project_metadata["s3_input_bucket"] = input_bucket_name
             project = Project.get_from_dict(project_metadata)
             project.save()
 

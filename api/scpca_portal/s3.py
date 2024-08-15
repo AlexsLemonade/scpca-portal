@@ -1,8 +1,7 @@
 import subprocess
 from collections import namedtuple
-from functools import wraps
 from pathlib import Path
-from typing import Callable, List
+from typing import List
 
 from django.conf import settings
 
@@ -15,30 +14,11 @@ from scpca_portal.config.logging import get_and_configure_logger
 logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
-INPUT_BUCKET_NAME = settings.AWS_S3_INPUT_BUCKET_NAME
-
-
-def set_input_bucket(func: Callable) -> Callable:
-    """Sets the input bucket if passed to the wrapped function."""
-
-    @wraps(func)
-    def wrapper(*args, **kwargs) -> None:
-        global INPUT_BUCKET_NAME
-        default_input_bucket_name = INPUT_BUCKET_NAME
-        # Override input bucket setting defined at the top of the file
-        if passed_input_bucket_name := kwargs.get("input_bucket_name"):
-            INPUT_BUCKET_NAME = passed_input_bucket_name
-
-        func(*args, **kwargs)
-
-        # Restore bucket name to default
-        INPUT_BUCKET_NAME = default_input_bucket_name
-
-    return wrapper
-
 
 def list_input_paths(
     relative_path: Path = Path(),
+    bucket_name: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+    *,
     recursive: bool = True,
 ) -> List[Path]:
     """
@@ -46,7 +26,7 @@ def list_input_paths(
     and returns bucket's existing content as a list of Path objects,
     relative to (without) the bucket prefix.
     """
-    bucket_path = Path(INPUT_BUCKET_NAME)
+    bucket_path = Path(bucket_name)
     root_path = Path(*bucket_path.parts, *relative_path.parts)
     command_inputs = ["aws", "s3", "ls", f"s3://{root_path}"]
 
@@ -97,9 +77,11 @@ def list_input_paths(
     return file_paths
 
 
-def download_input_files(file_paths: List[Path]) -> bool:
+def download_input_files(
+    file_paths: List[Path], bucket_name: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
-    command_parts = ["aws", "s3", "sync", f"s3://{INPUT_BUCKET_NAME}", common.INPUT_DATA_PATH]
+    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
 
     download_queue = [fp for fp in file_paths if not fp.exists()]
     # If download_queue is empty, exit early
@@ -109,7 +91,7 @@ def download_input_files(file_paths: List[Path]) -> bool:
     command_parts.append("--exclude=*")
     command_parts.extend([f"--include={file_path}" for file_path in download_queue])
 
-    if "public-test" in INPUT_BUCKET_NAME:
+    if "public-test" in bucket_name:
         command_parts.append("--no-sign-request")
 
     try:
@@ -121,14 +103,14 @@ def download_input_files(file_paths: List[Path]) -> bool:
     return True
 
 
-def download_input_metadata() -> bool:
+def download_input_metadata(bucket_name: str = settings.AWS_S3_INPUT_BUCKET_NAME) -> bool:
     """Download all metadata files to the local file system."""
-    command_parts = ["aws", "s3", "sync", f"s3://{INPUT_BUCKET_NAME}", common.INPUT_DATA_PATH]
+    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
 
     command_parts.append("--exclude=*")
     command_parts.append("--include=*_metadata.*")
 
-    if "public-test" in INPUT_BUCKET_NAME:
+    if "public-test" in bucket_name:
         command_parts.append("--no-sign-request")
 
     try:
@@ -140,14 +122,14 @@ def download_input_metadata() -> bool:
     return True
 
 
-def delete_output_file(key: str) -> bool:
+def delete_output_file(key: str, bucket_name: str = settings.AWS_S3_OUTPUT_BUCKET_NAME) -> bool:
     # If we're not running in the cloud then we shouldn't try to
     # delete something from S3 unless force is set.
     if not settings.UPDATE_S3_DATA:
         return True
 
     try:
-        aws_s3.delete_object(Bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME, Key=key)
+        aws_s3.delete_object(Bucket=bucket_name, Key=key)
     except Exception:
         logger.exception(
             "Failed to delete S3 object for Computed File.",
@@ -158,11 +140,11 @@ def delete_output_file(key: str) -> bool:
     return True
 
 
-def upload_output_file(key: str) -> bool:
+def upload_output_file(key: str, bucket_name: str = settings.AWS_S3_OUTPUT_BUCKET_NAME) -> bool:
     """Upload a computed file to S3 using the AWS CLI tool."""
 
     local_path = common.OUTPUT_DATA_PATH / key
-    aws_path = f"s3://{settings.AWS_S3_OUTPUT_BUCKET_NAME}/{key}"
+    aws_path = f"s3://{bucket_name}/{key}"
     command_parts = ["aws", "s3", "cp", local_path, aws_path]
 
     logger.info(f"Uploading Computed File {key}")
@@ -175,11 +157,13 @@ def upload_output_file(key: str) -> bool:
     return True
 
 
-def generate_pre_signed_link(key: str, filename: str) -> str:
+def generate_pre_signed_link(
+    filename: str, key: str, bucket_name: str = settings.AWS_S3_OUTPUT_BUCKET_NAME
+) -> str:
     return aws_s3.generate_presigned_url(
         ClientMethod="get_object",
         Params={
-            "Bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            "Bucket": bucket_name,
             "Key": key,
             "ResponseContentDisposition": (f"attachment; filename = {filename}"),
         },

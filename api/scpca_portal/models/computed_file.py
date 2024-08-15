@@ -263,7 +263,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             key_path = Path(self.s3_key)
             filename = f"{key_path.stem}_{date}{key_path.suffix}"
 
-            return s3.generate_pre_signed_link(self.s3_key, filename)
+            return s3.generate_pre_signed_link(filename, self.s3_key, self.s3_bucket)
 
     @property
     def is_project_multiplexed_zip(self):
