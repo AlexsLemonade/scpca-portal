@@ -34,7 +34,7 @@ class TestListInputPaths(TestCase):
     @patch("subprocess.run")
     def test_list_input_paths_command_failure(self, mock_run):
         mock_run.side_effect = subprocess.CalledProcessError(
-            returncode=1, cmd=f"aws s3 ls s3://{s3.INPUT_BUCKET_NAME}"
+            returncode=1, cmd=f"aws s3 ls s3://{self.input_bucket_name}"
         )
         result = s3.list_input_paths()
         expected = []
