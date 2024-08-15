@@ -4,6 +4,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -46,6 +47,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     multiplexed_sample_count = models.IntegerField(default=0)
     organisms = ArrayField(models.TextField(), default=list)
     pi_name = models.TextField()
+    s3_input_bucket = models.TextField(default=settings.AWS_S3_INPUT_BUCKET_NAME)
     sample_count = models.IntegerField(default=0)
     scpca_id = models.TextField(unique=True)
     seq_units = models.TextField(blank=True, null=True)
