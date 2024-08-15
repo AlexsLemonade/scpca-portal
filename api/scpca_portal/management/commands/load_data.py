@@ -65,7 +65,9 @@ class Command(BaseCommand):
     to a stack-specific S3 bucket."""
 
     def add_arguments(self, parser):
-        parser.add_argument("--input-bucket-name", type=str, default=None)
+        parser.add_argument(
+            "--input-bucket-name", type=str, default=settings.AWS_S3_INPUT_BUCKET_NAME
+        )
         parser.add_argument(
             "--clean-up-input-data",
             action=BooleanOptionalAction,
@@ -211,6 +213,7 @@ class Command(BaseCommand):
                     continue
 
             logger.info(f"Importing 'Project {metadata_project_id}' data")
+            project_metadata["s3_input_bucket"] = kwargs.get("input_bucket_name")
             project = Project.get_from_dict(project_metadata)
             project.save()
 
