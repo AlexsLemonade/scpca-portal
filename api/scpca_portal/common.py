@@ -161,20 +161,21 @@ GENERATED_PROJECT_DOWNLOAD_CONFIG = [
     },
 ]
 
-GENERATED_SAMPLE_DOWNLOAD_CONFIG = [
+GENERATED_SAMPLE_DOWNLOAD_CONFIGS = [
     {"modality": "SINGLE_CELL", "format": "SINGLE_CELL_EXPERIMENT"},
     {"modality": "SINGLE_CELL", "format": "ANN_DATA"},
     {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"},
 ]
 
-GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG = {
-    "modality": None,
-    "format": None,
-    "excludes_multiplexed": False,
-    "includes_merged": False,
-    "metadata_only": True,
-    "portal_metadata_only": True,
-}
-
+GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG = [
+    {
+        "modality": None,
+        "format": None,
+        "excludes_multiplexed": False,
+        "includes_merged": False,
+        "metadata_only": True,
+        "portal_metadata_only": True,
+    }
+]
 
 PORTAL_METADATA_COMPUTED_FILE_NAME = "portal_metadata.zip"

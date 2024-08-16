@@ -286,7 +286,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         locks = {}
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             for sample in samples:
-                for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIG:
+                for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS:
                     sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
                     tasks.submit(
                         ComputedFile.get_sample_file,
