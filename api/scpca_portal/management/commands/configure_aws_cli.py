@@ -40,17 +40,18 @@ class Command(BaseCommand):
     ):
         commands = [
             # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#payload-signing-enabled
-            "aws configure set default.s3.payload_signing_enabled false",
+            "sudo aws configure set default.s3.payload_signing_enabled false",
             # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-concurrent-requests
-            f"aws configure set default.s3.max_concurrent_requests {s3_max_concurrent_requests}",
+            "sudo aws configure set default.s3.max_concurrent_requests"
+            f"{s3_max_concurrent_requests}",
             # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#multipart-chunksize
-            f"aws configure set default.s3.multipart_chunksize {s3_multipart_chunk_size}MB",
+            f"sudo aws configure set default.s3.multipart_chunksize {s3_multipart_chunk_size}MB",
         ]
 
         if s3_max_bandwidth:
             commands.append(
                 # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-bandwidth
-                f"aws configure set default.s3.max_bandwidth {s3_max_bandwidth}MB/s",
+                f"sudo aws configure set default.s3.max_bandwidth {s3_max_bandwidth}MB/s",
             )
 
         logger.info("Configuring AWS CLI...")
