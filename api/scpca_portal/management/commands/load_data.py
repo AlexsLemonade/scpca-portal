@@ -5,7 +5,6 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
 from threading import Lock
-from typing import Set
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -106,7 +105,6 @@ class Command(BaseCommand):
         metadata_project_id: str,
         passed_project_id: str,
         pi_name: str,
-        allowed_submitters: Set,
     ) -> bool:
         """
         Carries out a series of checks to determine whether or not a project
@@ -122,6 +120,7 @@ class Command(BaseCommand):
             )
             return True
 
+        allowed_submitters = {"scpca"} if settings.TEST else ALLOWED_SUBMITTERS
         if pi_name not in allowed_submitters:
             logger.warning("Project submitter is not the white list.")
             return True
@@ -176,7 +175,6 @@ class Command(BaseCommand):
 
     def load_data(
         self,
-        allowed_submitters: set[str] = ALLOWED_SUBMITTERS,
         **kwargs,
     ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
@@ -187,8 +185,7 @@ class Command(BaseCommand):
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
         common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
-        input_bucket_name = kwargs.get("input_bucket_name", settings.AWS_S3_INPUT_BUCKET_NAME)
-        s3.download_input_metadata(input_bucket_name)
+        s3.download_input_metadata(kwargs["input_bucket_name"])
 
         projects_metadata = metadata_file.load_projects_metadata(
             Project.get_input_project_metadata_file_path()
@@ -197,9 +194,8 @@ class Command(BaseCommand):
             metadata_project_id = project_metadata["scpca_project_id"]
             passed_project_id = kwargs.get("scpca_project_id")
 
-            pi_name = project_metadata["pi_name"]
             if self.skip_project(
-                metadata_project_id, passed_project_id, pi_name, allowed_submitters
+                metadata_project_id, passed_project_id, project_metadata["pi_name"]
             ):
                 continue
 
@@ -212,7 +208,7 @@ class Command(BaseCommand):
                     continue
 
             logger.info(f"Importing 'Project {metadata_project_id}' data")
-            project_metadata["s3_input_bucket"] = input_bucket_name
+            project_metadata["s3_input_bucket"] = kwargs["input_bucket_name"]
             project = Project.get_from_dict(project_metadata)
             project.save()
 
