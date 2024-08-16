@@ -19,7 +19,6 @@ from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 class TestLoadData(TransactionTestCase):
     def setUp(self):
         self.load_data = partial(call_command, "load_data")
-        call_command("configure_aws_cli")
 
     @classmethod
     def tearDownClass(cls):
