@@ -16,8 +16,8 @@ aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
 def list_input_paths(
-    relative_path: Path = Path(),
-    bucket_name: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+    relative_path: Path,
+    bucket_name: str,
     *,
     recursive: bool = True,
 ) -> List[Path]:
@@ -77,9 +77,7 @@ def list_input_paths(
     return file_paths
 
 
-def download_input_files(
-    file_paths: List[Path], bucket_name: str = settings.AWS_S3_INPUT_BUCKET_NAME
-) -> bool:
+def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
     command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
 
@@ -103,7 +101,7 @@ def download_input_files(
     return True
 
 
-def download_input_metadata(bucket_name: str = settings.AWS_S3_INPUT_BUCKET_NAME) -> bool:
+def download_input_metadata(bucket_name: str) -> bool:
     """Download all metadata files to the local file system."""
     command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
 
@@ -122,7 +120,7 @@ def download_input_metadata(bucket_name: str = settings.AWS_S3_INPUT_BUCKET_NAME
     return True
 
 
-def delete_output_file(key: str, bucket_name: str = settings.AWS_S3_OUTPUT_BUCKET_NAME) -> bool:
+def delete_output_file(key: str, bucket_name: str) -> bool:
     # If we're not running in the cloud then we shouldn't try to
     # delete something from S3 unless force is set.
     if not settings.UPDATE_S3_DATA:
@@ -140,7 +138,7 @@ def delete_output_file(key: str, bucket_name: str = settings.AWS_S3_OUTPUT_BUCKE
     return True
 
 
-def upload_output_file(key: str, bucket_name: str = settings.AWS_S3_OUTPUT_BUCKET_NAME) -> bool:
+def upload_output_file(key: str, bucket_name: str) -> bool:
     """Upload a computed file to S3 using the AWS CLI tool."""
 
     local_path = common.OUTPUT_DATA_PATH / key
@@ -157,9 +155,7 @@ def upload_output_file(key: str, bucket_name: str = settings.AWS_S3_OUTPUT_BUCKE
     return True
 
 
-def generate_pre_signed_link(
-    filename: str, key: str, bucket_name: str = settings.AWS_S3_OUTPUT_BUCKET_NAME
-) -> str:
+def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
     return aws_s3.generate_presigned_url(
         ClientMethod="get_object",
         Params={
