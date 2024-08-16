@@ -203,11 +203,11 @@ class Command(BaseCommand):
             ):
                 continue
 
+            # If project exists and cannot be purged, then throw a warning
             if project := Project.objects.filter(scpca_id=metadata_project_id).first():
                 purge_project_kwargs = utils.filter_dict_by_keys(
                     kwargs, {"reload_all", "reload_existing", "update_s3"}
                 )
-                # If there is a problem purging the project, then skip it
                 if not self.purge_project(project, **purge_project_kwargs):
                     continue
 
