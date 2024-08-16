@@ -120,7 +120,7 @@ class Command(BaseCommand):
             )
             return True
 
-        allowed_submitters = {"scpca"} if settings.TEST else ALLOWED_SUBMITTERS
+        allowed_submitters = ALLOWED_SUBMITTERS if not settings.TEST else {"scpca"}
         if pi_name not in allowed_submitters:
             logger.warning("Project submitter is not the white list.")
             return True
