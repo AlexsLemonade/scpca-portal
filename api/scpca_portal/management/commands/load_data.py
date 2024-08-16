@@ -173,10 +173,7 @@ class Command(BaseCommand):
         for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
             path.unlink(missing_ok=True)
 
-    def load_data(
-        self,
-        **kwargs,
-    ) -> None:
+    def load_data(self, **kwargs) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
         # Prepare data input directory.
         common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
