@@ -12,6 +12,7 @@ class TestListInputPaths(TestCase):
     def setUp(self):
         self.input_bucket_name = settings.AWS_S3_INPUT_BUCKET_NAME
         self.nested_input_bucket_dirs = self.get_nested_input_bucket_dirs(self.input_bucket_name)
+        self.empty_relative_path = Path()
 
     def get_nested_input_bucket_dirs(self, bucket_name: str) -> str:
         if nested_input_bucket_path_parts := bucket_name.split("/")[1:]:
@@ -27,7 +28,7 @@ class TestListInputPaths(TestCase):
             stdout=f"2024-06-10 10:00:00 1234 {self.nested_input_bucket_dirs}/file.txt\n"
             f"PRE {self.nested_input_bucket_dirs}/dir/",
         )
-        result = s3.list_input_paths()
+        result = s3.list_input_paths(self.empty_relative_path, self.input_bucket_name)
         expected = [Path("file.txt"), Path("dir/")]
         self.assertEqual(result, expected)
 
@@ -36,7 +37,7 @@ class TestListInputPaths(TestCase):
         mock_run.side_effect = subprocess.CalledProcessError(
             returncode=1, cmd=f"aws s3 ls s3://{self.input_bucket_name}"
         )
-        result = s3.list_input_paths()
+        result = s3.list_input_paths(self.empty_relative_path, self.input_bucket_name)
         expected = []
         self.assertEqual(result, expected)
 
@@ -48,7 +49,7 @@ class TestListInputPaths(TestCase):
             stdout=f"2024-06-10 10:00:00 1234 {self.nested_input_bucket_dirs}/file.txt\n"
             f"PRE {self.nested_input_bucket_dirs}/dir/",
         )
-        result = s3.list_input_paths(relative_path=Path("relative/path"))
+        result = s3.list_input_paths(Path("relative/path"), self.input_bucket_name)
         expected = [Path("file.txt"), Path("dir/")]
         self.assertEqual(result, expected)
 
@@ -61,7 +62,7 @@ class TestListInputPaths(TestCase):
             f"PRE {self.nested_input_bucket_dirs}/nested-dir/dir/",
         )
         expected = [Path("nested-dir/file.txt"), Path("nested-dir/dir/")]
-        result = s3.list_input_paths()
+        result = s3.list_input_paths(Path("nested-dir"), self.input_bucket_name)
         self.assertEqual(expected, result)
 
     @patch("subprocess.run")
@@ -72,5 +73,5 @@ class TestListInputPaths(TestCase):
             stdout="PRE nested-dir",
         )
         expected = [Path("nested-dir")]
-        result = s3.list_input_paths(relative_path=Path("nested-dir"), recursive=False)
+        result = s3.list_input_paths(Path("nested-dir"), self.input_bucket_name, recursive=False)
         self.assertEqual(expected, result)

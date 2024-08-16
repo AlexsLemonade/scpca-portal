@@ -157,7 +157,7 @@ class Command(BaseCommand):
             # Only upload and clean up projects and the last sample if multiplexed
             if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
                 if update_s3:
-                    s3.upload_output_file(computed_file)
+                    s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
                 if clean_up_output_data:
                     computed_file.clean_up_local_computed_file()
             computed_file.save()
