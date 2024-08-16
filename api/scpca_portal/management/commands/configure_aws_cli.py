@@ -42,7 +42,7 @@ class Command(BaseCommand):
             # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#payload-signing-enabled
             "aws configure set default.s3.payload_signing_enabled false",
             # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#max-concurrent-requests
-            f"aws configure set default.s3.max_concurrent_requests {s3_max_concurrent_requests}"
+            f"aws configure set default.s3.max_concurrent_requests {s3_max_concurrent_requests}",
             # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#multipart-chunksize
             f"aws configure set default.s3.multipart_chunksize {s3_multipart_chunk_size}MB",
         ]
