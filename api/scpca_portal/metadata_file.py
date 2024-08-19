@@ -131,6 +131,4 @@ def format_metadata_dict(metadata_dict: Dict) -> Dict:
     """
     Returns a copy of metadata dict that is formatted and ready to be written to file.
     """
-    # Replace empty blank or None values with "NA"
-    metadata_dict.update({k: common.NA for k, v in metadata_dict.items() if v in ["", None]})
     return {k: utils.string_from_list(v) for k, v in metadata_dict.items()}

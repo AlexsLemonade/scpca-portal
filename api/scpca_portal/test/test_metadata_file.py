@@ -51,15 +51,6 @@ class TestGetFileContents(TestCase):
             first_output_dict = next(csv.DictReader(output_buffer, delimiter=common.TAB))
             self.assertEqual(first_output_dict["technology"], "first;second;third")
 
-    def test_get_file_contents_missing_value(self):
-        self.first_library.metadata["seq_units"] = ""
-        libraries_metadata = self.get_libraries_metadata(self.libraries)
-        output_file_contents = metadata_file.get_file_contents(libraries_metadata)
-
-        with io.StringIO(output_file_contents) as output_buffer:
-            first_output_dict = next(csv.DictReader(output_buffer, delimiter=common.TAB))
-            self.assertEqual(first_output_dict["seq_units"], "NA")
-
     def test_get_file_contents_missing_field_name(self):
         self.first_library.metadata.pop("workflow_version")
         libraries_metadata = self.get_libraries_metadata(self.libraries)
