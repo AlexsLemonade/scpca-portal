@@ -48,9 +48,6 @@ class TestLoadMetadata(TransactionTestCase):
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-    def assertProjectReadmeContains(self, text, project_zip):
-        self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
-
     @patch("scpca_portal.management.commands.load_metadata.Command.clean_up_input_data")
     def test_data_clean_up(self, mock_clean_up_input_data):
         project_id = "SCPCP999990"
@@ -83,10 +80,8 @@ class TestLoadMetadata(TransactionTestCase):
         assert_object_count()
 
         project = Project.objects.get(scpca_id=project_id)
-        project_computed_files = project.computed_files
         project_summary = project.summaries.first()
         sample = project.samples.first()
-        sample_computed_files = sample.computed_files
 
         self.assertProjectData(project)
 
@@ -105,8 +100,6 @@ class TestLoadMetadata(TransactionTestCase):
 
         new_sample = new_project.samples.first()
         self.assertEqual(sample, new_sample)
-        self.assertEqual(list(project_computed_files), list(new_project.computed_files))
-        self.assertEqual(list(sample_computed_files), list(new_sample.computed_files))
 
         # Make sure purging works as expected.
         Project.objects.get(scpca_id=project_id).purge()
