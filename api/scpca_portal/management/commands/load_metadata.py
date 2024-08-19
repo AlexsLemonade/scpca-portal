@@ -48,14 +48,7 @@ class Command(BaseCommand):
         /SCPCP000001/SCPCS000109/SCPCL000127_processed.rds
         /SCPCP000001/SCPCS000109/SCPCL000127_qc.html
         /SCPCP000001/SCPCS000109/SCPCL000127_unfiltered.rds
-
-    The files will be zipped up and stats will be calculated for them.
-
-    If run locally the zipped ComputedFiles will be copied to the
-    "scpca-local-data" bucket.
-
-    If run in the cloud the zipped ComputedFiles files will be copied
-    to a stack-specific S3 bucket."""
+    """
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -121,8 +114,9 @@ class Command(BaseCommand):
         # Purge existing projects so they can be re-added.
         if reload_all or reload_existing:
             logger.info(f"Purging '{project}")
-            if project.purge(delete_from_s3=update_s3):
-                return True
+            # If purging fails then return False
+            if not project.purge(delete_from_s3=update_s3):
+                return False
         # Only import new projects.
         # If old ones are desired they should be purged and re-added.
         else:
@@ -135,7 +129,7 @@ class Command(BaseCommand):
         shutil.rmtree(common.INPUT_DATA_PATH, ignore_errors=True)
 
     def load_metadata(self, **kwargs) -> None:
-        """Loads data from S3. Creates projects and loads data for them."""
+        """Loads metadata from input metadata files on s3 and creates model objects in the db."""
         # Prepare data input directory.
         common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
