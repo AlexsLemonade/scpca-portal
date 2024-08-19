@@ -14,8 +14,6 @@ from scpca_portal.models import ComputedFile, Library, Project, Sample
 
 ALLOWED_SUBMITTERS = {"scpca"}
 
-LOCAL_ZIP_FILE_PATH = ComputedFile.get_local_portal_metadata_path()
-
 
 class TestCreatePortalMetadata(TransactionTestCase):
     def setUp(self):
@@ -54,7 +52,10 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.load_test_data()
         self.processor.create_portal_metadata(clean_up_output_data=False)
 
-        with ZipFile(LOCAL_ZIP_FILE_PATH) as zip:
+        zip_file_path = ComputedFile.get_local_file_path(
+            common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
+        )
+        with ZipFile(zip_file_path) as zip:
             # Test the content of the generated zip file
             # There are 2 file:
             # ├── README.md
