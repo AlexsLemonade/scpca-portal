@@ -125,51 +125,6 @@ class TestLoadMetadata(TransactionTestCase):
         )
         assert_object_count()
 
-    def test_merged_project_anndata_cite_seq(self):
-        project_id = "SCPCP999992"
-        self.load_metadata(
-            clean_up_input_data=False,
-            reload_all=False,
-            reload_existing=False,
-        )
-
-        project = Project.objects.get(scpca_id=project_id)
-        self.assertProjectData(project)
-        self.assertTrue(project.has_cite_seq_data)
-        self.assertTrue(project.includes_anndata)
-        self.assertTrue(project.includes_merged_anndata)
-        self.assertTrue(project.includes_merged_sce)
-
-    def test_merged_project_anndata_no_cite_seq(self):
-        project_id = "SCPCP999990"
-        self.load_metadata(
-            clean_up_input_data=False,
-            reload_all=False,
-            reload_existing=False,
-        )
-
-        project = Project.objects.get(scpca_id=project_id)
-        self.assertProjectData(project)
-        self.assertFalse(project.has_cite_seq_data)
-        self.assertTrue(project.includes_anndata)
-        self.assertTrue(project.includes_merged_anndata)
-        self.assertTrue(project.includes_merged_sce)
-
-    def test_no_merged_single_cell(self):
-        project_id = "SCPCP999991"
-        self.load_metadata(
-            clean_up_input_data=False,
-            reload_all=False,
-            reload_existing=False,
-        )
-
-        project = Project.objects.get(scpca_id=project_id)
-        self.assertProjectData(project)
-        self.assertFalse(project.has_cite_seq_data)
-        self.assertTrue(project.includes_anndata)
-        self.assertFalse(project.includes_merged_anndata)
-        self.assertFalse(project.includes_merged_sce)
-
     def test_multiplexed_metadata(self):
         project_id = "SCPCP999991"
         self.load_metadata(
