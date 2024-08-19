@@ -67,9 +67,12 @@ class Command(BaseCommand):
         parser.add_argument("--reload-all", action="store_true", default=False)
         parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--scpca-project-id", type=str)
+        parser.add_argument(
+            "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
+        )
 
     def handle(self, *args, **kwargs):
-        self.load_data(**kwargs)
+        self.load_metadata(**kwargs)
 
     @staticmethod
     def project_has_s3_files(project_id: str) -> bool:
@@ -131,7 +134,7 @@ class Command(BaseCommand):
     def clean_up_input_data() -> None:
         shutil.rmtree(common.INPUT_DATA_PATH, ignore_errors=True)
 
-    def load_data(self, **kwargs) -> None:
+    def load_metadata(self, **kwargs) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
         # Prepare data input directory.
         common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
