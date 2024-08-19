@@ -14,7 +14,6 @@ from scpca_portal.models import ComputedFile, Library, Project, Sample
 
 ALLOWED_SUBMITTERS = {"scpca"}
 
-ENCODING = "utf-8"
 README_FILE = readme_file.OUTPUT_NAME
 METADATA_FILE = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
@@ -30,7 +29,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def assertProjectReadmeContains(self, text, zip_file):
-        self.assertIn(text, zip_file.read(README_FILE).decode(ENCODING))
+        self.assertIn(text, zip_file.read(README_FILE).decode("utf-8"))
 
     def load_test_data(self):
         # Expected object counts
@@ -83,7 +82,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
             self.assertProjectReadmeContains(expected_text, zip_file)
 
             # Test the content of metadata.tsv
-            tsv = zip_file.read(METADATA_FILE).decode(ENCODING).splitlines()
+            tsv = zip_file.read(METADATA_FILE).decode("utf-8").splitlines()
             rows = list(csv.DictReader(tsv, delimiter=common.TAB))
 
             # The header keys should match the common sort order list (excludes '*')
