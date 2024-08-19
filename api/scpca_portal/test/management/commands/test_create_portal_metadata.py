@@ -56,7 +56,10 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.load_test_data()
         computed_file = self.processor.create_portal_metadata(clean_up_output_data=False)
 
-        with ZipFile(ComputedFile.get_local_portal_metadata_path()) as zip_file:
+        zip_file_path = ComputedFile.get_local_file_path(
+            common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
+        )
+        with ZipFile(zip_file_path) as zip_file:
             # Test the content of the generated zip file
             # There are 2 file:
             # ├── README.md

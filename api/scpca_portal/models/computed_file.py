@@ -93,6 +93,13 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def get_local_portal_metadata_path() -> Path:
         return common.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
 
+    @staticmethod
+    def get_local_file_path(download_config: Dict) -> Path:
+        """Takes a download_config dictionary and returns the filepath
+        where the zipfile will be saved locally before upload."""
+        if download_config is common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG:
+            return common.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
+
     @classmethod
     def get_portal_metadata_file(cls, projects, download_config: Dict) -> Self:
         """
@@ -102,7 +109,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         creates a ComputedFile object which it then saves to the db.
         """
         libraries = Library.objects.all()
-        # If the query return empty, then an error occurred, and we should abort early
+        # If the query returns empty, then an error occurred, and we should abort early
         if not libraries.exists():
             return
 
@@ -111,7 +118,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             common.METADATA_COLUMN_SORT_ORDER,
         )
 
-        with ZipFile(cls.get_local_portal_metadata_path(), "w") as zip_file:
+        zip_file_path = cls.get_local_file_path(download_config)
+        with ZipFile(zip_file_path, "w") as zip_file:
             # Readme file
             zip_file.writestr(
                 readme_file.OUTPUT_NAME,
@@ -130,7 +138,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             portal_metadata_only=True,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
             s3_key=common.PORTAL_METADATA_COMPUTED_FILE_NAME,
-            size_in_bytes=cls.get_local_portal_metadata_path().stat().st_size,
+            size_in_bytes=zip_file_path.stat().st_size,
         )
 
         return computed_file
@@ -144,7 +152,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         creates a ComputedFile object which it then saves to the db.
         """
         libraries = Library.get_project_libraries_from_download_config(project, download_config)
-        # If the query return empty, then an error occurred, and we should abort early
+        # If the query returns empty, then an error occurred, and we should abort early
         if not libraries.exists():
             return
 
@@ -232,7 +240,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         creates a ComputedFile object which it then saves to the db.
         """
         libraries = Library.get_sample_libraries_from_download_config(sample, download_config)
-        # If the query return empty, then an error occurred, and we should abort early
+        # If the query returns empty, then an error occurred, and we should abort early
         if not libraries.exists():
             return
 

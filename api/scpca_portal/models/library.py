@@ -159,7 +159,7 @@ class Library(TimestampedModel):
     def get_sample_libraries_from_download_config(
         cls, sample, download_configuration: Dict
     ):  # -> QuerySet[Self]:
-        if download_configuration not in common.GENERATED_SAMPLE_DOWNLOAD_CONFIG:
+        if download_configuration not in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS:
             raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
 
         return sample.libraries.filter(
