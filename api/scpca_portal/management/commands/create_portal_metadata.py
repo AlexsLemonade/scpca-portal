@@ -35,7 +35,7 @@ class Command(BaseCommand):
     def create_portal_metadata(self, **kwargs):
         logger.info("Creating the portal-wide metadata computed file")
         computed_file = ComputedFile.get_portal_metadata_file(
-            Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG[0]
+            Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
         )
 
         if kwargs["clean_up_output_data"]:
