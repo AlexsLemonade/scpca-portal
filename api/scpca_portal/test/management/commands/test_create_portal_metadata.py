@@ -28,6 +28,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         super().tearDownClass()
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
+    # TODO: After PR #839 is merged into dev, add readme file format testing
     def assertProjectReadmeContains(self, text, zip_file):
         self.assertIn(text, zip_file.read(README_FILE).decode("utf-8"))
 
