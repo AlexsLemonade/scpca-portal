@@ -64,10 +64,10 @@ class TestLoadMetadata(TransactionTestCase):
     def test_load_metadata(self):
         project_id = "SCPCP999990"
 
-        def assert_object_count():
-            self.assertEqual(Project.objects.count(), 1)
-            self.assertEqual(ProjectSummary.objects.count(), 4)
-            self.assertEqual(Sample.objects.count(), 4)
+        def assert_object_count(*, objects_loaded=True):
+            self.assertEqual(Project.objects.count(), 1 if objects_loaded else 0)
+            self.assertEqual(ProjectSummary.objects.count(), 4 if objects_loaded else 0)
+            self.assertEqual(Sample.objects.count(), 4 if objects_loaded else 0)
 
         # First, just test that loading data works.
         self.load_metadata(
@@ -80,9 +80,6 @@ class TestLoadMetadata(TransactionTestCase):
         assert_object_count()
 
         project = Project.objects.get(scpca_id=project_id)
-        project_summary = project.summaries.first()
-        sample = project.samples.first()
-
         self.assertProjectData(project)
 
         # Make sure that reload_existing=False won't add anything new when there's nothing new.
@@ -96,17 +93,13 @@ class TestLoadMetadata(TransactionTestCase):
 
         new_project = Project.objects.get(scpca_id=project_id)
         self.assertEqual(project, new_project)
-        self.assertEqual(project_summary, new_project.summaries.first())
-
-        new_sample = new_project.samples.first()
-        self.assertEqual(sample, new_sample)
+        self.assertEqual(project.summaries.first(), new_project.summaries.first())
+        self.assertEqual(project.samples.first(), new_project.samples.first())
 
         # Make sure purging works as expected.
         Project.objects.get(scpca_id=project_id).purge()
 
-        self.assertEqual(Project.objects.count(), 0)
-        self.assertEqual(ProjectSummary.objects.count(), 0)
-        self.assertEqual(Sample.objects.count(), 0)
+        assert_object_count(objects_loaded=False)
 
         # Make sure reloading works smoothly.
         self.load_metadata(
