@@ -94,7 +94,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
 
             # Test the computed file
             if computed_file:
-                expected_size = 8395
+                expected_size = 8469
                 self.assertEqual(computed_file.size_in_bytes, expected_size)
             else:
                 self.fail("No computed file")
