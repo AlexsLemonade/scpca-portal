@@ -32,22 +32,13 @@ logger.addHandler(logging.StreamHandler())
 class Command(BaseCommand):
     help = """Populates the database with data.
 
-    The data should be contained in an S3 bucket called scpca-portal-inputs.
+    Metadata files should be contained in an S3 bucket called scpca-portal-inputs.
 
-    The directory structure for this bucket should follow this pattern:
+    The bucket's directory structure, as it pertains to metadata files, should follow this pattern:
         /project_metadata.csv
-        /SCPCP000001/libraries_metadata.csv
         /SCPCP000001/samples_metadata.csv
-        /SCPCP000001/SCPCS000109/SCPCL000126_filtered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_metadata.json
-        /SCPCP000001/SCPCS000109/SCPCL000126_processed.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_qc.html
-        /SCPCP000001/SCPCS000109/SCPCL000126_unfiltered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_filtered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_metadata.json
-        /SCPCP000001/SCPCS000109/SCPCL000127_processed.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_qc.html
-        /SCPCP000001/SCPCS000109/SCPCL000127_unfiltered.rds
+        /SCPCP000001/SCPCS000001/SCPCL000001_metadata.json
+        /SCPCP000001/SCPCS000002/SCPCL000002_spatial/SCPCL000002_metadata.json
     """
 
     def add_arguments(self, parser):
