@@ -43,6 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Touch .aws
+        run: mkdir -p ~/.aws && touch ~/.aws/config
       - name: Set perms
         run: chmod -R a+rw api ~/.aws
       - name: Build the stack
