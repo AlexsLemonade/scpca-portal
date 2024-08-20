@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0049_auto_20240806_1533'),
+        ("scpca_portal", "0049_auto_20240806_1533"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='computedfile',
-            name='portal_metadata_only',
+            model_name="computedfile",
+            name="portal_metadata_only",
             field=models.BooleanField(default=False),
         ),
     ]
