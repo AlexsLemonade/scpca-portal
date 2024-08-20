@@ -47,5 +47,7 @@ jobs:
         run: chmod -R a+rw api
       - name: Build the stack
         run: docker compose --env-file ./docker-compose.env build
+      - name: Touch .aws
+        run: mkdir -p ~/.aws && touch ~/.aws/config
       - name: Test
         run: ./bin/sportal test-api
