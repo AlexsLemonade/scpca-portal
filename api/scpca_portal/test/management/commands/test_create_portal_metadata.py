@@ -1,5 +1,6 @@
 import csv
 import shutil
+from unittest.mock import patch
 from zipfile import ZipFile
 
 from django.test import TransactionTestCase
@@ -32,10 +33,6 @@ class TestCreatePortalMetadata(TransactionTestCase):
         super().tearDownClass()
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
-    # TODO: After PR #839 is merged into dev, add readme file format testing
-    def assertProjectReadmeContains(self, text, zip_file):
-        self.assertIn(text, zip_file.read(README_FILE).decode("utf-8"))
-
     def load_test_data(self):
         # Expected object counts
         PROJECTS_COUNT = 3
@@ -43,7 +40,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         LIBRARIES_COUNT = 7
 
         self.loader.load_data(
-            allowed_submitters=list(ALLOWED_SUBMITTERS),
+            allowed_submitters=ALLOWED_SUBMITTERS,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
@@ -56,20 +53,37 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
-    def test_create_portal_metadata(self):
-        self.load_test_data()
-        computed_file = self.processor.create_portal_metadata(clean_up_output_data=False)
+    # TODO: After PR #839 is merged into dev, add readme file format testing
+    def assertProjectReadmeContains(self, text, zip_file):
+        self.assertIn(text, zip_file.read(README_FILE).decode("utf-8"))
 
+    @patch("scpca_portal.management.commands.create_portal_metadata.s3.upload_output_file")
+    def test_create_portal_metadata(self, mock_upload_output_file):
+        # Set up the database for test
+        self.load_test_data()
+        # Create the portal metadata computed_file
+        computed_file = self.processor.create_portal_metadata(
+            clean_up_output_data=False, update_s3=True
+        )
+
+        # Test computed_file
+        if computed_file:
+            expected_size = 8469
+            self.assertEqual(computed_file.size_in_bytes, expected_size)
+            mock_upload_output_file.assert_called_once_with(computed_file.s3_key)
+        else:
+            self.fail("No computed file")
+
+        # Test the content of the generated zip file
         zip_file_path = ComputedFile.get_local_file_path(
             common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
         )
         with ZipFile(zip_file_path) as zip_file:
-            # Test the content of the generated zip file
             # There are 2 file:
             # ├── README.md
             # |── metadata.tsv
             expected_file_count = 2
-            # The filenames should match the following constants specified for the computed file
+            # The filenames should match the following constants
             expected_files = {
                 README_FILE,
                 METADATA_FILE,
@@ -80,25 +94,17 @@ class TestCreatePortalMetadata(TransactionTestCase):
             for expected_file in expected_files:
                 self.assertIn(expected_file, files)
 
-            # Test the content of README.md
+            # README.md
             expected_text = (
                 "This download includes associated metadata for samples from all projects"
             )
             self.assertProjectReadmeContains(expected_text, zip_file)
 
-            # Test the content of metadata.tsv
+            # metadata.tsv
             tsv = zip_file.read(METADATA_FILE).decode("utf-8").splitlines()
             rows = list(csv.DictReader(tsv, delimiter=common.TAB))
-
             # The header keys should match the common sort order list (excludes '*')
             expected_keys = list(filter(lambda k: k != "*", common.METADATA_COLUMN_SORT_ORDER))
             expected_row_count = 8  # 8 records (excludes the header)
             self.assertEqual(list(rows[0].keys()), expected_keys)
             self.assertEqual(len(rows), expected_row_count)
-
-            # Test the computed file
-            if computed_file:
-                expected_size = 8469
-                self.assertEqual(computed_file.size_in_bytes, expected_size)
-            else:
-                self.fail("No computed file")
