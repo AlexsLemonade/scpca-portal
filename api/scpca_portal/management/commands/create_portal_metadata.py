@@ -22,11 +22,16 @@ class Command(BaseCommand):
         parser.add_argument(
             "--clean-up-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
+        parser.add_argument("--delete-from-s3", action=BooleanOptionalAction, default=False)
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
+        parser.add_argument("--purge", action=BooleanOptionalAction, default=False)
 
     def handle(self, *args, **kwargs):
+        if kwargs.get("purge", False):
+            delete_from_s3 = kwargs.get("delete_from_s3", False)
+            self.purge_computed_file(delete_from_s3=delete_from_s3)
         self.create_portal_metadata(**kwargs)
 
     def create_portal_metadata(self, **kwargs):
