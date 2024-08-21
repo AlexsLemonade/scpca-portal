@@ -1,4 +1,3 @@
-import subprocess
 from pathlib import Path
 from threading import Lock
 from typing import Dict
@@ -7,17 +6,14 @@ from zipfile import ZipFile
 from django.conf import settings
 from django.db import models
 
-import boto3
-from botocore.client import Config
 from typing_extensions import Self
 
-from scpca_portal import common, metadata_file, readme_file, utils
+from scpca_portal import common, metadata_file, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 
 logger = get_and_configure_logger(__name__)
-s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
 class ComputedFile(CommonDataAttributes, TimestampedModel):
@@ -130,10 +126,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries_metadata = [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
+
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
         project_data_file_paths = project.get_download_config_file_paths(download_config)
+        s3.download_input_files(library_data_file_paths + project_data_file_paths)
 
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -221,6 +219,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
+        s3.download_input_files(library_data_file_paths)
 
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
@@ -281,9 +280,15 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @property
-    def download_url(self):
+    def download_url(self) -> str:
         """A temporary URL from which the file can be downloaded."""
-        return self.create_download_url()
+        if self.s3_bucket and self.s3_key:
+            # Append the download date to the filename on download.
+            date = utils.get_today_string()
+            key_path = Path(self.s3_key)
+            filename = f"{key_path.stem}_{date}{key_path.suffix}"
+
+            return s3.generate_pre_signed_link(self.s3_key, filename)
 
     @property
     def is_project_multiplexed_zip(self):
@@ -314,52 +319,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     @property
     def zip_file_path(self):
         return common.OUTPUT_DATA_PATH / self.s3_key
-
-    def create_download_url(self):
-        """Creates a temporary URL from which the file can be downloaded."""
-        if self.s3_bucket and self.s3_key:
-            # Append the download date to the filename on download.
-            date = utils.get_today_string()
-            s3_key = Path(self.s3_key)
-
-            return s3.generate_presigned_url(
-                ClientMethod="get_object",
-                Params={
-                    "Bucket": self.s3_bucket,
-                    "Key": self.s3_key,
-                    "ResponseContentDisposition": (
-                        f"attachment; filename = {s3_key.stem}_{date}{s3_key.suffix}"
-                    ),
-                },
-                ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
-            )
-
-    def upload_s3_file(self):
-        """Upload a computed file to S3 using the AWS CLI tool."""
-
-        aws_path = f"s3://{settings.AWS_S3_BUCKET_NAME}/{self.s3_key}"
-        command_parts = ["aws", "s3", "cp", str(self.zip_file_path), aws_path]
-
-        logger.info(f"Uploading {self}")
-        subprocess.check_call(command_parts)
-
-    def delete_s3_file(self, force=False):
-        # If we're not running in the cloud then we shouldn't try to
-        # delete something from S3 unless force is set.
-        if not settings.UPDATE_S3_DATA and not force:
-            return False
-
-        try:
-            s3.delete_object(Bucket=self.s3_bucket, Key=self.s3_key)
-        except Exception:
-            logger.exception(
-                "Failed to delete S3 object for Computed File.",
-                computed_file=self.id,
-                s3_object=self.s3_key,
-            )
-            return False
-
-        return True
 
     def clean_up_local_computed_file(self):
         """Delete local computed file."""
