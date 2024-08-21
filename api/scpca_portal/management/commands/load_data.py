@@ -100,10 +100,9 @@ class Command(BaseCommand):
             if nested_path.is_dir()
         )
 
-    def skip_project(
+    def project_can_be_processed(
         self,
-        metadata_project_id: str,
-        passed_project_id: str,
+        project_id: str,
         pi_name: str,
     ) -> bool:
         """
@@ -111,21 +110,18 @@ class Command(BaseCommand):
         should be skipped and not processed.
         """
         # If project id was passed to command, verify that correct project is being processed
-        if passed_project_id and passed_project_id != metadata_project_id:
-            return True
-
-        if not self.project_has_s3_files(metadata_project_id):
+        if not self.project_has_s3_files(project_id):
             logger.warning(
-                f"Metadata found for '{metadata_project_id}', but no s3 folder of that name exists."
+                f"Metadata found for '{project_id}', but no s3 folder of that name exists."
             )
-            return True
+            return False
 
         allowed_submitters = ALLOWED_SUBMITTERS if not settings.TEST else {"scpca"}
         if pi_name not in allowed_submitters:
             logger.warning("Project submitter is not the white list.")
-            return True
+            return False
 
-        return False
+        return True
 
     def purge_project(
         self, project, *, reload_all: bool, reload_existing: bool, update_s3: bool
@@ -188,23 +184,24 @@ class Command(BaseCommand):
             Project.get_input_project_metadata_file_path()
         )
         for project_metadata in projects_metadata:
-            metadata_project_id = project_metadata["scpca_project_id"]
-            passed_project_id = kwargs.get("scpca_project_id")
+            if kwargs.get("scpca_project_id") and project_metadata[
+                "scpca_project_id"
+            ] != kwargs.get("scpca_project_id"):
+                continue
 
-            if self.skip_project(
-                metadata_project_id, passed_project_id, project_metadata["pi_name"]
-            ):
+            project_id = project_metadata["scpca_project_id"]
+            if not self.project_can_be_processed(project_id, project_metadata["pi_name"]):
                 continue
 
             # If project exists and cannot be purged, then throw a warning
-            if project := Project.objects.filter(scpca_id=metadata_project_id).first():
+            if project := Project.objects.filter(scpca_id=project_id).first():
                 purge_project_kwargs = utils.filter_dict_by_keys(
                     kwargs, {"reload_all", "reload_existing", "update_s3"}
                 )
                 if not self.purge_project(project, **purge_project_kwargs):
                     continue
 
-            logger.info(f"Importing 'Project {metadata_project_id}' data")
+            logger.info(f"Importing 'Project {project_id}' data")
             project_metadata["s3_input_bucket"] = kwargs["input_bucket_name"]
             project = Project.get_from_dict(project_metadata)
             project.save()
