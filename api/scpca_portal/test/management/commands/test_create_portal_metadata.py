@@ -6,11 +6,8 @@ from zipfile import ZipFile
 from django.test import TransactionTestCase
 
 from scpca_portal import common, metadata_file, readme_file
+from scpca_portal.management.commands import create_portal_metadata, load_data
 from scpca_portal.models import ComputedFile, Library, Project, Sample
-
-from scpca_portal.management.commands import create_portal_metadata  # isort:skip
-from scpca_portal.management.commands import configure_aws_cli  # isort:skip
-from scpca_portal.management.commands import load_data  # isort:skip
 
 # NOTE: Test data bucket is defined in `scpca_porta/common.py`.
 # When common.INPUT_BUCKET_NAME is changed, please delete the contents of
@@ -26,7 +23,6 @@ class TestCreatePortalMetadata(TransactionTestCase):
     def setUp(self):
         self.processor = create_portal_metadata.Command()
         self.loader = load_data.Command()
-        configure_aws_cli.Command()  # TEMP Prevent load_data test from running in parallel
 
     @classmethod
     def tearDownClass(cls):
