@@ -108,7 +108,7 @@ def get_file_contents(libraries_metadata: List[Dict], **kwargs) -> str:
         utils.get_sorted_field_names(utils.get_keys_from_dicts(sorted_libraries_metadata)),
     )
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
-    # By default fill missing values with "NA"
+    # By default fill dicts with missing fieldnames with "NA" values
     kwargs["restval"] = kwargs.get("restval", common.NA)
 
     with io.StringIO() as metadata_buffer:

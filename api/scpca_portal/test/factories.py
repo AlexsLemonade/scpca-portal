@@ -107,15 +107,19 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     project = factory.SubFactory(LeafProjectFactory)
     scpca_id = factory.Sequence(lambda n: "SCPCL0000%d" % n)
     workflow_version = "development"
-    metadata = {
-        "technology": "10Xv3.1",
-        "seq_unit": "nucleus",
-        "is_multiplexed": True,
-        "has_citeseq": False,
-        "has_cellhash": True,
-        "workflow": "https://github.com/AlexsLemonade/scpca-nf",
-        "workflow_version": "development",
-    }
+    # With factory_body, factory instances share attributes by default
+    # Use LazyFunction to populate metadata dict so that changes don't propogate to all instances
+    metadata = factory.LazyFunction(
+        lambda: {
+            "technology": "10Xv3.1",
+            "seq_unit": "nucleus",
+            "is_multiplexed": True,
+            "has_citeseq": False,
+            "has_cellhash": True,
+            "workflow": "https://github.com/AlexsLemonade/scpca-nf",
+            "workflow_version": "development",
+        }
+    )
 
 
 class ProjectFactory(LeafProjectFactory):
