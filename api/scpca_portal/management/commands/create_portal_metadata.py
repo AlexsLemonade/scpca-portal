@@ -52,3 +52,17 @@ class Command(BaseCommand):
                 computed_file.clean_up_local_computed_file()
 
         return computed_file
+
+    def purge_computed_file(self, delete_from_s3=False):
+        logger.info("Purging the portal-wide metadata computed file")
+
+        computed_file = ComputedFile.objects.filter(portal_metadata_only=True).first()
+
+        if computed_file:
+            if delete_from_s3:
+                logger.info("Deleting the zip from S3")
+                s3.delete_output_file(computed_file.s3_key)
+            logger.info("Deleting the instance from the database")
+            computed_file.delete()
+        else:
+            logger.info("No computed file to purge")
