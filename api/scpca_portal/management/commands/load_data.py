@@ -181,14 +181,9 @@ class Command(BaseCommand):
         s3.download_input_metadata(kwargs["input_bucket_name"])
 
         projects_metadata = metadata_file.load_projects_metadata(
-            Project.get_input_project_metadata_file_path()
+            Project.get_input_project_metadata_file_path(), kwargs["scpca_project_id"]
         )
         for project_metadata in projects_metadata:
-            if kwargs.get("scpca_project_id") and project_metadata[
-                "scpca_project_id"
-            ] != kwargs.get("scpca_project_id"):
-                continue
-
             project_id = project_metadata["scpca_project_id"]
             if not self.project_can_be_processed(project_id, project_metadata["pi_name"]):
                 continue
