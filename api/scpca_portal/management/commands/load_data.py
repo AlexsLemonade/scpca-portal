@@ -90,16 +90,6 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.load_data(**kwargs)
 
-    @staticmethod
-    def project_has_s3_files(project_id: str) -> bool:
-        return any(
-            True
-            for project_path in common.INPUT_DATA_PATH.iterdir()
-            if project_path.name == project_id and project_path.is_dir()
-            for nested_path in project_path.iterdir()
-            if nested_path.is_dir()
-        )
-
     def project_can_be_processed(
         self,
         project_id: str,
@@ -110,7 +100,8 @@ class Command(BaseCommand):
         should be skipped and not processed.
         """
         # If project id was passed to command, verify that correct project is being processed
-        if not self.project_has_s3_files(project_id):
+        project_path = common.INPUT_DATA_PATH / project_id
+        if project_path not in common.INPUT_DATA_PATH.iterdir():
             logger.warning(
                 f"Metadata found for '{project_id}', but no s3 folder of that name exists."
             )
@@ -118,7 +109,7 @@ class Command(BaseCommand):
 
         allowed_submitters = ALLOWED_SUBMITTERS if not settings.TEST else {"scpca"}
         if pi_name not in allowed_submitters:
-            logger.warning("Project submitter is not the white list.")
+            logger.warning("Project submitter is not in the white list.")
             return False
 
         return True
