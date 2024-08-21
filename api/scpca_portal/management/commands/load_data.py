@@ -202,8 +202,8 @@ class Command(BaseCommand):
                     continue
 
             logger.info(f"Importing 'Project {project_id}' data")
-            project_metadata["s3_input_bucket"] = kwargs["input_bucket_name"]
             project = Project.get_from_dict(project_metadata)
+            project.s3_input_bucket = kwargs["input_bucket_name"]
             project.save()
 
             Contact.bulk_create_from_project_data(project_metadata, project)
