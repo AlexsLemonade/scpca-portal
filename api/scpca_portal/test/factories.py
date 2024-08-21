@@ -79,7 +79,8 @@ class SampleFactory(factory.django.DjangoModelFactory):
         "braf_status": "Not tested for BRAF status",
         "has_spinal_leptomeningeal_mets": False,
     }
-    age_at_diagnosis = "4"
+    age = "4"
+    age_timing = "diagnosis"
     computed_file1 = factory.RelatedFactory(SampleComputedFileFactory, "sample")
     diagnosis = "pilocytic astrocytoma"
     disease_timing = "primary diagnosis"
