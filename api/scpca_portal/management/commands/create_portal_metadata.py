@@ -40,7 +40,7 @@ class Command(BaseCommand):
         )
 
         if computed_file:
-            logger.info("Saving the computed file object to the database")
+            logger.info("Saving the instance to the database")
             computed_file.save()
 
             if update_s3:
@@ -48,7 +48,7 @@ class Command(BaseCommand):
                 s3.upload_output_file(computed_file.s3_key)
 
             if clean_up_output_data:
-                logger.info("Cleaning up output the directory")
+                logger.info("Cleaning up the output directory")
                 computed_file.clean_up_local_computed_file()
 
         return computed_file
