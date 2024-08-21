@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
 from threading import Lock
+from typing import Any, Dict
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -90,25 +91,22 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.load_data(**kwargs)
 
-    def project_can_be_processed(
-        self,
-        project_id: str,
-        pi_name: str,
-    ) -> bool:
+    def can_process_project(self, project_metadata: Dict[str, Any]) -> bool:
         """
-        Carries out a series of checks to determine whether or not a project
-        should be skipped and not processed.
+        Validates that a project can be processed by assessing that:
+        - Input files exist for the project
+        - The project's pi is on the whitelist of acceptable submitters
         """
-        # If project id was passed to command, verify that correct project is being processed
-        project_path = common.INPUT_DATA_PATH / project_id
+        project_path = common.INPUT_DATA_PATH / project_metadata["scpca_project_id"]
         if project_path not in common.INPUT_DATA_PATH.iterdir():
             logger.warning(
-                f"Metadata found for '{project_id}', but no s3 folder of that name exists."
+                f"Metadata found for {project_metadata['scpca_project_id']},"
+                "but no s3 folder of that name exists."
             )
             return False
 
         allowed_submitters = ALLOWED_SUBMITTERS if not settings.TEST else {"scpca"}
-        if pi_name not in allowed_submitters:
+        if project_metadata["pi_name"] not in allowed_submitters:
             logger.warning("Project submitter is not in the white list.")
             return False
 
@@ -175,11 +173,11 @@ class Command(BaseCommand):
             Project.get_input_project_metadata_file_path(), kwargs["scpca_project_id"]
         )
         for project_metadata in projects_metadata:
-            project_id = project_metadata["scpca_project_id"]
-            if not self.project_can_be_processed(project_id, project_metadata["pi_name"]):
+            if not self.can_process_project(project_metadata):
                 continue
 
             # If project exists and cannot be purged, then throw a warning
+            project_id = project_metadata["scpca_project_id"]
             if project := Project.objects.filter(scpca_id=project_id).first():
                 purge_project_kwargs = utils.filter_dict_by_keys(
                     kwargs, {"reload_all", "reload_existing", "update_s3"}
@@ -187,7 +185,7 @@ class Command(BaseCommand):
                 if not self.purge_project(project, **purge_project_kwargs):
                     continue
 
-            logger.info(f"Importing 'Project {project_id}' data")
+            logger.info(f"Importing Project {project_metadata['scpca_project_id']} data")
             project = Project.get_from_dict(project_metadata)
             project.s3_input_bucket = kwargs["input_bucket_name"]
             project.save()
