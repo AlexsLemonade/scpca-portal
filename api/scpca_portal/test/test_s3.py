@@ -26,14 +26,15 @@ class TestListInputPaths(TestCase):
         self.assertEqual(expected_command_inputs, actual_command_inputs)
 
     @patch("subprocess.run")
-    def test_list_input_paths_recursive_flag_passed(self, mock_run):
-        s3.list_input_paths(self.default_relative_path, self.default_bucket_name, recursive=True)
+    def test_list_input_paths_recursive_flag_passed_by_default(self, mock_run):
+        s3.list_input_paths(self.default_relative_path, self.default_bucket_name)
         mock_run.assert_called_once()
         expected_command_inputs = [
             "aws",
             "s3",
             "ls",
             f"s3://{self.default_bucket_name}/{self.default_relative_path}",
+            # No need to pass recursive=True to function call as this is default behavior
             "--recursive",
         ]
         actual_command_inputs = mock_run.call_args.args[0]
@@ -67,8 +68,9 @@ class TestListInputPaths(TestCase):
             stdout=f"2024-06-10 10:00:00 1234 {self.default_relative_path}/file.txt\n"
             f"PRE {self.default_relative_path}/dir/",
         )
-        # recursive=True is not passed to test that the default value is recursive=True
-        result = s3.list_input_paths(self.default_relative_path, self.default_bucket_name)
+        result = s3.list_input_paths(
+            self.default_relative_path, self.default_bucket_name, recursive=True
+        )
         expected = [self.default_relative_path / "file.txt", self.default_relative_path / "dir/"]
         self.assertEqual(result, expected)
 
@@ -85,9 +87,7 @@ class TestListInputPaths(TestCase):
             stdout=f"PRE {self.default_relative_path}",
         )
         expected = [self.default_relative_path]
-        result = s3.list_input_paths(
-            self.default_relative_path, self.default_bucket_name, recursive=False
-        )
+        result = s3.list_input_paths(self.default_relative_path, self.default_bucket_name)
         self.assertEqual(expected, result)
 
     @patch("subprocess.run")
