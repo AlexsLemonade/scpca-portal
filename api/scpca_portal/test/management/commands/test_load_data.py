@@ -1,4 +1,5 @@
 import csv
+import logging
 import re
 import shutil
 from io import TextIOWrapper
@@ -21,6 +22,10 @@ ALLOWED_SUBMITTERS = {"scpca"}
 
 README_DIR = common.DATA_PATH / "readmes"
 README_FILE = readme_file.OUTPUT_NAME
+
+# Check for the existing logging handler
+if not (logger := logging.getLogger()).hasHandlers():
+    logger.setLevel(logging.INFO)
 
 
 class TestLoadData(TransactionTestCase):
@@ -77,12 +82,13 @@ class TestLoadData(TransactionTestCase):
         # Get the corresponding saved readme output path based on the zip filename
         readme_filename = re.sub(r"^[A-Z\d]+_", "", Path(zip_file.filename).stem) + ".md"
         saved_readme_output_path = README_DIR / readme_filename
-        # Convert expected and output contents to line lists for comparison for easy debugging
+        # Convert expected and output contents to line lists for easier debugging
         with zip_file.open(README_FILE) as readme_file:
             output_content = readme_file.read().decode("utf-8").splitlines(True)
         with saved_readme_output_path.open("r", encoding="utf-8") as saved_readme_file:
             expected_content = get_updated_content(saved_readme_file.read()).splitlines(True)
-
+        # Log the names of the readme file and the current test method
+        logger.info(f"Currently testing {readme_filename} in {self._testMethodName}")
         self.assertEqual(expected_content, output_content)
 
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_output_data")
