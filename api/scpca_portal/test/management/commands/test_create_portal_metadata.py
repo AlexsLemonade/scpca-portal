@@ -117,15 +117,15 @@ class TestCreatePortalMetadata(TransactionTestCase):
 
         if computed_file:
             mock_upload_output_file.assert_called_once_with(computed_file.s3_key)
-
+            # Query the newly created computed_file with its corresponding id
             computed_file_before_purge = ComputedFile.objects.filter(
                 id=computed_file.id, portal_metadata_only=True
             ).first()
 
-            # Purge the newly created computed_file
+            # Purge computed_file
             self.processor.purge_computed_file(delete_from_s3=True)
             mock_delete_output_file.assert_called_once_with(computed_file.s3_key)
-            # Make sure that computed_file with matching id has been deleted
+            # Make sure that computed_file has been deleted from the database
             computed_file_after_purge = ComputedFile.objects.filter(
                 id=computed_file_before_purge.id, portal_metadata_only=True
             ).first()
