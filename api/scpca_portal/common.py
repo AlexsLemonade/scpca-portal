@@ -30,6 +30,21 @@ SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
 
 FORMAT_EXTENSIONS = {ANN_DATA: ".h5ad", SINGLE_CELL_EXPERIMENT: ".rds"}
 
+SUBMITTER_WHITELIST = {
+    "christensen",
+    "collins",
+    "dyer_chen",
+    "gawad",
+    "green_mulcahy_levy",
+    "mullighan",
+    "murphy_chen",
+    "pugh",
+    "teachey_tan",
+    "wu",
+    "rokita",
+    "soragni",
+}
+
 # Global sort order for Metadata TSVs
 # Columns
 METADATA_COLUMN_SORT_ORDER = [

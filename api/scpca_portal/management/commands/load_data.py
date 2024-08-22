@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
 from threading import Lock
-from typing import Any, Dict
+from typing import Any, Dict, Set
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -15,21 +15,6 @@ from django.template.defaultfilters import pluralize
 from scpca_portal import common, metadata_file, s3
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
 from scpca_portal.models.computed_file import ComputedFile
-
-ALLOWED_SUBMITTERS = {
-    "christensen",
-    "collins",
-    "dyer_chen",
-    "gawad",
-    "green_mulcahy_levy",
-    "mullighan",
-    "murphy_chen",
-    "pugh",
-    "teachey_tan",
-    "wu",
-    "rokita",
-    "soragni",
-}
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -86,11 +71,17 @@ class Command(BaseCommand):
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
         )
+        parser.add_argument(
+            "--whitelist", type=self.comma_separated_set, default=common.SUBMITTER_WHITELIST
+        )
 
     def handle(self, *args, **kwargs):
         self.load_data(**kwargs)
 
-    def can_process_project(self, project_metadata: Dict[str, Any]) -> bool:
+    def comma_separated_set(self, raw_str: str) -> Set[str]:
+        return set(raw_str.split(","))
+
+    def can_process_project(self, project_metadata: Dict[str, Any], whitelist: Set[str]) -> bool:
         """
         Validates that a project can be processed by assessing that:
         - Input files exist for the project
@@ -104,8 +95,7 @@ class Command(BaseCommand):
             )
             return False
 
-        allowed_submitters = ALLOWED_SUBMITTERS if not settings.TEST else {"scpca"}
-        if project_metadata["pi_name"] not in allowed_submitters:
+        if project_metadata["pi_name"] not in whitelist:
             logger.warning("Project submitter is not in the white list.")
             return False
 
@@ -169,6 +159,7 @@ class Command(BaseCommand):
         reload_existing,
         scpca_project_id,
         update_s3,
+        whitelist,
         **kwargs,
     ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
@@ -185,7 +176,7 @@ class Command(BaseCommand):
             Project.get_input_project_metadata_file_path(), scpca_project_id
         )
         for project_metadata in projects_metadata:
-            if not self.can_process_project(project_metadata):
+            if not self.can_process_project(project_metadata, whitelist):
                 continue
 
             # If project exists and cannot be purged, then throw a warning
