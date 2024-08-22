@@ -8,7 +8,7 @@ from zipfile import ZipFile
 
 from django.test import TransactionTestCase
 
-from scpca_portal import common, metadata_file, readme_file
+from scpca_portal import common, metadata_file, readme_file, utils
 from scpca_portal.management.commands.configure_aws_cli import Command as configure_aws_cli
 from scpca_portal.management.commands.load_data import Command as load_data
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
@@ -59,29 +59,31 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-    def assertProjectReadmeContent(self, zip_file):
-        def get_masked_content(content):
+    def assertProjectReadmeContent(self, zip_file, project_id=""):
+        def get_updated_content(content):
             """
-            Replace the project ID and date with placeholders for format testing.
+            Replace the placeholders PROJECT_ID and TEST_TODAYS_DATE in test_data/readmes
+            with the given project_id and today's date respectively for format testing."
             """
-            content = re.sub(r"SCPCP\d{6}", "SCPCPXXXXXX", content)
+            content = re.sub("PROJECT_ID", f"{project_id}", content)
             content = re.sub(
-                r"Generated on: \d{4}-\d{2}-\d{2}", "Generated on: YYYY-MM-DD", content
+                "Generated on: TEST_TODAYS_DATE",
+                f"Generated on: {utils.get_today_string()}",
+                content,
             )
 
-            return content
+            return content.strip()
 
-        if README_FILE in zip_file.namelist():
-            # Get the corresponding saved readme output path based on the zip filename
-            readme_filename = re.sub(r"^[A-Z\d]+_", "", Path(zip_file.filename).stem) + ".md"
-            saved_readme_output_path = README_DIR / readme_filename
+        # Get the corresponding saved readme output path based on the zip filename
+        readme_filename = re.sub(r"^[A-Z\d]+_", "", Path(zip_file.filename).stem) + ".md"
+        saved_readme_output_path = README_DIR / readme_filename
+        # Convert expected and output contents to line lists for comparison
+        with zip_file.open(README_FILE) as readme_file:
+            output_content = readme_file.read().decode("utf-8").splitlines(True)
+        with saved_readme_output_path.open("r", encoding="utf-8") as saved_readme_file:
+            expected_content = get_updated_content(saved_readme_file.read()).splitlines(True)
 
-            with zip_file.open(README_FILE) as readme_file:
-                output_content = get_masked_content(readme_file.read().decode("utf-8").strip())
-            with saved_readme_output_path.open("r", encoding="utf-8") as saved_readme_file:
-                expected_content = get_masked_content(saved_readme_file.read().strip())
-
-            self.assertEqual(expected_content, output_content)
+        self.assertEqual(expected_content, output_content)
 
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_output_data")
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_input_data")
@@ -233,7 +235,7 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(len(files), 8)
             self.assertIn("SCPCP999992_merged.rds", files)
             self.assertNotIn("SCPCP999992_merged_adt.h5ad", files)
-            self.assertProjectReadmeContent(project_zip)
+            self.assertProjectReadmeContent(project_zip, project_id)
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -270,7 +272,7 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(len(files), 9)
             self.assertIn("SCPCP999992_merged_rna.h5ad", files)
             self.assertIn("SCPCP999992_merged_adt.h5ad", files)
-            self.assertProjectReadmeContent(project_zip)
+            self.assertProjectReadmeContent(project_zip, project_id)
 
     def test_merged_project_anndata_no_cite_seq(self):
         project_id = "SCPCP999990"
@@ -327,7 +329,7 @@ class TestLoadData(TransactionTestCase):
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged.rds", files)
-            self.assertProjectReadmeContent(project_zip)
+            self.assertProjectReadmeContent(project_zip, project_id)
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -365,7 +367,7 @@ class TestLoadData(TransactionTestCase):
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged_rna.h5ad", files)
-            self.assertProjectReadmeContent(project_zip)
+            self.assertProjectReadmeContent(project_zip, project_id)
 
     def test_no_merged_single_cell(self):
         project_id = "SCPCP999991"
@@ -531,7 +533,7 @@ class TestLoadData(TransactionTestCase):
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
-            self.assertProjectReadmeContent(project_zip)
+            self.assertProjectReadmeContent(project_zip, project_id)
 
         self.assertEqual(len(sample_metadata_lines), 4)  # 3 items + header.
 
@@ -815,7 +817,7 @@ class TestLoadData(TransactionTestCase):
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
-            self.assertProjectReadmeContent(project_zip)
+            self.assertProjectReadmeContent(project_zip, project_id)
 
         self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
 
@@ -1050,7 +1052,7 @@ class TestLoadData(TransactionTestCase):
             spatial_metadata = [
                 sm for sm in spatial_metadata_file.decode("utf-8").split("\r\n") if sm
             ]
-            self.assertProjectReadmeContent(project_zip)
+            self.assertProjectReadmeContent(project_zip, project_id)
 
         self.assertEqual(len(spatial_metadata), 2)  # 1 item + header.
 
