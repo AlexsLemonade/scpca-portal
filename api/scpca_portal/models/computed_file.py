@@ -107,6 +107,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries = Library.objects.all()
         # If the query returns empty, then an error occurred, and we should abort early
         if not libraries.exists():
+            logger.error("There are no libraries on the portal!")
             return
 
         libraries_metadata = utils.filter_dict_list_by_keys(

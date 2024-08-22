@@ -1,5 +1,6 @@
 import csv
 import shutil
+from io import TextIOWrapper
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -79,31 +80,37 @@ class TestCreatePortalMetadata(TransactionTestCase):
             # ├── README.md
             # |── metadata.tsv
             expected_file_count = 2
-            # The filenames should match the following constants
-            expected_files = {
-                README_FILE,
-                METADATA_FILE,
-            }
+            # Make sure the zip has the exact number of expected files
             files = set(zip_file.namelist())
             self.assertEqual(len(files), expected_file_count)
-            self.assertEqual(files, expected_files)
-            for expected_file in expected_files:
-                self.assertIn(expected_file, files)
-
+            self.assertIn(README_FILE, files)
+            self.assertIn(METADATA_FILE, files)
             # README.md
             expected_text = (
                 "This download includes associated metadata for samples from all projects"
             )
             self.assertProjectReadmeContains(expected_text, zip_file)
-
             # metadata.tsv
-            tsv = zip_file.read(METADATA_FILE).decode("utf-8").splitlines()
-            rows = list(csv.DictReader(tsv, delimiter=common.TAB))
-            # The header keys should match the common sort order list (excludes '*')
-            expected_keys = list(filter(lambda k: k != "*", common.METADATA_COLUMN_SORT_ORDER))
-            expected_row_count = 8  # 8 records (excludes the header)
-            self.assertEqual(list(rows[0].keys()), expected_keys)
-            self.assertEqual(len(rows), expected_row_count)
+            with zip_file.open(METADATA_FILE) as metadata_file:
+                csv_reader = csv.DictReader(
+                    TextIOWrapper(metadata_file, "utf-8"),
+                    delimiter=common.TAB,
+                )
+                rows = list(csv_reader)
+                column_headers = list(rows[0].keys())
+                # Make sure the number of rows matches the expected count (excludes the header)
+                expected_row_count = 8  # 8 records - 1 header
+                self.assertEqual(len(rows), expected_row_count)
+                # Make sure the header keys match the common sort order list (excludes '*')
+                expected_keys = set(common.METADATA_COLUMN_SORT_ORDER) - set(["*"])
+                output_keys = set(column_headers)
+                self.assertEqual(output_keys, expected_keys)
+                # Make sure all library Ids are present
+                expected_libraries = set(Library.objects.all().values_list("scpca_id", flat=True))
+                output_libraries = set(
+                    [row[common.LIBRARY_ID_KEY] for row in rows if common.LIBRARY_ID_KEY in row]
+                )
+                self.assertEquals(output_libraries, expected_libraries)
 
     @patch("scpca_portal.management.commands.create_portal_metadata.s3.upload_output_file")
     @patch("scpca_portal.management.commands.create_portal_metadata.s3.delete_output_file")

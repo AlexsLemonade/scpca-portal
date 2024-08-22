@@ -15,9 +15,9 @@ def get_file_contents(download_config: Dict, projects) -> str:
     """Return newly generated readme file as a string for immediate writing to a zip archive."""
     readme_template_key_parts = [download_config["modality"], download_config["format"]]
 
-    if download_config in [common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG]:
+    if download_config is common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG:
         readme_template_key_parts = ["METADATA_ONLY"]
-    if download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIG:
+    if download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGS:
         if download_config["includes_merged"]:
             readme_template_key_parts.append("MERGED")
         if not download_config["excludes_multiplexed"]:
