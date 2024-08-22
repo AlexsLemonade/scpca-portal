@@ -29,9 +29,8 @@ class Command(BaseCommand):
         parser.add_argument("--purge", action=BooleanOptionalAction, default=False)
 
     def handle(self, *args, **kwargs):
-        if kwargs.get("purge", False):
-            delete_from_s3 = kwargs.get("delete_from_s3", False)
-            self.purge_computed_file(delete_from_s3=delete_from_s3)
+        if kwargs["purge"]:
+            self.purge_computed_file(delete_from_s3=kwargs["delete_from_s3"])
         self.create_portal_metadata(**kwargs)
 
     def create_portal_metadata(self, **kwargs):
@@ -60,7 +59,6 @@ class Command(BaseCommand):
 
     def purge_computed_file(self, delete_from_s3=False):
         logger.info("Purging the portal-wide metadata computed file")
-
         computed_file = ComputedFile.objects.filter(portal_metadata_only=True).first()
 
         if computed_file:
