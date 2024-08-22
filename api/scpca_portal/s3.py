@@ -3,8 +3,6 @@ from collections import namedtuple
 from pathlib import Path
 from typing import List
 
-from django.conf import settings
-
 import boto3
 from botocore.client import Config
 
@@ -121,11 +119,7 @@ def download_input_metadata(bucket_name: str) -> bool:
 
 
 def delete_output_file(key: str, bucket_name: str) -> bool:
-    # If we're not running in the cloud then we shouldn't try to
-    # delete something from S3 unless force is set.
-    if not settings.UPDATE_S3_DATA:
-        return True
-
+    """Delete file a remote file hosted on s3."""
     try:
         aws_s3.delete_object(Bucket=bucket_name, Key=key)
     except Exception:
