@@ -105,18 +105,24 @@ class TestCreatePortalMetadata(TransactionTestCase):
             self.assertEqual(list(rows[0].keys()), expected_keys)
             self.assertEqual(len(rows), expected_row_count)
 
+    @patch("scpca_portal.management.commands.create_portal_metadata.s3.upload_output_file")
     @patch("scpca_portal.management.commands.create_portal_metadata.s3.delete_output_file")
-    def test_purge_computed_file(self, mock_delete_output_file):
+    def test_purge_computed_file(self, mock_delete_output_file, mock_upload_output_file):
         # Set up the database for test
         self.load_test_data()
         # Create the portal metadata computed_file to purge
-        computed_file = self.processor.create_portal_metadata(clean_up_output_data=False)
+        computed_file = self.processor.create_portal_metadata(
+            clean_up_output_data=False, update_s3=True
+        )
 
         if computed_file:
+            mock_upload_output_file.assert_called_once_with(computed_file.s3_key)
+
             computed_file_before_purge = ComputedFile.objects.filter(
                 id=computed_file.id, portal_metadata_only=True
             ).first()
-            # Purge computed_file
+
+            # Purge the newly created computed_file
             self.processor.purge_computed_file(delete_from_s3=True)
             mock_delete_output_file.assert_called_once_with(computed_file.s3_key)
             # Make sure that computed_file with matching id has been deleted

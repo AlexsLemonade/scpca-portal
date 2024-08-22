@@ -29,8 +29,8 @@ class Command(BaseCommand):
         parser.add_argument("--purge", action=BooleanOptionalAction, default=False)
 
     def handle(self, *args, **kwargs):
-        if kwargs["purge"]:
-            self.purge_computed_file(delete_from_s3=kwargs["delete_from_s3"])
+        if kwargs("purge", False):
+            self.purge_computed_file(delete_from_s3=kwargs.get("delete_from_s3", False))
         self.create_portal_metadata(**kwargs)
 
     def create_portal_metadata(self, **kwargs):
