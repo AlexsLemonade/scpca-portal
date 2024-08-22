@@ -12,7 +12,7 @@ from django.core.management.base import BaseCommand
 from django.db import connection
 from django.template.defaultfilters import pluralize
 
-from scpca_portal import common, metadata_file, s3, utils
+from scpca_portal import common, metadata_file, s3
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
 from scpca_portal.models.computed_file import ComputedFile
 
@@ -112,23 +112,26 @@ class Command(BaseCommand):
         return True
 
     def purge_project(
-        self, project, *, reload_all: bool, reload_existing: bool, update_s3: bool
+        self,
+        project: Project,
+        *,
+        reload_existing: bool = False,
+        update_s3: bool = False,
     ) -> bool:
         """
-        Purges project if it exists in the database. Updates S3 accordingly.
-        Returns boolean as success status.
+        Purges existing projects from the db so that they can be re-added when they are processed.
+        S3 is updated accordingly. Returns boolean as success status.
         """
-        # Purge existing projects so they can be re-added.
-        if reload_all or reload_existing:
-            logger.info(f"Purging '{project}")
-            if project.purge(delete_from_s3=update_s3):
-                return True
-        # Only import new projects.
-        # If old ones are desired they should be purged and re-added.
-        else:
+        # Projects can only be intentionally purged.
+        # If the reload_existing flag is not set, then the project should not be procssed.
+        if not reload_existing:
             logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
+            return False
 
-        return False
+        # Purge existing projects so they can be re-added.
+        logger.info(f"Purging '{project}")
+        project.purge(delete_from_s3=update_s3)
+        return True
 
     def create_computed_file(self, future, *, update_s3: bool, clean_up_output_data: bool) -> None:
         """
@@ -188,15 +191,15 @@ class Command(BaseCommand):
             # If project exists and cannot be purged, then throw a warning
             project_id = project_metadata["scpca_project_id"]
             if project := Project.objects.filter(scpca_id=project_id).first():
-                purge_project_kwargs = utils.filter_dict_by_keys(
-                    kwargs, {"reload_all", "reload_existing", "update_s3"}
-                )
-                if not self.purge_project(project, **purge_project_kwargs):
+                # If there's a problem purging an existing project, then don't process it
+                if not self.purge_project(
+                    project, reload_existing=reload_existing, update_s3=update_s3
+                ):
                     continue
 
             logger.info(f"Importing Project {project_metadata['scpca_project_id']} data")
             project = Project.get_from_dict(project_metadata)
-            project.s3_input_bucket = kwargs["input_bucket_name"]
+            project.s3_input_bucket = input_bucket_name
             project.save()
 
             Contact.bulk_create_from_project_data(project_metadata, project)
