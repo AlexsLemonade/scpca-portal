@@ -43,11 +43,11 @@ class Command(BaseCommand):
             logger.info("Saving the instance to the database")
             computed_file.save()
 
-            if kwargs["update_s3"]:
+            if kwargs.get("update_s3", settings.UPDATE_S3_DATA):
                 logger.info("Updating the zip file in S3")
                 s3.upload_output_file(computed_file.s3_key)
 
-            if kwargs["clean_up_output_data"]:
+            if kwargs.get("clean_up_output_data", settings.PRODUCTION):
                 logger.info("Cleaning up the output directory")
                 computed_file.clean_up_local_computed_file()
 
