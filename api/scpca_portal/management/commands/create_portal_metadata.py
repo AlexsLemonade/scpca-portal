@@ -1,15 +1,13 @@
-import logging
 from argparse import BooleanOptionalAction
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from scpca_portal import common, s3
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import ComputedFile, Project
 
-# Check for the existing logging handler
-if not (logger := logging.getLogger()).hasHandlers():
-    logger.setLevel(logging.INFO)
+logger = get_and_configure_logger(__name__)
 
 
 class Command(BaseCommand):
