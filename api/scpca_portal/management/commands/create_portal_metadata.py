@@ -7,9 +7,9 @@ from django.core.management.base import BaseCommand
 from scpca_portal import common, s3
 from scpca_portal.models import ComputedFile, Project
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
+if not (logger := logging.getLogger()).hasHandlers():
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
 
 
 class Command(BaseCommand):
