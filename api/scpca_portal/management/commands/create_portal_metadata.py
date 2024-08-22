@@ -9,7 +9,6 @@ from scpca_portal.models import ComputedFile, Project
 
 if not (logger := logging.getLogger()).hasHandlers():
     logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
 
 
 class Command(BaseCommand):
