@@ -31,10 +31,6 @@ class Command(BaseCommand):
 
     def create_portal_metadata(self, **kwargs):
         logger.info("Creating the portal-wide metadata computed file")
-
-        clean_up_output_data = kwargs.get("clean_up_output_data", settings.PRODUCTION)
-        update_s3 = kwargs.get("update_s3", settings.UPDATE_S3_DATA)
-
         computed_file = ComputedFile.get_portal_metadata_file(
             Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
         )
@@ -43,11 +39,11 @@ class Command(BaseCommand):
             logger.info("Saving the instance to the database")
             computed_file.save()
 
-            if update_s3:
+            if kwargs["update_s3"]:
                 logger.info("Updating the zip file in S3")
                 s3.upload_output_file(computed_file.s3_key)
 
-            if clean_up_output_data:
+            if kwargs["clean_up_output_data"]:
                 logger.info("Cleaning up the output directory")
                 computed_file.clean_up_local_computed_file()
 
