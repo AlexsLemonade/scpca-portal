@@ -107,6 +107,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries = Library.objects.all()
         # If the query returns empty, then an error occurred, and we should abort early
         if not libraries.exists():
+            logger.error("There are no libraries on the portal!")
             return
 
         libraries_metadata = utils.filter_dict_list_by_keys(
@@ -133,7 +134,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computed_file = cls(
             portal_metadata_only=True,
             s3_bucket=settings.AWS_S3_BUCKET_NAME,
-            # Would it be better to create this as a class attribute instead of common property?
             s3_key=common.PORTAL_METADATA_COMPUTED_FILE_NAME,
             size_in_bytes=zip_file_path.stat().st_size,
         )
