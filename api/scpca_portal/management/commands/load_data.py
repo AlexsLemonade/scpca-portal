@@ -158,7 +158,17 @@ class Command(BaseCommand):
         for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
             path.unlink(missing_ok=True)
 
-    def load_data(self, **kwargs) -> None:
+    def load_data(
+        self,
+        input_bucket_name,
+        clean_up_input_data,
+        clean_up_output_data,
+        max_workers,
+        reload_existing,
+        scpca_project_id,
+        update_s3,
+        **kwargs,
+    ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
         # Prepare data input directory.
         common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
@@ -167,10 +177,10 @@ class Command(BaseCommand):
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
         common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
-        s3.download_input_metadata(kwargs["input_bucket_name"])
+        s3.download_input_metadata(input_bucket_name)
 
         projects_metadata = metadata_file.load_projects_metadata(
-            Project.get_input_project_metadata_file_path(), kwargs["scpca_project_id"]
+            Project.get_input_project_metadata_file_path(), scpca_project_id
         )
         for project_metadata in projects_metadata:
             if not self.can_process_project(project_metadata):
@@ -201,15 +211,16 @@ class Command(BaseCommand):
                 )
 
             # Prep callback function
-            create_computed_file_kwargs = utils.filter_dict_by_keys(
-                kwargs, {"update_s3", "clean_up_output_data"}
+            on_get_file = partial(
+                self.create_computed_file,
+                update_s3=update_s3,
+                clean_up_output_data=clean_up_output_data,
             )
-            on_get_file = partial(self.create_computed_file, **create_computed_file_kwargs)
 
             # Prepare a threading.Lock for each sample, with the chief purpose being to protect
             # multiplexed samples that share a zip file.
             locks = {}
-            with ThreadPoolExecutor(max_workers=kwargs["max_workers"]) as tasks:
+            with ThreadPoolExecutor(max_workers=max_workers) as tasks:
                 # Generated project computed files
                 for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
                     tasks.submit(
@@ -233,10 +244,10 @@ class Command(BaseCommand):
 
             project.update_downloadable_sample_count()
 
-            if kwargs["clean_up_input_data"]:
+            if clean_up_input_data:
                 logger.info(f"Cleaning up '{project}' input data")
                 self.clean_up_input_data(project)
 
-            if kwargs["clean_up_output_data"]:
+            if clean_up_output_data:
                 logger.info("Cleaning up output directory")
                 self.clean_up_output_data()
