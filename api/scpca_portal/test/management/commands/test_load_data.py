@@ -65,7 +65,7 @@ class TestLoadData(TransactionTestCase):
             Replace the placeholders PROJECT_ID and TEST_TODAYS_DATE in test_data/readmes
             with the given project_id and today's date respectively for format testing."
             """
-            content = re.sub("PROJECT_ID", f"{project_id}", content)
+            content = re.sub("PROJECT_ID", project_id, content)
             content = re.sub(
                 "Generated on: TEST_TODAYS_DATE",
                 f"Generated on: {utils.get_today_string()}",
@@ -77,7 +77,7 @@ class TestLoadData(TransactionTestCase):
         # Get the corresponding saved readme output path based on the zip filename
         readme_filename = re.sub(r"^[A-Z\d]+_", "", Path(zip_file.filename).stem) + ".md"
         saved_readme_output_path = README_DIR / readme_filename
-        # Convert expected and output contents to line lists for comparison
+        # Convert expected and output contents to line lists for comparison for easy debugging
         with zip_file.open(README_FILE) as readme_file:
             output_content = readme_file.read().decode("utf-8").splitlines(True)
         with saved_readme_output_path.open("r", encoding="utf-8") as saved_readme_file:
