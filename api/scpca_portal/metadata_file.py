@@ -40,6 +40,7 @@ def load_projects_metadata(metadata_file_path: Path, project_id: str = None):
     """
     Opens, loads and parses list of project metadata located at inputted metadata_file_path.
     Transforms keys in data dicts to match associated model attributes.
+    If an optional project id is passed, all projects are filtered out except for the one passed.
     """
     with open(metadata_file_path) as raw_file:
         projects_metadata = list(csv.DictReader(raw_file))
