@@ -102,7 +102,7 @@ PROJECT_ID_KEY = "scpca_project_id"
 SAMPLE_ID_KEY = "scpca_sample_id"
 LIBRARY_ID_KEY = "scpca_library_id"
 
-GENERATED_PROJECT_DOWNLOAD_CONFIG = [
+GENERATED_PROJECT_DOWNLOAD_CONFIGS = [
     # SINGLE CELL SCE CONFIGURATIONS
     {
         "modality": "SINGLE_CELL",

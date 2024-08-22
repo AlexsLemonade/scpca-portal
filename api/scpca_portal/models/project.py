@@ -226,7 +226,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             connection.close()
 
         with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIG:
+            for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGS:
                 tasks.submit(
                     ComputedFile.get_project_file,
                     self,
