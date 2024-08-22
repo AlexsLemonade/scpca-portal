@@ -81,7 +81,6 @@ class Command(BaseCommand):
             default=settings.PRODUCTION,
         )
         parser.add_argument("--max-workers", type=int, default=10)
-        parser.add_argument("--reload-all", action="store_true", default=False)
         parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--scpca-project-id", type=str)
         parser.add_argument(
