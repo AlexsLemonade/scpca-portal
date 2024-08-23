@@ -10,7 +10,7 @@ from scpca_portal import s3
 class TestListInputPaths(TestCase):
     def setUp(self):
         self.default_bucket_name = "input-bucket"
-        self.default_relative_path = Path("relative-path/")
+        self.default_relative_path = Path("relative-path")
 
     @patch("subprocess.run")
     def test_list_input_paths_correct_command_inputs(self, mock_run):
@@ -32,7 +32,7 @@ class TestListInputPaths(TestCase):
             "aws",
             "s3",
             "ls",
-            f"s3://{self.default_bucket_name}/{self.default_relative_path}/",
+            f"s3://{self.default_bucket_name}/{self.default_relative_path}",
             # No need to pass recursive=True to function call as this is default behavior
             "--recursive",
         ]
@@ -62,7 +62,7 @@ class TestListInputPaths(TestCase):
                 "aws",
                 "s3",
                 "ls",
-                f"s3://{self.default_bucket_name}/{self.default_relative_path}/",
+                f"s3://{self.default_bucket_name}/{self.default_relative_path}",
             ],
             returncode=0,
             stdout=f"2024-06-10 10:00:00 1234 {self.default_relative_path}/file1.txt\n"
@@ -85,16 +85,17 @@ class TestListInputPaths(TestCase):
                 "aws",
                 "s3",
                 "ls",
-                # Without a '/' at the end of the s3 resource location,
-                # dir contents will not be listed,
-                # but rather an entry of the relative path itself
+                # Trailing slash needed at end of s3 resource path when recursive=False
+                # See comment in s3::list_input_paths to clarify reason why
                 f"s3://{self.default_bucket_name}/{self.default_relative_path}/",
             ],
             returncode=0,
             stdout="PRE dir1/\nPRE dir2/",
         )
         expected = [Path("dir1/"), Path("dir2/")]
-        result = s3.list_input_paths(self.default_relative_path, self.default_bucket_name)
+        result = s3.list_input_paths(
+            self.default_relative_path, self.default_bucket_name, recursive=False
+        )
         self.assertEqual(expected, result)
         mock_run.assert_called_once()
 
@@ -102,7 +103,7 @@ class TestListInputPaths(TestCase):
     def test_list_input_paths_command_failure(self, mock_run):
         mock_run.side_effect = subprocess.CalledProcessError(
             returncode=1,
-            cmd=f"aws s3 ls s3://{self.default_bucket_name}/{self.default_relative_path}/",
+            cmd=f"aws s3 ls s3://{self.default_bucket_name}/{self.default_relative_path}",
         )
         result = s3.list_input_paths(self.default_relative_path, self.default_bucket_name)
         expected = []

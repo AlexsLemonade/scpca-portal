@@ -26,12 +26,14 @@ def list_input_paths(
     """
     bucket_path = Path(bucket_name)
     root_path = Path(*bucket_path.parts, *relative_path.parts)
-    # Note (when recursive is not passed): without a '/' at the end of the s3 resource (see below),
-    # dir contents will not be listed, but rather an entry of the relative path itself
-    command_inputs = ["aws", "s3", "ls", f"s3://{root_path}/"]
+    command_inputs = ["aws", "s3", "ls", f"s3://{root_path}"]
 
     if recursive:
         command_inputs.append("--recursive")
+    # Note: when recursive=False, if there is no traling slash at the end of the s3 resource path,
+    # dir contents will not be listed, but rather the entry located at the relative path itself
+    else:
+        command_inputs[-1] += "/"
 
     if "public" in str(bucket_path):
         command_inputs.append("--no-sign-request")
