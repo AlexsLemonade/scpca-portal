@@ -152,14 +152,14 @@ class Command(BaseCommand):
 
     def load_data(
         self,
-        input_bucket_name,
-        clean_up_input_data,
-        clean_up_output_data,
-        max_workers,
-        reload_existing,
-        scpca_project_id,
-        update_s3,
-        whitelist,
+        input_bucket_name: str,
+        clean_up_input_data: bool,
+        clean_up_output_data: bool,
+        max_workers: int,
+        reload_existing: bool,
+        scpca_project_id: str,
+        update_s3: bool,
+        whitelist: Set[str],
         **kwargs,
     ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
