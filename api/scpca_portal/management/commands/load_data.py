@@ -72,7 +72,9 @@ class Command(BaseCommand):
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
         )
         parser.add_argument(
-            "--whitelist", type=self.comma_separated_set, default=common.SUBMITTER_WHITELIST
+            "--submitter-whitelist",
+            type=self.comma_separated_set,
+            default=common.SUBMITTER_WHITELIST,
         )
 
     def handle(self, *args, **kwargs):
@@ -81,7 +83,9 @@ class Command(BaseCommand):
     def comma_separated_set(self, raw_str: str) -> Set[str]:
         return set(raw_str.split(","))
 
-    def can_process_project(self, project_metadata: Dict[str, Any], whitelist: Set[str]) -> bool:
+    def can_process_project(
+        self, project_metadata: Dict[str, Any], submitter_whitelist: Set[str]
+    ) -> bool:
         """
         Validates that a project can be processed by assessing that:
         - Input files exist for the project
@@ -95,7 +99,7 @@ class Command(BaseCommand):
             )
             return False
 
-        if project_metadata["pi_name"] not in whitelist:
+        if project_metadata["pi_name"] not in submitter_whitelist:
             logger.warning("Project submitter is not in the white list.")
             return False
 
@@ -159,7 +163,7 @@ class Command(BaseCommand):
         reload_existing: bool,
         scpca_project_id: str,
         update_s3: bool,
-        whitelist: Set[str],
+        submitter_whitelist: Set[str],
         **kwargs,
     ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
@@ -176,7 +180,7 @@ class Command(BaseCommand):
             Project.get_input_project_metadata_file_path(), scpca_project_id
         )
         for project_metadata in projects_metadata:
-            if not self.can_process_project(project_metadata, whitelist):
+            if not self.can_process_project(project_metadata, submitter_whitelist):
                 continue
 
             # If project exists and cannot be purged, then throw a warning

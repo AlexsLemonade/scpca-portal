@@ -65,7 +65,7 @@ class TestLoadData(TransactionTestCase):
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
-            whitelist="scpca",
+            submitter_whitelist="scpca",
         )
 
         mock_clean_up_input_data.assert_called_once()
@@ -94,7 +94,7 @@ class TestLoadData(TransactionTestCase):
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
-            whitelist="scpca",
+            submitter_whitelist="scpca",
         )
         assert_object_count()
 
@@ -112,7 +112,7 @@ class TestLoadData(TransactionTestCase):
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
-            whitelist="scpca",
+            submitter_whitelist="scpca",
         )
         assert_object_count()
 
@@ -141,7 +141,7 @@ class TestLoadData(TransactionTestCase):
             reload_existing=True,
             scpca_project_id=project_id,
             update_s3=False,
-            whitelist="scpca",
+            submitter_whitelist="scpca",
         )
         assert_object_count()
 
@@ -153,7 +153,7 @@ class TestLoadData(TransactionTestCase):
             max_workers=4,
             reload_existing=False,
             update_s3=False,
-            whitelist="scpca",
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -243,7 +243,7 @@ class TestLoadData(TransactionTestCase):
             max_workers=4,
             reload_existing=False,
             update_s3=False,
-            whitelist="scpca",
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -335,7 +335,7 @@ class TestLoadData(TransactionTestCase):
             max_workers=4,
             reload_existing=False,
             update_s3=False,
-            whitelist="scpca",
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -362,7 +362,7 @@ class TestLoadData(TransactionTestCase):
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
-            whitelist="scpca",
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -663,7 +663,7 @@ class TestLoadData(TransactionTestCase):
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
-            whitelist="scpca",
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -922,7 +922,7 @@ class TestLoadData(TransactionTestCase):
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
-            whitelist="scpca",
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
