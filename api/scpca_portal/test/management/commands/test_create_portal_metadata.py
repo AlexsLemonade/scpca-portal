@@ -116,30 +116,19 @@ class TestCreatePortalMetadata(TransactionTestCase):
                 )
                 self.assertEquals(output_libraries, expected_libraries)
 
-    @patch("scpca_portal.management.commands.create_portal_metadata.s3.upload_output_file")
     @patch("scpca_portal.management.commands.create_portal_metadata.s3.delete_output_file")
-    def test_purge_computed_file(self, mock_delete_output_file, mock_upload_output_file):
+    def test_only_one_computed_file_at_any_point(self, mock_delete_output_file):
         # Set up the database for test
         self.load_test_data()
-        # Create the portal metadata computed_file to purge
-        computed_file = self.processor.create_portal_metadata(
+        # First call to create the portal metadata computed file
+        computed_file_one = self.processor.create_portal_metadata(
             clean_up_output_data=False, update_s3=True
         )
-
-        if computed_file:
-            mock_upload_output_file.assert_called_once_with(computed_file.s3_key)
-            # Query the newly created computed_file with its corresponding id
-            computed_file_before_purge = ComputedFile.objects.filter(
-                id=computed_file.id, portal_metadata_only=True
-            ).first()
-
-            # Purge computed_file
-            self.processor.purge_computed_file(delete_from_s3=True)
-            mock_delete_output_file.assert_called_once_with(computed_file.s3_key)
-            # Make sure that computed_file has been deleted from the database
-            computed_file_after_purge = ComputedFile.objects.filter(
-                id=computed_file_before_purge.id, portal_metadata_only=True
-            ).first()
-            self.assertIsNone(computed_file_after_purge)
-        else:
-            self.fail("No computed file to purge")
+        # Second call to create the portal metadata computed file
+        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
+        mock_delete_output_file.assert_called_with(
+            computed_file_one.s3_key, computed_file_one.s3_bucket
+        )
+        # Make sure pre-existing computed_file has been deleted and only one exists
+        existing_computed_file = ComputedFile.objects.filter(portal_metadata_only=True)
+        self.assertEqual(existing_computed_file.count(), 1)

@@ -20,18 +20,19 @@ class Command(BaseCommand):
         parser.add_argument(
             "--clean-up-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
         )
-        parser.add_argument("--delete-from-s3", action=BooleanOptionalAction, default=False)
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
-        parser.add_argument("--purge", action=BooleanOptionalAction, default=False)
 
     def handle(self, *args, **kwargs):
-        if kwargs("purge", False):
-            self.purge_computed_file(delete_from_s3=kwargs.get("delete_from_s3", False))
         self.create_portal_metadata(**kwargs)
 
     def create_portal_metadata(self, clean_up_output_data: bool, update_s3: bool, **kwargs):
+        # Purge the pre-existing portal metadata file from the database and s3
+        existing_computed_file = ComputedFile.objects.filter(portal_metadata_only=True).first()
+        if existing_computed_file:
+            self.purge_computed_file(existing_computed_file, delete_from_s3=update_s3)
+
         logger.info("Creating the portal-wide metadata computed file")
         computed_file = ComputedFile.get_portal_metadata_file(
             Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
@@ -51,15 +52,14 @@ class Command(BaseCommand):
 
         return computed_file
 
-    def purge_computed_file(self, delete_from_s3=False):
+    def purge_computed_file(self, computed_file, delete_from_s3=False):
         logger.info("Purging the portal-wide metadata computed file")
-        computed_file = ComputedFile.objects.filter(portal_metadata_only=True).first()
 
         if computed_file:
             if delete_from_s3:
                 logger.info("Deleting the zip from S3")
-                s3.delete_output_file(computed_file.s3_key)
-            logger.info("Deleting the instance from the database")
+                s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
+            logger.info("Deleting the object from the database")
             computed_file.delete()
         else:
             logger.info("No computed file to purge")
