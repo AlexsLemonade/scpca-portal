@@ -140,7 +140,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Readme file
             zip_file.writestr(
                 readme_file.OUTPUT_NAME,
-                readme_file.get_file_contents(download_config, project),
+                readme_file.get_file_contents(download_config, [project]),
             )
 
             # Metadata file
@@ -231,7 +231,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     # Readme file
                     zip_file.writestr(
                         readme_file.OUTPUT_NAME,
-                        readme_file.get_file_contents(download_config, sample.project),
+                        readme_file.get_file_contents(download_config, [sample.project]),
                     )
                     # Metadata file
                     zip_file.writestr(
