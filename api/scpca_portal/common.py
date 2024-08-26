@@ -18,9 +18,6 @@ OUTPUT_DATA_PATH = DATA_PATH / "output"
 
 TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
 
-TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-07-19/"
-INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else "scpca-portal-inputs"
-
 TAB = "\t"
 NA = "NA"  # "Not Available"
 
@@ -32,6 +29,21 @@ ANN_DATA = "ANN_DATA"
 SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
 
 FORMAT_EXTENSIONS = {ANN_DATA: ".h5ad", SINGLE_CELL_EXPERIMENT: ".rds"}
+
+SUBMITTER_WHITELIST = {
+    "christensen",
+    "collins",
+    "dyer_chen",
+    "gawad",
+    "green_mulcahy_levy",
+    "mullighan",
+    "murphy_chen",
+    "pugh",
+    "teachey_tan",
+    "wu",
+    "rokita",
+    "soragni",
+}
 
 # Global sort order for Metadata TSVs
 # Columns

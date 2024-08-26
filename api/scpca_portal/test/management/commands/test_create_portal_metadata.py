@@ -1,6 +1,7 @@
 import shutil
 from zipfile import ZipFile
 
+from django.conf import settings
 from django.test import TransactionTestCase
 
 from scpca_portal import common, readme_file
@@ -10,8 +11,6 @@ from scpca_portal.models import Library, Project, Sample
 # NOTE: Test data bucket is defined in `scpca_porta/common.py`.
 # When common.INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
-
-ALLOWED_SUBMITTERS = {"scpca"}
 
 
 class TestCreatePortalMetadata(TransactionTestCase):
@@ -34,13 +33,15 @@ class TestCreatePortalMetadata(TransactionTestCase):
         LIBRARIES_COUNT = 7
 
         self.loader.load_data(
-            allowed_submitters=list(ALLOWED_SUBMITTERS),
+            input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
             reload_all=False,
             reload_existing=False,
+            scpca_project_id="",
             update_s3=False,
+            submitter_whitelist="scpca",
         )
 
         self.assertEqual(Project.objects.all().count(), PROJECTS_COUNT)

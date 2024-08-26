@@ -44,6 +44,11 @@ def get_today_string(format: str = "%Y-%m-%d") -> str:
     return datetime.today().strftime(format)
 
 
+def filter_dict_by_keys(dictionary: Dict[str, Any], included_keys: Set[str]) -> Dict[str, Any]:
+    """Returns a filtered version of the input dict according to set of included keys."""
+    return {k: v for k, v in dictionary.items() if k in included_keys}
+
+
 def filter_dict_list_by_keys(
     list_of_dicts: List[Dict], included_keys: Set, *, ignore_value_error: bool = True
 ) -> List[Dict]:
@@ -57,15 +62,7 @@ def filter_dict_list_by_keys(
         if any(not set(included_keys).issubset(dictionary) for dictionary in list_of_dicts):
             raise ValueError("Included keys must be a subset of each dictionary's key set")
 
-    new_list_of_dicts = []
-    for dictionary in list_of_dicts:
-        dictionary_copy = dictionary.copy()
-        for key in dictionary.keys():
-            if key not in included_keys:
-                dictionary_copy.pop(key)
-        new_list_of_dicts.append(dictionary_copy)
-
-    return new_list_of_dicts
+    return [filter_dict_by_keys(dictionary, included_keys) for dictionary in list_of_dicts]
 
 
 def get_keys_from_dicts(dicts: List[Dict]) -> Set:

@@ -36,18 +36,22 @@ LIBRARY_METADATA_KEYS = [
 KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
 
 
-def load_projects_metadata(metadata_file_path: Path):
+def load_projects_metadata(metadata_file_path: Path, project_id: str = None):
     """
     Opens, loads and parses list of project metadata located at inputted metadata_file_path.
     Transforms keys in data dicts to match associated model attributes.
+    If an optional project id is passed, all projects are filtered out except for the one passed.
     """
     with open(metadata_file_path) as raw_file:
-        data_dicts = list(csv.DictReader(raw_file))
+        projects_metadata = list(csv.DictReader(raw_file))
 
-    for data_dict in data_dicts:
-        transform_keys(data_dict, PROJECT_METADATA_KEYS)
+    for project_metadata in projects_metadata:
+        transform_keys(project_metadata, PROJECT_METADATA_KEYS)
 
-    return data_dicts
+    if project_id:
+        return [pm for pm in projects_metadata if pm["scpca_project_id"] == project_id]
+
+    return projects_metadata
 
 
 def load_samples_metadata(metadata_file_path: Path):
@@ -56,9 +60,7 @@ def load_samples_metadata(metadata_file_path: Path):
     Transforms keys in data dicts to match associated model attributes.
     """
     with open(metadata_file_path) as raw_file:
-        data_dicts = list(csv.DictReader(raw_file))
-
-    return data_dicts
+        return list(csv.DictReader(raw_file))
 
 
 def load_library_metadata(metadata_file_path: Path):
@@ -108,7 +110,7 @@ def get_file_contents(libraries_metadata: List[Dict], **kwargs) -> str:
         utils.get_sorted_field_names(utils.get_keys_from_dicts(sorted_libraries_metadata)),
     )
     kwargs["delimiter"] = kwargs.get("delimiter", common.TAB)
-    # By default fill missing values with "NA"
+    # By default fill dicts with missing fieldnames with "NA" values
     kwargs["restval"] = kwargs.get("restval", common.NA)
 
     with io.StringIO() as metadata_buffer:
