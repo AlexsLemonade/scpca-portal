@@ -1,27 +1,24 @@
 import csv
 import shutil
+from functools import partial
 from io import TextIOWrapper
 from unittest.mock import patch
 from zipfile import ZipFile
 
+from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from scpca_portal import common, metadata_file
-from scpca_portal.management.commands.configure_aws_cli import Command as configure_aws_cli
-from scpca_portal.management.commands.load_data import Command as load_data
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 
-# NOTE: Test data bucket is defined in `scpca_porta/common.py`.
-# When common.INPUT_BUCKET_NAME is changed, please delete the contents of
+# NOTE: Test data bucket is defined in `scpca_portal/config/local.py`
+# When INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
-
-ALLOWED_SUBMITTERS = {"scpca"}
 
 
 class TestLoadData(TransactionTestCase):
     def setUp(self):
-        self.loader = load_data()
-        configure_aws_cli()
+        self.load_data = partial(call_command, "load_data")
 
     @classmethod
     def tearDownClass(cls):
@@ -61,15 +58,14 @@ class TestLoadData(TransactionTestCase):
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_input_data")
     def test_data_clean_up(self, mock_clean_up_input_data, mock_clean_up_output_data):
         project_id = "SCPCP999990"
-        self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+        self.load_data(
             clean_up_input_data=True,
             clean_up_output_data=True,
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist="scpca",
         )
 
         mock_clean_up_input_data.assert_called_once()
@@ -91,15 +87,14 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(ComputedFile.objects.count(), expected_computed_files_count)
 
         # First, just test that loading data works.
-        self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+        self.load_data(
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist="scpca",
         )
         assert_object_count()
 
@@ -112,13 +107,12 @@ class TestLoadData(TransactionTestCase):
         self.assertProjectData(project)
 
         # Make sure that reload_existing=False won't add anything new when there's nothing new.
-        self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+        self.load_data(
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist="scpca",
         )
         assert_object_count()
 
@@ -140,28 +134,26 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(ComputedFile.objects.count(), 0)
 
         # Make sure reloading works smoothly.
-        self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+        self.load_data(
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
-            reload_all=False,
             reload_existing=True,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist="scpca",
         )
         assert_object_count()
 
     def test_merged_project_anndata_cite_seq(self):
         project_id = "SCPCP999992"
-        self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+        self.load_data(
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             update_s3=False,
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -253,14 +245,13 @@ class TestLoadData(TransactionTestCase):
 
     def test_merged_project_anndata_no_cite_seq(self):
         project_id = "SCPCP999990"
-        self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+        self.load_data(
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             update_s3=False,
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -354,14 +345,13 @@ class TestLoadData(TransactionTestCase):
 
     def test_no_merged_single_cell(self):
         project_id = "SCPCP999991"
-        self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+        self.load_data(
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             update_s3=False,
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -381,15 +371,14 @@ class TestLoadData(TransactionTestCase):
 
     def test_multiplexed_metadata(self):
         project_id = "SCPCP999991"
-        self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+        self.load_data(
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -687,15 +676,14 @@ class TestLoadData(TransactionTestCase):
 
     def test_single_cell_metadata(self):
         project_id = "SCPCP999990"
-        self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+        self.load_data(
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -951,15 +939,14 @@ class TestLoadData(TransactionTestCase):
 
     def test_spatial_metadata(self):
         project_id = "SCPCP999990"
-        self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+        self.load_data(
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist="scpca",
         )
 
         project = Project.objects.get(scpca_id=project_id)

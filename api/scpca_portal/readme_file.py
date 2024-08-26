@@ -1,6 +1,5 @@
-from typing import Dict
+from typing import Dict, Iterable
 
-from django.db.models.query import QuerySet
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils
@@ -11,7 +10,7 @@ TEMPLATE_ROOT = common.TEMPLATE_PATH / "readme"
 TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "readme.md"
 
 
-def get_file_contents(download_config: Dict, projects) -> str:
+def get_file_contents(download_config: Dict, projects: Iterable) -> str:
     """Return newly generated readme file as a string for immediate writing to a zip archive."""
     readme_template_key_parts = [download_config["modality"], download_config["format"]]
 
@@ -34,6 +33,6 @@ def get_file_contents(download_config: Dict, projects) -> str:
             "date": utils.get_today_string(),
             "download_config": download_config,
             "contents_template": contents_template,
-            "projects": projects if isinstance(projects, QuerySet) else [projects],
+            "projects": projects,
         },
     ).strip()
