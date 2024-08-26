@@ -69,7 +69,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
         if computed_file:
             expected_size = 8469
             self.assertEqual(computed_file.size_in_bytes, expected_size)
-            mock_upload_output_file.assert_called_once_with(computed_file.s3_key)
+            mock_upload_output_file.assert_called_once_with(
+                computed_file.s3_key, computed_file.s3_bucket
+            )
         else:
             self.fail("No computed file")
 
