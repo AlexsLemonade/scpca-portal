@@ -11,9 +11,9 @@ logger = get_and_configure_logger(__name__)
 
 
 class Command(BaseCommand):
-    help = """Creates a computed file and zip for portal-wide metadata,
-     saves the instance to the database, and
-     updates the zip file in the S3 bucket.
+    help = """Creates a computed file and zip for portal-wide metadata.
+    Saves generated computed file the db.
+    Uploads file to s3 and cleans up output data depending on passed options.
     """
 
     def add_arguments(self, parser):
@@ -31,21 +31,21 @@ class Command(BaseCommand):
             self.purge_computed_file(delete_from_s3=kwargs.get("delete_from_s3", False))
         self.create_portal_metadata(**kwargs)
 
-    def create_portal_metadata(self, **kwargs):
+    def create_portal_metadata(self, clean_up_output_data: bool, update_s3: bool, **kwargs):
         logger.info("Creating the portal-wide metadata computed file")
         computed_file = ComputedFile.get_portal_metadata_file(
             Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
         )
 
         if computed_file:
-            logger.info("Saving the instance to the database")
+            logger.info("Saving the object to the database")
             computed_file.save()
 
-            if kwargs.get("update_s3", settings.UPDATE_S3_DATA):
+            if update_s3:
                 logger.info("Updating the zip file in S3")
-                s3.upload_output_file(computed_file.s3_key)
+                s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
 
-            if kwargs.get("clean_up_output_data", settings.PRODUCTION):
+            if clean_up_output_data:
                 logger.info("Cleaning up the output directory")
                 computed_file.clean_up_local_computed_file()
 

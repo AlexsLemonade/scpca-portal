@@ -4,6 +4,7 @@ from io import TextIOWrapper
 from unittest.mock import patch
 from zipfile import ZipFile
 
+from django.conf import settings
 from django.test import TransactionTestCase
 
 from scpca_portal import common, metadata_file, readme_file
@@ -14,7 +15,6 @@ from scpca_portal.models import ComputedFile, Library, Project, Sample
 # When common.INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
 
-ALLOWED_SUBMITTERS = {"scpca"}
 
 README_FILE = readme_file.OUTPUT_NAME
 METADATA_FILE = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
@@ -37,13 +37,15 @@ class TestCreatePortalMetadata(TransactionTestCase):
         LIBRARIES_COUNT = 7
 
         self.loader.load_data(
-            allowed_submitters=ALLOWED_SUBMITTERS,
+            input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
             reload_all=False,
             reload_existing=False,
+            scpca_project_id="",
             update_s3=False,
+            submitter_whitelist="scpca",
         )
 
         self.assertEqual(Project.objects.all().count(), PROJECTS_COUNT)
@@ -67,7 +69,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
         if computed_file:
             expected_size = 8469
             self.assertEqual(computed_file.size_in_bytes, expected_size)
-            mock_upload_output_file.assert_called_once_with(computed_file.s3_key)
+            mock_upload_output_file.assert_called_once_with(
+                computed_file.s3_key, computed_file.s3_bucket
+            )
         else:
             self.fail("No computed file")
 

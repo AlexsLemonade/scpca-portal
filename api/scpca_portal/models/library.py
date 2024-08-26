@@ -48,7 +48,7 @@ class Library(TimestampedModel):
 
     @classmethod
     def get_from_dict(cls, data, project):
-        data_file_paths = Library.get_data_file_paths(data)
+        data_file_paths = Library.get_data_file_paths(data, project.s3_input_bucket)
         library = cls(
             data_file_paths=data_file_paths,
             formats=Library.get_formats_from_file_paths(data_file_paths),
@@ -79,7 +79,7 @@ class Library(TimestampedModel):
         sample.libraries.add(*libraries)
 
     @classmethod
-    def get_data_file_paths(cls, data) -> List[Path]:
+    def get_data_file_paths(cls, data: Dict, s3_input_bucket: str) -> List[Path]:
         """
         Retrieves all data file paths on the aws input bucket associated
         with the inputted Library object metadata dict, and returns them as a list.
@@ -92,7 +92,7 @@ class Library(TimestampedModel):
 
         data_file_paths = [
             file_path
-            for file_path in s3.list_input_paths(relative_path)
+            for file_path in s3.list_input_paths(relative_path, s3_input_bucket)
             if "metadata" not in file_path.name
         ]
 
