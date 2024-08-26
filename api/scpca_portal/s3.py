@@ -30,6 +30,10 @@ def list_input_paths(
 
     if recursive:
         command_inputs.append("--recursive")
+    # Note: when recursive=False, if there is no traling slash at the end of the s3 resource path,
+    # dir contents will not be listed, but rather the entry located at the relative path itself
+    else:
+        command_inputs[-1] += "/"
 
     if "public" in str(bucket_path):
         command_inputs.append("--no-sign-request")
