@@ -1,11 +1,9 @@
-import shutil
 from functools import partial
 from unittest.mock import patch
 
 from django.core.management import call_command
 from django.test import TransactionTestCase
 
-from scpca_portal import common
 from scpca_portal.models import Project, ProjectSummary, Sample
 
 # NOTE: Test data bucket is defined in `scpca_portal/config/local.py`
@@ -16,11 +14,6 @@ from scpca_portal.models import Project, ProjectSummary, Sample
 class TestLoadMetadata(TransactionTestCase):
     def setUp(self):
         self.load_metadata = partial(call_command, "load_metadata")
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def assertProjectData(self, project):
         self.assertTrue(project.abstract)
