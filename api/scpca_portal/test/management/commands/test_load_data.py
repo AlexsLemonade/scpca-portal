@@ -89,7 +89,7 @@ class TestLoadData(TransactionTestCase):
         self.assertEqual(
             expected_content,
             output_content,
-            f"Test failed for {readme_filename} in {self._testMethodName}",
+            f"{self._testMethodName}: Comparison with {readme_filename} does not match.",
         )
 
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_output_data")
