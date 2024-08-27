@@ -1,11 +1,9 @@
-import shutil
 from functools import partial
 from unittest.mock import patch
 
 from django.core.management import call_command
 from django.test import TransactionTestCase
 
-from scpca_portal import common
 from scpca_portal.models import Project, ProjectSummary, Sample
 
 # NOTE: Test data bucket is defined in `scpca_portal/config/local.py`
@@ -16,11 +14,6 @@ from scpca_portal.models import Project, ProjectSummary, Sample
 class TestLoadMetadata(TransactionTestCase):
     def setUp(self):
         self.load_metadata = partial(call_command, "load_metadata")
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def assertProjectData(self, project):
         self.assertTrue(project.abstract)
@@ -53,10 +46,10 @@ class TestLoadMetadata(TransactionTestCase):
         project_id = "SCPCP999990"
         self.load_metadata(
             clean_up_input_data=True,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist={"scpca"},
         )
 
         mock_clean_up_input_data.assert_called_once()
@@ -72,10 +65,10 @@ class TestLoadMetadata(TransactionTestCase):
         # First, just test that loading data works.
         self.load_metadata(
             clean_up_input_data=False,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist={"scpca"},
         )
         assert_object_count()
 
@@ -84,10 +77,10 @@ class TestLoadMetadata(TransactionTestCase):
 
         # Make sure that reload_existing=False won't add anything new when there's nothing new.
         self.load_metadata(
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist={"scpca"},
         )
         assert_object_count()
 
@@ -104,10 +97,10 @@ class TestLoadMetadata(TransactionTestCase):
         # Make sure reloading works smoothly.
         self.load_metadata(
             clean_up_input_data=False,
-            reload_all=False,
             reload_existing=True,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist={"scpca"},
         )
         assert_object_count()
 
@@ -115,10 +108,10 @@ class TestLoadMetadata(TransactionTestCase):
         project_id = "SCPCP999990"
         self.load_metadata(
             clean_up_input_data=False,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist={"scpca"},
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -175,10 +168,10 @@ class TestLoadMetadata(TransactionTestCase):
         project_id = "SCPCP999991"
         self.load_metadata(
             clean_up_input_data=False,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist={"scpca"},
         )
 
         project = Project.objects.get(scpca_id=project_id)
@@ -247,10 +240,10 @@ class TestLoadMetadata(TransactionTestCase):
         project_id = "SCPCP999990"
         self.load_metadata(
             clean_up_input_data=False,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
+            submitter_whitelist={"scpca"},
         )
 
         project = Project.objects.get(scpca_id=project_id)
