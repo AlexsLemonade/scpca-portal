@@ -3,6 +3,7 @@ import re
 import shutil
 from io import TextIOWrapper
 from pathlib import Path
+from typing import List
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -59,18 +60,21 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-    def assertProjectReadmeContent(self, zip_file, project_id=""):
-        def get_updated_content(content):
+    def assertProjectReadmeContent(self, zip_file, project_ids: List[str]) -> None:
+        def get_updated_content(content: str) -> str:
             """
-            Replace the placeholders PROJECT_ID and TEST_TODAYS_DATE in test_data/readmes
+            Replace the placeholders PROJECT_ID_{i} and TEST_TODAYS_DATE in test_data/readmes
             with the given project_id and today's date respectively for format testing."
             """
-            content = re.sub("PROJECT_ID", project_id, content)
-            content = re.sub(
-                "Generated on: TEST_TODAYS_DATE",
-                f"Generated on: {utils.get_today_string()}",
-                content,
+            content = content.replace(
+                "Generated on: TEST_TODAYS_DATE", f"Generated on: {utils.get_today_string()}"
             )
+            # Map project_ids to their coressponding placeholders with indecies in readmes
+            placeholders = {
+                f"PROJECT_ID_{i}": project_id for i, project_id in enumerate(project_ids)
+            }
+            for placeholder, project_id in placeholders.items():
+                content = content.replace(placeholder, project_id)
 
             return content.strip()
 
@@ -238,7 +242,7 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(len(files), 8)
             self.assertIn("SCPCP999992_merged.rds", files)
             self.assertNotIn("SCPCP999992_merged_adt.h5ad", files)
-            self.assertProjectReadmeContent(project_zip, project_id)
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -275,7 +279,7 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(len(files), 9)
             self.assertIn("SCPCP999992_merged_rna.h5ad", files)
             self.assertIn("SCPCP999992_merged_adt.h5ad", files)
-            self.assertProjectReadmeContent(project_zip, project_id)
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
     def test_merged_project_anndata_no_cite_seq(self):
         project_id = "SCPCP999990"
@@ -332,7 +336,7 @@ class TestLoadData(TransactionTestCase):
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged.rds", files)
-            self.assertProjectReadmeContent(project_zip, project_id)
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -370,7 +374,7 @@ class TestLoadData(TransactionTestCase):
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged_rna.h5ad", files)
-            self.assertProjectReadmeContent(project_zip, project_id)
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
     def test_no_merged_single_cell(self):
         project_id = "SCPCP999991"
@@ -536,7 +540,7 @@ class TestLoadData(TransactionTestCase):
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
-            self.assertProjectReadmeContent(project_zip, project_id)
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
         self.assertEqual(len(sample_metadata_lines), 4)  # 3 items + header.
 
@@ -820,7 +824,7 @@ class TestLoadData(TransactionTestCase):
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
-            self.assertProjectReadmeContent(project_zip, project_id)
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
         self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
 
@@ -1055,7 +1059,7 @@ class TestLoadData(TransactionTestCase):
             spatial_metadata = [
                 sm for sm in spatial_metadata_file.decode("utf-8").split("\r\n") if sm
             ]
-            self.assertProjectReadmeContent(project_zip, project_id)
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
         self.assertEqual(len(spatial_metadata), 2)  # 1 item + header.
 

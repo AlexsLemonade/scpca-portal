@@ -6,7 +6,7 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [PROJECT_ID](https://scpca.alexslemonade.org/projects/PROJECT_ID) in the ScPCA portal.
+This download includes single-cell or single-nuclei gene expression files and associated metadata for samples from project [PROJECT_ID_0](https://scpca.alexslemonade.org/projects/PROJECT_ID_0) in the ScPCA portal.
 
 Each sample folder (indicated by the `SCPCS` prefix) contains the files for all libraries (`SCPCL` prefix) derived from that biological sample.
 Most samples only have one library that has been sequenced.
@@ -25,7 +25,7 @@ Also included in each download is `single_cell_metadata.tsv`, a tab-separated ta
 Gene expression files, available as RDS files containing a `SingleCellExperiment` object, house the expression data, cell and gene metrics, associated metadata, and in the case of multi-modal data like CITE-seq, data from the additional cell-based assays (see [Single-cell gene expression file contents](https://scpca.readthedocs.io/en/stable/sce_file_contents.html) for more information).
 
 This download does not include any samples that are part of multiplexed libraries.
-To download all samples in this project, including multiplexed libraries, if present, visit the [project page](https://scpca.alexslemonade.org/projects/PROJECT_ID).
+To download all samples in this project, including multiplexed libraries, if present, visit the [project page](https://scpca.alexslemonade.org/projects/PROJECT_ID_0).
 
 If a project contains bulk RNA-seq data, two tab-separated value files, `bulk_quant.tsv` and `bulk_metadata.tsv`, will be included in the download.
 The `bulk_quant.tsv` file contains a gene by sample matrix (each row a gene, each column a sample) containing raw gene expression counts quantified by Salmon.
@@ -56,7 +56,7 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-To cite data from PROJECT_ID, please see the project abstract and publication information at [PROJECT_ID page.](https://scpca.alexslemonade.org/projects/PROJECT_ID)
+To cite data from PROJECT_ID_0, please see the project abstract and publication information at [PROJECT_ID_0 page.](https://scpca.alexslemonade.org/projects/PROJECT_ID_0)
 
 ### Citing the ScPCA Portal
 

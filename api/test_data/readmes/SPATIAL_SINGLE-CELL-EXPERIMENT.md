@@ -6,7 +6,7 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-This download includes gene expression data from libraries processed using spatial transcriptomics and associated metadata for samples from project [PROJECT_ID](https://scpca.alexslemonade.org/projects/PROJECT_ID) in the ScPCA portal.
+This download includes gene expression data from libraries processed using spatial transcriptomics and associated metadata for samples from project [PROJECT_ID_0](https://scpca.alexslemonade.org/projects/PROJECT_ID_0) in the ScPCA portal.
 
 For all spatial transcriptomics libraries (indicated by the `SCPCL` prefix) , a `SCPCL000000_spatial` folder will be nested inside the corresponding sample folder (`SCPCS` prefix) in the download.
 See the [FAQ section about samples and libraries](https://scpca.readthedocs.io/en/stable/faq.html#what-is-the-difference-between-samples-and-libraries) for more information.
@@ -43,7 +43,7 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-To cite data from PROJECT_ID, please see the project abstract and publication information at [PROJECT_ID page.](https://scpca.alexslemonade.org/projects/PROJECT_ID)
+To cite data from PROJECT_ID_0, please see the project abstract and publication information at [PROJECT_ID_0 page.](https://scpca.alexslemonade.org/projects/PROJECT_ID_0)
 
 ### Citing the ScPCA Portal
 
