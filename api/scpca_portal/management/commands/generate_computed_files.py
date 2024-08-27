@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-from scpca_portal import common, s3, utils
+from scpca_portal import common, s3
 from scpca_portal.models import Project
 from scpca_portal.models.computed_file import ComputedFile
 
@@ -93,27 +93,35 @@ class Command(BaseCommand):
         # Close DB connection for each thread.
         connection.close()
 
-    def generate_computed_files(self, **kwargs) -> None:
+    def generate_computed_files(
+        self,
+        clean_up_input_data: bool,
+        clean_up_output_data: bool,
+        max_workers: int,
+        scpca_project_id: str,
+        update_s3: bool,
+        **kwargs,
+    ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
-        project = Project.objects.get(scpca_id=kwargs["scpca_project_id"])
+        project = Project.objects.get(scpca_id=scpca_project_id)
 
         # Prepare data input directory.
         common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
         # Prepare data output directory.
-        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
         common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
         # Prep callback function
-        create_computed_file_kwargs = utils.filter_dict_by_keys(
-            kwargs, {"update_s3", "clean_up_output_data"}
+        on_get_file = partial(
+            self.create_computed_file,
+            update_s3=update_s3,
+            clean_up_output_data=clean_up_output_data,
         )
-        on_get_file = partial(self.create_computed_file, **create_computed_file_kwargs)
 
         # Prepare a threading.Lock for each sample, with the chief purpose being to protect
         # multiplexed samples that share a zip file.
         locks = {}
-        with ThreadPoolExecutor(max_workers=kwargs["max_workers"]) as tasks:
+        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
             # Generated project computed files
             for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
                 tasks.submit(
@@ -137,10 +145,10 @@ class Command(BaseCommand):
 
         project.update_downloadable_sample_count()
 
-        if kwargs["clean_up_input_data"]:
+        if clean_up_input_data:
             logger.info("Cleaning up input data")
             self.clean_up_input_data()
 
-        if kwargs["clean_up_output_data"]:
+        if clean_up_output_data:
             logger.info("Cleaning up output directory")
             self.clean_up_output_data()
