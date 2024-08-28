@@ -54,9 +54,8 @@ class TestLoadData(TransactionTestCase):
     def assertProjectReadmeContains(self, text, project_zip):
         self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
 
-    @patch("scpca_portal.management.commands.load_data.Command.clean_up_output_data")
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_input_data")
-    def test_data_clean_up(self, mock_clean_up_input_data, mock_clean_up_output_data):
+    def test_data_clean_up(self, mock_clean_up_input_data):
         project_id = "SCPCP999990"
         self.load_data(
             clean_up_input_data=True,
@@ -69,7 +68,9 @@ class TestLoadData(TransactionTestCase):
         )
 
         mock_clean_up_input_data.assert_called_once()
-        mock_clean_up_output_data.assert_called_once()
+        # would be good to check here that both input and output data dirs are empty
+        # this is necessary because we no longer call clean_up_output_data at the end,
+        # as it's done per computed file
 
     def test_load_data(self):
         project_id = "SCPCP999990"
