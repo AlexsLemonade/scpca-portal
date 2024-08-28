@@ -105,16 +105,17 @@ class Command(BaseCommand):
 
         return True
 
-    def purge_project(
+    def can_purge_project(
         self,
         project: Project,
         *,
         reload_existing: bool = False,
-        update_s3: bool = False,
     ) -> bool:
         """
-        Purges existing projects from the db so that they can be re-added when they are processed.
-        S3 is updated accordingly. Returns boolean as success status.
+        Checks to see if the reload_existing flag was passed,
+        indicating willingness for an existing project to be purged from the db.
+        Existing projects must be purged before processing and re-adding them.
+        Returns boolean as success status.
         """
         # Projects can only be intentionally purged.
         # If the reload_existing flag is not set, then the project should not be procssed.
@@ -122,9 +123,6 @@ class Command(BaseCommand):
             logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
             return False
 
-        # Purge existing projects so they can be re-added.
-        logger.info(f"Purging '{project}")
-        project.purge(delete_from_s3=update_s3)
         return True
 
     def create_computed_file(self, future, *, update_s3: bool, clean_up_output_data: bool) -> None:
@@ -187,9 +185,11 @@ class Command(BaseCommand):
             project_id = project_metadata["scpca_project_id"]
             if project := Project.objects.filter(scpca_id=project_id).first():
                 # If there's a problem purging an existing project, then don't process it
-                if not self.purge_project(
-                    project, reload_existing=reload_existing, update_s3=update_s3
-                ):
+                if self.can_purge_project(project, reload_existing=reload_existing):
+                    # Purge existing projects so they can be re-added.
+                    logger.info(f"Purging '{project}")
+                    project.purge(delete_from_s3=update_s3)
+                else:
                     continue
 
             logger.info(f"Importing Project {project_metadata['scpca_project_id']} data")
