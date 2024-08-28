@@ -77,10 +77,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return project
 
-    @staticmethod
-    def get_input_project_metadata_file_path():
-        return common.INPUT_DATA_PATH / "project_metadata.csv"
-
     @property
     def computed_files(self):
         return self.project_computed_files.order_by("created_at")

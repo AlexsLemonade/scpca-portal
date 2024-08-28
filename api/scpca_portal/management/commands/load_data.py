@@ -177,7 +177,7 @@ class Command(BaseCommand):
         s3.download_input_metadata(input_bucket_name)
 
         projects_metadata = metadata_file.load_projects_metadata(
-            Project.get_input_project_metadata_file_path(), scpca_project_id
+            filter_on_project_id=scpca_project_id
         )
         for project_metadata in projects_metadata:
             if not self.can_process_project(project_metadata, submitter_whitelist):

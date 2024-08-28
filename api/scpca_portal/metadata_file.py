@@ -7,6 +7,7 @@ from typing import Dict, List, Tuple
 
 from scpca_portal import common, utils
 
+PROJECT_METADATA_PATH = common.INPUT_DATA_PATH / "project_metadata.csv"
 PROJECT_METADATA_KEYS = [
     # Fields used in Project model object creation
     ("has_bulk", "has_bulk_rna_seq", False),
@@ -36,20 +37,20 @@ LIBRARY_METADATA_KEYS = [
 KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
 
 
-def load_projects_metadata(metadata_file_path: Path, project_id: str = None):
+def load_projects_metadata(*, filter_on_project_id: str = None):
     """
-    Opens, loads and parses list of project metadata located at inputted metadata_file_path.
+    Opens, loads and parses list of project metadata dicts.
     Transforms keys in data dicts to match associated model attributes.
     If an optional project id is passed, all projects are filtered out except for the one passed.
     """
-    with open(metadata_file_path) as raw_file:
+    with open(PROJECT_METADATA_PATH) as raw_file:
         projects_metadata = list(csv.DictReader(raw_file))
 
     for project_metadata in projects_metadata:
         transform_keys(project_metadata, PROJECT_METADATA_KEYS)
 
-    if project_id:
-        return [pm for pm in projects_metadata if pm["scpca_project_id"] == project_id]
+    if filter_on_project_id:
+        return [pm for pm in projects_metadata if pm["scpca_project_id"] == filter_on_project_id]
 
     return projects_metadata
 
