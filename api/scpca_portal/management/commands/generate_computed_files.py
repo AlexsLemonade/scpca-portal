@@ -71,10 +71,6 @@ class Command(BaseCommand):
     def clean_up_input_data() -> None:
         shutil.rmtree(common.INPUT_DATA_PATH, ignore_errors=True)
 
-    @staticmethod
-    def clean_up_output_data() -> None:
-        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
-
     def create_computed_file(self, future, *, update_s3: bool, clean_up_output_data: bool) -> None:
         """
         Saves computed file returned from future to the db.
@@ -148,7 +144,3 @@ class Command(BaseCommand):
         if clean_up_input_data:
             logger.info("Cleaning up input data")
             self.clean_up_input_data()
-
-        if clean_up_output_data:
-            logger.info("Cleaning up output directory")
-            self.clean_up_output_data()

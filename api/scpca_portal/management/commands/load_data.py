@@ -3,7 +3,6 @@ import shutil
 from argparse import BooleanOptionalAction
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from pathlib import Path
 from threading import Lock
 from typing import Any, Dict, Set
 
@@ -149,11 +148,6 @@ class Command(BaseCommand):
     def clean_up_input_data(project) -> None:
         shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
 
-    @staticmethod
-    def clean_up_output_data() -> None:
-        for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
-            path.unlink(missing_ok=True)
-
     def load_data(
         self,
         input_bucket_name: str,
@@ -244,7 +238,3 @@ class Command(BaseCommand):
             if clean_up_input_data:
                 logger.info(f"Cleaning up '{project}' input data")
                 self.clean_up_input_data(project)
-
-            if clean_up_output_data:
-                logger.info("Cleaning up output directory")
-                self.clean_up_output_data()
