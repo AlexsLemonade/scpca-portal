@@ -97,8 +97,8 @@ class Command(BaseCommand):
         return True
 
     @staticmethod
-    def clean_up_input_data() -> None:
-        shutil.rmtree(common.INPUT_DATA_PATH, ignore_errors=True)
+    def clean_up_input_data(project) -> None:
+        shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
 
     def load_metadata(
         self,
@@ -148,6 +148,6 @@ class Command(BaseCommand):
                     f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'"
                 )
 
-        if clean_up_input_data:
-            logger.info("Cleaning up input data")
-            self.clean_up_input_data()
+            if clean_up_input_data:
+                logger.info(f"Cleaning up '{project}' input data")
+                self.clean_up_input_data(project)
