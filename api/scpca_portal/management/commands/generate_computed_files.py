@@ -100,6 +100,9 @@ class Command(BaseCommand):
     ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
         project = Project.objects.get(scpca_id=scpca_project_id)
+        # Purge all of a project's computed files (and optionally delete them from s3),
+        # before generating new ones
+        project.purge_computed_files(update_s3)
 
         # Prepare data input directory.
         common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
