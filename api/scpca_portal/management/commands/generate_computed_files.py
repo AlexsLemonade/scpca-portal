@@ -1,17 +1,10 @@
 import logging
-import shutil
 from argparse import BooleanOptionalAction
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
-from threading import Lock
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db import connection
 
-from scpca_portal import common, s3
-from scpca_portal.models import Project
-from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal import loader
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -67,28 +60,6 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.generate_computed_files(**kwargs)
 
-    @staticmethod
-    def clean_up_input_data() -> None:
-        shutil.rmtree(common.INPUT_DATA_PATH, ignore_errors=True)
-
-    def create_computed_file(self, future, *, update_s3: bool, clean_up_output_data: bool) -> None:
-        """
-        Saves computed file returned from future to the db.
-        Uploads file to s3 and cleans up output data depending on passed options.
-        """
-        if computed_file := future.result():
-
-            # Only upload and clean up projects and the last sample if multiplexed
-            if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
-                if update_s3:
-                    s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
-                if clean_up_output_data:
-                    computed_file.clean_up_local_computed_file()
-            computed_file.save()
-
-        # Close DB connection for each thread.
-        connection.close()
-
     def generate_computed_files(
         self,
         clean_up_input_data: bool,
@@ -99,51 +70,13 @@ class Command(BaseCommand):
         **kwargs,
     ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
-        project = Project.objects.get(scpca_id=scpca_project_id)
-        # Purge all of a project's computed files (and optionally delete them from s3),
-        # before generating new ones
-        project.purge_computed_files(update_s3)
+        loader.prepare_data_dirs(clean_up_input_data)
 
-        # Prepare data input directory.
-        common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
+        project = loader.get_project_for_computed_file_generation(scpca_project_id, update_s3)
 
-        # Prepare data output directory.
-        common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
+        loader.generate_computed_files(project, max_workers, clean_up_output_data, update_s3)
 
-        # Prep callback function
-        on_get_file = partial(
-            self.create_computed_file,
-            update_s3=update_s3,
-            clean_up_output_data=clean_up_output_data,
-        )
+        loader.update_project_aggregate_values(project)
 
-        # Prepare a threading.Lock for each sample, with the chief purpose being to protect
-        # multiplexed samples that share a zip file.
-        locks = {}
-        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            # Generated project computed files
-            for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
-                tasks.submit(
-                    ComputedFile.get_project_file,
-                    project,
-                    config,
-                    project.get_download_config_file_output_name(config),
-                ).add_done_callback(on_get_file)
-
-            # Generated sample computed files
-            for sample in project.samples.all():
-                for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
-                    sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
-                    tasks.submit(
-                        ComputedFile.get_sample_file,
-                        sample,
-                        config,
-                        sample.get_download_config_file_output_name(config),
-                        sample_lock,
-                    ).add_done_callback(on_get_file)
-
-        project.update_downloadable_sample_count()
-
-        if clean_up_input_data:
-            logger.info("Cleaning up input data")
-            self.clean_up_input_data()
+        # This is likely not necessary as Batch will trigger this automatically upon job completion
+        loader.prepare_data_dirs(clean_up_input_data)
