@@ -70,11 +70,8 @@ class TestLoadData(TransactionTestCase):
                 "Generated on: TEST_TODAYS_DATE", f"Generated on: {utils.get_today_string()}"
             )
             # Map project_ids to their coressponding placeholders with indecies in readmes
-            placeholders = {
-                f"PROJECT_ID_{i}": project_id for i, project_id in enumerate(project_ids)
-            }
-            for placeholder, project_id in placeholders.items():
-                content = content.replace(placeholder, project_id)
+            for i, project_id in enumerate(project_ids):
+                content = content.replace(f"PROJECT_ID_{i}", project_id)
 
             return content.strip()
 
