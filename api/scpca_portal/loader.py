@@ -1,3 +1,4 @@
+import shutil
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
@@ -16,12 +17,17 @@ from scpca_portal.models.computed_file import ComputedFile
 logger = get_and_configure_logger(__name__)
 
 
-def prepare_data_dirs(clean_up_input_data: bool = settings.PRODUCTION) -> None:
+def prepare_data_dirs(
+    clean_up_input_data: bool = settings.PRODUCTION, project_id: str = ""
+) -> None:
     # Prepare data input directory.
     common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
     if clean_up_input_data:
-        for path in Path(common.INPUT_DATA_PATH).glob("*"):
-            path.unlink(missing_ok=True)
+        if project_id:
+            shutil.rmtree(common.INPUT_DATA_PATH / project_id, ignore_errors=True)
+        else:
+            for path in Path(common.INPUT_DATA_PATH).glob("*"):
+                path.unlink(missing_ok=True)
 
     # Prepare data output directory.
     common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
