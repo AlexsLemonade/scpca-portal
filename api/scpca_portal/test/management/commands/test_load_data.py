@@ -69,8 +69,8 @@ class TestLoadData(TransactionTestCase):
         )
 
         mock_clean_up_input_data.assert_called_once()
-        # Because we clean up output data on a per computed file level,
-        # this is the best way to check that output data was cleaned up properly
+        # Because we clean up output data by deleting computed files as they're completed,
+        # doing this check at the end is the cleanest way to assess cleanup was done properly
         self.assertListEqual(os.listdir(common.OUTPUT_DATA_PATH), [])
 
     def test_load_data(self):
