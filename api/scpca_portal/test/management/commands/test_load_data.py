@@ -1,4 +1,5 @@
 import csv
+import os
 import shutil
 from functools import partial
 from io import TextIOWrapper
@@ -68,9 +69,9 @@ class TestLoadData(TransactionTestCase):
         )
 
         mock_clean_up_input_data.assert_called_once()
-        # would be good to check here that both input and output data dirs are empty
-        # this is necessary because we no longer call clean_up_output_data at the end,
-        # as it's done per computed file
+        # Because we clean up output data on a per computed file level,
+        # this is the best way to check that output data was cleaned up properly
+        self.assertListEqual(os.listdir(common.OUTPUT_DATA_PATH), [])
 
     def test_load_data(self):
         project_id = "SCPCP999990"
