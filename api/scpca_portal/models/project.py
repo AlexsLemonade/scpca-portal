@@ -300,26 +300,32 @@ class Project(CommonDataAttributes, TimestampedModel):
                 if sample := self.samples.filter(scpca_id=sample_id).first():
                     Library.bulk_create_from_dicts([library_metadata], sample)
 
-    def purge(self, delete_from_s3=False) -> None:
+    def purge(self, delete_from_s3: bool = False) -> None:
         """Purges project and its related data."""
+        self.purge_computed_files(delete_from_s3)
         for sample in self.samples.all():
-            for computed_file in sample.computed_files:
-                if delete_from_s3:
-                    s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
-                computed_file.delete()
             for library in sample.libraries.all():
                 # If library has other samples that it is related to, then don't delete it
                 if len(library.samples.all()) == 1:
                     library.delete()
             sample.delete()
 
+        self.delete()
+
+    def purge_computed_files(self, delete_from_s3: bool = False) -> None:
+        """Purges all computed files associated with the project instance."""
+        # Delete project's sample computed files
+        for sample in self.samples.all():
+            for computed_file in sample.computed_files:
+                if delete_from_s3:
+                    s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
+                computed_file.delete()
+
+        # Delete project's project computed files
         for computed_file in self.computed_files:
             if delete_from_s3:
                 s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
             computed_file.delete()
-
-        ProjectSummary.objects.filter(project=self).delete()
-        self.delete()
 
     def update_sample_derived_properties(self):
         """
