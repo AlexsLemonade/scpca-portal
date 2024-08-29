@@ -1,12 +1,15 @@
 import csv
+import re
 import shutil
 from io import TextIOWrapper
+from pathlib import Path
+from typing import List
 from unittest.mock import patch
 from zipfile import ZipFile
 
 from django.test import TransactionTestCase
 
-from scpca_portal import common, metadata_file
+from scpca_portal import common, metadata_file, readme_file, utils
 from scpca_portal.management.commands.configure_aws_cli import Command as configure_aws_cli
 from scpca_portal.management.commands.load_data import Command as load_data
 from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
@@ -16,6 +19,9 @@ from scpca_portal.models import ComputedFile, Project, ProjectSummary, Sample
 # api/test_data/input before testing to ensure test files are updated correctly.
 
 ALLOWED_SUBMITTERS = {"scpca"}
+
+README_DIR = common.DATA_PATH / "readmes"
+README_FILE = readme_file.OUTPUT_NAME
 
 
 class TestLoadData(TransactionTestCase):
@@ -54,8 +60,34 @@ class TestLoadData(TransactionTestCase):
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-    def assertProjectReadmeContains(self, text, project_zip):
-        self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
+    def assertProjectReadmeContent(self, zip_file, project_ids: List[str]) -> None:
+        def get_updated_content(content: str) -> str:
+            """
+            Replace the placeholders PROJECT_ID_{i} and TEST_TODAYS_DATE in test_data/readmes
+            with the given project_id and today's date respectively for format testing."
+            """
+            content = content.replace(
+                "Generated on: TEST_TODAYS_DATE", f"Generated on: {utils.get_today_string()}"
+            )
+            # Map project_ids to their coressponding placeholders with indecies in readmes
+            for i, project_id in enumerate(project_ids):
+                content = content.replace(f"PROJECT_ID_{i}", project_id)
+
+            return content.strip()
+
+        # Get the corresponding saved readme output path based on the zip filename
+        readme_filename = re.sub(r"^[A-Z\d]+_", "", Path(zip_file.filename).stem) + ".md"
+        saved_readme_output_path = README_DIR / readme_filename
+        # Convert expected and output contents to line lists for easier debugging
+        with zip_file.open(README_FILE) as readme_file:
+            output_content = readme_file.read().decode("utf-8").splitlines(True)
+        with saved_readme_output_path.open("r", encoding="utf-8") as saved_readme_file:
+            expected_content = get_updated_content(saved_readme_file.read()).splitlines(True)
+        self.assertEqual(
+            expected_content,
+            output_content,
+            f"{self._testMethodName}: Comparison with {readme_filename} does not match.",
+        )
 
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_output_data")
     @patch("scpca_portal.management.commands.load_data.Command.clean_up_input_data")
@@ -189,6 +221,7 @@ class TestLoadData(TransactionTestCase):
         project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
             download_config
         )
+
         with ZipFile(project_zip_path) as project_zip:
             # There are 8 files:
             # ├── README.md
@@ -206,10 +239,7 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(len(files), 8)
             self.assertIn("SCPCP999992_merged.rds", files)
             self.assertNotIn("SCPCP999992_merged_adt.h5ad", files)
-            self.assertProjectReadmeContains(
-                "For more information on working with the processed `SingleCellExperiment` objects",
-                project_zip,
-            )
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -246,10 +276,7 @@ class TestLoadData(TransactionTestCase):
             self.assertEqual(len(files), 9)
             self.assertIn("SCPCP999992_merged_rna.h5ad", files)
             self.assertIn("SCPCP999992_merged_adt.h5ad", files)
-            self.assertProjectReadmeContains(
-                "For more information on working with the processed `AnnData` objects",
-                project_zip,
-            )
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
     def test_merged_project_anndata_no_cite_seq(self):
         project_id = "SCPCP999990"
@@ -306,10 +333,7 @@ class TestLoadData(TransactionTestCase):
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged.rds", files)
-            self.assertProjectReadmeContains(
-                "For more information on working with the processed `SingleCellExperiment` objects",
-                project_zip,
-            )
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
         self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
         self.assertEqual(
@@ -347,10 +371,7 @@ class TestLoadData(TransactionTestCase):
             files = set(project_zip.namelist())
             self.assertEqual(len(files), 10)
             self.assertIn("SCPCP999990_merged_rna.h5ad", files)
-            self.assertProjectReadmeContains(
-                "For more information on working with the processed `AnnData` objects",
-                project_zip,
-            )
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
     def test_no_merged_single_cell(self):
         project_id = "SCPCP999991"
@@ -516,14 +537,8 @@ class TestLoadData(TransactionTestCase):
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
-            self.assertProjectReadmeContains(
-                "This dataset is designated as research or academic purposes only.",
-                project_zip,
-            )
-            self.assertProjectReadmeContains(
-                "For information on how to use the demultiplexing results",
-                project_zip,
-            )
+            self.assertProjectReadmeContent(project_zip, [project_id])
+
         self.assertEqual(len(sample_metadata_lines), 4)  # 3 items + header.
 
         sample_metadata_keys = sample_metadata_lines[0].split(common.TAB)
@@ -806,14 +821,7 @@ class TestLoadData(TransactionTestCase):
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
-            self.assertProjectReadmeContains(
-                "This dataset is designated as research or academic purposes only.",
-                project_zip,
-            )
-            self.assertProjectReadmeContains(
-                "For more information on working with the processed `SingleCellExperiment` objects",
-                project_zip,
-            )
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
         self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
 
@@ -1048,14 +1056,7 @@ class TestLoadData(TransactionTestCase):
             spatial_metadata = [
                 sm for sm in spatial_metadata_file.decode("utf-8").split("\r\n") if sm
             ]
-            self.assertProjectReadmeContains(
-                "This dataset is designated as research or academic purposes only.",
-                project_zip,
-            )
-            self.assertProjectReadmeContains(
-                "For all spatial transcriptomics libraries",
-                project_zip,
-            )
+            self.assertProjectReadmeContent(project_zip, [project_id])
 
         self.assertEqual(len(spatial_metadata), 2)  # 1 item + header.
 
