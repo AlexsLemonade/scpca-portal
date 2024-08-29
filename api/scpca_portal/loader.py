@@ -1,6 +1,7 @@
 import shutil
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from pathlib import Path
 from threading import Lock
 from typing import Any, Dict, List, Set
 
@@ -15,6 +16,10 @@ from scpca_portal.models.computed_file import ComputedFile
 logger = get_and_configure_logger(__name__)
 
 
+def _remove_directory(directory: Path) -> None:
+    shutil.rmtree(directory, ignore_errors=True)
+
+
 def clean_up_data_dirs(project_id: str = "") -> None:
     """
     Wipes input and output data dirs (if they exist) and creates them anew.
@@ -22,7 +27,7 @@ def clean_up_data_dirs(project_id: str = "") -> None:
     the data dir are deleted.
     """
     if project_id:
-        shutil.rmtree(common.INPUT_DATA_PATH / project_id, ignore_errors=True)
+        _remove_directory(common.INPUT_DATA_PATH / project_id)
         return
 
     # Prepare data input directory.
@@ -152,7 +157,7 @@ def get_projects_for_computed_file_generation(update_s3: bool = False) -> List[P
     """
     return [
         _prep_project_for_computed_file_generation(project, update_s3)
-        for project in Project.objects.filter(project_computed_files__is_null=True)
+        for project in Project.objects.filter(project_computed_files__isnull=True)
     ]
 
 
@@ -178,8 +183,8 @@ def _create_computed_file(future, *, update_s3: bool, clean_up_output_data: bool
 def generate_computed_files(
     project: Project,
     max_workers: int,
-    clean_up_output_data: bool,
     update_s3: bool,
+    clean_up_output_data: bool,
 ) -> None:
     # Prep callback function
     on_get_file = partial(

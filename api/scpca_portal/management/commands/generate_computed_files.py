@@ -74,7 +74,7 @@ class Command(BaseCommand):
 
         project = loader.get_project_for_computed_file_generation(scpca_project_id, update_s3)
 
-        loader.generate_computed_files(project, max_workers, clean_up_output_data, update_s3)
+        loader.generate_computed_files(project, max_workers, update_s3, clean_up_output_data)
 
         loader.update_project_aggregate_values(project)
 

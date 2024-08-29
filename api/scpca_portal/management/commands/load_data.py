@@ -98,11 +98,15 @@ class Command(BaseCommand):
                 loader.bulk_create_project_relations(project_metadata, project)
                 loader.create_samples_and_libraries(project)
 
+                if clean_up_input_data:
+                    logger.info(f"Cleaning up '{project}' input metadata files")
+                    loader.clean_up_data_dirs(project.scpca_id)
+
         # generate computed files
         for project in loader.get_projects_for_computed_file_generation(update_s3):
-            loader.generate_computed_files(project, max_workers, clean_up_output_data, update_s3)
+            loader.generate_computed_files(project, max_workers, update_s3, clean_up_output_data)
             loader.update_project_aggregate_values(project)
 
             if clean_up_input_data:
-                logger.info(f"Cleaning up '{project}' input data")
+                logger.info(f"Cleaning up '{project}' input data files")
                 loader.clean_up_data_dirs(project.scpca_id)

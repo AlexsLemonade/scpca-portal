@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.test import TransactionTestCase
 
+from scpca_portal import common
 from scpca_portal.models import Project, ProjectSummary, Sample
 
 # NOTE: Test data bucket is defined in `scpca_portal/config/local.py`
@@ -41,18 +42,18 @@ class TestLoadMetadata(TransactionTestCase):
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-    @patch("scpca_portal.management.commands.load_metadata.Command.clean_up_input_data")
-    def test_data_clean_up(self, mock_clean_up_input_data):
+    @patch("scpca_portal.loader._remove_directory")
+    def test_data_clean_up(self, mock_remove_directory):
         project_id = "SCPCP999990"
         self.load_metadata(
             clean_up_input_data=True,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
-            submitter_whitelist={"scpca"},
+            submitter_whitelist="scpca",
         )
 
-        mock_clean_up_input_data.assert_called_once()
+        mock_remove_directory.assert_called_with(common.INPUT_DATA_PATH / project_id)
 
     def test_load_metadata(self):
         project_id = "SCPCP999990"
