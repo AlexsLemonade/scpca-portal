@@ -1,20 +1,14 @@
 import logging
 import shutil
 from argparse import BooleanOptionalAction
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
-from pathlib import Path
-from threading import Lock
 from typing import Any, Dict, Set
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db import connection
 from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, metadata_file, s3
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
-from scpca_portal.models.computed_file import ComputedFile
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -24,30 +18,14 @@ logger.addHandler(logging.StreamHandler())
 class Command(BaseCommand):
     help = """Populates the database with data.
 
-    The data should be contained in an S3 bucket called scpca-portal-inputs.
+    Metadata files should be contained in an S3 bucket called scpca-portal-inputs.
 
-    The directory structure for this bucket should follow this pattern:
+    The bucket's directory structure, as it pertains to metadata files, should follow this pattern:
         /project_metadata.csv
-        /SCPCP000001/libraries_metadata.csv
         /SCPCP000001/samples_metadata.csv
-        /SCPCP000001/SCPCS000109/SCPCL000126_filtered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_metadata.json
-        /SCPCP000001/SCPCS000109/SCPCL000126_processed.rds
-        /SCPCP000001/SCPCS000109/SCPCL000126_qc.html
-        /SCPCP000001/SCPCS000109/SCPCL000126_unfiltered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_filtered.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_metadata.json
-        /SCPCP000001/SCPCS000109/SCPCL000127_processed.rds
-        /SCPCP000001/SCPCS000109/SCPCL000127_qc.html
-        /SCPCP000001/SCPCS000109/SCPCL000127_unfiltered.rds
-
-    The files will be zipped up and stats will be calculated for them.
-
-    If run locally the zipped ComputedFiles will be copied to the
-    "scpca-local-data" bucket.
-
-    If run in the cloud the zipped ComputedFiles files will be copied
-    to a stack-specific S3 bucket."""
+        /SCPCP000001/SCPCS000001/SCPCL000001_metadata.json
+        /SCPCP000001/SCPCS000002/SCPCL000002_spatial/SCPCL000002_metadata.json
+    """
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -59,13 +37,6 @@ class Command(BaseCommand):
             type=bool,
             default=settings.PRODUCTION,
         )
-        parser.add_argument(
-            "--clean-up-output-data",
-            action=BooleanOptionalAction,
-            type=bool,
-            default=settings.PRODUCTION,
-        )
-        parser.add_argument("--max-workers", type=int, default=10)
         parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--scpca-project-id", type=str)
         parser.add_argument(
@@ -78,7 +49,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **kwargs):
-        self.load_data(**kwargs)
+        self.load_metadata(**kwargs)
 
     def comma_separated_set(self, raw_str: str) -> Set[str]:
         return set(raw_str.split(","))
@@ -125,52 +96,23 @@ class Command(BaseCommand):
 
         return True
 
-    def create_computed_file(self, future, *, update_s3: bool, clean_up_output_data: bool) -> None:
-        """
-        Saves computed file returned from future to the db.
-        Uploads file to s3 and cleans up output data depending on passed options.
-        """
-        if computed_file := future.result():
-
-            # Only upload and clean up projects and the last sample if multiplexed
-            if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
-                if update_s3:
-                    s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
-                if clean_up_output_data:
-                    computed_file.clean_up_local_computed_file()
-            computed_file.save()
-
-        # Close DB connection for each thread.
-        connection.close()
-
     @staticmethod
     def clean_up_input_data(project) -> None:
         shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
 
-    @staticmethod
-    def clean_up_output_data() -> None:
-        for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
-            path.unlink(missing_ok=True)
-
-    def load_data(
+    def load_metadata(
         self,
         input_bucket_name: str,
         clean_up_input_data: bool,
-        clean_up_output_data: bool,
-        max_workers: int,
         reload_existing: bool,
         scpca_project_id: str,
         update_s3: bool,
         submitter_whitelist: Set[str],
         **kwargs,
     ) -> None:
-        """Loads data from S3. Creates projects and loads data for them."""
+        """Loads metadata from input metadata files on s3 and creates model objects in the db."""
         # Prepare data input directory.
         common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
-
-        # Prepare data output directory.
-        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
-        common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
         s3.download_input_metadata(input_bucket_name)
 
@@ -191,7 +133,6 @@ class Command(BaseCommand):
                     project.purge(delete_from_s3=update_s3)
                 else:
                     continue
-
             logger.info(f"Importing Project {project_metadata['scpca_project_id']} data")
             project = Project.get_from_dict(project_metadata)
             project.s3_input_bucket = input_bucket_name
@@ -207,44 +148,6 @@ class Command(BaseCommand):
                     f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'"
                 )
 
-            # Prep callback function
-            on_get_file = partial(
-                self.create_computed_file,
-                update_s3=update_s3,
-                clean_up_output_data=clean_up_output_data,
-            )
-
-            # Prepare a threading.Lock for each sample, with the chief purpose being to protect
-            # multiplexed samples that share a zip file.
-            locks = {}
-            with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-                # Generated project computed files
-                for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
-                    tasks.submit(
-                        ComputedFile.get_project_file,
-                        project,
-                        config,
-                        project.get_download_config_file_output_name(config),
-                    ).add_done_callback(on_get_file)
-
-                # Generated sample computed files
-                for sample in project.samples.all():
-                    for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
-                        sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
-                        tasks.submit(
-                            ComputedFile.get_sample_file,
-                            sample,
-                            config,
-                            sample.get_download_config_file_output_name(config),
-                            sample_lock,
-                        ).add_done_callback(on_get_file)
-
-            project.update_downloadable_sample_count()
-
             if clean_up_input_data:
                 logger.info(f"Cleaning up '{project}' input data")
                 self.clean_up_input_data(project)
-
-            if clean_up_output_data:
-                logger.info("Cleaning up output directory")
-                self.clean_up_output_data()
