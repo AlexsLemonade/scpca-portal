@@ -70,7 +70,7 @@ class Command(BaseCommand):
         **kwargs,
     ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
-        loader.prepare_data_dirs(clean_up_input_data)
+        loader.clean_up_data_dirs()
 
         project = loader.get_project_for_computed_file_generation(scpca_project_id, update_s3)
 
@@ -78,5 +78,9 @@ class Command(BaseCommand):
 
         loader.update_project_aggregate_values(project)
 
-        # This is likely not necessary as Batch will trigger this automatically upon job completion
-        loader.prepare_data_dirs(clean_up_input_data)
+        # There is no need to clear up the input and output data dirs at the end of execution,
+        # as Batch will trigger this automatically upon job completion.
+        # Adding it here is for testing purposes, allowing us to clean up input data if desired.
+        # Output data is deleted on a computed file level, after each file is created, it's deleted.
+        if clean_up_input_data:
+            loader.clean_up_data_dirs()

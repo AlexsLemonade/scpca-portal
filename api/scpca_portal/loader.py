@@ -1,11 +1,9 @@
 import shutil
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from pathlib import Path
 from threading import Lock
 from typing import Any, Dict, List, Set
 
-from django.conf import settings
 from django.db import connection
 from django.template.defaultfilters import pluralize
 
@@ -17,19 +15,22 @@ from scpca_portal.models.computed_file import ComputedFile
 logger = get_and_configure_logger(__name__)
 
 
-def prepare_data_dirs(
-    clean_up_input_data: bool = settings.PRODUCTION, project_id: str = ""
-) -> None:
+def clean_up_data_dirs(project_id: str = "") -> None:
+    """
+    Wipes input and output data dirs (if they exist) and creates them anew.
+    When a project id is passed, only files in the project id's dir within
+    the data dir are deleted.
+    """
+    if project_id:
+        shutil.rmtree(common.INPUT_DATA_PATH / project_id, ignore_errors=True)
+        return
+
     # Prepare data input directory.
+    shutil.rmtree(common.INPUT_DATA_PATH, ignore_errors=True)
     common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
-    if clean_up_input_data:
-        if project_id:
-            shutil.rmtree(common.INPUT_DATA_PATH / project_id, ignore_errors=True)
-        else:
-            for path in Path(common.INPUT_DATA_PATH).glob("*"):
-                path.unlink(missing_ok=True)
 
     # Prepare data output directory.
+    shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
     common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
 
