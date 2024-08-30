@@ -17,10 +17,10 @@ logger = get_and_configure_logger(__name__)
 
 def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -> None:
     """
-    Creates the input and output data dirs, if they do not yet exist.
-    Allows for options to be passed to wipe these dirs if they exist.
+    Create the input and output data dirs, if they do not yet exist.
+    Allow for options to be passed to wipe these dirs if they do exist.
         - wipe_input_dir defaults to False because we typically want to keep input data files
-        between testing rounds to speak up our tests.
+        between testing rounds to speed up our tests.
         - wipe_output_dir defaults to True because we typically don't want to keep around
         computed files after execution.
     The options are given to the caller for to customize behavior for different use cases.
@@ -37,12 +37,17 @@ def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -
 
 
 def remove_project_input_files(project_id: str) -> None:
+    """Remove the input files located at the project_id's input directory."""
     shutil.rmtree(common.INPUT_DATA_PATH / project_id, ignore_errors=True)
 
 
 def get_projects_metadata(
     input_bucket_name: str, filter_on_project_id: str = ""
 ) -> List[Dict[str, Any]]:
+    """
+    Download all metadata files from the passed input bucket,
+    load the project metadata file and return project metadata dicts.
+    """
     s3.download_input_metadata(input_bucket_name)
     projects_metadata = metadata_file.load_projects_metadata(
         filter_on_project_id=filter_on_project_id
@@ -52,7 +57,7 @@ def get_projects_metadata(
 
 def _can_process_project(project_metadata: Dict[str, Any], submitter_whitelist: Set[str]) -> bool:
     """
-    Validates that a project can be processed by assessing that:
+    Validate that a project can be processed by assessing that:
     - Input files exist for the project
     - The project's pi is on the whitelist of acceptable submitters
     """
@@ -77,10 +82,10 @@ def _can_purge_project(
     reload_existing: bool = False,
 ) -> bool:
     """
-    Checks to see if the reload_existing flag was passed,
+    Check to see if the reload_existing flag was passed,
     indicating willingness for an existing project to be purged from the db.
     Existing projects must be purged before processing and re-adding them.
-    Returns boolean as success status.
+    Return boolean as success status.
     """
     # Projects can only be intentionally purged.
     # If the reload_existing flag is not set, then the project should not be procssed.
@@ -98,6 +103,9 @@ def create_project(
     reload_existing: bool,
     update_s3: bool,
 ) -> Project | None:
+    """
+    Validate that a project can be processed, creates it, and return the newly created project.
+    """
     if not _can_process_project(project_metadata, submitter_whitelist):
         return
 
@@ -121,12 +129,17 @@ def create_project(
 
 
 def bulk_create_project_relations(project_metadata: Dict[str, Any], project: Project) -> None:
+    """
+    Create Contact, ExternalAccession and Publication instances from the project metadata dict,
+    and create a foreign key association with their project.
+    """
     Contact.bulk_create_from_project_data(project_metadata, project)
     ExternalAccession.bulk_create_from_project_data(project_metadata, project)
     Publication.bulk_create_from_project_data(project_metadata, project)
 
 
 def create_samples_and_libraries(project: Project) -> None:
+    """Create all samples and libraries associated with the passed project."""
     project.load_metadata()
     if samples_count := project.samples.count():
         logger.info(f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'")
@@ -164,8 +177,8 @@ def get_projects_for_computed_file_generation(update_s3: bool = False) -> List[P
 
 def _create_computed_file(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
     """
-    Saves computed file returned from future to the db.
-    Uploads file to s3 and cleans up output data depending on passed options.
+    Save computed file returned from future to the db.
+    Upload file to s3 and clean up output data depending on passed options.
     """
     if computed_file := future.result():
 
@@ -187,6 +200,10 @@ def generate_computed_files(
     update_s3: bool,
     clean_up_output_data: bool,
 ) -> None:
+    """
+    Generate all computed files associated with the passed project,
+    on both sample and project levels.
+    """
     # Prep callback function
     on_get_file = partial(
         _create_computed_file,
@@ -220,4 +237,9 @@ def generate_computed_files(
 
 
 def update_project_aggregate_values(project: Project) -> None:
+    """
+    Update aggregate values on the passed project,
+    which can only be computed upon completion of computed file generation.
+    Other project aggregate values are computed when metadata is initially loaded.
+    """
     project.update_downloadable_sample_count()
