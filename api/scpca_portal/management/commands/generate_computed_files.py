@@ -70,7 +70,7 @@ class Command(BaseCommand):
         **kwargs,
     ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
-        loader.clean_up_data_dirs()
+        loader.prep_data_dirs()
 
         project = loader.get_project_for_computed_file_generation(scpca_project_id, update_s3)
 
@@ -83,4 +83,5 @@ class Command(BaseCommand):
         # Adding it here is for testing purposes, allowing us to clean up input data if desired.
         # Output data is deleted on a computed file level, after each file is created, it's deleted.
         if clean_up_input_data:
-            loader.clean_up_data_dirs()
+            logger.info(f"Cleaning up '{project}' input data files")
+            loader.remove_project_input_files(project.scpca_id)

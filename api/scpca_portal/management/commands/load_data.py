@@ -87,7 +87,7 @@ class Command(BaseCommand):
         **kwargs,
     ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
-        loader.clean_up_data_dirs()
+        loader.prep_data_dirs()
 
         # load metadata
         for project_metadata in loader.get_projects_metadata(input_bucket_name, scpca_project_id):
@@ -100,7 +100,7 @@ class Command(BaseCommand):
 
                 if clean_up_input_data:
                     logger.info(f"Cleaning up '{project}' input metadata files")
-                    loader.clean_up_data_dirs(project.scpca_id)
+                    loader.remove_project_input_files(project.scpca_id)
 
         # generate computed files
         for project in loader.get_projects_for_computed_file_generation(update_s3):
@@ -108,5 +108,5 @@ class Command(BaseCommand):
             loader.update_project_aggregate_values(project)
 
             if clean_up_input_data:
-                logger.info(f"Cleaning up '{project}' input data files")
-                loader.clean_up_data_dirs(project.scpca_id)
+                logger.info(f"Cleaning up '{project}' input metadata files")
+                loader.remove_project_input_files(project.scpca_id)

@@ -16,26 +16,28 @@ from scpca_portal.models.computed_file import ComputedFile
 logger = get_and_configure_logger(__name__)
 
 
-def _remove_directory(directory: Path) -> None:
-    shutil.rmtree(directory, ignore_errors=True)
+def remove_project_input_files(project_input_directory: Path) -> None:
+    shutil.rmtree(project_input_directory, ignore_errors=True)
 
 
-def clean_up_data_dirs(project_id: str = "") -> None:
+def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -> None:
     """
-    Wipes input and output data dirs (if they exist) and creates them anew.
-    When a project id is passed, only files in the project id's dir within
-    the data dir are deleted.
+    Creates the input and output data dirs, if they do not yet exist.
+    Allows for options to be passed to wipe these dirs if they exist.
+        - wipe_input_dir defaults to False because we typically want to keep input data files
+        between testing rounds to speak up our tests.
+        - wipe_output_dir defaults to True because we typically don't want to keep around
+        computed files after execution.
+    The options are given to the caller for to customize behavior for different use cases.
     """
-    if project_id:
-        _remove_directory(common.INPUT_DATA_PATH / project_id)
-        return
-
     # Prepare data input directory.
-    shutil.rmtree(common.INPUT_DATA_PATH, ignore_errors=True)
+    if wipe_input_dir:
+        shutil.rmtree(common.INPUT_DATA_PATH, ignore_errors=True)
     common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
     # Prepare data output directory.
-    shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+    if wipe_output_dir:
+        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
     common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
 

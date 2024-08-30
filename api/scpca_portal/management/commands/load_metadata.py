@@ -62,7 +62,7 @@ class Command(BaseCommand):
         **kwargs,
     ) -> None:
         """Loads metadata from input metadata files on s3 and creates model objects in the db."""
-        loader.clean_up_data_dirs()
+        loader.prep_data_dirs()
 
         for project_metadata in loader.get_projects_metadata(input_bucket_name, scpca_project_id):
             # validates that a project can be added to the db, and if possible, creates the project
@@ -73,5 +73,5 @@ class Command(BaseCommand):
                 loader.create_samples_and_libraries(project)
 
                 if clean_up_input_data:
-                    logger.info(f"Cleaning up '{project}' input data")
-                    loader.clean_up_data_dirs(project.scpca_id)
+                    logger.info(f"Cleaning up '{project}' input metadata files")
+                    loader.remove_project_input_files(project.scpca_id)
