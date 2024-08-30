@@ -60,20 +60,26 @@ class TestCreatePortalMetadata(TransactionTestCase):
     def test_create_portal_metadata(self, mock_upload_output_file):
         # Set up the database for test
         self.load_test_data()
-        # Create the portal metadata computed_file
-        computed_file = self.processor.create_portal_metadata(
-            clean_up_output_data=False, update_s3=True
-        )
+        # Create the portal metadata computed file
+        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
 
-        # Test computed_file
-        if computed_file:
-            expected_size = 8469
-            self.assertEqual(computed_file.size_in_bytes, expected_size)
-            mock_upload_output_file.assert_called_once_with(
-                computed_file.s3_key, computed_file.s3_bucket
-            )
-        else:
-            self.fail("No computed file")
+        # Test the computed file
+        # Make sure the computed file is created and singular
+        computed_files = ComputedFile.objects.filter(portal_metadata_only=True)
+        self.assertEqual(computed_files.count(), 1)
+        computed_file = computed_files.first()
+        # Make sure the computed file size is as expected
+        self.assertEqual(computed_file.size_in_bytes, 8469)
+        # Make sure all fields match the download configuration values
+        self.assertIsNone(computed_file.format)
+        self.assertIsNone(computed_file.modality)
+        self.assertFalse(computed_file.includes_merged)
+        self.assertTrue(computed_file.metadata_only)
+        self.assertTrue(computed_file.portal_metadata_only)
+
+        mock_upload_output_file.assert_called_once_with(
+            computed_file.s3_key, computed_file.s3_bucket
+        )
 
         # Test the content of the generated zip file
         zip_file_path = ComputedFile.get_local_file_path(
