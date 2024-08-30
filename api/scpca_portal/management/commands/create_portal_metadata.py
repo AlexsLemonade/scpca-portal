@@ -11,9 +11,9 @@ logger = get_and_configure_logger(__name__)
 
 
 class Command(BaseCommand):
-    help = """Creates a computed file and zip for portal-wide metadata.
-    Saves generated computed file the db.
-    Uploads file to s3 and cleans up output data depending on passed options.
+    help = """Creates a computed file for portal-wide metadata.
+    Saves generated computed file to the db.
+    Optionally uploads file to s3 and cleans up output data.
     """
 
     def add_arguments(self, parser):
@@ -46,9 +46,9 @@ class Command(BaseCommand):
                 logger.info("Updating the zip file in S3")
                 s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
 
-            if clean_up_output_data:
-                logger.info("Cleaning up the output directory")
-                computed_file.clean_up_local_computed_file()
+        if clean_up_output_data:
+            logger.info("Cleaning up the output directory")
+            computed_file.clean_up_local_computed_file()
 
         return computed_file
 
