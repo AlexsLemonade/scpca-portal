@@ -232,15 +232,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
         return bulk_rna_seq_sample_ids
 
-    def get_additional_terms(self):
-        if not self.additional_restrictions:
-            return ""
-
-        with open(
-            common.TEMPLATE_PATH / "readme/additional_terms/research_academic_only.md"
-        ) as additional_terms_file:
-            return additional_terms_file.read()
-
     def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
         """
         Return all of a project's file paths that are suitable for the passed download config.
