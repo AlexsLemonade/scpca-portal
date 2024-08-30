@@ -1,29 +1,20 @@
 import logging
 import shutil
 from argparse import BooleanOptionalAction
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 from pathlib import Path
+from threading import Lock
+from typing import Any, Dict, Set
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import connection
 from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, metadata_file, s3
 from scpca_portal.models import Contact, ExternalAccession, Project, Publication
-
-ALLOWED_SUBMITTERS = {
-    "christensen",
-    "collins",
-    "dyer_chen",
-    "gawad",
-    "green_mulcahy_levy",
-    "mullighan",
-    "murphy_chen",
-    "pugh",
-    "teachey_tan",
-    "wu",
-    "rokita",
-    "soragni",
-}
+from scpca_portal.models.computed_file import ComputedFile
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -59,52 +50,123 @@ class Command(BaseCommand):
     to a stack-specific S3 bucket."""
 
     def add_arguments(self, parser):
-        parser.add_argument("--input-bucket-name", type=str, default=common.INPUT_BUCKET_NAME)
         parser.add_argument(
-            "--clean-up-input-data", action=BooleanOptionalAction, default=settings.PRODUCTION
+            "--input-bucket-name", type=str, default=settings.AWS_S3_INPUT_BUCKET_NAME
         )
         parser.add_argument(
-            "--clean-up-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
+            "--clean-up-input-data",
+            action=BooleanOptionalAction,
+            type=bool,
+            default=settings.PRODUCTION,
+        )
+        parser.add_argument(
+            "--clean-up-output-data",
+            action=BooleanOptionalAction,
+            type=bool,
+            default=settings.PRODUCTION,
         )
         parser.add_argument("--max-workers", type=int, default=10)
-        parser.add_argument("--reload-all", action="store_true", default=False)
         parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--scpca-project-id", type=str)
-        parser.add_argument("--skip-sync", action="store_true", default=False)
         parser.add_argument(
-            "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
+            "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
+        )
+        parser.add_argument(
+            "--submitter-whitelist",
+            type=self.comma_separated_set,
+            default=common.SUBMITTER_WHITELIST,
         )
 
     def handle(self, *args, **kwargs):
         self.load_data(**kwargs)
 
-    @staticmethod
-    def project_has_s3_files(project_id: str) -> bool:
-        return any(
-            True
-            for project_path in common.INPUT_DATA_PATH.iterdir()
-            if project_path.name == project_id and project_path.is_dir()
-            for nested_path in project_path.iterdir()
-            if nested_path.is_dir()
-        )
+    def comma_separated_set(self, raw_str: str) -> Set[str]:
+        return set(raw_str.split(","))
+
+    def can_process_project(
+        self, project_metadata: Dict[str, Any], submitter_whitelist: Set[str]
+    ) -> bool:
+        """
+        Validates that a project can be processed by assessing that:
+        - Input files exist for the project
+        - The project's pi is on the whitelist of acceptable submitters
+        """
+        project_path = common.INPUT_DATA_PATH / project_metadata["scpca_project_id"]
+        if project_path not in common.INPUT_DATA_PATH.iterdir():
+            logger.warning(
+                f"Metadata found for {project_metadata['scpca_project_id']},"
+                "but no s3 folder of that name exists."
+            )
+            return False
+
+        if project_metadata["pi_name"] not in submitter_whitelist:
+            logger.warning("Project submitter is not in the white list.")
+            return False
+
+        return True
+
+    def purge_project(
+        self,
+        project: Project,
+        *,
+        reload_existing: bool = False,
+        update_s3: bool = False,
+    ) -> bool:
+        """
+        Purges existing projects from the db so that they can be re-added when they are processed.
+        S3 is updated accordingly. Returns boolean as success status.
+        """
+        # Projects can only be intentionally purged.
+        # If the reload_existing flag is not set, then the project should not be procssed.
+        if not reload_existing:
+            logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
+            return False
+
+        # Purge existing projects so they can be re-added.
+        logger.info(f"Purging '{project}")
+        project.purge(delete_from_s3=update_s3)
+        return True
+
+    def create_computed_file(self, future, *, update_s3: bool, clean_up_output_data: bool) -> None:
+        """
+        Saves computed file returned from future to the db.
+        Uploads file to s3 and cleans up output data depending on passed options.
+        """
+        if computed_file := future.result():
+
+            # Only upload and clean up projects and the last sample if multiplexed
+            if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
+                if update_s3:
+                    s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
+                if clean_up_output_data:
+                    computed_file.clean_up_local_computed_file()
+            computed_file.save()
+
+        # Close DB connection for each thread.
+        connection.close()
 
     @staticmethod
-    def clean_up_input_data(project):
+    def clean_up_input_data(project) -> None:
         shutil.rmtree(common.INPUT_DATA_PATH / project.scpca_id, ignore_errors=True)
 
     @staticmethod
-    def clean_up_output_data():
+    def clean_up_output_data() -> None:
         for path in Path(common.OUTPUT_DATA_PATH).glob("*"):
             path.unlink(missing_ok=True)
 
     def load_data(
         self,
-        allowed_submitters: set[str] = None,
-        input_bucket_name: str = common.INPUT_BUCKET_NAME,
+        input_bucket_name: str,
+        clean_up_input_data: bool,
+        clean_up_output_data: bool,
+        max_workers: int,
+        reload_existing: bool,
+        scpca_project_id: str,
+        update_s3: bool,
+        submitter_whitelist: Set[str],
         **kwargs,
-    ):
+    ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
-
         # Prepare data input directory.
         common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
@@ -112,57 +174,77 @@ class Command(BaseCommand):
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
         common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
-        allowed_submitters = allowed_submitters or ALLOWED_SUBMITTERS
-        project_id = kwargs.get("scpca_project_id")
+        s3.download_input_metadata(input_bucket_name)
 
-        s3.download_input_metadata()
-
-        project_list = metadata_file.load_projects_metadata(
-            Project.get_input_project_metadata_file_path()
+        projects_metadata = metadata_file.load_projects_metadata(
+            Project.get_input_project_metadata_file_path(), scpca_project_id
         )
-        for project_data in project_list:
-            scpca_project_id = project_data["scpca_project_id"]
-            if project_id and project_id != scpca_project_id:
+        for project_metadata in projects_metadata:
+            if not self.can_process_project(project_metadata, submitter_whitelist):
                 continue
 
-            if not self.project_has_s3_files(scpca_project_id):
-                logger.warning(
-                    f"Metadata found for '{scpca_project_id}' but no s3 folder of that name exists."
-                )
-                return
-
-            if project_data["pi_name"] not in allowed_submitters:
-                logger.warning("Project submitter is not the white list.")
-                continue
-
-            if project := Project.objects.filter(scpca_id=scpca_project_id).first():
-                # Purge existing projects so they can be re-added.
-                if kwargs["reload_all"] or kwargs["reload_existing"]:
-                    logger.info(f"Purging '{project}")
-                    project.purge(delete_from_s3=kwargs["update_s3"])
-                # Only import new projects.
-                # If old ones are desired they should be purged and re-added.
-                else:
-                    logger.info(f"'{project}' already exists. Use --reload-existing to re-import.")
+            # If project exists and cannot be purged, then throw a warning
+            project_id = project_metadata["scpca_project_id"]
+            if project := Project.objects.filter(scpca_id=project_id).first():
+                # If there's a problem purging an existing project, then don't process it
+                if not self.purge_project(
+                    project, reload_existing=reload_existing, update_s3=update_s3
+                ):
                     continue
 
-            logger.info(f"Importing '{project}' data")
-            project = Project.get_from_dict(project_data)
+            logger.info(f"Importing Project {project_metadata['scpca_project_id']} data")
+            project = Project.get_from_dict(project_metadata)
+            project.s3_input_bucket = input_bucket_name
             project.save()
-            Contact.bulk_create_from_project_data(project_data, project)
-            ExternalAccession.bulk_create_from_project_data(project_data, project)
-            Publication.bulk_create_from_project_data(project_data, project)
 
-            project.load_data(**kwargs)
+            Contact.bulk_create_from_project_data(project_metadata, project)
+            ExternalAccession.bulk_create_from_project_data(project_metadata, project)
+            Publication.bulk_create_from_project_data(project_metadata, project)
+
+            project.load_metadata()
             if samples_count := project.samples.count():
                 logger.info(
                     f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'"
                 )
 
-            if kwargs["clean_up_input_data"]:
+            # Prep callback function
+            on_get_file = partial(
+                self.create_computed_file,
+                update_s3=update_s3,
+                clean_up_output_data=clean_up_output_data,
+            )
+
+            # Prepare a threading.Lock for each sample, with the chief purpose being to protect
+            # multiplexed samples that share a zip file.
+            locks = {}
+            with ThreadPoolExecutor(max_workers=max_workers) as tasks:
+                # Generated project computed files
+                for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+                    tasks.submit(
+                        ComputedFile.get_project_file,
+                        project,
+                        config,
+                        project.get_download_config_file_output_name(config),
+                    ).add_done_callback(on_get_file)
+
+                # Generated sample computed files
+                for sample in project.samples.all():
+                    for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+                        sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
+                        tasks.submit(
+                            ComputedFile.get_sample_file,
+                            sample,
+                            config,
+                            sample.get_download_config_file_output_name(config),
+                            sample_lock,
+                        ).add_done_callback(on_get_file)
+
+            project.update_downloadable_sample_count()
+
+            if clean_up_input_data:
                 logger.info(f"Cleaning up '{project}' input data")
                 self.clean_up_input_data(project)
 
-            if kwargs["clean_up_output_data"]:
+            if clean_up_output_data:
                 logger.info("Cleaning up output directory")
                 self.clean_up_output_data()

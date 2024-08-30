@@ -13,11 +13,13 @@ class Local(Common):
 
     UPDATE_S3_DATA = False
 
-    # AWS.
+    # AWS
     AWS_REGION = None
 
-    # AWS S3 hardcoded to a bucket used for local dev.
-    AWS_S3_BUCKET_NAME = "scpca-local-data"
+    # AWS S3
+    TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-07-19/"
+    AWS_S3_INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if Common.TEST else "scpca-portal-inputs"
+    AWS_S3_OUTPUT_BUCKET_NAME = "scpca-local-data"
 
     CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1"]
 
