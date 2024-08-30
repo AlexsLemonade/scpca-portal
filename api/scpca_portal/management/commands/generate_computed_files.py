@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from scpca_portal import loader
+from scpca_portal.models import Project
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -72,11 +73,9 @@ class Command(BaseCommand):
         """Generates a project's computed files according predetermined download configurations"""
         loader.prep_data_dirs()
 
-        project = loader.get_project_for_computed_file_generation(scpca_project_id, update_s3)
+        project = Project.objects.filter(scpca_id=scpca_project_id).first()
 
         loader.generate_computed_files(project, max_workers, update_s3, clean_up_output_data)
-
-        loader.update_project_aggregate_values(project)
 
         # There is no need to clear up the input and output data dirs at the end of execution,
         # as Batch will trigger this automatically upon job completion.

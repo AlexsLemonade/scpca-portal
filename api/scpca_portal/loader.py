@@ -145,36 +145,6 @@ def create_samples_and_libraries(project: Project) -> None:
         logger.info(f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'")
 
 
-def _prep_project_for_computed_file_generation(
-    project: Project, update_s3: bool = False
-) -> Project:
-    """
-    Purge all of a project's computed files (and optionally delete them from s3),
-    before new ones are generated.
-    """
-    project.purge_computed_files(update_s3)
-    return project
-
-
-def get_project_for_computed_file_generation(
-    project_id: str = "", update_s3: bool = False
-) -> Project:
-    """Retrieve, prep and return project for computed file generation."""
-    return _prep_project_for_computed_file_generation(
-        Project.objects.filter(scpca_id=project_id), update_s3
-    )
-
-
-def get_projects_for_computed_file_generation(update_s3: bool = False) -> List[Project]:
-    """
-    Query the database, prep and return all projects that need computed files to be generated.
-    """
-    return [
-        _prep_project_for_computed_file_generation(project, update_s3)
-        for project in Project.objects.filter(project_computed_files__isnull=True)
-    ]
-
-
 def _create_computed_file(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
     """
     Save computed file returned from future to the db.
@@ -204,6 +174,9 @@ def generate_computed_files(
     Generate all computed files associated with the passed project,
     on both sample and project levels.
     """
+    # Purge all of a project's associated computed file objects before generating new ones.
+    project.purge_computed_files(update_s3)
+
     # Prep callback function
     on_get_file = partial(
         _create_computed_file,
@@ -235,11 +208,4 @@ def generate_computed_files(
                     sample_lock,
                 ).add_done_callback(on_get_file)
 
-
-def update_project_aggregate_values(project: Project) -> None:
-    """
-    Update aggregate values on the passed project,
-    which can only be computed upon completion of computed file generation.
-    Other project aggregate values are computed when metadata is initially loaded.
-    """
     project.update_downloadable_sample_count()
