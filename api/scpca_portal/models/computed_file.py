@@ -207,7 +207,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                         readme_file.OUTPUT_NAME,
                         readme_file.get_file_contents(download_config, sample.project),
                     )
-
                     # Metadata file
                     zip_file.writestr(
                         metadata_file.get_file_name(download_config),
