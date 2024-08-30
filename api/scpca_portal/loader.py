@@ -1,7 +1,6 @@
 import shutil
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from pathlib import Path
 from threading import Lock
 from typing import Any, Dict, List, Set
 
@@ -14,10 +13,6 @@ from scpca_portal.models import Contact, ExternalAccession, Project, Publication
 from scpca_portal.models.computed_file import ComputedFile
 
 logger = get_and_configure_logger(__name__)
-
-
-def remove_project_input_files(project_input_directory: Path) -> None:
-    shutil.rmtree(project_input_directory, ignore_errors=True)
 
 
 def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -> None:
@@ -39,6 +34,10 @@ def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -
     if wipe_output_dir:
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
     common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
+
+
+def remove_project_input_files(project_id: str) -> None:
+    shutil.rmtree(common.INPUT_DATA_PATH / project_id, ignore_errors=True)
 
 
 def get_projects_metadata(
