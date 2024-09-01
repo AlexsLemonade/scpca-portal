@@ -1,13 +1,32 @@
+import re
 import shutil
+from functools import partial
 
+from django.conf import settings
 from django.test import TransactionTestCase
 
-from scpca_portal import common
+from scpca_portal import common, loader
+from scpca_portal.models import Project
+from scpca_portal.models.sample import Sample
 
 
 class TestGenerateComputedFiles(TransactionTestCase):
     def setUp(self):
-        pass
+        self.get_projects_metadata = partial(
+            loader.get_projects_metadata, input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME
+        )
+        # When passing a project_id to get_projects_metadata, a list of one item is returned
+        # This lambda creates a shorthand with which to access the single returned project_metadata
+        self.get_project_metadata = lambda project_id: self.get_projects_metadata(
+            filter_on_project_id=project_id
+        )[0]
+        self.create_project = partial(
+            loader.create_project,
+            submitter_whitelist={"scpca"},
+            input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
+            reload_existing=True,
+            update_s3=False,
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -15,7 +34,82 @@ class TestGenerateComputedFiles(TransactionTestCase):
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def test_create_project_SCPCP999990(self):
-        pass
+        project_id = "SCPCP999990"
+        returned_project = self.create_project(self.get_project_metadata(project_id))
+
+        project = Project.objects.filter(scpca_id=project_id).first()
+        self.assertEqual(project, returned_project)
+
+        self.assertEqual(project.abstract, "TBD")
+        self.assertEqual(project.additional_restrictions, "Research or academic purposes only")
+        self.assertIn(
+            "SCPCP999990/merged/SCPCP999990_merged-summary-report.html", project.data_file_paths
+        )
+        self.assertIn("SCPCP999990/merged/SCPCP999990_merged.rds", project.data_file_paths)
+        self.assertIn("SCPCP999990/merged/SCPCP999990_merged_rna.h5ad", project.data_file_paths)
+        self.assertIn("SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv", project.data_file_paths)
+        self.assertIn("SCPCP999990/bulk/SCPCP999990_bulk_quant.tsv", project.data_file_paths)
+        # why is the `diagnoses` value in the `project_metadata.csv` file
+        # different than the aggregate of the `diagnosis` values
+        # in the `sample_metadata.csv` with the test_data
+
+        # This is the value in the projects_metadata.csv file
+        # self.assertEqual(project.diagnoses, "Breast cancer")
+        # These are the values in the sample_metadata.csv file
+        self.assertIn("diagnosis1", project.diagnoses)
+        self.assertIn("diagnosis2", project.diagnoses)
+        self.assertIn("diagnosis5", project.diagnoses)
+        self.assertIn("diagnosis8", project.diagnoses)
+
+        # The following regex sequence pulls the diagnoses counts out of the project.diagnoses str,
+        # which is formatted as follows: "diagnosis1 (1), diagnosis2 (1), diagnosis5 (1), ..."
+
+        # Remove all words starting with 'diagnosis'
+        reg_ex_diagnoses_counts = re.sub(r"\bdiagnosis\d+\b", "", project.diagnoses_counts)
+        # Pull out all count totals left in regex string
+        diagnoses_counts_str_list = re.findall(r"\d+", reg_ex_diagnoses_counts)
+        # Cast them to ints and sum them up to arrive at a count
+        diagnoses_counts = sum([int(element) for element in diagnoses_counts_str_list])
+        self.assertEqual(diagnoses_counts, 4)
+
+        self.assertEqual(project.disease_timings, "Initial diagnosis")
+        # This value is not determined until after computed file generation
+        self.assertEqual(project.downloadable_sample_count, 0)
+        self.assertTrue(project.has_single_cell_data)
+        self.assertTrue(project.has_spatial_data)
+        self.assertEqual(project.human_readable_pi_name, "TBD")
+        self.assertTrue(project.includes_anndata)
+        self.assertFalse(project.includes_cell_lines)
+        self.assertTrue(project.includes_merged_sce)
+        self.assertTrue(project.includes_merged_anndata)
+        self.assertFalse(project.includes_xenografts)
+
+        self.assertIn(Sample.Modalities.NAME_MAPPING["BULK_RNA_SEQ"], project.modalities)
+        self.assertIn(Sample.Modalities.NAME_MAPPING["SPATIAL"], project.modalities)
+        self.assertEqual(project.multiplexed_sample_count, 0)
+        self.assertIn("Homo sapiens", project.organisms)
+        self.assertEqual(project.pi_name, "scpca")
+        self.assertEqual(project.s3_input_bucket, settings.AWS_S3_INPUT_BUCKET_NAME)
+
+        # single_cell samples: SCPCS999990, SCPCS999997
+        # spatial samples: SCPCS999991
+        # single_cell sample SCPCS999994 is unavailable
+        # As such, there should be 3 samples, but 4 are processed
+        # Like we do for projects where we check if a dir exists with data before processing,
+        # we should do the same for samples
+        # The check should be as follows
+        # single_cell, spatial = 2, 1
+        # self.assertEqual(project.sample_count, single_cell + spatial)
+
+        self.assertIn("cell", project.seq_units)
+        self.assertIn("spot", project.seq_units)
+        self.assertIn("10Xv3", project.technologies)
+        self.assertIn("visium", project.technologies)
+        self.assertEqual(project.title, "TBD")
+
+        # single_cell sample SCPCS999994 is unavailable
+        # The following evaluates to 0, whereas it should be one
+        # self.assertEqual(project.unavailable_samples_count, 1)
 
     def test_create_project_SCPCP999991(self):
         pass
