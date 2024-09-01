@@ -37,9 +37,11 @@ class TestGenerateComputedFiles(TransactionTestCase):
         project_id = "SCPCP999990"
         returned_project = self.create_project(self.get_project_metadata(project_id))
 
+        # CHECK FOR PROJECT EXISTENCE
         project = Project.objects.filter(scpca_id=project_id).first()
         self.assertEqual(project, returned_project)
 
+        # CHECK PROJECT ATTRIBUTE VALUES
         self.assertEqual(project.abstract, "TBD")
         self.assertEqual(project.additional_restrictions, "Research or academic purposes only")
         self.assertIn(
@@ -110,6 +112,13 @@ class TestGenerateComputedFiles(TransactionTestCase):
         # single_cell sample SCPCS999994 is unavailable
         # The following evaluates to 0, whereas it should be one
         # self.assertEqual(project.unavailable_samples_count, 1)
+
+        # CHECK SAMPLE VALUES
+        # CHECK LIBRARY VALUES
+        # CHECK PROJECT SUMMARIES VALUES
+        # CHECK CONTACTS
+        # CHECK EXTERNAL ACCESSION VALUES
+        # CHECK PUBLICATIONS VALUES
 
     def test_create_project_SCPCP999991(self):
         pass
