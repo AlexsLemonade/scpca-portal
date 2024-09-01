@@ -80,7 +80,7 @@ class Command(BaseCommand):
         # There is no need to clear up the input and output data dirs at the end of execution,
         # as Batch will trigger this automatically upon job completion.
         # Adding it here is for testing purposes, allowing us to clean up input data if desired.
-        # Output data is deleted on a computed file level, after each file is created, it's deleted.
+        # Output data is deleted on a computed file level - after each file is created it's deleted.
         if clean_up_input_data:
-            logger.info(f"Cleaning up '{project}' input data files")
+            logger.info(f"Cleaning up '{project}' input files")
             loader.remove_project_input_files(project.scpca_id)

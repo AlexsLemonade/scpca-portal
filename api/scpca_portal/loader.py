@@ -125,24 +125,15 @@ def create_project(
     project.s3_input_bucket = input_bucket_name
     project.save()
 
-    return project
-
-
-def bulk_create_project_relations(project_metadata: Dict[str, Any], project: Project) -> None:
-    """
-    Create Contact, ExternalAccession and Publication instances from the project metadata dict,
-    and create a foreign key association with their project.
-    """
     Contact.bulk_create_from_project_data(project_metadata, project)
     ExternalAccession.bulk_create_from_project_data(project_metadata, project)
     Publication.bulk_create_from_project_data(project_metadata, project)
 
-
-def create_samples_and_libraries(project: Project) -> None:
-    """Create all samples and libraries associated with the passed project."""
     project.load_metadata()
     if samples_count := project.samples.count():
         logger.info(f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'")
+
+    return project
 
 
 def _create_computed_file(future, *, update_s3: bool, clean_up_output_data: bool) -> None:

@@ -91,13 +91,11 @@ class Command(BaseCommand):
 
         # load metadata
         for project_metadata in loader.get_projects_metadata(input_bucket_name, scpca_project_id):
-            # validates that a project can be added to the db, and if possible, creates the project
+            # validate that a project can be added to the db,
+            # then creates it, all its samples and libraries, and all other relations
             if project := loader.create_project(
                 project_metadata, submitter_whitelist, input_bucket_name, reload_existing, update_s3
             ):
-                loader.bulk_create_project_relations(project_metadata, project)
-                loader.create_samples_and_libraries(project)
-
                 # generate computed files
                 loader.generate_computed_files(
                     project, max_workers, update_s3, clean_up_output_data

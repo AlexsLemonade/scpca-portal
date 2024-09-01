@@ -65,13 +65,11 @@ class Command(BaseCommand):
         loader.prep_data_dirs()
 
         for project_metadata in loader.get_projects_metadata(input_bucket_name, scpca_project_id):
-            # validates that a project can be added to the db, and if possible, creates the project
+            # validate that a project can be added to the db,
+            # then creates it, all its samples and libraries, and all other relations
             if project := loader.create_project(
                 project_metadata, submitter_whitelist, input_bucket_name, reload_existing, update_s3
             ):
-                loader.bulk_create_project_relations(project_metadata, project)
-                loader.create_samples_and_libraries(project)
-
                 if clean_up_input_data:
-                    logger.info(f"Cleaning up '{project}' input metadata files")
+                    logger.info(f"Cleaning up '{project}' input files")
                     loader.remove_project_input_files(project.scpca_id)
