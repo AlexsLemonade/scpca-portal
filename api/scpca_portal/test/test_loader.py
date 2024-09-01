@@ -23,8 +23,32 @@ class TestGenerateComputedFiles(TransactionTestCase):
     def test_create_project_SCPCP999992(self):
         pass
 
-    def test_project_generate_computed_files_(self):
+    def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
         pass
 
-    def test_sample_generate_computed_files_(self):
+    def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
+        pass
+
+    def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED(self):
+        pass
+
+    def test_project_generate_computed_files_SINGLE_CELL_ANN_DATA(self):
+        pass
+
+    def test_project_generate_computed_files_SINGLE_CELL_ANN_DATA_MERGED(self):
+        pass
+
+    def test_project_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
+        pass
+
+    def test_project_generate_computed_files_ALL_METADATA(self):
+        pass
+
+    def test_sample_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
+        pass
+
+    def test_sample_generate_computed_files_SINGLE_CELL_ANN_DATA(self):
+        pass
+
+    def test_sample_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
         pass
