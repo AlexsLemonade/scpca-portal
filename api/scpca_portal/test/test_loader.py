@@ -114,6 +114,25 @@ class TestGenerateComputedFiles(TransactionTestCase):
         # self.assertEqual(project.unavailable_samples_count, 1)
 
         # CHECK SAMPLE VALUES
+        sample90 = project.samples.filter(scpca_id="SCPCS999990").first()
+        self.assertEqual(sample90.age, "2")
+        self.assertEqual(sample90.age_timing, "diagnosis")
+        self.assertIsNone(sample90.demux_cell_count_estimate)
+        self.assertEqual(sample90.diagnosis, "diagnosis1")
+        self.assertEqual(sample90.disease_timing, "Initial diagnosis")
+        self.assertFalse(sample90.has_multiplexed_data)
+        self.assertTrue(sample90.has_single_cell_data)
+        self.assertFalse(sample90.has_spatial_data)
+        self.assertTrue(sample90.includes_anndata)
+        self.assertFalse(sample90.is_cell_line)
+        self.assertFalse(sample90.is_xenograft)
+        self.assertListEqual(sample90.multiplexed_with, [])
+        self.assertEqual(sample90.sample_cell_count_estimate, 3432)
+        self.assertEqual(sample90.seq_units, "cell")
+        self.assertEqual(sample90.technologies, "10Xv3")
+        self.assertEqual(sample90.tissue_location, "tissue1")
+        self.assertEqual(sample90.treatment, "")
+
         # CHECK LIBRARY VALUES
         # CHECK PROJECT SUMMARIES VALUES
         # CHECK CONTACTS
