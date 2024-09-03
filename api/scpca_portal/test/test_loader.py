@@ -1,19 +1,18 @@
 import re
-import shutil
 from functools import partial
 from zipfile import ZipFile
 
 from django.conf import settings
 from django.test import TransactionTestCase
 
-from scpca_portal import common, loader
+from scpca_portal import common, loader, metadata_file
 from scpca_portal.models import Project
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.library import Library
 from scpca_portal.models.sample import Sample
 
 
-class TestGenerateComputedFiles(TransactionTestCase):
+class TestLoader(TransactionTestCase):
     def setUp(self):
         self.get_projects_metadata = partial(
             loader.get_projects_metadata, input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME
@@ -42,7 +41,10 @@ class TestGenerateComputedFiles(TransactionTestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+        # shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+
+    def assertProjectReadmeContains(self, text, project_zip):
+        self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
 
     def test_create_project_SCPCP999990(self):
         loader.prep_data_dirs()
@@ -206,7 +208,7 @@ class TestGenerateComputedFiles(TransactionTestCase):
 
         # Refers to SCPCSXX97
         summary3 = summaries[3]
-        self.assertEqual(summary3.diagnosis, "diagnosis3")
+        self.assertEqual(summary3.diagnosis, "diagnosis8")
         self.assertEqual(summary3.sample_count, 1)
         self.assertEqual(summary3.seq_unit, "cell")
         self.assertEqual(summary3.technology, "10Xv3")
@@ -248,40 +250,74 @@ class TestGenerateComputedFiles(TransactionTestCase):
         loader.prep_data_dirs()
 
         project_id = "SCPCP999990"
-        if project := self.create_project(self.get_project_metadata(project_id)):
-            self.generate_computed_files(project)
+        project = self.create_project(self.get_project_metadata(project_id))
+        # Make sure that create_project didn't fail and return a None value
+        self.assertIsNotNone(project)
 
-            project_zip_path = (
-                common.OUTPUT_DATA_PATH
-                / project.get_download_config_file_output_name(
-                    common.PROJECT_DOWNLOAD_CONFIGURATIONS["SINGLE_CELL_EXPERIMENT"]
-                )
-            )
-            with ZipFile(project_zip_path) as project_zip:
-                # There are 8 files:
-                # ├── README.md
-                # ├── SCPCP999992_merged-summary-report.html
-                # ├── SCPCP999992_merged.rds
-                # ├── individual_reports
-                # │   ├── SCPCS999996
-                # │   │   └── SCPCL999996_qc.html
-                # │   │   └── SCPCL999996_celltype-report.html
-                # │   └── SCPCS999998
-                # │       └── SCPCL999998_qc.html
-                # │       └── SCPCL999998_celltype-report.html
-                # └── single_cell_metadata.tsv
-                files = set(project_zip.namelist())
-                self.assertEqual(len(files), 8)
-                self.assertIn("SCPCP999992_merged.rds", files)
-                self.assertNotIn("SCPCP999992_merged_adt.h5ad", files)
+        self.generate_computed_files(project)
 
-            self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
-            self.assertEqual(
-                project.single_cell_anndata_merged_computed_file.modality,
-                ComputedFile.OutputFileModalities.SINGLE_CELL,
+        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
+            common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS["SINGLE_CELL_SINGLE_CELL_EXPERIMENT"]
+        )
+        with ZipFile(project_zip_path) as project_zip:
+            sample_metadata = project_zip.read(
+                metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
             )
-            self.assertTrue(project.single_cell_anndata_merged_computed_file.includes_merged)
-            self.assertTrue(project.single_cell_anndata_merged_computed_file.has_cite_seq_data)
+            sample_metadata_lines = [
+                sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
+            ]
+            self.assertProjectReadmeContains(
+                "This dataset is designated as research or academic purposes only.",
+                project_zip,
+            )
+
+        self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
+        # There are 14 files:
+        # ├── README.md
+        # ├── SCPCS999990
+        # │   ├── SCPCL999990_celltype-report.html
+        # │   ├── SCPCL999990_filtered.rds
+        # │   ├── SCPCL999990_processed.rds
+        # │   ├── SCPCL999990_qc.html
+        # │   └── SCPCL999990_unfiltered.rds
+        # ├── SCPCS999997
+        # │   ├── SCPCL999997_celltype-report.html
+        # │   ├── SCPCL999997_filtered.rds
+        # │   ├── SCPCL999997_processed.rds
+        # │   ├── SCPCL999997_qc.html
+        # │   └── SCPCL999997_unfiltered.rds
+        # ├── bulk_metadata.tsv
+        # ├── bulk_quant.tsv
+        # └── single_cell_metadata.tsv
+
+        self.assertEqual(len(project_zip.namelist()), 14)
+
+        sample = project.samples.filter(has_single_cell_data=True).first()
+        self.assertEqual(len(sample.computed_files), 2)
+        self.assertIsNone(sample.demux_cell_count_estimate)
+        self.assertFalse(sample.has_bulk_rna_seq)
+        self.assertFalse(sample.has_cite_seq_data)
+        # This line will probably fail when switching test data versions
+        # The reason is that the filtered_cells attribute from the library json files,
+        # from which sample_cell_count_estimate is calculated, changes from version to version
+        self.assertEqual(sample.sample_cell_count_estimate, 3432)
+        self.assertEqual(sample.seq_units, "cell")
+        self.assertEqual(sample.technologies, "10Xv3")
+        self.assertIsNotNone(sample.single_cell_computed_file)
+        self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
+        self.assertEqual(sample.single_cell_computed_file.workflow_version, "development")
+        self.assertEqual(
+            sample.single_cell_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertFalse(sample.single_cell_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.single_cell_computed_file.has_cite_seq_data)
+        self.assertEqual(
+            sample.single_cell_anndata_computed_file.modality,
+            ComputedFile.OutputFileModalities.SINGLE_CELL,
+        )
+        self.assertFalse(sample.single_cell_anndata_computed_file.has_bulk_rna_seq)
+        self.assertFalse(sample.single_cell_anndata_computed_file.has_cite_seq_data)
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
         pass

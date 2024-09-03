@@ -179,7 +179,7 @@ def generate_computed_files(
     locks = {}
     with ThreadPoolExecutor(max_workers=max_workers) as tasks:
         # Generated project computed files
-        for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+        for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS.values():
             tasks.submit(
                 ComputedFile.get_project_file,
                 project,
@@ -189,7 +189,7 @@ def generate_computed_files(
 
         # Generated sample computed files
         for sample in project.samples.all():
-            for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+            for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS.values():
                 sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
                 tasks.submit(
                     ComputedFile.get_sample_file,
