@@ -140,6 +140,8 @@ class TestGenerateComputedFiles(TransactionTestCase):
         # SCPCS999997
 
         # CHECK LIBRARY VALUES
+        # Why am I getting a ReverseManyToOneDescription attirbute erorr with the following?
+        self.assertEqual(project.libraries.count(), 3)
         library0 = project.libraries.filter(scpca_id="SCPCL999990").first()
 
         self.assertIn(
@@ -171,9 +173,58 @@ class TestGenerateComputedFiles(TransactionTestCase):
         self.assertEqual(library0.workflow_version, "development")
 
         # CHECK PROJECT SUMMARIES VALUES
+        self.assertEqual(project.summaries.count(), 4)
+        summaries = project.summaries.all()
+        # Refers to SCPCSXX90
+        summary0 = summaries[0]
+        self.assertEqual(summary0.diagnosis, "diagnosis1")
+        self.assertEqual(summary0.sample_count, 1)
+        self.assertEqual(summary0.seq_unit, "cell")
+        self.assertEqual(summary0.technology, "10Xv3")
+
+        # Refers to SCPCSXX91
+        summary1 = summaries[1]
+        self.assertEqual(summary1.diagnosis, "diagnosis2")
+        self.assertEqual(summary1.sample_count, 1)
+        self.assertEqual(summary1.seq_unit, "spot")
+        self.assertEqual(summary1.technology, "visium")
+
+        # summmary[2] is a reference to SCPCSXX94
+        # which is a bug because this sample has no metadata / data files
+
+        # Refers to SCPCSXX97
+        summary3 = summaries[3]
+        self.assertEqual(summary3.diagnosis, "diagnosis3")
+        self.assertEqual(summary3.sample_count, 1)
+        self.assertEqual(summary3.seq_unit, "cell")
+        self.assertEqual(summary3.technology, "10Xv3")
+
         # CHECK CONTACTS
+        self.assertEqual(project.contacts.count(), 2)
+        contacts = project.contacts.all()
+        for contact_idx, contact in enumerate(contacts):
+            self.assertEqual(contact.name, "{contact " + str(contact_idx + 1) + "}")
+            self.assertEqual(contact.email, "{email contact " + str(contact_idx + 1) + "}")
+            self.assertEqual(contact.pi_name, "scpca")
+
         # CHECK EXTERNAL ACCESSION VALUES
+        self.assertEqual(project.external_accessions.count(), 2)
+
+        ea0, ea1 = project.external_accessions.all()
+        self.assertEqual(ea0.accession, "{SRA project accession}")
+        self.assertTrue(ea0.has_raw)
+        self.assertEqual(ea0.url, "{SRA Run Selector URL}")
+        self.assertEqual(ea1.accession, "{GEO series accession}")
+        self.assertFalse(ea1.has_raw)
+        self.assertEqual(ea1.url, "{GEO Series URL}")
+
         # CHECK PUBLICATIONS VALUES
+        self.assertEqual(project.publications.count(), 2)
+        publications = project.publications.all()
+        for pub_idx, pub in enumerate(publications):
+            self.assertEqual(pub.doi, "{doi " + str(pub_idx + 1) + "}")
+            self.assertEqual(pub.citation, "{formatted citation " + str(pub_idx + 1) + "}")
+            self.assertEqual(pub.pi_name, "scpca")
 
     def test_create_project_SCPCP999991(self):
         pass
