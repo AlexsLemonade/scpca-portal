@@ -1,5 +1,9 @@
+import io
 import re
+from csv import DictReader
 from functools import partial
+from pathlib import Path
+from typing import Set
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -42,6 +46,29 @@ class TestLoader(TransactionTestCase):
     def tearDownClass(cls):
         super().tearDownClass()
         # shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+
+    def assertCorrectLibraries(self, project_zip: ZipFile, expected_libraries: Set[str]) -> None:
+        file_list = project_zip.namelist()
+
+        # Check via metadata file
+        metadata_file_name = next(file_name for file_name in file_list if "metadata" in file_name)
+        metadata_file = project_zip.read(metadata_file_name)
+        metadata_file_str = io.StringIO(metadata_file.decode("utf-8"))
+        metadata_file_dict_reader = DictReader(metadata_file_str, delimiter="\t")
+
+        metadata_file_resulting_libraries = set(
+            row["scpca_library_id"] for row in metadata_file_dict_reader
+        )
+        self.assertEqual(expected_libraries, metadata_file_resulting_libraries)
+
+        # Check via data file paths
+        data_file_resulting_libraries = set(
+            # data files have paths that look like "SCPCS999990/SCPCL999990_processed.rds"
+            Path(file).name.split("_")[0]
+            for file in file_list
+            if "/" in file
+        )
+        self.assertEqual(expected_libraries, data_file_resulting_libraries)
 
     def assertProjectReadmeContains(self, text, project_zip):
         self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
@@ -154,7 +181,6 @@ class TestLoader(TransactionTestCase):
         # SCPCS999997
 
         # CHECK LIBRARY VALUES
-        # Why am I getting a ReverseManyToOneDescription attirbute erorr with the following?
         self.assertEqual(project.libraries.count(), 3)
         library0 = project.libraries.filter(scpca_id="SCPCL999990").first()
 
@@ -260,6 +286,9 @@ class TestLoader(TransactionTestCase):
             common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS["SINGLE_CELL_SINGLE_CELL_EXPERIMENT"]
         )
         with ZipFile(project_zip_path) as project_zip:
+            expected_libraries = {"SCPCL999990", "SCPCL999997"}
+            self.assertCorrectLibraries(project_zip, expected_libraries)
+
             sample_metadata = project_zip.read(
                 metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
             )

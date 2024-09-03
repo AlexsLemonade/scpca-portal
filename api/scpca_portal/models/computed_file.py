@@ -85,7 +85,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
 
     @classmethod
-    def get_project_file(cls, project, download_config: Dict, computed_file_name: str) -> Self:
+    def get_project_file(
+        cls, project, download_config: Dict, computed_file_name: str
+    ) -> Self | None:
         """
         Queries for a project's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
