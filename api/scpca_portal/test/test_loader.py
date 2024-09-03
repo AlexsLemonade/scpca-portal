@@ -1,12 +1,14 @@
 import re
 import shutil
 from functools import partial
+from zipfile import ZipFile
 
 from django.conf import settings
 from django.test import TransactionTestCase
 
 from scpca_portal import common, loader
 from scpca_portal.models import Project
+from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.library import Library
 from scpca_portal.models.sample import Sample
 
@@ -21,6 +23,7 @@ class TestGenerateComputedFiles(TransactionTestCase):
         self.get_project_metadata = lambda project_id: self.get_projects_metadata(
             filter_on_project_id=project_id
         )[0]
+
         self.create_project = partial(
             loader.create_project,
             submitter_whitelist={"scpca"},
@@ -29,12 +32,21 @@ class TestGenerateComputedFiles(TransactionTestCase):
             update_s3=False,
         )
 
+        self.generate_computed_files = partial(
+            loader.generate_computed_files,
+            max_workers=10,
+            update_s3=False,
+            clean_up_output_data=False,
+        )
+
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def test_create_project_SCPCP999990(self):
+        loader.prep_data_dirs()
+
         project_id = "SCPCP999990"
         returned_project = self.create_project(self.get_project_metadata(project_id))
 
@@ -233,7 +245,43 @@ class TestGenerateComputedFiles(TransactionTestCase):
         pass
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
-        pass
+        loader.prep_data_dirs()
+
+        project_id = "SCPCP999990"
+        if project := self.create_project(self.get_project_metadata(project_id)):
+            self.generate_computed_files(project)
+
+            project_zip_path = (
+                common.OUTPUT_DATA_PATH
+                / project.get_download_config_file_output_name(
+                    common.PROJECT_DOWNLOAD_CONFIGURATIONS["SINGLE_CELL_EXPERIMENT"]
+                )
+            )
+            with ZipFile(project_zip_path) as project_zip:
+                # There are 8 files:
+                # ├── README.md
+                # ├── SCPCP999992_merged-summary-report.html
+                # ├── SCPCP999992_merged.rds
+                # ├── individual_reports
+                # │   ├── SCPCS999996
+                # │   │   └── SCPCL999996_qc.html
+                # │   │   └── SCPCL999996_celltype-report.html
+                # │   └── SCPCS999998
+                # │       └── SCPCL999998_qc.html
+                # │       └── SCPCL999998_celltype-report.html
+                # └── single_cell_metadata.tsv
+                files = set(project_zip.namelist())
+                self.assertEqual(len(files), 8)
+                self.assertIn("SCPCP999992_merged.rds", files)
+                self.assertNotIn("SCPCP999992_merged_adt.h5ad", files)
+
+            self.assertGreater(project.single_cell_anndata_merged_computed_file.size_in_bytes, 0)
+            self.assertEqual(
+                project.single_cell_anndata_merged_computed_file.modality,
+                ComputedFile.OutputFileModalities.SINGLE_CELL,
+            )
+            self.assertTrue(project.single_cell_anndata_merged_computed_file.includes_merged)
+            self.assertTrue(project.single_cell_anndata_merged_computed_file.has_cite_seq_data)
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
         pass
