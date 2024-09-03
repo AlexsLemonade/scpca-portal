@@ -7,6 +7,7 @@ from django.test import TransactionTestCase
 
 from scpca_portal import common, loader
 from scpca_portal.models import Project
+from scpca_portal.models.library import Library
 from scpca_portal.models.sample import Sample
 
 
@@ -114,26 +115,61 @@ class TestGenerateComputedFiles(TransactionTestCase):
         # self.assertEqual(project.unavailable_samples_count, 1)
 
         # CHECK SAMPLE VALUES
-        sample90 = project.samples.filter(scpca_id="SCPCS999990").first()
-        self.assertEqual(sample90.age, "2")
-        self.assertEqual(sample90.age_timing, "diagnosis")
-        self.assertIsNone(sample90.demux_cell_count_estimate)
-        self.assertEqual(sample90.diagnosis, "diagnosis1")
-        self.assertEqual(sample90.disease_timing, "Initial diagnosis")
-        self.assertFalse(sample90.has_multiplexed_data)
-        self.assertTrue(sample90.has_single_cell_data)
-        self.assertFalse(sample90.has_spatial_data)
-        self.assertTrue(sample90.includes_anndata)
-        self.assertFalse(sample90.is_cell_line)
-        self.assertFalse(sample90.is_xenograft)
-        self.assertListEqual(sample90.multiplexed_with, [])
-        self.assertEqual(sample90.sample_cell_count_estimate, 3432)
-        self.assertEqual(sample90.seq_units, "cell")
-        self.assertEqual(sample90.technologies, "10Xv3")
-        self.assertEqual(sample90.tissue_location, "tissue1")
-        self.assertEqual(sample90.treatment, "")
+        sample0 = project.samples.filter(scpca_id="SCPCS999990").first()
+        self.assertEqual(sample0.age, "2")
+        self.assertEqual(sample0.age_timing, "diagnosis")
+        self.assertIsNone(sample0.demux_cell_count_estimate)
+        self.assertEqual(sample0.diagnosis, "diagnosis1")
+        self.assertEqual(sample0.disease_timing, "Initial diagnosis")
+        self.assertFalse(sample0.has_multiplexed_data)
+        self.assertTrue(sample0.has_single_cell_data)
+        self.assertFalse(sample0.has_spatial_data)
+        self.assertTrue(sample0.includes_anndata)
+        self.assertFalse(sample0.is_cell_line)
+        self.assertFalse(sample0.is_xenograft)
+        self.assertListEqual(sample0.multiplexed_with, [])
+        self.assertEqual(sample0.sample_cell_count_estimate, 3432)
+        self.assertEqual(sample0.seq_units, "cell")
+        self.assertEqual(sample0.technologies, "10Xv3")
+        self.assertEqual(sample0.tissue_location, "tissue1")
+        self.assertEqual(sample0.treatment, "")
+
+        # Now we must iterate over the following samples
+        # SCPCS999991
+        # SCPCS999994
+        # SCPCS999997
 
         # CHECK LIBRARY VALUES
+        library0 = project.libraries.filter(scpca_id="SCPCL999990").first()
+
+        self.assertIn(
+            "SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html", library0.data_file_paths
+        )
+        self.assertIn("SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds", library0.data_file_paths)
+        self.assertIn(
+            "SCPCP999990/SCPCS999990/SCPCL999990_filtered_rna.h5ad", library0.data_file_paths
+        )
+        self.assertIn("SCPCP999990/SCPCS999990/SCPCL999990_processed.rds", library0.data_file_paths)
+        self.assertIn(
+            "SCPCP999990/SCPCS999990/SCPCL999990_processed_rna.h5ad", library0.data_file_paths
+        )
+        self.assertIn("SCPCP999990/SCPCS999990/SCPCL999990_qc.html", library0.data_file_paths)
+        self.assertIn(
+            "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds", library0.data_file_paths
+        )
+        self.assertIn(
+            "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered_rna.h5ad", library0.data_file_paths
+        )
+
+        self.assertIn(Library.FileFormats.SINGLE_CELL_EXPERIMENT, library0.formats)
+        self.assertIn(Library.FileFormats.ANN_DATA, library0.formats)
+        self.assertFalse(library0.has_cite_seq_data)
+        self.assertFalse(library0.is_multiplexed)
+        # Assert that metadata attribute has been populated and did not default to empty dict
+        self.assertFalse(library0.metadata == {})
+        self.assertEqual(library0.modality, Library.Modalities.SINGLE_CELL)
+        self.assertEqual(library0.workflow_version, "development")
+
         # CHECK PROJECT SUMMARIES VALUES
         # CHECK CONTACTS
         # CHECK EXTERNAL ACCESSION VALUES
