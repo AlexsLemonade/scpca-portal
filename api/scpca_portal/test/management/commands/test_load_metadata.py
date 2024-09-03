@@ -41,18 +41,18 @@ class TestLoadMetadata(TransactionTestCase):
         self.assertIsNotNone(sample.tissue_location)
         self.assertIsNotNone(sample.treatment)
 
-    @patch("scpca_portal.management.commands.load_metadata.Command.clean_up_input_data")
-    def test_data_clean_up(self, mock_clean_up_input_data):
+    @patch("scpca_portal.loader.remove_project_input_files")
+    def test_data_clean_up(self, mock_remove_project_input_files):
         project_id = "SCPCP999990"
         self.load_metadata(
             clean_up_input_data=True,
             reload_existing=False,
             scpca_project_id=project_id,
             update_s3=False,
-            submitter_whitelist={"scpca"},
+            submitter_whitelist="scpca",
         )
 
-        mock_clean_up_input_data.assert_called_once()
+        mock_remove_project_input_files.assert_called_with(project_id)
 
     def test_load_metadata(self):
         project_id = "SCPCP999990"

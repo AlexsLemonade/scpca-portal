@@ -1,5 +1,4 @@
 import csv
-import os
 import shutil
 from functools import partial
 from io import TextIOWrapper
@@ -55,8 +54,11 @@ class TestLoadData(TransactionTestCase):
     def assertProjectReadmeContains(self, text, project_zip):
         self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
 
-    @patch("scpca_portal.management.commands.load_data.Command.clean_up_input_data")
-    def test_data_clean_up(self, mock_clean_up_input_data):
+    @patch("scpca_portal.models.computed_file.ComputedFile.clean_up_local_computed_file")
+    @patch("scpca_portal.loader.remove_project_input_files")
+    def test_data_clean_up(
+        self, mock_remove_project_input_files, mock_clean_up_local_computed_file
+    ):
         project_id = "SCPCP999990"
         self.load_data(
             clean_up_input_data=True,
@@ -68,10 +70,8 @@ class TestLoadData(TransactionTestCase):
             submitter_whitelist="scpca",
         )
 
-        mock_clean_up_input_data.assert_called_once()
-        # Because we clean up output data by deleting computed files as they're completed,
-        # doing this check at the end is the cleanest way to assess cleanup was done properly
-        self.assertListEqual(os.listdir(common.OUTPUT_DATA_PATH), [])
+        mock_remove_project_input_files.assert_called_with(project_id)
+        mock_clean_up_local_computed_file.assert_called()
 
     def test_load_data(self):
         project_id = "SCPCP999990"
