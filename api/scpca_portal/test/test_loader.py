@@ -1,9 +1,8 @@
 import io
-import re
 from csv import DictReader
 from functools import partial
 from pathlib import Path
-from typing import Dict, Set
+from typing import Any, Dict, Set
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -46,6 +45,13 @@ class TestLoader(TransactionTestCase):
     def tearDownClass(cls):
         super().tearDownClass()
         # shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+
+    def assertObjectProperties(self, obj: Any, expected_values: Dict[str, Any]) -> None:
+        for attribute, value in expected_values.items():
+            if isinstance(value, list):
+                self.assertEqual(set(getattr(obj, attribute)), set(value))
+            else:
+                self.assertEqual(getattr(obj, attribute), value)
 
     def get_computed_files_query_params_from_download_config(self, download_config: Dict) -> Dict:
         if download_config["metadata_only"]:
@@ -100,57 +106,52 @@ class TestLoader(TransactionTestCase):
         self.assertEqual(project, returned_project)
 
         # CHECK PROJECT ATTRIBUTE VALUES
-        self.assertEqual(project.abstract, "TBD")
-        self.assertEqual(project.additional_restrictions, "Research or academic purposes only")
-        self.assertIn(
-            "SCPCP999990/merged/SCPCP999990_merged-summary-report.html", project.data_file_paths
-        )
-        self.assertIn("SCPCP999990/merged/SCPCP999990_merged.rds", project.data_file_paths)
-        self.assertIn("SCPCP999990/merged/SCPCP999990_merged_rna.h5ad", project.data_file_paths)
-        self.assertIn("SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv", project.data_file_paths)
-        self.assertIn("SCPCP999990/bulk/SCPCP999990_bulk_quant.tsv", project.data_file_paths)
-        # why is the `diagnoses` value in the `project_metadata.csv` file
-        # different than the aggregate of the `diagnosis` values
-        # in the `sample_metadata.csv` with the test_data
+        expected_project_attributes_values = {
+            "abstract": "TBD",
+            "additional_restrictions": "Research or academic purposes only",
+            "data_file_paths": [
+                "SCPCP999990/merged/SCPCP999990_merged-summary-report.html",
+                "SCPCP999990/merged/SCPCP999990_merged.rds",
+                "SCPCP999990/merged/SCPCP999990_merged_rna.h5ad",
+                "SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv",
+                "SCPCP999990/bulk/SCPCP999990_bulk_quant.tsv",
+            ],
+            "diagnoses": "diagnosis1, diagnosis2, diagnosis5, diagnosis8",
+            "diagnoses_counts": "diagnosis1 (1), diagnosis2 (1), diagnosis5 (1), diagnosis8 (1)",
+            "disease_timings": "Initial diagnosis",
+            # This value is not determined until after computed file generation, and should be 3
+            "downloadable_sample_count": 0,
+            "has_bulk_rna_seq": True,
+            "has_cite_seq_data": False,
+            "has_multiplexed_data": False,
+            "has_single_cell_data": True,
+            "has_spatial_data": True,
+            "human_readable_pi_name": "TBD",
+            "includes_anndata": True,
+            "includes_cell_lines": False,
+            "includes_merged_sce": True,
+            "includes_merged_anndata": True,
+            "includes_xenografts": False,
+            "modalities": [
+                Sample.Modalities.NAME_MAPPING["BULK_RNA_SEQ"],
+                Sample.Modalities.NAME_MAPPING["SPATIAL"],
+            ],
+            "multiplexed_sample_count": 0,
+            "organisms": ["Homo sapiens"],
+            "pi_name": "scpca",
+            "s3_input_bucket": settings.AWS_S3_INPUT_BUCKET_NAME,
+            "sample_count": 4,
+            "scpca_id": project_id,
+            "seq_units": "cell, spot",
+            "technologies": "10Xv3, visium",
+            "title": "TBD",
+            # unavailable_samples_count should be 1 here, but is returning the default 0.
+            # This is due to the fact that it's not being assigned until after comp file generation.
+            # This should be updated when the bug is handled.
+            # "unavailable_samples_count": 1
+        }
 
-        # This is the value in the projects_metadata.csv file
-        # self.assertEqual(project.diagnoses, "Breast cancer")
-        # These are the values in the sample_metadata.csv file
-        self.assertIn("diagnosis1", project.diagnoses)
-        self.assertIn("diagnosis2", project.diagnoses)
-        self.assertIn("diagnosis5", project.diagnoses)
-        self.assertIn("diagnosis8", project.diagnoses)
-
-        # The following regex sequence pulls the diagnoses counts out of the project.diagnoses str,
-        # which is formatted as follows: "diagnosis1 (1), diagnosis2 (1), diagnosis5 (1), ..."
-
-        # Remove all words starting with 'diagnosis'
-        reg_ex_diagnoses_counts = re.sub(r"\bdiagnosis\d+\b", "", project.diagnoses_counts)
-        # Pull out all count totals left in regex string
-        diagnoses_counts_str_list = re.findall(r"\d+", reg_ex_diagnoses_counts)
-        # Cast them to ints and sum them up to arrive at a count
-        diagnoses_counts = sum([int(element) for element in diagnoses_counts_str_list])
-        self.assertEqual(diagnoses_counts, 4)
-
-        self.assertEqual(project.disease_timings, "Initial diagnosis")
-        # This value is not determined until after computed file generation
-        self.assertEqual(project.downloadable_sample_count, 0)
-        self.assertTrue(project.has_single_cell_data)
-        self.assertTrue(project.has_spatial_data)
-        self.assertEqual(project.human_readable_pi_name, "TBD")
-        self.assertTrue(project.includes_anndata)
-        self.assertFalse(project.includes_cell_lines)
-        self.assertTrue(project.includes_merged_sce)
-        self.assertTrue(project.includes_merged_anndata)
-        self.assertFalse(project.includes_xenografts)
-
-        self.assertIn(Sample.Modalities.NAME_MAPPING["BULK_RNA_SEQ"], project.modalities)
-        self.assertIn(Sample.Modalities.NAME_MAPPING["SPATIAL"], project.modalities)
-        self.assertEqual(project.multiplexed_sample_count, 0)
-        self.assertIn("Homo sapiens", project.organisms)
-        self.assertEqual(project.pi_name, "scpca")
-        self.assertEqual(project.s3_input_bucket, settings.AWS_S3_INPUT_BUCKET_NAME)
-
+        self.assertObjectProperties(project, expected_project_attributes_values)
         # single_cell samples: SCPCS999990, SCPCS999997
         # spatial samples: SCPCS999991
         # single_cell sample SCPCS999994 is unavailable
@@ -160,12 +161,6 @@ class TestLoader(TransactionTestCase):
         # The check should be as follows
         # single_cell, spatial = 2, 1
         # self.assertEqual(project.sample_count, single_cell + spatial)
-
-        self.assertIn("cell", project.seq_units)
-        self.assertIn("spot", project.seq_units)
-        self.assertIn("10Xv3", project.technologies)
-        self.assertIn("visium", project.technologies)
-        self.assertEqual(project.title, "TBD")
 
         # single_cell sample SCPCS999994 is unavailable
         # The following evaluates to 0, whereas it should be one
