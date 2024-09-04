@@ -3,7 +3,7 @@ import re
 from csv import DictReader
 from functools import partial
 from pathlib import Path
-from typing import Set
+from typing import Dict, Set
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -47,6 +47,23 @@ class TestLoader(TransactionTestCase):
         super().tearDownClass()
         # shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
+    def get_computed_files_query_params_from_download_config(self, download_config: Dict) -> Dict:
+        if download_config["metadata_only"]:
+            return {"metadata_only": download_config["metadata_only"]}
+
+        query_params = {
+            "modality": download_config["modality"],
+            "format": download_config["format"],
+        }
+
+        if download_config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS.values():
+            return query_params
+
+        query_params["has_multiplexed_data"] = not download_config["excludes_multiplexed"]
+        query_params["includes_merged"] = download_config["includes_merged"]
+
+        return query_params
+
     def assertCorrectLibraries(self, project_zip: ZipFile, expected_libraries: Set[str]) -> None:
         file_list = project_zip.namelist()
 
@@ -56,19 +73,18 @@ class TestLoader(TransactionTestCase):
         metadata_file_str = io.StringIO(metadata_file.decode("utf-8"))
         metadata_file_dict_reader = DictReader(metadata_file_str, delimiter="\t")
 
-        metadata_file_resulting_libraries = set(
-            row["scpca_library_id"] for row in metadata_file_dict_reader
-        )
-        self.assertEqual(expected_libraries, metadata_file_resulting_libraries)
+        metadata_file_libraries = set(row["scpca_library_id"] for row in metadata_file_dict_reader)
+        self.assertEqual(expected_libraries, metadata_file_libraries)
 
         # Check via data file paths
-        data_file_resulting_libraries = set(
+        data_file_libraries = set(
             # data files have paths that look like "SCPCS999990/SCPCL999990_processed.rds"
             Path(file).name.split("_")[0]
             for file in file_list
+            # all data files have parents, non parent files include the metadata and readme files
             if "/" in file
         )
-        self.assertEqual(expected_libraries, data_file_resulting_libraries)
+        self.assertEqual(expected_libraries, data_file_libraries)
 
     def assertProjectReadmeContains(self, text, project_zip):
         self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
@@ -282,71 +298,86 @@ class TestLoader(TransactionTestCase):
 
         self.generate_computed_files(project)
 
-        project_zip_path = common.OUTPUT_DATA_PATH / project.get_download_config_file_output_name(
-            common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS["SINGLE_CELL_SINGLE_CELL_EXPERIMENT"]
-        )
+        download_config = common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS[
+            "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"
+        ]
+        output_file_name = project.get_download_config_file_output_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(project_zip_path) as project_zip:
-            expected_libraries = {"SCPCL999990", "SCPCL999997"}
-            self.assertCorrectLibraries(project_zip, expected_libraries)
-
+            # Basic Metadata file check
             sample_metadata = project_zip.read(
                 metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
             )
             sample_metadata_lines = [
                 sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
             ]
+            self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
+
+            # Basic Readme check
             self.assertProjectReadmeContains(
                 "This dataset is designated as research or academic purposes only.",
                 project_zip,
             )
 
-        self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
-        # There are 14 files:
-        # ├── README.md
-        # ├── SCPCS999990
-        # │   ├── SCPCL999990_celltype-report.html
-        # │   ├── SCPCL999990_filtered.rds
-        # │   ├── SCPCL999990_processed.rds
-        # │   ├── SCPCL999990_qc.html
-        # │   └── SCPCL999990_unfiltered.rds
-        # ├── SCPCS999997
-        # │   ├── SCPCL999997_celltype-report.html
-        # │   ├── SCPCL999997_filtered.rds
-        # │   ├── SCPCL999997_processed.rds
-        # │   ├── SCPCL999997_qc.html
-        # │   └── SCPCL999997_unfiltered.rds
-        # ├── bulk_metadata.tsv
-        # ├── bulk_quant.tsv
-        # └── single_cell_metadata.tsv
+            # Check if correct libraries were added in
+            expected_libraries = {"SCPCL999990", "SCPCL999997"}
+            self.assertCorrectLibraries(project_zip, expected_libraries)
 
-        self.assertEqual(len(project_zip.namelist()), 14)
+            # Check that correct files were added in
+            # There are 14 files:
+            # ├── README.md
+            # ├── SCPCS999990
+            # │   ├── SCPCL999990_celltype-report.html
+            # │   ├── SCPCL999990_filtered.rds
+            # │   ├── SCPCL999990_processed.rds
+            # │   ├── SCPCL999990_qc.html
+            # │   └── SCPCL999990_unfiltered.rds
+            # ├── SCPCS999997
+            # │   ├── SCPCL999997_celltype-report.html
+            # │   ├── SCPCL999997_filtered.rds
+            # │   ├── SCPCL999997_processed.rds
+            # │   ├── SCPCL999997_qc.html
+            # │   └── SCPCL999997_unfiltered.rds
+            # ├── bulk_metadata.tsv
+            # ├── bulk_quant.tsv
+            # └── single_cell_metadata.tsv
+            expected_file_list = [
+                "README.md",
+                "SCPCS999990/SCPCL999990_celltype-report.html",
+                "SCPCS999990/SCPCL999990_filtered.rds",
+                "SCPCS999990/SCPCL999990_processed.rds",
+                "SCPCS999990/SCPCL999990_qc.html",
+                "SCPCS999990/SCPCL999990_unfiltered.rds",
+                "SCPCS999997/SCPCL999997_celltype-report.html",
+                "SCPCS999997/SCPCL999997_filtered.rds",
+                "SCPCS999997/SCPCL999997_processed.rds",
+                "SCPCS999997/SCPCL999997_qc.html",
+                "SCPCS999997/SCPCL999997_unfiltered.rds",
+                "SCPCP999990_bulk_metadata.tsv",
+                "SCPCP999990_bulk_quant.tsv",
+                "single_cell_metadata.tsv",
+            ]
+            result_file_list = project_zip.namelist()
+            self.assertEqual(set(expected_file_list), set(result_file_list))
 
-        sample = project.samples.filter(has_single_cell_data=True).first()
-        self.assertEqual(len(sample.computed_files), 2)
-        self.assertIsNone(sample.demux_cell_count_estimate)
-        self.assertFalse(sample.has_bulk_rna_seq)
-        self.assertFalse(sample.has_cite_seq_data)
-        # This line will probably fail when switching test data versions
-        # The reason is that the filtered_cells attribute from the library json files,
-        # from which sample_cell_count_estimate is calculated, changes from version to version
-        self.assertEqual(sample.sample_cell_count_estimate, 3432)
-        self.assertEqual(sample.seq_units, "cell")
-        self.assertEqual(sample.technologies, "10Xv3")
-        self.assertIsNotNone(sample.single_cell_computed_file)
-        self.assertGreater(sample.single_cell_computed_file.size_in_bytes, 0)
-        self.assertEqual(sample.single_cell_computed_file.workflow_version, "development")
+        # Check computed file attributes
+        computed_file = project.computed_files.filter(
+            **self.get_computed_files_query_params_from_download_config(download_config)
+        ).first()
+
         self.assertEqual(
-            sample.single_cell_computed_file.modality,
-            ComputedFile.OutputFileModalities.SINGLE_CELL,
+            computed_file.format, ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
         )
-        self.assertFalse(sample.single_cell_computed_file.has_bulk_rna_seq)
-        self.assertFalse(sample.single_cell_computed_file.has_cite_seq_data)
-        self.assertEqual(
-            sample.single_cell_anndata_computed_file.modality,
-            ComputedFile.OutputFileModalities.SINGLE_CELL,
-        )
-        self.assertFalse(sample.single_cell_anndata_computed_file.has_bulk_rna_seq)
-        self.assertFalse(sample.single_cell_anndata_computed_file.has_cite_seq_data)
+        self.assertFalse(computed_file.includes_merged)
+        self.assertFalse(computed_file.metadata_only)
+        self.assertEqual(computed_file.s3_bucket, settings.AWS_S3_OUTPUT_BUCKET_NAME)
+        self.assertEqual(computed_file.s3_key, output_file_name)
+        self.assertEqual(computed_file.size_in_bytes, 9078)
+        self.assertEqual(computed_file.workflow_version, "development")
+        self.assertTrue(computed_file.includes_celltype_report)
+        self.assertTrue(computed_file.has_bulk_rna_seq)
+        self.assertFalse(computed_file.has_cite_seq_data)
+        self.assertFalse(computed_file.has_multiplexed_data)
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
         pass
