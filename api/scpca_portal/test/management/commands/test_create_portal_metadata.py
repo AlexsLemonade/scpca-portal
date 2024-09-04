@@ -1,9 +1,10 @@
 import shutil
+from zipfile import ZipFile
 
 from django.conf import settings
 from django.test import TransactionTestCase
 
-from scpca_portal import common
+from scpca_portal import common, readme_file
 from scpca_portal.management.commands import create_portal_metadata, load_data
 from scpca_portal.models import Library, Project, Sample
 
@@ -21,6 +22,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
     def tearDownClass(cls):
         super().tearDownClass()
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+
+    def assertProjectReadmeContains(self, text, zip_file):
+        self.assertIn(text, zip_file.read("README.md").decode("utf-8"))
 
     def load_test_data(self):
         # Expected object counts
@@ -47,3 +51,20 @@ class TestCreatePortalMetadata(TransactionTestCase):
     def test_create_portal_metadata(self):
         self.load_test_data()
         self.processor.create_portal_metadata(clean_up_output_data=False)
+
+        with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH) as zip:
+            # Test the content of the generated zip file
+            # There is 1 file:
+            # ├── README.md
+            expected_file_count = 1
+            # The filenames should match the following constants specified for the computed file
+            expected_file = readme_file.OUTPUT_NAME
+            files = set(zip.namelist())
+            self.assertEqual(len(files), expected_file_count)
+            self.assertIn(expected_file, files)
+
+            # Test the content of README.md
+            expected_text = (
+                "This download includes associated metadata for samples from all projects"
+            )
+            self.assertProjectReadmeContains(expected_text, zip)
