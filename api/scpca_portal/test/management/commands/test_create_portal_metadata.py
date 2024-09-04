@@ -69,7 +69,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(computed_files.count(), 1)
         computed_file = computed_files.first()
         # Make sure the computed file size is as expected
-        self.assertEqual(computed_file.size_in_bytes, 8469)
+        self.assertEqual(computed_file.size_in_bytes, 8460)
         # Make sure all fields match the download configuration values
         self.assertIsNone(computed_file.format)
         self.assertIsNone(computed_file.modality)
