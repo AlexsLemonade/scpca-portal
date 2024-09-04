@@ -48,10 +48,11 @@ class TestLoader(TransactionTestCase):
 
     def assertObjectProperties(self, obj: Any, expected_values: Dict[str, Any]) -> None:
         for attribute, value in expected_values.items():
+            msg = f"The actual and expected {attribute} values differ in {obj}"
             if isinstance(value, list):
-                self.assertEqual(set(getattr(obj, attribute)), set(value))
+                self.assertEqual(set(getattr(obj, attribute)), set(value), msg)
             else:
-                self.assertEqual(getattr(obj, attribute), value)
+                self.assertEqual(getattr(obj, attribute), value, msg)
 
     def get_computed_files_query_params_from_download_config(self, download_config: Dict) -> Dict:
         if download_config["metadata_only"]:
@@ -150,41 +151,38 @@ class TestLoader(TransactionTestCase):
             # This should be updated when the bug is handled.
             # "unavailable_samples_count": 1
         }
-
         self.assertObjectProperties(project, expected_project_attributes_values)
-        # single_cell samples: SCPCS999990, SCPCS999997
-        # spatial samples: SCPCS999991
-        # single_cell sample SCPCS999994 is unavailable
-        # As such, there should be 3 samples, but 4 are processed
-        # Like we do for projects where we check if a dir exists with data before processing,
-        # we should do the same for samples
-        # The check should be as follows
-        # single_cell, spatial = 2, 1
-        # self.assertEqual(project.sample_count, single_cell + spatial)
-
-        # single_cell sample SCPCS999994 is unavailable
-        # The following evaluates to 0, whereas it should be one
-        # self.assertEqual(project.unavailable_samples_count, 1)
 
         # CHECK SAMPLE VALUES
-        sample0 = project.samples.filter(scpca_id="SCPCS999990").first()
-        self.assertEqual(sample0.age, "2")
-        self.assertEqual(sample0.age_timing, "diagnosis")
-        self.assertIsNone(sample0.demux_cell_count_estimate)
-        self.assertEqual(sample0.diagnosis, "diagnosis1")
-        self.assertEqual(sample0.disease_timing, "Initial diagnosis")
-        self.assertFalse(sample0.has_multiplexed_data)
-        self.assertTrue(sample0.has_single_cell_data)
-        self.assertFalse(sample0.has_spatial_data)
-        self.assertTrue(sample0.includes_anndata)
-        self.assertFalse(sample0.is_cell_line)
-        self.assertFalse(sample0.is_xenograft)
-        self.assertListEqual(sample0.multiplexed_with, [])
-        self.assertEqual(sample0.sample_cell_count_estimate, 3432)
-        self.assertEqual(sample0.seq_units, "cell")
-        self.assertEqual(sample0.technologies, "10Xv3")
-        self.assertEqual(sample0.tissue_location, "tissue1")
-        self.assertEqual(sample0.treatment, "")
+        # SCPCS999990
+        sample_id = "SCPCS999990"
+        sample = project.samples.filter(scpca_id=sample_id).first()
+
+        expected_sample_attributes_values = {
+            "age": "2",
+            "age_timing": "diagnosis",
+            "demux_cell_count_estimate": None,
+            "diagnosis": "diagnosis1",
+            "disease_timing": "Initial diagnosis",
+            "has_bulk_rna_seq": False,
+            "has_cite_seq_data": False,
+            "has_multiplexed_data": False,
+            "has_single_cell_data": True,
+            "has_spatial_data": False,
+            "includes_anndata": True,
+            "is_cell_line": False,
+            "is_xenograft": False,
+            "multiplexed_with": [],
+            "sample_cell_count_estimate": 3432,
+            "scpca_id": sample_id,
+            "sex": "M",
+            "seq_units": "cell",
+            "subdiagnosis": "NA",
+            "technologies": "10Xv3",
+            "tissue_location": "tissue1",
+            "treatment": "",
+        }
+        self.assertObjectProperties(sample, expected_sample_attributes_values)
 
         # Now we must iterate over the following samples
         # SCPCS999991
