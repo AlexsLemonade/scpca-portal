@@ -43,6 +43,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     format = models.TextField(choices=OutputFileFormats.CHOICES, null=True)
     includes_merged = models.BooleanField(default=False)
     modality = models.TextField(choices=OutputFileModalities.CHOICES, null=True)
+    portal_metadata_only = models.BooleanField(default=False)
     metadata_only = models.BooleanField(default=False)
     s3_bucket = models.TextField()
     s3_key = models.TextField()
@@ -85,6 +86,31 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
 
     @classmethod
+    def get_portal_metadata_file(cls, projects, download_config: Dict) -> Self:
+        """
+        Queries all libraries to aggregate the combined metadata,
+        writes the aggregated combined metadata to a portal metadata file,
+        computes a zip archive with metadata and readme files, and
+        creates a ComputedFile object which it then saves to the db.
+        """
+        with ZipFile(common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH, "w") as zip_file:
+            zip_file.writestr(
+                readme_file.OUTPUT_NAME,
+                readme_file.get_file_contents(
+                    download_config,
+                    projects,
+                ),
+            )
+        computed_file = cls(
+            portal_metadata_only=True,
+            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            s3_key=common.PORTAL_METADATA_COMPUTED_FILE_NAME,
+            size_in_bytes=common.OUTPUT_PORTAL_METADATA_ZIP_FILE_PATH.stat().st_size,
+        )
+
+        return computed_file
+
+    @classmethod
     def get_project_file(cls, project, download_config: Dict, computed_file_name: str) -> Self:
         """
         Queries for a project's libraries according to the given download options configuration,
@@ -114,7 +140,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Readme file
             zip_file.writestr(
                 readme_file.OUTPUT_NAME,
-                readme_file.get_file_contents(download_config, project),
+                readme_file.get_file_contents(download_config, [project]),
             )
 
             # Metadata file
@@ -205,7 +231,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     # Readme file
                     zip_file.writestr(
                         readme_file.OUTPUT_NAME,
-                        readme_file.get_file_contents(download_config, sample.project),
+                        readme_file.get_file_contents(download_config, [sample.project]),
                     )
                     # Metadata file
                     zip_file.writestr(

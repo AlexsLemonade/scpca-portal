@@ -124,7 +124,7 @@ class TestGetSampleLibrariesFromDownloadConfig(TestCase):
         }
 
     def test_get_sample_libraries_from_download_config_all_configs(self):
-        for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+        for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS:
             result = Library.get_sample_libraries_from_download_config(self.sample, config)
             for library in self.libraries.get(config["modality"]).get(config["format"]):
                 self.assertIn(library, result)
