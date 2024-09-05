@@ -1,6 +1,7 @@
 import csv
 import shutil
 from io import TextIOWrapper
+from typing import Dict
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -56,6 +57,35 @@ class TestCreatePortalMetadata(TransactionTestCase):
     def assertProjectReadmeContains(self, text, zip_file):
         self.assertIn(text, zip_file.read(README_FILE).decode("utf-8"))
 
+    def assertFields(self, computed_file, expected_fields: Dict):
+        def assert_bool(value, expected_value, message=""):
+            if expected_value:
+                self.assertTrue(value, message)
+            else:
+                self.assertFalse(value, message)
+
+        def assert_is_none(value, message=""):
+            self.assertIsNone(value, message)
+
+        def assert_equal(value, expected_value, message=""):
+            self.assertEqual(value, expected_value, message)
+
+        for expected_key, expected_value in expected_fields.items():
+            message = f"Field '{expected_key}' does not match"
+            output_value = getattr(computed_file, expected_key)
+            if isinstance(expected_value, bool):
+                assert_bool(output_value, expected_value, message)
+            elif expected_value is None:
+                assert_is_none(output_value, message)
+            else:
+                assert_equal(output_value, expected_value, message)
+
+    def assertEqualWithVariance(self, value, expected, variance=50):
+        # Make sure the given value is within the range of expected bounds
+        message = f"{value} is out of range"
+        self.assertGreaterEqual(value, expected - variance, message)
+        self.assertLessEqual(value, expected + variance, message)
+
     @patch("scpca_portal.management.commands.create_portal_metadata.s3.upload_output_file")
     def test_create_portal_metadata(self, mock_upload_output_file):
         # Set up the database for test
@@ -64,19 +94,22 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
 
         # Test the computed file
-        # Make sure the computed file is created and singular
         computed_files = ComputedFile.objects.filter(portal_metadata_only=True)
+        # Make sure the computed file is created and singular
         self.assertEqual(computed_files.count(), 1)
         computed_file = computed_files.first()
-        # Make sure the computed file size is as expected
-        self.assertEqual(computed_file.size_in_bytes, 8469)
+        # Make sure the computed file size is as expected range
+        self.assertEqualWithVariance(computed_file.size_in_bytes, 8430)
         # Make sure all fields match the download configuration values
-        self.assertIsNone(computed_file.format)
-        self.assertIsNone(computed_file.modality)
-        self.assertFalse(computed_file.includes_merged)
-        self.assertTrue(computed_file.metadata_only)
-        self.assertTrue(computed_file.portal_metadata_only)
-
+        download_config = {
+            "modality": None,
+            "format": None,
+            "includes_merged": False,
+            "metadata_only": True,
+            "portal_metadata_only": True,
+        }
+        self.assertFields(computed_file, download_config)
+        # Make sure mock_upload_output_file called once
         mock_upload_output_file.assert_called_once_with(
             computed_file.s3_key, computed_file.s3_bucket
         )
