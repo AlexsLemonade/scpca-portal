@@ -50,7 +50,6 @@ class Command(BaseCommand):
         return computed_file
 
     def purge_computed_file(self, computed_file, update_s3=False):
-        logger.info("Purging the portal-wide metadata computed file")
         if update_s3:
             logger.info("Deleting the zip from S3")
             s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)

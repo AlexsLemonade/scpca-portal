@@ -159,15 +159,13 @@ class TestCreatePortalMetadata(TransactionTestCase):
     def test_only_one_computed_file_at_any_point(self, mock_delete_output_file):
         # Set up the database for test
         self.load_test_data()
-        # First call to create the portal metadata computed file
-        computed_file_one = self.processor.create_portal_metadata(
-            clean_up_output_data=False, update_s3=True
-        )
-        # Second call to create the portal metadata computed file
-        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
-        mock_delete_output_file.assert_called_with(
-            computed_file_one.s3_key, computed_file_one.s3_bucket
-        )
         # Make sure pre-existing computed_file has been deleted and only one exists
-        existing_computed_file = ComputedFile.objects.filter(portal_metadata_only=True)
-        self.assertEqual(existing_computed_file.count(), 1)
+        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
+        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
+        computed_files = ComputedFile.objects.filter(portal_metadata_only=True)
+        self.assertEqual(computed_files.count(), 1)
+        # Make sure mock_delete_output_file can be called with computed_file field values
+        computed_file = computed_files.first()
+        mock_delete_output_file.assert_called_once_with(
+            computed_file.s3_key, computed_file.s3_bucket
+        )
