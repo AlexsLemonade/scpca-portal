@@ -54,6 +54,9 @@ class TestLoader(TransactionTestCase):
             else:
                 self.assertEqual(getattr(obj, attribute), value, msg)
 
+    def assertDictIsNonEmpty(self, d: Dict) -> None:
+        self.assertTrue(any(key for key in d))
+
     def get_computed_files_query_params_from_download_config(self, download_config: Dict) -> Dict:
         if download_config["metadata_only"]:
             return {"metadata_only": download_config["metadata_only"]}
@@ -191,35 +194,34 @@ class TestLoader(TransactionTestCase):
 
         # CHECK LIBRARY VALUES
         self.assertEqual(project.libraries.count(), 3)
-        library0 = project.libraries.filter(scpca_id="SCPCL999990").first()
+        library_id = "SCPCL999990"
+        library = project.libraries.filter(scpca_id=library_id).first()
 
-        self.assertIn(
-            "SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html", library0.data_file_paths
-        )
-        self.assertIn("SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds", library0.data_file_paths)
-        self.assertIn(
-            "SCPCP999990/SCPCS999990/SCPCL999990_filtered_rna.h5ad", library0.data_file_paths
-        )
-        self.assertIn("SCPCP999990/SCPCS999990/SCPCL999990_processed.rds", library0.data_file_paths)
-        self.assertIn(
-            "SCPCP999990/SCPCS999990/SCPCL999990_processed_rna.h5ad", library0.data_file_paths
-        )
-        self.assertIn("SCPCP999990/SCPCS999990/SCPCL999990_qc.html", library0.data_file_paths)
-        self.assertIn(
-            "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds", library0.data_file_paths
-        )
-        self.assertIn(
-            "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered_rna.h5ad", library0.data_file_paths
-        )
+        expected_library_attribute_values = {
+            "data_file_paths": [
+                "SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html",
+                "SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds",
+                "SCPCP999990/SCPCS999990/SCPCL999990_filtered_rna.h5ad",
+                "SCPCP999990/SCPCS999990/SCPCL999990_processed.rds",
+                "SCPCP999990/SCPCS999990/SCPCL999990_processed_rna.h5ad",
+                "SCPCP999990/SCPCS999990/SCPCL999990_qc.html",
+                "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds",
+                "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered_rna.h5ad",
+            ],
+            "formats": [
+                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                Library.FileFormats.ANN_DATA,
+            ],
+            "has_cite_seq_data": False,
+            "is_multiplexed": False,
+            "modality": Library.Modalities.SINGLE_CELL,
+            "scpca_id": library_id,
+            "workflow_version": "development",
+        }
 
-        self.assertIn(Library.FileFormats.SINGLE_CELL_EXPERIMENT, library0.formats)
-        self.assertIn(Library.FileFormats.ANN_DATA, library0.formats)
-        self.assertFalse(library0.has_cite_seq_data)
-        self.assertFalse(library0.is_multiplexed)
+        self.assertObjectProperties(library, expected_library_attribute_values)
         # Assert that metadata attribute has been populated and did not default to empty dict
-        self.assertFalse(library0.metadata == {})
-        self.assertEqual(library0.modality, Library.Modalities.SINGLE_CELL)
-        self.assertEqual(library0.workflow_version, "development")
+        self.assertDictIsNonEmpty(library.metadata)
 
         # CHECK PROJECT SUMMARIES VALUES
         self.assertEqual(project.summaries.count(), 4)
