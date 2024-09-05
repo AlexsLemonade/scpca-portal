@@ -29,17 +29,15 @@ class Command(BaseCommand):
 
     def create_portal_metadata(self, clean_up_output_data: bool, update_s3: bool, **kwargs):
         logger.info("Creating the portal-wide metadata computed file")
-        computed_file = ComputedFile.get_portal_metadata_file(
+        if computed_file := ComputedFile.get_portal_metadata_file(
             Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
-        )
-
-        if computed_file:
-            logger.info("Saving the object to the database")
-            computed_file.save()
-
+        ):
             if update_s3:
                 logger.info("Updating the zip file in S3")
                 s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
+
+            logger.info("Saving the object to the database")
+            computed_file.save()
 
         if clean_up_output_data:
             logger.info("Cleaning up the output directory")
