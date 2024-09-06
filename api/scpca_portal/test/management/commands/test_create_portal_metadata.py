@@ -58,27 +58,10 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertIn(text, zip_file.read(README_FILE).decode("utf-8"))
 
     def assertFields(self, computed_file, expected_fields: Dict):
-        def assert_bool(value, expected_value, message=""):
-            if expected_value:
-                self.assertTrue(value, message)
-            else:
-                self.assertFalse(value, message)
-
-        def assert_is_none(value, message=""):
-            self.assertIsNone(value, message)
-
-        def assert_equal(value, expected_value, message=""):
-            self.assertEqual(value, expected_value, message)
-
         for expected_key, expected_value in expected_fields.items():
-            message = f"Field '{expected_key}' does not match"
-            output_value = getattr(computed_file, expected_key)
-            if isinstance(expected_value, bool):
-                assert_bool(output_value, expected_value, message)
-            elif expected_value is None:
-                assert_is_none(output_value, message)
-            else:
-                assert_equal(output_value, expected_value, message)
+            actual_value = getattr(computed_file, expected_key)
+            message = f"Expected {expected_value}, received {actual_value} on '{expected_key}'"
+            self.assertEqual(actual_value, expected_value, message)
 
     def assertEqualWithVariance(self, value, expected, variance=50):
         # Make sure the given value is within the range of expected bounds
