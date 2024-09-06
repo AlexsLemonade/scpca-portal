@@ -1,6 +1,8 @@
 import csv
 import shutil
 from io import TextIOWrapper
+from typing import Dict
+from unittest.mock import patch
 from zipfile import ZipFile
 
 from django.test import TransactionTestCase
@@ -30,9 +32,6 @@ class TestCreatePortalMetadata(TransactionTestCase):
         super().tearDownClass()
         shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
-    def assertProjectReadmeContains(self, text, zip_file):
-        self.assertIn(text, zip_file.read("README.md").decode("utf-8"))
-
     def load_test_data(self):
         # Expected object counts
         PROJECTS_COUNT = 3
@@ -53,21 +52,61 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
-    def test_create_portal_metadata(self):
-        self.load_test_data()
-        self.processor.create_portal_metadata(clean_up_output_data=False)
+    # TODO: After PR #839 is merged into dev, add readme file format testing
+    def assertProjectReadmeContains(self, text, zip_file):
+        self.assertIn(text, zip_file.read(README_FILE).decode("utf-8"))
 
+    def assertFields(self, computed_file, expected_fields: Dict):
+        for expected_key, expected_value in expected_fields.items():
+            actual_value = getattr(computed_file, expected_key)
+            message = f"Expected {expected_value}, received {actual_value} on '{expected_key}'"
+            self.assertEqual(actual_value, expected_value, message)
+
+    def assertEqualWithVariance(self, value, expected, variance=50):
+        # Make sure the given value is within the range of expected bounds
+        message = f"{value} is out of range"
+        self.assertGreaterEqual(value, expected - variance, message)
+        self.assertLessEqual(value, expected + variance, message)
+
+    @patch("scpca_portal.management.commands.create_portal_metadata.s3.upload_output_file")
+    def test_create_portal_metadata(self, mock_upload_output_file):
+        # Set up the database for test
+        self.load_test_data()
+        # Create the portal metadata computed file
+        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
+
+        # Test the computed file
+        computed_files = ComputedFile.objects.filter(portal_metadata_only=True)
+        # Make sure the computed file is created and singular
+        self.assertEqual(computed_files.count(), 1)
+        computed_file = computed_files.first()
+        # Make sure the computed file size is as expected range
+        self.assertEqualWithVariance(computed_file.size_in_bytes, 8430)
+        # Make sure all fields match the download configuration values
+        download_config = {
+            "modality": None,
+            "format": None,
+            "includes_merged": False,
+            "metadata_only": True,
+            "portal_metadata_only": True,
+        }
+        self.assertFields(computed_file, download_config)
+        # Make sure mock_upload_output_file called once
+        mock_upload_output_file.assert_called_once_with(
+            computed_file.s3_key, computed_file.s3_bucket
+        )
+
+        # Test the content of the generated zip file
         zip_file_path = ComputedFile.get_local_file_path(
             common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
         )
-        with ZipFile(zip_file_path) as zip:
-            # Test the content of the generated zip file
+        with ZipFile(zip_file_path) as zip_file:
             # There are 2 file:
             # ├── README.md
             # |── metadata.tsv
             expected_file_count = 2
             # Make sure the zip has the exact number of expected files
-            files = set(zip.namelist())
+            files = set(zip_file.namelist())
             self.assertEqual(len(files), expected_file_count)
             self.assertIn(README_FILE, files)
             self.assertIn(METADATA_FILE, files)
@@ -75,9 +114,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
             expected_text = (
                 "This download includes associated metadata for samples from all projects"
             )
-            self.assertProjectReadmeContains(expected_text, zip)
+            self.assertProjectReadmeContains(expected_text, zip_file)
             # metadata.tsv
-            with zip.open(METADATA_FILE) as metadata_file:
+            with zip_file.open(METADATA_FILE) as metadata_file:
                 csv_reader = csv.DictReader(
                     TextIOWrapper(metadata_file, "utf-8"),
                     delimiter=common.TAB,
