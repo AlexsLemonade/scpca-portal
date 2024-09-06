@@ -1187,7 +1187,66 @@ class TestLoader(TransactionTestCase):
         self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
-        pass
+        loader.prep_data_dirs()
+
+        # GENERATE COMPUTED FILES
+        project_id = "SCPCP999991"
+        project = self.create_project(self.get_project_metadata(project_id))
+        # Make sure that create_project didn't fail and return a None value
+        self.assertIsNotNone(project)
+
+        download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED"
+        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+                self.generate_computed_files(project)
+
+        # CHECK ZIP FILE
+        output_file_name = project.get_download_config_file_output_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
+            # Check if correct libraries were added in
+            expected_libraries = {"SCPCL999992", "SCPCL999995"}
+            self.assertCorrectLibraries(project_zip, expected_libraries)
+
+            expected_file_list = [
+                "README.md",
+                "single_cell_metadata.tsv",
+                "SCPCS999995/SCPCL999995_celltype-report.html",
+                "SCPCS999995/SCPCL999995_filtered.rds",
+                "SCPCS999995/SCPCL999995_processed.rds",
+                "SCPCS999995/SCPCL999995_qc.html",
+                "SCPCS999995/SCPCL999995_unfiltered.rds",
+                "SCPCS999992_SCPCS999993/SCPCL999992_celltype-report.html",
+                "SCPCS999992_SCPCS999993/SCPCL999992_filtered.rds",
+                "SCPCS999992_SCPCS999993/SCPCL999992_processed.rds",
+                "SCPCS999992_SCPCS999993/SCPCL999992_qc.html",
+                "SCPCS999992_SCPCS999993/SCPCL999992_unfiltered.rds",
+            ]
+            result_file_list = project_zip.namelist()
+            self.assertEqual(set(expected_file_list), set(result_file_list))
+
+        # CHECK COMPUTED FILE ATTRIBUTES
+        computed_file = project.computed_files.filter(
+            **self.get_computed_files_query_params_from_download_config(download_config)
+        ).first()
+        self.assertIsNotNone(computed_file)
+
+        expected_computed_file_attribute_values = {
+            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+            "has_bulk_rna_seq": False,
+            "has_cite_seq_data": False,
+            "has_multiplexed_data": True,
+            "includes_merged": False,
+            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
+            "metadata_only": False,
+            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            "s3_key": output_file_name,
+            "size_in_bytes": 6594,
+            "workflow_version": "development",
+            "includes_celltype_report": True,
+        }
+        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED(self):
         pass
