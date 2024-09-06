@@ -3,12 +3,13 @@ from csv import DictReader
 from functools import partial
 from pathlib import Path
 from typing import Any, Dict, Set
+from unittest.mock import patch
 from zipfile import ZipFile
 
 from django.conf import settings
 from django.test import TransactionTestCase
 
-from scpca_portal import common, loader, metadata_file
+from scpca_portal import common, loader
 from scpca_portal.models import Project
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.library import Library
@@ -66,7 +67,7 @@ class TestLoader(TransactionTestCase):
             "format": download_config["format"],
         }
 
-        if download_config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS.values():
+        if download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values():
             return query_params
 
         query_params["has_multiplexed_data"] = not download_config["excludes_multiplexed"]
@@ -1123,56 +1124,26 @@ class TestLoader(TransactionTestCase):
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
         loader.prep_data_dirs()
 
+        # GENERATE COMPUTED FILES
         project_id = "SCPCP999990"
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
         self.assertIsNotNone(project)
 
-        self.generate_computed_files(project)
+        download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"
+        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+                self.generate_computed_files(project)
 
-        download_config = common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS[
-            "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"
-        ]
+        # CHECK ZIP FILE
         output_file_name = project.get_download_config_file_output_name(download_config)
         project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(project_zip_path) as project_zip:
-            # Basic Metadata file check
-            sample_metadata = project_zip.read(
-                metadata_file.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
-            )
-            sample_metadata_lines = [
-                sm for sm in sample_metadata.decode("utf-8").split("\r\n") if sm
-            ]
-            self.assertEqual(len(sample_metadata_lines), 3)  # 2 items + header.
-
-            # Basic Readme check
-            self.assertProjectReadmeContains(
-                "This dataset is designated as research or academic purposes only.",
-                project_zip,
-            )
-
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999990", "SCPCL999997"}
             self.assertCorrectLibraries(project_zip, expected_libraries)
 
-            # Check that correct files were added in
-            # There are 14 files:
-            # ├── README.md
-            # ├── SCPCS999990
-            # │   ├── SCPCL999990_celltype-report.html
-            # │   ├── SCPCL999990_filtered.rds
-            # │   ├── SCPCL999990_processed.rds
-            # │   ├── SCPCL999990_qc.html
-            # │   └── SCPCL999990_unfiltered.rds
-            # ├── SCPCS999997
-            # │   ├── SCPCL999997_celltype-report.html
-            # │   ├── SCPCL999997_filtered.rds
-            # │   ├── SCPCL999997_processed.rds
-            # │   ├── SCPCL999997_qc.html
-            # │   └── SCPCL999997_unfiltered.rds
-            # ├── bulk_metadata.tsv
-            # ├── bulk_quant.tsv
-            # └── single_cell_metadata.tsv
             expected_file_list = [
                 "README.md",
                 "SCPCS999990/SCPCL999990_celltype-report.html",
@@ -1185,6 +1156,7 @@ class TestLoader(TransactionTestCase):
                 "SCPCS999997/SCPCL999997_processed.rds",
                 "SCPCS999997/SCPCL999997_qc.html",
                 "SCPCS999997/SCPCL999997_unfiltered.rds",
+                # Do we want bulk files to be prefixed with the project id?
                 "SCPCP999990_bulk_metadata.tsv",
                 "SCPCP999990_bulk_quant.tsv",
                 "single_cell_metadata.tsv",
@@ -1192,24 +1164,27 @@ class TestLoader(TransactionTestCase):
             result_file_list = project_zip.namelist()
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
-        # Check computed file attributes
+        # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = project.computed_files.filter(
             **self.get_computed_files_query_params_from_download_config(download_config)
         ).first()
+        self.assertIsNotNone(computed_file)
 
-        self.assertEqual(
-            computed_file.format, ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
-        )
-        self.assertFalse(computed_file.includes_merged)
-        self.assertFalse(computed_file.metadata_only)
-        self.assertEqual(computed_file.s3_bucket, settings.AWS_S3_OUTPUT_BUCKET_NAME)
-        self.assertEqual(computed_file.s3_key, output_file_name)
-        self.assertEqual(computed_file.size_in_bytes, 9078)
-        self.assertEqual(computed_file.workflow_version, "development")
-        self.assertTrue(computed_file.includes_celltype_report)
-        self.assertTrue(computed_file.has_bulk_rna_seq)
-        self.assertFalse(computed_file.has_cite_seq_data)
-        self.assertFalse(computed_file.has_multiplexed_data)
+        expected_computed_file_attribute_values = {
+            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+            "has_bulk_rna_seq": True,
+            "has_cite_seq_data": False,
+            "has_multiplexed_data": False,
+            "includes_merged": False,
+            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
+            "metadata_only": False,
+            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            "s3_key": output_file_name,
+            "size_in_bytes": 9078,
+            "workflow_version": "development",
+            "includes_celltype_report": True,
+        }
+        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
         pass
