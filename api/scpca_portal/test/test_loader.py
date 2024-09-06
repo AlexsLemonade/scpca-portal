@@ -1249,13 +1249,190 @@ class TestLoader(TransactionTestCase):
         self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED(self):
-        pass
+        loader.prep_data_dirs()
+
+        # GENERATE COMPUTED FILES
+        project_id = "SCPCP999990"
+        project = self.create_project(self.get_project_metadata(project_id))
+        # Make sure that create_project didn't fail and return a None value
+        self.assertIsNotNone(project)
+
+        download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED"
+        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+                self.generate_computed_files(project)
+
+        # CHECK ZIP FILE
+        output_file_name = project.get_download_config_file_output_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
+            # Check if correct libraries were added in
+            expected_libraries = {"SCPCL999990", "SCPCL999997"}
+            self.assertCorrectLibraries(project_zip, expected_libraries)
+
+            expected_file_list = [
+                "README.md",
+                "single_cell_metadata.tsv",
+                "individual_reports/SCPCS999990/SCPCL999990_celltype-report.html",
+                "individual_reports/SCPCS999990/SCPCL999990_qc.html",
+                "individual_reports/SCPCS999997/SCPCL999997_celltype-report.html",
+                "individual_reports/SCPCS999997/SCPCL999997_qc.html",
+                "SCPCP999990_merged-summary-report.html",
+                "SCPCP999990_merged.rds",
+                "SCPCP999990_bulk_metadata.tsv",
+                "SCPCP999990_bulk_quant.tsv",
+            ]
+            result_file_list = project_zip.namelist()
+            self.assertEqual(set(expected_file_list), set(result_file_list))
+
+        # CHECK COMPUTED FILE ATTRIBUTES
+        computed_file = project.computed_files.filter(
+            **self.get_computed_files_query_params_from_download_config(download_config)
+        ).first()
+        self.assertIsNotNone(computed_file)
+
+        expected_computed_file_attribute_values = {
+            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+            "has_bulk_rna_seq": True,
+            "has_cite_seq_data": False,
+            "has_multiplexed_data": False,
+            "includes_merged": True,
+            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
+            "metadata_only": False,
+            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            "s3_key": output_file_name,
+            "size_in_bytes": 8476,
+            "workflow_version": "development",
+            "includes_celltype_report": True,
+        }
+        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
 
     def test_project_generate_computed_files_SINGLE_CELL_ANN_DATA(self):
-        pass
+        loader.prep_data_dirs()
+
+        # GENERATE COMPUTED FILES
+        project_id = "SCPCP999990"
+        project = self.create_project(self.get_project_metadata(project_id))
+        # Make sure that create_project didn't fail and return a None value
+        self.assertIsNotNone(project)
+
+        download_config_name = "SINGLE_CELL_ANN_DATA"
+        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+                self.generate_computed_files(project)
+
+        # CHECK ZIP FILE
+        output_file_name = project.get_download_config_file_output_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
+            # Check if correct libraries were added in
+            expected_libraries = {"SCPCL999990", "SCPCL999997"}
+            self.assertCorrectLibraries(project_zip, expected_libraries)
+
+            expected_file_list = [
+                "README.md",
+                "SCPCS999990/SCPCL999990_celltype-report.html",
+                "SCPCS999990/SCPCL999990_filtered_rna.h5ad",
+                "SCPCS999990/SCPCL999990_processed_rna.h5ad",
+                "SCPCS999990/SCPCL999990_qc.html",
+                "SCPCS999990/SCPCL999990_unfiltered_rna.h5ad",
+                "SCPCS999997/SCPCL999997_celltype-report.html",
+                "SCPCS999997/SCPCL999997_filtered_rna.h5ad",
+                "SCPCS999997/SCPCL999997_processed_rna.h5ad",
+                "SCPCS999997/SCPCL999997_qc.html",
+                "SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
+                # Do we want bulk files to be prefixed with the project id?
+                "SCPCP999990_bulk_metadata.tsv",
+                "SCPCP999990_bulk_quant.tsv",
+                "single_cell_metadata.tsv",
+            ]
+            result_file_list = project_zip.namelist()
+            self.assertEqual(set(expected_file_list), set(result_file_list))
+
+        # CHECK COMPUTED FILE ATTRIBUTES
+        computed_file = project.computed_files.filter(
+            **self.get_computed_files_query_params_from_download_config(download_config)
+        ).first()
+        self.assertIsNotNone(computed_file)
+
+        expected_computed_file_attribute_values = {
+            "format": ComputedFile.OutputFileFormats.ANN_DATA,
+            "has_bulk_rna_seq": True,
+            "has_cite_seq_data": False,
+            "has_multiplexed_data": False,
+            "includes_merged": False,
+            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
+            "metadata_only": False,
+            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            "s3_key": output_file_name,
+            "size_in_bytes": 9492,
+            "workflow_version": "development",
+            "includes_celltype_report": True,
+        }
+        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
 
     def test_project_generate_computed_files_SINGLE_CELL_ANN_DATA_MERGED(self):
-        pass
+        loader.prep_data_dirs()
+
+        # GENERATE COMPUTED FILES
+        project_id = "SCPCP999990"
+        project = self.create_project(self.get_project_metadata(project_id))
+        # Make sure that create_project didn't fail and return a None value
+        self.assertIsNotNone(project)
+
+        download_config_name = "SINGLE_CELL_ANN_DATA_MERGED"
+        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+                self.generate_computed_files(project)
+
+        # CHECK ZIP FILE
+        output_file_name = project.get_download_config_file_output_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
+            # Check if correct libraries were added in
+            expected_libraries = {"SCPCL999990", "SCPCL999997"}
+            self.assertCorrectLibraries(project_zip, expected_libraries)
+
+            expected_file_list = [
+                "README.md",
+                "individual_reports/SCPCS999990/SCPCL999990_celltype-report.html",
+                "individual_reports/SCPCS999990/SCPCL999990_qc.html",
+                "individual_reports/SCPCS999997/SCPCL999997_celltype-report.html",
+                "individual_reports/SCPCS999997/SCPCL999997_qc.html",
+                # Do we want bulk files to be prefixed with the project id?
+                "SCPCP999990_merged-summary-report.html",
+                "SCPCP999990_merged_rna.h5ad",
+                "SCPCP999990_bulk_metadata.tsv",
+                "SCPCP999990_bulk_quant.tsv",
+                "single_cell_metadata.tsv",
+            ]
+            result_file_list = project_zip.namelist()
+            self.assertEqual(set(expected_file_list), set(result_file_list))
+
+        # CHECK COMPUTED FILE ATTRIBUTES
+        computed_file = project.computed_files.filter(
+            **self.get_computed_files_query_params_from_download_config(download_config)
+        ).first()
+        self.assertIsNotNone(computed_file)
+
+        expected_computed_file_attribute_values = {
+            "format": ComputedFile.OutputFileFormats.ANN_DATA,
+            "has_bulk_rna_seq": True,
+            "has_cite_seq_data": False,
+            "has_multiplexed_data": False,
+            "includes_merged": True,
+            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
+            "metadata_only": False,
+            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            "s3_key": output_file_name,
+            "size_in_bytes": 8601,
+            "workflow_version": "development",
+            "includes_celltype_report": True,
+        }
+        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
 
     def test_project_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
         pass
