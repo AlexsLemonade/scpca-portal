@@ -2,7 +2,7 @@ import io
 from csv import DictReader
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, Set
+from typing import Any, Dict, List, Set
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -76,6 +76,12 @@ class TestLoader(TransactionTestCase):
         return query_params
 
     def assertCorrectLibraries(self, project_zip: ZipFile, expected_libraries: Set[str]) -> None:
+        self.assertCorrectLibrariesMetadata(project_zip, expected_libraries)
+        self.assertCorrectLibrariesDataFiles(project_zip.namelist(), expected_libraries)
+
+    def assertCorrectLibrariesMetadata(
+        self, project_zip: ZipFile, expected_libraries: Set[str]
+    ) -> None:
         file_list = project_zip.namelist()
 
         # Check via metadata file
@@ -87,13 +93,15 @@ class TestLoader(TransactionTestCase):
         metadata_file_libraries = set(row["scpca_library_id"] for row in metadata_file_dict_reader)
         self.assertEqual(expected_libraries, metadata_file_libraries)
 
-        # Check via data file paths
+    def assertCorrectLibrariesDataFiles(
+        self, file_list: List[str], expected_libraries: Set[str]
+    ) -> None:
+        data_file_paths = [Path(file) for file in file_list]
         data_file_libraries = set(
             # data files have paths that look like "SCPCS999990/SCPCL999990_processed.rds"
-            Path(file).name.split("_")[0]
-            for file in file_list
-            # all data files have parents, non parent files include the metadata and readme files
-            if "/" in file
+            file_path.name.split("_")[0]
+            for file_path in data_file_paths
+            if file_path.name.startswith("SCPCL")
         )
         self.assertEqual(expected_libraries, data_file_libraries)
 
@@ -1435,10 +1443,120 @@ class TestLoader(TransactionTestCase):
         self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
 
     def test_project_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
-        pass
+        loader.prep_data_dirs()
+
+        # GENERATE COMPUTED FILES
+        project_id = "SCPCP999990"
+        project = self.create_project(self.get_project_metadata(project_id))
+        # Make sure that create_project didn't fail and return a None value
+        self.assertIsNotNone(project)
+
+        download_config_name = "SPATIAL_SINGLE_CELL_EXPERIMENT"
+        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+                self.generate_computed_files(project)
+
+        # CHECK ZIP FILE
+        output_file_name = project.get_download_config_file_output_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
+            # Check if correct libraries were added in
+            expected_libraries = {"SCPCL999991"}
+            self.assertCorrectLibraries(project_zip, expected_libraries)
+
+            expected_file_list = [
+                "README.md",
+                "spatial_metadata.tsv",
+                "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/features.tsv.gz",
+                "SCPCS999991/SCPCL999991_spatial/SCPCL999991_spaceranger-summary.html",
+                "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/barcodes.tsv.gz",
+                "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/features.tsv.gz",
+                "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/matrix.mtx.gz",
+                "SCPCS999991/SCPCL999991_spatial/raw_feature_bc_matrix/barcodes.tsv.gz",
+                "SCPCS999991/SCPCL999991_spatial/raw_feature_bc_matrix/features.tsv.gz",
+                "SCPCS999991/SCPCL999991_spatial/raw_feature_bc_matrix/matrix.mtx.gz",
+                "SCPCS999991/SCPCL999991_spatial/spatial/aligned_fiducials.jpg",
+                "SCPCS999991/SCPCL999991_spatial/spatial/detected_tissue_image.jpg",
+                "SCPCS999991/SCPCL999991_spatial/spatial/scalefactors_json.json",
+                "SCPCS999991/SCPCL999991_spatial/spatial/tissue_hires_image.png",
+                "SCPCS999991/SCPCL999991_spatial/spatial/tissue_lowres_image.png",
+                "SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv",
+                "SCPCS999991/SCPCL999991_spatial/SCPCL999991_metadata.json",
+            ]
+
+            result_file_list = project_zip.namelist()
+            self.assertEqual(set(expected_file_list), set(result_file_list))
+
+        # CHECK COMPUTED FILE ATTRIBUTES
+        computed_file = project.computed_files.filter(
+            **self.get_computed_files_query_params_from_download_config(download_config)
+        ).first()
+        self.assertIsNotNone(computed_file)
+
+        expected_computed_file_attribute_values = {
+            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+            "has_bulk_rna_seq": False,
+            "has_cite_seq_data": False,
+            "has_multiplexed_data": False,
+            "includes_merged": False,
+            "modality": ComputedFile.OutputFileModalities.SPATIAL,
+            "metadata_only": False,
+            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            "s3_key": output_file_name,
+            "size_in_bytes": 9156,
+            "workflow_version": "development",
+            "includes_celltype_report": True,
+        }
+        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
 
     def test_project_generate_computed_files_ALL_METADATA(self):
-        pass
+        loader.prep_data_dirs()
+
+        # GENERATE COMPUTED FILES
+        project_id = "SCPCP999990"
+        project = self.create_project(self.get_project_metadata(project_id))
+        # Make sure that create_project didn't fail and return a None value
+        self.assertIsNotNone(project)
+
+        download_config_name = "ALL_METADATA"
+        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+                self.generate_computed_files(project)
+
+        # CHECK ZIP FILE
+        output_file_name = project.get_download_config_file_output_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
+            # Check if correct libraries were added in
+            expected_libraries = {"SCPCL999990", "SCPCL999991", "SCPCL999997"}
+            self.assertCorrectLibrariesMetadata(project_zip, expected_libraries)
+            expected_file_list = ["README.md", "metadata.tsv"]
+            result_file_list = project_zip.namelist()
+            self.assertEqual(set(expected_file_list), set(result_file_list))
+
+        # CHECK COMPUTED FILE ATTRIBUTES
+        computed_file = project.computed_files.filter(
+            **self.get_computed_files_query_params_from_download_config(download_config)
+        ).first()
+        self.assertIsNotNone(computed_file)
+
+        expected_computed_file_attribute_values = {
+            "format": None,
+            "has_bulk_rna_seq": False,
+            "has_cite_seq_data": False,
+            "has_multiplexed_data": False,
+            "includes_merged": False,
+            "modality": None,
+            "metadata_only": True,
+            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            "s3_key": output_file_name,
+            "size_in_bytes": 4866,
+            "workflow_version": "development",
+            "includes_celltype_report": True,
+        }
+        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
 
     def test_sample_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
         pass
