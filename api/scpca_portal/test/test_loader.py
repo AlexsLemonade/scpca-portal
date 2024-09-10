@@ -92,9 +92,6 @@ class TestLoader(TransactionTestCase):
         )
         self.assertEqual(expected_libraries, data_file_libraries)
 
-    def assertProjectReadmeContains(self, text, project_zip):
-        self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
-
     def assertCreateProjectSucceeded(self, project):
         msg = "create_project failed and didn't return a project"
         self.assertIsNotNone(project, msg)
