@@ -202,6 +202,18 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return f"{file_name}.zip"
 
+    def get_computed_file(self, download_config: Dict[str, str | bool | int | None]):
+        "Return the project computed file that matches the passed download_config."
+        if download_config["metadata_only"]:
+            return self.computed_files.filter(metadata_only=True).first()
+
+        return self.computed_files.filter(
+            modality=download_config["modality"],
+            format=download_config["format"],
+            has_multiplexed_data=(not download_config["excludes_multiplexed"]),
+            includes_merged=download_config["includes_merged"],
+        ).first()
+
     def get_data_file_paths(self) -> List[Path]:
         """
         Retrieves existing merged and bulk data file paths on the aws input bucket

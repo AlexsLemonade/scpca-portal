@@ -49,7 +49,7 @@ class TestLoader(TransactionTestCase):
 
     def assertObjectProperties(self, obj: Any, expected_values: Dict[str, Any]) -> None:
         for attribute, value in expected_values.items():
-            msg = f"The actual and expected {attribute} values differ in {obj}"
+            msg = f"The actual and expected `{attribute}` values differ in {obj}"
             if isinstance(value, list):
                 self.assertListEqual(getattr(obj, attribute), value, msg)
             else:
@@ -63,23 +63,6 @@ class TestLoader(TransactionTestCase):
         for sample in project.samples.all():
             if sample != sample_of_interest:
                 sample.purge()
-
-    def get_computed_files_query_params_from_download_config(self, download_config: Dict) -> Dict:
-        if download_config.get("metadata_only"):
-            return {"metadata_only": download_config["metadata_only"]}
-
-        query_params = {
-            "modality": download_config["modality"],
-            "format": download_config["format"],
-        }
-
-        if download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values():
-            return query_params
-
-        query_params["has_multiplexed_data"] = not download_config["excludes_multiplexed"]
-        query_params["includes_merged"] = download_config["includes_merged"]
-
-        return query_params
 
     def assertCorrectLibraries(self, project_zip: ZipFile, expected_libraries: Set[str]) -> None:
         self.assertCorrectLibrariesMetadata(project_zip, expected_libraries)
@@ -321,8 +304,8 @@ class TestLoader(TransactionTestCase):
                 "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered_rna.h5ad",
             ],
             "formats": [
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
                 Library.FileFormats.ANN_DATA,
+                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
@@ -387,8 +370,8 @@ class TestLoader(TransactionTestCase):
                 "SCPCP999990/SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
             ],
             "formats": [
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
                 Library.FileFormats.ANN_DATA,
+                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
@@ -720,7 +703,7 @@ class TestLoader(TransactionTestCase):
                 "SCPCP999991/SCPCS999995/SCPCL999995_unfiltered.rds",
                 "SCPCP999991/SCPCS999995/SCPCL999995_unfiltered_rna.h5ad",
             ],
-            "formats": [Library.FileFormats.SINGLE_CELL_EXPERIMENT, Library.FileFormats.ANN_DATA],
+            "formats": [Library.FileFormats.ANN_DATA, Library.FileFormats.SINGLE_CELL_EXPERIMENT],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
             "modality": Library.Modalities.SINGLE_CELL,
@@ -986,8 +969,8 @@ class TestLoader(TransactionTestCase):
                 "SCPCP999992/SCPCS999996/SCPCL999996_unfiltered_rna.h5ad",
             ],
             "formats": [
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
                 Library.FileFormats.ANN_DATA,
+                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
@@ -1018,7 +1001,10 @@ class TestLoader(TransactionTestCase):
                 "SCPCP999992/SCPCS999998/SCPCL999998_unfiltered_adt.h5ad",
                 "SCPCP999992/SCPCS999998/SCPCL999998_unfiltered_rna.h5ad",
             ],
-            "formats": [Library.FileFormats.SINGLE_CELL_EXPERIMENT, Library.FileFormats.ANN_DATA],
+            "formats": [
+                Library.FileFormats.ANN_DATA,
+                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+            ],
             "has_cite_seq_data": True,
             "is_multiplexed": False,
             "modality": Library.Modalities.SINGLE_CELL,
@@ -1179,9 +1165,7 @@ class TestLoader(TransactionTestCase):
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.computed_files.filter(
-            **self.get_computed_files_query_params_from_download_config(download_config)
-        ).first()
+        computed_file = project.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
 
         expected_computed_file_attribute_values = {
@@ -1241,9 +1225,7 @@ class TestLoader(TransactionTestCase):
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.computed_files.filter(
-            **self.get_computed_files_query_params_from_download_config(download_config)
-        ).first()
+        computed_file = project.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
 
         expected_computed_file_attribute_values = {
@@ -1301,9 +1283,7 @@ class TestLoader(TransactionTestCase):
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.computed_files.filter(
-            **self.get_computed_files_query_params_from_download_config(download_config)
-        ).first()
+        computed_file = project.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
 
         expected_computed_file_attribute_values = {
@@ -1366,9 +1346,7 @@ class TestLoader(TransactionTestCase):
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.computed_files.filter(
-            **self.get_computed_files_query_params_from_download_config(download_config)
-        ).first()
+        computed_file = project.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
 
         expected_computed_file_attribute_values = {
@@ -1427,9 +1405,7 @@ class TestLoader(TransactionTestCase):
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.computed_files.filter(
-            **self.get_computed_files_query_params_from_download_config(download_config)
-        ).first()
+        computed_file = project.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
 
         expected_computed_file_attribute_values = {
@@ -1495,9 +1471,7 @@ class TestLoader(TransactionTestCase):
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.computed_files.filter(
-            **self.get_computed_files_query_params_from_download_config(download_config)
-        ).first()
+        computed_file = project.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
 
         expected_computed_file_attribute_values = {
@@ -1543,9 +1517,7 @@ class TestLoader(TransactionTestCase):
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.computed_files.filter(
-            **self.get_computed_files_query_params_from_download_config(download_config)
-        ).first()
+        computed_file = project.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
 
         expected_computed_file_attribute_values = {
@@ -1609,9 +1581,7 @@ class TestLoader(TransactionTestCase):
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = sample.computed_files.filter(
-            **self.get_computed_files_query_params_from_download_config(download_config)
-        ).first()
+        computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
 
         expected_computed_file_attribute_values = {
@@ -1675,9 +1645,7 @@ class TestLoader(TransactionTestCase):
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = sample.computed_files.filter(
-            **self.get_computed_files_query_params_from_download_config(download_config)
-        ).first()
+        computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
 
         expected_computed_file_attribute_values = {
@@ -1750,9 +1718,7 @@ class TestLoader(TransactionTestCase):
             self.assertEqual(set(expected_file_list), set(result_file_list))
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = sample.computed_files.filter(
-            **self.get_computed_files_query_params_from_download_config(download_config)
-        ).first()
+        computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
 
         expected_computed_file_attribute_values = {

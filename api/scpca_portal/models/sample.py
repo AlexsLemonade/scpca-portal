@@ -135,6 +135,13 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample_metadata
 
+    def get_computed_file(self, download_config: Dict[str, str | bool | int | None]):
+        "Return the sample computed file that matches the passed download_config."
+        return self.computed_files.filter(
+            modality=download_config["modality"],
+            format=download_config["format"],
+        ).first()
+
     def get_config_identifier(self, download_config: Dict) -> str:
         """
         Returns a unique identifier for the sample and download config combination.
