@@ -2,7 +2,7 @@ import io
 from csv import DictReader
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, Set
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -47,6 +47,12 @@ class TestLoader(TransactionTestCase):
         super().tearDownClass()
         # shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
 
+    def purge_extra_samples(self, project: Project, sample_of_interest: str) -> None:
+        """Purges all of a project's samples that are not the sample of interest."""
+        for sample in project.samples.all():
+            if sample != sample_of_interest:
+                sample.purge()
+
     def assertObjectProperties(self, obj: Any, expected_values: Dict[str, Any]) -> None:
         for attribute, value in expected_values.items():
             msg = f"The actual and expected `{attribute}` values differ in {obj}"
@@ -58,15 +64,9 @@ class TestLoader(TransactionTestCase):
     def assertDictIsNonEmpty(self, d: Dict) -> None:
         self.assertTrue(any(key for key in d))
 
-    def purge_extra_samples(self, project: Project, sample_of_interest: str) -> None:
-        """Purges all of a project's samples that are not the sample of interest."""
-        for sample in project.samples.all():
-            if sample != sample_of_interest:
-                sample.purge()
-
     def assertLibraries(self, project_zip: ZipFile, expected_libraries: Set[str]) -> None:
         self.assertLibrariesMetadata(project_zip, expected_libraries)
-        self.assertLibrariesDataFiles(project_zip.namelist(), expected_libraries)
+        self.assertLibrariesDataFiles(project_zip, expected_libraries)
 
     def assertLibrariesMetadata(self, project_zip: ZipFile, expected_libraries: Set[str]) -> None:
         file_list = project_zip.namelist()
@@ -82,8 +82,8 @@ class TestLoader(TransactionTestCase):
             )
             self.assertEqual(expected_libraries, metadata_file_libraries)
 
-    def assertLibrariesDataFiles(self, file_list: List[str], expected_libraries: Set[str]) -> None:
-        data_file_paths = [Path(file) for file in file_list]
+    def assertLibrariesDataFiles(self, project_zip: ZipFile, expected_libraries: Set[str]) -> None:
+        data_file_paths = [Path(file) for file in project_zip.namelist()]
         data_file_libraries = set(
             # data files have paths that look like "SCPCS999990/SCPCL999990_processed.rds"
             file_path.name.split("_")[0]
@@ -94,6 +94,10 @@ class TestLoader(TransactionTestCase):
 
     def assertProjectReadmeContains(self, text, project_zip):
         self.assertIn(text, project_zip.read("README.md").decode("utf-8"))
+
+    def assertCreateProjectSucceeded(self, project):
+        msg = "create_project failed and didn't return a project"
+        self.assertIsNotNone(project, msg)
 
     def test_create_project_SCPCP999990(self):
         loader.prep_data_dirs()
