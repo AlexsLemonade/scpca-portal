@@ -64,27 +64,25 @@ class TestLoader(TransactionTestCase):
             if sample != sample_of_interest:
                 sample.purge()
 
-    def assertCorrectLibraries(self, project_zip: ZipFile, expected_libraries: Set[str]) -> None:
-        self.assertCorrectLibrariesMetadata(project_zip, expected_libraries)
-        self.assertCorrectLibrariesDataFiles(project_zip.namelist(), expected_libraries)
+    def assertLibraries(self, project_zip: ZipFile, expected_libraries: Set[str]) -> None:
+        self.assertLibrariesMetadata(project_zip, expected_libraries)
+        self.assertLibrariesDataFiles(project_zip.namelist(), expected_libraries)
 
-    def assertCorrectLibrariesMetadata(
-        self, project_zip: ZipFile, expected_libraries: Set[str]
-    ) -> None:
+    def assertLibrariesMetadata(self, project_zip: ZipFile, expected_libraries: Set[str]) -> None:
         file_list = project_zip.namelist()
 
         # Check via metadata file
         metadata_file_name = next(file_name for file_name in file_list if "metadata" in file_name)
         metadata_file = project_zip.read(metadata_file_name)
-        metadata_file_str = io.StringIO(metadata_file.decode("utf-8"))
-        metadata_file_dict_reader = DictReader(metadata_file_str, delimiter="\t")
 
-        metadata_file_libraries = set(row["scpca_library_id"] for row in metadata_file_dict_reader)
-        self.assertEqual(expected_libraries, metadata_file_libraries)
+        with io.StringIO(metadata_file.decode("utf-8")) as metadata_file_str:
+            metadata_file_dict_reader = DictReader(metadata_file_str, delimiter="\t")
+            metadata_file_libraries = set(
+                row["scpca_library_id"] for row in metadata_file_dict_reader
+            )
+            self.assertEqual(expected_libraries, metadata_file_libraries)
 
-    def assertCorrectLibrariesDataFiles(
-        self, file_list: List[str], expected_libraries: Set[str]
-    ) -> None:
+    def assertLibrariesDataFiles(self, file_list: List[str], expected_libraries: Set[str]) -> None:
         data_file_paths = [Path(file) for file in file_list]
         data_file_libraries = set(
             # data files have paths that look like "SCPCS999990/SCPCL999990_processed.rds"
@@ -1142,7 +1140,7 @@ class TestLoader(TransactionTestCase):
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999990", "SCPCL999997"}
-            self.assertCorrectLibraries(project_zip, expected_libraries)
+            self.assertLibraries(project_zip, expected_libraries)
 
             expected_file_list = [
                 "README.md",
@@ -1205,7 +1203,7 @@ class TestLoader(TransactionTestCase):
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999992", "SCPCL999995"}
-            self.assertCorrectLibraries(project_zip, expected_libraries)
+            self.assertLibraries(project_zip, expected_libraries)
 
             expected_file_list = [
                 "README.md",
@@ -1265,7 +1263,7 @@ class TestLoader(TransactionTestCase):
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999990", "SCPCL999997"}
-            self.assertCorrectLibraries(project_zip, expected_libraries)
+            self.assertLibraries(project_zip, expected_libraries)
 
             expected_file_list = [
                 "README.md",
@@ -1323,7 +1321,7 @@ class TestLoader(TransactionTestCase):
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999990", "SCPCL999997"}
-            self.assertCorrectLibraries(project_zip, expected_libraries)
+            self.assertLibraries(project_zip, expected_libraries)
 
             expected_file_list = [
                 "README.md",
@@ -1386,7 +1384,7 @@ class TestLoader(TransactionTestCase):
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999990", "SCPCL999997"}
-            self.assertCorrectLibraries(project_zip, expected_libraries)
+            self.assertLibraries(project_zip, expected_libraries)
 
             expected_file_list = [
                 "README.md",
@@ -1445,7 +1443,7 @@ class TestLoader(TransactionTestCase):
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999991"}
-            self.assertCorrectLibraries(project_zip, expected_libraries)
+            self.assertLibraries(project_zip, expected_libraries)
 
             expected_file_list = [
                 "README.md",
@@ -1511,7 +1509,7 @@ class TestLoader(TransactionTestCase):
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999990", "SCPCL999991", "SCPCL999997"}
-            self.assertCorrectLibrariesMetadata(project_zip, expected_libraries)
+            self.assertLibrariesMetadata(project_zip, expected_libraries)
             expected_file_list = ["README.md", "metadata.tsv"]
             result_file_list = project_zip.namelist()
             self.assertEqual(set(expected_file_list), set(result_file_list))
@@ -1566,7 +1564,7 @@ class TestLoader(TransactionTestCase):
         with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999990"}
-            self.assertCorrectLibraries(sample_zip, expected_libraries)
+            self.assertLibraries(sample_zip, expected_libraries)
 
             expected_file_list = [
                 "README.md",
@@ -1630,7 +1628,7 @@ class TestLoader(TransactionTestCase):
         with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999990"}
-            self.assertCorrectLibraries(sample_zip, expected_libraries)
+            self.assertLibraries(sample_zip, expected_libraries)
 
             expected_file_list = [
                 "README.md",
@@ -1694,7 +1692,7 @@ class TestLoader(TransactionTestCase):
         with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             expected_libraries = {"SCPCL999991"}
-            self.assertCorrectLibraries(sample_zip, expected_libraries)
+            self.assertLibraries(sample_zip, expected_libraries)
 
             expected_file_list = [
                 "README.md",
