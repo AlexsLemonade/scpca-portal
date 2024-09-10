@@ -51,7 +51,7 @@ class TestLoader(TransactionTestCase):
         for attribute, value in expected_values.items():
             msg = f"The actual and expected {attribute} values differ in {obj}"
             if isinstance(value, list):
-                self.assertEqual(set(getattr(obj, attribute)), set(value), msg)
+                self.assertListEqual(getattr(obj, attribute), value, msg)
             else:
                 self.assertEqual(getattr(obj, attribute), value, msg)
 
