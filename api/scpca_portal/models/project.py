@@ -304,11 +304,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Purges project and its related data."""
         self.purge_computed_files(delete_from_s3)
         for sample in self.samples.all():
-            for library in sample.libraries.all():
-                # If library has other samples that it is related to, then don't delete it
-                if len(library.samples.all()) == 1:
-                    library.delete()
-            sample.delete()
+            sample.purge()
 
         self.delete()
 

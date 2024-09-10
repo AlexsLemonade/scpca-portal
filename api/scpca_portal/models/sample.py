@@ -256,3 +256,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
         file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
 
         return f"{file_name}.zip"
+
+    def purge(self) -> None:
+        """Purges a sample and its associated libraries"""
+        for library in self.libraries.all():
+            # If library has other samples that it is related to, then don't delete it
+            if library.samples.count() == 1:
+                library.delete()
+        self.delete()

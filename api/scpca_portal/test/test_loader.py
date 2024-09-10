@@ -58,6 +58,12 @@ class TestLoader(TransactionTestCase):
     def assertDictIsNonEmpty(self, d: Dict) -> None:
         self.assertTrue(any(key for key in d))
 
+    def purge_extra_samples(self, project: Project, sample_of_interest: str) -> None:
+        """Purges all of a project's samples that are not the sample of interest."""
+        for sample in project.samples.all():
+            if sample != sample_of_interest:
+                sample.purge()
+
     def get_computed_files_query_params_from_download_config(self, download_config: Dict) -> Dict:
         if download_config.get("metadata_only"):
             return {"metadata_only": download_config["metadata_only"]}
@@ -1574,9 +1580,9 @@ class TestLoader(TransactionTestCase):
         download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"
         download_config = common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name]
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
-            # I was unsuccesfully at mocking project.samples.all to return only [samples]
-            # This is something to look into in the future for a more correct solution
-            # with patch.object(project.samples, 'all', return_value=[sample]):
+            # Mocking project.samples.all() in loader module is restricted due to the Django ORM
+            # Instead, we purge all samples that are not of interest to desired computed file
+            self.purge_extra_samples(project, sample)
             with patch(
                 "scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]
             ):
@@ -1640,9 +1646,9 @@ class TestLoader(TransactionTestCase):
         download_config_name = "SINGLE_CELL_ANN_DATA"
         download_config = common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name]
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
-            # I was unsuccesfully at mocking project.samples.all to return only [samples]
-            # This is something to look into in the future for a more correct solution
-            # with patch.object(project.samples, 'all', return_value=[sample]):
+            # Mocking project.samples.all() in loader module is restricted due to the Django ORM
+            # Instead, we purge all samples that are not of interest to desired computed file
+            self.purge_extra_samples(project, sample)
             with patch(
                 "scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]
             ):
@@ -1706,9 +1712,9 @@ class TestLoader(TransactionTestCase):
         download_config_name = "SPATIAL_SINGLE_CELL_EXPERIMENT"
         download_config = common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name]
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
-            # I was unsuccesfully at mocking project.samples.all to return only [samples]
-            # This is something to look into in the future for a more correct solution
-            # with patch.object(project.samples, 'all', return_value=[sample]):
+            # Mocking project.samples.all() in loader module is restricted due to the Django ORM
+            # Instead, we purge all samples that are not of interest to desired computed file
+            self.purge_extra_samples(project, sample)
             with patch(
                 "scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]
             ):
