@@ -115,7 +115,7 @@ class Library(TimestampedModel):
             for path in file_paths
             if path.suffix in extensions_format
         )
-        return list(formats)
+        return sorted(list(formats))
 
     @classmethod
     def get_project_libraries_from_download_config(
