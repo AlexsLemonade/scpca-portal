@@ -47,8 +47,6 @@ class Command(BaseCommand):
             logger.info("Cleaning up the output directory")
             computed_file.clean_up_local_computed_file()
 
-        return computed_file
-
     def purge_computed_file(self, computed_file, update_s3=False):
         if update_s3:
             logger.info("Deleting the zip from S3")
