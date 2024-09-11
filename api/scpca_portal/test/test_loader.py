@@ -235,28 +235,18 @@ class TestLoader(TransactionTestCase):
         self.assertEqual(project.publications.count(), 2)
 
         # First publication
-        doi = "{doi 1}"
-        publication = project.publications.filter(doi=doi).first()
+        publication = project.publications.filter(
+            doi=test_data.Project_SCPCP999990.Publication1.DOI
+        ).first()
         self.assertIsNotNone(publication)
-
-        expected_publication_attribute_values = {
-            "doi": doi,
-            "citation": "{formatted citation 1}",
-            "pi_name": "scpca",
-        }
-        self.assertObjectProperties(publication, expected_publication_attribute_values)
+        self.assertObjectProperties(publication, test_data.Project_SCPCP999990.Publication1.VALUES)
 
         # Second publication
-        doi = "{doi 2}"
-        publication = project.publications.filter(doi=doi).first()
+        publication = project.publications.filter(
+            doi=test_data.Project_SCPCP999990.Publication2.DOI
+        ).first()
         self.assertIsNotNone(publication)
-
-        expected_publication_attribute_values = {
-            "doi": doi,
-            "citation": "{formatted citation 2}",
-            "pi_name": "scpca",
-        }
-        self.assertObjectProperties(publication, expected_publication_attribute_values)
+        self.assertObjectProperties(publication, test_data.Project_SCPCP999990.Publication2.VALUES)
 
     def test_create_project_SCPCP999991(self):
         loader.prep_data_dirs()
