@@ -1,6 +1,7 @@
 import csv
 import re
 import shutil
+from functools import partial
 from io import TextIOWrapper
 from pathlib import Path
 from typing import Dict, List
@@ -8,10 +9,10 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from django.conf import settings
+from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from scpca_portal import common, metadata_file, readme_file, utils
-from scpca_portal.management.commands import create_portal_metadata, load_data
 from scpca_portal.models import ComputedFile, Library, Project, Sample
 
 # NOTE: Test data bucket is defined in `scpca_porta/common.py`.
@@ -25,8 +26,8 @@ METADATA_FILE = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
 class TestCreatePortalMetadata(TransactionTestCase):
     def setUp(self):
-        self.processor = create_portal_metadata.Command()
-        self.loader = load_data.Command()
+        self.create_portal_metadata = partial(call_command, "create_portal_metadata")
+        self.load_data = partial(call_command, "load_data")
 
     @classmethod
     def tearDownClass(cls):
@@ -39,12 +40,11 @@ class TestCreatePortalMetadata(TransactionTestCase):
         SAMPLES_COUNT = 9
         LIBRARIES_COUNT = 7
 
-        self.loader.load_data(
+        self.load_data(
             input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id="",
             update_s3=False,
@@ -101,7 +101,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         # Set up the database for test
         self.load_test_data()
         # Create the portal metadata computed file
-        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
+        self.create_portal_metadata(clean_up_output_data=False, update_s3=True)
 
         # Test the computed file
         computed_files = ComputedFile.objects.filter(portal_metadata_only=True)
@@ -169,8 +169,8 @@ class TestCreatePortalMetadata(TransactionTestCase):
         # Set up the database for test
         self.load_test_data()
         # Make sure pre-existing computed_file has been deleted and only one exists
-        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
-        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
+        self.create_portal_metadata(clean_up_output_data=False, update_s3=True)
+        self.create_portal_metadata(clean_up_output_data=False, update_s3=True)
         computed_files = ComputedFile.objects.filter(portal_metadata_only=True)
         self.assertEqual(computed_files.count(), 1)
         # Make sure mock_delete_output_file can be called with computed_file field values
