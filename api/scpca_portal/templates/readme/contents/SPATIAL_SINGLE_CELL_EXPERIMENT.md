@@ -1,9 +1,3 @@
-Generated on: {{ date }}
-
-# Alex's Lemonade Stand Foundation Single-cell Pediatric Cancer Atlas
-
-The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a database of single-cell and single-nuclei data from pediatric cancer clinical samples and xenografts, built by the [Childhood Cancer Data Lab](https://www.ccdatalab.org/) at [Alex's Lemonade Stand Foundation](https://www.alexslemonade.org/).
-
 ## Contents
 
 This download includes gene expression data from libraries processed using spatial transcriptomics and associated metadata for samples from project [{{ project_accession }}]({{ project_url }}) in the ScPCA portal.
@@ -24,38 +18,3 @@ Also included in each download is a `spatial_metadata.tsv`, a tab separated valu
 See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_files.html#spatial-transcriptomics-libraries) section in our documentation for more detailed information on files included in the download for spatial transcriptomics libraries.
 
 For more information on how the spatial libraries were processed, see the [Spatial Transcriptomics section in the Processing information](https://scpca.readthedocs.io/en/stable/processing_information.html#spatial-transcriptomics) page of the ScPCA Portal documentation.
-
-## CHANGELOG
-
-A summary of changes impacting downloads from the ScPCA Portal is available in [the CHANGELOG section of our documentation](https://scpca.readthedocs.io/en/stable/CHANGELOG.html).
-
-## Contact
-
-If you identify issues with this download, please [file an issue on GitHub.](https://github.com/AlexsLemonade/scpca-portal/issues/new) If you would prefer to report issues via e-mail, please contact us at [scpca@ccdatalab.org](mailto:scpca@ccdatalab.org).
-
-## Citation
-
-If you use these data in your research, you must cite:
-
-- The data submitter using language provided as part of the project abstract (as applicable), the publication listed for the project (as applicable), or both.
-- The ScPCA Portal using the language below.
-
-For more information, please see [the How to Cite section of our documentation](https://scpca.readthedocs.io/en/stable/citation.html).
-
-### Citing this project
-
-To cite data from {{ project_accession }}, please see the project abstract and publication information at [{{ project_accession }} page.]({{ project_url }})
-
-### Citing the ScPCA Portal
-
-When citing the ScPCA Portal, please cite the following preprint:
-
-Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al., 2024 The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors. _bioRxiv._ https://doi.org/10.1101/2024.04.19.590243
-
-## Terms of Use
-
-In using these data, you agree to our [Terms of Use.](https://scpca.alexslemonade.org/terms-of-use)
-
-{% if additional_terms %}
-{{ additional_terms }}
-{% endif %}
