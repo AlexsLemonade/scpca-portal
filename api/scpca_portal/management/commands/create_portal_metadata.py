@@ -1,3 +1,4 @@
+import shutil
 from argparse import BooleanOptionalAction
 
 from django.conf import settings
@@ -28,7 +29,14 @@ class Command(BaseCommand):
         self.create_portal_metadata(**kwargs)
 
     def create_portal_metadata(self, clean_up_output_data: bool, update_s3: bool, **kwargs):
-        # Purge the pre-existing portal metadata file from the database and s3
+        # Prepare the data output directory
+        output_directory = common.OUTPUT_DATA_PATH
+        # Remove the existing data output directory if any
+        shutil.rmtree(output_directory, ignore_errors=True)
+        logger.info("Creating the data output directory")
+        output_directory.mkdir(exist_ok=True, parents=True)
+
+        # Purge the existing portal metadata file from the database and s3 if any
         if old_computed_file := ComputedFile.objects.filter(portal_metadata_only=True).first():
             self.purge_computed_file(old_computed_file, update_s3=update_s3)
 
