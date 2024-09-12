@@ -251,324 +251,132 @@ class TestLoader(TransactionTestCase):
     def test_create_project_SCPCP999991(self):
         loader.prep_data_dirs()
 
-        project_id = "SCPCP999991"
-        returned_project = self.create_project(self.get_project_metadata(project_id))
+        returned_project = self.create_project(
+            self.get_project_metadata(test_data.Project_SCPCP999991.SCPCA_ID)
+        )
 
         # CHECK FOR PROJECT EXISTENCE
-        project = Project.objects.filter(scpca_id=project_id).first()
+        project = Project.objects.filter(scpca_id=test_data.Project_SCPCP999991.SCPCA_ID).first()
         self.assertEqual(project, returned_project)
 
         # CHECK PROJECT ATTRIBUTE VALUES
-        expected_project_attribute_values = {
-            "abstract": "TBD",
-            "additional_restrictions": "Research or academic purposes only",
-            "data_file_paths": [],
-            "diagnoses": "diagnosis3, diagnosis4, diagnosis6",
-            "diagnoses_counts": "diagnosis3 (1), diagnosis4 (1), diagnosis6 (1)",
-            "disease_timings": "Initial diagnosis",
-            # This value is not determined until after computed file generation, and should be 2
-            "downloadable_sample_count": 0,
-            "has_bulk_rna_seq": False,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": True,
-            "has_single_cell_data": True,
-            "has_spatial_data": False,
-            "human_readable_pi_name": "TBD",
-            "includes_anndata": True,
-            "includes_cell_lines": False,
-            "includes_merged_sce": False,
-            "includes_merged_anndata": False,
-            "includes_xenografts": False,
-            "modalities": [
-                Sample.Modalities.NAME_MAPPING["MULTIPLEXED"],
-            ],
-            "multiplexed_sample_count": 2,
-            "organisms": ["Homo sapiens"],
-            "pi_name": "scpca",
-            "s3_input_bucket": settings.AWS_S3_INPUT_BUCKET_NAME,
-            "sample_count": 3,
-            "scpca_id": project_id,
-            "seq_units": "cell, nucleus",
-            "technologies": "10Xv3, 10Xv3.1",
-            "title": "TBD",
-            # unavailable_samples_count should be 1 here, but is returning the default 0.
-            # This is due to the fact that it's not being assigned until after comp file generation.
-            # This should be updated when the bug is handled.
-            "unavailable_samples_count": 0,
-        }
-
-        self.assertObjectProperties(project, expected_project_attribute_values)
+        self.assertObjectProperties(project, test_data.Project_SCPCP999991.VALUES)
 
         # CHECK SAMPLE VALUES
         self.assertEqual(project.samples.count(), 3)
 
         # SCPCS999992
-        sample_id = "SCPCS999992"
-        sample = project.samples.filter(scpca_id=sample_id).first()
+        sample = project.samples.filter(
+            scpca_id=test_data.Project_SCPCP999991.Sample_SCPCS999992.SCPCA_ID
+        ).first()
         self.assertIsNotNone(sample)
-
-        expected_sample_attribute_values = {
-            "age": "2",
-            "age_timing": "unknown",
-            "demux_cell_count_estimate": 0,
-            "diagnosis": "diagnosis3",
-            "disease_timing": "Initial diagnosis",
-            "has_bulk_rna_seq": False,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": True,
-            "has_single_cell_data": True,
-            "has_spatial_data": False,
-            "includes_anndata": False,
-            "is_cell_line": False,
-            "is_xenograft": False,
-            "multiplexed_with": ["SCPCS999993"],
-            "sample_cell_count_estimate": None,
-            "scpca_id": sample_id,
-            "sex": "M",
-            "seq_units": "nucleus",
-            "subdiagnosis": "NA",
-            "technologies": "10Xv3.1",
-            "tissue_location": "tissue3",
-            "treatment": "",
-        }
-
-        self.assertObjectProperties(sample, expected_sample_attribute_values)
+        self.assertObjectProperties(sample, test_data.Project_SCPCP999991.Sample_SCPCS999992.VALUES)
 
         # SCPCS999993
-        sample_id = "SCPCS999993"
-        sample = project.samples.filter(scpca_id=sample_id).first()
+        sample = project.samples.filter(
+            scpca_id=test_data.Project_SCPCP999991.Sample_SCPCS999993.SCPCA_ID
+        ).first()
         self.assertIsNotNone(sample)
-
-        expected_sample_attribute_values = {
-            "age": "2",
-            "age_timing": "diagnosis",
-            "demux_cell_count_estimate": 0,
-            "diagnosis": "diagnosis4",
-            "disease_timing": "Initial diagnosis",
-            "has_bulk_rna_seq": False,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": True,
-            "has_single_cell_data": True,
-            "has_spatial_data": False,
-            "includes_anndata": False,
-            "is_cell_line": False,
-            "is_xenograft": False,
-            "multiplexed_with": ["SCPCS999992"],
-            "sample_cell_count_estimate": None,
-            "scpca_id": sample_id,
-            "sex": "M",
-            "seq_units": "nucleus",
-            "subdiagnosis": "NA",
-            "technologies": "10Xv3.1",
-            "tissue_location": "tissue4",
-            "treatment": "",
-        }
-
-        self.assertObjectProperties(sample, expected_sample_attribute_values)
+        self.assertObjectProperties(sample, test_data.Project_SCPCP999991.Sample_SCPCS999993.VALUES)
 
         # SCPCS999995
-        sample_id = "SCPCS999995"
-        sample = project.samples.filter(scpca_id=sample_id).first()
+        sample = project.samples.filter(
+            scpca_id=test_data.Project_SCPCP999991.Sample_SCPCS999995.SCPCA_ID
+        ).first()
         self.assertIsNotNone(sample)
-
-        expected_sample_attribute_values = {
-            "age": "2",
-            "age_timing": "unknown",
-            "demux_cell_count_estimate": None,
-            "diagnosis": "diagnosis6",
-            "disease_timing": "Initial diagnosis",
-            "has_bulk_rna_seq": False,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": False,
-            "has_single_cell_data": True,
-            "has_spatial_data": False,
-            "includes_anndata": True,
-            "is_cell_line": False,
-            "is_xenograft": False,
-            "multiplexed_with": [],
-            "sample_cell_count_estimate": 3433,
-            "scpca_id": sample_id,
-            "sex": "M",
-            "seq_units": "cell",
-            "subdiagnosis": "NA",
-            "technologies": "10Xv3",
-            "tissue_location": "tissue6",
-            "treatment": "",
-        }
-        self.assertObjectProperties(sample, expected_sample_attribute_values)
+        self.assertObjectProperties(sample, test_data.Project_SCPCP999991.Sample_SCPCS999995.VALUES)
 
         # CHECK LIBRARY VALUES
         self.assertEqual(project.libraries.count(), 2)
 
         # SCPCL999992
-        library_id = "SCPCL999992"
-        library = project.libraries.filter(scpca_id=library_id).first()
+        library = project.libraries.filter(
+            scpca_id=test_data.Project_SCPCP999991.Library_SCPCL999992.SCPCA_ID
+        ).first()
         self.assertIsNotNone(library)
-
-        expected_library_attribute_values = {
-            "data_file_paths": [
-                "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_celltype-report.html",
-                "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_filtered.rds",
-                "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_processed.rds",
-                "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_qc.html",
-                "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_unfiltered.rds",
-            ],
-            "formats": [
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
-            ],
-            "has_cite_seq_data": False,
-            "is_multiplexed": True,
-            "modality": Library.Modalities.SINGLE_CELL,
-            "scpca_id": library_id,
-            "workflow_version": "development",
-        }
-
-        self.assertObjectProperties(library, expected_library_attribute_values)
+        self.assertObjectProperties(
+            library, test_data.Project_SCPCP999991.Library_SCPCL999992.VALUES
+        )
         # Assert that metadata attribute has been populated and did not default to empty dict
         self.assertDictIsNonEmpty(library.metadata)
 
         # SCPCL999995
-        library_id = "SCPCL999995"
-        library = project.libraries.filter(scpca_id=library_id).first()
+        library = project.libraries.filter(
+            scpca_id=test_data.Project_SCPCP999991.Library_SCPCL999995.SCPCA_ID
+        ).first()
         self.assertIsNotNone(library)
-
-        expected_library_attribute_values = {
-            "data_file_paths": [
-                "SCPCP999991/SCPCS999995/SCPCL999995_celltype-report.html",
-                "SCPCP999991/SCPCS999995/SCPCL999995_filtered.rds",
-                "SCPCP999991/SCPCS999995/SCPCL999995_filtered_rna.h5ad",
-                "SCPCP999991/SCPCS999995/SCPCL999995_processed.rds",
-                "SCPCP999991/SCPCS999995/SCPCL999995_processed_rna.h5ad",
-                "SCPCP999991/SCPCS999995/SCPCL999995_qc.html",
-                "SCPCP999991/SCPCS999995/SCPCL999995_unfiltered.rds",
-                "SCPCP999991/SCPCS999995/SCPCL999995_unfiltered_rna.h5ad",
-            ],
-            "formats": [Library.FileFormats.ANN_DATA, Library.FileFormats.SINGLE_CELL_EXPERIMENT],
-            "has_cite_seq_data": False,
-            "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
-            "scpca_id": library_id,
-            "workflow_version": "development",
-        }
-
-        self.assertObjectProperties(library, expected_library_attribute_values)
+        self.assertObjectProperties(
+            library, test_data.Project_SCPCP999991.Library_SCPCL999995.VALUES
+        )
         # Assert that metadata attribute has been populated and did not default to empty dict
         self.assertDictIsNonEmpty(library.metadata)
 
         # CHECK PROJECT SUMMARIES VALUES
         self.assertEqual(project.summaries.count(), 3)
-
-        # First project summary
-        expected_summary_attribute_values = {
-            "diagnosis": "diagnosis3",
-            "sample_count": 1,
-            "seq_unit": "nucleus",
-            "technology": "10Xv3.1",
-        }
-        self.assertTrue(project.summaries.filter(**expected_summary_attribute_values).exists())
-
-        # Second project summary
-        expected_summary_attribute_values = {
-            "diagnosis": "diagnosis4",
-            "sample_count": 1,
-            "seq_unit": "nucleus",
-            "technology": "10Xv3.1",
-        }
-        self.assertTrue(project.summaries.filter(**expected_summary_attribute_values).exists())
-
-        # Third project summary
-        expected_summary_attribute_values = {
-            "diagnosis": "diagnosis6",
-            "sample_count": 1,
-            "seq_unit": "cell",
-            "technology": "10Xv3",
-        }
-        self.assertTrue(project.summaries.filter(**expected_summary_attribute_values).exists())
+        self.assertTrue(
+            project.summaries.filter(**test_data.Project_SCPCP999991.Summary1.VALUES).exists()
+        )
+        self.assertTrue(
+            project.summaries.filter(**test_data.Project_SCPCP999991.Summary2.VALUES).exists()
+        )
+        self.assertTrue(
+            project.summaries.filter(**test_data.Project_SCPCP999991.Summary3.VALUES).exists()
+        )
 
         # CHECK CONTACTS
         self.assertEqual(project.contacts.count(), 2)
 
         # First contact
-        email = "{email contact 1}"
-        contact = project.contacts.filter(email=email).first()
+        contact = project.contacts.filter(
+            email=test_data.Project_SCPCP999991.Contact1.EMAIL
+        ).first()
         self.assertIsNotNone(contact)
-
-        expected_contact_attribute_values = {
-            "name": "{contact 1}",
-            "email": email,
-            "pi_name": "scpca",
-        }
-        self.assertObjectProperties(contact, expected_contact_attribute_values)
+        self.assertObjectProperties(contact, test_data.Project_SCPCP999991.Contact1.VALUES)
 
         # Second contact
-        email = "{email contact 2}"
-        contact = project.contacts.filter(email=email).first()
+        contact = project.contacts.filter(
+            email=test_data.Project_SCPCP999991.Contact2.EMAIL
+        ).first()
         self.assertIsNotNone(contact)
-
-        expected_contact_attribute_values = {
-            "name": "{contact 2}",
-            "email": email,
-            "pi_name": "scpca",
-        }
-        self.assertObjectProperties(contact, expected_contact_attribute_values)
+        self.assertObjectProperties(contact, test_data.Project_SCPCP999991.Contact2.VALUES)
 
         # CHECK EXTERNAL ACCESSION VALUES
         self.assertEqual(project.external_accessions.count(), 2)
 
         # First external accession
-        accession = "{SRA project accession}"
-        external_accession = project.external_accessions.filter(accession=accession).first()
+        external_accession = project.external_accessions.filter(
+            accession=test_data.Project_SCPCP999991.ExternalAccession1.ACCESSION
+        ).first()
         self.assertIsNotNone(external_accession)
-
-        expected_external_accession_attribute_values = {
-            "accession": accession,
-            "has_raw": True,
-            "url": "{SRA Run Selector URL}",
-        }
         self.assertObjectProperties(
-            external_accession, expected_external_accession_attribute_values
+            external_accession, test_data.Project_SCPCP999991.ExternalAccession1.VALUES
         )
 
         # Second external accession
-        accession = "{GEO series accession}"
-        external_accession = project.external_accessions.filter(accession=accession).first()
+        external_accession = project.external_accessions.filter(
+            accession=test_data.Project_SCPCP999991.ExternalAccession2.ACCESSION
+        ).first()
         self.assertIsNotNone(external_accession)
-
-        expected_external_accession_attribute_values = {
-            "accession": accession,
-            "has_raw": False,
-            "url": "{GEO Series URL}",
-        }
         self.assertObjectProperties(
-            external_accession, expected_external_accession_attribute_values
+            external_accession, test_data.Project_SCPCP999991.ExternalAccession2.VALUES
         )
 
         # CHECK PUBLICATIONS VALUES
         self.assertEqual(project.publications.count(), 2)
 
         # First publication
-        doi = "{doi 1}"
-        publication = project.publications.filter(doi=doi).first()
+        publication = project.publications.filter(
+            doi=test_data.Project_SCPCP999991.Publication1.DOI
+        ).first()
         self.assertIsNotNone(publication)
-
-        expected_publication_attribute_values = {
-            "doi": doi,
-            "citation": "{formatted citation 1}",
-            "pi_name": "scpca",
-        }
-        self.assertObjectProperties(publication, expected_publication_attribute_values)
+        self.assertObjectProperties(publication, test_data.Project_SCPCP999991.Publication1.VALUES)
 
         # Second publication
-        doi = "{doi 2}"
-        publication = project.publications.filter(doi=doi).first()
+        publication = project.publications.filter(
+            doi=test_data.Project_SCPCP999991.Publication2.DOI
+        ).first()
         self.assertIsNotNone(publication)
-
-        expected_publication_attribute_values = {
-            "doi": doi,
-            "citation": "{formatted citation 2}",
-            "pi_name": "scpca",
-        }
-        self.assertObjectProperties(publication, expected_publication_attribute_values)
+        self.assertObjectProperties(publication, test_data.Project_SCPCP999991.Publication2.VALUES)
 
     def test_create_project_SCPCP999992(self):
         loader.prep_data_dirs()
