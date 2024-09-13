@@ -25,9 +25,8 @@ export const ProjectSamplesTable = ({
   // We only want to show the applied donwload options.
   // Also need some helpers for presentation.
   const { modality, format, getFoundFile } = useDownloadOptionsContext()
-  const { metadataComputedFile, isMetadataOnlyAvailable } = useMetadataOnly(
-    project.computed_files
-  )
+  const { metadataComputedFile, isMetadataOnlyAvailable } =
+    useMetadataOnly(project)
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
   const [showDownloadOptions, setShowDownloadOptions] = useState(false)

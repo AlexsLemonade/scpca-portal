@@ -13,9 +13,8 @@ import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAcces
 
 export const ProjectSearchResult = ({ project }) => {
   const { responsive } = useResponsive()
-  const { isMetadataOnlyAvailable, metadataComputedFile } = useMetadataOnly(
-    project.computed_files
-  )
+  const { isMetadataOnlyAvailable, metadataComputedFile } =
+    useMetadataOnly(project)
 
   const searchDetails = [
     {
@@ -79,11 +78,11 @@ export const ProjectSearchResult = ({ project }) => {
           <Button label="View Samples" aria-label="View Samples" />
         </Link>
         <DownloadModal
-          disabled={!isMetadataOnlyAvailable}
           label="Download Sample Metadata"
           icon={<DownloadIcon color="brand" />}
           resource={project}
           publicComputedFile={metadataComputedFile}
+          disabled={!isMetadataOnlyAvailable}
         />
       </Box>
     </Box>
