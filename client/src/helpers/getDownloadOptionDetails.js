@@ -31,15 +31,26 @@ const formatFileItemByKey = (key, computedFile) => {
 export const getDownloadOptionDetails = (computedFile) => {
   const {
     metadata_only: metadataOnly,
+    portal_metadata_only: portalMetadataOnly,
     modality,
     project,
     sample
   } = computedFile
+  // helpers for info and resourceType
+  const getInfo = () => {
+    if (portalMetadataOnly) return metadataResourceInfo.ALL
+    if (metadataOnly) return metadataResourceInfo.PROJECT
+    return modalityResourceInfo[modalityResourceKey + suffix]
+  }
+  const getResourceType = () => {
+    if (portalMetadataOnly) return 'All'
+    return project ? 'Project' : 'Sample'
+  }
 
   const isProject = !!project
   const isSample = !!sample
   const resourceId = project || sample
-  const resourceType = project ? 'Project' : 'Sample' // This will be always either Project or Sample
+  const resourceType = getResourceType()
   const type = metadataOnly ? 'Sample Metadata' : resourceType
 
   // determine if there should be warnings
@@ -51,9 +62,7 @@ export const getDownloadOptionDetails = (computedFile) => {
   // Determine additional information to show.
   const modalityResourceKey = `${modality}_${type.toUpperCase()}`
   const suffix = computedFile.has_multiplexed_data ? '_MULTIPLEXED' : ''
-  const info = metadataOnly
-    ? metadataResourceInfo
-    : modalityResourceInfo[modalityResourceKey + suffix]
+  const info = getInfo()
 
   // Sort out what is in the file.
   const items = []

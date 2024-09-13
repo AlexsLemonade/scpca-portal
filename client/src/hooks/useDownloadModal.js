@@ -23,12 +23,13 @@ export const useDownloadModal = (
   const isDownloadReady = download && token
   const isOptionsReady = !publicComputedFile && hasMultipleFiles
   const isSampleMetadataOnly = publicComputedFile?.metadata_only
+  const isPortalMetadataOnly = publicComputedFile?.portal_metadata_only
   const isTokenReady = !token && publicComputedFile
   // text information
   const verb = isDownloadReady ? 'Downloading' : 'Download'
   const resourceType = resource.samples ? 'Project' : 'Sample'
   const modalTitle = isSampleMetadataOnly
-    ? `${verb} Sample Metadata`
+    ? `${verb} ${isPortalMetadataOnly ? 'All' : ''} Sample Metadata`
     : `${verb} ${resourceType}`
   const defaultComputedFile = getDefaultComputedFile(resource)
   const hasDownloadOptions =

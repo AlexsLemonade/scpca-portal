@@ -24,6 +24,7 @@ export const DownloadStarted = ({
     getDownloadOptionDetails(computedFile)
   const additionalRestrictions = resource.additional_restrictions
   const isIncludesMerged = computedFile.includes_merged
+  const isPortalMetadataOnly = resourceType === 'All'
   const [recommendedResource, setRecommendedResource] = useState(null)
   const [recommendedFile, setRecommendedFile] = useState(null)
 
@@ -60,14 +61,21 @@ export const DownloadStarted = ({
       >
         <Box>
           <Paragraph>{startedText}</Paragraph>
-          <Box
-            direction="row"
-            justify="between"
-            margin={{ vertical: 'medium' }}
-          >
-            <Text weight="bold">{idText}</Text>
-            <Text weight="bold">Size: {formatBytes(size)}</Text>
-          </Box>
+          {!isPortalMetadataOnly && (
+            <Box
+              direction="row"
+              justify="between"
+              margin={{ vertical: 'medium' }}
+            >
+              <Text weight="bold">{idText}</Text>
+              <Text weight="bold">Size: {formatBytes(size)}</Text>
+            </Box>
+          )}
+          {isPortalMetadataOnly && (
+            <Box margin={{ top: 'small', bottom: 'small' }}>
+              <Text>{info.texts.text_only}</Text>
+            </Box>
+          )}
           {isProject && info?.warning_text && (
             <WarningText
               iconSize="24px"
