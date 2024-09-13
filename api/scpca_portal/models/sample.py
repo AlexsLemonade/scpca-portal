@@ -244,17 +244,19 @@ class Sample(CommonDataAttributes, TimestampedModel):
             file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
         return file_formats
 
-    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+    @classmethod
+    def get_output_file_name(cls, sample_id: str, download_config: Dict) -> str:
         """
         Accumulates all applicable name segments, concatenates them with an underscore delimiter,
         and returns the string as a unique zip file name.
         """
         name_segments = [
-            "_".join(self.multiplexed_ids),
+            sample_id,
             download_config["modality"],
             download_config["format"],
         ]
-        if self.has_multiplexed_data:
+        if sample := Sample.objects.filter(scpca_id=sample_id, has_multiplexed_data=True).first():
+            name_segments[0] = "_".join(sample.multiplexed_ids)
             name_segments.append("MULTIPLEXED")
 
         # Change to filename format must be accompanied by an entry in the docs.

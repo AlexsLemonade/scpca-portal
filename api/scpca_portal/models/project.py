@@ -180,19 +180,23 @@ class Project(CommonDataAttributes, TimestampedModel):
             "project_title": self.title,
         }
 
-    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+    @classmethod
+    def get_output_file_name(cls, project_id: str, download_config: Dict) -> str:
         """
         Accumulates all applicable name segments, concatenates them with an underscore delimiter,
         and returns the string as a unique zip file name.
         """
         if download_config.get("metadata_only", False):
-            return f"{self.scpca_id}_ALL_METADATA.zip"
+            return f"{project_id}_ALL_METADATA.zip"
 
-        name_segments = [self.scpca_id, download_config["modality"], download_config["format"]]
+        name_segments = [project_id, download_config["modality"], download_config["format"]]
         if download_config.get("includes_merged", False):
             name_segments.append("MERGED")
 
-        if self.has_multiplexed_data and not download_config.get("excludes_multiplexed", False):
+        project_has_multiplexed_data = Project.objects.filter(
+            scpca_id=project_id, has_multiplexed_data=True
+        ).exists()
+        if project_has_multiplexed_data and not download_config.get("excludes_multiplexed", False):
             name_segments.append("MULTIPLEXED")
 
         # Change to filename format must be accompanied by an entry in the docs.

@@ -9,8 +9,14 @@ from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, metadata_file, s3
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.models import Contact, ExternalAccession, Project, Publication
-from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models import (
+    ComputedFile,
+    Contact,
+    ExternalAccession,
+    Project,
+    Publication,
+    Sample,
+)
 
 logger = get_and_configure_logger(__name__)
 
@@ -184,7 +190,7 @@ def generate_computed_files(
                 ComputedFile.get_project_file,
                 project,
                 config,
-                project.get_download_config_file_output_name(config),
+                Project.get_output_file_name(project.scpca_id, config),
             ).add_done_callback(on_get_file)
 
         # Generated sample computed files
@@ -195,7 +201,7 @@ def generate_computed_files(
                     ComputedFile.get_sample_file,
                     sample,
                     config,
-                    sample.get_download_config_file_output_name(config),
+                    Sample.get_output_file_name(sample.scpca_id, config),
                     sample_lock,
                 ).add_done_callback(on_get_file)
 
