@@ -1,7 +1,7 @@
 from django.conf import settings
 
 from scpca_portal import common
-from scpca_portal.models import ComputedFile, Project
+from scpca_portal.models import ComputedFile
 
 
 class Computed_File_Project:
@@ -26,8 +26,6 @@ class Computed_File_Project:
             "SCPCS999997/SCPCL999997_unfiltered.rds",
             "single_cell_metadata.tsv",
         ]
-        OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
-        PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
         VALUES = {
             "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
             "has_bulk_rna_seq": True,
@@ -37,7 +35,7 @@ class Computed_File_Project:
             "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": OUTPUT_FILE_NAME,
+            "s3_key": "SCPCP999990_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
             "size_in_bytes": 9077,
             "workflow_version": "development",
             "includes_celltype_report": True,
@@ -62,8 +60,6 @@ class Computed_File_Project:
             "SCPCS999995/SCPCL999995_unfiltered.rds",
             "single_cell_metadata.tsv",
         ]
-        OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
-        PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
         VALUES = {
             "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
             "has_bulk_rna_seq": False,
@@ -73,7 +69,7 @@ class Computed_File_Project:
             "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": OUTPUT_FILE_NAME,
+            "s3_key": "SCPCP999991_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MULTIPLEXED.zip",
             "size_in_bytes": 9511,
             "workflow_version": "development",
             "includes_celltype_report": True,
@@ -96,8 +92,6 @@ class Computed_File_Project:
             "individual_reports/SCPCS999997/SCPCL999997_qc.html",
             "single_cell_metadata.tsv",
         ]
-        OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
-        PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
         VALUES = {
             "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
             "has_bulk_rna_seq": True,
@@ -107,7 +101,7 @@ class Computed_File_Project:
             "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": OUTPUT_FILE_NAME,
+            "s3_key": "SCPCP999990_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MERGED.zip",
             "size_in_bytes": 8474,
             "workflow_version": "development",
             "includes_celltype_report": True,
@@ -134,8 +128,6 @@ class Computed_File_Project:
             "SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
             "single_cell_metadata.tsv",
         ]
-        OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
-        PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
         VALUES = {
             "format": ComputedFile.OutputFileFormats.ANN_DATA,
             "has_bulk_rna_seq": True,
@@ -145,7 +137,7 @@ class Computed_File_Project:
             "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": OUTPUT_FILE_NAME,
+            "s3_key": "SCPCP999990_SINGLE-CELL_ANN-DATA.zip",
             "size_in_bytes": 9492,
             "workflow_version": "development",
             "includes_celltype_report": True,
@@ -168,8 +160,6 @@ class Computed_File_Project:
             "individual_reports/SCPCS999997/SCPCL999997_qc.html",
             "single_cell_metadata.tsv",
         ]
-        OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
-        PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
         VALUES = {
             "format": ComputedFile.OutputFileFormats.ANN_DATA,
             "has_bulk_rna_seq": True,
@@ -179,7 +169,7 @@ class Computed_File_Project:
             "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": OUTPUT_FILE_NAME,
+            "s3_key": "SCPCP999990_SINGLE-CELL_ANN-DATA_MERGED.zip",
             "size_in_bytes": 8600,
             "workflow_version": "development",
             "includes_celltype_report": True,
@@ -208,8 +198,6 @@ class Computed_File_Project:
             "SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv",
             "spatial_metadata.tsv",
         ]
-        OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
-        PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
         VALUES = {
             "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
             "has_bulk_rna_seq": False,
@@ -219,7 +207,7 @@ class Computed_File_Project:
             "modality": ComputedFile.OutputFileModalities.SPATIAL,
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": OUTPUT_FILE_NAME,
+            "s3_key": "SCPCP999990_SPATIAL_SINGLE-CELL-EXPERIMENT.zip",
             "size_in_bytes": 9154,
             "workflow_version": "development",
             "includes_celltype_report": True,
@@ -231,8 +219,6 @@ class Computed_File_Project:
         DOWNLOAD_CONFIG = common.PROJECT_DOWNLOAD_CONFIGS[DOWNLOAD_CONFIG_NAME]
         LIBRARIES = {"SCPCL999990", "SCPCL999991", "SCPCL999997"}
         FILE_LIST = ["README.md", "metadata.tsv"]
-        OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
-        PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
         VALUES = {
             "format": None,
             "has_bulk_rna_seq": False,
@@ -242,7 +228,7 @@ class Computed_File_Project:
             "modality": None,
             "metadata_only": True,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": OUTPUT_FILE_NAME,
+            "s3_key": "SCPCP999990_ALL_METADATA.zip",
             "size_in_bytes": 5185,
             "workflow_version": "development",
             "includes_celltype_report": True,

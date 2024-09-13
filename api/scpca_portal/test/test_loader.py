@@ -9,7 +9,7 @@ from zipfile import ZipFile
 from django.conf import settings
 from django.test import TransactionTestCase
 
-from scpca_portal import loader
+from scpca_portal import common, loader
 from scpca_portal.models import Project
 from scpca_portal.test import model_data
 
@@ -527,9 +527,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(
-            model_data.Computed_File_Project.SINGLE_CELL_SCE.PROJECT_ZIP_PATH
-        ) as project_zip:
+        output_file_name = project.get_output_file_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = model_data.Computed_File_Project.SINGLE_CELL_SCE.LIBRARIES
             self.assertLibraries(project_zip, expected_libraries)
@@ -572,9 +572,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(
-            model_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.PROJECT_ZIP_PATH
-        ) as project_zip:
+        output_file_name = project.get_output_file_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = (
                 model_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.LIBRARIES
@@ -616,9 +616,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(
-            model_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.PROJECT_ZIP_PATH
-        ) as project_zip:
+        output_file_name = project.get_output_file_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = model_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.LIBRARIES
             self.assertLibraries(project_zip, expected_libraries)
@@ -658,9 +658,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(
-            model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.PROJECT_ZIP_PATH
-        ) as project_zip:
+        output_file_name = project.get_output_file_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.LIBRARIES
             self.assertLibraries(project_zip, expected_libraries)
@@ -702,9 +702,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(
-            model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.PROJECT_ZIP_PATH
-        ) as project_zip:
+        output_file_name = project.get_output_file_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = (
                 model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.LIBRARIES
@@ -748,9 +748,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(
-            model_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.PROJECT_ZIP_PATH
-        ) as project_zip:
+        output_file_name = project.get_output_file_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = (
                 model_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.LIBRARIES
@@ -789,7 +789,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(model_data.Computed_File_Project.ALL_METADATA.PROJECT_ZIP_PATH) as project_zip:
+        output_file_name = project.get_output_file_name(download_config)
+        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = model_data.Computed_File_Project.ALL_METADATA.LIBRARIES
             # Only assertLibrariesMetadata and not assertLibrariesDataFiles for ALL_METADATA config
@@ -841,7 +843,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(model_data.Computed_File_Sample.SINGLE_CELL_SCE.SAMPLE_ZIP_PATH) as sample_zip:
+        output_file_name = sample.get_output_file_name(download_config)
+        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(
                 sample_zip, model_data.Computed_File_Sample.SINGLE_CELL_SCE.LIBRARIES
@@ -890,9 +894,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(
-            model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.SAMPLE_ZIP_PATH
-        ) as sample_zip:
+        output_file_name = sample.get_output_file_name(download_config)
+        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(
                 sample_zip, model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.LIBRARIES
@@ -941,7 +945,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(model_data.Computed_File_Sample.SPATIAL_SCE.SAMPLE_ZIP_PATH) as sample_zip:
+        output_file_name = sample.get_output_file_name(download_config)
+        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(sample_zip, model_data.Computed_File_Sample.SPATIAL_SCE.LIBRARIES)
             self.assertListEqual(
@@ -990,9 +996,9 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(
-            model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.SAMPLE_ZIP_PATH
-        ) as sample_zip:
+        output_file_name = sample.get_output_file_name(download_config)
+        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(
                 sample_zip, model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.LIBRARIES
