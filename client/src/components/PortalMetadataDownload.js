@@ -3,14 +3,18 @@ import { usePortalMetadataOnly } from 'hooks/usePortalMetadataOnly'
 import { DownloadModal } from 'components/DownloadModal'
 
 export const PortalMetadataDownload = () => {
-  const { portalMetadataComputedFile, isPortalMetadataOnlyAvailable } =
-    usePortalMetadataOnly()
+  const {
+    resource,
+    portalMetadataComputedFile,
+    isPortalMetadataOnlyAvailable
+  } = usePortalMetadataOnly()
 
   return (
     <>
-      {portalMetadataComputedFile && (
+      {resource && portalMetadataComputedFile && (
         <DownloadModal
           label="Get All Sample Metadata"
+          resource={resource}
           publicComputedFile={portalMetadataComputedFile}
           disabled={!isPortalMetadataOnlyAvailable}
         />
