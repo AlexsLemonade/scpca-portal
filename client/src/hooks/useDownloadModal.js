@@ -29,10 +29,8 @@ export const useDownloadModal = (
   // text information
   const verb = isDownloadReady ? 'Downloading' : 'Download'
   // helper for resourceType
-  const getResourceType = () => {
-    if (!resource) return 'All' // for the portal metadata
-    return resource.samples ? 'Project' : 'Sample'
-  }
+  const getResourceType = () =>
+    (resource?.samples ? 'Project' : 'Sample') || 'All'
   const resourceType = getResourceType()
   const defaultTitle = `${verb} ${resourceType}`
   const sampleMetadataTitle = `${verb} ${
