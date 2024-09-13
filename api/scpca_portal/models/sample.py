@@ -255,7 +255,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             download_config["modality"],
             download_config["format"],
         ]
-        if sample := Sample.objects.filter(scpca_id=sample_id, has_multiplexed_data=True).first():
+        if sample := cls.objects.filter(scpca_id=sample_id, has_multiplexed_data=True).first():
             name_segments[0] = "_".join(sample.multiplexed_ids)
             name_segments.append("MULTIPLEXED")
 

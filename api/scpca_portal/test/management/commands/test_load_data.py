@@ -180,7 +180,7 @@ class TestLoadData(TransactionTestCase):
             "includes_merged": True,
             "metadata_only": False,
         }
-        project_zip_path = common.OUTPUT_DATA_PATH / project.get_output_file_name(
+        project_zip_path = common.OUTPUT_DATA_PATH / Project.get_output_file_name(
             project.scpca_id, download_config
         )
         with ZipFile(project_zip_path) as project_zip:
@@ -215,7 +215,7 @@ class TestLoadData(TransactionTestCase):
             "includes_merged": True,
             "metadata_only": False,
         }
-        project_zip_path = common.OUTPUT_DATA_PATH / project.get_output_file_name(
+        project_zip_path = common.OUTPUT_DATA_PATH / Project.get_output_file_name(
             project.scpca_id, download_config
         )
         with ZipFile(project_zip_path) as project_zip:
@@ -270,7 +270,7 @@ class TestLoadData(TransactionTestCase):
             "includes_merged": True,
             "metadata_only": False,
         }
-        project_zip_path = common.OUTPUT_DATA_PATH / project.get_output_file_name(
+        project_zip_path = common.OUTPUT_DATA_PATH / Project.get_output_file_name(
             project.scpca_id, download_config
         )
         with ZipFile(project_zip_path) as project_zip:
@@ -307,7 +307,7 @@ class TestLoadData(TransactionTestCase):
             "includes_merged": True,
             "metadata_only": False,
         }
-        project_zip_path = common.OUTPUT_DATA_PATH / project.get_output_file_name(
+        project_zip_path = common.OUTPUT_DATA_PATH / Project.get_output_file_name(
             project.scpca_id, download_config
         )
         with ZipFile(project_zip_path) as project_zip:
@@ -481,7 +481,7 @@ class TestLoadData(TransactionTestCase):
             "includes_merged": False,
             "metadata_only": False,
         }
-        project_zip_path = common.OUTPUT_DATA_PATH / project.get_output_file_name(
+        project_zip_path = common.OUTPUT_DATA_PATH / Project.get_output_file_name(
             project.scpca_id, download_config
         )
         with ZipFile(project_zip_path) as project_zip:
@@ -629,7 +629,7 @@ class TestLoadData(TransactionTestCase):
             "modality": "SINGLE_CELL",
             "format": "SINGLE_CELL_EXPERIMENT",
         }
-        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_output_file_name(
+        sample_zip_path = common.OUTPUT_DATA_PATH / Sample.get_output_file_name(
             sample.scpca_id, download_config
         )
         with ZipFile(sample_zip_path) as sample_zip:
@@ -766,7 +766,7 @@ class TestLoadData(TransactionTestCase):
             "includes_merged": False,
             "metadata_only": False,
         }
-        project_zip_path = common.OUTPUT_DATA_PATH / project.get_output_file_name(
+        project_zip_path = common.OUTPUT_DATA_PATH / Project.get_output_file_name(
             project.scpca_id, download_config
         )
         with ZipFile(project_zip_path) as project_zip:
@@ -857,7 +857,7 @@ class TestLoadData(TransactionTestCase):
             "modality": "SINGLE_CELL",
             "format": "SINGLE_CELL_EXPERIMENT",
         }
-        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_output_file_name(
+        sample_zip_path = common.OUTPUT_DATA_PATH / Sample.get_output_file_name(
             sample.scpca_id, download_config
         )
         with ZipFile(sample_zip_path) as sample_zip:
@@ -888,7 +888,7 @@ class TestLoadData(TransactionTestCase):
             "modality": "SINGLE_CELL",
             "format": "ANN_DATA",
         }
-        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_output_file_name(
+        sample_zip_path = common.OUTPUT_DATA_PATH / Sample.get_output_file_name(
             sample.scpca_id, download_config
         )
         with ZipFile(sample_zip_path) as sample_zip:
@@ -1003,7 +1003,7 @@ class TestLoadData(TransactionTestCase):
             "includes_merged": False,
             "metadata_only": False,
         }
-        project_zip_path = common.OUTPUT_DATA_PATH / project.get_output_file_name(
+        project_zip_path = common.OUTPUT_DATA_PATH / Project.get_output_file_name(
             project.scpca_id, download_config
         )
         with ZipFile(project_zip_path) as project_zip:
@@ -1099,7 +1099,7 @@ class TestLoadData(TransactionTestCase):
             "modality": "SPATIAL",
             "format": "SINGLE_CELL_EXPERIMENT",
         }
-        sample_zip_path = common.OUTPUT_DATA_PATH / sample.get_output_file_name(
+        sample_zip_path = common.OUTPUT_DATA_PATH / Sample.get_output_file_name(
             sample.scpca_id, download_config
         )
         with ZipFile(sample_zip_path) as sample_zip:

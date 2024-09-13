@@ -193,11 +193,12 @@ class Project(CommonDataAttributes, TimestampedModel):
         if download_config.get("includes_merged", False):
             name_segments.append("MERGED")
 
-        project_has_multiplexed_data = Project.objects.filter(
-            scpca_id=project_id, has_multiplexed_data=True
-        ).exists()
-        if project_has_multiplexed_data and not download_config.get("excludes_multiplexed", False):
-            name_segments.append("MULTIPLEXED")
+        if not download_config.get("excludes_multiplexed", False):
+            project_has_multiplexed_data = cls.objects.filter(
+                scpca_id=project_id, has_multiplexed_data=True
+            ).exists()
+            if project_has_multiplexed_data:
+                name_segments.append("MULTIPLEXED")
 
         # Change to filename format must be accompanied by an entry in the docs.
         # Each segment should have hyphens and no underscores
