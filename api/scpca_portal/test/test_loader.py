@@ -11,7 +11,7 @@ from django.test import TransactionTestCase
 
 from scpca_portal import loader
 from scpca_portal.models import Project
-from scpca_portal.test import test_data
+from scpca_portal.test import model_data
 
 
 class TestLoader(TransactionTestCase):
@@ -93,79 +93,87 @@ class TestLoader(TransactionTestCase):
         loader.prep_data_dirs()
 
         returned_project = self.create_project(
-            self.get_project_metadata(test_data.Project_SCPCP999990.SCPCA_ID)
+            self.get_project_metadata(model_data.Project_SCPCP999990.SCPCA_ID)
         )
 
         # CHECK FOR PROJECT EXISTENCE
-        project = Project.objects.filter(scpca_id=test_data.Project_SCPCP999990.SCPCA_ID).first()
+        project = Project.objects.filter(scpca_id=model_data.Project_SCPCP999990.SCPCA_ID).first()
         self.assertEqual(project, returned_project)
 
         # CHECK PROJECT ATTRIBUTE VALUES
-        self.assertObjectProperties(project, test_data.Project_SCPCP999990.VALUES)
+        self.assertObjectProperties(project, model_data.Project_SCPCP999990.VALUES)
 
         # CHECK SAMPLE VALUES
         self.assertEqual(project.samples.count(), 4)
 
         # SCPCS999990
         sample = project.samples.filter(
-            scpca_id=test_data.Project_SCPCP999990.Sample_SCPCS999990.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999990.Sample_SCPCS999990.SCPCA_ID
         ).first()
         self.assertIsNotNone(sample)
-        self.assertObjectProperties(sample, test_data.Project_SCPCP999990.Sample_SCPCS999990.VALUES)
+        self.assertObjectProperties(
+            sample, model_data.Project_SCPCP999990.Sample_SCPCS999990.VALUES
+        )
 
         # SCPCS999991
         sample = project.samples.filter(
-            scpca_id=test_data.Project_SCPCP999990.Sample_SCPCS999991.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999990.Sample_SCPCS999991.SCPCA_ID
         ).first()
         self.assertIsNotNone(sample)
-        self.assertObjectProperties(sample, test_data.Project_SCPCP999990.Sample_SCPCS999991.VALUES)
+        self.assertObjectProperties(
+            sample, model_data.Project_SCPCP999990.Sample_SCPCS999991.VALUES
+        )
 
         # SCPCS999994
         sample = project.samples.filter(
-            scpca_id=test_data.Project_SCPCP999990.Sample_SCPCS999994.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999990.Sample_SCPCS999994.SCPCA_ID
         ).first()
         self.assertIsNotNone(sample)
-        self.assertObjectProperties(sample, test_data.Project_SCPCP999990.Sample_SCPCS999994.VALUES)
+        self.assertObjectProperties(
+            sample, model_data.Project_SCPCP999990.Sample_SCPCS999994.VALUES
+        )
 
         # SCPCS999997
         sample = project.samples.filter(
-            scpca_id=test_data.Project_SCPCP999990.Sample_SCPCS999997.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999990.Sample_SCPCS999997.SCPCA_ID
         ).first()
         self.assertIsNotNone(sample)
-        self.assertObjectProperties(sample, test_data.Project_SCPCP999990.Sample_SCPCS999997.VALUES)
+        self.assertObjectProperties(
+            sample, model_data.Project_SCPCP999990.Sample_SCPCS999997.VALUES
+        )
 
         # CHECK LIBRARY VALUES
         self.assertEqual(project.libraries.count(), 3)
 
         # SCPCL999990
         library = project.libraries.filter(
-            scpca_id=test_data.Project_SCPCP999990.Library_SCPCL999990.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999990.Library_SCPCL999990.SCPCA_ID
         ).first()
         self.assertIsNotNone(library)
         self.assertObjectProperties(
-            library, test_data.Project_SCPCP999990.Library_SCPCL999990.VALUES
+            library, model_data.Project_SCPCP999990.Library_SCPCL999990.VALUES
         )
         # Assert that metadata attribute has been populated and did not default to empty dict
         self.assertDictIsNonEmpty(library.metadata)
 
         # SCPCL999991
         library = project.libraries.filter(
-            scpca_id=test_data.Project_SCPCP999990.Library_SCPCL999991.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999990.Library_SCPCL999991.SCPCA_ID
         ).first()
         self.assertIsNotNone(library)
         self.assertObjectProperties(
-            library, test_data.Project_SCPCP999990.Library_SCPCL999991.VALUES
+            library, model_data.Project_SCPCP999990.Library_SCPCL999991.VALUES
         )
         # Assert that metadata attribute has been populated and did not default to empty dict
         self.assertDictIsNonEmpty(library.metadata)
 
         # SCPCL999997
         library = project.libraries.filter(
-            scpca_id=test_data.Project_SCPCP999990.Library_SCPCL999997.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999990.Library_SCPCL999997.SCPCA_ID
         ).first()
         self.assertIsNotNone(library)
         self.assertObjectProperties(
-            library, test_data.Project_SCPCP999990.Library_SCPCL999997.VALUES
+            library, model_data.Project_SCPCP999990.Library_SCPCL999997.VALUES
         )
         # Assert that metadata attribute has been populated and did not default to empty dict
         self.assertDictIsNonEmpty(library.metadata)
@@ -173,16 +181,16 @@ class TestLoader(TransactionTestCase):
         # CHECK PROJECT SUMMARIES VALUES
         self.assertEqual(project.summaries.count(), 4)
         self.assertTrue(
-            project.summaries.filter(**test_data.Project_SCPCP999990.Summary1.VALUES).exists()
+            project.summaries.filter(**model_data.Project_SCPCP999990.Summary1.VALUES).exists()
         )
         self.assertTrue(
-            project.summaries.filter(**test_data.Project_SCPCP999990.Summary2.VALUES).exists()
+            project.summaries.filter(**model_data.Project_SCPCP999990.Summary2.VALUES).exists()
         )
         self.assertTrue(
-            project.summaries.filter(**test_data.Project_SCPCP999990.Summary3.VALUES).exists()
+            project.summaries.filter(**model_data.Project_SCPCP999990.Summary3.VALUES).exists()
         )
         self.assertTrue(
-            project.summaries.filter(**test_data.Project_SCPCP999990.Summary4.VALUES).exists()
+            project.summaries.filter(**model_data.Project_SCPCP999990.Summary4.VALUES).exists()
         )
 
         # CHECK CONTACTS
@@ -190,37 +198,37 @@ class TestLoader(TransactionTestCase):
 
         # First contact
         contact = project.contacts.filter(
-            email=test_data.Project_SCPCP999990.Contact1.EMAIL
+            email=model_data.Project_SCPCP999990.Contact1.EMAIL
         ).first()
         self.assertIsNotNone(contact)
-        self.assertObjectProperties(contact, test_data.Project_SCPCP999990.Contact1.VALUES)
+        self.assertObjectProperties(contact, model_data.Project_SCPCP999990.Contact1.VALUES)
 
         # Second contact
         contact = project.contacts.filter(
-            email=test_data.Project_SCPCP999990.Contact2.EMAIL
+            email=model_data.Project_SCPCP999990.Contact2.EMAIL
         ).first()
         self.assertIsNotNone(contact)
-        self.assertObjectProperties(contact, test_data.Project_SCPCP999990.Contact2.VALUES)
+        self.assertObjectProperties(contact, model_data.Project_SCPCP999990.Contact2.VALUES)
 
         # CHECK EXTERNAL ACCESSION VALUES
         self.assertEqual(project.external_accessions.count(), 2)
 
         # First external accession
         external_accession = project.external_accessions.filter(
-            accession=test_data.Project_SCPCP999990.ExternalAccession1.ACCESSION
+            accession=model_data.Project_SCPCP999990.ExternalAccession1.ACCESSION
         ).first()
         self.assertIsNotNone(external_accession)
         self.assertObjectProperties(
-            external_accession, test_data.Project_SCPCP999990.ExternalAccession1.VALUES
+            external_accession, model_data.Project_SCPCP999990.ExternalAccession1.VALUES
         )
 
         # Second external accession
         external_accession = project.external_accessions.filter(
-            accession=test_data.Project_SCPCP999990.ExternalAccession2.ACCESSION
+            accession=model_data.Project_SCPCP999990.ExternalAccession2.ACCESSION
         ).first()
         self.assertIsNotNone(external_accession)
         self.assertObjectProperties(
-            external_accession, test_data.Project_SCPCP999990.ExternalAccession2.VALUES
+            external_accession, model_data.Project_SCPCP999990.ExternalAccession2.VALUES
         )
 
         # CHECK PUBLICATIONS VALUES
@@ -228,77 +236,83 @@ class TestLoader(TransactionTestCase):
 
         # First publication
         publication = project.publications.filter(
-            doi=test_data.Project_SCPCP999990.Publication1.DOI
+            doi=model_data.Project_SCPCP999990.Publication1.DOI
         ).first()
         self.assertIsNotNone(publication)
-        self.assertObjectProperties(publication, test_data.Project_SCPCP999990.Publication1.VALUES)
+        self.assertObjectProperties(publication, model_data.Project_SCPCP999990.Publication1.VALUES)
 
         # Second publication
         publication = project.publications.filter(
-            doi=test_data.Project_SCPCP999990.Publication2.DOI
+            doi=model_data.Project_SCPCP999990.Publication2.DOI
         ).first()
         self.assertIsNotNone(publication)
-        self.assertObjectProperties(publication, test_data.Project_SCPCP999990.Publication2.VALUES)
+        self.assertObjectProperties(publication, model_data.Project_SCPCP999990.Publication2.VALUES)
 
     def test_create_project_SCPCP999991(self):
         loader.prep_data_dirs()
 
         returned_project = self.create_project(
-            self.get_project_metadata(test_data.Project_SCPCP999991.SCPCA_ID)
+            self.get_project_metadata(model_data.Project_SCPCP999991.SCPCA_ID)
         )
 
         # CHECK FOR PROJECT EXISTENCE
-        project = Project.objects.filter(scpca_id=test_data.Project_SCPCP999991.SCPCA_ID).first()
+        project = Project.objects.filter(scpca_id=model_data.Project_SCPCP999991.SCPCA_ID).first()
         self.assertEqual(project, returned_project)
 
         # CHECK PROJECT ATTRIBUTE VALUES
-        self.assertObjectProperties(project, test_data.Project_SCPCP999991.VALUES)
+        self.assertObjectProperties(project, model_data.Project_SCPCP999991.VALUES)
 
         # CHECK SAMPLE VALUES
         self.assertEqual(project.samples.count(), 3)
 
         # SCPCS999992
         sample = project.samples.filter(
-            scpca_id=test_data.Project_SCPCP999991.Sample_SCPCS999992.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999991.Sample_SCPCS999992.SCPCA_ID
         ).first()
         self.assertIsNotNone(sample)
-        self.assertObjectProperties(sample, test_data.Project_SCPCP999991.Sample_SCPCS999992.VALUES)
+        self.assertObjectProperties(
+            sample, model_data.Project_SCPCP999991.Sample_SCPCS999992.VALUES
+        )
 
         # SCPCS999993
         sample = project.samples.filter(
-            scpca_id=test_data.Project_SCPCP999991.Sample_SCPCS999993.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999991.Sample_SCPCS999993.SCPCA_ID
         ).first()
         self.assertIsNotNone(sample)
-        self.assertObjectProperties(sample, test_data.Project_SCPCP999991.Sample_SCPCS999993.VALUES)
+        self.assertObjectProperties(
+            sample, model_data.Project_SCPCP999991.Sample_SCPCS999993.VALUES
+        )
 
         # SCPCS999995
         sample = project.samples.filter(
-            scpca_id=test_data.Project_SCPCP999991.Sample_SCPCS999995.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999991.Sample_SCPCS999995.SCPCA_ID
         ).first()
         self.assertIsNotNone(sample)
-        self.assertObjectProperties(sample, test_data.Project_SCPCP999991.Sample_SCPCS999995.VALUES)
+        self.assertObjectProperties(
+            sample, model_data.Project_SCPCP999991.Sample_SCPCS999995.VALUES
+        )
 
         # CHECK LIBRARY VALUES
         self.assertEqual(project.libraries.count(), 2)
 
         # SCPCL999992
         library = project.libraries.filter(
-            scpca_id=test_data.Project_SCPCP999991.Library_SCPCL999992.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999991.Library_SCPCL999992.SCPCA_ID
         ).first()
         self.assertIsNotNone(library)
         self.assertObjectProperties(
-            library, test_data.Project_SCPCP999991.Library_SCPCL999992.VALUES
+            library, model_data.Project_SCPCP999991.Library_SCPCL999992.VALUES
         )
         # Assert that metadata attribute has been populated and did not default to empty dict
         self.assertDictIsNonEmpty(library.metadata)
 
         # SCPCL999995
         library = project.libraries.filter(
-            scpca_id=test_data.Project_SCPCP999991.Library_SCPCL999995.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999991.Library_SCPCL999995.SCPCA_ID
         ).first()
         self.assertIsNotNone(library)
         self.assertObjectProperties(
-            library, test_data.Project_SCPCP999991.Library_SCPCL999995.VALUES
+            library, model_data.Project_SCPCP999991.Library_SCPCL999995.VALUES
         )
         # Assert that metadata attribute has been populated and did not default to empty dict
         self.assertDictIsNonEmpty(library.metadata)
@@ -306,13 +320,13 @@ class TestLoader(TransactionTestCase):
         # CHECK PROJECT SUMMARIES VALUES
         self.assertEqual(project.summaries.count(), 3)
         self.assertTrue(
-            project.summaries.filter(**test_data.Project_SCPCP999991.Summary1.VALUES).exists()
+            project.summaries.filter(**model_data.Project_SCPCP999991.Summary1.VALUES).exists()
         )
         self.assertTrue(
-            project.summaries.filter(**test_data.Project_SCPCP999991.Summary2.VALUES).exists()
+            project.summaries.filter(**model_data.Project_SCPCP999991.Summary2.VALUES).exists()
         )
         self.assertTrue(
-            project.summaries.filter(**test_data.Project_SCPCP999991.Summary3.VALUES).exists()
+            project.summaries.filter(**model_data.Project_SCPCP999991.Summary3.VALUES).exists()
         )
 
         # CHECK CONTACTS
@@ -320,37 +334,37 @@ class TestLoader(TransactionTestCase):
 
         # First contact
         contact = project.contacts.filter(
-            email=test_data.Project_SCPCP999991.Contact1.EMAIL
+            email=model_data.Project_SCPCP999991.Contact1.EMAIL
         ).first()
         self.assertIsNotNone(contact)
-        self.assertObjectProperties(contact, test_data.Project_SCPCP999991.Contact1.VALUES)
+        self.assertObjectProperties(contact, model_data.Project_SCPCP999991.Contact1.VALUES)
 
         # Second contact
         contact = project.contacts.filter(
-            email=test_data.Project_SCPCP999991.Contact2.EMAIL
+            email=model_data.Project_SCPCP999991.Contact2.EMAIL
         ).first()
         self.assertIsNotNone(contact)
-        self.assertObjectProperties(contact, test_data.Project_SCPCP999991.Contact2.VALUES)
+        self.assertObjectProperties(contact, model_data.Project_SCPCP999991.Contact2.VALUES)
 
         # CHECK EXTERNAL ACCESSION VALUES
         self.assertEqual(project.external_accessions.count(), 2)
 
         # First external accession
         external_accession = project.external_accessions.filter(
-            accession=test_data.Project_SCPCP999991.ExternalAccession1.ACCESSION
+            accession=model_data.Project_SCPCP999991.ExternalAccession1.ACCESSION
         ).first()
         self.assertIsNotNone(external_accession)
         self.assertObjectProperties(
-            external_accession, test_data.Project_SCPCP999991.ExternalAccession1.VALUES
+            external_accession, model_data.Project_SCPCP999991.ExternalAccession1.VALUES
         )
 
         # Second external accession
         external_accession = project.external_accessions.filter(
-            accession=test_data.Project_SCPCP999991.ExternalAccession2.ACCESSION
+            accession=model_data.Project_SCPCP999991.ExternalAccession2.ACCESSION
         ).first()
         self.assertIsNotNone(external_accession)
         self.assertObjectProperties(
-            external_accession, test_data.Project_SCPCP999991.ExternalAccession2.VALUES
+            external_accession, model_data.Project_SCPCP999991.ExternalAccession2.VALUES
         )
 
         # CHECK PUBLICATIONS VALUES
@@ -358,70 +372,74 @@ class TestLoader(TransactionTestCase):
 
         # First publication
         publication = project.publications.filter(
-            doi=test_data.Project_SCPCP999991.Publication1.DOI
+            doi=model_data.Project_SCPCP999991.Publication1.DOI
         ).first()
         self.assertIsNotNone(publication)
-        self.assertObjectProperties(publication, test_data.Project_SCPCP999991.Publication1.VALUES)
+        self.assertObjectProperties(publication, model_data.Project_SCPCP999991.Publication1.VALUES)
 
         # Second publication
         publication = project.publications.filter(
-            doi=test_data.Project_SCPCP999991.Publication2.DOI
+            doi=model_data.Project_SCPCP999991.Publication2.DOI
         ).first()
         self.assertIsNotNone(publication)
-        self.assertObjectProperties(publication, test_data.Project_SCPCP999991.Publication2.VALUES)
+        self.assertObjectProperties(publication, model_data.Project_SCPCP999991.Publication2.VALUES)
 
     def test_create_project_SCPCP999992(self):
         loader.prep_data_dirs()
 
         returned_project = self.create_project(
-            self.get_project_metadata(test_data.Project_SCPCP999992.SCPCA_ID)
+            self.get_project_metadata(model_data.Project_SCPCP999992.SCPCA_ID)
         )
 
         # CHECK FOR PROJECT EXISTENCE
-        project = Project.objects.filter(scpca_id=test_data.Project_SCPCP999992.SCPCA_ID).first()
+        project = Project.objects.filter(scpca_id=model_data.Project_SCPCP999992.SCPCA_ID).first()
         self.assertEqual(project, returned_project)
 
         # CHECK PROJECT ATTRIBUTE VALUES
-        self.assertObjectProperties(project, test_data.Project_SCPCP999992.VALUES)
+        self.assertObjectProperties(project, model_data.Project_SCPCP999992.VALUES)
 
         # CHECK SAMPLE VALUES
         self.assertEqual(project.samples.count(), 2)
 
         # SCPCS999996
         sample = project.samples.filter(
-            scpca_id=test_data.Project_SCPCP999992.Sample_SCPCS999996.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999992.Sample_SCPCS999996.SCPCA_ID
         ).first()
         self.assertIsNotNone(sample)
-        self.assertObjectProperties(sample, test_data.Project_SCPCP999992.Sample_SCPCS999996.VALUES)
+        self.assertObjectProperties(
+            sample, model_data.Project_SCPCP999992.Sample_SCPCS999996.VALUES
+        )
 
         # SCPCS999998
         sample = project.samples.filter(
-            scpca_id=test_data.Project_SCPCP999992.Sample_SCPCS999998.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999992.Sample_SCPCS999998.SCPCA_ID
         ).first()
         self.assertIsNotNone(sample)
-        self.assertObjectProperties(sample, test_data.Project_SCPCP999992.Sample_SCPCS999998.VALUES)
+        self.assertObjectProperties(
+            sample, model_data.Project_SCPCP999992.Sample_SCPCS999998.VALUES
+        )
 
         # CHECK LIBRARY VALUES
         self.assertEqual(project.libraries.count(), 2)
 
         # SCPCL999996
         library = project.libraries.filter(
-            scpca_id=test_data.Project_SCPCP999992.Library_SCPCL999996.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999992.Library_SCPCL999996.SCPCA_ID
         ).first()
         self.assertIsNotNone(library)
         self.assertObjectProperties(
-            library, test_data.Project_SCPCP999992.Library_SCPCL999996.VALUES
+            library, model_data.Project_SCPCP999992.Library_SCPCL999996.VALUES
         )
         # Assert that metadata attribute has been populated and did not default to empty dict
         self.assertDictIsNonEmpty(library.metadata)
 
         # SCPCL999998
         library = project.libraries.filter(
-            scpca_id=test_data.Project_SCPCP999992.Library_SCPCL999998.SCPCA_ID
+            scpca_id=model_data.Project_SCPCP999992.Library_SCPCL999998.SCPCA_ID
         ).first()
         self.assertIsNotNone(library)
         self.assertObjectProperties(
-            library, test_data.Project_SCPCP999992.Library_SCPCL999998.VALUES
+            library, model_data.Project_SCPCP999992.Library_SCPCL999998.VALUES
         )
         # Assert that metadata attribute has been populated and did not default to empty dict
         self.assertDictIsNonEmpty(library.metadata)
@@ -429,10 +447,10 @@ class TestLoader(TransactionTestCase):
         # CHECK PROJECT SUMMARIES VALUES
         self.assertEqual(project.summaries.count(), 2)
         self.assertTrue(
-            project.summaries.filter(**test_data.Project_SCPCP999992.Summary1.VALUES).exists()
+            project.summaries.filter(**model_data.Project_SCPCP999992.Summary1.VALUES).exists()
         )
         self.assertTrue(
-            project.summaries.filter(**test_data.Project_SCPCP999992.Summary2.VALUES).exists()
+            project.summaries.filter(**model_data.Project_SCPCP999992.Summary2.VALUES).exists()
         )
 
         # CHECK CONTACTS
@@ -440,37 +458,37 @@ class TestLoader(TransactionTestCase):
 
         # First contact
         contact = project.contacts.filter(
-            email=test_data.Project_SCPCP999992.Contact1.EMAIL
+            email=model_data.Project_SCPCP999992.Contact1.EMAIL
         ).first()
         self.assertIsNotNone(contact)
-        self.assertObjectProperties(contact, test_data.Project_SCPCP999992.Contact1.VALUES)
+        self.assertObjectProperties(contact, model_data.Project_SCPCP999992.Contact1.VALUES)
 
         # Second contact
         contact = project.contacts.filter(
-            email=test_data.Project_SCPCP999992.Contact2.EMAIL
+            email=model_data.Project_SCPCP999992.Contact2.EMAIL
         ).first()
         self.assertIsNotNone(contact)
-        self.assertObjectProperties(contact, test_data.Project_SCPCP999992.Contact2.VALUES)
+        self.assertObjectProperties(contact, model_data.Project_SCPCP999992.Contact2.VALUES)
 
         # CHECK EXTERNAL ACCESSION VALUES
         self.assertEqual(project.external_accessions.count(), 2)
 
         # First external accession
         external_accession = project.external_accessions.filter(
-            accession=test_data.Project_SCPCP999992.ExternalAccession1.ACCESSION
+            accession=model_data.Project_SCPCP999992.ExternalAccession1.ACCESSION
         ).first()
         self.assertIsNotNone(external_accession)
         self.assertObjectProperties(
-            external_accession, test_data.Project_SCPCP999992.ExternalAccession1.VALUES
+            external_accession, model_data.Project_SCPCP999992.ExternalAccession1.VALUES
         )
 
         # Second external accession
         external_accession = project.external_accessions.filter(
-            accession=test_data.Project_SCPCP999992.ExternalAccession2.ACCESSION
+            accession=model_data.Project_SCPCP999992.ExternalAccession2.ACCESSION
         ).first()
         self.assertIsNotNone(external_accession)
         self.assertObjectProperties(
-            external_accession, test_data.Project_SCPCP999992.ExternalAccession2.VALUES
+            external_accession, model_data.Project_SCPCP999992.ExternalAccession2.VALUES
         )
 
         # CHECK PUBLICATIONS VALUES
@@ -478,56 +496,56 @@ class TestLoader(TransactionTestCase):
 
         # First publication
         publication = project.publications.filter(
-            doi=test_data.Project_SCPCP999992.Publication1.DOI
+            doi=model_data.Project_SCPCP999992.Publication1.DOI
         ).first()
         self.assertIsNotNone(publication)
-        self.assertObjectProperties(publication, test_data.Project_SCPCP999992.Publication1.VALUES)
+        self.assertObjectProperties(publication, model_data.Project_SCPCP999992.Publication1.VALUES)
 
         # Second publication
         publication = project.publications.filter(
-            doi=test_data.Project_SCPCP999992.Publication2.DOI
+            doi=model_data.Project_SCPCP999992.Publication2.DOI
         ).first()
         self.assertIsNotNone(publication)
-        self.assertObjectProperties(publication, test_data.Project_SCPCP999992.Publication2.VALUES)
+        self.assertObjectProperties(publication, model_data.Project_SCPCP999992.Publication2.VALUES)
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
         project = self.create_project(
-            self.get_project_metadata(test_data.Computed_File_Project.SINGLE_CELL_SCE.PROJECT_ID)
+            self.get_project_metadata(model_data.Computed_File_Project.SINGLE_CELL_SCE.PROJECT_ID)
         )
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_project_generate_computed_file_"
-            f"{test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
-        download_config = test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
+        download_config = model_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
         with ZipFile(
-            test_data.Computed_File_Project.SINGLE_CELL_SCE.PROJECT_ZIP_PATH
+            model_data.Computed_File_Project.SINGLE_CELL_SCE.PROJECT_ZIP_PATH
         ) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = test_data.Computed_File_Project.SINGLE_CELL_SCE.LIBRARIES
+            expected_libraries = model_data.Computed_File_Project.SINGLE_CELL_SCE.LIBRARIES
             self.assertLibraries(project_zip, expected_libraries)
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.Computed_File_Project.SINGLE_CELL_SCE.FILE_LIST,
+                model_data.Computed_File_Project.SINGLE_CELL_SCE.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = project.get_computed_file(
-            test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
+            model_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
         )
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Project.SINGLE_CELL_SCE.VALUES
+            computed_file, model_data.Computed_File_Project.SINGLE_CELL_SCE.VALUES
         )
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
@@ -536,7 +554,7 @@ class TestLoader(TransactionTestCase):
         # GENERATE COMPUTED FILES
         project = self.create_project(
             self.get_project_metadata(
-                test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.PROJECT_ID
+                model_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.PROJECT_ID
             )
         )
         # Make sure that create_project didn't fail and return a None value
@@ -544,10 +562,10 @@ class TestLoader(TransactionTestCase):
             project,
             "Problem creating project, unable to test "
             "test_project_generate_computed_file_"
-            f"{test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG_NAME}",
         )
         download_config = (
-            test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG
+            model_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG
         )
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
@@ -555,26 +573,26 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         with ZipFile(
-            test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.PROJECT_ZIP_PATH
+            model_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.PROJECT_ZIP_PATH
         ) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = (
-                test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.LIBRARIES
+                model_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.LIBRARIES
             )
             self.assertLibraries(project_zip, expected_libraries)
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.FILE_LIST,
+                model_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = project.get_computed_file(
-            test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG
+            model_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG
         )
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.VALUES
+            computed_file, model_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.VALUES
         )
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED(self):
@@ -583,40 +601,40 @@ class TestLoader(TransactionTestCase):
         # GENERATE COMPUTED FILES
         project = self.create_project(
             self.get_project_metadata(
-                test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.PROJECT_ID
+                model_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.PROJECT_ID
             )
         )
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_project_generate_computed_file_"
-            f"{test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG_NAME}",
         )
-        download_config = test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG
+        download_config = model_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
         with ZipFile(
-            test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.PROJECT_ZIP_PATH
+            model_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.PROJECT_ZIP_PATH
         ) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.LIBRARIES
+            expected_libraries = model_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.LIBRARIES
             self.assertLibraries(project_zip, expected_libraries)
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.FILE_LIST,
+                model_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = project.get_computed_file(
-            test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG
+            model_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG
         )
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.VALUES
+            computed_file, model_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.VALUES
         )
 
     def test_project_generate_computed_files_SINGLE_CELL_ANN_DATA(self):
@@ -625,40 +643,40 @@ class TestLoader(TransactionTestCase):
         # GENERATE COMPUTED FILES
         project = self.create_project(
             self.get_project_metadata(
-                test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.PROJECT_ID
+                model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.PROJECT_ID
             )
         )
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_project_generate_computed_file_"
-            f"{test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
         )
-        download_config = test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
+        download_config = model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
         with ZipFile(
-            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.PROJECT_ZIP_PATH
+            model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.PROJECT_ZIP_PATH
         ) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.LIBRARIES
+            expected_libraries = model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.LIBRARIES
             self.assertLibraries(project_zip, expected_libraries)
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.FILE_LIST,
+                model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = project.get_computed_file(
-            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
+            model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
         )
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.VALUES
+            computed_file, model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.VALUES
         )
 
     def test_project_generate_computed_files_SINGLE_CELL_ANN_DATA_MERGED(self):
@@ -667,17 +685,17 @@ class TestLoader(TransactionTestCase):
         # GENERATE COMPUTED FILES
         project = self.create_project(
             self.get_project_metadata(
-                test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.PROJECT_ID
+                model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.PROJECT_ID
             )
         )
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_project_generate_computed_file_"
-            f"{test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG_NAME}",
         )
         download_config = (
-            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG
+            model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG
         )
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
@@ -685,26 +703,26 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         with ZipFile(
-            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.PROJECT_ZIP_PATH
+            model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.PROJECT_ZIP_PATH
         ) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = (
-                test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.LIBRARIES
+                model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.LIBRARIES
             )
             self.assertLibraries(project_zip, expected_libraries)
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.FILE_LIST,
+                model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = project.get_computed_file(
-            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG
+            model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG
         )
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.VALUES
+            computed_file, model_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.VALUES
         )
 
     def test_project_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
@@ -713,17 +731,17 @@ class TestLoader(TransactionTestCase):
         # GENERATE COMPUTED FILES
         project = self.create_project(
             self.get_project_metadata(
-                test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.PROJECT_ID
+                model_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.PROJECT_ID
             )
         )
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_project_generate_computed_file_"
-            f"{test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG_NAME}",  # noqa
+            f"{model_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG_NAME}",  # noqa
         )
         download_config = (
-            test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
+            model_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
         )
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
@@ -731,90 +749,90 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         with ZipFile(
-            test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.PROJECT_ZIP_PATH
+            model_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.PROJECT_ZIP_PATH
         ) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = (
-                test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.LIBRARIES
+                model_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.LIBRARIES
             )
             self.assertLibraries(project_zip, expected_libraries)
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.FILE_LIST,
+                model_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = project.get_computed_file(
-            test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
+            model_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
         )
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.VALUES
+            computed_file, model_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.VALUES
         )
 
     def test_project_generate_computed_files_ALL_METADATA(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = test_data.Computed_File_Project.ALL_METADATA.PROJECT_ID
+        project_id = model_data.Computed_File_Project.ALL_METADATA.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_project_generate_computed_file_"
-            f"{test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG_NAME}",
         )
-        download_config = test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG
+        download_config = model_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(test_data.Computed_File_Project.ALL_METADATA.PROJECT_ZIP_PATH) as project_zip:
+        with ZipFile(model_data.Computed_File_Project.ALL_METADATA.PROJECT_ZIP_PATH) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = test_data.Computed_File_Project.ALL_METADATA.LIBRARIES
+            expected_libraries = model_data.Computed_File_Project.ALL_METADATA.LIBRARIES
             # Only assertLibrariesMetadata and not assertLibrariesDataFiles for ALL_METADATA config
             self.assertLibrariesMetadata(project_zip, expected_libraries)
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.Computed_File_Project.ALL_METADATA.FILE_LIST,
+                model_data.Computed_File_Project.ALL_METADATA.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = project.get_computed_file(
-            test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG
+            model_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG
         )
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Project.ALL_METADATA.VALUES
+            computed_file, model_data.Computed_File_Project.ALL_METADATA.VALUES
         )
 
     def test_sample_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = test_data.Computed_File_Sample.SINGLE_CELL_SCE.PROJECT_ID
+        project_id = model_data.Computed_File_Sample.SINGLE_CELL_SCE.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
 
-        sample_id = test_data.Computed_File_Sample.SINGLE_CELL_SCE.SAMPLE_ID
+        sample_id = model_data.Computed_File_Sample.SINGLE_CELL_SCE.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
         self.assertIsNotNone(
             sample,
             "Problem retrieving sample, unable to test "
             "test_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
 
-        download_config = test_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
+        download_config = model_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
@@ -823,47 +841,47 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(test_data.Computed_File_Sample.SINGLE_CELL_SCE.SAMPLE_ZIP_PATH) as sample_zip:
+        with ZipFile(model_data.Computed_File_Sample.SINGLE_CELL_SCE.SAMPLE_ZIP_PATH) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(
-                sample_zip, test_data.Computed_File_Sample.SINGLE_CELL_SCE.LIBRARIES
+                sample_zip, model_data.Computed_File_Sample.SINGLE_CELL_SCE.LIBRARIES
             )
             self.assertListEqual(
                 sorted(sample_zip.namelist()),
-                test_data.Computed_File_Sample.SINGLE_CELL_SCE.FILE_LIST,
+                model_data.Computed_File_Sample.SINGLE_CELL_SCE.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Sample.SINGLE_CELL_SCE.VALUES
+            computed_file, model_data.Computed_File_Sample.SINGLE_CELL_SCE.VALUES
         )
 
     def test_sample_generate_computed_files_SINGLE_CELL_ANN_DATA(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.PROJECT_ID
+        project_id = model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
         )
 
-        sample_id = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.SAMPLE_ID
+        sample_id = model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
         self.assertIsNotNone(
             sample,
             "Problem retrieving sample, unable to test "
             "test_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
         )
 
-        download_config = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
+        download_config = model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
@@ -873,48 +891,48 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         with ZipFile(
-            test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.SAMPLE_ZIP_PATH
+            model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.SAMPLE_ZIP_PATH
         ) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(
-                sample_zip, test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.LIBRARIES
+                sample_zip, model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.LIBRARIES
             )
             self.assertListEqual(
                 sorted(sample_zip.namelist()),
-                test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.FILE_LIST,
+                model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.VALUES
+            computed_file, model_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.VALUES
         )
 
     def test_sample_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = test_data.Computed_File_Sample.SPATIAL_SCE.PROJECT_ID
+        project_id = model_data.Computed_File_Sample.SPATIAL_SCE.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
 
-        sample_id = test_data.Computed_File_Sample.SPATIAL_SCE.SAMPLE_ID
+        sample_id = model_data.Computed_File_Sample.SPATIAL_SCE.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
         self.assertIsNotNone(
             sample,
             "Problem retrieving sample, unable to test "
             "test_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
 
-        download_config = test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG
+        download_config = model_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
@@ -923,45 +941,47 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        with ZipFile(test_data.Computed_File_Sample.SPATIAL_SCE.SAMPLE_ZIP_PATH) as sample_zip:
+        with ZipFile(model_data.Computed_File_Sample.SPATIAL_SCE.SAMPLE_ZIP_PATH) as sample_zip:
             # Check if correct libraries were added in
-            self.assertLibraries(sample_zip, test_data.Computed_File_Sample.SPATIAL_SCE.LIBRARIES)
+            self.assertLibraries(sample_zip, model_data.Computed_File_Sample.SPATIAL_SCE.LIBRARIES)
             self.assertListEqual(
                 sorted(sample_zip.namelist()),
-                test_data.Computed_File_Sample.SPATIAL_SCE.FILE_LIST,
+                model_data.Computed_File_Sample.SPATIAL_SCE.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Sample.SPATIAL_SCE.VALUES
+            computed_file, model_data.Computed_File_Sample.SPATIAL_SCE.VALUES
         )
 
     def test_multiplexed_sample_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.PROJECT_ID
+        project_id = model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_multiplexed_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
 
-        sample_id = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.SAMPLE_ID
+        sample_id = model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
         self.assertIsNotNone(
             sample,
             "Problem retrieving sample, unable to test "
             "test_multiplexed_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
+            f"{model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
 
-        download_config = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG
+        download_config = (
+            model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG
+        )
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
@@ -971,20 +991,20 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         with ZipFile(
-            test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.SAMPLE_ZIP_PATH
+            model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.SAMPLE_ZIP_PATH
         ) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(
-                sample_zip, test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.LIBRARIES
+                sample_zip, model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.LIBRARIES
             )
             self.assertListEqual(
                 sorted(sample_zip.namelist()),
-                test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.FILE_LIST,
+                model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.VALUES
+            computed_file, model_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.VALUES
         )
