@@ -1,20 +1,16 @@
 import React from 'react'
-import { useMetadataOnly } from 'hooks/useMetadataOnly'
+import { usePortalMetadataOnly } from 'hooks/usePortalMetadataOnly'
 import { DownloadModal } from 'components/DownloadModal'
 
 export const PortalMetadataDownload = () => {
-  const {
-    resource,
-    portalMetadataComputedFile,
-    isPortalMetadataOnlyAvailable
-  } = useMetadataOnly()
+  const { portalMetadataComputedFile, isPortalMetadataOnlyAvailable } =
+    usePortalMetadataOnly()
 
   return (
     <>
-      {resource && portalMetadataComputedFile && (
+      {portalMetadataComputedFile && (
         <DownloadModal
           label="Get All Sample Metadata"
-          resource={resource}
           publicComputedFile={portalMetadataComputedFile}
           disabled={!isPortalMetadataOnlyAvailable}
         />

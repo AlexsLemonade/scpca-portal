@@ -18,20 +18,30 @@ export const useDownloadModal = (
     initialPublicComputedFile
   )
   const [download, setDownload] = useState(false)
-  const hasMultipleFiles = hasMultiple(resource.computed_files)
+  // pass an empty array when no resource
+  const hasMultipleFiles = hasMultiple(resource?.computed_file || [])
   // states that dictate what the modal can show
   const isDownloadReady = download && token
   const isOptionsReady = !publicComputedFile && hasMultipleFiles
+  const isTokenReady = !token && publicComputedFile
   const isSampleMetadataOnly = publicComputedFile?.metadata_only
   const isPortalMetadataOnly = publicComputedFile?.portal_metadata_only
-  const isTokenReady = !token && publicComputedFile
   // text information
   const verb = isDownloadReady ? 'Downloading' : 'Download'
-  const resourceType = resource.samples ? 'Project' : 'Sample'
-  const modalTitle = isSampleMetadataOnly
-    ? `${verb} ${isPortalMetadataOnly ? 'All' : ''} Sample Metadata`
-    : `${verb} ${resourceType}`
-  const defaultComputedFile = getDefaultComputedFile(resource)
+  // helper for resourceType
+  const getResourceType = () => {
+    if (!resource) return 'All' // for the portal metadata
+    return resource.samples ? 'Project' : 'Sample'
+  }
+  const resourceType = getResourceType()
+  const defaultTitle = `${verb} ${resourceType}`
+  const sampleMetadataTitle = `${verb} ${
+    isPortalMetadataOnly ? 'All' : ''
+  } Sample Metadata`
+  const modalTitle = isSampleMetadataOnly ? sampleMetadataTitle : defaultTitle
+  const defaultComputedFile = resource
+    ? getDefaultComputedFile(resource)
+    : undefined
   const hasDownloadOptions =
     publicComputedFile && hasMultipleFiles && !initialPublicComputedFile
 

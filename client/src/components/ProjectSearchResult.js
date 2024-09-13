@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
-import { useMetadataOnly } from 'hooks/useMetadataOnly'
+import { useProjectMetadataOnly } from 'hooks/useProjectMetadataOnly'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
@@ -14,7 +14,7 @@ import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAcces
 export const ProjectSearchResult = ({ project }) => {
   const { responsive } = useResponsive()
   const { isMetadataOnlyAvailable, metadataComputedFile } =
-    useMetadataOnly(project)
+    useProjectMetadataOnly(project)
 
   const searchDetails = [
     {
@@ -77,13 +77,15 @@ export const ProjectSearchResult = ({ project }) => {
         <Link href={`/projects/${project.scpca_id}#samples`}>
           <Button label="View Samples" aria-label="View Samples" />
         </Link>
-        <DownloadModal
-          label="Download Sample Metadata"
-          icon={<DownloadIcon color="brand" />}
-          resource={project}
-          publicComputedFile={metadataComputedFile}
-          disabled={!isMetadataOnlyAvailable}
-        />
+        {metadataComputedFile && (
+          <DownloadModal
+            label="Download Sample Metadata"
+            icon={<DownloadIcon color="brand" />}
+            resource={project}
+            publicComputedFile={metadataComputedFile}
+            disabled={!isMetadataOnlyAvailable}
+          />
+        )}
       </Box>
     </Box>
   )
