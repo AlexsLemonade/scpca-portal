@@ -179,6 +179,17 @@ SAMPLE_DOWNLOAD_CONFIGS = {
     "SPATIAL_SINGLE_CELL_EXPERIMENT": {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"},
 }
 
-PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS = PROJECT_DOWNLOAD_CONFIGS.values()
+PORTAL_METADATA_DOWNLOAD_CONFIG = {
+    "modality": None,
+    "format": None,
+    "excludes_multiplexed": False,
+    "includes_merged": False,
+    "metadata_only": True,
+    "portal_metadata_only": True,
+}
 
-PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS = SAMPLE_DOWNLOAD_CONFIGS.values()
+GENERATED_PROJECT_DOWNLOAD_CONFIGS = PROJECT_DOWNLOAD_CONFIGS.values()
+
+GENERATED_SAMPLE_DOWNLOAD_CONFIGS = SAMPLE_DOWNLOAD_CONFIGS.values()
+
+PORTAL_METADATA_COMPUTED_FILE_NAME = "portal_metadata.zip"
