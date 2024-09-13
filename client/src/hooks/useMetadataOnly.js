@@ -15,22 +15,19 @@ export const useMetadataOnly = (initialResource) => {
   const isMetadataOnlyAvailable = metadataComputedFiles.length > 0
   const isPortalMetadataOnlyAvailable = portalMetadataComputedFiles.length === 1
 
-  const getPortalMetadataResource = async () => {
-    const resourceRequest = await api.computedFiles.list(portalMetadataKey)
-    return {
-      resource: { computed_files: resourceRequest.response.results }
-    }
-  }
-
-  // Configure State for portal metedata
+  // Set states for the portal metedata
   useEffect(() => {
     const getPortalMetadata = async () => {
-      const response = await getPortalMetadataResource()
-      setResource(response.resource)
+      const resourceRequest = await api.computedFiles.list(portalMetadataKey)
+      const results = {
+        resource: { computed_files: resourceRequest.response.results }
+      }
+      setResource(results.resource)
       setPortalMetadataComputedFiles(
-        filterWhere(response.resource.computed_files, portalMetadataKey)
+        filterWhere(results.resource.computed_files, portalMetadataKey)
       )
     }
+
     if (!initialResource) getPortalMetadata()
   }, [])
 
