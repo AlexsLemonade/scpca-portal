@@ -12,20 +12,19 @@ class Computed_File_Project:
         LIBRARIES = {"SCPCL999990", "SCPCL999997"}
         FILE_LIST = [
             "README.md",
-            "single_cell_metadata.tsv",
-            "SCPCS999997/SCPCL999997_celltype-report.html",
-            "SCPCS999997/SCPCL999997_filtered.rds",
-            "SCPCS999997/SCPCL999997_processed.rds",
-            "SCPCS999997/SCPCL999997_qc.html",
-            "SCPCS999997/SCPCL999997_unfiltered.rds",
+            "SCPCP999990_bulk_metadata.tsv",
+            "SCPCP999990_bulk_quant.tsv",
             "SCPCS999990/SCPCL999990_celltype-report.html",
             "SCPCS999990/SCPCL999990_filtered.rds",
             "SCPCS999990/SCPCL999990_processed.rds",
             "SCPCS999990/SCPCL999990_qc.html",
             "SCPCS999990/SCPCL999990_unfiltered.rds",
-            # Do we want bulk files to be prefixed with the project id?
-            "SCPCP999990_bulk_metadata.tsv",
-            "SCPCP999990_bulk_quant.tsv",
+            "SCPCS999997/SCPCL999997_celltype-report.html",
+            "SCPCS999997/SCPCL999997_filtered.rds",
+            "SCPCS999997/SCPCL999997_processed.rds",
+            "SCPCS999997/SCPCL999997_qc.html",
+            "SCPCS999997/SCPCL999997_unfiltered.rds",
+            "single_cell_metadata.tsv",
         ]
         OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
         PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
@@ -51,7 +50,6 @@ class Computed_File_Project:
         LIBRARIES = {"SCPCL999992", "SCPCL999995"}
         FILE_LIST = [
             "README.md",
-            "single_cell_metadata.tsv",
             "SCPCS999992_SCPCS999993/SCPCL999992_celltype-report.html",
             "SCPCS999992_SCPCS999993/SCPCL999992_filtered.rds",
             "SCPCS999992_SCPCS999993/SCPCL999992_processed.rds",
@@ -62,6 +60,7 @@ class Computed_File_Project:
             "SCPCS999995/SCPCL999995_processed.rds",
             "SCPCS999995/SCPCL999995_qc.html",
             "SCPCS999995/SCPCL999995_unfiltered.rds",
+            "single_cell_metadata.tsv",
         ]
         OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
         PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
@@ -87,15 +86,15 @@ class Computed_File_Project:
         LIBRARIES = {"SCPCL999990", "SCPCL999997"}
         FILE_LIST = [
             "README.md",
-            "single_cell_metadata.tsv",
-            "individual_reports/SCPCS999997/SCPCL999997_celltype-report.html",
-            "individual_reports/SCPCS999997/SCPCL999997_qc.html",
-            "individual_reports/SCPCS999990/SCPCL999990_celltype-report.html",
-            "individual_reports/SCPCS999990/SCPCL999990_qc.html",
-            "SCPCP999990_merged-summary-report.html",
-            "SCPCP999990_merged.rds",
             "SCPCP999990_bulk_metadata.tsv",
             "SCPCP999990_bulk_quant.tsv",
+            "SCPCP999990_merged-summary-report.html",
+            "SCPCP999990_merged.rds",
+            "individual_reports/SCPCS999990/SCPCL999990_celltype-report.html",
+            "individual_reports/SCPCS999990/SCPCL999990_qc.html",
+            "individual_reports/SCPCS999997/SCPCL999997_celltype-report.html",
+            "individual_reports/SCPCS999997/SCPCL999997_qc.html",
+            "single_cell_metadata.tsv",
         ]
         OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
         PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
@@ -121,7 +120,8 @@ class Computed_File_Project:
         LIBRARIES = {"SCPCL999990", "SCPCL999997"}
         FILE_LIST = [
             "README.md",
-            "single_cell_metadata.tsv",
+            "SCPCP999990_bulk_metadata.tsv",
+            "SCPCP999990_bulk_quant.tsv",
             "SCPCS999990/SCPCL999990_celltype-report.html",
             "SCPCS999990/SCPCL999990_filtered_rna.h5ad",
             "SCPCS999990/SCPCL999990_processed_rna.h5ad",
@@ -132,9 +132,7 @@ class Computed_File_Project:
             "SCPCS999997/SCPCL999997_processed_rna.h5ad",
             "SCPCS999997/SCPCL999997_qc.html",
             "SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
-            # Do we want bulk files to be prefixed with the project id?
-            "SCPCP999990_bulk_metadata.tsv",
-            "SCPCP999990_bulk_quant.tsv",
+            "single_cell_metadata.tsv",
         ]
         OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
         PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
@@ -160,14 +158,14 @@ class Computed_File_Project:
         LIBRARIES = {"SCPCL999990", "SCPCL999997"}
         FILE_LIST = [
             "README.md",
-            "individual_reports/SCPCS999997/SCPCL999997_celltype-report.html",
-            "individual_reports/SCPCS999997/SCPCL999997_qc.html",
-            "individual_reports/SCPCS999990/SCPCL999990_celltype-report.html",
-            "individual_reports/SCPCS999990/SCPCL999990_qc.html",
-            "SCPCP999990_merged-summary-report.html",
-            "SCPCP999990_merged_rna.h5ad",
             "SCPCP999990_bulk_metadata.tsv",
             "SCPCP999990_bulk_quant.tsv",
+            "SCPCP999990_merged-summary-report.html",
+            "SCPCP999990_merged_rna.h5ad",
+            "individual_reports/SCPCS999990/SCPCL999990_celltype-report.html",
+            "individual_reports/SCPCS999990/SCPCL999990_qc.html",
+            "individual_reports/SCPCS999997/SCPCL999997_celltype-report.html",
+            "individual_reports/SCPCS999997/SCPCL999997_qc.html",
             "single_cell_metadata.tsv",
         ]
         OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
@@ -194,8 +192,7 @@ class Computed_File_Project:
         LIBRARIES = {"SCPCL999991"}
         FILE_LIST = [
             "README.md",
-            "spatial_metadata.tsv",
-            "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/features.tsv.gz",
+            "SCPCS999991/SCPCL999991_spatial/SCPCL999991_metadata.json",
             "SCPCS999991/SCPCL999991_spatial/SCPCL999991_spaceranger-summary.html",
             "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/barcodes.tsv.gz",
             "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/features.tsv.gz",
@@ -209,7 +206,7 @@ class Computed_File_Project:
             "SCPCS999991/SCPCL999991_spatial/spatial/tissue_hires_image.png",
             "SCPCS999991/SCPCL999991_spatial/spatial/tissue_lowres_image.png",
             "SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv",
-            "SCPCS999991/SCPCL999991_spatial/SCPCL999991_metadata.json",
+            "spatial_metadata.tsv",
         ]
         OUTPUT_FILE_NAME = Project.get_output_file_name(PROJECT_ID, DOWNLOAD_CONFIG)
         PROJECT_ZIP_PATH = common.OUTPUT_DATA_PATH / OUTPUT_FILE_NAME
