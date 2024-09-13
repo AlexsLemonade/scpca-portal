@@ -40,11 +40,6 @@ class TestLoader(TransactionTestCase):
             clean_up_output_data=False,
         )
 
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-        # shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
-
     def purge_extra_samples(self, project: Project, sample_of_interest: str) -> None:
         """Purges all of a project's samples that are not the sample of interest."""
         for sample in project.samples.all():
@@ -509,8 +504,8 @@ class TestLoader(TransactionTestCase):
             f"{test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
         download_config = test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -554,8 +549,8 @@ class TestLoader(TransactionTestCase):
         download_config = (
             test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG
         )
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -598,8 +593,8 @@ class TestLoader(TransactionTestCase):
             f"{test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG_NAME}",
         )
         download_config = test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -640,8 +635,8 @@ class TestLoader(TransactionTestCase):
             f"{test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
         )
         download_config = test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -684,8 +679,8 @@ class TestLoader(TransactionTestCase):
         download_config = (
             test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG
         )
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -730,8 +725,8 @@ class TestLoader(TransactionTestCase):
         download_config = (
             test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
         )
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -771,8 +766,8 @@ class TestLoader(TransactionTestCase):
             f"{test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG_NAME}",
         )
         download_config = test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -803,20 +798,28 @@ class TestLoader(TransactionTestCase):
         project_id = test_data.Computed_File_Sample.SINGLE_CELL_SCE.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_sample_generate_computed_file_"
+            f"{test_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
+        )
 
         sample_id = test_data.Computed_File_Sample.SINGLE_CELL_SCE.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
-        self.assertIsNotNone(sample)
+        self.assertIsNotNone(
+            sample,
+            "Problem retrieving sample, unable to test "
+            "test_sample_generate_computed_file_"
+            f"{test_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
+        )
 
         download_config = test_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
             self.purge_extra_samples(project, sample)
-            with patch(
-                "scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]
-            ):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -844,20 +847,28 @@ class TestLoader(TransactionTestCase):
         project_id = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_sample_generate_computed_file_"
+            f"{test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
+        )
 
         sample_id = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
-        self.assertIsNotNone(sample)
+        self.assertIsNotNone(
+            sample,
+            "Problem retrieving sample, unable to test "
+            "test_sample_generate_computed_file_"
+            f"{test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
+        )
 
         download_config = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
             self.purge_extra_samples(project, sample)
-            with patch(
-                "scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]
-            ):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -887,20 +898,28 @@ class TestLoader(TransactionTestCase):
         project_id = test_data.Computed_File_Sample.SPATIAL_SCE.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_sample_generate_computed_file_"
+            f"{test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME}",
+        )
 
         sample_id = test_data.Computed_File_Sample.SPATIAL_SCE.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
-        self.assertIsNotNone(sample)
+        self.assertIsNotNone(
+            sample,
+            "Problem retrieving sample, unable to test "
+            "test_sample_generate_computed_file_"
+            f"{test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME}",
+        )
 
         download_config = test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
             self.purge_extra_samples(project, sample)
-            with patch(
-                "scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]
-            ):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -926,20 +945,28 @@ class TestLoader(TransactionTestCase):
         project_id = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_multiplexed_sample_generate_computed_file_"
+            f"{test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
+        )
 
         sample_id = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
-        self.assertIsNotNone(sample)
+        self.assertIsNotNone(
+            sample,
+            "Problem retrieving sample, unable to test "
+            "test_multiplexed_sample_generate_computed_file_"
+            f"{test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
+        )
 
         download_config = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
             self.purge_extra_samples(project, sample)
-            with patch(
-                "scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]
-            ):
+            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE

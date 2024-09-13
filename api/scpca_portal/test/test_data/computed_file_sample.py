@@ -32,7 +32,7 @@ class Computed_File_Sample:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": OUTPUT_FILE_NAME,
-            "size_in_bytes": 7017,
+            "size_in_bytes": 7089,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -105,7 +105,7 @@ class Computed_File_Sample:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": OUTPUT_FILE_NAME,
-            "size_in_bytes": 8820,
+            "size_in_bytes": 8818,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -137,7 +137,7 @@ class Computed_File_Sample:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": OUTPUT_FILE_NAME,
-            "size_in_bytes": 7073,
+            "size_in_bytes": 7145,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }

@@ -135,7 +135,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample_metadata
 
-    def get_computed_file(self, download_config: Dict[str, str | bool | int | None]):
+    def get_computed_file(self, download_config: Dict) -> ComputedFile:
         "Return the sample computed file that matches the passed download_config."
         return self.computed_files.filter(
             modality=download_config["modality"],

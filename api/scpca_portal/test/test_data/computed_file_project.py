@@ -38,7 +38,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": OUTPUT_FILE_NAME,
-            "size_in_bytes": 9078,
+            "size_in_bytes": 9077,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -74,7 +74,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": OUTPUT_FILE_NAME,
-            "size_in_bytes": 6594,
+            "size_in_bytes": 9511,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -108,7 +108,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": OUTPUT_FILE_NAME,
-            "size_in_bytes": 8476,
+            "size_in_bytes": 8474,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -180,7 +180,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": OUTPUT_FILE_NAME,
-            "size_in_bytes": 8601,
+            "size_in_bytes": 8600,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -220,7 +220,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": OUTPUT_FILE_NAME,
-            "size_in_bytes": 9156,
+            "size_in_bytes": 9154,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -243,7 +243,7 @@ class Computed_File_Project:
             "metadata_only": True,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": OUTPUT_FILE_NAME,
-            "size_in_bytes": 4866,
+            "size_in_bytes": 5185,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
