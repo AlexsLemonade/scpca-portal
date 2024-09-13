@@ -4,7 +4,6 @@ import { filterWhere } from 'helpers/filterWhere'
 
 export const usePortalMetadataOnly = () => {
   const portalMetadataOnlyKey = { portal_metadata_only: true }
-  const [resource, setResource] = useState(null)
   const [portalMetadataComputedFiles, setPortalMetadataComputedFiles] =
     useState([])
   const isPortalMetadataOnlyAvailable = portalMetadataComputedFiles.length === 1
@@ -15,12 +14,9 @@ export const usePortalMetadataOnly = () => {
       const resourceRequest = await api.computedFiles.list(
         portalMetadataOnlyKey
       )
-      const results = {
-        resource: { computed_files: resourceRequest.response.results || [] }
-      }
-      setResource(results.resource)
+      const { results } = resourceRequest.response
       setPortalMetadataComputedFiles(
-        filterWhere(results.resource.computed_files, portalMetadataOnlyKey)
+        filterWhere(results, portalMetadataOnlyKey)
       )
     }
 
@@ -28,7 +24,6 @@ export const usePortalMetadataOnly = () => {
   }, [])
 
   return {
-    resource,
     portalMetadataComputedFile: portalMetadataComputedFiles[0],
     isPortalMetadataOnlyAvailable
   }
