@@ -9,9 +9,8 @@ from zipfile import ZipFile
 from django.conf import settings
 from django.test import TransactionTestCase
 
-from scpca_portal import common, loader
+from scpca_portal import loader
 from scpca_portal.models import Project
-from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.test import test_data
 
 
@@ -500,432 +499,317 @@ class TestLoader(TransactionTestCase):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = "SCPCP999990"
-        project = self.create_project(self.get_project_metadata(project_id))
-        # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
-
-        download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"
-        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        project = self.create_project(
+            self.get_project_metadata(test_data.Computed_File_Project.SINGLE_CELL_SCE.PROJECT_ID)
+        )
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_project_generate_computed_file_"
+            f"{test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
+        )
+        download_config = test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        output_file_name = project.get_download_config_file_output_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
-        with ZipFile(project_zip_path) as project_zip:
+        with ZipFile(
+            test_data.Computed_File_Project.SINGLE_CELL_SCE.PROJECT_ZIP_PATH
+        ) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = {"SCPCL999990", "SCPCL999997"}
+            expected_libraries = test_data.Computed_File_Project.SINGLE_CELL_SCE.LIBRARIES
             self.assertLibraries(project_zip, expected_libraries)
-
-            expected_file_list = [
-                "README.md",
-                "SCPCS999990/SCPCL999990_celltype-report.html",
-                "SCPCS999990/SCPCL999990_filtered.rds",
-                "SCPCS999990/SCPCL999990_processed.rds",
-                "SCPCS999990/SCPCL999990_qc.html",
-                "SCPCS999990/SCPCL999990_unfiltered.rds",
-                "SCPCS999997/SCPCL999997_celltype-report.html",
-                "SCPCS999997/SCPCL999997_filtered.rds",
-                "SCPCS999997/SCPCL999997_processed.rds",
-                "SCPCS999997/SCPCL999997_qc.html",
-                "SCPCS999997/SCPCL999997_unfiltered.rds",
-                # Do we want bulk files to be prefixed with the project id?
-                "SCPCP999990_bulk_metadata.tsv",
-                "SCPCP999990_bulk_quant.tsv",
-                "single_cell_metadata.tsv",
-            ]
-            result_file_list = project_zip.namelist()
-            self.assertEqual(set(expected_file_list), set(result_file_list))
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                test_data.Computed_File_Project.SINGLE_CELL_SCE.FILE_LIST,
+            )
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.get_computed_file(download_config)
+        computed_file = project.get_computed_file(
+            test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
+        )
         self.assertIsNotNone(computed_file)
-
-        expected_computed_file_attribute_values = {
-            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-            "has_bulk_rna_seq": True,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": False,
-            "includes_merged": False,
-            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
-            "metadata_only": False,
-            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": output_file_name,
-            "size_in_bytes": 9078,
-            "workflow_version": "development",
-            "includes_celltype_report": True,
-        }
-        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Project.SINGLE_CELL_SCE.VALUES
+        )
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = "SCPCP999991"
-        project = self.create_project(self.get_project_metadata(project_id))
+        project = self.create_project(
+            self.get_project_metadata(
+                test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.PROJECT_ID
+            )
+        )
         # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
-
-        download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED"
-        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_project_generate_computed_file_"
+            f"{test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG_NAME}",
+        )
+        download_config = (
+            test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG
+        )
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        output_file_name = project.get_download_config_file_output_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
-        with ZipFile(project_zip_path) as project_zip:
+        with ZipFile(
+            test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.PROJECT_ZIP_PATH
+        ) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = {"SCPCL999992", "SCPCL999995"}
+            expected_libraries = (
+                test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.LIBRARIES
+            )
             self.assertLibraries(project_zip, expected_libraries)
-
-            expected_file_list = [
-                "README.md",
-                "single_cell_metadata.tsv",
-                "SCPCS999995/SCPCL999995_celltype-report.html",
-                "SCPCS999995/SCPCL999995_filtered.rds",
-                "SCPCS999995/SCPCL999995_processed.rds",
-                "SCPCS999995/SCPCL999995_qc.html",
-                "SCPCS999995/SCPCL999995_unfiltered.rds",
-                "SCPCS999992_SCPCS999993/SCPCL999992_celltype-report.html",
-                "SCPCS999992_SCPCS999993/SCPCL999992_filtered.rds",
-                "SCPCS999992_SCPCS999993/SCPCL999992_processed.rds",
-                "SCPCS999992_SCPCS999993/SCPCL999992_qc.html",
-                "SCPCS999992_SCPCS999993/SCPCL999992_unfiltered.rds",
-            ]
-            result_file_list = project_zip.namelist()
-            self.assertEqual(set(expected_file_list), set(result_file_list))
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.FILE_LIST,
+            )
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.get_computed_file(download_config)
+        computed_file = project.get_computed_file(
+            test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG
+        )
         self.assertIsNotNone(computed_file)
-
-        expected_computed_file_attribute_values = {
-            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-            "has_bulk_rna_seq": False,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": True,
-            "includes_merged": False,
-            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
-            "metadata_only": False,
-            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": output_file_name,
-            "size_in_bytes": 6594,
-            "workflow_version": "development",
-            "includes_celltype_report": True,
-        }
-        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.VALUES
+        )
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = "SCPCP999990"
-        project = self.create_project(self.get_project_metadata(project_id))
-        # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
-
-        download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED"
-        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        project = self.create_project(
+            self.get_project_metadata(
+                test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.PROJECT_ID
+            )
+        )
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_project_generate_computed_file_"
+            f"{test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG_NAME}",
+        )
+        download_config = test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        output_file_name = project.get_download_config_file_output_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
-        with ZipFile(project_zip_path) as project_zip:
+        with ZipFile(
+            test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.PROJECT_ZIP_PATH
+        ) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = {"SCPCL999990", "SCPCL999997"}
+            expected_libraries = test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.LIBRARIES
             self.assertLibraries(project_zip, expected_libraries)
-
-            expected_file_list = [
-                "README.md",
-                "single_cell_metadata.tsv",
-                "individual_reports/SCPCS999990/SCPCL999990_celltype-report.html",
-                "individual_reports/SCPCS999990/SCPCL999990_qc.html",
-                "individual_reports/SCPCS999997/SCPCL999997_celltype-report.html",
-                "individual_reports/SCPCS999997/SCPCL999997_qc.html",
-                "SCPCP999990_merged-summary-report.html",
-                "SCPCP999990_merged.rds",
-                "SCPCP999990_bulk_metadata.tsv",
-                "SCPCP999990_bulk_quant.tsv",
-            ]
-            result_file_list = project_zip.namelist()
-            self.assertEqual(set(expected_file_list), set(result_file_list))
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.FILE_LIST,
+            )
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.get_computed_file(download_config)
+        computed_file = project.get_computed_file(
+            test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG
+        )
         self.assertIsNotNone(computed_file)
-
-        expected_computed_file_attribute_values = {
-            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-            "has_bulk_rna_seq": True,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": False,
-            "includes_merged": True,
-            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
-            "metadata_only": False,
-            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": output_file_name,
-            "size_in_bytes": 8476,
-            "workflow_version": "development",
-            "includes_celltype_report": True,
-        }
-        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.VALUES
+        )
 
     def test_project_generate_computed_files_SINGLE_CELL_ANN_DATA(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = "SCPCP999990"
-        project = self.create_project(self.get_project_metadata(project_id))
-        # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
-
-        download_config_name = "SINGLE_CELL_ANN_DATA"
-        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        project = self.create_project(
+            self.get_project_metadata(
+                test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.PROJECT_ID
+            )
+        )
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_project_generate_computed_file_"
+            f"{test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
+        )
+        download_config = test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        output_file_name = project.get_download_config_file_output_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
-        with ZipFile(project_zip_path) as project_zip:
+        with ZipFile(
+            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.PROJECT_ZIP_PATH
+        ) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = {"SCPCL999990", "SCPCL999997"}
+            expected_libraries = test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.LIBRARIES
             self.assertLibraries(project_zip, expected_libraries)
-
-            expected_file_list = [
-                "README.md",
-                "SCPCS999990/SCPCL999990_celltype-report.html",
-                "SCPCS999990/SCPCL999990_filtered_rna.h5ad",
-                "SCPCS999990/SCPCL999990_processed_rna.h5ad",
-                "SCPCS999990/SCPCL999990_qc.html",
-                "SCPCS999990/SCPCL999990_unfiltered_rna.h5ad",
-                "SCPCS999997/SCPCL999997_celltype-report.html",
-                "SCPCS999997/SCPCL999997_filtered_rna.h5ad",
-                "SCPCS999997/SCPCL999997_processed_rna.h5ad",
-                "SCPCS999997/SCPCL999997_qc.html",
-                "SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
-                # Do we want bulk files to be prefixed with the project id?
-                "SCPCP999990_bulk_metadata.tsv",
-                "SCPCP999990_bulk_quant.tsv",
-                "single_cell_metadata.tsv",
-            ]
-            result_file_list = project_zip.namelist()
-            self.assertEqual(set(expected_file_list), set(result_file_list))
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.FILE_LIST,
+            )
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.get_computed_file(download_config)
+        computed_file = project.get_computed_file(
+            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
+        )
         self.assertIsNotNone(computed_file)
-
-        expected_computed_file_attribute_values = {
-            "format": ComputedFile.OutputFileFormats.ANN_DATA,
-            "has_bulk_rna_seq": True,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": False,
-            "includes_merged": False,
-            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
-            "metadata_only": False,
-            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": output_file_name,
-            "size_in_bytes": 9492,
-            "workflow_version": "development",
-            "includes_celltype_report": True,
-        }
-        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.VALUES
+        )
 
     def test_project_generate_computed_files_SINGLE_CELL_ANN_DATA_MERGED(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = "SCPCP999990"
-        project = self.create_project(self.get_project_metadata(project_id))
-        # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
-
-        download_config_name = "SINGLE_CELL_ANN_DATA_MERGED"
-        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        project = self.create_project(
+            self.get_project_metadata(
+                test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.PROJECT_ID
+            )
+        )
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_project_generate_computed_file_"
+            f"{test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG_NAME}",
+        )
+        download_config = (
+            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG
+        )
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        output_file_name = project.get_download_config_file_output_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
-        with ZipFile(project_zip_path) as project_zip:
+        with ZipFile(
+            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.PROJECT_ZIP_PATH
+        ) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = {"SCPCL999990", "SCPCL999997"}
+            expected_libraries = (
+                test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.LIBRARIES
+            )
             self.assertLibraries(project_zip, expected_libraries)
-
-            expected_file_list = [
-                "README.md",
-                "individual_reports/SCPCS999990/SCPCL999990_celltype-report.html",
-                "individual_reports/SCPCS999990/SCPCL999990_qc.html",
-                "individual_reports/SCPCS999997/SCPCL999997_celltype-report.html",
-                "individual_reports/SCPCS999997/SCPCL999997_qc.html",
-                # Do we want bulk files to be prefixed with the project id?
-                "SCPCP999990_merged-summary-report.html",
-                "SCPCP999990_merged_rna.h5ad",
-                "SCPCP999990_bulk_metadata.tsv",
-                "SCPCP999990_bulk_quant.tsv",
-                "single_cell_metadata.tsv",
-            ]
-            result_file_list = project_zip.namelist()
-            self.assertEqual(set(expected_file_list), set(result_file_list))
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.FILE_LIST,
+            )
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.get_computed_file(download_config)
+        computed_file = project.get_computed_file(
+            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG
+        )
         self.assertIsNotNone(computed_file)
-
-        expected_computed_file_attribute_values = {
-            "format": ComputedFile.OutputFileFormats.ANN_DATA,
-            "has_bulk_rna_seq": True,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": False,
-            "includes_merged": True,
-            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
-            "metadata_only": False,
-            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": output_file_name,
-            "size_in_bytes": 8601,
-            "workflow_version": "development",
-            "includes_celltype_report": True,
-        }
-        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.VALUES
+        )
 
     def test_project_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = "SCPCP999990"
-        project = self.create_project(self.get_project_metadata(project_id))
-        # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
-
-        download_config_name = "SPATIAL_SINGLE_CELL_EXPERIMENT"
-        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        project = self.create_project(
+            self.get_project_metadata(
+                test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.PROJECT_ID
+            )
+        )
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_project_generate_computed_file_"
+            f"{test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG_NAME}",  # noqa
+        )
+        download_config = (
+            test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
+        )
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        output_file_name = project.get_download_config_file_output_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
-        with ZipFile(project_zip_path) as project_zip:
+        with ZipFile(
+            test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.PROJECT_ZIP_PATH
+        ) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = {"SCPCL999991"}
+            expected_libraries = (
+                test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.LIBRARIES
+            )
             self.assertLibraries(project_zip, expected_libraries)
-
-            expected_file_list = [
-                "README.md",
-                "spatial_metadata.tsv",
-                "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/features.tsv.gz",
-                "SCPCS999991/SCPCL999991_spatial/SCPCL999991_spaceranger-summary.html",
-                "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/barcodes.tsv.gz",
-                "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/features.tsv.gz",
-                "SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/matrix.mtx.gz",
-                "SCPCS999991/SCPCL999991_spatial/raw_feature_bc_matrix/barcodes.tsv.gz",
-                "SCPCS999991/SCPCL999991_spatial/raw_feature_bc_matrix/features.tsv.gz",
-                "SCPCS999991/SCPCL999991_spatial/raw_feature_bc_matrix/matrix.mtx.gz",
-                "SCPCS999991/SCPCL999991_spatial/spatial/aligned_fiducials.jpg",
-                "SCPCS999991/SCPCL999991_spatial/spatial/detected_tissue_image.jpg",
-                "SCPCS999991/SCPCL999991_spatial/spatial/scalefactors_json.json",
-                "SCPCS999991/SCPCL999991_spatial/spatial/tissue_hires_image.png",
-                "SCPCS999991/SCPCL999991_spatial/spatial/tissue_lowres_image.png",
-                "SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv",
-                "SCPCS999991/SCPCL999991_spatial/SCPCL999991_metadata.json",
-            ]
-
-            result_file_list = project_zip.namelist()
-            self.assertEqual(set(expected_file_list), set(result_file_list))
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.FILE_LIST,
+            )
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.get_computed_file(download_config)
+        computed_file = project.get_computed_file(
+            test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
+        )
         self.assertIsNotNone(computed_file)
-
-        expected_computed_file_attribute_values = {
-            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-            "has_bulk_rna_seq": False,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": False,
-            "includes_merged": False,
-            "modality": ComputedFile.OutputFileModalities.SPATIAL,
-            "metadata_only": False,
-            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": output_file_name,
-            "size_in_bytes": 9156,
-            "workflow_version": "development",
-            "includes_celltype_report": True,
-        }
-        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.VALUES
+        )
 
     def test_project_generate_computed_files_ALL_METADATA(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = "SCPCP999990"
+        project_id = test_data.Computed_File_Project.ALL_METADATA.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
-        # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(project)
-
-        download_config_name = "ALL_METADATA"
-        download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+        self.assertIsNotNone(
+            project,
+            "Problem creating project, unable to test "
+            "test_project_generate_computed_file_"
+            f"{test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG_NAME}",
+        )
+        download_config = test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
             with patch("scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        output_file_name = project.get_download_config_file_output_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
-        with ZipFile(project_zip_path) as project_zip:
+        with ZipFile(test_data.Computed_File_Project.ALL_METADATA.PROJECT_ZIP_PATH) as project_zip:
             # Check if correct libraries were added in
-            expected_libraries = {"SCPCL999990", "SCPCL999991", "SCPCL999997"}
+            expected_libraries = test_data.Computed_File_Project.ALL_METADATA.LIBRARIES
+            # Only assertLibrariesMetadata and not assertLibrariesDataFiles for ALL_METADATA config
             self.assertLibrariesMetadata(project_zip, expected_libraries)
-            expected_file_list = ["README.md", "metadata.tsv"]
-            result_file_list = project_zip.namelist()
-            self.assertEqual(set(expected_file_list), set(result_file_list))
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                test_data.Computed_File_Project.ALL_METADATA.FILE_LIST,
+            )
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = project.get_computed_file(download_config)
+        computed_file = project.get_computed_file(
+            test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG
+        )
         self.assertIsNotNone(computed_file)
-
-        expected_computed_file_attribute_values = {
-            "format": None,
-            "has_bulk_rna_seq": False,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": False,
-            "includes_merged": False,
-            "modality": None,
-            "metadata_only": True,
-            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": output_file_name,
-            "size_in_bytes": 4866,
-            "workflow_version": "development",
-            "includes_celltype_report": True,
-        }
-        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Project.ALL_METADATA.VALUES
+        )
 
     def test_sample_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = "SCPCP999990"
+        project_id = test_data.Computed_File_Sample.SINGLE_CELL_SCE.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
         self.assertIsNotNone(project)
 
-        sample_id = "SCPCS999990"
+        sample_id = test_data.Computed_File_Sample.SINGLE_CELL_SCE.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
         self.assertIsNotNone(sample)
 
-        download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"
-        download_config = common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name]
+        download_config = test_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
@@ -936,60 +820,37 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        output_file_name = sample.get_download_config_file_output_name(download_config)
-        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
-        with ZipFile(sample_zip_path) as sample_zip:
+        with ZipFile(test_data.Computed_File_Sample.SINGLE_CELL_SCE.SAMPLE_ZIP_PATH) as sample_zip:
             # Check if correct libraries were added in
-            expected_libraries = {"SCPCL999990"}
-            self.assertLibraries(sample_zip, expected_libraries)
-
-            expected_file_list = [
-                "README.md",
-                "single_cell_metadata.tsv",
-                "SCPCL999990_celltype-report.html",
-                "SCPCL999990_filtered.rds",
-                "SCPCL999990_processed.rds",
-                "SCPCL999990_qc.html",
-                "SCPCL999990_unfiltered.rds",
-            ]
-            result_file_list = sample_zip.namelist()
-            self.assertEqual(set(expected_file_list), set(result_file_list))
+            self.assertLibraries(
+                sample_zip, test_data.Computed_File_Sample.SINGLE_CELL_SCE.LIBRARIES
+            )
+            self.assertListEqual(
+                sorted(sample_zip.namelist()),
+                test_data.Computed_File_Sample.SINGLE_CELL_SCE.FILE_LIST,
+            )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
-
-        expected_computed_file_attribute_values = {
-            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-            "has_bulk_rna_seq": False,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": False,
-            "includes_merged": False,
-            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
-            "metadata_only": False,
-            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": output_file_name,
-            "size_in_bytes": 7017,
-            "workflow_version": "development",
-            "includes_celltype_report": True,
-        }
-        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Sample.SINGLE_CELL_SCE.VALUES
+        )
 
     def test_sample_generate_computed_files_SINGLE_CELL_ANN_DATA(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = "SCPCP999990"
+        project_id = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
         self.assertIsNotNone(project)
 
-        sample_id = "SCPCS999990"
+        sample_id = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
         self.assertIsNotNone(sample)
 
-        download_config_name = "SINGLE_CELL_ANN_DATA"
-        download_config = common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name]
+        download_config = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
@@ -1000,60 +861,39 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        output_file_name = sample.get_download_config_file_output_name(download_config)
-        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
-        with ZipFile(sample_zip_path) as sample_zip:
+        with ZipFile(
+            test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.SAMPLE_ZIP_PATH
+        ) as sample_zip:
             # Check if correct libraries were added in
-            expected_libraries = {"SCPCL999990"}
-            self.assertLibraries(sample_zip, expected_libraries)
-
-            expected_file_list = [
-                "README.md",
-                "single_cell_metadata.tsv",
-                "SCPCL999990_celltype-report.html",
-                "SCPCL999990_filtered_rna.h5ad",
-                "SCPCL999990_processed_rna.h5ad",
-                "SCPCL999990_qc.html",
-                "SCPCL999990_unfiltered_rna.h5ad",
-            ]
-            result_file_list = sample_zip.namelist()
-            self.assertEqual(set(expected_file_list), set(result_file_list))
+            self.assertLibraries(
+                sample_zip, test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.LIBRARIES
+            )
+            self.assertListEqual(
+                sorted(sample_zip.namelist()),
+                test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.FILE_LIST,
+            )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
-
-        expected_computed_file_attribute_values = {
-            "format": ComputedFile.OutputFileFormats.ANN_DATA,
-            "has_bulk_rna_seq": False,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": False,
-            "includes_merged": False,
-            "modality": ComputedFile.OutputFileModalities.SINGLE_CELL,
-            "metadata_only": False,
-            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": output_file_name,
-            "size_in_bytes": 7401,
-            "workflow_version": "development",
-            "includes_celltype_report": True,
-        }
-        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.VALUES
+        )
 
     def test_sample_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
         loader.prep_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = "SCPCP999990"
+        project_id = test_data.Computed_File_Sample.SPATIAL_SCE.PROJECT_ID
         project = self.create_project(self.get_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
         self.assertIsNotNone(project)
 
-        sample_id = "SCPCS999991"
+        sample_id = test_data.Computed_File_Sample.SPATIAL_SCE.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
         self.assertIsNotNone(sample)
 
-        download_config_name = "SPATIAL_SINGLE_CELL_EXPERIMENT"
-        download_config = common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name]
+        download_config = test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG
         with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
@@ -1064,50 +904,60 @@ class TestLoader(TransactionTestCase):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
-        output_file_name = sample.get_download_config_file_output_name(download_config)
-        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
-        with ZipFile(sample_zip_path) as sample_zip:
+        with ZipFile(test_data.Computed_File_Sample.SPATIAL_SCE.SAMPLE_ZIP_PATH) as sample_zip:
             # Check if correct libraries were added in
-            expected_libraries = {"SCPCL999991"}
-            self.assertLibraries(sample_zip, expected_libraries)
-
-            expected_file_list = [
-                "README.md",
-                "spatial_metadata.tsv",
-                "SCPCL999991_spatial/SCPCL999991_spaceranger-summary.html",
-                "SCPCL999991_spatial/filtered_feature_bc_matrix/barcodes.tsv.gz",
-                "SCPCL999991_spatial/filtered_feature_bc_matrix/features.tsv.gz",
-                "SCPCL999991_spatial/filtered_feature_bc_matrix/matrix.mtx.gz",
-                "SCPCL999991_spatial/raw_feature_bc_matrix/barcodes.tsv.gz",
-                "SCPCL999991_spatial/raw_feature_bc_matrix/features.tsv.gz",
-                "SCPCL999991_spatial/raw_feature_bc_matrix/matrix.mtx.gz",
-                "SCPCL999991_spatial/spatial/aligned_fiducials.jpg",
-                "SCPCL999991_spatial/spatial/detected_tissue_image.jpg",
-                "SCPCL999991_spatial/spatial/scalefactors_json.json",
-                "SCPCL999991_spatial/spatial/tissue_hires_image.png",
-                "SCPCL999991_spatial/spatial/tissue_lowres_image.png",
-                "SCPCL999991_spatial/spatial/tissue_positions_list.csv",
-                "SCPCL999991_spatial/SCPCL999991_metadata.json",
-            ]
-            result_file_list = sample_zip.namelist()
-            self.assertEqual(set(expected_file_list), set(result_file_list))
+            self.assertLibraries(sample_zip, test_data.Computed_File_Sample.SPATIAL_SCE.LIBRARIES)
+            self.assertListEqual(
+                sorted(sample_zip.namelist()),
+                test_data.Computed_File_Sample.SPATIAL_SCE.FILE_LIST,
+            )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Sample.SPATIAL_SCE.VALUES
+        )
 
-        expected_computed_file_attribute_values = {
-            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-            "has_bulk_rna_seq": False,
-            "has_cite_seq_data": False,
-            "has_multiplexed_data": False,
-            "includes_merged": False,
-            "modality": ComputedFile.OutputFileModalities.SPATIAL,
-            "metadata_only": False,
-            "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": output_file_name,
-            "size_in_bytes": 8820,
-            "workflow_version": "development",
-            "includes_celltype_report": True,
-        }
-        self.assertObjectProperties(computed_file, expected_computed_file_attribute_values)
+    def test_multiplexed_sample_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
+        loader.prep_data_dirs()
+
+        # GENERATE COMPUTED FILES
+        project_id = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.PROJECT_ID
+        project = self.create_project(self.get_project_metadata(project_id))
+        # Make sure that create_project didn't fail and return a None value
+        self.assertIsNotNone(project)
+
+        sample_id = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.SAMPLE_ID
+        sample = project.samples.filter(scpca_id=sample_id).first()
+        self.assertIsNotNone(sample)
+
+        download_config = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG
+        with patch("scpca_portal.common.PRE_GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
+            # Mocking project.samples.all() in loader module is restricted due to the Django ORM
+            # Instead, we purge all samples that are not of interest to desired computed file
+            self.purge_extra_samples(project, sample)
+            with patch(
+                "scpca_portal.common.PRE_GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]
+            ):
+                self.generate_computed_files(project)
+
+        # CHECK ZIP FILE
+        with ZipFile(
+            test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.SAMPLE_ZIP_PATH
+        ) as sample_zip:
+            # Check if correct libraries were added in
+            self.assertLibraries(
+                sample_zip, test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.LIBRARIES
+            )
+            self.assertListEqual(
+                sorted(sample_zip.namelist()),
+                test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.FILE_LIST,
+            )
+
+        # CHECK COMPUTED FILE ATTRIBUTES
+        computed_file = sample.get_computed_file(download_config)
+        self.assertIsNotNone(computed_file)
+        self.assertObjectProperties(
+            computed_file, test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.VALUES
+        )
