@@ -30,9 +30,7 @@ class Project_SCPCP999992:
         "includes_merged_sce": True,
         "includes_merged_anndata": True,
         "includes_xenografts": False,
-        "modalities": [
-            Sample.Modalities.NAME_MAPPING["CITE_SEQ"],
-        ],
+        "modalities": [Sample.Modalities.NAME_MAPPING[Sample.Modalities.CITE_SEQ]],
         "multiplexed_sample_count": 0,
         "organisms": ["Homo sapiens"],
         "pi_name": "scpca",
