@@ -252,18 +252,18 @@ class Project_SCPCP999990:
 
     class Summary3:
         VALUES = {
-            "diagnosis": "diagnosis2",
+            "diagnosis": "diagnosis5",
             "sample_count": 1,
-            "seq_unit": "spot",
-            "technology": "visium",
+            "seq_unit": "",
+            "technology": "",
         }
 
     class Summary4:
         VALUES = {
-            "diagnosis": "diagnosis2",
+            "diagnosis": "diagnosis8",
             "sample_count": 1,
-            "seq_unit": "spot",
-            "technology": "visium",
+            "seq_unit": "cell",
+            "technology": "10Xv3",
         }
 
     class Contact1:
