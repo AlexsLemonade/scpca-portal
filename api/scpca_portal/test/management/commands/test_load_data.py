@@ -61,6 +61,20 @@ class TestLoadData(TestCase):
         self.mock_generate_computed_files.assert_called()
 
     def test_input_bucket_name(self):
+        self.load_data()
+        self.assertMethodsCalled()
+
+        self.mock_get_projects_metadata.assert_called_once_with(
+            self.input_bucket_name, self.scpca_project_id
+        )
+        self.mock_create_project.assert_called_once_with(
+            self.projects_metadata[0],
+            self.submitter_whitelist,
+            self.input_bucket_name,
+            self.reload_existing,
+            self.update_s3,
+        )
+
         input_bucket_name = "input_bucket_name"
         self.load_data(input_bucket_name=input_bucket_name)
         self.assertMethodsCalled()
@@ -146,11 +160,28 @@ class TestLoadData(TestCase):
             self.update_s3,
         )
 
-    def test_scpca_project_id_passed(self):
-        pass
+    def test_scpca_project_id(self):
+        self.load_data()
+        self.assertMethodsCalled()
 
-    def test_no_scpca_project_id_passed(self):
-        pass
+        self.mock_get_projects_metadata.assert_called_once_with(
+            self.input_bucket_name, self.scpca_project_id
+        )
+        self.mock_create_project.assert_called_once_with(
+            self.projects_metadata[0],
+            self.submitter_whitelist,
+            self.input_bucket_name,
+            self.reload_existing,
+            self.update_s3,
+        )
+
+        scpca_project_id = "scpca_project_id"
+        self.load_data(scpca_project_id=scpca_project_id)
+        self.assertMethodsCalled()
+
+        self.mock_get_projects_metadata.assert_called_once_with(
+            self.input_bucket_name, scpca_project_id
+        )
 
     def test_update_s3(self):
         self.load_data()
