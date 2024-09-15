@@ -12,7 +12,7 @@ from scpca_portal.models import Project
 class TestLoadData(TestCase):
     def setUp(self):
         self.load_data = partial(call_command, "load_data")
-        # Bind default values to test object for easy access
+        # Bind default function params to test object for easy access
         self.input_bucket_name = settings.AWS_S3_INPUT_BUCKET_NAME
         self.clean_up_input_data = False
         self.clean_up_output_data = False
@@ -77,12 +77,24 @@ class TestLoadData(TestCase):
         )
 
     def test_clean_up_input_data(self):
+        self.load_data()
+        self.assertMethodsCalled()
+        self.mock_remove_project_input_files.assert_not_called()
+
         clean_up_input_data = True
         self.load_data(clean_up_input_data=clean_up_input_data)
         self.assertMethodsCalled()
         self.mock_remove_project_input_files.assert_called_once()
 
     def test_clean_up_output_data(self):
+        self.load_data()
+        self.assertMethodsCalled()
+
+        project = self.mock_create_project.return_value
+        self.mock_generate_computed_files.assert_called_once_with(
+            project, self.max_workers, self.update_s3, self.clean_up_output_data
+        )
+
         clean_up_output_data = True
         self.load_data(clean_up_output_data=clean_up_output_data)
         self.assertMethodsCalled()
@@ -93,8 +105,15 @@ class TestLoadData(TestCase):
         )
 
     def test_max_workers(self):
-        # The default is 10, so we want to make sure that any value can be successfully passed
-        max_workers = 8
+        self.load_data()
+        self.assertMethodsCalled()
+
+        project = self.mock_create_project.return_value
+        self.mock_generate_computed_files.assert_called_once_with(
+            project, self.max_workers, self.update_s3, self.clean_up_output_data
+        )
+
+        max_workers = 5
         self.load_data(max_workers=max_workers)
         self.assertMethodsCalled()
 
@@ -104,7 +123,28 @@ class TestLoadData(TestCase):
         )
 
     def test_reload_existing(self):
-        pass
+        self.load_data()
+        self.assertMethodsCalled()
+
+        self.mock_create_project.assert_called_once_with(
+            self.projects_metadata[0],
+            self.submitter_whitelist,
+            self.input_bucket_name,
+            self.reload_existing,
+            self.update_s3,
+        )
+
+        reload_existing = True
+        self.load_data(reload_existing=reload_existing)
+        self.assertMethodsCalled()
+
+        self.mock_create_project.assert_called_once_with(
+            self.projects_metadata[0],
+            self.submitter_whitelist,
+            self.input_bucket_name,
+            reload_existing,
+            self.update_s3,
+        )
 
     def test_scpca_project_id_passed(self):
         pass
@@ -113,17 +153,60 @@ class TestLoadData(TestCase):
         pass
 
     def test_update_s3(self):
+        self.load_data()
+        self.assertMethodsCalled()
+
+        self.mock_create_project.assert_called_once_with(
+            self.projects_metadata[0],
+            self.submitter_whitelist,
+            self.input_bucket_name,
+            self.reload_existing,
+            self.update_s3,
+        )
+        project = self.mock_create_project.return_value
+        self.mock_generate_computed_files.assert_called_once_with(
+            project, self.max_workers, self.update_s3, self.clean_up_output_data
+        )
+
         update_s3 = True
         self.load_data(update_s3=update_s3)
         self.assertMethodsCalled()
 
+        self.mock_create_project.assert_called_once_with(
+            self.projects_metadata[0],
+            self.submitter_whitelist,
+            self.input_bucket_name,
+            self.reload_existing,
+            update_s3,
+        )
         project = self.mock_create_project.return_value
         self.mock_generate_computed_files.assert_called_once_with(
             project, self.max_workers, update_s3, self.clean_up_output_data
         )
 
     def test_submitter_whitelist(self):
-        pass
+        self.load_data()
+        self.assertMethodsCalled()
+
+        self.mock_create_project.assert_called_once_with(
+            self.projects_metadata[0],
+            self.submitter_whitelist,
+            self.input_bucket_name,
+            self.reload_existing,
+            self.update_s3,
+        )
+
+        submitter_whitelist = {"submitter"}
+        self.load_data(submitter_whitelist=submitter_whitelist)
+        self.assertMethodsCalled()
+
+        self.mock_create_project.assert_called_once_with(
+            self.projects_metadata[0],
+            submitter_whitelist,
+            self.input_bucket_name,
+            self.reload_existing,
+            self.update_s3,
+        )
 
     def test_get_projects_metadata_failure(self):
         self.mock_get_projects_metadata.return_value = []
