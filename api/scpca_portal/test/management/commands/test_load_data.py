@@ -14,8 +14,8 @@ class TestLoadData(TestCase):
         self.load_data = partial(call_command, "load_data")
         # Bind default values to test object for easy access
         self.input_bucket_name = settings.AWS_S3_INPUT_BUCKET_NAME
-        self.clean_up_input_data = False
-        self.clean_up_output_data = False
+        self.clean_up_input_data = True
+        self.clean_up_output_data = True
         self.max_workers = 10
         self.reload_existing = False
         self.scpca_project_id = None
@@ -45,6 +45,11 @@ class TestLoadData(TestCase):
             remove_project_input_files_patch,
         ]
 
+        # Configure necessary output values
+        self.projects_metadata = [{"key": "value"}]
+        self.mock_get_projects_metadata.return_value = self.projects_metadata
+        self.mock_create_project.return_value = Project()
+
     def tearDown(self):
         for p in self.patches:
             p.stop()
@@ -57,14 +62,12 @@ class TestLoadData(TestCase):
         self.mock_remove_project_input_files.assert_called()
 
     def test_input_bucket_name(self):
-        projects_metadata = [{"key": "value"}]
-        self.mock_get_projects_metadata.return_value = projects_metadata
-        self.mock_create_project.return_value = Project()
-
         input_bucket_name = "input_bucket_name"
         self.load_data(
             input_bucket_name=input_bucket_name,
-            clean_up_input_data=True,
+            # This value is the only one that overrides the default method param
+            # We want it to passed so that loader::remove_project_input_files will be called
+            clean_up_input_data=self.clean_up_input_data,
         )
         self.assertMethodsCalled()
 
@@ -72,7 +75,7 @@ class TestLoadData(TestCase):
             input_bucket_name, self.scpca_project_id
         )
         self.mock_create_project.assert_called_once_with(
-            projects_metadata[0],
+            self.projects_metadata[0],
             self.submitter_whitelist,
             input_bucket_name,
             self.reload_existing,
@@ -84,6 +87,21 @@ class TestLoadData(TestCase):
 
     def test_clean_up_output_data(self):
         pass
+
+    def test_max_workers(self):
+        # The default is 10, so we want to make sure that any value can be successfully passed
+        max_workers = 8
+        self.load_data(
+            max_workers=max_workers,
+            clean_up_input_data=self.clean_up_input_data,
+            clean_up_output_data=self.clean_up_output_data,
+        )
+        self.assertMethodsCalled()
+
+        project = self.mock_create_project.return_value
+        self.mock_generate_computed_files.assert_called_once_with(
+            project, max_workers, self.update_s3, self.clean_up_output_data
+        )
 
     def test_reload_existing(self):
         pass
@@ -98,4 +116,7 @@ class TestLoadData(TestCase):
         pass
 
     def test_submitter_whitelist(self):
+        pass
+
+    def create_project_fails(self):
         pass
