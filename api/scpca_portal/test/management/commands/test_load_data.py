@@ -22,37 +22,62 @@ class TestLoadData(TestCase):
         self.update_s3 = False
         self.submitter_whitelist = common.SUBMITTER_WHITELIST
 
-    @patch("scpca_portal.loader.remove_project_input_files")
-    @patch("scpca_portal.loader.generate_computed_files")
-    @patch("scpca_portal.loader.create_project")
-    @patch("scpca_portal.loader.get_projects_metadata")
-    def test_input_bucket_name(
-        self,
-        mock_get_projects_metadata,
-        mock_create_project,
-        mock_generate_computed_files,
-        mock_remove_project_input_files,
-    ):
+        # Handle patching in setUp function
+        prep_data_dirs_patch = patch("scpca_portal.loader.prep_data_dirs")
+        get_projects_metadata_patch = patch("scpca_portal.loader.get_projects_metadata")
+        create_project_patch = patch("scpca_portal.loader.create_project")
+        generate_computed_files_patch = patch("scpca_portal.loader.generate_computed_files")
+        remove_project_input_files_patch = patch("scpca_portal.loader.remove_project_input_files")
+
+        # Start patches
+        self.mock_prep_data_dirs = prep_data_dirs_patch.start()
+        self.mock_get_projects_metadata = get_projects_metadata_patch.start()
+        self.mock_create_project = create_project_patch.start()
+        self.mock_generate_computed_files = generate_computed_files_patch.start()
+        self.mock_remove_project_input_files = remove_project_input_files_patch.start()
+
+        # Save patches that so they can be stopped during tearDown
+        self.patches = [
+            prep_data_dirs_patch,
+            get_projects_metadata_patch,
+            create_project_patch,
+            generate_computed_files_patch,
+            remove_project_input_files_patch,
+        ]
+
+    def tearDown(self):
+        for p in self.patches:
+            p.stop()
+
+    def assertMethodsCalled(self):
+        self.mock_prep_data_dirs.assert_called()
+        self.mock_get_projects_metadata.assert_called()
+        self.mock_create_project.assert_called()
+        self.mock_generate_computed_files.assert_called()
+        self.mock_remove_project_input_files.assert_called()
+
+    def test_input_bucket_name(self):
         projects_metadata = [{"key": "value"}]
-        mock_get_projects_metadata.return_value = projects_metadata
-        mock_create_project.return_value = Project()
+        self.mock_get_projects_metadata.return_value = projects_metadata
+        self.mock_create_project.return_value = Project()
 
         input_bucket_name = "input_bucket_name"
         self.load_data(
             input_bucket_name=input_bucket_name,
             clean_up_input_data=True,
         )
+        self.assertMethodsCalled()
 
-        mock_get_projects_metadata.assert_called_once_with(input_bucket_name, self.scpca_project_id)
-        mock_create_project.assert_called_once_with(
+        self.mock_get_projects_metadata.assert_called_once_with(
+            input_bucket_name, self.scpca_project_id
+        )
+        self.mock_create_project.assert_called_once_with(
             projects_metadata[0],
             self.submitter_whitelist,
             input_bucket_name,
             self.reload_existing,
             self.update_s3,
         )
-        mock_generate_computed_files.assert_called_once()
-        mock_remove_project_input_files.assert_called_once()
 
     def test_clean_up_input_data(self):
         pass
