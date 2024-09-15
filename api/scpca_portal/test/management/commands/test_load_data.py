@@ -125,5 +125,22 @@ class TestLoadData(TestCase):
     def test_submitter_whitelist(self):
         pass
 
-    def create_project_fails(self):
-        pass
+    def test_get_projects_metadata_failure(self):
+        self.mock_get_projects_metadata.return_value = []
+        self.load_data()
+
+        self.mock_prep_data_dirs.assert_called_once()
+        self.mock_get_projects_metadata.assert_called_once()
+        self.mock_create_project.assert_not_called()
+        self.mock_generate_computed_files.assert_not_called()
+        self.mock_remove_project_input_files.assert_not_called()
+
+    def test_create_project_failure(self):
+        self.mock_create_project.return_value = None
+        self.load_data()
+
+        self.mock_prep_data_dirs.assert_called_once()
+        self.mock_get_projects_metadata.assert_called_once()
+        self.mock_create_project.assert_called_once()
+        self.mock_generate_computed_files.assert_not_called()
+        self.mock_remove_project_input_files.assert_not_called()
