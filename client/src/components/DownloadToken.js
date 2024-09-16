@@ -25,7 +25,7 @@ const UpdatesLabel = () => {
 }
 
 // View when the user has no token in local storage yet
-export const DownloadToken = () => {
+export const DownloadToken = ({resource}) => {
   const {
     email,
     setEmail,
@@ -39,6 +39,7 @@ export const DownloadToken = () => {
   } = useContext(ScPCAPortalContext)
   const [requesting, setRequesting] = useState(false)
   const [errors, setErrors] = useState([])
+  const buttonLabel = resource && resource.samples ? "Agree and Continue" : "Download"
 
   useEffect(() => {
     const asyncTokenRequest = async () => {
@@ -91,7 +92,7 @@ export const DownloadToken = () => {
       <Box direction="row" justify="end" margin={{ top: 'medium' }}>
         <Button
           primary
-          label="Download"
+          label={buttonLabel}
           disabled={!acceptsTerms || !email || requesting}
           onClick={() => setRequesting(true)}
         />

@@ -23,7 +23,7 @@ export const useDownloadModal = (
   const isDownloadReady = download && token
   const isOptionsReady = !publicComputedFile && hasMultipleFiles
   const isSampleMetadataOnly = publicComputedFile?.metadata_only
-  const isTokenReady = !token && publicComputedFile
+  const isTokenReady = !token
   // text information
   const verb = isDownloadReady ? 'Downloading' : 'Download'
   const resourceType = resource.samples ? 'Project' : 'Sample'
