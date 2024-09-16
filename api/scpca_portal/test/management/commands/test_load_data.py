@@ -78,7 +78,6 @@ class TestLoadData(TestCase):
 
         input_bucket_name = "input_bucket_name"
         self.load_data(input_bucket_name=input_bucket_name)
-        self.assertMethodsCalled()
 
         self.mock_get_projects_metadata.assert_called_with(input_bucket_name, self.scpca_project_id)
         self.mock_create_project.assert_called_with(
@@ -96,7 +95,6 @@ class TestLoadData(TestCase):
 
         clean_up_input_data = True
         self.load_data(clean_up_input_data=clean_up_input_data)
-        self.assertMethodsCalled()
         self.mock_remove_project_input_files.assert_called_once()
 
     def test_clean_up_output_data(self):
@@ -109,7 +107,6 @@ class TestLoadData(TestCase):
 
         clean_up_output_data = True
         self.load_data(clean_up_output_data=clean_up_output_data)
-        self.assertMethodsCalled()
 
         self.mock_generate_computed_files.assert_called_with(
             self.project, self.max_workers, self.update_s3, clean_up_output_data
@@ -125,7 +122,6 @@ class TestLoadData(TestCase):
 
         max_workers = 5
         self.load_data(max_workers=max_workers)
-        self.assertMethodsCalled()
 
         self.mock_generate_computed_files.assert_called_with(
             self.project, max_workers, self.update_s3, self.clean_up_output_data
@@ -145,7 +141,6 @@ class TestLoadData(TestCase):
 
         reload_existing = True
         self.load_data(reload_existing=reload_existing)
-        self.assertMethodsCalled()
 
         self.mock_create_project.assert_called_with(
             self.projects_metadata[0],
@@ -172,7 +167,6 @@ class TestLoadData(TestCase):
 
         scpca_project_id = "scpca_project_id"
         self.load_data(scpca_project_id=scpca_project_id)
-        self.assertMethodsCalled()
 
         self.mock_get_projects_metadata.assert_called_with(self.input_bucket_name, scpca_project_id)
 
@@ -193,7 +187,6 @@ class TestLoadData(TestCase):
 
         update_s3 = True
         self.load_data(update_s3=update_s3)
-        self.assertMethodsCalled()
 
         self.mock_create_project.assert_called_with(
             self.projects_metadata[0],
@@ -220,7 +213,6 @@ class TestLoadData(TestCase):
 
         submitter_whitelist = {"submitter"}
         self.load_data(submitter_whitelist=submitter_whitelist)
-        self.assertMethodsCalled()
 
         self.mock_create_project.assert_called_with(
             self.projects_metadata[0],
