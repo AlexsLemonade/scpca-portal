@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Grid, Heading, Text } from 'grommet'
 import { Button } from 'components/Button'
+import { CopyLinkButton } from 'components/CopyLinkButton'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
@@ -62,7 +63,10 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
         </Box>
       </Box>
       <Box gridArea="footer" margin={{ top: 'medium' }}>
-        <Box>
+        <Grid
+          columns={['auto', 'auto']}
+          gap='small'
+        >
           <Button
             primary
             alignSelf="start"
@@ -74,7 +78,8 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
               handleSelectFile(computedFile)
             }}
           />
-        </Box>
+          <CopyLinkButton/>
+        </Grid>
       </Box>
     </Grid>
   )
