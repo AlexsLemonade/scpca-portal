@@ -48,7 +48,8 @@ class TestLoadData(TestCase):
         # Configure necessary output values
         self.projects_metadata = [{"key": "value"}]
         self.mock_get_projects_metadata.return_value = self.projects_metadata
-        self.mock_create_project.return_value = Project()
+        self.project = Project()
+        self.mock_create_project.return_value = self.project
 
     def tearDown(self):
         for p in self.patches:
@@ -102,36 +103,32 @@ class TestLoadData(TestCase):
         self.load_data()
         self.assertMethodsCalled()
 
-        project = self.mock_create_project.return_value
         self.mock_generate_computed_files.assert_called_once_with(
-            project, self.max_workers, self.update_s3, self.clean_up_output_data
+            self.project, self.max_workers, self.update_s3, self.clean_up_output_data
         )
 
         clean_up_output_data = True
         self.load_data(clean_up_output_data=clean_up_output_data)
         self.assertMethodsCalled()
 
-        project = self.mock_create_project.return_value
         self.mock_generate_computed_files.assert_called_with(
-            project, self.max_workers, self.update_s3, clean_up_output_data
+            self.project, self.max_workers, self.update_s3, clean_up_output_data
         )
 
     def test_max_workers(self):
         self.load_data()
         self.assertMethodsCalled()
 
-        project = self.mock_create_project.return_value
         self.mock_generate_computed_files.assert_called_once_with(
-            project, self.max_workers, self.update_s3, self.clean_up_output_data
+            self.project, self.max_workers, self.update_s3, self.clean_up_output_data
         )
 
         max_workers = 5
         self.load_data(max_workers=max_workers)
         self.assertMethodsCalled()
 
-        project = self.mock_create_project.return_value
         self.mock_generate_computed_files.assert_called_with(
-            project, max_workers, self.update_s3, self.clean_up_output_data
+            self.project, max_workers, self.update_s3, self.clean_up_output_data
         )
 
     def test_reload_existing(self):
@@ -190,9 +187,8 @@ class TestLoadData(TestCase):
             self.reload_existing,
             self.update_s3,
         )
-        project = self.mock_create_project.return_value
         self.mock_generate_computed_files.assert_called_once_with(
-            project, self.max_workers, self.update_s3, self.clean_up_output_data
+            self.project, self.max_workers, self.update_s3, self.clean_up_output_data
         )
 
         update_s3 = True
@@ -206,9 +202,8 @@ class TestLoadData(TestCase):
             self.reload_existing,
             update_s3,
         )
-        project = self.mock_create_project.return_value
         self.mock_generate_computed_files.assert_called_with(
-            project, self.max_workers, update_s3, self.clean_up_output_data
+            self.project, self.max_workers, update_s3, self.clean_up_output_data
         )
 
     def test_submitter_whitelist(self):
