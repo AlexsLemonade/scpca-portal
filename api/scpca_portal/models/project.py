@@ -202,7 +202,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return f"{file_name}.zip"
 
-    def get_computed_file(self, download_config: Dict[str, str | bool | int | None]):
+    def get_computed_file(self, download_config: Dict) -> ComputedFile:
         "Return the project computed file that matches the passed download_config."
         if download_config["metadata_only"]:
             return self.computed_files.filter(metadata_only=True).first()
