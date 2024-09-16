@@ -8,13 +8,11 @@ export const PortalMetadataDownload = () => {
 
   return (
     <>
-      {portalMetadataComputedFile && (
-        <DownloadModal
-          label="Get All Sample Metadata"
-          publicComputedFile={portalMetadataComputedFile}
-          disabled={!isPortalMetadataOnlyAvailable}
-        />
-      )}
+      <DownloadModal
+        label="Get All Sample Metadata"
+        publicComputedFile={portalMetadataComputedFile}
+        disabled={!isPortalMetadataOnlyAvailable}
+      />
     </>
   )
 }

@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from 'api'
-import { filterWhere } from 'helpers/filterWhere'
 
 export const usePortalMetadataOnly = () => {
-  const portalMetadataOnlyKey = { portal_metadata_only: true }
   const [portalMetadataComputedFiles, setPortalMetadataComputedFiles] =
     useState([])
   const isPortalMetadataOnlyAvailable = portalMetadataComputedFiles.length === 1
@@ -11,13 +9,11 @@ export const usePortalMetadataOnly = () => {
   // Set states for the portal metedata
   useEffect(() => {
     const getPortalMetadata = async () => {
-      const resourceRequest = await api.computedFiles.list(
-        portalMetadataOnlyKey
-      )
+      const resourceRequest = await api.computedFiles.list({
+        portal_metadata_only: true
+      })
       const { results } = resourceRequest.response
-      setPortalMetadataComputedFiles(
-        filterWhere(results, portalMetadataOnlyKey)
-      )
+      setPortalMetadataComputedFiles(results)
     }
 
     getPortalMetadata()

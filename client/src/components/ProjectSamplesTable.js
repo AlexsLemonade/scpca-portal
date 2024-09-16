@@ -246,15 +246,13 @@ export const ProjectSamplesTable = ({
           />
         </Box>
         <Box>
-          {metadataComputedFile && (
-            <DownloadModal
-              label="Download Sample Metadata"
-              icon={<DownloadIcon color="brand" />}
-              resource={project}
-              publicComputedFile={metadataComputedFile}
-              disabled={!isMetadataOnlyAvailable || hasFilter}
-            />
-          )}
+          <DownloadModal
+            label="Download Sample Metadata"
+            icon={<DownloadIcon color="brand" />}
+            resource={project}
+            publicComputedFile={metadataComputedFile}
+            disabled={!isMetadataOnlyAvailable || hasFilter}
+          />
         </Box>
       </Box>
       {project.has_multiplexed_data && format === 'ANN_DATA' && (

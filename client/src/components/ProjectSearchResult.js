@@ -77,15 +77,13 @@ export const ProjectSearchResult = ({ project }) => {
         <Link href={`/projects/${project.scpca_id}#samples`}>
           <Button label="View Samples" aria-label="View Samples" />
         </Link>
-        {metadataComputedFile && (
-          <DownloadModal
-            label="Download Sample Metadata"
-            icon={<DownloadIcon color="brand" />}
-            resource={project}
-            publicComputedFile={metadataComputedFile}
-            disabled={!isMetadataOnlyAvailable}
-          />
-        )}
+        <DownloadModal
+          label="Download Sample Metadata"
+          icon={<DownloadIcon color="brand" />}
+          resource={project}
+          publicComputedFile={metadataComputedFile}
+          disabled={!isMetadataOnlyAvailable}
+        />
       </Box>
     </Box>
   )

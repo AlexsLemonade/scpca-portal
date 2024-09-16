@@ -69,7 +69,7 @@ export const useDownloadModal = (
 
     if (!initialPublicComputedFile)
       setPublicComputedFile(hasMultipleFiles ? null : defaultComputedFile)
-  }, [resource])
+  }, [resource, initialPublicComputedFile])
 
   // Download when ready
   useEffect(() => {
