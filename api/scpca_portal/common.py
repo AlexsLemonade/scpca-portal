@@ -114,19 +114,18 @@ PROJECT_ID_KEY = "scpca_project_id"
 SAMPLE_ID_KEY = "scpca_sample_id"
 LIBRARY_ID_KEY = "scpca_library_id"
 
-GENERATED_PROJECT_DOWNLOAD_CONFIGS = [
-    # SINGLE CELL SCE CONFIGURATIONS
-    {
-        "modality": "SINGLE_CELL",
-        "format": "SINGLE_CELL_EXPERIMENT",
-        "excludes_multiplexed": False,
-        "includes_merged": False,
-        "metadata_only": False,
-    },
-    {
+PROJECT_DOWNLOAD_CONFIGS = {
+    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT": {
         "modality": "SINGLE_CELL",
         "format": "SINGLE_CELL_EXPERIMENT",
         "excludes_multiplexed": True,
+        "includes_merged": False,
+        "metadata_only": False,
+    },
+    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED": {
+        "modality": "SINGLE_CELL",
+        "format": "SINGLE_CELL_EXPERIMENT",
+        "excludes_multiplexed": False,
         "includes_merged": False,
         "metadata_only": False,
     },
@@ -134,53 +133,53 @@ GENERATED_PROJECT_DOWNLOAD_CONFIGS = [
     #   Only Single-cell (not spatial) for sce and anndata
     #   Only projects with non-multiplexed libraries can be merged
     #   Merged objects are unavailable for projects with > 100 samples
-    {
+    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED": {
         "modality": "SINGLE_CELL",
         "format": "SINGLE_CELL_EXPERIMENT",
         "excludes_multiplexed": True,
         "includes_merged": True,
         "metadata_only": False,
     },
-    # SINGLE CELL ANN DATA CONFIGURATIONS
-    {
+    "SINGLE_CELL_ANN_DATA": {
         "modality": "SINGLE_CELL",
         "format": "ANN_DATA",
         "excludes_multiplexed": True,
         "includes_merged": False,
         "metadata_only": False,
     },
-    {
+    "SINGLE_CELL_ANN_DATA_MERGED": {
         "modality": "SINGLE_CELL",
         "format": "ANN_DATA",
         "excludes_multiplexed": True,
         "includes_merged": True,
         "metadata_only": False,
     },
-    # SPATIAL SCE CONFIGURATIONS
-    {
+    "SPATIAL_SINGLE_CELL_EXPERIMENT": {
         "modality": "SPATIAL",
         "format": "SINGLE_CELL_EXPERIMENT",
         "excludes_multiplexed": True,
         "includes_merged": False,
         "metadata_only": False,
     },
-    # METADATA ONLY DOWNLOADS
-    {
+    "ALL_METADATA": {
         "modality": None,
         "format": None,
         "excludes_multiplexed": False,
         "includes_merged": False,
         "metadata_only": True,
     },
-]
+}
 
-GENERATED_SAMPLE_DOWNLOAD_CONFIGS = [
-    {"modality": "SINGLE_CELL", "format": "SINGLE_CELL_EXPERIMENT"},
-    {"modality": "SINGLE_CELL", "format": "ANN_DATA"},
-    {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"},
-]
+SAMPLE_DOWNLOAD_CONFIGS = {
+    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT": {
+        "modality": "SINGLE_CELL",
+        "format": "SINGLE_CELL_EXPERIMENT",
+    },
+    "SINGLE_CELL_ANN_DATA": {"modality": "SINGLE_CELL", "format": "ANN_DATA"},
+    "SPATIAL_SINGLE_CELL_EXPERIMENT": {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"},
+}
 
-GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG = {
+PORTAL_METADATA_DOWNLOAD_CONFIG = {
     "modality": None,
     "format": None,
     "excludes_multiplexed": False,
@@ -189,5 +188,8 @@ GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG = {
     "portal_metadata_only": True,
 }
 
+GENERATED_PROJECT_DOWNLOAD_CONFIGS = PROJECT_DOWNLOAD_CONFIGS.values()
+
+GENERATED_SAMPLE_DOWNLOAD_CONFIGS = SAMPLE_DOWNLOAD_CONFIGS.values()
 
 PORTAL_METADATA_COMPUTED_FILE_NAME = "portal_metadata.zip"

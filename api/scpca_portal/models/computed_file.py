@@ -93,7 +93,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def get_local_file_path(download_config: Dict) -> Path:
         """Takes a download_config dictionary and returns the filepath
         where the zipfile will be saved locally before upload."""
-        if download_config is common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG:
+        if download_config is common.PORTAL_METADATA_DOWNLOAD_CONFIG:
             return common.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
 
     @classmethod
@@ -145,7 +145,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_project_file(cls, project, download_config: Dict, computed_file_name: str) -> Self:
+    def get_project_file(
+        cls, project, download_config: Dict, computed_file_name: str
+    ) -> Self | None:
         """
         Queries for a project's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,

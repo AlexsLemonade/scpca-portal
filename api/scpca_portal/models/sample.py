@@ -135,6 +135,13 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample_metadata
 
+    def get_computed_file(self, download_config: Dict) -> ComputedFile:
+        "Return the sample computed file that matches the passed download_config."
+        return self.computed_files.filter(
+            modality=download_config["modality"],
+            format=download_config["format"],
+        ).first()
+
     def get_config_identifier(self, download_config: Dict) -> str:
         """
         Returns a unique identifier for the sample and download config combination.
@@ -237,7 +244,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
         return file_formats
 
-    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+    def get_output_file_name(self, download_config: Dict) -> str:
         """
         Accumulates all applicable name segments, concatenates them with an underscore delimiter,
         and returns the string as a unique zip file name.
@@ -256,3 +263,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
         file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
 
         return f"{file_name}.zip"
+
+    def purge(self) -> None:
+        """Purges a sample and its associated libraries"""
+        for library in self.libraries.all():
+            # If library has other samples that it is related to, then don't delete it
+            if library.samples.count() == 1:
+                library.delete()
+        self.delete()

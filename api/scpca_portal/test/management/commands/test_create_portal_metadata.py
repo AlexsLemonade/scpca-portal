@@ -98,9 +98,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         )
 
         # Test the content of the generated zip file
-        zip_file_path = ComputedFile.get_local_file_path(
-            common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
-        )
+        zip_file_path = ComputedFile.get_local_file_path(common.PORTAL_METADATA_DOWNLOAD_CONFIG)
         with ZipFile(zip_file_path) as zip_file:
             # There are 2 file:
             # ├── README.md

@@ -180,7 +180,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             "project_title": self.title,
         }
 
-    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+    def get_output_file_name(self, download_config: Dict) -> str:
         """
         Accumulates all applicable name segments, concatenates them with an underscore delimiter,
         and returns the string as a unique zip file name.
@@ -192,7 +192,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         if download_config.get("includes_merged", False):
             name_segments.append("MERGED")
 
-        if self.has_multiplexed_data and not download_config.get("excludes_multiplexed", False):
+        if not download_config.get("excludes_multiplexed", False) and self.has_multiplexed_data:
             name_segments.append("MULTIPLEXED")
 
         # Change to filename format must be accompanied by an entry in the docs.
@@ -201,6 +201,18 @@ class Project(CommonDataAttributes, TimestampedModel):
         file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
 
         return f"{file_name}.zip"
+
+    def get_computed_file(self, download_config: Dict) -> ComputedFile:
+        "Return the project computed file that matches the passed download_config."
+        if download_config["metadata_only"]:
+            return self.computed_files.filter(metadata_only=True).first()
+
+        return self.computed_files.filter(
+            modality=download_config["modality"],
+            format=download_config["format"],
+            has_multiplexed_data=(not download_config["excludes_multiplexed"]),
+            includes_merged=download_config["includes_merged"],
+        ).first()
 
     def get_data_file_paths(self) -> List[Path]:
         """
@@ -295,11 +307,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Purges project and its related data."""
         self.purge_computed_files(delete_from_s3)
         for sample in self.samples.all():
-            for library in sample.libraries.all():
-                # If library has other samples that it is related to, then don't delete it
-                if len(library.samples.all()) == 1:
-                    library.delete()
-            sample.delete()
+            sample.purge()
 
         self.delete()
 

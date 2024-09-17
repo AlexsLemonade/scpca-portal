@@ -34,7 +34,7 @@ class Command(BaseCommand):
 
         logger.info("Creating the portal-wide metadata computed file")
         if computed_file := ComputedFile.get_portal_metadata_file(
-            Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
+            Project.objects.all(), common.PORTAL_METADATA_DOWNLOAD_CONFIG
         ):
             if update_s3:
                 logger.info("Updating the zip file in S3")
