@@ -26,7 +26,7 @@ export const CopyLinkButton = ({computedFile}) => {
   const [state, setState] = useState(states.unclicked)
   const [downloadLink, setDownloadLink] = useState(null)
 
-  const [value, copyText] = useCopyToClipboard()
+  const copyText = useCopyToClipboard()
   const { token } = useScPCAPortal()
 
   const getDownloadLink = async () => {
