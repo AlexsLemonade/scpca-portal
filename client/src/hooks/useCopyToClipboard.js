@@ -1,6 +1,4 @@
 // (resource) https://usehooks-ts.com/react-hook/use-copy-to-clipboard
-import { useState } from 'react'
-
 export const useCopyToClipboard = () => {
   const copyText = async (text) => {
     if (!navigator?.clipboard) {
