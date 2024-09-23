@@ -1,30 +1,33 @@
 import csv
+import re
 import shutil
+from functools import partial
 from io import TextIOWrapper
-from typing import Dict
+from pathlib import Path
+from typing import Dict, List
 from unittest.mock import patch
 from zipfile import ZipFile
 
 from django.conf import settings
+from django.core.management import call_command
 from django.test import TransactionTestCase
 
-from scpca_portal import common, metadata_file, readme_file
-from scpca_portal.management.commands import create_portal_metadata, load_data
+from scpca_portal import common, metadata_file, readme_file, utils
 from scpca_portal.models import ComputedFile, Library, Project, Sample
 
 # NOTE: Test data bucket is defined in `scpca_porta/common.py`.
 # When common.INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
 
-
+README_DIR = common.DATA_PATH / "readmes"
 README_FILE = readme_file.OUTPUT_NAME
 METADATA_FILE = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
 
 class TestCreatePortalMetadata(TransactionTestCase):
     def setUp(self):
-        self.processor = create_portal_metadata.Command()
-        self.loader = load_data.Command()
+        self.create_portal_metadata = partial(call_command, "create_portal_metadata")
+        self.load_data = partial(call_command, "load_data")
 
     @classmethod
     def tearDownClass(cls):
@@ -37,12 +40,11 @@ class TestCreatePortalMetadata(TransactionTestCase):
         SAMPLES_COUNT = 9
         LIBRARIES_COUNT = 7
 
-        self.loader.load_data(
+        self.load_data(
             input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             clean_up_output_data=False,
             max_workers=4,
-            reload_all=False,
             reload_existing=False,
             scpca_project_id="",
             update_s3=False,
@@ -53,9 +55,34 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
-    # TODO: After PR #839 is merged into dev, add readme file format testing
-    def assertProjectReadmeContains(self, text, zip_file):
-        self.assertIn(text, zip_file.read(README_FILE).decode("utf-8"))
+    def assertProjectReadmeContent(self, zip_file, project_ids: List[str]) -> None:
+        def get_updated_content(content: str) -> str:
+            """
+            Replace the placeholders PROJECT_ID_{i} and TEST_TODAYS_DATE in test_data/readmes
+            with the given project_id and today's date respectively for format testing."
+            """
+            content = content.replace(
+                "Generated on: TEST_TODAYS_DATE", f"Generated on: {utils.get_today_string()}"
+            )
+            # Map project_ids to their coressponding placeholders with indecies in readmes
+            for i, project_id in enumerate(project_ids):
+                content = content.replace(f"PROJECT_ID_{i}", project_id)
+
+            return content.strip()
+
+        # Get the corresponding saved readme output path based on the zip filename
+        readme_filename = re.sub(r"^[A-Z]{5}\d{6}_", "", Path(zip_file.filename).stem) + ".md"
+        saved_readme_output_path = README_DIR / readme_filename
+        # Convert expected and output contents to line lists for easier debugging
+        with zip_file.open(README_FILE) as readme_file:
+            output_content = readme_file.read().decode("utf-8").splitlines(True)
+        with saved_readme_output_path.open("r", encoding="utf-8") as saved_readme_file:
+            expected_content = get_updated_content(saved_readme_file.read()).splitlines(True)
+        self.assertEqual(
+            expected_content,
+            output_content,
+            f"{self._testMethodName}: Comparison with {readme_filename} does not match.",
+        )
 
     def assertFields(self, computed_file, expected_fields: Dict):
         for expected_key, expected_value in expected_fields.items():
@@ -74,7 +101,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         # Set up the database for test
         self.load_test_data()
         # Create the portal metadata computed file
-        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
+        self.create_portal_metadata(clean_up_output_data=False, update_s3=True)
 
         # Test the computed file
         computed_files = ComputedFile.objects.filter(portal_metadata_only=True)
@@ -112,10 +139,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
             self.assertIn(README_FILE, files)
             self.assertIn(METADATA_FILE, files)
             # README.md
-            expected_text = (
-                "This download includes associated metadata for samples from all projects"
+            self.assertProjectReadmeContent(
+                zip_file, list(Project.objects.values_list("scpca_id", flat=True).distinct())
             )
-            self.assertProjectReadmeContains(expected_text, zip_file)
             # metadata.tsv
             with zip_file.open(METADATA_FILE) as metadata_file:
                 csv_reader = csv.DictReader(
@@ -143,8 +169,8 @@ class TestCreatePortalMetadata(TransactionTestCase):
         # Set up the database for test
         self.load_test_data()
         # Make sure pre-existing computed_file has been deleted and only one exists
-        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
-        self.processor.create_portal_metadata(clean_up_output_data=False, update_s3=True)
+        self.create_portal_metadata(clean_up_output_data=False, update_s3=True)
+        self.create_portal_metadata(clean_up_output_data=False, update_s3=True)
         computed_files = ComputedFile.objects.filter(portal_metadata_only=True)
         self.assertEqual(computed_files.count(), 1)
         # Make sure mock_delete_output_file can be called with computed_file field values
