@@ -1,5 +1,4 @@
-import React from 'react'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box } from 'grommet'
 import { config } from 'config'
 import { api } from 'api'
@@ -9,16 +8,16 @@ import { Button } from 'components/Button'
 import { HelpLink } from 'components/HelpLink'
 import { Icon } from 'components/Icon'
 
-export const CopyLinkButton = ({computedFile}) => {
+export const CopyLinkButton = ({ computedFile }) => {
   const states = {
-    unclicked:  {
-      label: "Copy Download Link",
-      icon: <Icon name="Copy" />,
+    unclicked: {
+      label: 'Copy Download Link',
+      icon: <Icon name='Copy' />,
       color: 'brand',
     },
     clicked: {
-      label: "Copied to clipboard!",
-      icon: <Icon name="Check" color="success" />,
+      label: 'Copied to clipboard!',
+      icon: <Icon name='Check' color='success' />,
       color: 'success',
     }
   }
@@ -69,9 +68,7 @@ export const CopyLinkButton = ({computedFile}) => {
         color={state.color}
         onClick={onClick}
       />
-      <HelpLink
-        link={config.links.what_copy_link}
-      />
+      <HelpLink link={config.links.what_copy_link} />
     </Box>
   )
 }
