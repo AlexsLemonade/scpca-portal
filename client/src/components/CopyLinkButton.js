@@ -1,30 +1,79 @@
-import React from 'react'
-import {config} from 'config'
+import { useEffect, useState } from 'react'
+import { Box } from 'grommet'
+import { config } from 'config'
+import { api } from 'api'
+import { useCopyToClipboard } from 'hooks/useCopyToClipboard'
+import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { Button } from 'components/Button'
 import { HelpLink } from 'components/HelpLink'
-import { Grid, Text } from 'grommet'
+import { Icon } from 'components/Icon'
+
+export const CopyLinkButton = ({computedFile, ...props}) => {
+  console.log(computedFile)
+  const states = {
+    unclicked:  {
+      label: "Copy Download Link",
+      icon: <Icon name="Copy" />,
+      color: 'brand',
+    },
+    clicked: {
+      label: "Copied to clipboard!",
+      icon: <Icon name="Check" color="success" />,
+      color: 'success',
+    }
+  }
+
+  const [state, setState ] = useState(states.unclicked)
+  const [downloadLink, setDownloadLink] = useState(null)
+
+  const [value, copyText ] = useCopyToClipboard()
+  const { token } = useScPCAPortal()
 
 
-const saveToClipboard = () => {}
+  const getDownloadLink = async () => {
+    const downloadRequest = await api.computedFiles.get(
+      computedFile.id,
+      token
+    )
 
+    if (downloadRequest.isOk) {
+      setDownloadLink(downloadRequest.response.download_url)
+    }
+  }
 
-export const CopyLinkButton = ({ ...props}) => {
+  const onClick = async () => {
+    if (downloadLink) {
+      await copyText(downloadLink)
+      setState(states.clicked)
+    }
+    else {
+      getDownloadLink()
+    }
+  }
+
+  useEffect(() => {
+    const asyncCopy = async () => {
+      await copyText(downloadLink)
+      setState(states.clicked)
+    }
+    if (downloadLink) asyncCopy()
+  }, [downloadLink])
 
   return (
-    <Grid
-      columns={['small', 'small']}
-      gap='none'
+    <Box
+      direction='row'
     >
       <Button
         plain
-        label="Copy Download Link"
-        onClick={saveToClipboard}
+        label={state.label}
+        icon={state.icon}
+        color={state.color}
+        onClick={onClick}
         {...props}
-      >
-      </Button>
+      />
       <HelpLink
         link={config.links.what_copy_link}
       />
-    </Grid>
+    </Box>
   )
 }

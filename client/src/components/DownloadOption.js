@@ -65,7 +65,7 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
       <Box gridArea="footer" margin={{ top: 'medium' }}>
         <Grid
           columns={['auto', 'auto']}
-          gap='small'
+          gap='large'
         >
           <Button
             primary
@@ -78,7 +78,9 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
               handleSelectFile(computedFile)
             }}
           />
-          <CopyLinkButton/>
+          <CopyLinkButton
+            computedFile={computedFile}
+          />
         </Grid>
       </Box>
     </Grid>
