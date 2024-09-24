@@ -446,7 +446,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
 
         additional_metadata_keys = set()
-        diagnoses = set()
         diagnoses_counts = Counter()
         disease_timings = set()
         modalities = set()
@@ -457,7 +456,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         for sample in self.samples.all():
             additional_metadata_keys.update(sample.additional_metadata.keys())
-            diagnoses.add(sample.diagnosis)
             diagnoses_counts.update({sample.diagnosis: 1})
             disease_timings.add(sample.disease_timing)
             modalities.update(sample.modalities)
@@ -487,7 +485,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             additional_metadata_keys.remove("multiplexed_with")
 
         self.additional_metadata_keys = ", ".join(sorted(additional_metadata_keys, key=str.lower))
-        self.diagnoses = ", ".join(sorted(diagnoses))
         self.diagnoses_counts = ", ".join(diagnoses_strings)
         self.disease_timings = ", ".join(disease_timings)
         self.modalities = sorted(modalities)

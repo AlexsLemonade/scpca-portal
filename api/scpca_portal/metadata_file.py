@@ -28,6 +28,8 @@ PROJECT_METADATA_KEYS = [
     ("citation_doi", "doi", None),
 ]
 
+PROJECT_METADATA_VALUES_TRANSFORMS = {"diagnoses": lambda d: ", ".join(sorted(d.split(";")))}
+
 LIBRARY_METADATA_KEYS = [
     ("library_id", "scpca_library_id", None),
     ("sample_id", "scpca_sample_id", None),
@@ -48,6 +50,7 @@ def load_projects_metadata(*, filter_on_project_id: str = None):
 
     for project_metadata in projects_metadata:
         transform_keys(project_metadata, PROJECT_METADATA_KEYS)
+        transform_values(project_metadata, PROJECT_METADATA_VALUES_TRANSFORMS)
 
     if filter_on_project_id:
         return [pm for pm in projects_metadata if pm["scpca_project_id"] == filter_on_project_id]
@@ -80,6 +83,16 @@ def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
     for element in [KeyTransform._make(element) for element in key_transforms]:
         if element.old_key in data_dict:
             data_dict[element.new_key] = data_dict.pop(element.old_key, element.default_value)
+
+    return data_dict
+
+
+def transform_values(data_dict: Dict, value_transforms: List[Tuple]):
+    """
+    Transform values in data dict according to transformation functions in value transform dict.
+    """
+    for key, transformation_function in value_transforms.items():
+        data_dict[key] = transformation_function(data_dict[key])
 
     return data_dict
 
