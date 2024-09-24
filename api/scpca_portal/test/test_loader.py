@@ -85,10 +85,6 @@ class TestLoader(TransactionTestCase):
         )
         self.assertEqual(expected_libraries, data_file_libraries)
 
-    def assertCreateProjectSucceeded(self, project):
-        msg = "create_project failed and didn't return a project"
-        self.assertIsNotNone(project, msg)
-
     def test_create_project_SCPCP999990(self):
         loader.prep_data_dirs()
 
