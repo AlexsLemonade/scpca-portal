@@ -375,12 +375,21 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
 
-            if multiplexed_library := sample.libraries.filter(is_multiplexed=True).first():
-                multiplexed_ids = set(s.scpca_id for s in multiplexed_library.samples.all())
-                sample.multiplexed_with = sorted(multiplexed_ids.difference({sample.scpca_id}))
-                sample.demux_cell_count_estimate = multiplexed_library.metadata[
-                    "sample_cell_estimates"
-                ].get(sample.scpca_id)
+            if multiplexed_libraries := sample.libraries.filter(is_multiplexed=True):
+                # Cache all sample ID's related through the multiplexed libraries.
+                sample.multiplexed_with = list(
+                    sample.multiplexed_with_samples.order_by("scpca_id").values_list(
+                        "scpca_id", flat=True
+                    )
+                )
+                # Sum demux_cell_count_estimate from all related library's
+                # sample_cell_estimates for that sample.
+                sample.demux_cell_count_estimate = sum(
+                    [
+                        library.metadata["sample_cell_estimates"].get(sample.scpca_id, 0)
+                        for library in multiplexed_libraries
+                    ]
+                )
             else:
                 sample.sample_cell_count_estimate = sample_cell_count_estimate
 
