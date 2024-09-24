@@ -66,10 +66,6 @@ volumes_postgres/
 api/test_uploaded_files
 api/uploaded_files
 
-# Local Data
-api/data
-api/test_data*
-
 # Flask stuff:
 instance/
 .webassets-cache
@@ -167,3 +163,9 @@ client/.env.production.local
 
 # vercel
 client/.vercel
+api/test_data/
+
+# Local Data for Backend development
+api/data
+api/test_data*
+!api/test_data/readmes

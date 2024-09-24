@@ -18,9 +18,6 @@ OUTPUT_DATA_PATH = DATA_PATH / "output"
 
 TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
 
-TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-07-19/"
-INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if settings.TEST else "scpca-portal-inputs"
-
 TAB = "\t"
 NA = "NA"  # "Not Available"
 
@@ -32,6 +29,21 @@ ANN_DATA = "ANN_DATA"
 SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
 
 FORMAT_EXTENSIONS = {ANN_DATA: ".h5ad", SINGLE_CELL_EXPERIMENT: ".rds"}
+
+SUBMITTER_WHITELIST = {
+    "christensen",
+    "collins",
+    "dyer_chen",
+    "gawad",
+    "green_mulcahy_levy",
+    "mullighan",
+    "murphy_chen",
+    "pugh",
+    "teachey_tan",
+    "wu",
+    "rokita",
+    "soragni",
+}
 
 # Global sort order for Metadata TSVs
 # Columns
@@ -102,7 +114,7 @@ PROJECT_ID_KEY = "scpca_project_id"
 SAMPLE_ID_KEY = "scpca_sample_id"
 LIBRARY_ID_KEY = "scpca_library_id"
 
-GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS = [
+GENERATED_PROJECT_DOWNLOAD_CONFIGS = [
     # SINGLE CELL SCE CONFIGURATIONS
     {
         "modality": "SINGLE_CELL",
@@ -162,8 +174,20 @@ GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS = [
     },
 ]
 
-GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS = [
+GENERATED_SAMPLE_DOWNLOAD_CONFIGS = [
     {"modality": "SINGLE_CELL", "format": "SINGLE_CELL_EXPERIMENT"},
     {"modality": "SINGLE_CELL", "format": "ANN_DATA"},
     {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"},
 ]
+
+GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG = {
+    "modality": None,
+    "format": None,
+    "excludes_multiplexed": False,
+    "includes_merged": False,
+    "metadata_only": True,
+    "portal_metadata_only": True,
+}
+
+
+PORTAL_METADATA_COMPUTED_FILE_NAME = "PORTAL_ALL_METADATA.zip"

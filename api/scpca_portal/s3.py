@@ -3,8 +3,6 @@ from collections import namedtuple
 from pathlib import Path
 from typing import List
 
-from django.conf import settings
-
 import boto3
 from botocore.client import Config
 
@@ -16,9 +14,9 @@ aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
 def list_input_paths(
-    relative_path: Path = Path(),
+    relative_path: Path,
+    bucket_name: str,
     *,
-    bucket_path: Path = Path(common.INPUT_BUCKET_NAME),
     recursive: bool = True,
 ) -> List[Path]:
     """
@@ -26,11 +24,16 @@ def list_input_paths(
     and returns bucket's existing content as a list of Path objects,
     relative to (without) the bucket prefix.
     """
+    bucket_path = Path(bucket_name)
     root_path = Path(*bucket_path.parts, *relative_path.parts)
     command_inputs = ["aws", "s3", "ls", f"s3://{root_path}"]
 
     if recursive:
         command_inputs.append("--recursive")
+    # Note: when recursive=False, if there is no traling slash at the end of the s3 resource path,
+    # dir contents will not be listed, but rather the entry located at the relative path itself
+    else:
+        command_inputs[-1] += "/"
 
     if "public" in str(bucket_path):
         command_inputs.append("--no-sign-request")
@@ -76,9 +79,7 @@ def list_input_paths(
     return file_paths
 
 
-def download_input_files(
-    file_paths: List[Path], *, bucket_name: str = common.INPUT_BUCKET_NAME
-) -> bool:
+def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
     command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
 
@@ -102,7 +103,7 @@ def download_input_files(
     return True
 
 
-def download_input_metadata(*, bucket_name: str = common.INPUT_BUCKET_NAME) -> bool:
+def download_input_metadata(bucket_name: str) -> bool:
     """Download all metadata files to the local file system."""
     command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
 
@@ -121,14 +122,10 @@ def download_input_metadata(*, bucket_name: str = common.INPUT_BUCKET_NAME) -> b
     return True
 
 
-def delete_output_file(key: str) -> bool:
-    # If we're not running in the cloud then we shouldn't try to
-    # delete something from S3 unless force is set.
-    if not settings.UPDATE_S3_DATA:
-        return True
-
+def delete_output_file(key: str, bucket_name: str) -> bool:
+    """Delete file a remote file hosted on s3."""
     try:
-        aws_s3.delete_object(Bucket=settings.AWS_S3_BUCKET_NAME, Key=key)
+        aws_s3.delete_object(Bucket=bucket_name, Key=key)
     except Exception:
         logger.exception(
             "Failed to delete S3 object for Computed File.",
@@ -139,11 +136,11 @@ def delete_output_file(key: str) -> bool:
     return True
 
 
-def upload_output_file(key: str) -> bool:
+def upload_output_file(key: str, bucket_name: str) -> bool:
     """Upload a computed file to S3 using the AWS CLI tool."""
 
     local_path = common.OUTPUT_DATA_PATH / key
-    aws_path = f"s3://{settings.AWS_S3_BUCKET_NAME}/{key}"
+    aws_path = f"s3://{bucket_name}/{key}"
     command_parts = ["aws", "s3", "cp", local_path, aws_path]
 
     logger.info(f"Uploading Computed File {key}")
@@ -156,11 +153,11 @@ def upload_output_file(key: str) -> bool:
     return True
 
 
-def generate_pre_signed_link(key: str, filename: str) -> str:
+def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
     return aws_s3.generate_presigned_url(
         ClientMethod="get_object",
         Params={
-            "Bucket": settings.AWS_S3_BUCKET_NAME,
+            "Bucket": bucket_name,
             "Key": key,
             "ResponseContentDisposition": (f"attachment; filename = {filename}"),
         },

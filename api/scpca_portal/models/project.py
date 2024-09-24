@@ -1,12 +1,12 @@
 import csv
 import logging
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Dict, List
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
-from django.db import connection, models
+from django.db import models
 
 from scpca_portal import common, metadata_file, s3, utils
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
@@ -47,6 +47,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     multiplexed_sample_count = models.IntegerField(default=0)
     organisms = ArrayField(models.TextField(), default=list)
     pi_name = models.TextField()
+    s3_input_bucket = models.TextField(default=settings.AWS_S3_INPUT_BUCKET_NAME)
     sample_count = models.IntegerField(default=0)
     scpca_id = models.TextField(unique=True)
     seq_units = models.TextField(blank=True, null=True)
@@ -205,37 +206,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return f"{file_name}.zip"
 
-    def create_computed_files(
-        self,
-        max_workers=8,  # 8 = 2 file formats * 4 mappings.
-        clean_up_output_data=True,
-        update_s3=False,
-    ):
-        """Prepares ready for saving project computed files based on generated file mappings."""
-
-        def on_get_project_file(future):
-            if computed_file := future.result():
-                computed_file.save()
-
-                if update_s3:
-                    s3.upload_output_file(computed_file.s3_key)
-                if clean_up_output_data:
-                    computed_file.clean_up_local_computed_file()
-
-            # Close DB connection for each thread.
-            connection.close()
-
-        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            for download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
-                tasks.submit(
-                    ComputedFile.get_project_file,
-                    self,
-                    download_config,
-                    self.get_download_config_file_output_name(download_config),
-                ).add_done_callback(on_get_project_file)
-
-        self.update_downloadable_sample_count()
-
     def get_data_file_paths(self) -> List[Path]:
         """
         Retrieves existing merged and bulk data file paths on the aws input bucket
@@ -244,8 +214,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         merged_relative_path = Path(f"{self.scpca_id}/merged/")
         bulk_relative_path = Path(f"{self.scpca_id}/bulk/")
 
-        merged_data_file_paths = s3.list_input_paths(merged_relative_path)
-        bulk_data_file_paths = s3.list_input_paths(bulk_relative_path)
+        merged_data_file_paths = s3.list_input_paths(merged_relative_path, self.s3_input_bucket)
+        bulk_data_file_paths = s3.list_input_paths(bulk_relative_path, self.s3_input_bucket)
 
         return merged_data_file_paths + bulk_data_file_paths
 
@@ -261,15 +231,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                     )
                 )
         return bulk_rna_seq_sample_ids
-
-    def get_additional_terms(self):
-        if not self.additional_restrictions:
-            return ""
-
-        with open(
-            common.TEMPLATE_PATH / "readme/additional_terms/research_academic_only.md"
-        ) as additional_terms_file:
-            return additional_terms_file.read()
 
     def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
         """
@@ -295,7 +256,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             file_path for file_path in data_file_path_objects if file_path.parent.name != "merged"
         ]
 
-    def load_data(self, **kwargs) -> None:
+    def load_metadata(self) -> None:
         """
         Loads sample and library metadata files, creates Sample and Library objects,
         and archives Project and Sample computed files.
@@ -305,14 +266,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         self.update_sample_derived_properties()
         self.update_project_derived_properties()
-
-        Sample.create_computed_files(
-            self, kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
-        )
-
-        self.create_computed_files(
-            kwargs["max_workers"], kwargs["clean_up_output_data"], kwargs["update_s3"]
-        )
 
     def load_samples(self) -> None:
         """
@@ -347,7 +300,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         for sample in self.samples.all():
             for computed_file in sample.computed_files:
                 if delete_from_s3:
-                    s3.delete_output_file(computed_file.s3_key)
+                    s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
                 computed_file.delete()
             for library in sample.libraries.all():
                 # If library has other samples that it is related to, then don't delete it
@@ -357,7 +310,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         for computed_file in self.computed_files:
             if delete_from_s3:
-                s3.delete_output_file(computed_file.s3_key)
+                s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
             computed_file.delete()
 
         ProjectSummary.objects.filter(project=self).delete()
@@ -422,12 +375,19 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
 
-            if multiplexed_library := sample.libraries.filter(is_multiplexed=True).first():
-                multiplexed_ids = set(s.scpca_id for s in multiplexed_library.samples.all())
-                sample.multiplexed_with = sorted(multiplexed_ids.difference({sample.scpca_id}))
-                sample.demux_cell_count_estimate = multiplexed_library.metadata[
-                    "sample_cell_estimates"
-                ].get(sample.scpca_id)
+            if multiplexed_libraries := sample.libraries.filter(is_multiplexed=True):
+                # Cache all sample ID's related through the multiplexed libraries.
+                sample.multiplexed_with = list(
+                    sample.multiplexed_with_samples.order_by("scpca_id").values_list(
+                        "scpca_id", flat=True
+                    )
+                )
+                # Sum demux_cell_count_estimate from all related library's
+                # sample_cell_estimates for that sample.
+                sample.demux_cell_count_estimate = sum(
+                    library.metadata["sample_cell_estimates"].get(sample.scpca_id, 0)
+                    for library in multiplexed_libraries
+                )
             else:
                 sample.sample_cell_count_estimate = sample_cell_count_estimate
 

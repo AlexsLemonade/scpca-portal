@@ -44,6 +44,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     includes_merged = models.BooleanField(default=False)
     modality = models.TextField(choices=OutputFileModalities.CHOICES, null=True)
     metadata_only = models.BooleanField(default=False)
+    portal_metadata_only = models.BooleanField(default=False)
     s3_bucket = models.TextField()
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
@@ -84,6 +85,65 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
         return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
 
+    @staticmethod
+    def get_local_portal_metadata_path() -> Path:
+        return common.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
+
+    @staticmethod
+    def get_local_file_path(download_config: Dict) -> Path:
+        """Takes a download_config dictionary and returns the filepath
+        where the zipfile will be saved locally before upload."""
+        if download_config is common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG:
+            return common.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
+
+    @classmethod
+    def get_portal_metadata_file(cls, projects, download_config: Dict) -> Self:
+        """
+        Queries all libraries to aggregate the combined metadata,
+        writes the aggregated combined metadata to a portal metadata file,
+        computes a zip archive with metadata and readme files, and
+        creates a ComputedFile object which it then saves to the db.
+        """
+        libraries = Library.objects.all()
+        # If the query returns empty, then an error occurred, and we should abort early
+        if not libraries.exists():
+            logger.error("There are no libraries on the portal!")
+            return
+
+        libraries_metadata = utils.filter_dict_list_by_keys(
+            [lib for library in libraries for lib in library.get_combined_library_metadata()],
+            common.METADATA_COLUMN_SORT_ORDER,
+        )
+
+        zip_file_path = cls.get_local_file_path(download_config)
+        with ZipFile(zip_file_path, "w") as zip_file:
+            # Readme file
+            zip_file.writestr(
+                readme_file.OUTPUT_NAME,
+                readme_file.get_file_contents(
+                    download_config,
+                    projects,
+                ),
+            )
+            # Metadata file
+            zip_file.writestr(
+                metadata_file.get_file_name(download_config),
+                metadata_file.get_file_contents(libraries_metadata),
+            )
+
+        computed_file = cls(
+            format=download_config.get("format"),
+            modality=download_config.get("modality"),
+            includes_merged=download_config.get("includes_merged"),
+            metadata_only=download_config.get("metadata_only"),
+            portal_metadata_only=download_config.get("portal_metadata_only"),
+            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            s3_key=common.PORTAL_METADATA_COMPUTED_FILE_NAME,
+            size_in_bytes=zip_file_path.stat().st_size,
+        )
+
+        return computed_file
+
     @classmethod
     def get_project_file(cls, project, download_config: Dict, computed_file_name: str) -> Self:
         """
@@ -93,7 +153,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         creates a ComputedFile object which it then saves to the db.
         """
         libraries = Library.get_project_libraries_from_download_config(project, download_config)
-        # If the query return empty, then an error occurred, and we should abort early
+        # If the query returns empty, then an error occurred, and we should abort early
         if not libraries.exists():
             return
 
@@ -105,14 +165,16 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
         project_data_file_paths = project.get_download_config_file_paths(download_config)
-        s3.download_input_files(library_data_file_paths + project_data_file_paths)
+        s3.download_input_files(
+            library_data_file_paths + project_data_file_paths, project.s3_input_bucket
+        )
 
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         with ZipFile(zip_file_path, "w") as zip_file:
             # Readme file
             zip_file.writestr(
                 readme_file.OUTPUT_NAME,
-                readme_file.get_file_contents(download_config, project),
+                readme_file.get_file_contents(download_config, [project]),
             )
 
             # Metadata file
@@ -162,7 +224,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             modality=download_config.get("modality"),
             metadata_only=download_config.get("metadata_only"),
             project=project,
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
             s3_key=computed_file_name,
             size_in_bytes=zip_file_path.stat().st_size,
             workflow_version=utils.join_workflow_versions(
@@ -183,7 +245,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         creates a ComputedFile object which it then saves to the db.
         """
         libraries = Library.get_sample_libraries_from_download_config(sample, download_config)
-        # If the query return empty, then an error occurred, and we should abort early
+        # If the query returns empty, then an error occurred, and we should abort early
         if not libraries.exists():
             return
 
@@ -193,7 +255,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         library_data_file_paths = [
             fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
         ]
-        s3.download_input_files(library_data_file_paths)
+        s3.download_input_files(library_data_file_paths, sample.project.s3_input_bucket)
 
         zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
         # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
@@ -203,9 +265,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     # Readme file
                     zip_file.writestr(
                         readme_file.OUTPUT_NAME,
-                        readme_file.get_file_contents(download_config, sample.project),
+                        readme_file.get_file_contents(download_config, [sample.project]),
                     )
-
                     # Metadata file
                     zip_file.writestr(
                         metadata_file.get_file_name(download_config),
@@ -243,7 +304,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             format=download_config.get("format"),
             includes_celltype_report=(not sample.is_cell_line),
             modality=download_config.get("modality"),
-            s3_bucket=settings.AWS_S3_BUCKET_NAME,
+            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
             s3_key=computed_file_name,
             sample=sample,
             size_in_bytes=zip_file_path.stat().st_size,
@@ -263,7 +324,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             key_path = Path(self.s3_key)
             filename = f"{key_path.stem}_{date}{key_path.suffix}"
 
-            return s3.generate_pre_signed_link(self.s3_key, filename)
+            return s3.generate_pre_signed_link(filename, self.s3_key, self.s3_bucket)
 
     @property
     def is_project_multiplexed_zip(self):

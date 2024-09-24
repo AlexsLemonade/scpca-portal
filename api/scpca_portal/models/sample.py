@@ -1,12 +1,9 @@
-from concurrent.futures import ThreadPoolExecutor
-from threading import Lock
 from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
-from django.db import connection, models
-from django.template.defaultfilters import pluralize
+from django.db import models
 
-from scpca_portal import common, s3, utils
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -178,6 +175,14 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return self.sample_computed_files.order_by("created_at")
 
     @property
+    def multiplexed_with_samples(self):
+        return (
+            Sample.objects.filter(libraries__in=self.libraries.filter(is_multiplexed=True))
+            .distinct()
+            .exclude(scpca_id=self.scpca_id)
+        )
+
+    @property
     def multiplexed_ids(self):
         multiplexed_sample_ids = [self.scpca_id]
         multiplexed_sample_ids.extend(self.multiplexed_with)
@@ -259,47 +264,3 @@ class Sample(CommonDataAttributes, TimestampedModel):
         file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
 
         return f"{file_name}.zip"
-
-    @staticmethod
-    def create_computed_files(
-        project,
-        max_workers=8,  # 8 = 2 file formats * 4 mappings.
-        clean_up_output_data=True,
-        update_s3=False,
-    ):
-        """Prepares ready for saving project computed files based on generated file mappings."""
-
-        def on_get_sample_file(future):
-            if computed_file := future.result():
-
-                # Only upload and clean up the last if multiplexed
-                if computed_file.sample.is_last_multiplexed_sample:
-                    if update_s3:
-                        s3.upload_output_file(computed_file.s3_key)
-                    if clean_up_output_data:
-                        computed_file.clean_up_local_computed_file()
-                computed_file.save()
-
-            # Close DB connection for each thread.
-            connection.close()
-
-        samples = Sample.objects.filter(project__scpca_id=project.scpca_id)
-        logger.info(
-            f"Processing {len(samples)} sample{pluralize(len(samples))} using "
-            f"{max_workers} worker{pluralize(max_workers)}"
-        )
-
-        # Prepare a threading.Lock for each sample, with the chief purpose being to protect
-        # multiplexed samples that shares a zip file.
-        locks = {}
-        with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-            for sample in samples:
-                for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
-                    sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
-                    tasks.submit(
-                        ComputedFile.get_sample_file,
-                        sample,
-                        config,
-                        sample.get_download_config_file_output_name(config),
-                        sample_lock,
-                    ).add_done_callback(on_get_sample_file)
