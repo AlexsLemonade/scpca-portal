@@ -229,7 +229,7 @@ class Computed_File_Project:
             "metadata_only": True,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_ALL_METADATA.zip",
-            "size_in_bytes": 5185,
+            "size_in_bytes": 5184,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
