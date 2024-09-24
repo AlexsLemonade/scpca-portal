@@ -175,6 +175,14 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return self.sample_computed_files.order_by("created_at")
 
     @property
+    def multiplexed_with_samples(self):
+        return (
+            Sample.objects.filter(libraries__in=self.libraries.filter(is_multiplexed=True))
+            .distinct()
+            .exclude(scpca_id=self.scpca_id)
+        )
+
+    @property
     def multiplexed_ids(self):
         multiplexed_sample_ids = [self.scpca_id]
         multiplexed_sample_ids.extend(self.multiplexed_with)
