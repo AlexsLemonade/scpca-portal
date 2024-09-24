@@ -34,6 +34,7 @@ class ComputedFileSerializer(serializers.ModelSerializer):
             "id",
             "includes_merged",
             "metadata_only",
+            "portal_metadata_only",
             "modality",
             "project",
             "s3_bucket",
