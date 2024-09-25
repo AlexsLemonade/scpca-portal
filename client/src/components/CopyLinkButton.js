@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box } from 'grommet'
+import { Box, Text } from 'grommet'
 import { config } from 'config'
 import { api } from 'api'
 import { useCopyToClipboard } from 'hooks/useCopyToClipboard'
@@ -11,14 +11,12 @@ import { Icon } from 'components/Icon'
 export const CopyLinkButton = ({ computedFile }) => {
   const states = {
     unclicked: {
-      label: 'Copy Download Link',
-      icon: <Icon name="Copy" />,
-      color: 'brand'
+      label: <Text color="brand">Copy Download Link</Text>,
+      icon: <Icon name="Copy" />
     },
     clicked: {
-      label: 'Copied to clipboard!',
-      icon: <Icon name="Check" color="success" />,
-      color: 'success'
+      label: <Text color="success">Copied to clipboard!</Text>,
+      icon: <Icon color="success" name="Check" />
     }
   }
 
@@ -55,13 +53,7 @@ export const CopyLinkButton = ({ computedFile }) => {
 
   return (
     <Box direction="row">
-      <Button
-        plain
-        label={state.label}
-        icon={state.icon}
-        color={state.color}
-        onClick={onClick}
-      />
+      <Button plain label={state.label} icon={state.icon} onClick={onClick} />
       <HelpLink link={config.links.what_copy_link} />
     </Box>
   )
