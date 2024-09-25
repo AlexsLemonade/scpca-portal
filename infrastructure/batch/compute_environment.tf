@@ -1,5 +1,5 @@
-resource "aws_batch_compute_environment" "scpca_portal" {
-  compute_environment_name = "scpca-portal-compute-${var.user}-${var.stage}"
+resource "aws_batch_compute_environment" "scpca_portal_project_compute" {
+  compute_environment_name = "scpca-portal-project-compute-${var.user}-${var.stage}"
 
   compute_resources {
     max_vcpus = 32
