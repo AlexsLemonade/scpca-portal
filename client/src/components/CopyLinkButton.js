@@ -12,13 +12,13 @@ export const CopyLinkButton = ({ computedFile }) => {
   const states = {
     unclicked: {
       label: 'Copy Download Link',
-      icon: <Icon name='Copy' />,
-      color: 'brand',
+      icon: <Icon name="Copy" />,
+      color: 'brand'
     },
     clicked: {
       label: 'Copied to clipboard!',
-      icon: <Icon name='Check' color='success' />,
-      color: 'success',
+      icon: <Icon name="Check" color="success" />,
+      color: 'success'
     }
   }
 
@@ -29,10 +29,7 @@ export const CopyLinkButton = ({ computedFile }) => {
   const { token } = useScPCAPortal()
 
   const getDownloadLink = async () => {
-    const downloadRequest = await api.computedFiles.get(
-      computedFile.id,
-      token
-    )
+    const downloadRequest = await api.computedFiles.get(computedFile.id, token)
 
     if (downloadRequest.isOk) {
       setDownloadLink(downloadRequest.response.download_url)
@@ -43,8 +40,7 @@ export const CopyLinkButton = ({ computedFile }) => {
     if (downloadLink) {
       await copyText(downloadLink)
       setState(states.clicked)
-    }
-    else {
+    } else {
       getDownloadLink()
     }
   }
@@ -58,9 +54,7 @@ export const CopyLinkButton = ({ computedFile }) => {
   }, [downloadLink])
 
   return (
-    <Box
-      direction='row'
-    >
+    <Box direction="row">
       <Button
         plain
         label={state.label}

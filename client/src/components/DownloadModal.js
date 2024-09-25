@@ -78,10 +78,8 @@ export const DownloadModal = ({
           </ModalHeader>
         )}
         <ModalBody>
-          { isTokenReady ? (
-            <DownloadToken
-              resource={resource}
-            />
+          {isTokenReady ? (
+            <DownloadToken resource={resource} />
           ) : isOptionsReady ? (
             <DownloadOptions
               resource={resource}
