@@ -7,11 +7,11 @@ README_DIR = common.EXPECTED_VALUES_PATH / "readmes"
 
 
 class TestReadmeFileContents(TestCase):
-    def assertReadmeContents(self, expected_file_path: str, output_content: str) -> None:
+    def assertReadmeContents(self, expected_file_path: str, result_content: str) -> None:
         def get_updated_content(content: str) -> str:
             """
             Replace the placeholder TEST_TODAYS_DATE in test/expected_values/readmes
-            with the given project_id and today's date respectively for format testing.
+            with today's date for format testing.
             """
             content = content.replace(
                 "Generated on: TEST_TODAYS_DATE", f"Generated on: {utils.get_today_string()}"
@@ -19,13 +19,12 @@ class TestReadmeFileContents(TestCase):
 
             return content.strip()
 
-        with open(expected_file_path, "r", encoding="utf-8") as expected_file:
+        with open(expected_file_path, encoding="utf-8") as expected_file:
             expected_content = get_updated_content(expected_file.read())
-
-        # Convert expected and output contents to line lists for easier debugging
+        # Convert expected and result contents to line lists for easier debugging
         self.assertEqual(
             expected_content.splitlines(True),
-            output_content.splitlines(True),
+            result_content.splitlines(True),
             f"{self._testMethodName}: Comparison with {expected_file_path} does not match.",
         )
 
@@ -40,10 +39,9 @@ class TestReadmeFileContents(TestCase):
             )
             for project_id in PROJECT_IDS
         ]
-
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, projects)
-        expect_contents_file = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
-        self.assertReadmeContents(expect_contents_file, result)
+        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_ALL_METADATA(self):
         DOWNLOAD_CONFIG_NAME = "ALL_METADATA"
@@ -53,10 +51,9 @@ class TestReadmeFileContents(TestCase):
         project = ProjectFactory(
             additional_restrictions="Research or academic purposes only", scpca_id=PROJECT_ID
         )
-
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expect_contents_file = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
-        self.assertReadmeContents(expect_contents_file, result)
+        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
         DOWNLOAD_CONFIG_NAME = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"
@@ -66,10 +63,9 @@ class TestReadmeFileContents(TestCase):
         project = ProjectFactory(
             additional_restrictions="Research or academic purposes only", scpca_id=PROJECT_ID
         )
-
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expect_contents_file = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
-        self.assertReadmeContents(expect_contents_file, result)
+        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
         DOWNLOAD_CONFIG_NAME = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED"
@@ -79,10 +75,9 @@ class TestReadmeFileContents(TestCase):
         project = ProjectFactory(
             additional_restrictions="Research or academic purposes only", scpca_id=PROJECT_ID
         )
-
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expect_contents_file = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
-        self.assertReadmeContents(expect_contents_file, result)
+        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED(self):
         DOWNLOAD_CONFIG_NAME = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED"
@@ -92,10 +87,9 @@ class TestReadmeFileContents(TestCase):
         project = ProjectFactory(
             additional_restrictions="Research or academic purposes only", scpca_id=PROJECT_ID
         )
-
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expect_contents_file = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
-        self.assertReadmeContents(expect_contents_file, result)
+        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SINGLE_CELL_ANN_DATA(self):
         DOWNLOAD_CONFIG_NAME = "SINGLE_CELL_ANN_DATA"
@@ -105,10 +99,9 @@ class TestReadmeFileContents(TestCase):
         project = ProjectFactory(
             additional_restrictions="Research or academic purposes only", scpca_id=PROJECT_ID
         )
-
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expect_contents_file = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
-        self.assertReadmeContents(expect_contents_file, result)
+        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SINGLE_CELL_ANN_DATA_MERGED(self):
         DOWNLOAD_CONFIG_NAME = "SINGLE_CELL_ANN_DATA_MERGED"
@@ -118,10 +111,9 @@ class TestReadmeFileContents(TestCase):
         project = ProjectFactory(
             additional_restrictions="Research or academic purposes only", scpca_id=PROJECT_ID
         )
-
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expect_contents_file = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
-        self.assertReadmeContents(expect_contents_file, result)
+        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
         DOWNLOAD_CONFIG_NAME = "SPATIAL_SINGLE_CELL_EXPERIMENT"
@@ -131,7 +123,6 @@ class TestReadmeFileContents(TestCase):
         project = ProjectFactory(
             additional_restrictions="Research or academic purposes only", scpca_id=PROJECT_ID
         )
-
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expect_contents_file = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
-        self.assertReadmeContents(expect_contents_file, result)
+        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        self.assertReadmeContents(expected_file_path, result)
