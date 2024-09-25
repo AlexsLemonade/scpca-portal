@@ -22,7 +22,7 @@ resource "aws_iam_role_policy_attachment" "batch_service_role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
 }
 
-resource "aws_iam_role" "ecs_task_role" {
+resource "aws_iam_role" "ecs_task_execution_role" {
   name = "scpca-portal-ecs-task-role-${var.user}-${var.stage}"
 
   assume_role_policy = <<EOF
@@ -44,7 +44,7 @@ resource "aws_iam_role" "ecs_task_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
-  role       = aws_iam_role.ecs_task_role.name
+  role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -76,6 +76,6 @@ resource "aws_iam_policy" "ecs_task_s3_access_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_s3_access_policy_attachment" {
-  role       = aws_iam_role.ecs_task_role.name
+  role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = aws_iam_policy.ecs_task_s3_access_policy.arn
 }
