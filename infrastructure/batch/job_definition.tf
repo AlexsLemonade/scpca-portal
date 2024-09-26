@@ -1,17 +1,27 @@
-resource "aws_batch_job_definition" "generate_computed_files_job" {
-  name = "generate-computed-files-job-${var.user}-${var.stage}"
+resource "aws_batch_job_definition" "scpca_portal_project" {
+  name = "scpca-portal-project-job-definition-${var.user}-${var.stage}"
   type = "container"
 
   platform_capabilities = [
     "FARGATE",
   ]
   container_properties = jsonencode({
+    # get command right
     command = ["sportal", "generate-computed-files", "--scpca-id", "<scpca-id>"]
     image   = "ccdl/scpca_portal_api"
+    resourceRequirements = [
+      # t2.medium has 2 vcpus and 4.0 GB of RAM
+      {
+        type = "VCPU"
+        value = "2.0"
+      },
+      {
+        type = "MEMORY"
+        value = "4096"
+      }
 
-    # t2.medium has 2 vcpus and 4.0 GB of RAM
-    vcpus  = 2
-    memory = 4000
+    ]
+
     volumes = [
       {
         host = "efs-volume"
