@@ -67,7 +67,7 @@ export const Icon = ({ color = 'brand', size = 'medium', name }) => {
     </Text>
   ) : (
     <Blank color={color} size={size}>
-      <IconContent />
+      <IconContent fill={color} />
     </Blank>
   )
 }
