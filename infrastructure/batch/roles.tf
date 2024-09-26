@@ -1,5 +1,5 @@
 resource "aws_iam_role" "batch_service_role" {
-  name = "scpca-portal-batch-service-role-${var.user}-${var.stage}"
+  name               = "scpca-portal-batch-service-role-${var.user}-${var.stage}"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -14,11 +14,11 @@ resource "aws_iam_role" "batch_service_role" {
   ]
 }
 EOF
-  tags = var.default_tags
+  tags               = var.default_tags
 }
 
 resource "aws_iam_role_policy_attachment" "batch_service_role" {
-  role = aws_iam_role.batch_service_role.name
+  role       = aws_iam_role.batch_service_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
 }
 
