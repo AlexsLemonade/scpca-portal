@@ -180,7 +180,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             "project_title": self.title,
         }
 
-    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+    def get_output_file_name(self, download_config: Dict) -> str:
         """
         Accumulates all applicable name segments, concatenates them with an underscore delimiter,
         and returns the string as a unique zip file name.
@@ -192,7 +192,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         if download_config.get("includes_merged", False):
             name_segments.append("MERGED")
 
-        if self.has_multiplexed_data and not download_config.get("excludes_multiplexed", False):
+        if not download_config.get("excludes_multiplexed", False) and self.has_multiplexed_data:
             name_segments.append("MULTIPLEXED")
 
         # Change to filename format must be accompanied by an entry in the docs.
@@ -201,6 +201,18 @@ class Project(CommonDataAttributes, TimestampedModel):
         file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
 
         return f"{file_name}.zip"
+
+    def get_computed_file(self, download_config: Dict) -> ComputedFile:
+        "Return the project computed file that matches the passed download_config."
+        if download_config["metadata_only"]:
+            return self.computed_files.filter(metadata_only=True).first()
+
+        return self.computed_files.filter(
+            modality=download_config["modality"],
+            format=download_config["format"],
+            has_multiplexed_data=(not download_config["excludes_multiplexed"]),
+            includes_merged=download_config["includes_merged"],
+        ).first()
 
     def get_data_file_paths(self) -> List[Path]:
         """
@@ -227,15 +239,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                     )
                 )
         return bulk_rna_seq_sample_ids
-
-    def get_additional_terms(self):
-        if not self.additional_restrictions:
-            return ""
-
-        with open(
-            common.TEMPLATE_PATH / "readme/additional_terms/research_academic_only.md"
-        ) as additional_terms_file:
-            return additional_terms_file.read()
 
     def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
         """
@@ -304,11 +307,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Purges project and its related data."""
         self.purge_computed_files(delete_from_s3)
         for sample in self.samples.all():
-            for library in sample.libraries.all():
-                # If library has other samples that it is related to, then don't delete it
-                if len(library.samples.all()) == 1:
-                    library.delete()
-            sample.delete()
+            sample.purge()
 
         self.delete()
 
@@ -386,12 +385,19 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
             sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
 
-            if multiplexed_library := sample.libraries.filter(is_multiplexed=True).first():
-                multiplexed_ids = set(s.scpca_id for s in multiplexed_library.samples.all())
-                sample.multiplexed_with = sorted(multiplexed_ids.difference({sample.scpca_id}))
-                sample.demux_cell_count_estimate = multiplexed_library.metadata[
-                    "sample_cell_estimates"
-                ].get(sample.scpca_id)
+            if multiplexed_libraries := sample.libraries.filter(is_multiplexed=True):
+                # Cache all sample ID's related through the multiplexed libraries.
+                sample.multiplexed_with = list(
+                    sample.multiplexed_with_samples.order_by("scpca_id").values_list(
+                        "scpca_id", flat=True
+                    )
+                )
+                # Sum demux_cell_count_estimate from all related library's
+                # sample_cell_estimates for that sample.
+                sample.demux_cell_count_estimate = sum(
+                    library.metadata["sample_cell_estimates"].get(sample.scpca_id, 0)
+                    for library in multiplexed_libraries
+                )
             else:
                 sample.sample_cell_count_estimate = sample_cell_count_estimate
 

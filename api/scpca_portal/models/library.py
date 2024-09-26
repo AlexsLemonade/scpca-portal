@@ -115,13 +115,13 @@ class Library(TimestampedModel):
             for path in file_paths
             if path.suffix in extensions_format
         )
-        return list(formats)
+        return sorted(list(formats))
 
     @classmethod
     def get_project_libraries_from_download_config(
         cls, project, download_configuration: Dict
     ):  # -> QuerySet[Self]:
-        if download_configuration not in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+        if download_configuration not in common.PROJECT_DOWNLOAD_CONFIGS.values():
             raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
 
         if download_configuration["metadata_only"]:
@@ -159,7 +159,7 @@ class Library(TimestampedModel):
     def get_sample_libraries_from_download_config(
         cls, sample, download_configuration: Dict
     ):  # -> QuerySet[Self]:
-        if download_configuration not in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGURATIONS:
+        if download_configuration not in common.SAMPLE_DOWNLOAD_CONFIGS.values():
             raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
 
         return sample.libraries.filter(
@@ -239,7 +239,7 @@ class Library(TimestampedModel):
         path_parts = [Path(path) for path in file_path.parts]
 
         # Project output paths are relative to project directory
-        if download_config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGURATIONS:
+        if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
             output_path = file_path.relative_to(path_parts[0])
         # Sample output paths are relative to project and sample directories
         else:

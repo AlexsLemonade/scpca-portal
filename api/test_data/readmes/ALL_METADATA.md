@@ -1,4 +1,4 @@
-Generated on: {{ date }}
+Generated on: TEST_TODAYS_DATE
 
 # Alex's Lemonade Stand Foundation Single-cell Pediatric Cancer Atlas
 
@@ -6,13 +6,7 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-{% if included_projects|length > 1 %}
-This download includes associated metadata for samples from all projects currently available at time of download in the ScPCA portal.
-{% else %}
-{% for project_accession, project_url in included_projects %}
-This download includes associated metadata for samples from project [{{ project_accession }}]({{ project_url }}) in the ScPCA portal.
-{% endfor %}
-{% endif %}
+This download includes associated metadata for samples from project [PROJECT_ID_0](https://scpca.alexslemonade.org/projects/PROJECT_ID_0) in the ScPCA portal.
 
 The metadata included in this download contains sample, library, and project-related metadata (e.g., age, sex, diagnosis, sequencing unit, etc.) along with any relevant processing metadata (e.g., software versions, filtering methods used, etc.).
 
@@ -29,7 +23,6 @@ If you identify issues with this download, please [file an issue on GitHub.](htt
 ## Citation
 
 If you use these data in your research, you must cite:
-
 - The data submitter using language provided as part of the project abstract (as applicable), the publication listed for the project (as applicable), or both.
 - The ScPCA Portal using the language below.
 
@@ -37,9 +30,8 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-{% for project_accession, project_url in included_projects %}
-To cite data from {{ project_accession }}, please see the project abstract and publication information at [{{ project_accession }} page.]({{ project_url }})
-{% endfor %}
+To cite data from PROJECT_ID_0, please see the project abstract and publication information at [PROJECT_ID_0 page.](https://scpca.alexslemonade.org/projects/PROJECT_ID_0)
+
 
 ### Citing the ScPCA Portal
 
@@ -51,6 +43,6 @@ Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al.,
 
 In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade.org/terms-of-use).
 
-{% if additional_terms %}
-{{ additional_terms }}
-{% endif %}
+### Additional Restrictions
+
+This dataset is designated as research or academic purposes only.

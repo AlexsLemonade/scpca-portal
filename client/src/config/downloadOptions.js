@@ -117,12 +117,25 @@ export const modalityResourceInfo = {
 
 // For now, this is always the same.
 export const metadata = 'Project and Sample Metadata'
-// For metadata only download
+// For metadata only downloads
 export const metadataResourceInfo = {
-  texts: {},
-  learn_more: {
-    label: 'here',
-    text: 'Learn more about what you can expect in your download file',
-    url: config.links.what_downloading_metadata
+  ALL: {
+    texts: {
+      text_only:
+        'This download contains all of the sample metadata from every project in ScPCA Portal.'
+    },
+    learn_more: {
+      label: 'here',
+      text: 'Learn more about what you can expect in your download file',
+      url: config.links.what_downloading_metadata
+    }
+  },
+  PROJECT: {
+    texts: {},
+    learn_more: {
+      label: 'here',
+      text: 'Learn more about what you can expect in your download file',
+      url: config.links.what_downloading_metadata
+    }
   }
 }
