@@ -1,5 +1,5 @@
 resource "aws_batch_job_queue" "scpca_portal_project" {
-  name     = "scpca-portal-queue-${var.user}-${var.stage}"
+  name     = "scpca-portal-project-queue-${var.user}-${var.stage}"
   state    = "ENABLED"
   priority = 1
 
