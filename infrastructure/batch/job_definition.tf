@@ -8,7 +8,7 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
   container_properties = jsonencode({
     # get command right
     command = ["sportal", "generate-computed-files", "--scpca-id", "<scpca-id>"]
-    image   = "ccdl/scpca_portal_api"
+    image   = "${var.dockerhub_repo}/scpca_portal_api:latest"
     fargatePlatformConfiguration = {
       platformVersion = "LATEST"
     }
