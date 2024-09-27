@@ -49,7 +49,7 @@ class Project_SCPCP999991:
             "age": "2",
             "age_timing": "unknown",
             "demux_cell_count_estimate": 0,
-            "diagnosis": "diagnosis3",
+            "diagnosis": "diagnosis4",
             "disease_timing": "Initial diagnosis",
             "has_bulk_rna_seq": False,
             "has_cite_seq_data": False,
@@ -76,7 +76,7 @@ class Project_SCPCP999991:
             "age": "2",
             "age_timing": "diagnosis",
             "demux_cell_count_estimate": 0,
-            "diagnosis": "diagnosis4",
+            "diagnosis": "diagnosis3",
             "disease_timing": "Initial diagnosis",
             "has_bulk_rna_seq": False,
             "has_cite_seq_data": False,
@@ -114,7 +114,7 @@ class Project_SCPCP999991:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 3433,
+            "sample_cell_count_estimate": 3428,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": "cell",
@@ -167,7 +167,7 @@ class Project_SCPCP999991:
 
     class Summary1:
         VALUES = {
-            "diagnosis": "diagnosis3",
+            "diagnosis": "diagnosis4",
             "sample_count": 1,
             "seq_unit": "nucleus",
             "technology": "10Xv3.1",
@@ -175,7 +175,7 @@ class Project_SCPCP999991:
 
     class Summary2:
         VALUES = {
-            "diagnosis": "diagnosis4",
+            "diagnosis": "diagnosis3",
             "sample_count": 1,
             "seq_unit": "nucleus",
             "technology": "10Xv3.1",

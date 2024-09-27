@@ -15,8 +15,8 @@ class Project_SCPCP999990:
             "SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv",
             "SCPCP999990/bulk/SCPCP999990_bulk_quant.tsv",
         ],
-        "diagnoses": "diagnosis1, diagnosis2, diagnosis5, diagnosis8",
-        "diagnoses_counts": "diagnosis1 (1), diagnosis2 (1), diagnosis5 (1), diagnosis8 (1)",
+        "diagnoses": "diagnosis1, diagnosis2, diagnosis5",
+        "diagnoses_counts": "diagnosis1 (1), diagnosis2 (1), diagnosis5 (2)",
         "disease_timings": "Initial diagnosis",
         # This value is not determined until after computed file generation, and should be 3
         "downloadable_sample_count": 0,
@@ -67,7 +67,7 @@ class Project_SCPCP999990:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 3432,
+            "sample_cell_count_estimate": 3424,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": "cell",
@@ -137,7 +137,7 @@ class Project_SCPCP999990:
             "age": "2",
             "age_timing": "collection",
             "demux_cell_count_estimate": None,
-            "diagnosis": "diagnosis8",
+            "diagnosis": "diagnosis5",
             "disease_timing": "Initial diagnosis",
             "has_bulk_rna_seq": False,
             "has_cite_seq_data": False,
@@ -148,7 +148,7 @@ class Project_SCPCP999990:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 1568,
+            "sample_cell_count_estimate": 1570,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": "cell",
@@ -260,7 +260,7 @@ class Project_SCPCP999990:
 
     class Summary4:
         VALUES = {
-            "diagnosis": "diagnosis8",
+            "diagnosis": "diagnosis5",
             "sample_count": 1,
             "seq_unit": "cell",
             "technology": "10Xv3",

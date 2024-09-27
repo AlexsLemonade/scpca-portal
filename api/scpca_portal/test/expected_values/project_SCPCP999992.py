@@ -14,8 +14,8 @@ class Project_SCPCP999992:
             "SCPCP999992/merged/SCPCP999992_merged_adt.h5ad",
             "SCPCP999992/merged/SCPCP999992_merged_rna.h5ad",
         ],
-        "diagnoses": "diagnosis7, diagnosis9",
-        "diagnoses_counts": "diagnosis7 (1), diagnosis9 (1)",
+        "diagnoses": "diagnosis7",
+        "diagnoses_counts": "diagnosis7 (2)",
         "disease_timings": "Initial diagnosis",
         # This value is not determined until after computed file generation, and should be 2
         "downloadable_sample_count": 0,
@@ -79,7 +79,7 @@ class Project_SCPCP999992:
             "age": "2",
             "age_timing": "unknown",
             "demux_cell_count_estimate": None,
-            "diagnosis": "diagnosis9",
+            "diagnosis": "diagnosis7",
             "disease_timing": "Initial diagnosis",
             "has_bulk_rna_seq": False,
             "has_cite_seq_data": True,
@@ -90,7 +90,7 @@ class Project_SCPCP999992:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 5245,
+            "sample_cell_count_estimate": 5247,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": "cell",
@@ -161,7 +161,7 @@ class Project_SCPCP999992:
 
     class Summary2:
         VALUES = {
-            "diagnosis": "diagnosis9",
+            "diagnosis": "diagnosis7",
             "sample_count": 1,
             "seq_unit": "cell",
             "technology": "10Xv2_5prime",
