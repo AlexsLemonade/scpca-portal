@@ -9,33 +9,28 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     # get command right
     command = ["sportal", "generate-computed-files", "--scpca-id", "<scpca-id>"]
     image   = "ccdl/scpca_portal_api"
+    fargatePlatformConfiguration = {
+      platformVersion = "LATEST"
+    }
+
     resourceRequirements = [
-      # t2.medium has 2 vcpus and 4.0 GB of RAM
+      # requirements match api requirements, which uses a t2.medium (2 vcpus and 4.0 GB of RAM)
       {
-        type = "VCPU"
+        type  = "VCPU"
         value = "2.0"
       },
       {
-        type = "MEMORY"
+        type  = "MEMORY"
         value = "4096"
       }
-
     ]
 
-    volumes = [
-      {
-        host = "efs-volume"
-        efsVolumeConfiguration = {
-          # fileSystemId = # needs to be configured, will read something like aws_efs_file_system.name.id
-        }
-      }
-    ]
-    mountPoints = [
-      {
-        sourceVolume = "efs-volume"
-        # containerPath = path inside container where EFS volume is mounted
-      }
-    ]
+    # this only works with tf version >= 5.12.0
+    # without this declaration, ephemeralStroage defaults to 20GB
+    ephemeralStorage = {
+      sizeInGib = 200
+    }
+
     executionRoleArn = aws_iam_role.aws_ecs_task_execution_role.arn
   })
 }
