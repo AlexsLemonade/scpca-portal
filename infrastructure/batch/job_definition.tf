@@ -6,8 +6,9 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     "FARGATE",
   ]
   container_properties = jsonencode({
-    # get command right
-    command = ["sportal", "generate-computed-files", "--scpca-id", "<scpca-id>"]
+    # dispatch_to_batch command will override the below command during job submission, with
+    # cotaninerOverrides={"command": ["sportal", "generate-computed-files", "scpca-project-id", "<id>"]}
+    command = ["sportal", "generate-computed-files"]
     image   = "${var.dockerhub_repo}/scpca_portal_api:latest"
     fargatePlatformConfiguration = {
       platformVersion = "LATEST"
