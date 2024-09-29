@@ -111,23 +111,25 @@ class Sample(CommonDataAttributes, TimestampedModel):
             "scpca_sample_id": self.scpca_id,
         }
 
-        included_sample_attributes = {
-            "age",
-            "age_timing",
-            "demux_cell_count_estimate",
-            "diagnosis",
-            "disease_timing",
-            "sex",
-            "subdiagnosis",
-            "tissue_location",
-            "includes_anndata",
-            "is_cell_line",
-            "is_xenograft",
-            "sample_cell_count_estimate",
+        excluded_metadata_attributes = {
+            "scpca_project_id"
+            # included in project metadata under the name pi_name
+            "submitter"
         }
+        sample_metadata.update(
+            {
+                key: value
+                for key, value in self.metadata.items()
+                if key not in excluded_metadata_attributes
+            }
+        )
 
-        sample_metadata.update({key: getattr(self, key) for key in included_sample_attributes})
-        # Update name from attribute name to expected output name
+        derived_attributes = {
+            "demux_cell_count_estimate",
+            "sample_cell_count_estimate",
+            "includes_anndata",
+        }
+        sample_metadata.update({key: getattr(self, key) for key in derived_attributes})
         sample_metadata["sample_cell_estimate"] = sample_metadata.pop("demux_cell_count_estimate")
 
         return sample_metadata
