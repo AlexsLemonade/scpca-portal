@@ -100,10 +100,9 @@ class Sample(CommonDataAttributes, TimestampedModel):
             key: value
             for key, value in self.metadata.items()
             if not hasattr(self, key)
-            # Don't include project metadata keys (needed for writing)
-            and key not in ("scpca_project_id", "project_title", "pi_name", "submitter")
-            # Exclude deliberate model attribute and file field name mismatch
-            and key != "scpca_sample_id"
+            # These fields are accounted for elsewhere,
+            # either in different models or by different names
+            and key not in ("scpca_sample_id", "scpca_project_id", "submitter")
         }
 
     def get_metadata(self) -> Dict:
