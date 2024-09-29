@@ -75,16 +75,36 @@ class SampleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Sample"
 
-    additional_metadata = {
-        "braf_status": "Not tested for BRAF status",
-        "has_spinal_leptomeningeal_mets": False,
-    }
     age = "4"
     age_timing = "diagnosis"
     computed_file1 = factory.RelatedFactory(SampleComputedFileFactory, "sample")
     diagnosis = "pilocytic astrocytoma"
     disease_timing = "primary diagnosis"
     has_cite_seq_data = True
+    metadata = factory.LazyFunction(
+        lambda: {
+            "age": 4,
+            "age_timing": "diagnosis",
+            "development_stage_ontology_term_id": "NA",
+            "diagnosis": "pilocytic astrocytoma",
+            "disease_ontology_term_id": "NA",
+            "disease_timing": "primary diagnosis",
+            "is_cell_line": False,
+            "is_xenograft": False,
+            "organisms": "Homo sapiens",
+            "organisms_ontology_id": "NA",
+            "participant_id": "NA",
+            "scpca_project_id": "",
+            "scpca_sample_id": "",
+            "self_reported_ethnicity_ontology_term_id": "NA",
+            "sex": "M",
+            "subdiagnosis": "NA",
+            "submitter": "scpca",
+            "submitter_id": "NA",
+            "tissue_location": "posterior fossa",
+            "tissue_ontology_term_id": "NA",
+        }
+    )
     multiplexed_with = ["SCPCP000000"]
     project = factory.SubFactory(LeafProjectFactory)
     sample_cell_count_estimate = 42
