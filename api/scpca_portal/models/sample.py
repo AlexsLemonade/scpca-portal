@@ -44,6 +44,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
     includes_anndata = models.BooleanField(default=False)
     is_cell_line = models.BooleanField(default=False)
     is_xenograft = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict)
     multiplexed_with = ArrayField(models.TextField(), default=list)
     sample_cell_count_estimate = models.IntegerField(null=True)
     scpca_id = models.TextField(unique=True)
@@ -70,6 +71,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             disease_timing=data["disease_timing"],
             is_cell_line=utils.boolean_from_string(data.get("is_cell_line", False)),
             is_xenograft=utils.boolean_from_string(data.get("is_xenograft", False)),
+            metadata=data,
             multiplexed_with=data.get("multiplexed_with", []),
             sample_cell_count_estimate=(data.get("sample_cell_count_estimate", None)),
             project=project,
