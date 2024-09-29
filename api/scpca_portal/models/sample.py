@@ -32,7 +32,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
             SPATIAL: "Spatial Data",
         }
 
-    additional_metadata = models.JSONField(default=dict)
     age = models.TextField()
     age_timing = models.TextField()
     demux_cell_count_estimate = models.IntegerField(null=True)
@@ -84,18 +83,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
             treatment=data.get("treatment", ""),
         )
 
-        # Additional metadata varies project by project.
-        # Generally, whatever's not on the Sample model is additional.
-        sample.additional_metadata = {
-            key: value
-            for key, value in data.items()
-            if not hasattr(sample, key)
-            # Don't include project metadata keys (needed for writing)
-            and key not in ("scpca_project_id", "project_title", "pi_name", "submitter")
-            # Exclude deliberate model attribute and file field name mismatch
-            and key != "scpca_sample_id"
-        }
-
         return sample
 
     @classmethod
@@ -106,6 +93,18 @@ class Sample(CommonDataAttributes, TimestampedModel):
             samples.append(Sample.get_from_dict(sample_metadata, project))
 
         Sample.objects.bulk_create(samples)
+
+    @property
+    def additional_metadata(self):
+        return {
+            key: value
+            for key, value in self.metadata.items()
+            if not hasattr(self, key)
+            # Don't include project metadata keys (needed for writing)
+            and key not in ("scpca_project_id", "project_title", "pi_name", "submitter")
+            # Exclude deliberate model attribute and file field name mismatch
+            and key != "scpca_sample_id"
+        }
 
     def get_metadata(self) -> Dict:
         sample_metadata = {
@@ -130,10 +129,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         sample_metadata.update({key: getattr(self, key) for key in included_sample_attributes})
         # Update name from attribute name to expected output name
         sample_metadata["sample_cell_estimate"] = sample_metadata.pop("demux_cell_count_estimate")
-
-        sample_metadata.update(
-            {key: self.additional_metadata[key] for key in self.additional_metadata}
-        )
 
         return sample_metadata
 
