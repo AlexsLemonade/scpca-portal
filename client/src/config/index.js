@@ -4,7 +4,8 @@ export const config = {
   links: {
     what_are_merged_objects:
       'https://scpca.readthedocs.io/en/stable/merged_objects.html',
-    what_copy_link: 'https://scpca.readthedocs.io/en/stable/copy_link.html',
+    what_copy_link:
+      'https://scpca.readthedocs.io/en/stable/faq.html#what-does-the-copy-download-link-button-do',
     what_downloading:
       'https://scpca.readthedocs.io/en/stable/download_files.html',
     what_downloading_metadata:
