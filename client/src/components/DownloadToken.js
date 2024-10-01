@@ -39,8 +39,7 @@ export const DownloadToken = ({ resource }) => {
   } = useContext(ScPCAPortalContext)
   const [requesting, setRequesting] = useState(false)
   const [errors, setErrors] = useState([])
-  const buttonLabel =
-    resource && resource.samples ? 'Agree and Continue' : 'Download'
+  const buttonLabel = resource?.samples ? 'Agree and Continue' : 'Download'
 
   useEffect(() => {
     const asyncTokenRequest = async () => {
