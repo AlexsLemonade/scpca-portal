@@ -3,6 +3,7 @@ import { Box, Grid, Heading, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { CopyLinkButton } from 'components/CopyLinkButton'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
 import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
 import { WarningMergedObjects } from 'components/WarningMergedObjects'
@@ -13,6 +14,8 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
     getDownloadOptionDetails(computedFile)
   const { saveUserPreferences } = useDownloadOptionsContext()
   const downloadLabel = `Download ${type}`
+
+  const { responsive } = useResponsive()
 
   return (
     <Grid
@@ -63,7 +66,7 @@ export const DownloadOption = ({ computedFile, handleSelectFile }) => {
         </Box>
       </Box>
       <Box gridArea="footer" margin={{ top: 'medium' }}>
-        <Grid columns={['auto', 'auto']} gap="large">
+        <Grid columns={responsive('1', '1/2')} gap="large">
           <Button
             primary
             alignSelf="start"
