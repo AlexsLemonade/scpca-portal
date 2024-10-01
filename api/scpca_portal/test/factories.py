@@ -50,6 +50,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     immediately accessible to the research community, with the aim of
     accelerating our efforts to find new ways to cure all children
     with AML"""
+    additional_restrictions = "Research or academic purposes only"
     disease_timings = "Diagnosis, Relapse/Diagnosis at LPCH, Relapsed, Healthy control"
     diagnoses = "AML, Normal"
     diagnoses_counts = "AML (20), Normal (40)"

@@ -16,8 +16,6 @@ DATA_PATH = CODE_PATH / ("test_data" if settings.TEST else "data")
 INPUT_DATA_PATH = DATA_PATH / "input"
 OUTPUT_DATA_PATH = DATA_PATH / "output"
 
-EXPECTED_VALUES_PATH = CODE_PATH / "scpca_portal" / "test" / "expected_values"
-
 TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
 
 TAB = "\t"
