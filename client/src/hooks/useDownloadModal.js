@@ -23,7 +23,7 @@ export const useDownloadModal = (
   // states that dictate what the modal can show
   const isDownloadReady = download && token
   const isOptionsReady = !publicComputedFile && hasMultipleFiles
-  const isTokenReady = !token && publicComputedFile
+  const isTokenReady = !token
   const isSampleMetadataOnly = publicComputedFile?.metadata_only
   const isPortalMetadataOnly = publicComputedFile?.portal_metadata_only
   // text information
