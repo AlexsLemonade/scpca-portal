@@ -26,6 +26,7 @@ import Twitter from '../images/twitter.svg'
 import Facebook from '../images/facebook.svg'
 import Instagram from '../images/instagram.svg'
 import Github from '../images/github.svg'
+import Copy from '../images/copy.svg'
 
 export const SVGs = {
   Check,
@@ -34,6 +35,7 @@ export const SVGs = {
   ChevronRight,
   ChevronUp,
   Cite,
+  Copy,
   Cross,
   Download,
   Dropdown,
@@ -65,7 +67,7 @@ export const Icon = ({ color = 'brand', size = 'medium', name }) => {
     </Text>
   ) : (
     <Blank color={color} size={size}>
-      <IconContent />
+      <IconContent fill={color} />
     </Blank>
   )
 }
