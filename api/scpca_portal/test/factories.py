@@ -28,7 +28,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Project"
 
-    scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
+    scpca_id = factory.Sequence(lambda n: f"SCPCP{str(n).zfill(6)}")
     pi_name = "gawad"
     human_readable_pi_name = "Gawad"
     title = (
@@ -50,6 +50,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     immediately accessible to the research community, with the aim of
     accelerating our efforts to find new ways to cure all children
     with AML"""
+    additional_restrictions = "Research or academic purposes only"
     disease_timings = "Diagnosis, Relapse/Diagnosis at LPCH, Relapsed, Healthy control"
     diagnoses = "AML, Normal"
     diagnoses_counts = "AML (20), Normal (40)"
@@ -85,10 +86,10 @@ class SampleFactory(factory.django.DjangoModelFactory):
     diagnosis = "pilocytic astrocytoma"
     disease_timing = "primary diagnosis"
     has_cite_seq_data = True
-    multiplexed_with = ["SCPCP000000"]
+    multiplexed_with = ["SCPCS000000"]
     project = factory.SubFactory(LeafProjectFactory)
     sample_cell_count_estimate = 42
-    scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
+    scpca_id = factory.Sequence(lambda n: f"SCPCS{str(n).zfill(6)}")
     seq_units = "cell"
     sex = "M"
     subdiagnosis = "NA"
@@ -100,12 +101,16 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Library"
 
-    data_file_paths = [factory.Sequence(lambda n: f"SCPCP0000{n}/SCPCS0000{n}/SCPCL0000{n}")]
+    data_file_paths = [
+        factory.Sequence(
+            lambda n: f"SCPCP{str(n).zfill(6)}/SCPCS{str(n).zfill(6)}/SCPCL{str(n).zfill(6)}"
+        )
+    ]
     formats = [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
     is_multiplexed = False
     modality = Library.Modalities.SINGLE_CELL
     project = factory.SubFactory(LeafProjectFactory)
-    scpca_id = factory.Sequence(lambda n: "SCPCL0000%d" % n)
+    scpca_id = factory.Sequence(lambda n: f"SCPCL{str(n).zfill(6)}")
     workflow_version = "development"
     # With factory_body, factory instances share attributes by default
     # Use LazyFunction to populate metadata dict so that changes don't propogate to all instances
