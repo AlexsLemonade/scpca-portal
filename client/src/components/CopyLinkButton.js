@@ -44,6 +44,11 @@ export const CopyLinkButton = ({ computedFile }) => {
   }
 
   useEffect(() => {
+    setState(states.unclicked)
+    setDownloadLink(null)
+  }, [computedFile])
+
+  useEffect(() => {
     const asyncCopy = async () => {
       await copyText(downloadLink)
       setState(states.clicked)
