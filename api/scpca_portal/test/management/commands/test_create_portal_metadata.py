@@ -19,7 +19,7 @@ from scpca_portal.models import ComputedFile, Library, Project, Sample
 # When common.INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
 
-README_DIR = common.DATA_PATH / "readmes"
+README_DIR = settings.DATA_PATH / "readmes"
 README_FILE = readme_file.OUTPUT_NAME
 METADATA_FILE = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
@@ -32,7 +32,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+        shutil.rmtree(settings.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def load_test_data(self):
         # Expected object counts

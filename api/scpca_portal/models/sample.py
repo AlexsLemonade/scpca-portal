@@ -1,9 +1,10 @@
 from typing import Dict, List
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, utils
+from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -152,11 +153,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
         return {
-            Sample.Modalities.MULTIPLEXED: common.OUTPUT_DATA_PATH
+            Sample.Modalities.MULTIPLEXED: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_multiplexed_metadata.tsv",
-            Sample.Modalities.SINGLE_CELL: common.OUTPUT_DATA_PATH
+            Sample.Modalities.SINGLE_CELL: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_libraries_metadata.tsv",
-            Sample.Modalities.SPATIAL: common.OUTPUT_DATA_PATH
+            Sample.Modalities.SPATIAL: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_spatial_metadata.tsv",
         }.get(modality)
 

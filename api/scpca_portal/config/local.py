@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from scpca_portal.config.common import Common
 
@@ -25,3 +26,12 @@ class Local(Common):
 
     # This is only needed locally because everything else will use S3.
     DEV_HOST = os.getenv("DEV_HOST")
+
+    # Code Paths
+    CODE_PATH = Path("/home/user/code")
+
+    DATA_PATH = CODE_PATH / ("test_data" if Common.TEST else "data")
+    INPUT_DATA_PATH = DATA_PATH / "input"
+    OUTPUT_DATA_PATH = DATA_PATH / "output"
+
+    TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"

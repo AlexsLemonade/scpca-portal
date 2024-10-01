@@ -1,12 +1,13 @@
 from typing import Dict, Iterable
 
+from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils
 
 OUTPUT_NAME = "README.md"
 
-TEMPLATE_ROOT = common.TEMPLATE_PATH / "readme"
+TEMPLATE_ROOT = settings.TEMPLATE_PATH / "readme"
 TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "readme.md"
 
 

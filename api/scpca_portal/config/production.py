@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -51,3 +52,12 @@ class Production(Common):
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True,
     )
+
+    # Code Paths
+    CODE_PATH = Path("/home/user")
+
+    DATA_PATH = CODE_PATH / "data"
+    INPUT_DATA_PATH = DATA_PATH / "input"
+    OUTPUT_DATA_PATH = DATA_PATH / "output"
+
+    TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"

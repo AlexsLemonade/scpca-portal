@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -169,7 +170,7 @@ class Library(TimestampedModel):
 
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
-        return common.INPUT_DATA_PATH / data_file_path
+        return settings.INPUT_DATA_PATH / data_file_path
 
     def get_metadata(self) -> Dict:
         library_metadata = {
@@ -232,7 +233,7 @@ class Library(TimestampedModel):
 
     @staticmethod
     def get_local_file_path(file_path: Path):
-        return common.INPUT_DATA_PATH / file_path
+        return settings.INPUT_DATA_PATH / file_path
 
     @staticmethod
     def get_zip_file_path(file_path: Path, download_config: Dict) -> Path:

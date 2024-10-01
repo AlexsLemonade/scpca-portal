@@ -4,6 +4,7 @@ from functools import partial
 from threading import Lock
 from typing import Any, Dict, List, Set
 
+from django.conf import settings
 from django.db import connection
 from django.template.defaultfilters import pluralize
 
@@ -26,18 +27,18 @@ def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -
     """
     # Prepare data input directory.
     if wipe_input_dir:
-        shutil.rmtree(common.INPUT_DATA_PATH, ignore_errors=True)
-    common.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
+        shutil.rmtree(settings.INPUT_DATA_PATH, ignore_errors=True)
+    settings.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
     # Prepare data output directory.
     if wipe_output_dir:
-        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
-    common.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
+        shutil.rmtree(settings.OUTPUT_DATA_PATH, ignore_errors=True)
+    settings.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
 
 def remove_project_input_files(project_id: str) -> None:
     """Remove the input files located at the project_id's input directory."""
-    shutil.rmtree(common.INPUT_DATA_PATH / project_id, ignore_errors=True)
+    shutil.rmtree(settings.INPUT_DATA_PATH / project_id, ignore_errors=True)
 
 
 def get_projects_metadata(
@@ -60,8 +61,8 @@ def _can_process_project(project_metadata: Dict[str, Any], submitter_whitelist: 
     - Input files exist for the project
     - The project's pi is on the whitelist of acceptable submitters
     """
-    project_path = common.INPUT_DATA_PATH / project_metadata["scpca_project_id"]
-    if project_path not in common.INPUT_DATA_PATH.iterdir():
+    project_path = settings.INPUT_DATA_PATH / project_metadata["scpca_project_id"]
+    if project_path not in settings.INPUT_DATA_PATH.iterdir():
         logger.warning(
             f"Metadata found for {project_metadata['scpca_project_id']},"
             "but no s3 folder of that name exists."
