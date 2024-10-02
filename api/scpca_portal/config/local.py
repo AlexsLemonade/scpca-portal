@@ -18,8 +18,7 @@ class Local(Common):
     AWS_REGION = None
 
     # AWS S3
-    TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-09-10/"
-    AWS_S3_INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if Common.TEST else "scpca-portal-inputs"
+    AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-inputs"
     AWS_S3_OUTPUT_BUCKET_NAME = "scpca-local-data"
 
     CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1"]
@@ -30,7 +29,7 @@ class Local(Common):
     # Code Paths
     CODE_PATH = Path("/home/user/code")
 
-    DATA_PATH = CODE_PATH / ("test_data" if Common.TEST else "data")
+    DATA_PATH = CODE_PATH / "data"
     INPUT_DATA_PATH = DATA_PATH / "input"
     OUTPUT_DATA_PATH = DATA_PATH / "output"
 

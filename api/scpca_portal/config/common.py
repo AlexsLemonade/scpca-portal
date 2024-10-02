@@ -1,5 +1,4 @@
 import os
-import sys
 from distutils.util import strtobool
 from pathlib import Path
 
@@ -109,9 +108,6 @@ class Common(Configuration):
     # Set DEBUG to False as a default for safety.
     # https://docs.djangoproject.com/en/dev/ref/settings/#debug
     DEBUG = strtobool(os.getenv("DJANGO_DEBUG", "no"))
-
-    # Indicates running in test environment.
-    TEST = len(sys.argv) > 1 and sys.argv[1] == "test"
 
     # Indicates running in prod environment.
     PRODUCTION = False
