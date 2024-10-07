@@ -1,9 +1,8 @@
+from django.conf import settings
 from django.test import TestCase
 
 from scpca_portal import common, readme_file, utils
 from scpca_portal.test.factories import ProjectFactory
-
-README_DIR = common.CODE_PATH / "scpca_portal" / "test" / "expected_values" / "readmes"
 
 
 class TestReadmeFileContents(TestCase):
@@ -31,7 +30,7 @@ class TestReadmeFileContents(TestCase):
 
         projects = [ProjectFactory(scpca_id=project_id) for project_id in PROJECT_IDS]
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, projects)
-        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        expected_file_path = settings.RENDERED_README_PATH / f"{DOWNLOAD_CONFIG_NAME}.md"
         self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_ALL_METADATA(self):
@@ -41,7 +40,7 @@ class TestReadmeFileContents(TestCase):
 
         project = ProjectFactory(scpca_id=PROJECT_ID)
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        expected_file_path = settings.RENDERED_README_PATH / f"{DOWNLOAD_CONFIG_NAME}.md"
         self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
@@ -51,7 +50,7 @@ class TestReadmeFileContents(TestCase):
 
         project = ProjectFactory(scpca_id=PROJECT_ID)
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        expected_file_path = settings.RENDERED_README_PATH / f"{DOWNLOAD_CONFIG_NAME}.md"
         self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
@@ -61,7 +60,7 @@ class TestReadmeFileContents(TestCase):
 
         project = ProjectFactory(scpca_id=PROJECT_ID)
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        expected_file_path = settings.RENDERED_README_PATH / f"{DOWNLOAD_CONFIG_NAME}.md"
         self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED(self):
@@ -71,7 +70,7 @@ class TestReadmeFileContents(TestCase):
 
         project = ProjectFactory(scpca_id=PROJECT_ID)
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        expected_file_path = settings.RENDERED_README_PATH / f"{DOWNLOAD_CONFIG_NAME}.md"
         self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SINGLE_CELL_ANN_DATA(self):
@@ -81,7 +80,7 @@ class TestReadmeFileContents(TestCase):
 
         project = ProjectFactory(scpca_id=PROJECT_ID)
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        expected_file_path = settings.RENDERED_README_PATH / f"{DOWNLOAD_CONFIG_NAME}.md"
         self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SINGLE_CELL_ANN_DATA_MERGED(self):
@@ -91,7 +90,7 @@ class TestReadmeFileContents(TestCase):
 
         project = ProjectFactory(scpca_id=PROJECT_ID)
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        expected_file_path = settings.RENDERED_README_PATH / f"{DOWNLOAD_CONFIG_NAME}.md"
         self.assertReadmeContents(expected_file_path, result)
 
     def test_readme_file_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
@@ -101,5 +100,5 @@ class TestReadmeFileContents(TestCase):
 
         project = ProjectFactory(scpca_id=PROJECT_ID)
         result = readme_file.get_file_contents(DOWNLOAD_CONFIG, [project])
-        expected_file_path = README_DIR / f"{DOWNLOAD_CONFIG_NAME}.md"
+        expected_file_path = settings.RENDERED_README_PATH / f"{DOWNLOAD_CONFIG_NAME}.md"
         self.assertReadmeContents(expected_file_path, result)
