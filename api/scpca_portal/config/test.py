@@ -13,3 +13,4 @@ class Test(Local):
     OUTPUT_DATA_PATH = Path("/home/user/code/test_data/output")
     README_PATH = Path("/home/user/code/test_data/readmes")
     TEMPLATE_PATH = Path("/home/user/code/scpca_portal/templates")
+    RENDERED_README_PATH = Path("/home/user/code/scpca_portal/test/expected_values/readmes")
