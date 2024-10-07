@@ -111,9 +111,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
         }
 
         excluded_metadata_attributes = {
-            "scpca_project_id"
-            # included in project metadata under the name pi_name
-            "submitter"
+            "scpca_project_id",
+            "submitter",  # included in project metadata under the name pi_name
         }
         sample_metadata.update(
             {
