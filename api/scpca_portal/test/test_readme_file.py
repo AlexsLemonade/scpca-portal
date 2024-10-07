@@ -4,6 +4,7 @@ from django.test import TestCase
 from scpca_portal import common, readme_file, utils
 from scpca_portal.test.factories import ProjectFactory
 
+
 class TestReadmeFileContents(TestCase):
     def assertReadmeContents(self, expected_file_path: str, result_content: str) -> None:
         with open(expected_file_path, encoding="utf-8") as expected_file:
