@@ -1,8 +1,8 @@
+from django.conf import settings
 from django.test import TestCase
 
 from scpca_portal import common, readme_file, utils
 from scpca_portal.test.factories import ProjectFactory
-from django.conf import settings
 
 class TestReadmeFileContents(TestCase):
     def assertReadmeContents(self, expected_file_path: str, result_content: str) -> None:
