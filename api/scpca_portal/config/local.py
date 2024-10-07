@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from scpca_portal.config.common import Common
 
@@ -17,11 +18,16 @@ class Local(Common):
     AWS_REGION = None
 
     # AWS S3
-    TEST_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-09-10/"
-    AWS_S3_INPUT_BUCKET_NAME = TEST_INPUT_BUCKET_NAME if Common.TEST else "scpca-portal-inputs"
+    AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-inputs"
     AWS_S3_OUTPUT_BUCKET_NAME = "scpca-local-data"
 
     CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1"]
 
     # This is only needed locally because everything else will use S3.
     DEV_HOST = os.getenv("DEV_HOST")
+
+    # Code Paths
+    INPUT_DATA_PATH = Path("/home/user/code/data/input")
+    OUTPUT_DATA_PATH = Path("/home/user/code/data/output")
+    README_PATH = Path("/home/user/code/data/readmes")
+    TEMPLATE_PATH = Path("/home/user/code/scpca_portal/templates")

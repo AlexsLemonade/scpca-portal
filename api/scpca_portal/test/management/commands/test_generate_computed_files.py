@@ -1,10 +1,9 @@
 import shutil
 from functools import partial
 
+from django.conf import settings
 from django.core.management import call_command
 from django.test import TransactionTestCase
-
-from scpca_portal import common
 
 
 class TestGenerateComputedFiles(TransactionTestCase):
@@ -15,7 +14,7 @@ class TestGenerateComputedFiles(TransactionTestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+        shutil.rmtree(settings.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def test_project_SCPCP999990(self):
         pass

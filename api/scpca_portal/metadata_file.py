@@ -5,9 +5,11 @@ from collections import namedtuple
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from django.conf import settings
+
 from scpca_portal import common, utils
 
-PROJECT_METADATA_PATH = common.INPUT_DATA_PATH / "project_metadata.csv"
+PROJECT_METADATA_PATH = settings.INPUT_DATA_PATH / "project_metadata.csv"
 PROJECT_METADATA_KEYS = [
     # Fields used in Project model object creation
     ("has_bulk", "has_bulk_rna_seq", False),

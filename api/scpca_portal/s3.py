@@ -3,10 +3,11 @@ from collections import namedtuple
 from pathlib import Path
 from typing import List
 
+from django.conf import settings
+
 import boto3
 from botocore.client import Config
 
-from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
@@ -81,7 +82,7 @@ def list_input_paths(
 
 def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
-    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
+    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", settings.INPUT_DATA_PATH]
 
     download_queue = [fp for fp in file_paths if not fp.exists()]
     # If download_queue is empty, exit early
@@ -105,7 +106,7 @@ def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
 
 def download_input_metadata(bucket_name: str) -> bool:
     """Download all metadata files to the local file system."""
-    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", common.INPUT_DATA_PATH]
+    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", settings.INPUT_DATA_PATH]
 
     command_parts.append("--exclude=*")
     command_parts.append("--include=*_metadata.*")
@@ -139,7 +140,7 @@ def delete_output_file(key: str, bucket_name: str) -> bool:
 def upload_output_file(key: str, bucket_name: str) -> bool:
     """Upload a computed file to S3 using the AWS CLI tool."""
 
-    local_path = common.OUTPUT_DATA_PATH / key
+    local_path = settings.OUTPUT_DATA_PATH / key
     aws_path = f"s3://{bucket_name}/{key}"
     command_parts = ["aws", "s3", "cp", local_path, aws_path]
 

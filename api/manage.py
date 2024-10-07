@@ -6,7 +6,11 @@ import sys
 
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "scpca_portal.config")
-    os.environ.setdefault("DJANGO_CONFIGURATION", "Local")
+
+    # Indicates running in test environment.
+    test_env_active = len(sys.argv) > 1 and sys.argv[1] == "test"
+    default_config = "Test" if test_env_active else "Local"
+    os.environ.setdefault("DJANGO_CONFIGURATION", default_config)
 
     try:
         from configurations.management import execute_from_command_line
