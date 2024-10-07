@@ -16,7 +16,7 @@ from scpca_portal import common, metadata_file, readme_file, utils
 from scpca_portal.models import ComputedFile, Library, Project, Sample
 
 # NOTE: Test data bucket is defined in `config/test.py`.
-# When common.INPUT_BUCKET_NAME is changed, please delete the contents of
+# When settings.INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
 
 README_FILE = readme_file.OUTPUT_NAME
