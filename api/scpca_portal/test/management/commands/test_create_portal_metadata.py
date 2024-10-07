@@ -15,11 +15,10 @@ from django.test import TransactionTestCase
 from scpca_portal import common, metadata_file, readme_file, utils
 from scpca_portal.models import ComputedFile, Library, Project, Sample
 
-# NOTE: Test data bucket is defined in `scpca_porta/common.py`.
+# NOTE: Test data bucket is defined in `config/test.py`.
 # When common.INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
 
-README_DIR = settings.DATA_PATH / "readmes"
 README_FILE = readme_file.OUTPUT_NAME
 METADATA_FILE = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
@@ -72,7 +71,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
 
         # Get the corresponding saved readme output path based on the zip filename
         readme_filename = re.sub(r"^[A-Z]{5}\d{6}_", "", Path(zip_file.filename).stem) + ".md"
-        saved_readme_output_path = README_DIR / readme_filename
+        saved_readme_output_path = settings.README_PATH / readme_filename
         # Convert expected and output contents to line lists for easier debugging
         with zip_file.open(README_FILE) as readme_file:
             output_content = readme_file.read().decode("utf-8").splitlines(True)

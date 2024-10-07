@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from scpca_portal.config.local import Local
 
 
@@ -7,6 +9,7 @@ class Test(Local):
     AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-09-10/"
 
     # Code Paths
-    DATA_PATH = Local.CODE_PATH / "test_data"
-    INPUT_DATA_PATH = DATA_PATH / "input"
-    OUTPUT_DATA_PATH = DATA_PATH / "output"
+    INPUT_DATA_PATH = Path("/home/user/code/test_data/input")
+    OUTPUT_DATA_PATH = Path("/home/user/code/test_data/output")
+    README_PATH = Path("/home/user/code/test_data/readmes")
+    TEMPLATE_PATH = Path("/home/user/code/scpca_portal/templates")

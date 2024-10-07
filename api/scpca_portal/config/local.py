@@ -27,10 +27,7 @@ class Local(Common):
     DEV_HOST = os.getenv("DEV_HOST")
 
     # Code Paths
-    CODE_PATH = Path("/home/user/code")
-
-    DATA_PATH = CODE_PATH / "data"
-    INPUT_DATA_PATH = DATA_PATH / "input"
-    OUTPUT_DATA_PATH = DATA_PATH / "output"
-
-    TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
+    INPUT_DATA_PATH = Path("/home/user/code/data/input")
+    OUTPUT_DATA_PATH = Path("/home/user/code/data/output")
+    README_PATH = Path("/home/user/code/data/readmes")
+    TEMPLATE_PATH = Path("/home/user/code/scpca_portal/templates")

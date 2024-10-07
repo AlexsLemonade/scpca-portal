@@ -54,10 +54,7 @@ class Production(Common):
     )
 
     # Code Paths
-    CODE_PATH = Path("/home/user")
-
-    DATA_PATH = CODE_PATH / "data"
-    INPUT_DATA_PATH = DATA_PATH / "input"
-    OUTPUT_DATA_PATH = DATA_PATH / "output"
-
-    TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
+    INPUT_DATA_PATH = Path("/home/user/data/input")
+    OUTPUT_DATA_PATH = Path("/home/user/data/output")
+    README_PATH = Path("/home/user/data/readmes")
+    TEMPLATE_PATH = Path("/home/user/scpca_portal/templates")
