@@ -32,7 +32,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
             SPATIAL: "Spatial Data",
         }
 
-    additional_metadata = models.JSONField(default=dict)
     age = models.TextField()
     age_timing = models.TextField()
     demux_cell_count_estimate = models.IntegerField(null=True)
@@ -44,6 +43,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
     includes_anndata = models.BooleanField(default=False)
     is_cell_line = models.BooleanField(default=False)
     is_xenograft = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict)
     multiplexed_with = ArrayField(models.TextField(), default=list)
     sample_cell_count_estimate = models.IntegerField(null=True)
     scpca_id = models.TextField(unique=True)
@@ -70,6 +70,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             disease_timing=data["disease_timing"],
             is_cell_line=utils.boolean_from_string(data.get("is_cell_line", False)),
             is_xenograft=utils.boolean_from_string(data.get("is_xenograft", False)),
+            metadata=data,
             multiplexed_with=data.get("multiplexed_with", []),
             sample_cell_count_estimate=(data.get("sample_cell_count_estimate", None)),
             project=project,
@@ -82,18 +83,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
             treatment=data.get("treatment", ""),
         )
 
-        # Additional metadata varies project by project.
-        # Generally, whatever's not on the Sample model is additional.
-        sample.additional_metadata = {
-            key: value
-            for key, value in data.items()
-            if not hasattr(sample, key)
-            # Don't include project metadata keys (needed for writing)
-            and key not in ("scpca_project_id", "project_title", "pi_name", "submitter")
-            # Exclude deliberate model attribute and file field name mismatch
-            and key != "scpca_sample_id"
-        }
-
         return sample
 
     @classmethod
@@ -105,33 +94,41 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         Sample.objects.bulk_create(samples)
 
+    @property
+    def additional_metadata(self):
+        return {
+            key: value
+            for key, value in self.metadata.items()
+            if not hasattr(self, key)
+            # These fields are accounted for elsewhere,
+            # either in different models or by different names
+            and key not in ("scpca_sample_id", "scpca_project_id", "submitter")
+        }
+
     def get_metadata(self) -> Dict:
         sample_metadata = {
             "scpca_sample_id": self.scpca_id,
         }
 
-        included_sample_attributes = {
-            "age",
-            "age_timing",
-            "demux_cell_count_estimate",
-            "diagnosis",
-            "disease_timing",
-            "sex",
-            "subdiagnosis",
-            "tissue_location",
-            "includes_anndata",
-            "is_cell_line",
-            "is_xenograft",
-            "sample_cell_count_estimate",
+        excluded_metadata_attributes = {
+            "scpca_project_id",
+            "submitter",  # included in project metadata under the name pi_name
         }
-
-        sample_metadata.update({key: getattr(self, key) for key in included_sample_attributes})
-        # Update name from attribute name to expected output name
-        sample_metadata["sample_cell_estimate"] = sample_metadata.pop("demux_cell_count_estimate")
-
         sample_metadata.update(
-            {key: self.additional_metadata[key] for key in self.additional_metadata}
+            {
+                key: value
+                for key, value in self.metadata.items()
+                if key not in excluded_metadata_attributes
+            }
         )
+
+        derived_attributes = {
+            "demux_cell_count_estimate",
+            "sample_cell_count_estimate",
+            "includes_anndata",
+        }
+        sample_metadata.update({key: getattr(self, key) for key in derived_attributes})
+        sample_metadata["sample_cell_estimate"] = sample_metadata.pop("demux_cell_count_estimate")
 
         return sample_metadata
 

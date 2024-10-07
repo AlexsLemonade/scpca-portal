@@ -182,11 +182,10 @@ class Library(TimestampedModel):
             # for multiplexed samples, this is handled at the sample level
             "sample_cell_estimates",
         }
-
         library_metadata.update(
             {
-                key: self.metadata[key]
-                for key in self.metadata
+                key: value
+                for key, value in self.metadata.items()
                 if key not in excluded_metadata_attributes
             }
         )
