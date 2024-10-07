@@ -25,7 +25,6 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
       }
     ]
 
-    # this only works with tf version >= 5.12.0
     # without this declaration, ephemeralStroage defaults to 20GB
     ephemeralStorage = {
       sizeInGib = 200
