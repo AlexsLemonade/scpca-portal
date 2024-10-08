@@ -197,12 +197,8 @@ class Library(TimestampedModel):
         combined_metadatas = []
         for sample in self.samples.all():
             metadata = self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
-            # Estimate attributes per modality:
-            #   Single Cell: "sample_cell_count_estimate"
-            #   Single Cell Multiplexed: "sample_cell_estimates"
-            #   Spatial: None
-            if self.modality == Library.Modalities.SPATIAL or self.is_multiplexed:
-                del metadata["sample_cell_count_estimate"]
+
+            # Only single cell multiplexed sample libraries should pass through sample_cell_estimate
             if not self.is_multiplexed:
                 del metadata["sample_cell_estimate"]
 
