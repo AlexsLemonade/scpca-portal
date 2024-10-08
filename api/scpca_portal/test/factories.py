@@ -28,7 +28,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Project"
 
-    scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
+    scpca_id = factory.Sequence(lambda n: f"SCPCP{str(n).zfill(6)}")
     pi_name = "gawad"
     human_readable_pi_name = "Gawad"
     title = (
@@ -50,6 +50,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     immediately accessible to the research community, with the aim of
     accelerating our efforts to find new ways to cure all children
     with AML"""
+    additional_restrictions = "Research or academic purposes only"
     disease_timings = "Diagnosis, Relapse/Diagnosis at LPCH, Relapsed, Healthy control"
     diagnoses = "AML, Normal"
     diagnoses_counts = "AML (20), Normal (40)"
@@ -75,20 +76,40 @@ class SampleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Sample"
 
-    additional_metadata = {
-        "braf_status": "Not tested for BRAF status",
-        "has_spinal_leptomeningeal_mets": False,
-    }
     age = "4"
     age_timing = "diagnosis"
     computed_file1 = factory.RelatedFactory(SampleComputedFileFactory, "sample")
     diagnosis = "pilocytic astrocytoma"
     disease_timing = "primary diagnosis"
     has_cite_seq_data = True
-    multiplexed_with = ["SCPCP000000"]
+    metadata = factory.LazyFunction(
+        lambda: {
+            "age": 4,
+            "age_timing": "diagnosis",
+            "development_stage_ontology_term_id": "NA",
+            "diagnosis": "pilocytic astrocytoma",
+            "disease_ontology_term_id": "NA",
+            "disease_timing": "primary diagnosis",
+            "is_cell_line": False,
+            "is_xenograft": False,
+            "organisms": "Homo sapiens",
+            "organisms_ontology_id": "NA",
+            "participant_id": "NA",
+            "scpca_project_id": "",
+            "scpca_sample_id": "",
+            "self_reported_ethnicity_ontology_term_id": "NA",
+            "sex": "M",
+            "subdiagnosis": "NA",
+            "submitter": "scpca",
+            "submitter_id": "NA",
+            "tissue_location": "posterior fossa",
+            "tissue_ontology_term_id": "NA",
+        }
+    )
+    multiplexed_with = ["SCPCS000000"]
     project = factory.SubFactory(LeafProjectFactory)
     sample_cell_count_estimate = 42
-    scpca_id = factory.Sequence(lambda n: "SCPCS0000%d" % n)
+    scpca_id = factory.Sequence(lambda n: f"SCPCS{str(n).zfill(6)}")
     seq_units = "cell"
     sex = "M"
     subdiagnosis = "NA"
@@ -100,12 +121,16 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Library"
 
-    data_file_paths = [factory.Sequence(lambda n: f"SCPCP0000{n}/SCPCS0000{n}/SCPCL0000{n}")]
+    data_file_paths = [
+        factory.Sequence(
+            lambda n: f"SCPCP{str(n).zfill(6)}/SCPCS{str(n).zfill(6)}/SCPCL{str(n).zfill(6)}"
+        )
+    ]
     formats = [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
     is_multiplexed = False
     modality = Library.Modalities.SINGLE_CELL
     project = factory.SubFactory(LeafProjectFactory)
-    scpca_id = factory.Sequence(lambda n: "SCPCL0000%d" % n)
+    scpca_id = factory.Sequence(lambda n: f"SCPCL{str(n).zfill(6)}")
     workflow_version = "development"
     # With factory_body, factory instances share attributes by default
     # Use LazyFunction to populate metadata dict so that changes don't propogate to all instances

@@ -75,7 +75,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 file_name_parts.append("MULTIPLEXED")
         file_name_parts.append("METADATA.tsv")
 
-        return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
+        return settings.OUTPUT_DATA_PATH / "_".join(file_name_parts)
 
     @staticmethod
     def get_local_sample_metadata_path(sample, download_config: Dict) -> Path:
@@ -83,18 +83,18 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         file_name_parts.extend(
             [download_config["modality"], download_config["format"], "METADATA.tsv"]
         )
-        return common.OUTPUT_DATA_PATH / "_".join(file_name_parts)
+        return settings.OUTPUT_DATA_PATH / "_".join(file_name_parts)
 
     @staticmethod
     def get_local_portal_metadata_path() -> Path:
-        return common.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
+        return settings.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
 
     @staticmethod
     def get_local_file_path(download_config: Dict) -> Path:
         """Takes a download_config dictionary and returns the filepath
         where the zipfile will be saved locally before upload."""
-        if download_config is common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG:
-            return common.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
+        if download_config is common.PORTAL_METADATA_DOWNLOAD_CONFIG:
+            return settings.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
 
     @classmethod
     def get_portal_metadata_file(cls, projects, download_config: Dict) -> Self:
@@ -145,7 +145,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_project_file(cls, project, download_config: Dict, computed_file_name: str) -> Self:
+    def get_project_file(
+        cls, project, download_config: Dict, computed_file_name: str
+    ) -> Self | None:
         """
         Queries for a project's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -169,7 +171,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             library_data_file_paths + project_data_file_paths, project.s3_input_bucket
         )
 
-        zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
+        zip_file_path = settings.OUTPUT_DATA_PATH / computed_file_name
         with ZipFile(zip_file_path, "w") as zip_file:
             # Readme file
             zip_file.writestr(
@@ -257,7 +259,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         ]
         s3.download_input_files(library_data_file_paths, sample.project.s3_input_bucket)
 
-        zip_file_path = common.OUTPUT_DATA_PATH / computed_file_name
+        zip_file_path = settings.OUTPUT_DATA_PATH / computed_file_name
         # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
         with lock:  # It should be removed later for a cleaner solution.
             if not zip_file_path.exists():
@@ -354,7 +356,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @property
     def zip_file_path(self):
-        return common.OUTPUT_DATA_PATH / self.s3_key
+        return settings.OUTPUT_DATA_PATH / self.s3_key
 
     def clean_up_local_computed_file(self):
         """Delete local computed file."""

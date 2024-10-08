@@ -30,7 +30,7 @@ class Command(BaseCommand):
 
     def create_portal_metadata(self, clean_up_output_data: bool, update_s3: bool, **kwargs):
         # Prepare the data output directory
-        output_directory = common.OUTPUT_DATA_PATH
+        output_directory = settings.OUTPUT_DATA_PATH
         # Remove the existing data output directory if any
         shutil.rmtree(output_directory, ignore_errors=True)
         logger.info("Creating the data output directory")
@@ -42,7 +42,7 @@ class Command(BaseCommand):
 
         logger.info("Creating the portal-wide metadata computed file")
         if computed_file := ComputedFile.get_portal_metadata_file(
-            Project.objects.all(), common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
+            Project.objects.all(), common.PORTAL_METADATA_DOWNLOAD_CONFIG
         ):
             if update_s3:
                 logger.info("Updating the zip file in S3")

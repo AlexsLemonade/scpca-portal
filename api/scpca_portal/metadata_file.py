@@ -5,8 +5,11 @@ from collections import namedtuple
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from django.conf import settings
+
 from scpca_portal import common, utils
 
+PROJECT_METADATA_PATH = settings.INPUT_DATA_PATH / "project_metadata.csv"
 PROJECT_METADATA_KEYS = [
     # Fields used in Project model object creation
     ("has_bulk", "has_bulk_rna_seq", False),
@@ -27,6 +30,8 @@ PROJECT_METADATA_KEYS = [
     ("citation_doi", "doi", None),
 ]
 
+PROJECT_METADATA_VALUES_TRANSFORMS = {"diagnoses": lambda d: ", ".join(sorted(d.split(";")))}
+
 LIBRARY_METADATA_KEYS = [
     ("library_id", "scpca_library_id", None),
     ("sample_id", "scpca_sample_id", None),
@@ -36,20 +41,21 @@ LIBRARY_METADATA_KEYS = [
 KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
 
 
-def load_projects_metadata(metadata_file_path: Path, project_id: str = None):
+def load_projects_metadata(*, filter_on_project_id: str = None):
     """
-    Opens, loads and parses list of project metadata located at inputted metadata_file_path.
+    Opens, loads and parses list of project metadata dicts.
     Transforms keys in data dicts to match associated model attributes.
     If an optional project id is passed, all projects are filtered out except for the one passed.
     """
-    with open(metadata_file_path) as raw_file:
+    with open(PROJECT_METADATA_PATH) as raw_file:
         projects_metadata = list(csv.DictReader(raw_file))
 
     for project_metadata in projects_metadata:
         transform_keys(project_metadata, PROJECT_METADATA_KEYS)
+        transform_values(project_metadata, PROJECT_METADATA_VALUES_TRANSFORMS)
 
-    if project_id:
-        return [pm for pm in projects_metadata if pm["scpca_project_id"] == project_id]
+    if filter_on_project_id:
+        return [pm for pm in projects_metadata if pm["scpca_project_id"] == filter_on_project_id]
 
     return projects_metadata
 
@@ -79,6 +85,16 @@ def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
     for element in [KeyTransform._make(element) for element in key_transforms]:
         if element.old_key in data_dict:
             data_dict[element.new_key] = data_dict.pop(element.old_key, element.default_value)
+
+    return data_dict
+
+
+def transform_values(data_dict: Dict, value_transforms: List[Tuple]):
+    """
+    Transform values in data dict according to transformation functions in value transform dict.
+    """
+    for key, transformation_function in value_transforms.items():
+        data_dict[key] = transformation_function(data_dict[key])
 
     return data_dict
 

@@ -1,11 +1,11 @@
 import logging
 from argparse import BooleanOptionalAction
-from typing import Set
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from scpca_portal import common, loader
+from scpca_portal import loader
+from scpca_portal.models import Project
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -13,9 +13,8 @@ logger.addHandler(logging.StreamHandler())
 
 
 class Command(BaseCommand):
-    help = """Populates the database with data.
-
-    The data should be contained in an S3 bucket called scpca-portal-inputs.
+    help = """
+    Data files should be contained in an S3 bucket called scpca-portal-inputs.
 
     The directory structure for this bucket should follow this pattern:
         /project_metadata.csv
@@ -42,9 +41,6 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--input-bucket-name", type=str, default=settings.AWS_S3_INPUT_BUCKET_NAME
-        )
-        parser.add_argument(
             "--clean-up-input-data",
             action=BooleanOptionalAction,
             type=bool,
@@ -57,50 +53,34 @@ class Command(BaseCommand):
             default=settings.PRODUCTION,
         )
         parser.add_argument("--max-workers", type=int, default=10)
-        parser.add_argument("--reload-existing", action="store_true", default=False)
         parser.add_argument("--scpca-project-id", type=str)
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
         )
-        parser.add_argument(
-            "--submitter-whitelist",
-            type=self.comma_separated_set,
-            default=common.SUBMITTER_WHITELIST,
-        )
 
     def handle(self, *args, **kwargs):
-        self.load_data(**kwargs)
+        self.generate_computed_files(**kwargs)
 
-    def comma_separated_set(self, raw_str: str) -> Set[str]:
-        return set(raw_str.split(","))
-
-    def load_data(
+    def generate_computed_files(
         self,
-        input_bucket_name: str,
         clean_up_input_data: bool,
         clean_up_output_data: bool,
         max_workers: int,
-        reload_existing: bool,
         scpca_project_id: str,
         update_s3: bool,
-        submitter_whitelist: Set[str],
         **kwargs,
     ) -> None:
-        """Loads data from S3. Creates projects and loads data for them."""
+        """Generates a project's computed files according predetermined download configurations"""
         loader.prep_data_dirs()
 
-        # load metadata
-        for project_metadata in loader.get_projects_metadata(input_bucket_name, scpca_project_id):
-            # validate that a project can be added to the db,
-            # then creates it, all its samples and libraries, and all other relations
-            if project := loader.create_project(
-                project_metadata, submitter_whitelist, input_bucket_name, reload_existing, update_s3
-            ):
-                # generate computed files
-                loader.generate_computed_files(
-                    project, max_workers, update_s3, clean_up_output_data
-                )
+        project = Project.objects.filter(scpca_id=scpca_project_id).first()
 
-                if clean_up_input_data:
-                    logger.info(f"Cleaning up '{project}' input files")
-                    loader.remove_project_input_files(project.scpca_id)
+        loader.generate_computed_files(project, max_workers, update_s3, clean_up_output_data)
+
+        # There is no need to clear up the input and output data dirs at the end of execution,
+        # as Batch will trigger this automatically upon job completion.
+        # Adding it here is for testing purposes, allowing us to clean up input data if desired.
+        # Output data is deleted on a computed file level - after each file is created it's deleted.
+        if clean_up_input_data:
+            logger.info(f"Cleaning up '{project}' input files")
+            loader.remove_project_input_files(project.scpca_id)
