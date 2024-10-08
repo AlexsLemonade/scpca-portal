@@ -130,10 +130,11 @@ export const ProjectSamplesTable = ({
     },
     {
       Header: 'Sample ID',
-      accessor: ({ scpca_id: id, has_multiplexed_data: multiplexed }) => (
+      accessor: 'scpca_id',
+      Cell: ({ row }) => (
         <Box>
-          <Text>{id}</Text>
-          {multiplexed && (
+          <Text>{row.original.scpca_id}</Text>
+          {row.original.has_multiplexed_data && (
             <Pill
               textSize="small"
               label={getReadable('has_multiplexed_data')}
