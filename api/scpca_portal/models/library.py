@@ -198,9 +198,16 @@ class Library(TimestampedModel):
         for sample in self.samples.all():
             metadata = self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
 
-            # Only single cell multiplexed sample libraries should pass through sample_cell_estimate
-            if not self.is_multiplexed:
-                del metadata["sample_cell_estimate"]
+            # NOTE: demux_cell_count_estimate is reassigned here for the output metadata file.
+            # The metadata file writes out sample-library rows, necessitating greater granularity.
+            # In contrast, the Sample model expects the aggregate value of its related libraries.
+            if self.is_multiplexed:
+                metadata["demux_cell_count_estimate"] = self.metadata["sample_cell_estimates"][
+                    sample.scpca_id
+                ]
+            # Only multiplexed sample-libraries should have a demux_cell_count_estimate attribute
+            else:
+                del metadata["demux_cell_count_estimate"]
 
             combined_metadatas.append(metadata)
 
