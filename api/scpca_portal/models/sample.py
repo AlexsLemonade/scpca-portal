@@ -128,7 +128,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
             "includes_anndata",
         }
         sample_metadata.update({key: getattr(self, key) for key in derived_attributes})
-        sample_metadata["sample_cell_estimate"] = sample_metadata.pop("demux_cell_count_estimate")
 
         return sample_metadata
 
