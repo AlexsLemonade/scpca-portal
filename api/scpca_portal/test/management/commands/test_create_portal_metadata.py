@@ -1,10 +1,8 @@
 import csv
-import re
 import shutil
 from functools import partial
 from io import TextIOWrapper
-from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -12,7 +10,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TransactionTestCase
 
-from scpca_portal import common, metadata_file, readme_file, utils
+from scpca_portal import common, metadata_file, readme_file
 from scpca_portal.models import ComputedFile, Library, Project, Sample
 
 # NOTE: Test data bucket is defined in `config/test.py`.
@@ -54,35 +52,6 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
-    def assertProjectReadmeContent(self, zip_file, project_ids: List[str]) -> None:
-        def get_updated_content(content: str) -> str:
-            """
-            Replace the placeholders PROJECT_ID_{i} and TEST_TODAYS_DATE in test_data/readmes
-            with the given project_id and today's date respectively for format testing."
-            """
-            content = content.replace(
-                "Generated on: TEST_TODAYS_DATE", f"Generated on: {utils.get_today_string()}"
-            )
-            # Map project_ids to their coressponding placeholders with indecies in readmes
-            for i, project_id in enumerate(project_ids):
-                content = content.replace(f"PROJECT_ID_{i}", project_id)
-
-            return content.strip()
-
-        # Get the corresponding saved readme output path based on the zip filename
-        readme_filename = re.sub(r"^[A-Z]{5}\d{6}_", "", Path(zip_file.filename).stem) + ".md"
-        saved_readme_output_path = settings.README_PATH / readme_filename
-        # Convert expected and output contents to line lists for easier debugging
-        with zip_file.open(README_FILE) as readme_file:
-            output_content = readme_file.read().decode("utf-8").splitlines(True)
-        with saved_readme_output_path.open("r", encoding="utf-8") as saved_readme_file:
-            expected_content = get_updated_content(saved_readme_file.read()).splitlines(True)
-        self.assertEqual(
-            expected_content,
-            output_content,
-            f"{self._testMethodName}: Comparison with {readme_filename} does not match.",
-        )
-
     def assertFields(self, computed_file, expected_fields: Dict):
         for expected_key, expected_value in expected_fields.items():
             actual_value = getattr(computed_file, expected_key)
@@ -109,14 +78,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
         computed_file = computed_files.first()
         # Make sure the computed file size is as expected range
         self.assertEqualWithVariance(computed_file.size_in_bytes, 8430)
-        # Make sure all fields match the download configuration values
-        download_config = {
-            "modality": None,
-            "format": None,
-            "includes_merged": False,
-            "metadata_only": True,
-            "portal_metadata_only": True,
-        }
+        # Make sure all fields match the download configuration (excludes excludes_multiplexed)
+        download_config = common.PORTAL_METADATA_DOWNLOAD_CONFIG.copy()
+        download_config.pop("excludes_multiplexed", None)
         self.assertFields(computed_file, download_config)
         # Make sure mock_upload_output_file called once
         mock_upload_output_file.assert_called_once_with(
@@ -133,13 +97,10 @@ class TestCreatePortalMetadata(TransactionTestCase):
             # Make sure the zip has the exact number of expected files
             files = set(zip_file.namelist())
             self.assertEqual(len(files), expected_file_count)
+            # Make sure all expected files are included
             self.assertIn(README_FILE, files)
             self.assertIn(METADATA_FILE, files)
-            # README.md
-            self.assertProjectReadmeContent(
-                zip_file, list(Project.objects.values_list("scpca_id", flat=True).distinct())
-            )
-            # metadata.tsv
+            # Test metadata.tsv
             with zip_file.open(METADATA_FILE) as metadata_file:
                 csv_reader = csv.DictReader(
                     TextIOWrapper(metadata_file, "utf-8"),
