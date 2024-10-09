@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useResizeObserver } from 'hooks/useResizeObserver'
 import { Box, Main } from 'grommet'
 import { ContributeBanner } from 'components/ContributeBanner'
+import { ContributePhaseOutBanner } from 'components/ContributePhaseOutBanner'
 import { EnvarBanner } from 'components/EnvarBanner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
@@ -52,6 +53,8 @@ export const Layout = ({ children }) => {
     '/terms-of-use'
   ]
 
+  const isContributeOpen = process.env.CONTRIBUTION_OPEN === 'ON'
+
   // show the contributeBanner
   const showContributeBanner = !excludeContributeBanner.includes(
     router.pathname
@@ -70,7 +73,13 @@ export const Layout = ({ children }) => {
           <ProgressBar />
         </FixedBox>
       </Box>
-      {showContributeBanner && <ContributeBanner width={width} />}
+      {showContributeBanner &&
+        (isContributeOpen ? (
+          <ContributeBanner width={width} />
+        ) : (
+          <ContributePhaseOutBanner width={width} />
+        ))}
+
       <Main
         width={showWide ? 'full' : 'xlarge'}
         alignSelf="center"

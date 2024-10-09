@@ -14,6 +14,7 @@ import { Link } from 'components/Link'
 import { MarkdownPage } from 'components/MarkdownPage'
 import { config } from 'config'
 import contributionGuidelines from 'config/contribution-guidelines.md'
+import contributionGuidelinesClosed from 'config/contribution-guidelines-closed.md'
 import styled from 'styled-components'
 
 const TableHeader = styled(GrommetTableHeader)`
@@ -37,9 +38,23 @@ const IntakeFormLink = () => (
   />
 )
 
+const InterestFormLink = () => (
+  <Button
+    href={config.links.interest_hsform}
+    label="Complete the Interest Form"
+    margin={{ top: 'small', bottom: 'medium' }}
+    target="_blank"
+    primary
+  />
+)
+
 export const Contribute = () => {
   const headingMargin = { top: '24px', bottom: 'small' }
   const listMargin = { bottom: 'medium', horizontal: 'medium' }
+  const isOpen = process.env.CONTRIBUTION_OPEN === 'ON'
+  const markdown = isOpen
+    ? contributionGuidelines
+    : contributionGuidelinesClosed
 
   const components = {
     h1: {
@@ -87,6 +102,9 @@ export const Contribute = () => {
     },
     IntakeFormLink: {
       component: IntakeFormLink
+    },
+    InterestFormLink: {
+      component: InterestFormLink
     },
     a: {
       component: Link
@@ -140,7 +158,7 @@ export const Contribute = () => {
       </Box>
       <MarkdownPage
         components={components}
-        markdown={contributionGuidelines}
+        markdown={markdown}
         width="xlarge"
       />
     </>
