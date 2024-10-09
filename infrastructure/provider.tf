@@ -1,5 +1,5 @@
 provider "aws" {
-  version = "3.37.0"
+  version = "5.12.0"
   region  = var.region
 
   default_tags {
