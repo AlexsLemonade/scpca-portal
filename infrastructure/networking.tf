@@ -1,18 +1,6 @@
 # The configuration contained in this file specifies AWS resources
 # related to networking.
 
-provider "aws" {
-  version = "3.37.0"
-  region = var.region
-
-  default_tags {
-    tags = {
-      team = "engineering"
-      project = "ScPCA Portal"
-    }
-  }
-}
-
 resource "aws_vpc" "scpca_portal_vpc" {
   cidr_block = "10.0.0.0/16"
   enable_dns_support = true
