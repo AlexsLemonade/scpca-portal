@@ -57,7 +57,6 @@ METADATA_COLUMN_SORT_ORDER = [
     "demux_samples",
     "total_reads",
     "mapped_reads",
-    "sample_cell_count_estimate",
     "sample_cell_estimate",  # ONLY FOR MULTIPLEXED
     "unfiltered_cells",
     "filtered_cell_count",
