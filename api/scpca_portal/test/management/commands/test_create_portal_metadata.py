@@ -2,7 +2,6 @@ import csv
 import shutil
 from functools import partial
 from io import TextIOWrapper
-from typing import Dict
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -52,12 +51,6 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
-    def assertFields(self, computed_file, expected_fields: Dict):
-        for expected_key, expected_value in expected_fields.items():
-            actual_value = getattr(computed_file, expected_key)
-            message = f"Expected {expected_value}, received {actual_value} on '{expected_key}'"
-            self.assertEqual(actual_value, expected_value, message)
-
     def assertEqualWithVariance(self, value, expected, variance=50):
         # Make sure the given value is within the range of expected bounds
         message = f"{value} is out of range"
@@ -78,10 +71,18 @@ class TestCreatePortalMetadata(TransactionTestCase):
         computed_file = computed_files.first()
         # Make sure the computed file size is as expected range
         self.assertEqualWithVariance(computed_file.size_in_bytes, 8430)
-        # Make sure all fields match the download configuration (excludes excludes_multiplexed)
-        download_config = common.PORTAL_METADATA_DOWNLOAD_CONFIG.copy()
-        download_config.pop("excludes_multiplexed", None)
-        self.assertFields(computed_file, download_config)
+        # Make sure all the fields have correct values
+        self.assertTrue(computed_file.metadata_only)
+        self.assertTrue(computed_file.portal_metadata_only)
+        self.assertFalse(computed_file.has_bulk_rna_seq)
+        self.assertFalse(computed_file.has_cite_seq_data)
+        self.assertFalse(computed_file.has_multiplexed_data)
+        self.assertFalse(computed_file.includes_merged)
+        self.assertIsNone(computed_file.format)
+        self.assertIsNone(computed_file.modality)
+        self.assertIsNone(computed_file.project)
+        self.assertIsNone(computed_file.sample)
+
         # Make sure mock_upload_output_file called once
         mock_upload_output_file.assert_called_once_with(
             computed_file.s3_key, computed_file.s3_bucket
