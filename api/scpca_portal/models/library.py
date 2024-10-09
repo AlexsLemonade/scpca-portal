@@ -205,9 +205,6 @@ class Library(TimestampedModel):
                 metadata["demux_cell_count_estimate"] = self.metadata["sample_cell_estimates"][
                     sample.scpca_id
                 ]
-            # Only multiplexed sample-libraries should have a demux_cell_count_estimate attribute
-            else:
-                del metadata["demux_cell_count_estimate"]
 
             combined_metadatas.append(metadata)
 
