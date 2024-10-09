@@ -231,7 +231,7 @@ export const Table = ({
     {
       columns,
       data,
-      defaultFilter: 'fuzzyText', // Set default to fuzzyText
+      defaultFilter: 'fuzzyText',
       filterTypes,
       initialState: { pageSize, sortBy: sortRules }
     },
