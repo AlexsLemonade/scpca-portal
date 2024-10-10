@@ -35,7 +35,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
     age = models.TextField()
     age_timing = models.TextField()
-    demux_cell_count_estimate = models.IntegerField(null=True)
+    demux_cell_count_estimate_sum = models.IntegerField(null=True)
     diagnosis = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
     has_multiplexed_data = models.BooleanField(default=False)
