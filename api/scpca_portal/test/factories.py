@@ -134,15 +134,34 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     workflow_version = "development"
     # With factory_body, factory instances share attributes by default
     # Use LazyFunction to populate metadata dict so that changes don't propogate to all instances
-    metadata = factory.LazyFunction(
-        lambda: {
-            "technology": "10Xv3.1",
-            "seq_unit": "nucleus",
-            "is_multiplexed": True,
+    metadata = factory.LazyAttribute(
+        lambda library_obj: {
+            "scpca_library_id": library_obj.scpca_id,
+            "scpca_sample_id": "SCPCS000000",
+            "technology": "10Xv3",
+            "seq_unit": "cell",
+            "is_multiplexed": False,
             "has_citeseq": False,
-            "has_cellhash": True,
+            "has_cellhash": False,
+            "processed_cells": 2633,
+            "filtered_cells": 3424,
+            "unfiltered_cells": 61980,
+            "droplet_filtering_method": "emptyDropsCellRanger",
+            "total_reads": 121894873,
+            "mapped_reads": 90729577,
+            "genome_assembly": "Homo_sapiens.GRCh38.104",
+            "mapping_index": "Homo_sapiens.GRCh38.104.spliced_intron.txome",
+            "transcript_type": "total;spliced",
+            "cell_filtering_method": "miQC",
+            "normalization_method": "deconvolution",
+            "min_gene_cutoff": 200,
+            "prob_compromised_cutoff": 0.75,
+            "date_processed": "2024-09-10T17:11:52+0000",
+            "salmon_version": "1.9.0",
+            "alevin_fry_version": "0.7.0",
             "workflow": "https://github.com/AlexsLemonade/scpca-nf",
             "workflow_version": "development",
+            "workflow_commit": "319b074caf152f68e6f0bac58af5bcf4481eba2d",
         }
     )
 
