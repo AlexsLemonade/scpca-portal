@@ -9,5 +9,5 @@ export const events = {
     `${change} ${filter}`,
     window.location
   ],
-  download: (type, project, sample) => ['Download', type, sample || project]
+  download: (project, sample) => ['Download', 'Downloaded', sample || project]
 }
