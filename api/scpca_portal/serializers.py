@@ -155,7 +155,7 @@ class SampleLeafSerializer(serializers.ModelSerializer):
             "age_timing",
             "computed_files",
             "created_at",
-            "demux_cell_count_estimate",
+            "demux_cell_count_estimate_sum",
             "diagnosis",
             "disease_timing",
             "has_bulk_rna_seq",
