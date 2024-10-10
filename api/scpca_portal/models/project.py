@@ -392,9 +392,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                         "scpca_id", flat=True
                     )
                 )
-                # Sum demux_cell_count_estimate from all related library's
-                # sample_cell_estimates for that sample.
-                sample.demux_cell_count_estimate = sum(
+                # Sum of all related libraries' sample_cell_estimates for that sample.
+                sample.demux_cell_count_estimate_sum = sum(
                     library.metadata["sample_cell_estimates"].get(sample.scpca_id, 0)
                     for library in multiplexed_libraries
                 )

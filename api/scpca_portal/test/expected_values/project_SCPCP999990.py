@@ -55,7 +55,7 @@ class Project_SCPCP999990:
         VALUES = {
             "age": "2",
             "age_timing": "diagnosis",
-            "demux_cell_count_estimate": None,
+            "demux_cell_count_estimate_sum": None,
             "diagnosis": "diagnosis1",
             "disease_timing": "Initial diagnosis",
             "has_bulk_rna_seq": False,
@@ -82,7 +82,7 @@ class Project_SCPCP999990:
         VALUES = {
             "age": "2",
             "age_timing": "collection",
-            "demux_cell_count_estimate": None,
+            "demux_cell_count_estimate_sum": None,
             "diagnosis": "diagnosis2",
             "disease_timing": "Initial diagnosis",
             "has_bulk_rna_seq": False,
@@ -109,7 +109,7 @@ class Project_SCPCP999990:
         VALUES = {
             "age": "2",
             "age_timing": "collection",
-            "demux_cell_count_estimate": None,
+            "demux_cell_count_estimate_sum": None,
             "diagnosis": "diagnosis5",
             "disease_timing": "Initial diagnosis",
             "has_bulk_rna_seq": True,
@@ -136,7 +136,7 @@ class Project_SCPCP999990:
         VALUES = {
             "age": "2",
             "age_timing": "collection",
-            "demux_cell_count_estimate": None,
+            "demux_cell_count_estimate_sum": None,
             "diagnosis": "diagnosis5",
             "disease_timing": "Initial diagnosis",
             "has_bulk_rna_seq": False,

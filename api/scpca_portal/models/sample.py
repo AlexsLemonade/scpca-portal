@@ -35,7 +35,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
     age = models.TextField()
     age_timing = models.TextField()
-    demux_cell_count_estimate = models.IntegerField(null=True)
+    demux_cell_count_estimate_sum = models.IntegerField(null=True)
     diagnosis = models.TextField(blank=True, null=True)
     disease_timing = models.TextField(blank=True, null=True)
     has_multiplexed_data = models.BooleanField(default=False)
@@ -107,29 +107,17 @@ class Sample(CommonDataAttributes, TimestampedModel):
         }
 
     def get_metadata(self) -> Dict:
-        sample_metadata = {
-            "scpca_sample_id": self.scpca_id,
-        }
-
         excluded_metadata_attributes = {
             "scpca_project_id",
             "submitter",  # included in project metadata under the name pi_name
         }
-        sample_metadata.update(
-            {
-                key: value
-                for key, value in self.metadata.items()
-                if key not in excluded_metadata_attributes
-            }
-        )
 
-        derived_attributes = {
-            "demux_cell_count_estimate",
-            "sample_cell_count_estimate",
-            "includes_anndata",
+        sample_metadata = {
+            key: value
+            for key, value in self.metadata.items()
+            if key not in excluded_metadata_attributes
         }
-        sample_metadata.update({key: getattr(self, key) for key in derived_attributes})
-        sample_metadata["sample_cell_estimate"] = sample_metadata.pop("demux_cell_count_estimate")
+        sample_metadata["includes_anndata"] = self.includes_anndata
 
         return sample_metadata
 
