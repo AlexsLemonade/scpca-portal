@@ -172,43 +172,30 @@ class Library(TimestampedModel):
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
         return settings.INPUT_DATA_PATH / data_file_path
 
-    def get_metadata(self) -> Dict:
-        library_metadata = {
-            "scpca_library_id": self.scpca_id,
-        }
-
+    def get_metadata(self, demux_cell_count_estimate_id) -> Dict:
         excluded_metadata_attributes = {
             "scpca_sample_id",
             "has_citeseq",
-            # for multiplexed samples, this is handled at the sample level
             "sample_cell_estimates",
         }
-        library_metadata.update(
-            {
-                key: value
-                for key, value in self.metadata.items()
-                if key not in excluded_metadata_attributes
-            }
-        )
+        library_metadata = {
+            key: value
+            for key, value in self.metadata.items()
+            if key not in excluded_metadata_attributes
+        }
+
+        if self.is_multiplexed:
+            library_metadata["demux_cell_count_estimate"] = self.metadata["sample_cell_estimates"][
+                demux_cell_count_estimate_id
+            ]
 
         return library_metadata
 
     def get_combined_library_metadata(self) -> List[Dict]:
-        combined_metadatas = []
-        for sample in self.samples.all():
-            metadata = self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
-
-            # NOTE: demux_cell_count_estimate is reassigned here for the output metadata file.
-            # The metadata file writes out sample-library rows, necessitating greater granularity.
-            # In contrast, the Sample model expects the aggregate value of its related libraries.
-            if self.is_multiplexed:
-                metadata["demux_cell_count_estimate"] = self.metadata["sample_cell_estimates"][
-                    sample.scpca_id
-                ]
-
-            combined_metadatas.append(metadata)
-
-        return combined_metadatas
+        return [
+            self.project.get_metadata() | sample.get_metadata() | self.get_metadata(sample.scpca_id)
+            for sample in self.samples.all()
+        ]
 
     def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
         """
