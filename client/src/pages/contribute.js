@@ -41,7 +41,7 @@ const IntakeFormLink = () => (
 
 const InterestFormLink = () => (
   <Button
-    href={config.links.interest_hsform}
+    href={config.links.contribute_interest_hsform}
     label="Complete the Interest Form"
     margin={{ top: 'small', bottom: 'medium' }}
     target="_blank"
@@ -154,11 +154,12 @@ export const Contribute = () => {
 
   return (
     <>
-      {!isOpen && <ContributePhaseOutBanner />}
-      {isOpen && (
+      {isOpen ? (
         <Box alignSelf="end" margin={{ top: 'large' }}>
           <ContributeDownloadPDFButton />
         </Box>
+      ) : (
+        <ContributePhaseOutBanner />
       )}
       <MarkdownPage
         components={components}
