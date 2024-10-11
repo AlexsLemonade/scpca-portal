@@ -25,6 +25,7 @@ SUBMITTER_WHITELIST = {
     "wu",
     "rokita",
     "soragni",
+    "pushel"
 }
 
 # Global sort order for Metadata TSVs
