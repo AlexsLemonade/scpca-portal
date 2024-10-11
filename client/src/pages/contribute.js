@@ -52,7 +52,7 @@ const InterestFormLink = () => (
 export const Contribute = () => {
   const headingMargin = { top: '24px', bottom: 'small' }
   const listMargin = { bottom: 'medium', horizontal: 'medium' }
-  const isOpen = process.env.CONTRIBUTION_OPEN === 'ON'
+  const isOpen = process.env.CONTRIBUTIONS_OPEN === 'ON'
   const markdown = isOpen
     ? contributionGuidelines
     : contributionGuidelinesClosed
