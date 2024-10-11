@@ -29,23 +29,13 @@ const TableRow = styled(GrommetTableRow)`
   box-shadow: none !important;
 `
 
-const IntakeFormLink = () => (
+const FormLinkButton = ({ ...props }) => (
   <Button
-    href={config.links.contribute_hsform}
-    label="Complete the Intake Form"
     margin={{ top: 'small', bottom: 'medium' }}
     target="_blank"
     primary
-  />
-)
-
-const InterestFormLink = () => (
-  <Button
-    href={config.links.contribute_interest_hsform}
-    label="Complete the Interest Form"
-    margin={{ top: 'small', bottom: 'medium' }}
-    target="_blank"
-    primary
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    {...props}
   />
 )
 
@@ -102,10 +92,18 @@ export const Contribute = () => {
       }
     },
     IntakeFormLink: {
-      component: IntakeFormLink
+      component: FormLinkButton,
+      props: {
+        href: config.links.contribute_hsform,
+        label: 'Complete the Intake Form'
+      }
     },
     InterestFormLink: {
-      component: InterestFormLink
+      component: FormLinkButton,
+      props: {
+        href: config.links.contribute_interest_hsform,
+        label: 'Complete the Interest Form'
+      }
     },
     a: {
       component: Link
