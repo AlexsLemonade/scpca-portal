@@ -3,7 +3,7 @@ import { Box, Button, Heading, Paragraph } from 'grommet'
 import { WarningCard } from 'components/WarningCard'
 import { config } from 'config'
 
-export const ContributePhaseOutBanner = () => (
+export const ContributeClosedCard = () => (
   <WarningCard label="We are NOT currently accepting contributions">
     <Box
       align="center"
@@ -34,4 +34,4 @@ export const ContributePhaseOutBanner = () => (
   </WarningCard>
 )
 
-export default ContributePhaseOutBanner
+export default ContributeClosedCard

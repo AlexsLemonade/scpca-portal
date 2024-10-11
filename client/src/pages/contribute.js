@@ -10,7 +10,7 @@ import {
 } from 'grommet'
 import { Button } from 'components/Button'
 import { ContributeDownloadPDFButton } from 'components/ContributeDownloadPDFButton'
-import { ContributePhaseOutBanner } from 'components/ContributePhaseOutBanner'
+import { ContributeClosedCard } from 'components/ContributeClosedCard'
 import { Link } from 'components/Link'
 import { MarkdownPage } from 'components/MarkdownPage'
 import { config } from 'config'
@@ -159,7 +159,7 @@ export const Contribute = () => {
           <ContributeDownloadPDFButton />
         </Box>
       ) : (
-        <ContributePhaseOutBanner />
+        <ContributeClosedCard />
       )}
       <MarkdownPage
         components={components}
