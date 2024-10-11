@@ -72,7 +72,6 @@ export const Layout = ({ children }) => {
         </FixedBox>
       </Box>
       {showContributeBanner && <ContributeBanner width={width} />}
-
       <Main
         width={showWide ? 'full' : 'xlarge'}
         alignSelf="center"

@@ -152,8 +152,6 @@ export const Contribute = () => {
     }
   }
 
-  console.log(process.env.CONTRIBUTION_OPEN)
-
   return (
     <>
       {!isOpen && <ContributePhaseOutBanner />}
