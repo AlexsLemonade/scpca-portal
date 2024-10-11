@@ -10,6 +10,7 @@ import {
 } from 'grommet'
 import { Button } from 'components/Button'
 import { ContributeDownloadPDFButton } from 'components/ContributeDownloadPDFButton'
+import { ContributePhaseOutBanner } from 'components/ContributePhaseOutBanner'
 import { Link } from 'components/Link'
 import { MarkdownPage } from 'components/MarkdownPage'
 import { config } from 'config'
@@ -151,11 +152,16 @@ export const Contribute = () => {
     }
   }
 
+  console.log(process.env.CONTRIBUTION_OPEN)
+
   return (
     <>
-      <Box alignSelf="end" margin={{ top: 'large' }}>
-        <ContributeDownloadPDFButton />
-      </Box>
+      {!isOpen && <ContributePhaseOutBanner />}
+      {isOpen && (
+        <Box alignSelf="end" margin={{ top: 'large' }}>
+          <ContributeDownloadPDFButton />
+        </Box>
+      )}
       <MarkdownPage
         components={components}
         markdown={markdown}
