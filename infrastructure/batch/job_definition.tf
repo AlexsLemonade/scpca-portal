@@ -12,6 +12,7 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     fargatePlatformConfiguration = {
       platformVersion = "LATEST"
     }
+    environment = var.batch_environment
 
     resourceRequirements = [
       # requirements match api requirements, which uses a t2.medium (2 vcpus and 4.0 GB of RAM)

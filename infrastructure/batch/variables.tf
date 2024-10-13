@@ -1,4 +1,4 @@
-variable "environment" {
+variable "batch_environment" {
   type = list(object({
     name  = string
     value = string
