@@ -8,23 +8,13 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
   container_properties = jsonencode({
     # command definition expected in cotaninerOverrides when using this job definition
     command = []
-    image   = "${var.dockerhub_repo}/scpca_portal_api:latest"
+    image   = var.batch_image
     fargatePlatformConfiguration = {
       platformVersion = "LATEST"
     }
     environment = var.batch_environment
 
-    resourceRequirements = [
-      # requirements match api requirements, which uses a t2.medium (2 vcpus and 4.0 GB of RAM)
-      {
-        type  = "VCPU"
-        value = "2.0"
-      },
-      {
-        type  = "MEMORY"
-        value = "4096"
-      }
-    ]
+    resourceRequirements = var.batch_resource_requirements
 
     # without this declaration, ephemeralStroage defaults to 20GB
     ephemeralStorage = {
