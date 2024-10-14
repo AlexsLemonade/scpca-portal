@@ -315,10 +315,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Purges all computed files associated with the project instance."""
         # Delete project's sample computed files
         for sample in self.samples.all():
-            for computed_file in sample.sample_computed_files.all():
-                if delete_from_s3:
-                    s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
-                computed_file.delete()
+            sample.purge_computed_files(delete_from_s3)
 
         # Delete project's project computed files
         for computed_file in self.project_computed_files.all():
