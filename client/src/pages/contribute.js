@@ -29,13 +29,13 @@ const TableRow = styled(GrommetTableRow)`
   box-shadow: none !important;
 `
 
-const FormLinkButton = ({ ...props }) => (
+const FormLinkButton = ({ href, label }) => (
   <Button
     margin={{ top: 'small', bottom: 'medium' }}
     target="_blank"
+    href={href}
+    label={label}
     primary
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    {...props}
   />
 )
 
