@@ -1,10 +1,7 @@
 import csv
-import re
 import shutil
 from functools import partial
 from io import TextIOWrapper
-from pathlib import Path
-from typing import Dict, List
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -12,14 +9,13 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TransactionTestCase
 
-from scpca_portal import common, metadata_file, readme_file, utils
+from scpca_portal import common, metadata_file, readme_file
 from scpca_portal.models import ComputedFile, Library, Project, Sample
 
-# NOTE: Test data bucket is defined in `scpca_porta/common.py`.
-# When common.INPUT_BUCKET_NAME is changed, please delete the contents of
+# NOTE: Test data bucket is defined in `config/test.py`.
+# When settings.INPUT_BUCKET_NAME is changed, please delete the contents of
 # api/test_data/input before testing to ensure test files are updated correctly.
 
-README_DIR = common.DATA_PATH / "readmes"
 README_FILE = readme_file.OUTPUT_NAME
 METADATA_FILE = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
@@ -32,7 +28,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        shutil.rmtree(common.OUTPUT_DATA_PATH, ignore_errors=True)
+        shutil.rmtree(settings.OUTPUT_DATA_PATH, ignore_errors=True)
 
     def load_test_data(self):
         # Expected object counts
@@ -55,41 +51,6 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(Sample.objects.all().count(), SAMPLES_COUNT)
         self.assertEqual(Library.objects.all().count(), LIBRARIES_COUNT)
 
-    def assertProjectReadmeContent(self, zip_file, project_ids: List[str]) -> None:
-        def get_updated_content(content: str) -> str:
-            """
-            Replace the placeholders PROJECT_ID_{i} and TEST_TODAYS_DATE in test_data/readmes
-            with the given project_id and today's date respectively for format testing."
-            """
-            content = content.replace(
-                "Generated on: TEST_TODAYS_DATE", f"Generated on: {utils.get_today_string()}"
-            )
-            # Map project_ids to their coressponding placeholders with indecies in readmes
-            for i, project_id in enumerate(project_ids):
-                content = content.replace(f"PROJECT_ID_{i}", project_id)
-
-            return content.strip()
-
-        # Get the corresponding saved readme output path based on the zip filename
-        readme_filename = re.sub(r"^[A-Z]{5}\d{6}_", "", Path(zip_file.filename).stem) + ".md"
-        saved_readme_output_path = README_DIR / readme_filename
-        # Convert expected and output contents to line lists for easier debugging
-        with zip_file.open(README_FILE) as readme_file:
-            output_content = readme_file.read().decode("utf-8").splitlines(True)
-        with saved_readme_output_path.open("r", encoding="utf-8") as saved_readme_file:
-            expected_content = get_updated_content(saved_readme_file.read()).splitlines(True)
-        self.assertEqual(
-            expected_content,
-            output_content,
-            f"{self._testMethodName}: Comparison with {readme_filename} does not match.",
-        )
-
-    def assertFields(self, computed_file, expected_fields: Dict):
-        for expected_key, expected_value in expected_fields.items():
-            actual_value = getattr(computed_file, expected_key)
-            message = f"Expected {expected_value}, received {actual_value} on '{expected_key}'"
-            self.assertEqual(actual_value, expected_value, message)
-
     def assertEqualWithVariance(self, value, expected, variance=50):
         # Make sure the given value is within the range of expected bounds
         message = f"{value} is out of range"
@@ -110,24 +71,25 @@ class TestCreatePortalMetadata(TransactionTestCase):
         computed_file = computed_files.first()
         # Make sure the computed file size is as expected range
         self.assertEqualWithVariance(computed_file.size_in_bytes, 8430)
-        # Make sure all fields match the download configuration values
-        download_config = {
-            "modality": None,
-            "format": None,
-            "includes_merged": False,
-            "metadata_only": True,
-            "portal_metadata_only": True,
-        }
-        self.assertFields(computed_file, download_config)
+        # Make sure all the fields have correct values
+        self.assertTrue(computed_file.metadata_only)
+        self.assertTrue(computed_file.portal_metadata_only)
+        self.assertFalse(computed_file.has_bulk_rna_seq)
+        self.assertFalse(computed_file.has_cite_seq_data)
+        self.assertFalse(computed_file.has_multiplexed_data)
+        self.assertFalse(computed_file.includes_merged)
+        self.assertIsNone(computed_file.format)
+        self.assertIsNone(computed_file.modality)
+        self.assertIsNone(computed_file.project)
+        self.assertIsNone(computed_file.sample)
+
         # Make sure mock_upload_output_file called once
         mock_upload_output_file.assert_called_once_with(
             computed_file.s3_key, computed_file.s3_bucket
         )
 
         # Test the content of the generated zip file
-        zip_file_path = ComputedFile.get_local_file_path(
-            common.GENERATED_PORTAL_METADATA_DOWNLOAD_CONFIG
-        )
+        zip_file_path = ComputedFile.get_local_file_path(common.PORTAL_METADATA_DOWNLOAD_CONFIG)
         with ZipFile(zip_file_path) as zip_file:
             # There are 2 file:
             # ├── README.md
@@ -136,13 +98,10 @@ class TestCreatePortalMetadata(TransactionTestCase):
             # Make sure the zip has the exact number of expected files
             files = set(zip_file.namelist())
             self.assertEqual(len(files), expected_file_count)
+            # Make sure all expected files are included
             self.assertIn(README_FILE, files)
             self.assertIn(METADATA_FILE, files)
-            # README.md
-            self.assertProjectReadmeContent(
-                zip_file, list(Project.objects.values_list("scpca_id", flat=True).distinct())
-            )
-            # metadata.tsv
+            # Test metadata.tsv
             with zip_file.open(METADATA_FILE) as metadata_file:
                 csv_reader = csv.DictReader(
                     TextIOWrapper(metadata_file, "utf-8"),

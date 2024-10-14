@@ -77,17 +77,13 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return project
 
-    @staticmethod
-    def get_input_project_metadata_file_path():
-        return common.INPUT_DATA_PATH / "project_metadata.csv"
-
     @property
     def computed_files(self):
         return self.project_computed_files.order_by("created_at")
 
     @property
     def input_data_path(self):
-        return common.INPUT_DATA_PATH / self.scpca_id
+        return settings.INPUT_DATA_PATH / self.scpca_id
 
     @property
     def input_merged_data_path(self):
@@ -184,7 +180,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             "project_title": self.title,
         }
 
-    def get_download_config_file_output_name(self, download_config: Dict) -> str:
+    def get_output_file_name(self, download_config: Dict) -> str:
         """
         Accumulates all applicable name segments, concatenates them with an underscore delimiter,
         and returns the string as a unique zip file name.
@@ -196,7 +192,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         if download_config.get("includes_merged", False):
             name_segments.append("MERGED")
 
-        if self.has_multiplexed_data and not download_config.get("excludes_multiplexed", False):
+        if not download_config.get("excludes_multiplexed", False) and self.has_multiplexed_data:
             name_segments.append("MULTIPLEXED")
 
         # Change to filename format must be accompanied by an entry in the docs.
@@ -205,6 +201,18 @@ class Project(CommonDataAttributes, TimestampedModel):
         file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
 
         return f"{file_name}.zip"
+
+    def get_computed_file(self, download_config: Dict) -> ComputedFile:
+        "Return the project computed file that matches the passed download_config."
+        if download_config["metadata_only"]:
+            return self.computed_files.filter(metadata_only=True).first()
+
+        return self.computed_files.filter(
+            modality=download_config["modality"],
+            format=download_config["format"],
+            has_multiplexed_data=(not download_config["excludes_multiplexed"]),
+            includes_merged=download_config["includes_merged"],
+        ).first()
 
     def get_data_file_paths(self) -> List[Path]:
         """
@@ -295,26 +303,28 @@ class Project(CommonDataAttributes, TimestampedModel):
                 if sample := self.samples.filter(scpca_id=sample_id).first():
                     Library.bulk_create_from_dicts([library_metadata], sample)
 
-    def purge(self, delete_from_s3=False) -> None:
+    def purge(self, delete_from_s3: bool = False) -> None:
         """Purges project and its related data."""
+        self.purge_computed_files(delete_from_s3)
+        for sample in self.samples.all():
+            sample.purge()
+
+        self.delete()
+
+    def purge_computed_files(self, delete_from_s3: bool = False) -> None:
+        """Purges all computed files associated with the project instance."""
+        # Delete project's sample computed files
         for sample in self.samples.all():
             for computed_file in sample.computed_files:
                 if delete_from_s3:
                     s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
                 computed_file.delete()
-            for library in sample.libraries.all():
-                # If library has other samples that it is related to, then don't delete it
-                if len(library.samples.all()) == 1:
-                    library.delete()
-            sample.delete()
 
+        # Delete project's project computed files
         for computed_file in self.computed_files:
             if delete_from_s3:
                 s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
             computed_file.delete()
-
-        ProjectSummary.objects.filter(project=self).delete()
-        self.delete()
 
     def update_sample_derived_properties(self):
         """
@@ -382,9 +392,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                         "scpca_id", flat=True
                     )
                 )
-                # Sum demux_cell_count_estimate from all related library's
-                # sample_cell_estimates for that sample.
-                sample.demux_cell_count_estimate = sum(
+                # Sum of all related libraries' sample_cell_estimates for that sample.
+                sample.demux_cell_count_estimate_sum = sum(
                     library.metadata["sample_cell_estimates"].get(sample.scpca_id, 0)
                     for library in multiplexed_libraries
                 )
@@ -436,7 +445,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
 
         additional_metadata_keys = set()
-        diagnoses = set()
         diagnoses_counts = Counter()
         disease_timings = set()
         modalities = set()
@@ -447,7 +455,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         for sample in self.samples.all():
             additional_metadata_keys.update(sample.additional_metadata.keys())
-            diagnoses.add(sample.diagnosis)
             diagnoses_counts.update({sample.diagnosis: 1})
             disease_timings.add(sample.disease_timing)
             modalities.update(sample.modalities)
@@ -477,7 +484,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             additional_metadata_keys.remove("multiplexed_with")
 
         self.additional_metadata_keys = ", ".join(sorted(additional_metadata_keys, key=str.lower))
-        self.diagnoses = ", ".join(sorted(diagnoses))
         self.diagnoses_counts = ", ".join(diagnoses_strings)
         self.disease_timings = ", ".join(disease_timings)
         self.modalities = sorted(modalities)

@@ -10,10 +10,12 @@ import {
 } from 'grommet'
 import { Button } from 'components/Button'
 import { ContributeDownloadPDFButton } from 'components/ContributeDownloadPDFButton'
+import { ContributeClosedCard } from 'components/ContributeClosedCard'
 import { Link } from 'components/Link'
 import { MarkdownPage } from 'components/MarkdownPage'
 import { config } from 'config'
 import contributionGuidelines from 'config/contribution-guidelines.md'
+import contributionGuidelinesClosed from 'config/contribution-guidelines-closed.md'
 import styled from 'styled-components'
 
 const TableHeader = styled(GrommetTableHeader)`
@@ -27,12 +29,12 @@ const TableRow = styled(GrommetTableRow)`
   box-shadow: none !important;
 `
 
-const IntakeFormLink = () => (
+const FormLinkButton = ({ href, label }) => (
   <Button
-    href={config.links.contribute_hsform}
-    label="Complete the Intake Form"
     margin={{ top: 'small', bottom: 'medium' }}
     target="_blank"
+    href={href}
+    label={label}
     primary
   />
 )
@@ -40,6 +42,10 @@ const IntakeFormLink = () => (
 export const Contribute = () => {
   const headingMargin = { top: '24px', bottom: 'small' }
   const listMargin = { bottom: 'medium', horizontal: 'medium' }
+  const isOpen = process.env.CONTRIBUTIONS_OPEN === 'ON'
+  const markdown = isOpen
+    ? contributionGuidelines
+    : contributionGuidelinesClosed
 
   const components = {
     h1: {
@@ -86,7 +92,18 @@ export const Contribute = () => {
       }
     },
     IntakeFormLink: {
-      component: IntakeFormLink
+      component: FormLinkButton,
+      props: {
+        href: config.links.contribute_hsform,
+        label: 'Complete the Intake Form'
+      }
+    },
+    InterestFormLink: {
+      component: FormLinkButton,
+      props: {
+        href: config.links.contribute_interest_hsform,
+        label: 'Complete the Interest Form'
+      }
     },
     a: {
       component: Link
@@ -135,12 +152,16 @@ export const Contribute = () => {
 
   return (
     <>
-      <Box alignSelf="end" margin={{ top: 'large' }}>
-        <ContributeDownloadPDFButton />
-      </Box>
+      {isOpen ? (
+        <Box alignSelf="end" margin={{ top: 'large' }}>
+          <ContributeDownloadPDFButton />
+        </Box>
+      ) : (
+        <ContributeClosedCard />
+      )}
       <MarkdownPage
         components={components}
-        markdown={contributionGuidelines}
+        markdown={markdown}
         width="xlarge"
       />
     </>

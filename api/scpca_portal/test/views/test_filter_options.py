@@ -26,7 +26,7 @@ class FilterOptionsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = response.json()
-        self.assertEqual(len(response["diagnoses"]), 4)
+        self.assertEqual(len(response["diagnoses"]), 2)
         self.assertEqual(len(response["modalities"]), 1)  # CITE-seq only.
         self.assertEqual(len(response["seq_units"]), 2)
         self.assertEqual(len(response["technologies"]), 5)

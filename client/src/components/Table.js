@@ -185,12 +185,11 @@ export const TBody = ({
   )
 }
 
-const fuzzyTextFilterFn = (rows, ids, filterValue) => {
-  return matchSorter(rows, filterValue, {
+// Custom fuzzyText filter function
+const fuzzyTextFilterFn = (rows, ids, filterValue) =>
+  matchSorter(rows, filterValue, {
     keys: ids.map((id) => `values.${id}`)
   })
-}
-
 // Let the table remove the filter if the string is empty
 fuzzyTextFilterFn.autoRemove = (val) => !val
 
@@ -208,10 +207,9 @@ export const Table = ({
   children,
   onFilterChange = () => {}
 }) => {
-  const globalFilter = 'fuzzyText'
   const filterTypes = useMemo(
     () => ({
-      // Add a new fuzzyTextFilterFn filter type.
+      // Add fuzzyText filter type
       fuzzyText: fuzzyTextFilterFn
     }),
     []
@@ -233,7 +231,7 @@ export const Table = ({
     {
       columns,
       data,
-      globalFilter,
+      defaultFilter: 'fuzzyText',
       filterTypes,
       initialState: { pageSize, sortBy: sortRules }
     },
