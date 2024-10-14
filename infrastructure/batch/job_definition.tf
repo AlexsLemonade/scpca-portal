@@ -7,9 +7,9 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
   ]
   container_properties = jsonencode({
     image = "${var.dockerhub_repo}/scpca_portal_api:latest"
-    environment = var.batch_environment
     # command definition expected in cotaninerOverrides when using this job definition
     command = []
+    environment = var.batch_environment
 
     fargatePlatformConfiguration = {
       platformVersion = "LATEST"
@@ -28,6 +28,10 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     # without this declaration, ephemeralStroage defaults to 20GB
     ephemeralStorage = {
       sizeInGib = 200
+    }
+
+    retry_strategy = {
+      attempts = 3
     }
 
     executionRoleArn = aws_iam_role.aws_ecs_task_execution_role.arn
