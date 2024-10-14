@@ -9,7 +9,56 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     image = "${var.dockerhub_repo}/scpca_portal_api:latest"
     # command definition expected in cotaninerOverrides when using this job definition
     command = []
-    environment = var.batch_environment
+    environment = [
+      {
+        name  = "DJANGO_CONFIGURATION"
+        value = "Production"
+      },
+      {
+        name  = "DJANGO_DEBUG"
+        value = false
+      },
+      {
+        name  = "DJANGO_SECRET_KEY"
+        value = var.django_secret_key
+      },
+      {
+        name  = "DATABASE_HOST"
+        value = aws_db_instance.postgres_db.address
+      },
+      {
+        name  = "DATABASE_PORT"
+        value = aws_db_instance.postgres_db.port
+      },
+      {
+        name  = "DATABASE_USER"
+        value = aws_db_instance.postgres_db.username
+      },
+      {
+        name  = "DATABASE_NAME"
+        value = aws_db_instance.postgres_db.name
+      },
+      {
+        name  = "DATABASE_PASSWORD"
+        value = var.database_password
+      },
+      {
+        name  = "AWS_REGION"
+        value = var.region
+      },
+      {
+        name  = "AWS_S3_BUCKET_NAME"
+        value = aws_s3_bucket.scpca_portal_bucket.id
+      },
+      {
+        name  = "SENTRY_DSN"
+        value = var.sentry_dsn
+      },
+      {
+        name  = "SENTRY_ENV"
+        value = "${var.stage}-batch"
+      }
+    ]
 
     fargatePlatformConfiguration = {
       platformVersion = "LATEST"
