@@ -361,3 +361,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def clean_up_local_computed_file(self):
         """Delete local computed file."""
         self.zip_file_path.unlink(missing_ok=True)
+
+    def purge(self, delete_from_s3: bool = False) -> None:
+        """Purges a computed file, optionally deleting it from S3."""
+        if delete_from_s3:
+            s3.delete_output_file(self.s3_key, self.s3_bucket)
+        self.delete()

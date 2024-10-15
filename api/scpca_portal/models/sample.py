@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import s3, utils
+from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -123,7 +123,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
     def get_computed_file(self, download_config: Dict) -> ComputedFile:
         "Return the sample computed file that matches the passed download_config."
-        return self.computed_files.filter(
+        return self.sample_computed_files.filter(
             modality=download_config["modality"],
             format=download_config["format"],
         ).first()
@@ -268,6 +268,4 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
     def purge_computed_files(self, delete_from_s3: bool = False) -> None:
         for computed_file in self.sample_computed_files.all():
-            if delete_from_s3:
-                s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
-            computed_file.delete()
+            computed_file.purge(delete_from_s3)
