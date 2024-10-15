@@ -171,11 +171,11 @@ def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_d
 
 
 def generate_computed_file(
-    download_config: Dict,
-    update_s3: bool,
     *,
+    download_config: Dict,
     project: Project | None = None,
     sample: Sample | None = None,
+    update_s3: bool = True,
 ) -> None:
 
     # Purge old computed file
