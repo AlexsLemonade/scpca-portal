@@ -136,20 +136,28 @@ def create_project(
     return project
 
 
-def _create_computed_file(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
+def _create_computed_file(
+    computed_file: ComputedFile, update_s3: bool, clean_up_output_data: bool
+) -> None:
     """
     Save computed file returned from future to the db.
     Upload file to s3 and clean up output data depending on passed options.
     """
-    if computed_file := future.result():
+    # Only upload and clean up projects and the last sample if multiplexed
+    if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
+        if update_s3:
+            s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
+        if clean_up_output_data:
+            computed_file.clean_up_local_computed_file()
+    computed_file.save()
 
-        # Only upload and clean up projects and the last sample if multiplexed
-        if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
-            if update_s3:
-                s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
-            if clean_up_output_data:
-                computed_file.clean_up_local_computed_file()
-        computed_file.save()
+
+def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
+    """
+    Wrap multiprocessing logic by grabbing computed file future and uploading it tohe s3.
+    """
+    if computed_file := future.result():
+        _create_computed_file(computed_file, update_s3, clean_up_output_data)
 
     # Close DB connection for each thread.
     connection.close()
@@ -170,7 +178,7 @@ def generate_computed_files(
 
     # Prep callback function
     on_get_file = partial(
-        _create_computed_file,
+        _create_computed_file_callback,
         update_s3=update_s3,
         clean_up_output_data=clean_up_output_data,
     )
