@@ -10,7 +10,14 @@ from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, metadata_file, s3
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.models import ComputedFile, Contact, ExternalAccession, Project, Publication
+from scpca_portal.models import (
+    ComputedFile,
+    Contact,
+    ExternalAccession,
+    Project,
+    Publication,
+    Sample,
+)
 
 logger = get_and_configure_logger(__name__)
 
@@ -161,6 +168,34 @@ def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_d
 
     # Close DB connection for each thread.
     connection.close()
+
+
+def generate_computed_file(
+    download_config: Dict,
+    update_s3: bool,
+    *,
+    project: Project | None = None,
+    sample: Sample | None = None,
+) -> None:
+
+    # Purge old computed file
+    if old_computed_file := (project or sample).get_computed_file(download_config):
+        old_computed_file.purge(update_s3)
+
+    if project:
+        computed_file = ComputedFile.get_project_file(
+            project, download_config, project.get_output_file_name(download_config)
+        )
+        _create_computed_file(computed_file, update_s3, clean_up_output_data=False)
+    elif sample:
+        computed_file = ComputedFile.get_sample_file(
+            sample,
+            download_config,
+            sample.get_output_file_name(download_config),
+            Lock(),  # this should be removed when CF::get_sample_file is refactored
+        )
+        _create_computed_file(computed_file, update_s3, clean_up_output_data=False)
+        sample.project.update_downloadable_sample_count()
 
 
 def generate_computed_files(
