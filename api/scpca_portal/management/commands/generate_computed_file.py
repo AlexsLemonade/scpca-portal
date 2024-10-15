@@ -3,7 +3,7 @@ from typing import Dict
 
 from django.core.management.base import BaseCommand
 
-from scpca_portal import loader
+from scpca_portal import common, loader
 from scpca_portal.models import Project, Sample
 
 logger = logging.getLogger()
@@ -42,8 +42,30 @@ class Command(BaseCommand):
         """Generates a project's computed files according predetermined download configurations"""
         loader.prep_data_dirs()
 
-        project = Project.objects.filter(scpca_id=project_id).first() if project_id else None
-        sample = Sample.objects.filter(scpca_id=sample_id).first() if sample_id else None
+        if project_id:
+            project = Project.objects.filter(scpca_id=project_id).first()
+            sample = None
+            if not project:
+                logger.error("project doesn't exist")
+                return
+            if download_config not in common.GENERATED_PROJECT_DOWNLOAD_CONFIGS:
+                logger.error("download_config is not valid")
+                return
+        elif sample_id:
+            sample = Sample.objects.filter(scpca_id=sample_id).first()
+            project = None
+            if not sample:
+                logger.error("sample doesn't exist")
+                return
+            if download_config not in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS:
+                logger.error("download_config is not valid")
+                return
+
+        else:
+            logger.error(
+                "neither project_id nor sample_id were passed. at least one must be passed."
+            )
+            return
 
         loader.generate_computed_file(
             download_config=download_config, project=project, sample=sample
