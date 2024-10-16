@@ -130,10 +130,11 @@ export const ProjectSamplesTable = ({
     },
     {
       Header: 'Sample ID',
-      accessor: ({ scpca_id: id, has_multiplexed_data: multiplexed }) => (
+      accessor: 'scpca_id',
+      Cell: ({ row }) => (
         <Box>
-          <Text>{id}</Text>
-          {multiplexed && (
+          <Text>{row.original.scpca_id}</Text>
+          {row.original.has_multiplexed_data && (
             <Pill
               textSize="small"
               label={getReadable('has_multiplexed_data')}
@@ -193,7 +194,7 @@ export const ProjectSamplesTable = ({
       accessor: ({ sample_cell_count_estimate: count }) => count || 'N/A'
     },
     {
-      id: 'demux_cell_count_estimate',
+      id: 'demux_cell_count_estimate_sum',
       Header: () => (
         <Box direction="row" align="center">
           Est. Demux Sample Counts&nbsp;
@@ -203,7 +204,7 @@ export const ProjectSamplesTable = ({
           &nbsp;&nbsp;
         </Box>
       ),
-      accessor: ({ demux_cell_count_estimate: count }) => count || 'N/A',
+      accessor: ({ demux_cell_count_estimate_sum: count }) => count || 'N/A',
       isVisible: hasMultiplexedData
     },
     {

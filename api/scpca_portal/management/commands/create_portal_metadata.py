@@ -30,7 +30,7 @@ class Command(BaseCommand):
 
     def create_portal_metadata(self, clean_up_output_data: bool, update_s3: bool, **kwargs):
         # Prepare the data output directory
-        output_directory = common.OUTPUT_DATA_PATH
+        output_directory = settings.OUTPUT_DATA_PATH
         # Remove the existing data output directory if any
         shutil.rmtree(output_directory, ignore_errors=True)
         logger.info("Creating the data output directory")

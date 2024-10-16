@@ -83,7 +83,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def input_data_path(self):
-        return common.INPUT_DATA_PATH / self.scpca_id
+        return settings.INPUT_DATA_PATH / self.scpca_id
 
     @property
     def input_merged_data_path(self):
@@ -392,9 +392,8 @@ class Project(CommonDataAttributes, TimestampedModel):
                         "scpca_id", flat=True
                     )
                 )
-                # Sum demux_cell_count_estimate from all related library's
-                # sample_cell_estimates for that sample.
-                sample.demux_cell_count_estimate = sum(
+                # Sum of all related libraries' sample_cell_estimates for that sample.
+                sample.demux_cell_count_estimate_sum = sum(
                     library.metadata["sample_cell_estimates"].get(sample.scpca_id, 0)
                     for library in multiplexed_libraries
                 )
@@ -446,7 +445,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
 
         additional_metadata_keys = set()
-        diagnoses = set()
         diagnoses_counts = Counter()
         disease_timings = set()
         modalities = set()
@@ -457,7 +455,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         for sample in self.samples.all():
             additional_metadata_keys.update(sample.additional_metadata.keys())
-            diagnoses.add(sample.diagnosis)
             diagnoses_counts.update({sample.diagnosis: 1})
             disease_timings.add(sample.disease_timing)
             modalities.update(sample.modalities)
@@ -487,7 +484,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             additional_metadata_keys.remove("multiplexed_with")
 
         self.additional_metadata_keys = ", ".join(sorted(additional_metadata_keys, key=str.lower))
-        self.diagnoses = ", ".join(sorted(diagnoses))
         self.diagnoses_counts = ", ".join(diagnoses_strings)
         self.disease_timings = ", ".join(disease_timings)
         self.modalities = sorted(modalities)

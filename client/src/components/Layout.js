@@ -52,10 +52,11 @@ export const Layout = ({ children }) => {
     '/terms-of-use'
   ]
 
+  const isContributeOpen = process.env.CONTRIBUTIONS_OPEN === 'ON'
+
   // show the contributeBanner
-  const showContributeBanner = !excludeContributeBanner.includes(
-    router.pathname
-  )
+  const showContributeBanner =
+    isContributeOpen && !excludeContributeBanner.includes(router.pathname)
 
   const showEnvarBanner = process.env.BANNER_STATE === 'ON'
 

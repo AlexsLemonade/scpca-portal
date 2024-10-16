@@ -78,14 +78,14 @@ export const DownloadModal = ({
           </ModalHeader>
         )}
         <ModalBody>
-          {isDownloadReady ? (
+          {isTokenReady ? (
+            <DownloadToken resource={resource} />
+          ) : isDownloadReady ? (
             <DownloadStarted
               resource={resource}
               computedFile={download}
               handleSelectFile={handleSelectFile}
             />
-          ) : isTokenReady ? (
-            <DownloadToken />
           ) : isOptionsReady ? (
             <DownloadOptions
               resource={resource}

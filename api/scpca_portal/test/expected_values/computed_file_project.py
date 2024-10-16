@@ -36,7 +36,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-            "size_in_bytes": 9077,
+            "size_in_bytes": 9040,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -70,7 +70,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999991_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MULTIPLEXED.zip",
-            "size_in_bytes": 9511,
+            "size_in_bytes": 9478,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -102,7 +102,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MERGED.zip",
-            "size_in_bytes": 8474,
+            "size_in_bytes": 8437,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -138,7 +138,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_ANN-DATA.zip",
-            "size_in_bytes": 9492,
+            "size_in_bytes": 9455,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -170,7 +170,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_ANN-DATA_MERGED.zip",
-            "size_in_bytes": 8600,
+            "size_in_bytes": 8563,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }
@@ -229,7 +229,7 @@ class Computed_File_Project:
             "metadata_only": True,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_ALL_METADATA.zip",
-            "size_in_bytes": 5184,
+            "size_in_bytes": 5145,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }

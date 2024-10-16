@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -169,46 +170,32 @@ class Library(TimestampedModel):
 
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
-        return common.INPUT_DATA_PATH / data_file_path
+        return settings.INPUT_DATA_PATH / data_file_path
 
-    def get_metadata(self) -> Dict:
-        library_metadata = {
-            "scpca_library_id": self.scpca_id,
-        }
-
+    def get_metadata(self, demux_cell_count_estimate_id) -> Dict:
         excluded_metadata_attributes = {
             "scpca_sample_id",
             "has_citeseq",
-            # for multiplexed samples, this is handled at the sample level
             "sample_cell_estimates",
         }
+        library_metadata = {
+            key: value
+            for key, value in self.metadata.items()
+            if key not in excluded_metadata_attributes
+        }
 
-        library_metadata.update(
-            {
-                key: self.metadata[key]
-                for key in self.metadata
-                if key not in excluded_metadata_attributes
-            }
-        )
+        if self.is_multiplexed:
+            library_metadata["demux_cell_count_estimate"] = self.metadata["sample_cell_estimates"][
+                demux_cell_count_estimate_id
+            ]
 
         return library_metadata
 
     def get_combined_library_metadata(self) -> List[Dict]:
-        combined_metadatas = []
-        for sample in self.samples.all():
-            metadata = self.project.get_metadata() | sample.get_metadata() | self.get_metadata()
-            # Estimate attributes per modality:
-            #   Single Cell: "sample_cell_count_estimate"
-            #   Single Cell Multiplexed: "sample_cell_estimates"
-            #   Spatial: None
-            if self.modality == Library.Modalities.SPATIAL or self.is_multiplexed:
-                del metadata["sample_cell_count_estimate"]
-            if not self.is_multiplexed:
-                del metadata["sample_cell_estimate"]
-
-            combined_metadatas.append(metadata)
-
-        return combined_metadatas
+        return [
+            self.project.get_metadata() | sample.get_metadata() | self.get_metadata(sample.scpca_id)
+            for sample in self.samples.all()
+        ]
 
     def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
         """
@@ -232,7 +219,7 @@ class Library(TimestampedModel):
 
     @staticmethod
     def get_local_file_path(file_path: Path):
-        return common.INPUT_DATA_PATH / file_path
+        return settings.INPUT_DATA_PATH / file_path
 
     @staticmethod
     def get_zip_file_path(file_path: Path, download_config: Dict) -> Path:

@@ -1,22 +1,4 @@
-from pathlib import Path
-
-from django.conf import settings
-
-# Locally the docker container puts the code in a folder called code.
-# This allows us to run the same command on production or locally.
-CODE_PATH = (
-    code_path
-    if (code_path := Path("/home/user/code")) and code_path.exists()
-    else Path("/home/user")
-)
-
 CSV_MULTI_VALUE_DELIMITER = ";"
-
-DATA_PATH = CODE_PATH / ("test_data" if settings.TEST else "data")
-INPUT_DATA_PATH = DATA_PATH / "input"
-OUTPUT_DATA_PATH = DATA_PATH / "output"
-
-TEMPLATE_PATH = CODE_PATH / "scpca_portal" / "templates"
 
 TAB = "\t"
 NA = "NA"  # "Not Available"
@@ -43,6 +25,7 @@ SUBMITTER_WHITELIST = {
     "wu",
     "rokita",
     "soragni",
+    "pushel",
 }
 
 # Global sort order for Metadata TSVs
@@ -75,8 +58,7 @@ METADATA_COLUMN_SORT_ORDER = [
     "demux_samples",
     "total_reads",
     "mapped_reads",
-    "sample_cell_count_estimate",
-    "sample_cell_estimate",  # ONLY FOR MULTIPLEXED
+    "demux_cell_count_estimate",  # ONLY FOR MULTIPLEXED
     "unfiltered_cells",
     "filtered_cell_count",
     "processed_cells",

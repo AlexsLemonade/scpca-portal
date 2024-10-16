@@ -45,6 +45,7 @@ services:
       STAGE_HUBSPOT_SURVEY_LIST_ID: '${STAGE_HUBSPOT_SURVEY_LIST_ID}'
       STAGE_BANNER_STATE: '${STAGE_BANNER_STATE}'
       STAGE_BANNER_CONTENT: '${STAGE_BANNER_CONTENT}'
+      STAGE_CONTRIBUTIONS_OPEN: '${STAGE_CONTRIBUTIONS_OPEN}'
     command: >
       bash -c 'cd /home/user/code &&
                yarn set version 3.6.3 &&

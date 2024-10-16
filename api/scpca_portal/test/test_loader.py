@@ -9,7 +9,7 @@ from zipfile import ZipFile
 from django.conf import settings
 from django.test import TransactionTestCase
 
-from scpca_portal import common, loader
+from scpca_portal import loader
 from scpca_portal.models import Project
 from scpca_portal.test import expected_values as test_data
 
@@ -108,6 +108,7 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(sample)
         self.assertObjectProperties(sample, test_data.Project_SCPCP999990.Sample_SCPCS999990.VALUES)
+        self.assertDictIsNonEmpty(sample.metadata)
 
         # SCPCS999991
         sample = project.samples.filter(
@@ -115,6 +116,7 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(sample)
         self.assertObjectProperties(sample, test_data.Project_SCPCP999990.Sample_SCPCS999991.VALUES)
+        self.assertDictIsNonEmpty(sample.metadata)
 
         # SCPCS999994
         sample = project.samples.filter(
@@ -122,6 +124,7 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(sample)
         self.assertObjectProperties(sample, test_data.Project_SCPCP999990.Sample_SCPCS999994.VALUES)
+        self.assertDictIsNonEmpty(sample.metadata)
 
         # SCPCS999997
         sample = project.samples.filter(
@@ -129,6 +132,7 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(sample)
         self.assertObjectProperties(sample, test_data.Project_SCPCP999990.Sample_SCPCS999997.VALUES)
+        self.assertDictIsNonEmpty(sample.metadata)
 
         # CHECK LIBRARY VALUES
         self.assertEqual(project.libraries.count(), 3)
@@ -267,6 +271,7 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(sample)
         self.assertObjectProperties(sample, test_data.Project_SCPCP999991.Sample_SCPCS999992.VALUES)
+        self.assertDictIsNonEmpty(sample.metadata)
 
         # SCPCS999993
         sample = project.samples.filter(
@@ -274,6 +279,7 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(sample)
         self.assertObjectProperties(sample, test_data.Project_SCPCP999991.Sample_SCPCS999993.VALUES)
+        self.assertDictIsNonEmpty(sample.metadata)
 
         # SCPCS999995
         sample = project.samples.filter(
@@ -281,6 +287,7 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(sample)
         self.assertObjectProperties(sample, test_data.Project_SCPCP999991.Sample_SCPCS999995.VALUES)
+        self.assertDictIsNonEmpty(sample.metadata)
 
         # CHECK LIBRARY VALUES
         self.assertEqual(project.libraries.count(), 2)
@@ -403,6 +410,7 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(sample)
         self.assertObjectProperties(sample, test_data.Project_SCPCP999992.Sample_SCPCS999996.VALUES)
+        self.assertDictIsNonEmpty(sample.metadata)
 
         # SCPCS999998
         sample = project.samples.filter(
@@ -410,6 +418,7 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(sample)
         self.assertObjectProperties(sample, test_data.Project_SCPCP999992.Sample_SCPCS999998.VALUES)
+        self.assertDictIsNonEmpty(sample.metadata)
 
         # CHECK LIBRARY VALUES
         self.assertEqual(project.libraries.count(), 2)
@@ -524,7 +533,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = project.get_output_file_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        project_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = test_data.Computed_File_Project.SINGLE_CELL_SCE.LIBRARIES
@@ -569,7 +578,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = project.get_output_file_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        project_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = (
@@ -613,7 +622,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = project.get_output_file_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        project_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.LIBRARIES
@@ -655,7 +664,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = project.get_output_file_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        project_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.LIBRARIES
@@ -699,7 +708,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = project.get_output_file_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        project_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = (
@@ -745,7 +754,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = project.get_output_file_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        project_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = (
@@ -786,7 +795,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = project.get_output_file_name(download_config)
-        project_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        project_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = test_data.Computed_File_Project.ALL_METADATA.LIBRARIES
@@ -840,7 +849,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = sample.get_output_file_name(download_config)
-        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        sample_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(
@@ -891,7 +900,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = sample.get_output_file_name(download_config)
-        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        sample_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(
@@ -942,7 +951,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = sample.get_output_file_name(download_config)
-        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        sample_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(sample_zip, test_data.Computed_File_Sample.SPATIAL_SCE.LIBRARIES)
@@ -991,7 +1000,7 @@ class TestLoader(TransactionTestCase):
 
         # CHECK ZIP FILE
         output_file_name = sample.get_output_file_name(download_config)
-        sample_zip_path = common.OUTPUT_DATA_PATH / output_file_name
+        sample_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
             self.assertLibraries(
