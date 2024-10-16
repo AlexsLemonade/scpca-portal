@@ -161,7 +161,7 @@ def _create_computed_file(
 
 def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
     """
-    Wrap multiprocessing logic by grabbing computed file future and uploading it tohe s3.
+    Wrap computed file saving and uploading to s3 in a way that accommodates multiprocessing.
     """
     if computed_file := future.result():
         _create_computed_file(computed_file, update_s3, clean_up_output_data)
@@ -182,18 +182,9 @@ def generate_computed_file(
     if old_computed_file := (project or sample).get_computed_file(download_config):
         old_computed_file.purge(update_s3)
 
-    if project:
-        computed_file = ComputedFile.get_project_file(
-            project, download_config, project.get_output_file_name(download_config)
-        )
+    if project and (computed_file := ComputedFile.get_project_file(project, download_config)):
         _create_computed_file(computed_file, update_s3, clean_up_output_data=False)
-    elif sample:
-        computed_file = ComputedFile.get_sample_file(
-            sample,
-            download_config,
-            sample.get_output_file_name(download_config),
-            Lock(),  # this should be removed when CF::get_sample_file is refactored
-        )
+    if sample and (computed_file := ComputedFile.get_sample_file(sample, download_config)):
         _create_computed_file(computed_file, update_s3, clean_up_output_data=False)
         sample.project.update_downloadable_sample_count()
 
