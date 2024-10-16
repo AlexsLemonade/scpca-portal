@@ -25,7 +25,7 @@ export const ContributeClosedCard = () => (
         </Paragraph>
       </Box>
       <Button
-        href={config.links.contribute_hsform}
+        href={config.links.contribute_interest_hsform}
         label="Sign Up For Notifications"
         target="_blank"
         primary
