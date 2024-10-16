@@ -1,5 +1,4 @@
 import logging
-from typing import Dict
 
 from django.core.management.base import BaseCommand
 
@@ -27,7 +26,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--project-id", type=str)
         parser.add_argument("--sample-id", type=str)
-        parser.add_argument("--download-config", type=dict)
+        parser.add_argument("--download-config-name", type=str)
 
     def handle(self, *args, **kwargs):
         self.generate_computed_file(**kwargs)
@@ -36,37 +35,41 @@ class Command(BaseCommand):
         self,
         project_id: str,
         sample_id: str,
-        download_config: Dict,
+        download_config_name: str,
         **kwargs,
     ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
         loader.prep_data_dirs()
 
+        ids_not_mutually_exclusive = project_id and sample_id or (not project_id and not sample_id)
+        if ids_not_mutually_exclusive:
+            logger.error(
+                "Invalid id combination. Passed ids must be mutually exclusive."
+                "Either a project_id or a sample_id must be passed, but not both or neither."
+            )
+
         if project_id:
             project = Project.objects.filter(scpca_id=project_id).first()
-            sample = None
             if not project:
-                logger.error("project doesn't exist")
-                return
-            if download_config not in common.GENERATED_PROJECT_DOWNLOAD_CONFIGS:
-                logger.error("download_config is not valid")
-                return
-        elif sample_id:
+                logger.error(f"{project} does not exist.")
+            if download_config_name not in common.PROJECT_DOWNLOAD_CONFIGS.keys():
+                logger.error(f"{download_config_name} is not a valid project download config name.")
+                logger.info(
+                    f"Here are the correct project download_config names: "
+                    f"{common.PROJECT_DOWNLOAD_CONFIGS.keys()}"
+                )
+            download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+            loader.generate_computed_file(project=project, download_config=download_config)
+
+        if sample_id:
             sample = Sample.objects.filter(scpca_id=sample_id).first()
-            project = None
             if not sample:
-                logger.error("sample doesn't exist")
-                return
-            if download_config not in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS:
-                logger.error("download_config is not valid")
-                return
-
-        else:
-            logger.error(
-                "neither project_id nor sample_id were passed. at least one must be passed."
-            )
-            return
-
-        loader.generate_computed_file(
-            download_config=download_config, project=project, sample=sample
-        )
+                logger.error(f"{sample} does not exist.")
+            if download_config_name not in common.SAMPLE_DOWNLOAD_CONFIGS.keys():
+                logger.error(f"{download_config_name} is not a valid sample download config name.")
+                logger.info(
+                    f"Here are the correct sample download_config names: "
+                    f"{common.SAMPLE_DOWNLOAD_CONFIGS.keys()}"
+                )
+            download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+            loader.generate_computed_file(sample=sample, download_config=download_config)
