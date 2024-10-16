@@ -227,7 +227,6 @@ def generate_computed_files(
                 ComputedFile.get_project_file,
                 project,
                 config,
-                project.get_output_file_name(config),
             ).add_done_callback(on_get_file)
 
         # Generated sample computed files
@@ -238,7 +237,6 @@ def generate_computed_files(
                     ComputedFile.get_sample_file,
                     sample,
                     config,
-                    sample.get_output_file_name(config),
                     sample_lock,
                 ).add_done_callback(on_get_file)
 
