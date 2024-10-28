@@ -66,7 +66,7 @@ class Command(BaseCommand):
         projects = (
             Project.objects.filter(project_computed_files__is_null=True)
             if not project_id
-            else [Project.objects.filter(scpca_id=project_id).first()]
+            else Project.objects.filter(scpca_id=project_id)
         )
 
         for project in projects:
