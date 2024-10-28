@@ -55,7 +55,7 @@ class Command(BaseCommand):
             if download_config_name not in common.PROJECT_DOWNLOAD_CONFIGS.keys():
                 logger.error(f"{download_config_name} is not a valid project download config name.")
                 logger.info(
-                    f"Here are the correct project download_config names: "
+                    f"Here are valid download_config_name values for projects: "
                     f"{common.PROJECT_DOWNLOAD_CONFIGS.keys()}"
                 )
             download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
@@ -68,8 +68,8 @@ class Command(BaseCommand):
             if download_config_name not in common.SAMPLE_DOWNLOAD_CONFIGS.keys():
                 logger.error(f"{download_config_name} is not a valid sample download config name.")
                 logger.info(
-                    f"Here are the correct sample download_config names: "
+                    f"Here are valid download_config_name values for samples: "
                     f"{common.SAMPLE_DOWNLOAD_CONFIGS.keys()}"
                 )
-            download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
+            download_config = common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name]
             loader.generate_computed_file(sample=sample, download_config=download_config)
