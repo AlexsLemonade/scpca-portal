@@ -123,7 +123,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
     def get_computed_file(self, download_config: Dict) -> ComputedFile:
         "Return the sample computed file that matches the passed download_config."
-        return self.sample_computed_files.filter(
+        return self.computed_files.filter(
             modality=download_config["modality"],
             format=download_config["format"],
         ).first()

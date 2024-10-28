@@ -205,9 +205,9 @@ class Project(CommonDataAttributes, TimestampedModel):
     def get_computed_file(self, download_config: Dict) -> ComputedFile:
         "Return the project computed file that matches the passed download_config."
         if download_config["metadata_only"]:
-            return self.project_computed_files.filter(metadata_only=True).first()
+            return self.computed_files.filter(metadata_only=True).first()
 
-        return self.project_computed_files.filter(
+        return self.computed_files.filter(
             modality=download_config["modality"],
             format=download_config["format"],
             has_multiplexed_data=(not download_config["excludes_multiplexed"]),
