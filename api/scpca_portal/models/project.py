@@ -509,8 +509,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         Retrieves downloadable sample counts after the uploading of computed files to s3,
         updates the corresponding attributes on the project object, and saves the object to the db.
         """
-        downloadable_sample_count = (
+        self.downloadable_sample_count = (
             self.samples.filter(sample_computed_files__isnull=False).distinct().count()
         )
-        self.downloadable_sample_count = downloadable_sample_count
         self.save()
