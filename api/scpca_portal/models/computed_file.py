@@ -145,9 +145,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_project_file(
-        cls, project, download_config: Dict, computed_file_name: str
-    ) -> Self | None:
+    def get_project_file(cls, project, download_config: Dict) -> Self | None:
         """
         Queries for a project's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -171,7 +169,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             library_data_file_paths + project_data_file_paths, project.s3_input_bucket
         )
 
-        zip_file_path = settings.OUTPUT_DATA_PATH / computed_file_name
+        zip_file_path = settings.OUTPUT_DATA_PATH / project.get_output_file_name(download_config)
         with ZipFile(zip_file_path, "w") as zip_file:
             # Readme file
             zip_file.writestr(
@@ -227,7 +225,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             metadata_only=download_config.get("metadata_only"),
             project=project,
             s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            s3_key=computed_file_name,
+            s3_key=project.get_output_file_name(download_config),
             size_in_bytes=zip_file_path.stat().st_size,
             workflow_version=utils.join_workflow_versions(
                 library.workflow_version for library in libraries
@@ -237,9 +235,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_sample_file(
-        cls, sample, download_config: Dict, computed_file_name: str, lock: Lock
-    ) -> Self:
+    def get_sample_file(cls, sample, download_config: Dict, lock: Lock = Lock()) -> Self | None:
         """
         Queries for a sample's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -259,7 +255,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         ]
         s3.download_input_files(library_data_file_paths, sample.project.s3_input_bucket)
 
-        zip_file_path = settings.OUTPUT_DATA_PATH / computed_file_name
+        zip_file_path = settings.OUTPUT_DATA_PATH / sample.get_output_file_name(download_config)
         # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
         with lock:  # It should be removed later for a cleaner solution.
             if not zip_file_path.exists():
@@ -307,7 +303,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             includes_celltype_report=(not sample.is_cell_line),
             modality=download_config.get("modality"),
             s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            s3_key=computed_file_name,
+            s3_key=sample.get_output_file_name(download_config),
             sample=sample,
             size_in_bytes=zip_file_path.stat().st_size,
             workflow_version=utils.join_workflow_versions(
@@ -361,3 +357,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def clean_up_local_computed_file(self):
         """Delete local computed file."""
         self.zip_file_path.unlink(missing_ok=True)
+
+    def purge(self, delete_from_s3: bool = False) -> None:
+        """Purges a computed file, optionally deleting it from S3."""
+        if delete_from_s3:
+            s3.delete_output_file(self.s3_key, self.s3_bucket)
+        self.delete()
