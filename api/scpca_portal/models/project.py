@@ -492,6 +492,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.sample_count = sample_count
         self.seq_units = ", ".join(seq_units)
         self.technologies = ", ".join(technologies)
+        self.unavailable_samples_count = self.samples.filter(
+            has_single_cell_data=False, has_spatial_data=False
+        ).count()
         self.save()
 
         for (diagnosis, seq_unit, technology), count in summaries_counts.items():
@@ -509,14 +512,5 @@ class Project(CommonDataAttributes, TimestampedModel):
         downloadable_sample_count = (
             self.samples.filter(sample_computed_files__isnull=False).distinct().count()
         )
-        sample_count = self.samples.count()
-        non_downloadable_samples_count = self.samples.filter(
-            has_multiplexed_data=False, has_single_cell_data=False, has_spatial_data=False
-        ).count()
-        unavailable_samples_count = max(
-            sample_count - downloadable_sample_count - non_downloadable_samples_count, 0
-        )
-
         self.downloadable_sample_count = downloadable_sample_count
-        self.unavailable_samples_count = unavailable_samples_count
         self.save()
