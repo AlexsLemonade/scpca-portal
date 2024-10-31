@@ -41,10 +41,10 @@ def parse_args():
     parser.add_argument("-u", "--user", help=user_help_text, required=True)
 
     dockerhub_help_text = (
-        "Specify the dockerhub repo from which to pull the docker image."
-        " Can be useful for using your own dockerhub repo for a development stack."
+        "Specify the dockerhub account from which to pull the docker image."
+        " Can be useful for using your own dockerhub account for a development stack."
     )
-    parser.add_argument("-d", "--dockerhub-repo", help=dockerhub_help_text, required=True)
+    parser.add_argument("-d", "--dockerhub-account", help=dockerhub_help_text, required=True)
 
     version_help_text = "Specify the version of the system that is being deployed."
     parser.add_argument("-v", "--system-version", help=version_help_text, required=True)
@@ -60,7 +60,7 @@ def build_and_push_docker_image(args):
     # This could be configurable, but there isn't much point.
     HTTP_PORT = 8081
 
-    image_name = f"{args.dockerhub_repo}/scpca_portal_api"
+    image_name = f"{args.dockerhub_account}/scpca_portal_api"
 
     # Change dir so docker can see the code.
     os.chdir("../api")
@@ -130,7 +130,7 @@ def load_env_vars(args):
     os.environ["TF_VAR_user"] = args.user
     os.environ["TF_VAR_stage"] = args.env
     os.environ["TF_VAR_region"] = args.region
-    os.environ["TF_VAR_dockerhub_repo"] = args.dockerhub_repo
+    os.environ["TF_VAR_dockerhub_account"] = args.dockerhub_account
     os.environ["TF_VAR_system_version"] = args.system_version
     os.environ["TF_VAR_database_password"] = os.environ["DATABASE_PASSWORD"]
     os.environ["TF_VAR_django_secret_key"] = os.environ["DJANGO_SECRET_KEY"]

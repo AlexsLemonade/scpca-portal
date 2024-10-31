@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_DOCKER_IMAGE="${dockerhub_repo}/scpca_portal_api:latest"
+API_DOCKER_IMAGE="${dockerhub_account}/scpca_portal_api:latest"
 
 # Prepare the data volume.
 DATA_VOLUME_PATH="/home/ubuntu/data"

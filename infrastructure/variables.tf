@@ -24,8 +24,8 @@ variable "stage" {
   default = "dev"
 }
 
-variable "dockerhub_repo" {
-  default = "scpca_portal_staging"
+variable "dockerhub_account" {
+  default = "ccdlstaging"
 }
 
 variable "system_version" {

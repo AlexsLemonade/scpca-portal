@@ -6,7 +6,7 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     "FARGATE",
   ]
   container_properties = jsonencode({
-    image = "${var.dockerhub_repo}/scpca_portal_api:latest"
+    image = "${var.dockerhub_account}/scpca_portal_api:latest"
     # command definition expected in cotaninerOverrides when using this job definition
     command = []
     environment = [
