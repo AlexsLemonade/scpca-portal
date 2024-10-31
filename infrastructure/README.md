@@ -11,7 +11,7 @@ All commands from this README should be run from the `infrastructure/` directory
 ## Deployment
 
 The staging stack will be redeployed upon every merge to dev.
-The product stack will be redeployed upon every merge to main.
+The production stack will be redeployed upon every merge to main.
 
 A dev stack can be deployed from a local machine.
 The deploy script will look for an SSH key pair in the `infrastructure/` directory.
