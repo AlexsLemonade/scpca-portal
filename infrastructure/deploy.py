@@ -9,7 +9,8 @@ import time
 
 from init_terraform import init_terraform
 
-KEY_FILE_PATH = "scpca-portal-key.pem"
+PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
+PUBLIC_KEY_FILE_PATH = "scpca-portal-key.pub"
 
 
 def parse_args():
@@ -123,6 +124,8 @@ def load_env_vars(args):
         for secret in secrets:
             key, value = secret.split("=")
             os.environ[key.strip()] = value.strip()
+        with open(PUBLIC_KEY_FILE_PATH, "r") as public_key_file:
+            public_key = public_key_file.read()
 
     os.environ["TF_VAR_user"] = args.user
     os.environ["TF_VAR_stage"] = args.env
@@ -133,7 +136,9 @@ def load_env_vars(args):
     os.environ["TF_VAR_django_secret_key"] = os.environ["DJANGO_SECRET_KEY"]
     os.environ["TF_VAR_sentry_dsn"] = os.environ["SENTRY_DSN"]
     os.environ["TF_VAR_sentry_env"] = os.environ["SENTRY_ENV"]
-    os.environ["TF_VAR_ssh_public_key"] = os.environ["SSH_PUBLIC_KEY"]
+    os.environ["TF_VAR_ssh_public_key"] = (
+        os.environ["SSH_PUBLIC_KEY"] if args.env != "dev" else public_key
+    )
 
 
 def run_terraform(args):
@@ -174,7 +179,7 @@ def run_remote_command(ip_address, command):
         [
             "ssh",
             "-i",
-            KEY_FILE_PATH,
+            PRIVATE_KEY_FILE_PATH,
             "-o",
             "StrictHostKeyChecking=no",
             "ubuntu@" + ip_address,
@@ -251,10 +256,10 @@ if __name__ == "__main__":
 
     # Create a key file from env var
     if args.env != "dev":
-        with open(KEY_FILE_PATH, "w") as key_file:
-            key_file.write(os.environ["SSH_PRIVATE_KEY"])
+        with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
+            private_key_file.write(os.environ["SSH_PRIVATE_KEY"])
 
-        os.chmod(KEY_FILE_PATH, 0o600)
+        os.chmod(PRIVATE_KEY_FILE_PATH, 0o600)
 
     # This is the last command, so the script's return code should
     # match it.
