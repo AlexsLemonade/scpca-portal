@@ -11,14 +11,14 @@ All commands from this README should be run from the `infrastructure/` directory
 ## Deployment
 
 The staging stack will be redeployed upon every merge to dev.
-The production stack has not yet been configured.
+The production stack will be redeployed upon every merge to main.
 
 A dev stack can be deployed from a local machine.
-The deploy script will look for a private SSH key named `scpca-portal-key.pem` in the `infrastructure/` directory.
-You will need to create an SSH key, name it that, and paste the public key for it into security.tf (replacing the existing one which is used for deploys to the cloud.
+The deploy script will look for an SSH key pair in the `infrastructure/` directory.
+The private key should be named `scpca-portal-key.pem`, and the public key should be named `scpca-portal-key.pub`.
 
 ```
-python3 deploy.py -d [dockerhub-repo] -e dev -u [username] -v v0.0.0
+python3 deploy.py -d [dockerhub-account] -e dev -u [username] -v v0.0.0
 ```
 
 To make requests against the API that you deployed see the [READEME for the API](../api/README.md).

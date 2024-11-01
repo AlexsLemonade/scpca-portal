@@ -9,7 +9,8 @@ import time
 
 from init_terraform import init_terraform
 
-KEY_FILE_PATH = "scpca-portal-key.pem"
+PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
+PUBLIC_KEY_FILE_PATH = "scpca-portal-key.pub"
 
 
 def parse_args():
@@ -40,10 +41,10 @@ def parse_args():
     parser.add_argument("-u", "--user", help=user_help_text, required=True)
 
     dockerhub_help_text = (
-        "Specify the dockerhub repo from which to pull the docker image."
-        " Can be useful for using your own dockerhub repo for a development stack."
+        "Specify the dockerhub account from which to pull the docker image."
+        " Can be useful for using your own dockerhub account for a development stack."
     )
-    parser.add_argument("-d", "--dockerhub-repo", help=dockerhub_help_text, required=True)
+    parser.add_argument("-d", "--dockerhub-account", help=dockerhub_help_text, required=True)
 
     version_help_text = "Specify the version of the system that is being deployed."
     parser.add_argument("-v", "--system-version", help=version_help_text, required=True)
@@ -59,7 +60,7 @@ def build_and_push_docker_image(args):
     # This could be configurable, but there isn't much point.
     HTTP_PORT = 8081
 
-    image_name = f"{args.dockerhub_repo}/scpca_portal_api"
+    image_name = f"{args.dockerhub_account}/scpca_portal_api"
 
     # Change dir so docker can see the code.
     os.chdir("../api")
@@ -123,17 +124,21 @@ def load_env_vars(args):
         for secret in secrets:
             key, value = secret.split("=")
             os.environ[key.strip()] = value.strip()
+        with open(PUBLIC_KEY_FILE_PATH, "r") as public_key_file:
+            public_key = public_key_file.read()
 
     os.environ["TF_VAR_user"] = args.user
     os.environ["TF_VAR_stage"] = args.env
     os.environ["TF_VAR_region"] = args.region
-    os.environ["TF_VAR_dockerhub_repo"] = args.dockerhub_repo
+    os.environ["TF_VAR_dockerhub_account"] = args.dockerhub_account
     os.environ["TF_VAR_system_version"] = args.system_version
     os.environ["TF_VAR_database_password"] = os.environ["DATABASE_PASSWORD"]
     os.environ["TF_VAR_django_secret_key"] = os.environ["DJANGO_SECRET_KEY"]
     os.environ["TF_VAR_sentry_dsn"] = os.environ["SENTRY_DSN"]
     os.environ["TF_VAR_sentry_env"] = os.environ["SENTRY_ENV"]
-    os.environ["TF_VAR_ssh_public_key"] = os.environ["SSH_PUBLIC_KEY"]
+    os.environ["TF_VAR_ssh_public_key"] = (
+        os.environ["SSH_PUBLIC_KEY"] if args.env != "dev" else public_key
+    )
 
 
 def run_terraform(args):
@@ -174,7 +179,7 @@ def run_remote_command(ip_address, command):
         [
             "ssh",
             "-i",
-            KEY_FILE_PATH,
+            PRIVATE_KEY_FILE_PATH,
             "-o",
             "StrictHostKeyChecking=no",
             "ubuntu@" + ip_address,
@@ -251,10 +256,10 @@ if __name__ == "__main__":
 
     # Create a key file from env var
     if args.env != "dev":
-        with open(KEY_FILE_PATH, "w") as key_file:
-            key_file.write(os.environ["SSH_PRIVATE_KEY"])
+        with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
+            private_key_file.write(os.environ["SSH_PRIVATE_KEY"])
 
-        os.chmod(KEY_FILE_PATH, 0o600)
+        os.chmod(PRIVATE_KEY_FILE_PATH, 0o600)
 
     # This is the last command, so the script's return code should
     # match it.
