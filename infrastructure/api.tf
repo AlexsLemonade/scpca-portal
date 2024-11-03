@@ -50,7 +50,7 @@ resource "aws_instance" "api_server_1" {
           database_host = aws_db_instance.postgres_db.address
           database_port = aws_db_instance.postgres_db.port
           database_user = aws_db_instance.postgres_db.username
-          database_name = aws_db_instance.postgres_db.name
+          database_name = aws_db_instance.postgres_db.db_name
           database_password = var.database_password
           aws_region  = var.region
           aws_s3_bucket_name = aws_s3_bucket.scpca_portal_bucket.id
