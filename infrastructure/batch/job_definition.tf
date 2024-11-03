@@ -16,7 +16,7 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
       },
       {
         name  = "DJANGO_DEBUG"
-        value = false
+        value = "false"
       },
       {
         name  = "DJANGO_SECRET_KEY"
@@ -24,19 +24,19 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
       },
       {
         name  = "DATABASE_HOST"
-        value = aws_db_instance.postgres_db.address
+        value = var.postgres_db.address
       },
       {
         name  = "DATABASE_PORT"
-        value = aws_db_instance.postgres_db.port
+        value = tostring(var.postgres_db.port)
       },
       {
         name  = "DATABASE_USER"
-        value = aws_db_instance.postgres_db.username
+        value = var.postgres_db.username
       },
       {
         name  = "DATABASE_NAME"
-        value = aws_db_instance.postgres_db.name
+        value = var.postgres_db.db_name
       },
       {
         name  = "DATABASE_PASSWORD"
@@ -48,7 +48,7 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
       },
       {
         name  = "AWS_S3_BUCKET_NAME"
-        value = aws_s3_bucket.scpca_portal_bucket.id
+        value = var.scpca_portal_bucket.id
       },
       {
         name  = "SENTRY_DSN"
@@ -63,11 +63,11 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     fargatePlatformConfiguration = {
       platformVersion = "LATEST"
     }
+    # requirements match api requirements, which uses a t2.medium (2 vcpus and 4.0 GB of RAM)
     resourceRequirements = [
-      # requirements match api requirements, which uses a t2.medium (2 vcpus and 4.0 GB of RAM)
       {
         type  = "VCPU"
-        value = "2.0"
+        value = "1.0"
       },
       {
         type  = "MEMORY"
@@ -79,10 +79,11 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
       sizeInGib = 200
     }
 
-    retry_strategy = {
-      attempts = 3
-    }
-
-    executionRoleArn = aws_iam_role.aws_ecs_task_execution_role.arn
+    executionRoleArn = aws_iam_role.ecs_task_execution_role.arn
   })
+
+  retry_strategy {
+    attempts = 3
+  }
+
 }

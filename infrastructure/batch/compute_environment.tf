@@ -1,14 +1,14 @@
-resource "aws_batch_compute_environment" "scpca_portal_project_compute" {
+resource "aws_batch_compute_environment" "scpca_portal_project" {
   compute_environment_name = "scpca-portal-project-compute-${var.user}-${var.stage}"
 
   compute_resources {
-    max_vcpus = 32
+    max_vcpus = 16
     security_group_ids = [
       aws_security_group.scpca_portal_batch.id
     ]
 
     subnets = [
-      aws_subnet.scpca_portal_1a
+      var.scpca_portal_subnet_1a.id
     ]
 
     type = "FARGATE"
