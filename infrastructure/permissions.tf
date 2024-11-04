@@ -57,7 +57,7 @@ resource "aws_iam_policy" "scpca_portal_cloudwatch" {
                 "cloudwatch:SetAlarmState"
             ],
             "Resource": [
-              "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.scpca_portal.name}:*"
+              "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.scpca_portal_log_group.name}:*"
             ]
         }
     ]

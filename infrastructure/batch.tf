@@ -2,7 +2,7 @@ module "batch" {
   source = "./batch"
 
   # networking
-  scpca_portal_vpc = aws_vpc.scpca_portal
+  scpca_portal_vpc = aws_vpc.scpca_portal_vpc
   scpca_portal_subnet_1a = aws_subnet.scpca_portal_1a
 
   # job_definition envars

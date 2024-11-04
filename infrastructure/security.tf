@@ -13,7 +13,7 @@ resource "aws_key_pair" "scpca_portal" {
 resource "aws_security_group" "scpca_portal_db" {
   name = "scpca-portal_db-${var.user}-${var.stage}"
   description = "scpca_portal_db-${var.user}-${var.stage}"
-  vpc_id = aws_vpc.scpca_portal.id
+  vpc_id = aws_vpc.scpca_portal_vpc.id
 
   tags = merge(
     var.default_tags,
@@ -48,7 +48,7 @@ resource "aws_security_group_rule" "scpca_portal_db_tcp" {
 resource "aws_security_group" "scpca_portal_api" {
   name = "scpca-portal-api-${var.user}-${var.stage}"
   description = "scpca-portal-api-${var.user}-${var.stage}"
-  vpc_id = aws_vpc.scpca_portal.id
+  vpc_id = aws_vpc.scpca_portal_vpc.id
 
   tags = merge(
     var.default_tags,
