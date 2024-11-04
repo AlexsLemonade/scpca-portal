@@ -17,6 +17,7 @@ module "batch" {
   # security
   scpca_portal_db_security_group = aws_security_group.scpca_portal_db
 
+  # general configuration
   user = var.user
   stage = var.stage
   default_tags = var.default_tags

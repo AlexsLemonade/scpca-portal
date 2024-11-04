@@ -79,7 +79,7 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
       sizeInGib = 200
     }
 
-    executionRoleArn = aws_iam_role.ecs_task_execution_role.arn
+    executionRoleArn = aws_iam_role.ecs_task_role.arn
   })
 
   retry_strategy {
