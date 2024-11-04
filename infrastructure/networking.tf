@@ -1,7 +1,7 @@
 # The configuration contained in this file specifies AWS resources
 # related to networking.
 
-resource "aws_vpc" "scpca_portal_vpc" {
+resource "aws_vpc" "scpca_portal" {
   cidr_block = "10.0.0.0/16"
   enable_dns_support = true
   enable_dns_hostnames = true
@@ -14,7 +14,7 @@ resource "aws_vpc" "scpca_portal_vpc" {
 resource "aws_subnet" "scpca_portal_1a" {
   availability_zone = "${var.region}a"
   cidr_block = "10.0.0.0/17"
-  vpc_id = aws_vpc.scpca_portal_vpc.id
+  vpc_id = aws_vpc.scpca_portal.id
   map_public_ip_on_launch = true
 
   tags = {
@@ -25,7 +25,7 @@ resource "aws_subnet" "scpca_portal_1a" {
 resource "aws_subnet" "scpca_portal_1b" {
   availability_zone = "${var.region}b"
   cidr_block = "10.0.128.0/17"
-  vpc_id = aws_vpc.scpca_portal_vpc.id
+  vpc_id = aws_vpc.scpca_portal.id
 
   map_public_ip_on_launch = true
 
@@ -35,7 +35,7 @@ resource "aws_subnet" "scpca_portal_1b" {
 }
 
 resource "aws_internet_gateway" "scpca_portal" {
-  vpc_id = aws_vpc.scpca_portal_vpc.id
+  vpc_id = aws_vpc.scpca_portal.id
 
   tags = merge(
     var.default_tags,
@@ -47,7 +47,7 @@ resource "aws_internet_gateway" "scpca_portal" {
 
 # Allow access for ssh.
 resource "aws_route_table" "scpca_portal" {
-  vpc_id = aws_vpc.scpca_portal_vpc.id
+  vpc_id = aws_vpc.scpca_portal.id
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -131,7 +131,7 @@ resource "aws_lb" "scpca_portal_api_load_balancer" {
 resource "aws_lb_target_group" "api-http" {
   port = 80
   protocol = "TCP"
-  vpc_id = aws_vpc.scpca_portal_vpc.id
+  vpc_id = aws_vpc.scpca_portal.id
   stickiness {
     enabled = false
     type = "source_ip"
@@ -169,7 +169,7 @@ resource "aws_lb_target_group_attachment" "api-http" {
 resource "aws_lb_target_group" "api-https" {
   port = 443
   protocol = "TCP"
-  vpc_id = aws_vpc.scpca_portal_vpc.id
+  vpc_id = aws_vpc.scpca_portal.id
   stickiness {
     enabled = false
     type = "source_ip"

@@ -62,7 +62,7 @@ resource "aws_instance" "api_server_1" {
         {
           region = var.region
           dockerhub_account = var.dockerhub_account
-          log_group = aws_cloudwatch_log_group.scpca_portal_log_group.name
+          log_group = aws_cloudwatch_log_group.scpca_portal.name
           log_stream = aws_cloudwatch_log_stream.log_stream_api.name
         })
       run_command_script = templatefile(
@@ -73,7 +73,7 @@ resource "aws_instance" "api_server_1" {
       user = var.user
       stage = var.stage
       region = var.region
-      log_group = aws_cloudwatch_log_group.scpca_portal_log_group.name
+      log_group = aws_cloudwatch_log_group.scpca_portal.name
     })
 
   tags =  merge(
