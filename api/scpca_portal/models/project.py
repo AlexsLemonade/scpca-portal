@@ -80,7 +80,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     @property
     def all_samples_no_multiplexed_duplicates(self):
         """Return all non multiplexed samples and only one sample from multiplexed library."""
-        return [sample for sample in self.samples_all if sample.is_last_multiplexed_sample]
+        return [sample for sample in self.samples.all() if sample.is_last_multiplexed_sample]
 
     @property
     def computed_files(self):

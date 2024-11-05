@@ -66,14 +66,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
 
     @classmethod
-    def bulk_create_multiplexed_files(cls, multiplexed_computed_file: Self) -> None:
-        computed_files = [multiplexed_computed_file]
-        for sample in multiplexed_computed_file.sample.multiplexed_with_samples:
-            computed_file = multiplexed_computed_file.copy()
+    def bulk_create_multiplexed_files(cls, computed_file: Self) -> None:
+        for sample in computed_file.sample.multiplexed_with_samples:
+            # According to the Django docs, this is the way to make a copy of a model instance
+            computed_file.pk = None
             computed_file.sample = sample
-            computed_files.append(computed_file)
-
-        ComputedFile.objects.bulk_create(computed_files)
+            computed_file.save()
 
     @staticmethod
     def get_local_project_metadata_path(project, download_config: Dict) -> Path:
