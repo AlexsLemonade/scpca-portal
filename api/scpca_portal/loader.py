@@ -221,7 +221,7 @@ def generate_computed_files(
             ).add_done_callback(on_get_file)
 
         # Generated sample computed files
-        for sample in project.samples.all():
+        for sample in project.all_samples_no_multiplexed_duplicates:
             for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS:
                 sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
                 tasks.submit(
