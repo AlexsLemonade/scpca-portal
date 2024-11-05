@@ -1,7 +1,6 @@
 import shutil
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from threading import Lock
 from typing import Any, Dict, List, Set
 
 from django.conf import settings
@@ -208,9 +207,7 @@ def generate_computed_files(
         update_s3=update_s3,
         clean_up_output_data=clean_up_output_data,
     )
-    # Prepare a threading.Lock for each sample, with the chief purpose being to protect
-    # multiplexed samples that share a zip file.
-    locks = {}
+
     with ThreadPoolExecutor(max_workers=max_workers) as tasks:
         # Generated project computed files
         for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGS:
@@ -223,12 +220,10 @@ def generate_computed_files(
         # Generated sample computed files
         for sample in project.all_samples_no_multiplexed_duplicates:
             for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS:
-                sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
                 tasks.submit(
                     ComputedFile.get_sample_file,
                     sample,
                     config,
-                    sample_lock,
                 ).add_done_callback(on_get_file)
 
     project.update_downloadable_sample_count()
