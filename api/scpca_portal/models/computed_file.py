@@ -65,6 +65,16 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             f"computed file ({self.size_in_bytes}B)"
         )
 
+    @classmethod
+    def bulk_create_multiplexed_files(cls, multiplexed_computed_file: Self) -> None:
+        computed_files = [multiplexed_computed_file]
+        for sample in multiplexed_computed_file.sample.multiplexed_with_samples:
+            computed_file = multiplexed_computed_file.copy()
+            computed_file.sample = sample
+            computed_files.append(computed_file)
+
+        ComputedFile.objects.bulk_create(computed_files)
+
     @staticmethod
     def get_local_project_metadata_path(project, download_config: Dict) -> Path:
         file_name_parts = [project.scpca_id]
