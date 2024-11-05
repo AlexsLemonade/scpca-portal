@@ -149,12 +149,14 @@ def _create_computed_file(
     Save computed file returned from future to the db.
     Upload file to s3 and clean up output data depending on passed options.
     """
-    # Only upload and clean up projects and the last sample if multiplexed
-    if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
-        if update_s3:
-            s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
-        if clean_up_output_data:
-            computed_file.clean_up_local_computed_file()
+    if update_s3:
+        s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
+    if clean_up_output_data:
+        computed_file.clean_up_local_computed_file()
+
+    if computed_file.sample and computed_file.has_multiplexed_data:
+        ComputedFile.bulk_create_multiplexed_files(computed_file)
+
     computed_file.save()
 
 
