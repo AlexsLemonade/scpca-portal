@@ -998,7 +998,7 @@ class TestLoader(TransactionTestCase):
             # all multiplexed samples must be present to validate correctness here.
             # This is a result of how we create multiplexed sample computed files,
             # where we take the sample with the highest id for computed file generation,
-            # and build computed files for other samples from there the chosen sample.
+            # and build computed file objects for other samples from the chosen sample.
             self.purge_extra_samples(project, sample_ids)
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
                 self.generate_computed_files(project)
