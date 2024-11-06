@@ -75,7 +75,7 @@ class Command(BaseCommand):
                     project_id=project.scpca_id, download_config_name=download_config_name
                 )
 
-            for sample in project.samples.all():
+            for sample in project.all_samples_no_multiplexed_duplicates:
                 for download_config_name in common.SAMPLE_DOWNLOAD_CONFIGS.keys():
                     self.submit_job(
                         sample_id=sample.scpca_id, download_config_name=download_config_name
