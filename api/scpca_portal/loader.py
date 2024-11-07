@@ -219,7 +219,7 @@ def generate_computed_files(
             ).add_done_callback(on_get_file)
 
         # Generated sample computed files
-        for sample in project.all_samples_no_multiplexed_duplicates:
+        for sample in project.samples_to_generate:
             for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS:
                 tasks.submit(
                     ComputedFile.get_sample_file,
