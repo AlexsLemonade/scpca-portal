@@ -154,9 +154,11 @@ def _create_computed_file(
     if clean_up_output_data:
         computed_file.clean_up_local_computed_file()
 
-    computed_file.save()
     if computed_file.sample and computed_file.has_multiplexed_data:
-        ComputedFile.bulk_create_multiplexed_files(computed_file)
+        computed_files = computed_file.get_multiplexed_computed_files()
+        ComputedFile.objects.bulk_create(computed_files)
+    else:
+        computed_file.save()
 
 
 def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_data: bool) -> None:

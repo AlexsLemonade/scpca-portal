@@ -4,6 +4,7 @@ from zipfile import ZipFile
 
 from django.conf import settings
 from django.db import models
+from django.forms.models import model_to_dict
 
 from typing_extensions import Self
 
@@ -64,14 +65,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             f"{dict(self.OutputFileFormats.CHOICES).get(self.format, 'No Format')} "
             f"computed file ({self.size_in_bytes}B)"
         )
-
-    @classmethod
-    def bulk_create_multiplexed_files(cls, computed_file: Self) -> None:
-        for sample in computed_file.sample.multiplexed_with_samples:
-            # According to the Django docs, this is the way to make a copy of a model instance
-            computed_file.pk = None
-            computed_file.sample = sample
-            computed_file.save()
 
     @staticmethod
     def get_local_project_metadata_path(project, download_config: Dict) -> Path:
@@ -355,6 +348,23 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     @property
     def zip_file_path(self):
         return settings.OUTPUT_DATA_PATH / self.s3_key
+
+    def get_multiplexed_computed_files(self):
+        """
+        Return computed file objects for all associated multiplexed samples.
+        The self computed file object is used as a template in building identical computed files,
+        differentiated only by sample, so that they can be bulk created at the same time.
+        """
+        multiplexed_samples = list(self.sample.multiplexed_with_samples) + [self.sample]
+        self.sample = None
+
+        computed_files = []
+        for sample in multiplexed_samples:
+            sample_computed_file = ComputedFile(**model_to_dict(self))
+            sample_computed_file.sample = sample
+            computed_files.append(sample_computed_file)
+
+        return computed_files
 
     def clean_up_local_computed_file(self):
         """Delete local computed file."""
