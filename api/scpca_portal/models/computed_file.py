@@ -4,7 +4,6 @@ from zipfile import ZipFile
 
 from django.conf import settings
 from django.db import models
-from django.forms.models import model_to_dict
 
 from typing_extensions import Self
 
@@ -352,16 +351,26 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def get_multiplexed_computed_files(self):
         """
         Return computed file objects for all associated multiplexed samples.
-        The self computed file object is used as a template in building identical computed files,
-        differentiated only by sample, so that they can be bulk created at the same time.
         """
-        multiplexed_samples = list(self.sample.multiplexed_with_samples) + [self.sample]
-        self.sample = None
+        computed_files = [self]
+        for sample in self.sample.multiplexed_with_samples:
+            sample_computed_file = ComputedFile(
+                format=self.format,
+                includes_merged=self.includes_merged,
+                modality=self.modality,
+                metadata_only=self.metadata_only,
+                portal_metadata_only=self.portal_metadata_only,
+                s3_bucket=self.s3_bucket,
+                s3_key=self.s3_key,
+                size_in_bytes=self.size_in_bytes,
+                workflow_version=self.workflow_version,
+                includes_celltype_report=self.includes_celltype_report,
+                has_bulk_rna_seq=self.has_bulk_rna_seq,
+                has_cite_seq_data=self.has_cite_seq_data,
+                has_multiplexed_data=self.has_multiplexed_data,
+                sample=sample,
+            )
 
-        computed_files = []
-        for sample in multiplexed_samples:
-            sample_computed_file = ComputedFile(**model_to_dict(self))
-            sample_computed_file.sample = sample
             computed_files.append(sample_computed_file)
 
         return computed_files
