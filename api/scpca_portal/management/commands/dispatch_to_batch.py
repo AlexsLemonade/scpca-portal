@@ -39,8 +39,8 @@ class Command(BaseCommand):
 
         response = batch.submit_job(
             jobName=job_name,
-            jobQueue="scpca_portal_project",
-            jobDefinition="scpca_portal_project",
+            jobQueue=os.environ.get("AWS_BATCH_JOB_QUEUE_NAME"),
+            jobDefinition=os.environ.get("AWS_BATCH_JOB_DEFINITION_NAME"),
             containerOverrides={
                 "command": [
                     "python",

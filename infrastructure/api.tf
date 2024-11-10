@@ -52,6 +52,8 @@ resource "aws_instance" "api_server_1" {
           database_user = aws_db_instance.postgres_db.username
           database_name = aws_db_instance.postgres_db.db_name
           database_password = var.database_password
+          aws_batch_job_queue_name = module.batch.job_queue_name
+          aws_batch_job_definition_name = module.batch.job_definition_name
           aws_region  = var.region
           aws_s3_bucket_name = aws_s3_bucket.scpca_portal_bucket.id
           sentry_dsn = var.sentry_dsn
