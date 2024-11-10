@@ -167,3 +167,27 @@ resource "aws_iam_role_policy_attachment" "input_bucket" {
   role = aws_iam_role.scpca_portal_instance.name
   policy_arn = aws_iam_policy.input_bucket_access_policy.arn
 }
+
+resource "aws_iam_policy" "batch_submit_job" {
+  name = "scpca-portal-batch-submit-job-${var.user}-${var.stage}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "batch:SubmitJob"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "batch_submit_job" {
+  role = aws_iam_role.scpca_portal_instance.name
+  policy_arn = aws_iam_policy.batch_submit_job.arn
+}
