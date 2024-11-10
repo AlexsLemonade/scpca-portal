@@ -82,17 +82,17 @@ resource "aws_iam_policy" "batch_job_s3_access" {
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::scpca-portal-inputs",
+        "arn:aws:s3:::scpca-portal-inputs"
       ]
     },
     {
       "Effect": "Allow",
       "Action": [
-        "s3:ListBucket"
-        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:GetObject"
       ],
       "Resource": [
-        "arn:aws:s3:::scpca-portal-inputs/*",
+        "arn:aws:s3:::scpca-portal-inputs/*"
       ]
     },
     {
@@ -100,7 +100,7 @@ resource "aws_iam_policy" "batch_job_s3_access" {
       "Action": [
         "s3:PutObject",
         "s3:GetObject",
-        "s3:DeleteObject",
+        "s3:DeleteObject"
       ],
       "Resource": [
         "arn:aws:s3:::${var.scpca_portal_bucket.bucket}/*"
