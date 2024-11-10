@@ -17,7 +17,10 @@ services:
       args:
         PORT: '${API_PORT}'
     environment:
-      DEV_HOST: 'http://localhost:${API_PORT}'
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - DEV_HOST=http://localhost:${API_PORT}
     command: >
       bash -c 'python wait_for_postgres.py &&
                ./manage.py migrate &&
