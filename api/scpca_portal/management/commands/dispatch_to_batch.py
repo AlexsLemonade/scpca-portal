@@ -8,7 +8,10 @@ import boto3
 from scpca_portal import common
 from scpca_portal.models import Project
 
-batch = boto3.client("batch", region_name=os.environ["AWS_REGION"])
+batch = boto3.client(
+    "batch",
+    region_name=os.environ.get("AWS_REGION", "us-east-1"),
+)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
@@ -28,14 +31,18 @@ class Command(BaseCommand):
         self.dispatch_to_batch(**kwargs)
 
     def submit_job(
-        self, *, download_config_name: str, project_id: str = "", sample_id: str = ""
+        self,
+        *,
+        download_config_name: str,
+        project_id: str = "",
+        sample_id: str = "",
     ) -> None:
         """
         Submit job to AWS Batch, accordingly to the resource_id and download_config combination.
         """
-        resource_flag = "--project_id" if project_id else "--sample_id"
+        resource_flag = "--project-id" if project_id else "--sample-id"
         resource_id = project_id if project_id else sample_id
-        job_name = f"{resource_id} - {download_config_name}"
+        job_name = f"{resource_id}-{download_config_name}"
 
         response = batch.submit_job(
             jobName=job_name,
@@ -56,7 +63,7 @@ class Command(BaseCommand):
 
         logger.info(f'{job_name} submitted to Batch with jobId {response["jobId"]}')
 
-    def dispatch_to_batch(self, project_id: str = ""):
+    def dispatch_to_batch(self, project_id: str = "", **kwargs):
         """
         Iterate over all projects that don't have computed files and submit each
         resource_id and download_config combination to the Batch queue.
@@ -72,11 +79,13 @@ class Command(BaseCommand):
         for project in projects:
             for download_config_name in common.PROJECT_DOWNLOAD_CONFIGS.keys():
                 self.submit_job(
-                    project_id=project.scpca_id, download_config_name=download_config_name
+                    project_id=project.scpca_id,
+                    download_config_name=download_config_name,
                 )
 
             for sample in project.samples.all():
                 for download_config_name in common.SAMPLE_DOWNLOAD_CONFIGS.keys():
                     self.submit_job(
-                        sample_id=sample.scpca_id, download_config_name=download_config_name
+                        sample_id=sample.scpca_id,
+                        download_config_name=download_config_name,
                     )
