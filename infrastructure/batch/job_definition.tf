@@ -80,10 +80,10 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     }
 
     executionRoleArn = aws_iam_role.ecs_task_role.arn
+    jobRoleArn = aws_iam_role.batch_job_role.arn
   })
 
   retry_strategy {
     attempts = 3
   }
-
 }
