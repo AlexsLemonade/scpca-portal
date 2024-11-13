@@ -186,6 +186,7 @@ class Project_SCPCP999990:
         SCPCA_ID = "SCPCL999991"
         VALUES = {
             "data_file_paths": [
+                "SCPCP999990/SCPCS999991/SCPCL999991_spatial/SCPCL999991_metadata.json",
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/SCPCL999991_spaceranger-summary.html",
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/barcodes.tsv.gz",  # noqa
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/features.tsv.gz",  # noqa

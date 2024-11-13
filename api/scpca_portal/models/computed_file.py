@@ -194,22 +194,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                         Library.get_local_file_path(file_path),
                         Library.get_zip_file_path(file_path, download_config),
                     )
-                if download_config["modality"] == "SPATIAL":
-                    for library in libraries:
-                        file_path = Path(
-                            "/".join(
-                                [
-                                    project.scpca_id,
-                                    library.samples.first().scpca_id,
-                                    f"{library.scpca_id}_spatial",
-                                    f"{library.scpca_id}_metadata.json",
-                                ]
-                            )
-                        )
-                        zip_file.write(
-                            Library.get_local_file_path(file_path),
-                            file_path.relative_to(f"{project.scpca_id}/"),
-                        )
 
         computed_file = cls(
             has_bulk_rna_seq=(
@@ -276,25 +260,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                             Library.get_local_file_path(file_path),
                             Library.get_zip_file_path(file_path, download_config),
                         )
-
-                    if download_config["modality"] == "SPATIAL":
-                        for library in libraries:
-                            file_path = Path(
-                                "/".join(
-                                    [
-                                        sample.project.scpca_id,
-                                        sample.scpca_id,
-                                        f"{library.scpca_id}_spatial",
-                                        f"{library.scpca_id}_metadata.json",
-                                    ]
-                                )
-                            )
-                            zip_file.write(
-                                Library.get_local_file_path(file_path),
-                                file_path.relative_to(
-                                    f"{sample.project.scpca_id}/{sample.scpca_id}/"
-                                ),
-                            )
 
         computed_file = cls(
             has_cite_seq_data=sample.has_cite_seq_data,
