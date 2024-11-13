@@ -78,6 +78,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         return project
 
     @property
+    def samples_to_generate(self):
+        """Return all non multiplexed samples and only one sample from multiplexed libraries."""
+        return [sample for sample in self.samples.all() if sample.is_last_multiplexed_sample]
+
+    @property
     def computed_files(self):
         return self.project_computed_files.order_by("created_at")
 

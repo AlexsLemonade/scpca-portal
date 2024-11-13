@@ -1,5 +1,4 @@
 from pathlib import Path
-from threading import Lock
 from typing import Dict
 from zipfile import ZipFile
 
@@ -219,7 +218,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_sample_file(cls, sample, download_config: Dict, lock: Lock = Lock()) -> Self | None:
+    def get_sample_file(cls, sample, download_config: Dict) -> Self | None:
         """
         Queries for a sample's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -240,26 +239,23 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         s3.download_input_files(library_data_file_paths, sample.project.s3_input_bucket)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / sample.get_output_file_name(download_config)
-        # This lock is primarily for multiplex. We added it here as a patch to keep things generic.
-        with lock:  # It should be removed later for a cleaner solution.
-            if not zip_file_path.exists():
-                with ZipFile(zip_file_path, "w") as zip_file:
-                    # Readme file
-                    zip_file.writestr(
-                        readme_file.OUTPUT_NAME,
-                        readme_file.get_file_contents(download_config, [sample.project]),
-                    )
-                    # Metadata file
-                    zip_file.writestr(
-                        metadata_file.get_file_name(download_config),
-                        metadata_file.get_file_contents(libraries_metadata),
-                    )
+        with ZipFile(zip_file_path, "w") as zip_file:
+            # Readme file
+            zip_file.writestr(
+                readme_file.OUTPUT_NAME,
+                readme_file.get_file_contents(download_config, [sample.project]),
+            )
+            # Metadata file
+            zip_file.writestr(
+                metadata_file.get_file_name(download_config),
+                metadata_file.get_file_contents(libraries_metadata),
+            )
 
-                    for file_path in library_data_file_paths:
-                        zip_file.write(
-                            Library.get_local_file_path(file_path),
-                            Library.get_zip_file_path(file_path, download_config),
-                        )
+            for file_path in library_data_file_paths:
+                zip_file.write(
+                    Library.get_local_file_path(file_path),
+                    Library.get_zip_file_path(file_path, download_config),
+                )
 
         computed_file = cls(
             has_cite_seq_data=sample.has_cite_seq_data,
@@ -318,6 +314,33 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     @property
     def zip_file_path(self):
         return settings.OUTPUT_DATA_PATH / self.s3_key
+
+    def get_multiplexed_computed_files(self):
+        """
+        Return computed file objects for all associated multiplexed samples.
+        """
+        computed_files = [self]
+        for sample in self.sample.multiplexed_with_samples:
+            sample_computed_file = ComputedFile(
+                format=self.format,
+                includes_merged=self.includes_merged,
+                modality=self.modality,
+                metadata_only=self.metadata_only,
+                portal_metadata_only=self.portal_metadata_only,
+                s3_bucket=self.s3_bucket,
+                s3_key=self.s3_key,
+                size_in_bytes=self.size_in_bytes,
+                workflow_version=self.workflow_version,
+                includes_celltype_report=self.includes_celltype_report,
+                has_bulk_rna_seq=self.has_bulk_rna_seq,
+                has_cite_seq_data=self.has_cite_seq_data,
+                has_multiplexed_data=self.has_multiplexed_data,
+                sample=sample,
+            )
+
+            computed_files.append(sample_computed_file)
+
+        return computed_files
 
     def clean_up_local_computed_file(self):
         """Delete local computed file."""

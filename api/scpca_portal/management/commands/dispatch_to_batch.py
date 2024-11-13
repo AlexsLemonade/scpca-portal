@@ -83,7 +83,7 @@ class Command(BaseCommand):
                     download_config_name=download_config_name,
                 )
 
-            for sample in project.samples.all():
+            for sample in project.samples_to_generate:
                 for download_config_name in common.SAMPLE_DOWNLOAD_CONFIGS.keys():
                     self.submit_job(
                         sample_id=sample.scpca_id,
