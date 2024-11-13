@@ -16,11 +16,15 @@ class Production(Common):
     UPDATE_S3_DATA = True
 
     # AWS
-    AWS_REGION = os.getenv("AWS_REGION")
+    AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
     # AWS S3
     AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-inputs"
     AWS_S3_OUTPUT_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME")
+
+    # AWS Batch
+    AWS_BATCH_JOB_QUEUE_NAME = os.environ.get("AWS_BATCH_JOB_QUEUE_NAME")
+    AWS_BATCH_JOB_DEFINITION_NAME = os.environ.get("AWS_BATCH_JOB_DEFINITION_NAME")
 
     # https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#cache-control
     # Response can be cached by browser and any intermediary caches

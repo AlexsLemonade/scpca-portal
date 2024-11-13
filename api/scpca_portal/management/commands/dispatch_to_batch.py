@@ -1,6 +1,6 @@
 import logging
-import os
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 import boto3
@@ -10,7 +10,7 @@ from scpca_portal.models import Project
 
 batch = boto3.client(
     "batch",
-    region_name=os.environ.get("AWS_REGION", "us-east-1"),
+    region_name=settings.AWS_REGION,
 )
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -46,8 +46,8 @@ class Command(BaseCommand):
 
         response = batch.submit_job(
             jobName=job_name,
-            jobQueue=os.environ.get("AWS_BATCH_JOB_QUEUE_NAME"),
-            jobDefinition=os.environ.get("AWS_BATCH_JOB_DEFINITION_NAME"),
+            jobQueue=settings.AWS_BATCH_JOB_QUEUE_NAME,
+            jobDefinition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
             containerOverrides={
                 "command": [
                     "python",
