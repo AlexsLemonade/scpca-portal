@@ -7,6 +7,10 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
   ]
   container_properties = jsonencode({
     image = "${var.dockerhub_account}/scpca_portal_api:latest"
+    # this gives the job outbound network access so that it can pull an image from an external container registry
+    networkConfiguration = {
+      assignPublicIp = "ENABLED"
+    }
     # command definition expected in cotaninerOverrides when using this job definition
     command = []
     environment = [
@@ -48,7 +52,7 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
       },
       {
         name  = "AWS_S3_BUCKET_NAME"
-        value = var.scpca_portal_bucket.id
+        value = var.scpca_portal_bucket.bucket
       },
       {
         name  = "SENTRY_DSN"
@@ -80,10 +84,10 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     }
 
     executionRoleArn = aws_iam_role.ecs_task_role.arn
+    jobRoleArn = aws_iam_role.batch_job_role.arn
   })
 
   retry_strategy {
     attempts = 3
   }
-
 }
