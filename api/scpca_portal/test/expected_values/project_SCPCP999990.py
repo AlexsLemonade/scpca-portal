@@ -44,10 +44,7 @@ class Project_SCPCP999990:
         "seq_units": "cell, spot",
         "technologies": "10Xv3, visium",
         "title": "TBD",
-        # unavailable_samples_count should be 1 here, but is returning the default 0.
-        # This is due to the fact that it's not being assigned until after comp file generation.
-        # This should be updated when the bug is handled.
-        # "unavailable_samples_count": 1
+        "unavailable_samples_count": 1,
     }
 
     class Sample_SCPCS999990:
