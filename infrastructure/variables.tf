@@ -24,8 +24,8 @@ variable "stage" {
   default = "dev"
 }
 
-variable "dockerhub_repo" {
-  default = "scpca_portal_staging"
+variable "dockerhub_account" {
+  default = "ccdlstaging"
 }
 
 variable "system_version" {
@@ -71,7 +71,7 @@ variable "ssh_public_key" {
 output "environment_variables" {
   value = [
     {name = "DATABASE_NAME"
-      value = aws_db_instance.postgres_db.name},
+      value = aws_db_instance.postgres_db.db_name},
     {name = "DATABASE_HOST"
       value = aws_db_instance.postgres_db.address},
     {name = "DATABASE_USER"

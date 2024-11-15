@@ -78,6 +78,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         return project
 
     @property
+    def samples_to_generate(self):
+        """Return all non multiplexed samples and only one sample from multiplexed libraries."""
+        return [sample for sample in self.samples.all() if sample.is_last_multiplexed_sample]
+
+    @property
     def computed_files(self):
         return self.project_computed_files.order_by("created_at")
 
@@ -315,16 +320,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Purges all computed files associated with the project instance."""
         # Delete project's sample computed files
         for sample in self.samples.all():
-            for computed_file in sample.computed_files:
-                if delete_from_s3:
-                    s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
-                computed_file.delete()
+            sample.purge_computed_files(delete_from_s3)
 
         # Delete project's project computed files
-        for computed_file in self.computed_files:
-            if delete_from_s3:
-                s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)
-            computed_file.delete()
+        for computed_file in self.project_computed_files.all():
+            computed_file.purge(delete_from_s3)
 
     def update_sample_derived_properties(self):
         """

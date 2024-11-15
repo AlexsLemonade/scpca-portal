@@ -106,7 +106,7 @@ class Computed_File_Sample:
 
     class MULTIPLEXED_SINGLE_CELL_SCE:
         PROJECT_ID = "SCPCP999991"
-        SAMPLE_ID = "SCPCS999992"
+        SAMPLE_IDS = ["SCPCS999992", "SCPCS999993"]
         DOWNLOAD_CONFIG_NAME = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"
         DOWNLOAD_CONFIG = common.SAMPLE_DOWNLOAD_CONFIGS[DOWNLOAD_CONFIG_NAME]
         LIBRARIES = {"SCPCL999992"}
@@ -129,7 +129,7 @@ class Computed_File_Sample:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCS999992-SCPCS999993_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MULTIPLEXED.zip",
-            "size_in_bytes": 7150,
+            "size_in_bytes": 7671,
             "workflow_version": "development",
             "includes_celltype_report": True,
         }

@@ -7,7 +7,7 @@ mkdir -p "$STATIC_VOLUMES"
 chown -R ubuntu:ubuntu "$STATIC_VOLUMES"
 
 # Pull the API image.
-api_docker_image=${dockerhub_repo}/scpca_portal_api:latest
+api_docker_image=${dockerhub_account}/scpca_portal_api:latest
 docker pull $api_docker_image
 
 # Migrate first.

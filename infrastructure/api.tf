@@ -50,8 +50,10 @@ resource "aws_instance" "api_server_1" {
           database_host = aws_db_instance.postgres_db.address
           database_port = aws_db_instance.postgres_db.port
           database_user = aws_db_instance.postgres_db.username
-          database_name = aws_db_instance.postgres_db.name
+          database_name = aws_db_instance.postgres_db.db_name
           database_password = var.database_password
+          aws_batch_job_queue_name = module.batch.job_queue_name
+          aws_batch_job_definition_name = module.batch.job_definition_name
           aws_region  = var.region
           aws_s3_bucket_name = aws_s3_bucket.scpca_portal_bucket.id
           sentry_dsn = var.sentry_dsn
@@ -61,14 +63,14 @@ resource "aws_instance" "api_server_1" {
         "api-configuration/start_api_with_migrations.tpl.sh",
         {
           region = var.region
-          dockerhub_repo = var.dockerhub_repo
+          dockerhub_account = var.dockerhub_account
           log_group = aws_cloudwatch_log_group.scpca_portal_log_group.name
           log_stream = aws_cloudwatch_log_stream.log_stream_api.name
         })
       run_command_script = templatefile(
         "api-configuration/run_command.tpl.sh",
         {
-          dockerhub_repo = var.dockerhub_repo
+          dockerhub_account = var.dockerhub_account
         })
       user = var.user
       stage = var.stage
