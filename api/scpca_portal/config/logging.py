@@ -1,6 +1,8 @@
 import logging
 import os
 import sys
+import time
+from functools import wraps
 from multiprocessing import current_process
 
 import daiquiri
@@ -18,6 +20,7 @@ FORMAT_STRING = (
     "%(asctime)s {0} %(name)s %(color)s%(levelname)s%(extras)s" ": %(message)s%(color_stop)s"
 ).format(get_thread_id())
 LOG_LEVEL = None
+LOG_FUNC_RUN_TIMES = os.getenv("DEBUG_LOGGER", False)
 
 
 def unconfigure_root_logger():
@@ -50,3 +53,32 @@ def get_and_configure_logger(name: str) -> logging.Logger:
     logger.logger.addHandler(handler)
 
     return logger
+
+
+def log_func_run_time(logger):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            global LOG_FUNC_RUN_TIMES
+            if not LOG_FUNC_RUN_TIMES:
+                return func(*args, **kwargs)
+
+            start_time = time.time()
+            logger.info(f"Starting function '{func.__name__}'")
+
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                end_time = time.time()
+                duration = end_time - start_time
+                logger.info(
+                    f"Function '{func.__name__}' finished. "
+                    f"Start time: {start_time:.2f}, End Time: {end_time:.2f}, "
+                    f"Duration: {duration:.2f} seconds"
+                )
+
+            return result
+
+        return wrapper
+
+    return decorator
