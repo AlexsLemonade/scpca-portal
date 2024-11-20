@@ -57,10 +57,15 @@ def get_and_configure_logger(name: str) -> logging.Logger:
 
 
 def get_formatted_time(timestamp: float) -> str:
+    """Format a timestamp to a local time."""
     return datetime.fromtimestamp(timestamp).strftime("%H:%M:%S")
 
 
 def log_func_run_time(logger):
+    """
+    Log start time, end time, and duration of the wrapped function.
+    """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
