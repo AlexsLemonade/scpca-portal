@@ -64,7 +64,7 @@ def log_func_run_time(logger):
                 return func(*args, **kwargs)
 
             start_time = time.time()
-            logger.info(f"Starting function '{func.__name__}'")
+            logger.info(f"Starting function '{func.__module__}::{func.__name__}'")
 
             try:
                 result = func(*args, **kwargs)
@@ -72,7 +72,7 @@ def log_func_run_time(logger):
                 end_time = time.time()
                 duration = end_time - start_time
                 logger.info(
-                    f"Function '{func.__name__}' finished. "
+                    f"Function '{func.__module__}::{func.__name__}' finished. "
                     f"Start time: {start_time:.2f}, End Time: {end_time:.2f}, "
                     f"Duration: {duration:.2f} seconds"
                 )
