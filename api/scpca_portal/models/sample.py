@@ -5,7 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import utils
-from scpca_portal.config.logging import get_and_configure_logger, log_func_run_time
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.library import Library
@@ -121,7 +121,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample_metadata
 
-    @log_func_run_time(logger)
     def get_computed_file(self, download_config: Dict) -> ComputedFile:
         "Return the sample computed file that matches the passed download_config."
         return self.computed_files.filter(

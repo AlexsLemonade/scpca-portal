@@ -21,7 +21,7 @@ FORMAT_STRING = (
     "%(asctime)s {0} %(name)s %(color)s%(levelname)s%(extras)s" ": %(message)s%(color_stop)s"
 ).format(get_thread_id())
 LOG_LEVEL = None
-LOG_FUNC_RUN_TIMES = os.getenv("LOG_FUNC_RUN_TIMES", False)
+LOG_RUNTIMES = os.getenv("LOG_RUNTIMES", False)
 
 
 def unconfigure_root_logger():
@@ -61,7 +61,7 @@ def get_formatted_time(timestamp: float) -> str:
     return datetime.fromtimestamp(timestamp).strftime("%H:%M:%S")
 
 
-def log_func_run_time(logger):
+def log_runtime(logger):
     """
     Log start time, end time, and duration of the wrapped function.
     """
@@ -69,12 +69,13 @@ def log_func_run_time(logger):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            global LOG_FUNC_RUN_TIMES
-            if not LOG_FUNC_RUN_TIMES:
+            global LOG_RUNTIMES
+            if not LOG_RUNTIMES:
                 return func(*args, **kwargs)
 
+            func_name = f"{func.__module__}::{func.__name__}"
             start_time = time.time()
-            logger.info(f"\nStart of function '{func.__module__}::{func.__name__}'.")
+            logger.info(f"\nEntering function '{func_name}'.")
 
             try:
                 result = func(*args, **kwargs)
@@ -82,10 +83,10 @@ def log_func_run_time(logger):
                 end_time = time.time()
                 duration = end_time - start_time
                 logger.info(
-                    f"\nEnd of function '{func.__module__}::{func.__name__}'.\n"
-                    f"Start time: {get_formatted_time(start_time)}, "
-                    f"End time: {get_formatted_time(end_time)}, "
-                    f"Duration: {duration:.2f} seconds"
+                    f"\nExited function '{func_name}'.\n"
+                    f"Function runtime: {get_formatted_time(duration)}"
+                    f"(start time: {get_formatted_time(start_time)}, "
+                    f"end time: {get_formatted_time(end_time)})"
                 )
 
             return result

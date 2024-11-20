@@ -3,7 +3,6 @@ import logging
 from django.core.management.base import BaseCommand
 
 from scpca_portal import common, loader
-from scpca_portal.config.logging import log_func_run_time
 from scpca_portal.models import Project, Sample
 
 logger = logging.getLogger()
@@ -32,7 +31,6 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.generate_computed_file(**kwargs)
 
-    @log_func_run_time(logger)
     def generate_computed_file(
         self,
         project_id: str,

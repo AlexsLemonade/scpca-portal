@@ -8,13 +8,12 @@ from django.conf import settings
 import boto3
 from botocore.client import Config
 
-from scpca_portal.config.logging import get_and_configure_logger, log_func_run_time
+from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
-@log_func_run_time(logger)
 def list_input_paths(
     relative_path: Path,
     bucket_name: str,
@@ -81,7 +80,6 @@ def list_input_paths(
     return file_paths
 
 
-@log_func_run_time(logger)
 def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
     command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", settings.INPUT_DATA_PATH]
@@ -125,7 +123,6 @@ def download_input_metadata(bucket_name: str) -> bool:
     return True
 
 
-@log_func_run_time(logger)
 def delete_output_file(key: str, bucket_name: str) -> bool:
     """Delete file a remote file hosted on s3."""
     try:
@@ -140,7 +137,6 @@ def delete_output_file(key: str, bucket_name: str) -> bool:
     return True
 
 
-@log_func_run_time(logger)
 def upload_output_file(key: str, bucket_name: str) -> bool:
     """Upload a computed file to S3 using the AWS CLI tool."""
 
