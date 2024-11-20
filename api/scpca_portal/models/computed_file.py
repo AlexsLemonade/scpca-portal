@@ -143,8 +143,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         return computed_file
 
-    @log_func_run_time(logger)
     @classmethod
+    @log_func_run_time(logger)
     def get_project_file(cls, project, download_config: Dict) -> Self | None:
         """
         Queries for a project's libraries according to the given download options configuration,
@@ -218,8 +218,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         return computed_file
 
-    @log_func_run_time(logger)
     @classmethod
+    @log_func_run_time(logger)
     def get_sample_file(cls, sample, download_config: Dict) -> Self | None:
         """
         Queries for a sample's libraries according to the given download options configuration,
