@@ -1,5 +1,4 @@
 import csv
-import logging
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List
@@ -9,6 +8,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common, metadata_file, s3, utils
+from scpca_portal.config.logging import get_and_configure_logger, log_func_run_time
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -18,7 +18,7 @@ from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
 
-logger = logging.getLogger()
+logger = get_and_configure_logger(__name__)
 
 
 class Project(CommonDataAttributes, TimestampedModel):
@@ -207,6 +207,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return f"{file_name}.zip"
 
+    @log_func_run_time(logger)
     def get_computed_file(self, download_config: Dict) -> ComputedFile:
         "Return the project computed file that matches the passed download_config."
         if download_config["metadata_only"]:

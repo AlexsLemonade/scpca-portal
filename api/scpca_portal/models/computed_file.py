@@ -8,7 +8,7 @@ from django.db import models
 from typing_extensions import Self
 
 from scpca_portal import common, metadata_file, readme_file, s3, utils
-from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.config.logging import get_and_configure_logger, log_func_run_time
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 
@@ -143,6 +143,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         return computed_file
 
+    @log_func_run_time(logger)
     @classmethod
     def get_project_file(cls, project, download_config: Dict) -> Self | None:
         """
@@ -217,6 +218,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         return computed_file
 
+    @log_func_run_time(logger)
     @classmethod
     def get_sample_file(cls, sample, download_config: Dict) -> Self | None:
         """
