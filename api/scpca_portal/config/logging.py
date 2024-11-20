@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import time
+from datetime import datetime
 from functools import wraps
 from multiprocessing import current_process
 
@@ -20,7 +21,7 @@ FORMAT_STRING = (
     "%(asctime)s {0} %(name)s %(color)s%(levelname)s%(extras)s" ": %(message)s%(color_stop)s"
 ).format(get_thread_id())
 LOG_LEVEL = None
-LOG_FUNC_RUN_TIMES = os.getenv("DEBUG_LOGGER", False)
+LOG_FUNC_RUN_TIMES = os.getenv("LOG_FUNC_RUN_TIMES", True)
 
 
 def unconfigure_root_logger():
@@ -55,6 +56,10 @@ def get_and_configure_logger(name: str) -> logging.Logger:
     return logger
 
 
+def get_formatted_time(timestamp: float) -> str:
+    return datetime.fromtimestamp(timestamp).strftime("%H:%M:%S")
+
+
 def log_func_run_time(logger):
     def decorator(func):
         @wraps(func)
@@ -64,7 +69,7 @@ def log_func_run_time(logger):
                 return func(*args, **kwargs)
 
             start_time = time.time()
-            logger.info(f"Starting function '{func.__module__}::{func.__name__}'")
+            logger.info(f"\nStart of function '{func.__module__}::{func.__name__}'.")
 
             try:
                 result = func(*args, **kwargs)
@@ -72,8 +77,9 @@ def log_func_run_time(logger):
                 end_time = time.time()
                 duration = end_time - start_time
                 logger.info(
-                    f"Function '{func.__module__}::{func.__name__}' finished. "
-                    f"Start time: {start_time:.2f}, End Time: {end_time:.2f}, "
+                    f"\nEnd of function '{func.__module__}::{func.__name__}'.\n"
+                    f"Start time: {get_formatted_time(start_time)}, "
+                    f"End time: {get_formatted_time(end_time)}, "
                     f"Duration: {duration:.2f} seconds"
                 )
 
