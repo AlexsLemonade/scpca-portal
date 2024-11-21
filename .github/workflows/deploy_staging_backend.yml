@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Load 1Password Secrets
         id: op-load-secrets
@@ -33,7 +33,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 0.12.26
+          terraform_version: 1.9.8
 
       - name: Deploy
         run: cd infrastructure && python3 deploy.py -e staging -u deployer -d ccdlstaging -v $(git rev-parse HEAD)
