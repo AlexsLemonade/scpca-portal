@@ -8,7 +8,7 @@ from django.db import connection
 from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, metadata_file, s3
-from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.config.logging import configure_runtime_logging, get_and_configure_logger
 from scpca_portal.models import (
     ComputedFile,
     Contact,
@@ -19,8 +19,10 @@ from scpca_portal.models import (
 )
 
 logger = get_and_configure_logger(__name__)
+log_runtime = configure_runtime_logging(logger)
 
 
+@log_runtime
 def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -> None:
     """
     Create the input and output data dirs, if they do not yet exist.
@@ -42,11 +44,13 @@ def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -
     settings.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
 
 
+@log_runtime
 def remove_project_input_files(project_id: str) -> None:
     """Remove the input files located at the project_id's input directory."""
     shutil.rmtree(settings.INPUT_DATA_PATH / project_id, ignore_errors=True)
 
 
+@log_runtime
 def get_projects_metadata(
     input_bucket_name: str, filter_on_project_id: str = ""
 ) -> List[Dict[str, Any]]:
@@ -61,6 +65,7 @@ def get_projects_metadata(
     return projects_metadata
 
 
+@log_runtime
 def _can_process_project(project_metadata: Dict[str, Any], submitter_whitelist: Set[str]) -> bool:
     """
     Validate that a project can be processed by assessing that:
@@ -82,6 +87,7 @@ def _can_process_project(project_metadata: Dict[str, Any], submitter_whitelist: 
     return True
 
 
+@log_runtime
 def _can_purge_project(
     project: Project,
     *,
@@ -102,6 +108,7 @@ def _can_purge_project(
     return True
 
 
+@log_runtime
 def create_project(
     project_metadata: Dict[str, Any],
     submitter_whitelist: Set[str],
@@ -142,6 +149,7 @@ def create_project(
     return project
 
 
+@log_runtime
 def _create_computed_file(
     computed_file: ComputedFile, update_s3: bool, clean_up_output_data: bool
 ) -> None:
@@ -161,6 +169,7 @@ def _create_computed_file(
         computed_file.save()
 
 
+@log_runtime
 def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
     """
     Wrap computed file saving and uploading to s3 in a way that accommodates multiprocessing.
@@ -172,6 +181,7 @@ def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_d
     connection.close()
 
 
+@log_runtime
 def generate_computed_file(
     *,
     download_config: Dict,
@@ -191,6 +201,7 @@ def generate_computed_file(
         sample.project.update_downloadable_sample_count()
 
 
+@log_runtime
 def generate_computed_files(
     project: Project,
     max_workers: int,
