@@ -57,14 +57,12 @@ def get_and_configure_logger(name: str) -> logging.Logger:
 
 
 def get_formatted_time(timestamp: float) -> str:
-    """Format a timestamp to a local time."""
-    return datetime.fromtimestamp(timestamp).strftime("%H:%M:%S")
+    """Return string representation of a timestamp in Hour:Minute:Second:Millisecond format."""
+    return datetime.fromtimestamp(timestamp).strftime("%H:%M:%S.%f")[:-3]  # remove microseconds
 
 
 def log_runtime(logger):
-    """
-    Log start time, end time, and duration of the wrapped function.
-    """
+    """Log the start time, end time, and duration of the wrapped function."""
 
     def decorator(func):
         @wraps(func)
@@ -84,7 +82,7 @@ def log_runtime(logger):
                 duration = end_time - start_time
                 logger.info(
                     f"\nExited function '{func_name}'.\n"
-                    f"Function runtime: {get_formatted_time(duration)}"
+                    f"Function runtime: {get_formatted_time(duration)} "
                     f"(start time: {get_formatted_time(start_time)}, "
                     f"end time: {get_formatted_time(end_time)})"
                 )
@@ -94,3 +92,8 @@ def log_runtime(logger):
         return wrapper
 
     return decorator
+
+
+def configure_runtime_logging(logger: logging.Logger):
+    """Return log_runtime decorator pre-configured to a specific logger."""
+    return log_runtime(logger)
