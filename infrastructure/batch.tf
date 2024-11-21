@@ -1,3 +1,4 @@
+# TODO: enable batch
 # module "batch" {
 #   source = "./batch"
 
