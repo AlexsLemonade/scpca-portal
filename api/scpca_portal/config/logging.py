@@ -82,9 +82,9 @@ def log_runtime(logger):
                 duration = end_time - start_time
                 logger.info(
                     f"\nExited function '{func_name}'.\n"
-                    f"Function runtime: {get_formatted_time(duration)} "
-                    f"(start time: {get_formatted_time(start_time)}, "
-                    f"end time: {get_formatted_time(end_time)})"
+                    f"Function run time: {get_formatted_time(duration)} "
+                    f"(Start: {get_formatted_time(start_time)}, "
+                    f"End: {get_formatted_time(end_time)})"
                 )
 
             return result
