@@ -31,7 +31,7 @@ jobs:
           SENTRY_DSN: "${{ secrets.OP_SENTRY_DSN }}"
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.8
 
