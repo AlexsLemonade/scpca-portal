@@ -25,7 +25,7 @@ data "aws_ami" "ubuntu" {
 resource "aws_instance" "api_server_1" {
   ami = data.aws_ami.ubuntu.id
   instance_type = var.api_instance_type
-  availability_zone = "${var.region}a"api.tf
+  availability_zone = "${var.region}a"
   vpc_security_group_ids = [aws_security_group.scpca_portal_api.id]
   iam_instance_profile = aws_iam_instance_profile.scpca_portal_instance_profile.name
   subnet_id = aws_subnet.scpca_portal_1a.id
