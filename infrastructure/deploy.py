@@ -44,16 +44,12 @@ def parse_args():
         "Specify the dockerhub account from which to pull the docker image."
         " Can be useful for using your own dockerhub account for a development stack."
     )
-    parser.add_argument(
-        "-d", "--dockerhub-account", help=dockerhub_help_text, required=True
-    )
+    parser.add_argument("-d", "--dockerhub-account", help=dockerhub_help_text, required=True)
 
     version_help_text = "Specify the version of the system that is being deployed."
     parser.add_argument("-v", "--system-version", help=version_help_text, required=True)
 
-    region_help_text = (
-        "Specify the AWS region to deploy the stack to. Default is us-east-1."
-    )
+    region_help_text = ("Specify the AWS region to deploy the stack to. Default is us-east-1.")
     parser.add_argument("-r", "--region", help=region_help_text, default="us-east-1")
 
     return parser.parse_args()
@@ -213,9 +209,7 @@ def restart_api_if_still_running(args, api_ip_address):
         return 0
 
     print("The API is still up! Restarting!")
-    run_remote_command(
-        api_ip_address, "docker rm -f $(docker ps -a -q) 2>/dev/null || true"
-    )
+    run_remote_command(api_ip_address, "docker rm -f $(docker ps -a -q) 2>/dev/null || true")
 
     print("Waiting for API container to stop.")
     time.sleep(30)
@@ -226,9 +220,7 @@ def restart_api_if_still_running(args, api_ip_address):
     try:
         run_remote_command(api_ip_address, "test -e start_api_with_migrations.sh")
     except subprocess.CalledProcessError:
-        print(
-            "API start script not written yet, letting the init script run it instead."
-        )
+        print("API start script not written yet, letting the init script run it instead.")
         return 0
 
     try:
@@ -262,9 +254,7 @@ if __name__ == "__main__":
     api_ip_address = terraform_output.get(api_ip_key, None)
 
     if not api_ip_address:
-        print(
-            "Could not find the API's IP address. Something has gone wrong or changed."
-        )
+        print("Could not find the API's IP address. Something has gone wrong or changed.")
         print(f"{api_ip_key} not defined in outputs:")
         print(json.dumps(terraform_output, indent=2))
         exit(1)
