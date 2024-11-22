@@ -36,18 +36,6 @@ resource "aws_s3_bucket" "scpca_portal_cert_bucket" {
   bucket = "scpca-portal-cert-${var.user}-${var.stage}"
   force_destroy = var.stage == "prod" ? false : true
 
-  # TODO: remove lifecycle rule when we upgrade aws_provider version
-  lifecycle_rule {
-    id = "auto-delete-after-30-days-${var.user}-${var.stage}"
-    prefix = ""
-    enabled = true
-    abort_incomplete_multipart_upload_days = 1
-
-    expiration {
-      days = 30
-    }
-  }
-
   tags = merge(
     var.default_tags,
     {
@@ -70,20 +58,20 @@ resource "aws_s3_bucket_acl" "scpca_portal_cert_bucket" {
   acl = "private"
 }
 
-# resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_cert_bucket" {
-#  bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
-#  rule {
-#    id = "auto-delete-after-30-days-${var.user}-${var.stage}"
-#    status = "Enabled"
-#    abort_incomplete_multipart_upload {
-#      days_after_initiation = 1
-#    }
-#
-#    expiration {
-#      days = 30
-#    }
-#  }
-#}
+ resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_cert_bucket" {
+  bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
+  rule {
+    id = "auto-delete-after-30-days-${var.user}-${var.stage}"
+    status = "Enabled"
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+
+    expiration {
+      days = 30
+    }
+  }
+}
 
 resource "aws_s3_bucket_public_access_block" "scpca_portal_cert_bucket" {
   bucket = aws_s3_bucket.scpca_portal_cert_bucket.id

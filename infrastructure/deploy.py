@@ -1,8 +1,8 @@
 """This script deploys the cloud infrastructure for the ScPCA project."""
 
 import argparse
+import json
 import os
-import re
 import signal
 import subprocess
 import time
@@ -149,26 +149,35 @@ def run_terraform(args):
         terraform_process = subprocess.Popen(
             ["terraform", "taint", "aws_instance.api_server_1"], stdout=subprocess.PIPE
         )
-        output = ""
-        for line in iter(terraform_process.stdout.readline, b""):
-            decoded_line = line.decode("utf-8")
-            print(decoded_line, end="")
-            output += decoded_line
 
         terraform_process.wait()
 
         terraform_process = subprocess.Popen(
-            ["terraform", "apply", var_file_arg, "-auto-approve"], stdout=subprocess.PIPE
+            ["terraform", "output", "-json"], stdout=subprocess.PIPE
         )
-        output = ""
-        for line in iter(terraform_process.stdout.readline, b""):
-            decoded_line = line.decode("utf-8")
-            print(decoded_line, end="")
-            output += decoded_line
+
+        taint_output = json.loads(terraform_process.stdout.read().decode("utf-8"))
 
         terraform_process.wait()
 
-        return terraform_process.returncode, output
+        terraform_process = subprocess.Popen(
+            ["terraform", "apply", var_file_arg, "-auto-approve"],
+            stdout=subprocess.PIPE,
+        )
+
+        terraform_process.wait()
+
+        terraform_process = subprocess.Popen(
+            ["terraform", "output", "-json"], stdout=subprocess.PIPE
+        )
+
+        terraform_process.wait()
+
+        apply_output = json.loads(terraform_process.stdout.read().decode("utf-8"))
+
+        terraform_process.wait()
+
+        return terraform_process.returncode, {**taint_output, **apply_output}
     except KeyboardInterrupt:
         terraform_process.send_signal(signal.SIGINT)
         terraform_process.wait()
@@ -241,17 +250,17 @@ if __name__ == "__main__":
         exit(init_code)
 
     terraform_code, terraform_output = run_terraform(args)
+    print(json.dumps(terraform_output, indent=2))
     if terraform_code != 0:
         exit(terraform_code)
 
-    ip_address_match = re.match(
-        r".*\napi_server_1_ip = \"(\d+\.\d+\.\d+\.\d+)\"\n.*", terraform_output, re.DOTALL
-    )
+    api_ip_key = "api_server_1_ip"
+    api_ip_address = terraform_output.get(api_ip_key, {}).get("value", None)
 
-    if ip_address_match:
-        api_ip_address = ip_address_match.group(1)
-    else:
+    if not api_ip_address:
         print("Could not find the API's IP address. Something has gone wrong or changed.")
+        print(f"{api_ip_key} not defined in outputs:")
+        print(json.dumps(terraform_output, indent=2))
         exit(1)
 
     # Create a key file from env var

@@ -33,7 +33,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 0.14.0
+          terraform_version: 1.0.8
 
       - name: Deploy
         run: cd infrastructure && python3 deploy.py -e prod -u deployer -d ccdl -v $(git rev-parse HEAD)
