@@ -13,6 +13,7 @@ def init_terraform(env, user):
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
         command = [
+            "TF_LOG=trace",
             "terraform",
             "init",
             "-upgrade",
