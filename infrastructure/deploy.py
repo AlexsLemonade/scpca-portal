@@ -9,7 +9,6 @@ import time
 
 from init_terraform import init_terraform
 from replace_provider import replace_provider
-from unlock_state import unlock_state
 
 PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
 PUBLIC_KEY_FILE_PATH = "scpca-portal-key.pub"
@@ -241,11 +240,6 @@ if __name__ == "__main__":
 
     if init_code != 0:
         exit(init_code)
-
-    unlock_code = unlock_state("5eb1ff49-db2d-949a-a4f4-91692b16c525")
-
-    if unlock_code != 0:
-        exit(unlock_code)
 
     replace_provider_code = replace_provider("hashicorp", "aws")
 
