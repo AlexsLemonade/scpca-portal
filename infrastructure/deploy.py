@@ -255,7 +255,7 @@ if __name__ == "__main__":
         exit(terraform_code)
 
     api_ip_key = "api_server_1_ip"
-    api_ip_address = terraform_output.get(api_ip_key, None)
+    api_ip_address = terraform_output.get(api_ip_key, {}).get("value", None)
 
     if not api_ip_address:
         print("Could not find the API's IP address. Something has gone wrong or changed.")
