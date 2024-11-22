@@ -2,7 +2,7 @@ import signal
 import subprocess
 
 
-def replace_provider(lock_id):
+def unlock_state(lock_id):
     """
     Replaces the aws provider.
     Takes an org name, and a provider,
