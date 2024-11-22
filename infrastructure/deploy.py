@@ -258,12 +258,15 @@ if __name__ == "__main__":
     if terraform_code != 0:
         exit(terraform_code)
 
-    api_ip_address = terraform_output.get("api_server_1_ip", None)
+    api_ip_key = "api_server_1_ip"
+    api_ip_address = terraform_output.get(api_ip_key, None)
 
     if not api_ip_address:
         print(
             "Could not find the API's IP address. Something has gone wrong or changed."
         )
+        print(f"{api_ip_key} not defined in outputs:")
+        print(json.dumps(terraform_output, indent=2))
         exit(1)
 
     # Create a key file from env var
