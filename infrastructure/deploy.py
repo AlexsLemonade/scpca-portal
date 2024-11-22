@@ -1,8 +1,8 @@
 """This script deploys the cloud infrastructure for the ScPCA project."""
 
 import argparse
-import os
 import json
+import os
 import signal
 import subprocess
 import time
@@ -49,7 +49,7 @@ def parse_args():
     version_help_text = "Specify the version of the system that is being deployed."
     parser.add_argument("-v", "--system-version", help=version_help_text, required=True)
 
-    region_help_text = ("Specify the AWS region to deploy the stack to. Default is us-east-1.")
+    region_help_text = "Specify the AWS region to deploy the stack to. Default is us-east-1."
     parser.add_argument("-r", "--region", help=region_help_text, default="us-east-1")
 
     return parser.parse_args()
