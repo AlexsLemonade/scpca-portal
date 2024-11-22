@@ -51,6 +51,7 @@ resource "aws_instance" "api_server_1" {
           database_port = aws_db_instance.postgres_db.port
           database_user = aws_db_instance.postgres_db.username
           database_name = aws_db_instance.postgres_db.name
+          # TODO: enable after upgrade
           # database_name = aws_db_instance.postgres_db.db_name
           database_password = var.database_password
           # TODO: enable batch
