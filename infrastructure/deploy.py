@@ -2,7 +2,7 @@
 
 import argparse
 import os
-import re
+import json
 import signal
 import subprocess
 import time
@@ -44,12 +44,16 @@ def parse_args():
         "Specify the dockerhub account from which to pull the docker image."
         " Can be useful for using your own dockerhub account for a development stack."
     )
-    parser.add_argument("-d", "--dockerhub-account", help=dockerhub_help_text, required=True)
+    parser.add_argument(
+        "-d", "--dockerhub-account", help=dockerhub_help_text, required=True
+    )
 
     version_help_text = "Specify the version of the system that is being deployed."
     parser.add_argument("-v", "--system-version", help=version_help_text, required=True)
 
-    region_help_text = "Specify the AWS region to deploy the stack to. Default is us-east-1."
+    region_help_text = (
+        "Specify the AWS region to deploy the stack to. Default is us-east-1."
+    )
     parser.add_argument("-r", "--region", help=region_help_text, default="us-east-1")
 
     return parser.parse_args()
@@ -158,13 +162,19 @@ def run_terraform(args):
         terraform_process.wait()
 
         terraform_process = subprocess.Popen(
-            ["terraform", "apply", var_file_arg, "-auto-approve"], stdout=subprocess.PIPE
+            ["terraform", "apply", var_file_arg, "-auto-approve"],
+            stdout=subprocess.PIPE,
         )
-        output = ""
-        for line in iter(terraform_process.stdout.readline, b""):
-            decoded_line = line.decode("utf-8")
-            print(decoded_line, end="")
-            output += decoded_line
+
+        terraform_process.wait()
+
+        terraform_process = subprocess.Popen(
+            ["terraform", "output", "-json"], stdout=subprocess.PIPE
+        )
+
+        terraform_process.wait()
+
+        output = json.loads(terraform_process.stdout)
 
         terraform_process.wait()
 
@@ -203,7 +213,9 @@ def restart_api_if_still_running(args, api_ip_address):
         return 0
 
     print("The API is still up! Restarting!")
-    run_remote_command(api_ip_address, "docker rm -f $(docker ps -a -q) 2>/dev/null || true")
+    run_remote_command(
+        api_ip_address, "docker rm -f $(docker ps -a -q) 2>/dev/null || true"
+    )
 
     print("Waiting for API container to stop.")
     time.sleep(30)
@@ -214,7 +226,9 @@ def restart_api_if_still_running(args, api_ip_address):
     try:
         run_remote_command(api_ip_address, "test -e start_api_with_migrations.sh")
     except subprocess.CalledProcessError:
-        print("API start script not written yet, letting the init script run it instead.")
+        print(
+            "API start script not written yet, letting the init script run it instead."
+        )
         return 0
 
     try:
@@ -244,14 +258,12 @@ if __name__ == "__main__":
     if terraform_code != 0:
         exit(terraform_code)
 
-    ip_address_match = re.match(
-        r".*\napi_server_1_ip = \"(\d+\.\d+\.\d+\.\d+)\"\n.*", terraform_output, re.DOTALL
-    )
+    api_ip_address = terraform_output.get("api_server_1_ip", None)
 
-    if ip_address_match:
-        api_ip_address = ip_address_match.group(1)
-    else:
-        print("Could not find the API's IP address. Something has gone wrong or changed.")
+    if not api_ip_address:
+        print(
+            "Could not find the API's IP address. Something has gone wrong or changed."
+        )
         exit(1)
 
     # Create a key file from env var
