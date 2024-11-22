@@ -61,6 +61,7 @@ resource "aws_s3_bucket" "scpca_portal_cert_bucket" {
   )
 }
 
+# TODO: enable after upgrade
 # resource "aws_s3_bucket_ownership_controls" "scpca_portal_cert_bucket" {
 #   bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
 #   rule {
