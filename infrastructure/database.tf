@@ -38,6 +38,7 @@ resource "aws_db_instance" "postgres_db" {
   auto_minor_version_upgrade = false
   instance_class = var.database_instance_type
   name = "scpca_portal"
+  # TODO: replace db_name with name after upgrade
   # db_name = "scpca_portal"
   port = "5432"
   username = "scpcapostgresuser"
