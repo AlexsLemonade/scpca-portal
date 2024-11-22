@@ -250,6 +250,7 @@ if __name__ == "__main__":
         exit(init_code)
 
     terraform_code, terraform_output = run_terraform(args)
+    print(json.dumps(terraform_output, indent=2))
     if terraform_code != 0:
         exit(terraform_code)
 
