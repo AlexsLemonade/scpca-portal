@@ -71,9 +71,7 @@ variable "ssh_public_key" {
 output "environment_variables" {
   value = [
     {name = "DATABASE_NAME"
-      value = aws_db_instance.postgres_db.name},
-      # TODO: replace db_name with name after upgrade
-      # value = aws_db_instance.postgres_db.db_name},
+      value = aws_db_instance.postgres_db.db_name},
     {name = "DATABASE_HOST"
       value = aws_db_instance.postgres_db.address},
     {name = "DATABASE_USER"
