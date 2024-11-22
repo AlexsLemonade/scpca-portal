@@ -149,11 +149,14 @@ def run_terraform(args):
         terraform_process = subprocess.Popen(
             ["terraform", "taint", "aws_instance.api_server_1"], stdout=subprocess.PIPE
         )
-        output = ""
-        for line in iter(terraform_process.stdout.readline, b""):
-            decoded_line = line.decode("utf-8")
-            print(decoded_line, end="")
-            output += decoded_line
+
+        terraform_process.wait()
+
+        terraform_process = subprocess.Popen(
+            ["terraform", "output", "-json"], stdout=subprocess.PIPE
+        )
+
+        taint_output = json.loads(terraform_process.stdout.read().decode("utf-8"))
 
         terraform_process.wait()
 
@@ -170,11 +173,11 @@ def run_terraform(args):
 
         terraform_process.wait()
 
-        output = json.loads(terraform_process.stdout)
+        apply_output = json.loads(terraform_process.stdout.read().decode("utf-8"))
 
         terraform_process.wait()
 
-        return terraform_process.returncode, output
+        return terraform_process.returncode, {**taint_output, **apply_output}
     except KeyboardInterrupt:
         terraform_process.send_signal(signal.SIGINT)
         terraform_process.wait()
