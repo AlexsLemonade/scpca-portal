@@ -25,8 +25,6 @@ resource "aws_db_parameter_group" "postgres12_parameters" {
   lifecycle {
     create_before_destroy = true
   }
-
-  tags = var.default_tags
 }
 
 resource "aws_db_instance" "postgres_db" {

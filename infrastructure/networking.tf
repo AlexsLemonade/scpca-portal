@@ -126,8 +126,6 @@ resource "aws_lb" "scpca_portal_api_load_balancer" {
     subnet_id = aws_subnet.scpca_portal_1a.id
     allocation_id = aws_eip.scpca_portal_api_ip.id
   }
-
-  tags = var.default_tags
 }
 
 resource "aws_lb_target_group" "api-http" {
