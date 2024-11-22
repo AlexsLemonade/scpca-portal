@@ -58,6 +58,4 @@ resource "aws_db_instance" "postgres_db" {
   ca_cert_identifier  = data.aws_rds_certificate.cert.id
 
   backup_retention_period  = var.stage == "prod" ? "7" : "0"
-
-  tags = var.default_tags
 }
