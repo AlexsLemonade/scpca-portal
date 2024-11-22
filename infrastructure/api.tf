@@ -25,7 +25,7 @@ data "aws_ami" "ubuntu" {
 resource "aws_instance" "api_server_1" {
   ami = data.aws_ami.ubuntu.id
   instance_type = var.api_instance_type
-  availability_zone = "${var.region}a"
+  availability_zone = "${var.region}a"api.tf
   vpc_security_group_ids = [aws_security_group.scpca_portal_api.id]
   iam_instance_profile = aws_iam_instance_profile.scpca_portal_instance_profile.name
   subnet_id = aws_subnet.scpca_portal_1a.id
@@ -51,6 +51,7 @@ resource "aws_instance" "api_server_1" {
           database_port = aws_db_instance.postgres_db.port
           database_user = aws_db_instance.postgres_db.username
           database_name = aws_db_instance.postgres_db.name
+          # database_name = aws_db_instance.postgres_db.db_name
           database_password = var.database_password
           # TODO: enable batch
           # aws_batch_job_queue_name = module.batch.job_queue_name

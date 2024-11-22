@@ -15,7 +15,6 @@ def init_terraform(env, user):
         command = [
             "terraform",
             "init",
-            "-upgrade",
             init_bucket,
             init_key,
             "-backend-config=dynamodb_table=scpca-portal-terraform-lock",
