@@ -8,7 +8,6 @@ import subprocess
 import time
 
 from init_terraform import init_terraform
-from replace_provider import replace_provider
 
 PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
 PUBLIC_KEY_FILE_PATH = "scpca-portal-key.pub"
@@ -240,11 +239,6 @@ if __name__ == "__main__":
 
     if init_code != 0:
         exit(init_code)
-
-    replace_provider_code = replace_provider("hashicorp", "aws")
-
-    if replace_provider_code != 0:
-        exit(replace_provider_code)
 
     terraform_code, terraform_output = run_terraform(args)
     if terraform_code != 0:
