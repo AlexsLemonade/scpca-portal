@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Load 1Password Secrets
         id: op-load-secrets
@@ -31,9 +31,9 @@ jobs:
           SENTRY_DSN: "${{ secrets.OP_SENTRY_DSN }}"
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 0.12.26
+          terraform_version: 0.13.0
 
       - name: Deploy
         run: cd infrastructure && python3 deploy.py -e staging -u deployer -d ccdlstaging -v $(git rev-parse HEAD)

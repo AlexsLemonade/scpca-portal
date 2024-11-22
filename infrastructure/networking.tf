@@ -1,18 +1,6 @@
 # The configuration contained in this file specifies AWS resources
 # related to networking.
 
-provider "aws" {
-  version = "3.37.0"
-  region = var.region
-
-  default_tags {
-    tags = {
-      team = "engineering"
-      project = "ScPCA Portal"
-    }
-  }
-}
-
 resource "aws_vpc" "scpca_portal_vpc" {
   cidr_block = "10.0.0.0/16"
   enable_dns_support = true
@@ -99,6 +87,8 @@ resource "aws_db_subnet_group" "scpca_portal" {
 # Get the API a static IP address.
 resource "aws_eip" "scpca_portal_api_ip" {
   vpc = true
+  # TODO: replace vpc with domain after upgrade
+  # domain = "vpc"
 
   tags = merge(
     var.default_tags,
@@ -136,8 +126,6 @@ resource "aws_lb" "scpca_portal_api_load_balancer" {
     subnet_id = aws_subnet.scpca_portal_1a.id
     allocation_id = aws_eip.scpca_portal_api_ip.id
   }
-
-  tags = var.default_tags
 }
 
 resource "aws_lb_target_group" "api-http" {

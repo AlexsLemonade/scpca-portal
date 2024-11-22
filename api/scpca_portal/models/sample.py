@@ -265,3 +265,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             if library.samples.count() == 1:
                 library.delete()
         self.delete()
+
+    def purge_computed_files(self, delete_from_s3: bool = False) -> None:
+        for computed_file in self.sample_computed_files.all():
+            computed_file.purge(delete_from_s3)

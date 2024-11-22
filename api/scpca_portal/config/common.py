@@ -184,3 +184,6 @@ class Common(Configuration):
     CORS_ALLOW_HEADERS = default_headers + (API_KEY_HEADER,)
 
     TERMS_AND_CONDITIONS = "PLACEHOLDER"
+
+    # AWS
+    AWS_REGION = os.getenv("AWS_REGION", "us-east-1")

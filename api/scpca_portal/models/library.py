@@ -91,13 +91,13 @@ class Library(TimestampedModel):
         library_id = data.get("scpca_library_id")
         relative_path = Path(f"{project_id}/{sample_id}/{library_id}")
 
-        data_file_paths = [
-            file_path
-            for file_path in s3.list_input_paths(relative_path, s3_input_bucket)
-            if "metadata" not in file_path.name
-        ]
+        file_paths = s3.list_input_paths(relative_path, s3_input_bucket)
 
-        return data_file_paths
+        # input metadata json is excluded from single_cell downloads
+        if Library.get_modality_from_file_paths(file_paths) == Library.Modalities.SINGLE_CELL:
+            return [file_path for file_path in file_paths if "metadata" not in file_path.name]
+
+        return file_paths
 
     @classmethod
     def get_modality_from_file_paths(cls, file_paths: List[Path]) -> str:

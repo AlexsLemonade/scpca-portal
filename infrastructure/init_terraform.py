@@ -1,3 +1,4 @@
+import os
 import signal
 import subprocess
 
@@ -20,7 +21,7 @@ def init_terraform(env, user):
             "-backend-config=dynamodb_table=scpca-portal-terraform-lock",
             "-force-copy",
         ]
-        terraform_process = subprocess.Popen(command)
+        terraform_process = subprocess.Popen(command, env=dict(os.environ, TF_LOG="TRACE"))
         terraform_process.wait()
     except KeyboardInterrupt:
         terraform_process.send_signal(signal.SIGINT)

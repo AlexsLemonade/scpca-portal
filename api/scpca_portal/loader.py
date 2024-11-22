@@ -1,7 +1,6 @@
 import shutil
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from threading import Lock
 from typing import Any, Dict, List, Set
 
 from django.conf import settings
@@ -10,7 +9,14 @@ from django.template.defaultfilters import pluralize
 
 from scpca_portal import common, metadata_file, s3
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.models import ComputedFile, Contact, ExternalAccession, Project, Publication
+from scpca_portal.models import (
+    ComputedFile,
+    Contact,
+    ExternalAccession,
+    Project,
+    Publication,
+    Sample,
+)
 
 logger = get_and_configure_logger(__name__)
 
@@ -136,23 +142,53 @@ def create_project(
     return project
 
 
-def _create_computed_file(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
+def _create_computed_file(
+    computed_file: ComputedFile, update_s3: bool, clean_up_output_data: bool
+) -> None:
     """
     Save computed file returned from future to the db.
     Upload file to s3 and clean up output data depending on passed options.
     """
-    if computed_file := future.result():
+    if update_s3:
+        s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
+    if clean_up_output_data:
+        computed_file.clean_up_local_computed_file()
 
-        # Only upload and clean up projects and the last sample if multiplexed
-        if computed_file.project or computed_file.sample.is_last_multiplexed_sample:
-            if update_s3:
-                s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
-            if clean_up_output_data:
-                computed_file.clean_up_local_computed_file()
+    if computed_file.sample and computed_file.has_multiplexed_data:
+        computed_files = computed_file.get_multiplexed_computed_files()
+        ComputedFile.objects.bulk_create(computed_files)
+    else:
         computed_file.save()
+
+
+def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
+    """
+    Wrap computed file saving and uploading to s3 in a way that accommodates multiprocessing.
+    """
+    if computed_file := future.result():
+        _create_computed_file(computed_file, update_s3, clean_up_output_data)
 
     # Close DB connection for each thread.
     connection.close()
+
+
+def generate_computed_file(
+    *,
+    download_config: Dict,
+    project: Project | None = None,
+    sample: Sample | None = None,
+    update_s3: bool = True,
+) -> None:
+
+    # Purge old computed file
+    if old_computed_file := (project or sample).get_computed_file(download_config):
+        old_computed_file.purge(update_s3)
+
+    if project and (computed_file := ComputedFile.get_project_file(project, download_config)):
+        _create_computed_file(computed_file, update_s3, clean_up_output_data=False)
+    if sample and (computed_file := ComputedFile.get_sample_file(sample, download_config)):
+        _create_computed_file(computed_file, update_s3, clean_up_output_data=False)
+        sample.project.update_downloadable_sample_count()
 
 
 def generate_computed_files(
@@ -170,13 +206,11 @@ def generate_computed_files(
 
     # Prep callback function
     on_get_file = partial(
-        _create_computed_file,
+        _create_computed_file_callback,
         update_s3=update_s3,
         clean_up_output_data=clean_up_output_data,
     )
-    # Prepare a threading.Lock for each sample, with the chief purpose being to protect
-    # multiplexed samples that share a zip file.
-    locks = {}
+
     with ThreadPoolExecutor(max_workers=max_workers) as tasks:
         # Generated project computed files
         for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGS:
@@ -184,19 +218,15 @@ def generate_computed_files(
                 ComputedFile.get_project_file,
                 project,
                 config,
-                project.get_output_file_name(config),
             ).add_done_callback(on_get_file)
 
         # Generated sample computed files
-        for sample in project.samples.all():
+        for sample in project.samples_to_generate:
             for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS:
-                sample_lock = locks.setdefault(sample.get_config_identifier(config), Lock())
                 tasks.submit(
                     ComputedFile.get_sample_file,
                     sample,
                     config,
-                    sample.get_output_file_name(config),
-                    sample_lock,
                 ).add_done_callback(on_get_file)
 
     project.update_downloadable_sample_count()

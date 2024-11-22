@@ -25,8 +25,6 @@ resource "aws_db_parameter_group" "postgres12_parameters" {
   lifecycle {
     create_before_destroy = true
   }
-
-  tags = var.default_tags
 }
 
 resource "aws_db_instance" "postgres_db" {
@@ -38,6 +36,8 @@ resource "aws_db_instance" "postgres_db" {
   auto_minor_version_upgrade = false
   instance_class = var.database_instance_type
   name = "scpca_portal"
+  # TODO: replace db_name with name after upgrade
+  # db_name = "scpca_portal"
   port = "5432"
   username = "scpcapostgresuser"
   password = var.database_password
@@ -58,6 +58,4 @@ resource "aws_db_instance" "postgres_db" {
   ca_cert_identifier  = data.aws_rds_certificate.cert.id
 
   backup_retention_period  = var.stage == "prod" ? "7" : "0"
-
-  tags = var.default_tags
 }

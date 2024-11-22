@@ -2,7 +2,7 @@ import io
 from csv import DictReader
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, Set
+from typing import Any, Dict, List, Set
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -10,7 +10,7 @@ from django.conf import settings
 from django.test import TransactionTestCase
 
 from scpca_portal import loader
-from scpca_portal.models import Project
+from scpca_portal.models import ComputedFile, Project
 from scpca_portal.test import expected_values as test_data
 
 
@@ -40,10 +40,10 @@ class TestLoader(TransactionTestCase):
             clean_up_output_data=False,
         )
 
-    def purge_extra_samples(self, project: Project, sample_of_interest: str) -> None:
-        """Purges all of a project's samples that are not the sample of interest."""
+    def purge_extra_samples(self, project: Project, samples_of_interest: List[str]) -> None:
+        """Purges all of a project's samples that are not the samples of interest."""
         for sample in project.samples.all():
-            if sample != sample_of_interest:
+            if sample.scpca_id not in samples_of_interest:
                 sample.purge()
 
     def assertObjectProperties(self, obj: Any, expected_values: Dict[str, Any]) -> None:
@@ -843,7 +843,7 @@ class TestLoader(TransactionTestCase):
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
-            self.purge_extra_samples(project, sample)
+            self.purge_extra_samples(project, [sample_id])
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
                 self.generate_computed_files(project)
 
@@ -894,7 +894,7 @@ class TestLoader(TransactionTestCase):
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
-            self.purge_extra_samples(project, sample)
+            self.purge_extra_samples(project, [sample_id])
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
                 self.generate_computed_files(project)
 
@@ -945,7 +945,7 @@ class TestLoader(TransactionTestCase):
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
-            self.purge_extra_samples(project, sample)
+            self.purge_extra_samples(project, [sample_id])
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
                 self.generate_computed_files(project)
 
@@ -981,20 +981,25 @@ class TestLoader(TransactionTestCase):
             f"{test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
 
-        sample_id = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.SAMPLE_ID
-        sample = project.samples.filter(scpca_id=sample_id).first()
-        self.assertIsNotNone(
-            sample,
-            "Problem retrieving sample, unable to test "
-            "test_multiplexed_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
-        )
+        sample_ids = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.SAMPLE_IDS
+        for sample_id in sample_ids:
+            sample = project.samples.filter(scpca_id=sample_id).first()
+            self.assertIsNotNone(
+                sample,
+                f"Problem retrieving {sample_id}, unable to test "
+                "test_multiplexed_sample_generate_computed_file_"
+                f"{test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",  # noqa
+            )
 
         download_config = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG
+
         with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
-            # Mocking project.samples.all() in loader module is restricted due to the Django ORM
-            # Instead, we purge all samples that are not of interest to desired computed file
-            self.purge_extra_samples(project, sample)
+            # While only one sample of intended modality and format is necessary for other tests,
+            # all multiplexed samples must be present to validate correctness here.
+            # This is a result of how we create multiplexed sample computed files,
+            # where we take the sample with the highest id for computed file generation,
+            # and build computed file objects for other samples from the chosen sample.
+            self.purge_extra_samples(project, sample_ids)
             with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
                 self.generate_computed_files(project)
 
@@ -1012,8 +1017,12 @@ class TestLoader(TransactionTestCase):
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
-        computed_file = sample.get_computed_file(download_config)
-        self.assertIsNotNone(computed_file)
-        self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.VALUES
-        )
+        self.assertEqual(len(sample_ids), ComputedFile.objects.count())
+        for sample_id in sample_ids:
+            sample = project.samples.filter(scpca_id=sample_id).first()
+            computed_file = sample.get_computed_file(download_config)
+            self.assertIsNotNone(computed_file)
+            # Check for identical computed files amongst multiplexed samples
+            self.assertObjectProperties(
+                computed_file, test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.VALUES
+            )
