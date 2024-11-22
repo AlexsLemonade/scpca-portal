@@ -15,6 +15,7 @@ def replace_provider(org, provider):
             "terraform",
             "state",
             "replace-provider",
+            "-auto-approve",
             f"registry.terraform.io/-/{provider}",
             f"registry.terraform.io/{org}/{provider}",
         ]
