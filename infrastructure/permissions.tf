@@ -21,8 +21,6 @@ resource "aws_iam_role" "scpca_portal_instance" {
   ]
 }
 EOF
-
-  tags = var.default_tags
 }
 
 resource "aws_iam_instance_profile" "scpca_portal_instance_profile" {
@@ -63,8 +61,6 @@ resource "aws_iam_policy" "scpca_portal_cloudwatch" {
     ]
 }
 EOF
-
-  tags = var.default_tags
 }
 
 resource "aws_iam_role_policy_attachment" "cloudwatch" {
@@ -115,8 +111,6 @@ resource "aws_iam_policy" "s3_access_policy" {
    ]
 }
 EOF
-
-  tags = var.default_tags
 }
 
 resource "aws_iam_role_policy_attachment" "s3" {
@@ -159,8 +153,6 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
    ]
 }
 EOF
-
-  tags = var.default_tags
 }
 
 resource "aws_iam_role_policy_attachment" "input_bucket" {
