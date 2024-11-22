@@ -11,12 +11,7 @@ def unlock_state(lock_id):
 
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
-        command = [
-            "terraform",
-            "force-unlock",
-            "-force",
-            lock_id
-        ]
+        command = ["terraform", "force-unlock", "-force", lock_id]
         terraform_process = subprocess.Popen(command)
         terraform_process.wait()
     except KeyboardInterrupt:
