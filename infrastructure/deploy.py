@@ -245,7 +245,7 @@ if __name__ == "__main__":
         exit(terraform_code)
 
     ip_address_match = re.match(
-        r".*\napi_server_1_ip = (\d+\.\d+\.\d+\.\d+)\n.*", terraform_output, re.DOTALL
+        r".*\napi_server_1_ip = \"(\d+\.\d+\.\d+\.\d+)\"\n.*", terraform_output, re.DOTALL
     )
 
     if ip_address_match:
