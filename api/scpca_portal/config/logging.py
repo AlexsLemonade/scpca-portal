@@ -1,6 +1,9 @@
 import logging
 import os
 import sys
+import time
+from datetime import datetime
+from functools import wraps
 from multiprocessing import current_process
 
 import daiquiri
@@ -18,6 +21,7 @@ FORMAT_STRING = (
     "%(asctime)s {0} %(name)s %(color)s%(levelname)s%(extras)s" ": %(message)s%(color_stop)s"
 ).format(get_thread_id())
 LOG_LEVEL = None
+LOG_RUNTIMES = os.getenv("LOG_RUNTIMES", False)
 
 
 def unconfigure_root_logger():
@@ -50,3 +54,46 @@ def get_and_configure_logger(name: str) -> logging.Logger:
     logger.logger.addHandler(handler)
 
     return logger
+
+
+def get_formatted_time(timestamp: float) -> str:
+    """Return string representation of a timestamp in Hour:Minute:Second:Millisecond format."""
+    return datetime.fromtimestamp(timestamp).strftime("%H:%M:%S.%f")[:-3]  # remove microseconds
+
+
+def log_runtime(logger):
+    """Log the start time, end time, and duration of the wrapped function."""
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            global LOG_RUNTIMES
+            if not LOG_RUNTIMES:
+                return func(*args, **kwargs)
+
+            func_name = f"{func.__module__}::{func.__name__}"
+            start_time = time.time()
+            logger.info(f"\nEntering function '{func_name}'.")
+
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                end_time = time.time()
+                duration = end_time - start_time
+                logger.info(
+                    f"\nExited function '{func_name}'.\n"
+                    f"Function run time: {get_formatted_time(duration)} "
+                    f"(Start: {get_formatted_time(start_time)}, "
+                    f"End: {get_formatted_time(end_time)})"
+                )
+
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def configure_runtime_logging(logger: logging.Logger):
+    """Return log_runtime decorator pre-configured to a specific logger."""
+    return log_runtime(logger)
