@@ -269,7 +269,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             file_path for file_path in data_file_path_objects if file_path.parent.name != "merged"
         ]
 
-    def get_valid_download_configs(self) -> List[str] | None:
+    def get_valid_download_configs(self) -> List[str]:
         return [
             download_config_name
             for download_config_name, download_config in common.PROJECT_DOWNLOAD_CONFIGS.items()

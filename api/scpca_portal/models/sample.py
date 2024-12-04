@@ -258,7 +258,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return f"{file_name}.zip"
 
-    def get_valid_download_configs(self) -> List[str] | None:
+    def get_valid_download_configs(self) -> List[str]:
         return [
             download_config_name
             for download_config_name, download_config in common.SAMPLE_DOWNLOAD_CONFIGS.items()

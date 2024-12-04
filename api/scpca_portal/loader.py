@@ -213,20 +213,20 @@ def generate_computed_files(
 
     with ThreadPoolExecutor(max_workers=max_workers) as tasks:
         # Generated project computed files
-        for config in common.GENERATED_PROJECT_DOWNLOAD_CONFIGS:
+        for download_config_name in project.get_valid_download_configs():
             tasks.submit(
                 ComputedFile.get_project_file,
                 project,
-                config,
+                common.PROJECT_DOWNLOAD_CONFIGS[download_config_name],
             ).add_done_callback(on_get_file)
 
         # Generated sample computed files
         for sample in project.samples_to_generate:
-            for config in common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS:
+            for download_config_name in sample.get_valid_download_configs():
                 tasks.submit(
                     ComputedFile.get_sample_file,
                     sample,
-                    config,
+                    common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name],
                 ).add_done_callback(on_get_file)
 
     project.update_downloadable_sample_count()
