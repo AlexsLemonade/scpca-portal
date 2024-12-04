@@ -269,6 +269,13 @@ class Project(CommonDataAttributes, TimestampedModel):
             file_path for file_path in data_file_path_objects if file_path.parent.name != "merged"
         ]
 
+    def get_valid_download_configs(self) -> List[str] | None:
+        return [
+            download_config_name
+            for download_config_name, download_config in common.PROJECT_DOWNLOAD_CONFIGS.items()
+            if Library.get_project_libraries_from_download_config(self, download_config).exists()
+        ]
+
     def load_metadata(self) -> None:
         """
         Loads sample and library metadata files, creates Sample and Library objects,
