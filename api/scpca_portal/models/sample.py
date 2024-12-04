@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import utils
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -257,6 +257,13 @@ class Sample(CommonDataAttributes, TimestampedModel):
         file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
 
         return f"{file_name}.zip"
+
+    def get_valid_download_configs(self) -> List[str] | None:
+        return [
+            download_config_name
+            for download_config_name, download_config in common.SAMPLE_DOWNLOAD_CONFIGS.items()
+            if Library.get_sample_libraries_from_download_config(self, download_config).exists()
+        ]
 
     def purge(self) -> None:
         """Purges a sample and its associated libraries"""
