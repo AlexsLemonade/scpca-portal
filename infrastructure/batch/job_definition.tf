@@ -90,4 +90,6 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
   retry_strategy {
     attempts = 3
   }
+
+  tags = var.batch_tags
 }

@@ -7,5 +7,5 @@ resource "aws_batch_job_queue" "scpca_portal_project" {
     aws_batch_compute_environment.scpca_portal_project.arn,
   ]
 
-  tags = var.default_tags
+  tags = var.batch_tags
 }
