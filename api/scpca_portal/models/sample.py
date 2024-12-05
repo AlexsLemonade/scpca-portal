@@ -106,6 +106,22 @@ class Sample(CommonDataAttributes, TimestampedModel):
             and key not in ("scpca_sample_id", "scpca_project_id", "submitter")
         }
 
+    @property
+    def valid_download_config_names(self) -> List[str]:
+        return [
+            download_config_name
+            for download_config_name, download_config in common.SAMPLE_DOWNLOAD_CONFIGS.items()
+            if Library.get_sample_libraries_from_download_config(self, download_config).exists()
+        ]
+
+    @property
+    def valid_download_configs(self) -> List[Dict]:
+        return [
+            download_config
+            for download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values()
+            if Library.get_sample_libraries_from_download_config(self, download_config).exists()
+        ]
+
     def get_metadata(self) -> Dict:
         excluded_metadata_attributes = {
             "scpca_project_id",
@@ -257,13 +273,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
 
         return f"{file_name}.zip"
-
-    def get_valid_download_configs(self) -> List[str]:
-        return [
-            download_config_name
-            for download_config_name, download_config in common.SAMPLE_DOWNLOAD_CONFIGS.items()
-            if Library.get_sample_libraries_from_download_config(self, download_config).exists()
-        ]
 
     def purge(self) -> None:
         """Purges a sample and its associated libraries"""

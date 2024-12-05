@@ -83,6 +83,22 @@ class Project(CommonDataAttributes, TimestampedModel):
         return [sample for sample in self.samples.all() if sample.is_last_multiplexed_sample]
 
     @property
+    def valid_download_config_names(self) -> List[str]:
+        return [
+            download_config_name
+            for download_config_name, download_config in common.PROJECT_DOWNLOAD_CONFIGS.items()
+            if Library.get_project_libraries_from_download_config(self, download_config).exists()
+        ]
+
+    @property
+    def valid_download_configs(self) -> List[Dict]:
+        return [
+            download_config
+            for download_config in common.PROJECT_DOWNLOAD_CONFIGS.values()
+            if Library.get_project_libraries_from_download_config(self, download_config).exists()
+        ]
+
+    @property
     def computed_files(self):
         return self.project_computed_files.order_by("created_at")
 
@@ -267,13 +283,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return [
             file_path for file_path in data_file_path_objects if file_path.parent.name != "merged"
-        ]
-
-    def get_valid_download_configs(self) -> List[str]:
-        return [
-            download_config_name
-            for download_config_name, download_config in common.PROJECT_DOWNLOAD_CONFIGS.items()
-            if Library.get_project_libraries_from_download_config(self, download_config).exists()
         ]
 
     def load_metadata(self) -> None:
