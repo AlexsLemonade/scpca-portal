@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db import connection
 from django.template.defaultfilters import pluralize
 
-from scpca_portal import common, metadata_file, s3
+from scpca_portal import metadata_file, s3
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import (
     ComputedFile,
@@ -213,20 +213,20 @@ def generate_computed_files(
 
     with ThreadPoolExecutor(max_workers=max_workers) as tasks:
         # Generated project computed files
-        for download_config_name in project.get_valid_download_configs():
+        for download_config in project.valid_download_configs:
             tasks.submit(
                 ComputedFile.get_project_file,
                 project,
-                common.PROJECT_DOWNLOAD_CONFIGS[download_config_name],
+                download_config,
             ).add_done_callback(on_get_file)
 
         # Generated sample computed files
         for sample in project.samples_to_generate:
-            for download_config_name in sample.get_valid_download_configs():
+            for download_config in sample.valid_download_configs:
                 tasks.submit(
                     ComputedFile.get_sample_file,
                     sample,
-                    common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name],
+                    download_config,
                 ).add_done_callback(on_get_file)
 
     project.update_downloadable_sample_count()
