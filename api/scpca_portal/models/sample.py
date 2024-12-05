@@ -137,6 +137,21 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample_metadata
 
+    def get_libraries(self, download_config: Dict = {}) -> List[Library]:
+        """
+        Return all of a sample's associated libraries filtered by the passed download config.
+        """
+        if not download_config:
+            return self.libraries.all()
+
+        if download_config not in common.SAMPLE_DOWNLOAD_CONFIGS.values():
+            raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
+
+        return self.libraries.filter(
+            modality=download_config["modality"],
+            formats__contains=[download_config["format"]],
+        )
+
     def get_computed_file(self, download_config: Dict) -> ComputedFile:
         "Return the sample computed file that matches the passed download_config."
         return self.computed_files.filter(
