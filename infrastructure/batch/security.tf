@@ -1,7 +1,7 @@
 resource "aws_security_group" "scpca_portal_batch" {
   name   = "scpca-portal-batch-security-group-${var.user}-${var.stage}"
   vpc_id = var.scpca_portal_vpc.id
-  tags   = var.default_tags
+  tags   = var.batch_tags
 
   egress {
     from_port   = 0

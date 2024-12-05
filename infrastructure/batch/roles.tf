@@ -15,7 +15,7 @@ resource "aws_iam_role" "batch_service_role" {
 }
 EOF
 
-  tags               = var.default_tags
+  tags               = var.batch_tags
 }
 
 resource "aws_iam_role_policy_attachment" "batch_service_role" {
@@ -41,7 +41,7 @@ resource "aws_iam_role" "ecs_task_role" {
 }
 EOF
 
-  tags = var.default_tags
+  tags = var.batch_tags
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
@@ -66,7 +66,7 @@ resource "aws_iam_role" "batch_job_role" {
 }
 EOF
 
-  tags = var.default_tags
+  tags = var.batch_tags
 }
 
 resource "aws_iam_policy" "batch_job_s3_access" {

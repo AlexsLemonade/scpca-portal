@@ -17,4 +17,4 @@ variable "scpca_portal_db_security_group" { default = "" }
 # general configuration
 variable "user" { default = "" }
 variable "stage" { default = "" }
-variable "default_tags" { default = "" }
+variable "batch_tags" { default = "" }

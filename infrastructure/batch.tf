@@ -20,5 +20,8 @@
   # general configuration
   user = var.user
   stage = var.stage
-  default_tags = var.default_tags
+  batch_tags = {
+    module = "batch",
+    revision = "initial - 16 vCPU compute environment and 1 queue"
+  }
 }
