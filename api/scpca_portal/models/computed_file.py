@@ -152,6 +152,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         creates a ComputedFile object which it then saves to the db.
         """
         libraries = Library.get_project_libraries_from_download_config(project, download_config)
+        # If the query returns empty, then throw an error occurred.
+        if not libraries.exists():
+            raise ValueError(
+                "Invalid request: no libraries exist with this project-download_config combination."
+            )
 
         libraries_metadata = [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
@@ -223,6 +228,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         creates a ComputedFile object which it then saves to the db.
         """
         libraries = Library.get_sample_libraries_from_download_config(sample, download_config)
+        # If the query returns empty, then throw an error occurred.
+        if not libraries.exists():
+            raise ValueError(
+                "Invalid request: no libraries exist with this sample-download_config combination."
+            )
 
         libraries_metadata = [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
