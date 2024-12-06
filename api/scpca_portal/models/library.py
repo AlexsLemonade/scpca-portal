@@ -119,44 +119,6 @@ class Library(TimestampedModel):
         return sorted(list(formats))
 
     @classmethod
-    def get_project_libraries_from_download_config(
-        cls, project, download_configuration: Dict
-    ):  # -> QuerySet[Self]:
-        if download_configuration not in common.PROJECT_DOWNLOAD_CONFIGS.values():
-            raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
-
-        if download_configuration["metadata_only"]:
-            return project.libraries.all()
-
-        # You cannot include multiplexed when there are no multiplexed libraries
-        if not download_configuration["excludes_multiplexed"] and not project.has_multiplexed_data:
-            return project.libraries.none()
-
-        if download_configuration["includes_merged"]:
-            # If the download config requests merged and there is no merged file in the project,
-            # return an empty queryset
-            if (
-                download_configuration["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT
-                and not project.includes_merged_sce
-            ):
-                return project.libraries.none()
-            elif (
-                download_configuration["format"] == Library.FileFormats.ANN_DATA
-                and not project.includes_merged_anndata
-            ):
-                return project.libraries.none()
-
-        libraries_queryset = project.libraries.filter(
-            modality=download_configuration["modality"],
-            formats__contains=[download_configuration["format"]],
-        )
-
-        if download_configuration["excludes_multiplexed"]:
-            return libraries_queryset.exclude(is_multiplexed=True)
-
-        return libraries_queryset
-
-    @classmethod
     def get_sample_libraries_from_download_config(
         cls, sample, download_configuration: Dict
     ):  # -> QuerySet[Self]:
