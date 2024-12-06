@@ -13,6 +13,8 @@ from scpca_portal.config.logging import get_and_configure_logger
 logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
+MAX_QUEUE_CHUNK_SIZE = 250
+
 
 def list_input_paths(
     relative_path: Path,
@@ -89,17 +91,28 @@ def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
     if not download_queue:
         return True
 
-    command_parts.append("--exclude=*")
-    command_parts.extend([f"--include={file_path}" for file_path in download_queue])
+    while download_queue:
+        chunk_size = (
+            MAX_QUEUE_CHUNK_SIZE
+            if len(download_queue) > MAX_QUEUE_CHUNK_SIZE
+            else len(download_queue)
+        )
 
-    if "public-test" in bucket_name:
-        command_parts.append("--no-sign-request")
+        command_parts.append("--exclude=*")
+        command_parts.extend(
+            [f"--include={file_path}" for file_path in download_queue[:chunk_size]]
+        )
 
-    try:
-        subprocess.check_call(command_parts)
-    except subprocess.CalledProcessError as error:
-        logger.error(f"Data files failed to download due to the following error:\n\t{error}")
-        return False
+        if "public-test" in bucket_name:
+            command_parts.append("--no-sign-request")
+
+        try:
+            subprocess.check_call(command_parts)
+        except subprocess.CalledProcessError as error:
+            logger.error(f"Data files failed to download due to the following error:\n\t{error}")
+            return False
+
+        download_queue = download_queue[chunk_size:]
 
     return True
 
