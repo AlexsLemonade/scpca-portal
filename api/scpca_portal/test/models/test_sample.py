@@ -5,7 +5,7 @@ from scpca_portal.models import Library
 from scpca_portal.test.factories import LibraryFactory, SampleFactory
 
 
-class TestGetSampleLibrariesFromDownloadConfig(TestCase):
+class TestGetLibraries(TestCase):
     def setUp(self):
         self.sample = SampleFactory()
 
@@ -42,7 +42,7 @@ class TestGetSampleLibrariesFromDownloadConfig(TestCase):
             for library in self.libraries.get(config["modality"]).get(config["format"]):
                 self.assertIn(library, result)
 
-    def test_get_libraries_invalid_configuration(self):
+    def test_get_libraries_invalid_config(self):
         invalid_config = {"modality": None, "format": None}
         with self.assertRaises(ValueError):
             self.sample.get_libraries(invalid_config)
