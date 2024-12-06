@@ -8,9 +8,11 @@ from django.conf import settings
 import boto3
 from botocore.client import Config
 
-from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.config.logging import configure_runtime_logging, get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
+log_runtime = configure_runtime_logging(logger)
+
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 MAX_QUEUE_CHUNK_SIZE = 250
@@ -82,11 +84,12 @@ def list_input_paths(
     return file_paths
 
 
+@log_runtime
 def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
-    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", settings.INPUT_DATA_PATH]
 
     download_queue = [fp for fp in file_paths if not fp.exists()]
+
     # If download_queue is empty, exit early
     if not download_queue:
         return True
@@ -98,10 +101,9 @@ def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
             else len(download_queue)
         )
 
+        command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", settings.INPUT_DATA_PATH]
         command_parts.append("--exclude=*")
-        command_parts.extend(
-            [f"--include={file_path}" for file_path in download_queue[:chunk_size]]
-        )
+        command_parts.extend([f"--include={file_path}" for file_path in download_queue])
 
         if "public-test" in bucket_name:
             command_parts.append("--no-sign-request")
