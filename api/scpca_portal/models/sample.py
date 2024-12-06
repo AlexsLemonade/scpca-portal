@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import utils
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -106,6 +106,22 @@ class Sample(CommonDataAttributes, TimestampedModel):
             and key not in ("scpca_sample_id", "scpca_project_id", "submitter")
         }
 
+    @property
+    def valid_download_config_names(self) -> List[str]:
+        return [
+            download_config_name
+            for download_config_name, download_config in common.SAMPLE_DOWNLOAD_CONFIGS.items()
+            if self.get_libraries(download_config).exists()
+        ]
+
+    @property
+    def valid_download_configs(self) -> List[Dict]:
+        return [
+            download_config
+            for download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values()
+            if self.get_libraries(download_config).exists()
+        ]
+
     def get_metadata(self) -> Dict:
         excluded_metadata_attributes = {
             "scpca_project_id",
@@ -120,6 +136,21 @@ class Sample(CommonDataAttributes, TimestampedModel):
         sample_metadata["includes_anndata"] = self.includes_anndata
 
         return sample_metadata
+
+    def get_libraries(self, download_config: Dict = {}):  # -> QuerySet[Library]:
+        """
+        Return all of a sample's associated libraries filtered by the passed download config.
+        """
+        if not download_config:
+            return self.libraries.all()
+
+        if download_config not in common.SAMPLE_DOWNLOAD_CONFIGS.values():
+            raise ValueError("Invalid download_config passed. Unable to retrieve libraries.")
+
+        return self.libraries.filter(
+            modality=download_config["modality"],
+            formats__contains=[download_config["format"]],
+        )
 
     def get_computed_file(self, download_config: Dict) -> ComputedFile:
         "Return the sample computed file that matches the passed download_config."
