@@ -22,6 +22,6 @@
   stage = var.stage
   batch_tags = {
     module = "batch",
-    revision = "initial - 16 vCPU compute environment and 1 queue"
+    revision = "second - 32 vCPU compute environment and 1 queue"
   }
 }
