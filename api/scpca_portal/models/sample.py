@@ -145,7 +145,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             return self.libraries.all()
 
         if download_config not in common.SAMPLE_DOWNLOAD_CONFIGS.values():
-            raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
+            raise ValueError("Invalid download_config passed. Unable to retrieve libraries.")
 
         return self.libraries.filter(
             modality=download_config["modality"],

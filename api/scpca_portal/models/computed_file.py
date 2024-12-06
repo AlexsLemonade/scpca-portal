@@ -154,9 +154,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries = project.get_libraries(download_config)
         # If the query returns empty, then throw an error occurred.
         if not libraries.exists():
-            raise ValueError(
-                "Invalid request: no libraries exist with this project-download_config combination."
-            )
+            raise ValueError("Unable to find libraries for download_config.")
 
         libraries_metadata = [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
@@ -230,9 +228,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries = sample.get_libraries(download_config)
         # If the query returns empty, then throw an error occurred.
         if not libraries.exists():
-            raise ValueError(
-                "Invalid request: no libraries exist with this sample-download_config combination."
-            )
+            raise ValueError("Unable to find libraries for download_config.")
 
         libraries_metadata = [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
