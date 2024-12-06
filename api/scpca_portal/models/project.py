@@ -87,7 +87,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         return [
             download_config_name
             for download_config_name, download_config in common.PROJECT_DOWNLOAD_CONFIGS.items()
-            if Library.get_project_libraries_from_download_config(self, download_config).exists()
+            if self.get_libraries(download_config).exists()
         ]
 
     @property
@@ -95,7 +95,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         return [
             download_config
             for download_config in common.PROJECT_DOWNLOAD_CONFIGS.values()
-            if Library.get_project_libraries_from_download_config(self, download_config).exists()
+            if self.get_libraries(download_config).exists()
         ]
 
     @property
@@ -201,7 +201,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             "project_title": self.title,
         }
 
-    def get_libraries(self, download_config: Dict = {}) -> List[Library]:
+    def get_libraries(self, download_config: Dict = {}):  # -> QuerySet[Library]:
         """
         Return all of a project's associated libraries filtered by the passed download config.
         """

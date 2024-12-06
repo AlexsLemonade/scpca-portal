@@ -111,7 +111,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return [
             download_config_name
             for download_config_name, download_config in common.SAMPLE_DOWNLOAD_CONFIGS.items()
-            if Library.get_sample_libraries_from_download_config(self, download_config).exists()
+            if self.get_libraries(download_config).exists()
         ]
 
     @property
@@ -119,7 +119,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return [
             download_config
             for download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values()
-            if Library.get_sample_libraries_from_download_config(self, download_config).exists()
+            if self.get_libraries(download_config).exists()
         ]
 
     def get_metadata(self) -> Dict:
@@ -137,7 +137,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample_metadata
 
-    def get_libraries(self, download_config: Dict = {}) -> List[Library]:
+    def get_libraries(self, download_config: Dict = {}):  # -> QuerySet[Library]:
         """
         Return all of a sample's associated libraries filtered by the passed download config.
         """

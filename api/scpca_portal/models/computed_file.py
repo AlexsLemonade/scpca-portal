@@ -151,7 +151,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computes a zip archive with library data, metadata and readme files, and
         creates a ComputedFile object which it then saves to the db.
         """
-        libraries = Library.get_project_libraries_from_download_config(project, download_config)
+        libraries = project.get_libraries(download_config)
         # If the query returns empty, then throw an error occurred.
         if not libraries.exists():
             raise ValueError(
@@ -227,7 +227,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computes a zip archive with library data, metadata and readme files, and
         creates a ComputedFile object which it then saves to the db.
         """
-        libraries = Library.get_sample_libraries_from_download_config(sample, download_config)
+        libraries = sample.get_libraries(download_config)
         # If the query returns empty, then throw an error occurred.
         if not libraries.exists():
             raise ValueError(
