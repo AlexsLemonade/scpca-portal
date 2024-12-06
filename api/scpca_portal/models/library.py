@@ -118,18 +118,6 @@ class Library(TimestampedModel):
         )
         return sorted(list(formats))
 
-    @classmethod
-    def get_sample_libraries_from_download_config(
-        cls, sample, download_configuration: Dict
-    ):  # -> QuerySet[Self]:
-        if download_configuration not in common.SAMPLE_DOWNLOAD_CONFIGS.values():
-            raise ValueError("Invalid download configuration passed. Unable to retrieve libraries.")
-
-        return sample.libraries.filter(
-            modality=download_configuration["modality"],
-            formats__contains=[download_configuration["format"]],
-        )
-
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
         return settings.INPUT_DATA_PATH / data_file_path
