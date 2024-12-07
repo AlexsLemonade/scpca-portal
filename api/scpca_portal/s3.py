@@ -1,5 +1,5 @@
 import subprocess
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from pathlib import Path
 from typing import List
 
@@ -14,8 +14,6 @@ logger = get_and_configure_logger(__name__)
 log_runtime = configure_runtime_logging(logger)
 
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
-
-MAX_QUEUE_CHUNK_SIZE = 250
 
 
 def list_input_paths(
@@ -88,22 +86,27 @@ def list_input_paths(
 def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
 
-    download_queue = [fp for fp in file_paths if not fp.exists()]
+    # NOTE: AWS Sync does one iteration per include flag.
+    # This causes a tremendous slowdown when trying to sync a long list of specific files.
+    # In order to overcome this we should sync once per project folder's immediate child subdirectory or file.
+    download_queue = defaultdict(list)
 
-    # If download_queue is empty, exit early
-    if not download_queue:
-        return True
+    for file_path in file_paths:
+        if not file_path.exists():
 
-    while download_queue:
-        chunk_size = (
-            MAX_QUEUE_CHUNK_SIZE
-            if len(download_queue) > MAX_QUEUE_CHUNK_SIZE
-            else len(download_queue)
-        )
+            # default to parent for immediately nested files
+            bucket_path = file_path.parent
 
-        command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", settings.INPUT_DATA_PATH]
+            if len(file_path.parents) > 2:
+                bucket_path = file_path.parents[-3]
+
+            download_queue[bucket_path].append(file_path.relative_to(bucket_path))
+
+
+    for bucket_path, project_file_paths in download_queue.items():
+        command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}/{bucket_path}", settings.INPUT_DATA_PATH / bucket_path]
         command_parts.append("--exclude=*")
-        command_parts.extend([f"--include={file_path}" for file_path in download_queue])
+        command_parts.extend([f"--include={file_path}" for file_path in project_file_paths])
 
         if "public-test" in bucket_name:
             command_parts.append("--no-sign-request")
@@ -113,8 +116,6 @@ def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
         except subprocess.CalledProcessError as error:
             logger.error(f"Data files failed to download due to the following error:\n\t{error}")
             return False
-
-        download_queue = download_queue[chunk_size:]
 
     return True
 

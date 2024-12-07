@@ -12,7 +12,7 @@ logger.addHandler(logging.StreamHandler())
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        loader.prep_data_dirs()
+        loader.prep_data_dirs(True)
 
         project = Project.objects.filter(scpca_id="SCPCP000006").first()
 
