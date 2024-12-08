@@ -70,7 +70,7 @@ class Command(BaseCommand):
         within that project.
         """
         projects = (
-            Project.objects.filter(project_computed_files__is_null=True)
+            Project.objects.filter(project_computed_files__isnull=True)
             if not project_id
             else Project.objects.filter(scpca_id=project_id)
         )
