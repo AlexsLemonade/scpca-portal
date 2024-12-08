@@ -8,7 +8,7 @@ from django.db import connection
 from django.template.defaultfilters import pluralize
 
 from scpca_portal import metadata_file, s3
-from scpca_portal.config.logging import configure_runtime_logging, get_and_configure_logger
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import (
     ComputedFile,
     Contact,
@@ -19,7 +19,6 @@ from scpca_portal.models import (
 )
 
 logger = get_and_configure_logger(__name__)
-log_runtime = configure_runtime_logging(logger)
 
 
 def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -> None:
@@ -143,7 +142,6 @@ def create_project(
     return project
 
 
-@log_runtime
 def _create_computed_file(
     computed_file: ComputedFile, update_s3: bool, clean_up_output_data: bool
 ) -> None:
@@ -174,7 +172,6 @@ def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_d
     connection.close()
 
 
-@log_runtime
 def generate_computed_file(
     *,
     download_config: Dict,

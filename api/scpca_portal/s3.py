@@ -8,11 +8,9 @@ from django.conf import settings
 import boto3
 from botocore.client import Config
 
-from scpca_portal.config.logging import configure_runtime_logging, get_and_configure_logger
+from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
-log_runtime = configure_runtime_logging(logger)
-
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
 
 
@@ -82,7 +80,6 @@ def list_input_paths(
     return file_paths
 
 
-@log_runtime
 def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
 
@@ -99,7 +96,7 @@ def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
             bucket_path = Path(file_path.parts[0])
 
             if len(file_path.parts) > 2:
-                bucket_path = bucket_path / file_path.parts[1]
+                bucket_path /= file_path.parts[1]
 
             download_queue[bucket_path].append(file_path.relative_to(bucket_path))
 
