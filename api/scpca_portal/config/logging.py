@@ -21,7 +21,7 @@ FORMAT_STRING = (
     "%(asctime)s {0} %(name)s %(color)s%(levelname)s%(extras)s" ": %(message)s%(color_stop)s"
 ).format(get_thread_id())
 LOG_LEVEL = None
-LOG_RUNTIMES = os.getenv("LOG_RUNTIMES", True)
+LOG_RUNTIMES = os.getenv("LOG_RUNTIMES", False)
 
 
 def unconfigure_root_logger():

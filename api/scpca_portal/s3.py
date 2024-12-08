@@ -1,5 +1,5 @@
 import subprocess
-from collections import namedtuple, defaultdict
+from collections import defaultdict, namedtuple
 from pathlib import Path
 from typing import List
 
@@ -88,23 +88,29 @@ def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
 
     # NOTE: AWS Sync does one iteration per include flag.
     # This causes a tremendous slowdown when trying to sync a long list of specific files.
-    # In order to overcome this we should sync once per project folder's immediate child subdirectory or file.
+    # In order to overcome this we should sync once
+    # per project folder's immediate child subdirectory or file.
     download_queue = defaultdict(list)
 
     for file_path in file_paths:
         if not file_path.exists():
 
-            # default to parent for immediately nested files
-            bucket_path = file_path.parent
+            # default to project folder for immediately nested files
+            bucket_path = Path(file_path.parts[0])
 
-            if len(file_path.parents) > 2:
-                bucket_path = file_path.parents[-3]
+            if len(file_path.parts) > 2:
+                bucket_path = bucket_path / file_path.parts[1]
 
             download_queue[bucket_path].append(file_path.relative_to(bucket_path))
 
-
     for bucket_path, project_file_paths in download_queue.items():
-        command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}/{bucket_path}", settings.INPUT_DATA_PATH / bucket_path]
+        command_parts = [
+            "aws",
+            "s3",
+            "sync",
+            f"s3://{bucket_name}/{bucket_path}",
+            settings.INPUT_DATA_PATH / bucket_path,
+        ]
         command_parts.append("--exclude=*")
         command_parts.extend([f"--include={file_path}" for file_path in project_file_paths])
 
