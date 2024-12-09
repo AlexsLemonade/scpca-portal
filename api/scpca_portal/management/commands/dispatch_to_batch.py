@@ -5,7 +5,6 @@ from django.core.management.base import BaseCommand
 
 import boto3
 
-from scpca_portal import common
 from scpca_portal.models import Project
 
 batch = boto3.client(
@@ -71,20 +70,20 @@ class Command(BaseCommand):
         within that project.
         """
         projects = (
-            Project.objects.filter(project_computed_files__is_null=True)
+            Project.objects.filter(project_computed_files__isnull=True)
             if not project_id
             else Project.objects.filter(scpca_id=project_id)
         )
 
         for project in projects:
-            for download_config_name in common.PROJECT_DOWNLOAD_CONFIGS.keys():
+            for download_config_name in project.valid_download_config_names:
                 self.submit_job(
                     project_id=project.scpca_id,
                     download_config_name=download_config_name,
                 )
 
             for sample in project.samples_to_generate:
-                for download_config_name in common.SAMPLE_DOWNLOAD_CONFIGS.keys():
+                for download_config_name in sample.valid_download_config_names:
                     self.submit_job(
                         sample_id=sample.scpca_id,
                         download_config_name=download_config_name,

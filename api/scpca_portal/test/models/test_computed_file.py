@@ -4,6 +4,7 @@ from django.conf import settings
 from django.test import TestCase
 
 from scpca_portal.models import ComputedFile
+from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
 
 
 class TestComputedFile(TestCase):
@@ -30,3 +31,32 @@ class TestComputedFile(TestCase):
             },
             ExpiresIn=604800,
         )
+
+
+class TestGetFile(TestCase):
+    def setUp(self) -> None:
+        self.project = ProjectFactory()
+        LibraryFactory(project=self.project)
+
+        self.sample = SampleFactory()
+        sample_library = LibraryFactory()
+        self.sample.libraries.add(sample_library)
+
+    def test_get_project_file_throw_no_libraries_error(self):
+        invalid_download_config = {
+            "modality": None,
+            "format": None,
+            "excludes_multiplexed": False,
+            "includes_merged": False,
+            "metadata_only": False,
+        }
+        with self.assertRaises(ValueError):
+            ComputedFile.get_project_file(self.project, invalid_download_config)
+
+    def test_get_sample_file_throw_no_libraries_error(self):
+        invalid_download_config = {
+            "modality": None,
+            "format": None,
+        }
+        with self.assertRaises(ValueError):
+            ComputedFile.get_sample_file(self.sample, invalid_download_config)

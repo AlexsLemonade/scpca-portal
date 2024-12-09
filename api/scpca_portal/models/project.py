@@ -83,6 +83,22 @@ class Project(CommonDataAttributes, TimestampedModel):
         return [sample for sample in self.samples.all() if sample.is_last_multiplexed_sample]
 
     @property
+    def valid_download_config_names(self) -> List[str]:
+        return [
+            download_config_name
+            for download_config_name, download_config in common.PROJECT_DOWNLOAD_CONFIGS.items()
+            if self.get_libraries(download_config).exists()
+        ]
+
+    @property
+    def valid_download_configs(self) -> List[Dict]:
+        return [
+            download_config
+            for download_config in common.PROJECT_DOWNLOAD_CONFIGS.values()
+            if self.get_libraries(download_config).exists()
+        ]
+
+    @property
     def computed_files(self):
         return self.project_computed_files.order_by("created_at")
 
@@ -184,6 +200,44 @@ class Project(CommonDataAttributes, TimestampedModel):
             "pi_name": self.pi_name,
             "project_title": self.title,
         }
+
+    def get_libraries(self, download_config: Dict = {}):  # -> QuerySet[Library]:
+        """
+        Return all of a project's associated libraries filtered by the passed download config.
+        """
+        if not download_config or download_config.get("metadata_only"):
+            return self.libraries.all()
+
+        if download_config not in common.PROJECT_DOWNLOAD_CONFIGS.values():
+            raise ValueError("Invalid download_config passed. Unable to retrieve libraries.")
+
+        # You cannot include multiplexed when there are no multiplexed libraries
+        if not download_config["excludes_multiplexed"] and not self.has_multiplexed_data:
+            return self.libraries.none()
+
+        if download_config["includes_merged"]:
+            # If the download config requests merged and there is no merged file in the project,
+            # return an empty queryset
+            if (
+                download_config["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT
+                and not self.includes_merged_sce
+            ):
+                return self.libraries.none()
+            elif (
+                download_config["format"] == Library.FileFormats.ANN_DATA
+                and not self.includes_merged_anndata
+            ):
+                return self.libraries.none()
+
+        libraries_queryset = self.libraries.filter(
+            modality=download_config["modality"],
+            formats__contains=[download_config["format"]],
+        )
+
+        if download_config["excludes_multiplexed"]:
+            return libraries_queryset.exclude(is_multiplexed=True)
+
+        return libraries_queryset
 
     def get_output_file_name(self, download_config: Dict) -> str:
         """
