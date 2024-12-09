@@ -96,6 +96,7 @@ def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
             bucket_path = Path(file_path.parts[0])
 
             if len(file_path.parts) > 2:
+                # append the subdirectory to the parent directory to form the bucket_path
                 bucket_path /= file_path.parts[1]
 
             download_queue[bucket_path].append(file_path.relative_to(bucket_path))
