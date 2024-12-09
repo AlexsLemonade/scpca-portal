@@ -71,7 +71,7 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     resourceRequirements = [
       {
         type  = "VCPU"
-        value = "0.5"
+        value = "1.0"
       },
       {
         type  = "MEMORY"

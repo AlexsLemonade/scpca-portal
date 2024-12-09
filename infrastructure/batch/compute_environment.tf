@@ -2,7 +2,7 @@ resource "aws_batch_compute_environment" "scpca_portal_project" {
   compute_environment_name = "scpca-portal-project-compute-${var.user}-${var.stage}"
 
   compute_resources {
-    max_vcpus = 16
+    max_vcpus = 32
     security_group_ids = [
       aws_security_group.scpca_portal_batch.id
     ]
