@@ -16,6 +16,8 @@ class TokenDownload(TimestampedModel):
     format = models.TextField(null=True)
     modality = models.TextField(null=True)
     includes_merged = models.BooleanField(default=False)
+    metadata_only = models.BooleanField(default=False)
+    portal_metadata_only = models.BooleanField(default=False)
 
     def __str__(self):
         return f"TrackTokenDownload {self.token}"
@@ -30,4 +32,6 @@ class TokenDownload(TimestampedModel):
                 format=computed_file.format,
                 modality=computed_file.modality,
                 includes_merged=computed_file.includes_merged,
+                metadata_only=computed_file.metadata_only,
+                portal_metadata_only=computed_file.portal_metadata_only,
             )
