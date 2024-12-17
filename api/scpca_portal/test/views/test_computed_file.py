@@ -6,9 +6,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from scpca_portal.test.factories import ProjectComputedFileFactory, SampleComputedFileFactory
-
 from scpca_portal.models import TokenDownload
+from scpca_portal.test.factories import ProjectComputedFileFactory, SampleComputedFileFactory
 
 
 class MockS3Client:

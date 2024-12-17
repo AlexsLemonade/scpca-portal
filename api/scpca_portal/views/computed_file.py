@@ -7,7 +7,6 @@ from scpca_portal.models import APIToken, ComputedFile, TokenDownload
 from scpca_portal.serializers import ComputedFileSerializer, ProjectLeafSerializer, SampleSerializer
 
 
-
 class ComputedFileDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComputedFile

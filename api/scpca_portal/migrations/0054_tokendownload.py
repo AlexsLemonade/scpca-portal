@@ -4,29 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('scpca_portal', '0053_rename_demux_cell_count_estimate_sample_demux_cell_count_estimate_sum'),
+        (
+            "scpca_portal",
+            "0053_rename_demux_cell_count_estimate_sample_demux_cell_count_estimate_sum",
+        ),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TokenDownload',
+            name="TokenDownload",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('token', models.TextField()),
-                ('project_id', models.TextField(null=True)),
-                ('sample_id', models.TextField(null=True)),
-                ('format', models.TextField(null=True)),
-                ('modality', models.TextField(null=True)),
-                ('includes_merged', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("token", models.TextField()),
+                ("project_id", models.TextField(null=True)),
+                ("sample_id", models.TextField(null=True)),
+                ("format", models.TextField(null=True)),
+                ("modality", models.TextField(null=True)),
+                ("includes_merged", models.BooleanField(default=False)),
             ],
             options={
-                'db_table': 'track_token_download',
-                'ordering': ['updated_at'],
-                'get_latest_by': 'updated_at',
+                "db_table": "track_token_download",
+                "ordering": ["updated_at"],
+                "get_latest_by": "updated_at",
             },
         ),
     ]

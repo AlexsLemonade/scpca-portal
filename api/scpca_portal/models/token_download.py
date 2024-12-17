@@ -1,7 +1,7 @@
 from django.db import models
 
-from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models import ComputedFile
+from scpca_portal.models.base import TimestampedModel
 
 
 class TokenDownload(TimestampedModel):
