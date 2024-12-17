@@ -80,7 +80,6 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         serializer_context = super(ComputedFileViewSet, self).get_serializer_context()
 
         token_id = self.request.META.get("HTTP_API_KEY")
-        computed_file_pk = self.kwargs.get("pk")
 
         if token_id:
             token = APIToken.verify(token_id)
@@ -89,7 +88,9 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
                     {"message": "Your token is not valid or not activated.", "token_id": token_id}
                 )
 
+            computed_file_pk = self.kwargs.get("pk")
             TokenDownload.track(token_id, computed_file_pk)
+
             serializer_context.update({"token": token})
 
         return serializer_context
