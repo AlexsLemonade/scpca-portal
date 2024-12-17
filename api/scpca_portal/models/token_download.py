@@ -25,13 +25,20 @@ class TokenDownload(TimestampedModel):
     @classmethod
     def track(cls, token_id, computed_file_id):
         if computed_file := ComputedFile.objects.filter(id=computed_file_id).first():
-            TokenDownload.objects.create(
+
+            token_download = TokenDownload.objects.create(
                 token=token_id,
-                project_id=computed_file.project,
-                sample_id=computed_file.sample,
                 format=computed_file.format,
                 modality=computed_file.modality,
                 includes_merged=computed_file.includes_merged,
                 metadata_only=computed_file.metadata_only,
                 portal_metadata_only=computed_file.portal_metadata_only,
             )
+
+            if project := computed_file.project:
+                token_download.project_id = project.scpca_id
+
+            if sample := computed_file.sample:
+                token_download.sample_id = sample.scpca_id
+
+            token_download.save()
