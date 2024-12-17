@@ -3,7 +3,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from scpca_portal.models import APIToken, ComputedFile
+from scpca_portal.models import APIToken, ComputedFile, TokenDownload
 from scpca_portal.serializers import ComputedFileSerializer, ProjectLeafSerializer, SampleSerializer
 
 
@@ -87,6 +87,9 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 raise PermissionDenied(
                     {"message": "Your token is not valid or not activated.", "token_id": token_id}
                 )
+
+            computed_file_pk = self.kwargs.get("pk")
+            TokenDownload.track(token_id, computed_file_pk)
 
             serializer_context.update({"token": token})
 

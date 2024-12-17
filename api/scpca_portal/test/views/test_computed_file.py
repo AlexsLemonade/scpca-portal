@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from scpca_portal.models import TokenDownload
 from scpca_portal.test.factories import ProjectComputedFileFactory, SampleComputedFileFactory
 
 
@@ -42,6 +43,7 @@ class ComputedFilesTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertNotIn("download_url", response.json())
+        self.assertEqual(TokenDownload.objects.all().count(), 0)
 
     @patch("scpca_portal.models.computed_file.s3", MockS3Client())
     def test_get_with_token(self):
@@ -59,10 +61,16 @@ class ComputedFilesTestCase(APITestCase):
 
         self.assertIsNotNone("download_url", response.json())
 
+        # assert that a token download row was created for tracking
+        self.assertEqual(TokenDownload.objects.filter(token=token_id).count(), 1)
+
     def test_get_with_bad_token(self):
         url = reverse("computed-files-detail", args=[self.sample_computed_file.id])
         response = self.client.get(url, HTTP_API_KEY="bad token")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # assert that when a request is made with a bad token there is no tracking recorded
+        self.assertEqual(TokenDownload.objects.filter(token="bad token").count(), 0)
 
     def test_get_list(self):
         response = self.client.get(reverse("computed-files-list"))
