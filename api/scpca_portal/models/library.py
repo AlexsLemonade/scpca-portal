@@ -6,8 +6,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common, s3
-from scpca_portal.models import OriginalFile
 from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.original_file import OriginalFile
 
 
 class Library(TimestampedModel):
