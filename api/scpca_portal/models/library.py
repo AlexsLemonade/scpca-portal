@@ -7,6 +7,7 @@ from django.db import models
 
 from scpca_portal import common, s3
 from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.original_file import OriginalFile
 
 
 class Library(TimestampedModel):
@@ -78,6 +79,10 @@ class Library(TimestampedModel):
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
+
+    @property
+    def original_files(self):
+        return OriginalFile.objects.filter(library_id=self.scpca_id)
 
     @classmethod
     def get_data_file_paths(cls, data: Dict, s3_input_bucket: str) -> List[Path]:

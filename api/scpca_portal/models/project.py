@@ -14,6 +14,7 @@ from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.library import Library
+from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
 from scpca_portal.models.sample import Sample
@@ -97,6 +98,10 @@ class Project(CommonDataAttributes, TimestampedModel):
             for download_config in common.PROJECT_DOWNLOAD_CONFIGS.values()
             if self.get_libraries(download_config).exists()
         ]
+
+    @property
+    def original_files(self):
+        return OriginalFile.objects.filter(project_id=self.scpca_id, library_id=None)
 
     @property
     def computed_files(self):
