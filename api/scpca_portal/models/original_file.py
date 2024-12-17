@@ -24,9 +24,9 @@ class OriginalFile(TimestampedModel):
     library_id = models.TextField()
 
     # existence attributes
-    is_single_cell = models.BooleanField()
-    is_spatial = models.BooleanField()
-    is_single_cell_experiment = models.BooleanField()
-    is_anndata = models.BooleanField()
-    is_merged = models.BooleanField()
-    is_bulk = models.BooleanField()
+    is_single_cell = models.BooleanField(default=False)
+    is_spatial = models.BooleanField(default=False)
+    is_single_cell_experiment = models.BooleanField(default=False)
+    is_anndata = models.BooleanField(default=False)
+    is_merged = models.BooleanField(default=False)
+    is_bulk = models.BooleanField(default=False)
