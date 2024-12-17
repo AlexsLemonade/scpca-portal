@@ -20,8 +20,8 @@ class OriginalFile(TimestampedModel):
 
     # inferred relationship ids
     project_id = models.TextField()
-    sample_id = models.TextField()
-    library_id = models.TextField()
+    sample_id = models.TextField(null=True)
+    library_id = models.TextField(null=True)
 
     # existence attributes
     is_single_cell = models.BooleanField(default=False)
