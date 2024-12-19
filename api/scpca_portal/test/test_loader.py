@@ -526,9 +526,13 @@ class TestLoader(TransactionTestCase):
             "test_project_generate_computed_file_"
             f"{test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
+
+        download_config_name = test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME
         download_config = test_data.Computed_File_Project.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch(
+            "scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {download_config_name: download_config}
+        ):
+            with patch("scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS", {}):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -569,11 +573,17 @@ class TestLoader(TransactionTestCase):
             "test_project_generate_computed_file_"
             f"{test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG_NAME}",
         )
+
+        download_config_name = (
+            test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG_NAME
+        )
         download_config = (
             test_data.Computed_File_Project.SINGLE_CELL_SCE_MULTIPLEXED.DOWNLOAD_CONFIG
         )
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch(
+            "scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {download_config_name: download_config}
+        ):
+            with patch("scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS", {}):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -615,9 +625,15 @@ class TestLoader(TransactionTestCase):
             "test_project_generate_computed_file_"
             f"{test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG_NAME}",
         )
+
+        download_config_name = (
+            test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG_NAME
+        )
         download_config = test_data.Computed_File_Project.SINGLE_CELL_SCE_MERGED.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch(
+            "scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {download_config_name: download_config}
+        ):
+            with patch("scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS", {}):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -657,9 +673,15 @@ class TestLoader(TransactionTestCase):
             "test_project_generate_computed_file_"
             f"{test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
         )
+
+        download_config_name = (
+            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME
+        )
         download_config = test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch(
+            "scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {download_config_name: download_config}
+        ):
+            with patch("scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS", {}):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -699,11 +721,17 @@ class TestLoader(TransactionTestCase):
             "test_project_generate_computed_file_"
             f"{test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG_NAME}",
         )
+
+        download_config_name = (
+            test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG_NAME
+        )
         download_config = (
             test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.DOWNLOAD_CONFIG
         )
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch(
+            "scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {download_config_name: download_config}
+        ):
+            with patch("scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS", {}):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -745,11 +773,17 @@ class TestLoader(TransactionTestCase):
             "test_project_generate_computed_file_"
             f"{test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG_NAME}",  # noqa
         )
+
+        download_config_name = (
+            test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG_NAME
+        )
         download_config = (
             test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
         )
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch(
+            "scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {download_config_name: download_config}
+        ):
+            with patch("scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS", {}):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -788,9 +822,14 @@ class TestLoader(TransactionTestCase):
             "test_project_generate_computed_file_"
             f"{test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG_NAME}",
         )
+
+        download_config_name = test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG_NAME
         download_config = test_data.Computed_File_Project.ALL_METADATA.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", [download_config]):
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", []):
+        with patch(
+            "scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS",
+            {download_config_name: download_config},
+        ):
+            with patch("scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS", {}):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -839,12 +878,16 @@ class TestLoader(TransactionTestCase):
             f"{test_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
 
+        download_config_name = test_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME
         download_config = test_data.Computed_File_Sample.SINGLE_CELL_SCE.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {}):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
             self.purge_extra_samples(project, [sample_id])
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
+            with patch(
+                "scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS",
+                {download_config_name: download_config},
+            ):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -890,12 +933,18 @@ class TestLoader(TransactionTestCase):
             f"{test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME}",
         )
 
+        download_config_name = (
+            test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG_NAME
+        )
         download_config = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {}):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
             self.purge_extra_samples(project, [sample_id])
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
+            with patch(
+                "scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS",
+                {download_config_name: download_config},
+            ):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -941,12 +990,16 @@ class TestLoader(TransactionTestCase):
             f"{test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME}",
         )
 
+        download_config_name = test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME
         download_config = test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {}):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
             self.purge_extra_samples(project, [sample_id])
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
+            with patch(
+                "scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS",
+                {download_config_name: download_config},
+            ):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE
@@ -991,16 +1044,22 @@ class TestLoader(TransactionTestCase):
                 f"{test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME}",  # noqa
             )
 
+        download_config_name = (
+            test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG_NAME
+        )
         download_config = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.DOWNLOAD_CONFIG
 
-        with patch("scpca_portal.common.GENERATED_PROJECT_DOWNLOAD_CONFIGS", []):
+        with patch("scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {}):
             # While only one sample of intended modality and format is necessary for other tests,
             # all multiplexed samples must be present to validate correctness here.
             # This is a result of how we create multiplexed sample computed files,
             # where we take the sample with the highest id for computed file generation,
             # and build computed file objects for other samples from the chosen sample.
             self.purge_extra_samples(project, sample_ids)
-            with patch("scpca_portal.common.GENERATED_SAMPLE_DOWNLOAD_CONFIGS", [download_config]):
+            with patch(
+                "scpca_portal.common.SAMPLE_DOWNLOAD_CONFIGS",
+                {download_config_name: download_config},
+            ):
                 self.generate_computed_files(project)
 
         # CHECK ZIP FILE

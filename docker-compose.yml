@@ -21,6 +21,7 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
       - DEV_HOST=http://localhost:${API_PORT}
+      - LOG_RUNTIMES
     command: >
       bash -c 'python wait_for_postgres.py &&
                ./manage.py migrate &&

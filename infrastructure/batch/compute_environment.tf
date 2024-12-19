@@ -18,5 +18,5 @@ resource "aws_batch_compute_environment" "scpca_portal_project" {
   type         = "MANAGED"
   depends_on   = [aws_iam_role_policy_attachment.batch_service_role]
 
-  tags = var.default_tags
+  tags = var.batch_tags
 }

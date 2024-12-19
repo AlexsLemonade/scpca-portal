@@ -1,5 +1,5 @@
 import subprocess
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 from pathlib import Path
 from typing import List
 
@@ -82,24 +82,44 @@ def list_input_paths(
 
 def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
-    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", settings.INPUT_DATA_PATH]
 
-    download_queue = [fp for fp in file_paths if not fp.exists()]
-    # If download_queue is empty, exit early
-    if not download_queue:
-        return True
+    # NOTE: AWS Sync does one iteration per include flag.
+    # This causes a tremendous slowdown when trying to sync a long list of specific files.
+    # In order to overcome this we should sync once
+    # per project folder's immediate child subdirectory or file.
+    download_queue = defaultdict(list)
 
-    command_parts.append("--exclude=*")
-    command_parts.extend([f"--include={file_path}" for file_path in download_queue])
+    for file_path in file_paths:
+        if not file_path.exists():
 
-    if "public-test" in bucket_name:
-        command_parts.append("--no-sign-request")
+            # default to project folder for immediately nested files
+            bucket_path = Path(file_path.parts[0])
 
-    try:
-        subprocess.check_call(command_parts)
-    except subprocess.CalledProcessError as error:
-        logger.error(f"Data files failed to download due to the following error:\n\t{error}")
-        return False
+            if len(file_path.parts) > 2:
+                # append the subdirectory to the parent directory to form the bucket_path
+                bucket_path /= file_path.parts[1]
+
+            download_queue[bucket_path].append(file_path.relative_to(bucket_path))
+
+    for bucket_path, project_file_paths in download_queue.items():
+        command_parts = [
+            "aws",
+            "s3",
+            "sync",
+            f"s3://{bucket_name}/{bucket_path}",
+            settings.INPUT_DATA_PATH / bucket_path,
+        ]
+        command_parts.append("--exclude=*")
+        command_parts.extend([f"--include={file_path}" for file_path in project_file_paths])
+
+        if "public-test" in bucket_name:
+            command_parts.append("--no-sign-request")
+
+        try:
+            subprocess.check_call(command_parts)
+        except subprocess.CalledProcessError as error:
+            logger.error(f"Data files failed to download due to the following error:\n\t{error}")
+            return False
 
     return True
 
