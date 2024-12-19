@@ -2,7 +2,7 @@
 
 from collections import namedtuple
 from datetime import datetime
-from typing import Any, Dict, Iterable, List, Set, Tuple
+from typing import Any, Callable, Dict, List, Set, Tuple
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -113,7 +113,7 @@ def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
     return data_dict
 
 
-def transform_values(data_dict: Dict, value_transforms: Iterable[Tuple]):
+def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable]):
     """
     Transform values in data dict according to transformation functions in value transform dict.
     """

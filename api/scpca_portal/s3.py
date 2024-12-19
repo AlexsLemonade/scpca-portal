@@ -1,3 +1,4 @@
+import json
 import subprocess
 from collections import defaultdict, namedtuple
 from pathlib import Path
@@ -8,10 +9,47 @@ from django.conf import settings
 import boto3
 from botocore.client import Config
 
+from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
+
+S3_OBJECT_KEYS = [
+    # (old_key, new_key, default_value)
+    ("Key", "s3_key", ""),
+    ("Size", "size_in_bytes", 0),
+    ("ETag", "hash", ""),
+]
+
+# remove `-#` from end of hashes
+# this number represents the number of chunks the file was originally uploaded in
+S3_OBJECT_VALUES = {"hash": lambda hash_value: hash_value.strip('"').split("-")[0]}
+
+
+def remove_listed_directories(listed_objects):
+    return [obj for obj in listed_objects if obj["Size"] > 0]
+
+
+def list_bucket_objects(bucket_name: str):
+    """ """
+    command_inputs = ["aws", "s3api", "list-objects", "--bucket", bucket_name, "--output", "json"]
+
+    try:
+        result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
+        raw_json_output = result.stdout
+    except subprocess.CalledProcessError as error:
+        logger.warning("""`{}`""".format(error))
+        return {}
+
+    json_output = json.loads(raw_json_output)
+    all_listed_objects = json_output.get("Contents")
+    listed_objects = remove_listed_directories(all_listed_objects)
+    for listed_object in listed_objects:
+        utils.transform_keys(listed_object, S3_OBJECT_KEYS)
+        utils.transform_values(listed_object, S3_OBJECT_VALUES)
+
+    return listed_objects
 
 
 def list_input_paths(
