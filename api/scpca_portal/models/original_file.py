@@ -17,6 +17,7 @@ class OriginalFile(TimestampedModel):
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
     hash = models.CharField(max_length=33)
+    last_bucket_sync = models.DateTimeField()
 
     # inferred relationship ids
     project_id = models.TextField()
@@ -28,5 +29,9 @@ class OriginalFile(TimestampedModel):
     is_spatial = models.BooleanField(default=False)
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
-    is_merged = models.BooleanField(default=False)
     is_bulk = models.BooleanField(default=False)
+    is_merged = models.BooleanField(default=False)
+    is_metadata = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Original File {self.s3_key} from project {self.project_id} ({self.size_in_bytes}B)"
