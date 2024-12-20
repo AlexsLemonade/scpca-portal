@@ -1,3 +1,7 @@
+import time
+from pathlib import Path
+from typing import Dict, List
+
 from django.db import models
 
 from scpca_portal.config.logging import get_and_configure_logger
@@ -35,3 +39,50 @@ class OriginalFile(TimestampedModel):
 
     def __str__(self):
         return f"Original File {self.s3_key} from project {self.project_id} ({self.size_in_bytes}B)"
+
+    @classmethod
+    def get_from_dict(cls, file_object, bucket, sync_timestamp):
+        s3_key = Path(file_object["s3_key"])
+
+        project_id, sample_id, library_id = OriginalFile.get_relationship_ids(s3_key)
+        is_single_cell, is_spatial = OriginalFile.get_modalities(s3_key)
+        is_single_cell_experiment, is_anndata, is_metadata = OriginalFile.get_formats(s3_key)
+        is_bulk, is_merged = OriginalFile.get_project_file_properties(s3_key)
+
+        original_file = cls(
+            s3_bucket=bucket,
+            s3_key=s3_key,
+            size_in_bytes=file_object["size_in_bytes"],
+            hash=file_object["hash"],
+            last_bucket_sync=sync_timestamp,
+            project_id=project_id,
+            sample_id=sample_id,
+            library_id=library_id,
+            is_single_cell=is_single_cell,
+            is_spatial=is_spatial,
+            is_single_cell_experiment=is_single_cell_experiment,
+            is_anndata=is_anndata,
+            is_bulk=is_bulk,
+            is_merged=is_merged,
+            is_metadata=is_metadata,
+        )
+
+        return original_file
+
+    @classmethod
+    def bulk_create_from_dicts(cls, file_objects, bucket, sync_timestamp):
+        original_files = []
+        for file_object in file_objects:
+            if not OriginalFile.objects.filter(
+                s3_bucket=bucket, s3_key=file_object["s3_key"]
+            ).exists():
+                original_files.append(
+                    OriginalFile.get_from_dict(file_object, bucket, sync_timestamp)
+                )
+
+        OriginalFile.objects.bulk_create(original_files)
+
+    @staticmethod
+    def sync_files(file_objects: List[Dict], bucket):
+        sync_timestamp = time.time()
+        OriginalFile.bulk_create_from_dicts(file_objects, bucket, sync_timestamp)
