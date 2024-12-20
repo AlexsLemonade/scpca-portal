@@ -2,7 +2,7 @@ import json
 import subprocess
 from collections import defaultdict, namedtuple
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from django.conf import settings
 
@@ -31,7 +31,7 @@ def remove_listed_directories(listed_objects):
     return [obj for obj in listed_objects if obj["Size"] > 0]
 
 
-def list_bucket_objects(bucket_name: str):
+def list_bucket_objects(bucket_name: str) -> List[Dict]:
     """ """
     command_inputs = ["aws", "s3api", "list-objects", "--bucket", bucket_name, "--output", "json"]
 
