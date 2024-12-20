@@ -1,6 +1,4 @@
-import time
 from pathlib import Path
-from typing import Dict, List
 
 from django.db import models
 
@@ -151,10 +149,3 @@ class OriginalFile(TimestampedModel):
             is_merged = True
 
         return is_bulk, is_merged
-
-    @staticmethod
-    def sync_files(file_objects: List[Dict], bucket):
-        sync_timestamp = time.time()
-        OriginalFile.bulk_create_from_dicts(file_objects, bucket, sync_timestamp)
-        # OriginalFile.bulk_create_from_dicts(file_objects, sync_timestamp)
-        # OriginalFile.bulk_create_from_dicts(file_objects, sync_timestamp)
