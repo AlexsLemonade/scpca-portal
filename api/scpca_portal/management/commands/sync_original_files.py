@@ -30,5 +30,3 @@ class Command(BaseCommand):
     def sync_original_files(self, file_objects: List[Dict], bucket):
         sync_timestamp = time.time()
         OriginalFile.bulk_create_from_dicts(file_objects, bucket, sync_timestamp)
-        # OriginalFile.bulk_update_from_dicts(file_objects, sync_timestamp)
-        # OriginalFile.purge_delete_files(sync_timestamp)
