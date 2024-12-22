@@ -95,6 +95,7 @@ class OriginalFile(TimestampedModel):
     def update_instance(
         cls, original_instance: Self, new_instance: Self, fields: List[str]
     ) -> Self:
+        """Replace attributes from original instance with those of new instance."""
         for field in fields:
             setattr(original_instance, field, getattr(new_instance, field))
 
