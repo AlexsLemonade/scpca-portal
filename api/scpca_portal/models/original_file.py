@@ -1,8 +1,9 @@
-import time
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 
 from django.db import models
+from django.utils.timezone import make_aware
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -157,5 +158,5 @@ class OriginalFile(TimestampedModel):
 
     @staticmethod
     def sync(file_objects: List[Dict], bucket_name: str) -> None:
-        sync_timestamp = time.time()
+        sync_timestamp = make_aware(datetime.now())
         OriginalFile.bulk_create_from_dicts(file_objects, bucket_name, sync_timestamp)
