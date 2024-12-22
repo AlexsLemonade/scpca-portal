@@ -189,7 +189,15 @@ class OriginalFile(TimestampedModel):
         return is_bulk, is_merged
 
     @staticmethod
+    def purge_deleted_files(sync_timestamp) -> None:
+        """Purge all files that no longer exist on s3."""
+        # if the last_bucket_sync timestamp wasn't updated,
+        # then the file has been deleted from s3, which must be reflected in the db.
+        OriginalFile.objects.exclude(last_bucket_sync=sync_timestamp).delete()
+
+    @staticmethod
     def sync(file_objects: List[Dict], bucket_name: str) -> None:
         sync_timestamp = make_aware(datetime.now())
         OriginalFile.bulk_create_from_dicts(file_objects, bucket_name, sync_timestamp)
         OriginalFile.bulk_update_from_dicts(file_objects, bucket_name, sync_timestamp)
+        OriginalFile.purge_deleted_files(sync_timestamp)
