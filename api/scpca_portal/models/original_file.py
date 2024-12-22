@@ -30,7 +30,7 @@ class OriginalFile(TimestampedModel):
     last_bucket_sync = models.DateTimeField()
 
     # inferred relationship ids
-    project_id = models.TextField()
+    project_id = models.TextField(null=True)
     sample_id = models.TextField(null=True)
     library_id = models.TextField(null=True)
 
@@ -44,7 +44,7 @@ class OriginalFile(TimestampedModel):
     is_metadata = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Original File {self.s3_key} from project {self.project_id} ({self.size_in_bytes}B)"
+        return f"Original File {self.s3_key} from Project {self.project_id} ({self.size_in_bytes}B)"
 
     @classmethod
     def get_from_dict(cls, file_object, bucket, sync_timestamp):
@@ -97,7 +97,10 @@ class OriginalFile(TimestampedModel):
     @staticmethod
     def get_relationship_ids(s3_key: Path) -> Tuple:
         """Parses s3_key and returns project, sample and library ids."""
-        project_id = next(p for p in s3_key.parts if OriginalFile.IdPrefixes.PROJECT in p)
+        project_id = next(
+            (p for p in s3_key.parts if OriginalFile.IdPrefixes.PROJECT in p),
+            None,  # the only file w.o. a project id path part should be the projects metadata file
+        )
         sample_id = next((p for p in s3_key.parts if OriginalFile.IdPrefixes.SAMPLE in p), None)
         library_id = next(
             # library ids are prepended to files followed by an underscore

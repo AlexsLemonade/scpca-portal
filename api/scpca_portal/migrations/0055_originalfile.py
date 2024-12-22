@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ("s3_key", models.TextField()),
                 ("size_in_bytes", models.BigIntegerField()),
                 ("hash", models.CharField(max_length=33)),
-                ("project_id", models.TextField()),
+                ("project_id", models.TextField(null=True)),
                 ("sample_id", models.TextField(null=True)),
                 ("library_id", models.TextField(null=True)),
                 ("is_single_cell", models.BooleanField(default=False)),
