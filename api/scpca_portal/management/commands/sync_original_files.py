@@ -23,5 +23,10 @@ class Command(BaseCommand):
         self.sync_original_files(**kwargs)
 
     def sync_original_files(self, bucket_name: str, **kwargs):
+        logger.info("Initiating listing of bucket objects...")
         listed_objects = s3.list_bucket_objects(bucket_name)
+        logger.info("Bucket object listing complete!")
+
+        logger.info("Syncing database...")
         OriginalFile.sync(listed_objects, bucket_name)
+        logger.info("Database syncing complete!")
