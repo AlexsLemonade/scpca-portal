@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from django.db import models
 
@@ -16,6 +16,11 @@ class OriginalFile(TimestampedModel):
         db_table = "original_files"
         get_latest_by = "updated_at"
         ordering = ["updated_at", "id"]
+
+    class IdPrefixes:
+        PROJECT = "SCPCP"
+        SAMPLE = "SCPCS"
+        LIBRARY = "SCPCL"
 
     # s3 info
     s3_bucket = models.TextField()
@@ -85,43 +90,33 @@ class OriginalFile(TimestampedModel):
 
     @staticmethod
     def is_project_file(s3_key: Path) -> bool:
-        """
-        Checks to see if file is a project data file and not a library data file.
-        """
-        # with library files, the second path part is the Sample directory,
-        # whereas with project files it's not
-        return "SCPCS" not in s3_key.parts[1]
+        """Checks to see if file is a project data file, and not a library data file."""
+        # project files will not have sample subdirectories
+        return next((True for p in s3_key.parts if OriginalFile.IdPrefixes.SAMPLE in p), False)
 
     @staticmethod
-    def get_relationship_ids(s3_key: Path):
-        PROJECT_ID_PREFIX = "SCPCP"
-        SAMPLE_ID_PREFIX = "SCPCS"
-        LIBRARY_ID_PREFIX = "SCPCL"
-
-        project_id = next(path_part for path_part in s3_key.parts if PROJECT_ID_PREFIX in path_part)
-        if OriginalFile.is_project_file(s3_key):
-            return project_id, None, None
-
-        sample_id = next(path_part for path_part in s3_key.parts if SAMPLE_ID_PREFIX in path_part)
+    def get_relationship_ids(s3_key: Path) -> Tuple:
+        """Parses s3_key and returns project, sample and library ids."""
+        project_id = next(p for p in s3_key.parts if OriginalFile.IdPrefixes.PROJECT in p)
+        sample_id = next((p for p in s3_key.parts if OriginalFile.IdPrefixes.SAMPLE in p), None)
         library_id = next(
-            path_part.split("_")[0]  # library ids are prepended to files followed by an underscore
-            for path_part in s3_key.parts
-            if LIBRARY_ID_PREFIX in path_part
+            # library ids are prepended to files followed by an underscore
+            (p.split("_")[0] for p in s3_key.parts if OriginalFile.IdPrefixes.LIBRARY in p),
+            None,
         )
 
         return project_id, sample_id, library_id
 
     @staticmethod
-    def get_modalities(s3_key: Path):
+    def get_modalities(s3_key: Path) -> Tuple:
+        """Returns file modalities using s3_key."""
         is_single_cell, is_spatial = False, False
 
         if OriginalFile.is_project_file(s3_key):
             return is_single_cell, is_spatial
 
-        # third part of the path is library portion
-        # library portion is either data file or spatial directory,
-        # of the form library id, underscore, file or directory name
-        if s3_key.parts[2].split("_")[1] == "spatial":
+        # spatial files will have a "spatial" subdirectory
+        if next((True for p in s3_key.parts if "spatial" in p), False):
             is_spatial = True
         else:
             is_single_cell = True
@@ -129,7 +124,8 @@ class OriginalFile(TimestampedModel):
         return is_single_cell, is_spatial
 
     @staticmethod
-    def get_formats(s3_key: Path):
+    def get_formats(s3_key: Path) -> Tuple:
+        """Returns file formats using s3_key."""
         is_single_cell_experiment, is_anndata, is_metadata = False, False, False
 
         if s3_key.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]:
@@ -142,12 +138,16 @@ class OriginalFile(TimestampedModel):
         return is_single_cell_experiment, is_anndata, is_metadata
 
     @staticmethod
-    def get_project_file_properties(s3_key: Path):
+    def get_project_file_properties(s3_key: Path) -> Tuple:
+        """Returns project file properties using s3_key."""
         is_bulk, is_merged = False, False
 
-        if s3_key.parts[1] == "bulk":
+        if not OriginalFile.is_project_file(s3_key):
+            return is_bulk, is_merged
+
+        if "bulk" in s3_key.parts:
             is_bulk = True
-        elif s3_key.parts[1] == "merged":
+        elif "merged" in s3_key.parts:
             is_merged = True
 
         return is_bulk, is_merged
