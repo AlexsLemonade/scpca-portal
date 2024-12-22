@@ -191,3 +191,4 @@ class OriginalFile(TimestampedModel):
     def sync(file_objects: List[Dict], bucket_name: str) -> None:
         sync_timestamp = make_aware(datetime.now())
         OriginalFile.bulk_create_from_dicts(file_objects, bucket_name, sync_timestamp)
+        OriginalFile.bulk_update_from_dicts(file_objects, bucket_name, sync_timestamp)
