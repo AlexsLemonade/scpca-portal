@@ -5,6 +5,8 @@ from typing import Dict, List, Tuple
 from django.db import models
 from django.utils.timezone import make_aware
 
+from typing_extensions import Self
+
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import TimestampedModel
@@ -88,6 +90,35 @@ class OriginalFile(TimestampedModel):
                 )
 
         OriginalFile.objects.bulk_create(original_files)
+
+    @classmethod
+    def update_instance(
+        cls, original_instance: Self, new_instance: Self, fields: List[str]
+    ) -> Self:
+        for field in fields:
+            setattr(original_instance, field, getattr(new_instance, field))
+
+        return original_instance
+
+    @classmethod
+    def bulk_update_from_dicts(cls, file_objects, bucket, sync_timestamp):
+        updated_original_files = []
+        fields = [
+            field.name
+            for field in cls._meta.get_fields()
+            if field.name not in ["id", "created_at", "updated_at"]  # keep these fields intact
+        ]
+
+        for file_object in file_objects:
+            if original_instance := OriginalFile.objects.filter(
+                s3_bucket=bucket, s3_key=file_object["s3_key"]
+            ).first():
+                new_instance = OriginalFile.get_from_dict(file_object, bucket, sync_timestamp)
+                updated_original_files.append(
+                    OriginalFile.update_instance(original_instance, new_instance, fields)
+                )
+
+        OriginalFile.objects.bulk_update(updated_original_files, fields)
 
     @staticmethod
     def is_project_file(s3_key: Path) -> bool:
