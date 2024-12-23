@@ -193,17 +193,15 @@ class OriginalFile(TimestampedModel):
         """Purge all files that no longer exist on s3."""
         # if the last_bucket_sync timestamp wasn't updated,
         # then the file has been deleted from s3, which must be reflected in the db.
-        sync_timestamp = make_aware(datetime(2024, 12, 23, 17, 2, 55, 216330))
-
-        deleted_files = OriginalFile.objects.exclude(last_bucket_sync=sync_timestamp)
-        if deleted_files.exists():
-            deleted_files_formatted_str = "\n".join(f"- {str(df)}" for df in deleted_files)
+        deletable_files = OriginalFile.objects.exclude(last_bucket_sync=sync_timestamp)
+        if deletable_files.exists():
+            deletable_files_formatted_str = "\n".join(f"- {str(df)}" for df in deletable_files)
             raise RuntimeError(
                 "The following files were deleted on s3 "
                 "and must be deleted in the OriginalFile table as well:\n"
-                f"{deleted_files_formatted_str}"
+                f"{deletable_files_formatted_str}"
             )
-        # deleted_files.delete()
+        # deletable_files.delete()
 
     @staticmethod
     def sync(file_objects: List[Dict], bucket_name: str) -> None:
