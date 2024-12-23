@@ -122,6 +122,21 @@ class OriginalFile(TimestampedModel):
         OriginalFile.objects.bulk_update(updatable_original_files, fields)
 
     @staticmethod
+    def purge_deleted_files(sync_timestamp) -> None:
+        """Purge all files that no longer exist on s3."""
+        # if the last_bucket_sync timestamp wasn't updated,
+        # then the file has been deleted from s3, which must be reflected in the db.
+        deletable_files = OriginalFile.objects.exclude(last_bucket_sync=sync_timestamp)
+        if deletable_files.exists():
+            deletable_files_formatted_str = "\n".join(f"- {str(df)}" for df in deletable_files)
+            raise RuntimeError(
+                "The following files were deleted on s3 "
+                "and must be deleted in the OriginalFile table as well:\n"
+                f"{deletable_files_formatted_str}"
+            )
+        # deletable_files.delete()
+
+    @staticmethod
     def is_project_file(s3_key: Path) -> bool:
         """Checks to see if file is a project data file, and not a library data file."""
         # project files will not have sample subdirectories
@@ -187,21 +202,6 @@ class OriginalFile(TimestampedModel):
             is_merged = True
 
         return is_bulk, is_merged
-
-    @staticmethod
-    def purge_deleted_files(sync_timestamp) -> None:
-        """Purge all files that no longer exist on s3."""
-        # if the last_bucket_sync timestamp wasn't updated,
-        # then the file has been deleted from s3, which must be reflected in the db.
-        deletable_files = OriginalFile.objects.exclude(last_bucket_sync=sync_timestamp)
-        if deletable_files.exists():
-            deletable_files_formatted_str = "\n".join(f"- {str(df)}" for df in deletable_files)
-            raise RuntimeError(
-                "The following files were deleted on s3 "
-                "and must be deleted in the OriginalFile table as well:\n"
-                f"{deletable_files_formatted_str}"
-            )
-        # deletable_files.delete()
 
     @staticmethod
     def sync(file_objects: List[Dict], bucket_name: str) -> None:
