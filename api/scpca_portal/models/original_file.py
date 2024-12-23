@@ -103,7 +103,7 @@ class OriginalFile(TimestampedModel):
 
     @classmethod
     def bulk_update_from_dicts(cls, file_objects, bucket, sync_timestamp):
-        updated_original_files = []
+        updatable_original_files = []
         fields = [
             field.name
             for field in cls._meta.get_fields()
@@ -115,11 +115,11 @@ class OriginalFile(TimestampedModel):
                 s3_bucket=bucket, s3_key=file_object["s3_key"]
             ).first():
                 new_instance = OriginalFile.get_from_dict(file_object, bucket, sync_timestamp)
-                updated_original_files.append(
+                updatable_original_files.append(
                     OriginalFile.update_instance(original_instance, new_instance, fields)
                 )
 
-        OriginalFile.objects.bulk_update(updated_original_files, fields)
+        OriginalFile.objects.bulk_update(updatable_original_files, fields)
 
     @staticmethod
     def is_project_file(s3_key: Path) -> bool:
