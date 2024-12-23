@@ -198,6 +198,9 @@ class OriginalFile(TimestampedModel):
     @staticmethod
     def sync(file_objects: List[Dict], bucket_name: str) -> None:
         sync_timestamp = make_aware(datetime.now())
+        logger.info("Inserting new OriginalFiles.")
         OriginalFile.bulk_create_from_dicts(file_objects, bucket_name, sync_timestamp)
+        logger.info("Updating modified existing OriginalFiles.")
         OriginalFile.bulk_update_from_dicts(file_objects, bucket_name, sync_timestamp)
+        logger.info("Purging OriginalFiles that were deleted from s3.")
         OriginalFile.purge_deleted_files(sync_timestamp)
