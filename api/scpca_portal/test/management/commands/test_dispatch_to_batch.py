@@ -28,3 +28,15 @@ class TestLoadData(TestCase):
         )
         self.assertIn(project_no_files.scpca_id, submitted_project_ids)
         self.assertNotIn(project_with_files.scpca_id, submitted_project_ids)
+
+    @patch("scpca_portal.management.commands.dispatch_to_batch.Command.submit_job")
+    def test_project_id_submission(self, mock_submit_job):
+        project = ProjectFactory()
+
+        # TODO: remove this patch when we get rid of sample computed file generation
+        with patch("scpca_portal.models.Project.samples_to_generate", []):
+            self.dispatch_to_batch(project_id=project.scpca_id)
+        mock_submit_job.assert_called()
+
+        submitted_project_id = mock_submit_job.call_args.kwargs["project_id"]
+        self.assertEqual(project.scpca_id, submitted_project_id)
