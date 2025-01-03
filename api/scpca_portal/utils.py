@@ -95,4 +95,5 @@ def get_csv_zipped_values(
     zips together the values within the new iterables which share the same index,
     and returns the zipped values as a list.
     """
-    return list(zip(*(data.get(key).split(delimiter) for key in args), strict=True))
+    # Fallback to an empty string for missing keys
+    return list(zip(*(data.get(key, "").split(delimiter) for key in args), strict=True))
