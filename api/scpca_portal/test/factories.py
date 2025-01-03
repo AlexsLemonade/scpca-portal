@@ -169,4 +169,15 @@ class LibraryFactory(factory.django.DjangoModelFactory):
 class ProjectFactory(LeafProjectFactory):
     computed_file1 = factory.RelatedFactory(ProjectComputedFileFactory, "project")
     sample1 = factory.RelatedFactory(SampleFactory, "project")
+    library1 = factory.RelatedFactory(LibraryFactory, "project")
     summary1 = factory.RelatedFactory(ProjectSummaryFactory, factory_related_name="project")
+
+    @factory.post_generation
+    def add_sample_library_relation(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        sample = self.samples.first()
+        library = self.libraries.first()
+
+        sample.libraries.add(library)
