@@ -18,11 +18,6 @@ class OriginalFile(TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at", "id"]
 
-    class IdPrefixes:
-        PROJECT = "SCPCP"
-        SAMPLE = "SCPCS"
-        LIBRARY = "SCPCL"
-
     # s3 info
     s3_bucket = models.TextField()
     s3_key = models.TextField()
@@ -95,19 +90,19 @@ class OriginalFile(TimestampedModel):
     def is_project_file(s3_key: Path) -> bool:
         """Checks to see if file is a project data file, and not a library data file."""
         # project files will not have sample subdirectories
-        return next((True for p in s3_key.parts if OriginalFile.IdPrefixes.SAMPLE in p), False)
+        return next((True for p in s3_key.parts if common.SAMPLE_ID_PREFIX in p), False)
 
     @staticmethod
     def get_relationship_ids(s3_key: Path) -> Tuple:
         """Parses s3_key and returns project, sample and library ids."""
         project_id = next(
-            (p for p in s3_key.parts if OriginalFile.IdPrefixes.PROJECT in p),
+            (p for p in s3_key.parts if common.PROJECT_ID_PREFIX in p),
             None,  # the only file w.o. a project id path part should be the projects metadata file
         )
-        sample_id = next((p for p in s3_key.parts if OriginalFile.IdPrefixes.SAMPLE in p), None)
+        sample_id = next((p for p in s3_key.parts if common.SAMPLE_ID_PREFIX in p), None)
         library_id = next(
             # library ids are prepended to files followed by an underscore
-            (p.split("_")[0] for p in s3_key.parts if OriginalFile.IdPrefixes.LIBRARY in p),
+            (p.split("_")[0] for p in s3_key.parts if common.LIBRARY_ID_PREFIX in p),
             None,
         )
 

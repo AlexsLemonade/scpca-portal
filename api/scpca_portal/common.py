@@ -96,6 +96,11 @@ PROJECT_ID_KEY = "scpca_project_id"
 SAMPLE_ID_KEY = "scpca_sample_id"
 LIBRARY_ID_KEY = "scpca_library_id"
 
+# Id Prefixes
+PROJECT_ID_PREFIX = "SCPCP"
+SAMPLE_ID_PREFIX = "SCPCS"
+LIBRARY_ID_PREFIX = "SCPCL"
+
 PROJECT_DOWNLOAD_CONFIGS = {
     "SINGLE_CELL_SINGLE_CELL_EXPERIMENT": {
         "modality": "SINGLE_CELL",
