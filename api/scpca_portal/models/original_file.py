@@ -28,7 +28,8 @@ class OriginalFile(TimestampedModel):
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
     hash = models.CharField(max_length=33)
-    last_bucket_sync = models.DateTimeField()
+    hash_change_at = models.DateTimeField()
+    bucket_sync_at = models.DateTimeField()
 
     # inferred relationship ids
     project_id = models.TextField(null=True)
@@ -61,7 +62,8 @@ class OriginalFile(TimestampedModel):
             s3_key=s3_key,
             size_in_bytes=file_object["size_in_bytes"],
             hash=file_object["hash"],
-            last_bucket_sync=sync_timestamp,
+            hash_change_at=sync_timestamp,
+            bucket_sync_at=sync_timestamp,
             project_id=project_id,
             sample_id=sample_id,
             library_id=library_id,
