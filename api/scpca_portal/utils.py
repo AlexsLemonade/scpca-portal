@@ -1,7 +1,8 @@
 """Misc utils."""
 
+from collections import namedtuple
 from datetime import datetime
-from typing import Any, Dict, List, Set
+from typing import Any, Callable, Dict, List, Set, Tuple
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -97,3 +98,27 @@ def get_csv_zipped_values(
     """
     # Fallback to an empty string for missing keys
     return list(zip(*(data.get(key, "").split(delimiter) for key in args), strict=True))
+
+
+KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
+
+
+def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
+    """
+    Transforms keys in inputted data dict according to inputted key transforms tuple list.
+    """
+    for element in [KeyTransform._make(element) for element in key_transforms]:
+        if element.old_key in data_dict:
+            data_dict[element.new_key] = data_dict.pop(element.old_key, element.default_value)
+
+    return data_dict
+
+
+def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable]):
+    """
+    Transform values in data dict according to transformation functions in value transform dict.
+    """
+    for key, transformation_function in value_transforms.items():
+        data_dict[key] = transformation_function(data_dict[key])
+
+    return data_dict
