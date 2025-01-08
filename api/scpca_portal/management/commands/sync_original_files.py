@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import List
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -24,6 +25,12 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.sync_original_files(**kwargs)
 
+    def generate_formatted_file_string(self, files: List[OriginalFile], file_type: str) -> str:
+        formatted_file_str = f"{file_type}:\n"
+        formatted_file_str += "\n".join(f"- {str(f)}" for f in files)
+        formatted_file_str += "\n"
+        return formatted_file_str
+
     def sync_original_files(self, bucket_name: str, **kwargs):
         logger.info("Initiating listing of bucket objects...")
         listed_objects = s3.list_bucket_objects(bucket_name)
@@ -32,16 +39,26 @@ class Command(BaseCommand):
         sync_timestamp = make_aware(datetime.now())
 
         logger.info("Updating modified existing OriginalFiles.")
-        OriginalFile.bulk_update_from_dicts(listed_objects, bucket_name, sync_timestamp)
+        updated_files = OriginalFile.bulk_update_from_dicts(
+            listed_objects, bucket_name, sync_timestamp
+        )
 
         logger.info("Inserting new OriginalFiles.")
-        OriginalFile.bulk_create_from_dicts(listed_objects, bucket_name, sync_timestamp)
+        created_files = OriginalFile.bulk_create_from_dicts(
+            listed_objects, bucket_name, sync_timestamp
+        )
 
         logger.info("Purging OriginalFiles that were deleted from s3.")
-        OriginalFile.purge_deleted_files(sync_timestamp)
+        deleted_files = OriginalFile.purge_deleted_files(sync_timestamp)
 
         logger.info("Database syncing complete!")
 
         # log out states from the files that changed (updated, created, deleted)
+        logger.info(
+            "File Changes Breakdown:\n"
+            f"{self.generate_formatted_file_string(updated_files, 'Updated Files')}"
+            f"{self.generate_formatted_file_string(created_files, 'Created Files')}"
+            f"{self.generate_formatted_file_string(deleted_files, 'Deleted Files')}"
+        )
 
         # TODO: send log to slack as well when notification module is set up
