@@ -26,8 +26,11 @@ class Command(BaseCommand):
         self.sync_original_files(**kwargs)
 
     def generate_formatted_file_string(self, files: List[OriginalFile], file_type: str) -> str:
+        if not files:
+            return ""
+
         formatted_file_str = f"{file_type}:\n"
-        formatted_file_str += "\n".join(f"- {str(f)}" for f in files)
+        formatted_file_str += "\n".join(f"- {str(f)}" for f in files) if files else "- None"
         formatted_file_str += "\n"
         return formatted_file_str
 
@@ -54,11 +57,12 @@ class Command(BaseCommand):
         logger.info("Database syncing complete!")
 
         # log out states from the files that changed (updated, created, deleted)
-        logger.info(
-            "File Changes Breakdown:\n"
-            f"{self.generate_formatted_file_string(updated_files, 'Updated Files')}"
-            f"{self.generate_formatted_file_string(created_files, 'Created Files')}"
-            f"{self.generate_formatted_file_string(deleted_files, 'Deleted Files')}"
-        )
+        if updated_files or created_files or deleted_files:
+            logger.info(
+                "\nFile Changes Breakdown\n"
+                f"{self.generate_formatted_file_string(updated_files, 'Updated Files')}"
+                f"{self.generate_formatted_file_string(created_files, 'Created Files')}"
+                f"{self.generate_formatted_file_string(deleted_files, 'Deleted Files')}"
+            )
 
         # TODO: send log to slack as well when notification module is set up
