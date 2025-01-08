@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Set, Tuple
 
 from django.db import models
 from django.utils.timezone import make_aware
@@ -76,7 +76,7 @@ class OriginalFile(TimestampedModel):
         return original_file
 
     @classmethod
-    def bulk_create_from_dicts(cls, file_objects, bucket, sync_timestamp):
+    def bulk_create_from_dicts(cls, file_objects, bucket, sync_timestamp) -> List[Self]:
         original_files = []
         for file_object in file_objects:
             if not OriginalFile.objects.filter(
@@ -86,37 +86,43 @@ class OriginalFile(TimestampedModel):
                     OriginalFile.get_from_dict(file_object, bucket, sync_timestamp)
                 )
 
-        OriginalFile.objects.bulk_create(original_files)
+        return OriginalFile.objects.bulk_create(original_files)
 
-    @classmethod
-    def update_instance(
-        cls, original_instance: Self, new_instance: Self, fields: List[str]
-    ) -> Self:
+    def update_existing(self, file_object: Dict, sync_timestamp) -> Tuple[Self, Set]:
         """Replace attributes from original instance with those of new instance."""
-        for field in fields:
-            setattr(original_instance, field, getattr(new_instance, field))
+        updated_fields = {"bucket_sync_at"}
+        self.bucket_sync_at = sync_timestamp
 
-        return original_instance
+        if self.hash is file_object["hash"]:
+            return self, updated_fields
+
+        self.hash = file_object["hash"]
+        self.hash_change_at = sync_timestamp
+        updated_fields.update({"hash", "hash_change_at"})
+
+        if self.size_in_bytes is not file_object["size_in_bytes"]:
+            self.size_in_bytes = file_object["size_in_bytes"]
+            updated_fields.add("size_in_bytes")
+
+        return self, updated_fields
 
     @classmethod
-    def bulk_update_from_dicts(cls, file_objects, bucket, sync_timestamp):
+    def bulk_update_from_dicts(cls, file_objects: Dict, bucket: str, sync_timestamp) -> List[Self]:
         updatable_original_files = []
-        fields = [
-            field.name
-            for field in cls._meta.get_fields()
-            if field.name not in ["id", "created_at", "updated_at"]  # keep these fields intact
-        ]
+        fields = set()
 
         for file_object in file_objects:
             if original_instance := OriginalFile.objects.filter(
                 s3_bucket=bucket, s3_key=file_object["s3_key"]
             ).first():
-                new_instance = OriginalFile.get_from_dict(file_object, bucket, sync_timestamp)
-                updatable_original_files.append(
-                    OriginalFile.update_instance(original_instance, new_instance, fields)
+                updated_instance, updated_fields = original_instance.update_existing(
+                    file_object, sync_timestamp
                 )
+                updatable_original_files.append(updated_instance)
+                fields.update(updated_fields)
 
         OriginalFile.objects.bulk_update(updatable_original_files, fields)
+        return updatable_original_files
 
     @staticmethod
     def purge_deleted_files(sync_timestamp) -> None:
@@ -203,9 +209,12 @@ class OriginalFile(TimestampedModel):
     @staticmethod
     def sync(file_objects: List[Dict], bucket_name: str) -> None:
         sync_timestamp = make_aware(datetime.now())
-        logger.info("Inserting new OriginalFiles.")
-        OriginalFile.bulk_create_from_dicts(file_objects, bucket_name, sync_timestamp)
+
         logger.info("Updating modified existing OriginalFiles.")
         OriginalFile.bulk_update_from_dicts(file_objects, bucket_name, sync_timestamp)
+
+        logger.info("Inserting new OriginalFiles.")
+        OriginalFile.bulk_create_from_dicts(file_objects, bucket_name, sync_timestamp)
+
         logger.info("Purging OriginalFiles that were deleted from s3.")
         OriginalFile.purge_deleted_files(sync_timestamp)
