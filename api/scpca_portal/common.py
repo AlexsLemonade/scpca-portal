@@ -3,7 +3,7 @@ CSV_MULTI_VALUE_DELIMITER = ";"
 TAB = "\t"
 NA = "NA"  # "Not Available"
 
-IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
+IGNORED_INPUT_VALUES = {"", NA, "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
 
 # Formats
