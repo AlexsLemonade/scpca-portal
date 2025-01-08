@@ -1,9 +1,7 @@
-from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
 from django.db import models
-from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
@@ -107,7 +105,9 @@ class OriginalFile(TimestampedModel):
         return self, updated_fields
 
     @classmethod
-    def bulk_update_from_dicts(cls, file_objects: Dict, bucket: str, sync_timestamp) -> List[Self]:
+    def bulk_update_from_dicts(
+        cls, file_objects: List[Dict], bucket: str, sync_timestamp
+    ) -> List[Self]:
         updatable_original_files = []
         fields = set()
 
@@ -201,16 +201,3 @@ class OriginalFile(TimestampedModel):
             is_merged = True
 
         return is_bulk, is_merged
-
-    @staticmethod
-    def sync(file_objects: List[Dict], bucket_name: str) -> None:
-        sync_timestamp = make_aware(datetime.now())
-
-        logger.info("Updating modified existing OriginalFiles.")
-        OriginalFile.bulk_update_from_dicts(file_objects, bucket_name, sync_timestamp)
-
-        logger.info("Inserting new OriginalFiles.")
-        OriginalFile.bulk_create_from_dicts(file_objects, bucket_name, sync_timestamp)
-
-        logger.info("Purging OriginalFiles that were deleted from s3.")
-        OriginalFile.purge_deleted_files(sync_timestamp)

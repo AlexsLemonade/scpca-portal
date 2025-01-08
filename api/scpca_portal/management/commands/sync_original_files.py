@@ -1,7 +1,9 @@
 import logging
+from datetime import datetime
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.utils.timezone import make_aware
 
 from scpca_portal import s3
 from scpca_portal.models import OriginalFile
@@ -25,8 +27,21 @@ class Command(BaseCommand):
     def sync_original_files(self, bucket_name: str, **kwargs):
         logger.info("Initiating listing of bucket objects...")
         listed_objects = s3.list_bucket_objects(bucket_name)
-        logger.info("Bucket object listing complete!")
 
         logger.info("Syncing database...")
-        OriginalFile.sync(listed_objects, bucket_name)
+        sync_timestamp = make_aware(datetime.now())
+
+        logger.info("Updating modified existing OriginalFiles.")
+        OriginalFile.bulk_update_from_dicts(listed_objects, bucket_name, sync_timestamp)
+
+        logger.info("Inserting new OriginalFiles.")
+        OriginalFile.bulk_create_from_dicts(listed_objects, bucket_name, sync_timestamp)
+
+        logger.info("Purging OriginalFiles that were deleted from s3.")
+        OriginalFile.purge_deleted_files(sync_timestamp)
+
         logger.info("Database syncing complete!")
+
+        # log out states from the files that changed (updated, created, deleted)
+
+        # TODO: send log to slack as well when notification module is set up
