@@ -121,6 +121,9 @@ class OriginalFile(TimestampedModel):
                 updatable_original_files.append(updated_instance)
                 fields.update(updated_fields)
 
+        if not updatable_original_files:
+            return []
+
         OriginalFile.objects.bulk_update(updatable_original_files, fields)
         return updatable_original_files
 
@@ -129,7 +132,7 @@ class OriginalFile(TimestampedModel):
         """Purge all files that no longer exist on s3."""
         # if the last_bucket_sync timestamp wasn't updated,
         # then the file has been deleted from s3, which must be reflected in the db.
-        deletable_files = OriginalFile.objects.exclude(last_bucket_sync=sync_timestamp)
+        deletable_files = OriginalFile.objects.exclude(bucket_sync_at=sync_timestamp)
         deletable_file_list = list(deletable_files)
 
         deletable_files.delete()
