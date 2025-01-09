@@ -56,13 +56,22 @@ class Command(BaseCommand):
 
         logger.info("Database syncing complete!")
 
-        # log out states from the files that changed (updated, created, deleted)
+        # log out stats from the files that changed (updated, created, deleted)
+        line_divider = "*" * 50
         if updated_files or created_files or deleted_files:
             logger.info(
-                "\nFile Changes Breakdown\n"
+                f"{line_divider}\n"
+                "File Changes Breakdown\n"
                 f"{self.generate_formatted_file_string(updated_files, 'Updated Files')}"
                 f"{self.generate_formatted_file_string(created_files, 'Created Files')}"
                 f"{self.generate_formatted_file_string(deleted_files, 'Deleted Files')}"
+                f"{line_divider}"
+            )
+        else:
+            logger.info(
+                f"{line_divider}\n"
+                "No files have been updated, created, or deleted since the last sync.\n"
+                f"{line_divider}"
             )
 
         # TODO: send log to slack as well when notification module is set up
