@@ -48,6 +48,10 @@ def list_bucket_objects(bucket_name: str) -> List[Dict]:
         logger.warning(f"`{error}`")
         return []
 
+    if "Contents" not in json_output:
+        logger.info(f"Queried s3 bucket ({bucket_name}) is empty.")
+        return []
+
     all_listed_objects = json_output.get("Contents")
     listed_objects = remove_listed_directories(all_listed_objects)
     for listed_object in listed_objects:

@@ -90,11 +90,11 @@ class OriginalFile(TimestampedModel):
     def bulk_update_from_dicts(
         cls, file_objects: List[Dict], bucket: str, sync_timestamp
     ) -> List[Self]:
-        # all existing files must have at least their timestamps updated
+        # all existing files must have their timestamps updated, at the minimum
         existing_original_files = []
-        # modified files collected separately to return to be returned to caller
+        # existing files that have been modified should be collected and returned separately
         modified_original_files = []
-        fields = {"bucket_sync_at"}
+        fields = set()
 
         for file_object in file_objects:
             if original_instance := OriginalFile.objects.filter(
@@ -104,13 +104,17 @@ class OriginalFile(TimestampedModel):
                     original_instance.hash = file_object["hash"]
                     original_instance.hash_change_at = sync_timestamp
                     original_instance.size_in_bytes = file_object["size_in_bytes"]
-
-                    modified_original_files.append(original_instance)
                     fields.update({"hash", "hash_change_at", "size_in_bytes"})
 
+                    modified_original_files.append(original_instance)
+
+                # all existing objects with files still on s3 must have their timestamps updated
                 original_instance.bucket_sync_at = sync_timestamp
+                fields.add("bucket_sync_at")
+
                 existing_original_files.append(original_instance)
 
+        # return early if file_objects are all new files (bulk_update will fail with empty list)
         if not existing_original_files:
             return []
 

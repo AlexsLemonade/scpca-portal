@@ -16,7 +16,7 @@ logger.addHandler(logging.StreamHandler())
 
 class Command(BaseCommand):
     help = """
-    Sync OriginalFiles table with s3 input bucket.
+    Sync OriginalFile table with s3 input bucket.
     """
 
     def add_arguments(self, parser):
@@ -38,7 +38,7 @@ class Command(BaseCommand):
         logger.info("Initiating listing of bucket objects...")
         listed_objects = s3.list_bucket_objects(bucket_name)
 
-        logger.info("Syncing database...")
+        logger.info("\nSyncing database...")
         sync_timestamp = make_aware(datetime.now())
 
         logger.info("Updating modified existing OriginalFiles.")
