@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Tuple
 
 from django.db import models
 
@@ -86,46 +86,36 @@ class OriginalFile(TimestampedModel):
 
         return OriginalFile.objects.bulk_create(original_files)
 
-    def update_existing(self, file_object: Dict, sync_timestamp) -> Tuple[Self, Set]:
-        """Replace attributes from original instance with those of new instance."""
-        updated_fields = {"bucket_sync_at"}
-        self.bucket_sync_at = sync_timestamp
-
-        if self.hash is file_object["hash"]:
-            return self, updated_fields
-
-        self.hash = file_object["hash"]
-        self.hash_change_at = sync_timestamp
-        updated_fields.update({"hash", "hash_change_at"})
-
-        if self.size_in_bytes is not file_object["size_in_bytes"]:
-            self.size_in_bytes = file_object["size_in_bytes"]
-            updated_fields.add("size_in_bytes")
-
-        return self, updated_fields
-
     @classmethod
     def bulk_update_from_dicts(
         cls, file_objects: List[Dict], bucket: str, sync_timestamp
     ) -> List[Self]:
-        updatable_original_files = []
-        fields = set()
+        # all existing files must have at least their timestamps updated
+        existing_original_files = []
+        # modified files collected separately to return to be returned to caller
+        modified_original_files = []
+        fields = {"bucket_sync_at"}
 
         for file_object in file_objects:
             if original_instance := OriginalFile.objects.filter(
                 s3_bucket=bucket, s3_key=file_object["s3_key"]
             ).first():
-                updated_instance, updated_fields = original_instance.update_existing(
-                    file_object, sync_timestamp
-                )
-                updatable_original_files.append(updated_instance)
-                fields.update(updated_fields)
+                if original_instance.hash != file_object["hash"]:
+                    original_instance.hash = file_object["hash"]
+                    original_instance.hash_change_at = sync_timestamp
+                    original_instance.size_in_bytes = file_object["size_in_bytes"]
 
-        if not updatable_original_files:
+                    modified_original_files.append(original_instance)
+                    fields.update({"hash", "hash_change_at", "size_in_bytes"})
+
+                original_instance.bucket_sync_at = sync_timestamp
+                existing_original_files.append(original_instance)
+
+        if not existing_original_files:
             return []
 
-        OriginalFile.objects.bulk_update(updatable_original_files, fields)
-        return updatable_original_files
+        OriginalFile.objects.bulk_update(existing_original_files, fields)
+        return modified_original_files
 
     @staticmethod
     def purge_deleted_files(sync_timestamp) -> List[Self]:
