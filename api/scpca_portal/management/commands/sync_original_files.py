@@ -25,14 +25,38 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.sync_original_files(**kwargs)
 
-    def generate_formatted_file_string(self, files: List[OriginalFile], file_type: str) -> str:
-        if not files:
-            return ""
-
-        formatted_file_str = f"{file_type}:\n"
-        formatted_file_str += "\n".join(f"- {str(f)}" for f in files) if files else "- None"
-        formatted_file_str += "\n"
+    def get_indented_files(self, files: List[OriginalFile]) -> str:
+        formatted_file_str = "\n".join(f"\t{str(f)}" for f in files)
         return formatted_file_str
+
+    def log_file_changes(self, updated_files, created_files, deleted_files):
+        """Log out stats from the files that changed (updated, created, deleted)"""
+        line_divider = "*" * 50
+        updated_files_formatted_str = (
+            f"Updated Files:\n{self.get_indented_files(updated_files)}" if updated_files else ""
+        )
+        created_files_formatted_str = (
+            f"Created Files:\n{self.get_indented_files(created_files)}" if created_files else ""
+        )
+        deleted_files_formatted_str = (
+            f"Deleted Files:\n{self.get_indented_files(deleted_files)}" if deleted_files else ""
+        )
+
+        if updated_files or created_files or deleted_files:
+            logger.info(
+                f"{line_divider}\n"
+                "File Changes Breakdown\n"
+                f"{updated_files_formatted_str}\n"
+                f"{created_files_formatted_str}\n"
+                f"{deleted_files_formatted_str}\n"
+                f"{line_divider}"
+            )
+        else:
+            logger.info(
+                f"{line_divider}\n"
+                "No files have been updated, created, or deleted since the last sync.\n"
+                f"{line_divider}"
+            )
 
     def sync_original_files(self, bucket_name: str, **kwargs):
         logger.info("Initiating listing of bucket objects...")
@@ -56,22 +80,6 @@ class Command(BaseCommand):
 
         logger.info("Database syncing complete!")
 
-        # log out stats from the files that changed (updated, created, deleted)
-        line_divider = "*" * 50
-        if updated_files or created_files or deleted_files:
-            logger.info(
-                f"{line_divider}\n"
-                "File Changes Breakdown\n"
-                f"{self.generate_formatted_file_string(updated_files, 'Updated Files')}"
-                f"{self.generate_formatted_file_string(created_files, 'Created Files')}"
-                f"{self.generate_formatted_file_string(deleted_files, 'Deleted Files')}"
-                f"{line_divider}"
-            )
-        else:
-            logger.info(
-                f"{line_divider}\n"
-                "No files have been updated, created, or deleted since the last sync.\n"
-                f"{line_divider}"
-            )
+        self.log_file_changes(updated_files, created_files, deleted_files)
 
         # TODO: send log to slack as well when notification module is set up
