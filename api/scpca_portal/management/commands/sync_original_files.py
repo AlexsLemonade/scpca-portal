@@ -29,7 +29,7 @@ class Command(BaseCommand):
         formatted_file_str = "\n".join(f"\t{str(f)}" for f in files)
         return formatted_file_str
 
-    def log_file_changes(self, updated_files, created_files, deleted_files):
+    def log_file_changes(self, updated_files, created_files, deleted_files, sync_timestamp) -> None:
         """Log out stats from the files that changed (updated, created, deleted)"""
         line_divider = "*" * 50
         updated_files_formatted_str = (
@@ -58,6 +58,8 @@ class Command(BaseCommand):
                 f"{line_divider}"
             )
 
+        logger.info(f"Recent sync_timestamp used: {sync_timestamp}")
+
     def sync_original_files(self, bucket_name: str, **kwargs):
         logger.info("Initiating listing of bucket objects...")
         listed_objects = s3.list_bucket_objects(bucket_name)
@@ -80,6 +82,6 @@ class Command(BaseCommand):
 
         logger.info("Database syncing complete!")
 
-        self.log_file_changes(updated_files, created_files, deleted_files)
+        self.log_file_changes(updated_files, created_files, deleted_files, sync_timestamp)
 
         # TODO: send log to slack as well when notification module is set up
