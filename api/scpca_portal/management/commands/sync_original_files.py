@@ -21,6 +21,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--bucket", type=str, default=settings.AWS_S3_INPUT_BUCKET_NAME)
+        # if all files have been wiped in passed s3 bucket, deletion in db must be manually enabled
+        # this is mainly for testing purposes
+        parser.add_argument("--allow-bucket-wipe", type=bool, default=False)
 
     def handle(self, *args, **kwargs):
         self.sync_original_files(**kwargs)
@@ -60,7 +63,7 @@ class Command(BaseCommand):
 
         logger.info(f"Recent sync_timestamp used: {sync_timestamp}")
 
-    def sync_original_files(self, bucket: str, **kwargs):
+    def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs):
         logger.info("Initiating listing of bucket objects...")
         listed_objects = s3.list_bucket_objects(bucket)
 
@@ -74,7 +77,7 @@ class Command(BaseCommand):
         created_files = OriginalFile.bulk_create_from_dicts(listed_objects, bucket, sync_timestamp)
 
         logger.info("Purging OriginalFiles that were deleted from s3.")
-        deleted_files = OriginalFile.purge_deleted_files(bucket, sync_timestamp)
+        deleted_files = OriginalFile.purge_deleted_files(bucket, sync_timestamp, allow_bucket_wipe)
 
         logger.info("Database syncing complete!")
 
