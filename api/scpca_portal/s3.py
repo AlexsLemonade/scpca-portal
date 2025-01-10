@@ -38,7 +38,15 @@ def list_bucket_objects(bucket: str) -> List[Dict]:
     Queries the aws s3api for all of a bucket's objects
     and returns a list of dictionaries with properties of contained objects.
     """
-    command_inputs = ["aws", "s3api", "list-objects", "--bucket", bucket, "--output", "json"]
+    command_inputs = ["aws", "s3api", "list-objects", "--output", "json"]
+
+    if "/" in bucket:
+        bucket, prefix = bucket.split("/", 1)
+        command_inputs.extend(["--prefix", prefix])
+    command_inputs.extend(["--bucket", bucket])
+
+    if "public" in bucket:
+        command_inputs.append("--no-sign-request")
 
     try:
         result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
