@@ -29,39 +29,17 @@ class Command(BaseCommand):
         self.sync_original_files(**kwargs)
 
     def get_indented_files(self, files: List[OriginalFile]) -> str:
-        formatted_file_str = "\n".join(f"\t{str(f)}" for f in files)
+        formatted_file_str = "\n".join(f"\t{str(f)}" for f in files) if files else "\tNone"
         return formatted_file_str
 
     def log_file_changes(self, updated_files, created_files, deleted_files, sync_timestamp) -> None:
         """Log out stats from the files that changed (updated, created, deleted)"""
-        line_divider = "*" * 50
-        updated_files_formatted_str = (
-            f"Updated Files:\n{self.get_indented_files(updated_files)}" if updated_files else ""
+        logger.info(
+            f"Synced files at {sync_timestamp}.\n"
+            f"Updated Files:\n{self.get_indented_files(updated_files)}\n"
+            f"Created Files:\n{self.get_indented_files(created_files)}\n"
+            f"Deleted Files:\n{self.get_indented_files(deleted_files)}"
         )
-        created_files_formatted_str = (
-            f"Created Files:\n{self.get_indented_files(created_files)}" if created_files else ""
-        )
-        deleted_files_formatted_str = (
-            f"Deleted Files:\n{self.get_indented_files(deleted_files)}" if deleted_files else ""
-        )
-
-        if updated_files or created_files or deleted_files:
-            logger.info(
-                f"{line_divider}\n"
-                "File Changes Breakdown\n"
-                f"{updated_files_formatted_str}\n"
-                f"{created_files_formatted_str}\n"
-                f"{deleted_files_formatted_str}\n"
-                f"{line_divider}"
-            )
-        else:
-            logger.info(
-                f"{line_divider}\n"
-                "No files have been updated, created, or deleted since the last sync.\n"
-                f"{line_divider}"
-            )
-
-        logger.info(f"Recent sync_timestamp used: {sync_timestamp}")
 
     def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs):
         logger.info("Initiating listing of bucket objects...")
