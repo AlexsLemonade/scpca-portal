@@ -114,11 +114,10 @@ class OriginalFile(TimestampedModel):
 
                 existing_original_files.append(original_instance)
 
-        # return early if file_objects are all new files (bulk_update will fail with empty list)
-        if not existing_original_files:
-            return []
+        # check that file_objects are not all new files (bulk_update will fail with an empty list)
+        if existing_original_files:
+            OriginalFile.objects.bulk_update(existing_original_files, fields)
 
-        OriginalFile.objects.bulk_update(existing_original_files, fields)
         return modified_original_files
 
     @staticmethod

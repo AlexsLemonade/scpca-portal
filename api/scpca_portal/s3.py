@@ -52,10 +52,9 @@ def list_bucket_objects(bucket: str) -> List[Dict]:
         result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
         raw_json_output = result.stdout
         json_output = json.loads(raw_json_output)
-    except subprocess.CalledProcessError as error:
-        logger.error(f"`{error}`")
+    except subprocess.CalledProcessError:
         logger.error("Either the request was malformed or there was a network error.")
-        exit(1)
+        raise
 
     if "Contents" not in json_output:
         logger.info(f"Queried s3 bucket ({bucket}) is empty.")
