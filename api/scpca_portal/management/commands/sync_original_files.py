@@ -20,7 +20,7 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("--bucket-name", type=str, default=settings.AWS_S3_INPUT_BUCKET_NAME)
+        parser.add_argument("--bucket", type=str, default=settings.AWS_S3_INPUT_BUCKET_NAME)
 
     def handle(self, *args, **kwargs):
         self.sync_original_files(**kwargs)
@@ -60,22 +60,18 @@ class Command(BaseCommand):
 
         logger.info(f"Recent sync_timestamp used: {sync_timestamp}")
 
-    def sync_original_files(self, bucket_name: str, **kwargs):
+    def sync_original_files(self, bucket: str, **kwargs):
         logger.info("Initiating listing of bucket objects...")
-        listed_objects = s3.list_bucket_objects(bucket_name)
+        listed_objects = s3.list_bucket_objects(bucket)
 
         logger.info("\nSyncing database...")
         sync_timestamp = make_aware(datetime.now())
 
         logger.info("Updating modified existing OriginalFiles.")
-        updated_files = OriginalFile.bulk_update_from_dicts(
-            listed_objects, bucket_name, sync_timestamp
-        )
+        updated_files = OriginalFile.bulk_update_from_dicts(listed_objects, bucket, sync_timestamp)
 
         logger.info("Inserting new OriginalFiles.")
-        created_files = OriginalFile.bulk_create_from_dicts(
-            listed_objects, bucket_name, sync_timestamp
-        )
+        created_files = OriginalFile.bulk_create_from_dicts(listed_objects, bucket, sync_timestamp)
 
         logger.info("Purging OriginalFiles that were deleted from s3.")
         deleted_files = OriginalFile.purge_deleted_files(sync_timestamp)

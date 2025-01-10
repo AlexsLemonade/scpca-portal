@@ -33,12 +33,12 @@ def remove_listed_directories(listed_objects):
     return [obj for obj in listed_objects if obj["Size"] > 0]
 
 
-def list_bucket_objects(bucket_name: str) -> List[Dict]:
+def list_bucket_objects(bucket: str) -> List[Dict]:
     """
     Queries the aws s3api for all of a bucket's objects
     and returns a list of dictionaries with properties of contained objects.
     """
-    command_inputs = ["aws", "s3api", "list-objects", "--bucket", bucket_name, "--output", "json"]
+    command_inputs = ["aws", "s3api", "list-objects", "--bucket", bucket, "--output", "json"]
 
     try:
         result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
@@ -49,7 +49,7 @@ def list_bucket_objects(bucket_name: str) -> List[Dict]:
         return []
 
     if "Contents" not in json_output:
-        logger.info(f"Queried s3 bucket ({bucket_name}) is empty.")
+        logger.info(f"Queried s3 bucket ({bucket}) is empty.")
         return []
 
     all_listed_objects = json_output.get("Contents")
