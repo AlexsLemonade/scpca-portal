@@ -53,7 +53,7 @@ def list_bucket_objects(bucket: str) -> List[Dict]:
         raw_json_output = result.stdout
         json_output = json.loads(raw_json_output)
     except subprocess.CalledProcessError as error:
-        logger.warning(f"`{error}`")
+        logger.warning(f"`{error}`\n")
         return []
 
     if "Contents" not in json_output:

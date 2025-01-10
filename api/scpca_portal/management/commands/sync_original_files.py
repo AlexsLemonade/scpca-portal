@@ -64,7 +64,7 @@ class Command(BaseCommand):
         logger.info("Initiating listing of bucket objects...")
         listed_objects = s3.list_bucket_objects(bucket)
 
-        logger.info("\nSyncing database...")
+        logger.info("Syncing database...")
         sync_timestamp = make_aware(datetime.now())
 
         logger.info("Updating modified existing OriginalFiles.")
@@ -74,7 +74,7 @@ class Command(BaseCommand):
         created_files = OriginalFile.bulk_create_from_dicts(listed_objects, bucket, sync_timestamp)
 
         logger.info("Purging OriginalFiles that were deleted from s3.")
-        deleted_files = OriginalFile.purge_deleted_files(sync_timestamp)
+        deleted_files = OriginalFile.purge_deleted_files(bucket, sync_timestamp)
 
         logger.info("Database syncing complete!")
 
