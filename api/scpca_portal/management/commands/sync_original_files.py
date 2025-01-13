@@ -32,7 +32,13 @@ class Command(BaseCommand):
         formatted_file_str = "\n".join(f"\t{str(f)}" for f in files) if files else "\tNone"
         return formatted_file_str
 
-    def log_file_changes(self, updated_files, created_files, deleted_files, sync_timestamp) -> None:
+    def log_file_changes(
+        self,
+        updated_files: List[OriginalFile],
+        created_files: List[OriginalFile],
+        deleted_files: List[OriginalFile],
+        sync_timestamp,
+    ) -> None:
         """Log out stats from the files that changed (updated, created, deleted)"""
         logger.info(
             f"Synced files at {sync_timestamp}.\n"
