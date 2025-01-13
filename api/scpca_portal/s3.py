@@ -33,19 +33,31 @@ def remove_listed_directories(listed_objects):
     return [obj for obj in listed_objects if obj["Size"] > 0]
 
 
-def list_bucket_objects(bucket_name: str) -> List[Dict]:
+def list_bucket_objects(bucket: str) -> List[Dict]:
     """
     Queries the aws s3api for all of a bucket's objects
     and returns a list of dictionaries with properties of contained objects.
     """
-    command_inputs = ["aws", "s3api", "list-objects", "--bucket", bucket_name, "--output", "json"]
+    command_inputs = ["aws", "s3api", "list-objects", "--output", "json"]
+
+    if "/" in bucket:
+        bucket, prefix = bucket.split("/", 1)
+        command_inputs.extend(["--prefix", prefix])
+    command_inputs.extend(["--bucket", bucket])
+
+    if "public" in bucket:
+        command_inputs.append("--no-sign-request")
 
     try:
         result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
         raw_json_output = result.stdout
         json_output = json.loads(raw_json_output)
-    except subprocess.CalledProcessError as error:
-        logger.warning(f"`{error}`")
+    except subprocess.CalledProcessError:
+        logger.error("Either the request was malformed or there was a network error.")
+        raise
+
+    if "Contents" not in json_output:
+        logger.info(f"Queried s3 bucket ({bucket}) is empty.")
         return []
 
     all_listed_objects = json_output.get("Contents")

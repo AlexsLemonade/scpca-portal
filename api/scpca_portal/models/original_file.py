@@ -1,9 +1,9 @@
-from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 
 from django.db import models
-from django.utils.timezone import make_aware
+
+from typing_extensions import Self
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -74,7 +74,7 @@ class OriginalFile(TimestampedModel):
         return original_file
 
     @classmethod
-    def bulk_create_from_dicts(cls, file_objects, bucket, sync_timestamp):
+    def bulk_create_from_dicts(cls, file_objects, bucket, sync_timestamp) -> List[Self]:
         original_files = []
         for file_object in file_objects:
             if not OriginalFile.objects.filter(
@@ -84,7 +84,61 @@ class OriginalFile(TimestampedModel):
                     OriginalFile.get_from_dict(file_object, bucket, sync_timestamp)
                 )
 
-        OriginalFile.objects.bulk_create(original_files)
+        return OriginalFile.objects.bulk_create(original_files)
+
+    @classmethod
+    def bulk_update_from_dicts(
+        cls, file_objects: List[Dict], bucket: str, sync_timestamp
+    ) -> List[Self]:
+        # all existing files must have their timestamps updated, at the minimum
+        existing_original_files = []
+        # existing files that have been modified should be collected and returned separately
+        modified_original_files = []
+        fields = set()
+
+        for file_object in file_objects:
+            if original_instance := OriginalFile.objects.filter(
+                s3_bucket=bucket, s3_key=file_object["s3_key"]
+            ).first():
+                if original_instance.hash != file_object["hash"]:
+                    original_instance.hash = file_object["hash"]
+                    original_instance.hash_change_at = sync_timestamp
+                    original_instance.size_in_bytes = file_object["size_in_bytes"]
+                    fields.update({"hash", "hash_change_at", "size_in_bytes"})
+
+                    modified_original_files.append(original_instance)
+
+                # all existing objects with files still on s3 must have their timestamps updated
+                original_instance.bucket_sync_at = sync_timestamp
+                fields.add("bucket_sync_at")
+
+                existing_original_files.append(original_instance)
+
+        # check that file_objects are not all new files (bulk_update will fail with an empty list)
+        if existing_original_files:
+            OriginalFile.objects.bulk_update(existing_original_files, fields)
+
+        return modified_original_files
+
+    @staticmethod
+    def purge_deleted_files(
+        bucket: str, sync_timestamp, allow_bucket_wipe: bool = False
+    ) -> List[Self]:
+        """Purge all files that no longer exist on s3."""
+        # if the last_bucket_sync timestamp wasn't updated,
+        # then the file has been deleted from s3, which must be reflected in the db.
+        deletable_files = OriginalFile.objects.filter(s3_bucket=bucket).exclude(
+            bucket_sync_at=sync_timestamp
+        )
+        deletable_file_list = list(deletable_files)
+
+        all_bucket_files = OriginalFile.objects.filter(s3_bucket=bucket)
+        # if allow_bucket_wipe flag is not passed, do not allow all bucket files to be wiped
+        if set(all_bucket_files) == set(deletable_files) and not allow_bucket_wipe:
+            return []
+
+        deletable_files.delete()
+        return deletable_file_list
 
     @staticmethod
     def is_project_file(s3_key: Path) -> bool:
@@ -152,8 +206,3 @@ class OriginalFile(TimestampedModel):
             is_merged = True
 
         return is_bulk, is_merged
-
-    @staticmethod
-    def sync(file_objects: List[Dict], bucket_name: str) -> None:
-        sync_timestamp = make_aware(datetime.now())
-        OriginalFile.bulk_create_from_dicts(file_objects, bucket_name, sync_timestamp)
