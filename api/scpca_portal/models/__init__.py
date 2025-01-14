@@ -1,6 +1,7 @@
 from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
+from scpca_portal.models.dataset import Dataset
 from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.library import Library
 from scpca_portal.models.project import Project
