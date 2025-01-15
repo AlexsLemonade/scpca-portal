@@ -30,7 +30,7 @@ class Dataset(TimestampedModel):
         null=True,
         on_delete=models.CASCADE,
         related_name="original_dataset",
-        help_text="Reference to the original dataset if regenerated",
+        help_text="Reference to the original dataset if regenerated.",
     )
     start = models.BooleanField(
         null=True,
@@ -47,7 +47,7 @@ class Dataset(TimestampedModel):
     download_tokens = models.ManyToManyField(
         APIToken,
         related_name="dataset_download_tokens",
-        help_text="Tokens used to create download urls",
+        help_text="Tokens used to create download.",
     )
 
     started_at = models.DateTimeField(null=True)
