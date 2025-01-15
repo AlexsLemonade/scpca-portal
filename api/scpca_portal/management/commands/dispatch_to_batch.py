@@ -1,7 +1,9 @@
 import logging
+from collections import Counter
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.template.defaultfilters import pluralize
 
 import boto3
 
@@ -80,12 +82,14 @@ class Command(BaseCommand):
         if project_id:
             projects.filter(scpca_id=project_id)
 
+        job_counts = Counter()
         for project in projects:
             for download_config_name in project.valid_download_config_names:
                 self.submit_job(
                     project_id=project.scpca_id,
                     download_config_name=download_config_name,
                 )
+                job_counts["project"] += 1
 
             for sample in project.samples_to_generate:
                 for download_config_name in sample.valid_download_config_names:
@@ -93,3 +97,12 @@ class Command(BaseCommand):
                         sample_id=sample.scpca_id,
                         download_config_name=download_config_name,
                     )
+                    job_counts["sample"] += 1
+
+        total_job_count = sum(job_counts.values())
+        logger.info(
+            "Job submission complete. "
+            f"{total_job_count} job{pluralize(total_job_count)} were submitted "
+            f"({job_counts['project']} project job{pluralize(job_counts['project'])}, "
+            f"{job_counts['sample']} sample job{pluralize(job_counts['sample'])})."
+        )
