@@ -68,6 +68,10 @@ variable "ssh_public_key" {
   default = "MISSING_VALUE"
 }
 
+variable "ses_domain" {
+  default = "scpca.alexslemonade.org"
+}
+
 output "environment_variables" {
   value = [
     {name = "DATABASE_NAME"
