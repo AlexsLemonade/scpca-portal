@@ -3,7 +3,7 @@ CSV_MULTI_VALUE_DELIMITER = ";"
 TAB = "\t"
 NA = "NA"  # "Not Available"
 
-IGNORED_INPUT_VALUES = {"", "N/A", "TBD"}
+IGNORED_INPUT_VALUES = {"", NA, "TBD"}
 STRIPPED_INPUT_VALUES = "< >"
 
 # Formats
@@ -95,6 +95,11 @@ METADATA_COLUMN_SORT_ORDER = [
 PROJECT_ID_KEY = "scpca_project_id"
 SAMPLE_ID_KEY = "scpca_sample_id"
 LIBRARY_ID_KEY = "scpca_library_id"
+
+# Id Prefixes
+PROJECT_ID_PREFIX = "SCPCP"
+SAMPLE_ID_PREFIX = "SCPCS"
+LIBRARY_ID_PREFIX = "SCPCL"
 
 PROJECT_DOWNLOAD_CONFIGS = {
     "SINGLE_CELL_SINGLE_CELL_EXPERIMENT": {

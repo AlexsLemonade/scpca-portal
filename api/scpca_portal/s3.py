@@ -1,17 +1,72 @@
+import json
 import subprocess
 from collections import defaultdict, namedtuple
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from django.conf import settings
 
 import boto3
 from botocore.client import Config
 
+from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
+
+S3_OBJECT_KEYS = [
+    # format is as follows: (old_key, new_key, default_value)
+    ("Key", "s3_key", ""),
+    ("Size", "size_in_bytes", 0),
+    ("ETag", "hash", ""),
+]
+
+# the strip removes the leading and trailing double quotes included in the hash value.
+# the split removes the `-#` from end of the hash value, which represents
+# the number of chunks the file was originally uploaded in.
+S3_OBJECT_VALUES = {"hash": lambda hash_value: hash_value.strip('"').split("-")[0]}
+
+
+def remove_listed_directories(listed_objects):
+    """Returns cleaned list of object files without directories objects."""
+    return [obj for obj in listed_objects if obj["Size"] > 0]
+
+
+def list_bucket_objects(bucket: str) -> List[Dict]:
+    """
+    Queries the aws s3api for all of a bucket's objects
+    and returns a list of dictionaries with properties of contained objects.
+    """
+    command_inputs = ["aws", "s3api", "list-objects", "--output", "json"]
+
+    if "/" in bucket:
+        bucket, prefix = bucket.split("/", 1)
+        command_inputs.extend(["--prefix", prefix])
+    command_inputs.extend(["--bucket", bucket])
+
+    if "public" in bucket:
+        command_inputs.append("--no-sign-request")
+
+    try:
+        result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
+        raw_json_output = result.stdout
+        json_output = json.loads(raw_json_output)
+    except subprocess.CalledProcessError:
+        logger.error("Either the request was malformed or there was a network error.")
+        raise
+
+    if "Contents" not in json_output:
+        logger.info(f"Queried s3 bucket ({bucket}) is empty.")
+        return []
+
+    all_listed_objects = json_output.get("Contents")
+    listed_objects = remove_listed_directories(all_listed_objects)
+    for listed_object in listed_objects:
+        utils.transform_keys(listed_object, S3_OBJECT_KEYS)
+        utils.transform_values(listed_object, S3_OBJECT_VALUES)
+
+    return listed_objects
 
 
 def list_input_paths(

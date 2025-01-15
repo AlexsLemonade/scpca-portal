@@ -200,5 +200,5 @@ class TestGetCsvZippedValues(TestCase):
         }
         args = ["country", "language", "population", "currency"]
 
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(ValueError):
             utils.get_csv_zipped_values(data, *args)
