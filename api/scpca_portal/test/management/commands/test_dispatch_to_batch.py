@@ -44,7 +44,7 @@ class TestDispatchToBatch(TestCase):
     def test_project_id_submission(self, mock_submit_job):
         project = ProjectFactory()
 
-        self.dispatch_to_batch(project_id=project.scpca_id)
+        self.dispatch_to_batch(project_id=project.scpca_id, regenerate_all=True)
         mock_submit_job.assert_called()
 
         submitted_project_id = next(

@@ -20,11 +20,15 @@ class Command(BaseCommand):
     help = """
     Submits all computed file combinations to the specified AWS Batch job queue
     for projects for which computed files have yet to be generated for them.
-    If a project-id is passed, then computed files are only submitted for that specific project.
+    If regenerate-all is passed, then all computed files are regenerated for all projects.
+    If a project-id is passed, and not combined with regenerate-all,
+    then computed files are only submitted for that specific project if it has no computed files.
+    If it is combined with regenerate-all, then computed files are regenerated regardless.
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("--project-id", type=str)
+        parser.add_argument("--regenerate-all", type=bool, default=False)
+        parser.add_argument("--project-id", type=str, default="")
 
     def handle(self, *args, **kwargs):
         self.dispatch_to_batch(**kwargs)
@@ -62,18 +66,19 @@ class Command(BaseCommand):
 
         logger.info(f'{job_name} submitted to Batch with jobId {response["jobId"]}')
 
-    def dispatch_to_batch(self, project_id: str = "", **kwargs):
+    def dispatch_to_batch(self, project_id: str, regenerate_all: bool, **kwargs):
         """
-        Iterate over all projects that don't have computed files and submit each
-        resource_id and download_config combination to the Batch queue.
-        If a project id is passed, then computed files are created for all combinations
-        within that project.
+        Iterate over all projects that fit the criteria of the passed flags
+        and submit jobs to Batch accordingly.
         """
         projects = (
             Project.objects.filter(project_computed_files__isnull=True)
-            if not project_id
-            else Project.objects.filter(scpca_id=project_id)
+            if not regenerate_all
+            else Project.objects.all()
         )
+
+        if project_id:
+            projects.filter(scpca_id=project_id)
 
         for project in projects:
             for download_config_name in project.valid_download_config_names:
