@@ -1,11 +1,11 @@
 locals {
-  base_domain = "scpca.alexslemonade.org"
+  stage_domains = {
+    prod = var.ses_domain,
+    staging = "staging.${var.ses_domain}",
+    dev = "${var.user}.${var.ses_domain}"
+  }
 
-  ses_domain = (
-    var.stage == "prod" ? local.base_domain :
-    var.stage == "staging" ? "staging.${local.base_domain}" :
-    "${var.user}.${local.base_domain}"
-  )
+  ses_domain = local.stage_domains[var.stage]
 }
 
 resource "aws_ses_domain_identity" "scpca_portal" {
