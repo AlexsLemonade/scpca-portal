@@ -36,6 +36,7 @@ commands = {
     "load-data": run_api.format("./manage.py load_data {}"),
     "load-metadata": run_api.format("./manage.py load_metadata {}"),
     "generate-computed-files": run_api.format("./manage.py generate_computed_files {}"),
+    "sync-original-files": run_api.format("./manage.py sync_original_files {}"),
     "run-black": run_api.format("black --line-length=100 --exclude=volumes_postgres ."),
     "env": "cat ./docker-compose.env",
     "configure-aws-cli": run_api.format("./manage.py configure_aws_cli {}"),

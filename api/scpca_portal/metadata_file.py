@@ -1,9 +1,8 @@
 import csv
 import io
 import json
-from collections import namedtuple
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from django.conf import settings
 
@@ -38,7 +37,6 @@ LIBRARY_METADATA_KEYS = [
     # Field only included in Single cell (and Multiplexed) libraries
     ("filtered_cells", "filtered_cell_count", None),
 ]
-KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
 
 
 def load_projects_metadata(*, filter_on_project_id: str = None):
@@ -51,8 +49,8 @@ def load_projects_metadata(*, filter_on_project_id: str = None):
         projects_metadata = list(csv.DictReader(raw_file))
 
     for project_metadata in projects_metadata:
-        transform_keys(project_metadata, PROJECT_METADATA_KEYS)
-        transform_values(project_metadata, PROJECT_METADATA_VALUES_TRANSFORMS)
+        utils.transform_keys(project_metadata, PROJECT_METADATA_KEYS)
+        utils.transform_values(project_metadata, PROJECT_METADATA_VALUES_TRANSFORMS)
 
     if filter_on_project_id:
         return [pm for pm in projects_metadata if pm["scpca_project_id"] == filter_on_project_id]
@@ -75,28 +73,7 @@ def load_library_metadata(metadata_file_path: Path):
     Transforms keys in data dicts to match associated model attributes.
     """
     with open(metadata_file_path) as raw_file:
-        return transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
-
-
-def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
-    """
-    Transforms keys in inputted data dict according to inputted key transforms tuple list.
-    """
-    for element in [KeyTransform._make(element) for element in key_transforms]:
-        if element.old_key in data_dict:
-            data_dict[element.new_key] = data_dict.pop(element.old_key, element.default_value)
-
-    return data_dict
-
-
-def transform_values(data_dict: Dict, value_transforms: List[Tuple]):
-    """
-    Transform values in data dict according to transformation functions in value transform dict.
-    """
-    for key, transformation_function in value_transforms.items():
-        data_dict[key] = transformation_function(data_dict[key])
-
-    return data_dict
+        return utils.transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
 
 
 class MetadataFilenames:

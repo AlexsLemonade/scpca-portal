@@ -4,6 +4,7 @@ from scpca_portal.models.contact import Contact
 from scpca_portal.models.dataset import Dataset
 from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.library import Library
+from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
