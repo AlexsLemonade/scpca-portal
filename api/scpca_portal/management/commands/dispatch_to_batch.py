@@ -22,10 +22,8 @@ class Command(BaseCommand):
     help = """
     Submits all computed file combinations to the specified AWS Batch job queue
     for projects for which computed files have yet to be generated for them.
-    If regenerate-all is passed, then all computed files are regenerated for all projects.
-    If a project-id is passed, and not combined with regenerate-all,
-    then computed files are only submitted for that specific project if it has no computed files.
-    If it is combined with regenerate-all, then computed files are regenerated regardless.
+    If regenerate-all is passed, then presence of existing computed files are ignored.
+    If a project-id is passed, then all other projects will be ignored.
     """
 
     def add_arguments(self, parser):
