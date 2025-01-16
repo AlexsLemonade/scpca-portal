@@ -8,9 +8,9 @@ from scpca_portal.models.base import TimestampedModel
 
 class Dataset(TimestampedModel):
     class Meta:
-        db_table = "dataset"
+        db_table = "datasets"
         get_latest_by = "updated_at"
-        ordering = ["updated_at", "id"]
+        ordering = ["updated_at"]
 
     class FileFormats:
         ANN_DATA = "ANN_DATA"
@@ -25,11 +25,18 @@ class Dataset(TimestampedModel):
 
     # User-editable
     data = models.JSONField(default=dict)
-    format = models.TextField(choices=FileFormats.CHOICES, null=True)
     email = models.EmailField(null=True)
-    start = models.BooleanField(null=True)
+    start = models.BooleanField(default=False)
+    # Format or regenerated_from is required at the time of creation
+    format = models.TextField(choices=FileFormats.CHOICES)
+    regenerated_from = models.ForeignKey(
+        "self",
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="regenerated_datasets",
+    )
 
-    # Non user-editable
+    # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
     is_started = models.BooleanField(default=False)
     is_processing = models.BooleanField(default=False)
@@ -39,25 +46,19 @@ class Dataset(TimestampedModel):
     is_errored = models.BooleanField(default=False)
     error_message = models.TextField(null=True)
     expires_at = models.DateTimeField(null=True)
-    is_expired = models.BooleanField(default=False)  # Set by clonejob
+    is_expired = models.BooleanField(default=False)  # Set by cronjob
 
     computed_file = models.OneToOneField(
         ComputedFile,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="datasets",
-    )
-    regenerated_from = models.ForeignKey(
-        "self",
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="regenerated_datasets",
+        related_name="dataset",
     )
     token = models.ForeignKey(
         APIToken,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="dataset_token",
+        related_name="datasets",
     )
     download_tokens = models.ManyToManyField(
         APIToken,
