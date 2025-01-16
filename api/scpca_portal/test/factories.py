@@ -174,6 +174,11 @@ class ProjectFactory(LeafProjectFactory):
 
     @factory.post_generation
     def add_sample_library_relation(self, create, extracted, **kwargs):
+        """
+        In order for objects to be associated with eachother via a ManyToMany relationship,
+        both objects must first be created.
+        This method makes the sample and library association after their creation above.
+        """
         if not create:
             return
 
