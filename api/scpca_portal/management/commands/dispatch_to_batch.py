@@ -73,14 +73,13 @@ class Command(BaseCommand):
         Iterate over all projects that fit the criteria of the passed flags
         and submit jobs to Batch accordingly.
         """
-        projects = (
-            Project.objects.filter(project_computed_files__isnull=True)
-            if not regenerate_all
-            else Project.objects.all()
-        )
+        projects = Project.objects.all()
+
+        if not regenerate_all:
+            projects = projects.filter(project_computed_files__isnull=True)
 
         if project_id:
-            projects.filter(scpca_id=project_id)
+            projects = projects.filter(scpca_id=project_id)
 
         job_counts = Counter()
         for project in projects:
