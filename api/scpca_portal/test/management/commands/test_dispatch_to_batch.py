@@ -14,7 +14,10 @@ class TestDispatchToBatch(TestCase):
     @patch("scpca_portal.management.commands.dispatch_to_batch.Command.submit_job")
     def test_generate_all_missing_files(self, mock_submit_job):
         project_with_files = ProjectFactory()
+        self.assertTrue(project_with_files.computed_files.exists())
+
         project_no_files = ProjectFactory(computed_file=None)
+        self.assertFalse(project_no_files.computed_files.exists())
 
         self.dispatch_to_batch()
         mock_submit_job.assert_called()
@@ -34,6 +37,7 @@ class TestDispatchToBatch(TestCase):
     @patch("scpca_portal.management.commands.dispatch_to_batch.Command.submit_job")
     def test_generate_missing_files_for_passed_project(self, mock_submit_job):
         project = ProjectFactory(computed_file=None)
+        self.assertFalse(project.computed_files.exists())
 
         self.dispatch_to_batch(project_id=project.scpca_id)
         mock_submit_job.assert_called()
@@ -56,7 +60,10 @@ class TestDispatchToBatch(TestCase):
     @patch("scpca_portal.management.commands.dispatch_to_batch.Command.submit_job")
     def test_regenerate_all_files(self, mock_submit_job):
         project_with_files = ProjectFactory()
+        self.assertTrue(project_with_files.computed_files.exists())
+
         project_no_files = ProjectFactory(computed_file=None)
+        self.assertFalse(project_no_files.computed_files.exists())
 
         self.dispatch_to_batch(regenerate_all=True)
         mock_submit_job.assert_called()
@@ -76,33 +83,37 @@ class TestDispatchToBatch(TestCase):
     @patch("scpca_portal.management.commands.dispatch_to_batch.Command.submit_job")
     def test_regenerate_files_for_passed_project(self, mock_submit_job):
         project = ProjectFactory()
+        self.assertTrue(project.computed_files.exists())
 
         self.dispatch_to_batch(project_id=project.scpca_id, regenerate_all=True)
         mock_submit_job.assert_called()
 
-        submitted_project_id = next(
-            call.kwargs["project_id"]
+        submitted_project_ids = set(
+            call.kwargs.get("project_id")
             for call in mock_submit_job.call_args_list
-            if "project_id" in call.kwargs
+            if call.kwargs.get("project_id") is not None
         )
-        self.assertEqual(project.scpca_id, submitted_project_id)
+        self.assertEqual(len(submitted_project_ids), 1)
+        self.assertIn(project.scpca_id, submitted_project_ids)
 
         sample = project.samples.first()
-        submitted_sample_id = next(
-            call.kwargs["sample_id"]
+        submitted_sample_ids = set(
+            call.kwargs.get("sample_id")
             for call in mock_submit_job.call_args_list
-            if "sample_id" in call.kwargs
+            if call.kwargs.get("sample_id") is not None
         )
-        self.assertEqual(sample.scpca_id, submitted_sample_id)
+        self.assertEqual(len(submitted_sample_ids), 1)
+        self.assertIn(sample.scpca_id, submitted_sample_ids)
 
     @patch("scpca_portal.management.commands.dispatch_to_batch.Command.submit_job")
     def test_no_missing_computed_files(self, mock_submit_job):
-        ProjectFactory()
+        project = ProjectFactory()
+        self.assertTrue(project.computed_files.exists())
 
         self.dispatch_to_batch()
         mock_submit_job.assert_not_called()
 
-    def test_project_missing_samples(self):
+    def test_project_missing_sample_computed_files(self):
         """
         We currently don't support generation of individual samples.
         We plan on removing sample file generation in favor of Dataset downloads.
