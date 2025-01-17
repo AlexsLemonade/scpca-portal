@@ -98,5 +98,4 @@ class TestSyncOriginalFiles(TestCase):
         # test original file deletion of all files - allow_bucket_wipe flag passed
         with patch("scpca_portal.s3.list_bucket_objects", return_value=[]):
             self.sync_original_files(allow_bucket_wipe=True)
-        remaining_files = OriginalFile.objects.all()
-        self.assertEqual(remaining_files.count(), 0)
+        self.assertFalse(OriginalFile.objects.exists())
