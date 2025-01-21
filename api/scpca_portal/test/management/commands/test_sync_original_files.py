@@ -46,7 +46,7 @@ class TestSyncOriginalFiles(TestCase):
         self.assertEqual(OriginalFile.objects.count(), len(self.listed_objects))
         first_sync_timestamp = OriginalFile.objects.first().bucket_sync_at
 
-        # test originnal file updating
+        # test original file updating
         updatable_objects = deepcopy(self.listed_objects)
         updatable_objects[-1]["hash"] = "updated_hash"
         with patch("scpca_portal.s3.list_bucket_objects", return_value=updatable_objects):
@@ -84,7 +84,7 @@ class TestSyncOriginalFiles(TestCase):
             non_updated_files,
         )
 
-        # test original file deletion of one file
+        # test original file deletion of a single file
         deletable_objects = deepcopy(self.listed_objects)
         deletable_objects.pop()
         with patch("scpca_portal.s3.list_bucket_objects", return_value=deletable_objects):
