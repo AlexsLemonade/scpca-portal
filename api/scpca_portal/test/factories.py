@@ -167,6 +167,22 @@ class LibraryFactory(factory.django.DjangoModelFactory):
 
 
 class ProjectFactory(LeafProjectFactory):
-    computed_file1 = factory.RelatedFactory(ProjectComputedFileFactory, "project")
-    sample1 = factory.RelatedFactory(SampleFactory, "project")
-    summary1 = factory.RelatedFactory(ProjectSummaryFactory, factory_related_name="project")
+    computed_file = factory.RelatedFactory(ProjectComputedFileFactory, "project")
+    sample = factory.RelatedFactory(SampleFactory, "project")
+    library = factory.RelatedFactory(LibraryFactory, "project")
+    summary = factory.RelatedFactory(ProjectSummaryFactory, factory_related_name="project")
+
+    @factory.post_generation
+    def add_sample_library_relation(self, create, extracted, **kwargs):
+        """
+        In order for objects to be associated with eachother via a ManyToMany relationship,
+        both objects must first be created.
+        This method makes the sample and library association after their creation above.
+        """
+        if not create:
+            return
+
+        sample = self.samples.first()
+        library = self.libraries.first()
+
+        sample.libraries.add(library)
