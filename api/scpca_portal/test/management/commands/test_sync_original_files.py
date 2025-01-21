@@ -1,3 +1,4 @@
+from copy import deepcopy
 from functools import partial
 from unittest.mock import patch
 
@@ -46,16 +47,17 @@ class TestSyncOriginalFiles(TestCase):
         first_sync_timestamp = OriginalFile.objects.first().bucket_sync_at
 
         # test originnal file updating
-        self.listed_objects[0]["hash"] = "updated_hash"
-        with patch("scpca_portal.s3.list_bucket_objects", return_value=self.listed_objects):
+        updatable_objects = deepcopy(self.listed_objects)
+        updatable_objects[-1]["hash"] = "updated_hash"
+        with patch("scpca_portal.s3.list_bucket_objects", return_value=updatable_objects):
             self.sync_original_files()
         second_sync_timestamp = OriginalFile.objects.first().bucket_sync_at
 
         updated_files = OriginalFile.objects.filter(hash_change_at=second_sync_timestamp)
         non_updated_files = OriginalFile.objects.filter(hash_change_at=first_sync_timestamp)
 
-        self.assertEqual(len(updated_files), 1)
-        self.assertIn(
+        self.assertEqual(updated_files.count(), 1)
+        self.assertNotIn(
             OriginalFile.objects.filter(s3_key=self.listed_objects[0]["s3_key"]).first(),
             updated_files,
         )
@@ -63,13 +65,13 @@ class TestSyncOriginalFiles(TestCase):
             OriginalFile.objects.filter(s3_key=self.listed_objects[1]["s3_key"]).first(),
             updated_files,
         )
-        self.assertNotIn(
+        self.assertIn(
             OriginalFile.objects.filter(s3_key=self.listed_objects[2]["s3_key"]).first(),
             updated_files,
         )
 
-        self.assertEqual(len(non_updated_files), 2)
-        self.assertNotIn(
+        self.assertEqual(non_updated_files.count(), 2)
+        self.assertIn(
             OriginalFile.objects.filter(s3_key=self.listed_objects[0]["s3_key"]).first(),
             non_updated_files,
         )
@@ -77,23 +79,40 @@ class TestSyncOriginalFiles(TestCase):
             OriginalFile.objects.filter(s3_key=self.listed_objects[1]["s3_key"]).first(),
             non_updated_files,
         )
-        self.assertIn(
+        self.assertNotIn(
             OriginalFile.objects.filter(s3_key=self.listed_objects[2]["s3_key"]).first(),
             non_updated_files,
         )
 
         # test original file deletion of one file
-        self.listed_objects.pop()
-        with patch("scpca_portal.s3.list_bucket_objects", return_value=self.listed_objects):
+        deletable_objects = deepcopy(self.listed_objects)
+        deletable_objects.pop()
+        with patch("scpca_portal.s3.list_bucket_objects", return_value=deletable_objects):
             self.sync_original_files()
         remaining_files = OriginalFile.objects.all()
         self.assertEqual(remaining_files.count(), 2)
+        self.assertIn(
+            OriginalFile.objects.filter(s3_key=self.listed_objects[0]["s3_key"]).first(),
+            remaining_files,
+        )
+        self.assertIn(
+            OriginalFile.objects.filter(s3_key=self.listed_objects[1]["s3_key"]).first(),
+            remaining_files,
+        )
 
         # test original file attempted deletion of all files - allow_bucket_wipe flag NOT passed
         with patch("scpca_portal.s3.list_bucket_objects", return_value=[]):
             self.sync_original_files()
         remaining_files = OriginalFile.objects.all()
         self.assertEqual(remaining_files.count(), 2)
+        self.assertIn(
+            OriginalFile.objects.filter(s3_key=self.listed_objects[0]["s3_key"]).first(),
+            remaining_files,
+        )
+        self.assertIn(
+            OriginalFile.objects.filter(s3_key=self.listed_objects[1]["s3_key"]).first(),
+            remaining_files,
+        )
 
         # test original file deletion of all files - allow_bucket_wipe flag passed
         with patch("scpca_portal.s3.list_bucket_objects", return_value=[]):
