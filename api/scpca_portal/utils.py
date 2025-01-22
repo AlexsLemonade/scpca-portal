@@ -1,5 +1,6 @@
 """Misc utils."""
 
+import inspect
 from collections import namedtuple
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Set, Tuple
@@ -114,11 +115,17 @@ def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
     return data_dict
 
 
-def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable]):
+def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable], *args):
     """
     Transform values in data dict according to transformation functions in value transform dict.
+    If one of the transformation functions has more than 1 parameter,
+    they are passed here as *args.
     """
-    for key, transformation_function in value_transforms.items():
-        data_dict[key] = transformation_function(data_dict[key])
+    for key, func in value_transforms.items():
+        signature = inspect.signature(func)
+        if len(signature.parameters) == 1:
+            data_dict[key] = func(data_dict[key])
+        else:
+            data_dict[key] = func(data_dict[key], *args)
 
     return data_dict
