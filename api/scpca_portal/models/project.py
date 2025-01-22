@@ -31,7 +31,6 @@ class Project(CommonDataAttributes, TimestampedModel):
     abstract = models.TextField()
     additional_metadata_keys = models.TextField(blank=True, null=True)
     additional_restrictions = models.TextField(blank=True, null=True)
-    data_file_paths = ArrayField(models.TextField(), default=list)
     diagnoses = models.TextField(blank=True, null=True)
     diagnoses_counts = models.TextField(blank=True, null=True)
     disease_timings = models.TextField()
@@ -74,8 +73,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 else:
                     setattr(project, key, data.get(key))
 
-        project.data_file_paths = project.get_data_file_paths()
-
         return project
 
     @property
@@ -98,6 +95,10 @@ class Project(CommonDataAttributes, TimestampedModel):
             for download_config in common.PROJECT_DOWNLOAD_CONFIGS.values()
             if self.get_libraries(download_config).exists()
         ]
+
+    @property
+    def data_file_paths(self):
+        return sorted(list(self.original_files.values_list("s3_key", flat=True)))
 
     @property
     def original_files(self):
