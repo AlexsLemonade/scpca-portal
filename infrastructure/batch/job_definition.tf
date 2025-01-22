@@ -23,10 +23,6 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
         value = "false"
       },
       {
-        name  = "DJANGO_SECRET_KEY"
-        value = var.django_secret_key
-      },
-      {
         name  = "DATABASE_HOST"
         value = var.postgres_db.address
       },
@@ -43,10 +39,6 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
         value = var.postgres_db.db_name
       },
       {
-        name  = "DATABASE_PASSWORD"
-        value = var.database_password
-      },
-      {
         name  = "AWS_REGION"
         value = var.region
       },
@@ -55,13 +47,24 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
         value = var.scpca_portal_bucket.bucket
       },
       {
-        name  = "SENTRY_DSN"
-        value = var.sentry_dsn
-      },
-      {
         name  = "SENTRY_ENV"
         value = "${var.stage}-batch"
       }
+    ]
+
+    secrets = [
+      {
+        name      = "DJANGO_SECRET_KEY",
+        valueFrom = "${var.django_secret_key.arn}"
+      },
+      {
+        name      = "DATABASE_PASSWORD",
+        valueFrom = "${var.database_password.arn}"
+      },
+      {
+        name      = "SENTRY_DSN"
+        valueFrom = "${var.sentry_dsn.arn}"
+      },
     ]
 
     fargatePlatformConfiguration = {
