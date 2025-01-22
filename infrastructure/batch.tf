@@ -12,9 +12,9 @@
   postgres_db = aws_db_instance.postgres_db
 
   # job_definition secret envars
-  django_secret_key = aws_secrets_manager_secret.django_secret_key
-  database_password = aws_secrets_manager_secret.database_password
-  sentry_dsn = aws_secrets_manager_secret.sentry_dsn
+  django_secret_key = aws_secretsmanager_secret.django_secret_key
+  database_password = aws_secretsmanager_secret.database_password
+  sentry_dsn = aws_secretsmanager_secret.sentry_dsn
 
   # security
   scpca_portal_db_security_group = aws_security_group.scpca_portal_db
