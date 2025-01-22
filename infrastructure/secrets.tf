@@ -23,3 +23,4 @@ resource "aws_secretsmanager_secret" "sentry_dsn" {
 resource "aws_secretsmanager_secret_version" "sentry_dsn" {
   secret_id = aws_secretsmanager_secret.sentry_dsn.id
   secret_string = var.sentry_dsn
+}
