@@ -22,10 +22,6 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
         name  = "DJANGO_DEBUG"
         value = "false"
       },
-      # {
-      #   name  = "DJANGO_SECRET_KEY"
-      #   value = var.django_secret_key
-      # },
       {
         name  = "DATABASE_HOST"
         value = var.postgres_db.address
