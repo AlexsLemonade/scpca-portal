@@ -94,5 +94,7 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
     attempts = 3
   }
 
+  propagate_tags = "SERVICE"
+
   tags = var.batch_tags
 }
