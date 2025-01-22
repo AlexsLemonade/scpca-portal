@@ -120,7 +120,7 @@ class TestSyncOriginalFiles(TestCase):
             sorted(modified_files.values_list("s3_key", flat=True)),
         )
 
-        # TEST ATTEMPTED DELETION OF ALL FILES - ALLOW_BUCKET_WIPE FLAG `NOT` PASSED
+        # TEST ATTEMPTED DELETION OF ALL FILES - allow_bucket_wipe flag NOT passed
         with patch("scpca_portal.s3.list_bucket_objects", return_value=self.empty_objects_list):
             self.sync_original_files()
         self.assertListEqual(
@@ -128,7 +128,7 @@ class TestSyncOriginalFiles(TestCase):
             sorted(OriginalFile.objects.all().values_list("s3_key", flat=True)),
         )
 
-        # TEST SUCCESSFUL DELETION OF ALL FILES - ALLOW_BUCKET_WIPE FLAG PASSED
+        # TEST SUCCESSFUL DELETION OF ALL FILES - allow_bucket_wipe flag passed
         with patch("scpca_portal.s3.list_bucket_objects", return_value=self.empty_objects_list):
             self.sync_original_files(allow_bucket_wipe=True)
         self.assertFalse(OriginalFile.objects.exists())
