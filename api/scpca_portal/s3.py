@@ -33,7 +33,7 @@ S3_OBJECT_VALUES = {
 
 def remove_listed_directories(listed_objects):
     """Returns cleaned list of object files without directories objects."""
-    return [obj for obj in listed_objects if obj["Size"] > 0]
+    return [obj for obj in listed_objects if not obj["s3_key"].endswith("/")]
 
 
 def list_bucket_objects(bucket: str) -> List[Dict]:
@@ -65,12 +65,11 @@ def list_bucket_objects(bucket: str) -> List[Dict]:
         return []
 
     all_listed_objects = json_output.get("Contents")
-    listed_objects = remove_listed_directories(all_listed_objects)
-    for listed_object in listed_objects:
+    for listed_object in all_listed_objects:
         utils.transform_keys(listed_object, S3_OBJECT_KEYS)
         utils.transform_values(listed_object, S3_OBJECT_VALUES, prefix)
 
-    return listed_objects
+    return remove_listed_directories(all_listed_objects)
 
 
 def list_input_paths(
