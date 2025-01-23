@@ -98,7 +98,11 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def data_file_paths(self):
-        return sorted(list(self.original_files.values_list("s3_key", flat=True)))
+        return sorted(
+            f
+            for f in self.original_files.values_list("s3_key", flat=True)
+            if "samples_metadata" not in f
+        )
 
     @property
     def original_files(self):
