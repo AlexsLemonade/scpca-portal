@@ -9,11 +9,11 @@ class Project_SCPCP999990:
         "abstract": "TBD",
         "additional_restrictions": "Research or academic purposes only",
         "data_file_paths": [
+            "SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv",
+            "SCPCP999990/bulk/SCPCP999990_bulk_quant.tsv",
             "SCPCP999990/merged/SCPCP999990_merged-summary-report.html",
             "SCPCP999990/merged/SCPCP999990_merged.rds",
             "SCPCP999990/merged/SCPCP999990_merged_rna.h5ad",
-            "SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv",
-            "SCPCP999990/bulk/SCPCP999990_bulk_quant.tsv",
         ],
         "diagnoses": "diagnosis1, diagnosis2, diagnosis5",
         "diagnoses_counts": "diagnosis1 (1), diagnosis2 (1), diagnosis5 (2)",
