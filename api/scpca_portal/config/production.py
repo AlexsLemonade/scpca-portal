@@ -44,15 +44,21 @@ class Production(Common):
 
     PRODUCTION = True
 
-    sentry_sdk.init(
-        dsn=os.getenv("SENTRY_DSN"),
-        integrations=[DjangoIntegration()],
-        traces_sample_rate=1.0,
-        environment=os.getenv("SENTRY_ENV"),
-        # If you wish to associate users to errors (assuming you are using
-        # django.contrib.auth) you may enable sending PII data.
-        send_default_pii=True,
-    )
+    SENTRY_DSN = os.getenv("SENTRY_DSN", None)
+
+    if SENTRY_DSN == "None":
+        SENTRY_DSN = None
+
+    if SENTRY_DSN:
+        sentry_sdk.init(
+            dsn=os.getenv("SENTRY_DSN"),
+            integrations=[DjangoIntegration()],
+            traces_sample_rate=1.0,
+            environment=os.getenv("SENTRY_ENV"),
+            # If you wish to associate users to errors (assuming you are using
+            # django.contrib.auth) you may enable sending PII data.
+            send_default_pii=True,
+        )
 
     # Code Paths
     INPUT_DATA_PATH = Path("/home/user/data/input")
