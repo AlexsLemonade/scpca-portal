@@ -12,6 +12,8 @@ SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
 
 FORMAT_EXTENSIONS = {ANN_DATA: ".h5ad", SINGLE_CELL_EXPERIMENT: ".rds"}
 
+EXCLUDED_PROJECT_DATA_FILES = {"samples_metadata.csv"}
+
 SUBMITTER_WHITELIST = {
     "christensen",
     "collins",

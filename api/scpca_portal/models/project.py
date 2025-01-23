@@ -98,10 +98,11 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def data_file_paths(self):
+        all_data_files = utils.convert_to_path_objects(
+            self.original_files.values_list("s3_key", flat=True)
+        )
         return sorted(
-            f
-            for f in self.original_files.values_list("s3_key", flat=True)
-            if "samples_metadata" not in f
+            str(df) for df in all_data_files if df.name not in common.EXCLUDED_PROJECT_DATA_FILES
         )
 
     @property
