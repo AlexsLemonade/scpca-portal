@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, s3, utils
+from scpca_portal import common, utils
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
 
@@ -84,35 +84,14 @@ class Library(TimestampedModel):
 
     @property
     def data_file_paths(self):
-        original_files = self.original_files
-        if self.modality == Library.Modalities.SINGLE_CELL:
-            original_files = original_files.exclude(is_metadata=True)
-
-        return sorted(original_files.values_list("s3_key", flat=True))
+        return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @property
     def original_files(self):
-        return OriginalFile.objects.filter(library_id=self.scpca_id)
-
-    @classmethod
-    def get_data_file_paths(cls, data: Dict, s3_input_bucket: str) -> List[Path]:
-        """
-        Retrieves all data file paths on the aws input bucket associated
-        with the inputted Library object metadata dict, and returns them as a list.
-        """
-        # TODO: Pop property for now until attribute added to source json
-        project_id = data.pop("scpca_project_id")
-        sample_id = data.get("scpca_sample_id")
-        library_id = data.get("scpca_library_id")
-        relative_path = Path(f"{project_id}/{sample_id}/{library_id}")
-
-        file_paths = s3.list_input_paths(relative_path, s3_input_bucket)
-
-        # input metadata json is excluded from single_cell downloads
-        if Library.get_modality_from_file_paths(file_paths) == Library.Modalities.SINGLE_CELL:
-            return [file_path for file_path in file_paths if "metadata" not in file_path.name]
-
-        return file_paths
+        original_files = Library._get_original_files(self.scpca_id)
+        if Library.get_modality(self.scpca_id) == Library.Modalities.SINGLE_CELL:
+            return original_files.exclude(is_metadata=True)
+        return original_files
 
     @staticmethod
     def get_modality(library_id: str) -> str:
