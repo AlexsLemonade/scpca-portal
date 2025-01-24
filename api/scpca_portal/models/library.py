@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, s3
+from scpca_portal import common, s3, utils
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
 
@@ -34,7 +34,6 @@ class Library(TimestampedModel):
             (SPATIAL, "Spatial"),
         )
 
-    data_file_paths = ArrayField(models.TextField(), default=list)
     formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
     has_cite_seq_data = models.BooleanField(default=False)
     is_multiplexed = models.BooleanField(default=False)
@@ -50,14 +49,12 @@ class Library(TimestampedModel):
 
     @classmethod
     def get_from_dict(cls, data, project):
-        data_file_paths = Library.get_data_file_paths(data, project.s3_input_bucket)
         library = cls(
-            data_file_paths=data_file_paths,
-            formats=Library.get_formats_from_file_paths(data_file_paths),
+            formats=Library.get_formats(data["scpca_library_id"]),
             is_multiplexed=data.get("is_multiplexed", False),
-            has_cite_seq_data=any(fp for fp in data_file_paths if "_adt." in fp.name),
+            has_cite_seq_data=Library.get_has_cite_seq(data["scpca_library_id"]),
             metadata=data,
-            modality=Library.get_modality_from_file_paths(data_file_paths),
+            modality=Library.get_modality(data["scpca_library_id"]),
             project=project,
             scpca_id=data["scpca_library_id"],
             workflow_version=data["workflow_version"],
@@ -79,6 +76,14 @@ class Library(TimestampedModel):
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
+
+    @property
+    def data_file_paths(self):
+        original_files = self.original_files
+        if self.modality == Library.Modalities.SINGLE_CELL:
+            original_files = original_files.exclude(is_metadata=True)
+
+        return sorted(original_files.values_list("s3_key", flat=True))
 
     @property
     def original_files(self):
@@ -104,24 +109,38 @@ class Library(TimestampedModel):
 
         return file_paths
 
-    @classmethod
-    def get_modality_from_file_paths(cls, file_paths: List[Path]) -> str:
-        if any(path for path in file_paths if "spatial" in path.parts):
+    @staticmethod
+    def get_modality(library_id: str) -> str:
+        all_file_paths = utils.convert_to_path_objects(
+            OriginalFile.objects.filter(library_id=library_id).values_list("s3_key", flat=True)
+        )
+        if any(path for path in all_file_paths if "spatial" in path.parts):
             return Library.Modalities.SPATIAL
         return Library.Modalities.SINGLE_CELL
 
-    @classmethod
-    def get_formats_from_file_paths(cls, file_paths: List[Path]) -> List[str]:
-        if Library.get_modality_from_file_paths(file_paths) is Library.Modalities.SPATIAL:
+    @staticmethod
+    def get_formats(library_id: str) -> List[str]:
+        if Library.get_modality(library_id) is Library.Modalities.SPATIAL:
             return [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
+
+        all_file_paths = utils.convert_to_path_objects(
+            OriginalFile.objects.filter(library_id=library_id).values_list("s3_key", flat=True)
+        )
 
         extensions_format = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
         formats = set(
             extensions_format[path.suffix]
-            for path in file_paths
+            for path in all_file_paths
             if path.suffix in extensions_format
         )
         return sorted(list(formats))
+
+    @staticmethod
+    def get_has_cite_seq(library_id: str) -> bool:
+        all_file_paths = utils.convert_to_path_objects(
+            OriginalFile.objects.filter(library_id=library_id).values_list("s3_key", flat=True)
+        )
+        return any(fp for fp in all_file_paths if "_adt." in fp.name)
 
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
