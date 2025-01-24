@@ -77,6 +77,11 @@ class Library(TimestampedModel):
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
 
+    @staticmethod
+    def _get_original_files(library_id: str):
+        """Retrieve all original files associated with the passed library id."""
+        return OriginalFile.objects.filter(library_id=library_id)
+
     @property
     def data_file_paths(self):
         original_files = self.original_files
