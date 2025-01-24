@@ -144,7 +144,7 @@ class OriginalFile(TimestampedModel):
     def is_project_file(s3_key: Path) -> bool:
         """Checks to see if file is a project data file, and not a library data file."""
         # project files will not have sample subdirectories
-        return next((True for p in s3_key.parts if common.SAMPLE_ID_PREFIX in p), False)
+        return next((True for p in s3_key.parts if common.SAMPLE_ID_PREFIX not in p), False)
 
     @staticmethod
     def get_relationship_ids(s3_key: Path) -> Tuple:
