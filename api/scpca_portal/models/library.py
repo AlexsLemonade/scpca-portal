@@ -94,30 +94,30 @@ class Library(TimestampedModel):
         return original_files
 
     @staticmethod
-    def get_modality(library_id: str) -> str:
-        all_file_paths = utils.convert_to_path_objects(
-            OriginalFile.objects.filter(library_id=library_id).values_list("s3_key", flat=True)
-        )
-        if any(path for path in all_file_paths if "spatial" in path.parts):
+    def get_modality(library_id: str) -> str | None:
+        original_files = Library._get_original_files(library_id)
+        if any(of.is_single_cell for of in original_files):
+            return Library.Modalities.SINGLE_CELL
+        if any(of.is_spatial for of in original_files):
             return Library.Modalities.SPATIAL
-        return Library.Modalities.SINGLE_CELL
+
+        # this should fail due to the choices validation in `is_modality`
+        return None
 
     @staticmethod
     def get_formats(library_id: str) -> List[str]:
-        if Library.get_modality(library_id) is Library.Modalities.SPATIAL:
+        original_files = Library._get_original_files(library_id)
+
+        if Library.get_modality(library_id) == Library.Modalities.SPATIAL:
             return [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
 
-        all_file_paths = utils.convert_to_path_objects(
-            OriginalFile.objects.filter(library_id=library_id).values_list("s3_key", flat=True)
-        )
+        formats = []
+        if any(of.is_single_cell_experiment for of in original_files):
+            formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
+        if any(of.is_anndata for of in original_files):
+            formats.append(Library.FileFormats.ANN_DATA)
 
-        extensions_format = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
-        formats = set(
-            extensions_format[path.suffix]
-            for path in all_file_paths
-            if path.suffix in extensions_format
-        )
-        return sorted(list(formats))
+        return sorted(formats)
 
     @staticmethod
     def get_has_cite_seq(library_id: str) -> bool:
