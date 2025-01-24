@@ -144,7 +144,7 @@ class OriginalFile(TimestampedModel):
     def is_project_file(s3_key: Path) -> bool:
         """Checks to see if file is a project data file, and not a library data file."""
         # project files will not have sample subdirectories
-        return next((True for p in s3_key.parts if common.SAMPLE_ID_PREFIX not in p), False)
+        return next((False for p in s3_key.parts if p.startswith(common.SAMPLE_ID_PREFIX)), True)
 
     @staticmethod
     def get_relationship_ids(s3_key: Path) -> Tuple:
@@ -170,8 +170,13 @@ class OriginalFile(TimestampedModel):
         if OriginalFile.is_project_file(s3_key):
             return is_single_cell, is_spatial
 
-        # spatial files will have a "spatial" subdirectory
-        if next((True for p in s3_key.parts if "spatial" in p), False):
+        library_path_part = next(
+            file_part
+            for file_part in s3_key.parts
+            if file_part.startswith(common.LIBRARY_ID_PREFIX)
+        )
+        # all spatial files have "spatial" appended to the libary part of their file path
+        if library_path_part.endswith("spatial"):
             is_spatial = True
         else:
             is_single_cell = True
