@@ -6,6 +6,7 @@ from typing import Dict, List
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import Q
 
 from scpca_portal import common, metadata_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
@@ -98,16 +99,13 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def data_file_paths(self):
-        all_data_files = utils.convert_to_path_objects(
-            self.original_files.values_list("s3_key", flat=True)
-        )
-        return sorted(
-            str(df) for df in all_data_files if df.name not in common.EXCLUDED_PROJECT_DATA_FILES
-        )
+        return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @property
     def original_files(self):
-        return OriginalFile.objects.filter(project_id=self.scpca_id, library_id=None)
+        return OriginalFile.objects.filter(
+            Q(project_id=self.scpca_id) & (Q(is_bulk=True) | Q(is_merged=True))
+        )
 
     @property
     def computed_files(self):
