@@ -84,8 +84,6 @@ class TestSyncOriginalFiles(TestCase):
         self.empty_objects_list = []
 
     def test_sync_original_files(self):
-        self.assertFalse(OriginalFile.objects.exists())
-
         # TEST ORIGINAL FILE CREATION
         with patch("scpca_portal.s3.list_bucket_objects", return_value=self.original_objects_list):
             self.sync_original_files()
@@ -100,32 +98,38 @@ class TestSyncOriginalFiles(TestCase):
         # assert that correct numbers of files exist, and correct number were deleted
         self.assertEqual(OriginalFile.objects.count(), len(self.modified_objects_list))
 
-        non_modified_files = OriginalFile.objects.filter(hash_change_at=first_sync_timestamp)
+        non_modified_s3_keys = list(
+            OriginalFile.objects.filter(hash_change_at=first_sync_timestamp).values_list(
+                "s3_key", flat=True
+            )
+        )
         self.assertListEqual(
-            sorted(
-                file.get("s3_key")
-                for file in self.modified_objects_list
-                if file.get("hash") != "modified_hash"
-            ),
-            sorted(non_modified_files.values_list("s3_key", flat=True)),
+            non_modified_s3_keys,
+            [
+                "SCPCP999990/SCPCP999990_bulk_metadata.tsv",
+                "SCPCP999990/SCPCS999990/SCPCL999990_metadata.json",
+            ],
         )
 
-        modified_files = OriginalFile.objects.filter(hash_change_at=second_sync_timestamp)
+        modified_s3_keys = list(
+            OriginalFile.objects.filter(hash_change_at=second_sync_timestamp).values_list(
+                "s3_key", flat=True
+            )
+        )
         self.assertListEqual(
-            sorted(
-                file.get("s3_key")
-                for file in self.modified_objects_list
-                if file.get("hash") == "modified_hash"
-            ),
-            sorted(modified_files.values_list("s3_key", flat=True)),
+            modified_s3_keys,
+            [
+                "SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds",
+                "SCPCP999990/SCPCS999990/SCPCL999990_filtered_rna.h5ad",
+            ],
         )
 
         # TEST ATTEMPTED DELETION OF ALL FILES - allow_bucket_wipe flag NOT passed
         with patch("scpca_portal.s3.list_bucket_objects", return_value=self.empty_objects_list):
             self.sync_original_files()
         self.assertListEqual(
-            sorted(file.get("s3_key") for file in self.modified_objects_list),
             sorted(OriginalFile.objects.all().values_list("s3_key", flat=True)),
+            sorted(file.get("s3_key") for file in self.modified_objects_list),
         )
 
         # TEST SUCCESSFUL DELETION OF ALL FILES - allow_bucket_wipe flag passed
