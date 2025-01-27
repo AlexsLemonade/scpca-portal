@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from django.db import models
 
@@ -47,10 +47,10 @@ class OriginalFile(TimestampedModel):
     def get_from_dict(cls, file_object, bucket, sync_timestamp):
         s3_key = Path(file_object["s3_key"])
 
-        project_id, sample_id, library_id = OriginalFile.get_relationship_ids(s3_key)
-        is_single_cell, is_spatial = OriginalFile.get_modalities(s3_key)
-        is_single_cell_experiment, is_anndata, is_metadata = OriginalFile.get_formats(s3_key)
-        is_bulk, is_merged = OriginalFile.get_project_file_properties(s3_key)
+        relationship_ids = OriginalFile.get_relationship_ids(s3_key)
+        modalities = OriginalFile.get_modalities(s3_key)
+        formats = OriginalFile.get_formats(s3_key)
+        project_file_properties = OriginalFile.get_project_file_properties(s3_key)
 
         original_file = cls(
             s3_bucket=bucket,
@@ -59,16 +59,16 @@ class OriginalFile(TimestampedModel):
             hash=file_object["hash"],
             hash_change_at=sync_timestamp,
             bucket_sync_at=sync_timestamp,
-            project_id=project_id,
-            sample_id=sample_id,
-            library_id=library_id,
-            is_single_cell=is_single_cell,
-            is_spatial=is_spatial,
-            is_single_cell_experiment=is_single_cell_experiment,
-            is_anndata=is_anndata,
-            is_bulk=is_bulk,
-            is_merged=is_merged,
-            is_metadata=is_metadata,
+            project_id=relationship_ids["project_id"],
+            sample_id=relationship_ids["sample_id"],
+            library_id=relationship_ids["library_id"],
+            is_single_cell=modalities["is_single_cell"],
+            is_spatial=modalities["is_spatial"],
+            is_single_cell_experiment=formats["is_single_cell_experiment"],
+            is_anndata=formats["is_anndata"],
+            is_metadata=formats["is_metadata"],
+            is_bulk=project_file_properties["is_bulk"],
+            is_merged=project_file_properties["is_merged"],
         )
 
         return original_file
@@ -147,7 +147,7 @@ class OriginalFile(TimestampedModel):
         return next((False for p in s3_key.parts if p.startswith(common.SAMPLE_ID_PREFIX)), True)
 
     @staticmethod
-    def get_relationship_ids(s3_key: Path) -> Tuple:
+    def get_relationship_ids(s3_key: Path) -> Dict:
         """Parses s3_key and returns project, sample and library ids."""
         project_id = next(
             (p for p in s3_key.parts if common.PROJECT_ID_PREFIX in p),
@@ -160,15 +160,18 @@ class OriginalFile(TimestampedModel):
             None,
         )
 
-        return project_id, sample_id, library_id
+        return {"project_id": project_id, "sample_id": sample_id, "library_id": library_id}
 
     @staticmethod
-    def get_modalities(s3_key: Path) -> Tuple:
+    def get_modalities(s3_key: Path) -> Dict[str, bool]:
         """Returns file modalities using s3_key."""
-        is_single_cell, is_spatial = False, False
+        modalities = {
+            "is_single_cell": False,
+            "is_spatial": False,
+        }
 
         if OriginalFile.is_project_file(s3_key):
-            return is_single_cell, is_spatial
+            return modalities
 
         library_path_part = next(
             file_part
@@ -177,37 +180,37 @@ class OriginalFile(TimestampedModel):
         )
         # all spatial files have "spatial" appended to the libary part of their file path
         if library_path_part.endswith("spatial"):
-            is_spatial = True
+            modalities["is_spatial"] = True
         else:
-            is_single_cell = True
+            modalities["is_single_cell"] = True
 
-        return is_single_cell, is_spatial
+        return modalities
 
     @staticmethod
-    def get_formats(s3_key: Path) -> Tuple:
+    def get_formats(s3_key: Path) -> Dict[str, bool]:
         """Returns file formats using s3_key."""
-        is_single_cell_experiment, is_anndata, is_metadata = False, False, False
+        formats = {"is_single_cell_experiment": False, "is_anndata": False, "is_metadata": False}
 
         if s3_key.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]:
-            is_single_cell_experiment = True
+            formats["is_single_cell_experiment"] = True
         elif s3_key.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]:
-            is_anndata = True
+            formats["is_anndata"] = True
         elif s3_key.suffix in [".csv", ".json"]:
-            is_metadata = True
+            formats["is_metadata"] = True
 
-        return is_single_cell_experiment, is_anndata, is_metadata
+        return formats
 
     @staticmethod
-    def get_project_file_properties(s3_key: Path) -> Tuple:
+    def get_project_file_properties(s3_key: Path) -> Dict[str, bool]:
         """Returns project file properties using s3_key."""
-        is_bulk, is_merged = False, False
+        project_file_properties = {"is_bulk": False, "is_merged": False}
 
         if not OriginalFile.is_project_file(s3_key):
-            return is_bulk, is_merged
+            return project_file_properties
 
         if "bulk" in s3_key.parts:
-            is_bulk = True
+            project_file_properties["is_bulk"] = True
         elif "merged" in s3_key.parts:
-            is_merged = True
+            project_file_properties["is_merged"] = True
 
-        return is_bulk, is_merged
+        return project_file_properties
