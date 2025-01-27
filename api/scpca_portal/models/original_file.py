@@ -36,9 +36,10 @@ class OriginalFile(TimestampedModel):
     is_spatial = models.BooleanField(default=False)
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
+    is_cite_seq = models.BooleanField(default=False)
+    is_metadata = models.BooleanField(default=False)
     is_bulk = models.BooleanField(default=False)
     is_merged = models.BooleanField(default=False)
-    is_metadata = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Original File {self.s3_key} from Project {self.project_id} ({self.size_in_bytes}B)"
@@ -66,6 +67,7 @@ class OriginalFile(TimestampedModel):
             is_spatial=modalities["is_spatial"],
             is_single_cell_experiment=formats["is_single_cell_experiment"],
             is_anndata=formats["is_anndata"],
+            is_cite_seq=formats["is_cite_seq"],
             is_metadata=formats["is_metadata"],
             is_bulk=project_file_properties["is_bulk"],
             is_merged=project_file_properties["is_merged"],
@@ -189,12 +191,19 @@ class OriginalFile(TimestampedModel):
     @staticmethod
     def get_formats(s3_key: Path) -> Dict[str, bool]:
         """Returns file formats using s3_key."""
-        formats = {"is_single_cell_experiment": False, "is_anndata": False, "is_metadata": False}
+        formats = {
+            "is_single_cell_experiment": False,
+            "is_anndata": False,
+            "is_cite_seq": False,
+            "is_metadata": False,
+        }
 
         if s3_key.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]:
             formats["is_single_cell_experiment"] = True
         elif s3_key.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]:
             formats["is_anndata"] = True
+            if common.CITE_SEQ_SUFFIX in s3_key.name:
+                formats["is_cite_seq"] = True
         elif s3_key.suffix in [".csv", ".json"]:
             formats["is_metadata"] = True
 
