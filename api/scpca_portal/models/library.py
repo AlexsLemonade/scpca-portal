@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, utils
+from scpca_portal import common
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
 
@@ -121,10 +121,8 @@ class Library(TimestampedModel):
 
     @staticmethod
     def get_has_cite_seq(library_id: str) -> bool:
-        all_file_paths = utils.convert_to_path_objects(
-            OriginalFile.objects.filter(library_id=library_id).values_list("s3_key", flat=True)
-        )
-        return any(fp for fp in all_file_paths if "_adt." in fp.name)
+        original_files = Library._get_original_files(library_id)
+        return any(of.is_cite_seq for of in original_files)
 
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
