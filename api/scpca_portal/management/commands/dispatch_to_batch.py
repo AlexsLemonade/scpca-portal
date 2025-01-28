@@ -1,4 +1,5 @@
 import logging
+from argparse import BooleanOptionalAction
 from collections import Counter
 
 from django.conf import settings
@@ -27,7 +28,9 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("--regenerate-all", type=bool, default=False)
+        parser.add_argument(
+            "--regenerate-all", action=BooleanOptionalAction, type=bool, default=False
+        )
         parser.add_argument("--project-id", type=str, default="")
 
     def handle(self, *args, **kwargs):
