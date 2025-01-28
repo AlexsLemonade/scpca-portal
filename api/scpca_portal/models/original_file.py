@@ -207,6 +207,7 @@ class OriginalFile(TimestampedModel):
         # FORMATS
         attrs["is_single_cell_experiment"] = (
             s3_key.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]
+            or attrs["is_spatial"]  # we consider all spatial files SCE
         )
         attrs["is_anndata"] = s3_key.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]
         attrs["is_metadata"] = s3_key.suffix in [".csv", ".json"]
