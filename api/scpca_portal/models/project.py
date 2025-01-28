@@ -6,7 +6,6 @@ from typing import Dict, List
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import Q
 
 from scpca_portal import common, metadata_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
@@ -103,8 +102,8 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def original_files(self):
-        return OriginalFile.objects.filter(
-            Q(project_id=self.scpca_id) & (Q(is_bulk=True) | Q(is_merged=True))
+        return OriginalFile.downloadable_objects.filter(
+            project_id=self.scpca_id, is_project_file=True
         )
 
     @property

@@ -12,6 +12,11 @@ from scpca_portal.models.base import TimestampedModel
 logger = get_and_configure_logger(__name__)
 
 
+class DownloadableFileManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_downloadable=True)
+
+
 class OriginalFile(TimestampedModel):
     class Meta:
         db_table = "original_files"
@@ -35,7 +40,7 @@ class OriginalFile(TimestampedModel):
     # modalities
     is_single_cell = models.BooleanField(default=False)
     is_spatial = models.BooleanField(default=False)
-    is_cite_seq = models.BooleanField(default=False)
+    is_cite_seq = models.BooleanField(default=False)  # indicates if file is exclusively cite_seq
     is_bulk = models.BooleanField(default=False)
     # formats
     is_single_cell_experiment = models.BooleanField(default=False)
@@ -45,6 +50,10 @@ class OriginalFile(TimestampedModel):
     is_merged = models.BooleanField(default=False)
     is_project_file = models.BooleanField(default=False)
     is_downloadable = models.BooleanField(default=True)
+
+    # queryset managers
+    objects = models.Manager()
+    downloadable_objects = DownloadableFileManager()
 
     def __str__(self):
         return f"Original File {self.s3_key} from Project {self.project_id} ({self.size_in_bytes}B)"

@@ -50,7 +50,7 @@ class Library(TimestampedModel):
     @classmethod
     def get_from_dict(cls, data, project):
         library_id = data["scpca_library_id"]
-        original_files = OriginalFile.objects.filter(library_id=library_id, is_downloadable=True)
+        original_files = OriginalFile.downloadable_objects.filter(library_id=library_id)
 
         modality = ""
         if original_files.filter(is_single_cell=True).exists():
@@ -98,7 +98,7 @@ class Library(TimestampedModel):
 
     @property
     def original_files(self):
-        return OriginalFile.objects.filter(library_id=self.scpca_id, is_downloadable=True)
+        return OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
 
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
