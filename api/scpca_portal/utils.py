@@ -119,15 +119,15 @@ def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
 def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable], *args):
     """
     Transform values in data dict according to transformation functions in value transform dict.
-    If one of the transformation functions has more than 1 parameter,
-    they are passed here as *args.
+    Functions with variable numbers of params are supported,
+    where passed params are trimmed dynamically to the param length of each function.
     """
     for key, func in value_transforms.items():
-        signature = inspect.signature(func)
-        if len(signature.parameters) == 1:
-            data_dict[key] = func(data_dict[key])
-        else:
-            data_dict[key] = func(data_dict[key], *args)
+        func_params = inspect.signature(func).parameters
+        # trim additional args based on number of func params
+        adtl_args = args[: (len(func_params) - 1)]
+
+        data_dict[key] = func(data_dict[key], *adtl_args)
 
     return data_dict
 
