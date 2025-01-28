@@ -49,14 +49,29 @@ class Library(TimestampedModel):
 
     @classmethod
     def get_from_dict(cls, data, project):
+        library_id = data["scpca_library_id"]
+        original_files = OriginalFile.objects.filter(library_id=library_id, is_downloadable=True)
+
+        modality = ""
+        if original_files.filter(is_single_cell=True).exists():
+            modality = Library.Modalities.SINGLE_CELL
+        elif original_files.filter(is_spatial=True).exists():
+            modality = Library.Modalities.SPATIAL
+
+        formats = []
+        if original_files.filter(is_single_cell_experiment=True).exists():
+            formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
+        if original_files.filter(is_anndata=True).exists():
+            formats.append(Library.FileFormats.ANN_DATA)
+
         library = cls(
-            formats=Library.get_formats(data["scpca_library_id"]),
+            formats=sorted(formats),
             is_multiplexed=data.get("is_multiplexed", False),
-            has_cite_seq_data=Library.get_has_cite_seq(data["scpca_library_id"]),
+            has_cite_seq_data=original_files.filter(is_cite_seq=True).exists(),
             metadata=data,
-            modality=Library.get_modality(data["scpca_library_id"]),
+            modality=modality,
             project=project,
-            scpca_id=data["scpca_library_id"],
+            scpca_id=library_id,
             workflow_version=data["workflow_version"],
         )
 
@@ -77,52 +92,13 @@ class Library(TimestampedModel):
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
 
-    @staticmethod
-    def _get_original_files(library_id: str):
-        """Retrieve all original files associated with the passed library id."""
-        return OriginalFile.objects.filter(library_id=library_id)
-
     @property
     def data_file_paths(self):
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @property
     def original_files(self):
-        original_files = Library._get_original_files(self.scpca_id)
-        if Library.get_modality(self.scpca_id) == Library.Modalities.SINGLE_CELL:
-            return original_files.exclude(is_metadata=True)
-        return original_files
-
-    @staticmethod
-    def get_modality(library_id: str) -> str | None:
-        original_files = Library._get_original_files(library_id)
-        if any(of.is_single_cell for of in original_files):
-            return Library.Modalities.SINGLE_CELL
-        if any(of.is_spatial for of in original_files):
-            return Library.Modalities.SPATIAL
-
-        # this should fail due to the choices validation in `is_modality`
-        return None
-
-    @staticmethod
-    def get_formats(library_id: str) -> List[str]:
-        original_files = Library._get_original_files(library_id)
-
-        if Library.get_modality(library_id) == Library.Modalities.SPATIAL:
-            return [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
-
-        formats = []
-        if any(of.is_single_cell_experiment for of in original_files):
-            formats.append(Library.FileFormats.SINGLE_CELL_EXPERIMENT)
-        if any(of.is_anndata for of in original_files):
-            formats.append(Library.FileFormats.ANN_DATA)
-
-        return sorted(formats)
-
-    @staticmethod
-    def get_has_cite_seq(library_id: str) -> bool:
-        original_files = Library._get_original_files(library_id)
-        return any(of.is_cite_seq for of in original_files)
+        return OriginalFile.objects.filter(library_id=self.scpca_id, is_downloadable=True)
 
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
