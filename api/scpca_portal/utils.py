@@ -3,7 +3,6 @@
 import inspect
 from collections import namedtuple
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Callable, Dict, List, Set, Tuple
 
 from scpca_portal import common
@@ -130,7 +129,3 @@ def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable], *ar
         data_dict[key] = func(data_dict[key], *adtl_args)
 
     return data_dict
-
-
-def convert_to_path_objects(str_paths: List[str]) -> List[Path]:
-    return [Path(str_path) for str_path in str_paths]

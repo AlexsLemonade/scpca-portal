@@ -194,12 +194,13 @@ class OriginalFile(TimestampedModel):
             "is_downloadable": True,
         }
 
-        # Set project_files attr first as other attrs are dependent on it
+        # Set is_project_file attr first as other attrs are dependent on it
         attrs["is_project_file"] = next(  # project files will not have sample subdirectories
             (False for p in s3_key.parts if p.startswith(common.SAMPLE_ID_PREFIX)), True
         )
 
         # MODALITIES
+        # single_cell, spatial and cite_seq don't apply to project files
         if not attrs["is_project_file"]:
             library_path_part = next(
                 file_part
@@ -226,6 +227,7 @@ class OriginalFile(TimestampedModel):
         if attrs["is_project_file"]:
             attrs["is_downloadable"] = s3_key.name not in common.NON_DOWNLOADABLE_PROJECT_FILES
         elif attrs["is_single_cell"]:
+            # as opposed to spatial, single_cell metadata files are not included in computed files
             attrs["is_downloadable"] = not attrs["is_metadata"]
 
         return attrs
