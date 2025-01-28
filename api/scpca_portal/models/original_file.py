@@ -54,9 +54,7 @@ class OriginalFile(TimestampedModel):
         s3_key = Path(file_object["s3_key"])
 
         relationship_ids = OriginalFile.get_relationship_ids(s3_key)
-        modalities = OriginalFile.get_modalities(s3_key)
-        formats = OriginalFile.get_formats(s3_key)
-        project_file_properties = OriginalFile.get_project_file_properties(s3_key)
+        existence_attrs = OriginalFile.get_existence_attributes(s3_key)
 
         original_file = cls(
             s3_bucket=bucket,
@@ -68,14 +66,16 @@ class OriginalFile(TimestampedModel):
             project_id=relationship_ids["project_id"],
             sample_id=relationship_ids["sample_id"],
             library_id=relationship_ids["library_id"],
-            is_single_cell=modalities["is_single_cell"],
-            is_spatial=modalities["is_spatial"],
-            is_single_cell_experiment=formats["is_single_cell_experiment"],
-            is_anndata=formats["is_anndata"],
-            is_cite_seq=formats["is_cite_seq"],
-            is_metadata=formats["is_metadata"],
-            is_bulk=project_file_properties["is_bulk"],
-            is_merged=project_file_properties["is_merged"],
+            is_single_cell=existence_attrs["is_single_cell"],
+            is_spatial=existence_attrs["is_spatial"],
+            is_cite_seq=existence_attrs["is_cite_seq"],
+            is_bulk=existence_attrs["is_bulk"],
+            is_single_cell_experiment=existence_attrs["is_single_cell_experiment"],
+            is_anndata=existence_attrs["is_anndata"],
+            is_metadata=existence_attrs["is_metadata"],
+            is_merged=existence_attrs["is_merged"],
+            is_project_file=existence_attrs["is_project_file"],
+            is_downloadable=existence_attrs["is_downloadable"],
         )
 
         return original_file
@@ -164,61 +164,58 @@ class OriginalFile(TimestampedModel):
         return {"project_id": project_id, "sample_id": sample_id, "library_id": library_id}
 
     @staticmethod
-    def get_modalities(s3_key: Path) -> Dict[str, bool]:
-        """Returns file modalities using s3_key."""
-        modalities = {
+    def get_existence_attributes(s3_key: Path) -> Dict[str, bool]:
+        """
+        Derive existence attributes based on the passed s3_key,
+        and return attributes as Dict.
+        """
+        attrs = {
+            # modalities
             "is_single_cell": False,
             "is_spatial": False,
-        }
-
-        if OriginalFile.is_project_file(s3_key):
-            return modalities
-
-        library_path_part = next(
-            file_part
-            for file_part in s3_key.parts
-            if file_part.startswith(common.LIBRARY_ID_PREFIX)
-        )
-        # all spatial files have "spatial" appended to the libary part of their file path
-        if library_path_part.endswith("spatial"):
-            modalities["is_spatial"] = True
-        else:
-            modalities["is_single_cell"] = True
-
-        return modalities
-
-    @staticmethod
-    def get_formats(s3_key: Path) -> Dict[str, bool]:
-        """Returns file formats using s3_key."""
-        formats = {
+            "is_cite_seq": False,
+            "is_bulk": False,
+            # formats
             "is_single_cell_experiment": False,
             "is_anndata": False,
-            "is_cite_seq": False,
             "is_metadata": False,
+            # other
+            "is_merged": False,
+            "is_project_file": False,
+            "is_downloadable": True,
         }
 
-        if s3_key.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]:
-            formats["is_single_cell_experiment"] = True
-        elif s3_key.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]:
-            formats["is_anndata"] = True
-            if common.CITE_SEQ_SUFFIX in s3_key.name:
-                formats["is_cite_seq"] = True
-        elif s3_key.suffix in [".csv", ".json"]:
-            formats["is_metadata"] = True
+        # Set project_files attr first as other attrs are dependent on it
+        attrs["is_project_file"] = next(  # project files will not have sample subdirectories
+            (False for p in s3_key.parts if p.startswith(common.SAMPLE_ID_PREFIX)), True
+        )
 
-        return formats
+        # MODALITIES
+        if not attrs["is_project_file"]:
+            library_path_part = next(
+                file_part
+                for file_part in s3_key.parts
+                if file_part.startswith(common.LIBRARY_ID_PREFIX)
+            )
+            # all spatial files have "spatial" appended to the libary part of their file path
+            attrs["is_spatial"] = library_path_part.endswith("spatial")
+            # spatial and single_cell are mutually exclusive
+            attrs["is_single_cell"] = not attrs["is_spatial"]
+            attrs["is_cite_seq"] = common.CITE_SEQ_FILE_SUFFIX in s3_key.name
+        attrs["is_bulk"] = "bulk" in s3_key.parts
 
-    @staticmethod
-    def get_project_file_properties(s3_key: Path) -> Dict[str, bool]:
-        """Returns project file properties using s3_key."""
-        project_file_properties = {"is_bulk": False, "is_merged": False}
+        # FORMATS
+        attrs["is_single_cell_experiment"] = (
+            s3_key.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]
+        )
+        attrs["is_anndata"] = s3_key.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]
+        attrs["is_metadata"] = s3_key.suffix in [".csv", ".json"]
 
-        if not OriginalFile.is_project_file(s3_key):
-            return project_file_properties
+        # OTHERS
+        attrs["is_merged"] = "merged" in s3_key.parts
+        if attrs["is_project_file"]:
+            attrs["is_downloadable"] = s3_key.name not in common.NON_DOWNLOADABLE_PROJECT_FILES
+        elif attrs["is_single_cell"]:
+            attrs["is_downloadable"] = not attrs["is_metadata"]
 
-        if "bulk" in s3_key.parts:
-            project_file_properties["is_bulk"] = True
-        elif "merged" in s3_key.parts:
-            project_file_properties["is_merged"] = True
-
-        return project_file_properties
+        return attrs
