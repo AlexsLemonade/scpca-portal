@@ -32,14 +32,19 @@ class OriginalFile(TimestampedModel):
     library_id = models.TextField(null=True)
 
     # existence attributes
+    # modalities
     is_single_cell = models.BooleanField(default=False)
     is_spatial = models.BooleanField(default=False)
+    is_cite_seq = models.BooleanField(default=False)
+    is_bulk = models.BooleanField(default=False)
+    # formats
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
-    is_cite_seq = models.BooleanField(default=False)
     is_metadata = models.BooleanField(default=False)
-    is_bulk = models.BooleanField(default=False)
+    # other
     is_merged = models.BooleanField(default=False)
+    is_project_file = models.BooleanField(default=False)
+    is_downloadable = models.BooleanField(default=True)
 
     def __str__(self):
         return f"Original File {self.s3_key} from Project {self.project_id} ({self.size_in_bytes}B)"
@@ -141,12 +146,6 @@ class OriginalFile(TimestampedModel):
 
         deletable_files.delete()
         return deletable_file_list
-
-    @staticmethod
-    def is_project_file(s3_key: Path) -> bool:
-        """Checks to see if file is a project data file, and not a library data file."""
-        # project files will not have sample subdirectories
-        return next((False for p in s3_key.parts if p.startswith(common.SAMPLE_ID_PREFIX)), True)
 
     @staticmethod
     def get_relationship_ids(s3_key: Path) -> Dict:
