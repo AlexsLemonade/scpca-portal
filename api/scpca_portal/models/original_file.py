@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
 
@@ -5,7 +6,7 @@ from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import common
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import TimestampedModel
 
@@ -60,31 +61,28 @@ class OriginalFile(TimestampedModel):
 
     @classmethod
     def get_from_dict(cls, file_object, bucket, sync_timestamp):
-        s3_key = Path(file_object["s3_key"])
-
-        relationship_ids = OriginalFile.get_relationship_ids(s3_key)
-        existence_attrs = OriginalFile.get_existence_attributes(s3_key)
+        s3_key_info = S3KeyInfo(Path(file_object["s3_key"]))
 
         original_file = cls(
             s3_bucket=bucket,
-            s3_key=s3_key,
+            s3_key=file_object["s3_key"],
             size_in_bytes=file_object["size_in_bytes"],
             hash=file_object["hash"],
             hash_change_at=sync_timestamp,
             bucket_sync_at=sync_timestamp,
-            project_id=relationship_ids["project_id"],
-            sample_id=relationship_ids["sample_id"],
-            library_id=relationship_ids["library_id"],
-            is_single_cell=existence_attrs["is_single_cell"],
-            is_spatial=existence_attrs["is_spatial"],
-            is_cite_seq=existence_attrs["is_cite_seq"],
-            is_bulk=existence_attrs["is_bulk"],
-            is_single_cell_experiment=existence_attrs["is_single_cell_experiment"],
-            is_anndata=existence_attrs["is_anndata"],
-            is_metadata=existence_attrs["is_metadata"],
-            is_merged=existence_attrs["is_merged"],
-            is_project_file=existence_attrs["is_project_file"],
-            is_downloadable=existence_attrs["is_downloadable"],
+            project_id=s3_key_info.project_id,
+            sample_id=s3_key_info.sample_id,
+            library_id=s3_key_info.library_id,
+            is_single_cell=s3_key_info.is_single_cell,
+            is_spatial=s3_key_info.is_spatial,
+            is_cite_seq=s3_key_info.is_cite_seq,
+            is_bulk=s3_key_info.is_bulk,
+            is_single_cell_experiment=s3_key_info.is_single_cell_experiment,
+            is_anndata=s3_key_info.is_anndata,
+            is_metadata=s3_key_info.is_metadata,
+            is_merged=s3_key_info.is_merged,
+            is_project_file=s3_key_info.is_project_file,
+            is_downloadable=s3_key_info.is_downloadable,
         )
 
         return original_file
@@ -231,3 +229,83 @@ class OriginalFile(TimestampedModel):
             attrs["is_downloadable"] = not attrs["is_metadata"]
 
         return attrs
+
+
+@dataclass
+class S3KeyInfo:
+    s3_key: Path
+    project_id_part: str | None
+    sample_id_part: str | None
+    library_id_part: str | None
+    is_merged: bool
+    is_bulk: bool
+
+    # is_spatial:
+    def __init__(self, s3_key: Path):
+        self.s3_key = s3_key
+        self.project_id_part = utils.find_matching_part(common.PROJECT_ID_PREFIX, s3_key.parts)
+        self.sample_id_part = utils.find_matching_part(common.SAMPLE_ID_PREFIX, s3_key.parts)
+        self.library_id_part = utils.find_matching_part(common.LIBRARY_ID_PREFIX, s3_key.parts)
+        self.is_merged = "merged" in s3_key.parts
+        self.is_bulk = "bulk" in s3_key.parts
+
+    @property
+    def project_id(self):
+        return self.project_id_part
+
+    @property
+    def sample_id(self):
+        return self.sample_id_part
+
+    @property
+    def library_id(self):
+        if self.library_id_part:
+            return self.library_id_part.split("_")[0]
+        return self.library_id_part
+
+    @property
+    def is_project_file(self):
+        """Project files have project dirs but don't have sample dirs"""
+        return not self.sample_id_part
+
+    @property
+    def is_spatial(self):
+        if self.is_project_file:
+            return False
+
+        return self.library_id_part.endswith("spatial")
+
+    @property
+    def is_single_cell(self):
+        if self.is_project_file:
+            return False
+        return not self.is_spatial
+
+    @property
+    def is_cite_seq(self):
+        if self.is_project_file:
+            return False
+        return common.CITE_SEQ_FILE_SUFFIX in self.s3_key.name
+
+    @property
+    def is_single_cell_experiment(self):
+        return (
+            self.s3_key.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]
+            or self.is_spatial  # we consider all spatial files SCE
+        )
+
+    @property
+    def is_anndata(self):
+        return self.s3_key.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]
+
+    @property
+    def is_metadata(self):
+        return self.s3_key.suffix in [".csv", ".json"]
+
+    @property
+    def is_downloadable(self):
+        if self.is_project_file:
+            return self.s3_key.name not in common.NON_DOWNLOADABLE_PROJECT_FILES
+        if self.is_single_cell:
+            return not self.is_metadata
+        return True
