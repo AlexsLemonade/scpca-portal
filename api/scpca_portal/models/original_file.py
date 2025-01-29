@@ -197,12 +197,14 @@ class S3KeyInfo:
         if self.is_project_file:
             return False
 
+        # all spatial files have "spatial" appended to the libary part of their file path
         return self.library_id_part.endswith("spatial")
 
     @property
     def is_single_cell(self):
         if self.is_project_file:
             return False
+        # spatial and single_cell are mutually exclusive
         return not self.is_spatial
 
     @property
@@ -230,6 +232,7 @@ class S3KeyInfo:
     def is_downloadable(self):
         if self.is_project_file:
             return self.s3_key.name not in common.NON_DOWNLOADABLE_PROJECT_FILES
+        # as opposed to spatial, single_cell metadata files are not included in computed files
         if self.is_single_cell:
             return not self.is_metadata
         return True
