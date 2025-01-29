@@ -3,7 +3,7 @@
 import inspect
 from collections import namedtuple
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Set, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Set, Tuple
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -129,3 +129,8 @@ def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable], *ar
         data_dict[key] = func(data_dict[key], *adtl_args)
 
     return data_dict
+
+
+def find_matching_part(matcher, parts: Iterable[str]) -> str | None:
+    """Return part that contains passed matcher substring."""
+    return next((part for part in parts if matcher in part), None)
