@@ -158,28 +158,19 @@ class OriginalFile(TimestampedModel):
 @dataclass
 class S3KeyInfo:
     s3_key: Path
-    project_id_part: str | None
-    sample_id_part: str | None
+    project_id: str | None
+    sample_id: str | None
     library_id_part: str | None
     is_merged: bool
     is_bulk: bool
 
-    # is_spatial:
     def __init__(self, s3_key: Path):
         self.s3_key = s3_key
-        self.project_id_part = utils.find_matching_part(common.PROJECT_ID_PREFIX, s3_key.parts)
-        self.sample_id_part = utils.find_matching_part(common.SAMPLE_ID_PREFIX, s3_key.parts)
+        self.project_id = utils.find_matching_part(common.PROJECT_ID_PREFIX, s3_key.parts)
+        self.sample_id = utils.find_matching_part(common.SAMPLE_ID_PREFIX, s3_key.parts)
         self.library_id_part = utils.find_matching_part(common.LIBRARY_ID_PREFIX, s3_key.parts)
         self.is_merged = "merged" in s3_key.parts
         self.is_bulk = "bulk" in s3_key.parts
-
-    @property
-    def project_id(self):
-        return self.project_id_part
-
-    @property
-    def sample_id(self):
-        return self.sample_id_part
 
     @property
     def library_id(self):
@@ -190,7 +181,7 @@ class S3KeyInfo:
     @property
     def is_project_file(self):
         """Project files have project dirs but don't have sample dirs"""
-        return not self.sample_id_part
+        return not self.sample_id
 
     @property
     def is_spatial(self):
