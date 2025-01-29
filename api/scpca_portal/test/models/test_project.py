@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from scpca_portal import common
-from scpca_portal.models import Library
+from scpca_portal.enums.modalities import Modalities
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory
 
 
@@ -9,14 +9,12 @@ class TestGetLibraries(TestCase):
     def setUp(self):
         self.project = ProjectFactory(has_multiplexed_data=True)
         self.library_single_cell_no_multiplexed = LibraryFactory(
-            project=self.project, modality=Library.Modalities.SINGLE_CELL, is_multiplexed=False
+            project=self.project, modality=Modalities.SINGLE_CELL, is_multiplexed=False
         )
         self.library_single_cell_multiplexed = LibraryFactory(
-            project=self.project, modality=Library.Modalities.SINGLE_CELL, is_multiplexed=True
+            project=self.project, modality=Modalities.SINGLE_CELL, is_multiplexed=True
         )
-        self.library_spatial = LibraryFactory(
-            project=self.project, modality=Library.Modalities.SPATIAL
-        )
+        self.library_spatial = LibraryFactory(project=self.project, modality=Modalities.SPATIAL)
 
     def test_get_libraries_valid_config(self):
         download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED"

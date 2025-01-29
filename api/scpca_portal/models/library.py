@@ -6,6 +6,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common, s3
+from scpca_portal.enums.modalities import Modalities
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
 
@@ -23,15 +24,6 @@ class Library(TimestampedModel):
         CHOICES = (
             (ANN_DATA, "AnnData"),
             (SINGLE_CELL_EXPERIMENT, "Single cell experiment"),
-        )
-
-    class Modalities:
-        SINGLE_CELL = "SINGLE_CELL"
-        SPATIAL = "SPATIAL"
-
-        CHOICES = (
-            (SINGLE_CELL, "Single Cell"),
-            (SPATIAL, "Spatial"),
         )
 
     data_file_paths = ArrayField(models.TextField(), default=list)
@@ -99,7 +91,7 @@ class Library(TimestampedModel):
         file_paths = s3.list_input_paths(relative_path, s3_input_bucket)
 
         # input metadata json is excluded from single_cell downloads
-        if Library.get_modality_from_file_paths(file_paths) == Library.Modalities.SINGLE_CELL:
+        if Library.get_modality_from_file_paths(file_paths) == Modalities.SINGLE_CELL:
             return [file_path for file_path in file_paths if "metadata" not in file_path.name]
 
         return file_paths
@@ -107,12 +99,12 @@ class Library(TimestampedModel):
     @classmethod
     def get_modality_from_file_paths(cls, file_paths: List[Path]) -> str:
         if any(path for path in file_paths if "spatial" in path.parts):
-            return Library.Modalities.SPATIAL
-        return Library.Modalities.SINGLE_CELL
+            return Modalities.SPATIAL
+        return Modalities.SINGLE_CELL
 
     @classmethod
     def get_formats_from_file_paths(cls, file_paths: List[Path]) -> List[str]:
-        if Library.get_modality_from_file_paths(file_paths) is Library.Modalities.SPATIAL:
+        if Library.get_modality_from_file_paths(file_paths) is Modalities.SPATIAL:
             return [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
 
         extensions_format = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}

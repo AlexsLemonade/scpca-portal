@@ -1,5 +1,6 @@
 import factory
 
+from scpca_portal.enums.modalities import Modalities
 from scpca_portal.models import ComputedFile, Library
 
 
@@ -128,7 +129,7 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     ]
     formats = [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
     is_multiplexed = False
-    modality = Library.Modalities.SINGLE_CELL
+    modality = Modalities.SINGLE_CELL
     project = factory.SubFactory(LeafProjectFactory)
     scpca_id = factory.Sequence(lambda n: f"SCPCL{str(n).zfill(6)}")
     workflow_version = "development"

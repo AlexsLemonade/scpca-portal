@@ -9,6 +9,7 @@ from django.db import models
 
 from scpca_portal import common, metadata_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums.modalities import Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -309,7 +310,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         Return all of a project's file paths that are suitable for the passed download config.
         """
         # Spatial samples do not have bulk or merged project files
-        if download_config["modality"] == Library.Modalities.SPATIAL:
+        if download_config["modality"] == Modalities.SPATIAL:
             return []
 
         data_file_path_objects = [Path(fp) for fp in self.data_file_paths]
@@ -404,11 +405,9 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample.has_cite_seq_data = sample.libraries.filter(has_cite_seq_data=True).exists()
             sample.has_multiplexed_data = sample.libraries.filter(is_multiplexed=True).exists()
             sample.has_single_cell_data = sample.libraries.filter(
-                modality=Library.Modalities.SINGLE_CELL
+                modality=Modalities.SINGLE_CELL
             ).exists()
-            sample.has_spatial_data = sample.libraries.filter(
-                modality=Library.Modalities.SPATIAL
-            ).exists()
+            sample.has_spatial_data = sample.libraries.filter(modality=Modalities.SPATIAL).exists()
             sample.includes_anndata = sample.libraries.filter(
                 formats__contains=[Library.FileFormats.ANN_DATA]
             ).exists()
@@ -434,7 +433,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_technologies = set()
 
             for library in sample.libraries.all():
-                if library.modality == Library.Modalities.SINGLE_CELL:
+                if library.modality == Modalities.SINGLE_CELL:
                     if not library.is_multiplexed:
                         sample_cell_count_estimate += library.metadata.get("filtered_cell_count")
 
