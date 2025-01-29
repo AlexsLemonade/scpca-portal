@@ -14,15 +14,15 @@ The Single-cell Pediatric Cancer Atlas (ScPCA) is a growing database of uniforml
 In 2019, ALSF established the ScPCA through awards for data generation and to create an atlas of single-cell gene expression profiles of pediatric cancers of different types and from different organ sites.
 The Childhood Cancer Data Lab, a program of ALSF, launched the ScPCA Portal (<https://scpca.alexslemonade.org/>) in 2022 to make uniformly processed, summarized single-cell and single-nuclei RNA-seq data and de-identified metadata available for download.
 The ScPCA Portal also supports other data modalities, such as bulk RNA-seq, CITE-seq, and spatial transcriptomics.
-Today, the ScPCA Portal hosts data for over 500 pediatric tumor, patient-derived xenograft, and cell line samples from more than 50 cancer types.
+Today, the ScPCA Portal hosts data for over 700 pediatric tumor, patient-derived xenograft, and cell line samples from more than 50 cancer types.
 
 ## Call for Contributions to the ScPCA
 
-ALSF seeks to expand the projects available from the ScPCA Portal by accepting submissions from researchers with existing single-cell datasets.
+ALSF seeks to expand the projects available from the ScPCA Portal by accepting submissions from researchers with existing single-cell or spatial transcriptomics datasets.
 Submitted datasets will be made publicly available on the ScPCA Portal.
-Researchers that submit data may be eligible to receive a one-time small grant of unrestricted funds to be used for childhood cancer research.
+Researchers who submit data may be eligible to receive a small grant of unrestricted funds to be used for childhood cancer research.
 
-We previously accepted submissions of 10x Genomics single-cell or single-nuclei profiling of childhood and adolescent cancer (ages 0-19) data, broadly defined to include relevant animal models, patient-derived xenografts, or cell lines, as well as tumor data.
+We will accept submissions of 10x Genomics single-cell, single-nuclei, or spatial transcriptomics profiling of childhood and adolescent cancer (ages 0-19) data, broadly defined to include relevant animal models, patient-derived xenografts, or cell lines, as well as tumor data.
 Researchers processed their data using the Childhood Cancer Data Lab's production pipeline – available at <https://github.com/AlexsLemonade/scpca-nf/> – and submitted the output, along with project (see [**Submitting Project Metadata**](#submitting-project-metadata)), sample (see [**Submitting Sample Metadata**](#submitting-sample-metadata)) and cell (see [**Submitting Cell Metadata**](#submitting-cell-metadata)) metadata.
 Submitting institutions had to sign a Data Transfer Agreement before data transfer ([view Data Transfer Agreement template](https://docs.google.com/document/d/1eLHobiV4M0bC0KOQALgpfaLU0Y4nMZYs/edit?usp=share_link&ouid=105890053693989014850&rtpof=true&sd=true)).
 
@@ -63,7 +63,7 @@ The Data Lab will provide transfer details once a dataset has been determined to
 
 ### About the Processing Pipeline
 
-The Data Lab's [Nextflow](https://www.nextflow.io) workflow ([`scpca-nf`](https://github.com/AlexsLemonade/scpca-nf)) is used to process 10x Genomics single-cell and single-nuclei RNA-seq data for release on the [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
+The Data Lab's [Nextflow](https://www.nextflow.io) workflow ([`scpca-nf`](https://github.com/AlexsLemonade/scpca-nf)) is used to process 10x Genomics single-cell, single-nuclei and spatial transcriptomic data for release on the [Single-cell Pediatric Cancer Atlas (ScPCA) project](https://scpca.alexslemonade.org/).
 Submitters are **required to use this pipeline** to ensure that all datasets available via the ScPCA Portal are uniformly processed.
 
 The workflow processes FASTQ files with [alevin-fry](https://alevin-fry.readthedocs.io/en/latest/) to create summarized gene expression matrices (gene-by-cell matrices stored as [`SingleCellExperiment` objects](https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html)).
@@ -77,7 +77,7 @@ Nextflow will also handle parallelizing sample processing as your environment al
 
 #### Processing Your Data
 
-**Please note that processing single-cell and single-nuclei RNA-seq samples with the pipeline as currently configured requires access to a high-performance computing (HPC) environment with nodes that can accommodate jobs requiring up to 24 GB of RAM and 12 CPUs.**
+**Please note that processing single-cell, single-nuclei or spatial transcriptomic samples with the pipeline as currently configured requires access to a high-performance computing (HPC) environment with nodes that can accommodate jobs requiring up to 24 GB of RAM and 12 CPUs.**
 The pipeline can be adapted to lower CPU counts if needed.
 
 `scpca-nf` can be set up for your computing environment with a few configuration files.
@@ -128,7 +128,8 @@ Submissions of tumor samples directly obtained from patients are required to inc
 
 | Metadata Field | Description |
 |----------------|-------------|
-| `age`             | Age at time sample was obtained                                |
+| `age`             | Age in years |
+| `age_timing`      | Whether the age submitted is the age at diagnosis (`diagnosis`), age at collection (`collection`), or `unknown`. This will be `diagnosis` for all samples collected at diagnosis, indicated by the disease_timing column. |
 | `sex`             | Sex of patient that the sample was obtained from               |
 | `tissue_location` | Where in the body the tumor sample was located                 |
 | `disease_timing`  | What stage of disease was the sample obtained? At diagnosis or recurrence? |
@@ -141,7 +142,8 @@ Submissions of human cell line samples are required to include the following add
 |----------------|-------------|
 | `cell_line` | Cell line name |
 | `cell_line_id` | [Cellosaurus (CVCL)](https://www.cellosaurus.org) or [Cell Line Ontology (CLO)](https://www.ebi.ac.uk/ols/ontologies/clo) identifier |
-| `age_at_collection` | Age of the patient at the time the sample used to establish the line was obtained |
+| `age`             | Age in years |
+| `age_timing`      | Whether the age submitted is the age at diagnosis (`diagnosis`), age at collection (`collection`), or `unknown`. Age at collection is preferred for cell line samples. |
 | `sex`             | Sex of the patient from which the line was isolated |
 | `tissue_location` | Where in the body the source of culture was derived from |
 | `disease_timing`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
@@ -150,20 +152,20 @@ Submissions of human cell line samples are required to include the following add
 
 Please include any perturbations (e.g., treatment with small molecule inhibitors) that were performed.
 
-##### Mouse Model Samples
+##### Model Organism Samples
 
-Submissions of samples obtained from mouse models are required to include the following additional metadata fields:
+Submissions of samples obtained from model organisms are required to include the following additional metadata fields:
 
 | Metadata Field | Description |
 |----------------|-------------|
 | `tissue_source` | The source of the tissue (e.g., tissue location or isolation methodology) |
-| `genotype` | Genotype of the mouse (if applicable) |
-| `model_description` | Description of the model type (e.g., syngeneic model or humanized model with specifics about engraftment) |
-| `strain` | Formal name of mouse strain (i.e., "C57BL/6" not "B6") |
-| `sex` | Sex of the mouse from which the sample was isolated |
+| `genotype` | Genotype of the organism (if applicable) |
+| `model_description` | Description of the model type (e.g., syngeneic model or humanized model with specifics about engraftment for mouse models) |
+| `genetic_background` | Formal name of the genetic background of the organism (e.g., "C57BL/6" not "B6" for C57BL/6 mice) |
+| `sex` | Sex of the organism from which the sample was isolated |
 
 Please include any perturbations (e.g., treatment with small molecule inhibitors) that were performed or any relevant phenotypic information.
-If a submitter has data from a non-traditional mouse model, such as cell line injections into mice, they will be required to submit additional sample data, such as injection site.
+Depending on the nature of the model, ALSF may request additional metadata fields.
 
 ##### Patient-Derived Xenograft Samples
 
@@ -171,7 +173,8 @@ Submissions of patient-derived xenograft samples are required to include the fol
 
 | Metadata Field | Description |
 |----------------|-------------|
-| `age_at_collection` | Age of the patient at the time the sample used to establish the xenograft was obtained |
+| `age`             | Age in years |
+| `age_timing`      | Whether the age submitted is the age at diagnosis (`diagnosis`), age at collection (`collection`), or `unknown`. Age at collection is preferred for patient-derived xenograft samples. |
 | `sex`             | Sex of the patient from which the xenograft was isolated |
 | `tissue_location` | Where in the body the source of the xenograft was derived from |
 | `disease_timing`  | What stage of disease was the original sample obtained? At diagnosis or recurrence? |
