@@ -1,5 +1,6 @@
 import factory
 
+from scpca_portal.enums.file_formats import FileFormats
 from scpca_portal.models import ComputedFile, Library
 
 
@@ -126,7 +127,7 @@ class LibraryFactory(factory.django.DjangoModelFactory):
             lambda n: f"SCPCP{str(n).zfill(6)}/SCPCS{str(n).zfill(6)}/SCPCL{str(n).zfill(6)}"
         )
     ]
-    formats = [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
+    formats = [FileFormats.SINGLE_CELL_EXPERIMENT]
     is_multiplexed = False
     modality = Library.Modalities.SINGLE_CELL
     project = factory.SubFactory(LeafProjectFactory)

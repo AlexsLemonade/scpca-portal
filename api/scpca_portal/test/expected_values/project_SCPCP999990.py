@@ -1,5 +1,6 @@
 from django.conf import settings
 
+from scpca_portal.enums.file_formats import FileFormats
 from scpca_portal.models import Library, Sample
 
 
@@ -169,8 +170,8 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered_rna.h5ad",
             ],
             "formats": [
-                Library.FileFormats.ANN_DATA,
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.ANN_DATA,
+                FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
@@ -199,7 +200,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv",
             ],
             "formats": [
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
@@ -222,8 +223,8 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
             ],
             "formats": [
-                Library.FileFormats.ANN_DATA,
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.ANN_DATA,
+                FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
