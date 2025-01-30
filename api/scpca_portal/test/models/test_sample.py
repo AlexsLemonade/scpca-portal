@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from scpca_portal import common
-from scpca_portal.enums.file_formats import FileFormats
+from scpca_portal.enums import FileFormats
 from scpca_portal.models import Library
 from scpca_portal.test.factories import LibraryFactory, SampleFactory
 

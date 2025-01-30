@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from scpca_portal.enums.file_formats import FileFormats
+from scpca_portal.enums import FileFormats
 from scpca_portal.models import APIToken, ComputedFile
 from scpca_portal.models.base import TimestampedModel
 

@@ -9,7 +9,7 @@ from django.db import models
 
 from scpca_portal import common, metadata_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums.file_formats import FileFormats
+from scpca_portal.enums import FileFormats
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact

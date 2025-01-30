@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from scpca_portal.enums.file_formats import FileFormats
+from scpca_portal.enums import FileFormats
 from scpca_portal.models import Library, Sample
 
 

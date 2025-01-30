@@ -1,6 +1,6 @@
 import factory
 
-from scpca_portal.enums.file_formats import FileFormats
+from scpca_portal.enums import FileFormats
 from scpca_portal.models import ComputedFile, Library
 
 
