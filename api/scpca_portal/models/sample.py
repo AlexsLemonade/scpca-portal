@@ -6,7 +6,7 @@ from django.db import models
 
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums.modalities import Modalities
+from scpca_portal.enums import Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.library import Library

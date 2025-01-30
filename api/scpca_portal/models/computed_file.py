@@ -9,7 +9,7 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_file, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums.modalities import Modalities
+from scpca_portal.enums import Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 

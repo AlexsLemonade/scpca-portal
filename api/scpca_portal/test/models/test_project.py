@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from scpca_portal import common
-from scpca_portal.enums.modalities import Modalities
+from scpca_portal.enums import Modalities
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory
 
 

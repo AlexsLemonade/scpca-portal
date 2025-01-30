@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from scpca_portal.enums.modalities import Modalities
+from scpca_portal.enums import Modalities
 from scpca_portal.models import Library
 
 

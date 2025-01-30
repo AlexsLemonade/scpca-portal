@@ -1,6 +1,6 @@
 import factory
 
-from scpca_portal.enums.modalities import Modalities
+from scpca_portal.enums import Modalities
 from scpca_portal.models import ComputedFile, Library
 
 
