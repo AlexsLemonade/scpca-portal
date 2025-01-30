@@ -131,6 +131,8 @@ def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable], *ar
     return data_dict
 
 
-def find_matching_part(matcher, parts: Iterable[str]) -> str | None:
-    """Return part that contains passed matcher substring."""
-    return next((part for part in parts if matcher in part), None)
+def find_first_contained(value: Any, containers: Iterable[Iterable[Any]]) -> Iterable[Any] | None:
+    """
+    Return first occurrence of container which contains the passed value.
+    """
+    return next((container for container in containers if value in container), None)
