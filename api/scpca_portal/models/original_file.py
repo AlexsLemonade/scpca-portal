@@ -185,7 +185,7 @@ class S3KeyInfo:
 
     @property
     def is_spatial(self):
-        if self.is_project_file:
+        if not self.library_id_part:
             return False
 
         # all spatial files have "spatial" appended to the libary part of their file path
@@ -193,16 +193,15 @@ class S3KeyInfo:
 
     @property
     def is_single_cell(self):
-        if self.is_project_file:
+        if not self.library_id_part:
             return False
-        # spatial and single_cell are mutually exclusive
-        return not self.is_spatial
+
+        # single cell files won't be nested in subdirectories
+        return self.library_id_part == self.s3_key.name
 
     @property
     def is_cite_seq(self):
-        if self.is_project_file:
-            return False
-        return common.CITE_SEQ_FILE_SUFFIX in self.s3_key.name
+        return self.s3_key.name.endswith(common.CITE_SEQ_FILENAME_ENDING)
 
     @property
     def is_single_cell_experiment(self):
@@ -217,13 +216,17 @@ class S3KeyInfo:
 
     @property
     def is_metadata(self):
-        return self.s3_key.suffix in [".csv", ".json"]
+        return self.s3_key.suffix in common.METADATA_EXTENSIONS
 
     @property
     def is_downloadable(self):
-        if self.is_project_file:
-            return self.s3_key.name not in common.NON_DOWNLOADABLE_PROJECT_FILES
-        # as opposed to spatial, single_cell metadata files are not included in computed files
+        """
+        Returns whether or not a file is_downloadable.
+        Most files are downloadable files,
+        the only exceptions are single_cell metadata files and project level metadata files.
+        """
         if self.is_single_cell:
+            # single_cell metadata files are not included in computed files
             return not self.is_metadata
-        return True
+
+        return self.s3_key.name not in common.NON_DOWNLOADABLE_PROJECT_FILES
