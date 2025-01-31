@@ -28,7 +28,7 @@ resource "aws_db_parameter_group" "postgres12_parameters" {
 }
 
 resource "aws_db_parameter_group" "postgres16_parameters" {
-  name = "scpca-portal-postgres12-parameters-${var.user}-${var.stage}"
+  name = "scpca-portal-postgres16-parameters-${var.user}-${var.stage}"
   description = "Postgres Parameters ${var.user} ${var.stage}"
   family = "postgres16"
 
