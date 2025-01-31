@@ -181,21 +181,15 @@ class S3KeyInfo:
     @property
     def is_project_file(self):
         """Project files have project dirs but don't have sample dirs"""
-        return not self.sample_id
+        return bool(self.project_id and not self.sample_id)
 
     @property
     def is_spatial(self):
-        if not self.library_id_part:
-            return False
-
         # all spatial files have "spatial" appended to the libary part of their file path
-        return self.library_id_part.endswith("spatial")
+        return bool(self.library_id_part and self.library_id_part.endswith("spatial"))
 
     @property
     def is_single_cell(self):
-        if not self.library_id_part:
-            return False
-
         # single cell files won't be nested in subdirectories
         return self.library_id_part == self.s3_key.name
 
