@@ -183,3 +183,28 @@ resource "aws_iam_role_policy_attachment" "batch_submit_job" {
   role = aws_iam_role.scpca_portal_instance.name
   policy_arn = aws_iam_policy.batch_submit_job.arn
 }
+
+resource "aws_iam_policy" "api_ses_send_email" {
+
+  name = "scpca-portal-api-ses-send-email"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ses:SendEmail",
+        "ses:SendRawEmail"
+      ],
+      "Resource": "arn:aws:ses:${var.region}:${data.aws_caller_identity.current.account_id}:identity/${local.ses_domain}"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "api_ses_send_policy" {
+  role = aws_iam_role.scpca_portal_instance.name
+  policy_arn = aws_iam_policy.api_ses_send_email.arn
+}
