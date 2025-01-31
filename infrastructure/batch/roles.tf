@@ -45,7 +45,7 @@ EOF
 }
 
 resource "aws_iam_policy" "batch_ses_send_email" {
-  name = "scpca-portal-batch-ses-send-email"
+  name = "scpca-portal-batch-ses-send-email-${var.user}-${var.stage}"
   policy = <<EOF
 {
   "Version": "2012-10-17",
