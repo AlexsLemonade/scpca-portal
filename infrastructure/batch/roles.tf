@@ -130,7 +130,7 @@ resource "aws_iam_policy" "batch_job_secretsmanager_access" {
       ],
       "Resource": [
         "${var.django_secret_key.arn}",
-        "${var.database_password.arn}"
+        "${var.database_password.arn}",
         "${var.sentry_dsn.arn}"
       ]
     }
