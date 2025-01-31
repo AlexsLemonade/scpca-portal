@@ -52,7 +52,7 @@ resource "aws_db_instance" "postgres_db" {
   allocated_storage = 100
   storage_type = "gp2"
   engine = "postgres"
-  engine_version = "12.19"
+  engine_version = "16.6"
   auto_minor_version_upgrade = false
   instance_class = var.database_instance_type
   db_name = "scpca_portal"
@@ -61,7 +61,7 @@ resource "aws_db_instance" "postgres_db" {
   password = var.database_password
 
   db_subnet_group_name = aws_db_subnet_group.scpca_portal.name
-  parameter_group_name = aws_db_parameter_group.postgres12_parameters.name
+  parameter_group_name = aws_db_parameter_group.postgres16_parameters.name
 
   # TF is broken, but we do want this protection in prod.
   # Related: https://github.com/hashicorp/terraform/issues/5417
