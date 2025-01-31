@@ -307,29 +307,25 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
         return bulk_rna_seq_sample_ids
 
-    def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
+    def get_download_config_original_files(self, download_config: Dict) -> List[Path]:
         """
         Return all of a project's file paths that are suitable for the passed download config.
         """
         # Spatial samples do not have bulk or merged project files
         if download_config["modality"] == Library.Modalities.SPATIAL:
-            return []
+            return OriginalFile.objects.none()
 
-        data_file_path_objects = [Path(fp) for fp in self.data_file_paths]
+        original_files = OriginalFile.downloadable_objects.filter(
+            project_id=self.scpca_id, is_project_file=True
+        )
 
         if download_config["includes_merged"]:
-            omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
-            omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"], None))
+            if download_config["format"] == Library.FileFormats.ANN_DATA:
+                return original_files.exclude(is_single_cell_experiment=True)
+            if download_config["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT:
+                return original_files.exclude(is_anndata=True)
 
-            return [
-                file_path
-                for file_path in data_file_path_objects
-                if file_path.suffix not in omit_suffixes
-            ]
-
-        return [
-            file_path for file_path in data_file_path_objects if file_path.parent.name != "merged"
-        ]
+        return original_files.filter(is_merged=False)
 
     def load_metadata(self) -> None:
         """

@@ -160,13 +160,15 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
 
-        library_data_file_paths = [
-            fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
+        library_file_paths = [
+            Path(of.s3_key)
+            for lib in libraries
+            for of in lib.get_download_config_original_files(download_config)
         ]
-        project_data_file_paths = project.get_download_config_file_paths(download_config)
-        s3.download_input_files(
-            library_data_file_paths + project_data_file_paths, project.s3_input_bucket
-        )
+        project_file_paths = [
+            Path(of.s3_key) for of in project.get_download_config_original_files(download_config)
+        ]
+        s3.download_input_files(library_file_paths + project_file_paths, project.s3_input_bucket)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / project.get_output_file_name(download_config)
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -183,12 +185,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             )
 
             if not download_config.get("metadata_only", False):
-                for file_path in library_data_file_paths:
+                for file_path in library_file_paths:
                     zip_file.write(
                         Library.get_local_file_path(file_path),
                         Library.get_zip_file_path(file_path, download_config),
                     )
-                for file_path in project_data_file_paths:
+                for file_path in project_file_paths:
                     zip_file.write(
                         Library.get_local_file_path(file_path),
                         Library.get_zip_file_path(file_path, download_config),
@@ -233,10 +235,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries_metadata = [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
-        library_data_file_paths = [
-            fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
+        library_file_paths = [
+            Path(of.s3_key)
+            for lib in libraries
+            for of in lib.get_download_config_original_files(download_config)
         ]
-        s3.download_input_files(library_data_file_paths, sample.project.s3_input_bucket)
+        s3.download_input_files(library_file_paths, sample.project.s3_input_bucket)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / sample.get_output_file_name(download_config)
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -251,7 +255,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 metadata_file.get_file_contents(libraries_metadata),
             )
 
-            for file_path in library_data_file_paths:
+            for file_path in library_file_paths:
                 zip_file.write(
                     Library.get_local_file_path(file_path),
                     Library.get_zip_file_path(file_path, download_config),

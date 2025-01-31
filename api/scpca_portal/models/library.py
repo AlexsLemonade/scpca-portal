@@ -129,25 +129,21 @@ class Library(TimestampedModel):
             for sample in self.samples.all()
         ]
 
-    def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
+    def get_download_config_original_files(self, download_config: Dict) -> List[Path]:
         """
         Return all of a library's file paths that are suitable for the passed download config.
         """
-
         if download_config.get("metadata_only", False):
-            return []
+            return OriginalFile.objects.none()
 
-        omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
-
+        original_files = OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
         if not download_config.get("includes_merged", False):
-            requested_suffix = common.FORMAT_EXTENSIONS.get(download_config["format"])
-            omit_suffixes.remove(requested_suffix)
+            if download_config["format"] == Library.FileFormats.ANN_DATA:
+                return original_files.exclude(is_single_cell_experiment=True)
+            if download_config["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT:
+                return original_files.exclude(is_anndata=True)
 
-        return [
-            file_path
-            for file_path in [Path(fp) for fp in self.data_file_paths]
-            if file_path.suffix not in omit_suffixes
-        ]
+        return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
 
     @staticmethod
     def get_local_file_path(file_path: Path):
