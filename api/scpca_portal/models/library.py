@@ -93,12 +93,12 @@ class Library(TimestampedModel):
         sample.libraries.add(*libraries)
 
     @property
-    def data_file_paths(self):
-        return sorted(self.original_files.values_list("s3_key", flat=True))
-
-    @property
     def original_files(self):
         return OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
+
+    @property
+    def original_file_paths(self):
+        return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:

@@ -158,7 +158,14 @@ class Project_SCPCP999990:
     class Library_SCPCL999990:
         SCPCA_ID = "SCPCL999990"
         VALUES = {
-            "data_file_paths": [
+            "formats": [
+                Library.FileFormats.ANN_DATA,
+                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+            ],
+            "has_cite_seq_data": False,
+            "is_multiplexed": False,
+            "modality": Library.Modalities.SINGLE_CELL,
+            "original_file_paths": [
                 "SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html",
                 "SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds",
                 "SCPCP999990/SCPCS999990/SCPCL999990_filtered_rna.h5ad",
@@ -168,13 +175,6 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds",
                 "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered_rna.h5ad",
             ],
-            "formats": [
-                Library.FileFormats.ANN_DATA,
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
-            ],
-            "has_cite_seq_data": False,
-            "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
             "scpca_id": SCPCA_ID,
             "workflow_version": "development",
         }
@@ -182,7 +182,13 @@ class Project_SCPCP999990:
     class Library_SCPCL999991:
         SCPCA_ID = "SCPCL999991"
         VALUES = {
-            "data_file_paths": [
+            "formats": [
+                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+            ],
+            "has_cite_seq_data": False,
+            "is_multiplexed": False,
+            "modality": Library.Modalities.SPATIAL,
+            "original_file_paths": [
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/SCPCL999991_metadata.json",
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/SCPCL999991_spaceranger-summary.html",
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/barcodes.tsv.gz",  # noqa
@@ -198,12 +204,6 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_lowres_image.png",
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv",
             ],
-            "formats": [
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
-            ],
-            "has_cite_seq_data": False,
-            "is_multiplexed": False,
-            "modality": Library.Modalities.SPATIAL,
             "scpca_id": SCPCA_ID,
             "workflow_version": "development",
         }
@@ -211,7 +211,14 @@ class Project_SCPCP999990:
     class Library_SCPCL999997:
         SCPCA_ID = "SCPCL999997"
         VALUES = {
-            "data_file_paths": [
+            "formats": [
+                Library.FileFormats.ANN_DATA,
+                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+            ],
+            "has_cite_seq_data": False,
+            "is_multiplexed": False,
+            "modality": Library.Modalities.SINGLE_CELL,
+            "original_file_paths": [
                 "SCPCP999990/SCPCS999997/SCPCL999997_celltype-report.html",
                 "SCPCP999990/SCPCS999997/SCPCL999997_filtered.rds",
                 "SCPCP999990/SCPCS999997/SCPCL999997_filtered_rna.h5ad",
@@ -221,13 +228,6 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999997/SCPCL999997_unfiltered.rds",
                 "SCPCP999990/SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
             ],
-            "formats": [
-                Library.FileFormats.ANN_DATA,
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
-            ],
-            "has_cite_seq_data": False,
-            "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
             "scpca_id": SCPCA_ID,
             "workflow_version": "development",
         }

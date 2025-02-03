@@ -97,14 +97,14 @@ class Project(CommonDataAttributes, TimestampedModel):
         ]
 
     @property
-    def original_file_paths(self):
-        return sorted(self.original_files.values_list("s3_key", flat=True))
-
-    @property
     def original_files(self):
         return OriginalFile.downloadable_objects.filter(
             project_id=self.scpca_id, is_project_file=True
         )
+
+    @property
+    def original_file_paths(self):
+        return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @property
     def computed_files(self):
