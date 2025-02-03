@@ -223,12 +223,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries_metadata = [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
-        library_file_paths = [
-            Path(of.s3_key)
-            for lib in libraries
-            for of in lib.get_download_config_original_files(download_config)
-        ]
-        s3.download_input_files(library_file_paths, sample.project.s3_input_bucket)
+        file_paths = sample.get_file_paths(libraries, download_config)
+        s3.download_input_files(file_paths, sample.project.s3_input_bucket)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / sample.get_output_file_name(download_config)
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -243,7 +239,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 metadata_file.get_file_contents(libraries_metadata),
             )
 
-            for file_path in library_file_paths:
+            for file_path in file_paths:
                 zip_file.write(
                     Library.get_local_file_path(file_path),
                     Library.get_zip_file_path(file_path, download_config),
