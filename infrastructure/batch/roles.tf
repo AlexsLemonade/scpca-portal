@@ -49,6 +49,34 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_policy" "ecs_task_secretsmanager_access" {
+  name = "scpca-portal-ecs-task-secretsmanager-access-${var.user}-${var.stage}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": [
+        "${var.django_secret_key.arn}",
+        "${var.database_password.arn}",
+        "${var.sentry_dsn.arn}"
+      ]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_secretsmanager_access" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.ecs_task_secretsmanager_access.arn
+}
+
 resource "aws_iam_role" "batch_job_role" {
   name               = "scpca-portal-batch-job-role-${var.user}-${var.stage}"
   assume_role_policy = <<EOF
@@ -114,32 +142,4 @@ EOF
 resource "aws_iam_role_policy_attachment" "batch_job_s3_access" {
   role       = aws_iam_role.batch_job_role.name
   policy_arn = aws_iam_policy.batch_job_s3_access.arn
-}
-
-resource "aws_iam_policy" "batch_job_secretsmanager_access" {
-  name = "scpca-portal-batch-job-secretsmanager-access-${var.user}-${var.stage}"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "secretsmanager:GetSecretValue"
-      ],
-      "Resource": [
-        "${var.django_secret_key.arn}",
-        "${var.database_password.arn}",
-        "${var.sentry_dsn.arn}"
-      ]
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy_attachment" "batch_job_secretsmanager_access" {
-  role       = aws_iam_role.batch_job_role.name
-  policy_arn = aws_iam_policy.batch_job_secretsmanager_access.arn
 }
