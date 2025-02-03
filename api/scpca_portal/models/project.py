@@ -327,6 +327,19 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return original_files.filter(is_merged=False)
 
+    def get_file_paths(self, libraries, download_config) -> List[Path]:
+        project_file_paths = [
+            Path(of.s3_key) for of in self.get_download_config_original_files(download_config)
+        ]
+
+        library_file_paths = [
+            Path(of.s3_key)
+            for lib in libraries
+            for of in lib.get_download_config_original_files(download_config)
+        ]
+
+        return project_file_paths + library_file_paths
+
     def load_metadata(self) -> None:
         """
         Loads sample and library metadata files, creates Sample and Library objects,
