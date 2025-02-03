@@ -8,7 +8,6 @@ class Project_SCPCP999991:
     VALUES = {
         "abstract": "TBD",
         "additional_restrictions": "Research or academic purposes only",
-        "data_file_paths": [],
         "diagnoses": "diagnosis3, diagnosis4, diagnosis6",
         "diagnoses_counts": "diagnosis3 (1), diagnosis4 (1), diagnosis6 (1)",
         "disease_timings": "Initial diagnosis",
@@ -30,6 +29,7 @@ class Project_SCPCP999991:
         ],
         "multiplexed_sample_count": 2,
         "organisms": ["Homo sapiens"],
+        "original_file_paths": [],
         "pi_name": "scpca",
         "s3_input_bucket": settings.AWS_S3_INPUT_BUCKET_NAME,
         "sample_count": 3,

@@ -8,13 +8,6 @@ class Project_SCPCP999990:
     VALUES = {
         "abstract": "TBD",
         "additional_restrictions": "Research or academic purposes only",
-        "data_file_paths": [
-            "SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv",
-            "SCPCP999990/bulk/SCPCP999990_bulk_quant.tsv",
-            "SCPCP999990/merged/SCPCP999990_merged-summary-report.html",
-            "SCPCP999990/merged/SCPCP999990_merged.rds",
-            "SCPCP999990/merged/SCPCP999990_merged_rna.h5ad",
-        ],
         "diagnoses": "diagnosis1, diagnosis2, diagnosis5",
         "diagnoses_counts": "diagnosis1 (1), diagnosis2 (1), diagnosis5 (2)",
         "disease_timings": "Initial diagnosis",
@@ -37,6 +30,13 @@ class Project_SCPCP999990:
         ],
         "multiplexed_sample_count": 0,
         "organisms": ["Homo sapiens"],
+        "original_file_paths": [
+            "SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv",
+            "SCPCP999990/bulk/SCPCP999990_bulk_quant.tsv",
+            "SCPCP999990/merged/SCPCP999990_merged-summary-report.html",
+            "SCPCP999990/merged/SCPCP999990_merged.rds",
+            "SCPCP999990/merged/SCPCP999990_merged_rna.h5ad",
+        ],
         "pi_name": "scpca",
         "s3_input_bucket": settings.AWS_S3_INPUT_BUCKET_NAME,
         "sample_count": 4,

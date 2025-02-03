@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, metadata_file, s3, utils
+from scpca_portal import common, metadata_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -97,7 +97,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         ]
 
     @property
-    def data_file_paths(self):
+    def original_file_paths(self):
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @property
@@ -280,19 +280,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             has_multiplexed_data=(not download_config["excludes_multiplexed"]),
             includes_merged=download_config["includes_merged"],
         ).first()
-
-    def get_data_file_paths(self) -> List[Path]:
-        """
-        Retrieves existing merged and bulk data file paths on the aws input bucket
-        and returns them as a list.
-        """
-        merged_relative_path = Path(f"{self.scpca_id}/merged/")
-        bulk_relative_path = Path(f"{self.scpca_id}/bulk/")
-
-        merged_data_file_paths = s3.list_input_paths(merged_relative_path, self.s3_input_bucket)
-        bulk_data_file_paths = s3.list_input_paths(bulk_relative_path, self.s3_input_bucket)
-
-        return merged_data_file_paths + bulk_data_file_paths
 
     def get_bulk_rna_seq_sample_ids(self):
         """Returns set of bulk RNA sequencing sample IDs."""
