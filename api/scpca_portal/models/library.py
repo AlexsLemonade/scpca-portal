@@ -170,3 +170,9 @@ class Library(TimestampedModel):
 
         # Comma separated lists of multiplexed samples should become underscore separated
         return Path(str(output_path).replace(",", "_"))
+
+    @staticmethod
+    def get_libraries_metadata(libraries):
+        return [
+            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
+        ]

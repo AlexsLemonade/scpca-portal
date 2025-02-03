@@ -106,11 +106,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries = Library.objects.all()
         # If the query returns empty, then an error occurred, and we should abort early
         if not libraries.exists():
-            logger.error("There are no libraries on the portal!")
-            return
+            raise ValueError("There are no libraries on the portal!")
 
         libraries_metadata = utils.filter_dict_list_by_keys(
-            [lib for library in libraries for lib in library.get_combined_library_metadata()],
+            Library.get_libraries_metadata(libraries),
             common.METADATA_COLUMN_SORT_ORDER,
         )
 
@@ -144,7 +143,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_project_file(cls, project, download_config: Dict) -> Self | None:
+    def get_project_file(cls, project, download_config: Dict) -> Self:
         """
         Queries for a project's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -156,10 +155,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         if not libraries.exists():
             raise ValueError("Unable to find libraries for download_config.")
 
-        libraries_metadata = [
-            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
-        ]
-
+        libraries_metadata = Library.get_libraries_metadata(libraries)
         file_paths = project.get_file_paths(libraries, download_config)
         s3.download_input_files(file_paths, project.s3_input_bucket)
 
@@ -177,6 +173,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 metadata_file.get_file_contents(libraries_metadata),
             )
 
+            # Original files
             if not download_config.get("metadata_only", False):
                 for file_path in file_paths:
                     zip_file.write(
@@ -208,7 +205,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_sample_file(cls, sample, download_config: Dict) -> Self | None:
+    def get_sample_file(cls, sample, download_config: Dict) -> Self:
         """
         Queries for a sample's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -220,9 +217,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         if not libraries.exists():
             raise ValueError("Unable to find libraries for download_config.")
 
-        libraries_metadata = [
-            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
-        ]
+        libraries_metadata = Library.get_libraries_metadata(libraries)
         file_paths = sample.get_file_paths(libraries, download_config)
         s3.download_input_files(file_paths, sample.project.s3_input_bucket)
 
@@ -239,6 +234,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 metadata_file.get_file_contents(libraries_metadata),
             )
 
+            # Original files
             for file_path in file_paths:
                 zip_file.write(
                     Library.get_local_file_path(file_path),
