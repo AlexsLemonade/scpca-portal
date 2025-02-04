@@ -42,6 +42,7 @@ export const config = {
     alsfTwitter: 'https://twitter.com/alexslemonade',
     alsfFacebook: 'https://www.facebook.com/alexslemonade/',
     alsfInstagram: 'https://www.instagram.com/AlexsLemonade/',
+    ccdlBluesky: 'https://bsky.app/profile/cancerdatalab.bsky.social',
     ccdlTwitter: 'https://twitter.com/CancerDataLab',
     ccdlGithub: 'https://github.com/AlexsLemonade/',
     ccdlGithub_pipeline: 'https://github.com/AlexsLemonade/scpca-nf'
