@@ -53,7 +53,14 @@ resource "aws_db_instance" "postgres_db" {
   storage_type = "gp2"
   engine = "postgres"
   engine_version = "16.3"
+
+  # When doing a major version upgrade it is easier
+  # to apply changes immediately to allow for subsequent deployments.
+  # `allow_major_version_upgrade` and `apply_immediately`
+  # should be commented out when the old parameter group is removed.
   allow_major_version_upgrade = true
+  apply_immediately = true
+
   auto_minor_version_upgrade = false
   instance_class = var.database_instance_type
   db_name = "scpca_portal"
