@@ -22,6 +22,7 @@ import Trashcan from '../images/trash-can.svg'
 import View from '../images/view.svg'
 import Warning from '../images/warning.svg'
 import WarningNoFill from '../images/warning-no-fill.svg'
+import Bluesky from '../images/bluesky.svg'
 import Twitter from '../images/twitter.svg'
 import Facebook from '../images/facebook.svg'
 import Instagram from '../images/instagram.svg'
@@ -51,6 +52,7 @@ export const SVGs = {
   View,
   Warning,
   WarningNoFill,
+  Bluesky,
   Twitter,
   Instagram,
   Facebook,

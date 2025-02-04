@@ -1,8 +1,7 @@
 from django.test import TestCase
 
 from scpca_portal import common
-from scpca_portal.enums import Modalities
-from scpca_portal.models import Library
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.test.factories import LibraryFactory, SampleFactory
 
 
@@ -12,18 +11,16 @@ class TestGetLibraries(TestCase):
 
         library1 = LibraryFactory(
             modality=Modalities.SINGLE_CELL,
-            formats=[Library.FileFormats.SINGLE_CELL_EXPERIMENT, Library.FileFormats.ANN_DATA],
+            formats=[FileFormats.SINGLE_CELL_EXPERIMENT, FileFormats.ANN_DATA],
         )
         library2 = LibraryFactory(
             modality=Modalities.SINGLE_CELL,
-            formats=[Library.FileFormats.SINGLE_CELL_EXPERIMENT],
+            formats=[FileFormats.SINGLE_CELL_EXPERIMENT],
         )
-        library3 = LibraryFactory(
-            modality=Modalities.SINGLE_CELL, formats=[Library.FileFormats.ANN_DATA]
-        )
+        library3 = LibraryFactory(modality=Modalities.SINGLE_CELL, formats=[FileFormats.ANN_DATA])
         library4 = LibraryFactory(
             modality=Modalities.SPATIAL,
-            formats=[Library.FileFormats.SINGLE_CELL_EXPERIMENT],
+            formats=[FileFormats.SINGLE_CELL_EXPERIMENT],
         )
         self.sample.libraries.add(library1, library2, library3, library4)
 

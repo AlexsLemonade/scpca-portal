@@ -9,7 +9,7 @@ from django.db import models
 
 from scpca_portal import common, metadata_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import Modalities
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -225,12 +225,12 @@ class Project(CommonDataAttributes, TimestampedModel):
             # If the download config requests merged and there is no merged file in the project,
             # return an empty queryset
             if (
-                download_config["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT
+                download_config["format"] == FileFormats.SINGLE_CELL_EXPERIMENT
                 and not self.includes_merged_sce
             ):
                 return self.libraries.none()
             elif (
-                download_config["format"] == Library.FileFormats.ANN_DATA
+                download_config["format"] == FileFormats.ANN_DATA
                 and not self.includes_merged_anndata
             ):
                 return self.libraries.none()
@@ -409,7 +409,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             ).exists()
             sample.has_spatial_data = sample.libraries.filter(modality=Modalities.SPATIAL).exists()
             sample.includes_anndata = sample.libraries.filter(
-                formats__contains=[Library.FileFormats.ANN_DATA]
+                formats__contains=[FileFormats.ANN_DATA]
             ).exists()
             sample.save(
                 update_fields=(

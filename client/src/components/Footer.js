@@ -131,6 +131,9 @@ export const Footer = () => {
                   <Link href={links.ccdlGithub}>
                     <Icon name="Github" color="black-tint-40" />
                   </Link>
+                  <Link href={links.ccdlBluesky}>
+                    <Icon name="Bluesky" color="black-tint-40" />
+                  </Link>
                   <Link href={links.ccdlTwitter}>
                     <Icon name="Twitter" color="black-tint-40" />
                   </Link>

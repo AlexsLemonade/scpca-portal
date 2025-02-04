@@ -1,7 +1,6 @@
 from django.conf import settings
 
-from scpca_portal.enums import Modalities
-from scpca_portal.models import Library
+from scpca_portal.enums import FileFormats, Modalities
 
 
 class Project_SCPCP999992:
@@ -112,8 +111,8 @@ class Project_SCPCP999992:
                 "SCPCP999992/SCPCS999996/SCPCL999996_unfiltered_rna.h5ad",
             ],
             "formats": [
-                Library.FileFormats.ANN_DATA,
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.ANN_DATA,
+                FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
@@ -139,8 +138,8 @@ class Project_SCPCP999992:
                 "SCPCP999992/SCPCS999998/SCPCL999998_unfiltered_rna.h5ad",
             ],
             "formats": [
-                Library.FileFormats.ANN_DATA,
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.ANN_DATA,
+                FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": True,
             "is_multiplexed": False,

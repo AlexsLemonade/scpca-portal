@@ -6,7 +6,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from scpca_portal import common, s3
-from scpca_portal.enums import Modalities
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
 
@@ -16,15 +16,6 @@ class Library(TimestampedModel):
         db_table = "libraries"
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
-
-    class FileFormats:
-        ANN_DATA = "ANN_DATA"
-        SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
-
-        CHOICES = (
-            (ANN_DATA, "AnnData"),
-            (SINGLE_CELL_EXPERIMENT, "Single cell experiment"),
-        )
 
     data_file_paths = ArrayField(models.TextField(), default=list)
     formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
@@ -105,7 +96,7 @@ class Library(TimestampedModel):
     @classmethod
     def get_formats_from_file_paths(cls, file_paths: List[Path]) -> List[str]:
         if Library.get_modality_from_file_paths(file_paths) is Modalities.SPATIAL:
-            return [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
+            return [FileFormats.SINGLE_CELL_EXPERIMENT]
 
         extensions_format = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
         formats = set(
