@@ -38,8 +38,8 @@ resource "aws_db_instance" "postgres_db" {
   # to apply changes immediately to allow for subsequent deployments.
   # `allow_major_version_upgrade` and `apply_immediately`
   # should be set to false when the old parameter group is removed.
-   allow_major_version_upgrade = false
-   apply_immediately = false
+  allow_major_version_upgrade = false
+  apply_immediately = false
 
   auto_minor_version_upgrade = false
   instance_class = var.database_instance_type
