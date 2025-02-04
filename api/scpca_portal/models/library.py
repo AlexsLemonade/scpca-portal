@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, s3
+from scpca_portal import common
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
@@ -17,7 +17,6 @@ class Library(TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
-    data_file_paths = ArrayField(models.TextField(), default=list)
     formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
     has_cite_seq_data = models.BooleanField(default=False)
     is_multiplexed = models.BooleanField(default=False)
@@ -33,16 +32,29 @@ class Library(TimestampedModel):
 
     @classmethod
     def get_from_dict(cls, data, project):
-        data_file_paths = Library.get_data_file_paths(data, project.s3_input_bucket)
+        library_id = data["scpca_library_id"]
+        original_files = OriginalFile.downloadable_objects.filter(library_id=library_id)
+
+        modality = ""
+        if original_files.filter(is_single_cell=True).exists():
+            modality = Modalities.SINGLE_CELL
+        elif original_files.filter(is_spatial=True).exists():
+            modality = Modalities.SPATIAL
+
+        formats = []
+        if original_files.filter(is_single_cell_experiment=True).exists():
+            formats.append(FileFormats.SINGLE_CELL_EXPERIMENT)
+        if original_files.filter(is_anndata=True).exists():
+            formats.append(FileFormats.ANN_DATA)
+
         library = cls(
-            data_file_paths=data_file_paths,
-            formats=Library.get_formats_from_file_paths(data_file_paths),
+            formats=sorted(formats),
             is_multiplexed=data.get("is_multiplexed", False),
-            has_cite_seq_data=any(fp for fp in data_file_paths if "_adt." in fp.name),
+            has_cite_seq_data=original_files.filter(is_cite_seq=True).exists(),
             metadata=data,
-            modality=Library.get_modality_from_file_paths(data_file_paths),
+            modality=modality,
             project=project,
-            scpca_id=data["scpca_library_id"],
+            scpca_id=library_id,
             workflow_version=data["workflow_version"],
         )
 
@@ -64,47 +76,12 @@ class Library(TimestampedModel):
         sample.libraries.add(*libraries)
 
     @property
+    def data_file_paths(self):
+        return sorted(self.original_files.values_list("s3_key", flat=True))
+
+    @property
     def original_files(self):
-        return OriginalFile.objects.filter(library_id=self.scpca_id)
-
-    @classmethod
-    def get_data_file_paths(cls, data: Dict, s3_input_bucket: str) -> List[Path]:
-        """
-        Retrieves all data file paths on the aws input bucket associated
-        with the inputted Library object metadata dict, and returns them as a list.
-        """
-        # TODO: Pop property for now until attribute added to source json
-        project_id = data.pop("scpca_project_id")
-        sample_id = data.get("scpca_sample_id")
-        library_id = data.get("scpca_library_id")
-        relative_path = Path(f"{project_id}/{sample_id}/{library_id}")
-
-        file_paths = s3.list_input_paths(relative_path, s3_input_bucket)
-
-        # input metadata json is excluded from single_cell downloads
-        if Library.get_modality_from_file_paths(file_paths) == Modalities.SINGLE_CELL:
-            return [file_path for file_path in file_paths if "metadata" not in file_path.name]
-
-        return file_paths
-
-    @classmethod
-    def get_modality_from_file_paths(cls, file_paths: List[Path]) -> str:
-        if any(path for path in file_paths if "spatial" in path.parts):
-            return Modalities.SPATIAL
-        return Modalities.SINGLE_CELL
-
-    @classmethod
-    def get_formats_from_file_paths(cls, file_paths: List[Path]) -> List[str]:
-        if Library.get_modality_from_file_paths(file_paths) is Modalities.SPATIAL:
-            return [FileFormats.SINGLE_CELL_EXPERIMENT]
-
-        extensions_format = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
-        formats = set(
-            extensions_format[path.suffix]
-            for path in file_paths
-            if path.suffix in extensions_format
-        )
-        return sorted(list(formats))
+        return OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
 
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:

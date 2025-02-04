@@ -1,8 +1,9 @@
 """Misc utils."""
 
+import inspect
 from collections import namedtuple
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Set, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Set, Tuple
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -114,11 +115,24 @@ def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
     return data_dict
 
 
-def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable]):
+def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable], *args):
     """
     Transform values in data dict according to transformation functions in value transform dict.
+    Functions with variable numbers of params are supported,
+    where passed params are trimmed dynamically to the param length of each function.
     """
-    for key, transformation_function in value_transforms.items():
-        data_dict[key] = transformation_function(data_dict[key])
+    for key, func in value_transforms.items():
+        func_params = inspect.signature(func).parameters
+        # trim additional args based on number of func params
+        adtl_args = args[: (len(func_params) - 1)]
+
+        data_dict[key] = func(data_dict[key], *adtl_args)
 
     return data_dict
+
+
+def find_first_contained(value: Any, containers: Iterable[Iterable[Any]]) -> Iterable[Any] | None:
+    """
+    Return first occurrence of container which contains the passed value.
+    """
+    return next((container for container in containers if value in container), None)

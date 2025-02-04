@@ -122,11 +122,6 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Library"
 
-    data_file_paths = [
-        factory.Sequence(
-            lambda n: f"SCPCP{str(n).zfill(6)}/SCPCS{str(n).zfill(6)}/SCPCL{str(n).zfill(6)}"
-        )
-    ]
     formats = [FileFormats.SINGLE_CELL_EXPERIMENT]
     is_multiplexed = False
     modality = Modalities.SINGLE_CELL
