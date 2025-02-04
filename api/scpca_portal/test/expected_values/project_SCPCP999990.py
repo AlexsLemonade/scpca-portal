@@ -1,7 +1,6 @@
 from django.conf import settings
 
-from scpca_portal.enums import FileFormats
-from scpca_portal.models import Library, Sample
+from scpca_portal.enums import FileFormats, Modalities
 
 
 class Project_SCPCP999990:
@@ -33,8 +32,8 @@ class Project_SCPCP999990:
         "includes_merged_anndata": True,
         "includes_xenografts": False,
         "modalities": [
-            Sample.Modalities.NAME_MAPPING[Sample.Modalities.BULK_RNA_SEQ],
-            Sample.Modalities.NAME_MAPPING[Sample.Modalities.SPATIAL],
+            Modalities.NAME_MAPPING[Modalities.BULK_RNA_SEQ],
+            Modalities.NAME_MAPPING[Modalities.SPATIAL],
         ],
         "multiplexed_sample_count": 0,
         "organisms": ["Homo sapiens"],
@@ -175,7 +174,7 @@ class Project_SCPCP999990:
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
+            "modality": Modalities.SINGLE_CELL,
             "scpca_id": SCPCA_ID,
             "workflow_version": "development",
         }
@@ -204,7 +203,7 @@ class Project_SCPCP999990:
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SPATIAL,
+            "modality": Modalities.SPATIAL,
             "scpca_id": SCPCA_ID,
             "workflow_version": "development",
         }
@@ -228,7 +227,7 @@ class Project_SCPCP999990:
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
+            "modality": Modalities.SINGLE_CELL,
             "scpca_id": SCPCA_ID,
             "workflow_version": "development",
         }

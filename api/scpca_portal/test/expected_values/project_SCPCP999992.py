@@ -1,7 +1,6 @@
 from django.conf import settings
 
-from scpca_portal.enums import FileFormats
-from scpca_portal.models import Library, Sample
+from scpca_portal.enums import FileFormats, Modalities
 
 
 class Project_SCPCP999992:
@@ -31,7 +30,7 @@ class Project_SCPCP999992:
         "includes_merged_sce": True,
         "includes_merged_anndata": True,
         "includes_xenografts": False,
-        "modalities": [Sample.Modalities.NAME_MAPPING[Sample.Modalities.CITE_SEQ]],
+        "modalities": [Modalities.NAME_MAPPING[Modalities.CITE_SEQ]],
         "multiplexed_sample_count": 0,
         "organisms": ["Homo sapiens"],
         "pi_name": "scpca",
@@ -117,7 +116,7 @@ class Project_SCPCP999992:
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
+            "modality": Modalities.SINGLE_CELL,
             "scpca_id": SCPCA_ID,
             "workflow_version": "development",
         }
@@ -144,7 +143,7 @@ class Project_SCPCP999992:
             ],
             "has_cite_seq_data": True,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
+            "modality": Modalities.SINGLE_CELL,
             "scpca_id": SCPCA_ID,
             "workflow_version": "development",
         }
