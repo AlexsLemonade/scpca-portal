@@ -1,8 +1,9 @@
 import logging
+from argparse import BooleanOptionalAction
 
 from django.core.management.base import BaseCommand
 
-from scpca_portal import common, loader
+from scpca_portal import common, loader, notifications
 from scpca_portal.models import Project, Sample
 
 logger = logging.getLogger()
@@ -27,6 +28,7 @@ class Command(BaseCommand):
         parser.add_argument("--project-id", type=str)
         parser.add_argument("--sample-id", type=str)
         parser.add_argument("--download-config-name", type=str)
+        parser.add_argument("--notify", type=bool, default=False, action=BooleanOptionalAction)
 
     def handle(self, *args, **kwargs):
         self.generate_computed_file(**kwargs)
@@ -36,6 +38,7 @@ class Command(BaseCommand):
         project_id: str,
         sample_id: str,
         download_config_name: str,
+        notify: bool,
         **kwargs,
     ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
@@ -73,3 +76,5 @@ class Command(BaseCommand):
                 )
             download_config = common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name]
             loader.generate_computed_file(sample=sample, download_config=download_config)
+
+        notifications.send_job_completed_email(project_id or sample_id, download_config_name)

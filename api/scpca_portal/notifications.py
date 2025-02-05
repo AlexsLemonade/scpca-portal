@@ -10,15 +10,17 @@ logger = get_and_configure_logger(__name__)
 ses = boto3.client("ses", region_name=settings.AWS_REGION)
 
 
-def send_job_completed_email():
+def send_job_completed_email(resource_id: str, download_config_name: str) -> None:
     SENDER = ""
     RECIPIENT = ""
     CHARSET = "UTF-8"
 
-    portal_url = "scpca.alexslemonade.org"
-
-    SUBJECT = "Your ScPCA Portal Dataset is Ready!"
-    BODY_TEXT = "Hot off the presses:\n\n" + portal_url + "\n\nLove!,\nThe ScPCA Portal Team"
+    SUBJECT = f"Job Completed: `{resource_id} - {download_config_name}`"
+    BODY_TEXT = (
+        "Hot off the presses:\n\n"
+        + f"Job is completed for {resource_id} - {download_config_name}"
+        + "\n\nLove!,\nThe ScPCA Portal Team"
+    )
     BODY_HTML = Path("email_templates/default.html").read_text().replace("\n", "")
 
     ses.send_email(
