@@ -18,12 +18,8 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_arguments("--sender", type=str, default="engineering@ccdatalab.org")
-        parser.add_arguments(
-            "--recipient",
-            type=str,
-            default="ccdl-test-channel-aaaabmdgmewpi5ph2qohssfx54@alexslemonade.slack.com",
-        )
+        parser.add_arguments("--sender", type=str, default=settings.TEST_EMAIL_SENDER)
+        parser.add_arguments("--recipient", type=str, default=settings.TEST_EMAIL_RECIPIENT)
 
     def handle(self, *args, **kwargs):
         self.send_test_email(**kwargs)
