@@ -187,3 +187,8 @@ class Common(Configuration):
 
     # AWS
     AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+
+    # AWS SES Email Constants
+    DOMAIN = os.getenv("AWS_SES_DOMAIN", "staging.scpca.alexslemonade.org")
+    TEST_EMAIL_SENDER = f"no-reply@{DOMAIN}"
+    TEST_EMAIL_RECIPIENT = "ccdl-test-channel-aaaabmdgmewpi5ph2qohssfx54@alexslemonade.slack.com"

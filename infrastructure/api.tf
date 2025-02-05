@@ -56,6 +56,7 @@ resource "aws_instance" "api_server_1" {
           aws_batch_job_definition_name = module.batch.job_definition_name
           aws_region  = var.region
           aws_s3_bucket_name = aws_s3_bucket.scpca_portal_bucket.id
+          aws_ses_domain = var.ses_domain
           sentry_dsn = var.sentry_dsn
           sentry_env = var.sentry_env
         })
