@@ -103,7 +103,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
     @property
-    def original_file_paths(self):
+    def original_file_paths(self) -> List[str]:
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @property
@@ -294,7 +294,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
         return bulk_rna_seq_sample_ids
 
-    def get_download_config_original_files(self, download_config: Dict) -> List[Path]:
+    def get_original_files_by_download_config(self, download_config: Dict):
         """
         Return all of a project's file paths that are suitable for the passed download config.
         """
@@ -313,19 +313,6 @@ class Project(CommonDataAttributes, TimestampedModel):
                 return original_files.exclude(is_anndata=True)
 
         return original_files.filter(is_merged=False)
-
-    def get_file_paths(self, libraries, download_config) -> List[Path]:
-        project_file_paths = [
-            Path(of.s3_key) for of in self.get_download_config_original_files(download_config)
-        ]
-
-        library_file_paths = [
-            Path(of.s3_key)
-            for lib in libraries
-            for of in lib.get_download_config_original_files(download_config)
-        ]
-
-        return project_file_paths + library_file_paths
 
     def load_metadata(self) -> None:
         """

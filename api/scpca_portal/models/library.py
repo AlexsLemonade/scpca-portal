@@ -97,7 +97,7 @@ class Library(TimestampedModel):
         return OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
 
     @property
-    def original_file_paths(self):
+    def original_file_paths(self) -> List[str]:
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @staticmethod
@@ -129,7 +129,7 @@ class Library(TimestampedModel):
             for sample in self.samples.all()
         ]
 
-    def get_download_config_original_files(self, download_config: Dict) -> List[Path]:
+    def get_original_files_by_download_config(self, download_config: Dict):
         """
         Return all of a library's file paths that are suitable for the passed download config.
         """
@@ -172,7 +172,29 @@ class Library(TimestampedModel):
         return Path(str(output_path).replace(",", "_"))
 
     @staticmethod
-    def get_libraries_metadata(libraries):
+    def get_libraries_metadata(libraries) -> List[Dict]:
         return [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
+
+    @staticmethod
+    def get_file_paths(libraries, download_config):
+        """
+        Return file paths associated with the libraries according to the passed download_config.
+        Files are then downloaded and included in computed files.
+        """
+        library_file_paths = [
+            Path(of.s3_key)
+            for lib in libraries
+            for of in lib.get_original_files_by_download_config(download_config)
+        ]
+
+        if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
+            project = libraries.first().project
+            project_file_paths = [
+                Path(of.s3_key)
+                for of in project.get_original_files_by_download_config(download_config)
+            ]
+            return project_file_paths + library_file_paths
+
+        return library_file_paths

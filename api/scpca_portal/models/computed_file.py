@@ -156,7 +156,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             raise ValueError("Unable to find libraries for download_config.")
 
         libraries_metadata = Library.get_libraries_metadata(libraries)
-        file_paths = project.get_file_paths(libraries, download_config)
+        file_paths = Library.get_file_paths(libraries, download_config)
         s3.download_input_files(file_paths, project.s3_input_bucket)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / project.get_output_file_name(download_config)
@@ -218,7 +218,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             raise ValueError("Unable to find libraries for download_config.")
 
         libraries_metadata = Library.get_libraries_metadata(libraries)
-        file_paths = sample.get_file_paths(libraries, download_config)
+        file_paths = Library.get_file_paths(libraries, download_config)
         s3.download_input_files(file_paths, sample.project.s3_input_bucket)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / sample.get_output_file_name(download_config)

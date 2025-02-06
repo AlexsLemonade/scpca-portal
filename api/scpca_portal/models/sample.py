@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Dict, List
 
 from django.conf import settings
@@ -289,13 +288,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
 
         return f"{file_name}.zip"
-
-    def get_file_paths(self, libraries, download_config) -> List[Path]:
-        return [
-            Path(of.s3_key)
-            for lib in libraries
-            for of in lib.get_download_config_original_files(download_config)
-        ]
 
     def purge(self) -> None:
         """Purges a sample and its associated libraries"""
