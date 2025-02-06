@@ -30,7 +30,8 @@ class Command(BaseCommand):
     def dispatch_send_email(self, sender: str, recipient: str, **kwargs):
         sender_flag = f"--sender {sender}" if sender else ""
         recipient_flag = f"--recipient {recipient}" if recipient else ""
-        job_name = f"{sender}-{str(datetime.now())}"
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        job_name = f"test-email_{timestamp}"
 
         response = batch.submit_job(
             jobName=job_name,
