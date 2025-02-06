@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, metadata_file, s3, utils
+from scpca_portal import common, metadata_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
@@ -98,14 +98,14 @@ class Project(CommonDataAttributes, TimestampedModel):
         ]
 
     @property
-    def data_file_paths(self):
-        return sorted(self.original_files.values_list("s3_key", flat=True))
-
-    @property
     def original_files(self):
         return OriginalFile.downloadable_objects.filter(
             project_id=self.scpca_id, is_project_file=True
         )
+
+    @property
+    def original_file_paths(self) -> List[str]:
+        return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @property
     def computed_files(self):
@@ -282,19 +282,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             includes_merged=download_config["includes_merged"],
         ).first()
 
-    def get_data_file_paths(self) -> List[Path]:
-        """
-        Retrieves existing merged and bulk data file paths on the aws input bucket
-        and returns them as a list.
-        """
-        merged_relative_path = Path(f"{self.scpca_id}/merged/")
-        bulk_relative_path = Path(f"{self.scpca_id}/bulk/")
-
-        merged_data_file_paths = s3.list_input_paths(merged_relative_path, self.s3_input_bucket)
-        bulk_data_file_paths = s3.list_input_paths(bulk_relative_path, self.s3_input_bucket)
-
-        return merged_data_file_paths + bulk_data_file_paths
-
     def get_bulk_rna_seq_sample_ids(self):
         """Returns set of bulk RNA sequencing sample IDs."""
         bulk_rna_seq_sample_ids = set()
@@ -308,29 +295,25 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
         return bulk_rna_seq_sample_ids
 
-    def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
+    def get_original_files_by_download_config(self, download_config: Dict):
         """
         Return all of a project's file paths that are suitable for the passed download config.
         """
         # Spatial samples do not have bulk or merged project files
         if download_config["modality"] == Modalities.SPATIAL:
-            return []
+            return OriginalFile.objects.none()
 
-        data_file_path_objects = [Path(fp) for fp in self.data_file_paths]
+        original_files = OriginalFile.downloadable_objects.filter(
+            project_id=self.scpca_id, is_project_file=True
+        )
 
         if download_config["includes_merged"]:
-            omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
-            omit_suffixes.remove(common.FORMAT_EXTENSIONS.get(download_config["format"], None))
+            if download_config["format"] == FileFormats.ANN_DATA:
+                return original_files.exclude(is_single_cell_experiment=True)
+            if download_config["format"] == FileFormats.SINGLE_CELL_EXPERIMENT:
+                return original_files.exclude(is_anndata=True)
 
-            return [
-                file_path
-                for file_path in data_file_path_objects
-                if file_path.suffix not in omit_suffixes
-            ]
-
-        return [
-            file_path for file_path in data_file_path_objects if file_path.parent.name != "merged"
-        ]
+        return original_files.filter(is_merged=False)
 
     def load_metadata(self) -> None:
         """

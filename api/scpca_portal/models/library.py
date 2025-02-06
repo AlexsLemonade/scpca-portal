@@ -76,12 +76,12 @@ class Library(TimestampedModel):
         sample.libraries.add(*libraries)
 
     @property
-    def data_file_paths(self):
-        return sorted(self.original_files.values_list("s3_key", flat=True))
-
-    @property
     def original_files(self):
         return OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
+
+    @property
+    def original_file_paths(self) -> List[str]:
+        return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @staticmethod
     def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
@@ -112,25 +112,21 @@ class Library(TimestampedModel):
             for sample in self.samples.all()
         ]
 
-    def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
+    def get_original_files_by_download_config(self, download_config: Dict):
         """
         Return all of a library's file paths that are suitable for the passed download config.
         """
-
         if download_config.get("metadata_only", False):
-            return []
+            return OriginalFile.objects.none()
 
-        omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
-
+        original_files = OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
         if not download_config.get("includes_merged", False):
-            requested_suffix = common.FORMAT_EXTENSIONS.get(download_config["format"])
-            omit_suffixes.remove(requested_suffix)
+            if download_config["format"] == FileFormats.ANN_DATA:
+                return original_files.exclude(is_single_cell_experiment=True)
+            if download_config["format"] == FileFormats.SINGLE_CELL_EXPERIMENT:
+                return original_files.exclude(is_anndata=True)
 
-        return [
-            file_path
-            for file_path in [Path(fp) for fp in self.data_file_paths]
-            if file_path.suffix not in omit_suffixes
-        ]
+        return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
 
     @staticmethod
     def get_local_file_path(file_path: Path):
@@ -157,3 +153,31 @@ class Library(TimestampedModel):
 
         # Comma separated lists of multiplexed samples should become underscore separated
         return Path(str(output_path).replace(",", "_"))
+
+    @staticmethod
+    def get_libraries_metadata(libraries) -> List[Dict]:
+        return [
+            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
+        ]
+
+    @staticmethod
+    def get_file_paths(libraries, download_config):
+        """
+        Return file paths associated with the libraries according to the passed download_config.
+        Files are then downloaded and included in computed files.
+        """
+        library_file_paths = [
+            Path(of.s3_key)
+            for lib in libraries
+            for of in lib.get_original_files_by_download_config(download_config)
+        ]
+
+        if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
+            project = libraries.first().project
+            project_file_paths = [
+                Path(of.s3_key)
+                for of in project.get_original_files_by_download_config(download_config)
+            ]
+            return project_file_paths + library_file_paths
+
+        return library_file_paths
