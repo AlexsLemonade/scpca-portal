@@ -21,8 +21,8 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_arguments("--sender", type=str, default=settings.TEST_EMAIL_SENDER)
-        parser.add_arguments("--recipient", type=str, default=settings.TEST_EMAIL_RECIPIENT)
+        parser.add_argument("--sender", type=str, default=settings.TEST_EMAIL_SENDER)
+        parser.add_argument("--recipient", type=str, default=settings.TEST_EMAIL_RECIPIENT)
 
     def handle(self, *args, **kwargs):
         self.dispatch_send_email(**kwargs)
