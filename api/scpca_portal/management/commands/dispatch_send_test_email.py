@@ -30,7 +30,7 @@ class Command(BaseCommand):
     def dispatch_send_email(self, sender: str, recipient: str, **kwargs):
         sender_flag = f"--sender {sender}" if sender else ""
         recipient_flag = f"--recipient {recipient}" if recipient else ""
-        job_name = f"Test email from {sender} - {str(datetime.now())}"
+        job_name = f"{sender}-{str(datetime.now())}"
 
         response = batch.submit_job(
             jobName=job_name,
@@ -47,4 +47,4 @@ class Command(BaseCommand):
             },
         )
 
-        logger.info(f'{job_name} submitted to Batch with jobId {response["jobId"]}')
+        logger.info(f'Job `{job_name}` submitted to Batch with jobId `{response["jobId"]}`')
