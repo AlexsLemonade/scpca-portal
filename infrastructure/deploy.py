@@ -140,6 +140,11 @@ def load_env_vars(args):
         os.environ["SSH_PUBLIC_KEY"] if args.env != "dev" else public_key
     )
 
+    if args.env == "staging":
+        os.environ["TF_VAR_ses_domain"] = "staging.scpca.alexslemonade.org"
+    if args.env == "prod":
+        os.environ["TF_VAR_ses_domain"] = "scpca.alexslemonade.org"
+
 
 def run_terraform(args):
     var_file_arg = "-var-file=tf_vars/{}.tfvars".format(args.env)

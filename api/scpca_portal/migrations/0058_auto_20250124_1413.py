@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("scpca_portal", "0056_auto_20250108_1849"),
+        ("scpca_portal", "0057_dataset"),
     ]
 
     operations = [

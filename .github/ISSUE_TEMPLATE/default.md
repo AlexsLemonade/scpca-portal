@@ -1,3 +1,9 @@
+---
+name: ScPCA Portal General Issue Template
+about: Use this template as a catch all for all issues related to ScPCA Portal.
+---
+
+
 _Please label your issue with a label to specify its priority: breaking, high, medium, or low._
 
 ### Context

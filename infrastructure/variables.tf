@@ -69,7 +69,7 @@ variable "ssh_public_key" {
 }
 
 variable "ses_domain" {
-  default = "scpca.alexslemonade.org"
+  default = "staging.scpca.alexslemonade.org"
 }
 
 output "environment_variables" {

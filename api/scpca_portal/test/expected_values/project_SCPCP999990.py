@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from scpca_portal.models import Library, Sample
+from scpca_portal.enums import FileFormats, Modalities
 
 
 class Project_SCPCP999990:
@@ -25,8 +25,8 @@ class Project_SCPCP999990:
         "includes_merged_anndata": True,
         "includes_xenografts": False,
         "modalities": [
-            Sample.Modalities.NAME_MAPPING[Sample.Modalities.BULK_RNA_SEQ],
-            Sample.Modalities.NAME_MAPPING[Sample.Modalities.SPATIAL],
+            Modalities.NAME_MAPPING[Modalities.BULK_RNA_SEQ],
+            Modalities.NAME_MAPPING[Modalities.SPATIAL],
         ],
         "multiplexed_sample_count": 0,
         "organisms": ["Homo sapiens"],
@@ -159,12 +159,12 @@ class Project_SCPCP999990:
         SCPCA_ID = "SCPCL999990"
         VALUES = {
             "formats": [
-                Library.FileFormats.ANN_DATA,
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.ANN_DATA,
+                FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
+            "modality": Modalities.SINGLE_CELL,
             "original_file_paths": [
                 "SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html",
                 "SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds",
@@ -183,11 +183,11 @@ class Project_SCPCP999990:
         SCPCA_ID = "SCPCL999991"
         VALUES = {
             "formats": [
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SPATIAL,
+            "modality": Modalities.SPATIAL,
             "original_file_paths": [
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/SCPCL999991_metadata.json",
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/SCPCL999991_spaceranger-summary.html",
@@ -212,12 +212,12 @@ class Project_SCPCP999990:
         SCPCA_ID = "SCPCL999997"
         VALUES = {
             "formats": [
-                Library.FileFormats.ANN_DATA,
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.ANN_DATA,
+                FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
+            "modality": Modalities.SINGLE_CELL,
             "original_file_paths": [
                 "SCPCP999990/SCPCS999997/SCPCL999997_celltype-report.html",
                 "SCPCP999990/SCPCS999997/SCPCL999997_filtered.rds",

@@ -9,6 +9,7 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_file, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 
@@ -183,8 +184,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         computed_file = cls(
             has_bulk_rna_seq=(
-                download_config["modality"] == Library.Modalities.SINGLE_CELL
-                and project.has_bulk_rna_seq
+                download_config["modality"] == Modalities.SINGLE_CELL and project.has_bulk_rna_seq
             ),
             has_cite_seq_data=project.has_cite_seq_data,
             has_multiplexed_data=libraries.filter(is_multiplexed=True).exists(),

@@ -6,6 +6,7 @@ from django.db import models
 
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.library import Library
@@ -18,20 +19,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         db_table = "samples"
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
-
-    class Modalities:
-        BULK_RNA_SEQ = "BULK_RNA_SEQ"
-        CITE_SEQ = "CITE_SEQ"
-        MULTIPLEXED = "MULTIPLEXED"
-        SINGLE_CELL = "SINGLE_CELL"
-        SPATIAL = "SPATIAL"
-
-        NAME_MAPPING = {
-            BULK_RNA_SEQ: "Bulk RNA-seq",
-            CITE_SEQ: "CITE-seq",
-            MULTIPLEXED: "Multiplexed",
-            SPATIAL: "Spatial Data",
-        }
 
     age = models.TextField()
     age_timing = models.TextField()
@@ -169,26 +156,26 @@ class Sample(CommonDataAttributes, TimestampedModel):
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
         return {
-            Sample.Modalities.MULTIPLEXED: settings.OUTPUT_DATA_PATH
+            Modalities.MULTIPLEXED: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_multiplexed_metadata.tsv",
-            Sample.Modalities.SINGLE_CELL: settings.OUTPUT_DATA_PATH
+            Modalities.SINGLE_CELL: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_libraries_metadata.tsv",
-            Sample.Modalities.SPATIAL: settings.OUTPUT_DATA_PATH
+            Modalities.SPATIAL: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_spatial_metadata.tsv",
         }.get(modality)
 
     @property
     def modalities(self):
         attr_name_modality_mapping = {
-            "has_bulk_rna_seq": Sample.Modalities.BULK_RNA_SEQ,
-            "has_cite_seq_data": Sample.Modalities.CITE_SEQ,
-            "has_multiplexed_data": Sample.Modalities.MULTIPLEXED,
-            "has_spatial_data": Sample.Modalities.SPATIAL,
+            "has_bulk_rna_seq": Modalities.BULK_RNA_SEQ,
+            "has_cite_seq_data": Modalities.CITE_SEQ,
+            "has_multiplexed_data": Modalities.MULTIPLEXED,
+            "has_spatial_data": Modalities.SPATIAL,
         }
 
         return sorted(
             [
-                Sample.Modalities.NAME_MAPPING[modality_name]
+                Modalities.NAME_MAPPING[modality_name]
                 for attr_name, modality_name in attr_name_modality_mapping.items()
                 if getattr(self, attr_name)
             ]

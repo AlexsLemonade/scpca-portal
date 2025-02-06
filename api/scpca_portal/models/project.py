@@ -9,6 +9,7 @@ from django.db import models
 
 from scpca_portal import common, metadata_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -227,12 +228,12 @@ class Project(CommonDataAttributes, TimestampedModel):
             # If the download config requests merged and there is no merged file in the project,
             # return an empty queryset
             if (
-                download_config["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT
+                download_config["format"] == FileFormats.SINGLE_CELL_EXPERIMENT
                 and not self.includes_merged_sce
             ):
                 return self.libraries.none()
             elif (
-                download_config["format"] == Library.FileFormats.ANN_DATA
+                download_config["format"] == FileFormats.ANN_DATA
                 and not self.includes_merged_anndata
             ):
                 return self.libraries.none()
@@ -299,7 +300,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         Return all of a project's file paths that are suitable for the passed download config.
         """
         # Spatial samples do not have bulk or merged project files
-        if download_config["modality"] == Library.Modalities.SPATIAL:
+        if download_config["modality"] == Modalities.SPATIAL:
             return OriginalFile.objects.none()
 
         original_files = OriginalFile.downloadable_objects.filter(
@@ -307,9 +308,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
         if download_config["includes_merged"]:
-            if download_config["format"] == Library.FileFormats.ANN_DATA:
+            if download_config["format"] == FileFormats.ANN_DATA:
                 return original_files.exclude(is_single_cell_experiment=True)
-            if download_config["format"] == Library.FileFormats.SINGLE_CELL_EXPERIMENT:
+            if download_config["format"] == FileFormats.SINGLE_CELL_EXPERIMENT:
                 return original_files.exclude(is_anndata=True)
 
         return original_files.filter(is_merged=False)
@@ -390,13 +391,11 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample.has_cite_seq_data = sample.libraries.filter(has_cite_seq_data=True).exists()
             sample.has_multiplexed_data = sample.libraries.filter(is_multiplexed=True).exists()
             sample.has_single_cell_data = sample.libraries.filter(
-                modality=Library.Modalities.SINGLE_CELL
+                modality=Modalities.SINGLE_CELL
             ).exists()
-            sample.has_spatial_data = sample.libraries.filter(
-                modality=Library.Modalities.SPATIAL
-            ).exists()
+            sample.has_spatial_data = sample.libraries.filter(modality=Modalities.SPATIAL).exists()
             sample.includes_anndata = sample.libraries.filter(
-                formats__contains=[Library.FileFormats.ANN_DATA]
+                formats__contains=[FileFormats.ANN_DATA]
             ).exists()
             sample.save(
                 update_fields=(
@@ -420,7 +419,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_technologies = set()
 
             for library in sample.libraries.all():
-                if library.modality == Library.Modalities.SINGLE_CELL:
+                if library.modality == Modalities.SINGLE_CELL:
                     if not library.is_multiplexed:
                         sample_cell_count_estimate += library.metadata.get("filtered_cell_count")
 

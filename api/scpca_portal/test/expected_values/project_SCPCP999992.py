@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from scpca_portal.models import Library, Sample
+from scpca_portal.enums import FileFormats, Modalities
 
 
 class Project_SCPCP999992:
@@ -24,7 +24,7 @@ class Project_SCPCP999992:
         "includes_merged_sce": True,
         "includes_merged_anndata": True,
         "includes_xenografts": False,
-        "modalities": [Sample.Modalities.NAME_MAPPING[Sample.Modalities.CITE_SEQ]],
+        "modalities": [Modalities.NAME_MAPPING[Modalities.CITE_SEQ]],
         "multiplexed_sample_count": 0,
         "organisms": ["Homo sapiens"],
         "original_file_paths": [
@@ -101,12 +101,12 @@ class Project_SCPCP999992:
         SCPCA_ID = "SCPCL999996"
         VALUES = {
             "formats": [
-                Library.FileFormats.ANN_DATA,
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.ANN_DATA,
+                FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
+            "modality": Modalities.SINGLE_CELL,
             "original_file_paths": [
                 "SCPCP999992/SCPCS999996/SCPCL999996_celltype-report.html",
                 "SCPCP999992/SCPCS999996/SCPCL999996_filtered.rds",
@@ -125,12 +125,12 @@ class Project_SCPCP999992:
         SCPCA_ID = "SCPCL999998"
         VALUES = {
             "formats": [
-                Library.FileFormats.ANN_DATA,
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.ANN_DATA,
+                FileFormats.SINGLE_CELL_EXPERIMENT,
             ],
             "has_cite_seq_data": True,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
+            "modality": Modalities.SINGLE_CELL,
             "original_file_paths": [
                 "SCPCP999992/SCPCS999998/SCPCL999998_celltype-report.html",
                 "SCPCP999992/SCPCS999998/SCPCL999998_filtered.rds",
