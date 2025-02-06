@@ -28,8 +28,16 @@ class Command(BaseCommand):
         self.dispatch_send_email(**kwargs)
 
     def dispatch_send_email(self, sender: str, recipient: str, **kwargs):
-        sender_flag = f"--sender {sender}" if sender else ""
-        recipient_flag = f"--recipient {recipient}" if recipient else ""
+        command = [
+            "python",
+            "manage.py",
+            "send_test_email",
+        ]
+        if sender:
+            command.extend(["--sender", sender])
+        if recipient:
+            command.extend(["--recipient", recipient])
+
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         job_name = f"test-email_{timestamp}"
 
@@ -38,13 +46,7 @@ class Command(BaseCommand):
             jobQueue=settings.AWS_BATCH_JOB_QUEUE_NAME,
             jobDefinition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
             containerOverrides={
-                "command": [
-                    "python",
-                    "manage.py",
-                    "send_test_email",
-                    sender_flag,
-                    recipient_flag,
-                ],
+                "command": command,
             },
         )
 
