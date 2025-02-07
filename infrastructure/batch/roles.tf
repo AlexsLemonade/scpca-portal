@@ -63,7 +63,7 @@ resource "aws_iam_policy" "batch_ses_send_email" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "batch_ses_send_policy" {
+resource "aws_iam_role_policy_attachment" "ecs_task_ses_send_policy" {
   role = aws_iam_role.ecs_task_role.name
   policy_arn = aws_iam_policy.batch_ses_send_email.arn
 }
@@ -119,6 +119,11 @@ resource "aws_iam_role" "batch_job_role" {
 EOF
 
   tags = var.batch_tags
+}
+
+resource "aws_iam_role_policy_attachment" "batch_job_ses_send_policy" {
+  role       = aws_iam_role.batch_job_role.name
+  policy_arn = aws_iam_policy.batch_ses_send_email.arn
 }
 
 resource "aws_iam_policy" "batch_job_s3_access" {
