@@ -97,7 +97,6 @@ EOF
   tags = var.batch_tags
 }
 
-
 resource "aws_iam_policy" "batch_job_s3_access" {
   name = "scpca-portal-batch-job-s3-access-${var.user}-${var.stage}"
 
