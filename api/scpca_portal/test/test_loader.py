@@ -7,6 +7,7 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from django.conf import settings
+from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from scpca_portal import loader
@@ -16,6 +17,8 @@ from scpca_portal.test import expected_values as test_data
 
 class TestLoader(TransactionTestCase):
     def setUp(self):
+        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+
         self.get_projects_metadata = partial(
             loader.get_projects_metadata, input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME
         )

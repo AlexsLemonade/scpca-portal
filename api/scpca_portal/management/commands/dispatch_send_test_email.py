@@ -21,34 +21,33 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_arguments("--sender", type=str, default="engineering@ccdatalab.org")
-        parser.add_arguments(
-            "--recipient",
-            type=str,
-            default="ccdl-test-channel-aaaabmdgmewpi5ph2qohssfx54@alexslemonade.slack.com",
-        )
+        parser.add_argument("--sender", type=str, default=settings.TEST_EMAIL_SENDER)
+        parser.add_argument("--recipient", type=str, default=settings.TEST_EMAIL_RECIPIENT)
 
     def handle(self, *args, **kwargs):
         self.dispatch_send_email(**kwargs)
 
     def dispatch_send_email(self, sender: str, recipient: str, **kwargs):
-        sender_flag = f"--sender {sender}" if sender else ""
-        recipient_flag = f"--recipient {recipient}" if recipient else ""
-        job_name = f"Test email from {sender} - {str(datetime.now())}"
+        command = [
+            "python",
+            "manage.py",
+            "send_test_email",
+        ]
+        if sender:
+            command.extend(["--sender", sender])
+        if recipient:
+            command.extend(["--recipient", recipient])
+
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        job_name = f"test-email_{timestamp}"
 
         response = batch.submit_job(
             jobName=job_name,
             jobQueue=settings.AWS_BATCH_JOB_QUEUE_NAME,
             jobDefinition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
             containerOverrides={
-                "command": [
-                    "python",
-                    "manage.py",
-                    "send_test_email",
-                    sender_flag,
-                    recipient_flag,
-                ],
+                "command": command,
             },
         )
 
-        logger.info(f'{job_name} submitted to Batch with jobId {response["jobId"]}')
+        logger.info(f'Job `{job_name}` submitted to Batch with jobId `{response["jobId"]}`')

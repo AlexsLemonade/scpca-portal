@@ -15,7 +15,7 @@ resource "aws_iam_role" "batch_service_role" {
 }
 EOF
 
-  tags               = var.batch_tags
+  tags = var.batch_tags
 }
 
 resource "aws_iam_role_policy_attachment" "batch_service_role" {
@@ -44,8 +44,14 @@ EOF
   tags = var.batch_tags
 }
 
-resource "aws_iam_policy" "batch_ses_send_email" {
-  name = "scpca-portal-batch-ses-send-email-${var.user}-${var.stage}"
+resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_policy" "ecs_task_secretsmanager_access" {
+  name = "scpca-portal-ecs-task-secretsmanager-access-${var.user}-${var.stage}"
+
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -53,24 +59,22 @@ resource "aws_iam_policy" "batch_ses_send_email" {
     {
       "Effect": "Allow",
       "Action": [
-        "ses:SendEmail",
-        "ses:SendRawEmail"
+        "secretsmanager:GetSecretValue"
       ],
-      "Resource": "arn:aws:ses:${var.region}:${var.aws_caller_identity_current.account_id}:identity/${var.ses_domain}"
+      "Resource": [
+        "${var.django_secret_key.arn}",
+        "${var.database_password.arn}",
+        "${var.sentry_dsn.arn}"
+      ]
     }
   ]
 }
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "batch_ses_send_policy" {
-  role = aws_iam_role.ecs_task_role.name
-  policy_arn = aws_iam_policy.batch_ses_send_email.arn
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
+resource "aws_iam_role_policy_attachment" "ecs_task_secretsmanager_access" {
   role       = aws_iam_role.ecs_task_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  policy_arn = aws_iam_policy.ecs_task_secretsmanager_access.arn
 }
 
 resource "aws_iam_role" "batch_job_role" {
@@ -138,4 +142,28 @@ EOF
 resource "aws_iam_role_policy_attachment" "batch_job_s3_access" {
   role       = aws_iam_role.batch_job_role.name
   policy_arn = aws_iam_policy.batch_job_s3_access.arn
+}
+
+resource "aws_iam_policy" "batch_ses_send_email" {
+  name   = "scpca-portal-batch-ses-send-email-${var.user}-${var.stage}"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ses:SendEmail",
+        "ses:SendRawEmail"
+      ],
+      "Resource": "arn:aws:ses:${var.region}:${var.aws_caller_identity_current.account_id}:identity/${var.ses_domain}"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "batch_ses_send_policy" {
+  role       = aws_iam_role.batch_job_role.name
+  policy_arn = aws_iam_policy.batch_ses_send_email.arn
 }

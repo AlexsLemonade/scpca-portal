@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from scpca_portal.models import Library, Sample
+from scpca_portal.enums import FileFormats, Modalities
 
 
 class Project_SCPCP999991:
@@ -8,7 +8,6 @@ class Project_SCPCP999991:
     VALUES = {
         "abstract": "TBD",
         "additional_restrictions": "Research or academic purposes only",
-        "data_file_paths": [],
         "diagnoses": "diagnosis3, diagnosis4, diagnosis6",
         "diagnoses_counts": "diagnosis3 (1), diagnosis4 (1), diagnosis6 (1)",
         "disease_timings": "Initial diagnosis",
@@ -26,10 +25,11 @@ class Project_SCPCP999991:
         "includes_merged_anndata": False,
         "includes_xenografts": False,
         "modalities": [
-            Sample.Modalities.NAME_MAPPING[Sample.Modalities.MULTIPLEXED],
+            Modalities.NAME_MAPPING[Modalities.MULTIPLEXED],
         ],
         "multiplexed_sample_count": 2,
         "organisms": ["Homo sapiens"],
+        "original_file_paths": [],
         "pi_name": "scpca",
         "s3_input_bucket": settings.AWS_S3_INPUT_BUCKET_NAME,
         "sample_count": 3,
@@ -124,19 +124,19 @@ class Project_SCPCP999991:
     class Library_SCPCL999992:
         SCPCA_ID = "SCPCL999992"
         VALUES = {
-            "data_file_paths": [
+            "formats": [
+                FileFormats.SINGLE_CELL_EXPERIMENT,
+            ],
+            "has_cite_seq_data": False,
+            "is_multiplexed": True,
+            "modality": Modalities.SINGLE_CELL,
+            "original_file_paths": [
                 "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_celltype-report.html",
                 "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_filtered.rds",
                 "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_processed.rds",
                 "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_qc.html",
                 "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_unfiltered.rds",
             ],
-            "formats": [
-                Library.FileFormats.SINGLE_CELL_EXPERIMENT,
-            ],
-            "has_cite_seq_data": False,
-            "is_multiplexed": True,
-            "modality": Library.Modalities.SINGLE_CELL,
             "scpca_id": SCPCA_ID,
             "workflow_version": "development",
         }
@@ -144,7 +144,11 @@ class Project_SCPCP999991:
     class Library_SCPCL999995:
         SCPCA_ID = "SCPCL999995"
         VALUES = {
-            "data_file_paths": [
+            "formats": [FileFormats.ANN_DATA, FileFormats.SINGLE_CELL_EXPERIMENT],
+            "has_cite_seq_data": False,
+            "is_multiplexed": False,
+            "modality": Modalities.SINGLE_CELL,
+            "original_file_paths": [
                 "SCPCP999991/SCPCS999995/SCPCL999995_celltype-report.html",
                 "SCPCP999991/SCPCS999995/SCPCL999995_filtered.rds",
                 "SCPCP999991/SCPCS999995/SCPCL999995_filtered_rna.h5ad",
@@ -154,10 +158,8 @@ class Project_SCPCP999991:
                 "SCPCP999991/SCPCS999995/SCPCL999995_unfiltered.rds",
                 "SCPCP999991/SCPCS999995/SCPCL999995_unfiltered_rna.h5ad",
             ],
-            "formats": [Library.FileFormats.ANN_DATA, Library.FileFormats.SINGLE_CELL_EXPERIMENT],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
-            "modality": Library.Modalities.SINGLE_CELL,
             "scpca_id": SCPCA_ID,
             "workflow_version": "development",
         }

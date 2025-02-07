@@ -25,12 +25,15 @@ S3_OBJECT_KEYS = [
 # the strip removes the leading and trailing double quotes included in the hash value.
 # the split removes the `-#` from end of the hash value, which represents
 # the number of chunks the file was originally uploaded in.
-S3_OBJECT_VALUES = {"hash": lambda hash_value: hash_value.strip('"').split("-")[0]}
+S3_OBJECT_VALUES = {
+    "hash": lambda hash_value: hash_value.strip('"').split("-")[0],
+    "s3_key": lambda s3_key_value, prefix: s3_key_value.removeprefix(f"{prefix}/"),
+}
 
 
 def remove_listed_directories(listed_objects):
     """Returns cleaned list of object files without directories objects."""
-    return [obj for obj in listed_objects if obj["Size"] > 0]
+    return [obj for obj in listed_objects if not obj["s3_key"].endswith("/")]
 
 
 def list_bucket_objects(bucket: str) -> List[Dict]:
@@ -40,6 +43,7 @@ def list_bucket_objects(bucket: str) -> List[Dict]:
     """
     command_inputs = ["aws", "s3api", "list-objects", "--output", "json"]
 
+    prefix = ""
     if "/" in bucket:
         bucket, prefix = bucket.split("/", 1)
         command_inputs.extend(["--prefix", prefix])
@@ -61,12 +65,11 @@ def list_bucket_objects(bucket: str) -> List[Dict]:
         return []
 
     all_listed_objects = json_output.get("Contents")
-    listed_objects = remove_listed_directories(all_listed_objects)
-    for listed_object in listed_objects:
+    for listed_object in all_listed_objects:
         utils.transform_keys(listed_object, S3_OBJECT_KEYS)
-        utils.transform_values(listed_object, S3_OBJECT_VALUES)
+        utils.transform_values(listed_object, S3_OBJECT_VALUES, prefix)
 
-    return listed_objects
+    return remove_listed_directories(all_listed_objects)
 
 
 def list_input_paths(

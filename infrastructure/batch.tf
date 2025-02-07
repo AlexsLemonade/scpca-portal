@@ -20,7 +20,7 @@ module "batch" {
   scpca_portal_db_security_group = aws_security_group.scpca_portal_db
 
   # ses
-  ses_domain = local.ses_domain
+  ses_domain = var.ses_domain
 
   # general configuration
   aws_caller_identity_current = data.aws_caller_identity.current
