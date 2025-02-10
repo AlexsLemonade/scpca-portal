@@ -88,12 +88,14 @@ class Command(BaseCommand):
             projects = projects.filter(scpca_id=project_id)
 
         job_counts = Counter()
-        for project in projects:
+
+        project_list = list(projects)  # convert to list to be able to index below
+        for project in project_list:
             project_valid_download_config_names = project.valid_download_config_names
             for download_config_name in project_valid_download_config_names:
                 may_notify = False
                 if (
-                    project == projects[-1]
+                    project == project_list[-1]
                     and download_config_name == project_valid_download_config_names[-1]
                 ):
                     may_notify = notify
