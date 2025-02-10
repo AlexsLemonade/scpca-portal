@@ -12,9 +12,13 @@ TEMPLATE_ROOT = settings.TEMPLATE_PATH / "email_templates"
 TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "default.html"
 
 
-def send_project_files_completed_email(project_id: str) -> None:
-    SENDER = ""
-    RECIPIENT = ""
+def send_project_files_completed_email(
+    project_id: str,
+    sender: str = settings.TEST_EMAIL_SENDER,
+    recipient: str = settings.TEST_EMAIL_RECIPIENT,
+) -> None:
+    SENDER = sender
+    RECIPIENT = recipient
     CHARSET = "UTF-8"
 
     SUBJECT = f"All files generated for {project_id}"
