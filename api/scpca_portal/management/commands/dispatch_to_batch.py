@@ -32,6 +32,7 @@ class Command(BaseCommand):
             "--regenerate-all", action=BooleanOptionalAction, type=bool, default=False
         )
         parser.add_argument("--project-id", type=str, default="")
+        # for now, we're only notifying on submission of the last project job
         parser.add_argument("--notify", type=bool, default=False, action=BooleanOptionalAction)
 
     def handle(self, *args, **kwargs):
@@ -43,7 +44,7 @@ class Command(BaseCommand):
         download_config_name: str,
         project_id: str = "",
         sample_id: str = "",
-        notify: bool,
+        notify: bool = False,
     ) -> None:
         """
         Submit job to AWS Batch, accordingly to the resource_id and download_config combination.
@@ -88,11 +89,19 @@ class Command(BaseCommand):
 
         job_counts = Counter()
         for project in projects:
-            for download_config_name in project.valid_download_config_names:
+            project_valid_download_config_names = project.valid_download_config_names
+            for download_config_name in project_valid_download_config_names:
+                may_notify = False
+                if (
+                    project == projects[-1]
+                    and download_config_name == project_valid_download_config_names[-1]
+                ):
+                    may_notify = notify
+
                 self.submit_job(
                     project_id=project.scpca_id,
                     download_config_name=download_config_name,
-                    notify=notify,
+                    notify=may_notify,
                 )
                 job_counts["project"] += 1
 
@@ -101,7 +110,6 @@ class Command(BaseCommand):
                     self.submit_job(
                         sample_id=sample.scpca_id,
                         download_config_name=download_config_name,
-                        notify=notify,
                     )
                     job_counts["sample"] += 1
 

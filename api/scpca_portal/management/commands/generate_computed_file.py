@@ -77,5 +77,5 @@ class Command(BaseCommand):
             download_config = common.SAMPLE_DOWNLOAD_CONFIGS[download_config_name]
             loader.generate_computed_file(sample=sample, download_config=download_config)
 
-        if notify:
-            notifications.send_job_completed_email(project_id or sample_id, download_config_name)
+        if notify and project_id:
+            notifications.send_project_files_completed_email(project_id)
