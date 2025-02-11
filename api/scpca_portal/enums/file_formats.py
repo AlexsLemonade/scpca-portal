@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class FileFormats:
     ANN_DATA = "ANN_DATA"
     SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
@@ -6,3 +9,8 @@ class FileFormats:
         (ANN_DATA, "AnnData"),
         (SINGLE_CELL_EXPERIMENT, "Single cell experiment"),
     )
+
+
+class FileFormatsTest(Enum):
+    ANN_DATA = "ANN_DATA"
+    SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"

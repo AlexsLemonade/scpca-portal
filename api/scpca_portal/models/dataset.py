@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from scpca_portal.enums import FileFormats
+from scpca_portal.enums import FileFormatsTest
 from scpca_portal.models import APIToken, ComputedFile
 from scpca_portal.models.base import TimestampedModel
 
@@ -13,6 +13,11 @@ class Dataset(TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
+    # This is passed to the format field choices argument
+    format_choices = models.TextChoices(
+        "FileFormatsTest", [(c.name, c.value) for c in FileFormatsTest]
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     # User-editable
@@ -20,7 +25,7 @@ class Dataset(TimestampedModel):
     email = models.EmailField(null=True)
     start = models.BooleanField(default=False)
     # Format or regenerated_from is required at the time of creation
-    format = models.TextField(choices=FileFormats.CHOICES)
+    format = models.TextField(choices=format_choices.choices)
     regenerated_from = models.ForeignKey(
         "self",
         null=True,
