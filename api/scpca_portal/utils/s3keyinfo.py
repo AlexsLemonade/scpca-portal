@@ -1,25 +1,22 @@
-from dataclasses import dataclass
 from pathlib import Path
 
 from scpca_portal import common, utils
 
 
-@dataclass
 class S3KeyInfo:
-    s3_key: Path
-    project_id: str | None
-    sample_id: str | None
-    library_id_part: str | None
-    is_merged: bool
-    is_bulk: bool
-
     def __init__(self, s3_key: Path):
-        self.s3_key = s3_key
-        self.project_id = utils.find_first_contained(common.PROJECT_ID_PREFIX, s3_key.parts)
-        self.sample_id = utils.find_first_contained(common.SAMPLE_ID_PREFIX, s3_key.parts)
-        self.library_id_part = utils.find_first_contained(common.LIBRARY_ID_PREFIX, s3_key.parts)
-        self.is_merged = "merged" in s3_key.parts
-        self.is_bulk = "bulk" in s3_key.parts
+        self.s3_key: Path = s3_key
+        self.project_id: str | None = utils.find_first_contained(
+            common.PROJECT_ID_PREFIX, s3_key.parts
+        )
+        self.sample_id: str | None = utils.find_first_contained(
+            common.SAMPLE_ID_PREFIX, s3_key.parts
+        )
+        self.library_id_part: str | None = utils.find_first_contained(
+            common.LIBRARY_ID_PREFIX, s3_key.parts
+        )
+        self.is_merged: bool = "merged" in s3_key.parts
+        self.is_bulk: bool = "bulk" in s3_key.parts
 
     @property
     def library_id(self):
