@@ -5,7 +5,7 @@ from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import utils
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
@@ -84,10 +84,23 @@ class OriginalFile(TimestampedModel):
             is_metadata=(FileFormats.METADATA == format),
             is_merged=s3_key_info.is_merged,
             is_project_file=s3_key_info.is_project_file,
-            is_downloadable=s3_key_info.is_downloadable,
+            is_downloadable=OriginalFile._is_downloadable(s3_key_info.s3_key, modalities, format),
         )
 
         return original_file
+
+    @staticmethod
+    def _is_downloadable(s3_key, modalities, format):
+        """
+        Returns whether or not a file is_downloadable.
+        Most files are downloadable files,
+        the only exceptions are single_cell metadata files and project level metadata files.
+        """
+        if Modalities.SINGLE_CELL in modalities:
+            # single_cell metadata files are not included in computed files
+            return not (FileFormats.METADATA == format)
+
+        return s3_key.name not in common.NON_DOWNLOADABLE_PROJECT_FILES
 
     @classmethod
     def bulk_create_from_dicts(cls, file_objects, bucket, sync_timestamp) -> List[Self]:

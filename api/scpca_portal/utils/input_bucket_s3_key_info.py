@@ -91,16 +91,3 @@ class InputBucketS3KeyInfo:
     @property
     def _is_metadata(self):
         return self.s3_key.suffix in common.METADATA_EXTENSIONS
-
-    @property
-    def is_downloadable(self):
-        """
-        Returns whether or not a file is_downloadable.
-        Most files are downloadable files,
-        the only exceptions are single_cell metadata files and project level metadata files.
-        """
-        if self._is_single_cell:
-            # single_cell metadata files are not included in computed files
-            return not self._is_metadata
-
-        return self.s3_key.name not in common.NON_DOWNLOADABLE_PROJECT_FILES
