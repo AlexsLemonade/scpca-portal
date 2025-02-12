@@ -1,2 +1,2 @@
 from scpca_portal.utils.helpers import *
-from scpca_portal.utils.s3keyinfo import S3KeyInfo
+from scpca_portal.utils.input_bucket_s3_key_info import InputBucketS3KeyInfo

@@ -7,6 +7,7 @@ from typing_extensions import Self
 
 from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
 
 logger = get_and_configure_logger(__name__)
@@ -60,7 +61,9 @@ class OriginalFile(TimestampedModel):
 
     @classmethod
     def get_from_dict(cls, file_object, bucket, sync_timestamp):
-        s3_key_info = utils.S3KeyInfo(Path(file_object["s3_key"]))
+        s3_key_info = utils.InputBucketS3KeyInfo(Path(file_object["s3_key"]))
+        modalities = s3_key_info.modalities
+        format = s3_key_info.format
 
         original_file = cls(
             s3_bucket=bucket,
@@ -72,13 +75,13 @@ class OriginalFile(TimestampedModel):
             project_id=s3_key_info.project_id,
             sample_id=s3_key_info.sample_id,
             library_id=s3_key_info.library_id,
-            is_single_cell=s3_key_info.is_single_cell,
-            is_spatial=s3_key_info.is_spatial,
-            is_cite_seq=s3_key_info.is_cite_seq,
-            is_bulk=s3_key_info.is_bulk,
-            is_single_cell_experiment=s3_key_info.is_single_cell_experiment,
-            is_anndata=s3_key_info.is_anndata,
-            is_metadata=s3_key_info.is_metadata,
+            is_single_cell=(Modalities.SINGLE_CELL in modalities),
+            is_spatial=(Modalities.SPATIAL in modalities),
+            is_cite_seq=(Modalities.CITE_SEQ in modalities),
+            is_bulk=(Modalities.BULK_RNA_SEQ in modalities),
+            is_single_cell_experiment=(FileFormats.SINGLE_CELL_EXPERIMENT == format),
+            is_anndata=(FileFormats.ANN_DATA == format),
+            is_metadata=(FileFormats.METADATA == format),
             is_merged=s3_key_info.is_merged,
             is_project_file=s3_key_info.is_project_file,
             is_downloadable=s3_key_info.is_downloadable,
