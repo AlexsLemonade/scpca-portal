@@ -43,7 +43,7 @@ class Job(TimestampedModel):
     def terminate(self, retry_on_termination=False):
         """
         Terminate the currently running job via boto3, and update state.
-        Set critical_error, and if true, the job is irrecoverable.
+        Set critical_error to True if the job is irrecoverable.
         """
         pass
 
@@ -51,6 +51,6 @@ class Job(TimestampedModel):
         """
         Create and return a new Job instance to retry a terminated job via boto3,
         Updates attempt and state for the new job instance.
-        Only called when critical_error is false and retry_on_termination is true
+        Called only when critical_error is false and retry_on_termination is true.
         """
         pass
