@@ -32,10 +32,14 @@ class Job(TimestampedModel):
     batch_job_id = models.TextField(null=True)
     batch_status = models.TextField(null=True)
 
-    dataaset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
+    # Datasets should never be deleted
+    dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
 
     def __str__(self):
-        return f"Job {self.id} running in {self.batch_job_name}"
+        if self.batch_job_id:
+            return f"Job {self.id} - {self.batch_job_id} - {self.state}"
+
+        return f"Job {self.id} - {self.state}"
 
     def submit(self):
         """Submit a job via boto3, and update batch_job_id and state."""
