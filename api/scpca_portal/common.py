@@ -15,7 +15,6 @@ SUPPLEMENTARY_EXTENSIONS = {".html"}
 METADATA_EXTENSIONS = {".csv", ".json"}
 CITE_SEQ_FILENAME_ENDING = f"_adt{FORMAT_EXTENSIONS[ANN_DATA]}"
 
-
 NON_DOWNLOADABLE_PROJECT_FILES = {"projects_metadata.csv", "samples_metadata.csv"}
 
 SUBMITTER_WHITELIST = {
