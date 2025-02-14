@@ -46,6 +46,7 @@ class OriginalFile(TimestampedModel):
     # formats
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
+    is_supplementary = models.BooleanField(default=False)
     is_metadata = models.BooleanField(default=False)
     # other
     is_merged = models.BooleanField(default=False)
@@ -81,6 +82,7 @@ class OriginalFile(TimestampedModel):
             is_bulk=(Modalities.BULK_RNA_SEQ in modalities),
             is_single_cell_experiment=(format == FileFormats.SINGLE_CELL_EXPERIMENT),
             is_anndata=(format == FileFormats.ANN_DATA),
+            is_supplementary=(format == FileFormats.SUPPLEMENTARY),
             is_metadata=(format == FileFormats.METADATA),
             is_merged=s3_key_info.is_merged,
             is_project_file=s3_key_info.is_project_file,
@@ -98,7 +100,7 @@ class OriginalFile(TimestampedModel):
         """
         if Modalities.SINGLE_CELL in modalities:
             # single_cell metadata files are not included in computed files
-            return not (FileFormats.METADATA == format)
+            return not (format == FileFormats.METADATA)
 
         return s3_key.name not in common.NON_DOWNLOADABLE_PROJECT_FILES
 

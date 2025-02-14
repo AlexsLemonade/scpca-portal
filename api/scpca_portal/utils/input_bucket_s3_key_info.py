@@ -54,6 +54,8 @@ class InputBucketS3KeyInfo:
             return FileFormats.SINGLE_CELL_EXPERIMENT
         if self._is_anndata:
             return FileFormats.ANN_DATA
+        if self._is_supplementary:
+            return FileFormats.SUPPLEMENTARY
         if self._is_metadata:
             return FileFormats.METADATA
 
@@ -87,6 +89,10 @@ class InputBucketS3KeyInfo:
     @property
     def _is_anndata(self):
         return self.s3_key.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]
+
+    @property
+    def _is_supplementary(self):
+        return self.s3_key.suffix in common.SUPPLEMENTARY_EXTENSIONS
 
     @property
     def _is_metadata(self):
