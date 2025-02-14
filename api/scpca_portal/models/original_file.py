@@ -44,6 +44,7 @@ class OriginalFile(TimestampedModel):
     is_cite_seq = models.BooleanField(default=False)  # indicates if file is exclusively cite_seq
     is_bulk = models.BooleanField(default=False)
     # formats
+    format = models.TextField(choices=FileFormats.CHOICES, null=True, default=None)
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
     is_supplementary = models.BooleanField(default=False)
@@ -80,6 +81,7 @@ class OriginalFile(TimestampedModel):
             is_spatial=(Modalities.SPATIAL in modalities),
             is_cite_seq=(Modalities.CITE_SEQ in modalities),
             is_bulk=(Modalities.BULK_RNA_SEQ in modalities),
+            format=format,
             is_single_cell_experiment=(format == FileFormats.SINGLE_CELL_EXPERIMENT),
             is_anndata=(format == FileFormats.ANN_DATA),
             is_supplementary=(format == FileFormats.SUPPLEMENTARY),
