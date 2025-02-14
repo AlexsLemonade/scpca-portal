@@ -1,4 +1,4 @@
-class JobState:
+class JobStates:
     CREATED = "CREATED"
     SUBMITTED = "SUBMITTED"
     COMPLETED = "COMPLETED"

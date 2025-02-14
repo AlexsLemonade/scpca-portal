@@ -1,6 +1,6 @@
 from django.db import models
 
-from scpca_portal.enums import JobState
+from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
 
@@ -16,7 +16,7 @@ class Job(TimestampedModel):
     critical_error = models.BooleanField(default=False)  # Set to True if the job is irrecoverable
     failure_reason = models.TextField(blank=True, null=True)
     retry_on_termination = models.BooleanField(default=False)
-    state = models.TextField(choices=JobState.CHOICES, default=JobState.CREATED)
+    state = models.TextField(choices=JobStates.CHOICES, default=JobStates.CREATED)
 
     submitted_at = models.DateTimeField(null=True)
     completed_at = models.DateTimeField(null=True)
