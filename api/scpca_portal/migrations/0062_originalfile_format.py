@@ -26,7 +26,7 @@ def apply_format(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("scpca_portal", "0060_auto_20250214_1744"),
+        ("scpca_portal", "0061_auto_20250214_1744"),
     ]
 
     operations = [
