@@ -157,8 +157,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             raise ValueError("Unable to find libraries for download_config.")
 
         libraries_metadata = Library.get_libraries_metadata(libraries)
-        file_paths = Library.get_file_paths(libraries, download_config)
-        s3.download_input_files(file_paths, project.s3_input_bucket)
+        original_files = Library.get_file_paths(libraries, download_config)
+        s3.download_files(original_files, project.s3_input_bucket)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / project.get_output_file_name(download_config)
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -176,7 +176,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
             # Original files
             if not download_config.get("metadata_only", False):
-                for file_path in file_paths:
+                for original_file in original_files:
+                    file_path = Path(original_file.s3_key)
                     zip_file.write(
                         Library.get_local_file_path(file_path),
                         Library.get_zip_file_path(file_path, download_config),
@@ -218,8 +219,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             raise ValueError("Unable to find libraries for download_config.")
 
         libraries_metadata = Library.get_libraries_metadata(libraries)
-        file_paths = Library.get_file_paths(libraries, download_config)
-        s3.download_input_files(file_paths, sample.project.s3_input_bucket)
+        original_files = Library.get_file_paths(libraries, download_config)
+        s3.download_files(original_files, sample.project.s3_input_bucket)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / sample.get_output_file_name(download_config)
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -235,7 +236,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             )
 
             # Original files
-            for file_path in file_paths:
+            for original_file in original_files:
+                file_path = Path(original_file.s3_key)
                 zip_file.write(
                     Library.get_local_file_path(file_path),
                     Library.get_zip_file_path(file_path, download_config),

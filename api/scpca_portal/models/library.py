@@ -167,7 +167,7 @@ class Library(TimestampedModel):
         Files are then downloaded and included in computed files.
         """
         library_file_paths = [
-            Path(of.s3_key)
+            of
             for lib in libraries
             for of in lib.get_original_files_by_download_config(download_config)
         ]
@@ -175,8 +175,7 @@ class Library(TimestampedModel):
         if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
             project = libraries.first().project
             project_file_paths = [
-                Path(of.s3_key)
-                for of in project.get_original_files_by_download_config(download_config)
+                of for of in project.get_original_files_by_download_config(download_config)
             ]
             return project_file_paths + library_file_paths
 
