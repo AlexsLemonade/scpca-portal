@@ -8,6 +8,7 @@ from scpca_portal.enums.file_formats import FileFormats
 def apply_format(apps, schema_editor):
     OriginalFile = apps.get_model("scpca_portal", "original_file")
 
+    modified_original_files = []
     for original_file in OriginalFile.objects.all():
         if original_file.is_single_cell_experiment:
             original_file.format = FileFormats.SINGLE_CELL_EXPERIMENT
@@ -20,7 +21,9 @@ def apply_format(apps, schema_editor):
         else:
             original_file.format = None
 
-        original_file.save()
+        modified_original_files.append(original_file)
+
+    OriginalFile.objects.bulk_update(modified_original_files, ["format"])
 
 
 class Migration(migrations.Migration):
