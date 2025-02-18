@@ -139,6 +139,42 @@ def list_input_paths(
     return file_paths
 
 
+def download_files(original_files, bucket_name) -> bool:
+    """Download all passed data file paths which have not previously been downloaded.'"""
+
+    # NOTE: AWS Sync does one iteration per include flag.
+    # This causes a tremendous slowdown when trying to sync a long list of specific files.
+    # In order to overcome this we should sync once
+    # per project folder's immediate child subdirectory or file.
+    download_queue = DownloadQueue()
+    for original_file in original_files:
+        download_queue.put(original_file)
+
+    while not download_queue.empty():
+        bucket_path, original_files = download_queue.get()
+        bucket_name = Path(original_files[0].s3_bucket)
+        command_parts = [
+            "aws",
+            "s3",
+            "sync",
+            f"s3://{bucket_path}",
+            settings.INPUT_DATA_PATH / bucket_path.relative_to(bucket_name),
+        ]
+        command_parts.append("--exclude=*")
+        command_parts.extend([f"--include={of.download_path}" for of in original_files])
+
+        if "public-test" in str(bucket_name):
+            command_parts.append("--no-sign-request")
+
+        try:
+            subprocess.check_call(command_parts)
+        except subprocess.CalledProcessError as error:
+            logger.error(f"Files failed to download due to the following error:\n\t{error}")
+            return False
+
+    return True
+
+
 def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
 

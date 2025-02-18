@@ -154,6 +154,38 @@ class OriginalFile(TimestampedModel):
         deletable_files.delete()
         return deletable_file_list
 
+    @property
+    def s3_absolute_path(self) -> Path:
+        return Path(self.s3_bucket) / Path(self.s3_key)
+
+    @property
+    def download_dir(self) -> Path:
+        """
+        Return an original file's download directory.
+
+        To produce more efficient downloads, files are downloaded as collections.
+        Collections are formed as granularly as possible,
+        at either the sample/merged/bulk, project, or bucket levels.
+        """
+        PROJECT_DIR_PART_COUNT = 1
+        SAMPLE_DIR_PART_COUNT = 2
+
+        s3_key_path = Path(self.s3_key)
+        dir_part_count = len(s3_key_path.parts) - 1  # remove file itself
+
+        if dir_part_count >= SAMPLE_DIR_PART_COUNT:
+            return Path(self.s3_bucket, *s3_key_path.parts[:2])  # bucket/project/sample/
+
+        if dir_part_count == PROJECT_DIR_PART_COUNT:
+            return Path(self.s3_bucket, *s3_key_path.parts[:1])  # bucket/project/
+
+        # default to bucket dir
+        return Path(self.s3_bucket)  # bucket/
+
+    @property
+    def download_path(self) -> Path:
+        return self.s3_absolute_path.relative_to(self.download_dir)
+
 
 @dataclass
 class S3KeyInfo:
