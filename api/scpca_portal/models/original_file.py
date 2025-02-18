@@ -88,22 +88,22 @@ class OriginalFile(TimestampedModel):
             is_metadata=(format == FileFormats.METADATA),
             is_merged=s3_key_info.is_merged,
             is_project_file=s3_key_info.is_project_file,
-            is_downloadable=OriginalFile._is_downloadable(modalities, format),
+            is_downloadable=OriginalFile._is_downloadable(s3_key_info),
         )
 
         return original_file
 
     @staticmethod
-    def _is_downloadable(modalities, format):
+    def _is_downloadable(s3_key_info: utils.InputBucketS3KeyInfo):
         """
         Returns whether or not a file is downloadable.
         Most files are downloadable, with the exception of input metadata files.
         """
-        if Modalities.SPATIAL in modalities:
+        if Modalities.SPATIAL in s3_key_info.modalities:
             # Spatial input metadata files are downloadable (an exception to the rule)
             return True
 
-        if format == FileFormats.METADATA:
+        if s3_key_info.format == FileFormats.METADATA:
             return False
 
         return True
