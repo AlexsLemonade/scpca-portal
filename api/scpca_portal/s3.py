@@ -1,8 +1,8 @@
 import json
 import subprocess
-from collections import defaultdict, namedtuple
+from collections import OrderedDict, defaultdict, namedtuple
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from django.conf import settings
 
@@ -11,6 +11,7 @@ from botocore.client import Config
 
 from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
@@ -242,3 +243,22 @@ def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
         },
         ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
     )
+
+
+class DownloadQueue:
+    def __init__(self):
+        self._queue = OrderedDict()
+
+    def put(self, original_file):
+        s3_key_path = Path(original_file.s3_key)
+        if not s3_key_path.exists():  # only add files that need to be downloaded
+            self._queue.setdefault(original_file.download_dir, []).append(original_file)
+
+    def empty(self):
+        return bool(self._queue)
+
+    def get(self) -> Tuple[Path, List[OriginalFile]]:
+        if self.empty():
+            raise ValueError("Cannot retrieve item. Queue is empty.")
+
+        return self._queue.popitem(last=False)  # preserve queue invariant by popping first item
