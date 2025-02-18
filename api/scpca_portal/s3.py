@@ -139,7 +139,7 @@ def list_input_paths(
     return file_paths
 
 
-def download_files(original_files, bucket_name) -> bool:
+def download_files(original_files) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
 
     # NOTE: AWS Sync does one iteration per include flag.

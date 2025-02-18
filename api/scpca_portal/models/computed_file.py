@@ -157,8 +157,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             raise ValueError("Unable to find libraries for download_config.")
 
         libraries_metadata = Library.get_libraries_metadata(libraries)
-        original_files = Library.get_file_paths(libraries, download_config)
-        s3.download_files(original_files, project.s3_input_bucket)
+        original_files = Library.get_libraries_original_files(libraries, download_config)
+        s3.download_files(original_files)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / project.get_output_file_name(download_config)
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -177,10 +177,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Original files
             if not download_config.get("metadata_only", False):
                 for original_file in original_files:
-                    file_path = Path(original_file.s3_key)
                     zip_file.write(
-                        Library.get_local_file_path(file_path),
-                        Library.get_zip_file_path(file_path, download_config),
+                        Library.get_local_file_path(original_file),
+                        Library.get_zip_file_path(original_file, download_config),
                     )
 
         computed_file = cls(
@@ -219,8 +218,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             raise ValueError("Unable to find libraries for download_config.")
 
         libraries_metadata = Library.get_libraries_metadata(libraries)
-        original_files = Library.get_file_paths(libraries, download_config)
-        s3.download_files(original_files, sample.project.s3_input_bucket)
+        original_files = Library.get_libraries_original_files(libraries, download_config)
+        s3.download_files(original_files)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / sample.get_output_file_name(download_config)
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -237,10 +236,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
             # Original files
             for original_file in original_files:
-                file_path = Path(original_file.s3_key)
                 zip_file.write(
-                    Library.get_local_file_path(file_path),
-                    Library.get_zip_file_path(file_path, download_config),
+                    Library.get_local_file_path(original_file),
+                    Library.get_zip_file_path(original_file, download_config),
                 )
 
         computed_file = cls(
