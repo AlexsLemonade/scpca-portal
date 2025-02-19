@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Set
 
 from django.conf import settings
 from django.db import connection
+from django.db.models import Q
 from django.template.defaultfilters import pluralize
 
 from scpca_portal import metadata_file, s3
@@ -54,7 +55,15 @@ def get_projects_metadata(filter_on_project_id: str = "") -> List[Dict[str, Any]
     load the project metadata file and return project metadata dicts.
     """
     metadata_original_files = OriginalFile.objects.filter(is_metadata=True)
-    s3.download_files(metadata_original_files)
+    bulk_original_files = OriginalFile.objects.filter(is_bulk=True)
+    if filter_on_project_id:
+        metadata_original_files = metadata_original_files.filter(
+            Q(project_id=filter_on_project_id) | Q(project_id__isnull=True)
+        )
+        bulk_original_files = bulk_original_files.filter(project_id=filter_on_project_id)
+
+    s3.download_files(metadata_original_files | bulk_original_files)
+
     projects_metadata = metadata_file.load_projects_metadata(
         filter_on_project_id=filter_on_project_id
     )
