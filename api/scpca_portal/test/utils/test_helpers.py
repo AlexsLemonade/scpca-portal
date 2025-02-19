@@ -58,7 +58,7 @@ class TestJoinWorkflowVersions(TestCase):
 
 
 class TestGetToday(TestCase):
-    @patch("scpca_portal.utils.datetime")
+    @patch("scpca_portal.utils.helpers.datetime")
     def test_format(self, mock_date):
         mock_date.today.return_value = date(2022, 10, 8)
         self.assertEqual(utils.get_today_string(), "2022-10-08")
