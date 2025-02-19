@@ -65,9 +65,7 @@ class TestLoadData(TestCase):
         self.load_data()
         self.assertMethodsCalled()
 
-        self.mock_get_projects_metadata.assert_called_once_with(
-            self.input_bucket_name, self.scpca_project_id
-        )
+        self.mock_get_projects_metadata.assert_called_once_with(self.scpca_project_id)
         self.mock_create_project.assert_called_once_with(
             self.projects_metadata[0],
             self.submitter_whitelist,
@@ -79,7 +77,7 @@ class TestLoadData(TestCase):
         input_bucket_name = "input_bucket_name"
         self.load_data(input_bucket_name=input_bucket_name)
 
-        self.mock_get_projects_metadata.assert_called_with(input_bucket_name, self.scpca_project_id)
+        self.mock_get_projects_metadata.assert_called_with(self.scpca_project_id)
         self.mock_create_project.assert_called_with(
             self.projects_metadata[0],
             self.submitter_whitelist,
@@ -148,13 +146,11 @@ class TestLoadData(TestCase):
     def test_scpca_project_id(self):
         self.load_data()
         self.assertMethodsCalled()
-        self.mock_get_projects_metadata.assert_called_once_with(
-            self.input_bucket_name, self.scpca_project_id
-        )
+        self.mock_get_projects_metadata.assert_called_once_with(self.scpca_project_id)
 
         scpca_project_id = "scpca_project_id"
         self.load_data(scpca_project_id=scpca_project_id)
-        self.mock_get_projects_metadata.assert_called_with(self.input_bucket_name, scpca_project_id)
+        self.mock_get_projects_metadata.assert_called_with(scpca_project_id)
 
     def test_update_s3(self):
         self.load_data()

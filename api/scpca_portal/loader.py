@@ -13,6 +13,7 @@ from scpca_portal.models import (
     ComputedFile,
     Contact,
     ExternalAccession,
+    OriginalFile,
     Project,
     Publication,
     Sample,
@@ -47,14 +48,13 @@ def remove_project_input_files(project_id: str) -> None:
     shutil.rmtree(settings.INPUT_DATA_PATH / project_id, ignore_errors=True)
 
 
-def get_projects_metadata(
-    input_bucket_name: str, filter_on_project_id: str = ""
-) -> List[Dict[str, Any]]:
+def get_projects_metadata(filter_on_project_id: str = "") -> List[Dict[str, Any]]:
     """
     Download all metadata files from the passed input bucket,
     load the project metadata file and return project metadata dicts.
     """
-    s3.download_input_metadata(input_bucket_name)
+    metadata_original_files = OriginalFile.objects.filter(is_metadata=True)
+    s3.download_files(metadata_original_files)
     projects_metadata = metadata_file.load_projects_metadata(
         filter_on_project_id=filter_on_project_id
     )
