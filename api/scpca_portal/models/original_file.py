@@ -188,21 +188,17 @@ class OriginalFile(TimestampedModel):
         Collections are formed as granularly as possible,
         at either the sample/merged/bulk, project, or bucket levels.
         """
-        PROJECT_DIR_PART_COUNT = 1
-        SAMPLE_DIR_PART_COUNT = 2
+        s3_key_info = utils.InputBucketS3KeyInfo(Path(self.s3_key))
 
-        s3_key_path = Path(self.s3_key)
-        dir_part_count = len(s3_key_path.parts) - 1  # remove file itself
+        if s3_key_info.sample_id:
+            return Path(*s3_key_info.s3_key.parts[:2])  # /project/sample/
 
-        if dir_part_count >= SAMPLE_DIR_PART_COUNT:
-            return Path(self.s3_bucket, *s3_key_path.parts[:2])  # bucket/project/sample/
-
-        if dir_part_count == PROJECT_DIR_PART_COUNT:
-            return Path(self.s3_bucket, *s3_key_path.parts[:1])  # bucket/project/
+        if s3_key_info.project_id:
+            return Path(*s3_key_info.s3_key.parts[:1])  # /project/
 
         # default to bucket dir
-        return Path(self.s3_bucket)  # bucket/
+        return Path()  # /
 
     @property
     def download_path(self) -> Path:
-        return self.s3_absolute_path.relative_to(self.download_dir)
+        return Path(self.s3_key).relative_to(self.download_dir)

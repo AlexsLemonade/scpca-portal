@@ -1,8 +1,8 @@
 import json
 import subprocess
-from collections import OrderedDict, defaultdict, namedtuple
+from collections import defaultdict, namedtuple
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from django.conf import settings
 
@@ -146,13 +146,11 @@ def download_files(original_files) -> bool:
     # This causes a tremendous slowdown when trying to sync a long list of specific files.
     # In order to overcome this we should sync once
     # per project folder's immediate child subdirectory or file.
-    download_queue = DownloadQueue()
-    for original_file in original_files:
-        download_queue.put(original_file)
+    downloadable_files = DownloadableFiles(original_files)
 
-    while not download_queue.empty():
-        bucket_path, original_files = download_queue.get()
+    for bucket_path, original_files in downloadable_files.bucket_paths.items():
         bucket_name = Path(original_files[0].s3_bucket)
+
         command_parts = [
             "aws",
             "s3",
@@ -281,20 +279,19 @@ def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
     )
 
 
-class DownloadQueue:
-    def __init__(self):
-        self._queue = OrderedDict()
+class DownloadableFiles:
+    def __init__(self, original_files: List[OriginalFile]):
+        self._original_files = original_files
 
-    def put(self, original_file):
-        s3_key_path = Path(original_file.s3_key)
-        if not s3_key_path.exists():  # only add files that need to be downloaded
-            self._queue.setdefault(original_file.download_dir, []).append(original_file)
+    def _is_downloadable(self, original_file):
+        return not Path(original_file.s3_key).exists()
 
-    def empty(self):
-        return bool(self._queue)
+    @property
+    def bucket_paths(self):
+        bucket_paths = defaultdict(list)
+        for original_file in self._original_files:
+            if self._is_downloadable(original_file):
+                bucket_path = Path(original_file.s3_bucket) / original_file.download_dir
+                bucket_paths[bucket_path].append(original_file)
 
-    def get(self) -> Tuple[Path, List[OriginalFile]]:
-        if self.empty():
-            raise ValueError("Cannot retrieve item. Queue is empty.")
-
-        return self._queue.popitem(last=False)  # preserve queue invariant by popping first item
+        return bucket_paths
