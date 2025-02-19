@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from typing_extensions import Self
@@ -44,7 +45,7 @@ class OriginalFile(TimestampedModel):
     is_cite_seq = models.BooleanField(default=False)  # indicates if file is exclusively cite_seq
     is_bulk = models.BooleanField(default=False)
     # formats
-    format = models.TextField(choices=FileFormats.CHOICES, null=True, default=None)
+    formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
     is_supplementary = models.BooleanField(default=False)
@@ -65,7 +66,7 @@ class OriginalFile(TimestampedModel):
     def get_from_dict(cls, file_object, bucket, sync_timestamp):
         s3_key_info = utils.InputBucketS3KeyInfo(Path(file_object["s3_key"]))
         modalities = s3_key_info.modalities
-        format = s3_key_info.format
+        formats = s3_key_info.formats
 
         original_file = cls(
             s3_bucket=bucket,
@@ -81,11 +82,11 @@ class OriginalFile(TimestampedModel):
             is_spatial=(Modalities.SPATIAL in modalities),
             is_cite_seq=(Modalities.CITE_SEQ in modalities),
             is_bulk=(Modalities.BULK_RNA_SEQ in modalities),
-            format=format,
-            is_single_cell_experiment=(format == FileFormats.SINGLE_CELL_EXPERIMENT),
-            is_anndata=(format == FileFormats.ANN_DATA),
-            is_supplementary=(format == FileFormats.SUPPLEMENTARY),
-            is_metadata=(format == FileFormats.METADATA),
+            formats=formats,
+            is_single_cell_experiment=(FileFormats.SINGLE_CELL_EXPERIMENT in formats),
+            is_anndata=(FileFormats.ANN_DATA in formats),
+            is_supplementary=(FileFormats.SUPPLEMENTARY in formats),
+            is_metadata=(FileFormats.METADATA in formats),
             is_merged=s3_key_info.is_merged,
             is_project_file=s3_key_info.is_project_file,
             is_downloadable=OriginalFile._is_downloadable(s3_key_info),
@@ -103,7 +104,7 @@ class OriginalFile(TimestampedModel):
             # Spatial input metadata files are downloadable (an exception to the rule)
             return True
 
-        if s3_key_info.format == FileFormats.METADATA:
+        if FileFormats.METADATA in s3_key_info.formats:
             return False
 
         return True

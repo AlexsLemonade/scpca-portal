@@ -49,17 +49,19 @@ class InputBucketS3KeyInfo:
         return modalities
 
     @property
-    def format(self):
-        if self._is_single_cell_experiment:
-            return FileFormats.SINGLE_CELL_EXPERIMENT
-        if self._is_anndata:
-            return FileFormats.ANN_DATA
-        if self._is_supplementary:
-            return FileFormats.SUPPLEMENTARY
-        if self._is_metadata:
-            return FileFormats.METADATA
+    def formats(self) -> List[FileFormats]:
+        formats = []
 
-        return None
+        if self._is_single_cell_experiment:
+            formats.append(FileFormats.SINGLE_CELL_EXPERIMENT)
+        if self._is_anndata:
+            formats.append(FileFormats.ANN_DATA)
+        if self._is_supplementary:
+            formats.append(FileFormats.SUPPLEMENTARY)
+        if self._is_metadata:
+            formats.append(FileFormats.METADATA)
+
+        return formats
 
     @property
     def _is_spatial(self):
