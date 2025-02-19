@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
 
@@ -6,8 +5,9 @@ from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import common, utils
+from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
 
 logger = get_and_configure_logger(__name__)
@@ -44,8 +44,10 @@ class OriginalFile(TimestampedModel):
     is_cite_seq = models.BooleanField(default=False)  # indicates if file is exclusively cite_seq
     is_bulk = models.BooleanField(default=False)
     # formats
+    format = models.TextField(choices=FileFormats.CHOICES, null=True, default=None)
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
+    is_supplementary = models.BooleanField(default=False)
     is_metadata = models.BooleanField(default=False)
     # other
     is_merged = models.BooleanField(default=False)
@@ -61,7 +63,9 @@ class OriginalFile(TimestampedModel):
 
     @classmethod
     def get_from_dict(cls, file_object, bucket, sync_timestamp):
-        s3_key_info = S3KeyInfo(Path(file_object["s3_key"]))
+        s3_key_info = utils.InputBucketS3KeyInfo(Path(file_object["s3_key"]))
+        modalities = s3_key_info.modalities
+        format = s3_key_info.format
 
         original_file = cls(
             s3_bucket=bucket,
@@ -73,19 +77,36 @@ class OriginalFile(TimestampedModel):
             project_id=s3_key_info.project_id,
             sample_id=s3_key_info.sample_id,
             library_id=s3_key_info.library_id,
-            is_single_cell=s3_key_info.is_single_cell,
-            is_spatial=s3_key_info.is_spatial,
-            is_cite_seq=s3_key_info.is_cite_seq,
-            is_bulk=s3_key_info.is_bulk,
-            is_single_cell_experiment=s3_key_info.is_single_cell_experiment,
-            is_anndata=s3_key_info.is_anndata,
-            is_metadata=s3_key_info.is_metadata,
+            is_single_cell=(Modalities.SINGLE_CELL in modalities),
+            is_spatial=(Modalities.SPATIAL in modalities),
+            is_cite_seq=(Modalities.CITE_SEQ in modalities),
+            is_bulk=(Modalities.BULK_RNA_SEQ in modalities),
+            format=format,
+            is_single_cell_experiment=(format == FileFormats.SINGLE_CELL_EXPERIMENT),
+            is_anndata=(format == FileFormats.ANN_DATA),
+            is_supplementary=(format == FileFormats.SUPPLEMENTARY),
+            is_metadata=(format == FileFormats.METADATA),
             is_merged=s3_key_info.is_merged,
             is_project_file=s3_key_info.is_project_file,
-            is_downloadable=s3_key_info.is_downloadable,
+            is_downloadable=OriginalFile._is_downloadable(s3_key_info),
         )
 
         return original_file
+
+    @staticmethod
+    def _is_downloadable(s3_key_info: utils.InputBucketS3KeyInfo):
+        """
+        Returns whether or not a file is downloadable.
+        Most files are downloadable, with the exception of input metadata files.
+        """
+        if Modalities.SPATIAL in s3_key_info.modalities:
+            # Spatial input metadata files are downloadable (an exception to the rule)
+            return True
+
+        if s3_key_info.format == FileFormats.METADATA:
+            return False
+
+        return True
 
     @classmethod
     def bulk_create_from_dicts(cls, file_objects, bucket, sync_timestamp) -> List[Self]:
@@ -153,74 +174,3 @@ class OriginalFile(TimestampedModel):
 
         deletable_files.delete()
         return deletable_file_list
-
-
-@dataclass
-class S3KeyInfo:
-    s3_key: Path
-    project_id: str | None
-    sample_id: str | None
-    library_id_part: str | None
-    is_merged: bool
-    is_bulk: bool
-
-    def __init__(self, s3_key: Path):
-        self.s3_key = s3_key
-        self.project_id = utils.find_first_contained(common.PROJECT_ID_PREFIX, s3_key.parts)
-        self.sample_id = utils.find_first_contained(common.SAMPLE_ID_PREFIX, s3_key.parts)
-        self.library_id_part = utils.find_first_contained(common.LIBRARY_ID_PREFIX, s3_key.parts)
-        self.is_merged = "merged" in s3_key.parts
-        self.is_bulk = "bulk" in s3_key.parts
-
-    @property
-    def library_id(self):
-        if self.library_id_part:
-            return self.library_id_part.split("_")[0]
-        return self.library_id_part
-
-    @property
-    def is_project_file(self):
-        """Project files have project dirs but don't have sample dirs"""
-        return bool(self.project_id and not self.sample_id)
-
-    @property
-    def is_spatial(self):
-        # all spatial files have "spatial" appended to the libary part of their file path
-        return bool(self.library_id_part and self.library_id_part.endswith("spatial"))
-
-    @property
-    def is_single_cell(self):
-        # single cell files won't be nested in subdirectories
-        return self.library_id_part == self.s3_key.name
-
-    @property
-    def is_cite_seq(self):
-        return self.s3_key.name.endswith(common.CITE_SEQ_FILENAME_ENDING)
-
-    @property
-    def is_single_cell_experiment(self):
-        return (
-            self.s3_key.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]
-            or self.is_spatial  # we consider all spatial files SCE
-        )
-
-    @property
-    def is_anndata(self):
-        return self.s3_key.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]
-
-    @property
-    def is_metadata(self):
-        return self.s3_key.suffix in common.METADATA_EXTENSIONS
-
-    @property
-    def is_downloadable(self):
-        """
-        Returns whether or not a file is_downloadable.
-        Most files are downloadable files,
-        the only exceptions are single_cell metadata files and project level metadata files.
-        """
-        if self.is_single_cell:
-            # single_cell metadata files are not included in computed files
-            return not self.is_metadata
-
-        return self.s3_key.name not in common.NON_DOWNLOADABLE_PROJECT_FILES
