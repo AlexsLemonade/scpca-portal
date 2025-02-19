@@ -201,4 +201,5 @@ class OriginalFile(TimestampedModel):
 
     @property
     def download_path(self) -> Path:
+        """Return the remaining part of self.s3_key that's not the download_dir."""
         return Path(self.s3_key).relative_to(self.download_dir)
