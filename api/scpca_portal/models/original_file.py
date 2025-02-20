@@ -178,7 +178,15 @@ class OriginalFile(TimestampedModel):
 
     @property
     def s3_absolute_path(self) -> Path:
-        return Path(self.s3_bucket) / Path(self.s3_key)
+        return self.s3_bucket_path / self.s3_key_path
+
+    @property
+    def s3_key_path(self) -> Path:
+        return Path(self.s3_key)
+
+    @property
+    def s3_bucket_path(self) -> Path:
+        return Path(self.s3_bucket)
 
     @property
     def download_dir(self) -> str:
@@ -189,7 +197,7 @@ class OriginalFile(TimestampedModel):
         Collections are formed as granularly as possible,
         at either the sample/merged/bulk, project, or bucket levels.
         """
-        s3_key_info = utils.InputBucketS3KeyInfo(Path(self.s3_key))
+        s3_key_info = utils.InputBucketS3KeyInfo(self.s3_key_path)
 
         if s3_key_info.sample_id:
             return f"{s3_key_info.project_id}/{s3_key_info.sample_id}/"
@@ -203,4 +211,4 @@ class OriginalFile(TimestampedModel):
     @property
     def download_path(self) -> str:
         """Return the remaining part of self.s3_key that's not the download_dir."""
-        return str(Path(self.s3_key).relative_to(self.download_dir))
+        return str(self.s3_key_path.relative_to(self.download_dir))
