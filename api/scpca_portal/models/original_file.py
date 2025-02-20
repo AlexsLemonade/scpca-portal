@@ -221,14 +221,10 @@ class OriginalFile(TimestampedModel):
         """
         Collect and return files for download according to their bucket names and download dirs.
         """
-
-        # if a file doesn't exist locally, then it should be downloaded
-        def _needs_downloading(original_file):
-            return not original_file.s3_key_path.exists()
-
         bucket_paths = defaultdict(list)
         for original_file in original_files:
-            if _needs_downloading(original_file):
+            # if a file doesn't exist locally, then it should be downloaded
+            if not original_file.s3_key_path.exists():
                 bucket_paths[(original_file.s3_bucket_path, original_file.download_dir)].append(
                     original_file.download_path
                 )
