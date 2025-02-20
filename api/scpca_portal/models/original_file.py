@@ -1,5 +1,6 @@
+from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -181,16 +182,16 @@ class OriginalFile(TimestampedModel):
         return utils.InputBucketS3KeyInfo(self.s3_key_path)
 
     @property
-    def s3_absolute_path(self) -> Path:
-        return self.s3_bucket_path / self.s3_key_path
-
-    @property
     def s3_key_path(self) -> Path:
         return Path(self.s3_key)
 
     @property
     def s3_bucket_path(self) -> Path:
         return Path(self.s3_bucket)
+
+    @property
+    def s3_absolute_path(self) -> Path:
+        return self.s3_bucket_path / self.s3_key_path
 
     @property
     def download_dir(self) -> Path:
@@ -213,4 +214,23 @@ class OriginalFile(TimestampedModel):
     @property
     def download_path(self) -> Path:
         """Return the remaining part of self.s3_key that's not the download_dir."""
-        return str(self.s3_key_path.relative_to(self.download_dir))
+        return self.s3_key_path.relative_to(self.download_dir)
+
+    @staticmethod
+    def get_bucket_paths(original_files) -> Dict[Tuple, List[Path]]:
+        """
+        Collect and return files for download according to their bucket names and download dirs.
+        """
+
+        # if a file doesn't exist locally, then it should be downloaded
+        def _needs_downloading(original_file):
+            return not original_file.s3_key_path.exists()
+
+        bucket_paths = defaultdict(list)
+        for original_file in original_files:
+            if _needs_downloading(original_file):
+                bucket_paths[(original_file.s3_bucket_path, original_file.download_dir)].append(
+                    original_file.download_path
+                )
+
+        return bucket_paths

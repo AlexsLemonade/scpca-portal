@@ -1,6 +1,6 @@
 import json
 import subprocess
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 from pathlib import Path
 from typing import Dict, List
 
@@ -146,9 +146,7 @@ def download_files(original_files) -> bool:
     # This causes a tremendous slowdown when trying to sync a long list of specific files.
     # In order to overcome this we should sync once
     # per project folder's immediate child subdirectory or file.
-    downloadable_files = DownloadableFiles(original_files)
-
-    for bucket_path, download_paths in downloadable_files.bucket_paths.items():
+    for bucket_path, download_paths in OriginalFile.get_bucket_paths(original_files).items():
         bucket_name, download_dir = bucket_path
         command_parts = [
             "aws",
@@ -213,22 +211,3 @@ def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
         },
         ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds.
     )
-
-
-class DownloadableFiles:
-    def __init__(self, original_files: List[OriginalFile]):
-        self._original_files = original_files
-
-    def _needs_downloading(self, original_file):
-        return not original_file.s3_key_path.exists()
-
-    @property
-    def bucket_paths(self):
-        bucket_paths = defaultdict(list)
-        for original_file in self._original_files:
-            if self._needs_downloading(original_file):
-                bucket_paths[(original_file.s3_bucket_path, original_file.download_dir)].append(
-                    original_file.download_path
-                )
-
-        return bucket_paths
