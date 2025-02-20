@@ -181,7 +181,7 @@ class OriginalFile(TimestampedModel):
         return Path(self.s3_bucket) / Path(self.s3_key)
 
     @property
-    def download_dir(self) -> Path:
+    def download_dir(self) -> str:
         """
         Return an original file's download directory.
 
@@ -192,15 +192,15 @@ class OriginalFile(TimestampedModel):
         s3_key_info = utils.InputBucketS3KeyInfo(Path(self.s3_key))
 
         if s3_key_info.sample_id:
-            return Path(*s3_key_info.s3_key.parts[:2])  # /project/sample/
+            return f"{s3_key_info.project_id}/{s3_key_info.sample_id}/"
 
         if s3_key_info.project_id:
-            return Path(*s3_key_info.s3_key.parts[:1])  # /project/
+            return f"{s3_key_info.project_id}/"
 
         # default to bucket dir
-        return Path()  # /
+        return ""
 
     @property
-    def download_path(self) -> Path:
+    def download_path(self) -> str:
         """Return the remaining part of self.s3_key that's not the download_dir."""
-        return Path(self.s3_key).relative_to(self.download_dir)
+        return str(Path(self.s3_key).relative_to(self.download_dir))

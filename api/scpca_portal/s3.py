@@ -148,18 +148,17 @@ def download_files(original_files) -> bool:
     # per project folder's immediate child subdirectory or file.
     downloadable_files = DownloadableFiles(original_files)
 
-    for bucket_path, original_files in downloadable_files.bucket_paths.items():
-        bucket_name = Path(original_files[0].s3_bucket)
-
+    for bucket_path, download_paths in downloadable_files.bucket_paths.items():
+        bucket_name, download_dir = bucket_path
         command_parts = [
             "aws",
             "s3",
             "sync",
-            f"s3://{bucket_path}",
-            settings.INPUT_DATA_PATH / bucket_path.relative_to(bucket_name),
+            f"s3://{bucket_name}/{download_dir}",
+            settings.INPUT_DATA_PATH / download_dir,
         ]
         command_parts.append("--exclude=*")
-        command_parts.extend([f"--include={of.download_path}" for of in original_files])
+        command_parts.extend([f"--include={download_path}" for download_path in download_paths])
 
         if "public-test" in str(bucket_name):
             command_parts.append("--no-sign-request")
