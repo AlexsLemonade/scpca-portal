@@ -220,15 +220,16 @@ class DownloadableFiles:
     def __init__(self, original_files: List[OriginalFile]):
         self._original_files = original_files
 
-    def _is_downloadable(self, original_file):
+    def _needs_downloading(self, original_file):
         return not Path(original_file.s3_key).exists()
 
     @property
     def bucket_paths(self):
         bucket_paths = defaultdict(list)
         for original_file in self._original_files:
-            if self._is_downloadable(original_file):
-                bucket_path = Path(original_file.s3_bucket) / original_file.download_dir
-                bucket_paths[bucket_path].append(original_file)
+            if self._needs_downloading(original_file):
+                bucket_paths[(original_file.s3_bucket, original_file.download_dir)].append(
+                    original_file.download_path
+                )
 
         return bucket_paths
