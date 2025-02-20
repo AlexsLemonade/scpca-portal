@@ -19,12 +19,9 @@ class TestLoader(TransactionTestCase):
     def setUp(self):
         call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
-        self.get_projects_metadata = partial(
-            loader.get_projects_metadata, input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME
-        )
         # When passing a project_id to get_projects_metadata, a list of one item is returned
         # This lambda creates a shorthand with which to access the single returned project_metadata
-        self.get_project_metadata = lambda project_id: self.get_projects_metadata(
+        self.get_project_metadata = lambda project_id: loader.get_projects_metadata(
             filter_on_project_id=project_id
         )[0]
 

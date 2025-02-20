@@ -129,11 +129,12 @@ class Library(TimestampedModel):
         return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
 
     @staticmethod
-    def get_local_file_path(file_path: Path):
-        return settings.INPUT_DATA_PATH / file_path
+    def get_local_file_path(original_file: OriginalFile):
+        return settings.INPUT_DATA_PATH / Path(original_file.s3_key)
 
     @staticmethod
-    def get_zip_file_path(file_path: Path, download_config: Dict) -> Path:
+    def get_zip_file_path(original_file: OriginalFile, download_config: Dict) -> Path:
+        file_path = Path(original_file.s3_key)
         path_parts = [Path(path) for path in file_path.parts]
 
         # Project output paths are relative to project directory
@@ -161,23 +162,22 @@ class Library(TimestampedModel):
         ]
 
     @staticmethod
-    def get_file_paths(libraries, download_config):
+    def get_libraries_original_files(libraries, download_config):
         """
         Return file paths associated with the libraries according to the passed download_config.
         Files are then downloaded and included in computed files.
         """
-        library_file_paths = [
-            Path(of.s3_key)
+        library_original_files = [
+            of
             for lib in libraries
             for of in lib.get_original_files_by_download_config(download_config)
         ]
 
         if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
             project = libraries.first().project
-            project_file_paths = [
-                Path(of.s3_key)
-                for of in project.get_original_files_by_download_config(download_config)
+            project_original_files = [
+                of for of in project.get_original_files_by_download_config(download_config)
             ]
-            return project_file_paths + library_file_paths
+            return project_original_files + library_original_files
 
-        return library_file_paths
+        return library_original_files

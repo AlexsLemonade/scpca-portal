@@ -1,6 +1,6 @@
 import json
 import subprocess
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 from pathlib import Path
 from typing import Dict, List
 
@@ -11,6 +11,7 @@ from botocore.client import Config
 
 from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
 aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
@@ -138,65 +139,33 @@ def list_input_paths(
     return file_paths
 
 
-def download_input_files(file_paths: List[Path], bucket_name: str) -> bool:
+def download_files(original_files) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
 
     # NOTE: AWS Sync does one iteration per include flag.
     # This causes a tremendous slowdown when trying to sync a long list of specific files.
     # In order to overcome this we should sync once
     # per project folder's immediate child subdirectory or file.
-    download_queue = defaultdict(list)
-
-    for file_path in file_paths:
-        if not file_path.exists():
-
-            # default to project folder for immediately nested files
-            bucket_path = Path(file_path.parts[0])
-
-            if len(file_path.parts) > 2:
-                # append the subdirectory to the parent directory to form the bucket_path
-                bucket_path /= file_path.parts[1]
-
-            download_queue[bucket_path].append(file_path.relative_to(bucket_path))
-
-    for bucket_path, project_file_paths in download_queue.items():
+    for bucket_path, download_paths in OriginalFile.get_bucket_paths(original_files).items():
+        bucket_name, download_dir = bucket_path
         command_parts = [
             "aws",
             "s3",
             "sync",
-            f"s3://{bucket_name}/{bucket_path}",
-            settings.INPUT_DATA_PATH / bucket_path,
+            f"s3://{bucket_name / download_dir}",
+            settings.INPUT_DATA_PATH / download_dir,
         ]
         command_parts.append("--exclude=*")
-        command_parts.extend([f"--include={file_path}" for file_path in project_file_paths])
+        command_parts.extend([f"--include={download_path}" for download_path in download_paths])
 
-        if "public-test" in bucket_name:
+        if "public-test" in str(bucket_name):
             command_parts.append("--no-sign-request")
 
         try:
             subprocess.check_call(command_parts)
         except subprocess.CalledProcessError as error:
-            logger.error(f"Data files failed to download due to the following error:\n\t{error}")
+            logger.error(f"Files failed to download due to the following error:\n\t{error}")
             return False
-
-    return True
-
-
-def download_input_metadata(bucket_name: str) -> bool:
-    """Download all metadata files to the local file system."""
-    command_parts = ["aws", "s3", "sync", f"s3://{bucket_name}", settings.INPUT_DATA_PATH]
-
-    command_parts.append("--exclude=*")
-    command_parts.append("--include=*_metadata.*")
-
-    if "public-test" in bucket_name:
-        command_parts.append("--no-sign-request")
-
-    try:
-        subprocess.check_call(command_parts)
-    except subprocess.CalledProcessError as error:
-        logger.error(f"Metadata files failed to download due to the following error:\n\t{error}")
-        return False
 
     return True
 
