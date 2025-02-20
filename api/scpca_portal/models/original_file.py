@@ -177,6 +177,10 @@ class OriginalFile(TimestampedModel):
         return deletable_file_list
 
     @property
+    def s3_key_info(self) -> utils.InputBucketS3KeyInfo:
+        return utils.InputBucketS3KeyInfo(self.s3_key_path)
+
+    @property
     def s3_absolute_path(self) -> Path:
         return self.s3_bucket_path / self.s3_key_path
 
@@ -189,7 +193,7 @@ class OriginalFile(TimestampedModel):
         return Path(self.s3_bucket)
 
     @property
-    def download_dir(self) -> str:
+    def download_dir(self) -> Path:
         """
         Return an original file's download directory.
 
@@ -197,18 +201,16 @@ class OriginalFile(TimestampedModel):
         Collections are formed as granularly as possible,
         at either the sample/merged/bulk, project, or bucket levels.
         """
-        s3_key_info = utils.InputBucketS3KeyInfo(self.s3_key_path)
+        if sample_id := self.s3_key_info.sample_id:
+            return Path(self.s3_key_info.project_id) / Path(sample_id)
 
-        if s3_key_info.sample_id:
-            return f"{s3_key_info.project_id}/{s3_key_info.sample_id}/"
-
-        if s3_key_info.project_id:
-            return f"{s3_key_info.project_id}/"
+        if project_id := self.s3_key_info.project_id:
+            return Path(project_id)
 
         # default to bucket dir
-        return ""
+        return Path()
 
     @property
-    def download_path(self) -> str:
+    def download_path(self) -> Path:
         """Return the remaining part of self.s3_key that's not the download_dir."""
         return str(self.s3_key_path.relative_to(self.download_dir))

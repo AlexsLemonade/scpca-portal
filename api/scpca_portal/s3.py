@@ -154,7 +154,7 @@ def download_files(original_files) -> bool:
             "aws",
             "s3",
             "sync",
-            f"s3://{bucket_name}/{download_dir}",
+            f"s3://{bucket_name / download_dir}",
             settings.INPUT_DATA_PATH / download_dir,
         ]
         command_parts.append("--exclude=*")
@@ -220,14 +220,14 @@ class DownloadableFiles:
         self._original_files = original_files
 
     def _needs_downloading(self, original_file):
-        return not Path(original_file.s3_key).exists()
+        return not original_file.s3_key_path.exists()
 
     @property
     def bucket_paths(self):
         bucket_paths = defaultdict(list)
         for original_file in self._original_files:
             if self._needs_downloading(original_file):
-                bucket_paths[(original_file.s3_bucket, original_file.download_dir)].append(
+                bucket_paths[(original_file.s3_bucket_path, original_file.download_dir)].append(
                     original_file.download_path
                 )
 
