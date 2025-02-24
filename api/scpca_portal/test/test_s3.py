@@ -1,14 +1,15 @@
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, tag
 
 from scpca_portal import s3
 
 
-class TestListBucketObjects(TestCase):
+class TestS3(TestCase):
     def setUp(self):
         self.default_bucket = "input-bucket"
 
+    @tag("list_bucket_objects")
     @patch("json.loads")
     @patch("subprocess.run")
     def test_bucket_without_prefix(self, mock_run, _):
@@ -27,6 +28,7 @@ class TestListBucketObjects(TestCase):
         self.assertEqual(actual_command_inputs, expected_command_inputs)
         mock_run.assert_called_once()
 
+    @tag("list_bucket_objects")
     @patch("json.loads")
     @patch("subprocess.run")
     def test_bucket_with_prefix(self, mock_run, _):
@@ -48,6 +50,7 @@ class TestListBucketObjects(TestCase):
         self.assertEqual(actual_command_inputs, expected_command_inputs)
         mock_run.assert_called_once()
 
+    @tag("list_bucket_objects")
     @patch("json.loads")
     @patch("subprocess.run")
     def test_public_in_bucket(self, mock_run, _):
@@ -68,6 +71,7 @@ class TestListBucketObjects(TestCase):
         self.assertEqual(actual_command_inputs, expected_command_inputs)
         mock_run.assert_called_once()
 
+    @tag("list_bucket_objects")
     @patch("json.loads")
     @patch("subprocess.run")
     def test_mocked_output(self, mock_run, mock_json_loads):
@@ -109,6 +113,7 @@ class TestListBucketObjects(TestCase):
         mock_run.assert_called_once()
         self.assertListEqual(actual_output, expected_output)
 
+    @tag("list_bucket_objects")
     def test_real_output(self):
         prefix = "2024-10-01"
         bucket = "scpca-portal-public-test-inputs"
