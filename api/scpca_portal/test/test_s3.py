@@ -70,21 +70,41 @@ class TestListBucketObjects(TestCase):
 
     @patch("json.loads")
     @patch("subprocess.run")
-    def test_directories_correctly_excluded(self, mock_run, mock_json_loads):
-        s3_output = {
+    def test_mocked_output(self, mock_run, mock_json_loads):
+        """
+        Test key and value transformations as well as removed directories on mocked output.
+        """
+        prefix = "2025/02/20"
+        mocked_output = {
             "Contents": [
-                {"Key": "dir/", "Size": 123, "ETag": "ABC"},
-                {"Key": "dir/file1.txt", "Size": 456, "ETag": "DEF"},
-                {"Key": "dir/file2.txt", "Size": 789, "ETag": "GHI"},
+                {"Key": f"{prefix}/dir/", "Size": 0, "ETag": '"d41d8cd98f00b204e9800998ecf8427e"'},
+                {
+                    "Key": f"{prefix}/dir/file1.html",
+                    "Size": 1027847,
+                    "ETag": '"a57c42b535f7ed544c6faf6b21a83318"',
+                },
+                {
+                    "Key": f"{prefix}/dir/file2.rds",
+                    "Size": 298194872,
+                    "ETag": '"18b6f91cc17f5524d1aae7ba8dff6e71-36"',
+                },
             ]
         }
 
-        mock_json_loads.return_value = s3_output
+        mock_json_loads.return_value = mocked_output
         expected_output = [
-            {"s3_key": "dir/file1.txt", "size_in_bytes": 456, "hash": "DEF"},
-            {"s3_key": "dir/file2.txt", "size_in_bytes": 789, "hash": "GHI"},
+            {
+                "s3_key": "dir/file1.html",
+                "size_in_bytes": 1027847,
+                "hash": "a57c42b535f7ed544c6faf6b21a83318",
+            },
+            {
+                "s3_key": "dir/file2.rds",
+                "size_in_bytes": 298194872,
+                "hash": "18b6f91cc17f5524d1aae7ba8dff6e71",
+            },
         ]
-        actual_output = s3.list_bucket_objects(self.default_bucket)
+        actual_output = s3.list_bucket_objects(f"{self.default_bucket}/{prefix}")
 
         mock_run.assert_called_once()
         self.assertListEqual(actual_output, expected_output)
