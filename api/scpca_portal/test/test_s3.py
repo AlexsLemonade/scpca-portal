@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.conf import settings
 from django.test import TestCase, tag
 
 from scpca_portal import s3
@@ -114,9 +115,11 @@ class TestS3(TestCase):
         self.assertListEqual(actual_output, expected_output)
 
     @tag("list_bucket_objects")
-    def test_real_output(self):
-        prefix = "2024-10-01"
-        bucket = "scpca-portal-public-test-inputs"
+    def test_list_test_inputs(self):
+        bucket = settings.AWS_S3_INPUT_BUCKET_NAME
+        prefix = ""
+        if "/" in bucket:
+            bucket, prefix = bucket.split("/", 1)
 
         actual_objects = s3.list_bucket_objects(f"{bucket}/{prefix}")
 
