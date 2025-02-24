@@ -138,10 +138,12 @@ class TestS3(TestCase):
         self.assertNotIn("ETag", key_set)
         self.assertIn("hash", key_set)
 
+        # assert hash value transformation
         hashes = set(obj["hash"] for obj in actual_objects)
         self.assertFalse(any(True for hash_value in hashes if '"' in hash_value))
         self.assertFalse(any(True for hash_value in hashes if "-" in hash_value))
 
+        # assert s3_key value transformation
         s3_keys = set(obj["s3_key"] for obj in actual_objects)
         self.assertFalse(any(True for s3_key in s3_keys if s3_key.startswith(prefix)))
 
