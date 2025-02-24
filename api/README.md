@@ -195,7 +195,7 @@ There are two options available for processing data in the Cloud:
 Due to the fact that processing on Batch is ~10x faster than processing on the API, we recommend using Batch for processing.
 
 ### Commands in Production
-To run a command in production, there is a run_command.sh script that is created on the API instance. It passes any arguments through to the manage.py script, making the following acceptable `./run_command.sh load_data --reload-all`.
+To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh load_data --reload-all`.
 
 ### Processing on the API
 The following code can be used to process projects on the API, one by one, with a minimum disk space footprint:
@@ -206,7 +206,7 @@ for i in $(seq -f "%02g" 1 20); do
 done
 ```
 
-Alternatively, for a more granular approach of first running `load_metadata` and thereafter `generate_computed_files`, the following two can be run
+Alternatively, for a more granular approach, first run `load_metadata`, and thereafter `generate_computed_files`, as follows:
 
 ```bash
 for i in $(seq -f "%02g" 1 20); do
@@ -227,14 +227,14 @@ The following code is used for processing projects via AWS Batch:
 ./run_command.sh dispatch_to_batch
 ```
 
-`dispatch_to_batch` has two options that can be passed, `regenerate-all` and `project-id`, which change which set of computed files are generated on Batch.
+`dispatch_to_batch` has two options that can be passed, `regenerate-all` and `project-id`, which change which set of computed files are generated on Batch:
 - With neither `regenerate-all` and `project-id` passed, jobs are submitted for all projects which do not have computed files associated with them.
 - With the `regenerate-all` flag passed (without the `project-id` flag), jobs will be submitted which process computed files for all projects, indifferent to whether or not they already have computed files associated with them.
 - With the `project-id` flag passed (without the `regenerate-all` flag), jobs will be submitted for a specific project if there are no computed files already associated with it.
-- With both the `regenerate-all` and `project-id` flags passed, a single project's computed files will be regenerated, regardless of its associated computed files.
+- With both the `regenerate-all` and `project-id` flags passed, a single project's computed files will be regenerated, regardless of whether or not it already has computed files associated with it.
 
 ### Purge project
-To purge a project from the DB (and from S3 if so desired), run the following command:
+To purge a project from the database (and from S3 if so desired), run the following command:
 ```bash
 ./run_command.sh purge_project --scpca-id SCPCP000001 --delete-from-s3
 ```
