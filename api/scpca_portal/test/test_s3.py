@@ -108,3 +108,37 @@ class TestListBucketObjects(TestCase):
 
         mock_run.assert_called_once()
         self.assertListEqual(actual_output, expected_output)
+
+    def test_real_output(self):
+        prefix = "2024-10-01"
+        bucket = "scpca-portal-public-test-inputs"
+
+        actual_objects = s3.list_bucket_objects(f"{bucket}/{prefix}")
+
+        # assert total number of files
+        TOTAL_OBJECTS = 98
+        TOTAL_DIRECTORIES = 17
+        TOTAL_FILES = TOTAL_OBJECTS - TOTAL_DIRECTORIES
+        self.assertEqual(len(actual_objects), TOTAL_FILES)
+
+        # assert correct key transformations
+        key_set = {key for obj in actual_objects for key in obj.keys()}
+        # assert key transform "Key" -> "s3_key"
+        self.assertNotIn("Key", key_set)
+        self.assertIn("s3_key", key_set)
+        # assert key transform "Size" -> "size_in_bytes"
+        self.assertNotIn("Size", key_set)
+        self.assertIn("size_in_bytes", key_set)
+        # assert key transform "ETag" -> "hash"
+        self.assertNotIn("ETag", key_set)
+        self.assertIn("hash", key_set)
+
+        hashes = set(obj["hash"] for obj in actual_objects)
+        self.assertFalse(any(True for hash_value in hashes if '"' in hash_value))
+        self.assertFalse(any(True for hash_value in hashes if "-" in hash_value))
+
+        s3_keys = set(obj["s3_key"] for obj in actual_objects)
+        self.assertFalse(any(True for s3_key in s3_keys if s3_key.startswith(prefix)))
+
+        # assert no dirs
+        self.assertFalse(any(True for obj in actual_objects if obj["s3_key"].endswith("/")))
