@@ -201,7 +201,7 @@ To run a command in production, there is a `run_command.sh` script that is creat
 The following code can be used to process projects on the API, one by one, with a minimum disk space footprint:
 
 ```bash
-for i in $(seq -f "%02g" 1 20); do
+for i in $(seq -f "%02g" 1 25); do
     ./run_command.sh load_data --clean-up-input-data --clean-up-output-data --reload-existing --scpca-project-id SCPCP0000$i
 done
 ```
@@ -209,17 +209,15 @@ done
 Alternatively, for a more granular approach, first run `load_metadata`, and thereafter `generate_computed_files`, as follows:
 
 ```bash
-for i in $(seq -f "%02g" 1 20); do
-    ./run_command.sh load_metadata --clean-up-input-data --reload-existing --scpca-project-id SCPCP0000$i
-done
+./run_command.sh load_metadata --clean-up-input-data --reload-existing
 
-for i in $(seq -f "%02g" 1 20); do
+for i in $(seq -f "%02g" 1 25);
     ./run_command.sh generate_computed_files --clean-up-input-data --clean-up-output-data --scpca-project-id SCPCP0000$i
 done
 
 ```
 
-One note about running `load_data` in production is that it defaults to uploading completed computed files to S3. This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
+Note: Running `load_data` in production defaults to uploading completed computed files to S3. This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
 
 ### Processing via Batch
 The following code is used for processing projects via AWS Batch:
