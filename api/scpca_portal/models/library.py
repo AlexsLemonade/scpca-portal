@@ -17,11 +17,11 @@ class Library(TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
-    formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
+    formats = ArrayField(models.TextField(choices=FileFormats.choices), default=list)
     has_cite_seq_data = models.BooleanField(default=False)
     is_multiplexed = models.BooleanField(default=False)
     metadata = models.JSONField(default=dict)
-    modality = models.TextField(choices=Modalities.CHOICES)
+    modality = models.TextField(choices=Modalities.choices)
     scpca_id = models.TextField(unique=True)
     workflow_version = models.TextField()
 

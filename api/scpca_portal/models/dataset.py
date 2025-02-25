@@ -20,7 +20,7 @@ class Dataset(TimestampedModel):
     email = models.EmailField(null=True)
     start = models.BooleanField(default=False)
     # Format or regenerated_from is required at the time of creation
-    format = models.TextField(choices=FileFormats.CHOICES)
+    format = models.TextField(choices=FileFormats.choices)
     regenerated_from = models.ForeignKey(
         "self",
         null=True,

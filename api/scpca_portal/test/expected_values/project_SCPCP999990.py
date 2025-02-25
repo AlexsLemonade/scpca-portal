@@ -25,8 +25,8 @@ class Project_SCPCP999990:
         "includes_merged_anndata": True,
         "includes_xenografts": False,
         "modalities": [
-            Modalities.NAME_MAPPING[Modalities.BULK_RNA_SEQ],
-            Modalities.NAME_MAPPING[Modalities.SPATIAL],
+            Modalities.BULK_RNA_SEQ.label,
+            Modalities.SPATIAL.label,
         ],
         "multiplexed_sample_count": 0,
         "organisms": ["Homo sapiens"],
