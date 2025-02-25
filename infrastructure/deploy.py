@@ -139,6 +139,7 @@ def load_env_vars(args):
     os.environ["TF_VAR_ssh_public_key"] = (
         os.environ["SSH_PUBLIC_KEY"] if args.env != "dev" else public_key
     )
+    os.environ["TF_VAR_slack_ccdl_test_channel_email"] = os.environ["SLACK_CCDL_TEST_CHANNEL_EMAIL"]
 
     if args.env == "staging":
         os.environ["TF_VAR_ses_domain"] = "staging.scpca.alexslemonade.org"
