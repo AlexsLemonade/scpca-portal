@@ -197,6 +197,14 @@ Due to the fact that processing on Batch is ~10x faster than processing on the A
 ### Commands in Production
 To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh load_data --reload-all`.
 
+### Syncing the OriginalFile table
+Before processing can be carried out, the `OriginalFile` table must be populated and synced via the `sync_original_files` command. This command builds a local representation of all objects available in the default (or passed) s3 input bucket, and is considered the single source of truth for inputs files throughout the codebase.
+
+Syncing is carried out as follows:
+```bash
+./run_command.sh sync_original_files
+```
+
 ### Processing on the API
 The following code can be used to process projects on the API, one by one, with a minimum disk space footprint:
 
