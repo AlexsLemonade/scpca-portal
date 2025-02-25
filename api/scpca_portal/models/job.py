@@ -16,7 +16,7 @@ class Job(TimestampedModel):
     critical_error = models.BooleanField(default=False)  # Set to True if the job is irrecoverable
     failure_reason = models.TextField(blank=True, null=True)
     retry_on_termination = models.BooleanField(default=False)
-    state = models.TextField(choices=JobStates.CHOICES, default=JobStates.CREATED)
+    state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED)
 
     submitted_at = models.DateTimeField(null=True)
     completed_at = models.DateTimeField(null=True)
