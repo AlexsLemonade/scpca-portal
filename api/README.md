@@ -227,11 +227,11 @@ The following code is used for processing projects via AWS Batch:
 ./run_command.sh dispatch_to_batch
 ```
 
-`dispatch_to_batch` has two options that can be passed, `regenerate-all` and `project-id`, which change which set of computed files are generated on Batch:
-- With neither `regenerate-all` and `project-id` passed, jobs are submitted for all projects which do not have computed files associated with them.
-- With the `regenerate-all` flag passed (without the `project-id` flag), jobs will be submitted which process computed files for all projects, indifferent to whether or not they already have computed files associated with them.
-- With the `project-id` flag passed (without the `regenerate-all` flag), jobs will be submitted for a specific project if there are no computed files already associated with it.
-- With both the `regenerate-all` and `project-id` flags passed, a single project's computed files will be regenerated, regardless of whether or not it already has computed files associated with it.
+By default the `dispatch_to_batch` command will look at all projects and filter out all projects that already have at least 1 computed file. AWS Batch jobs will be dispatched and create valid computed files for matching projects that were not filtered out.
+
+You can override this filter by passing the `--regenerate-all` flag. This will dispatch jobs independent of existing computed files. Any existing computed files will be purged before new ones are generated to replace them.
+
+You can limit the scope of this command to only apply to a specific project by passing the `--project-id <SCPCP999999>` flag. This can be used in conjunction with `--regenerate-all` if you want to ignore existing computed files for that project.
 
 ### Purge project
 To purge a project from the database (and from S3 if so desired), run the following command:
