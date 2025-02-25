@@ -20,14 +20,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
-    MODALITY_NAME_MAPPING = {
-        Modalities.BULK_RNA_SEQ: "Bulk RNA-seq",
-        Modalities.CITE_SEQ: "CITE-seq",
-        Modalities.MULTIPLEXED: "Multiplexed",
-        Modalities.SINGLE_CELL: "Single Cell",
-        Modalities.SPATIAL: "Spatial Data",
-    }
-
     class ModalitiesNameMapping:
         names = {
             Modalities.BULK_RNA_SEQ: "Bulk RNA-seq",
