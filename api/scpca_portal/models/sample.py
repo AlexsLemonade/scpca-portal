@@ -20,18 +20,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
-    class ModalitiesNameMapping:
-        names = {
-            Modalities.BULK_RNA_SEQ: "Bulk RNA-seq",
-            Modalities.CITE_SEQ: "CITE-seq",
-            Modalities.MULTIPLEXED: "Multiplexed",
-            Modalities.SPATIAL: "Spatial Data",
-        }
-
-        @staticmethod
-        def get_name(modality):
-            return Sample.ModalitiesNameMapping.names.get(modality)
-
     age = models.TextField()
     age_timing = models.TextField()
     demux_cell_count_estimate_sum = models.IntegerField(null=True)
@@ -187,7 +175,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sorted(
             [
-                Sample.ModalitiesNameMapping.get_name(modality_name)
+                modality_name.label
                 for attr_name, modality_name in attr_name_modality_mapping.items()
                 if getattr(self, attr_name)
             ]
