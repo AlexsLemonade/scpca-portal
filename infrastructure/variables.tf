@@ -72,6 +72,10 @@ variable "ses_domain" {
   default = "staging.scpca.alexslemonade.org"
 }
 
+variable "slack_ccdl_test_channel_email" {
+  default = "testing@example.com"
+}
+
 output "environment_variables" {
   value = [
     {name = "DATABASE_NAME"
