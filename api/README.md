@@ -187,22 +187,67 @@ sportal load-data --max-workers 10 --reload-all --update-s3 --s3-multipart-chunk
 
 ## Cloud Data Management
 
-The `load_data` and `purge_project` commands can also be run in the cloud.
-The one difference is that in the cloud `load_data` defaults to uploading data.
-This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
+### Processing Options
+There are two options available for processing data in the Cloud:
+- Running `load_data` on the API instance (or a combination of `load_metadata` and `generate_computed_files`)
+- Running `dispatch_to_batch` on the API instance, which kicks off processing on AWS Batch resources
 
-To run a command in production, there is a run_command.sh script that is created on the API instance.
-It passes any arguments through to the `manage.py`, so `./run_command.sh load_data --reload-all` will work nicely.
+Due to the fact that processing on Batch is ~10x faster than processing on the API, we recommend using Batch for processing.
 
-The following code can be used to process projects one by one with a minimum disk space footprint:
+### Commands in Production
+To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh load_data --reload-all`.
+
+### Syncing the OriginalFile table
+Before processing can be carried out, the `OriginalFile` table must be populated and synced via the `sync_original_files` command. This command builds a local representation of all objects available in the default (or passed) s3 input bucket, and is considered the single source of truth for inputs files throughout the codebase.
+
+Syncing is carried out as follows:
+```bash
+./run_command.sh sync_original_files
 ```
-for i in $(seq -f "%02g" 1 20); do
+
+By default the `sync_original_files` command uses the default bucket defined in the config file associated with the environment calling the command. This can be overriden by passing the `--bucket <bucket-name>` flag to sync the files of an alternative bucket.
+
+In the rare case where all files have been deleted from the requested bucket, the `--allow-bucket-wipe` flag must be explictly passed in order for all bucket files in the OriginalFile table to be wiped.
+
+### Processing on the API
+The following code can be used to process projects on the API, one by one, with a minimum disk space footprint:
+
+```bash
+for i in $(seq -f "%02g" 1 25); do
     ./run_command.sh load_data --clean-up-input-data --clean-up-output-data --reload-existing --scpca-project-id SCPCP0000$i
 done
 ```
 
-The `purge_project` command can be run in a similar fashion: `./run_command.sh purge_project --scpca-id SCPCP000001`
+Alternatively, for a more granular approach, first run `load_metadata`, and thereafter `generate_computed_files`, as follows:
 
+```bash
+./run_command.sh load_metadata --clean-up-input-data --reload-existing
+
+for i in $(seq -f "%02g" 1 25);
+    ./run_command.sh generate_computed_files --clean-up-input-data --clean-up-output-data --scpca-project-id SCPCP0000$i
+done
+
+```
+
+Note: Running `load_data` in production defaults to uploading completed computed files to S3. This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
+
+### Processing via Batch
+The following code is used for processing projects via AWS Batch:
+```bash
+./run_command.sh dispatch_to_batch
+```
+
+By default the `dispatch_to_batch` command will look at all projects and filter out all projects that already have at least 1 computed file. AWS Batch jobs will be dispatched and create valid computed files for matching projects that were not filtered out.
+
+You can override this filter by passing the `--regenerate-all` flag. This will dispatch jobs independent of existing computed files. Any existing computed files will be purged before new ones are generated to replace them.
+
+You can limit the scope of this command to only apply to a specific project by passing the `--project-id <SCPCP999999>` flag. This can be used in conjunction with `--regenerate-all` if you want to ignore existing computed files for that project.
+
+### Purge project
+To purge a project from the database (and from S3 if so desired), run the following command:
+```bash
+./run_command.sh purge_project --scpca-id SCPCP000001 --delete-from-s3
+```
 ## Cloud Deployments
 
 To deploy the API to AWS follow the directions for doing so in the [infrastructure README](../infrastructure/README.md).
