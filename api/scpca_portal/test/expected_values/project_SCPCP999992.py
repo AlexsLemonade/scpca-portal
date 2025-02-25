@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from scpca_portal.enums import FileFormats, Modalities
+from scpca_portal.models import Sample
 
 
 class Project_SCPCP999992:
@@ -24,7 +25,7 @@ class Project_SCPCP999992:
         "includes_merged_sce": True,
         "includes_merged_anndata": True,
         "includes_xenografts": False,
-        "modalities": [Modalities.NAME_MAPPING[Modalities.CITE_SEQ]],
+        "modalities": [Sample.ModalitiesNameMapping.get_name(Modalities.CITE_SEQ)],
         "multiplexed_sample_count": 0,
         "organisms": ["Homo sapiens"],
         "original_file_paths": [

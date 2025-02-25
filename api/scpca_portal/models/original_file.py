@@ -46,7 +46,7 @@ class OriginalFile(TimestampedModel):
     is_cite_seq = models.BooleanField(default=False)  # indicates if file is exclusively cite_seq
     is_bulk = models.BooleanField(default=False)
     # formats
-    formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
+    formats = ArrayField(models.TextField(choices=FileFormats.choices), default=list)
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
     is_supplementary = models.BooleanField(default=False)
