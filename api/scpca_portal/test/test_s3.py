@@ -117,11 +117,7 @@ class TestS3(TestCase):
     @tag("list_bucket_objects")
     def test_list_test_inputs(self):
         bucket = settings.AWS_S3_INPUT_BUCKET_NAME
-        prefix = ""
-        if "/" in bucket:
-            bucket, prefix = bucket.split("/", 1)
-
-        actual_objects = s3.list_bucket_objects(f"{bucket}/{prefix}")
+        actual_objects = s3.list_bucket_objects(bucket)
 
         # assert total number of files
         TOTAL_OBJECTS = 98
@@ -147,8 +143,11 @@ class TestS3(TestCase):
         self.assertFalse(any(True for hash_value in hashes if "-" in hash_value))
 
         # assert s3_key value transformation
+        # the test bucket is a combination of a bucket name and a directory
+        # which must be extracted in order to make sure that s3_key transformation works correctly
+        s3_key_prefix = bucket.split("/", 1)[1]
         s3_keys = set(obj["s3_key"] for obj in actual_objects)
-        self.assertFalse(any(True for s3_key in s3_keys if s3_key.startswith(prefix)))
+        self.assertFalse(any(True for s3_key in s3_keys if s3_key.startswith(s3_key_prefix)))
 
         # assert no dirs
         self.assertFalse(any(True for obj in actual_objects if obj["s3_key"].endswith("/")))
