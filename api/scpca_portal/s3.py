@@ -1,7 +1,5 @@
 import json
 import subprocess
-from collections import namedtuple
-from pathlib import Path
 from typing import Dict, List
 
 from django.conf import settings
@@ -71,72 +69,6 @@ def list_bucket_objects(bucket: str) -> List[Dict]:
         utils.transform_values(listed_object, S3_OBJECT_VALUES, prefix)
 
     return remove_listed_directories(all_listed_objects)
-
-
-def list_input_paths(
-    relative_path: Path,
-    bucket_name: str,
-    *,
-    recursive: bool = True,
-) -> List[Path]:
-    """
-    Queries a path on an inputted s3 bucket
-    and returns bucket's existing content as a list of Path objects,
-    relative to (without) the bucket prefix.
-    """
-    bucket_path = Path(bucket_name)
-    root_path = Path(*bucket_path.parts, *relative_path.parts)
-    command_inputs = ["aws", "s3", "ls", f"s3://{root_path}"]
-
-    if recursive:
-        command_inputs.append("--recursive")
-    # Note: when recursive=False, if there is no traling slash at the end of the s3 resource path,
-    # dir contents will not be listed, but rather the entry located at the relative path itself
-    else:
-        command_inputs[-1] += "/"
-
-    if "public" in str(bucket_path):
-        command_inputs.append("--no-sign-request")
-
-    try:
-        result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
-        output = result.stdout
-    except subprocess.CalledProcessError as error:
-        logger.warning(
-            """
-            `{}`: Cause of error not returned, note: folder must exist and be non-empty
-            """.format(
-                error
-            )
-        )
-        return []
-
-    # The `aws s3 ls <bucket>` command returns a list of two types of entries:
-    # - Bucket Object Entries
-    # - Bucket Prefix Entries
-    # In order to create a standard API, where `entry.file_path` could be accessed
-    # irrespective of the entry type, we've created two named tuples which follow the return format
-    # of each of the bucket entry types.
-    BucketObjectEntry = namedtuple(
-        "BucketObjectEntry", ["date", "time", "size_in_bytes", "file_path"]
-    )
-    BucketPrefixEntry = namedtuple("BucketPrefixEntry", ["prefix_designation", "file_path"])
-    bucket_entries = []
-
-    for line in output.splitlines():
-        if line.strip().startswith("PRE"):
-            bucket_entries.append(BucketPrefixEntry._make(line.split()))
-        else:
-            bucket_entries.append(BucketObjectEntry._make(line.split()))
-
-    file_paths = [Path(entry.file_path) for entry in bucket_entries]
-
-    # recursive returns an absolute path (see docstring)
-    if recursive:
-        bucket_keys = Path(*bucket_path.parts[1:])
-        return [entry.relative_to(bucket_keys) for entry in file_paths]
-
-    return file_paths
 
 
 def download_files(original_files) -> bool:

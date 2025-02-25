@@ -1,111 +1,153 @@
-import subprocess
-from pathlib import Path
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.conf import settings
+from django.test import TestCase, tag
 
 from scpca_portal import s3
 
 
-class TestListInputPaths(TestCase):
+class TestS3(TestCase):
     def setUp(self):
-        self.default_bucket_name = "input-bucket"
-        self.default_relative_path = Path("relative-path")
+        self.default_bucket = "input-bucket"
 
+    @tag("list_bucket_objects")
+    @patch("json.loads")
     @patch("subprocess.run")
-    def test_list_input_paths_correct_command_inputs(self, mock_run):
-        s3.list_input_paths(self.default_relative_path, self.default_bucket_name, recursive=False)
+    def test_bucket_without_prefix(self, mock_run, _):
+        s3.list_bucket_objects(self.default_bucket)
+
         expected_command_inputs = [
             "aws",
-            "s3",
-            "ls",
-            f"s3://{self.default_bucket_name}/{self.default_relative_path}/",
+            "s3api",
+            "list-objects",
+            "--output",
+            "json",
+            "--bucket",
+            self.default_bucket,
         ]
         actual_command_inputs = mock_run.call_args.args[0]
-        self.assertEqual(expected_command_inputs, actual_command_inputs)
+        self.assertEqual(actual_command_inputs, expected_command_inputs)
         mock_run.assert_called_once()
 
+    @tag("list_bucket_objects")
+    @patch("json.loads")
     @patch("subprocess.run")
-    def test_list_input_paths_recursive_flag_passed_by_default(self, mock_run):
-        s3.list_input_paths(self.default_relative_path, self.default_bucket_name)
+    def test_bucket_with_prefix(self, mock_run, _):
+        prefix = "2025/02/20"
+        s3.list_bucket_objects(f"{self.default_bucket}/{prefix}")
+
         expected_command_inputs = [
             "aws",
-            "s3",
-            "ls",
-            f"s3://{self.default_bucket_name}/{self.default_relative_path}",
-            # No need to pass recursive=True to function call as this is default behavior
-            "--recursive",
+            "s3api",
+            "list-objects",
+            "--output",
+            "json",
+            "--prefix",
+            prefix,
+            "--bucket",
+            self.default_bucket,
         ]
         actual_command_inputs = mock_run.call_args.args[0]
-        self.assertEqual(expected_command_inputs, actual_command_inputs)
+        self.assertEqual(actual_command_inputs, expected_command_inputs)
         mock_run.assert_called_once()
 
+    @tag("list_bucket_objects")
+    @patch("json.loads")
     @patch("subprocess.run")
-    def test_list_input_paths_public_in_bucket_name(self, mock_run):
-        public_bucket_name = "public-input-bucket"
-        s3.list_input_paths(self.default_relative_path, public_bucket_name, recursive=False)
+    def test_public_in_bucket(self, mock_run, _):
+        bucket = "input-bucket-public"
+        s3.list_bucket_objects(bucket)
+
         expected_command_inputs = [
             "aws",
-            "s3",
-            "ls",
-            f"s3://{public_bucket_name}/{self.default_relative_path}/",
+            "s3api",
+            "list-objects",
+            "--output",
+            "json",
+            "--bucket",
+            bucket,
             "--no-sign-request",
         ]
         actual_command_inputs = mock_run.call_args.args[0]
-        self.assertEqual(expected_command_inputs, actual_command_inputs)
+        self.assertEqual(actual_command_inputs, expected_command_inputs)
         mock_run.assert_called_once()
 
+    @tag("list_bucket_objects")
+    @patch("json.loads")
     @patch("subprocess.run")
-    def test_list_input_paths_command_success_recursive(self, mock_run):
-        mock_run.return_value = subprocess.CompletedProcess(
-            args=[
-                "aws",
-                "s3",
-                "ls",
-                f"s3://{self.default_bucket_name}/{self.default_relative_path}",
-            ],
-            returncode=0,
-            stdout=f"2024-06-10 10:00:00 1234 {self.default_relative_path}/file1.txt\n"
-            f"2024-06-10 10:00:00 1234 {self.default_relative_path}/file2.txt",
-        )
-        result = s3.list_input_paths(
-            self.default_relative_path, self.default_bucket_name, recursive=True
-        )
-        expected = [
-            self.default_relative_path / "file1.txt",
-            self.default_relative_path / "file2.txt",
+    def test_mocked_output(self, mock_run, mock_json_loads):
+        """
+        Test key and value transformations as well as removed directories on mocked output.
+        """
+        prefix = "2025/02/20"
+        mocked_output = {
+            "Contents": [
+                {"Key": f"{prefix}/dir/", "Size": 0, "ETag": '"d41d8cd98f00b204e9800998ecf8427e"'},
+                {
+                    "Key": f"{prefix}/dir/file1.html",
+                    "Size": 1027847,
+                    "ETag": '"a57c42b535f7ed544c6faf6b21a83318"',
+                },
+                {
+                    "Key": f"{prefix}/dir/file2.rds",
+                    "Size": 298194872,
+                    "ETag": '"18b6f91cc17f5524d1aae7ba8dff6e71-36"',
+                },
+            ]
+        }
+
+        mock_json_loads.return_value = mocked_output
+        expected_output = [
+            {
+                "s3_key": "dir/file1.html",
+                "size_in_bytes": 1027847,
+                "hash": "a57c42b535f7ed544c6faf6b21a83318",
+            },
+            {
+                "s3_key": "dir/file2.rds",
+                "size_in_bytes": 298194872,
+                "hash": "18b6f91cc17f5524d1aae7ba8dff6e71",
+            },
         ]
-        self.assertEqual(result, expected)
-        mock_run.assert_called_once()
+        actual_output = s3.list_bucket_objects(f"{self.default_bucket}/{prefix}")
 
-    @patch("subprocess.run")
-    def test_list_input_paths_command_success_non_recursive(self, mock_run):
-        mock_run.return_value = subprocess.CompletedProcess(
-            args=[
-                "aws",
-                "s3",
-                "ls",
-                # Trailing slash needed at end of s3 resource path when recursive=False
-                # See comment in s3::list_input_paths to clarify reason why
-                f"s3://{self.default_bucket_name}/{self.default_relative_path}/",
-            ],
-            returncode=0,
-            stdout="PRE dir1/\nPRE dir2/",
-        )
-        expected = [Path("dir1/"), Path("dir2/")]
-        result = s3.list_input_paths(
-            self.default_relative_path, self.default_bucket_name, recursive=False
-        )
-        self.assertEqual(expected, result)
         mock_run.assert_called_once()
+        self.assertListEqual(actual_output, expected_output)
 
-    @patch("subprocess.run")
-    def test_list_input_paths_command_failure(self, mock_run):
-        mock_run.side_effect = subprocess.CalledProcessError(
-            returncode=1,
-            cmd=f"aws s3 ls s3://{self.default_bucket_name}/{self.default_relative_path}",
-        )
-        result = s3.list_input_paths(self.default_relative_path, self.default_bucket_name)
-        expected = []
-        self.assertEqual(result, expected)
-        mock_run.assert_called_once()
+    @tag("list_bucket_objects")
+    def test_list_test_inputs(self):
+        bucket = settings.AWS_S3_INPUT_BUCKET_NAME
+        actual_objects = s3.list_bucket_objects(bucket)
+
+        # assert total number of files
+        TOTAL_OBJECTS = 98
+        TOTAL_DIRECTORIES = 17
+        TOTAL_FILES = TOTAL_OBJECTS - TOTAL_DIRECTORIES
+        self.assertEqual(len(actual_objects), TOTAL_FILES)
+
+        # assert correct key transformations
+        key_set = {key for obj in actual_objects for key in obj.keys()}
+        # assert key transform "Key" -> "s3_key"
+        self.assertNotIn("Key", key_set)
+        self.assertIn("s3_key", key_set)
+        # assert key transform "Size" -> "size_in_bytes"
+        self.assertNotIn("Size", key_set)
+        self.assertIn("size_in_bytes", key_set)
+        # assert key transform "ETag" -> "hash"
+        self.assertNotIn("ETag", key_set)
+        self.assertIn("hash", key_set)
+
+        # assert hash value transformation
+        hashes = set(obj["hash"] for obj in actual_objects)
+        self.assertFalse(any(True for hash_value in hashes if '"' in hash_value))
+        self.assertFalse(any(True for hash_value in hashes if "-" in hash_value))
+
+        # assert s3_key value transformation
+        # the test bucket is a combination of a bucket name and a directory
+        # which must be extracted in order to make sure that s3_key transformation works correctly
+        s3_key_prefix = bucket.split("/", 1)[1]
+        s3_keys = set(obj["s3_key"] for obj in actual_objects)
+        self.assertFalse(any(True for s3_key in s3_keys if s3_key.startswith(s3_key_prefix)))
+
+        # assert no dirs
+        self.assertFalse(any(True for obj in actual_objects if obj["s3_key"].endswith("/")))
