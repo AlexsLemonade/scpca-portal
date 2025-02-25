@@ -205,6 +205,10 @@ Syncing is carried out as follows:
 ./run_command.sh sync_original_files
 ```
 
+By default the `sync_original_files` command uses the default bucket defined in the config file associated with the environment calling the command. This can be overriden by passing the `--bucket <bucket-name>` flag to sync the files of an alternative bucket.
+
+In the rare case where all files have been deleted from the requested bucket, the `--allow-bucket-wipe` flag must be explictly passed in order for all bucket files in the OriginalFile table to be wiped.
+
 ### Processing on the API
 The following code can be used to process projects on the API, one by one, with a minimum disk space footprint:
 
