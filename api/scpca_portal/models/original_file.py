@@ -222,23 +222,23 @@ class OriginalFile(TimestampedModel):
         return settings.INPUT_DATA_PATH / self.s3_key_path
 
     def get_zip_file_path(self, download_config: Dict) -> Path:
-        file_path = self.s3_key_path
-        path_parts = [Path(path) for path in file_path.parts]
-
         # Project output paths are relative to project directory
-        if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
-            output_path = file_path.relative_to(path_parts[0])
-        # Sample output paths are relative to project and sample directories
-        else:
-            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
+        output_path = self.s3_key_path.relative_to(Path(self.project_id))
 
         # Transform merged and bulk project data files to no longer be nested in a merged directory
-        if file_path.parent.name in ["bulk", "merged"]:
-            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
+        if self.is_merged:
+            output_path = output_path.relative_to(common.MERGE_INPUT_DIR)
+        if self.is_bulk:
+            output_path = output_path.relative_to(common.BULK_INPUT_DIR)
+
         # Nest sample reports into individual_reports directory in merged download
         # The merged summmary html file should not go into this directory
-        elif download_config.get("includes_merged", False) and output_path.suffix == ".html":
+        if download_config.get("includes_merged", False) and self.is_supplementary:
             output_path = Path("individual_reports") / output_path
+
+        # Sample output paths are relative to sample directory
+        if download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values():
+            output_path = output_path.relative_to(Path(self.sample_id))
 
         # Comma separated lists of multiplexed samples should become underscore separated
         return Path(str(output_path).replace(",", "_"))

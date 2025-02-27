@@ -1,3 +1,5 @@
+from pathlib import Path
+
 CSV_MULTI_VALUE_DELIMITER = ";"
 
 TAB = "\t"
@@ -14,6 +16,9 @@ FORMAT_EXTENSIONS = {ANN_DATA: ".h5ad", SINGLE_CELL_EXPERIMENT: ".rds"}
 SUPPLEMENTARY_EXTENSIONS = {".html"}
 METADATA_EXTENSIONS = {".csv", ".json"}
 CITE_SEQ_FILENAME_ENDING = f"_adt{FORMAT_EXTENSIONS[ANN_DATA]}"
+
+BULK_INPUT_DIR = Path("bulk")
+MERGE_INPUT_DIR = Path("merged")
 
 SUBMITTER_WHITELIST = {
     "christensen",
