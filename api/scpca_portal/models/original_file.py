@@ -2,12 +2,13 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import utils
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
@@ -215,6 +216,32 @@ class OriginalFile(TimestampedModel):
     def download_path(self) -> Path:
         """Return the remaining part of self.s3_key that's not the download_dir."""
         return self.s3_key_path.relative_to(self.download_dir)
+
+    @property
+    def local_file_path(self):
+        return settings.INPUT_DATA_PATH / self.s3_key_path
+
+    def get_zip_file_path(self, download_config: Dict) -> Path:
+        file_path = self.s3_key_path
+        path_parts = [Path(path) for path in file_path.parts]
+
+        # Project output paths are relative to project directory
+        if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
+            output_path = file_path.relative_to(path_parts[0])
+        # Sample output paths are relative to project and sample directories
+        else:
+            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
+
+        # Transform merged and bulk project data files to no longer be nested in a merged directory
+        if file_path.parent.name in ["bulk", "merged"]:
+            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
+        # Nest sample reports into individual_reports directory in merged download
+        # The merged summmary html file should not go into this directory
+        elif download_config.get("includes_merged", False) and output_path.suffix == ".html":
+            output_path = Path("individual_reports") / output_path
+
+        # Comma separated lists of multiplexed samples should become underscore separated
+        return Path(str(output_path).replace(",", "_"))
 
     @staticmethod
     def get_bucket_paths(original_files) -> Dict[Tuple, List[Path]]:
