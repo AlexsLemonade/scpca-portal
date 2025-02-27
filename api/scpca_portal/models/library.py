@@ -83,10 +83,6 @@ class Library(TimestampedModel):
     def original_file_paths(self) -> List[str]:
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
-    @staticmethod
-    def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
-        return settings.INPUT_DATA_PATH / data_file_path
-
     def get_metadata(self, demux_cell_count_estimate_id) -> Dict:
         excluded_metadata_attributes = {
             "scpca_sample_id",
