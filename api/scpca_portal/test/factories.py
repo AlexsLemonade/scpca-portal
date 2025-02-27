@@ -1,6 +1,6 @@
 import factory
 
-from scpca_portal.enums import FileFormats, Modalities
+from scpca_portal.enums import DatasetFormats, FileFormats, Modalities
 from scpca_portal.models import ComputedFile
 
 
@@ -182,3 +182,25 @@ class ProjectFactory(LeafProjectFactory):
         library = self.libraries.first()
 
         sample.libraries.add(library)
+
+
+class DatasetFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.Dataset"
+
+    data = {
+        "SCPCP999990": {
+            "merge_single_cell": False,
+            "includes_bulk": True,
+            Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999991"],
+            Modalities.SPATIAL: ["SCPCS999992"],
+        },
+        "SCPCP999991": {
+            "merge_single_cell": True,
+            "includes_bulk": True,
+            Modalities.SINGLE_CELL: ["SCPCS999993", "SCPCS999994"],
+            Modalities.SPATIAL: [],
+        },
+    }
+    email = "dataset@scpca.alexslemonade.org"
+    format = DatasetFormats.SINGLE_CELL_EXPERIMENT
