@@ -73,7 +73,7 @@ class TestLoader(TransactionTestCase):
             metadata_file_libraries = set(
                 row["scpca_library_id"] for row in metadata_file_dict_reader
             )
-            self.assertEqual(expected_libraries, metadata_file_libraries)
+            self.assertEqual(metadata_file_libraries, expected_libraries)
 
     def assertLibrariesOriginalFiles(
         self, project_zip: ZipFile, expected_libraries: Set[str]
@@ -85,7 +85,7 @@ class TestLoader(TransactionTestCase):
             for file_path in original_file_paths
             if file_path.name.startswith("SCPCL")
         )
-        self.assertEqual(expected_libraries, original_file_libraries)
+        self.assertEqual(original_file_libraries, expected_libraries)
 
     def test_create_project_SCPCP999990(self):
         loader.prep_data_dirs()
