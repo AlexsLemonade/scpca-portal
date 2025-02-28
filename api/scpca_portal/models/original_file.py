@@ -204,7 +204,7 @@ class OriginalFile(TimestampedModel):
         at either the sample/merged/bulk, project, or bucket levels.
         """
         if sample_id_part := self.s3_key_info.sample_id_part:
-            return Path(self.s3_key_info.project_id_part) / Path(sample_id_part)
+            return Path(self.s3_key_info.project_id_part, sample_id_part)
 
         if project_id_part := self.s3_key_info.project_id:
             return Path(project_id_part)
@@ -233,7 +233,7 @@ class OriginalFile(TimestampedModel):
         )
 
     def get_zip_file_path(self, download_config: Dict) -> Path:
-        """Return file with directory structure requested for the specific download."""
+        """Return file path with requested directory structure according to download config."""
         output_path = self._exchange_multiplexed_delimeter(self.s3_key)
 
         # Project output paths are relative to project directory
@@ -241,8 +241,8 @@ class OriginalFile(TimestampedModel):
 
         # Sample output paths are relative to sample directory
         if download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values():
-            # For
             sample_id_path = Path(
+                # Delimeter must be exchanged if file has multiplexed samples
                 self._exchange_multiplexed_delimeter(self.s3_key_info.sample_id_part)
             )
             return output_path.relative_to(sample_id_path)
