@@ -221,44 +221,39 @@ class OriginalFile(TimestampedModel):
     def local_file_path(self):
         return settings.INPUT_DATA_PATH / self.s3_key_path
 
-    def _exchange_multiplexed_delimeter(self, output_file: str) -> Path:
+    def _get_zip_file_path(self, download_config: Dict) -> Path:
         """
-        Return the file path with the exchanged input and output multiplexed sample delimeters.
+        Return file path with requested directory structure according to download config.
+        The multiplexed sample delimeter is not replaced in this method.
         """
-        return Path(
-            output_file.replace(
-                common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
-                common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
-            )
-        )
-
-    def get_zip_file_path(self, download_config: Dict) -> Path:
-        """Return file path with requested directory structure according to download config."""
-        output_path = self._exchange_multiplexed_delimeter(self.s3_key)
-
         # Project output paths are relative to project directory
-        output_path = output_path.relative_to(Path(self.project_id))
+        output_path = self.s3_key_path.relative_to(Path(self.s3_key_info.project_id_part))
 
         # Sample output paths are relative to sample directory
         if download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values():
-            sample_id_path = Path(
-                # Delimeter must be exchanged if file has multiplexed samples
-                self._exchange_multiplexed_delimeter(self.s3_key_info.sample_id_part)
-            )
-            return output_path.relative_to(sample_id_path)
+            return output_path.relative_to(Path(self.s3_key_info.sample_id_part))
 
         # Transform merged and bulk project data files to no longer be nested in a merged directory
         if self.is_merged:
-            return output_path.relative_to(common.MERGE_INPUT_DIR)
+            return output_path.relative_to(common.MERGED_INPUT_DIR)
         if self.is_bulk:
             return output_path.relative_to(common.BULK_INPUT_DIR)
 
         # Nest sample reports into individual_reports directory in merged download
         # The merged summmary html file should not go into this directory
         if download_config.get("includes_merged", False) and self.is_supplementary:
-            return Path("individual_reports") / output_path
+            return Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path
 
         return output_path
+
+    def get_zip_file_path(self, download_config: Dict) -> Path:
+        """Returns the formatted file path while replacing the multiplexed sample delimter."""
+        # Delimeter must be exchanged if file has multiplexed samples
+        return utils.path_replace(
+            self._get_zip_file_path(download_config),
+            common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
+            common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+        )
 
     @staticmethod
     def get_bucket_paths(original_files) -> Dict[Tuple, List[Path]]:
