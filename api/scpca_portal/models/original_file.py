@@ -221,27 +221,44 @@ class OriginalFile(TimestampedModel):
     def local_file_path(self):
         return settings.INPUT_DATA_PATH / self.s3_key_path
 
+    def _exchange_multiplexed_delimeter(self, output_file: str) -> Path:
+        """
+        Return the file path with the exchanged input and output multiplexed sample delimeters.
+        """
+        return Path(
+            output_file.replace(
+                common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
+                common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+            )
+        )
+
     def get_zip_file_path(self, download_config: Dict) -> Path:
+        """Return file with directory structure requested for the specific download."""
+        output_path = self._exchange_multiplexed_delimeter(self.s3_key)
+
         # Project output paths are relative to project directory
-        output_path = self.s3_key_path.relative_to(Path(self.project_id))
+        output_path = output_path.relative_to(Path(self.project_id))
+
+        # Sample output paths are relative to sample directory
+        if download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values():
+            # For
+            sample_id_path = Path(
+                self._exchange_multiplexed_delimeter(self.s3_key_info.sample_id_part)
+            )
+            return output_path.relative_to(sample_id_path)
 
         # Transform merged and bulk project data files to no longer be nested in a merged directory
         if self.is_merged:
-            output_path = output_path.relative_to(common.MERGE_INPUT_DIR)
+            return output_path.relative_to(common.MERGE_INPUT_DIR)
         if self.is_bulk:
-            output_path = output_path.relative_to(common.BULK_INPUT_DIR)
+            return output_path.relative_to(common.BULK_INPUT_DIR)
 
         # Nest sample reports into individual_reports directory in merged download
         # The merged summmary html file should not go into this directory
         if download_config.get("includes_merged", False) and self.is_supplementary:
-            output_path = Path("individual_reports") / output_path
+            return Path("individual_reports") / output_path
 
-        # Sample output paths are relative to sample directory
-        if download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values():
-            output_path = output_path.relative_to(Path(self.sample_id))
-
-        # Comma separated lists of multiplexed samples should become underscore separated
-        return Path(str(output_path).replace(",", "_"))
+        return output_path
 
     @staticmethod
     def get_bucket_paths(original_files) -> Dict[Tuple, List[Path]]:
