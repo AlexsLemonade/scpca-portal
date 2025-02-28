@@ -37,7 +37,7 @@ class OriginalFile(TimestampedModel):
 
     # inferred relationship ids
     project_id = models.TextField(null=True)
-    sample_id = models.TextField(null=True)
+    sample_ids = ArrayField(models.TextField(null=True), default=list)
     library_id = models.TextField(null=True)
 
     # existence attributes
@@ -78,7 +78,7 @@ class OriginalFile(TimestampedModel):
             hash_change_at=sync_timestamp,
             bucket_sync_at=sync_timestamp,
             project_id=s3_key_info.project_id,
-            sample_id=s3_key_info.sample_id,
+            sample_ids=s3_key_info.sample_ids,
             library_id=s3_key_info.library_id,
             is_single_cell=(Modalities.SINGLE_CELL in modalities),
             is_spatial=(Modalities.SPATIAL in modalities),
@@ -203,11 +203,11 @@ class OriginalFile(TimestampedModel):
         Collections are formed as granularly as possible,
         at either the sample/merged/bulk, project, or bucket levels.
         """
-        if sample_id := self.s3_key_info.sample_id:
-            return Path(self.s3_key_info.project_id) / Path(sample_id)
+        if sample_id_part := self.s3_key_info.sample_id_part:
+            return Path(self.s3_key_info.project_id_part) / Path(sample_id_part)
 
-        if project_id := self.s3_key_info.project_id:
-            return Path(project_id)
+        if project_id_part := self.s3_key_info.project_id:
+            return Path(project_id_part)
 
         # default to bucket dir
         return Path()
