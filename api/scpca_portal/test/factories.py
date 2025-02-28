@@ -202,5 +202,5 @@ class DatasetFactory(factory.django.DjangoModelFactory):
             Modalities.SPATIAL: [],
         },
     }
-    email = "dataset@scpca.alexslemonade.org"
+    email = "user@example.com"
     format = DatasetFormats.SINGLE_CELL_EXPERIMENT
