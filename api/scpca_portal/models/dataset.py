@@ -1,8 +1,9 @@
 import uuid
+from typing import Dict
 
 from django.db import models
 
-from scpca_portal.enums import DatasetFormats
+from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models import APIToken, ComputedFile
 from scpca_portal.models.base import TimestampedModel
 
@@ -59,3 +60,12 @@ class Dataset(TimestampedModel):
 
     def __str__(self):
         return f"Dataset {self.id}"
+
+
+class DataElement:
+    def __init__(self, json_element: Dict) -> None:
+        ((self.project_id, self.config),) = json_element.items()
+        self.merge_single_cell = self.config.get("merge_single_cell")
+        self.includes_bulk = self.config.get("includes_bulk")
+        self.SINGLE_CELL = self.config.get(Modalities.SINGLE_CELL)
+        self.SPATIAL = self.config.get(Modalities.SPATIAL)
