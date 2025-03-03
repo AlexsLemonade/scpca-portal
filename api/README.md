@@ -87,8 +87,33 @@ curl http://0.0.0.0:8000/v1/computed-files/1/ -H 'API-KEY: 658f859a-b9d0-4b44-be
 
 ## Local Data Management
 
-To populate your local database you can run:
+### Syncing the OriginalFile table
+Before data can be processed, the `OriginalFile` table must be populated and synced via the `sync-original-files` command. This command builds a local representation of all objects available in the default (or passed) s3 input bucket, and is considered the single source of truth for input files throughout the codebase.
 
+Syncing is carried out as follows:
+```bash
+sportal sync-original-files
+```
+
+By default the `sync_original_files` command uses the default bucket defined in the config file associated with the environment calling the command. This can be overriden by passing the `--bucket bucket-name` flag to sync the files of an alternative bucket.
+
+In the rare case where all files have been deleted from the requested bucket, the `--allow-bucket-wipe` flag must be explictly passed in order for all bucket files in the OriginalFile table to be wiped.
+
+
+### The Pipeline and its Workflows
+There are two independent workflows carried out within the data processing  pipeline:
+1. Loading metadata and populating the database
+2. Generating computed files and populating s3
+
+To exclusively run the load metadata workflow, call:
+```
+sportal load-metadata
+```
+To exclusively run the generate computed files workflow, call:
+```
+sportal generate-computed-files
+```
+To run them both successively, one after the next, call:
 ```
 sportal load-data
 ```
