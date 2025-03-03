@@ -1,8 +1,9 @@
 import uuid
-from typing import Dict
+from typing import Dict, List
 
 from django.db import models
 
+from scpca_portal import common
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models import APIToken, ComputedFile
 from scpca_portal.models.base import TimestampedModel
@@ -69,3 +70,48 @@ class DataElement:
         self.includes_bulk = self.config.get("includes_bulk")
         self.SINGLE_CELL = self.config.get(Modalities.SINGLE_CELL)
         self.SPATIAL = self.config.get(Modalities.SPATIAL)
+
+    def validate(self) -> bool:
+        return (
+            len(self.config.keys()) == 4
+            and self._validate_project_id()
+            and self._validate_merge_single_cell()
+            and self._validate_includes_bulk()
+            and self._validate_single_cell()
+            and self._validate_spatial()
+        )
+
+    def _validate_project_id(self):
+        return self._validate_resource_id(self.project_id, common.PROJECT_ID_PREFIX)
+
+    def _validate_resource_id(self, resource_id: str, resource_prefix: str) -> bool:
+        if not isinstance(resource_id, str):
+            return False
+
+        if not resource_id.startswith(resource_prefix):
+            return False
+
+        resource_id_number = resource_id.removeprefix(resource_prefix)
+        return len(resource_id_number) == 6 and resource_id_number.isdigit()
+
+    def _validate_merge_single_cell(self) -> bool:
+        return isinstance(self.merge_single_cell, bool)
+
+    def _validate_includes_bulk(self) -> bool:
+        return isinstance(self.includes_bulk, bool)
+
+    def _validate_single_cell(self) -> bool:
+        return self._validate_modality(self.SINGLE_CELL)
+
+    def _validate_spatial(self) -> bool:
+        return self._validate_modality(self.SPATIAL)
+
+    def _validate_modality(self, modality_sample_ids: List) -> bool:
+        if not isinstance(modality_sample_ids, list):
+            return False
+
+        for sample_id in modality_sample_ids:
+            if not self._validate_resource_id(sample_id, common.SAMPLE_ID_PREFIX):
+                return False
+
+        return True
