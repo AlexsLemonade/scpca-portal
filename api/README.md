@@ -167,18 +167,22 @@ The `--max-workers` flag can be used for setting a number of simultaneously proc
 sportal load-data --max-workers 10 --reload-existing --update-s3
 ```
 
-The `--s3-max-concurrent-requests` specifies the maximum number of downloads/uploads that are
-allowed at any given time. Default - 10.
-```
-sportal load-data --max-workers 10 --reload-all --update-s3 --s3-max-concurrent-requests 20
-```
+### Load Metadata and Generate Computed Files flags
+Of all of the above mentioned flags, a subset of them can be called in the `load-metadata` command, while another subset can be called with the `generate-computed-files` command. Below is a list of which commands are compatible with which command.
 
-The `--s3-multipart-chunk-size` specifies the chunk size (in MB) for multipart operations.
-Default - 8MB.
-```
-sportal load-data --max-workers 10 --reload-all --update-s3 --s3-multipart-chunk-size 64
-```
+load_metadata flags
+- input-bucket-name
+- clean-up-input-data
+- reload-existing
+- scpca-project-id
+- update-s3
 
+generate_computed_files flags
+- clean-up-input-data
+- clean-up-output-data
+- max-workers
+- scpca-project-id
+- update-s3
 
 ## Cloud Data Management
 
