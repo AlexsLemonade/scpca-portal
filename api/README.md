@@ -118,8 +118,8 @@ To run them both successively, one after the next, call:
 sportal load-data
 ```
 
-This will sync the `scpca-portal-inputs` bucket locally, read the metadata out of it, and load that into your local database.
-To save time, by default it will not package up the actual data in that bucket and upload it to `scpca-local-data`.
+### Load-Data Configuration Options
+Calling just `sportal load-data` will populate your local database by pulling metadata from the `scpca-portal-inputs` bucket, and generate computed files locally. To save time, by default it will not package up the actual data in that bucket and upload it to `scpca-local-data`.
 
 If you would like to update the data in the `scpca-local-data` bucket, you can do so with the following command:
 
@@ -134,34 +134,16 @@ If you would like to reimport existing projects you can run
 sportal load-data --reload-existing
 ```
 
-or to reimport and upload projects that exist in the input data:
+or to reimport and upload all projects:
 
 ```
 sportal load-data --reload-existing --update-s3
 ```
 
-or to reimport and upload all projects:
-
-```
-sportal load-data --reload-all --update-s3
-```
-
 If you would like to update a specific project use --scpca-project-id flag:
 
 ```
-sportal load-data --scpca-project-id SCPCP000001 --scpca-project-id SCPCP000002
-```
-
-For a specific sample update use --scpca-sample-id flag:
-
-```
-sportal load-data --scpca-project-id SCPCP000001 --scpca-sample-id SCPCS000001
-```
-
-If you don't want the data to be re-synced from the input bucket use --skip-sync flag:
-
-```
-sportal load-data --scpca-project-id SCPCP000001 --skip-sync
+sportal load-data --scpca-project-id SCPCP000001
 ```
 
 If you would like to purge a project and remove its files from the S3 bucket, you can use:
@@ -170,31 +152,19 @@ If you would like to purge a project and remove its files from the S3 bucket, yo
 sportal manage-api purge_project --scpca-project-id SCPCP000001 --delete-from-s3
 ```
 
-The `--clean-up-input-data` flag can help you control the projects input data size. If flag is set the
-input data cleanup process will be run for each project right after its processing is over.
+The `--clean-up-input-data` flag can help you control the projects input data size. If flag is set the input data cleanup process will be run for each project right after its processing is over.
 ```
 sportal load-data --clean-up-input-data --reload-all --update-s3
 ```
 
-The `--clean-up-output-data` flag can help you control the projects output data size. If flag is set the
-output (no longer needed) data cleanup process will be run for each project right after its processing is over.
+The `--clean-up-output-data` flag can help you control the projects output data size. If flag is set the output (no longer needed) data cleanup process will be run for each project right after its processing is over.
 ```
 sportal load-data --clean-up-output-data --reload-all --update-s3
 ```
 
-The `--max-workers` flag can be used for setting a number of simultaneously processed projects/samples
-to speed up the data loading process. The provided number will be used to spawn threads within two
-separate thread pool executors -- for project and sample processing.
+The `--max-workers` flag can be used for setting a number of simultaneously processed projects/samples to speed up the data loading process. The provided number will be used to spawn threads within two separate thread pool executors -- for project and sample processing.
 ```
-sportal load-data --max-workers 10 --reload-all --update-s3
-```
-
-AWS S3 configuration options:
-
-The `--s3-max-bandwidth` flag controls the maximum bandwidth (in MB/s) that the S3 commands will
-utilize for S3 transfers. Default - None.
-```
-sportal load-data --max-workers 10 --reload-all --update-s3 --s3-max-bandwidth 100
+sportal load-data --max-workers 10 --reload-existing --update-s3
 ```
 
 The `--s3-max-concurrent-requests` specifies the maximum number of downloads/uploads that are
