@@ -62,6 +62,14 @@ class Dataset(TimestampedModel):
     def __str__(self):
         return f"Dataset {self.id}"
 
+    def validate_data(self, json_obj: Dict) -> bool:
+        for json_element in json_obj:
+            data_element = DataElement(json_element)
+            if not data_element.validate():
+                return False
+
+        return True
+
 
 class DataElement:
     def __init__(self, json_element: Dict) -> None:
