@@ -1,4 +1,5 @@
 from datetime import date
+from pathlib import Path
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -202,3 +203,35 @@ class TestGetCsvZippedValues(TestCase):
 
         with self.assertRaises(ValueError):
             utils.get_csv_zipped_values(data, *args)
+
+
+class TestPathReplace(TestCase):
+    def test_single_occurrence(self):
+        old_extension = ".jpg"
+        new_extension = ".png"
+
+        old_path = Path("root/dir/subdir/image.jpg")
+        new_path = utils.path_replace(old_path, old_extension, new_extension)
+
+        self.assertEqual(new_path.suffix, new_extension)
+        self.assertNotEqual(old_path.suffix, new_path.suffix)
+
+        for old_path_part, new_path_part in zip(old_path.parts, new_path.parts):
+            if old_path_part == old_path.name:
+                continue
+            self.assertEqual(old_path_part, new_path_part)
+
+    def test_multiple_occurences(self):
+        old_value = "dir"
+        new_value = "folder"
+
+        old_path = Path("rootdir/dir/subdir/image.jpg")
+        new_path = utils.path_replace(old_path, old_value, new_value)
+
+        for old_path_part, new_path_part in zip(old_path.parts, new_path.parts):
+            if old_value in old_path_part:
+                self.assertIn(new_value, new_path_part)
+
+        expected_folder_count = 3
+        actual_folder_count = str(new_path).count(new_value)
+        self.assertEqual(actual_folder_count, expected_folder_count)

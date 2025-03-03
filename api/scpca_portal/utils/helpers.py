@@ -3,6 +3,7 @@
 import inspect
 from collections import namedtuple
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Set, Tuple
 
 from scpca_portal import common
@@ -136,3 +137,8 @@ def find_first_contained(value: Any, containers: Iterable[Iterable[Any]]) -> Ite
     Return first occurrence of container which contains the passed value.
     """
     return next((container for container in containers if value in container), None)
+
+
+def path_replace(path: Path, old_value: str, new_value: str) -> Path:
+    """Return path with all occurrences of old_value replaced with new_value."""
+    return Path(str(path).replace(old_value, new_value))

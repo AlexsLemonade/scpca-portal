@@ -8,10 +8,10 @@ from scpca_portal.enums import FileFormats, Modalities
 class InputBucketS3KeyInfo:
     def __init__(self, s3_key_path: Path):
         self.s3_key_path: Path = s3_key_path
-        self.project_id: str | None = utils.find_first_contained(
+        self.project_id_part: str | None = utils.find_first_contained(
             common.PROJECT_ID_PREFIX, s3_key_path.parts
         )
-        self.sample_id: str | None = utils.find_first_contained(
+        self.sample_id_part: str | None = utils.find_first_contained(
             common.SAMPLE_ID_PREFIX, s3_key_path.parts
         )
         self.library_id_part: str | None = utils.find_first_contained(
@@ -19,18 +19,28 @@ class InputBucketS3KeyInfo:
         )
 
     @property
-    def library_id(self):
+    def project_id(self) -> str | None:
+        return self.project_id_part
+
+    @property
+    def sample_ids(self) -> List[str]:
+        if self.sample_id_part:
+            return self.sample_id_part.split(common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER)
+        return []
+
+    @property
+    def library_id(self) -> str | None:
         if self.library_id_part:
             return self.library_id_part.split("_")[0]
         return self.library_id_part
 
     @property
-    def is_project_file(self):
+    def is_project_file(self) -> bool:
         """Project files have project dirs but don't have sample dirs"""
-        return bool(self.project_id and not self.sample_id)
+        return bool(self.project_id_part and not self.sample_id_part)
 
     @property
-    def is_merged(self):
+    def is_merged(self) -> bool:
         return "merged" in self.s3_key_path.parts
 
     @property
