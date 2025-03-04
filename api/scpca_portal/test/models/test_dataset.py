@@ -72,13 +72,13 @@ class TestDataset(TestCase):
         }
         self.assertTrue(Dataset.validate_data(data))
 
-        # Empty config
+        # Empty config (valid)
         data = {
             "SCPCP999990": {},
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertTrue(Dataset.validate_data(data))
 
-        # Merge single cell - missing
+        # Merge single cell - missing (valid)
         data = {
             "SCPCP999990": {
                 "includes_bulk": True,
@@ -86,9 +86,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertTrue(Dataset.validate_data(data))
 
-        # Merge single cell - wrong data type
+        # Merge single cell - wrong data type (invalid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": "True",
@@ -99,7 +99,7 @@ class TestDataset(TestCase):
         }
         self.assertFalse(Dataset.validate_data(data))
 
-        # Includes bulk - missing
+        # Includes bulk - missing (valid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -107,9 +107,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertTrue(Dataset.validate_data(data))
 
-        # Includes bulk - wrong data type
+        # Includes bulk - wrong data type (invalid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -120,7 +120,7 @@ class TestDataset(TestCase):
         }
         self.assertFalse(Dataset.validate_data(data))
 
-        # Single Cell - missing
+        # Single Cell - missing (valid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -128,9 +128,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertTrue(Dataset.validate_data(data))
 
-        # Single Cell - wrong data type
+        # Single Cell - wrong data type (invalid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -141,7 +141,7 @@ class TestDataset(TestCase):
         }
         self.assertFalse(Dataset.validate_data(data))
 
-        # Single Cell - wrong inner data type
+        # Single Cell - wrong inner data type (invalid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -152,7 +152,7 @@ class TestDataset(TestCase):
         }
         self.assertFalse(Dataset.validate_data(data))
 
-        # Single Cell - invalid sample id
+        # Single Cell - invalid sample id (invalid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -163,7 +163,7 @@ class TestDataset(TestCase):
         }
         self.assertFalse(Dataset.validate_data(data))
 
-        # Spatial - missing
+        # Spatial - missing (valid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -171,9 +171,9 @@ class TestDataset(TestCase):
                 Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999991"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertTrue(Dataset.validate_data(data))
 
-        # Spatial - wrong data type
+        # Spatial - wrong data type (invalid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -184,7 +184,7 @@ class TestDataset(TestCase):
         }
         self.assertFalse(Dataset.validate_data(data))
 
-        # Spatial - wrong inner data type
+        # Spatial - wrong inner data type (invalid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -195,7 +195,7 @@ class TestDataset(TestCase):
         }
         self.assertFalse(Dataset.validate_data(data))
 
-        # Spatial - invalid sample id
+        # Spatial - invalid sample id (invalid)
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
