@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react'
+import { api } from 'api'
 
 export const DatasetOptionsContext = createContext({})
 
@@ -31,7 +32,21 @@ export const DatasetOptionsContextProvider = ({ resource, children }) => {
 
   // Only on mount or when resource / collection name change
   useEffect(() => {
+    const fetchSamplesDetails = async (projectId) => {
+      const response = await api.projects.get(projectId)
+      return response
+    }
+
+    const updateSamples = async () => {
+      if (resource && typeof resource.samples[0] === 'string') {
+        const projectResponse = await fetchSamplesDetails(resource.scpca_id)
+        // eslint-disable-next-line no-param-reassign
+        resource.samples = projectResponse.response.samples
+      }
+    }
+
     if (resource) {
+      updateSamples() // Fetch and update the samples on the project browse page
       setComputedFiles(() => {
         return resource.computed_files.filter((f) => !f.metadata_only) // Exclude the metadata_only file
       })
