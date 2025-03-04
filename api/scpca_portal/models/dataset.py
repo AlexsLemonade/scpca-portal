@@ -76,6 +76,16 @@ class DataValidator:
     def is_valid(self) -> bool:
         return all(self.validate_project(project_id) for project_id in self.data.keys())
 
+    @property
+    def valid_projects(self) -> List[str]:
+        return [project_id for project_id in self.data.keys() if self.validate_project(project_id)]
+
+    @property
+    def invalid_projects(self) -> List[str]:
+        return [
+            project_id for project_id in self.data.keys() if not self.validate_project(project_id)
+        ]
+
     def validate_project(self, project_id: str) -> bool:
         is_valid = self._validate_project_id(project_id)
         is_valid &= (
