@@ -102,17 +102,17 @@ class DataValidator:
         return is_valid
 
     def _validate_project_id(self, project_id):
-        return self._validate_resource_id(project_id, common.PROJECT_ID_PREFIX)
+        return self._validate_id(project_id, common.PROJECT_ID_PREFIX)
 
-    def _validate_resource_id(self, resource_id: str, resource_prefix: str) -> bool:
-        if not isinstance(resource_id, str):
+    def _validate_id(self, id: str, prefix: str) -> bool:
+        if not isinstance(id, str):
             return False
 
-        if not resource_id.startswith(resource_prefix):
+        if not id.startswith(prefix):
             return False
 
-        resource_id_number = resource_id.removeprefix(resource_prefix)
-        return len(resource_id_number) == 6 and resource_id_number.isdigit()
+        id_number = id.removeprefix(prefix)
+        return len(id_number) == 6 and id_number.isdigit()
 
     def _validate_merge_single_cell(self, project_id) -> bool:
         return isinstance(self.data.get(project_id).get("merge_single_cell"), bool)
@@ -131,7 +131,7 @@ class DataValidator:
             return False
 
         for sample_id in modality_sample_ids:
-            if not self._validate_resource_id(sample_id, common.SAMPLE_ID_PREFIX):
+            if not self._validate_id(sample_id, common.SAMPLE_ID_PREFIX):
                 return False
 
         return True
