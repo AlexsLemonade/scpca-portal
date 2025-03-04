@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react'
 import 'regenerator-runtime/runtime'
 import {api} from '../../src/api'
 import { Box, Heading } from 'grommet'
-import { DatasetOptionsContextProvider } from 'contexts/DatasetOptionsContext'
 import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
 
 const projectIds = {
@@ -35,7 +34,7 @@ export const Default = (args) => {
     return (
     <>
      {projects.map((project)=> (
-        <DatasetOptionsContextProvider key={project.scpca_id} resource={project}>
+        <>
             <Heading level={4} margin={{ top: 'medium', bottom: '0' }}>
                 {project.scpca_id}
             </Heading>
@@ -45,7 +44,7 @@ export const Default = (args) => {
             <Box width='160px'>
                 <DatasetAddProjectModal project={project} />
             </Box>
-        </DatasetOptionsContextProvider>
+        </>
      ))}
     </>
 )}
