@@ -62,9 +62,10 @@ class Dataset(TimestampedModel):
     def __str__(self):
         return f"Dataset {self.id}"
 
-    def validate_data(self, json_obj: Dict) -> bool:
-        for json_element in json_obj:
-            data_element = DataElement(json_element)
+    @staticmethod
+    def validate_data(json_obj: Dict) -> bool:
+        for project_id, config in json_obj.items():
+            data_element = DataElement(project_id, config)
             if not data_element.validate():
                 return False
 
@@ -72,8 +73,9 @@ class Dataset(TimestampedModel):
 
 
 class DataElement:
-    def __init__(self, json_element: Dict) -> None:
-        ((self.project_id, self.config),) = json_element.items()
+    def __init__(self, project_id: str, config: Dict) -> None:
+        self.project_id = project_id
+        self.config = config
         self.merge_single_cell = self.config.get("merge_single_cell")
         self.includes_bulk = self.config.get("includes_bulk")
         self.SINGLE_CELL = self.config.get(Modalities.SINGLE_CELL)
@@ -81,8 +83,10 @@ class DataElement:
 
     def validate(self) -> bool:
         return (
-            len(self.config.keys()) == 4
+            bool(self.project_id)
             and self._validate_project_id()
+            and bool(self.config)
+            and len(self.config.keys()) == 4
             and self._validate_merge_single_cell()
             and self._validate_includes_bulk()
             and self._validate_single_cell()
