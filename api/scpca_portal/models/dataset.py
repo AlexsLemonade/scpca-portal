@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from django.db import models
 
@@ -64,37 +64,45 @@ class Dataset(TimestampedModel):
 
     @staticmethod
     def validate_data(json_obj: Dict) -> bool:
-        for project_id, config in json_obj.items():
-            data_element = DataElement(project_id, config)
-            if not data_element.validate():
-                return False
-
-        return True
+        data_validator = DataValidator(json_obj)
+        return data_validator.is_valid
 
 
-class DataElement:
-    def __init__(self, project_id: str, config: Dict) -> None:
-        self.project_id = project_id
-        self.config = config
-        self.merge_single_cell = self.config.get("merge_single_cell")
-        self.includes_bulk = self.config.get("includes_bulk")
-        self.SINGLE_CELL = self.config.get(Modalities.SINGLE_CELL)
-        self.SPATIAL = self.config.get(Modalities.SPATIAL)
+class DataValidator:
+    def __init__(self, data: Dict[str, Dict]) -> None:
+        self.data: Dict[str, Dict[str, Any]] = data
 
-    def validate(self) -> bool:
-        return (
-            bool(self.project_id)
-            and self._validate_project_id()
-            and bool(self.config)
-            and len(self.config.keys()) == 4
-            and self._validate_merge_single_cell()
-            and self._validate_includes_bulk()
-            and self._validate_single_cell()
-            and self._validate_spatial()
+    @property
+    def is_valid(self) -> bool:
+        return all(self.validate_project(project_id) for project_id in self.data.keys())
+
+    def validate_project(self, project_id: str) -> bool:
+        is_valid = self._validate_project_id(project_id)
+        is_valid &= (
+            self._validate_merge_single_cell(project_id)
+            if self.data.get(project_id).get("merge_single_cell")
+            else True
+        )
+        is_valid &= (
+            self._validate_includes_bulk(project_id)
+            if self.data.get(project_id).get("includes_bulk")
+            else True
+        )
+        is_valid &= (
+            self._validate_single_cell(project_id)
+            if self.data.get(project_id).get(Modalities.SINGLE_CELL)
+            else True
+        )
+        is_valid &= (
+            self._validate_spatial(project_id)
+            if self.data.get(project_id).get(Modalities.SPATIAL)
+            else True
         )
 
-    def _validate_project_id(self):
-        return self._validate_resource_id(self.project_id, common.PROJECT_ID_PREFIX)
+        return is_valid
+
+    def _validate_project_id(self, project_id):
+        return self._validate_resource_id(project_id, common.PROJECT_ID_PREFIX)
 
     def _validate_resource_id(self, resource_id: str, resource_prefix: str) -> bool:
         if not isinstance(resource_id, str):
@@ -106,17 +114,17 @@ class DataElement:
         resource_id_number = resource_id.removeprefix(resource_prefix)
         return len(resource_id_number) == 6 and resource_id_number.isdigit()
 
-    def _validate_merge_single_cell(self) -> bool:
-        return isinstance(self.merge_single_cell, bool)
+    def _validate_merge_single_cell(self, project_id) -> bool:
+        return isinstance(self.data.get(project_id).get("merge_single_cell"), bool)
 
-    def _validate_includes_bulk(self) -> bool:
-        return isinstance(self.includes_bulk, bool)
+    def _validate_includes_bulk(self, project_id) -> bool:
+        return isinstance(self.data.get(project_id).get("includes_bulk"), bool)
 
-    def _validate_single_cell(self) -> bool:
-        return self._validate_modality(self.SINGLE_CELL)
+    def _validate_single_cell(self, project_id) -> bool:
+        return self._validate_modality(self.data.get(project_id).get(Modalities.SINGLE_CELL))
 
-    def _validate_spatial(self) -> bool:
-        return self._validate_modality(self.SPATIAL)
+    def _validate_spatial(self, project_id) -> bool:
+        return self._validate_modality(self.data.get(project_id).get(Modalities.SPATIAL))
 
     def _validate_modality(self, modality_sample_ids: List) -> bool:
         if not isinstance(modality_sample_ids, list):
