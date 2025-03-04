@@ -7,21 +7,8 @@ import { getReadableOptions } from 'helpers/getReadableOptions'
 import { CheckBoxMergedObjects } from 'components/CheckBoxMergedObjects'
 import { CheckBoxExcludeMultiplexed } from 'components/CheckBoxExcludeMultiplexed'
 import { DownloadOption } from 'components/DownloadOption'
+import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
-
-const FormField = ({ label, selectWidth = 'auto', children }) => {
-  const { responsive } = useResponsive()
-
-  return (
-    <Box
-      direction={responsive('column', 'row')}
-      align={responsive('start', 'center')}
-    >
-      <Box pad={{ right: 'medium' }}>{label}</Box>
-      <Box width={{ max: selectWidth }}>{children}</Box>
-    </Box>
-  )
-}
 
 export const DownloadOptions = ({ handleSelectFile }) => {
   const {
@@ -54,7 +41,12 @@ export const DownloadOptions = ({ handleSelectFile }) => {
           gap="large"
           pad={{ bottom: 'large' }}
         >
-          <FormField label="Modality" selectWidth="116px">
+          <FormField
+            label="Modality"
+            direction={responsive('column', 'row')}
+            align={responsive('start', 'center')}
+            selectWidth="116px"
+          >
             <Select
               options={getReadableOptions(modalityOptions)}
               labelKey="label"
@@ -70,6 +62,8 @@ export const DownloadOptions = ({ handleSelectFile }) => {
                 link={config.links.what_downloading}
               />
             }
+            direction={responsive('column', 'row')}
+            align={responsive('start', 'center')}
             selectWidth="200px"
           >
             <Select
