@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react'
+import React from 'react'
 import 'regenerator-runtime/runtime'
-import {api} from '../../src/api'
 import { Box, Heading } from 'grommet'
 import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
+import projects from 'data/projects'
 
 const projectIds = {
     SCPCP000001: 'Single-cell with Bulk RNA-seq',
@@ -15,23 +15,7 @@ export default {
   title: 'Components/DatasetAddProjectModal'
 }
 
-export const Default = (args) => {
-    const [projects, setProjects] = useState([])
-
-    useEffect(()=> {
-       const fetchProjects = async () => {
-            const projectResponses = await Promise.all(
-                Object.keys(projectIds)
-                    .map((id) => api.projects.get(id))
-            )
-
-            setProjects(projectResponses.map(p => p.response))
-        }
-
-        fetchProjects()
-    }, [])
-
-    return (
+export const Default = (args) =>  (
     <>
      {projects.map((project)=> (
         <>
@@ -47,4 +31,4 @@ export const Default = (args) => {
         </>
      ))}
     </>
-)}
+)
