@@ -126,7 +126,7 @@ export const useDatasetOptionsContext = () => {
     setExcludeMultiplexed(
       !isExcludeMultiplexedAvailable && format === optionsSortOrder[2]
     )
-  }, [isExcludeMultiplexedAvailable])
+  }, [format, isExcludeMultiplexedAvailable])
 
   // Update includesMerged depending on user selection
   useEffect(() => {
