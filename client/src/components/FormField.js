@@ -11,8 +11,8 @@ export const FormField = ({
   children
 }) => {
   return (
-    <Box direction={direction} align={align}>
-      <Box pad={{ right: 'medium' }}>
+    <Box direction={direction} align={align} margin={{ bottom: 'small' }}>
+      <Box margin={{ bottom: 'small' }} pad={{ right: 'medium' }}>
         <Text weight={labelWeight}>{label}</Text>
       </Box>
       <Box gap={gap} width={{ max: selectWidth }}>

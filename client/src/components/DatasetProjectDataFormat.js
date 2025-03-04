@@ -1,13 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Select } from 'grommet'
 import { config } from 'config'
-import { useDatasetOptionsContext } from 'hooks/useDatasetOptionsContext'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
-export const SelectDataFormatDataset = () => {
-  const { format, setFormat, formatOptions } = useDatasetOptionsContext()
+export const DatasetProjectDataFormat = () => {
+  // NOTE: The dataset endpoint should include all available format options fields per resource
+  const formatOptions = ['SINGLE_CELL_EXPERIMENT', 'ANN_DATA']
+  const [format, setFormat] = useState(formatOptions[0])
 
   return (
     <FormField
@@ -28,4 +29,4 @@ export const SelectDataFormatDataset = () => {
   )
 }
 
-export default SelectDataFormatDataset
+export default DatasetProjectDataFormat
