@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect } from 'react'
 import { DatasetOptionsContext } from 'contexts/DatasetOptionsContext'
 import { optionsSortOrder } from 'config/downloadOptions'
 import { arrayListSort } from 'helpers/arrayListSort'
@@ -18,6 +18,8 @@ export const useDatasetOptionsContext = () => {
     setFormatOptions,
     modalityOptions,
     setModalityOptions,
+    selectedModalities,
+    setSelectedModalities,
     resource,
     includeBulkRnaSeq,
     setIncludeBulkRnaSeq,
@@ -37,22 +39,22 @@ export const useDatasetOptionsContext = () => {
     resource?.downloadable_sample_count > 0 ? 'Project' : 'Sample'
   const resourceType = getResourceType()
 
-  const [selectedModalities, setSelectedModalities] = useState([])
-
   const availableSingleCellSamples =
-    resource.samples &&
-    resource.samples.filter((sample) =>
-      sample.computed_files.some((file) => file.modality === 'SINGLE_CELL')
-    )
+    (resource.samples &&
+      resource.samples.filter((sample) =>
+        sample.computed_files.some((file) => file.modality === 'SINGLE_CELL')
+      )) ||
+    []
 
   const availableSpatialSamples =
-    resource.samples &&
-    resource.samples.filter((sample) =>
-      sample.computed_files.some((file) => file.modality === 'SPATIAL')
-    )
+    (resource.samples &&
+      resource.samples.filter((sample) =>
+        sample.computed_files.some((file) => file.modality === 'SPATIAL')
+      )) ||
+    []
 
   const sampleDifferenceForSpatial = Math.abs(
-    availableSingleCellSamples?.length - availableSpatialSamples?.length
+    availableSingleCellSamples.length - availableSpatialSamples.length
   )
 
   const getOptionsAndDefault = (optionName, files = computedFiles) =>
@@ -124,7 +126,7 @@ export const useDatasetOptionsContext = () => {
     setExcludeMultiplexed(
       !isExcludeMultiplexedAvailable && format === optionsSortOrder[2]
     )
-  }, [isExcludeMultiplexedAvailable, selectedModalities])
+  }, [isExcludeMultiplexedAvailable])
 
   // Update includesMerged depending on user selection
   useEffect(() => {
