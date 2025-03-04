@@ -3,7 +3,10 @@ import { api } from 'api'
 
 export const DatasetOptionsContext = createContext({})
 
-export const DatasetOptionsContextProvider = ({ resource, children }) => {
+export const DatasetOptionsContextProvider = ({
+  resource: initialResource,
+  children
+}) => {
   const [format, setFormat] = useState(null)
 
   // Control Bulk RNA-seq data option
@@ -20,15 +23,20 @@ export const DatasetOptionsContextProvider = ({ resource, children }) => {
   const [isExcludeMultiplexedAvailable, setIsExcludeMultiplexedAvailable] =
     useState(false)
 
+  // Control spatial data option
+  const [isSpatialSelected, setIsSpatialSelected] = useState(false)
+
   // User-selected modalities to be added to My Dataset
   const [selectedModalities, setSelectedModalities] = useState([])
 
-  // Initial potential format and modality for Options
+  // Initial potential format and modality options
   const [modalityOptions, setModalityOptions] = useState([])
   const [formatOptions, setFormatOptions] = useState([])
 
   // Computed Files used to derive available options.
   const [computedFiles, setComputedFiles] = useState([])
+  // Store the updated initialResource for the project browse page
+  const [resource, setResource] = useState({})
 
   // Only on mount or when resource / collection name change
   useEffect(() => {
@@ -38,20 +46,26 @@ export const DatasetOptionsContextProvider = ({ resource, children }) => {
     }
 
     const updateSamples = async () => {
-      if (resource && typeof resource.samples[0] === 'string') {
-        const projectResponse = await fetchSamplesDetails(resource.scpca_id)
-        // eslint-disable-next-line no-param-reassign
-        resource.samples = projectResponse.response.samples
+      if (initialResource) {
+        if (typeof initialResource.samples[0] === 'string') {
+          const response = await fetchSamplesDetails(initialResource.scpca_id)
+          setResource({
+            ...initialResource,
+            samples: response.response.samples
+          })
+        } else {
+          setResource(initialResource)
+        }
       }
     }
 
-    if (resource) {
-      updateSamples() // Fetch and update the samples on the project browse page
+    if (initialResource) {
+      updateSamples() // Fetch and update the samples to be an array of objects
       setComputedFiles(() => {
-        return resource.computed_files.filter((f) => !f.metadata_only) // Exclude the metadata_only file
+        return initialResource.computed_files.filter((f) => !f.metadata_only) // Exclude the metadata_only file
       })
     }
-  }, [resource])
+  }, [initialResource])
 
   return (
     <DatasetOptionsContext.Provider
@@ -59,6 +73,8 @@ export const DatasetOptionsContextProvider = ({ resource, children }) => {
         computedFiles,
         setComputedFiles,
         format,
+        excludeMultiplexed,
+        setExcludeMultiplexed,
         setFormat,
         formatOptions,
         setFormatOptions,
@@ -77,8 +93,8 @@ export const DatasetOptionsContextProvider = ({ resource, children }) => {
         setIsMergedObjectsAvailable,
         isExcludeMultiplexedAvailable,
         setIsExcludeMultiplexedAvailable,
-        excludeMultiplexed,
-        setExcludeMultiplexed
+        isSpatialSelected,
+        setIsSpatialSelected
       }}
     >
       {children}

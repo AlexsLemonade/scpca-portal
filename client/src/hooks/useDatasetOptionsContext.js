@@ -10,6 +10,8 @@ import { uniqueValuesForKey } from 'helpers/uniqueValuesForKey'
 export const useDatasetOptionsContext = () => {
   const {
     computedFiles,
+    excludeMultiplexed,
+    setExcludeMultiplexed,
     format,
     setFormat,
     formatOptions,
@@ -25,10 +27,10 @@ export const useDatasetOptionsContext = () => {
     setIncludesMerged,
     isMergedObjectsAvailable,
     setIsMergedObjectsAvailable,
-    excludeMultiplexed,
-    setExcludeMultiplexed,
     isExcludeMultiplexedAvailable,
-    setIsExcludeMultiplexedAvailable
+    setIsExcludeMultiplexedAvailable,
+    isSpatialSelected,
+    setIsSpatialSelected
   } = useContext(DatasetOptionsContext)
 
   const getResourceType = () =>
@@ -36,9 +38,6 @@ export const useDatasetOptionsContext = () => {
   const resourceType = getResourceType()
 
   const [selectedModalities, setSelectedModalities] = useState([])
-  const isSpatialSelected =
-    selectedModalities.length > 1 &&
-    selectedModalities.includes(optionsSortOrder[3])
 
   const availableSingleCellSamples =
     resource.samples &&
@@ -95,6 +94,16 @@ export const useDatasetOptionsContext = () => {
     }
   }, [selectedModalities, modalityOptions])
 
+  // Set the availavility of spatial data
+  useEffect(() => {
+    if (selectedModalities) {
+      setIsSpatialSelected(
+        selectedModalities.includes(optionsSortOrder[3]) &&
+          selectedModalities.length > 1
+      )
+    }
+  }, [selectedModalities])
+
   // Set the availability of Bulk RNA-seq, multiplexed, and merged object data
   useEffect(() => {
     setIsBulkRnaSeqAvailable(
@@ -123,22 +132,24 @@ export const useDatasetOptionsContext = () => {
   }, [isMergedObjectsAvailable, selectedModalities])
 
   return {
+    excludeMultiplexed,
+    setExcludeMultiplexed,
     modalityOptions,
     format,
     setFormat,
     formatOptions,
+    resource,
     resourceType,
     includeBulkRnaSeq,
     setIncludeBulkRnaSeq,
     includesMerged,
     setIncludesMerged,
-    excludeMultiplexed,
-    setExcludeMultiplexed,
     isBulkRnaSeqAvailable,
     isExcludeMultiplexedAvailable,
     isMergedObjectsAvailable,
     isSpatialSelected,
     sampleDifferenceForSpatial,
+    selectedModalities,
     setSelectedModalities
   }
 }
