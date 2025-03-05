@@ -197,7 +197,7 @@ Due to the fact that processing on Batch is ~10x faster than processing on the A
 To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh load_data --reload-all`.
 
 ### Syncing the OriginalFile Table
-As mentioned in the above [Local Data Management - Syncing the OriginalFile table section](#syncing-the-originalfile-table), the `OriginalFile` table must be populated before data can be processed via the `sync_original_files` command.
+As mentioned in the above [Local Data Management - Syncing the OriginalFile Table section](#syncing-the-originalfile-table), the `OriginalFile` table must be populated before data can be processed via the `sync_original_files` command.
 
 Syncing is carried out as follows:
 ```bash
