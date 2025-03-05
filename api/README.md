@@ -87,7 +87,7 @@ curl http://0.0.0.0:8000/v1/computed-files/1/ -H 'API-KEY: 658f859a-b9d0-4b44-be
 
 ## Local Data Management
 
-### Syncing the OriginalFile table
+### Syncing the OriginalFile Table
 Before data can be processed, the `OriginalFile` table must be populated and synced via the `sync-original-files` command. This command builds a local representation of all objects available in the default (or passed) s3 input bucket, and is considered the single source of truth for input files throughout the codebase.
 
 Syncing is carried out as follows:
@@ -167,7 +167,7 @@ The `--max-workers` flag can be used for setting a number of simultaneously proc
 sportal load-data --max-workers 10 --reload-existing --update-s3
 ```
 
-### Load Metadata and Generate Computed Files flags
+### Load Metadata and Generate Computed Files Flags
 Of all of the above mentioned flags, a subset of them can be called in the `load-metadata` command, while another subset can be called with the `generate-computed-files` command. Below is a list of which commands are compatible with which command.
 
 load_metadata flags
@@ -196,8 +196,8 @@ Due to the fact that processing on Batch is ~10x faster than processing on the A
 ### Commands in Production
 To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh load_data --reload-all`.
 
-### Syncing the OriginalFile table
-As mentioned above, the `OriginalFile` table must be populated before data can be processed via the `sync_original_files` command.
+### Syncing the OriginalFile Table
+As mentioned in the above [Local Data Management - Syncing the OriginalFile table section](#syncing-the-originalfile-table), the `OriginalFile` table must be populated before data can be processed via the `sync_original_files` command.
 
 Syncing is carried out as follows:
 ```bash
@@ -240,7 +240,7 @@ You can override this filter by passing the `--regenerate-all` flag. This will d
 
 You can limit the scope of this command to only apply to a specific project by passing the `--project-id <SCPCP999999>` flag. This can be used in conjunction with `--regenerate-all` if you want to ignore existing computed files for that project.
 
-### Purge project
+### Purge Project
 To purge a project from the database (and from S3 if so desired), run the following command:
 ```bash
 ./run_command.sh purge_project --scpca-id SCPCP000001 --delete-from-s3
