@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 from django.db import models
 
 from scpca_portal import common
-from scpca_portal.enums import DatasetFormats, Modalities
+from scpca_portal.enums import DatasetDataProjectConfig, DatasetFormats
 from scpca_portal.models import APIToken, ComputedFile
 from scpca_portal.models.base import TimestampedModel
 
@@ -118,28 +118,36 @@ class DataValidator:
         return len(id_number) == 6 and id_number.isdigit()
 
     def _validate_merge_single_cell(self, project_id) -> bool:
-        if "merge_single_cell" not in self.data.get(project_id, {}):
+        if DatasetDataProjectConfig.MERGE_SINGLE_CELL not in self.data.get(project_id, {}):
             return True
 
-        return isinstance(self.data.get(project_id).get("merge_single_cell", {}), bool)
+        return isinstance(
+            self.data.get(project_id).get(DatasetDataProjectConfig.MERGE_SINGLE_CELL, {}), bool
+        )
 
     def _validate_includes_bulk(self, project_id) -> bool:
-        if "includes_bulk" not in self.data.get(project_id, {}):
+        if DatasetDataProjectConfig.INCLUDES_BULK not in self.data.get(project_id, {}):
             return True
 
-        return isinstance(self.data.get(project_id).get("includes_bulk"), bool)
+        return isinstance(
+            self.data.get(project_id).get(DatasetDataProjectConfig.INCLUDES_BULK), bool
+        )
 
     def _validate_single_cell(self, project_id) -> bool:
-        if Modalities.SINGLE_CELL not in self.data.get(project_id, {}):
+        if DatasetDataProjectConfig.SINGLE_CELL not in self.data.get(project_id, {}):
             return True
 
-        return self._validate_modality(self.data.get(project_id).get(Modalities.SINGLE_CELL))
+        return self._validate_modality(
+            self.data.get(project_id).get(DatasetDataProjectConfig.SINGLE_CELL)
+        )
 
     def _validate_spatial(self, project_id) -> bool:
-        if Modalities.SPATIAL not in self.data.get(project_id, {}):
+        if DatasetDataProjectConfig.SPATIAL not in self.data.get(project_id, {}):
             return True
 
-        return self._validate_modality(self.data.get(project_id).get(Modalities.SPATIAL))
+        return self._validate_modality(
+            self.data.get(project_id).get(DatasetDataProjectConfig.SPATIAL)
+        )
 
     def _validate_modality(self, modality_sample_ids: List) -> bool:
         if not isinstance(modality_sample_ids, list):
