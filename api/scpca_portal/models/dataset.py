@@ -87,29 +87,22 @@ class DataValidator:
         ]
 
     def validate_project(self, project_id: str) -> bool:
-        is_valid = self._validate_project_id(project_id)
-        is_valid &= (
-            self._validate_merge_single_cell(project_id)
-            if self.data.get(project_id).get("merge_single_cell")
-            else True
-        )
-        is_valid &= (
-            self._validate_includes_bulk(project_id)
-            if self.data.get(project_id).get("includes_bulk")
-            else True
-        )
-        is_valid &= (
-            self._validate_single_cell(project_id)
-            if self.data.get(project_id).get(Modalities.SINGLE_CELL)
-            else True
-        )
-        is_valid &= (
-            self._validate_spatial(project_id)
-            if self.data.get(project_id).get(Modalities.SPATIAL)
-            else True
-        )
+        if not self._validate_project_id(project_id):
+            return False
 
-        return is_valid
+        if not self._validate_merge_single_cell(project_id):
+            return False
+
+        if not self._validate_includes_bulk(project_id):
+            return False
+
+        if not self._validate_single_cell(project_id):
+            return False
+
+        if not self._validate_spatial(project_id):
+            return False
+
+        return True
 
     def _validate_project_id(self, project_id):
         return self._validate_id(project_id, common.PROJECT_ID_PREFIX)
@@ -125,15 +118,27 @@ class DataValidator:
         return len(id_number) == 6 and id_number.isdigit()
 
     def _validate_merge_single_cell(self, project_id) -> bool:
-        return isinstance(self.data.get(project_id).get("merge_single_cell"), bool)
+        if "merge_single_cell" not in self.data.get(project_id, {}):
+            return True
+
+        return isinstance(self.data.get(project_id).get("merge_single_cell", {}), bool)
 
     def _validate_includes_bulk(self, project_id) -> bool:
+        if "includes_bulk" not in self.data.get(project_id, {}):
+            return True
+
         return isinstance(self.data.get(project_id).get("includes_bulk"), bool)
 
     def _validate_single_cell(self, project_id) -> bool:
+        if Modalities.SINGLE_CELL not in self.data.get(project_id, {}):
+            return True
+
         return self._validate_modality(self.data.get(project_id).get(Modalities.SINGLE_CELL))
 
     def _validate_spatial(self, project_id) -> bool:
+        if Modalities.SPATIAL not in self.data.get(project_id, {}):
+            return True
+
         return self._validate_modality(self.data.get(project_id).get(Modalities.SPATIAL))
 
     def _validate_modality(self, modality_sample_ids: List) -> bool:
