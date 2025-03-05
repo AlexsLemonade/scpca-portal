@@ -6,7 +6,7 @@ export const FormField = ({
   align = 'start',
   gap = '0',
   direction = 'column',
-  selectWidth = 'auto',
+  fieldWidth = 'auto',
   labelWeight = 'normal',
   children
 }) => {
@@ -15,7 +15,7 @@ export const FormField = ({
       <Box margin={{ bottom: 'small' }} pad={{ right: 'medium' }}>
         <Text weight={labelWeight}>{label}</Text>
       </Box>
-      <Box gap={gap} width={{ max: selectWidth }}>
+      <Box gap={gap} width={{ max: fieldWidth }}>
         {children}
       </Box>
     </Box>
