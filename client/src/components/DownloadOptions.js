@@ -45,7 +45,7 @@ export const DownloadOptions = ({ handleSelectFile }) => {
             label="Modality"
             direction={responsive('column', 'row')}
             align={responsive('start', 'center')}
-            selectWidth="116px"
+            fieldWidth="116px"
           >
             <Select
               options={getReadableOptions(modalityOptions)}
@@ -64,7 +64,7 @@ export const DownloadOptions = ({ handleSelectFile }) => {
             }
             direction={responsive('column', 'row')}
             align={responsive('start', 'center')}
-            selectWidth="200px"
+            fieldWidth="200px"
           >
             <Select
               options={getReadableOptions(formatOptions)}

@@ -16,7 +16,7 @@ export const DatasetProjectDataFormat = () => {
         <HelpLink label="Data Format" link={config.links.what_downloading} />
       }
       labelWeight="bold"
-      selectWidth="200px"
+      fieldWidth="200px"
     >
       <Select
         options={getReadableOptions(formatOptions)}
