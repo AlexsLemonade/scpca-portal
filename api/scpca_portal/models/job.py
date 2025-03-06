@@ -1,4 +1,10 @@
+from datetime import datetime
+
+from django.conf import settings
 from django.db import models
+from django.utils.timezone import make_aware
+
+import boto3
 
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
@@ -30,7 +36,7 @@ class Job(TimestampedModel):
 
     # Job Information Defined from AWS (via Response)
     batch_job_id = models.TextField(null=True)
-    batch_status = models.TextField(null=True)
+    batch_status = models.TextField(null=True)  # Set by a cron job
 
     # Datasets should never be deleted
     dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
@@ -38,12 +44,59 @@ class Job(TimestampedModel):
     def __str__(self):
         if self.batch_job_id:
             return f"Job {self.id} - {self.batch_job_id} - {self.state}"
-
         return f"Job {self.id} - {self.state}"
 
-    def submit(self):
-        """Submit a job via boto3, and update batch_job_id and state."""
-        pass
+    @classmethod
+    def get_job(
+        cls,
+        batch_job_name: str = None,
+        batch_job_queue: str = None,
+        batch_job_definition: str = None,
+        batch_container_overrides: dict = None,
+    ):
+        """
+        Prepare a Job instance for AWS Batch without saving it to the db.
+        """
+
+        batch_job_name = batch_job_name or "DEFAULT_BATCH_JOB_NAME"
+        batch_job_queue = batch_job_queue or "DEFAULT_BATCH_JOB_QUEUE"
+        batch_job_definition = batch_job_definition or "DEFAULT_BATCH_JOB_DEFINITION"
+        batch_container_overrides = batch_container_overrides or {"command": ["DEFAULT_COMMAND"]}
+
+        return cls(
+            batch_job_name=batch_job_name,
+            batch_job_queue=batch_job_queue,
+            batch_job_definition=batch_job_definition,
+            batch_container_overrides=batch_container_overrides,
+        )
+
+    @property
+    def _batch(self):
+        """
+        boto3 client for AWS Batch.
+        """
+        return boto3.client("batch", region_name=settings.AWS_REGION)
+
+    def submit(self, resource_id: str = "", notify: bool = False) -> None:
+        """Submit a job via boto3, update batch_job_id and state, and
+        save the job object to the db"""
+
+        notify_flag = "--notify" if notify else ""
+        command = self.batch_container_overrides.get("command")
+        command.extend([resource_id, notify_flag])
+
+        response = self._batch.submit_job(
+            jobName=self.batch_job_name,
+            jobQueue=self.batch_job_queue,
+            jobDefinition=self.batch_job_definition,
+            containerOverrides={**self.batch_container_overrides, "command": command},
+        )
+
+        self.batch_job_id = response["jobId"]
+        self.state = JobStates.SUBMITTED
+        self.submitted_at = make_aware(datetime.now())
+
+        self.save()
 
     def terminate(self, retry_on_termination=False):
         """
