@@ -13,8 +13,8 @@ class TestDataset(TestCase):
         returned_dataset = Dataset.objects.filter(pk=dataset.id).first()
         self.assertEqual(returned_dataset, dataset)
 
-    @tag("validate_data")
-    def test_validate_data_project_id(self):
+    @tag("is_data_valid")
+    def test_is_data_valid_project_id(self):
         # Valid project id
         data = {
             "SCPCP999990": {
@@ -59,8 +59,8 @@ class TestDataset(TestCase):
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
-    @tag("validate_data")
-    def test_validate_data_config(self):
+    @tag("is_data_valid")
+    def test_is_data_valid_config(self):
         # Valid config
         data = {
             "SCPCP999990": {
