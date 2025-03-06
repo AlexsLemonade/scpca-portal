@@ -4,7 +4,7 @@ import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { Modal, ModalBody } from 'components/Modal'
 import { DatasetProjectDataFormat } from 'components/DatasetProjectDataFormat'
-import { DatasetSampesProjectOptions } from 'components/DatasetSamplesProjectOptions'
+import { DatasetSamplesProjectOptions } from 'components/DatasetSamplesProjectOptions'
 
 const Li = ({ text }) => (
   <Box as="li" style={{ display: 'list-item' }}>
@@ -66,7 +66,7 @@ export const DatasetAddSamplesModal = ({
             <Box pad={{ top: 'small' }}>
               <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
                 <DatasetProjectDataFormat />
-                <DatasetSampesProjectOptions />
+                <DatasetSamplesProjectOptions />
               </Box>
               <Box
                 align="center"

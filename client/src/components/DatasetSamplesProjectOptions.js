@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, CheckBox } from 'grommet'
 import { FormField } from 'components/FormField'
 
-export const DatasetSampesProjectOptions = () => {
+export const DatasetSamplesProjectOptions = () => {
   const handleChange = () => {}
 
   return (
@@ -17,4 +17,4 @@ export const DatasetSampesProjectOptions = () => {
   )
 }
 
-export default DatasetSampesProjectOptions
+export default DatasetSamplesProjectOptions
