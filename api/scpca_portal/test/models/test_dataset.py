@@ -24,7 +24,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertTrue(Dataset.validate_data(data))
+        self.assertTrue(DatasetFactory(data=data).is_data_valid)
 
         # Incorrect project ids
         data = {
@@ -35,7 +35,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
         # Lack of SCPCP prefix
         data = {
@@ -46,7 +46,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
         # Incorrect number of digits
         data = {
@@ -57,7 +57,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
     @tag("validate_data")
     def test_validate_data_config(self):
@@ -70,13 +70,13 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertTrue(Dataset.validate_data(data))
+        self.assertTrue(DatasetFactory(data=data).is_data_valid)
 
         # Empty config (valid)
         data = {
             "SCPCP999990": {},
         }
-        self.assertTrue(Dataset.validate_data(data))
+        self.assertTrue(DatasetFactory(data=data).is_data_valid)
 
         # Merge single cell - missing (valid)
         data = {
@@ -86,7 +86,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertTrue(Dataset.validate_data(data))
+        self.assertTrue(DatasetFactory(data=data).is_data_valid)
 
         # Merge single cell - wrong data type (invalid)
         data = {
@@ -97,7 +97,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
         # Includes bulk - missing (valid)
         data = {
@@ -107,7 +107,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertTrue(Dataset.validate_data(data))
+        self.assertTrue(DatasetFactory(data=data).is_data_valid)
 
         # Includes bulk - wrong data type (invalid)
         data = {
@@ -118,7 +118,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
         # Single Cell - missing (valid)
         data = {
@@ -128,7 +128,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertTrue(Dataset.validate_data(data))
+        self.assertTrue(DatasetFactory(data=data).is_data_valid)
 
         # Single Cell - wrong data type (invalid)
         data = {
@@ -139,7 +139,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
         # Single Cell - wrong inner data type (invalid)
         data = {
@@ -150,7 +150,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
         # Single Cell - invalid sample id (invalid)
         data = {
@@ -161,7 +161,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999992"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
         # Spatial - missing (valid)
         data = {
@@ -171,7 +171,7 @@ class TestDataset(TestCase):
                 Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999991"],
             },
         }
-        self.assertTrue(Dataset.validate_data(data))
+        self.assertTrue(DatasetFactory(data=data).is_data_valid)
 
         # Spatial - wrong data type (invalid)
         data = {
@@ -182,7 +182,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: "SCPCS999992",
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
         # Spatial - wrong inner data type (invalid)
         data = {
@@ -193,7 +193,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: [1, 2, 3],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
         # Spatial - invalid sample id (invalid)
         data = {
@@ -204,4 +204,4 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["sample_id"],
             },
         }
-        self.assertFalse(Dataset.validate_data(data))
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)

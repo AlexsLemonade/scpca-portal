@@ -62,9 +62,9 @@ class Dataset(TimestampedModel):
     def __str__(self):
         return f"Dataset {self.id}"
 
-    @staticmethod
-    def validate_data(json_obj: Dict) -> bool:
-        data_validator = DataValidator(json_obj)
+    @property
+    def is_data_valid(self) -> bool:
+        data_validator = DataValidator(self.data)
         return data_validator.is_valid
 
 
