@@ -20,6 +20,10 @@ export const DatasetAddSamplesModal = ({
   const { responsive } = useResponsive()
   const [showing, setShowing] = useState(false)
 
+  const singleCellSamples = 8
+  const spatialSamples = 4
+  const totalSamples = singleCellSamples + spatialSamples
+
   const handleClick = () => {
     setShowing(true)
   }
@@ -45,15 +49,19 @@ export const DatasetAddSamplesModal = ({
               <Paragraph margin={{ top: '0', bottom: '0' }}>
                 Adding the following to Dataset:
               </Paragraph>
-              <Paragraph margin={{ bottom: '0' }}>10 samples</Paragraph>
+              <Paragraph
+                margin={{ bottom: '0' }}
+              >{`${totalSamples} samples`}</Paragraph>
               <Box
                 as="ul"
                 margin={{ top: '0' }}
                 pad={{ left: '26px' }}
                 style={{ listStyle: 'disc' }}
               >
-                <Li text="8 samples with single-cell modality" />
-                <Li text="4 samples with spatial modality" />
+                <Li
+                  text={`${singleCellSamples} samples with single-cell modality`}
+                />
+                <Li text={`${spatialSamples} samples with spatial modality`} />
               </Box>
             </Box>
             <Heading
