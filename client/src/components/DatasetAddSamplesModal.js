@@ -6,12 +6,6 @@ import { Modal, ModalBody } from 'components/Modal'
 import { DatasetProjectDataFormat } from 'components/DatasetProjectDataFormat'
 import { DatasetSamplesProjectOptions } from 'components/DatasetSamplesProjectOptions'
 
-const Li = ({ text }) => (
-  <Box as="li" style={{ display: 'list-item' }}>
-    {text}
-  </Box>
-)
-
 export const DatasetAddSamplesModal = ({
   label = 'Add to Dataset',
   title = 'Add Samples to Dataset',
@@ -58,10 +52,12 @@ export const DatasetAddSamplesModal = ({
                 pad={{ left: '26px' }}
                 style={{ listStyle: 'disc' }}
               >
-                <Li
-                  text={`${singleCellSamples} samples with single-cell modality`}
-                />
-                <Li text={`${spatialSamples} samples with spatial modality`} />
+                <Box as="li" style={{ display: 'list-item' }}>
+                  {`${singleCellSamples} samples with single-cell modality`}
+                </Box>
+                <Box as="li" style={{ display: 'list-item' }}>
+                  {`${spatialSamples} samples with spatial modality`}
+                </Box>
               </Box>
             </Box>
             <Heading
