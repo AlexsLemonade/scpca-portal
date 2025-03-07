@@ -118,36 +118,28 @@ class DataValidator:
         return len(id_number) == 6 and id_number.isdigit()
 
     def _validate_merge_single_cell(self, project_id) -> bool:
-        if DatasetDataProjectConfig.MERGE_SINGLE_CELL not in self.data.get(project_id, {}):
-            return True
+        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.MERGE_SINGLE_CELL):
+            return isinstance(value, bool)
 
-        return isinstance(
-            self.data.get(project_id).get(DatasetDataProjectConfig.MERGE_SINGLE_CELL, {}), bool
-        )
+        return True
 
     def _validate_includes_bulk(self, project_id) -> bool:
-        if DatasetDataProjectConfig.INCLUDES_BULK not in self.data.get(project_id, {}):
-            return True
+        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.INCLUDES_BULK):
+            return isinstance(value, bool)
 
-        return isinstance(
-            self.data.get(project_id).get(DatasetDataProjectConfig.INCLUDES_BULK), bool
-        )
+        return True
 
     def _validate_single_cell(self, project_id) -> bool:
-        if DatasetDataProjectConfig.SINGLE_CELL not in self.data.get(project_id, {}):
-            return True
+        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SINGLE_CELL):
+            return self._validate_modality(value)
 
-        return self._validate_modality(
-            self.data.get(project_id).get(DatasetDataProjectConfig.SINGLE_CELL)
-        )
+        return True
 
     def _validate_spatial(self, project_id) -> bool:
-        if DatasetDataProjectConfig.SPATIAL not in self.data.get(project_id, {}):
-            return True
+        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SPATIAL):
+            return self._validate_modality(value)
 
-        return self._validate_modality(
-            self.data.get(project_id).get(DatasetDataProjectConfig.SPATIAL)
-        )
+        return True
 
     def _validate_modality(self, modality_sample_ids: List) -> bool:
         if not isinstance(modality_sample_ids, list):
