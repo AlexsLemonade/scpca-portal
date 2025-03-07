@@ -1,7 +1,5 @@
-from pathlib import Path
 from typing import Dict, List
 
-from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -83,10 +81,6 @@ class Library(TimestampedModel):
     def original_file_paths(self) -> List[str]:
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
-    @staticmethod
-    def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
-        return settings.INPUT_DATA_PATH / data_file_path
-
     def get_metadata(self, demux_cell_count_estimate_id) -> Dict:
         excluded_metadata_attributes = {
             "scpca_sample_id",
@@ -127,33 +121,6 @@ class Library(TimestampedModel):
                 return original_files.exclude(is_anndata=True)
 
         return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
-
-    @staticmethod
-    def get_local_file_path(original_file: OriginalFile):
-        return settings.INPUT_DATA_PATH / Path(original_file.s3_key)
-
-    @staticmethod
-    def get_zip_file_path(original_file: OriginalFile, download_config: Dict) -> Path:
-        file_path = Path(original_file.s3_key)
-        path_parts = [Path(path) for path in file_path.parts]
-
-        # Project output paths are relative to project directory
-        if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
-            output_path = file_path.relative_to(path_parts[0])
-        # Sample output paths are relative to project and sample directories
-        else:
-            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
-
-        # Transform merged and bulk project data files to no longer be nested in a merged directory
-        if file_path.parent.name in ["bulk", "merged"]:
-            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
-        # Nest sample reports into individual_reports directory in merged download
-        # The merged summmary html file should not go into this directory
-        elif download_config.get("includes_merged", False) and output_path.suffix == ".html":
-            output_path = Path("individual_reports") / output_path
-
-        # Comma separated lists of multiplexed samples should become underscore separated
-        return Path(str(output_path).replace(",", "_"))
 
     @staticmethod
     def get_libraries_metadata(libraries) -> List[Dict]:

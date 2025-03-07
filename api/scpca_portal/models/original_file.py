@@ -2,12 +2,13 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import utils
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
@@ -36,7 +37,7 @@ class OriginalFile(TimestampedModel):
 
     # inferred relationship ids
     project_id = models.TextField(null=True)
-    sample_id = models.TextField(null=True)
+    sample_ids = ArrayField(models.TextField(null=True), default=list)
     library_id = models.TextField(null=True)
 
     # existence attributes
@@ -77,7 +78,7 @@ class OriginalFile(TimestampedModel):
             hash_change_at=sync_timestamp,
             bucket_sync_at=sync_timestamp,
             project_id=s3_key_info.project_id,
-            sample_id=s3_key_info.sample_id,
+            sample_ids=s3_key_info.sample_ids,
             library_id=s3_key_info.library_id,
             is_single_cell=(Modalities.SINGLE_CELL in modalities),
             is_spatial=(Modalities.SPATIAL in modalities),
@@ -202,11 +203,11 @@ class OriginalFile(TimestampedModel):
         Collections are formed as granularly as possible,
         at either the sample/merged/bulk, project, or bucket levels.
         """
-        if sample_id := self.s3_key_info.sample_id:
-            return Path(self.s3_key_info.project_id) / Path(sample_id)
+        if sample_id_part := self.s3_key_info.sample_id_part:
+            return Path(self.s3_key_info.project_id_part, sample_id_part)
 
-        if project_id := self.s3_key_info.project_id:
-            return Path(project_id)
+        if project_id_part := self.s3_key_info.project_id:
+            return Path(project_id_part)
 
         # default to bucket dir
         return Path()
@@ -215,6 +216,44 @@ class OriginalFile(TimestampedModel):
     def download_path(self) -> Path:
         """Return the remaining part of self.s3_key that's not the download_dir."""
         return self.s3_key_path.relative_to(self.download_dir)
+
+    @property
+    def local_file_path(self):
+        return settings.INPUT_DATA_PATH / self.s3_key_path
+
+    def _get_zip_file_path(self, download_config: Dict) -> Path:
+        """
+        Return file path with requested directory structure according to download config.
+        The multiplexed sample delimeter is not replaced in this method.
+        """
+        # Project output paths are relative to project directory
+        output_path = self.s3_key_path.relative_to(Path(self.s3_key_info.project_id_part))
+
+        # Sample output paths are relative to sample directory
+        if download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values():
+            return output_path.relative_to(Path(self.s3_key_info.sample_id_part))
+
+        # Transform merged and bulk project data files to no longer be nested in a merged directory
+        if self.is_merged:
+            return output_path.relative_to(common.MERGED_INPUT_DIR)
+        if self.is_bulk:
+            return output_path.relative_to(common.BULK_INPUT_DIR)
+
+        # Nest sample reports into individual_reports directory in merged download
+        # The merged summmary html file should not go into this directory
+        if download_config.get("includes_merged", False) and self.is_supplementary:
+            return Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path
+
+        return output_path
+
+    def get_zip_file_path(self, download_config: Dict) -> Path:
+        """Returns the formatted file path while replacing the multiplexed sample delimter."""
+        # Delimeter must be exchanged if file has multiplexed samples
+        return utils.path_replace(
+            self._get_zip_file_path(download_config),
+            common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
+            common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+        )
 
     @staticmethod
     def get_bucket_paths(original_files) -> Dict[Tuple, List[Path]]:

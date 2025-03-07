@@ -21,7 +21,7 @@ The private key should be named `scpca-portal-key.pem`, and the public key shoul
 python3 deploy.py -d [dockerhub-account] -e dev -u [username] -v v0.0.0
 ```
 
-To make requests against the API that you deployed see the [READEME for the API](../api/README.md).
+To make requests against the API that you deployed see the [README for the API](../api/README.md).
 
 ## Teardown
 

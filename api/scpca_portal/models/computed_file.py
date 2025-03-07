@@ -178,8 +178,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             if not download_config.get("metadata_only", False):
                 for original_file in original_files:
                     zip_file.write(
-                        Library.get_local_file_path(original_file),
-                        Library.get_zip_file_path(original_file, download_config),
+                        original_file.local_file_path,
+                        original_file.get_zip_file_path(download_config),
                     )
 
         computed_file = cls(
@@ -237,8 +237,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Original files
             for original_file in original_files:
                 zip_file.write(
-                    Library.get_local_file_path(original_file),
-                    Library.get_zip_file_path(original_file, download_config),
+                    original_file.local_file_path,
+                    original_file.get_zip_file_path(download_config),
                 )
 
         computed_file = cls(
