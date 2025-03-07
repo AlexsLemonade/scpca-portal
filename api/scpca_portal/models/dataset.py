@@ -1,8 +1,10 @@
 import uuid
+from typing import Any, Dict, List
 
 from django.db import models
 
-from scpca_portal.enums import DatasetFormats
+from scpca_portal import common
+from scpca_portal.enums import DatasetDataProjectConfig, DatasetFormats
 from scpca_portal.models import APIToken, ComputedFile
 from scpca_portal.models.base import TimestampedModel
 
@@ -59,3 +61,92 @@ class Dataset(TimestampedModel):
 
     def __str__(self):
         return f"Dataset {self.id}"
+
+    @property
+    def is_data_valid(self) -> bool:
+        data_validator = DataValidator(self.data)
+        return data_validator.is_valid
+
+
+class DataValidator:
+    def __init__(self, data: Dict[str, Dict]) -> None:
+        self.data: Dict[str, Dict[str, Any]] = data
+
+    @property
+    def is_valid(self) -> bool:
+        return all(self.validate_project(project_id) for project_id in self.data.keys())
+
+    @property
+    def valid_projects(self) -> List[str]:
+        return [project_id for project_id in self.data.keys() if self.validate_project(project_id)]
+
+    @property
+    def invalid_projects(self) -> List[str]:
+        return [
+            project_id for project_id in self.data.keys() if not self.validate_project(project_id)
+        ]
+
+    def validate_project(self, project_id: str) -> bool:
+        if not self._validate_project_id(project_id):
+            return False
+
+        if not self._validate_merge_single_cell(project_id):
+            return False
+
+        if not self._validate_includes_bulk(project_id):
+            return False
+
+        if not self._validate_single_cell(project_id):
+            return False
+
+        if not self._validate_spatial(project_id):
+            return False
+
+        return True
+
+    def _validate_project_id(self, project_id):
+        return self._validate_id(project_id, common.PROJECT_ID_PREFIX)
+
+    def _validate_id(self, id: str, prefix: str) -> bool:
+        if not isinstance(id, str):
+            return False
+
+        if not id.startswith(prefix):
+            return False
+
+        id_number = id.removeprefix(prefix)
+        return len(id_number) == 6 and id_number.isdigit()
+
+    def _validate_merge_single_cell(self, project_id) -> bool:
+        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.MERGE_SINGLE_CELL):
+            return isinstance(value, bool)
+
+        return True
+
+    def _validate_includes_bulk(self, project_id) -> bool:
+        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.INCLUDES_BULK):
+            return isinstance(value, bool)
+
+        return True
+
+    def _validate_single_cell(self, project_id) -> bool:
+        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SINGLE_CELL):
+            return self._validate_modality(value)
+
+        return True
+
+    def _validate_spatial(self, project_id) -> bool:
+        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SPATIAL):
+            return self._validate_modality(value)
+
+        return True
+
+    def _validate_modality(self, modality_sample_ids: List) -> bool:
+        if not isinstance(modality_sample_ids, list):
+            return False
+
+        for sample_id in modality_sample_ids:
+            if not self._validate_id(sample_id, common.SAMPLE_ID_PREFIX):
+                return False
+
+        return True
