@@ -47,27 +47,62 @@ class Job(TimestampedModel):
         return f"Job {self.id} - {self.state}"
 
     @classmethod
-    def get_job(
-        cls,
-        batch_job_name: str = None,
-        batch_job_queue: str = None,
-        batch_job_definition: str = None,
-        batch_container_overrides: dict = None,
-    ):
+    def get_project_job(cls, project_id: str, download_config_name: str, notify: bool = False):
         """
-        Prepare a Job instance for AWS Batch without saving it to the db.
+        Prepare a Job instance for a project without saving it to the db.
         """
 
-        batch_job_name = batch_job_name or "DEFAULT_BATCH_JOB_NAME"
-        batch_job_queue = batch_job_queue or "DEFAULT_BATCH_JOB_QUEUE"
-        batch_job_definition = batch_job_definition or "DEFAULT_BATCH_JOB_DEFINITION"
-        batch_container_overrides = batch_container_overrides or {"command": ["DEFAULT_COMMAND"]}
+        batch_job_name = f"{project_id}-{download_config_name}"
+        notify_flag = "--notify" if notify else ""
 
         return cls(
             batch_job_name=batch_job_name,
-            batch_job_queue=batch_job_queue,
-            batch_job_definition=batch_job_definition,
-            batch_container_overrides=batch_container_overrides,
+            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_container_overrides={
+                "command": [
+                    "python",
+                    "manage.py",
+                    "generate_computed_file",
+                    "--project-id",
+                    project_id,
+                    "--download-config-name",
+                    download_config_name,
+                    notify_flag,
+                ],
+            },
+        )
+
+    @classmethod
+    def get_sample_job(
+        cls,
+        sample_id: str,
+        download_config_name: str,
+        notify: bool = False,
+    ):
+        """
+        Prepare a Job instance for a sample without saving it to the db.
+        """
+
+        batch_job_name = f"{sample_id}-{download_config_name}"
+        notify_flag = "--notify" if notify else ""
+
+        return cls(
+            batch_job_name=batch_job_name,
+            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_container_overrides={
+                "command": [
+                    "python",
+                    "manage.py",
+                    "generate_computed_file",
+                    "--sample-id",
+                    sample_id,
+                    "--download-config-name",
+                    download_config_name,
+                    notify_flag,
+                ],
+            },
         )
 
     @property
@@ -77,19 +112,15 @@ class Job(TimestampedModel):
         """
         return boto3.client("batch", region_name=settings.AWS_REGION)
 
-    def submit(self, resource_id: str = "", notify: bool = False) -> None:
+    def submit(self) -> None:
         """Submit a job via boto3, update batch_job_id and state, and
         save the job object to the db"""
-
-        notify_flag = "--notify" if notify else ""
-        command = self.batch_container_overrides.get("command")
-        command.extend([resource_id, notify_flag])
 
         response = self._batch.submit_job(
             jobName=self.batch_job_name,
             jobQueue=self.batch_job_queue,
             jobDefinition=self.batch_job_definition,
-            containerOverrides={**self.batch_container_overrides, "command": command},
+            containerOverrides=self.batch_container_overrides,
         )
 
         self.batch_job_id = response["jobId"]
