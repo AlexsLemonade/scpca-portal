@@ -13,6 +13,7 @@ export const WarningText = ({
   iconPad = { right: 'small' },
   iconSize = '16px',
   text = '',
+  newTab = false,
   children
 }) => {
   return (
@@ -26,7 +27,7 @@ export const WarningText = ({
       </Box>
       <Paragraph>
         {text} {lineBreak && <br />}
-        {link && <Link label={linkLabel} href={link} />}
+        {link && <Link label={linkLabel} href={link} newTab={newTab} />}
         {children}
       </Paragraph>
     </Box>
