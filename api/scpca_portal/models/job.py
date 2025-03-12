@@ -1,4 +1,10 @@
+from datetime import datetime
+
+from django.conf import settings
 from django.db import models
+from django.utils.timezone import make_aware
+
+import boto3
 
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
@@ -30,7 +36,7 @@ class Job(TimestampedModel):
 
     # Job Information Defined from AWS (via Response)
     batch_job_id = models.TextField(null=True)
-    batch_status = models.TextField(null=True)
+    batch_status = models.TextField(null=True)  # Set by a cron job
 
     # Datasets should never be deleted
     dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
@@ -38,12 +44,90 @@ class Job(TimestampedModel):
     def __str__(self):
         if self.batch_job_id:
             return f"Job {self.id} - {self.batch_job_id} - {self.state}"
-
         return f"Job {self.id} - {self.state}"
 
-    def submit(self):
-        """Submit a job via boto3, and update batch_job_id and state."""
-        pass
+    @classmethod
+    def get_project_job(cls, project_id: str, download_config_name: str, notify: bool = False):
+        """
+        Prepare a Job instance for a project without saving it to the db.
+        """
+
+        batch_job_name = f"{project_id}-{download_config_name}"
+        notify_flag = "--notify" if notify else ""
+
+        return cls(
+            batch_job_name=batch_job_name,
+            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_container_overrides={
+                "command": [
+                    "python",
+                    "manage.py",
+                    "generate_computed_file",
+                    "--project-id",
+                    project_id,
+                    "--download-config-name",
+                    download_config_name,
+                    notify_flag,
+                ],
+            },
+        )
+
+    @classmethod
+    def get_sample_job(
+        cls,
+        sample_id: str,
+        download_config_name: str,
+        notify: bool = False,
+    ):
+        """
+        Prepare a Job instance for a sample without saving it to the db.
+        """
+
+        batch_job_name = f"{sample_id}-{download_config_name}"
+        notify_flag = "--notify" if notify else ""
+
+        return cls(
+            batch_job_name=batch_job_name,
+            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_container_overrides={
+                "command": [
+                    "python",
+                    "manage.py",
+                    "generate_computed_file",
+                    "--sample-id",
+                    sample_id,
+                    "--download-config-name",
+                    download_config_name,
+                    notify_flag,
+                ],
+            },
+        )
+
+    @property
+    def _batch(self):
+        """
+        boto3 client for AWS Batch.
+        """
+        return boto3.client("batch", region_name=settings.AWS_REGION)
+
+    def submit(self) -> None:
+        """Submit a job via boto3, update batch_job_id and state, and
+        save the job object to the db"""
+
+        response = self._batch.submit_job(
+            jobName=self.batch_job_name,
+            jobQueue=self.batch_job_queue,
+            jobDefinition=self.batch_job_definition,
+            containerOverrides=self.batch_container_overrides,
+        )
+
+        self.batch_job_id = response["jobId"]
+        self.state = JobStates.SUBMITTED
+        self.submitted_at = make_aware(datetime.now())
+
+        self.save()
 
     def terminate(self, retry_on_termination=False):
         """

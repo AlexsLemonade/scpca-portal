@@ -7,7 +7,9 @@ class Test(Local):
     # AWS S3
     # Note: Data must be resynced when test bucket is updated
     AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2024-09-10"
-
+    # AWS Batch
+    AWS_BATCH_JOB_QUEUE_NAME = "MOCK_AWS_BATCH_JOB_QUEUE_NAME"
+    AWS_BATCH_JOB_DEFINITION_NAME = "MOCK_AWS_BATCH_JOB_DEFINITION_NAME"
     # Code Paths
     INPUT_DATA_PATH = Path("/home/user/code/test_data/input")
     OUTPUT_DATA_PATH = Path("/home/user/code/test_data/output")
