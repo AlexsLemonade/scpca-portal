@@ -57,14 +57,14 @@ class Command(BaseCommand):
         for project in project_list:
             project_valid_download_config_names = project.valid_download_config_names
             for download_config_name in project_valid_download_config_names:
-                last_project = (
+                is_last_job = (
                     project == project_list[-1]
                     and download_config_name == project_valid_download_config_names[-1]
                 )
                 job = Job.get_project_job(
                     project_id=project.scpca_id,
                     download_config_name=download_config_name,
-                    notify=last_project and notify,
+                    notify=is_last_job and notify,
                 )
 
                 job.submit()
