@@ -21,6 +21,8 @@ class Dataset(TimestampedModel):
     data = models.JSONField(default=dict)
     email = models.EmailField(null=True)
     start = models.BooleanField(default=False)
+    is_metadata_only = models.BooleanField(default=False)
+
     # Format or regenerated_from is required at the time of creation
     format = models.TextField(choices=DatasetFormats.choices)
     regenerated_from = models.ForeignKey(
@@ -32,7 +34,6 @@ class Dataset(TimestampedModel):
 
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
-    is_metadata_only = models.BooleanField(default=False)
 
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
