@@ -205,3 +205,7 @@ class TestDataset(TestCase):
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
+
+    def test_is_ccdl_default_set(self):
+        dataset = DatasetFactory()
+        self.assertFalse(dataset.is_ccdl)
