@@ -23,12 +23,16 @@ class Dataset(TimestampedModel):
     start = models.BooleanField(default=False)
     # Format or regenerated_from is required at the time of creation
     format = models.TextField(choices=DatasetFormats.choices)
+    is_metadata_only = models.BooleanField(default=False)
     regenerated_from = models.ForeignKey(
         "self",
         null=True,
         on_delete=models.SET_NULL,
         related_name="regenerated_datasets",
     )
+
+    # Internally generated datasets
+    is_ccdl = models.BooleanField(default=False)
 
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
