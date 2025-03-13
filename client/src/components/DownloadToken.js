@@ -3,26 +3,8 @@ import { Box, Text, FormField, TextInput, CheckBox } from 'grommet'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
-
-// label for the checkbox needs to be component to show links
-const AcceptLabel = () => {
-  return (
-    <Text>
-      I agree to the <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
-      <Link label="Privacy Policy" href="/privacy-policy" />.
-    </Text>
-  )
-}
-
-// label for the checkbox needs to be component to show links
-const UpdatesLabel = () => {
-  return (
-    <Text>
-      I would like to receive occasional updates from the{' '}
-      <Link label="Data Lab Team" href="https://ccdatalab.org" />.
-    </Text>
-  )
-}
+import { AcceptLabel } from 'components/AcceptLabel'
+import { UpdatesLabel } from 'components/UpdatesLabel'
 
 // View when the user has no token in local storage yet
 export const DownloadToken = ({ resource }) => {
