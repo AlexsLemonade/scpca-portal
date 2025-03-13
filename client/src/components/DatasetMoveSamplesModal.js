@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, Grid, Heading, Paragraph, RadioButton, Text } from 'grommet'
+import { Box, Grid, RadioButton, Text } from 'grommet'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
@@ -14,11 +14,11 @@ export const DatasetMoveSamplesModal = ({
   modalDisabled = false,
   appendDisabled = false
 }) => {
-  const { responsive } = useResponsive()
   const [showing, setShowing] = useState(false)
   const [checkedAppendSamples, setCheckedAppendSamples] = useState(false)
   const [checkedReplaceSamples, setCheckedReplaceSamples] = useState(false)
 
+  const { responsive } = useResponsive()
   const totalSamples = 34
 
   const handleClick = () => {
