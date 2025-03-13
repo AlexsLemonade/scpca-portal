@@ -14,9 +14,12 @@ export const DatasetMoveSamplesModal = ({
   modalDisabled = false,
   appendDisabled = false
 }) => {
+  const { responsive } = useResponsive()
   const [showing, setShowing] = useState(false)
   const [checkedAppendSamples, setCheckedAppendSamples] = useState(false)
   const [checkedReplaceSamples, setCheckedReplaceSamples] = useState(false)
+
+  const totalSamples = 34
 
   const handleClick = () => {
     setShowing(true)
@@ -51,7 +54,7 @@ export const DatasetMoveSamplesModal = ({
             <Box>
               <WarningText
                 lineBreak={false}
-                text="There are 34 samples in My Dataset"
+                text={`There are ${totalSamples} samples in My Dataset`}
                 iconMargin="0"
               />
             </Box>
@@ -81,6 +84,14 @@ export const DatasetMoveSamplesModal = ({
                 </Text>
               </InfoText>
             )}
+            <Box
+              align="center"
+              direction={responsive('column', 'row')}
+              gap="xlarge"
+              justify="end"
+            >
+              <Button primary aria-label={label} label={label} />
+            </Box>
           </Grid>
         </ModalBody>
       </Modal>
