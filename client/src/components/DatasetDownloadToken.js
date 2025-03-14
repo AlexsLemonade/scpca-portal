@@ -1,8 +1,6 @@
 import React, { useState } from 'react'
-import { Box, CheckBox, Paragraph, TextInput } from 'grommet'
-import { FormField } from 'components/FormField'
-import { AcceptLabel } from 'components/AcceptLabel'
-import { UpdatesLabel } from 'components/UpdatesLabel'
+import { Box, Paragraph } from 'grommet'
+import { DownloadTokenInputs } from 'components/DownloadTokenInputs'
 
 // View when the user has no token in local storage yet
 export const DatasetDownloadToken = () => {
@@ -17,24 +15,13 @@ export const DatasetDownloadToken = () => {
         Please provide your email and we’ll let you know when it’s ready for
         download.
       </Paragraph>
-      <FormField label="Email" labelWeight="bold" fieldWidth="250px">
-        <TextInput
-          value={email || ''}
-          placeholder="myemail@example.com"
-          onChange={({ target: { value } }) => setEmail(value)}
-        />
-      </FormField>
-      <CheckBox
-        label={<AcceptLabel />}
-        value
-        checked={acceptsTerms}
-        onChange={({ target: { checked } }) => setAcceptsTerms(checked)}
-      />
-      <CheckBox
-        label={<UpdatesLabel />}
-        value
-        checked={wantsEmails}
-        onChange={({ target: { checked } }) => setWantsEmails(checked)}
+      <DownloadTokenInputs
+        acceptsTerms={acceptsTerms}
+        email={email}
+        wantsEmails={wantsEmails}
+        onAcceptsTermsChange={setAcceptsTerms}
+        onEmailChange={setEmail}
+        onWantEmailsChange={setWantsEmails}
       />
     </Box>
   )

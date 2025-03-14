@@ -1,10 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Box, Text, FormField, TextInput, CheckBox } from 'grommet'
+import { Box, Text } from 'grommet'
 import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
 import { Button } from 'components/Button'
+import { DownloadTokenInputs } from 'components/DownloadTokenInputs'
 import { Link } from 'components/Link'
-import { AcceptLabel } from 'components/AcceptLabel'
-import { UpdatesLabel } from 'components/UpdatesLabel'
 
 // View when the user has no token in local storage yet
 export const DownloadToken = ({ resource }) => {
@@ -53,23 +52,13 @@ export const DownloadToken = ({ resource }) => {
         download data.
       </Text>
       {(errors || errors.length) && <Text color="error">{errors}</Text>}
-      <FormField label="Email">
-        <TextInput
-          value={email || ''}
-          onChange={({ target: { value } }) => setEmail(value)}
-        />
-      </FormField>
-      <CheckBox
-        label={<AcceptLabel />}
-        value
-        checked={acceptsTerms}
-        onChange={({ target: { checked } }) => setAcceptsTerms(checked)}
-      />
-      <CheckBox
-        label={<UpdatesLabel />}
-        value
-        checked={wantsEmails}
-        onChange={({ target: { checked } }) => setWantsEmails(checked)}
+      <DownloadTokenInputs
+        acceptsTerms={acceptsTerms}
+        email={email}
+        wantsEmails={wantsEmails}
+        onAcceptsTermsChange={setAcceptsTerms}
+        onEmailChange={setEmail}
+        onWantEmailsChange={setWantsEmails}
       />
       <Box direction="row" justify="end" margin={{ top: 'medium' }}>
         <Button

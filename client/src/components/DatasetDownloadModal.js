@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Grid, Paragraph } from 'grommet'
+import { Box, Grid, Paragraph, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
-import { DatasetDownloadReady } from 'components/DatasetDownloadReady'
 import { DatasetDownloadToken } from 'components/DatasetDownloadToken'
-
 import { Modal, ModalBody } from 'components/Modal'
 
 // Button and modal to show when starting dataset processing for file download
@@ -15,7 +13,8 @@ export const DatasetDownloadModal = ({
   isToken = false // temporary
 }) => {
   const { responsive } = useResponsive()
-  // NOTE: We use ScPCAPortalContext or a new context for Dataset for managing token
+  // NOTE: We use ScPCAPortalContext or a new context for Dataset for managing token and email
+  const email = 'myemail@example.com'
   const [token, setToken] = useState(isToken)
   const [showing, setShowing] = useState(false)
 
@@ -47,7 +46,15 @@ export const DatasetDownloadModal = ({
                 We’re getting ready to put your dataset together. This can take
                 between a few hours to a day.
               </Paragraph>
-              {token ? <DatasetDownloadReady /> : <DatasetDownloadToken />}
+              {/* Note: We should probably check for dataset.email vs just the token email */}
+              {token ? (
+                <Paragraph margin={{ bottom: 'small' }}>
+                  We’ll send a email to <Text weight="bold">{email}</Text> once
+                  the dataset is ready to be downloaded.
+                </Paragraph>
+              ) : (
+                <DatasetDownloadToken />
+              )}
             </Box>
             <Box
               align="center"
