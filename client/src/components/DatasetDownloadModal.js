@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Grid, Paragraph } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
@@ -15,11 +15,19 @@ export const DatasetDownloadModal = ({
   isToken = false // temporary
 }) => {
   const { responsive } = useResponsive()
+  // NOTE: We use ScPCAPortalContext or a new context for Dataset for managing token
+  const [token, setToken] = useState(isToken)
   const [showing, setShowing] = useState(false)
 
   const handleClick = () => {
     setShowing(true)
   }
+
+  // temporary
+  // NOTE: We handle the token generation in DatasetDownloadToken
+  useEffect(() => {
+    setToken(isToken)
+  }, [isToken])
 
   return (
     <>
@@ -39,7 +47,7 @@ export const DatasetDownloadModal = ({
                 We’re getting ready to put your dataset together. This can take
                 between a few hours to a day.
               </Paragraph>
-              {isToken ? <DatasetDownloadReady /> : <DatasetDownloadToken />}
+              {token ? <DatasetDownloadReady /> : <DatasetDownloadToken />}
             </Box>
             <Box
               align="center"
