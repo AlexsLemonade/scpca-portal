@@ -1,8 +1,11 @@
 import React from 'react'
 import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
+import { NotificationContextProvider } from 'contexts/NotificationContext'
 
 const Context = Story => <ScPCAPortalContextProvider>
-  <Story />
+  <NotificationContextProvider>
+    <Story />
+  </NotificationContextProvider>
 </ScPCAPortalContextProvider>;
 
 export default Context;
