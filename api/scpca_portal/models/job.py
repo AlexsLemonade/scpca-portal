@@ -143,8 +143,8 @@ class Job(TimestampedModel):
     def terminate(self, retry_on_termination=False):
         """
         Terminate the submitted and incompleted job via boto3, and update state.
-        Throws an error if failed to terminate the job and,
-        set critical_error to True if the job is irrecoverable.
+        Throw an error if failed to terminate the job and,
+        set critical_error to True if the job is irrecoverable (e.g., server error).
         """
 
         if self.state in [JobStates.COMPLETED, JobStates.TERMINATED]:
