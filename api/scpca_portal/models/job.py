@@ -138,17 +138,12 @@ class Job(TimestampedModel):
     def terminate(self, retry_on_termination=False):
         """
         Terminate the submitted and incompleted job via boto3, and update state.
-        Throw an error if failed to terminate the job and,
-        set critical_error to True if the job is irrecoverable (e.g., server error).
+        Return True if the job is successfully terminated or already terminated, otherwise False.
+        Throw an error if failed to terminate the job.
         """
 
-        if self.state in [JobStates.COMPLETED, JobStates.TERMINATED]:
-            logger.info(
-                f"Job with the {self.state} state cannot be terminated.",
-                job_id=self.pk,
-                batch_job_id=self.batch_job_id,
-            )
-            return False
+        if self.state == JobStates.COMPLETED or self.state == JobStates.TERMINATED:
+            return self.state == JobStates.TERMINATED
 
         try:
             self._batch.terminate_job(jobId=self.batch_job_id, reason="Terminating job.")
@@ -165,15 +160,11 @@ class Job(TimestampedModel):
             )
             return False
         except Exception as error:
-            self.critical_error = True
-            self.state = JobStates.TERMINATED
             logger.exception(
                 f"Failed to terminate the job due to a ServerException:\n\t{error}",
                 job_id=self.pk,
                 batch_job_id=self.batch_job_id,
             )
-
-            self.save()
             return False
 
         logger.info(

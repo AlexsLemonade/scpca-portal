@@ -50,16 +50,15 @@ class TestJob(TestCase):
 
     @patch("scpca_portal.models.Job._batch")
     def test_terminate_job(self, mock_batch_client):
-        # Set up mock for terminate_job
-        mock_batch_client.terminate_job.return_value = True
-        job = JobFactory.create(
+        # Set up mock for the SUBMITTED job
+        submitted_job = JobFactory.create(
             batch_job_id=self.mock_batch_job_id,
             state=JobStates.SUBMITTED,
             project_id=self.mock_project_id,  # Test-only
         )
 
-        response = job.terminate(retry_on_termination=True)
-        mock_batch_client.terminate_job.assert_called_once()
+        response = submitted_job.terminate(retry_on_termination=True)
+        mock_batch_client.terminate_job.assert_called()
         self.assertTrue(response)
 
         # After termination, the job should be saved with correct field values
@@ -67,6 +66,18 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertTrue(saved_job.retry_on_termination)
         self.assertIsInstance(saved_job.terminated_at, datetime)
+
+        # Set up mock for the TERMINATED job
+        terminated_job = JobFactory.create(
+            batch_job_id=self.mock_batch_job_id,
+            state=JobStates.TERMINATED,
+            project_id=self.mock_project_id,  # Test-only
+        )
+
+        # Should return Ture for previously terminated job
+        response = terminated_job.terminate(retry_on_termination=True)
+        mock_batch_client.terminate_job.assert_called()
+        self.assertTrue(response)
 
     @patch("scpca_portal.models.Job._batch")
     def test_terminate_job_failure(self, mock_batch_client):
@@ -88,7 +99,6 @@ class TestJob(TestCase):
         # The job should not be updated in the db
         saved_job = Job.objects.first()
         self.assertEqual(saved_job.state, JobStates.SUBMITTED)
-        self.assertFalse(saved_job.critical_error)  # Still recoverable
         self.assertFalse(saved_job.retry_on_termination)
 
         # Set up mock for ServerException
@@ -98,8 +108,7 @@ class TestJob(TestCase):
         mock_batch_client.terminate_job.assert_called()
         self.assertFalse(response)
 
-        # The job should be saved with correct field values
+        # The job should not be updated
         saved_job = Job.objects.first()
-        self.assertEqual(saved_job.state, JobStates.TERMINATED)
-        self.assertTrue(saved_job.critical_error)  # No longer recoverable
+        self.assertEqual(saved_job.state, JobStates.SUBMITTED)
         self.assertFalse(saved_job.retry_on_termination)
