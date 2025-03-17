@@ -12,6 +12,8 @@ from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
 
+logger = get_and_configure_logger(__name__)
+
 
 class Job(TimestampedModel):
     class Meta:
@@ -114,13 +116,6 @@ class Job(TimestampedModel):
         """
         return boto3.client("batch", region_name=settings.AWS_REGION)
 
-    @property
-    def _logger(self):
-        """
-        Logger object for logging message.
-        """
-        return get_and_configure_logger(__name__)
-
     def submit(self) -> None:
         """
         Submit a job via boto3, update batch_job_id and state, and
@@ -148,7 +143,7 @@ class Job(TimestampedModel):
         """
 
         if self.state in [JobStates.COMPLETED, JobStates.TERMINATED]:
-            self._logger.info(
+            logger.info(
                 f"Job with the {self.state} state cannot be terminated.",
                 job_id=self.pk,
                 batch_job_id=self.batch_job_id,
@@ -163,7 +158,7 @@ class Job(TimestampedModel):
 
             self.save()
         except ClientError as error:
-            self._logger.exception(
+            logger.exception(
                 f"Failed to terminate the job due to a ClientException:\n\t{error}",
                 job_id=self.pk,
                 batch_job_id=self.batch_job_id,
@@ -172,7 +167,7 @@ class Job(TimestampedModel):
         except Exception as error:
             self.critical_error = True
             self.state = JobStates.TERMINATED
-            self._logger.exception(
+            logger.exception(
                 f"Failed to terminate the job due to a ServerException:\n\t{error}",
                 job_id=self.pk,
                 batch_job_id=self.batch_job_id,
@@ -181,7 +176,7 @@ class Job(TimestampedModel):
             self.save()
             return False
 
-        self._logger.info(
+        logger.info(
             "Job termination complete.",
             job_id=self.pk,
             batch_job_id=self.batch_job_id,
