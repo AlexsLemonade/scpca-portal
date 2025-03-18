@@ -4,8 +4,6 @@ from unittest.mock import patch
 from django.conf import settings
 from django.test import TestCase
 
-from botocore.exceptions import ClientError
-
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Job
 from scpca_portal.test.factories import JobFactory
@@ -90,22 +88,8 @@ class TestJob(TestCase):
             state=JobStates.SUBMITTED,
         )
 
-        # Set up mock for ClientException
-        mock_batch_client.terminate_job.side_effect = ClientError(
-            {"Error": {"Code": "400", "Message": "ClientException"}}, "MockTerminatingJob"
-        )
-
-        response = job.terminate(retry_on_termination=True)
-        mock_batch_client.terminate_job.assert_called()
-        self.assertFalse(response)
-
-        # The job should not be updated in the db
-        saved_job = Job.objects.first()
-        self.assertEqual(saved_job.state, JobStates.SUBMITTED)
-        self.assertFalse(saved_job.retry_on_termination)
-
-        # Set up mock for ServerException
-        mock_batch_client.terminate_job.side_effect = Exception("ServerException")
+        # Set up mock to raise an exception
+        mock_batch_client.terminate_job.side_effect = Exception("Exception")
 
         response = job.terminate(retry_on_termination=True)
         mock_batch_client.terminate_job.assert_called()

@@ -5,7 +5,6 @@ from django.db import models
 from django.utils.timezone import make_aware
 
 import boto3
-from botocore.exceptions import ClientError
 
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
@@ -152,16 +151,10 @@ class Job(TimestampedModel):
             self.terminated_at = make_aware(datetime.now())
 
             self.save()
-        except ClientError as error:
-            logger.exception(
-                f"Failed to terminate the job due to a ClientException:\n\t{error}",
-                job_id=self.pk,
-                batch_job_id=self.batch_job_id,
-            )
-            return False
+
         except Exception as error:
             logger.exception(
-                f"Failed to terminate the job due to a ServerException:\n\t{error}",
+                f"Failed to terminate the job due to: \n\t{error}",
                 job_id=self.pk,
                 batch_job_id=self.batch_job_id,
             )
