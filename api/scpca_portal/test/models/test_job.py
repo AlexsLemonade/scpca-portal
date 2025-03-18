@@ -58,9 +58,9 @@ class TestJob(TestCase):
             state=JobStates.SUBMITTED,
         )
 
-        response = submitted_job.terminate(retry_on_termination=True)
+        success = submitted_job.terminate(retry_on_termination=True)
         mock_batch_client.terminate_job.assert_called()
-        self.assertTrue(response)
+        self.assertTrue(success)
 
         # After termination, the job should be saved with correct field values
         saved_job = Job.objects.first()
@@ -76,9 +76,9 @@ class TestJob(TestCase):
         )
 
         # Should return Ture for previously terminated job
-        response = terminated_job.terminate(retry_on_termination=True)
+        success = terminated_job.terminate(retry_on_termination=True)
         mock_batch_client.terminate_job.assert_called()
-        self.assertTrue(response)
+        self.assertTrue(success)
 
     @patch("scpca_portal.models.Job._batch")
     def test_terminate_job_failure(self, mock_batch_client):
@@ -91,9 +91,9 @@ class TestJob(TestCase):
         # Set up mock to raise an exception
         mock_batch_client.terminate_job.side_effect = Exception("Exception")
 
-        response = job.terminate(retry_on_termination=True)
+        failure = job.terminate(retry_on_termination=True)
         mock_batch_client.terminate_job.assert_called()
-        self.assertFalse(response)
+        self.assertFalse(failure)
 
         # The job should not be updated
         saved_job = Job.objects.first()
