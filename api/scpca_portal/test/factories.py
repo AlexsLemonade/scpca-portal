@@ -211,29 +211,7 @@ class DatasetFactory(factory.django.DjangoModelFactory):
 class JobFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Job"
-        exclude = (
-            "project_id",
-            "sample_id",
-            "download_config_name",
-            "resource_flag",
-            "resource_id",
-        )
 
-    # Test-only fields (not part of the model)
-    project_id = None
-    sample_id = None
-    download_config_name = "MOCK_DOWNLOAD_CONFIG"
-    resource_flag = factory.LazyAttribute(
-        lambda obj: "--project-id" if obj.project_id else "--sample-id"
-    )
-    resource_id = factory.LazyAttribute(
-        lambda obj: obj.project_id if obj.project_id else obj.sample_id
-    )
-
-    # Required fields for creating a job (part of the model)
-    batch_job_name = factory.LazyAttribute(
-        lambda obj: f"{obj.project_id}-{obj.download_config_name}"
-    )
     batch_job_queue = settings.AWS_BATCH_JOB_QUEUE_NAME
     batch_job_definition = settings.AWS_BATCH_JOB_DEFINITION_NAME
     batch_container_overrides = factory.LazyAttribute(
@@ -242,11 +220,10 @@ class JobFactory(factory.django.DjangoModelFactory):
                 "python",
                 "manage.py",
                 "generate_computed_file",
-                obj.resource_flag,
-                obj.resource_id,
+                "--project-id" if "SCPCP" in obj.batch_job_name else "--sample-id",
+                "SCPCP000000" if "SCPCP" in obj.batch_job_name else "SCPCS000000",
                 "--download-config-name",
-                obj.download_config_name,
-                "",
+                "MOCK_DOWNLOAD_CONFIG",
             ]
         }
     )

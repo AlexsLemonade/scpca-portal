@@ -14,8 +14,11 @@ from scpca_portal.test.factories import JobFactory
 class TestJob(TestCase):
     def setUp(self):
         self.mock_project_id = "SCPCP000000"
-        self.mock_sample_id = "SCPCS000000"
+        self.mock_download_config_name = "MOCK_DOWNLOAD_CONFIG"
         self.mock_batch_job_id = "MOCK_JOB_ID"  # The job id via AWS Batch response
+        self.mock_project_batch_job_name = (
+            f"{self.mock_project_id}-{self.mock_download_config_name}"
+        )
 
     @patch("scpca_portal.models.Job._batch")
     def test_submit_job(self, mock_batch_client):
@@ -23,7 +26,7 @@ class TestJob(TestCase):
         mock_batch_client.submit_job.return_value = {"jobId": self.mock_batch_job_id}
 
         job = Job.get_project_job(
-            project_id=self.mock_project_id, download_config_name="MOCK_DOWNLOAD_CONFIG"
+            project_id=self.mock_project_id, download_config_name=self.mock_download_config_name
         )
 
         # Before submission, the job instance should not have an ID
@@ -51,10 +54,10 @@ class TestJob(TestCase):
     @patch("scpca_portal.models.Job._batch")
     def test_terminate_job(self, mock_batch_client):
         # Set up mock for the SUBMITTED job
-        submitted_job = JobFactory.create(
+        submitted_job = JobFactory(
+            batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
             state=JobStates.SUBMITTED,
-            project_id=self.mock_project_id,  # Test-only
         )
 
         response = submitted_job.terminate(retry_on_termination=True)
@@ -68,10 +71,10 @@ class TestJob(TestCase):
         self.assertIsInstance(saved_job.terminated_at, datetime)
 
         # Set up mock for the TERMINATED job
-        terminated_job = JobFactory.create(
+        terminated_job = JobFactory(
+            batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
             state=JobStates.TERMINATED,
-            project_id=self.mock_project_id,  # Test-only
         )
 
         # Should return Ture for previously terminated job
@@ -81,10 +84,10 @@ class TestJob(TestCase):
 
     @patch("scpca_portal.models.Job._batch")
     def test_terminate_job_failure(self, mock_batch_client):
-        job = JobFactory.create(
+        job = JobFactory(
+            batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
             state=JobStates.SUBMITTED,
-            project_id=self.mock_project_id,  # Test-only
         )
 
         # Set up mock for ClientException
