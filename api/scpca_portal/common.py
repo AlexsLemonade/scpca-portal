@@ -1,3 +1,5 @@
+from scpca_portal.enums import Configs
+
 CSV_MULTI_VALUE_DELIMITER = ";"
 
 TAB = "\t"
@@ -186,3 +188,68 @@ PORTAL_METADATA_DOWNLOAD_CONFIG = {
 }
 
 PORTAL_METADATA_COMPUTED_FILE_NAME = "PORTAL_ALL_METADATA.zip"
+
+DOWNLOAD_CONFIGS = {
+    Configs.PROJECT_SINGLE_CELL_SINGLE_CELL_EXPERIMENT: {
+        "modality": "SINGLE_CELL",
+        "format": "SINGLE_CELL_EXPERIMENT",
+        "excludes_multiplexed": True,
+        "includes_merged": False,
+        "metadata_only": False,
+    },
+    Configs.PROJECT_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED: {
+        "modality": "SINGLE_CELL",
+        "format": "SINGLE_CELL_EXPERIMENT",
+        "excludes_multiplexed": False,
+        "includes_merged": False,
+        "metadata_only": False,
+    },
+    # Notes about merged objects (accoring to scpca portal documentation):
+    #   Only Single-cell (not spatial) for sce and anndata
+    #   Only projects with non-multiplexed libraries can be merged
+    #   Merged objects are unavailable for projects with > 100 samples
+    Configs.PROJECT_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: {
+        "modality": "SINGLE_CELL",
+        "format": "SINGLE_CELL_EXPERIMENT",
+        "excludes_multiplexed": True,
+        "includes_merged": True,
+        "metadata_only": False,
+    },
+    Configs.PROJECT_SINGLE_CELL_ANN_DATA: {
+        "modality": "SINGLE_CELL",
+        "format": "ANN_DATA",
+        "excludes_multiplexed": True,
+        "includes_merged": False,
+        "metadata_only": False,
+    },
+    Configs.PROJECT_SINGLE_CELL_ANN_DATA_MERGED: {
+        "modality": "SINGLE_CELL",
+        "format": "ANN_DATA",
+        "excludes_multiplexed": True,
+        "includes_merged": True,
+        "metadata_only": False,
+    },
+    Configs.PROJECT_SPATIAL_SINGLE_CELL_EXPERIMENT: {
+        "modality": "SPATIAL",
+        "format": "SINGLE_CELL_EXPERIMENT",
+        "excludes_multiplexed": True,
+        "includes_merged": False,
+        "metadata_only": False,
+    },
+    Configs.PROJECT_ALL_METADATA: {
+        "modality": None,
+        "format": None,
+        "excludes_multiplexed": False,
+        "includes_merged": False,
+        "metadata_only": True,
+    },
+    Configs.SAMPLE_SINGLE_CELL_SINGLE_CELL_EXPERIMENT: {
+        "modality": "SINGLE_CELL",
+        "format": "SINGLE_CELL_EXPERIMENT",
+    },
+    Configs.SAMPLE_SINGLE_CELL_ANN_DATA: {"modality": "SINGLE_CELL", "format": "ANN_DATA"},
+    Configs.SAMPLE_SPATIAL_SINGLE_CELL_EXPERIMENT: {
+        "modality": "SPATIAL",
+        "format": "SINGLE_CELL_EXPERIMENT",
+    },
+}

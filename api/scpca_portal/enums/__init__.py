@@ -1,3 +1,4 @@
+from scpca_portal.enums.configs import Configs
 from scpca_portal.enums.dataset_data_project_config import DatasetDataProjectConfig
 from scpca_portal.enums.dataset_formats import DatasetFormats
 from scpca_portal.enums.file_formats import FileFormats
