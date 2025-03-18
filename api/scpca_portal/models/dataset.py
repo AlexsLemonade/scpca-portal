@@ -3,10 +3,15 @@ from typing import Any, Dict, List
 
 from django.db import models
 
+from typing_extensions import Self
+
 from scpca_portal import common
-from scpca_portal.enums import DatasetDataProjectConfig, DatasetFormats
-from scpca_portal.models import APIToken, ComputedFile
+from scpca_portal.enums import Configs, DatasetDataProjectConfig, DatasetFormats, Modalities
+from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.project import Project
+from scpca_portal.models.sample import Sample
 
 
 class Dataset(TimestampedModel):
@@ -66,6 +71,94 @@ class Dataset(TimestampedModel):
 
     def __str__(self):
         return f"Dataset {self.id}"
+
+    @classmethod
+    def get_from_config(cls, config: Configs, project_id: str = "", sample_id: str = "") -> Self:
+        download_config = common.DOWNLOAD_CONFIGS[config]
+
+        # Project All Metadata and Portal All Metadata
+        if download_config.get("metadata_only"):
+            data = {}
+            for project_id in (
+                [project_id]
+                if project_id
+                else Project.objects.all().values_list("scpca_id", flat=True)
+            ):
+                all_project_samples = Sample.objects.filter(project__scpca_id=project_id)
+                project_config = {
+                    "merge_single_cell": False,
+                    "includes_bulk": False,
+                    Modalities.SINGLE_CELL: all_project_samples.filter(
+                        modality=Modalities.SINGLE_CELL
+                    ).values_list("scpca_id", flat=True),
+                    Modalities.SPATIAL: all_project_samples.filter(
+                        modality=Modalities.SPATIAL
+                    ).values_list("scpca_id", flat=True),
+                }
+
+                data[project_id] = project_config
+
+            return cls(
+                data=data,
+                is_metadata_only=download_config.get("metadata_only"),
+                format=download_config.get("format"),
+                is_ccdl=True,
+            )
+
+        if sample_id:
+            project_config = {
+                "merge_single_cell": False,
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [],
+                Modalities.SPATIAL: [],
+            }
+            match download_config.get("modality"):
+                case Modalities.SINGLE_CELL:
+                    project_config[Modalities.SINGLE_CELL].append(sample_id)
+                case Modalities.SPATIAL:
+                    project_config[Modalities.SPATIAL].append(sample_id)
+                case _:
+                    raise ValueError(
+                        "Invalid download config passed: Sample config must have a modality."
+                    )
+
+            return cls(
+                data={project_id: project_config},
+                is_metadata_only=False,
+                format=download_config.get("modality"),
+                is_ccdl=True,
+            )
+
+        if project_id:
+            project_config = {
+                "merge_single_cell": download_config.get("includes_merged"),
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: [],
+                Modalities.SPATIAL: [],
+            }
+
+            samples = Sample.objects.filter(project__scpca_id=project_id)
+            if download_config.get("excludes_multiplexed"):
+                samples = samples.filter(has_multiplexed_data=False)
+            sample_ids = samples.values_list("scpca_id", flat=True)
+
+            match download_config.get("modality"):
+                case Modalities.SINGLE_CELL:
+                    project_config[Modalities.SINGLE_CELL].extend(sample_ids)
+                case Modalities.SPATIAL:
+                    project_config[Modalities.SPATIAL].extend(sample_ids)
+                case _:
+                    raise ValueError(
+                        "Invalid download config passed: "
+                        "Non Metadata Only Project Download Config must have a modality."
+                    )
+
+            return cls(
+                data={project_id: project_config},
+                is_metadata_only=False,
+                format=download_config.get("modality"),
+                is_ccdl=True,
+            )
 
     @property
     def is_data_valid(self) -> bool:
