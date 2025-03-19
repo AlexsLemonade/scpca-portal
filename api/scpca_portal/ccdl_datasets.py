@@ -10,13 +10,13 @@ TYPES = {
     "SINGLE_CELL_SINGLE_CELL_EXPERIMENT": {
         "modality": Modalities.SINGLE_CELL,
         "format": DatasetFormats.SINGLE_CELL_EXPERIMENT,
-        "excludes_multiplexed": True,
+        "excludes_multiplexed": False,
         "includes_merged": False,
     },
-    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED": {
+    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLED": {
         "modality": Modalities.SINGLE_CELL,
         "format": DatasetFormats.SINGLE_CELL_EXPERIMENT,
-        "excludes_multiplexed": False,
+        "excludes_multiplexed": True,
         "includes_merged": False,
     },
     # Notes about merged objects (accoring to scpca portal documentation):
@@ -61,7 +61,14 @@ TYPES = {
     },
 }
 
-# List out CCDLDatasetNames for valid types for each scope
-PORTAL_NAMES = []
-PROJECT_NAMES = []
-SAMPLE_NAMES = []
+PORTAL_TYPE_NAMES = [
+    "ALL_METADATA",
+    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT",
+    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED",
+    "SINGLE_CELL_ANN_DATA",
+    "SINGLE_CELL_ANN_DATA_MERGED",
+    "SPATIAL_SINGLE_CELL_EXPERIMENT",
+    "SAMPLE_SINGLE_CELL_SINGLE_CELL_EXPERIMENT",
+    "SAMPLE_SINGLE_CELL_ANN_DATA",
+    "SAMPLE_SPATIAL_SINGLE_CELL_EXPERIMENT",
+]
