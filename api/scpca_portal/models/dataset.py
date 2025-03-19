@@ -4,6 +4,7 @@ from typing import Any, Dict, Iterable, List
 from django.db import models
 
 from scpca_portal import ccdl_datasets, common
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
     DatasetDataProjectConfig,
@@ -15,6 +16,8 @@ from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
+
+logger = get_and_configure_logger(__name__)
 
 
 class Dataset(TimestampedModel):
@@ -116,6 +119,60 @@ class Dataset(TimestampedModel):
 
         modality = self.ccdl_type.get("modality")
         self.data[sample.project.scpca_id][modality].append(sample.scpca_id)
+
+    @property
+    def is_ccdl_exists(self) -> bool:
+        matching = Dataset.objects.filter(is_ccdl=True, ccdl_name=self.ccdl_name)
+        if not matching.exists():
+            return False
+
+        for dataset in matching:
+            if set(dataset.data.keys()) == set(self.data.keys()):
+                return True
+
+        return False
+
+    def validate_samples(self) -> bool:
+        for project_id, project_config in self.data.items():
+            project = Project.objects.filter(scpca_id=project_id).first()
+            if not project:
+                logger.error(f"{self} invalid: Project {project_id} doesn't exist.")
+                return False
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                for sample_id in project_config[modality]:
+                    sample = Sample.objects.filter(scpca_id=project_id).first()
+                    if not sample:
+                        logger.error(
+                            f"{self} invalid: "
+                            f"Sample {sample_id} of modality {modality} "
+                            f"does not exist in Project {project_id}."
+                        )
+                        return False
+                    if sample.project.scpca_id != project_id:
+                        logger.error(
+                            f"{self} invalid: "
+                            f"Sample {sample_id} does not belong to Project {project_id}."
+                        )
+                        return False
+                    libraries = sample.libraries
+                    if not libraries:
+                        logger.error(
+                            f"{self} invalid: "
+                            f"Sample {sample_id} of Project {project_id} has no libraries."
+                        )
+                        return False
+                    if modality not in sample.modalities:
+                        logger.error(
+                            f"{self} invalid: "
+                            f"Sample {sample_id} of Project {project_id} "
+                            f"not of modality {modality}."
+                        )
+                        return False
+
+        return True
+
+    def validate_ccdl_dataset(self) -> bool:
+        return (not self.is_ccdl_exists) and self.validate_samples()
 
     @property
     def ccdl_type(self) -> Dict:
