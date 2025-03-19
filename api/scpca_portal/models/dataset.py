@@ -45,6 +45,7 @@ class Dataset(TimestampedModel):
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
     ccdl_name = models.TextField(choices=CCDLDatasetNames.choices, null=True)
+    ccdl_project_id = models.TextField(null=True)
 
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
