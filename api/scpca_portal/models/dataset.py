@@ -154,8 +154,7 @@ class Dataset(TimestampedModel):
                             f"Sample {sample_id} does not belong to Project {project_id}."
                         )
                         return False
-                    libraries = sample.libraries
-                    if not libraries:
+                    if not sample.libraries:
                         logger.error(
                             f"{self} invalid: "
                             f"Sample {sample_id} of Project {project_id} has no libraries."
