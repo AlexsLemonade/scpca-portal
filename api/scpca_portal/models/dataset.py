@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, List
 
 from django.db import models
 
@@ -80,16 +80,24 @@ class Dataset(TimestampedModel):
         return f"Dataset {self.id}"
 
     @classmethod
-    def get_ccdl_dataset(cls, ccdl_name):
-        return cls(is_ccdl=True, ccdl_name=ccdl_name)
+    def get_ccdl_dataset(cls, ccdl_name, project_id: str | None = None):
+        dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
+        dataset.format = dataset.ccdl_type["format"]
+        dataset.data = dataset.get_ccdl_data()
+        return dataset
 
-    def populate_ccdl_data(self, projects: Iterable[Project]):
+    def get_ccdl_data(self) -> Dict:
+        projects = Project.objects.all()
+        if self.ccdl_project_id:
+            projects = projects.filter(scpca_id=self.ccdl_project_id)
+
+        data = {}
         for project in projects:
-            samples = Sample.objects.filter(project__scpca_id=project.scpca_id)
+            samples = project.samples
             if self.ccdl_type.get("excludes_multiplexed"):
                 samples = samples.filter(has_multiplexed_data=False)
 
-            self.data[project.scpca_id] = {
+            data[project.scpca_id] = {
                 "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL: [],
@@ -98,40 +106,19 @@ class Dataset(TimestampedModel):
 
             # Data dataset types
             if modality := self.ccdl_type.get("modality"):
-                self.data[project.scpca_id][modality].extend(
+                data[project.scpca_id][modality].extend(
                     samples.filter(modality=modality).values_list("scpca_id", flat=True)
                 )
             # Metadata only dataset types
             else:
-                self.data[project.scpca_id][Modalities.SINGLE_CELL] = samples.filter(
+                data[project.scpca_id][Modalities.SINGLE_CELL] = samples.filter(
                     modality=Modalities.SINGLE_CELL
                 ).values_list("scpca_id", flat=True)
-                self.data[project.scpca_id][Modalities.SPATIAL] = samples.filter(
+                data[project.scpca_id][Modalities.SPATIAL] = samples.filter(
                     modality=Modalities.SPATIAL
                 ).values_list("scpca_id", flat=True)
 
-    def populate_ccdl_data_sample(self, sample: Sample):
-        self.data[sample.project.scpca_id] = {
-            "merge_single_cell": False,
-            "includes_bulk": False,
-            Modalities.SINGLE_CELL: [],
-            Modalities.SPATIAL: [],
-        }
-
-        modality = self.ccdl_type.get("modality")
-        self.data[sample.project.scpca_id][modality].append(sample.scpca_id)
-
-    @property
-    def is_ccdl_exists(self) -> bool:
-        matching = Dataset.objects.filter(is_ccdl=True, ccdl_name=self.ccdl_name)
-        if not matching.exists():
-            return False
-
-        for dataset in matching:
-            if set(dataset.data.keys()) == set(self.data.keys()):
-                return True
-
-        return False
+        return data
 
     def validate_samples(self) -> bool:
         for project_id, project_config in self.data.items():
