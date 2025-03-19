@@ -3,10 +3,13 @@ from typing import Any, Dict, Iterable, List
 
 from django.db import models
 
-from typing_extensions import Self
-
-from scpca_portal import common
-from scpca_portal.enums import Configs, DatasetDataProjectConfig, DatasetFormats, Modalities
+from scpca_portal import ccdl_datasets, common
+from scpca_portal.enums import (
+    CCDLDatasetNames,
+    DatasetDataProjectConfig,
+    DatasetFormats,
+    Modalities,
+)
 from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -38,6 +41,7 @@ class Dataset(TimestampedModel):
 
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
+    ccdl_name = models.TextField(choices=CCDLDatasetNames.choices)
 
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
@@ -72,57 +76,50 @@ class Dataset(TimestampedModel):
         return f"Dataset {self.id}"
 
     @classmethod
-    def get_from_projects(cls, config: Configs, projects: Iterable[Project]) -> Self:
-        download_config = common.DOWNLOAD_CONFIGS[config]
+    def get_ccdl_dataset(cls, ccdl_name):
+        return cls(is_ccdl=True, ccdl_name=ccdl_name)
 
-        data = {}
+    def populate_ccdl_data(self, projects: Iterable[Project]):
         for project in projects:
             samples = Sample.objects.filter(project__scpca_id=project.scpca_id)
-            if download_config.get("excludes_multiplexed"):
+            if self.ccdl_type.get("excludes_multiplexed"):
                 samples = samples.filter(has_multiplexed_data=False)
 
-            data[project.scpca_id] = {
-                "merge_single_cell": download_config.get("includes_merged"),
+            self.data[project.scpca_id] = {
+                "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL: samples.filter(modality=Modalities.SINGLE_CELL).values_list(
-                    "scpca_id", flat=True
-                ),
-                Modalities.SPATIAL: samples.filter(modality=Modalities.SPATIAL).values_list(
-                    "scpca_id", flat=True
-                ),
+                Modalities.SINGLE_CELL: [],
+                Modalities.SPATIAL: [],
             }
 
-        return cls(
-            data=data,
-            format=download_config.get("format"),
-            is_ccdl=True,
-        )
+            # Data dataset types
+            if modality := self.ccdl_type.get("modality"):
+                self.data[project.scpca_id][modality].extend(
+                    samples.filter(modality=modality).values_list("scpca_id", flat=True)
+                )
+            # Metadata only dataset types
+            else:
+                self.data[project.scpca_id][Modalities.SINGLE_CELL] = samples.filter(
+                    modality=Modalities.SINGLE_CELL
+                ).values_list("scpca_id", flat=True)
+                self.data[project.scpca_id][Modalities.SPATIAL] = samples.filter(
+                    modality=Modalities.SPATIAL
+                ).values_list("scpca_id", flat=True)
 
-    @classmethod
-    def get_from_sample(cls, config: Configs, sample: Sample) -> Self:
-        download_config = common.DOWNLOAD_CONFIGS[config]
-        project_config = {
+    def populate_ccdl_data_sample(self, sample: Sample):
+        self.data[sample.project.scpca_id] = {
             "merge_single_cell": False,
             "includes_bulk": False,
             Modalities.SINGLE_CELL: [],
             Modalities.SPATIAL: [],
         }
-        match download_config.get("modality"):
-            case Modalities.SINGLE_CELL:
-                project_config[Modalities.SINGLE_CELL].append(sample.scpca_id)
-            case Modalities.SPATIAL:
-                project_config[Modalities.SPATIAL].append(sample.scpca_id)
-            case _:
-                raise ValueError(
-                    "Invalid download config passed: Sample config must have a modality."
-                )
 
-        return cls(
-            data={sample.project.scpca_id: project_config},
-            is_metadata_only=False,
-            format=download_config.get("modality"),
-            is_ccdl=True,
-        )
+        modality = self.ccdl_type.get("modality")
+        self.data[sample.project.scpca_id][modality].append(sample.scpca_id)
+
+    @property
+    def ccdl_type(self) -> Dict:
+        return ccdl_datasets.TYPES.get(self.ccdl_name)
 
     @property
     def is_data_valid(self) -> bool:
