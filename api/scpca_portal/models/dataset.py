@@ -158,8 +158,17 @@ class Dataset(TimestampedModel):
 
         return True
 
-    def validate_ccdl_dataset(self) -> bool:
-        return (not self.is_ccdl_exists) and self.validate_samples()
+    @property
+    def existing_ccdl_datasets(self) -> bool:
+        return Dataset.objects.filter(
+            is_ccdl=True, ccdl_name=self.ccdl_name, ccdl_project_id=self.ccdl_project_id
+        )
+
+    def should_process(self) -> bool:
+        if dataset := self.existing_ccdl_datasets.first():
+            return self.data != dataset.data
+
+        return True
 
     @property
     def ccdl_type(self) -> Dict:
