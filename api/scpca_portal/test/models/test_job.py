@@ -91,9 +91,9 @@ class TestJob(TestCase):
         # Set up mock to raise an exception
         mock_batch_client.terminate_job.side_effect = Exception("Exception")
 
-        failure = job.terminate(retry_on_termination=True)
+        success = job.terminate(retry_on_termination=True)
         mock_batch_client.terminate_job.assert_called()
-        self.assertFalse(failure)
+        self.assertFalse(success)
 
         # The job should not be updated
         saved_job = Job.objects.first()
