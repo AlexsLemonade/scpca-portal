@@ -114,8 +114,9 @@ class TestJob(TestCase):
 
         # Change the job state to TERMINATED
         job.state = JobStates.TERMINATED
-        # Should return a new instance for retrying the terminated job
+        # Should return a new unsaved instance for retrying the terminated job
         retry_job = job.get_retry_job()
+        self.assertIsNone(retry_job.id)  # Should not have an ID
         # Make sure required fields are copied and attempt is incremented
         self.assertEqual(retry_job.attempt, job.attempt + 1)
         self.assertEqual(retry_job.batch_job_name, job.batch_job_name)
