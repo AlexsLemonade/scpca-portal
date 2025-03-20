@@ -46,13 +46,11 @@ export const DatasetMoveSamplesModal = ({
             margin={{ bottom: '0' }}
             pad={{ bottom: '0' }}
           >
-            <Box>
-              <WarningText
-                lineBreak={false}
-                text={`There are ${totalSamples} samples in My Dataset`}
-                iconMargin="0"
-              />
-            </Box>
+            <WarningText lineBreak={false} iconMargin="0" iconSize="24px">
+              <Text size="21px" margin={{ left: 'xsmall' }}>
+                There are {totalSamples} samples in My Dataset
+              </Text>
+            </WarningText>
             <FormField>
               <RadioButtonGroup
                 name="action"
