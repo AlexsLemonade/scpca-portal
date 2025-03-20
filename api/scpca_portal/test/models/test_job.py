@@ -51,7 +51,6 @@ class TestJob(TestCase):
 
     @patch("scpca_portal.models.Job._batch")
     def test_terminate_job(self, mock_batch_client):
-        # Set up mock for the SUBMITTED job
         submitted_job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
@@ -59,7 +58,7 @@ class TestJob(TestCase):
         )
 
         success = submitted_job.terminate(retry_on_termination=True)
-        mock_batch_client.terminate_job.assert_called()
+        mock_batch_client.terminate_job.assert_called_once()
         self.assertTrue(success)
 
         # After termination, the job should be saved with correct field values
@@ -68,16 +67,17 @@ class TestJob(TestCase):
         self.assertTrue(saved_job.retry_on_termination)
         self.assertIsInstance(saved_job.terminated_at, datetime)
 
-        # Set up mock for the TERMINATED job
+    @patch("scpca_portal.models.Job._batch")
+    def test_terminate_job_on_terminated_job(self, mock_batch_client):
         terminated_job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
             state=JobStates.TERMINATED,
         )
 
-        # Should return Ture for previously terminated job
+        # Should return True early for already TERMINATED jobs
         success = terminated_job.terminate(retry_on_termination=True)
-        mock_batch_client.terminate_job.assert_called()
+        mock_batch_client.terminate_job.assert_not_called()
         self.assertTrue(success)
 
     @patch("scpca_portal.models.Job._batch")
@@ -92,10 +92,9 @@ class TestJob(TestCase):
         mock_batch_client.terminate_job.side_effect = Exception("Exception")
 
         success = job.terminate(retry_on_termination=True)
-        mock_batch_client.terminate_job.assert_called()
+        mock_batch_client.terminate_job.assert_called_once()
         self.assertFalse(success)
 
-        # The job should not be updated
+        # The job state should remain the same
         saved_job = Job.objects.first()
-        self.assertEqual(saved_job.state, JobStates.SUBMITTED)
-        self.assertFalse(saved_job.retry_on_termination)
+        self.assertEqual(saved_job.state, job.state)

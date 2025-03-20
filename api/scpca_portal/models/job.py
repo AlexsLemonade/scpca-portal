@@ -136,12 +136,12 @@ class Job(TimestampedModel):
 
     def terminate(self, retry_on_termination=False) -> bool:
         """
-        Terminate the submitted and incompleted job via boto3, and update state.
+        Terminate the submitted and incomplete job via boto3, and update state.
         Return True if the job is successfully terminated or already terminated, otherwise False.
         Throw an error if failed to terminate the job.
         """
 
-        if self.state == JobStates.COMPLETED or self.state == JobStates.TERMINATED:
+        if self.state in [JobStates.COMPLETED, JobStates.TERMINATED]:
             return self.state == JobStates.TERMINATED
 
         try:
