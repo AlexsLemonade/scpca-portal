@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, Grid, RadioButton, Text } from 'grommet'
+import { Box, Grid, RadioButtonGroup, Text } from 'grommet'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
@@ -7,6 +7,7 @@ import { Modal, ModalBody } from 'components/Modal'
 import { WarningText } from 'components/WarningText'
 import { InfoText } from 'components/InfoText'
 import { Link } from 'components/Link'
+import { FormField } from 'components/FormField'
 
 export const DatasetMoveSamplesModal = ({
   label = 'Move Samples',
@@ -15,23 +16,17 @@ export const DatasetMoveSamplesModal = ({
   appendDisabled = false
 }) => {
   const [showing, setShowing] = useState(false)
-  const [checkedAppendSamples, setCheckedAppendSamples] = useState(false)
-  const [checkedReplaceSamples, setCheckedReplaceSamples] = useState(false)
+  const radioOptions = [
+    { label: 'Append samples to My Dataset', value: 'append' },
+    { label: 'Replace samples in My Dataset', value: 'replace' }
+  ]
+  const [action, setAction] = useState(radioOptions[0].value)
 
   const { responsive } = useResponsive()
   const totalSamples = 34
 
   const handleClick = () => {
     setShowing(true)
-  }
-
-  const handleChangedCheckAppend = () => {
-    setCheckedAppendSamples(true)
-    setCheckedReplaceSamples(false)
-  }
-  const handleChangedCheckReplace = () => {
-    setCheckedReplaceSamples(true)
-    setCheckedAppendSamples(false)
   }
 
   return (
@@ -58,20 +53,14 @@ export const DatasetMoveSamplesModal = ({
                 iconMargin="0"
               />
             </Box>
-            <Box>
-              <RadioButton
-                name="radio"
-                checked={checkedAppendSamples}
-                label="Append samples to My Dataset"
-                onChange={handleChangedCheckAppend}
+            <FormField>
+              <RadioButtonGroup
+                name="action"
+                options={radioOptions}
+                value={action}
+                onChange={({ target: { value } }) => setAction(value)}
               />
-              <RadioButton
-                name="radio"
-                checked={checkedReplaceSamples}
-                label="Replace samples in My Dataset"
-                onChange={handleChangedCheckReplace}
-              />
-            </Box>
+            </FormField>
             {!appendDisabled && (
               <InfoText>
                 <Text>
