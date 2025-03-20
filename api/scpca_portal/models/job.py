@@ -142,6 +142,11 @@ class Job(TimestampedModel):
             )
             return False
 
+        logger.info(
+            "Job submission complete.",
+            job_id=self.pk,
+            batch_job_id=self.batch_job_id,
+        )
         return True
 
     def terminate(self, retry_on_termination=False) -> bool:
