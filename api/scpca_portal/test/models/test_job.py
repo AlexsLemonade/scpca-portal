@@ -50,6 +50,22 @@ class TestJob(TestCase):
         self.assertIsInstance(saved_job.submitted_at, datetime)
 
     @patch("scpca_portal.models.Job._batch")
+    def test_submit_job_failure(self, mock_batch_client):
+        job = JobFactory.build(batch_job_name=self.mock_project_batch_job_name)
+        self.assertIsNone(job.id)  # No job created in the db yet
+
+        # Set up mock to raise an exception
+        mock_batch_client.submit_job.side_effect = Exception("Exception")
+
+        success = job.submit()
+        mock_batch_client.submit_job.assert_called_once()
+        self.assertFalse(success)
+
+        # The job state should remain default and unsaved
+        self.assertEqual(Job.objects.count(), 0)
+        self.assertEqual(job.state, JobStates.CREATED)
+
+    @patch("scpca_portal.models.Job._batch")
     def test_terminate_job(self, mock_batch_client):
         submitted_job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
