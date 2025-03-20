@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, Grid, RadioButtonGroup, Text } from 'grommet'
+import { Box, RadioButtonGroup, Text } from 'grommet'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
