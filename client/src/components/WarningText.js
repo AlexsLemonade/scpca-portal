@@ -14,14 +14,11 @@ export const WarningText = ({
   iconSize = '16px',
   text = '',
   newTab = false,
+  margin = { top: 'small', bottom: 'medium' },
   children
 }) => {
   return (
-    <Box
-      align="center"
-      direction="row"
-      margin={{ top: 'small', bottom: 'medium' }}
-    >
+    <Box align="center" direction="row" margin={margin}>
       <Box margin={iconMargin} pad={iconPad}>
         <Icon color={iconColor} size={iconSize} name={iconName} />
       </Box>
