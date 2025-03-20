@@ -12,8 +12,7 @@ import { FormField } from 'components/FormField'
 export const DatasetMoveSamplesModal = ({
   label = 'Move Samples',
   title = 'Move Samples to My Dataset',
-  modalDisabled = false,
-  appendDisabled = false
+  disabled = false
 }) => {
   const [showing, setShowing] = useState(false)
   const radioOptions = [
@@ -36,50 +35,50 @@ export const DatasetMoveSamplesModal = ({
         flex="grow"
         primary
         label={label}
-        disabled={modalDisabled}
+        disabled={disabled}
         onClick={handleClick}
       />
       <Modal title={title} showing={showing} setShowing={setShowing}>
         <ModalBody>
-          <Grid
-            columns={['auto']}
-            margin={{ bottom: '0' }}
-            pad={{ bottom: '0' }}
+          <WarningText
+            lineBreak={false}
+            iconMargin="0"
+            iconSize="24px"
+            margin={false}
           >
-            <WarningText lineBreak={false} iconMargin="0" iconSize="24px">
-              <Text size="21px" margin={{ left: 'xsmall' }}>
-                There are {totalSamples} samples in My Dataset
+            <Text size="21px" margin={{ left: 'xsmall' }}>
+              There are {totalSamples} samples in My Dataset
+            </Text>
+          </WarningText>
+          <FormField>
+            <RadioButtonGroup
+              name="action"
+              options={radioOptions}
+              value={action}
+              onChange={({ target: { value } }) => setAction(value)}
+            />
+          </FormField>
+          <Box margin={{ top: 'medium' }}>
+            <InfoText iconSize="24px">
+              <Text margin={{ left: 'small' }}>
+                Some download options may have changed. Please review the
+                dataset before you download.{' '}
+                <Link
+                  href={config.links.what_review_dataset}
+                  label="Learn more"
+                />
               </Text>
-            </WarningText>
-            <FormField>
-              <RadioButtonGroup
-                name="action"
-                options={radioOptions}
-                value={action}
-                onChange={({ target: { value } }) => setAction(value)}
-              />
-            </FormField>
-            {!appendDisabled && (
-              <InfoText iconSize="24px">
-                <Text margin={{ left: 'medium' }}>
-                  Some download options may have changed. Please review the
-                  dataset before you download.{' '}
-                  <Link
-                    href={config.links.what_review_dataset}
-                    label="Learn more"
-                  />
-                </Text>
-              </InfoText>
-            )}
-            <Box
-              align="center"
-              direction={responsive('column', 'row')}
-              gap="xlarge"
-              justify="end"
-            >
-              <Button primary aria-label={label} label={label} />
-            </Box>
-          </Grid>
+            </InfoText>
+          </Box>
+          <Box
+            align="center"
+            direction={responsive('column', 'row')}
+            gap="xlarge"
+            justify="end"
+            margin={{ top: 'large' }}
+          >
+            <Button primary aria-label={label} label={label} />
+          </Box>
         </ModalBody>
       </Modal>
     </>
