@@ -62,8 +62,8 @@ export const DatasetMoveSamplesModal = ({
               />
             </FormField>
             {!appendDisabled && (
-              <InfoText>
-                <Text>
+              <InfoText iconSize="24px">
+                <Text margin={{ left: 'medium' }}>
                   Some download options may have changed. Please review the
                   dataset before you download.{' '}
                   <Link
