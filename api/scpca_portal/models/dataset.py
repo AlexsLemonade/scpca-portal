@@ -97,7 +97,7 @@ class Dataset(TimestampedModel):
 
         data = {}
         for project in projects:
-            samples = project.samples
+            samples = project.samples.all()
             if self.ccdl_type.get("excludes_multiplexed"):
                 samples = samples.filter(has_multiplexed_data=False)
 
