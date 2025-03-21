@@ -2,6 +2,7 @@ from django.conf import settings
 
 import factory
 
+from scpca_portal import common
 from scpca_portal.enums import DatasetFormats, FileFormats, Modalities
 from scpca_portal.models import ComputedFile
 
@@ -220,10 +221,18 @@ class JobFactory(factory.django.DjangoModelFactory):
                 "python",
                 "manage.py",
                 "generate_computed_file",
-                "--project-id" if "SCPCP" in obj.batch_job_name else "--sample-id",
-                "SCPCP000000" if "SCPCP" in obj.batch_job_name else "SCPCS000000",
+                (
+                    "--project-id"
+                    if obj.batch_job_name.startswith(common.PROJECT_ID_PREFIX)
+                    else "--sample-id"
+                ),
+                (
+                    "SCPCP000000"
+                    if obj.batch_job_name.startswith(common.PROJECT_ID_PREFIX)
+                    else "SCPCS000000"
+                ),
                 "--download-config-name",
-                "MOCK_DOWNLOAD_CONFIG",
+                "MOCK_DOWNLOAD_CONFIG_NAME",
             ]
         }
     )
