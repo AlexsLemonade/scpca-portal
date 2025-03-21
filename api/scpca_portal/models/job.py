@@ -120,19 +120,34 @@ class Job(TimestampedModel):
         Submit a job via boto3, update batch_job_id and state, and
         save the job object to the db.
         """
+        try:
+            response = self._batch.submit_job(
+                jobName=self.batch_job_name,
+                jobQueue=self.batch_job_queue,
+                jobDefinition=self.batch_job_definition,
+                containerOverrides=self.batch_container_overrides,
+            )
 
-        response = self._batch.submit_job(
-            jobName=self.batch_job_name,
-            jobQueue=self.batch_job_queue,
-            jobDefinition=self.batch_job_definition,
-            containerOverrides=self.batch_container_overrides,
+            self.batch_job_id = response["jobId"]
+            self.state = JobStates.SUBMITTED
+            self.submitted_at = make_aware(datetime.now())
+
+            self.save()
+
+        except Exception as error:
+            logger.exception(
+                f"Failed to terminate the job due to: \n\t{error}",
+                job_id=self.pk,
+                batch_job_id=self.batch_job_id,
+            )
+            return False
+
+        logger.info(
+            "Job submission complete.",
+            job_id=self.pk,
+            batch_job_id=self.batch_job_id,
         )
-
-        self.batch_job_id = response["jobId"]
-        self.state = JobStates.SUBMITTED
-        self.submitted_at = make_aware(datetime.now())
-
-        self.save()
+        return True
 
     def terminate(self, retry_on_termination=False) -> bool:
         """
