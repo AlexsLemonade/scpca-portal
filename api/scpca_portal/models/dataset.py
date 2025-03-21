@@ -15,7 +15,6 @@ from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.project import Project
-from scpca_portal.models.sample import Sample
 
 logger = get_and_configure_logger(__name__)
 
@@ -119,44 +118,6 @@ class Dataset(TimestampedModel):
                 ).values_list("scpca_id", flat=True)
 
         return data
-
-    def validate_samples(self) -> bool:
-        for project_id, project_config in self.data.items():
-            project = Project.objects.filter(scpca_id=project_id).first()
-            if not project:
-                logger.error(f"{self} invalid: Project {project_id} doesn't exist.")
-                return False
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                for sample_id in project_config[modality]:
-                    sample = Sample.objects.filter(scpca_id=project_id).first()
-                    if not sample:
-                        logger.error(
-                            f"{self} invalid: "
-                            f"Sample {sample_id} of modality {modality} "
-                            f"does not exist in Project {project_id}."
-                        )
-                        return False
-                    if sample.project.scpca_id != project_id:
-                        logger.error(
-                            f"{self} invalid: "
-                            f"Sample {sample_id} does not belong to Project {project_id}."
-                        )
-                        return False
-                    if not sample.libraries:
-                        logger.error(
-                            f"{self} invalid: "
-                            f"Sample {sample_id} of Project {project_id} has no libraries."
-                        )
-                        return False
-                    if modality not in sample.modalities:
-                        logger.error(
-                            f"{self} invalid: "
-                            f"Sample {sample_id} of Project {project_id} "
-                            f"not of modality {modality}."
-                        )
-                        return False
-
-        return True
 
     @property
     def existing_ccdl_datasets(self) -> bool:
