@@ -4,15 +4,8 @@ import { Box, Text } from 'grommet'
 import { Icon } from 'components/Icon'
 
 // id is required and must be unique
-export const Notification = ({
-  id,
-  iconColor = 'white',
-  iconSize = '24px',
-  fontColor = 'white',
-  fontSize = '24px',
-  children
-}) => {
-  const { notification, hideNotification } = useNotification()
+const Notification = ({ notification }) => {
+  const { hideNotification } = useNotification()
 
   // NOTE: Do we need 'info' as well? Added 'error' state (e.g., failed API call)
   const stateMap = {
@@ -26,11 +19,9 @@ export const Notification = ({
     }
   }
 
-  if (!notification?.[id]) return null
-
   return (
     <Box
-      background={stateMap[notification[id].state].background}
+      background={stateMap[notification.type].background}
       direction="row"
       pad={{ vertical: 'medium' }}
       width="full"
@@ -38,26 +29,41 @@ export const Notification = ({
       <Box align="center" justify="center" width="inherit">
         <Box direction="row" align="center" justify="center">
           <Icon
-            color={iconColor}
-            name={stateMap[notification[id].state].iconName}
-            size={iconSize}
+            color="white"
+            name={stateMap[notification.type].iconName}
+            size="24px"
           />
           <Box margin={{ left: 'medium' }}>
-            <Text color={fontColor} size={fontSize}>
-              {children}
+            <Text color="white" size="24px">
+              {notification.message}
             </Text>
           </Box>
         </Box>
       </Box>
       <Box
         pad={{ vertical: 'medium', right: '24px' }}
-        onClick={() => hideNotification(id)}
+        onClick={() => hideNotification(notification.id)}
         align="end"
       >
-        <Icon name="Cross" color={iconColor} size={iconSize} />
+        <Icon name="Cross" color="white" size="24px" />
       </Box>
     </Box>
   )
 }
 
-export default Notification
+export const Notifications = () => {
+  const { notifications } = useNotification()
+
+  return (
+    <>
+      {notifications.map((n) => {
+        const notification = Object.values(n)[0]
+        return (
+          <Notification key={notification.id} notification={notification} />
+        )
+      })}
+    </>
+  )
+}
+
+export default Notifications
