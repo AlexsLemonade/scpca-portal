@@ -3,6 +3,8 @@ from typing import Any, Dict, List
 
 from django.db import models
 
+from typing_extensions import Self
+
 from scpca_portal import ccdl_datasets, common
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
@@ -79,13 +81,16 @@ class Dataset(TimestampedModel):
         return f"Dataset {self.id}"
 
     @classmethod
-    def get_ccdl_dataset(cls, ccdl_name, project_id: str | None = None):
+    def get_ccdl_dataset(cls, ccdl_name, project_id: str | None = None) -> Self:
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
         return dataset
 
     def get_ccdl_data(self) -> Dict:
+        if not self.is_ccdl:
+            raise ValueError("Invalid Dataset: Dataset must be CCDL.")
+
         projects = Project.objects.all()
         if self.ccdl_project_id:
             projects = projects.filter(scpca_id=self.ccdl_project_id)
