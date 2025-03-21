@@ -6,9 +6,12 @@ from django.utils.timezone import make_aware
 
 import boto3
 
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
+
+logger = get_and_configure_logger(__name__)
 
 
 class Job(TimestampedModel):
@@ -113,8 +116,10 @@ class Job(TimestampedModel):
         return boto3.client("batch", region_name=settings.AWS_REGION)
 
     def submit(self) -> None:
-        """Submit a job via boto3, update batch_job_id and state, and
-        save the job object to the db"""
+        """
+        Submit a job via boto3, update batch_job_id and state, and
+        save the job object to the db.
+        """
 
         response = self._batch.submit_job(
             jobName=self.batch_job_name,
@@ -129,12 +134,38 @@ class Job(TimestampedModel):
 
         self.save()
 
-    def terminate(self, retry_on_termination=False):
+    def terminate(self, retry_on_termination=False) -> bool:
         """
-        Terminate the currently running job via boto3, and update state.
-        Set critical_error to True if the job is irrecoverable.
+        Terminate the submitted and incomplete job via boto3, and update state.
+        Return True if the job is successfully terminated or already terminated, otherwise False.
+        Throw an error if failed to terminate the job.
         """
-        pass
+
+        if self.state in [JobStates.COMPLETED, JobStates.TERMINATED]:
+            return self.state == JobStates.TERMINATED
+
+        try:
+            self._batch.terminate_job(jobId=self.batch_job_id, reason="Terminating job.")
+            self.state = JobStates.TERMINATED
+            self.retry_on_termination = retry_on_termination
+            self.terminated_at = make_aware(datetime.now())
+
+            self.save()
+
+        except Exception as error:
+            logger.exception(
+                f"Failed to terminate the job due to: \n\t{error}",
+                job_id=self.pk,
+                batch_job_id=self.batch_job_id,
+            )
+            return False
+
+        logger.info(
+            "Job termination complete.",
+            job_id=self.pk,
+            batch_job_id=self.batch_job_id,
+        )
+        return True
 
     def get_retry_job(self):
         """

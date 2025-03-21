@@ -1,5 +1,8 @@
+from django.conf import settings
+
 import factory
 
+from scpca_portal import common
 from scpca_portal.enums import DatasetFormats, FileFormats, Modalities
 from scpca_portal.models import ComputedFile
 
@@ -204,3 +207,32 @@ class DatasetFactory(factory.django.DjangoModelFactory):
     }
     email = "user@example.com"
     format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+
+
+class JobFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.Job"
+
+    batch_job_queue = settings.AWS_BATCH_JOB_QUEUE_NAME
+    batch_job_definition = settings.AWS_BATCH_JOB_DEFINITION_NAME
+    batch_container_overrides = factory.LazyAttribute(
+        lambda obj: {
+            "command": [
+                "python",
+                "manage.py",
+                "generate_computed_file",
+                (
+                    "--project-id"
+                    if obj.batch_job_name.startswith(common.PROJECT_ID_PREFIX)
+                    else "--sample-id"
+                ),
+                (
+                    "SCPCP000000"
+                    if obj.batch_job_name.startswith(common.PROJECT_ID_PREFIX)
+                    else "SCPCS000000"
+                ),
+                "--download-config-name",
+                "MOCK_DOWNLOAD_CONFIG_NAME",
+            ]
+        }
+    )
