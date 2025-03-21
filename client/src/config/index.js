@@ -20,6 +20,7 @@ export const config = {
       'https://scpca.readthedocs.io/en/stable/download_files.html#multiplexed-sample-libraries',
     what_est_demux_cell:
       'https://scpca.readthedocs.io/en/stable/faq.html#what-are-estimated-demux-cell-counts',
+    what_review_dataset: 'https://example.com',
     when_downloading_merged_objects:
       'https://scpca.readthedocs.io/en/stable/faq.html#when-should-i-download-a-project-as-a-merged-object',
     which_projects_are_merged_objects:

@@ -15,7 +15,7 @@ export const FormField = ({
       <Box margin={{ bottom: 'small' }} pad={{ right: 'medium' }}>
         <Text weight={labelWeight}>{label}</Text>
       </Box>
-      <Box gap={gap} width={{ max: fieldWidth }}>
+      <Box gap={gap} width={fieldWidth}>
         {children}
       </Box>
     </Box>
