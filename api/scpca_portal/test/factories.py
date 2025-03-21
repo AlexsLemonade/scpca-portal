@@ -228,7 +228,7 @@ class JobFactory(factory.django.DjangoModelFactory):
                 ),
                 (
                     "SCPCP000000"
-                    if obj.batch_job_name.startswith(common.SAMPLE_ID_PREFIX)
+                    if obj.batch_job_name.startswith(common.PROJECT_ID_PREFIX)
                     else "SCPCS000000"
                 ),
                 "--download-config-name",
