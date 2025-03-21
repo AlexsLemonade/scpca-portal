@@ -101,26 +101,18 @@ class Dataset(TimestampedModel):
             if self.ccdl_type.get("excludes_multiplexed"):
                 samples = samples.filter(has_multiplexed_data=False)
 
+            if modality := self.ccdl_type.get("modality"):
+                samples = samples.filter(libraries__modality=modality)
+
+            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
+            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
+
             data[project.scpca_id] = {
                 "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL: [],
-                Modalities.SPATIAL: [],
+                Modalities.SINGLE_CELL: single_cell_samples.values_list("scpca_id", flat=True),
+                Modalities.SPATIAL: spatial_samples.values_list("scpca_id", flat=True),
             }
-
-            # Data dataset types
-            if modality := self.ccdl_type.get("modality"):
-                data[project.scpca_id][modality].extend(
-                    samples.filter(modality=modality).values_list("scpca_id", flat=True)
-                )
-            # Metadata only dataset types
-            else:
-                data[project.scpca_id][Modalities.SINGLE_CELL] = samples.filter(
-                    modality=Modalities.SINGLE_CELL
-                ).values_list("scpca_id", flat=True)
-                data[project.scpca_id][Modalities.SPATIAL] = samples.filter(
-                    modality=Modalities.SPATIAL
-                ).values_list("scpca_id", flat=True)
 
         return data
 
