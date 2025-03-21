@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Job
-from scpca_portal.test.factories import JobFactory
+from scpca_portal.test.factories import DatasetFactory, JobFactory
 
 
 class TestJob(TestCase):
@@ -17,6 +17,7 @@ class TestJob(TestCase):
         self.mock_project_batch_job_name = (
             f"{self.mock_project_id}-{self.mock_download_config_name}"
         )
+        self.mock_dataset = DatasetFactory()
 
     @patch("scpca_portal.models.Job._batch")
     def test_submit_job(self, mock_batch_client):
@@ -98,3 +99,26 @@ class TestJob(TestCase):
         saved_job = Job.objects.get(pk=job.pk)
         # The job state should remain unchanged
         self.assertEqual(saved_job.state, job.state)
+
+    def test_get_retry_job(self):
+        job = JobFactory(
+            batch_job_name=self.mock_project_batch_job_name,
+            batch_job_id=self.mock_batch_job_id,
+            dataset=self.mock_dataset,
+            state=JobStates.SUBMITTED,
+        )
+
+        # Should return None if the job state is not TERMINATED
+        retry_job = job.get_retry_job()
+        self.assertIsNone(retry_job)
+
+        # Change the job state to TERMINATED
+        job.state = JobStates.TERMINATED
+        # Should return a new unsaved instance for retrying the terminated job
+        retry_job = job.get_retry_job()
+        self.assertIsNone(retry_job.id)  # Should not have an ID
+        # Make sure required fields are copied and attempt is incremented
+        self.assertEqual(retry_job.attempt, job.attempt + 1)
+        self.assertEqual(retry_job.batch_job_name, job.batch_job_name)
+        self.assertEqual(retry_job.batch_job_definition, job.batch_job_definition)
+        self.assertEqual(retry_job.batch_job_queue, job.batch_job_queue)

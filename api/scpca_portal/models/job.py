@@ -169,8 +169,22 @@ class Job(TimestampedModel):
 
     def get_retry_job(self):
         """
-        Create and return a new Job instance to retry a terminated job via boto3,
-        Updates attempt and state for the new job instance.
-        Called only when critical_error is False and retry_on_termination is True.
+        Prepare a new Job instance to retry the terminated job.
+        Set new instance's attempt to the base instance's attempt incremented by 1.
         """
-        pass
+
+        if self.state != JobStates.TERMINATED:
+            return None
+
+        # TODO: How should we handle attempting critically failed jobs?
+        # if self.critical_error:
+        #     return None
+
+        return Job(
+            attempt=self.attempt + 1,
+            batch_job_name=self.batch_job_name,
+            batch_job_definition=self.batch_job_definition,
+            batch_job_queue=self.batch_job_queue,
+            batch_container_overrides=self.batch_container_overrides,
+            dataset=self.dataset,
+        )
