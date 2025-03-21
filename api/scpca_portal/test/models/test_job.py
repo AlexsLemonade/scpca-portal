@@ -12,7 +12,7 @@ from scpca_portal.test.factories import JobFactory
 class TestJob(TestCase):
     def setUp(self):
         self.mock_project_id = "SCPCP000000"
-        self.mock_download_config_name = "MOCK_DOWNLOAD_CONFIG"
+        self.mock_download_config_name = "MOCK_DOWNLOAD_CONFIG_NAME"
         self.mock_batch_job_id = "MOCK_JOB_ID"  # The job id via AWS Batch response
         self.mock_project_batch_job_name = (
             f"{self.mock_project_id}-{self.mock_download_config_name}"
@@ -67,6 +67,19 @@ class TestJob(TestCase):
 
     @patch("scpca_portal.models.Job._batch")
     def test_terminate_job(self, mock_batch_client):
+        # Job already in TERMINATED state
+        terminated_job = JobFactory(
+            batch_job_name=self.mock_project_batch_job_name,
+            batch_job_id=self.mock_batch_job_id,
+            state=JobStates.TERMINATED,
+        )
+
+        # Should return True early without calling terminate_job
+        success = terminated_job.terminate(retry_on_termination=True)
+        mock_batch_client.terminate_job.assert_not_called()
+        self.assertTrue(success)
+
+        # Job is in SUBMITTED state
         submitted_job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
@@ -78,23 +91,10 @@ class TestJob(TestCase):
         self.assertTrue(success)
 
         # After termination, the job should be saved with correct field values
-        saved_job = Job.objects.first()
+        saved_job = Job.objects.get(pk=submitted_job.pk)
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertTrue(saved_job.retry_on_termination)
         self.assertIsInstance(saved_job.terminated_at, datetime)
-
-    @patch("scpca_portal.models.Job._batch")
-    def test_terminate_job_on_terminated_job(self, mock_batch_client):
-        terminated_job = JobFactory(
-            batch_job_name=self.mock_project_batch_job_name,
-            batch_job_id=self.mock_batch_job_id,
-            state=JobStates.TERMINATED,
-        )
-
-        # Should return True early for already TERMINATED jobs
-        success = terminated_job.terminate(retry_on_termination=True)
-        mock_batch_client.terminate_job.assert_not_called()
-        self.assertTrue(success)
 
     @patch("scpca_portal.models.Job._batch")
     def test_terminate_job_failure(self, mock_batch_client):
@@ -111,6 +111,6 @@ class TestJob(TestCase):
         mock_batch_client.terminate_job.assert_called_once()
         self.assertFalse(success)
 
-        # The job state should remain the same
-        saved_job = Job.objects.first()
+        saved_job = Job.objects.get(pk=job.pk)
+        # The job state should remain unchanged
         self.assertEqual(saved_job.state, job.state)
