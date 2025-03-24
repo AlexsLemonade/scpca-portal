@@ -81,11 +81,18 @@ class Dataset(TimestampedModel):
         return f"Dataset {self.id}"
 
     @classmethod
-    def get_ccdl_dataset(cls, ccdl_name, project_id: str | None = None) -> Self:
+    def get_or_find_ccdl_dataset(
+        cls, ccdl_name, project_id: str | None = None
+    ) -> tuple[Self, bool]:
+        if dataset := cls.objects.filter(
+            is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
+        ).first():
+            return dataset, False
+
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
-        return dataset
+        return dataset, True
 
     def get_ccdl_data(self) -> Dict:
         if not self.is_ccdl:
@@ -116,22 +123,13 @@ class Dataset(TimestampedModel):
 
         return data
 
-    @property
-    def existing_ccdl_datasets(self) -> bool:
-        return Dataset.objects.filter(
-            is_ccdl=True, ccdl_name=self.ccdl_name, ccdl_project_id=self.ccdl_project_id
-        )
-
     def should_process(self) -> bool:
         """
         Determines whether or not a computed file should be generated for the instance dataset.
         Files should be processed for new datasets,
         or for datasets whose data attributes have changed.
         """
-        if dataset := self.existing_ccdl_datasets.first():
-            return self.data != dataset.data
-
-        return True
+        return self.data != self.get_ccdl_data()
 
     @property
     def ccdl_type(self) -> Dict:
