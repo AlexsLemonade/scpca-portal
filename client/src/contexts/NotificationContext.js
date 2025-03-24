@@ -3,25 +3,15 @@ import React, { createContext, useState } from 'react'
 export const NotificationContext = createContext({})
 
 export const NotificationContextProvider = ({ children }) => {
-  const [notifications, setNotifications] = useState([
-    {
-      test: {
-        id: 'test',
-        type: 'success',
-        message: 'this is fun!'
-      }
-    }
-  ])
+  const [notifications, setNotifications] = useState([])
 
-  const showNotification = (id, message, type) =>
+  const showNotification = (message, id = Date.now(), type = 'success') =>
     setNotifications((prev) => [
       ...prev,
       {
-        [id]: {
-          id,
-          message,
-          type
-        }
+        message,
+        id,
+        type
       }
     ])
 

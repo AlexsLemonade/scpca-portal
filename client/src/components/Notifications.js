@@ -6,6 +6,7 @@ import { Icon } from 'components/Icon'
 // id is required and must be unique
 const Notification = ({ notification }) => {
   const { hideNotification } = useNotification()
+  const { message, id, type } = notification
 
   // NOTE: Do we need 'info' as well? Added 'error' state (e.g., failed API call)
   const stateMap = {
@@ -21,28 +22,24 @@ const Notification = ({ notification }) => {
 
   return (
     <Box
-      background={stateMap[notification.type].background}
+      background={stateMap[type].background}
       direction="row"
       pad={{ vertical: 'medium' }}
       width="full"
     >
       <Box align="center" justify="center" width="inherit">
         <Box direction="row" align="center" justify="center">
-          <Icon
-            color="white"
-            name={stateMap[notification.type].iconName}
-            size="24px"
-          />
+          <Icon color="white" name={stateMap[type].iconName} size="24px" />
           <Box margin={{ left: 'medium' }}>
             <Text color="white" size="24px">
-              {notification.message}
+              {message}
             </Text>
           </Box>
         </Box>
       </Box>
       <Box
         pad={{ vertical: 'medium', right: '24px' }}
-        onClick={() => hideNotification(notification.id)}
+        onClick={() => hideNotification(id)}
         align="end"
       >
         <Icon name="Cross" color="white" size="24px" />
@@ -56,8 +53,7 @@ export const Notifications = () => {
 
   return (
     <>
-      {notifications.map((n) => {
-        const notification = Object.values(n)[0]
+      {notifications.map((notification) => {
         return (
           <Notification key={notification.id} notification={notification} />
         )
