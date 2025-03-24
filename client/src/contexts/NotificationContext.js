@@ -16,7 +16,9 @@ export const NotificationContextProvider = ({ children }) => {
     ])
 
   const hideNotification = (id) =>
-    setNotifications((prev) => prev.filter((n) => n.id !== id))
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.id !== id)
+    )
 
   return (
     <NotificationContext.Provider
