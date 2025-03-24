@@ -3,10 +3,22 @@ from typing import Any, Dict, List
 
 from django.db import models
 
-from scpca_portal import common
-from scpca_portal.enums import DatasetDataProjectConfig, DatasetFormats
-from scpca_portal.models import APIToken, ComputedFile
+from typing_extensions import Self
+
+from scpca_portal import ccdl_datasets, common
+from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import (
+    CCDLDatasetNames,
+    DatasetDataProjectConfig,
+    DatasetFormats,
+    Modalities,
+)
+from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.project import Project
+
+logger = get_and_configure_logger(__name__)
 
 
 class Dataset(TimestampedModel):
@@ -21,7 +33,6 @@ class Dataset(TimestampedModel):
     data = models.JSONField(default=dict)
     email = models.EmailField(null=True)
     start = models.BooleanField(default=False)
-    is_metadata_only = models.BooleanField(default=False)
 
     # Format or regenerated_from is required at the time of creation
     format = models.TextField(choices=DatasetFormats.choices)
@@ -34,6 +45,8 @@ class Dataset(TimestampedModel):
 
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
+    ccdl_name = models.TextField(choices=CCDLDatasetNames.choices, null=True)
+    ccdl_project_id = models.TextField(null=True)
 
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
@@ -66,6 +79,61 @@ class Dataset(TimestampedModel):
 
     def __str__(self):
         return f"Dataset {self.id}"
+
+    @classmethod
+    def get_or_find_ccdl_dataset(
+        cls, ccdl_name, project_id: str | None = None
+    ) -> tuple[Self, bool]:
+        if dataset := cls.objects.filter(
+            is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
+        ).first():
+            return dataset, False
+
+        dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
+        dataset.format = dataset.ccdl_type["format"]
+        dataset.data = dataset.get_ccdl_data()
+        return dataset, True
+
+    def get_ccdl_data(self) -> Dict:
+        if not self.is_ccdl:
+            raise ValueError("Invalid Dataset: Dataset must be CCDL.")
+
+        projects = Project.objects.all()
+        if self.ccdl_project_id:
+            projects = projects.filter(scpca_id=self.ccdl_project_id)
+
+        data = {}
+        for project in projects:
+            samples = project.samples.all()
+            if self.ccdl_type.get("excludes_multiplexed"):
+                samples = samples.filter(has_multiplexed_data=False)
+
+            if modality := self.ccdl_type.get("modality"):
+                samples = samples.filter(libraries__modality=modality)
+
+            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
+            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
+
+            data[project.scpca_id] = {
+                "merge_single_cell": self.ccdl_type.get("includes_merged"),
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: single_cell_samples.values_list("scpca_id", flat=True),
+                Modalities.SPATIAL: spatial_samples.values_list("scpca_id", flat=True),
+            }
+
+        return data
+
+    def should_process(self) -> bool:
+        """
+        Determines whether or not a computed file should be generated for the instance dataset.
+        Files should be processed for new datasets,
+        or for datasets whose data attributes have changed.
+        """
+        return self.data != self.get_ccdl_data()
+
+    @property
+    def ccdl_type(self) -> Dict:
+        return ccdl_datasets.TYPES.get(self.ccdl_name)
 
     @property
     def is_data_valid(self) -> bool:
