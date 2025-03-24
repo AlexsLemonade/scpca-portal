@@ -47,18 +47,6 @@ TYPES = {
         "excludes_multiplexed": True,
         "includes_merged": False,
     },
-    CCDLDatasetNames.SAMPLE_SINGLE_CELL_SINGLE_CELL_EXPERIMENT: {
-        "modality": Modalities.SINGLE_CELL,
-        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT,
-    },
-    CCDLDatasetNames.SAMPLE_SINGLE_CELL_ANN_DATA: {
-        "modality": Modalities.SINGLE_CELL,
-        "format": DatasetFormats.ANN_DATA,
-    },
-    CCDLDatasetNames.SAMPLE_SPATIAL_SINGLE_CELL_EXPERIMENT: {
-        "modality": "SPATIAL",
-        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT,
-    },
 }
 
 PORTAL_TYPE_NAMES = [
