@@ -12,7 +12,7 @@ from django.test import TransactionTestCase
 
 from scpca_portal import loader
 from scpca_portal.models import ComputedFile, Project
-from scpca_portal.test import expected_values as test_data
+from scpca_portal.test.expected_values import test_loader as test_data
 
 
 class TestLoader(TransactionTestCase):
