@@ -1,4 +1,3 @@
-from functools import partial
 from typing import Any, Dict
 
 from django.conf import settings
@@ -7,12 +6,30 @@ from django.test import TestCase, tag
 
 from scpca_portal import loader
 from scpca_portal.enums import Modalities
-from scpca_portal.models import Dataset, Project
-from scpca_portal.test.expected_values import test_dataset as test_data
+from scpca_portal.models import Dataset
+from scpca_portal.test.expected_values.dataset_single_cell_single_cell_experiment import (
+    DatasetSingleCellSingleCellExperiment,
+)
+from scpca_portal.test.expected_values.dataset_single_cell_single_cell_experiment_SCPCP999990 import (  # noqa
+    DatasetSingleCellSingleCellExperimentSCPCP999990,
+)
 from scpca_portal.test.factories import DatasetFactory
 
 
-class TestDatasetUnit(TestCase):
+class TestDataset(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+
+        for project_metadata in loader.get_projects_metadata():
+            loader.create_project(
+                project_metadata,
+                submitter_whitelist={"scpca"},
+                input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
+                reload_existing=True,
+                update_s3=False,
+            )
+
     def test_dataset_saved_to_db(self):
         dataset = DatasetFactory()
         self.assertEqual(Dataset.objects.count(), 1)
@@ -217,25 +234,6 @@ class TestDatasetUnit(TestCase):
         dataset = DatasetFactory()
         self.assertFalse(dataset.is_ccdl)
 
-
-class TestDatasetIntegration(TestCase):
-    def setUp(self):
-        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
-
-        # When passing a project_id to get_projects_metadata, a list of one item is returned
-        # This lambda creates a shorthand with which to access the single returned project_metadata
-        self.get_project_metadata = lambda project_id: loader.get_projects_metadata(
-            filter_on_project_id=project_id
-        )[0]
-
-        self.create_project = partial(
-            loader.create_project,
-            submitter_whitelist={"scpca"},
-            input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
-            reload_existing=True,
-            update_s3=False,
-        )
-
     def assertObjectProperties(self, obj: Any, expected_values: Dict[str, Any]) -> None:
         for attribute, value in expected_values.items():
             msg = f"The actual and expected `{attribute}` values differ in {obj}"
@@ -246,51 +244,31 @@ class TestDatasetIntegration(TestCase):
 
     def test_get_or_find_ccdl_dataset_SINGLE_CELL_SCE(self):
         # PROJECT CCDL DATASET
-        project = self.create_project(
-            self.get_project_metadata(test_data.CCDLDatasetProject.SINGLE_CELL_SCE.PROJECT_ID)
-        )
-        # Make sure that create_project didn't fail and return a None value
-        self.assertIsNotNone(
-            project,
-            "Problem creating project, unable to test "
-            "test_get_ccdl_dataset_"
-            f"{test_data.CCDLDatasetProject.SINGLE_CELL_SCE.CCDL_NAME}",
-        )
-
         dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
-            test_data.CCDLDatasetProject.SINGLE_CELL_SCE.CCDL_NAME, project.scpca_id
+            DatasetSingleCellSingleCellExperimentSCPCP999990.CCDL_NAME,
+            DatasetSingleCellSingleCellExperimentSCPCP999990.PROJECT_ID,
         )
         dataset.save()
         self.assertTrue(is_new_dataset)
-        self.assertObjectProperties(dataset, test_data.CCDLDatasetProject.SINGLE_CELL_SCE.VALUES)
+        self.assertObjectProperties(
+            dataset, DatasetSingleCellSingleCellExperimentSCPCP999990.VALUES
+        )
 
         dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
-            test_data.CCDLDatasetPortal.SINGLE_CELL_SCE.CCDL_NAME, project.scpca_id
+            DatasetSingleCellSingleCellExperimentSCPCP999990.CCDL_NAME,
+            DatasetSingleCellSingleCellExperimentSCPCP999990.PROJECT_ID,
         )
         self.assertFalse(is_new_dataset)
-        Project.objects.all().delete()
 
         # PORTAL WIDE CCDL DATASET
-        for project in loader.get_projects_metadata():
-            self.create_project(project)
-
-        # Make sure that create_project didn't fail and didn't create the intended projects
-        self.assertEqual(
-            Project.objects.count(),
-            3,
-            "Problem creating projects, unable to test "
-            "test_get_ccdl_dataset_"
-            f"{test_data.CCDLDatasetPortal.SINGLE_CELL_SCE.CCDL_NAME}",
-        )
-
         dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
-            test_data.CCDLDatasetPortal.SINGLE_CELL_SCE.CCDL_NAME
+            DatasetSingleCellSingleCellExperiment.CCDL_NAME
         )
         dataset.save()
         self.assertTrue(is_new_dataset)
-        self.assertObjectProperties(dataset, test_data.CCDLDatasetPortal.SINGLE_CELL_SCE.VALUES)
+        self.assertObjectProperties(dataset, DatasetSingleCellSingleCellExperiment.VALUES)
 
         dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
-            test_data.CCDLDatasetProject.SINGLE_CELL_SCE.CCDL_NAME
+            DatasetSingleCellSingleCellExperimentSCPCP999990.CCDL_NAME
         )
         self.assertFalse(is_new_dataset)
