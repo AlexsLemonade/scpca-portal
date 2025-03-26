@@ -1,1 +1,2 @@
+from scpca_portal.test.expected_values.test_dataset.ccdl_dataset_portal import CCDLDatasetPortal
 from scpca_portal.test.expected_values.test_dataset.ccdl_dataset_project import CCDLDatasetProject
