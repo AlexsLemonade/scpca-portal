@@ -7,12 +7,7 @@ from django.test import TestCase, tag
 from scpca_portal import loader
 from scpca_portal.enums import Modalities
 from scpca_portal.models import Dataset
-from scpca_portal.test.expected_values.dataset_single_cell_single_cell_experiment import (
-    DatasetSingleCellSingleCellExperiment,
-)
-from scpca_portal.test.expected_values.dataset_single_cell_single_cell_experiment_SCPCP999990 import (  # noqa
-    DatasetSingleCellSingleCellExperimentSCPCP999990,
-)
+from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import DatasetFactory
 
 
@@ -244,7 +239,8 @@ class TestDataset(TestCase):
 
     def test_get_or_find_ccdl_dataset(self):
         ccdl_dataset_expected_values = {
-            DatasetSingleCellSingleCellExperiment.CCDL_NAME: DatasetSingleCellSingleCellExperiment.VALUES,  # noqa
+            test_data.DatasetAllMetadata.CCDL_NAME: test_data.DatasetAllMetadata.VALUES,
+            test_data.DatasetSingleCellSingleCellExperiment.CCDL_NAME: test_data.DatasetSingleCellSingleCellExperiment.VALUES,  # noqa
         }
         for ccdl_dataset_name, ccdl_dataset_values in ccdl_dataset_expected_values.items():
             dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(ccdl_dataset_name)
