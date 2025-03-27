@@ -242,33 +242,15 @@ class TestDataset(TestCase):
             else:
                 self.assertEqual(getattr(obj, attribute), value, msg)
 
-    def test_get_or_find_ccdl_dataset_SINGLE_CELL_SCE(self):
-        # PROJECT CCDL DATASET
-        dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
-            DatasetSingleCellSingleCellExperimentSCPCP999990.CCDL_NAME,
-            DatasetSingleCellSingleCellExperimentSCPCP999990.PROJECT_ID,
-        )
-        dataset.save()
-        self.assertTrue(is_new_dataset)
-        self.assertObjectProperties(
-            dataset, DatasetSingleCellSingleCellExperimentSCPCP999990.VALUES
-        )
+    def test_get_or_find_ccdl_dataset(self):
+        ccdl_dataset_expected_values = {
+            DatasetSingleCellSingleCellExperiment.CCDL_NAME: DatasetSingleCellSingleCellExperiment.VALUES,  # noqa
+        }
+        for ccdl_dataset_name, ccdl_dataset_values in ccdl_dataset_expected_values.items():
+            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(ccdl_dataset_name)
+            dataset.save()
+            self.assertTrue(is_new_dataset)
+            self.assertObjectProperties(dataset, ccdl_dataset_values)
 
-        dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
-            DatasetSingleCellSingleCellExperimentSCPCP999990.CCDL_NAME,
-            DatasetSingleCellSingleCellExperimentSCPCP999990.PROJECT_ID,
-        )
-        self.assertFalse(is_new_dataset)
-
-        # PORTAL WIDE CCDL DATASET
-        dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
-            DatasetSingleCellSingleCellExperiment.CCDL_NAME
-        )
-        dataset.save()
-        self.assertTrue(is_new_dataset)
-        self.assertObjectProperties(dataset, DatasetSingleCellSingleCellExperiment.VALUES)
-
-        dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
-            DatasetSingleCellSingleCellExperimentSCPCP999990.CCDL_NAME
-        )
-        self.assertFalse(is_new_dataset)
+            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(ccdl_dataset_name)
+            self.assertFalse(is_new_dataset)
