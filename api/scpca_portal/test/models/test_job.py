@@ -19,10 +19,10 @@ class TestJob(TestCase):
         )
         self.mock_dataset = DatasetFactory()
 
-    @patch("scpca_portal.models.Job._batch")
-    def test_submit_job(self, mock_batch_client):
+    @patch("scpca_portal.batch.submit_job")
+    def test_submit_job(self, mock_batch_submit_job):
         # Set up mock for submit_job
-        mock_batch_client.submit_job.return_value = {"jobId": self.mock_batch_job_id}
+        mock_batch_submit_job.return_value = self.mock_batch_job_id
 
         job = Job.get_project_job(
             project_id=self.mock_project_id, download_config_name=self.mock_download_config_name
@@ -32,7 +32,7 @@ class TestJob(TestCase):
         self.assertIsNone(job.id)
 
         job.submit()
-        mock_batch_client.submit_job.assert_called_once()
+        mock_batch_submit_job.assert_called_once()
 
         # After submission, the job should be updated
         self.assertEqual(job.batch_job_id, self.mock_batch_job_id)
@@ -50,24 +50,24 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.SUBMITTED)
         self.assertIsInstance(saved_job.submitted_at, datetime)
 
-    @patch("scpca_portal.models.Job._batch")
-    def test_submit_job_failure(self, mock_batch_client):
+    @patch("scpca_portal.batch.submit_job")
+    def test_submit_job_failure(self, mock_batch_submit_job):
         job = JobFactory.build(batch_job_name=self.mock_project_batch_job_name)
         self.assertIsNone(job.id)  # No job created in the db yet
 
-        # Set up mock to raise an exception
-        mock_batch_client.submit_job.side_effect = Exception("Exception")
+        # Set up mock for a failed submission
+        mock_batch_submit_job.return_value = None
 
         success = job.submit()
-        mock_batch_client.submit_job.assert_called_once()
+        mock_batch_submit_job.assert_called_once()
         self.assertFalse(success)
 
         # The job state should remain default and unsaved
         self.assertEqual(Job.objects.count(), 0)
         self.assertEqual(job.state, JobStates.CREATED)
 
-    @patch("scpca_portal.models.Job._batch")
-    def test_terminate_job(self, mock_batch_client):
+    @patch("scpca_portal.batch.terminate_job")
+    def test_terminate_job(self, mock_batch_terminate_job):
         # Job already in TERMINATED state
         terminated_job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
@@ -77,7 +77,7 @@ class TestJob(TestCase):
 
         # Should return True early without calling terminate_job
         success = terminated_job.terminate(retry_on_termination=True)
-        mock_batch_client.terminate_job.assert_not_called()
+        mock_batch_terminate_job.assert_not_called()
         self.assertTrue(success)
 
         # Job is in SUBMITTED state
@@ -88,7 +88,7 @@ class TestJob(TestCase):
         )
 
         success = submitted_job.terminate(retry_on_termination=True)
-        mock_batch_client.terminate_job.assert_called_once()
+        mock_batch_terminate_job.assert_called_once()
         self.assertTrue(success)
 
         # After termination, the job should be saved with correct field values
@@ -97,19 +97,20 @@ class TestJob(TestCase):
         self.assertTrue(saved_job.retry_on_termination)
         self.assertIsInstance(saved_job.terminated_at, datetime)
 
-    @patch("scpca_portal.models.Job._batch")
-    def test_terminate_job_failure(self, mock_batch_client):
+    @patch("scpca_portal.batch.terminate_job")
+    def test_terminate_job_failure(self, mock_batch_terminate_job):
         job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
             state=JobStates.SUBMITTED,
         )
 
-        # Set up mock to raise an exception
-        mock_batch_client.terminate_job.side_effect = Exception("Exception")
+        # Set up mock for a failed termination
+        mock_batch_terminate_job.return_value = False
 
         success = job.terminate(retry_on_termination=True)
-        mock_batch_client.terminate_job.assert_called_once()
+
+        mock_batch_terminate_job.assert_called_once()
         self.assertFalse(success)
 
         saved_job = Job.objects.get(pk=job.pk)

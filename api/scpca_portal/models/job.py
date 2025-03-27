@@ -4,14 +4,10 @@ from django.conf import settings
 from django.db import models
 from django.utils.timezone import make_aware
 
-import boto3
-
-from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal import batch
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
-
-logger = get_and_configure_logger(__name__)
 
 
 class Job(TimestampedModel):
@@ -108,79 +104,43 @@ class Job(TimestampedModel):
             },
         )
 
-    @property
-    def _batch(self):
+    def submit(self) -> bool:
         """
-        boto3 client for AWS Batch.
+        Submit the job via batch.submit_job.
+        Update batch_job_id and state, and
+        save it to the db on success.
         """
-        return boto3.client("batch", region_name=settings.AWS_REGION)
+        if self.state is not JobStates.CREATED:
+            return False
 
-    def submit(self) -> None:
-        """
-        Submit a job via boto3, update batch_job_id and state, and
-        save the job object to the db.
-        """
-        try:
-            response = self._batch.submit_job(
-                jobName=self.batch_job_name,
-                jobQueue=self.batch_job_queue,
-                jobDefinition=self.batch_job_definition,
-                containerOverrides=self.batch_container_overrides,
-            )
-
-            self.batch_job_id = response["jobId"]
+        if job_id := batch.submit_job(self):
+            self.batch_job_id = job_id
             self.state = JobStates.SUBMITTED
             self.submitted_at = make_aware(datetime.now())
 
             self.save()
+            return True
 
-        except Exception as error:
-            logger.exception(
-                f"Failed to terminate the job due to: \n\t{error}",
-                job_id=self.pk,
-                batch_job_id=self.batch_job_id,
-            )
-            return False
-
-        logger.info(
-            "Job submission complete.",
-            job_id=self.pk,
-            batch_job_id=self.batch_job_id,
-        )
-        return True
+        return False
 
     def terminate(self, retry_on_termination=False) -> bool:
         """
-        Terminate the submitted and incomplete job via boto3, and update state.
-        Return True if the job is successfully terminated or already terminated, otherwise False.
-        Throw an error if failed to terminate the job.
+        Terminate the submitted, incomplete job via batch.terminate_job.
+        Update state, retry_on_termination and terminated_at, and
+        save it to the db on success.
         """
-
         if self.state in [JobStates.COMPLETED, JobStates.TERMINATED]:
             return self.state == JobStates.TERMINATED
 
-        try:
-            self._batch.terminate_job(jobId=self.batch_job_id, reason="Terminating job.")
+        if batch.terminate_job(self):
             self.state = JobStates.TERMINATED
             self.retry_on_termination = retry_on_termination
             self.terminated_at = make_aware(datetime.now())
 
             self.save()
+            return True
 
-        except Exception as error:
-            logger.exception(
-                f"Failed to terminate the job due to: \n\t{error}",
-                job_id=self.pk,
-                batch_job_id=self.batch_job_id,
-            )
-            return False
-
-        logger.info(
-            "Job termination complete.",
-            job_id=self.pk,
-            batch_job_id=self.batch_job_id,
-        )
-        return True
+        return False
 
     def get_retry_job(self):
         """
