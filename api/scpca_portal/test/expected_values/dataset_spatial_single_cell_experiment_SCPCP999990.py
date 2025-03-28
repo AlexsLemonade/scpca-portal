@@ -1,7 +1,7 @@
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 
-class DatasetSingleCellSingleCellExperimentSCPCP999990:
+class DatasetSpatialSingleCellExperimentSCPCP999990:
     PROJECT_ID = "SCPCP999990"
     CCDL_NAME = CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.name
     VALUES = {

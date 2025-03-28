@@ -1,17 +1,17 @@
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 
-class DatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999990:
-    PROJECT_ID = "SCPCP999990"
+class DatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991:
+    PROJECT_ID = "SCPCP999991"
     CCDL_NAME = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED.name
     VALUES = {
         "data": {
             PROJECT_ID: {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SINGLE_CELL.name: ["SCPCS999995"],
                 Modalities.SPATIAL.name: [],
-            }
+            },
         },
         "email": None,
         "start": False,

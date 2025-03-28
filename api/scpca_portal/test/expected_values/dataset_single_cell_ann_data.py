@@ -14,7 +14,7 @@ class DatasetSingleCellAnndata:
             "SCPCP999991": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+                Modalities.SINGLE_CELL.name: ["SCPCS999995"],
                 Modalities.SPATIAL.name: [],
             },
             "SCPCP999992": {
