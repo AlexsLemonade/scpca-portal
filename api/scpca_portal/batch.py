@@ -1,6 +1,9 @@
+from typing import Dict, List
+
 import boto3
 from botocore.client import Config
 
+from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
@@ -20,7 +23,6 @@ def submit_job(job) -> str | None:
             jobDefinition=job.batch_job_definition,
             containerOverrides=job.batch_container_overrides,
         )
-
     except Exception as error:
         logger.exception(
             f"Failed to terminate the job due to: \n\t{error}",
@@ -47,7 +49,6 @@ def terminate_job(job) -> bool:
     """
     try:
         aws_batch.terminate_job(jobId=job.batch_job_id, reason="Terminating job.")
-
     except Exception as error:
         logger.exception(
             f"Failed to terminate the job due to: \n\t{error}",
@@ -62,3 +63,42 @@ def terminate_job(job) -> bool:
         batch_job_id=job.batch_job_id,
     )
     return True
+
+
+def get_job(batch_job_id: str) -> Dict | None:
+    """
+    Fetch an AWS Batch job for the given job ID.
+    Return the fetched job on success, otherwise return None.
+    """
+    try:
+        response = aws_batch.describe_jobs(jobs=[batch_job_id])
+    except Exception as error:
+        logger.exception(
+            f"Failed to fetch AWS Batch job due to: \n\t{error}",
+            batch_job_id=batch_job_id,
+        )
+        return None
+
+    return response["jobs"][0]
+
+
+def get_jobs(batch_job_ids: List[str]) -> List[Dict] | None:
+    """
+    Bulk fetch AWS Batch jobs by the given job IDs.
+    Return a list of fetched jobs on success, otherwise return None.
+    """
+    max_limit = 100  # Limit of job IDs to send per request
+
+    result = []
+
+    try:
+        for chunk in utils.get_chunk_list(batch_job_ids, max_limit):
+            response = aws_batch.describe_jobs(jobs=chunk)
+            result.extend(response["jobs"])
+    except Exception as error:
+        logger.exception(
+            f"Failed to bulk fetch AWS Batch jobs due to: \n\t{error}",
+        )
+        return None
+
+    return result
