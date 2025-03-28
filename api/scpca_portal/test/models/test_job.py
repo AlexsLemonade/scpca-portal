@@ -158,7 +158,7 @@ class TestJob(TestCase):
 
     @patch("scpca_portal.batch.get_jobs")
     def test_bulk_sync_state(self, mock_batch_get_jobs):
-        # Set up mock for get_jobs with all AWS Batch job statues
+        # Set up mock for get_jobs with all AWS Batch job statuses
         mock_batch_get_jobs.return_value = self.bulk_create_mock_aws_batch_jobs(
             [
                 {"jobId": f"{self.mock_batch_job_id}-{i}", "status": status}
@@ -182,7 +182,7 @@ class TestJob(TestCase):
         # Job with state change should be updated and saved with correct field values
         for saved_job in Job.objects.all():
             if saved_job.state != JobStates.SUBMITTED:
-                # Job state should be updated to COMPLETED
+                # Job state should be COMPLETED
                 self.assertEqual(saved_job.state, JobStates.COMPLETED)
                 self.assertIn(saved_job.failure_reason, [None, "Job FAILED"])
                 self.assertIsInstance(saved_job.completed_at, datetime)
