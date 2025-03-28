@@ -238,15 +238,20 @@ class TestDataset(TestCase):
                 self.assertEqual(getattr(obj, attribute), value, msg)
 
     def test_get_or_find_ccdl_dataset(self):
-        ccdl_dataset_expected_values = {
-            test_data.DatasetAllMetadata.CCDL_NAME: test_data.DatasetAllMetadata.VALUES,
-            test_data.DatasetSingleCellSingleCellExperiment.CCDL_NAME: test_data.DatasetSingleCellSingleCellExperiment.VALUES,  # noqa
-        }
-        for ccdl_dataset_name, ccdl_dataset_values in ccdl_dataset_expected_values.items():
-            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(ccdl_dataset_name)
+        ccdl_dataset_expected_values = [
+            test_data.DatasetAllMetadata,
+            test_data.DatasetSingleCellSingleCellExperiment,
+            test_data.DatasetSingleCellSingleCellExperimentMerged,
+            test_data.DatasetSingleCellAnndata,
+            test_data.DatasetSingleCellAnndataMerged,
+            test_data.DatasetSpatialSingleCellExperiment,
+        ]
+
+        for ccdl_dataset in ccdl_dataset_expected_values:
+            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(ccdl_dataset.CCDL_NAME)
             dataset.save()
             self.assertTrue(is_new_dataset)
-            self.assertObjectProperties(dataset, ccdl_dataset_values)
+            self.assertObjectProperties(dataset, ccdl_dataset.values)
 
-            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(ccdl_dataset_name)
+            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(ccdl_dataset.CCDL_NAME)
             self.assertFalse(is_new_dataset)
