@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, tag
@@ -229,16 +227,9 @@ class TestDataset(TestCase):
         dataset = DatasetFactory()
         self.assertFalse(dataset.is_ccdl)
 
-    def assertObjectProperties(self, obj: Any, expected_values: Dict[str, Any]) -> None:
-        for attribute, value in expected_values.items():
-            msg = f"The actual and expected `{attribute}` values differ in {obj}"
-            if isinstance(value, list):
-                self.assertListEqual(getattr(obj, attribute), value, msg)
-            else:
-                self.assertEqual(getattr(obj, attribute), value, msg)
-
     def test_get_or_find_ccdl_dataset(self):
-        ccdl_dataset_expected_values = [
+        # Portal Dataset Check
+        ccdl_portal_datasets_expected_values = [
             test_data.DatasetAllMetadata,
             test_data.DatasetSingleCellSingleCellExperiment,
             test_data.DatasetSingleCellSingleCellExperimentMerged,
@@ -247,11 +238,43 @@ class TestDataset(TestCase):
             test_data.DatasetSpatialSingleCellExperiment,
         ]
 
-        for ccdl_dataset in ccdl_dataset_expected_values:
-            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(ccdl_dataset.CCDL_NAME)
+        for ccdl_portal_dataset in ccdl_portal_datasets_expected_values:
+            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
+                ccdl_portal_dataset.CCDL_NAME
+            )
             dataset.save()
             self.assertTrue(is_new_dataset)
-            self.assertObjectProperties(dataset, ccdl_dataset.values)
 
-            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(ccdl_dataset.CCDL_NAME)
+            for attribute, value in ccdl_portal_dataset.VALUES.items():
+                msg = f"The actual and expected `{attribute}` values differ in {dataset}"
+                if isinstance(value, list):
+                    self.assertListEqual(getattr(dataset, attribute), value, msg)
+                else:
+                    self.assertEqual(getattr(dataset, attribute), value, msg)
+
+            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
+                ccdl_portal_dataset.CCDL_NAME
+            )
             self.assertFalse(is_new_dataset)
+
+        # Project Dataset Check
+        ccdl_project_dataset = (
+            test_data.DatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991
+        )
+        dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
+            ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
+        )
+        dataset.save()
+        self.assertTrue(is_new_dataset)
+
+        for attribute, value in ccdl_project_dataset.VALUES.items():
+            msg = f"The actual and expected `{attribute}` values differ in {dataset}"
+            if isinstance(value, list):
+                self.assertListEqual(getattr(dataset, attribute), value, msg)
+            else:
+                self.assertEqual(getattr(dataset, attribute), value, msg)
+
+        dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
+            ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
+        )
+        self.assertFalse(is_new_dataset)
