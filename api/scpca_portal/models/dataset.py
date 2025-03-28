@@ -87,12 +87,12 @@ class Dataset(TimestampedModel):
         if dataset := cls.objects.filter(
             is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
         ).first():
-            return dataset, False
+            return dataset, True
 
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
-        return dataset, True
+        return dataset, False
 
     def get_ccdl_data(self) -> Dict:
         if not self.is_ccdl:

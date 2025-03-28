@@ -239,11 +239,9 @@ class TestDataset(TestCase):
         ]
 
         for ccdl_portal_dataset in ccdl_portal_datasets_expected_values:
-            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
-                ccdl_portal_dataset.CCDL_NAME
-            )
+            dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_portal_dataset.CCDL_NAME)
             dataset.save()
-            self.assertTrue(is_new_dataset)
+            self.assertFalse(found)
 
             for attribute, value in ccdl_portal_dataset.VALUES.items():
                 msg = f"The actual and expected `{attribute}` values differ in {dataset}"
@@ -255,17 +253,17 @@ class TestDataset(TestCase):
             dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
                 ccdl_portal_dataset.CCDL_NAME
             )
-            self.assertFalse(is_new_dataset)
+            self.assertTrue(is_new_dataset)
 
         # Project Dataset Check
         ccdl_project_dataset = (
             test_data.DatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991
         )
-        dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
+        dataset, found = Dataset.get_or_find_ccdl_dataset(
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
         )
         dataset.save()
-        self.assertTrue(is_new_dataset)
+        self.assertFalse(found)
 
         for attribute, value in ccdl_project_dataset.VALUES.items():
             msg = f"The actual and expected `{attribute}` values differ in {dataset}"
@@ -274,7 +272,7 @@ class TestDataset(TestCase):
             else:
                 self.assertEqual(getattr(dataset, attribute), value, msg)
 
-        dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
+        dataset, found = Dataset.get_or_find_ccdl_dataset(
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
         )
-        self.assertFalse(is_new_dataset)
+        self.assertTrue(found)
