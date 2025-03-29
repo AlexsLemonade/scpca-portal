@@ -215,7 +215,6 @@ class TestJob(TestCase):
                 self.assertIsNone(saved_job.failure_reason)
                 self.assertIsInstance(saved_job.terminated_at, datetime)
             elif saved_job.state == JobStates.COMPLETED:
-                # Job state should be COMPLETED
                 self.assertEqual(saved_job.state, JobStates.COMPLETED)
                 self.assertIn(saved_job.failure_reason, [None, "Job FAILED"])
                 self.assertIsInstance(saved_job.completed_at, datetime)
