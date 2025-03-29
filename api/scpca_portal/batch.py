@@ -1,5 +1,7 @@
 from typing import Dict, List
 
+from django.template.defaultfilters import pluralize
+
 import boto3
 from botocore.client import Config
 
@@ -65,40 +67,24 @@ def terminate_job(job) -> bool:
     return True
 
 
-def get_job(batch_job_id: str) -> Dict | None:
-    """
-    Fetch an AWS Batch job for the given job ID.
-    Return the fetched job on success, otherwise return None.
-    """
-    try:
-        response = aws_batch.describe_jobs(jobs=[batch_job_id])
-    except Exception as error:
-        logger.exception(
-            f"Failed to fetch AWS Batch job due to: \n\t{error}",
-            batch_job_id=batch_job_id,
-        )
-        return None
-
-    return response["jobs"][0]
-
-
 def get_jobs(batch_job_ids: List[str]) -> List[Dict] | None:
     """
-    Bulk fetch AWS Batch jobs by the given job IDs.
+    Fetch AWS Batch job(s) for the given one or more job ID(s) in bulk.
     Return a list of fetched jobs on success, otherwise return None.
     """
     max_limit = 100  # Limit of job IDs to send per request
 
-    result = []
+    jobs = []
 
     try:
         for chunk in utils.get_chunk_list(batch_job_ids, max_limit):
             response = aws_batch.describe_jobs(jobs=chunk)
-            result.extend(response["jobs"])
+            jobs.extend(response["jobs"])
     except Exception as error:
         logger.exception(
-            f"Failed to bulk fetch AWS Batch jobs due to: \n\t{error}",
+            f"Failed to bulk fetch AWS Batch job{pluralize(len(batch_job_ids))} "
+            f"for job IDs: {', '.join(batch_job_ids)} due to: \n\t{error}"
         )
         return None
 
-    return result
+    return jobs

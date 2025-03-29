@@ -130,42 +130,39 @@ class Job(TimestampedModel):
         Update each job instance's state if it changes to COMPLETED, and update completed_at.
         If the remote status is 'FAILED', update failure_reason if it hasn't been set already.
         """
-        submitted_jobs = cls.objects.filter(state=JobStates.SUBMITTED)
-        batch_job_ids = [job.batch_job_id for job in submitted_jobs]
+        if submitted_jobs := cls.objects.filter(state=JobStates.SUBMITTED):
+            batch_job_ids = [job.batch_job_id for job in submitted_jobs]
 
-        if fetched_jobs := batch.get_jobs(batch_job_ids):
-            # Map the fetched AWS jobs for easy lookup by batch_job_id
-            aws_jobs = {
-                job["jobId"]: {"status": job["status"], "statusReason": job.get("statusReason")}
-                for job in fetched_jobs
-            }
+            if fetched_jobs := batch.get_jobs(batch_job_ids):
+                # Map the fetched AWS jobs for easy lookup by batch_job_id
+                aws_jobs = {job["jobId"]: job for job in fetched_jobs}
 
-            jobs_to_update = []  # Store jobs to be updated in the db
+                synced_jobs = []
 
-            for job in submitted_jobs:
-                aws_job = aws_jobs.get(job.batch_job_id)
+                for job in submitted_jobs:
+                    if aws_job := aws_jobs.get(job.batch_job_id):
+                        aws_job_status = aws_job["status"]
+                        mapped_job_state = job.get_mapped_job_state(aws_job_status)
 
-                # TODO: How should we handle when no matched AWS job returned?
-                # Currently, it continues without interruption, should we log, or raise an error?
-                if not aws_job:
-                    continue
+                        # Only update the job if the state has changed
+                        if job.state != mapped_job_state:
+                            if aws_job_status == "FAILED" and not job.failure_reason:
+                                job.failure_reason = aws_job["statusReason"]
 
-                aws_job_status = aws_job["status"]
-                mapped_job_state = job.get_mapped_job_state(aws_job_status)
+                            job.state = mapped_job_state
+                            job.completed_at = make_aware(datetime.now())
+                            synced_jobs.append(job)
+                    else:
+                        # TODO: How should we handle when no matched AWS job returned?
+                        # Currently, it continues without interruption - log, or raise an error?
+                        continue
 
-                # Only update the job if the state has changed
-                if job.state != mapped_job_state:
-                    if aws_job_status == "FAILED" and not job.failure_reason:
-                        job.failure_reason = aws_job["statusReason"]
+                if synced_jobs:
+                    cls.objects.bulk_update(
+                        synced_jobs, ["state", "failure_reason", "completed_at"]
+                    )
 
-                    job.state = mapped_job_state
-                    job.completed_at = make_aware(datetime.now())
-                    jobs_to_update.append(job)
-
-            if jobs_to_update:
-                cls.objects.bulk_update(jobs_to_update, ["state", "failure_reason", "completed_at"])
-
-            return True
+                return True
 
         return False
 
@@ -191,14 +188,15 @@ class Job(TimestampedModel):
     def sync_state(self) -> bool:
         """
         Sync the submitted job state with the AWS Batch job status.
-        Call batch.get_job to fetch the corresponding remote job.
+        Call batch.get_jobs to fetch the corresponding remote job.
         Update instance state if it changes to COMPLETED, and update completed_at.
         If the remote status is 'FAILED', update failure_reason if it hasn't been set already.
         """
         if self.state is not JobStates.SUBMITTED:
             return False
 
-        if fetched_job := batch.get_job(self.batch_job_id):
+        if fetched_jobs := batch.get_jobs([self.batch_job_id]):
+            fetched_job = fetched_jobs[0]
             aws_job_status = fetched_job["status"]
             mapped_job_state = self.get_mapped_job_state(aws_job_status)
 

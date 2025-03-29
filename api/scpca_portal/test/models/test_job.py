@@ -95,8 +95,8 @@ class TestJob(TestCase):
         self.assertEqual(Job.objects.count(), 0)
         self.assertEqual(job.state, JobStates.CREATED)
 
-    @patch("scpca_portal.batch.get_job")
-    def test_sync_state(self, mock_batch_get_job):
+    @patch("scpca_portal.batch.get_jobs")
+    def test_sync_state(self, mock_batch_get_jobs):
         # Job state is not SUBMITTED
         completed_job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
@@ -104,9 +104,9 @@ class TestJob(TestCase):
             state=JobStates.COMPLETED,
         )
 
-        # Should return False early without calling get_job
+        # Should return False early without calling get_jobs
         success = completed_job.sync_state()
-        mock_batch_get_job.assert_not_called()
+        mock_batch_get_jobs.assert_not_called()
         self.assertFalse(success)
 
         # Job is in SUBMITTED state
@@ -116,45 +116,49 @@ class TestJob(TestCase):
             state=JobStates.SUBMITTED,
         )
 
-        # Set up mock for failed get_job call
-        mock_batch_get_job.return_value = False
+        # Set up mock for failed get_jobs call
+        mock_batch_get_jobs.return_value = False
 
         success = submitted_job.sync_state()
-        mock_batch_get_job.assert_called()
+        mock_batch_get_jobs.assert_called()
         self.assertFalse(success)
 
         # The job should remain unchanged and unsaved
         saved_job = Job.objects.get(pk=submitted_job.pk)
         self.assertEqual(saved_job, submitted_job)
 
-        # Set up mock for get_job for RUNNING (with no state change)
-        mock_batch_get_job.return_value = {
-            "status": "RUNNING",
-            "statusReason": "Job RUNNING",
-        }
+        # Set up mock for get_jobs for RUNNING (with no state change)
+        mock_batch_get_jobs.return_value = [
+            {
+                "status": "RUNNING",
+                "statusReason": "Job RUNNING",
+            }
+        ]
 
         success = submitted_job.sync_state()
-        mock_batch_get_job.assert_called()
+        mock_batch_get_jobs.assert_called()
         self.assertTrue(success)
 
         # The job should remain unchanged and unsaved
         saved_job = Job.objects.get(pk=submitted_job.pk)
         self.assertEqual(saved_job, submitted_job)
 
-        # Set up mock for get_job with FAILED (with state change)
-        mock_batch_get_job.return_value = {
-            "status": "FAILED",
-            "statusReason": "Job FAILED",
-        }
+        # Set up mock for get_jobs with FAILED (with state change)
+        mock_batch_get_jobs.return_value = [
+            {
+                "status": "FAILED",
+                "statusReason": "Job FAILED",
+            }
+        ]
 
         success = submitted_job.sync_state()
-        mock_batch_get_job.assert_called()
+        mock_batch_get_jobs.assert_called()
         self.assertTrue(success)
 
         # Job should be updated and saved with correct field values
         saved_job = Job.objects.get(pk=submitted_job.pk)
         self.assertEqual(saved_job.state, JobStates.COMPLETED)
-        self.assertEqual(saved_job.failure_reason, mock_batch_get_job.return_value["statusReason"])
+        self.assertEqual(saved_job.failure_reason, "Job FAILED")
 
     @patch("scpca_portal.batch.get_jobs")
     def test_bulk_sync_state(self, mock_batch_get_jobs):
