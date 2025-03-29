@@ -46,22 +46,21 @@ class Job(TimestampedModel):
         return f"Job {self.id} - {self.state}"
 
     @staticmethod
-    def get_mapped_job_state(batch_job_status: str) -> str:
+    def get_mapped_job_state(batch_job_status: str, is_terminated: bool = False) -> str:
         """
         Map the AWS Batch job status to the corresponding instance job state.
-        Return the mapped instance state value,
+        Return the mapped instance state value, or default to SUBMITTED.
+        If FAILED with is_terminated True, return TERMINATED.
         """
         state_mapping = {
-            "SUBMITTED": JobStates.SUBMITTED,
-            "PENDING": JobStates.SUBMITTED,
-            "RUNNABLE": JobStates.SUBMITTED,
-            "STARTING": JobStates.SUBMITTED,
-            "RUNNING": JobStates.SUBMITTED,
             "SUCCEEDED": JobStates.COMPLETED,
             "FAILED": JobStates.COMPLETED,
         }
 
-        return state_mapping[batch_job_status]
+        if is_terminated:
+            return JobStates.TERMINATED
+
+        return state_mapping.get(batch_job_status, JobStates.SUBMITTED)
 
     @classmethod
     def get_project_job(cls, project_id: str, download_config_name: str, notify: bool = False):
@@ -142,12 +141,20 @@ class Job(TimestampedModel):
                 for job in submitted_jobs:
                     if aws_job := aws_jobs.get(job.batch_job_id):
                         aws_job_status = aws_job["status"]
-                        mapped_job_state = job.get_mapped_job_state(aws_job_status)
+                        is_terminated = aws_job.get("isCancelled") or aws_job.get("isTerminated")
+                        mapped_job_state = job.get_mapped_job_state(
+                            aws_job_status, is_terminated=is_terminated
+                        )
 
                         # Only update the job if the state has changed
                         if job.state != mapped_job_state:
-                            if aws_job_status == "FAILED" and not job.failure_reason:
+                            if aws_job_status == "FAILED" and not (
+                                is_terminated or job.failure_reason
+                            ):
                                 job.failure_reason = aws_job["statusReason"]
+
+                            if is_terminated:
+                                job.terminated_at = make_aware(datetime.now())
 
                             job.state = mapped_job_state
                             job.completed_at = make_aware(datetime.now())
@@ -159,7 +166,8 @@ class Job(TimestampedModel):
 
                 if synced_jobs:
                     cls.objects.bulk_update(
-                        synced_jobs, ["state", "failure_reason", "completed_at"]
+                        synced_jobs,
+                        ["state", "failure_reason", "completed_at", "terminated_at"],
                     )
 
                 return True
@@ -196,14 +204,20 @@ class Job(TimestampedModel):
             return False
 
         if fetched_jobs := batch.get_jobs([self.batch_job_id]):
-            fetched_job = fetched_jobs[0]
-            aws_job_status = fetched_job["status"]
-            mapped_job_state = self.get_mapped_job_state(aws_job_status)
+            aws_job = fetched_jobs[0]
+            aws_job_status = aws_job["status"]
+            is_terminated = aws_job.get("isCancelled") or aws_job.get("isTerminated")
+            mapped_job_state = self.get_mapped_job_state(
+                aws_job_status, is_terminated=is_terminated
+            )
 
             # Only update the job if the state has changed
             if self.state != mapped_job_state:
-                if aws_job_status == "FAILED" and not self.failure_reason:
-                    self.failure_reason = fetched_job["statusReason"]
+                if aws_job_status == "FAILED" and not (is_terminated or self.failure_reason):
+                    self.failure_reason = aws_job["statusReason"]
+
+                if is_terminated:
+                    self.terminated_at = make_aware(datetime.now())
 
                 self.state = mapped_job_state
                 self.completed_at = make_aware(datetime.now())
