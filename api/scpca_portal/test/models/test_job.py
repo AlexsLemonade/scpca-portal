@@ -106,7 +106,7 @@ class TestJob(TestCase):
         completed_job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
-            state=JobStates.COMPLETED,
+            state=JobStates.COMPLETED.name,
         )
 
         # Should return False early without calling get_jobs
@@ -118,7 +118,7 @@ class TestJob(TestCase):
         submitted_job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
-            state=JobStates.SUBMITTED,
+            state=JobStates.SUBMITTED.name,
         )
 
         # Set up mock for failed get_jobs call
@@ -163,12 +163,12 @@ class TestJob(TestCase):
 
         # Job should be updated and saved with correct field values
         saved_job = Job.objects.get(pk=submitted_job.pk)
-        self.assertEqual(saved_job.state, JobStates.TERMINATED)
+        self.assertEqual(saved_job.state, JobStates.TERMINATED.name)
         self.assertIsInstance(saved_job.terminated_at, datetime)
         self.assertIsNone(saved_job.failure_reason)
 
         # Set up mock for get_jobs with FAILED
-        submitted_job.state = JobStates.SUBMITTED
+        submitted_job.state = JobStates.SUBMITTED.name
         mock_batch_get_jobs.return_value = [
             {
                 "status": "FAILED",
@@ -182,7 +182,7 @@ class TestJob(TestCase):
 
         # Job should be updated and saved with correct field values
         saved_job = Job.objects.get(pk=submitted_job.pk)
-        self.assertEqual(saved_job.state, JobStates.COMPLETED)
+        self.assertEqual(saved_job.state, JobStates.COMPLETED.name)
         self.assertEqual(saved_job.failure_reason, "Job FAILED")
         self.assertIsInstance(saved_job.completed_at, datetime)
 
@@ -200,7 +200,7 @@ class TestJob(TestCase):
         )
         self.bulk_create_mock_jobs(
             [
-                {"batch_job_id": f"{self.mock_batch_job_id}-{i}", "state": JobStates.SUBMITTED}
+                {"batch_job_id": f"{self.mock_batch_job_id}-{i}", "state": JobStates.SUBMITTED.name}
                 for i in range(0, 8)
             ]
         )
@@ -211,15 +211,15 @@ class TestJob(TestCase):
 
         # Job with state change should be updated and saved with correct field values
         for saved_job in Job.objects.all():
-            if saved_job.state == JobStates.TERMINATED:
+            if saved_job.state == JobStates.TERMINATED.name:
                 self.assertIsNone(saved_job.failure_reason)
                 self.assertIsInstance(saved_job.terminated_at, datetime)
-            elif saved_job.state == JobStates.COMPLETED:
-                self.assertEqual(saved_job.state, JobStates.COMPLETED)
+            elif saved_job.state == JobStates.COMPLETED.name:
+                self.assertEqual(saved_job.state, JobStates.COMPLETED.name)
                 self.assertIn(saved_job.failure_reason, [None, "Job FAILED"])
                 self.assertIsInstance(saved_job.completed_at, datetime)
             else:
-                self.assertEqual(saved_job.state, JobStates.SUBMITTED)
+                self.assertEqual(saved_job.state, JobStates.SUBMITTED.name)
                 self.assertIsNone(saved_job.failure_reason)
                 self.assertIsNone(saved_job.completed_at)
                 self.assertIsNone(saved_job.terminated_at)
@@ -235,7 +235,7 @@ class TestJob(TestCase):
         )
         self.bulk_create_mock_jobs(
             [
-                {"batch_job_id": f"{self.mock_batch_job_id}-{i}", "state": JobStates.SUBMITTED}
+                {"batch_job_id": f"{self.mock_batch_job_id}-{i}", "state": JobStates.SUBMITTED.name}
                 for i in range(1, 4)
             ]
         )
@@ -247,7 +247,7 @@ class TestJob(TestCase):
 
         # Job with state change should be updated and saved with correct field values
         saved_job = Job.objects.filter(batch_job_id=f"{self.mock_batch_job_id}-{1}").first()
-        self.assertEqual(saved_job.state, JobStates.COMPLETED)
+        self.assertEqual(saved_job.state, JobStates.COMPLETED.name)
         self.assertEqual(saved_job.failure_reason, "Job FAILED")
         self.assertIsInstance(saved_job.completed_at, datetime)
 

@@ -53,14 +53,14 @@ class Job(TimestampedModel):
         If FAILED with is_terminated True, return TERMINATED.
         """
         state_mapping = {
-            "SUCCEEDED": JobStates.COMPLETED,
-            "FAILED": JobStates.COMPLETED,
+            "SUCCEEDED": JobStates.COMPLETED.name,
+            "FAILED": JobStates.COMPLETED.name,
         }
 
         if is_terminated:
-            return JobStates.TERMINATED
+            return JobStates.TERMINATED.name
 
-        return state_mapping.get(batch_job_status, JobStates.SUBMITTED)
+        return state_mapping.get(batch_job_status, JobStates.SUBMITTED.name)
 
     @classmethod
     def get_project_job(cls, project_id: str, download_config_name: str, notify: bool = False):
@@ -129,7 +129,7 @@ class Job(TimestampedModel):
         Update each job instance's state if it changes to COMPLETED, and update completed_at.
         If the remote status is 'FAILED', update failure_reason if it hasn't been set already.
         """
-        if submitted_jobs := cls.objects.filter(state=JobStates.SUBMITTED):
+        if submitted_jobs := cls.objects.filter(state=JobStates.SUBMITTED.name):
             batch_job_ids = [job.batch_job_id for job in submitted_jobs]
 
             if fetched_jobs := batch.get_jobs(batch_job_ids):
@@ -200,7 +200,7 @@ class Job(TimestampedModel):
         Update instance state if it changes to COMPLETED, and update completed_at.
         If the remote status is 'FAILED', update failure_reason if it hasn't been set already.
         """
-        if self.state is not JobStates.SUBMITTED:
+        if self.state is not JobStates.SUBMITTED.name:
             return False
 
         if fetched_jobs := batch.get_jobs([self.batch_job_id]):
