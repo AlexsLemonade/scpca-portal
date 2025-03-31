@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List
 
 from django.db import models
 
@@ -16,6 +16,7 @@ from scpca_portal.enums import (
 from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 
 logger = get_and_configure_logger(__name__)
@@ -141,6 +142,44 @@ class Dataset(TimestampedModel):
     def is_data_valid(self) -> bool:
         data_validator = DataValidator(self.data)
         return data_validator.is_valid
+
+    @property
+    def original_files(self) -> Iterable[OriginalFile]:
+        files = OriginalFile.objects.none()
+        for project_id, project_config in self.data.items():
+
+            # add spatial files
+            files |= OriginalFile.downloadable_objects.filter(
+                project_id=project_id, is_spatial=True, sample_id__in=project_config["SPATIAL"]
+            )
+
+            # add single-cell supplementary
+            files |= OriginalFile.downloadable_objects.filter(
+                project_id=project_id,
+                is_single_cell=True,
+                is_supplementary=True,
+                sample_id__in=project_config["SINGLE_CELL"],
+            )
+
+            single_cell = OriginalFile.downloadable_objects.filter(
+                project_id=project_id,
+                is_single_cell=True,
+                format__contains=self.format,
+            )
+
+            if project_config["include_single_cell_merged"]:
+                files |= single_cell.filter(is_merged=True)
+            else:
+                files |= single_cell.filter(
+                    is_merged=False, sample_id__in=project_config["SINGLE_CELL"]
+                )
+
+            if project_config["includes_bulk"]:
+                files |= OriginalFile.downloadable_objects.filter(
+                    project_id=project_id, is_bulk=True
+                )
+
+        return files
 
 
 class DataValidator:
