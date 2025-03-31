@@ -119,7 +119,7 @@ class Job(TimestampedModel):
         save it to the db on success.
         """
         submitted_jobs = []
-        unsaved_jobs_found = False  # Trask if at least one unsaved job in list_of_jobs
+        unsaved_jobs_found = False  # Track if at least one unsaved job in list_of_jobs
         failed_count = 0
 
         for job in list_of_jobs:
@@ -137,7 +137,7 @@ class Job(TimestampedModel):
                 failed_count += 1
 
         if not unsaved_jobs_found:
-            logger.info("No submission was made as all jobs were previously submitted.")
+            logger.info("No submission required as all jobs were previously submitted.")
             return True
 
         if submitted_jobs:
@@ -149,6 +149,7 @@ class Job(TimestampedModel):
                 "Job submission complete. "
                 f"{total_submitted_count} job{pluralize(total_submitted_count)} were submitted.",
             )
+            return True
 
         # TODO: How to handle logging?
         if failed_count > 0:
@@ -163,41 +164,40 @@ class Job(TimestampedModel):
         Update each instance's state, retry_on_termination, and terminated_at, and
         save it to the db on success.
         """
-        submitted_jobs = Job.objects.filter(state=JobStates.SUBMITTED.name)
+        if submitted_jobs := Job.objects.filter(state=JobStates.SUBMITTED.name):
+            terminated_jobs = []
+            failed_count = 0
 
-        if not submitted_jobs:
-            logger.info(
-                "No termination necessary as all jobs were already completed or terminated."
-            )
-            return True
+            for job in submitted_jobs:
+                if batch.terminate_job(job):
+                    job.state = JobStates.TERMINATED.name
+                    job.retry_on_termination = retry_on_termination
+                    job.terminated_at = make_aware(datetime.now())
+                    terminated_jobs.append(job)
+                else:
+                    failed_count += 1
 
-        terminated_jobs = []
-        failed_count = 0
+            if terminated_jobs:
+                Job.objects.bulk_update(
+                    terminated_jobs, ["state", "retry_on_termination", "terminated_at"]
+                )
 
-        for job in submitted_jobs:
-            if batch.terminate_job(job):
-                job.state = JobStates.TERMINATED.name
-                job.retry_on_termination = retry_on_termination
-                job.terminated_at = make_aware(datetime.now())
-                terminated_jobs.append(job)
-            else:
-                failed_count += 1
+                # TODO: How to handle logging?
+                terminated_jobs = len(terminated_jobs)
+                logger.info(
+                    "Job termination complete. "
+                    f"{terminated_jobs} job{pluralize(terminated_jobs)} were terminated.",
+                )
 
-        if terminated_jobs:
-            Job.objects.bulk_update(
-                terminated_jobs, ["state", "retry_on_termination", "terminated_at"]
-            )
-
-            # TODO: How to handle logging?
-            terminated_jobs = len(terminated_jobs)
-            logger.info(
-                "Job termination complete. "
-                f"{terminated_jobs} job{pluralize(terminated_jobs)} were terminated.",
-            )
+                return True
+        else:
+            logger.info("No termination required as all jobs were already completed or terminated.")
             return True
 
         # TODO: How to handle logging?
-        logger.info(f"Failed to terminate {failed_count} job{pluralize(failed_count)}.")
+        if failed_count > 0:
+            logger.info(f"Failed to terminate {failed_count} job{pluralize(failed_count)}.")
+
         return False
 
     def submit(self) -> bool:

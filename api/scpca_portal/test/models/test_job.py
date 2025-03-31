@@ -110,7 +110,7 @@ class TestJob(TestCase):
         self.assertEqual(Job.objects.count(), 3)
 
         success = Job.submit_created(jobs_to_submit)
-        # Sohuld call submit_job 3 times for the unsaved jobs
+        # Should call submit_job 3 times for the unsaved jobs
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
         self.assertTrue(success)
@@ -134,7 +134,7 @@ class TestJob(TestCase):
         )
 
         success = Job.submit_created(jobs_to_submit)
-        # Sohuld not call submit_job for already saved jobs
+        # Should not call submit_job for already saved jobs
         mock_batch_submit_job.assert_not_called()
         self.assertTrue(success)  # No submission with no error
 
@@ -203,7 +203,7 @@ class TestJob(TestCase):
         )
 
         success = Job.terminate_submitted(retry_on_termination=True)
-        # Sohuld call submit_job 3 times for the unsaved jobs
+        # Should call submit_job 3 times for the unsaved jobs
         mock_batch_terminate_job.assert_called()
         self.assertEqual(mock_batch_terminate_job.call_count, 3)
         self.assertTrue(success)
