@@ -1,5 +1,6 @@
 import uuid
-from typing import Any, Dict, Iterable, List
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Set
 
 from django.db import models
 
@@ -150,7 +151,9 @@ class Dataset(TimestampedModel):
 
             # add spatial files
             files |= OriginalFile.downloadable_objects.filter(
-                project_id=project_id, is_spatial=True, sample_id__in=project_config["SPATIAL"]
+                project_id=project_id,
+                is_spatial=True,
+                sample_ids__overlap=project_config["SPATIAL"],
             )
 
             # add single-cell supplementary
@@ -158,20 +161,20 @@ class Dataset(TimestampedModel):
                 project_id=project_id,
                 is_single_cell=True,
                 is_supplementary=True,
-                sample_id__in=project_config["SINGLE_CELL"],
+                sample_ids__overlap=project_config["SINGLE_CELL"],
             )
 
             single_cell = OriginalFile.downloadable_objects.filter(
                 project_id=project_id,
                 is_single_cell=True,
-                format__contains=self.format,
+                formats__contains=[self.format],
             )
 
-            if project_config["include_single_cell_merged"]:
+            if project_config["merge_single_cell"]:
                 files |= single_cell.filter(is_merged=True)
             else:
                 files |= single_cell.filter(
-                    is_merged=False, sample_id__in=project_config["SINGLE_CELL"]
+                    is_merged=False, sample_ids__overlap=project_config["SINGLE_CELL"]
                 )
 
             if project_config["includes_bulk"]:
@@ -180,6 +183,10 @@ class Dataset(TimestampedModel):
                 )
 
         return files
+
+    @property
+    def original_file_paths(self) -> Set[Path]:
+        return {Path(of.s3_key) for of in self.original_files}
 
 
 class DataValidator:
