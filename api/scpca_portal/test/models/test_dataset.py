@@ -1,9 +1,11 @@
+from pathlib import Path
+
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, tag
 
 from scpca_portal import loader
-from scpca_portal.enums import Modalities
+from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models import Dataset
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import DatasetFactory
@@ -276,3 +278,29 @@ class TestDataset(TestCase):
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
         )
         self.assertTrue(found)
+
+    def test_original_files_property(self):
+        # SINGLE_CELL SCE
+        data = {
+            "SCPCP999990": {
+                "merge_single_cell": False,
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+        expected_files = {
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_qc.html"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_processed.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_celltype-report.html"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_qc.html"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_unfiltered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_filtered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_processed.rds"),
+        }
+        self.assertEqual(dataset.original_file_paths, expected_files)
