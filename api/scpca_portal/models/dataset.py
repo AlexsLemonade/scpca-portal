@@ -164,19 +164,19 @@ class Dataset(TimestampedModel):
                 sample_ids__overlap=project_config["SINGLE_CELL"],
             )
 
-            single_cell = OriginalFile.downloadable_objects.filter(
-                project_id=project_id,
-                is_single_cell=True,
-                formats__contains=[self.format],
-            )
-
             if project_config["merge_single_cell"]:
-                files |= single_cell.filter(is_merged=True)
-            else:
-                files |= single_cell.filter(
-                    is_merged=False, sample_ids__overlap=project_config["SINGLE_CELL"]
+                merged_files = OriginalFile.downloadable_objects.filter(
+                    project_id=project_id, is_merged=True
                 )
-
+                files |= merged_files.filter(formats__contains=[self.format])
+                files |= merged_files.filter(is_supplementary=True)
+            else:
+                files |= OriginalFile.downloadable_objects.filter(
+                    project_id=project_id,
+                    is_single_cell=True,
+                    formats__contains=[self.format],
+                    sample_ids__overlap=project_config["SINGLE_CELL"],
+                )
             if project_config["includes_bulk"]:
                 files |= OriginalFile.downloadable_objects.filter(
                     project_id=project_id, is_bulk=True
