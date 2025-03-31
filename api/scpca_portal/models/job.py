@@ -1,13 +1,20 @@
 from datetime import datetime
+from typing import List
 
 from django.conf import settings
 from django.db import models
+from django.template.defaultfilters import pluralize
 from django.utils.timezone import make_aware
 
+from typing_extensions import Self
+
 from scpca_portal import batch
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
+
+logger = get_and_configure_logger(__name__)
 
 
 class Job(TimestampedModel):
@@ -21,7 +28,7 @@ class Job(TimestampedModel):
     critical_error = models.BooleanField(default=False)  # Set to True if the job is irrecoverable
     failure_reason = models.TextField(blank=True, null=True)
     retry_on_termination = models.BooleanField(default=False)
-    state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED)
+    state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED.name)
 
     submitted_at = models.DateTimeField(null=True)
     completed_at = models.DateTimeField(null=True)
@@ -104,18 +111,107 @@ class Job(TimestampedModel):
             },
         )
 
+    @classmethod
+    def submit_created(cls, list_of_jobs: List[Self]) -> bool:
+        """
+        Submit the given unsaved created jobs via batch.submit_job.
+        Update each job instance's batch_job_id and state, and
+        save it to the db on success.
+        """
+        submitted_jobs = []
+        unsaved_jobs_found = False  # Trask if at least one unsaved job in list_of_jobs
+        failed_count = 0
+
+        for job in list_of_jobs:
+            if job.state != JobStates.CREATED.name:
+                continue
+
+            unsaved_jobs_found = True
+
+            if aws_job_id := batch.submit_job(job):
+                job.batch_job_id = aws_job_id
+                job.state = JobStates.SUBMITTED.name
+                job.submitted_at = make_aware(datetime.now())
+                submitted_jobs.append(job)
+            else:
+                failed_count += 1
+
+        if not unsaved_jobs_found:
+            logger.info("No submission was made as all jobs were previously submitted.")
+            return True
+
+        if submitted_jobs:
+            Job.objects.bulk_create(submitted_jobs)
+
+            # TODO: How to handle logging?
+            total_submitted_count = len(submitted_jobs)
+            logger.info(
+                "Job submission complete. "
+                f"{total_submitted_count} job{pluralize(total_submitted_count)} were submitted.",
+            )
+
+        # TODO: How to handle logging?
+        if failed_count > 0:
+            logger.info(f"Failed to submit {failed_count} job{pluralize(failed_count)}.")
+
+        return False
+
+    @classmethod
+    def terminate_submitted(cls, retry_on_termination: bool = False) -> bool:
+        """
+        Terminate all submitted, incomplete jobs via batch.terminate_job.
+        Update each instance's state, retry_on_termination, and terminated_at, and
+        save it to the db on success.
+        """
+        submitted_jobs = Job.objects.filter(state=JobStates.SUBMITTED.name)
+
+        if not submitted_jobs:
+            logger.info(
+                "No termination necessary as all jobs were already completed or terminated."
+            )
+            return True
+
+        terminated_jobs = []
+        failed_count = 0
+
+        for job in submitted_jobs:
+            if batch.terminate_job(job):
+                job.state = JobStates.TERMINATED.name
+                job.retry_on_termination = retry_on_termination
+                job.terminated_at = make_aware(datetime.now())
+                terminated_jobs.append(job)
+            else:
+                failed_count += 1
+
+        if terminated_jobs:
+            Job.objects.bulk_update(
+                terminated_jobs, ["state", "retry_on_termination", "terminated_at"]
+            )
+
+            # TODO: How to handle logging?
+            terminated_jobs = len(terminated_jobs)
+            logger.info(
+                "Job termination complete. "
+                f"{terminated_jobs} job{pluralize(terminated_jobs)} were terminated.",
+            )
+            return True
+
+        # TODO: How to handle logging?
+        logger.info(f"Failed to terminate {failed_count} job{pluralize(failed_count)}.")
+        return False
+
     def submit(self) -> bool:
         """
         Submit the job via batch.submit_job.
         Update batch_job_id and state, and
         save it to the db on success.
         """
-        if self.state is not JobStates.CREATED:
+        if self.state is not JobStates.CREATED.name:
             return False
 
         if job_id := batch.submit_job(self):
             self.batch_job_id = job_id
-            self.state = JobStates.SUBMITTED
+            self.state = JobStates.SUBMITTED.name
             self.submitted_at = make_aware(datetime.now())
 
             self.save()
@@ -123,17 +219,17 @@ class Job(TimestampedModel):
 
         return False
 
-    def terminate(self, retry_on_termination=False) -> bool:
+    def terminate(self, retry_on_termination: bool = False) -> bool:
         """
         Terminate the submitted, incomplete job via batch.terminate_job.
         Update state, retry_on_termination and terminated_at, and
         save it to the db on success.
         """
-        if self.state in [JobStates.COMPLETED, JobStates.TERMINATED]:
+        if self.state in [JobStates.COMPLETED.name, JobStates.TERMINATED.name]:
             return self.state == JobStates.TERMINATED
 
         if batch.terminate_job(self):
-            self.state = JobStates.TERMINATED
+            self.state = JobStates.TERMINATED.name
             self.retry_on_termination = retry_on_termination
             self.terminated_at = make_aware(datetime.now())
 
@@ -148,7 +244,7 @@ class Job(TimestampedModel):
         Set new instance's attempt to the base instance's attempt incremented by 1.
         """
 
-        if self.state != JobStates.TERMINATED:
+        if self.state != JobStates.TERMINATED.name:
             return None
 
         # TODO: How should we handle attempting critically failed jobs?
