@@ -243,12 +243,12 @@ class JobFactory(factory.django.DjangoModelFactory):
         If list_of_jobs, generate saved jobs for the given list.
         If num_unsaved_jobs, generate the spefified number of unsaved jobs.
         """
-        default_batch_job_name = {"name": "MOCK_BATCH_JOB_NAME"}
+        mock_batch_job_name = {"batch_job_name": "MOCK_BATCH_JOB_NAME"}
 
         if num_unsaved_jobs:
             return [
-                cls.build(batch_job_name=default_batch_job_name["name"])
+                cls.build(batch_job_name=mock_batch_job_name["batch_job_name"])
                 for _ in range(num_unsaved_jobs)
             ]
         else:
-            return [cls(**{**default_batch_job_name, **job}) for job in list_of_jobs]
+            return [cls(**{**mock_batch_job_name, **job}) for job in list_of_jobs]
