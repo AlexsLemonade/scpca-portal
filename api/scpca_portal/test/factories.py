@@ -238,7 +238,7 @@ class JobFactory(factory.django.DjangoModelFactory):
     )
 
     @classmethod
-    def bulk_create_mock_jobs(cls, list_of_jobs=None, num_unsaved_jobs=False):
+    def bulk_get_mock_jobs(cls, list_of_jobs=None, num_unsaved_jobs=False):
         """Helper to create job instances using JobFactory
         If list_of_jobs, generate saved jobs for the given list.
         If num_unsaved_jobs, generate the spefified number of unsaved jobs.
