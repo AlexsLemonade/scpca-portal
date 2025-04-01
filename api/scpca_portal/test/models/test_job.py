@@ -139,3 +139,78 @@ class TestJob(TestCase):
         self.assertEqual(retry_job.batch_job_name, job.batch_job_name)
         self.assertEqual(retry_job.batch_job_definition, job.batch_job_definition)
         self.assertEqual(retry_job.batch_job_queue, job.batch_job_queue)
+
+    def test_retry_jobs(self):
+        # Set up mock for successful retry job generations
+        batch_job_name = "BATCH_JOB_NAME"
+        batch_job_definition = "BATCH_JOB_DEFINITION"
+        batch_job_queue = "BATCH_JOB_QUEUE"
+        batch_container_overrides = "BATCH_CONTAINER_OVERRIDES"
+        # Set up 3 base terminated jobs available for retry
+        JobFactory.get_mock_jobs(
+            [
+                {
+                    "batch_job_name": batch_job_name,
+                    "batch_job_definition": batch_job_definition,
+                    "batch_job_queue": batch_job_queue,
+                    "batch_container_overrides": batch_container_overrides,
+                    "state": JobStates.TERMINATED.name,
+                    "retry_on_termination": True,
+                    "critical_error": False,
+                    "attempt": 1,
+                }
+                for _ in range(3)
+            ]
+        )
+
+        # Before retry, there are 3 saved jobs in the db
+        self.assertEqual(Job.objects.count(), 3)
+
+        # Should return the list of unsaved instacnes
+        retry_jobs = Job.get_retry_jobs()
+        self.assertIsNotNone(retry_jobs)
+
+        # After retry, no new instances saved in the db
+        self.assertEqual(Job.objects.count(), 3)
+
+        for job in retry_jobs:
+            self.assertEqual(job.state, JobStates.CREATED.name)
+            # The base instance field values should be copied correctly
+            self.assertEqual(job.batch_job_name, batch_job_name)
+            self.assertEqual(job.batch_job_definition, batch_job_definition)
+            self.assertEqual(job.batch_job_queue, batch_job_queue)
+            self.assertEqual(job.batch_container_overrides, batch_container_overrides)
+            self.assertEqual(job.attempt, 2)  # base instance's attempt 1 + 1
+
+    def test_retry_jobs_no_terminated_job_to_retry(self):
+        # Set up terminated jobs with retry_on_termination set to False
+        JobFactory.get_mock_jobs(
+            [
+                {
+                    "state": JobStates.TERMINATED.name,
+                    "retry_on_termination": False,
+                    "critical_error": False,
+                }
+                for _ in range(3)
+            ]
+        )
+
+        # Should return None
+        retry_jobs = Job.get_retry_jobs()
+        self.assertIsNone(retry_jobs)
+
+        # Set up terminated jobs with critical_error set to True
+        JobFactory.get_mock_jobs(
+            [
+                {
+                    "state": JobStates.TERMINATED.name,
+                    "retry_on_termination": True,
+                    "critical_error": True,
+                }
+                for _ in range(3)
+            ]
+        )
+
+        # Should return None
+        retry_jobs = Job.get_retry_jobs()
+        self.assertIsNone(retry_jobs)

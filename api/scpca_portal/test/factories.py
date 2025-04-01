@@ -236,3 +236,19 @@ class JobFactory(factory.django.DjangoModelFactory):
             ]
         }
     )
+
+    @classmethod
+    def get_mock_jobs(cls, list_of_jobs=None, num_unsaved_jobs=False):
+        """Helper to create job instances using JobFactory
+        If list_of_jobs, generate saved jobs for the given list.
+        If num_unsaved_jobs, generate the spefified number of unsaved jobs.
+        """
+        default_batch_job_name = {"name": "MOCK_BATCH_JOB_NAME"}
+
+        if num_unsaved_jobs:
+            return [
+                cls.build(batch_job_name=default_batch_job_name["name"])
+                for _ in range(num_unsaved_jobs)
+            ]
+        else:
+            return [cls(**{**default_batch_job_name, **job}) for job in list_of_jobs]
