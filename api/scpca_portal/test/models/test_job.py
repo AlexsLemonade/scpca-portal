@@ -70,8 +70,8 @@ class TestJob(TestCase):
     def test_submit_created(self, mock_batch_submit_job):
         # Set up 3 unsaved jobs (CREATED) and 3 saved jobs with different job states
         mock_batch_submit_job.return_value = self.mock_batch_job_id
-        unsaved_jobs = JobFactory.bulk_get_mock_jobs(num_unsaved_jobs=3)
-        saved_jobs = JobFactory.bulk_get_mock_jobs(
+        unsaved_jobs = JobFactory.get_mock_jobs(num_unsaved_jobs=3)
+        saved_jobs = JobFactory.get_mock_jobs(
             list_of_jobs=[
                 {
                     "batch_job_id": f"{self.mock_batch_job_id}-{state}",
@@ -103,7 +103,7 @@ class TestJob(TestCase):
     def test_submit_created_failure(self, mock_batch_submit_job):
         # Set up mock for failed submissions
         mock_batch_submit_job.return_value = None
-        jobs_to_submit = JobFactory.bulk_get_mock_jobs(num_unsaved_jobs=3)
+        jobs_to_submit = JobFactory.get_mock_jobs(num_unsaved_jobs=3)
 
         # Should call submit_job 3 times, each time with an exception
         success = Job.submit_created(jobs_to_submit)
@@ -118,7 +118,7 @@ class TestJob(TestCase):
     def test_submit_created_no_submission(self, mock_batch_submit_job):
         # Set up 3 already saved jobs for submission
         mock_batch_submit_job.return_value = self.mock_batch_job_id
-        jobs_to_submit = JobFactory.bulk_get_mock_jobs(
+        jobs_to_submit = JobFactory.get_mock_jobs(
             list_of_jobs=[
                 {
                     "batch_job_id": f"{self.mock_batch_job_id}-{i}",
@@ -186,7 +186,7 @@ class TestJob(TestCase):
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_submitted(self, mock_batch_terminate_job):
         # Set up jobs in SUBMITTED state
-        JobFactory.bulk_get_mock_jobs(
+        JobFactory.get_mock_jobs(
             list_of_jobs=[
                 {
                     "batch_job_id": f"{self.mock_batch_job_id}-{i}",
@@ -212,7 +212,7 @@ class TestJob(TestCase):
     def test_terminate_submitted_failure(self, mock_batch_terminate_job):
         # Set up mock for failed terminations
         mock_batch_terminate_job.return_value = False
-        JobFactory.bulk_get_mock_jobs(
+        JobFactory.get_mock_jobs(
             list_of_jobs=[
                 {
                     "batch_job_id": f"{self.mock_batch_job_id}-{i}",
@@ -237,7 +237,7 @@ class TestJob(TestCase):
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_submitted_no_termination(self, mock_batch_terminate_job):
         # Set up jobs that are already TERMINATED or COMPLETED
-        JobFactory.bulk_get_mock_jobs(
+        JobFactory.get_mock_jobs(
             list_of_jobs=[
                 {
                     "batch_job_id": f"{self.mock_batch_job_id}-{state}",
