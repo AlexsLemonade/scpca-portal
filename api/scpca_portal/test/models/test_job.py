@@ -28,31 +28,6 @@ class TestJob(TestCase):
             "FAILED",
         ]
 
-    def bulk_create_mock_jobs(self, list_of_jobs):
-        """Helper to create job instances using JobFactory."""
-        for job in list_of_jobs:
-            JobFactory(
-                batch_job_name=self.mock_project_batch_job_name,
-                batch_job_id=job["batch_job_id"],
-                state=job["state"],
-            )
-
-    def bulk_create_mock_aws_batch_jobs(self, list_of_jobs, terminated_job=None):
-        """Helper to generate AWS Batch jobs for mocked method return value."""
-
-        if terminated_job:
-            list_of_jobs.append(terminated_job)
-
-        return [
-            {
-                "jobId": job["jobId"],
-                "status": job["status"],
-                "statusReason": f"Job {job['status']}",
-                "isTerminated": terminated_job and job["jobId"] == terminated_job["jobId"],
-            }
-            for job in list_of_jobs
-        ]
-
     @patch("scpca_portal.batch.submit_job")
     def test_submit_job(self, mock_batch_submit_job):
         # Set up mock for submit_job
@@ -189,7 +164,7 @@ class TestJob(TestCase):
     @patch("scpca_portal.batch.get_jobs")
     def test_bulk_sync_state(self, mock_batch_get_jobs):
         # Set up mock for get_jobs with all AWS Batch job statuses including terminated FAILED job
-        mock_batch_get_jobs.return_value = self.bulk_create_mock_aws_batch_jobs(
+        mock_batch_get_jobs.return_value = JobFactory.get_mock_aws_batch_jobs(
             [
                 {"jobId": f"{self.mock_batch_job_id}-{i}", "status": status}
                 for i, status in enumerate(
@@ -198,7 +173,7 @@ class TestJob(TestCase):
             ],
             terminated_job={"jobId": f"{self.mock_batch_job_id}-7", "status": "FAILED"},
         )
-        self.bulk_create_mock_jobs(
+        JobFactory.get_mock_jobs(
             [
                 {"batch_job_id": f"{self.mock_batch_job_id}-{i}", "state": JobStates.SUBMITTED.name}
                 for i in range(0, 8)
@@ -209,31 +184,37 @@ class TestJob(TestCase):
         mock_batch_get_jobs.assert_called_once()
         self.assertTrue(success)
 
-        # Job with state change should be updated and saved with correct field values
-        for saved_job in Job.objects.all():
-            if saved_job.state == JobStates.TERMINATED.name:
-                self.assertIsNone(saved_job.failure_reason)
-                self.assertIsInstance(saved_job.terminated_at, datetime)
-            elif saved_job.state == JobStates.COMPLETED.name:
-                self.assertEqual(saved_job.state, JobStates.COMPLETED.name)
-                self.assertIn(saved_job.failure_reason, [None, "Job FAILED"])
-                self.assertIsInstance(saved_job.completed_at, datetime)
-            else:
-                self.assertEqual(saved_job.state, JobStates.SUBMITTED.name)
-                self.assertIsNone(saved_job.failure_reason)
-                self.assertIsNone(saved_job.completed_at)
-                self.assertIsNone(saved_job.terminated_at)
+        # After synchronization, all jobs should be saved with correct field values
+        completed_jobs = Job.objects.filter(state=JobStates.COMPLETED.name)
+        terminated_jobs = Job.objects.filter(state=JobStates.TERMINATED.name)
+        submitted_jobs = Job.objects.exclude(
+            state__in=[JobStates.COMPLETED.name, JobStates.TERMINATED.name]
+        )
+
+        # Should have correct field values
+        for completed_job in completed_jobs:
+            self.assertIn(completed_job.failure_reason, [None, "Job FAILED"])
+            self.assertIsInstance(completed_job.completed_at, datetime)
+        # Should have correct field values
+        for terminated_job in terminated_jobs:
+            self.assertIsNone(terminated_job.failure_reason)
+            self.assertIsInstance(terminated_job.terminated_at, datetime)
+        # Should remain unchanged
+        for submitted_job in submitted_jobs:
+            self.assertIsNone(submitted_job.failure_reason)
+            self.assertIsNone(submitted_job.completed_at)
+            self.assertIsNone(submitted_job.terminated_at)
 
     @patch("scpca_portal.batch.get_jobs")
     def test_bulk_sync_state_no_matching_batch_job_found(self, mock_batch_get_jobs):
         # Set up mock for get_jobs with no matched AWS job found
-        mock_batch_get_jobs.return_value = self.bulk_create_mock_aws_batch_jobs(
+        mock_batch_get_jobs.return_value = JobFactory.get_mock_aws_batch_jobs(
             [
                 {"jobId": f"{self.mock_batch_job_id}-{i}", "status": status}
                 for i, status in enumerate(["PENDING", "FAILED"])
             ]
         )
-        self.bulk_create_mock_jobs(
+        JobFactory.get_mock_jobs(
             [
                 {"batch_job_id": f"{self.mock_batch_job_id}-{i}", "state": JobStates.SUBMITTED.name}
                 for i in range(1, 4)

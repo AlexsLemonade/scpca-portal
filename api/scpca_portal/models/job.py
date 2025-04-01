@@ -130,9 +130,7 @@ class Job(TimestampedModel):
         If the remote status is 'FAILED', update failure_reason if it hasn't been set already.
         """
         if submitted_jobs := cls.objects.filter(state=JobStates.SUBMITTED.name):
-            batch_job_ids = [job.batch_job_id for job in submitted_jobs]
-
-            if fetched_jobs := batch.get_jobs(batch_job_ids):
+            if fetched_jobs := batch.get_jobs(submitted_jobs):
                 # Map the fetched AWS jobs for easy lookup by batch_job_id
                 aws_jobs = {job["jobId"]: job for job in fetched_jobs}
 
@@ -203,7 +201,7 @@ class Job(TimestampedModel):
         if self.state is not JobStates.SUBMITTED.name:
             return False
 
-        if fetched_jobs := batch.get_jobs([self.batch_job_id]):
+        if fetched_jobs := batch.get_jobs([self]):
             aws_job = fetched_jobs[0]
             aws_job_status = aws_job["status"]
             is_terminated = aws_job.get("isCancelled") or aws_job.get("isTerminated")

@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
 from django.template.defaultfilters import pluralize
 
@@ -67,24 +67,24 @@ def terminate_job(job) -> bool:
     return True
 
 
-def get_jobs(batch_job_ids: List[str]) -> List[Dict] | None:
+def get_jobs(batch_jobs: Iterable["Job"]) -> List[Dict] | None:  # noqa: F821
     """
-    Fetch AWS Batch job(s) for the given one or more job ID(s) in bulk.
+    Fetch AWS Batch job(s) for the given one or more job(s) in bulk.
     Return a list of fetched jobs on success, otherwise return None.
     """
     max_limit = 100  # Limit of job IDs to send per request
-
     jobs = []
 
-    try:
-        for chunk in utils.get_chunk_list(batch_job_ids, max_limit):
-            response = aws_batch.describe_jobs(jobs=chunk)
-            jobs.extend(response["jobs"])
-    except Exception as error:
-        logger.exception(
-            f"Failed to bulk fetch AWS Batch job{pluralize(len(batch_job_ids))} "
-            f"for job IDs: {', '.join(batch_job_ids)} due to: \n\t{error}"
-        )
-        return None
+    if batch_job_ids := [job.batch_job_id for job in batch_jobs]:
+        try:
+            for chunk in utils.get_chunk_list(batch_job_ids, max_limit):
+                response = aws_batch.describe_jobs(jobs=chunk)
+                jobs.extend(response["jobs"])
+        except Exception as error:
+            logger.exception(
+                f"Failed to bulk fetch AWS Batch job{pluralize(len(batch_job_ids))} "
+                f"for job IDs: {', '.join(batch_job_ids)} due to: \n\t{error}"
+            )
+            return None
 
     return jobs
