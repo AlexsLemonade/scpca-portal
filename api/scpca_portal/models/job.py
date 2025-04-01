@@ -1,13 +1,20 @@
 from datetime import datetime
+from typing import List
 
 from django.conf import settings
 from django.db import models
+from django.template.defaultfilters import pluralize
 from django.utils.timezone import make_aware
 
+from typing_extensions import Self
+
 from scpca_portal import batch
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
+
+logger = get_and_configure_logger(__name__)
 
 
 class Job(TimestampedModel):
@@ -104,6 +111,27 @@ class Job(TimestampedModel):
             },
         )
 
+    @classmethod
+    def get_retry_jobs(cls) -> List[Self] | None:
+        """
+        Prepare new unsaved Job instances to retry terminated jobs.
+        Exclude those with critical_error is True and retry_on_termination is False.
+        Set each instance's attempt to the base terminated job's attempt incremented by 1.
+        Return the new instances, otherwise None if no terminated jobs for retry available.
+        """
+        if terminated_jobs := Job.objects.filter(
+            state=JobStates.TERMINATED.name, retry_on_termination=True
+        ).exclude(critical_error=True):
+            total_retry_job_count = len(terminated_jobs)
+            logger.info(
+                f"{total_retry_job_count} job{pluralize(total_retry_job_count)} "
+                "generated for retrying terminated jobs.",
+            )
+            return [terminated_job.get_retry_job() for terminated_job in terminated_jobs]
+
+        logger.info("No job generated for retry.")
+        return None
+
     def submit(self) -> bool:
         """
         Submit the job via batch.submit_job.
@@ -142,10 +170,11 @@ class Job(TimestampedModel):
 
         return False
 
-    def get_retry_job(self):
+    def get_retry_job(self) -> Self | None:
         """
-        Prepare a new Job instance to retry the terminated job.
+        Prepare a new unsaved Job instance to retry the terminated job.
         Set new instance's attempt to the base instance's attempt incremented by 1.
+        Return the new instance, otherwise None if the job is not in TERMINATED state.
         """
 
         if self.state != JobStates.TERMINATED:
