@@ -141,7 +141,7 @@ class TestJob(TestCase):
         self.assertEqual(retry_job.batch_job_queue, job.batch_job_queue)
 
     def test_retry_jobs(self):
-        # Set up mock for successful retry job generations
+        # Set up mock field values for base terminated jobs
         batch_job_name = "BATCH_JOB_NAME"
         batch_job_definition = "BATCH_JOB_DEFINITION"
         batch_job_queue = "BATCH_JOB_QUEUE"
@@ -166,21 +166,21 @@ class TestJob(TestCase):
         # Before retry, there are 3 saved jobs in the db
         self.assertEqual(Job.objects.count(), 3)
 
-        # Should return the list of unsaved instacnes
+        # Should return a list of unsaved instances
         retry_jobs = Job.get_retry_jobs()
         self.assertIsNotNone(retry_jobs)
 
-        # After retry, no new instances saved in the db
+        # After retry, no new instances saved to the db
         self.assertEqual(Job.objects.count(), 3)
 
         for job in retry_jobs:
             self.assertEqual(job.state, JobStates.CREATED.name)
-            # The base instance field values should be copied correctly
+            # Each unsaved instance should correctly copy the base instance's field values
             self.assertEqual(job.batch_job_name, batch_job_name)
             self.assertEqual(job.batch_job_definition, batch_job_definition)
             self.assertEqual(job.batch_job_queue, batch_job_queue)
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
-            self.assertEqual(job.attempt, 2)  # base instance's attempt 1 + 1
+            self.assertEqual(job.attempt, 2)  # The base instance's attempt(1) + 1
 
     def test_retry_jobs_no_terminated_job_to_retry(self):
         # Set up terminated jobs with retry_on_termination set to False
