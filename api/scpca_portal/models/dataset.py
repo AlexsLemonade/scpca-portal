@@ -193,6 +193,11 @@ class Dataset(TimestampedModel):
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
 
+    def get_hash_data(self) -> int:
+        original_files_sorted = sorted(self.original_files, key=lambda of: of.s3_key)
+        concat_hash = "".join(of.hash for of in original_files_sorted)
+        return hash(concat_hash.strip())
+
 
 class DataValidator:
     def __init__(self, data: Dict[str, Dict]) -> None:
