@@ -45,6 +45,11 @@ class Dataset(TimestampedModel):
         related_name="regenerated_datasets",
     )
 
+    # Hashes
+    hash_data = models.BigIntegerField(null=True)
+    hash_metadata = models.BigIntegerField(null=True)
+    hash_readme = models.BigIntegerField(null=True)
+
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
     ccdl_name = models.TextField(choices=CCDLDatasetNames.choices, null=True)
