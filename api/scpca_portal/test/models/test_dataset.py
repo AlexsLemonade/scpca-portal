@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
 from django.core.management import call_command
@@ -8,7 +9,7 @@ from scpca_portal import loader
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models import Dataset
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import DatasetFactory
+from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 
 
 class TestDataset(TestCase):
@@ -474,3 +475,25 @@ class TestDataset(TestCase):
             Path("SCPCP999992/merged/SCPCP999992_merged-summary-report.html"),
         }
         self.assertEqual(dataset.original_file_paths, expected_files)
+
+    def test_get_hash_data(self):
+        mock_file_hashes = {
+            "SCPCP000000/SCPCS000000/SCPCL00003.txt": "d4adfj59xe4e1zf9tdgipefc38ihmesm",
+            "SCPCP000000/SCPCS000000/SCPCL00002.txt": "feh8wcvjx9wxmbi9lvunep6n6sy8eekr",
+            "SCPCP000000/SCPCS000000/SCPCL00005.txt": "at7n9m9cg3hev5evhrgev1y63tgzqhem",
+            "SCPCP000000/SCPCS000000/SCPCL00001.txt": "8on83svty5lacm10nqavmqpz9zcoxq2d",
+            "SCPCP000000/SCPCS000000/SCPCL00004.txt": "iekahu4fjio931yyiej5esqfizrunhkf",
+        }
+        mock_original_files = [
+            OriginalFileFactory(s3_key=s3_key, hash=file_hash)
+            for s3_key, file_hash in mock_file_hashes.items()
+        ]
+
+        with patch.object(
+            Dataset, "original_files", new_callable=PropertyMock, return_value=mock_original_files
+        ):
+            dataset = Dataset()
+            expected_hash_data = hash(
+                "8on83svty5lacm10nqavmqpz9zcoxq2dfeh8wcvjx9wxmbi9lvunep6n6sy8eekrd4adfj59xe4e1zf9tdgipefc38ihmesmiekahu4fjio931yyiej5esqfizrunhkfat7n9m9cg3hev5evhrgev1y63tgzqhem"  # noqa
+            )
+            self.assertEqual(dataset.get_hash_data(), expected_hash_data)
