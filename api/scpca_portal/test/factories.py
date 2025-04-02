@@ -1,3 +1,7 @@
+import random
+import string
+from datetime import datetime
+
 from django.conf import settings
 
 import factory
@@ -236,3 +240,17 @@ class JobFactory(factory.django.DjangoModelFactory):
             ]
         }
     )
+
+
+class OriginalFileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.OriginalFile"
+
+    s3_bucket = settings.AWS_S3_INPUT_BUCKET_NAME
+    s3_key = factory.Sequence(lambda n: f"SCPCP999999/SCPCS999999/SCPCL{str(n).zfill(6)}.txt")
+    size_in_bytes = factory.LazyAttribute(lambda _: random.randint(0, 1000000))
+    hash = factory.LazyAttribute(
+        lambda _: "".join(random.choices(string.ascii_lowercase + string.digits, k=33))
+    )
+    hash_change_at = factory.LazyAttribute(lambda _: datetime.now())
+    bucket_sync_at = factory.LazyAttribute(lambda _: datetime.now())
