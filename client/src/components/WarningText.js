@@ -25,8 +25,8 @@ export const WarningText = ({
       <Paragraph>
         {text} {lineBreak && <br />}
         {link && <Link label={linkLabel} href={link} newTab={newTab} />}
-        {children}
       </Paragraph>
+      {children}
     </Box>
   )
 }
