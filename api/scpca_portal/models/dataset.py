@@ -87,12 +87,12 @@ class Dataset(TimestampedModel):
         if dataset := cls.objects.filter(
             is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
         ).first():
-            return dataset, False
+            return dataset, True
 
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
-        return dataset, True
+        return dataset, False
 
     def get_ccdl_data(self) -> Dict:
         if not self.is_ccdl:
@@ -111,14 +111,16 @@ class Dataset(TimestampedModel):
             if modality := self.ccdl_type.get("modality"):
                 samples = samples.filter(libraries__modality=modality)
 
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
-            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
+            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL.name)
+            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL.name)
 
             data[project.scpca_id] = {
                 "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL: single_cell_samples.values_list("scpca_id", flat=True),
-                Modalities.SPATIAL: spatial_samples.values_list("scpca_id", flat=True),
+                Modalities.SINGLE_CELL.name: list(
+                    single_cell_samples.values_list("scpca_id", flat=True)
+                ),
+                Modalities.SPATIAL.name: list(spatial_samples.values_list("scpca_id", flat=True)),
             }
 
         return data
