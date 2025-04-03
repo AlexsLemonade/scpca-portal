@@ -497,3 +497,23 @@ class TestDataset(TestCase):
                 "8on83svty5lacm10nqavmqpz9zcoxq2dfeh8wcvjx9wxmbi9lvunep6n6sy8eekrd4adfj59xe4e1zf9tdgipefc38ihmesmiekahu4fjio931yyiej5esqfizrunhkfat7n9m9cg3hev5evhrgev1y63tgzqhem"  # noqa
             )
             self.assertEqual(dataset.get_hash_data(), expected_hash_data)
+
+    def test_get_hash_metadata(self):
+        # SINGLE_CELL SCE
+        data = {
+            "SCPCP999990": {
+                "merge_single_cell": False,
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+
+        metadata_file_name = "metadata_file_single_cell_single_cell_experiment_SCPCP999990.tsv"
+        with open(
+            f"scpca_portal/test/expected_values/{metadata_file_name}", encoding="utf-8"
+        ) as file:
+            metadata_file_contents = file.read().replace("\n", "\r\n")
+            self.assertEqual(dataset.get_hash_metadata(), hash(metadata_file_contents))
