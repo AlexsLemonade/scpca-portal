@@ -250,10 +250,11 @@ class TestDataset(TestCase):
                 else:
                     self.assertEqual(getattr(dataset, attribute), value, msg)
 
-            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
+            dataset_same, found_same = Dataset.get_or_find_ccdl_dataset(
                 ccdl_portal_dataset.CCDL_NAME
             )
-            self.assertTrue(is_new_dataset)
+            self.assertEqual(dataset_same.pk, dataset.pk)
+            self.assertTrue(found_same)
 
         # Project Dataset Check
         ccdl_project_dataset = (
