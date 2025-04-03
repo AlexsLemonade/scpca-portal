@@ -110,9 +110,9 @@ class Job(TimestampedModel):
     @classmethod
     def get_retry_jobs(cls) -> List[Self]:
         """
-        Prepare new saved Job instances to retry all terminated jobs as the base.
+        Prepare new saved Job instances to retry terminated jobs as the base.
         Exclude those with retry_on_termination is False.
-        Set batch fields from base jobs, and increment the attempt count by 1.
+        Set batch fields from base jobs except batch_job_id, and increment attempt by 1.
         Bulk save the new instances and return them.
         """
         retry_jobs = []
@@ -166,7 +166,8 @@ class Job(TimestampedModel):
     def get_retry_job(self) -> Self | None:
         """
         Prepare a new unsaved Job instance to retry the terminated job.
-        Set new instance's attempt to the base instance's attempt incremented by 1.
+        Exclude those with retry_on_termination is False.
+        Set batch fields from the existing fields except batch_job_id, and increment attempt by 1.
         Return the new instance, otherwise None.
         """
 
