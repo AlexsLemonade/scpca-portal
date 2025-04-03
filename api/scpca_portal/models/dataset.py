@@ -6,7 +6,7 @@ from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common
+from scpca_portal import ccdl_datasets, common, metadata_file
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -17,8 +17,10 @@ from scpca_portal.enums import (
 from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
+from scpca_portal.models.sample import Sample
 
 logger = get_and_configure_logger(__name__)
 
@@ -141,6 +143,19 @@ class Dataset(TimestampedModel):
         return self.data != self.get_ccdl_data()
 
     @property
+    def libraries(self) -> Library:
+        libraries = Library.objects.none()
+
+        for project_config in self.data.values():
+            for modality in [Modalities.SINGLE_CELL.name, Modalities.SPATIAL.name]:
+                for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
+                    libraries |= sample.libraries.filter(
+                        modality=modality, formats__contains=[self.format]
+                    )
+
+        return libraries
+
+    @property
     def ccdl_type(self) -> Dict:
         return ccdl_datasets.TYPES.get(self.ccdl_name)
 
@@ -197,6 +212,11 @@ class Dataset(TimestampedModel):
         original_files_sorted = sorted(self.original_files, key=lambda of: of.s3_key)
         concat_hash = "".join(of.hash for of in original_files_sorted)
         return hash(concat_hash.strip())
+
+    def get_hash_metadata(self) -> int:
+        libraries_metadata = Library.get_libraries_metadata(self.libraries)
+        metadata_file_contents = metadata_file.get_file_contents(libraries_metadata)
+        return hash(metadata_file_contents)
 
 
 class DataValidator:
