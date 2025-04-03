@@ -53,14 +53,14 @@ class Job(TimestampedModel):
         If FAILED with is_terminated True, return TERMINATED.
         """
         state_mapping = {
-            "SUCCEEDED": JobStates.COMPLETED.name,
-            "FAILED": JobStates.COMPLETED.name,
+            "SUCCEEDED": JobStates.COMPLETED.value,
+            "FAILED": JobStates.COMPLETED.value,
         }
 
         if is_terminated:
-            return JobStates.TERMINATED.name
+            return JobStates.TERMINATED.value
 
-        return state_mapping.get(batch_job_status, JobStates.SUBMITTED.name)
+        return state_mapping.get(batch_job_status, JobStates.SUBMITTED.value)
 
     @classmethod
     def get_project_job(cls, project_id: str, download_config_name: str, notify: bool = False):
@@ -124,12 +124,11 @@ class Job(TimestampedModel):
     @classmethod
     def bulk_sync_state(cls) -> bool:
         """
-        Sync all submitted job instances' states with AWS Batch job statuses.
-        Call batch.get_jobs to fetch all the corresponding remote jobs.
+        Sync all submitted job instances' states with the remote AWS Batch job statuses.
         Update each job instance's state if it changes to COMPLETED, and update completed_at.
         If the remote status is 'FAILED', update failure_reason if it hasn't been set already.
         """
-        if submitted_jobs := cls.objects.filter(state=JobStates.SUBMITTED.name):
+        if submitted_jobs := cls.objects.filter(state=JobStates.SUBMITTED.value):
             if fetched_jobs := batch.get_jobs(submitted_jobs):
                 # Map the fetched AWS jobs for easy lookup by batch_job_id
                 aws_jobs = {job["jobId"]: job for job in fetched_jobs}
@@ -198,7 +197,7 @@ class Job(TimestampedModel):
         Update instance state if it changes to COMPLETED, and update completed_at.
         If the remote status is 'FAILED', update failure_reason if it hasn't been set already.
         """
-        if self.state is not JobStates.SUBMITTED.name:
+        if self.state is not JobStates.SUBMITTED.value:
             return False
 
         if fetched_jobs := batch.get_jobs([self]):
