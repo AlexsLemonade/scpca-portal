@@ -6,33 +6,35 @@ import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { WarningText } from 'components/WarningText'
 import { getReadable } from 'helpers/getReadable'
-import { uniqueArray } from 'helpers/uniqueArray'
 
 // NOTE: Temporarily defined within this component (the existing project card's header component is in a separate file)
-const DatasetHeader = ({ dataset, linked = false }) => (
-  <>
-    {linked ? (
-      <Link href="#demo">
-        <Text weight="bold" color="brand" size="large">
-          {dataset.title}
-        </Text>
-      </Link>
-    ) : (
-      <Text weight="bold" color="brand" size="large">
-        {dataset.title}
-      </Text>
-    )}
-  </>
+const DatasetHeader = ({ title }) => (
+  <Link href="#demo">
+    <Text weight="bold" color="brand" size="large">
+      {title}
+    </Text>
+  </Link>
 )
 
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
-// NOTE: This component accepts 'dataset' prop but it's subject to change
+// NOTE: This component accepts 'dataset' and 'projectId' props but it's subject to change
 // Currently mock data is used via Storybook for development
-export const DatasetProjectCard = ({ dataset }) => {
+export const DatasetProjectCard = ({ dataset, projectId }) => {
   const { responsive } = useResponsive()
-  const projectIds = Object.keys(dataset.data)
-  const modalities = ['SINGLE_CELL', 'SPATIAL']
+
+  const {
+    data,
+    stats: { projects }
+  } = dataset
+
+  const { merge_single_cell: mergedSingleCell, includes_bulk: includesBulk } =
+    data[projectId]
+  const hasNoOptions = !mergedSingleCell && !includesBulk
+  const downloadableSamples = projects[projectId].downloadable_sample_count
+  const samplesDifferenceCount = projects[projectId].samples_difference_count
+  const isSamplesDifference = samplesDifferenceCount > 0
+
   const downloadOptions = [
     {
       title: 'Data Format',
@@ -40,11 +42,8 @@ export const DatasetProjectCard = ({ dataset }) => {
     },
     {
       title: 'Modality',
-      value: modalities.map((modality) => {
-        const totalSamples = projectIds.reduce((acc, projectId) => {
-          return acc + dataset.data[projectId][modality].length
-        }, 0)
-
+      value: ['SINGLE_CELL', 'SPATIAL'].map((modality) => {
+        const totalSamples = data[projectId][modality].length
         return (
           <Box key={modality}>
             <Text>
@@ -56,45 +55,20 @@ export const DatasetProjectCard = ({ dataset }) => {
     },
     {
       title: 'Other Options',
-      value: projectIds.map((projectId) => {
-        const {
-          includes_bulk: includesBulk,
-          merge_single_cell: mergedSingleCell
-        } = dataset.data[projectId]
-        const hasNoOptions = !includesBulk && !mergedSingleCell
-
-        return (
-          <Box key={projectId}>
-            {includesBulk && (
-              <Text>Include all bulk RNA-seq data in the project</Text>
-            )}
-            {mergedSingleCell && (
-              <Text>Merge single-cell samples into 1 object</Text>
-            )}
-            {hasNoOptions && <Text>Not Specified</Text>}
-          </Box>
-        )
-      })
+      value: hasNoOptions ? (
+        <Text>Not Specified</Text>
+      ) : (
+        <Box key={projectId}>
+          {includesBulk && (
+            <Text>Include all bulk RNA-seq data in the project</Text>
+          )}
+          {mergedSingleCell && (
+            <Text>Merge single-cell samples into 1 object</Text>
+          )}
+        </Box>
+      )
     }
   ]
-
-  const samplesDifferenceCount = projectIds.reduce((acc, projectId) => {
-    const { SINGLE_CELL, SPATIAL } = dataset.data[projectId]
-    const singleCellSamples = uniqueArray(SINGLE_CELL)
-    const spatialSamples = uniqueArray(SPATIAL)
-
-    if (singleCellSamples.length === 0 || spatialSamples.length === 0) {
-      return 0
-    }
-
-    const difference = [
-      ...singleCellSamples.filter((sample) => !spatialSamples.includes(sample)),
-      ...spatialSamples.filter((id) => !singleCellSamples.includes(id))
-    ]
-    return acc + difference.length
-  }, 0)
-
-  const isSamplesDifference = samplesDifferenceCount > 0
 
   return (
     <Box elevation="medium" pad="24px" width="full">
@@ -103,19 +77,19 @@ export const DatasetProjectCard = ({ dataset }) => {
         margin={{ bottom: '24px' }}
         pad={{ bottom: '24px' }}
       >
-        <DatasetHeader linked dataset={dataset} />
+        <DatasetHeader linked title={projects[projectId].title} />
       </Box>
       <Box margin={{ bottom: '24px' }}>
         <Badge badge="Samples">
           <Text size="21px" weight="bold">
-            {dataset.downloadable_sample_count} Samples
+            {downloadableSamples} Sample{downloadableSamples > 1 ? 's' : ''}
           </Text>
         </Badge>
       </Box>
       <Box>
         <Box margin={{ bottom: '24px' }}>
           <Label label="Diagnosis" />
-          <Text>{dataset.diagnoses_counts}</Text>
+          <Text>{projects[projectId].diagnoses_counts}</Text>
         </Box>
         <Box margin={{ bottom: 'xsmall' }}>
           <Label label="Download Options" />
