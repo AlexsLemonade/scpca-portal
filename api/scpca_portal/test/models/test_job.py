@@ -68,70 +68,55 @@ class TestJob(TestCase):
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_created(self, mock_batch_submit_job):
-        # Set up 3 unsaved jobs (CREATED) and 3 saved jobs with different job states
-        mock_batch_submit_job.return_value = self.mock_batch_job_id
-        unsaved_jobs = JobFactory.get_mock_jobs(num_unsaved_jobs=3)
-        saved_jobs = JobFactory.get_mock_jobs(
-            list_of_jobs=[
-                {
-                    "batch_job_id": f"{self.mock_batch_job_id}-{state}",
-                    "state": state,
-                }
-                for state in [
-                    JobStates.SUBMITTED.value,
-                    JobStates.COMPLETED.value,
-                    JobStates.TERMINATED.value,
-                ]
-            ]
-        )
-        jobs_to_submit = unsaved_jobs + saved_jobs
+        # Set up 3 saved CREATED jobs + 3 jobs that are already submitted
+        for _ in range(3):
+            JobFactory(state=JobStates.CREATED.value)
+        for state in [
+            JobStates.SUBMITTED.value,
+            JobStates.COMPLETED.value,
+            JobStates.TERMINATED.value,
+        ]:
+            JobFactory(state=state)
 
-        # Before submission, there are 3 saved jobs in the db
-        self.assertEqual(Job.objects.count(), 3)
+        # Before submission, there are 1 job in SUBMITTED state
+        self.assertEqual(Job.objects.filter(state=JobStates.SUBMITTED.value).count(), 1)
 
-        # Should call submit_job 3 times for the unsaved jobs
-        success = Job.submit_created(jobs_to_submit)
+        # Should call submit_job 3 times to submit CREATED jobs
+        response = Job.submit_created()
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
-        self.assertTrue(success)
+        self.assertNotEqual(response, [])
 
-        # After submission, the unsaved jobs should be saved with SUBMITTED state
-        self.assertEqual(Job.objects.count(), 6)
+        # After submission, each CREATE job state should be updated to SUBMITTED
         self.assertEqual(Job.objects.filter(state=JobStates.SUBMITTED.value).count(), 4)
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_created_failure(self, mock_batch_submit_job):
-        # Set up mock for failed submissions
-        mock_batch_submit_job.return_value = None
-        jobs_to_submit = JobFactory.get_mock_jobs(num_unsaved_jobs=3)
+        # Set up 3 saved CREATED jobs
+        for _ in range(3):
+            JobFactory(state=JobStates.CREATED.value)
+        mock_batch_submit_job.return_value = []
 
         # Should call submit_job 3 times, each time with an exception
-        success = Job.submit_created(jobs_to_submit)
+        response = Job.submit_created()
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
-        self.assertFalse(success)
+        self.assertEqual(response, [])
 
-        # After submission, no jobs should be saved in the db
-        self.assertEqual(Job.objects.count(), 0)
+        # After submission, the jobs should remain unchanged
+        self.assertEqual(Job.objects.filter(state=JobStates.CREATED).count(), 3)
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_created_no_submission(self, mock_batch_submit_job):
-        # Set up 3 already saved jobs for submission
-        mock_batch_submit_job.return_value = self.mock_batch_job_id
-        jobs_to_submit = JobFactory.get_mock_jobs(
-            list_of_jobs=[
-                {
-                    "batch_job_id": f"{self.mock_batch_job_id}-{i}",
-                    "state": JobStates.SUBMITTED.value,
-                }
-                for i in range(3)
-            ]
-        )
+        # Set up already submitted jobs
+        for _ in range(3):
+            JobFactory(state=JobStates.SUBMITTED.value)
+        mock_batch_submit_job.return_value = []
 
-        # Should not call submit_job and return True for already saved jobs
-        success = Job.submit_created(jobs_to_submit)
+        # Should return an empty list without calling submit_job
+        response = Job.submit_created()
         mock_batch_submit_job.assert_not_called()
-        self.assertTrue(success)  # No submission with no error
+        self.assertEqual(response, [])  # No submission with no error
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_job(self, mock_batch_terminate_job):
@@ -185,72 +170,50 @@ class TestJob(TestCase):
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_submitted(self, mock_batch_terminate_job):
-        # Set up jobs in SUBMITTED state
-        JobFactory.get_mock_jobs(
-            list_of_jobs=[
-                {
-                    "batch_job_id": f"{self.mock_batch_job_id}-{i}",
-                    "state": JobStates.SUBMITTED.value,
-                }
-                for i in range(3)
-            ]
-        )
+        # Set up 3 jobs in SUBMITTED state
+        for _ in range(3):
+            JobFactory(state=JobStates.SUBMITTED.value)
 
         # Should call terminated_job 3 times for submitted, incompleted jobs
-        success = Job.terminate_submitted(retry_on_termination=True)
+        response = Job.terminate_submitted()
         mock_batch_terminate_job.assert_called()
         self.assertEqual(mock_batch_terminate_job.call_count, 3)
-        self.assertTrue(success)
+        self.assertNotEqual(response, [])
 
         # After termination, the jobs should be saved with TERMINATED state
         for job in Job.objects.all():
             self.assertEqual(job.state, JobStates.TERMINATED.value)
-            self.assertTrue(job.retry_on_termination)
             self.assertIsInstance(job.terminated_at, datetime)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_submitted_failure(self, mock_batch_terminate_job):
-        # Set up mock for failed terminations
-        mock_batch_terminate_job.return_value = False
-        JobFactory.get_mock_jobs(
-            list_of_jobs=[
-                {
-                    "batch_job_id": f"{self.mock_batch_job_id}-{i}",
-                    "state": JobStates.SUBMITTED.value,
-                }
-                for i in range(3)
-            ]
-        )
+        # Set up mock for 3 unsuccessful terminations
+        for _ in range(3):
+            JobFactory(state=JobStates.SUBMITTED.value)
+        mock_batch_terminate_job.return_value = []
 
         # Should call terminate_job 3 times, each time with an exception
-        success = Job.terminate_submitted(retry_on_termination=True)
+        response = Job.terminate_submitted()
         mock_batch_terminate_job.assert_called()
         self.assertEqual(mock_batch_terminate_job.call_count, 3)
-        self.assertFalse(success)
+        self.assertEqual(response, [])
 
         # After termination, the jobs should remain unchanged
         for job in Job.objects.all():
             self.assertEqual(job.state, JobStates.SUBMITTED.value)
-            self.assertFalse(job.retry_on_termination)
             self.assertIsNone(job.terminated_at)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_submitted_no_termination(self, mock_batch_terminate_job):
-        # Set up jobs that are already TERMINATED or COMPLETED
-        JobFactory.get_mock_jobs(
-            list_of_jobs=[
-                {
-                    "batch_job_id": f"{self.mock_batch_job_id}-{state}",
-                    "state": state,
-                }
-                for state in [JobStates.COMPLETED.value, JobStates.TERMINATED.value]
-            ]
-        )
+        # Set up jobs that are already terminated or completed
+        for state in [JobStates.COMPLETED.value, JobStates.TERMINATED.value]:
+            JobFactory(state=state)
+        mock_batch_terminate_job.return_value = []
 
-        # Should return True early without calling terminate_job
-        success = Job.terminate_submitted(retry_on_termination=True)
+        # Should return an empty list without calling terminate_job
+        response = Job.terminate_submitted()
         mock_batch_terminate_job.assert_not_called()
-        self.assertTrue(success)  # No termination with no error
+        self.assertEqual(response, [])  # No termination with no error
 
     def test_get_retry_job(self):
         job = JobFactory(

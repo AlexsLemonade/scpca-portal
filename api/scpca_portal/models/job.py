@@ -3,18 +3,14 @@ from typing import List
 
 from django.conf import settings
 from django.db import models
-from django.template.defaultfilters import pluralize
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
 from scpca_portal import batch
-from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
-
-logger = get_and_configure_logger(__name__)
 
 
 class Job(TimestampedModel):
@@ -112,99 +108,54 @@ class Job(TimestampedModel):
         )
 
     @classmethod
-    def submit_created(cls, list_of_jobs: List[Self]) -> bool:
+    def submit_created(cls) -> List[Self]:
         """
-        Submit the given unsaved created jobs via batch.submit_job.
-        Update each job instance's batch_job_id and state, and
-        save it to the db on success.
+        Submit all saved CREATED jobs to AWS Batch.
+        Update each job instance's batch_job_id, state, and submitted_at, and
+        save the changes to the db on success.
+        Return all the submitted jobs.
         """
         submitted_jobs = []
-        unsaved_jobs_found = False  # Track if at least one unsaved job in list_of_jobs
-        failed_count = 0
 
-        for job in list_of_jobs:
-            if job.state != JobStates.CREATED.value:
-                continue
+        if jobs := Job.objects.filter(state=JobStates.CREATED.value):
+            for job in jobs:
+                if aws_job_id := batch.submit_job(job):
+                    job.batch_job_id = aws_job_id
+                    job.state = JobStates.SUBMITTED.value
+                    job.submitted_at = make_aware(datetime.now())
+                    submitted_jobs.append(job)
 
-            unsaved_jobs_found = True
+            Job.objects.bulk_update(submitted_jobs, ["batch_job_id", "state", "submitted_at"])
 
-            if aws_job_id := batch.submit_job(job):
-                job.batch_job_id = aws_job_id
-                job.state = JobStates.SUBMITTED.value
-                job.submitted_at = make_aware(datetime.now())
-                submitted_jobs.append(job)
-            else:
-                failed_count += 1
-
-        if not unsaved_jobs_found:
-            logger.info("No submission required as all jobs were previously submitted.")
-            return True
-
-        if submitted_jobs:
-            Job.objects.bulk_create(submitted_jobs)
-
-            # TODO: How to handle logging?
-            total_submitted_count = len(submitted_jobs)
-            logger.info(
-                "Job submission complete. "
-                f"{total_submitted_count} job{pluralize(total_submitted_count)} were submitted.",
-            )
-            return True
-
-        # TODO: How to handle logging?
-        if failed_count > 0:
-            logger.info(f"Failed to submit {failed_count} job{pluralize(failed_count)}.")
-
-        return False
+        return submitted_jobs
 
     @classmethod
-    def terminate_submitted(cls, retry_on_termination: bool = False) -> bool:
+    def terminate_submitted(cls) -> List[Self]:
         """
-        Terminate all submitted, incomplete jobs via batch.terminate_job.
-        Update each instance's state, retry_on_termination, and terminated_at, and
-        save it to the db on success.
+        Terminate all submitted, incomplete jobs on AWS Batch.
+        Update each instance's state and terminated_at, and
+        save the changes to the db on success.
+        Return all the terminated jobs.
         """
-        if submitted_jobs := Job.objects.filter(state=JobStates.SUBMITTED.value):
-            terminated_jobs = []
-            failed_count = 0
+        terminated_jobs = []
 
-            for job in submitted_jobs:
+        if jobs := Job.objects.filter(state=JobStates.SUBMITTED.value):
+            for job in jobs:
                 if batch.terminate_job(job):
                     job.state = JobStates.TERMINATED.value
-                    job.retry_on_termination = retry_on_termination
                     job.terminated_at = make_aware(datetime.now())
                     terminated_jobs.append(job)
-                else:
-                    failed_count += 1
 
-            if terminated_jobs:
-                Job.objects.bulk_update(
-                    terminated_jobs, ["state", "retry_on_termination", "terminated_at"]
-                )
+            Job.objects.bulk_update(terminated_jobs, ["state", "terminated_at"])
 
-                # TODO: How to handle logging?
-                terminated_jobs = len(terminated_jobs)
-                logger.info(
-                    "Job termination complete. "
-                    f"{terminated_jobs} job{pluralize(terminated_jobs)} were terminated.",
-                )
+        return terminated_jobs
 
-                return True
-        else:
-            logger.info("No termination required as all jobs were already completed or terminated.")
-            return True
-
-        # TODO: How to handle logging?
-        if failed_count > 0:
-            logger.info(f"Failed to terminate {failed_count} job{pluralize(failed_count)}.")
-
-        return False
-
+    # NOTE: This will be refactored later (e.g., save itself before job submission for job.id)
     def submit(self) -> bool:
         """
-        Submit the job via batch.submit_job.
-        Update batch_job_id and state, and
-        save it to the db on success.
+        Submit the CREATED job to AWS Batch.
+        Update batch_job_id, state, and submitted_at, and
+        save the changes to the db on success.
         """
         if self.state is not JobStates.CREATED.value:
             return False
@@ -221,9 +172,9 @@ class Job(TimestampedModel):
 
     def terminate(self, retry_on_termination: bool = False) -> bool:
         """
-        Terminate the submitted, incomplete job via batch.terminate_job.
-        Update state, retry_on_termination and terminated_at, and
-        save it to the db on success.
+        Terminate the submitted, incomplete job on AWS Batch.
+        Update state, retry_on_termination, and terminated_at, and
+        save the changes to the db on success.
         """
         if self.state in [JobStates.COMPLETED.value, JobStates.TERMINATED.value]:
             return self.state == JobStates.TERMINATED
