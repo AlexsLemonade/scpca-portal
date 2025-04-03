@@ -101,6 +101,9 @@ class Dataset(TimestampedModel):
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
+        dataset.hash_data = dataset.get_hash_data()
+        dataset.hash_metadata = dataset.get_hash_metadata()
+        dataset.hash_readme = dataset.get_hash_readme()
         return dataset, False
 
     def get_ccdl_data(self) -> Dict:
@@ -138,9 +141,13 @@ class Dataset(TimestampedModel):
         """
         Determines whether or not a computed file should be generated for the instance dataset.
         Files should be processed for new datasets,
-        or for datasets whose data attributes have changed.
+        or for datasets where at least one hash attribute has changed.
         """
-        return self.data != self.get_ccdl_data()
+        return (
+            self.hash_data != self.get_hash_data()
+            or self.hash_metadata != self.get_hash_metadata()
+            or self.hash_readme != self.get_hash_readme()
+        )
 
     @property
     def libraries(self) -> Library:
