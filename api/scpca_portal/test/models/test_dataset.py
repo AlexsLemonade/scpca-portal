@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.test import TestCase, tag
 
 from scpca_portal import loader
-from scpca_portal.enums import DatasetFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import Dataset
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
@@ -499,7 +499,6 @@ class TestDataset(TestCase):
             self.assertEqual(dataset.get_hash_data(), expected_hash_data)
 
     def test_get_hash_metadata(self):
-        # SINGLE_CELL SCE
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -517,3 +516,23 @@ class TestDataset(TestCase):
         ) as file:
             metadata_file_contents = file.read().replace("\n", "\r\n")
             self.assertEqual(dataset.get_hash_metadata(), hash(metadata_file_contents))
+
+    def test_get_hash_readme(self):
+        data = {
+            "SCPCP999990": {
+                "merge_single_cell": False,
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(
+            data=data, format=format, ccdl_name=CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
+        )
+        readme_file_name = "readme_file_single_cell_single_cell_experiment_SCPCP999990.md"
+        with open(
+            f"scpca_portal/test/expected_values/{readme_file_name}", encoding="utf-8"
+        ) as file:
+            readme_file_contents = file.read()
+            self.assertEqual(dataset.get_hash_readme(), hash(readme_file_contents))
