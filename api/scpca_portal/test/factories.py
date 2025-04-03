@@ -3,6 +3,7 @@ import string
 from datetime import datetime
 
 from django.conf import settings
+from django.utils.timezone import make_aware
 
 import factory
 
@@ -199,14 +200,14 @@ class DatasetFactory(factory.django.DjangoModelFactory):
         "SCPCP999990": {
             "merge_single_cell": False,
             "includes_bulk": True,
-            Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999991"],
-            Modalities.SPATIAL: ["SCPCS999992"],
+            Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999997"],
+            Modalities.SPATIAL.name: ["SCPCS999991"],
         },
         "SCPCP999991": {
-            "merge_single_cell": True,
+            "merge_single_cell": False,
             "includes_bulk": True,
-            Modalities.SINGLE_CELL: ["SCPCS999993", "SCPCS999994"],
-            Modalities.SPATIAL: [],
+            Modalities.SINGLE_CELL.name: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+            Modalities.SPATIAL.name: [],
         },
     }
     email = "user@example.com"
@@ -252,5 +253,5 @@ class OriginalFileFactory(factory.django.DjangoModelFactory):
     hash = factory.LazyAttribute(
         lambda _: "".join(random.choices(string.ascii_lowercase + string.digits, k=33))
     )
-    hash_change_at = factory.LazyAttribute(lambda _: datetime.now())
-    bucket_sync_at = factory.LazyAttribute(lambda _: datetime.now())
+    hash_change_at = factory.LazyAttribute(lambda _: make_aware(datetime.now()))
+    bucket_sync_at = factory.LazyAttribute(lambda _: make_aware(datetime.now()))
