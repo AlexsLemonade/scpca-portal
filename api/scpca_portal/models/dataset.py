@@ -6,7 +6,7 @@ from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, metadata_file
+from scpca_portal import ccdl_datasets, common, metadata_file, readme_file
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -217,6 +217,12 @@ class Dataset(TimestampedModel):
         libraries_metadata = Library.get_libraries_metadata(self.libraries)
         metadata_file_contents = metadata_file.get_file_contents(libraries_metadata)
         return hash(metadata_file_contents)
+
+    def get_hash_readme(self) -> int:
+        readme_file_contents = readme_file.get_file_contents(
+            self.ccdl_type, Project.objects.filter(scpca_id__in=self.data.keys())
+        )
+        return hash(readme_file_contents)
 
 
 class DataValidator:
