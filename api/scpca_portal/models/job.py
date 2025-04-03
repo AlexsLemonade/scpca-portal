@@ -192,8 +192,7 @@ class Job(TimestampedModel):
 
     def sync_state(self) -> bool:
         """
-        Sync the submitted job state with the AWS Batch job status.
-        Call batch.get_jobs to fetch the corresponding remote job.
+        Sync the submitted job state with the remote AWS Batch job status.
         Update instance state if it changes to COMPLETED, and update completed_at.
         If the remote status is 'FAILED', update failure_reason if it hasn't been set already.
         """
