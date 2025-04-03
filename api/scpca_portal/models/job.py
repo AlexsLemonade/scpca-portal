@@ -3,18 +3,14 @@ from typing import List
 
 from django.conf import settings
 from django.db import models
-from django.template.defaultfilters import pluralize
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
 from scpca_portal import batch
-from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
-
-logger = get_and_configure_logger(__name__)
 
 
 class Job(TimestampedModel):
@@ -112,25 +108,22 @@ class Job(TimestampedModel):
         )
 
     @classmethod
-    def get_retry_jobs(cls) -> List[Self] | None:
+    def get_retry_jobs(cls) -> List[Self]:
         """
-        Prepare new unsaved Job instances to retry terminated jobs.
-        Exclude those with critical_error is True and retry_on_termination is False.
-        Set each instance's attempt to the base terminated job's attempt incremented by 1.
-        Return the new instances, otherwise None if no terminated jobs for retry available.
+        Prepare new saved Job instances to retry all terminated jobs as the base.
+        Exclude those with retry_on_termination is False.
+        Set batch fields from base jobs, and increment the attempt count by 1.
+        Bulk save the new instances and return them.
         """
-        if terminated_jobs := Job.objects.filter(
-            state=JobStates.TERMINATED.name, retry_on_termination=True
-        ).exclude(critical_error=True):
-            total_retry_job_count = len(terminated_jobs)
-            logger.info(
-                f"{total_retry_job_count} job{pluralize(total_retry_job_count)} "
-                "generated for retrying terminated jobs.",
-            )
-            return [terminated_job.get_retry_job() for terminated_job in terminated_jobs]
+        retry_jobs = []
 
-        logger.info("No job generated for retry.")
-        return None
+        if jobs := Job.objects.filter(state=JobStates.TERMINATED.value, retry_on_termination=True):
+            for job in jobs:
+                retry_jobs.append(job.get_retry_job())
+
+            Job.objects.bulk_create(retry_jobs)
+
+        return retry_jobs
 
     def submit(self) -> bool:
         """
@@ -174,10 +167,10 @@ class Job(TimestampedModel):
         """
         Prepare a new unsaved Job instance to retry the terminated job.
         Set new instance's attempt to the base instance's attempt incremented by 1.
-        Return the new instance, otherwise None if the job is not in TERMINATED state.
+        Return the new instance, otherwise None.
         """
 
-        if self.state != JobStates.TERMINATED:
+        if self.state != JobStates.TERMINATED.value or not self.retry_on_termination:
             return None
 
         # TODO: How should we handle attempting critically failed jobs?

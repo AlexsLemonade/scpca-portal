@@ -213,6 +213,8 @@ class JobFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Job"
 
+    batch_job_id = factory.Sequence(lambda n: f"MOCK_JOB_ID_{str(n).zfill(3)}")
+    batch_job_name = "SCPCP000000-MOCK_DOWNLOAD_CONFIG_NAME"
     batch_job_queue = settings.AWS_BATCH_JOB_QUEUE_NAME
     batch_job_definition = settings.AWS_BATCH_JOB_DEFINITION_NAME
     batch_container_overrides = factory.LazyAttribute(
@@ -236,19 +238,3 @@ class JobFactory(factory.django.DjangoModelFactory):
             ]
         }
     )
-
-    @classmethod
-    def get_mock_jobs(cls, list_of_jobs=None, num_unsaved_jobs=False):
-        """Helper to create job instances using JobFactory
-        If list_of_jobs, generate saved jobs for the given list.
-        If num_unsaved_jobs, generate the spefified number of unsaved jobs.
-        """
-        mock_batch_job_name = {"batch_job_name": "MOCK_BATCH_JOB_NAME"}
-
-        if num_unsaved_jobs:
-            return [
-                cls.build(batch_job_name=mock_batch_job_name["batch_job_name"])
-                for _ in range(num_unsaved_jobs)
-            ]
-        else:
-            return [cls(**{**mock_batch_job_name, **job}) for job in list_of_jobs]
