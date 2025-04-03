@@ -36,7 +36,7 @@ class TestJob(TestCase):
 
         # After submission, the job should be updated
         self.assertEqual(job.batch_job_id, self.mock_batch_job_id)
-        self.assertEqual(job.state, JobStates.SUBMITTED.name)
+        self.assertEqual(job.state, JobStates.SUBMITTED.value)
         self.assertIsInstance(job.submitted_at, datetime)
 
         # Make sure that the job is saved in the db with correct field values
@@ -47,7 +47,7 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.batch_job_definition, settings.AWS_BATCH_JOB_DEFINITION_NAME)
         self.assertIn("--project-id", saved_job.batch_container_overrides["command"])
         self.assertIn(self.mock_project_id, saved_job.batch_container_overrides["command"])
-        self.assertEqual(saved_job.state, JobStates.SUBMITTED.name)
+        self.assertEqual(saved_job.state, JobStates.SUBMITTED.value)
         self.assertIsInstance(saved_job.submitted_at, datetime)
 
     @patch("scpca_portal.batch.submit_job")
@@ -64,7 +64,7 @@ class TestJob(TestCase):
 
         # The job state should remain default and unsaved
         self.assertEqual(Job.objects.count(), 0)
-        self.assertEqual(job.state, JobStates.CREATED.name)
+        self.assertEqual(job.state, JobStates.CREATED.value)
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_created(self, mock_batch_submit_job):
@@ -78,9 +78,9 @@ class TestJob(TestCase):
                     "state": state,
                 }
                 for state in [
-                    JobStates.SUBMITTED.name,
-                    JobStates.COMPLETED.name,
-                    JobStates.TERMINATED.name,
+                    JobStates.SUBMITTED.value,
+                    JobStates.COMPLETED.value,
+                    JobStates.TERMINATED.value,
                 ]
             ]
         )
@@ -97,7 +97,7 @@ class TestJob(TestCase):
 
         # After submission, the unsaved jobs should be saved with SUBMITTED state
         self.assertEqual(Job.objects.count(), 6)
-        self.assertEqual(Job.objects.filter(state=JobStates.SUBMITTED.name).count(), 4)
+        self.assertEqual(Job.objects.filter(state=JobStates.SUBMITTED.value).count(), 4)
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_created_failure(self, mock_batch_submit_job):
@@ -122,7 +122,7 @@ class TestJob(TestCase):
             list_of_jobs=[
                 {
                     "batch_job_id": f"{self.mock_batch_job_id}-{i}",
-                    "state": JobStates.SUBMITTED.name,
+                    "state": JobStates.SUBMITTED.value,
                 }
                 for i in range(3)
             ]
@@ -139,7 +139,7 @@ class TestJob(TestCase):
         terminated_job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
-            state=JobStates.TERMINATED.name,
+            state=JobStates.TERMINATED.value,
         )
 
         # Should return True early without calling terminate_job
@@ -151,7 +151,7 @@ class TestJob(TestCase):
         submitted_job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
-            state=JobStates.SUBMITTED.name,
+            state=JobStates.SUBMITTED.value,
         )
 
         success = submitted_job.terminate(retry_on_termination=True)
@@ -160,7 +160,7 @@ class TestJob(TestCase):
 
         # After termination, the job should be saved with correct field values
         saved_job = Job.objects.get(pk=submitted_job.pk)
-        self.assertEqual(saved_job.state, JobStates.TERMINATED.name)
+        self.assertEqual(saved_job.state, JobStates.TERMINATED.value)
         self.assertTrue(saved_job.retry_on_termination)
         self.assertIsInstance(saved_job.terminated_at, datetime)
 
@@ -169,7 +169,7 @@ class TestJob(TestCase):
         job = JobFactory(
             batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
-            state=JobStates.SUBMITTED.name,
+            state=JobStates.SUBMITTED.value,
         )
 
         # Set up mock for a failed termination
@@ -190,7 +190,7 @@ class TestJob(TestCase):
             list_of_jobs=[
                 {
                     "batch_job_id": f"{self.mock_batch_job_id}-{i}",
-                    "state": JobStates.SUBMITTED.name,
+                    "state": JobStates.SUBMITTED.value,
                 }
                 for i in range(3)
             ]
@@ -204,7 +204,7 @@ class TestJob(TestCase):
 
         # After termination, the jobs should be saved with TERMINATED state
         for job in Job.objects.all():
-            self.assertEqual(job.state, JobStates.TERMINATED.name)
+            self.assertEqual(job.state, JobStates.TERMINATED.value)
             self.assertTrue(job.retry_on_termination)
             self.assertIsInstance(job.terminated_at, datetime)
 
@@ -216,7 +216,7 @@ class TestJob(TestCase):
             list_of_jobs=[
                 {
                     "batch_job_id": f"{self.mock_batch_job_id}-{i}",
-                    "state": JobStates.SUBMITTED.name,
+                    "state": JobStates.SUBMITTED.value,
                 }
                 for i in range(3)
             ]
@@ -230,7 +230,7 @@ class TestJob(TestCase):
 
         # After termination, the jobs should remain unchanged
         for job in Job.objects.all():
-            self.assertEqual(job.state, JobStates.SUBMITTED.name)
+            self.assertEqual(job.state, JobStates.SUBMITTED.value)
             self.assertFalse(job.retry_on_termination)
             self.assertIsNone(job.terminated_at)
 
@@ -243,7 +243,7 @@ class TestJob(TestCase):
                     "batch_job_id": f"{self.mock_batch_job_id}-{state}",
                     "state": state,
                 }
-                for state in [JobStates.COMPLETED.name, JobStates.TERMINATED.name]
+                for state in [JobStates.COMPLETED.value, JobStates.TERMINATED.value]
             ]
         )
 
@@ -257,7 +257,7 @@ class TestJob(TestCase):
             batch_job_name=self.mock_project_batch_job_name,
             batch_job_id=self.mock_batch_job_id,
             dataset=self.mock_dataset,
-            state=JobStates.SUBMITTED.name,
+            state=JobStates.SUBMITTED.value,
         )
 
         # Should return None if the job state is not TERMINATED
@@ -265,7 +265,7 @@ class TestJob(TestCase):
         self.assertIsNone(retry_job)
 
         # Change the job state to TERMINATED
-        job.state = JobStates.TERMINATED.name
+        job.state = JobStates.TERMINATED.value
         # Should return a new unsaved instance for retrying the terminated job
         retry_job = job.get_retry_job()
         self.assertIsNone(retry_job.id)  # Should not have an ID
