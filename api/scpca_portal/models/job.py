@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.timezone import make_aware
 
+from typing_extensions import Self
+
 from scpca_portal import batch
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
@@ -46,21 +48,36 @@ class Job(TimestampedModel):
         return f"Job {self.id} - {self.state}"
 
     @staticmethod
-    def get_mapped_job_state(batch_job_status: str, is_terminated: bool = False) -> str:
+    def update_job_state(job, aws_job) -> tuple[Self, bool]:
         """
         Map the AWS Batch job status to the corresponding instance job state.
-        Return the mapped instance state value, or default to SUBMITTED.
-        If FAILED with is_terminated True, return TERMINATED.
+        Update the instance state and timestamps if the state changes.
+        Return the instance and a boolean indicating whether the instance was updated.
         """
+        if aws_job.get("isCancelled") or aws_job.get("isTerminated"):
+            job.state = JobStates.TERMINATED.value
+            job.terminated_at = make_aware(datetime.now())
+
+            return job, True
+
         state_mapping = {
             "SUCCEEDED": JobStates.COMPLETED.value,
             "FAILED": JobStates.COMPLETED.value,
         }
 
-        if is_terminated:
-            return JobStates.TERMINATED.value
+        aws_job_status = aws_job["status"]
+        new_state = state_mapping.get(aws_job_status, JobStates.SUBMITTED.value)
 
-        return state_mapping.get(batch_job_status, JobStates.SUBMITTED.value)
+        if job.state == new_state:
+            return job, False
+
+        if aws_job_status == "FAILED":
+            job.failure_reason = aws_job["statusReason"]
+
+        job.state = new_state
+        job.completed_at = make_aware(datetime.now())
+
+        return job, True
 
     @classmethod
     def get_project_job(cls, project_id: str, download_config_name: str, notify: bool = False):
@@ -137,29 +154,11 @@ class Job(TimestampedModel):
 
                 for job in submitted_jobs:
                     if aws_job := aws_jobs.get(job.batch_job_id):
-                        aws_job_status = aws_job["status"]
-                        is_terminated = aws_job.get("isCancelled") or aws_job.get("isTerminated")
-                        mapped_job_state = job.get_mapped_job_state(
-                            aws_job_status, is_terminated=is_terminated
-                        )
-
-                        # Only update the job if the state has changed
-                        if job.state != mapped_job_state:
-                            if aws_job_status == "FAILED" and not (
-                                is_terminated or job.failure_reason
-                            ):
-                                job.failure_reason = aws_job["statusReason"]
-
-                            if is_terminated:
-                                job.terminated_at = make_aware(datetime.now())
-
-                            job.state = mapped_job_state
-                            job.completed_at = make_aware(datetime.now())
-                            synced_jobs.append(job)
-                    else:
-                        # TODO: How should we handle when no matched AWS job returned?
-                        # Currently, it continues without interruption - log, or raise an error?
-                        continue
+                        updated_job, updated = cls.update_job_state(job, aws_job)
+                        if updated:
+                            synced_jobs.append(updated_job)
+                        else:
+                            continue
 
                 if synced_jobs:
                     cls.objects.bulk_update(
@@ -201,26 +200,11 @@ class Job(TimestampedModel):
 
         if fetched_jobs := batch.get_jobs([self]):
             aws_job = fetched_jobs[0]
-            aws_job_status = aws_job["status"]
-            is_terminated = aws_job.get("isCancelled") or aws_job.get("isTerminated")
-            mapped_job_state = self.get_mapped_job_state(
-                aws_job_status, is_terminated=is_terminated
-            )
+            updated_job, updated = self.update_job_state(self, aws_job)
 
-            # Only update the job if the state has changed
-            if self.state != mapped_job_state:
-                if aws_job_status == "FAILED" and not (is_terminated or self.failure_reason):
-                    self.failure_reason = aws_job["statusReason"]
-
-                if is_terminated:
-                    self.terminated_at = make_aware(datetime.now())
-
-                self.state = mapped_job_state
-                self.completed_at = make_aware(datetime.now())
-
-                self.save()
-
-            return True
+            if updated:
+                updated_job.save()
+                return True
 
         return False
 

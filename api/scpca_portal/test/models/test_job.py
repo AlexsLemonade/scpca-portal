@@ -97,7 +97,7 @@ class TestJob(TestCase):
 
         success = submitted_job.sync_state()
         mock_batch_get_jobs.assert_called()
-        self.assertTrue(success)  # Synced but no update in the db
+        self.assertFalse(success)  # Synced but no update in the db
 
         # The job should remain unchanged and unsaved
         saved_job = Job.objects.get(pk=submitted_job.pk)
