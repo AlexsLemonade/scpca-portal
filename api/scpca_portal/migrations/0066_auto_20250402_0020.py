@@ -12,17 +12,17 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="dataset",
-            name="hash_data",
+            name="data_hash",
             field=models.BigIntegerField(null=True),
         ),
         migrations.AddField(
             model_name="dataset",
-            name="hash_metadata",
+            name="metadata_hash",
             field=models.BigIntegerField(null=True),
         ),
         migrations.AddField(
             model_name="dataset",
-            name="hash_readme",
+            name="readme_hash",
             field=models.BigIntegerField(null=True),
         ),
     ]

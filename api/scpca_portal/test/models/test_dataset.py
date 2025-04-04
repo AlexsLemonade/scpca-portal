@@ -476,7 +476,7 @@ class TestDataset(TestCase):
         }
         self.assertEqual(dataset.original_file_paths, expected_files)
 
-    def test_get_hash_data(self):
+    def test_current_data_hash(self):
         mock_file_hashes = {
             "SCPCP000000/SCPCS000000/SCPCL00003.txt": "d4adfj59xe4e1zf9tdgipefc38ihmesm",
             "SCPCP000000/SCPCS000000/SCPCL00002.txt": "feh8wcvjx9wxmbi9lvunep6n6sy8eekr",
@@ -492,12 +492,12 @@ class TestDataset(TestCase):
             Dataset, "original_files", new_callable=PropertyMock, return_value=mock_original_files
         ):
             dataset = Dataset()
-            expected_hash_data = hash(
+            expected_data_hash = hash(
                 "8on83svty5lacm10nqavmqpz9zcoxq2dfeh8wcvjx9wxmbi9lvunep6n6sy8eekrd4adfj59xe4e1zf9tdgipefc38ihmesmiekahu4fjio931yyiej5esqfizrunhkfat7n9m9cg3hev5evhrgev1y63tgzqhem"  # noqa
             )
-            self.assertEqual(dataset.get_hash_data(), expected_hash_data)
+            self.assertEqual(dataset.current_data_hash, expected_data_hash)
 
-    def test_get_hash_metadata(self):
+    def test_current_metadata_hash(self):
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -514,9 +514,9 @@ class TestDataset(TestCase):
             f"scpca_portal/test/expected_values/{metadata_file_name}", encoding="utf-8"
         ) as file:
             metadata_file_contents = file.read().replace("\n", "\r\n")
-            self.assertEqual(dataset.get_hash_metadata(), hash(metadata_file_contents))
+            self.assertEqual(dataset.current_metadata_hash, hash(metadata_file_contents))
 
-    def test_get_hash_readme(self):
+    def test_current_readme_hash(self):
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -534,5 +534,6 @@ class TestDataset(TestCase):
             f"scpca_portal/test/expected_values/{readme_file_name}", encoding="utf-8"
         ) as file:
             readme_file_contents = file.read()
+            # remove first line which contains date
             readme_file_contents_no_date = readme_file_contents.split("\n", 1)[1].strip()
-            self.assertEqual(dataset.get_hash_readme(), hash(readme_file_contents_no_date))
+            self.assertEqual(dataset.current_readme_hash, hash(readme_file_contents_no_date))

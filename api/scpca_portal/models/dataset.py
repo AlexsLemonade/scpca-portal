@@ -48,9 +48,9 @@ class Dataset(TimestampedModel):
     )
 
     # Hashes
-    hash_data = models.BigIntegerField(null=True)
-    hash_metadata = models.BigIntegerField(null=True)
-    hash_readme = models.BigIntegerField(null=True)
+    data_hash = models.BigIntegerField(null=True)
+    metadata_hash = models.BigIntegerField(null=True)
+    readme_hash = models.BigIntegerField(null=True)
 
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
@@ -101,9 +101,9 @@ class Dataset(TimestampedModel):
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
-        dataset.hash_data = dataset.get_hash_data()
-        dataset.hash_metadata = dataset.get_hash_metadata()
-        dataset.hash_readme = dataset.get_hash_readme()
+        dataset.data_hash = dataset.current_data_hash
+        dataset.metadata_hash = dataset.current_metadata_hash
+        dataset.readme_hash = dataset.current_readme_hash
         return dataset, False
 
     def get_ccdl_data(self) -> Dict:
@@ -144,9 +144,9 @@ class Dataset(TimestampedModel):
         or for datasets where at least one hash attribute has changed.
         """
         return (
-            self.hash_data != self.get_hash_data()
-            or self.hash_metadata != self.get_hash_metadata()
-            or self.hash_readme != self.get_hash_readme()
+            self.data_hash != self.current_data_hash
+            or self.metadata_hash != self.current_metadata_hash
+            or self.readme_hash != self.current_readme_hash
         )
 
     @property
@@ -215,19 +215,22 @@ class Dataset(TimestampedModel):
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
 
-    def get_hash_data(self) -> int:
+    @property
+    def current_data_hash(self) -> int:
         sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
             "hash", flat=True
         )
         concat_hash = "".join(sorted_original_file_hashes)
         return hash(concat_hash.strip())
 
-    def get_hash_metadata(self) -> int:
+    @property
+    def current_metadata_hash(self) -> int:
         libraries_metadata = Library.get_libraries_metadata(self.libraries)
         metadata_file_contents = metadata_file.get_file_contents(libraries_metadata)
         return hash(metadata_file_contents)
 
-    def get_hash_readme(self) -> int:
+    @property
+    def current_readme_hash(self) -> int:
         readme_file_contents = readme_file.get_file_contents(
             self.ccdl_type, Project.objects.filter(scpca_id__in=self.data.keys())
         )
