@@ -200,14 +200,14 @@ class DatasetFactory(factory.django.DjangoModelFactory):
         "SCPCP999990": {
             "merge_single_cell": False,
             "includes_bulk": True,
-            Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999997"],
-            Modalities.SPATIAL.name: ["SCPCS999991"],
+            Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
+            Modalities.SPATIAL.value: ["SCPCS999991"],
         },
         "SCPCP999991": {
             "merge_single_cell": False,
             "includes_bulk": True,
-            Modalities.SINGLE_CELL.name: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
-            Modalities.SPATIAL.name: [],
+            Modalities.SINGLE_CELL.value: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+            Modalities.SPATIAL.value: [],
         },
     }
     email = "user@example.com"
