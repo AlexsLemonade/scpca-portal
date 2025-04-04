@@ -7,15 +7,6 @@ import { Link } from 'components/Link'
 import { WarningText } from 'components/WarningText'
 import { getReadable } from 'helpers/getReadable'
 
-// NOTE: Temporarily defined within this component (the existing project card's header component is in a separate file)
-const DatasetHeader = ({ title }) => (
-  <Link href="#demo">
-    <Text weight="bold" color="brand" size="large">
-      {title}
-    </Text>
-  </Link>
-)
-
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
 // NOTE: This component accepts 'dataset' and 'projectId' props but it's subject to change
@@ -38,8 +29,6 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   const isSamplesDifference = samplesDifferenceCount > 0
 
   const modalities = ['SINGLE_CELL', 'SPATIAL']
-  const options = ['merge_single_cell', 'includes_bulk']
-  const hasNoOptions = options.filter((o) => projectData[o]).length === 0
 
   const downloadOptions = [
     {
@@ -61,17 +50,22 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     },
     {
       title: 'Other Options',
-      value: (
-        <Box key={projectId}>
-          {includesBulk && (
-            <Text>Include all bulk RNA-seq data in the project</Text>
-          )}
-          {mergedSingleCell && (
-            <Text>Merge single-cell samples into 1 object</Text>
-          )}
-          {hasNoOptions && <Text>Not Specified</Text>}
-        </Box>
-      )
+      value: () => {
+        const options = ['merge_single_cell', 'includes_bulk']
+        const hasNoOptions = options.filter((o) => projectData[o]).length === 0
+
+        return (
+          <Box>
+            {includesBulk && (
+              <Text>Include all bulk RNA-seq data in the project</Text>
+            )}
+            {mergedSingleCell && (
+              <Text>Merge single-cell samples into 1 object</Text>
+            )}
+            {hasNoOptions && <Text>Not Specified</Text>}
+          </Box>
+        )
+      }
     }
   ]
 
@@ -82,7 +76,11 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         margin={{ bottom: '24px' }}
         pad={{ bottom: '24px' }}
       >
-        <DatasetHeader linked title={projectStats.title} />
+        <Link href="#demo">
+          <Text weight="bold" color="brand" size="large">
+            {projectStats.title}
+          </Text>
+        </Link>
       </Box>
       <Box margin={{ bottom: '24px' }}>
         <Badge badge="Samples">
@@ -106,13 +104,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
           {downloadOptions.map((d) => (
             <Box key={d.title} flex={{ grow: 1 }}>
               <Label label={d.title} />
-              {d.value ? (
-                <Text>{d.value}</Text>
-              ) : (
-                <Text italic color="black-tint-30">
-                  Not Specified
-                </Text>
-              )}
+              <Text>{d.value}</Text>
             </Box>
           ))}
         </Box>
