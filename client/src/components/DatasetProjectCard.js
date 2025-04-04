@@ -28,12 +28,18 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     stats: { projects }
   } = dataset
 
+  const projectData = data[projectId]
   const { merge_single_cell: mergedSingleCell, includes_bulk: includesBulk } =
-    data[projectId]
-  const hasNoOptions = !mergedSingleCell && !includesBulk
-  const downloadableSamples = projects[projectId].downloadable_sample_count
-  const samplesDifferenceCount = projects[projectId].samples_difference_count
+    projectData
+
+  const projectStats = projects[projectId]
+  const downloadableSamples = projectStats.downloadable_sample_count
+  const samplesDifferenceCount = projectStats.samples_difference_count
   const isSamplesDifference = samplesDifferenceCount > 0
+
+  const modalities = ['SINGLE_CELL', 'SPATIAL']
+  const options = ['merge_single_cell', 'includes_bulk']
+  const hasNoOptions = options.filter((o) => projectData[o]).length === 0
 
   const downloadOptions = [
     {
@@ -42,8 +48,8 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     },
     {
       title: 'Modality',
-      value: ['SINGLE_CELL', 'SPATIAL'].map((modality) => {
-        const totalSamples = data[projectId][modality].length
+      value: modalities.map((modality) => {
+        const totalSamples = projectData[modality].length
         return (
           <Box key={modality}>
             <Text>
@@ -55,9 +61,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     },
     {
       title: 'Other Options',
-      value: hasNoOptions ? (
-        <Text>Not Specified</Text>
-      ) : (
+      value: (
         <Box key={projectId}>
           {includesBulk && (
             <Text>Include all bulk RNA-seq data in the project</Text>
@@ -65,6 +69,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
           {mergedSingleCell && (
             <Text>Merge single-cell samples into 1 object</Text>
           )}
+          {hasNoOptions && <Text>Not Specified</Text>}
         </Box>
       )
     }
@@ -77,7 +82,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         margin={{ bottom: '24px' }}
         pad={{ bottom: '24px' }}
       >
-        <DatasetHeader linked title={projects[projectId].title} />
+        <DatasetHeader linked title={projectStats.title} />
       </Box>
       <Box margin={{ bottom: '24px' }}>
         <Badge badge="Samples">
@@ -89,7 +94,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
       <Box>
         <Box margin={{ bottom: '24px' }}>
           <Label label="Diagnosis" />
-          <Text>{projects[projectId].diagnoses_counts}</Text>
+          <Text>{projectStats.diagnoses_counts}</Text>
         </Box>
         <Box margin={{ bottom: 'xsmall' }}>
           <Label label="Download Options" />
