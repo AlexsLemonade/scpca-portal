@@ -216,8 +216,10 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     def get_hash_data(self) -> int:
-        original_files_sorted = sorted(self.original_files, key=lambda of: of.s3_key)
-        concat_hash = "".join(of.hash for of in original_files_sorted)
+        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
+            "hash", flat=True
+        )
+        concat_hash = "".join(sorted_original_file_hashes)
         return hash(concat_hash.strip())
 
     def get_hash_metadata(self) -> int:

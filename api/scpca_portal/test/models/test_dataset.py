@@ -7,7 +7,7 @@ from django.test import TestCase, tag
 
 from scpca_portal import loader
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
-from scpca_portal.models import Dataset
+from scpca_portal.models import Dataset, OriginalFile
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 
@@ -484,10 +484,9 @@ class TestDataset(TestCase):
             "SCPCP000000/SCPCS000000/SCPCL00001.txt": "8on83svty5lacm10nqavmqpz9zcoxq2d",
             "SCPCP000000/SCPCS000000/SCPCL00004.txt": "iekahu4fjio931yyiej5esqfizrunhkf",
         }
-        mock_original_files = [
+        for s3_key, file_hash in mock_file_hashes.items():
             OriginalFileFactory(s3_key=s3_key, hash=file_hash)
-            for s3_key, file_hash in mock_file_hashes.items()
-        ]
+        mock_original_files = OriginalFile.objects.filter(s3_key__in=mock_file_hashes.keys())
 
         with patch.object(
             Dataset, "original_files", new_callable=PropertyMock, return_value=mock_original_files
