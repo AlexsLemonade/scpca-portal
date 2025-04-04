@@ -229,7 +229,8 @@ class Dataset(TimestampedModel):
         readme_file_contents = readme_file.get_file_contents(
             self.ccdl_type, Project.objects.filter(scpca_id__in=self.data.keys())
         )
-        return hash(readme_file_contents)
+        readme_file_contents_no_date = readme_file_contents.split("\n", 1)[1].strip()
+        return hash(readme_file_contents_no_date)
 
 
 class DataValidator:

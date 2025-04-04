@@ -535,4 +535,5 @@ class TestDataset(TestCase):
             f"scpca_portal/test/expected_values/{readme_file_name}", encoding="utf-8"
         ) as file:
             readme_file_contents = file.read()
-            self.assertEqual(dataset.get_hash_readme(), hash(readme_file_contents))
+            readme_file_contents_no_date = readme_file_contents.split("\n", 1)[1].strip()
+            self.assertEqual(dataset.get_hash_readme(), hash(readme_file_contents_no_date))
