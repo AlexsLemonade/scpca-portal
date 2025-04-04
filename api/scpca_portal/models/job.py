@@ -48,7 +48,7 @@ class Job(TimestampedModel):
         return f"Job {self.id} - {self.state}"
 
     @staticmethod
-    def update_job_state(job, aws_job) -> tuple[Self, bool]:
+    def update_job_state(job: Self, aws_job: dict) -> tuple[Self, bool]:
         """
         Map the AWS Batch job status to the corresponding instance job state.
         Update the instance state and timestamps if the state changes.
