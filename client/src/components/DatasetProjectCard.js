@@ -29,45 +29,8 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   const isSamplesDifference = samplesDifferenceCount > 0
 
   const modalities = ['SINGLE_CELL', 'SPATIAL']
-
-  const downloadOptions = [
-    {
-      title: 'Data Format',
-      value: getReadable(dataset.format)
-    },
-    {
-      title: 'Modality',
-      value: modalities.map((modality) => {
-        const totalSamples = projectData[modality].length
-        return (
-          <Box key={modality}>
-            <Text>
-              {totalSamples > 0 && `${getReadable(modality)} (${totalSamples})`}
-            </Text>
-          </Box>
-        )
-      })
-    },
-    {
-      title: 'Other Options',
-      value: () => {
-        const options = ['merge_single_cell', 'includes_bulk']
-        const hasNoOptions = options.filter((o) => projectData[o]).length === 0
-
-        return (
-          <Box>
-            {includesBulk && (
-              <Text>Include all bulk RNA-seq data in the project</Text>
-            )}
-            {mergedSingleCell && (
-              <Text>Merge single-cell samples into 1 object</Text>
-            )}
-            {hasNoOptions && <Text>Not Specified</Text>}
-          </Box>
-        )
-      }
-    }
-  ]
+  const options = ['merge_single_cell', 'includes_bulk']
+  const hasNoOptions = options.filter((o) => projectData[o]).length === 0
 
   return (
     <Box elevation="medium" pad="24px" width="full">
@@ -101,12 +64,31 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
           direction={responsive('column', 'row')}
           margin={{ bottom: '24px' }}
         >
-          {downloadOptions.map((d) => (
-            <Box key={d.title} flex={{ grow: 1 }}>
-              <Label label={d.title} />
-              <Text>{d.value}</Text>
+          <Box flex={{ grow: 1 }}>
+            <Label label="Data Format" />
+            <Text>{getReadable(dataset.format)}</Text>
+          </Box>
+          <Box flex={{ grow: 1 }}>
+            <Label label="Modality" />
+            {modalities.map((modality) => (
+              <Text key={modality}>
+                {projectData[modality].length > 0 &&
+                  `${getReadable(modality)} (${projectData[modality].length})`}
+              </Text>
+            ))}
+          </Box>
+          <Box flex={{ grow: 1 }}>
+            <Label label="Other Options" />
+            <Box>
+              {includesBulk && (
+                <Text>Include all bulk RNA-seq data in the project</Text>
+              )}
+              {mergedSingleCell && (
+                <Text>Merge single-cell samples into 1 object</Text>
+              )}
+              {hasNoOptions && <Text>Not Specified</Text>}
             </Box>
-          ))}
+          </Box>
         </Box>
       </Box>
       <Box
