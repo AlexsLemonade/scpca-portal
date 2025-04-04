@@ -216,6 +216,17 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     @property
+    def metadata_file_contents(self) -> str:
+        libraries_metadata = Library.get_libraries_metadata(self.libraries)
+        return metadata_file.get_file_contents(libraries_metadata)
+
+    @property
+    def readme_file_contents(self) -> str:
+        return readme_file.get_file_contents(
+            self.ccdl_type, Project.objects.filter(scpca_id__in=self.data.keys())
+        )
+
+    @property
     def current_data_hash(self) -> int:
         sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
             "hash", flat=True
@@ -225,16 +236,12 @@ class Dataset(TimestampedModel):
 
     @property
     def current_metadata_hash(self) -> int:
-        libraries_metadata = Library.get_libraries_metadata(self.libraries)
-        metadata_file_contents = metadata_file.get_file_contents(libraries_metadata)
-        return hash(metadata_file_contents)
+        return hash(self.metadata_file_contents)
 
     @property
     def current_readme_hash(self) -> int:
-        readme_file_contents = readme_file.get_file_contents(
-            self.ccdl_type, Project.objects.filter(scpca_id__in=self.data.keys())
-        )
-        readme_file_contents_no_date = readme_file_contents.split("\n", 1)[1].strip()
+        # remove first line which contains date
+        readme_file_contents_no_date = self.readme_file_contents.split("\n", 1)[1].strip()
         return hash(readme_file_contents_no_date)
 
 
