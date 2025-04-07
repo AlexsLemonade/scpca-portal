@@ -3,7 +3,7 @@ import { Box, Paragraph } from 'grommet'
 import { DownloadTokenInputs } from 'components/DownloadTokenInputs'
 
 // View when the user has no token in local storage yet
-export const DatasetDownloadToken = () => {
+export const DatasetDownloadToken = ({ text = '' }) => {
   // NOTE: We use ScPCAPortalContext or a new context for Dataset for managing states
   const [acceptsTerms, setAcceptsTerms] = useState(false)
   const [email, setEmail] = useState('')
@@ -12,8 +12,8 @@ export const DatasetDownloadToken = () => {
   return (
     <Box>
       <Paragraph margin={{ bottom: 'small' }}>
-        Please provide your email and we’ll let you know when it’s ready for
-        download.
+        {text ||
+          'Please provide your email and we’ll let you know when it’s ready for  download.'}
       </Paragraph>
       <DownloadTokenInputs
         acceptsTerms={acceptsTerms}
