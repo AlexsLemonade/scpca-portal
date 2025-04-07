@@ -260,7 +260,7 @@ class Job(TimestampedModel):
         save the changes to the db on success.
         """
         if self.state in [JobStates.COMPLETED.value, JobStates.TERMINATED.value]:
-            return self.state == JobStates.TERMINATED
+            return self.state == JobStates.TERMINATED.value
 
         if batch.terminate_job(self):
             self.state = JobStates.TERMINATED.value
