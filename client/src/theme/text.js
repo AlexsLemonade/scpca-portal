@@ -28,7 +28,7 @@ export default {
     maxWidth: '171px',
     size: '12px'
   },
-  "small-flat": {
+  'small-flat': {
     height: '12px',
     maxWidth: '171px',
     size: '12px'
