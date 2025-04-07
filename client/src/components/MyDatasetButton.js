@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Stack, Text } from 'grommet'
 import { Button } from 'components/Button'
 
-export const MyDatasetButton = ({ yellow = false }) => {
+export const MyDatasetButton = () => {
   const count = 53
   return (
     <Stack anchor="top-right">
