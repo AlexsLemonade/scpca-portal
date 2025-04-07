@@ -60,16 +60,25 @@ export const DatasetHeroReady = ({
             </Box>
           </Box>
         ) : (
-          <DatasetDownloadToken
-            text={
-              <>
-                Please read and accept our{' '}
-                <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
-                <Link label="Privacy Policy" href="/privacy-policy" /> before
-                you download data.
-              </>
-            }
-          />
+          <>
+            <DatasetDownloadToken
+              text={
+                <>
+                  Please read and accept our{' '}
+                  <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
+                  <Link label="Privacy Policy" href="/privacy-policy" /> before
+                  you download data.
+                </>
+              }
+            />
+            <Box
+              direction={responsive('column', 'row')}
+              gap="24px"
+              margin={{ top: 'medium' }}
+            >
+              <Button primary aria-label="Submit" label="Submit" />
+            </Box>
+          </>
         )}
       </Box>
       <Box gridArea="img" align={responsive('center', 'start')}>
