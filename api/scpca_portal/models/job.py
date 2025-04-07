@@ -50,6 +50,30 @@ class Job(TimestampedModel):
         return f"Job {self.id} - {self.state}"
 
     @classmethod
+    def get_dataset_job(cls, dataset_id: models.UUIDField, notify: bool = False):
+        """
+        Prepare a Job instance for a dataset without saving it to the db.
+        """
+
+        notify_flag = "--notify" if notify else ""
+
+        return cls(
+            batch_job_name=dataset_id,
+            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_container_overrides={
+                "command": [
+                    "python",
+                    "manage.py",
+                    "generate_computed_file",
+                    "--dataset-id",
+                    dataset_id,
+                    notify_flag,
+                ],
+            },
+        )
+
+    @classmethod
     def get_project_job(cls, project_id: str, download_config_name: str, notify: bool = False):
         """
         Prepare a Job instance for a project without saving it to the db.
