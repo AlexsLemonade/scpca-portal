@@ -1,21 +1,21 @@
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 TYPES = {
-    CCDLDatasetNames.ALL_METADATA: {
+    CCDLDatasetNames.ALL_METADATA.name: {
         "modality": None,
-        "format": DatasetFormats.METADATA,
+        "format": DatasetFormats.METADATA.name,
         "excludes_multiplexed": False,
         "includes_merged": False,
     },
-    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT: {
-        "modality": Modalities.SINGLE_CELL,
-        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT,
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.name: {
+        "modality": Modalities.SINGLE_CELL.name,
+        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.name,
         "excludes_multiplexed": False,
         "includes_merged": False,
     },
-    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED: {
-        "modality": Modalities.SINGLE_CELL,
-        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT,
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED.name: {
+        "modality": Modalities.SINGLE_CELL.name,
+        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.name,
         "excludes_multiplexed": True,
         "includes_merged": False,
     },
@@ -23,40 +23,37 @@ TYPES = {
     #   Only Single-cell (not spatial) for sce and anndata
     #   Only projects with non-multiplexed libraries can be merged
     #   Merged objects are unavailable for projects with > 100 samples
-    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: {
-        "modality": Modalities.SINGLE_CELL,
-        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT,
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED.name: {
+        "modality": Modalities.SINGLE_CELL.name,
+        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.name,
         "excludes_multiplexed": True,
         "includes_merged": True,
     },
-    CCDLDatasetNames.SINGLE_CELL_ANN_DATA: {
-        "modality": Modalities.SINGLE_CELL,
-        "format": DatasetFormats.ANN_DATA,
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA.name: {
+        "modality": Modalities.SINGLE_CELL.name,
+        "format": DatasetFormats.ANN_DATA.name,
         "excludes_multiplexed": True,
         "includes_merged": False,
     },
-    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: {
-        "modality": Modalities.SINGLE_CELL,
-        "format": DatasetFormats.ANN_DATA,
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED.name: {
+        "modality": Modalities.SINGLE_CELL.name,
+        "format": DatasetFormats.ANN_DATA.name,
         "excludes_multiplexed": True,
         "includes_merged": True,
     },
-    CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT: {
-        "modality": Modalities.SPATIAL,
-        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT,
+    CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.name: {
+        "modality": Modalities.SPATIAL.name,
+        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.name,
         "excludes_multiplexed": True,
         "includes_merged": False,
     },
 }
 
 PORTAL_TYPE_NAMES = [
-    "ALL_METADATA",
-    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT",
-    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED",
-    "SINGLE_CELL_ANN_DATA",
-    "SINGLE_CELL_ANN_DATA_MERGED",
-    "SPATIAL_SINGLE_CELL_EXPERIMENT",
-    "SAMPLE_SINGLE_CELL_SINGLE_CELL_EXPERIMENT",
-    "SAMPLE_SINGLE_CELL_ANN_DATA",
-    "SAMPLE_SPATIAL_SINGLE_CELL_EXPERIMENT",
+    CCDLDatasetNames.ALL_METADATA.name,
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.name,
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED.name,
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA.name,
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED.name,
+    CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.name,
 ]

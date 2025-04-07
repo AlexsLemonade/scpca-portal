@@ -4,7 +4,7 @@ import inspect
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Set, Tuple
+from typing import Any, Callable, Dict, Generator, Iterable, List, Set, Tuple
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -40,6 +40,14 @@ def join_workflow_versions(workflow_versions: Set) -> str:
     """Returns list of sorted unique workflow versions."""
 
     return ", ".join(sorted(set(workflow_versions)))
+
+
+def get_chunk_list(list: List[Any], size: int) -> Generator[List[Any], None, None]:
+    """
+    Yields chunks of the given list with the specified size.
+    """
+    for i in range(0, len(list), size):
+        yield list[i : i + size]
 
 
 def get_today_string(format: str = "%Y-%m-%d") -> str:

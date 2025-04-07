@@ -1,5 +1,6 @@
 import uuid
-from typing import Any, Dict, List
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Set
 
 from django.db import models
 
@@ -16,6 +17,7 @@ from scpca_portal.enums import (
 from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 
 logger = get_and_configure_logger(__name__)
@@ -87,12 +89,12 @@ class Dataset(TimestampedModel):
         if dataset := cls.objects.filter(
             is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
         ).first():
-            return dataset, False
+            return dataset, True
 
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
-        return dataset, True
+        return dataset, False
 
     def get_ccdl_data(self) -> Dict:
         if not self.is_ccdl:
@@ -111,14 +113,16 @@ class Dataset(TimestampedModel):
             if modality := self.ccdl_type.get("modality"):
                 samples = samples.filter(libraries__modality=modality)
 
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
-            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
+            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL.name)
+            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL.name)
 
             data[project.scpca_id] = {
                 "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL: single_cell_samples.values_list("scpca_id", flat=True),
-                Modalities.SPATIAL: spatial_samples.values_list("scpca_id", flat=True),
+                Modalities.SINGLE_CELL.name: list(
+                    single_cell_samples.values_list("scpca_id", flat=True)
+                ),
+                Modalities.SPATIAL.name: list(spatial_samples.values_list("scpca_id", flat=True)),
             }
 
         return data
@@ -139,6 +143,50 @@ class Dataset(TimestampedModel):
     def is_data_valid(self) -> bool:
         data_validator = DataValidator(self.data)
         return data_validator.is_valid
+
+    @property
+    def original_files(self) -> Iterable[OriginalFile]:
+        files = OriginalFile.objects.none()
+        for project_id, project_config in self.data.items():
+
+            # add spatial files
+            files |= OriginalFile.downloadable_objects.filter(
+                project_id=project_id,
+                is_spatial=True,
+                sample_ids__overlap=project_config["SPATIAL"],
+            )
+
+            # add single-cell supplementary
+            files |= OriginalFile.downloadable_objects.filter(
+                project_id=project_id,
+                is_single_cell=True,
+                is_supplementary=True,
+                sample_ids__overlap=project_config["SINGLE_CELL"],
+            )
+
+            if project_config["merge_single_cell"]:
+                merged_files = OriginalFile.downloadable_objects.filter(
+                    project_id=project_id, is_merged=True
+                )
+                files |= merged_files.filter(formats__contains=[self.format])
+                files |= merged_files.filter(is_supplementary=True)
+            else:
+                files |= OriginalFile.downloadable_objects.filter(
+                    project_id=project_id,
+                    is_single_cell=True,
+                    formats__contains=[self.format],
+                    sample_ids__overlap=project_config["SINGLE_CELL"],
+                )
+            if project_config["includes_bulk"]:
+                files |= OriginalFile.downloadable_objects.filter(
+                    project_id=project_id, is_bulk=True
+                )
+
+        return files
+
+    @property
+    def original_file_paths(self) -> Set[Path]:
+        return {Path(of.s3_key) for of in self.original_files}
 
 
 class DataValidator:
