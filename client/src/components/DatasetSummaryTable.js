@@ -1,3 +1,4 @@
+import React from 'react'
 import {
   Table,
   TableBody,
@@ -22,7 +23,8 @@ const StyledTableHeader = styled(TableHeader)`
 `
 const StyledTableBody = styled(TableBody)`
   border: none;
-  tr, tr td {
+  tr,
+  tr td {
     box-shadow: none;
   }
 `
@@ -32,19 +34,19 @@ const StyledTableCell = styled(TableCell)`
 `
 
 export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
-
   // check the first row to which columns are ints
-  const columnAlign = Object.fromEntries(columns.map((c) =>
-    [c, Number.isInteger((data[0] || {})[c]) ? 'end' : 'start']
-  ))
-
-  console.log(columnAlign)
+  const columnAlign = Object.fromEntries(
+    columns.map((c) => [
+      c,
+      Number.isInteger((data[0] || {})[c]) ? 'end' : 'start'
+    ])
+  )
 
   return (
     <StyledTable width="100%">
       <StyledTableHeader>
         <TableRow>
-          {columns.map(c => (
+          {columns.map((c) => (
             <StyledTableCell
               align={columnAlign[c]}
               pad={columnAlign[c] === 'end' ? { right: '100px' } : ''}
@@ -57,7 +59,7 @@ export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
       <StyledTableBody>
         {data.map((row) => (
           <TableRow>
-            {columns.map(c => (
+            {columns.map((c) => (
               <StyledTableCell
                 align={columnAlign[c]}
                 pad={columnAlign[c] === 'end' ? { right: '100px' } : ''}
