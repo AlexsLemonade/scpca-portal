@@ -48,9 +48,9 @@ class Dataset(TimestampedModel):
     )
 
     # Hashes
-    data_hash = models.BigIntegerField(null=True)
-    metadata_hash = models.BigIntegerField(null=True)
-    readme_hash = models.BigIntegerField(null=True)
+    data_hash = models.CharField(max_length=32, null=True)
+    metadata_hash = models.CharField(max_length=32, null=True)
+    readme_hash = models.CharField(max_length=32, null=True)
 
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
