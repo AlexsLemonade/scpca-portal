@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 from unittest.mock import PropertyMock, patch
 
@@ -253,10 +254,11 @@ class TestDataset(TestCase):
                 else:
                     self.assertEqual(getattr(dataset, attribute), value, msg)
 
-            dataset, is_new_dataset = Dataset.get_or_find_ccdl_dataset(
+            dataset_same, found_same = Dataset.get_or_find_ccdl_dataset(
                 ccdl_portal_dataset.CCDL_NAME
             )
-            self.assertTrue(is_new_dataset)
+            self.assertEqual(dataset_same.pk, dataset.pk)
+            self.assertTrue(found_same)
 
         # Project Dataset Check
         ccdl_project_dataset = (
@@ -492,9 +494,7 @@ class TestDataset(TestCase):
             Dataset, "original_files", new_callable=PropertyMock, return_value=mock_original_files
         ):
             dataset = Dataset()
-            expected_data_hash = hash(
-                "8on83svty5lacm10nqavmqpz9zcoxq2dfeh8wcvjx9wxmbi9lvunep6n6sy8eekrd4adfj59xe4e1zf9tdgipefc38ihmesmiekahu4fjio931yyiej5esqfizrunhkfat7n9m9cg3hev5evhrgev1y63tgzqhem"  # noqa
-            )
+            expected_data_hash = "c60e50797610f0063688a0830b0a727e"
             self.assertEqual(dataset.current_data_hash, expected_data_hash)
 
     def test_current_metadata_hash(self):
@@ -514,7 +514,10 @@ class TestDataset(TestCase):
             f"scpca_portal/test/expected_values/{metadata_file_name}", encoding="utf-8"
         ) as file:
             metadata_file_contents = file.read().replace("\n", "\r\n")
-            self.assertEqual(dataset.current_metadata_hash, hash(metadata_file_contents))
+            file_hash = hashlib.md5(metadata_file_contents.encode("utf-8")).hexdigest()
+            self.assertEqual(dataset.current_metadata_hash, file_hash)
+            expected_metadata_hash = "14540bede594d7e0808a68924a0ed25c"
+            self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
     def test_current_readme_hash(self):
         data = {
@@ -536,8 +539,11 @@ class TestDataset(TestCase):
         #     readme_file_contents = file.read()
         #     # remove first line which contains date
         #     readme_file_contents_no_date = readme_file_contents.split("\n", 1)[1].strip()
-        #     self.assertEqual(dataset.current_readme_hash, hash(readme_file_contents_no_date))
+        #     readme_file_contents_no_date_bytes = readme_file_contents_no_date.encode("utf-8")
+        #     file_hash = hashlib.md5(readme_file_contents_no_date_bytes).hexdigest())
+        #     self.assertEqual(dataset.current_readme_hash,
         #########
         # Test current_readme_hash equals default `1` until readme_file.get_file_contents refactored
         #########
-        self.assertEqual(dataset.current_readme_hash, 1)
+        expected_readme_hash = "c4ca4238a0b923820dcc509a6f75849b"
+        self.assertEqual(dataset.current_readme_hash, expected_readme_hash)

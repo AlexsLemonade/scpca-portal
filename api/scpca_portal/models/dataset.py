@@ -1,3 +1,4 @@
+import hashlib
 import uuid
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -48,9 +49,9 @@ class Dataset(TimestampedModel):
     )
 
     # Hashes
-    data_hash = models.BigIntegerField(null=True)
-    metadata_hash = models.BigIntegerField(null=True)
-    readme_hash = models.BigIntegerField(null=True)
+    data_hash = models.CharField(max_length=32, null=True)
+    metadata_hash = models.CharField(max_length=32, null=True)
+    readme_hash = models.CharField(max_length=32, null=True)
 
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
@@ -229,26 +230,29 @@ class Dataset(TimestampedModel):
         )
 
     @property
-    def current_data_hash(self) -> int:
+    def current_data_hash(self) -> str:
         sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
             "hash", flat=True
         )
         concat_hash = "".join(sorted_original_file_hashes)
-        return hash(concat_hash.strip())
+        concat_hash_bytes = concat_hash.encode("utf-8")
+        return hashlib.md5(concat_hash_bytes).hexdigest()
 
     @property
-    def current_metadata_hash(self) -> int:
-        return hash(self.metadata_file_contents)
+    def current_metadata_hash(self) -> str:
+        metadata_file_contents_bytes = self.metadata_file_contents.encode("utf-8")
+        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
 
     @property
-    def current_readme_hash(self) -> int:
+    def current_readme_hash(self) -> str:
         ##########
         # Return 1 until readme_file.get_file_contents is refactored to handle ccdl dataset type
         ##########
         # # remove first line which contains date
         # readme_file_contents_no_date = self.readme_file_contents.split("\n", 1)[1].strip()
-        # return hash(readme_file_contents_no_date)
-        return 1
+        # readme_file_contents_no_date_bytes = readme_file_contents_no_date.encode("utf-8")
+        # return hashlib.md5(readme_file_contents_no_date_bytes).hexdigest()
+        return hashlib.md5(b"1").hexdigest()
 
     @staticmethod
     def get_combined_hash(data_hash: int, metadata_hash: int, readme_hash: int) -> int:
