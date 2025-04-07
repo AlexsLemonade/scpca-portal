@@ -346,22 +346,81 @@ class TestJob(TestCase):
         self.assertEqual(response, [])  # No termination with no error
 
     def test_get_retry_job(self):
+        # Set up a non-terminated job
         job = JobFactory(
             dataset=self.mock_dataset,
             state=JobStates.SUBMITTED.value,
         )
 
-        # Should return None if the job state is not TERMINATED
+        # After execution, the call should returns None
         retry_job = job.get_retry_job()
-        self.assertIsNone(retry_job)
+        self.assertFalse(retry_job)
 
         # Change the job state to TERMINATED
         job.state = JobStates.TERMINATED.value
-        # Should return a new unsaved instance for retrying the terminated job
+
+        # Set up mock field values for base terminated jobs
+        job.batch_job_name = "BATCH_JOB_NAME"
+        job.batch_job_definition = "BATCH_JOB_DEFINITION"
+        job.batch_job_queue = "BATCH_JOB_QUEUE"
+        job.batch_container_overrides = "BATCH_CONTAINER_OVERRIDES"
+        job.attempt = 1
+        job.retry_on_termination = True
+
+        # After execution, the call should returns a new unsaved instance for retry
         retry_job = job.get_retry_job()
         self.assertIsNone(retry_job.id)  # Should not have an ID
-        # Make sure required fields are copied and attempt is incremented
-        self.assertEqual(retry_job.attempt, job.attempt + 1)
+        # Should correctly copy the exsiting field values
         self.assertEqual(retry_job.batch_job_name, job.batch_job_name)
         self.assertEqual(retry_job.batch_job_definition, job.batch_job_definition)
         self.assertEqual(retry_job.batch_job_queue, job.batch_job_queue)
+        self.assertEqual(retry_job.attempt, job.attempt + 1)
+
+    def test_create_terminated_retry_jobs(self):
+        # Set up mock field values for base terminated jobs
+        batch_job_name = "BATCH_JOB_NAME"
+        batch_job_definition = "BATCH_JOB_DEFINITION"
+        batch_job_queue = "BATCH_JOB_QUEUE"
+        batch_container_overrides = "BATCH_CONTAINER_OVERRIDES"
+        attempt = 1
+        # Set up 3 base terminated jobs for retry
+        for _ in range(3):
+            JobFactory(
+                state=JobStates.TERMINATED.value,
+                batch_job_name=batch_job_name,
+                batch_job_definition=batch_job_definition,
+                batch_job_queue=batch_job_queue,
+                batch_container_overrides=batch_container_overrides,
+                attempt=attempt,
+                retry_on_termination=True,
+            )
+
+        # Before retry, there are 3 jobs in the db
+        self.assertEqual(Job.objects.count(), 3)
+
+        # After execution, the call should return a list of jobs for retry
+        retry_jobs = Job.create_terminated_retry_jobs()
+        self.assertNotEqual(retry_jobs, [])
+
+        # Should be 6 jobs (base 3  + new 3) in the db
+        self.assertEqual(Job.objects.count(), 6)
+        # Make sure that the job is saved in the db with correct field values
+        saved_retry_jobs = Job.objects.filter(state=JobStates.CREATED.value)
+
+        for job in saved_retry_jobs:
+            self.assertEqual(job.state, JobStates.CREATED.value)
+            # Should correctly copy the base instance's field values
+            self.assertEqual(job.batch_job_name, batch_job_name)
+            self.assertEqual(job.batch_job_definition, batch_job_definition)
+            self.assertEqual(job.batch_job_queue, batch_job_queue)
+            self.assertEqual(job.batch_container_overrides, batch_container_overrides)
+            self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
+
+    def test_create_terminated_retry_jobs_no_terminated_job_to_retry(self):
+        # Set up terminated jobs with retry_on_termination set to False
+        for _ in range(3):
+            JobFactory(state=JobStates.SUBMITTED.value, retry_on_termination=False)
+
+        # After execution, the call should return an empty list
+        retry_jobs = Job.create_terminated_retry_jobs()
+        self.assertEqual(retry_jobs, [])
