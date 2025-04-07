@@ -12,7 +12,7 @@ const badges = {
   Samples
 }
 
-export const Badge = ({ badge, label, className }) => {
+export const Badge = ({ badge, label, className, children }) => {
   const BadgeSVG = badges[badge]
   return (
     <Box direction="row" align="center" className={className}>
@@ -20,6 +20,7 @@ export const Badge = ({ badge, label, className }) => {
         <BadgeSVG role="presentation" aria-hidden="true" focusable="false" />
       </Box>
       <Paragraph margin={{ left: 'small' }}>{label}</Paragraph>
+      {children}
     </Box>
   )
 }
