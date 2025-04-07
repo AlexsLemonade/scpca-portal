@@ -354,7 +354,7 @@ class TestJob(TestCase):
 
         # After execution, the call should returns None
         retry_job = job.get_retry_job()
-        self.assertIsNone(retry_job)
+        self.assertFalse(retry_job)
 
         # Change the job state to TERMINATED
         job.state = JobStates.TERMINATED.value
@@ -376,7 +376,7 @@ class TestJob(TestCase):
         self.assertEqual(retry_job.batch_job_queue, job.batch_job_queue)
         self.assertEqual(retry_job.attempt, job.attempt + 1)
 
-    def test_retry_jobs(self):
+    def test_create_terminated_retry_jobs(self):
         # Set up mock field values for base terminated jobs
         batch_job_name = "BATCH_JOB_NAME"
         batch_job_definition = "BATCH_JOB_DEFINITION"
@@ -399,7 +399,7 @@ class TestJob(TestCase):
         self.assertEqual(Job.objects.count(), 3)
 
         # After execution, the call should return a list of jobs for retry
-        retry_jobs = Job.get_retry_jobs()
+        retry_jobs = Job.create_terminated_retry_jobs()
         self.assertNotEqual(retry_jobs, [])
 
         # Should be 6 jobs (base 3  + new 3) in the db
@@ -416,11 +416,11 @@ class TestJob(TestCase):
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
             self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
 
-    def test_retry_jobs_no_terminated_job_to_retry(self):
+    def test_create_terminated_retry_jobs_no_terminated_job_to_retry(self):
         # Set up terminated jobs with retry_on_termination set to False
         for _ in range(3):
             JobFactory(state=JobStates.SUBMITTED.value, retry_on_termination=False)
 
         # After execution, the call should return an empty list
-        retry_jobs = Job.get_retry_jobs()
+        retry_jobs = Job.create_terminated_retry_jobs()
         self.assertEqual(retry_jobs, [])
