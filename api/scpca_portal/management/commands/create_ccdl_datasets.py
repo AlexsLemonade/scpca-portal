@@ -18,7 +18,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.create_ccdl_datasets(**kwargs)
 
-    def process_dataset(self, ccdl_name, project_id: str | None = None) -> bool:
+    def attempt_dataset(self, ccdl_name, project_id: str | None = None) -> bool:
         dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
         if not found and not dataset.libraries:
             return False
@@ -26,7 +26,7 @@ class Command(BaseCommand):
             return False
 
         dataset.save()
-        job = Job.get_dataset_job(dataset.id)
+        job = Job.get_dataset_job(dataset)
         job.submit()
 
         logger.info(f"{dataset} job submitted successfully.")
@@ -37,7 +37,7 @@ class Command(BaseCommand):
         for ccdl_name in ccdl_datasets.TYPES:
             # Project Datasets
             for project in Project.objects.all():
-                self.process_dataset(ccdl_name, project.scpca_id)
+                self.attempt_dataset(ccdl_name, project.scpca_id)
 
             # Portal Wide datasets
             if ccdl_name in ccdl_datasets.PORTAL_TYPE_NAMES:
