@@ -1,14 +1,16 @@
+import hashlib
 from pathlib import Path
+from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, tag
 
 from scpca_portal import loader
-from scpca_portal.enums import DatasetFormats, Modalities
-from scpca_portal.models import Dataset
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
+from scpca_portal.models import Dataset, OriginalFile
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import DatasetFactory
+from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 
 
 class TestDataset(TestCase):
@@ -475,3 +477,73 @@ class TestDataset(TestCase):
             Path("SCPCP999992/merged/SCPCP999992_merged-summary-report.html"),
         }
         self.assertEqual(dataset.original_file_paths, expected_files)
+
+    def test_current_data_hash(self):
+        mock_file_hashes = {
+            "SCPCP000000/SCPCS000000/SCPCL00003.txt": "d4adfj59xe4e1zf9tdgipefc38ihmesm",
+            "SCPCP000000/SCPCS000000/SCPCL00002.txt": "feh8wcvjx9wxmbi9lvunep6n6sy8eekr",
+            "SCPCP000000/SCPCS000000/SCPCL00005.txt": "at7n9m9cg3hev5evhrgev1y63tgzqhem",
+            "SCPCP000000/SCPCS000000/SCPCL00001.txt": "8on83svty5lacm10nqavmqpz9zcoxq2d",
+            "SCPCP000000/SCPCS000000/SCPCL00004.txt": "iekahu4fjio931yyiej5esqfizrunhkf",
+        }
+        for s3_key, file_hash in mock_file_hashes.items():
+            OriginalFileFactory(s3_key=s3_key, hash=file_hash)
+        mock_original_files = OriginalFile.objects.filter(s3_key__in=mock_file_hashes.keys())
+
+        with patch.object(
+            Dataset, "original_files", new_callable=PropertyMock, return_value=mock_original_files
+        ):
+            dataset = Dataset()
+            expected_data_hash = "c60e50797610f0063688a0830b0a727e"
+            self.assertEqual(dataset.current_data_hash, expected_data_hash)
+
+    def test_current_metadata_hash(self):
+        data = {
+            "SCPCP999990": {
+                "merge_single_cell": False,
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+
+        metadata_file_name = "metadata_file_single_cell_single_cell_experiment_SCPCP999990.tsv"
+        with open(
+            f"scpca_portal/test/expected_values/{metadata_file_name}", encoding="utf-8"
+        ) as file:
+            metadata_file_contents = file.read().replace("\n", "\r\n")
+            file_hash = hashlib.md5(metadata_file_contents.encode("utf-8")).hexdigest()
+            self.assertEqual(dataset.current_metadata_hash, file_hash)
+            expected_metadata_hash = "14540bede594d7e0808a68924a0ed25c"
+            self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
+
+    def test_current_readme_hash(self):
+        data = {
+            "SCPCP999990": {
+                "merge_single_cell": False,
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(
+            data=data, format=format, ccdl_name=CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
+        )
+        # readme_file_name = "readme_file_single_cell_single_cell_experiment_SCPCP999990.md"
+        # with open(
+        #     f"scpca_portal/test/expected_values/{readme_file_name}", encoding="utf-8"
+        # ) as file:
+        #     readme_file_contents = file.read()
+        #     # remove first line which contains date
+        #     readme_file_contents_no_date = readme_file_contents.split("\n", 1)[1].strip()
+        #     readme_file_contents_no_date_bytes = readme_file_contents_no_date.encode("utf-8")
+        #     file_hash = hashlib.md5(readme_file_contents_no_date_bytes).hexdigest())
+        #     self.assertEqual(dataset.current_readme_hash,
+        #########
+        # Test current_readme_hash equals default `1` until readme_file.get_file_contents refactored
+        #########
+        expected_readme_hash = "c4ca4238a0b923820dcc509a6f75849b"
+        self.assertEqual(dataset.current_readme_hash, expected_readme_hash)

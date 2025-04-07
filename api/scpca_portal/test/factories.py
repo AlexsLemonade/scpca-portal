@@ -1,4 +1,9 @@
+import random
+import string
+from datetime import datetime
+
 from django.conf import settings
+from django.utils.timezone import make_aware
 
 import factory
 
@@ -195,14 +200,14 @@ class DatasetFactory(factory.django.DjangoModelFactory):
         "SCPCP999990": {
             "merge_single_cell": False,
             "includes_bulk": True,
-            Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999991"],
-            Modalities.SPATIAL: ["SCPCS999992"],
+            Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
+            Modalities.SPATIAL.value: ["SCPCS999991"],
         },
         "SCPCP999991": {
-            "merge_single_cell": True,
+            "merge_single_cell": False,
             "includes_bulk": True,
-            Modalities.SINGLE_CELL: ["SCPCS999993", "SCPCS999994"],
-            Modalities.SPATIAL: [],
+            Modalities.SINGLE_CELL.value: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+            Modalities.SPATIAL.value: [],
         },
     }
     email = "user@example.com"
@@ -238,3 +243,17 @@ class JobFactory(factory.django.DjangoModelFactory):
             ]
         }
     )
+
+
+class OriginalFileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.OriginalFile"
+
+    s3_bucket = settings.AWS_S3_INPUT_BUCKET_NAME
+    s3_key = factory.Sequence(lambda n: f"SCPCP999999/SCPCS999999/SCPCL{str(n).zfill(6)}.txt")
+    size_in_bytes = factory.LazyAttribute(lambda _: random.randint(0, 1000000))
+    hash = factory.LazyAttribute(
+        lambda _: "".join(random.choices(string.ascii_lowercase + string.digits, k=33))
+    )
+    hash_change_at = factory.LazyAttribute(lambda _: make_aware(datetime.now()))
+    bucket_sync_at = factory.LazyAttribute(lambda _: make_aware(datetime.now()))

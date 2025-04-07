@@ -1,3 +1,4 @@
+import hashlib
 import uuid
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -6,7 +7,7 @@ from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common
+from scpca_portal import ccdl_datasets, common, metadata_file, readme_file
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -17,8 +18,10 @@ from scpca_portal.enums import (
 from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
+from scpca_portal.models.sample import Sample
 
 logger = get_and_configure_logger(__name__)
 
@@ -44,6 +47,11 @@ class Dataset(TimestampedModel):
         on_delete=models.SET_NULL,
         related_name="regenerated_datasets",
     )
+
+    # Hashes
+    data_hash = models.CharField(max_length=32, null=True)
+    metadata_hash = models.CharField(max_length=32, null=True)
+    readme_hash = models.CharField(max_length=32, null=True)
 
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
@@ -94,6 +102,9 @@ class Dataset(TimestampedModel):
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
+        dataset.data_hash = dataset.current_data_hash
+        dataset.metadata_hash = dataset.current_metadata_hash
+        dataset.readme_hash = dataset.current_readme_hash
         return dataset, False
 
     def get_ccdl_data(self) -> Dict:
@@ -131,9 +142,26 @@ class Dataset(TimestampedModel):
         """
         Determines whether or not a computed file should be generated for the instance dataset.
         Files should be processed for new datasets,
-        or for datasets whose data attributes have changed.
+        or for datasets where at least one hash attribute has changed.
         """
-        return self.data != self.get_ccdl_data()
+        return (
+            self.data_hash != self.current_data_hash
+            or self.metadata_hash != self.current_metadata_hash
+            or self.readme_hash != self.current_readme_hash
+        )
+
+    @property
+    def libraries(self) -> Library:
+        libraries = Library.objects.none()
+
+        for project_config in self.data.values():
+            for modality in [Modalities.SINGLE_CELL.name, Modalities.SPATIAL.name]:
+                for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
+                    libraries |= sample.libraries.filter(
+                        modality=modality, formats__contains=[self.format]
+                    )
+
+        return libraries
 
     @property
     def ccdl_type(self) -> Dict:
@@ -187,6 +215,42 @@ class Dataset(TimestampedModel):
     @property
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
+
+    @property
+    def metadata_file_contents(self) -> str:
+        libraries_metadata = Library.get_libraries_metadata(self.libraries)
+        return metadata_file.get_file_contents(libraries_metadata)
+
+    @property
+    def readme_file_contents(self) -> str:
+        return readme_file.get_file_contents(
+            self.ccdl_type, Project.objects.filter(scpca_id__in=self.data.keys())
+        )
+
+    @property
+    def current_data_hash(self) -> str:
+        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
+            "hash", flat=True
+        )
+        concat_hash = "".join(sorted_original_file_hashes)
+        concat_hash_bytes = concat_hash.encode("utf-8")
+        return hashlib.md5(concat_hash_bytes).hexdigest()
+
+    @property
+    def current_metadata_hash(self) -> str:
+        metadata_file_contents_bytes = self.metadata_file_contents.encode("utf-8")
+        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
+
+    @property
+    def current_readme_hash(self) -> str:
+        ##########
+        # Return 1 until readme_file.get_file_contents is refactored to handle ccdl dataset type
+        ##########
+        # # remove first line which contains date
+        # readme_file_contents_no_date = self.readme_file_contents.split("\n", 1)[1].strip()
+        # readme_file_contents_no_date_bytes = readme_file_contents_no_date.encode("utf-8")
+        # return hashlib.md5(readme_file_contents_no_date_bytes).hexdigest()
+        return hashlib.md5(b"1").hexdigest()
 
 
 class DataValidator:

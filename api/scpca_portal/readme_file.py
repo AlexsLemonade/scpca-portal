@@ -3,7 +3,9 @@ from typing import Dict, Iterable
 from django.conf import settings
 from django.template.loader import render_to_string
 
-from scpca_portal import common, utils
+from scpca_portal import common, utils  # ccdl_datasets,
+
+# from scpca_portal.enums import CCDLDatasetNames
 
 OUTPUT_NAME = "README.md"
 
