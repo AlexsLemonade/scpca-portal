@@ -28,6 +28,11 @@ export default {
     maxWidth: '171px',
     size: '12px'
   },
+  'small-flat': {
+    height: '12px',
+    maxWidth: '171px',
+    size: '12px'
+  },
   xlarge: {
     height: '42px',
     maxWidth: '277px',
