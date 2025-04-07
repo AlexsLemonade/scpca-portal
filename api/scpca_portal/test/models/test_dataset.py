@@ -529,11 +529,15 @@ class TestDataset(TestCase):
         dataset = Dataset(
             data=data, format=format, ccdl_name=CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
         )
-        readme_file_name = "readme_file_single_cell_single_cell_experiment_SCPCP999990.md"
-        with open(
-            f"scpca_portal/test/expected_values/{readme_file_name}", encoding="utf-8"
-        ) as file:
-            readme_file_contents = file.read()
-            # remove first line which contains date
-            readme_file_contents_no_date = readme_file_contents.split("\n", 1)[1].strip()
-            self.assertEqual(dataset.current_readme_hash, hash(readme_file_contents_no_date))
+        # readme_file_name = "readme_file_single_cell_single_cell_experiment_SCPCP999990.md"
+        # with open(
+        #     f"scpca_portal/test/expected_values/{readme_file_name}", encoding="utf-8"
+        # ) as file:
+        #     readme_file_contents = file.read()
+        #     # remove first line which contains date
+        #     readme_file_contents_no_date = readme_file_contents.split("\n", 1)[1].strip()
+        #     self.assertEqual(dataset.current_readme_hash, hash(readme_file_contents_no_date))
+        #########
+        # Test current_readme_hash equals default `1` until readme_file.get_file_contents refactored
+        #########
+        self.assertEqual(dataset.current_readme_hash, 1)

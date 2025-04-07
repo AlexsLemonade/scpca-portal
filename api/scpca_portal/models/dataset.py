@@ -240,9 +240,13 @@ class Dataset(TimestampedModel):
 
     @property
     def current_readme_hash(self) -> int:
-        # remove first line which contains date
-        readme_file_contents_no_date = self.readme_file_contents.split("\n", 1)[1].strip()
-        return hash(readme_file_contents_no_date)
+        ##########
+        # Return 1 until readme_file.get_file_contents is refactored to handle ccdl dataset type
+        ##########
+        # # remove first line which contains date
+        # readme_file_contents_no_date = self.readme_file_contents.split("\n", 1)[1].strip()
+        # return hash(readme_file_contents_no_date)
+        return 1
 
 
 class DataValidator:
