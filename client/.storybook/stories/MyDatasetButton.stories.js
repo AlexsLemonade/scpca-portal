@@ -9,7 +9,7 @@ export default {
 
 export const Default = (args) => {
   return (
-    <Box margin="large">
+    <Box margin="large" background="alexs-deep-blue" pad="large">
       <MyDatasetButton {...args} />
     </Box>
   )
