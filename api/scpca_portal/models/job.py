@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.timezone import make_aware
 
+from typing_extensions import Self
+
 from scpca_portal import batch
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
@@ -44,6 +46,38 @@ class Job(TimestampedModel):
         if self.batch_job_id:
             return f"Job {self.id} - {self.batch_job_id} - {self.state}"
         return f"Job {self.id} - {self.state}"
+
+    @staticmethod
+    def update_job_state(job: Self, aws_job: dict) -> tuple[Self, bool]:
+        """
+        Map the AWS Batch job status to the corresponding instance job state.
+        Update the instance state and timestamps if the state changes.
+        Return the instance and a boolean indicating whether the instance was updated.
+        """
+        if aws_job.get("isCancelled") or aws_job.get("isTerminated"):
+            job.state = JobStates.TERMINATED.value
+            job.terminated_at = make_aware(datetime.now())
+
+            return job, True
+
+        state_mapping = {
+            "SUCCEEDED": JobStates.COMPLETED.value,
+            "FAILED": JobStates.COMPLETED.value,
+        }
+
+        aws_job_status = aws_job["status"]
+        new_state = state_mapping.get(aws_job_status, JobStates.SUBMITTED.value)
+
+        if job.state == new_state:
+            return job, False
+
+        if aws_job_status == "FAILED":
+            job.failure_reason = aws_job["statusReason"]
+
+        job.state = new_state
+        job.completed_at = make_aware(datetime.now())
+
+        return job, True
 
     @classmethod
     def get_project_job(cls, project_id: str, download_config_name: str, notify: bool = False):
@@ -104,6 +138,38 @@ class Job(TimestampedModel):
             },
         )
 
+    @classmethod
+    def bulk_sync_state(cls) -> bool:
+        """
+        Sync all submitted job instances' states with the remote AWS Batch job statuses.
+        Update each job instance's state if it changes to COMPLETED, and update completed_at.
+        If the remote status is 'FAILED', update failure_reason if it hasn't been set already.
+        """
+        if submitted_jobs := cls.objects.filter(state=JobStates.SUBMITTED.value):
+            if fetched_jobs := batch.get_jobs(submitted_jobs):
+                # Map the fetched AWS jobs for easy lookup by batch_job_id
+                aws_jobs = {job["jobId"]: job for job in fetched_jobs}
+
+                synced_jobs = []
+
+                for job in submitted_jobs:
+                    if aws_job := aws_jobs.get(job.batch_job_id):
+                        updated_job, updated = cls.update_job_state(job, aws_job)
+                        if updated:
+                            synced_jobs.append(updated_job)
+                        else:
+                            continue
+
+                if synced_jobs:
+                    cls.objects.bulk_update(
+                        synced_jobs,
+                        ["state", "failure_reason", "completed_at", "terminated_at"],
+                    )
+
+                return True
+
+        return False
+
     def submit(self) -> bool:
         """
         Submit the job via batch.submit_job.
@@ -120,6 +186,25 @@ class Job(TimestampedModel):
 
             self.save()
             return True
+
+        return False
+
+    def sync_state(self) -> bool:
+        """
+        Sync the submitted job state with the remote AWS Batch job status.
+        Update instance state if it changes to COMPLETED, and update completed_at.
+        If the remote status is 'FAILED', update failure_reason if it hasn't been set already.
+        """
+        if self.state is not JobStates.SUBMITTED.value:
+            return False
+
+        if fetched_jobs := batch.get_jobs([self]):
+            aws_job = fetched_jobs[0]
+            updated_job, updated = self.update_job_state(self, aws_job)
+
+            if updated:
+                updated_job.save()
+                return True
 
         return False
 
