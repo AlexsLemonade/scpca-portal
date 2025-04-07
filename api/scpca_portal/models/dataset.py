@@ -143,11 +143,13 @@ class Dataset(TimestampedModel):
         Files should be processed for new datasets,
         or for datasets where at least one hash attribute has changed.
         """
-        return (
-            self.data_hash != self.current_data_hash
-            or self.metadata_hash != self.current_metadata_hash
-            or self.readme_hash != self.current_readme_hash
+        cached_combined_hash = Dataset.get_combined_hash(
+            self.data_hash, self.metadata_hash, self.readme_hash
         )
+        current_combined_hash = Dataset.get_combined_hash(
+            self.current_data_hash, self.current_metadata_hash, self.current_readme_hash
+        )
+        return cached_combined_hash != current_combined_hash
 
     @property
     def libraries(self) -> Library:
@@ -247,6 +249,11 @@ class Dataset(TimestampedModel):
         # readme_file_contents_no_date = self.readme_file_contents.split("\n", 1)[1].strip()
         # return hash(readme_file_contents_no_date)
         return 1
+
+    @staticmethod
+    def get_combined_hash(data_hash: int, metadata_hash: int, readme_hash: int) -> int:
+        concat_hash = str(data_hash) + str(metadata_hash) + str(readme_hash)
+        return hash(concat_hash)
 
 
 class DataValidator:
