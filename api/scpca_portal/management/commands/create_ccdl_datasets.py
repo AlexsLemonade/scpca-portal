@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
     def attempt_dataset(self, ccdl_name, project_id: str | None = None) -> bool:
         dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
-        if not found and not dataset.libraries:
+        if not found and not dataset.valid_ccdl_dataset:
             return False
         if found and not dataset.should_process():
             return False
