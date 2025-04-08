@@ -138,19 +138,14 @@ class Dataset(TimestampedModel):
 
         return data
 
-    def should_process(self) -> bool:
+    @property
+    def have_files_changed(self) -> bool:
         """
         Determines whether or not a computed file should be generated for the instance dataset.
         Files should be processed for new datasets,
         or for datasets where at least one hash attribute has changed.
         """
-        cached_combined_hash = Dataset.get_combined_hash(
-            self.data_hash, self.metadata_hash, self.readme_hash
-        )
-        current_combined_hash = Dataset.get_combined_hash(
-            self.current_data_hash, self.current_metadata_hash, self.current_readme_hash
-        )
-        return cached_combined_hash != current_combined_hash
+        return self.combined_hash != self.current_combined_hash
 
     @property
     def libraries(self) -> Library:
@@ -256,6 +251,16 @@ class Dataset(TimestampedModel):
         return hashlib.md5(b"1").hexdigest()
 
     @property
+    def combined_hash(self) -> str:
+        concat_hash = self.data_hash + self.metadata_hash + self.readme_hash
+        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
+
+    @property
+    def current_combined_hash(self) -> str:
+        concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
+        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
+
+    @property
     def valid_ccdl_dataset(self) -> bool:
         if not self.libraries:
             return False
@@ -276,11 +281,6 @@ class Dataset(TimestampedModel):
                 return dataset_projects.filter(has_spatial_data=True).exists()
             case _:
                 return True
-
-    @staticmethod
-    def get_combined_hash(data_hash: int, metadata_hash: int, readme_hash: int) -> int:
-        concat_hash = str(data_hash) + str(metadata_hash) + str(readme_hash)
-        return hash(concat_hash)
 
 
 class DataValidator:
