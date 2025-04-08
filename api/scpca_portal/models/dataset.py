@@ -154,16 +154,17 @@ class Dataset(TimestampedModel):
 
     @property
     def libraries(self) -> Library:
-        libraries = Library.objects.none()
+        dataset_libraries = Library.objects.none()
 
         for project_config in self.data.values():
             for modality in [Modalities.SINGLE_CELL.name, Modalities.SPATIAL.name]:
                 for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
-                    libraries |= sample.libraries.filter(
-                        modality=modality, formats__contains=[self.format]
-                    )
+                    sample_libraries = sample.libraries.filter(modality=modality)
+                    if self.format != DatasetFormats.METADATA:
+                        sample_libraries.filter(formats__contains=[self.format])
+                    dataset_libraries |= sample_libraries
 
-        return libraries
+        return dataset_libraries
 
     @property
     def ccdl_type(self) -> Dict:
