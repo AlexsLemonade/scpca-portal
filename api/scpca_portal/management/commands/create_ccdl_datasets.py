@@ -24,12 +24,11 @@ class Command(BaseCommand):
             return False
         if found and not dataset.should_process():
             return False
-
         dataset.save()
-        job = Job.get_dataset_job(dataset)
-        job.submit()
 
-        logger.info(f"{dataset} job submitted successfully.")
+        job = Job.get_dataset_job(dataset)
+        if job.submit():
+            logger.info(f"{dataset} job submitted successfully.")
 
         return True
 
