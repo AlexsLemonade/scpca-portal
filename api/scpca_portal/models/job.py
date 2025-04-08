@@ -81,7 +81,7 @@ class Job(TimestampedModel):
         return job, True
 
     @classmethod
-    def get_dataset_job(cls, dataset: Dataset, notify: bool = False):
+    def get_dataset_job(cls, dataset: Dataset, notify: bool = False) -> Self:
         """
         Prepare a Job instance for a dataset without saving it to the db.
         """
@@ -107,7 +107,9 @@ class Job(TimestampedModel):
         )
 
     @classmethod
-    def get_project_job(cls, project_id: str, download_config_name: str, notify: bool = False):
+    def get_project_job(
+        cls, project_id: str, download_config_name: str, notify: bool = False
+    ) -> Self:
         """
         Prepare a Job instance for a project without saving it to the db.
         """
@@ -139,7 +141,7 @@ class Job(TimestampedModel):
         sample_id: str,
         download_config_name: str,
         notify: bool = False,
-    ):
+    ) -> Self:
         """
         Prepare a Job instance for a sample without saving it to the db.
         """
