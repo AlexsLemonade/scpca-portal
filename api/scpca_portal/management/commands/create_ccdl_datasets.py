@@ -22,7 +22,7 @@ class Command(BaseCommand):
         dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
         if not found and not dataset.libraries:
             return False
-        if found and not dataset.should_process:
+        if found and not dataset.should_process():
             return False
 
         dataset.save()
@@ -41,4 +41,4 @@ class Command(BaseCommand):
 
             # Portal Wide datasets
             if ccdl_name in ccdl_datasets.PORTAL_TYPE_NAMES:
-                self.process_dataset(ccdl_name)
+                self.attempt_dataset(ccdl_name)

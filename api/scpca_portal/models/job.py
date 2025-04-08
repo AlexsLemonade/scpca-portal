@@ -98,7 +98,7 @@ class Job(TimestampedModel):
                     "manage.py",
                     "generate_computed_file",
                     "--dataset-id",
-                    dataset.id,
+                    str(dataset.id),
                     notify_flag,
                 ],
             },
