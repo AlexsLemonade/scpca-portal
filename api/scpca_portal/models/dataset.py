@@ -255,6 +255,28 @@ class Dataset(TimestampedModel):
         # return hashlib.md5(readme_file_contents_no_date_bytes).hexdigest()
         return hashlib.md5(b"1").hexdigest()
 
+    @property
+    def valid_ccdl_dataset(self) -> bool:
+        if not self.libraries:
+            return False
+
+        dataset_projects = Project.objects.filter(scpca_id__in=self.data.keys())
+        match self.ccdl_name:
+            case CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value:
+                return dataset_projects.filter(has_single_cell_data=True).exists()
+            case CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED.value:
+                return dataset_projects.filter(has_multiplexed_data=True).exists()
+            case CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED.value:
+                return dataset_projects.filter(includes_merged_sce=True).exists()
+            case CCDLDatasetNames.SINGLE_CELL_ANN_DATA.value:
+                return dataset_projects.filter(includes_anndata=True).exists()
+            case CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED.value:
+                return dataset_projects.filter(includes_merged_anndata=True).exists()
+            case CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.value:
+                return dataset_projects.filter(has_spatial_data=True).exists()
+            case _:
+                return True
+
     @staticmethod
     def get_combined_hash(data_hash: int, metadata_hash: int, readme_hash: int) -> int:
         concat_hash = str(data_hash) + str(metadata_hash) + str(readme_hash)
