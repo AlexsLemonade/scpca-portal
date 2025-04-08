@@ -53,7 +53,11 @@ export const DatasetChangingMergedProjectModal = ({
             justify="end"
             margin={{ top: 'large' }}
           >
-            <Button aria-label="Cancel" label="Cancel" />
+            <Button
+              aria-label="Cancel"
+              label="Cancel"
+              onClick={() => setShowing(false)}
+            />
             <Button primary aria-label="Continue" label="Continue" />
           </Box>
         </ModalBody>
