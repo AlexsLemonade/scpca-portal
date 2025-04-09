@@ -163,7 +163,7 @@ class Dataset(TimestampedModel):
 
     @property
     def ccdl_type(self) -> Dict:
-        return ccdl_datasets.TYPES.get(self.ccdl_name)
+        return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
     @property
     def is_data_valid(self) -> bool:
@@ -265,22 +265,9 @@ class Dataset(TimestampedModel):
         if not self.libraries:
             return False
 
-        dataset_projects = Project.objects.filter(scpca_id__in=self.data.keys())
-        match self.ccdl_name:
-            case CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value:
-                return dataset_projects.filter(has_single_cell_data=True).exists()
-            case CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED.value:
-                return dataset_projects.filter(has_multiplexed_data=True).exists()
-            case CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED.value:
-                return dataset_projects.filter(includes_merged_sce=True).exists()
-            case CCDLDatasetNames.SINGLE_CELL_ANN_DATA.value:
-                return dataset_projects.filter(includes_anndata=True).exists()
-            case CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED.value:
-                return dataset_projects.filter(includes_merged_anndata=True).exists()
-            case CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.value:
-                return dataset_projects.filter(has_spatial_data=True).exists()
-            case _:
-                return True
+        return Project.objects.filter(
+            scpca_id__in=self.data.keys(), **self.ccdl_type.get("constraints", {})
+        )
 
 
 class DataValidator:
