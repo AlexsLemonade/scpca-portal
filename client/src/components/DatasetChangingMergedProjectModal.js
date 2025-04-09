@@ -56,7 +56,6 @@ export const DatasetChangingMergedProjectModal = ({
           <Text margin={{ left: 'xsmall' }}>
             You have selected to merge all single-cell samples into one object.
             <br />
-            <br />
             We cannot merge samples into one object if you remove single-cell
             samples from the project.
           </Text>
@@ -70,7 +69,7 @@ export const DatasetChangingMergedProjectModal = ({
           </Box>
           <Box
             align="center"
-            direction={responsive('column', 'row')}
+            direction="row"
             gap="xlarge"
             justify="end"
             margin={{ top: 'large' }}
