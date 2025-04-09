@@ -4,6 +4,7 @@ import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { Modal, ModalBody } from 'components/Modal'
+import { WarningText } from 'components/WarningText'
 import { InfoText } from 'components/InfoText'
 import { Link } from 'components/Link'
 
@@ -29,7 +30,28 @@ export const DatasetChangingMergedProjectModal = ({
         disabled={disabled}
         onClick={handleClick}
       />
-      <Modal title={title} showing={showing} setShowing={setShowing}>
+      <Modal showing={showing} setShowing={setShowing}>
+        <Box
+          border={{
+            side: 'bottom',
+            color: 'border-black',
+            size: 'small'
+          }}
+          gridArea="title"
+          width="full"
+          height={{ min: 'min-content' }}
+          pad={{ left: 'medium' }}
+          margin={{ bottom: '24px' }}
+        >
+          <WarningText
+            lineBreak={false}
+            iconMargin="0"
+            iconSize="24px"
+            margin={false}
+          >
+            <Text size="xlarge">{title} </Text>
+          </WarningText>
+        </Box>
         <ModalBody>
           <Text margin={{ left: 'xsmall' }}>
             You have selected to merge all single-cell samples into one object.
