@@ -28,6 +28,10 @@ class TestCreateCCDLDatasets(TestCase):
         mock_batch_submit_job.return_value = mock_batch_job_id
 
         call_command("create_ccdl_datasets")
+        self.assertEqual(Dataset.objects.count(), 21)
+        self.assertEqual(Job.objects.count(), 21)
 
+        # call command again to assert that no new datasets or jobs have been created
+        call_command("create_ccdl_datasets")
         self.assertEqual(Dataset.objects.count(), 21)
         self.assertEqual(Job.objects.count(), 21)
