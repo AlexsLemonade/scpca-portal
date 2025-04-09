@@ -139,7 +139,7 @@ class Dataset(TimestampedModel):
         return data
 
     @property
-    def have_files_changed(self) -> bool:
+    def is_hash_changed(self) -> bool:
         """
         Determines whether or not a computed file should be generated for the instance dataset.
         Files should be processed for new datasets,

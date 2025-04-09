@@ -22,7 +22,7 @@ class Command(BaseCommand):
         dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
         if not found and not dataset.valid_ccdl_dataset:
             return False
-        if found and not dataset.have_files_changed:
+        if found and not dataset.is_hash_changed:
             return False
         dataset.save()
 

@@ -88,8 +88,8 @@ class Job(TimestampedModel):
         Prepare a Job instance for a dataset without saving it to the db.
         """
 
-        # TODO: we shuold allow for users to request no notification via Dataset.notify attr
-        notify_flag = "--notify" if (not dataset.is_ccdl and notify) else ""
+        # TODO: we should allow for users to request no notification via Dataset.notify attr
+        notify_flag = "--notify" if (not dataset.is_ccdl or notify) else ""
 
         return cls(
             batch_job_name=dataset.id,
