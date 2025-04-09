@@ -83,6 +83,32 @@ class Job(TimestampedModel):
         return job, True
 
     @classmethod
+    def get_dataset_job(cls, dataset: Dataset, notify: bool = False) -> Self:
+        """
+        Prepare a Job instance for a dataset without saving it to the db.
+        """
+
+        # TODO: we should allow for users to request no notification via Dataset.notify attr
+        notify_flag = "--notify" if (not dataset.is_ccdl or notify) else ""
+
+        return cls(
+            batch_job_name=dataset.id,
+            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_container_overrides={
+                "command": [
+                    "python",
+                    "manage.py",
+                    "generate_computed_file",
+                    "--dataset-id",
+                    str(dataset.id),
+                    notify_flag,
+                ],
+            },
+            dataset=dataset,
+        )
+
+    @classmethod
     def get_project_job(
         cls, project_id: str, download_config_name: str, notify: bool = False
     ) -> Self:

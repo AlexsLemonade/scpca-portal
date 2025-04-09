@@ -138,42 +138,43 @@ class Dataset(TimestampedModel):
 
         return data
 
-    def should_process(self) -> bool:
+    @property
+    def is_hash_changed(self) -> bool:
         """
         Determines whether or not a computed file should be generated for the instance dataset.
         Files should be processed for new datasets,
         or for datasets where at least one hash attribute has changed.
         """
-        return (
-            self.data_hash != self.current_data_hash
-            or self.metadata_hash != self.current_metadata_hash
-            or self.readme_hash != self.current_readme_hash
-        )
+        return self.combined_hash != self.current_combined_hash
 
     @property
     def libraries(self) -> Library:
-        libraries = Library.objects.none()
+        """Returns all of a Dataset's library, based on Data and Format attrs."""
+        dataset_libraries = Library.objects.none()
 
         for project_config in self.data.values():
             for modality in [Modalities.SINGLE_CELL.name, Modalities.SPATIAL.name]:
                 for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
-                    libraries |= sample.libraries.filter(
-                        modality=modality, formats__contains=[self.format]
-                    )
+                    sample_libraries = sample.libraries.filter(modality=modality)
+                    if self.format != DatasetFormats.METADATA:
+                        sample_libraries.filter(formats__contains=[self.format])
+                    dataset_libraries |= sample_libraries
 
-        return libraries
+        return dataset_libraries
 
     @property
     def ccdl_type(self) -> Dict:
-        return ccdl_datasets.TYPES.get(self.ccdl_name)
+        return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
     @property
     def is_data_valid(self) -> bool:
+        """Determines if the Dataset's Data attr is valid."""
         data_validator = DataValidator(self.data)
         return data_validator.is_valid
 
     @property
     def original_files(self) -> Iterable[OriginalFile]:
+        """Returns all of a Dataset's associated OriginalFiles."""
         files = OriginalFile.objects.none()
         for project_id, project_config in self.data.items():
 
@@ -229,6 +230,7 @@ class Dataset(TimestampedModel):
 
     @property
     def current_data_hash(self) -> str:
+        """Computes and returns the current data hash."""
         sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
             "hash", flat=True
         )
@@ -238,11 +240,13 @@ class Dataset(TimestampedModel):
 
     @property
     def current_metadata_hash(self) -> str:
+        """Computes and returns the current metadata hash."""
         metadata_file_contents_bytes = self.metadata_file_contents.encode("utf-8")
         return hashlib.md5(metadata_file_contents_bytes).hexdigest()
 
     @property
     def current_readme_hash(self) -> str:
+        """Computes and returns the current readme hash."""
         ##########
         # Return 1 until readme_file.get_file_contents is refactored to handle ccdl dataset type
         ##########
@@ -251,6 +255,31 @@ class Dataset(TimestampedModel):
         # readme_file_contents_no_date_bytes = readme_file_contents_no_date.encode("utf-8")
         # return hashlib.md5(readme_file_contents_no_date_bytes).hexdigest()
         return hashlib.md5(b"1").hexdigest()
+
+    @property
+    def combined_hash(self) -> str:
+        """
+        Combines, computes and returns the combined cached data, metadata and readme hashes.
+        """
+        concat_hash = self.data_hash + self.metadata_hash + self.readme_hash
+        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
+
+    @property
+    def current_combined_hash(self) -> str:
+        """
+        Combines, computes and returns the combined current data, metadata and readme hashes.
+        """
+        concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
+        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
+
+    @property
+    def valid_ccdl_dataset(self) -> bool:
+        if not self.libraries:
+            return False
+
+        return Project.objects.filter(
+            scpca_id__in=self.data.keys(), **self.ccdl_type.get("constraints", {})
+        )
 
 
 class DataValidator:
