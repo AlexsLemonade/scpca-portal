@@ -149,6 +149,7 @@ class Dataset(TimestampedModel):
 
     @property
     def libraries(self) -> Library:
+        """Returns all of a Dataset's library, based on Data and Format attrs."""
         dataset_libraries = Library.objects.none()
 
         for project_config in self.data.values():
@@ -167,11 +168,13 @@ class Dataset(TimestampedModel):
 
     @property
     def is_data_valid(self) -> bool:
+        """Determines if the Dataset's Data attr is valid."""
         data_validator = DataValidator(self.data)
         return data_validator.is_valid
 
     @property
     def original_files(self) -> Iterable[OriginalFile]:
+        """Returns all of a Dataset's associated OriginalFiles."""
         files = OriginalFile.objects.none()
         for project_id, project_config in self.data.items():
 
@@ -227,6 +230,7 @@ class Dataset(TimestampedModel):
 
     @property
     def current_data_hash(self) -> str:
+        """Computes and returns the current data hash."""
         sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
             "hash", flat=True
         )
@@ -236,11 +240,13 @@ class Dataset(TimestampedModel):
 
     @property
     def current_metadata_hash(self) -> str:
+        """Computes and returns the current metadata hash."""
         metadata_file_contents_bytes = self.metadata_file_contents.encode("utf-8")
         return hashlib.md5(metadata_file_contents_bytes).hexdigest()
 
     @property
     def current_readme_hash(self) -> str:
+        """Computes and returns the current readme hash."""
         ##########
         # Return 1 until readme_file.get_file_contents is refactored to handle ccdl dataset type
         ##########
@@ -252,11 +258,17 @@ class Dataset(TimestampedModel):
 
     @property
     def combined_hash(self) -> str:
+        """
+        Combines, computes and returns the combined cached data, metadata and readme hashes.
+        """
         concat_hash = self.data_hash + self.metadata_hash + self.readme_hash
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
     @property
     def current_combined_hash(self) -> str:
+        """
+        Combines, computes and returns the combined current data, metadata and readme hashes.
+        """
         concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
