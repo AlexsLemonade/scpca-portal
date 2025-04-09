@@ -1,5 +1,8 @@
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
+# These types provide instructions for generating CCDL datasets
+# Modality, format, excludes_multiplexed and includes_anndata for correct population of libraries
+# Constants define datasets that would never have data included in them
 TYPES = {
     CCDLDatasetNames.ALL_METADATA.name: {
         "modality": None,
