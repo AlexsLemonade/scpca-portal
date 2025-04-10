@@ -43,9 +43,7 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
       >
         <Link href="#demo">
           <Text weight="bold" color="brand" size="large">
-            {metadataOnly
-              ? 'Sample Metadata Download'
-              : getReadable(dataset.format)}{' '}
+            {metadataOnly ? 'Sample Metadata' : getReadable(dataset.format)}{' '}
             Download
           </Text>
         </Link>
