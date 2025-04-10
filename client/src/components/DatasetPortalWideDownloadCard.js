@@ -21,6 +21,7 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
   const { responsive } = useResponsive()
 
   const {
+    format,
     modality,
     includes_merged: includeMerged,
     metadata_only: metadataOnly
@@ -30,6 +31,9 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
     modality,
     ...['has_cite_seq_data', 'has_bulk_rna_seq'].filter((key) => dataset[key])
   ].map((key) => getReadableFiles(key))
+
+  const cardTitle =
+    modality === 'SPATIAL' ? getReadable(modality) : getReadable(format)
 
   const [mergeObject, setMergeObject] = useState(false)
   const handleChangeMergedObject = () => setMergeObject(!mergeObject)
@@ -43,8 +47,7 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
       >
         <Link href="#demo">
           <Text weight="bold" color="brand" size="large">
-            {metadataOnly ? 'Sample Metadata' : getReadable(dataset.format)}{' '}
-            Download
+            {metadataOnly ? 'Sample Metadata' : cardTitle} Download
           </Text>
         </Link>
       </Box>
