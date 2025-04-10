@@ -11,7 +11,6 @@ from scpca_portal import common, metadata_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
-from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.library import Library
@@ -136,70 +135,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         return self.input_data_path / "samples_metadata.csv"
 
     @property
-    def multiplexed_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                has_multiplexed_data=True,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                includes_merged=False,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_merged_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                includes_merged=True,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_anndata_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                format=ComputedFile.OutputFileFormats.ANN_DATA,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                includes_merged=False,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_anndata_merged_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                format=ComputedFile.OutputFileFormats.ANN_DATA,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                includes_merged=True,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def spatial_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                modality=ComputedFile.OutputFileModalities.SPATIAL
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
     def url(self):
         return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
 
@@ -270,7 +205,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return f"{file_name}.zip"
 
-    def get_computed_file(self, download_config: Dict) -> ComputedFile:
+    def get_computed_file(self, download_config: Dict):
         "Return the project computed file that matches the passed download_config."
         if download_config["metadata_only"]:
             return self.computed_files.filter(metadata_only=True).first()
