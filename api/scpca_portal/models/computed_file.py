@@ -9,7 +9,7 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_file, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import Modalities
+from scpca_portal.enums import CCDLDatasetNames, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 
@@ -95,6 +95,62 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         where the zipfile will be saved locally before upload."""
         if download_config is common.PORTAL_METADATA_DOWNLOAD_CONFIG:
             return settings.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
+
+    @classmethod
+    def get_dataset_file(cls, dataset) -> Self:
+        """
+        Queries for a project's libraries according to the given download options configuration,
+        writes the queried libraries to a libraries metadata file,
+        computes a zip archive with library data, metadata and readme files, and
+        creates a ComputedFile object which it then saves to the db.
+        """
+        # If the query returns empty, then throw an error occurred.
+        if not dataset.libraries.exists():
+            raise ValueError("Unable to find libraries for Dataset.")
+
+        s3.download_files(dataset.original_files)
+
+        with ZipFile(dataset.computed_file_local_path, "w") as zip_file:
+            # Readme file
+            zip_file.writestr(readme_file.OUTPUT_NAME, dataset.readme_file_contents)
+
+            # Metadata file
+            zip_file.writestr(
+                dataset.metadata_file_name,
+                dataset.metadata_file_contents,
+            )
+
+            # Original files
+            for original_file_local_path, original_file_zip_path in zip(
+                dataset.original_file_paths, dataset.original_file_zip_paths
+            ):
+                zip_file.write(
+                    original_file_local_path,
+                    original_file_zip_path,
+                )
+
+        computed_file = cls(
+            dataset=dataset,
+            has_bulk_rna_seq=(
+                dataset.ccdl_type["includes_bulk"]
+                and dataset.projects.filter(has_bulk_rna_seq=True).exists()
+            ),
+            has_cite_seq_data=dataset.libraries.filter(has_cite_seq_data=True).exists(),
+            has_multiplexed_data=dataset.libraries.filter(is_multiplexed=True).exists(),
+            format=dataset.ccdl_type.get("format"),
+            includes_celltype_report=dataset.projects.filter(is_cell_line=False).exists(),
+            includes_merged=dataset.ccdl_type.get("includes_merged"),
+            modality=dataset.ccdl_type.get("modality"),
+            metadata_only=dataset.ccdl_name == CCDLDatasetNames.ALL_METADATA,
+            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            s3_key=dataset.computed_file_s3_key,
+            size_in_bytes=dataset.computed_file_local_path.stat().st_size,
+            workflow_version=utils.join_workflow_versions(
+                library.workflow_version for library in dataset.libraries
+            ),
+        )
+
+        return computed_file
 
     @classmethod
     def get_portal_metadata_file(cls, projects, download_config: Dict) -> Self:
