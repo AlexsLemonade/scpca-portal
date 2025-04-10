@@ -163,6 +163,11 @@ class Dataset(TimestampedModel):
         return dataset_libraries
 
     @property
+    def projects(self) -> Iterable[Project]:
+        """Returns all Project instances associated with the Dataset."""
+        return Project.objects.filter(scpca_id__in=self.data.keys())
+
+    @property
     def ccdl_type(self) -> Dict:
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
@@ -280,9 +285,7 @@ class Dataset(TimestampedModel):
         if not self.libraries:
             return False
 
-        return Project.objects.filter(
-            scpca_id__in=self.data.keys(), **self.ccdl_type.get("constraints", {})
-        )
+        return self.projects.filter(**self.ccdl_type.get("constraints", {}))
 
 
 class DataValidator:
