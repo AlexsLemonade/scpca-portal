@@ -7,7 +7,7 @@ from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, metadata_file, readme_file
+from scpca_portal import ccdl_datasets, common, metadata_file, readme_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -92,7 +92,7 @@ class Dataset(TimestampedModel):
 
     @classmethod
     def get_or_find_ccdl_dataset(
-        cls, ccdl_name, project_id: str | None = None
+        cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
     ) -> tuple[Self, bool]:
         if dataset := cls.objects.filter(
             is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
@@ -148,7 +148,7 @@ class Dataset(TimestampedModel):
         return self.combined_hash != self.current_combined_hash
 
     @property
-    def libraries(self) -> Library:
+    def libraries(self) -> Iterable[Library]:
         """Returns all of a Dataset's library, based on Data and Format attrs."""
         dataset_libraries = Library.objects.none()
 
@@ -219,7 +219,10 @@ class Dataset(TimestampedModel):
 
     @property
     def metadata_file_contents(self) -> str:
-        libraries_metadata = Library.get_libraries_metadata(self.libraries)
+        libraries_metadata = utils.filter_dict_list_by_keys(
+            Library.get_libraries_metadata(self.libraries),
+            common.METADATA_COLUMN_SORT_ORDER,
+        )
         return metadata_file.get_file_contents(libraries_metadata)
 
     @property
