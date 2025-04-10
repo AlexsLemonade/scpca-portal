@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from zipfile import ZipFile
 
 from django.conf import settings
 from django.core.management import call_command
@@ -7,6 +8,7 @@ from django.test import TestCase
 from scpca_portal import loader
 from scpca_portal.enums import CCDLDatasetNames
 from scpca_portal.models import ComputedFile, Dataset
+from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
 
 
@@ -87,6 +89,20 @@ class TestGetFile(TestCase):
         dataset.save()
 
         computed_file = ComputedFile.get_dataset_file(dataset)
-        self.assertTrue(computed_file)
-        # assert that zip looks correct
-        # iterate over computed file attrs and assert for correctness
+
+        # CHECK ZIP FILE
+        with ZipFile(dataset.computed_file_local_path) as project_zip:
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                test_data.DatasetComputedFileSingleCellSingleCellExperimentSCPCP999990.FILE_LIST,
+            )
+
+        # CHECK COMPUTED FILE ATTRIBUTES
+        self.assertIsNotNone(computed_file)
+        for (
+            attribute,
+            value,
+        ) in test_data.DatasetComputedFileSingleCellSingleCellExperimentSCPCP999990.VALUES.items():
+            msg = f"The actual and expected `{attribute}` values differ in {computed_file}"
+            self.assertEqual(getattr(computed_file, attribute), value, msg)
