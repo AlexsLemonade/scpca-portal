@@ -3,6 +3,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
 
+from django.conf import settings
 from django.db import models
 
 from typing_extensions import Self
@@ -223,6 +224,48 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     @property
+    def original_file_zip_paths(self) -> Set[Path]:
+        original_file_zip_paths = set()
+        for original_file in self.original_files:
+            # Project output paths are relative to project directory
+            output_path = original_file.s3_key_path.relative_to(
+                Path(original_file.s3_key_info.project_id_part)
+            )
+
+            # Transform merged and bulk project data files to no longer be in nested directories
+            if original_file.is_merged:
+                original_file_zip_paths.add(output_path.relative_to(common.MERGED_INPUT_DIR))
+            elif original_file.is_bulk:
+                original_file_zip_paths.add(output_path.relative_to(common.BULK_INPUT_DIR))
+            # Nest sample reports into individual_reports directory in merged download
+            # The merged summmary html file should not go into this directory
+            elif self.ccdl_type.get("includes_merged", False) and original_file.is_supplementary:
+                original_file_zip_paths.add(Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path)
+
+        if Project.objects.filter(
+            scpca_id__in=self.data.keys(), has_multiplexed_data=True
+        ).exists():
+            # Delimeter must be exchanged if file has multiplexed samples
+            return {
+                utils.path_replace(
+                    zip_file_path,
+                    common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
+                    common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+                )
+                for zip_file_path in original_file_zip_paths
+            }
+
+        return original_file_zip_paths
+
+    @property
+    def metadata_file_name(self) -> str:
+        """Return metadata file name according to passed modality."""
+        base_name = "metadata.tsv"
+        if modality := self.ccdl_type.get("Modality"):
+            return f"{modality.lower()}_{base_name}"
+        return base_name
+
+    @property
     def metadata_file_contents(self) -> str:
         libraries_metadata = utils.filter_dict_list_by_keys(
             Library.get_libraries_metadata(self.libraries),
@@ -286,6 +329,38 @@ class Dataset(TimestampedModel):
             return False
 
         return self.projects.filter(**self.ccdl_type.get("constraints", {}))
+
+    @property
+    def computed_file_local_path(self) -> Path:
+        file_scope = self.ccdl_project_id if self.ccdl_project_id else "PORTAL"
+        return settings.OUTPUT_DATA_PATH / file_scope / self.ccdl_name
+
+    @property
+    def computed_file_s3_key(self) -> str:
+        """
+        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
+        and returns the string as a unique zip file name.
+        """
+        file_scope = self.ccdl_project_id if self.ccdl_project_id else "PORTAL"
+        # return f"{file_scope}_{self.ccdl_name}"
+        if self.ccdl_name == CCDLDatasetNames.ALL_METADATA:
+            return f"{file_scope}_ALL_METADATA.zip"
+
+        name_segments = [file_scope, self.ccdl_type.get("modality"), self.format]
+        if self.ccdl_type.get("includes_merged", False):
+            name_segments.append("MERGED")
+
+        if not self.ccdl_type.get("excludes_multiplexed", False) and self.projects.filter(
+            has_multiplexed_data=True
+        ):
+            name_segments.append("MULTIPLEXED")
+
+        # Change to filename format must be accompanied by an entry in the docs.
+        # Each segment should have hyphens and no underscores
+        # Each segment should be joined by underscores
+        file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
+
+        return f"{file_name}.zip"
 
 
 class DataValidator:
