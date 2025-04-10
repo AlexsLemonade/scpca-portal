@@ -48,51 +48,55 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
           </Text>
         </Link>
       </Box>
-      <Box
-        as="ul"
-        margin={{ top: '0', bottom: 'large' }}
-        pad={{ left: 'large' }}
-        style={{ listStyle: 'disc' }}
-      >
-        {metadataOnly ? (
-          <Li>Sample metadata from all projects</Li>
-        ) : (
-          <>
-            {fileItems.map((item) => (
-              <Li key={item}>{item}</Li>
-            ))}
-            <Li>Project and Sample Metadata</Li>
-          </>
-        )}
-      </Box>
-      {includeMerged && (
-        <Box direction="row" margin={{ bottom: '24px' }}>
-          <CheckBox
-            checked={mergeObject}
-            label="Merge samples into one object per project"
-            onChange={handleChangeMergedObject}
-          />
-          <HelpLink link={config.links.when_downloading_merged_objects} />
-        </Box>
-      )}
-      <Box
-        align={responsive('start', 'center')}
-        direction={responsive('column', 'row')}
-        gap="large"
-      >
-        <Box direction="column">
-          {!metadataOnly && (
-            <Text margin={{ bottom: 'small' }} weight="bold">
-              Size: {formatBytes(dataset.size_in_bytes)}
-            </Text>
-          )}
+      <Box justify="between" height="100%">
+        <>
           <Box
-            direction={responsive('column', 'row')}
-            gap="24px"
-            margin={{ bottom: 'small' }}
+            as="ul"
+            margin={{ top: '0', bottom: 'large' }}
+            pad={{ left: 'large' }}
+            style={{ listStyle: 'disc' }}
           >
-            <Button primary aria-label="Download" label="Download" />
-            {!metadataOnly && <CopyLinkButton computedFile={{}} />}
+            {metadataOnly ? (
+              <Li>Sample metadata from all projects</Li>
+            ) : (
+              <>
+                {fileItems.map((item) => (
+                  <Li key={item}>{item}</Li>
+                ))}
+                <Li>Project and Sample Metadata</Li>
+              </>
+            )}
+          </Box>
+          {includeMerged && (
+            <Box direction="row" margin={{ bottom: '24px' }}>
+              <CheckBox
+                checked={mergeObject}
+                label="Merge samples into one object per project"
+                onChange={handleChangeMergedObject}
+              />
+              <HelpLink link={config.links.when_downloading_merged_objects} />
+            </Box>
+          )}
+        </>
+        <Box
+          align={responsive('start', 'center')}
+          direction={responsive('column', 'row')}
+          gap="large"
+        >
+          <Box direction="column">
+            {!metadataOnly && (
+              <Text margin={{ bottom: 'small' }} weight="bold">
+                Size: {formatBytes(dataset.size_in_bytes)}
+              </Text>
+            )}
+            <Box
+              direction={responsive('column', 'row')}
+              gap="24px"
+              margin={{ bottom: 'small' }}
+            >
+              <Button primary aria-label="Download" label="Download" />
+              {!metadataOnly && <CopyLinkButton computedFile={{}} />}
+            </Box>
           </Box>
         </Box>
       </Box>
