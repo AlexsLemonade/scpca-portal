@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Box, Text } from 'grommet'
 import { config } from 'config'
-import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { Modal, ModalBody } from 'components/Modal'
 import { WarningText } from 'components/WarningText'
@@ -14,7 +13,6 @@ export const DatasetChangingMergedProjectModal = ({
   disabled = false
 }) => {
   const [showing, setShowing] = useState(false)
-  const { responsive } = useResponsive()
 
   const handleClick = () => {
     setShowing(true)
@@ -49,7 +47,7 @@ export const DatasetChangingMergedProjectModal = ({
             iconSize="24px"
             margin={false}
           >
-            <Text size="xlarge">{title} </Text>
+            <Text size="xlarge">{title}</Text>
           </WarningText>
         </Box>
         <ModalBody>
