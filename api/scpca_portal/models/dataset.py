@@ -224,6 +224,10 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     @property
+    def original_file_local_paths(self) -> Set[Path]:
+        return {settings.INPUT_DATA_PATH / of.s3_key for of in self.original_files}
+
+    @property
     def original_file_zip_paths(self) -> Set[Path]:
         original_file_zip_paths = set()
         for original_file in self.original_files:
@@ -331,9 +335,35 @@ class Dataset(TimestampedModel):
         return self.projects.filter(**self.ccdl_type.get("constraints", {}))
 
     @property
-    def computed_file_local_path(self) -> Path:
+    def computed_file_name(self) -> str:
+        """
+        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
+        and returns the string as a unique zip file name.
+        """
         file_scope = self.ccdl_project_id if self.ccdl_project_id else "PORTAL"
-        return settings.OUTPUT_DATA_PATH / file_scope / self.ccdl_name
+
+        if self.ccdl_name == CCDLDatasetNames.ALL_METADATA:
+            return f"{file_scope}_ALL_METADATA.zip"
+
+        name_segments = [file_scope, self.ccdl_type.get("modality"), self.format]
+        if self.ccdl_type.get("includes_merged", False):
+            name_segments.append("MERGED")
+
+        if not self.ccdl_type.get("excludes_multiplexed", False) and self.projects.filter(
+            has_multiplexed_data=True
+        ):
+            name_segments.append("MULTIPLEXED")
+
+        # Change to filename format must be accompanied by an entry in the docs.
+        # Each segment should have hyphens and no underscores
+        # Each segment should be joined by underscores
+        file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
+
+        return f"{file_name}.zip"
+
+    @property
+    def computed_file_local_path(self) -> Path:
+        return settings.OUTPUT_DATA_PATH / self.computed_file_name
 
     @property
     def computed_file_s3_key(self) -> str:
@@ -342,7 +372,7 @@ class Dataset(TimestampedModel):
         and returns the string as a unique zip file name.
         """
         file_scope = self.ccdl_project_id if self.ccdl_project_id else "PORTAL"
-        # return f"{file_scope}_{self.ccdl_name}"
+
         if self.ccdl_name == CCDLDatasetNames.ALL_METADATA:
             return f"{file_scope}_ALL_METADATA.zip"
 
