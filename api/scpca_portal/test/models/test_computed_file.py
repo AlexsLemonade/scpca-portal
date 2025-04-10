@@ -1,9 +1,12 @@
 from unittest.mock import patch
 
 from django.conf import settings
+from django.core.management import call_command
 from django.test import TestCase
 
-from scpca_portal.models import ComputedFile
+from scpca_portal import loader
+from scpca_portal.enums import CCDLDatasetNames
+from scpca_portal.models import ComputedFile, Dataset
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
 
 
@@ -34,6 +37,19 @@ class TestComputedFile(TestCase):
 
 
 class TestGetFile(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+
+        for project_metadata in loader.get_projects_metadata():
+            loader.create_project(
+                project_metadata,
+                submitter_whitelist={"scpca"},
+                input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
+                reload_existing=True,
+                update_s3=False,
+            )
+
     def setUp(self) -> None:
         self.project = ProjectFactory()
         LibraryFactory(project=self.project)
@@ -60,3 +76,17 @@ class TestGetFile(TestCase):
         }
         with self.assertRaises(ValueError):
             ComputedFile.get_sample_file(self.sample, invalid_download_config)
+
+    def test_get_dataset_file(self):
+        loader.prep_data_dirs()
+
+        ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
+        project_id = "SCPCP999990"
+
+        dataset, _ = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
+        dataset.save()
+
+        computed_file = ComputedFile.get_dataset_file(dataset)
+        self.assertTrue(computed_file)
+        # assert that zip looks correct
+        # iterate over computed file attrs and assert for correctness
