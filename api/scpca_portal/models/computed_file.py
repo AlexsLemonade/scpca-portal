@@ -12,6 +12,7 @@ from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import CCDLDatasetNames, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
+from scpca_portal.models.project import Project
 
 logger = get_and_configure_logger(__name__)
 
@@ -99,10 +100,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     @classmethod
     def get_dataset_file(cls, dataset) -> Self:
         """
-        Queries for a project's libraries according to the given download options configuration,
-        writes the queried libraries to a libraries metadata file,
-        computes a zip archive with library data, metadata and readme files, and
-        creates a ComputedFile object which it then saves to the db.
+        Computes a given dataset's zip archive and returns a corresponding ComputedFile object.
         """
         # If the query returns empty, then throw an error occurred.
         if not dataset.libraries.exists():
@@ -122,7 +120,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
             # Original files
             for original_file_local_path, original_file_zip_path in zip(
-                dataset.original_file_paths, dataset.original_file_zip_paths
+                dataset.original_file_local_paths, dataset.original_file_zip_paths
             ):
                 zip_file.write(
                     original_file_local_path,
@@ -132,18 +130,22 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         computed_file = cls(
             dataset=dataset,
             has_bulk_rna_seq=(
-                dataset.ccdl_type["includes_bulk"]
-                and dataset.projects.filter(has_bulk_rna_seq=True).exists()
+                any(
+                    True
+                    for project_id, project_config in dataset.data.items()
+                    if project_config.get("includes_merged")
+                    and Project.objects.filter(scpca_id=project_id, has_bulk_rna_seq=True).exists()
+                )
             ),
             has_cite_seq_data=dataset.libraries.filter(has_cite_seq_data=True).exists(),
             has_multiplexed_data=dataset.libraries.filter(is_multiplexed=True).exists(),
             format=dataset.ccdl_type.get("format"),
-            includes_celltype_report=dataset.projects.filter(is_cell_line=False).exists(),
+            includes_celltype_report=dataset.projects.filter(samples__is_cell_line=False).exists(),
             includes_merged=dataset.ccdl_type.get("includes_merged"),
             modality=dataset.ccdl_type.get("modality"),
             metadata_only=dataset.ccdl_name == CCDLDatasetNames.ALL_METADATA,
             s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            s3_key=dataset.computed_file_s3_key,
+            s3_key=dataset.computed_file_name,
             size_in_bytes=dataset.computed_file_local_path.stat().st_size,
             workflow_version=utils.join_workflow_versions(
                 library.workflow_version for library in dataset.libraries
