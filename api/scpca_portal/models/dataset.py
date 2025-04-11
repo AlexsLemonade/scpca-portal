@@ -124,16 +124,16 @@ class Dataset(TimestampedModel):
             if modality := self.ccdl_type.get("modality"):
                 samples = samples.filter(libraries__modality=modality)
 
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL.name)
-            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL.name)
+            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL.value)
+            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL.value)
 
             data[project.scpca_id] = {
                 "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: list(
+                Modalities.SINGLE_CELL.value: list(
                     single_cell_samples.values_list("scpca_id", flat=True)
                 ),
-                Modalities.SPATIAL.name: list(spatial_samples.values_list("scpca_id", flat=True)),
+                Modalities.SPATIAL.value: list(spatial_samples.values_list("scpca_id", flat=True)),
             }
 
         return data
@@ -153,7 +153,7 @@ class Dataset(TimestampedModel):
         dataset_libraries = Library.objects.none()
 
         for project_config in self.data.values():
-            for modality in [Modalities.SINGLE_CELL.name, Modalities.SPATIAL.name]:
+            for modality in [Modalities.SINGLE_CELL.value, Modalities.SPATIAL.value]:
                 for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
                     sample_libraries = sample.libraries.filter(modality=modality)
                     if self.format != DatasetFormats.METADATA:

@@ -41,8 +41,8 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertTrue(DatasetFactory(data=data).is_data_valid)
@@ -52,8 +52,8 @@ class TestDataset(TestCase):
             "project_id": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
@@ -63,8 +63,8 @@ class TestDataset(TestCase):
             "SCPCA999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
@@ -74,8 +74,8 @@ class TestDataset(TestCase):
             "SCPCP9999900": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
@@ -87,8 +87,8 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertTrue(DatasetFactory(data=data).is_data_valid)
@@ -103,8 +103,8 @@ class TestDataset(TestCase):
         data = {
             "SCPCP999990": {
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertTrue(DatasetFactory(data=data).is_data_valid)
@@ -114,8 +114,8 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": "True",
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
@@ -124,8 +124,8 @@ class TestDataset(TestCase):
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertTrue(DatasetFactory(data=data).is_data_valid)
@@ -135,8 +135,8 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": "True",
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
@@ -146,7 +146,7 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertTrue(DatasetFactory(data=data).is_data_valid)
@@ -156,8 +156,8 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: "SCPCS999990",
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: "SCPCS999990",
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
@@ -167,8 +167,8 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: [1, 2, 3],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: [1, 2, 3],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
@@ -178,8 +178,8 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["sample_id"],
-                Modalities.SPATIAL.name: ["SCPCS999992"],
+                Modalities.SINGLE_CELL.value: ["sample_id"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
@@ -189,7 +189,7 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
             },
         }
         self.assertTrue(DatasetFactory(data=data).is_data_valid)
@@ -199,8 +199,8 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: "SCPCS999992",
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: "SCPCS999992",
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
@@ -210,8 +210,8 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: [1, 2, 3],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: [1, 2, 3],
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
@@ -221,8 +221,8 @@ class TestDataset(TestCase):
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.name: ["sample_id"],
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["sample_id"],
             },
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
