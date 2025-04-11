@@ -133,7 +133,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 any(
                     True
                     for project_id, project_config in dataset.data.items()
-                    if project_config.get("includes_merged")
+                    if project_config.get("includes_bulk")
                     and Project.objects.filter(scpca_id=project_id, has_bulk_rna_seq=True).exists()
                 )
             ),

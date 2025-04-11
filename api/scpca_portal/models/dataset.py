@@ -245,6 +245,8 @@ class Dataset(TimestampedModel):
             # The merged summmary html file should not go into this directory
             elif self.ccdl_type.get("includes_merged", False) and original_file.is_supplementary:
                 original_file_zip_paths.add(Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path)
+            else:
+                original_file_zip_paths.add(output_path)
 
         if Project.objects.filter(
             scpca_id__in=self.data.keys(), has_multiplexed_data=True
