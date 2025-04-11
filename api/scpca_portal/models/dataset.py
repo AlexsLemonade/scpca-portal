@@ -156,7 +156,7 @@ class Dataset(TimestampedModel):
             for modality in [Modalities.SINGLE_CELL.value, Modalities.SPATIAL.value]:
                 for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
                     sample_libraries = sample.libraries.filter(modality=modality)
-                    if self.format != DatasetFormats.METADATA:
+                    if self.format != DatasetFormats.METADATA.value:
                         sample_libraries.filter(formats__contains=[self.format])
                     dataset_libraries |= sample_libraries
 

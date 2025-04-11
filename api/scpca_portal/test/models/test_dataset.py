@@ -424,7 +424,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: [],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
         dataset = Dataset(data=data, format=format)
         expected_files = {
             Path("SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv"),
@@ -453,7 +453,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: [],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
         dataset = Dataset(data=data, format=format)
         expected_files = {
             Path("SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv"),
@@ -506,7 +506,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: [],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
         dataset = Dataset(data=data, format=format)
 
         metadata_file_name = "metadata_file_single_cell_single_cell_experiment_SCPCP999990.tsv"
@@ -528,7 +528,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: [],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
         dataset = Dataset(
             data=data, format=format, ccdl_name=CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
         )
