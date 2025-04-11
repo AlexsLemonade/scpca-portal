@@ -28,7 +28,7 @@ class DatasetComputedFileSingleCellSingleCellExperimentSCPCP999990:
         "has_cite_seq_data": False,
         "has_multiplexed_data": False,
         "includes_merged": False,
-        "modality": Modalities.SINGLE_CELL,
+        "modality": Modalities.SINGLE_CELL.value,
         "metadata_only": False,
         "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
         "s3_key": "SCPCP999990_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",

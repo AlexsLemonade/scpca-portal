@@ -143,7 +143,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             includes_celltype_report=dataset.projects.filter(samples__is_cell_line=False).exists(),
             includes_merged=dataset.ccdl_type.get("includes_merged"),
             modality=dataset.ccdl_type.get("modality"),
-            metadata_only=dataset.ccdl_name == CCDLDatasetNames.ALL_METADATA,
+            metadata_only=dataset.ccdl_name == CCDLDatasetNames.ALL_METADATA.value,
             s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
             s3_key=dataset.computed_file_name,
             size_in_bytes=dataset.computed_file_local_path.stat().st_size,
