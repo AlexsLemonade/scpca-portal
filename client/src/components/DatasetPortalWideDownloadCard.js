@@ -4,7 +4,6 @@ import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { CopyLinkButton } from 'components/CopyLinkButton'
 import { HelpLink } from 'components/HelpLink'
-import { Link } from 'components/Link'
 import { config } from 'config'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable, getReadableFiles } from 'helpers/getReadable'
@@ -32,8 +31,11 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
     ...['has_cite_seq_data', 'has_bulk_rna_seq'].filter((key) => dataset[key])
   ].map((key) => getReadableFiles(key))
 
-  const cardTitle =
+  const projectsTitlePrefix =
     modality === 'SPATIAL' ? getReadable(modality) : getReadable(format)
+  const cardTitle = `${
+    metadataOnly ? 'Sample Metadata' : projectsTitlePrefix
+  } Download`
 
   const [mergeObject, setMergeObject] = useState(false)
   const handleChangeMergedObject = () => setMergeObject(!mergeObject)
@@ -45,11 +47,9 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
         margin={{ bottom: '24px' }}
         pad={{ bottom: 'medium' }}
       >
-        <Link href="#demo">
-          <Text weight="bold" color="brand" size="large">
-            {metadataOnly ? 'Sample Metadata' : cardTitle} Download
-          </Text>
-        </Link>
+        <Text color="brand" size="large" weight="bold">
+          {cardTitle}
+        </Text>
       </Box>
       <Box justify="between" height="100%">
         <>
@@ -73,8 +73,8 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
           {includeMerged && (
             <Box direction="row" margin={{ bottom: '24px' }}>
               <CheckBox
-                checked={mergeObject}
                 label="Merge samples into one object per project"
+                checked={mergeObject}
                 onChange={handleChangeMergedObject}
               />
               <HelpLink link={config.links.when_downloading_merged_objects} />
@@ -97,7 +97,7 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
               gap="24px"
               margin={{ bottom: 'small' }}
             >
-              <Button primary aria-label="Download" label="Download" />
+              <Button label="Download" aria-label="Download" primary />
               {!metadataOnly && <CopyLinkButton computedFile={{}} />}
             </Box>
           </Box>

@@ -54,7 +54,7 @@ export default {
   args: {datasets, portalMetadataDataset}
 }
 
-export const DataFormat = (args) => {
+export const ProjectsDownload= (args) => {
     const { responsive } = useResponsive()
     return (
     <Grid columns={responsive( '100%' , '420px')} gap="xxlarge">
@@ -64,6 +64,6 @@ export const DataFormat = (args) => {
     </Grid>)
 }
 
-export const PortalMetadata = (args) => (
+export const PortalMetadataDownload = (args) => (
     <DatasetPortalWideDownloadCard dataset={portalMetadataDataset} {...args}   />
 )
