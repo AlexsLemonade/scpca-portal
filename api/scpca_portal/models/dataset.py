@@ -265,7 +265,7 @@ class Dataset(TimestampedModel):
     def metadata_file_name(self) -> str:
         """Return metadata file name according to passed modality."""
         base_name = "metadata.tsv"
-        if modality := self.ccdl_type.get("Modality"):
+        if modality := self.ccdl_type.get("modality"):
             return f"{modality.lower()}_{base_name}"
         return base_name
 

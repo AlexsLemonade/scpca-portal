@@ -82,7 +82,7 @@ class TestGetFile(TestCase):
     def test_get_dataset_file(self):
         loader.prep_data_dirs()
 
-        ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
+        ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
         project_id = "SCPCP999990"
 
         dataset, _ = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
