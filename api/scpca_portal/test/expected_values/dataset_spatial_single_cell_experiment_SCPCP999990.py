@@ -3,19 +3,19 @@ from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 class DatasetSpatialSingleCellExperimentSCPCP999990:
     PROJECT_ID = "SCPCP999990"
-    CCDL_NAME = CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.name
+    CCDL_NAME = CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.value
     VALUES = {
         "data": {
             PROJECT_ID: {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.name: [],
-                Modalities.SPATIAL.name: ["SCPCS999991"],
+                Modalities.SINGLE_CELL.value: [],
+                Modalities.SPATIAL.value: ["SCPCS999991"],
             }
         },
         "email": None,
         "start": False,
-        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.name,
+        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,
         "regenerated_from": None,
         "is_ccdl": True,
         "ccdl_name": CCDL_NAME,

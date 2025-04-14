@@ -211,7 +211,7 @@ class DatasetFactory(factory.django.DjangoModelFactory):
         },
     }
     email = "user@example.com"
-    format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+    format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
 
 
 class JobFactory(factory.django.DjangoModelFactory):
