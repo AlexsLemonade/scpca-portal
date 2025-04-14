@@ -6,6 +6,7 @@ import { useResponsive } from 'hooks/useResponsive'
 
 export const Modal = ({
   title,
+  titleNoBreakline = 'normal',
   showing,
   setShowing,
   nondismissable,
@@ -72,7 +73,12 @@ export const Modal = ({
                     pad={{ bottom: 'medium' }}
                     margin={{ bottom: '24px' }}
                   >
-                    <Text size="xlarge">{title} </Text>
+                    <Text
+                      size="xlarge"
+                      style={{ whiteSpace: titleNoBreakline }}
+                    >
+                      {title}
+                    </Text>
                   </Box>
                 )}
                 {children}
