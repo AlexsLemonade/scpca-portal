@@ -67,7 +67,7 @@ def log_runtime(logger):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            global LOG_RUNTIMES
+            global LOG_RUNTIMES  # noqa: F824
             if not LOG_RUNTIMES:
                 return func(*args, **kwargs)
 
