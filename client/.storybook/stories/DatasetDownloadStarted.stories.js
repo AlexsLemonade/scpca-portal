@@ -74,7 +74,7 @@ const TempMordal = ({ dataset, children }) => {
           label={cardTitle}
           onClick={handleClick}
         />
-        <Modal title={cardTitle} titleNoBreakline='nowrap' showing={showing} setShowing={setShowing}>
+        <Modal title={cardTitle} showing={showing} setShowing={setShowing}>
           <ModalBody>
             <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
               <Box pad={{ top: 'small' }}>
