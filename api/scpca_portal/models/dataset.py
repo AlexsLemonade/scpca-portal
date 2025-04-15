@@ -124,16 +124,16 @@ class Dataset(TimestampedModel):
             if modality := self.ccdl_type.get("modality"):
                 samples = samples.filter(libraries__modality=modality)
 
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL.value)
-            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL.value)
+            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
+            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
 
             data[project.scpca_id] = {
                 "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: list(
+                Modalities.SINGLE_CELL: list(
                     single_cell_samples.values_list("scpca_id", flat=True)
                 ),
-                Modalities.SPATIAL.value: list(spatial_samples.values_list("scpca_id", flat=True)),
+                Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
             }
 
         return data
@@ -148,15 +148,33 @@ class Dataset(TimestampedModel):
         return self.combined_hash != self.current_combined_hash
 
     @property
+    def projects(self) -> Iterable[Project]:
+        if project_ids := self.data.keys():
+            return Project.objects.filter(scpca_id__in=project_ids).order_by("scpca_id")
+        return Project.objects.none()
+
+    @property
+    def single_cell_samples(self) -> Iterable[Sample]:
+        if sample_ids := {project_data[Modalities.SINGLE_CELL] for project_data in self.data.values()}:
+            return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
+        return Sample.objects.none()
+
+    @property
+    def spatial_samples(self) -> Iterable[Sample]:
+        if sample_ids := {project_data[Modalities.SPATIAL] for project_data in self.data.values()}:
+            return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
+        return Sample.objects.none()
+
+    @property
     def libraries(self) -> Library:
         """Returns all of a Dataset's library, based on Data and Format attrs."""
         dataset_libraries = Library.objects.none()
 
         for project_config in self.data.values():
-            for modality in [Modalities.SINGLE_CELL.value, Modalities.SPATIAL.value]:
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
                 for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
                     sample_libraries = sample.libraries.filter(modality=modality)
-                    if self.format != DatasetFormats.METADATA.value:
+                    if self.format != DatasetFormats.METADATA:
                         sample_libraries.filter(formats__contains=[self.format])
                     dataset_libraries |= sample_libraries
 
@@ -224,9 +242,7 @@ class Dataset(TimestampedModel):
 
     @property
     def readme_file_contents(self) -> str:
-        return readme_file.get_file_contents(
-            self.ccdl_type, Project.objects.filter(scpca_id__in=self.data.keys())
-        )
+        return readme_file.get_file_contents_dataset(self)
 
     @property
     def current_data_hash(self) -> str:
