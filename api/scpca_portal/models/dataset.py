@@ -124,7 +124,9 @@ class Dataset(TimestampedModel):
             if modality := self.ccdl_type.get("modality"):
                 samples = samples.filter(libraries__modality=modality)
 
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
+            single_cell_samples = samples.filter(
+                libraries__modality=Modalities.SINGLE_CELL
+            )
             spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
 
             data[project.scpca_id] = {
@@ -133,7 +135,9 @@ class Dataset(TimestampedModel):
                 Modalities.SINGLE_CELL: list(
                     single_cell_samples.values_list("scpca_id", flat=True)
                 ),
-                Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
+                Modalities.SPATIAL: list(
+                    spatial_samples.values_list("scpca_id", flat=True)
+                ),
             }
 
         return data
@@ -155,13 +159,21 @@ class Dataset(TimestampedModel):
 
     @property
     def single_cell_samples(self) -> Iterable[Sample]:
-        if sample_ids := {project_data[Modalities.SINGLE_CELL] for project_data in self.data.values()}:
+        if sample_ids := {
+            sample_id
+            for project_data in self.data.values()
+            for sample_id in project_data.get(Modalities.SINGLE_CELL, [])
+        }:
             return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
         return Sample.objects.none()
 
     @property
     def spatial_samples(self) -> Iterable[Sample]:
-        if sample_ids := {project_data[Modalities.SPATIAL] for project_data in self.data.values()}:
+        if sample_ids := {
+            sample_id
+            for project_data in self.data.values()
+            for sample_id in project_data.get(Modalities.SPATIAL, [])
+        }:
             return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
         return Sample.objects.none()
 
@@ -172,7 +184,9 @@ class Dataset(TimestampedModel):
 
         for project_config in self.data.values():
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
+                for sample in Sample.objects.filter(
+                    scpca_id__in=project_config[modality]
+                ):
                     sample_libraries = sample.libraries.filter(modality=modality)
                     if self.format != DatasetFormats.METADATA:
                         sample_libraries.filter(formats__contains=[self.format])
@@ -195,7 +209,6 @@ class Dataset(TimestampedModel):
         """Returns all of a Dataset's associated OriginalFiles."""
         files = OriginalFile.objects.none()
         for project_id, project_config in self.data.items():
-
             # add spatial files
             files |= OriginalFile.downloadable_objects.filter(
                 project_id=project_id,
@@ -247,9 +260,9 @@ class Dataset(TimestampedModel):
     @property
     def current_data_hash(self) -> str:
         """Computes and returns the current data hash."""
-        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
-            "hash", flat=True
-        )
+        sorted_original_file_hashes = self.original_files.order_by(
+            "s3_key"
+        ).values_list("hash", flat=True)
         concat_hash = "".join(sorted_original_file_hashes)
         concat_hash_bytes = concat_hash.encode("utf-8")
         return hashlib.md5(concat_hash_bytes).hexdigest()
@@ -263,14 +276,11 @@ class Dataset(TimestampedModel):
     @property
     def current_readme_hash(self) -> str:
         """Computes and returns the current readme hash."""
-        ##########
-        # Return 1 until readme_file.get_file_contents is refactored to handle ccdl dataset type
-        ##########
-        # # remove first line which contains date
-        # readme_file_contents_no_date = self.readme_file_contents.split("\n", 1)[1].strip()
-        # readme_file_contents_no_date_bytes = readme_file_contents_no_date.encode("utf-8")
-        # return hashlib.md5(readme_file_contents_no_date_bytes).hexdigest()
-        return hashlib.md5(b"1").hexdigest()
+        # the first line in the readme file contains the current date
+        # we must remove this before hashing
+        readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
+        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
+        return hashlib.md5(readme_file_contents_bytes).hexdigest()
 
     @property
     def combined_hash(self) -> str:
@@ -285,7 +295,11 @@ class Dataset(TimestampedModel):
         """
         Combines, computes and returns the combined current data, metadata and readme hashes.
         """
-        concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
+        concat_hash = (
+            self.current_data_hash
+            + self.current_metadata_hash
+            + self.current_readme_hash
+        )
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
     @property
@@ -308,12 +322,18 @@ class DataValidator:
 
     @property
     def valid_projects(self) -> List[str]:
-        return [project_id for project_id in self.data.keys() if self.validate_project(project_id)]
+        return [
+            project_id
+            for project_id in self.data.keys()
+            if self.validate_project(project_id)
+        ]
 
     @property
     def invalid_projects(self) -> List[str]:
         return [
-            project_id for project_id in self.data.keys() if not self.validate_project(project_id)
+            project_id
+            for project_id in self.data.keys()
+            if not self.validate_project(project_id)
         ]
 
     def validate_project(self, project_id: str) -> bool:
@@ -348,19 +368,25 @@ class DataValidator:
         return len(id_number) == 6 and id_number.isdigit()
 
     def _validate_merge_single_cell(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.MERGE_SINGLE_CELL):
+        if value := self.data.get(project_id, {}).get(
+            DatasetDataProjectConfig.MERGE_SINGLE_CELL
+        ):
             return isinstance(value, bool)
 
         return True
 
     def _validate_includes_bulk(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.INCLUDES_BULK):
+        if value := self.data.get(project_id, {}).get(
+            DatasetDataProjectConfig.INCLUDES_BULK
+        ):
             return isinstance(value, bool)
 
         return True
 
     def _validate_single_cell(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SINGLE_CELL):
+        if value := self.data.get(project_id, {}).get(
+            DatasetDataProjectConfig.SINGLE_CELL
+        ):
             return self._validate_modality(value)
 
         return True
