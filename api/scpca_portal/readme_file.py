@@ -108,7 +108,6 @@ def get_file_contents_dataset(dataset) -> str:
         ]
     )
 
-    # For the conte
     return merge_partials(
         [
             render_to_string(HEADER_TEMPLATE, **context),
