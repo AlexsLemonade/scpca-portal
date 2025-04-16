@@ -21,7 +21,7 @@ USAGE_TEMPLATE = README_ROOT / "usage/index.md"
 CHANGELOG_TEMPLATE = README_ROOT / "changelog/index.md"
 CONTACT_TEMPLATE = README_ROOT / "contact/index.md"
 CITATION_TEMPLATE = README_ROOT / "citation/index.md"
-TERMS_TEMPLATE = README_ROOT / "terms_of_user/index.md"
+TERMS_TEMPLATE = README_ROOT / "terms_of_use/index.md"
 
 
 # Contents
@@ -68,7 +68,7 @@ def get_contents_dict(dataset) -> dict:
                 template_name_parts.append("MERGED")
             elif (
                 dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT
-                and single_cell_samples.filter(includes_multiplexed=True).exists()
+                and single_cell_samples.filter(has_multiplexed_data=True).exists()
             ):
                 template_name_parts.append("MULTIPLEXED")
 
