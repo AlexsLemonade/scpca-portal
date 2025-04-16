@@ -135,9 +135,7 @@ def get_file_contents(download_config: Dict, projects: Iterable) -> str:
             readme_template_key_parts = ["METADATA_ONLY"]
 
     # For the contents section
-    contents_template = (
-        f"{TEMPLATE_ROOT}/contents/{'_'.join(readme_template_key_parts)}.md"
-    )
+    contents_template = f"{TEMPLATE_ROOT}/contents/{'_'.join(readme_template_key_parts)}.md"
 
     return render_to_string(
         TEMPLATE_FILE_PATH,
