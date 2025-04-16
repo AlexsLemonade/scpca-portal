@@ -56,10 +56,8 @@ def get_contents_dict(dataset) -> dict:
         return body
 
     # project data types
-    for project, project_options in dataset.data.items():
-        if single_cell_samples := dataset.single_cell_samples.filter(
-            project__scpca_id=project
-        ):
+    for project_id, project_options in dataset.data.items():
+        if single_cell_samples := dataset.get_samples(project_id, Modalities.SINGLE_CELL):
             # template are named "<DatasetFormats>_<Modalities>_<MERGED|MULTIPLEXED?>.md"
             template_name_parts = [dataset.format, Modalities.SINGLE_CELL]
 
@@ -72,13 +70,13 @@ def get_contents_dict(dataset) -> dict:
             ):
                 template_name_parts.append("MULTIPLEXED")
 
-            body[f"{'_'.join(template_name_parts)}.md"].add(project)
+            body[f"{'_'.join(template_name_parts)}.md"].add(project_id)
 
         if (
             dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT
-            and dataset.spatial_samples.filter(project__scpca_id=project).exists()
+            and dataset.get_samples(project_id, Modalities.SPATIAL).exists()
         ):
-            body[f"{dataset.format}_{Modalities.SPATIAL}.md"].add(project)
+            body[f"{dataset.format}_{Modalities.SPATIAL}.md"].add(project_id)
 
     return body
 
