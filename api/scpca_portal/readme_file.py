@@ -44,8 +44,9 @@ def get_contents_dict(dataset) -> dict:
     returns dictionary that relates the content template to the projects that it applies to.
     ex:
     {
-        "SINGLE_CELL_SINGLE_CELL_EXPERIMENT.md": ["SCPCP0000000"],
-        "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED.md": ["SCPCP999999"]
+        "SINGLE_CELL_EXPERIMENT_SINGLE_CELL.md": ["SCPCP0000000"],
+        "SINGLE_CELL_EXPERIMENT_SINGLE_CELL_MERGED.md": ["SCPCP111111"],
+        "SINGLE_CELL_EXPERIMENT_SPATIAL.md": ["SCPCP222222"],
     }
     """
 
