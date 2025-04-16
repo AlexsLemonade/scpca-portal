@@ -243,16 +243,12 @@ class TestDataset(TestCase):
         ]
 
         for ccdl_portal_dataset in ccdl_portal_datasets_expected_values:
-            dataset, found = Dataset.get_or_find_ccdl_dataset(
-                ccdl_portal_dataset.CCDL_NAME
-            )
+            dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_portal_dataset.CCDL_NAME)
             dataset.save()
             self.assertFalse(found)
 
             for attribute, value in ccdl_portal_dataset.VALUES.items():
-                msg = (
-                    f"The actual and expected `{attribute}` values differ in {dataset}"
-                )
+                msg = f"The actual and expected `{attribute}` values differ in {dataset}"
                 if isinstance(value, list):
                     self.assertListEqual(getattr(dataset, attribute), value, msg)
                 else:
@@ -393,45 +389,29 @@ class TestDataset(TestCase):
             Path(
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/raw_feature_bc_matrix/barcodes.tsv.gz"
             ),
-            Path(
-                "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/scalefactors_json.json"
-            ),
-            Path(
-                "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv"
-            ),
+            Path("SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/scalefactors_json.json"),
+            Path("SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv"),
             Path(
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/matrix.mtx.gz"  # noqa
             ),
-            Path(
-                "SCPCP999990/SCPCS999991/SCPCL999991_spatial/raw_feature_bc_matrix/matrix.mtx.gz"
-            ),
+            Path("SCPCP999990/SCPCS999991/SCPCL999991_spatial/raw_feature_bc_matrix/matrix.mtx.gz"),
             Path(
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/features.tsv.gz"  # noqa
             ),
-            Path(
-                "SCPCP999990/SCPCS999991/SCPCL999991_spatial/SCPCL999991_metadata.json"
-            ),
+            Path("SCPCP999990/SCPCS999991/SCPCL999991_spatial/SCPCL999991_metadata.json"),
             Path(
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/raw_feature_bc_matrix/features.tsv.gz"
             ),
-            Path(
-                "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_hires_image.png"
-            ),
-            Path(
-                "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_lowres_image.png"
-            ),
-            Path(
-                "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/aligned_fiducials.jpg"
-            ),
+            Path("SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_hires_image.png"),
+            Path("SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_lowres_image.png"),
+            Path("SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/aligned_fiducials.jpg"),
             Path(
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/filtered_feature_bc_matrix/barcodes.tsv.gz"  # noqa
             ),
             Path(
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/SCPCL999991_spaceranger-summary.html"
             ),
-            Path(
-                "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/detected_tissue_image.jpg"
-            ),
+            Path("SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/detected_tissue_image.jpg"),
         }
         self.assertEqual(dataset.original_file_paths, expected_files)
 
@@ -482,9 +462,7 @@ class TestDataset(TestCase):
             Path("SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_processed.rds"),
             Path("SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_qc.html"),
             Path("SCPCP999991/SCPCS999995/SCPCL999995_unfiltered.rds"),
-            Path(
-                "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_celltype-report.html"
-            ),
+            Path("SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_celltype-report.html"),
             Path("SCPCP999991/SCPCS999995/SCPCL999995_processed.rds"),
             Path("SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html"),
             Path("SCPCP999991/SCPCS999995/SCPCL999995_celltype-report.html"),
@@ -510,9 +488,7 @@ class TestDataset(TestCase):
         }
         for s3_key, file_hash in mock_file_hashes.items():
             OriginalFileFactory(s3_key=s3_key, hash=file_hash)
-        mock_original_files = OriginalFile.objects.filter(
-            s3_key__in=mock_file_hashes.keys()
-        )
+        mock_original_files = OriginalFile.objects.filter(s3_key__in=mock_file_hashes.keys())
 
         with patch.object(
             Dataset,
