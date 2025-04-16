@@ -39,14 +39,15 @@ def merge_partials(partials: list[str]):
 
 
 def get_contents_dict(dataset) -> dict:
-    """Takes dataset and returns dictionary that relates the content template to the projects that it applies to."""
-
-    # body is a dict where the key is the relative template path
-    # and the value is a list of project ids that apply to that content section
-    # ex: {
-    #    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT.md": ["SCPCP0000000"],
-    #    "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED.md": ["SCPCP999999"]
-    # }
+    """
+    Takes dataset instance
+    returns dictionary that relates the content template to the projects that it applies to.
+    ex:
+    {
+        "SINGLE_CELL_SINGLE_CELL_EXPERIMENT.md": ["SCPCP0000000"],
+        "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED.md": ["SCPCP999999"]
+    }
+    """
 
     body = defaultdict(set)
 

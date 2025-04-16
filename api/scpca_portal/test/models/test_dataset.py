@@ -1,4 +1,3 @@
-import hashlib
 from pathlib import Path
 from unittest.mock import PropertyMock, patch
 
@@ -529,6 +528,5 @@ class TestDataset(TestCase):
             format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
             ccdl_name=CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT,
         )
-        print(dataset.readme_file_contents)
         expected_readme_hash = "28ed231acaabd3575567c46bc64a0efb"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
