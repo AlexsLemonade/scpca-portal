@@ -1,11 +1,12 @@
-from collections import defaultdict
 from typing import Dict, Iterable
+from collections import namedtuple
 
 from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils  # ccdl_datasets,
-from scpca_portal.enums import DatasetFormats, Modalities
+
+from scpca_portal.enums import DatasetFormats, DatasetDataProjectConfig, Modalities
 
 # from scpca_portal.enums import CCDLDatasetNames
 
@@ -16,71 +17,90 @@ TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "readme.md"
 
 # Dataset Readme Templates
 README_ROOT = settings.TEMPLATE_PATH / "dataset_readme"
-HEADER_TEMPLATE = README_ROOT / "header/index.md"
-USAGE_TEMPLATE = README_ROOT / "usage/index.md"
-CHANGELOG_TEMPLATE = README_ROOT / "changelog/index.md"
-CONTACT_TEMPLATE = README_ROOT / "contact/index.md"
-CITATION_TEMPLATE = README_ROOT / "citation/index.md"
-TERMS_TEMPLATE = README_ROOT / "terms_of_use/index.md"
+
+# used in get_dataset_contents_section and in 2_contents.md
+ContentRow = namedtuple("ContentRow", ["project", "modality", "format", "docs"])
 
 
-# Contents
-DATASET_CONTENTS_ROOT = README_ROOT / "contents"
+def get_dataset_contents_section(dataset):
+    # tuple is (project_id, project_url, modality, format, docs_link)
+
+    # Metadata
+    if dataset.format == DatasetFormats.METADATA:
+        return [
+            ContentRow(project, project.modalities, "NA", "METADATA")
+            for project in dataset.projects
+        ]
+
+    # projects_dict = {project.scpca_id: project for project in dataset.projects}
+    rows = set()
+
+    # SINGLE_CELL
+    for project in dataset.single_cell_projects:
+        content_dict = {
+            "project": project,
+            "modality": Modalities.SINGLE_CELL,
+            "format": dataset.format,
+        }
+
+        # MERGED
+        if dataset.data[project.scpca_id].get(
+            DatasetDataProjectConfig.MERGE_SINGLE_CELL
+        ):
+            if dataset.format == DatasetFormats.ANN_DATA:
+                content_dict["docs"] = "MERGED_ANN_DATA"
+            else:
+                content_dict["docs"] = "MERGED_SINGLE_CELL_EXPERIMENT"
+
+            rows.add(ContentRow(**content_dict))
+            continue
+
+        # MULTIPLEXED
+        if (
+            dataset.get_samples(project.scpca_id, Modalities.SINGLE_CELL)
+            and dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT
+        ):
+            content_dict["docs"] = "MULTIPLEXED_SINGLE_CELL"
+            rows.add(ContentRow(**content_dict))
+            continue
+
+        # SINGLE_CELL
+        content_dict["docs"] = "SINGLE_CELL"
+        rows.add(ContentRow(**content_dict))
+
+    # SPATIAL
+    if dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
+        for project in dataset.spatial_projects:
+            rows.add(
+                ContentRow(project, Modalities.SPATIAL, dataset.format, "SPATIAL_LINK")
+            )
+
+    # ANN_DATA CITE-SEQ
+    if dataset.format == DatasetFormats.ANN_DATA:
+        for project in dataset.cite_seq_projects:
+            rows.add(
+                ContentRow(
+                    project,
+                    Modalities.CITE_SEQ,
+                    dataset.format,
+                    "ANN_DATA_CITE_SEQ_LINK",
+                )
+            )
+
+    # BULK
+    for project in dataset.bulk_single_cell_projects:
+        rows.add(ContentRow(project, Modalities.BULK_RNA_SEQ, "FORMAT?", "BULK_LINK"))
+
+    return list(rows)
 
 
 def merge_partials(partials: list[str]):
     """
     Takes a list of rendered templates, strips, removes empty and combines with new line.
     """
-    # For the conte
     readme_partials: list[str] = list(filter(None, [p.strip() for p in partials]))
 
-    return "\n".join(readme_partials)
-
-
-def get_contents_dict(dataset) -> dict:
-    """
-    Takes dataset instance
-    returns dictionary that relates the content template to the projects that it applies to.
-    ex:
-    {
-        "SINGLE_CELL_EXPERIMENT_SINGLE_CELL.md": ["SCPCP0000000"],
-        "SINGLE_CELL_EXPERIMENT_SINGLE_CELL_MERGED.md": ["SCPCP111111"],
-        "SINGLE_CELL_EXPERIMENT_SPATIAL.md": ["SCPCP222222"],
-    }
-    """
-
-    body = defaultdict(set)
-
-    # metadata can't be combined
-    if dataset.format == DatasetFormats.METADATA:
-        body["METADATA.md"] = dataset.data.keys()
-        return body
-
-    # project data types
-    for project_id, project_options in dataset.data.items():
-        if single_cell_samples := dataset.get_samples(project_id, Modalities.SINGLE_CELL):
-            # template are named "<DatasetFormats>_<Modalities>_<MERGED|MULTIPLEXED?>.md"
-            template_name_parts = [dataset.format, Modalities.SINGLE_CELL]
-
-            # multiplexed and merged are mutually exclusive
-            if project_options.get("merge_single_cell", False):
-                template_name_parts.append("MERGED")
-            elif (
-                dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT
-                and single_cell_samples.filter(has_multiplexed_data=True).exists()
-            ):
-                template_name_parts.append("MULTIPLEXED")
-
-            body[f"{'_'.join(template_name_parts)}.md"].add(project_id)
-
-        if (
-            dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT
-            and dataset.get_samples(project_id, Modalities.SPATIAL).exists()
-        ):
-            body[f"{dataset.format}_{Modalities.SPATIAL}.md"].add(project_id)
-
-    return body
+    return "\n\n".join(readme_partials)
 
 
 def get_file_contents_dataset(dataset) -> str:
@@ -91,32 +111,19 @@ def get_file_contents_dataset(dataset) -> str:
         "context": {
             "date": utils.helpers.get_today_string(),
             "dataset": dataset,
+            "content_rows": get_dataset_contents_section(dataset),
         }
     }
 
-    # render the contents section before combining the entire readme
-    contents_section = merge_partials(
-        [
-            render_to_string(
-                DATASET_CONTENTS_ROOT / template,
-                context={
-                    "dataset": dataset,
-                    "projects": dataset.projects.filter(scpca_id__in=project_ids),
-                },
-            )
-            for template, project_ids in get_contents_dict(dataset).items()
-        ]
-    )
-
     return merge_partials(
         [
-            render_to_string(HEADER_TEMPLATE, **context),
-            contents_section,
-            render_to_string(USAGE_TEMPLATE, **context),
-            render_to_string(CHANGELOG_TEMPLATE, **context),
-            render_to_string(CONTACT_TEMPLATE, **context),
-            render_to_string(CITATION_TEMPLATE, **context),
-            render_to_string(TERMS_TEMPLATE, **context),
+            render_to_string(README_ROOT / "1_header.md", **context),
+            render_to_string(README_ROOT / "2_contents.md", **context),
+            render_to_string(README_ROOT / "3_usage.md", **context),
+            render_to_string(README_ROOT / "4_changelog.md", **context),
+            render_to_string(README_ROOT / "5_contact.md", **context),
+            render_to_string(README_ROOT / "6_citation.md", **context),
+            render_to_string(README_ROOT / "7_terms_of_use.md", **context),
         ]
     )
 
@@ -136,7 +143,9 @@ def get_file_contents(download_config: Dict, projects: Iterable) -> str:
             readme_template_key_parts = ["METADATA_ONLY"]
 
     # For the contents section
-    contents_template = f"{TEMPLATE_ROOT}/contents/{'_'.join(readme_template_key_parts)}.md"
+    contents_template = (
+        f"{TEMPLATE_ROOT}/contents/{'_'.join(readme_template_key_parts)}.md"
+    )
 
     return render_to_string(
         TEMPLATE_FILE_PATH,
