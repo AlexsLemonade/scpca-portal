@@ -528,5 +528,5 @@ class TestDataset(TestCase):
             format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
             ccdl_name=CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT,
         )
-        expected_readme_hash = "28ed231acaabd3575567c46bc64a0efb"
+        expected_readme_hash = "89c08af54780d01cf462a3e2967b2ac9"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
