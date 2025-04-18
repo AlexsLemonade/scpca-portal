@@ -44,9 +44,7 @@ def get_dataset_contents_section(dataset):
         }
 
         # MERGED
-        if dataset.data[project.scpca_id].get(
-            DatasetDataProjectConfig.MERGE_SINGLE_CELL
-        ):
+        if dataset.data[project.scpca_id].get(DatasetDataProjectConfig.MERGE_SINGLE_CELL):
             if dataset.format == DatasetFormats.ANN_DATA:
                 content_dict["docs"] = "MERGED_ANN_DATA"
             else:
@@ -71,9 +69,7 @@ def get_dataset_contents_section(dataset):
     # SPATIAL
     if dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
         for project in dataset.spatial_projects:
-            rows.add(
-                ContentRow(project, Modalities.SPATIAL, dataset.format, "SPATIAL_LINK")
-            )
+            rows.add(ContentRow(project, Modalities.SPATIAL, dataset.format, "SPATIAL_LINK"))
 
     # ANN_DATA CITE-SEQ
     if dataset.format == DatasetFormats.ANN_DATA:
@@ -143,9 +139,7 @@ def get_file_contents(download_config: Dict, projects: Iterable) -> str:
             readme_template_key_parts = ["METADATA_ONLY"]
 
     # For the contents section
-    contents_template = (
-        f"{TEMPLATE_ROOT}/contents/{'_'.join(readme_template_key_parts)}.md"
-    )
+    contents_template = f"{TEMPLATE_ROOT}/contents/{'_'.join(readme_template_key_parts)}.md"
 
     return render_to_string(
         TEMPLATE_FILE_PATH,
