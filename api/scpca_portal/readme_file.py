@@ -22,7 +22,6 @@ ContentRow = namedtuple("ContentRow", ["project", "modality", "format", "docs"])
 
 
 def get_dataset_contents_section(dataset):
-    # tuple is (project_id, project_url, modality, format, docs_link)
 
     # Metadata
     if dataset.format == DatasetFormats.METADATA:
@@ -31,7 +30,6 @@ def get_dataset_contents_section(dataset):
             for project in dataset.projects
         ]
 
-    # projects_dict = {project.scpca_id: project for project in dataset.projects}
     rows = set()
 
     # SINGLE_CELL
