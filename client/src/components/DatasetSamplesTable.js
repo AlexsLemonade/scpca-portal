@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, CheckBox as GrommetCheckBox, Text } from 'grommet'
 import { FormCheckmark } from 'grommet-icons'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { Button } from 'components/Button'
 import { Pill } from 'components/Pill'
@@ -13,6 +13,13 @@ const CheckBox = styled(GrommetCheckBox)`
     width: 24px;
     height: 24px;
   }
+  ${({ theme }) => css`
+    &:not(:checked) {
+      + div {
+        background: ${theme.global.colors.white};
+      }
+    }
+  `}
 `
 
 // NOTE: Ask Deepa for a checkmark SVG Icon
