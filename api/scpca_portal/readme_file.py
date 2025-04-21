@@ -1,12 +1,11 @@
-from typing import Dict, Iterable
 from collections import namedtuple
+from typing import Dict, Iterable
 
 from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils  # ccdl_datasets,
-
-from scpca_portal.enums import DatasetFormats, DatasetDataProjectConfig, Modalities
+from scpca_portal.enums import DatasetDataProjectConfig, DatasetFormats, Modalities
 
 # from scpca_portal.enums import CCDLDatasetNames
 
