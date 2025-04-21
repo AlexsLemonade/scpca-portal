@@ -79,7 +79,7 @@ class TestGetFile(TestCase):
         with self.assertRaises(ValueError):
             ComputedFile.get_sample_file(self.sample, invalid_download_config)
 
-    def test_get_dataset_file(self):
+    def test_get_ccdl_dataset_file(self):
         loader.prep_data_dirs()
 
         ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
