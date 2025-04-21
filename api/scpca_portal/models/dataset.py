@@ -335,7 +335,7 @@ class Dataset(TimestampedModel):
 
     @property
     def computed_file_local_path(self) -> Path:
-        return settings.OUTPUT_DATA_PATH / self.computed_file_name
+        return settings.OUTPUT_DATA_PATH / str(self.pk)
 
 
 class DataValidator:
