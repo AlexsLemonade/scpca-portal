@@ -273,10 +273,7 @@ class Dataset(TimestampedModel):
 
     @property
     def metadata_file_contents(self) -> str:
-        libraries_metadata = utils.filter_dict_list_by_keys(
-            Library.get_libraries_metadata(self.libraries),
-            common.METADATA_COLUMN_SORT_ORDER,
-        )
+        libraries_metadata = Library.get_libraries_metadata(self.libraries)
         return metadata_file.get_file_contents(libraries_metadata)
 
     @property

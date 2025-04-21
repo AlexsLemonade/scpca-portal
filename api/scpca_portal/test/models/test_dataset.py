@@ -508,7 +508,7 @@ class TestDataset(TestCase):
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         dataset = Dataset(data=data, format=format)
 
-        expected_metadata_hash = "ef89925c0dc8d9ad8700c2583ba65ac4"
+        expected_metadata_hash = "14540bede594d7e0808a68924a0ed25c"
         self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
     def test_current_readme_hash(self):
