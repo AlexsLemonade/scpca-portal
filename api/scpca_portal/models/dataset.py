@@ -337,62 +337,8 @@ class Dataset(TimestampedModel):
         return self.projects.filter(**self.ccdl_type.get("constraints", {}))
 
     @property
-    def computed_file_name(self) -> str:
-        """
-        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
-        and returns the string as a unique zip file name.
-        """
-        file_scope = self.ccdl_project_id if self.ccdl_project_id else "PORTAL"
-
-        if self.ccdl_name == CCDLDatasetNames.ALL_METADATA:
-            return f"{file_scope}_ALL_METADATA.zip"
-
-        name_segments = [file_scope, self.ccdl_type.get("modality"), self.format]
-        if self.ccdl_type.get("includes_merged", False):
-            name_segments.append("MERGED")
-
-        if not self.ccdl_type.get("excludes_multiplexed", False) and self.projects.filter(
-            has_multiplexed_data=True
-        ):
-            name_segments.append("MULTIPLEXED")
-
-        # Change to filename format must be accompanied by an entry in the docs.
-        # Each segment should have hyphens and no underscores
-        # Each segment should be joined by underscores
-        file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
-
-        return f"{file_name}.zip"
-
-    @property
     def computed_file_local_path(self) -> Path:
         return settings.OUTPUT_DATA_PATH / self.computed_file_name
-
-    @property
-    def computed_file_s3_key(self) -> str:
-        """
-        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
-        and returns the string as a unique zip file name.
-        """
-        file_scope = self.ccdl_project_id if self.ccdl_project_id else "PORTAL"
-
-        if self.ccdl_name == CCDLDatasetNames.ALL_METADATA:
-            return f"{file_scope}_ALL_METADATA.zip"
-
-        name_segments = [file_scope, self.ccdl_type.get("modality"), self.format]
-        if self.ccdl_type.get("includes_merged", False):
-            name_segments.append("MERGED")
-
-        if not self.ccdl_type.get("excludes_multiplexed", False) and self.projects.filter(
-            has_multiplexed_data=True
-        ):
-            name_segments.append("MULTIPLEXED")
-
-        # Change to filename format must be accompanied by an entry in the docs.
-        # Each segment should have hyphens and no underscores
-        # Each segment should be joined by underscores
-        file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
-
-        return f"{file_name}.zip"
 
 
 class DataValidator:
