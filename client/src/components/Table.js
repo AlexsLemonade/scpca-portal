@@ -4,10 +4,10 @@ import {
   Button,
   Text,
   Table as GrommetTable,
-  TableRow,
   TableBody,
   TableCell,
-  TableHeader
+  TableHeader as GrommetTableHeader,
+  TableRow as GrommetTableRow
 } from 'grommet'
 import styled, { css } from 'styled-components'
 import {
@@ -24,6 +24,18 @@ import { Pagination } from 'components/Pagination'
 import { InfoText } from 'components/InfoText'
 import { useResponsive } from 'hooks/useResponsive'
 
+// Styles for highlighting rows when their checkbox is selected
+const TableRow = styled(GrommetTableRow)`
+ ${({ theme }) => css`
+   cursor: pointer;
+   &.selected {
+     > td {
+       background: ${theme.global.colors['powder-blue']} !important;
+     }
+   }
+ `}}
+`
+
 // Styles to allow for dynamic "sticky" columns
 const TableBox = styled(Box)`
   position: relative;
@@ -32,6 +44,12 @@ const TableBox = styled(Box)`
     css`
       overflow: auto;
     `}
+`
+
+const TableHeader = styled(GrommetTableHeader)`
+  th {
+    vertical-align: middle;
+  }
 `
 
 const StickyTable = styled(GrommetTable)`
@@ -145,10 +163,17 @@ export const TBody = ({
     rows,
     state: { globalFilter }
   },
-  stickies = 0
+  stickies = 0,
+  selectedRows
 }) => {
   const [offsets, setOffsets] = useState([])
   const ref = createRef(null)
+  // Get selected sample rows for highlighting
+  const getSelectedRow = (id) =>
+    ['SINGLE_CELL', 'SPATIAL'].some((modality) =>
+      selectedRows?.[modality]?.includes(id)
+    )
+
   useEffect(() => {
     if (ref.current) {
       const nodes = Array.from(ref.current.childNodes)
@@ -159,14 +184,19 @@ export const TBody = ({
       setOffsets(newOffsets)
     }
   }, [globalFilter, stickies])
+
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <TableBody {...getTableBodyProps()}>
       {(page || rows).map((row) => {
         prepareRow(row)
         return (
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          <TableRow ref={ref} {...row.getRowProps()}>
+          <TableRow
+            ref={ref}
+            className={getSelectedRow(row.original.scpca_id) ? 'selected' : ''}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...row.getRowProps()}
+          >
             {row.cells.map((cell, index) => (
               <StickyTableCell
                 offset={offsets[index]}
@@ -203,9 +233,11 @@ export const Table = ({
   defaultSort = [],
   pageSize: initialPageSize = 0,
   pageSizeOptions = [],
+  selectedRows, // For highlighting selected samples rows
   infoText,
   children,
-  onFilterChange = () => {}
+  onFilterChange = () => {},
+  onFilteredRowsChange = () => {}
 }) => {
   const filterTypes = useMemo(
     () => ({
@@ -242,7 +274,6 @@ export const Table = ({
     state,
     setGlobalFilter,
     globalFilteredRows,
-    preGlobalFilteredRows,
     gotoPage,
     setPageSize,
     pageOptions,
@@ -254,6 +285,10 @@ export const Table = ({
     // eslint-disable-next-line no-prototype-builtins, no-param-reassign
     if (!c.hasOwnProperty('isVisible')) c.isVisible = true
   })
+
+  useEffect(() => {
+    onFilteredRowsChange(instance.page.map((row) => row.original))
+  }, [instance.page])
 
   useEffect(() => {
     setHiddenColumns(
@@ -296,8 +331,9 @@ export const Table = ({
             // state.globalFilter is the current string being filtered against
             globalFilter={state.globalFilter}
             setGlobalFilter={setGlobalFilter}
-            globalFilteredRows={globalFilteredRows}
-            preGlobalFilteredRows={preGlobalFilteredRows}
+            pageIndex={state.pageIndex}
+            pageSize={state.pageSize}
+            totalFilteredSize={globalFilteredRows.length}
           />
         )}
       </Box>
@@ -306,7 +342,11 @@ export const Table = ({
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <StickyTable {...getTableProps()} width="auto">
           <Head instance={instance} stickies={stickies} />
-          <Body instance={instance} stickies={stickies} />
+          <Body
+            instance={instance}
+            stickies={stickies}
+            selectedRows={selectedRows}
+          />
         </StickyTable>
       </TableBox>
       {filter && globalFilteredRows.length === 0 && (
