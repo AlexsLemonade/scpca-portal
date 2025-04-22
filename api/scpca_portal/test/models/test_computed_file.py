@@ -95,7 +95,7 @@ class TestGetFile(TestCase):
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.DatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_LIST,
+                test_data.Dataset.SingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
@@ -104,7 +104,7 @@ class TestGetFile(TestCase):
             attribute,
             value,
         ) in (
-            test_data.DatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_VALUES.items()
+            test_data.Dataset.SingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_VALUES.items()
         ):
             msg = f"The actual and expected `{attribute}` values differ in {computed_file}"
             self.assertEqual(getattr(computed_file, attribute), value, msg)
