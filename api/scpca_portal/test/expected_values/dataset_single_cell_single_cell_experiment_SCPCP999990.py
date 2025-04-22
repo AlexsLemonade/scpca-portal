@@ -58,7 +58,7 @@ class DatasetSingleCellSingleCellExperimentSCPCP999990:
         "modality": Modalities.SINGLE_CELL.value,
         "metadata_only": False,
         "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-        "size_in_bytes": 6723,
+        "size_in_bytes": 6726,
         "workflow_version": "development",
         "includes_celltype_report": True,
     }

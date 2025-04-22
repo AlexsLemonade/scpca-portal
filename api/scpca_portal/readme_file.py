@@ -30,7 +30,7 @@ def add_metadata_content_rows(content_rows: set, dataset) -> set:
         docs_link = "PROJECT_METADATA_LINK"
 
     for project in dataset.projects:
-        content_rows.add(ContentRow(project, project.modalities, "NA", docs_link))
+        content_rows.add(ContentRow(project, common.NA, common.NA, docs_link))
 
     return content_rows
 
@@ -106,7 +106,10 @@ def get_dataset_contents_section(dataset):
                 ContentRow(project, Modalities.BULK_RNA_SEQ, "BULK_FORMAT", "BULK_LINK")
             )
 
-    return list(content_rows)
+    return sorted(
+        content_rows,
+        key=lambda content_row: (content_row.project.scpca_id, content_row.modality),
+    )
 
 
 def get_file_contents_dataset(dataset) -> str:
