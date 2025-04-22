@@ -334,8 +334,12 @@ class Dataset(TimestampedModel):
         return self.projects.filter(**self.ccdl_type.get("constraints", {}))
 
     @property
+    def computed_file_name(self) -> Path:
+        return Path(f"{self.pk}.zip")
+
+    @property
     def computed_file_local_path(self) -> Path:
-        return settings.OUTPUT_DATA_PATH / str(self.pk)
+        return settings.OUTPUT_DATA_PATH / self.computed_file_name
 
 
 class DataValidator:

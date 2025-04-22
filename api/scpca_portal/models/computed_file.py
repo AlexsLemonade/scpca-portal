@@ -144,7 +144,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             modality=dataset.ccdl_type.get("modality"),
             metadata_only=dataset.ccdl_name == DatasetFormats.METADATA,
             s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            s3_key=dataset.pk,
+            s3_key=dataset.computed_file_name,
             size_in_bytes=dataset.computed_file_local_path.stat().st_size,
             workflow_version=utils.join_workflow_versions(
                 library.workflow_version for library in dataset.libraries
