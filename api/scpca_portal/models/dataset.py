@@ -220,6 +220,49 @@ class Dataset(TimestampedModel):
         return files
 
     @property
+    def original_files_by_project(self) -> Dict[str, Iterable[OriginalFile]]:
+        """Returns all of a Dataset's associated OriginalFiles."""
+        files = {project_id: OriginalFile.objects.none() for project_id in self.data.keys()}
+
+        for project_id, project_config in self.data.items():
+            files[project_id] |= OriginalFile.downloadable_objects.filter(project_id=project_id)
+
+            # add spatial files
+            files[project_id] |= OriginalFile.downloadable_objects.filter(
+                project_id=project_id,
+                is_spatial=True,
+                sample_ids__overlap=project_config["SPATIAL"],
+            )
+
+            # add single-cell supplementary
+            files[project_id] |= OriginalFile.downloadable_objects.filter(
+                project_id=project_id,
+                is_single_cell=True,
+                is_supplementary=True,
+                sample_ids__overlap=project_config["SINGLE_CELL"],
+            )
+
+            if project_config["merge_single_cell"]:
+                merged_files = OriginalFile.downloadable_objects.filter(
+                    project_id=project_id, is_merged=True
+                )
+                files[project_id] |= merged_files.filter(formats__contains=[self.format])
+                files[project_id] |= merged_files.filter(is_supplementary=True)
+            else:
+                files[project_id] |= OriginalFile.downloadable_objects.filter(
+                    project_id=project_id,
+                    is_single_cell=True,
+                    formats__contains=[self.format],
+                    sample_ids__overlap=project_config["SINGLE_CELL"],
+                )
+            if project_config["includes_bulk"]:
+                files[project_id] |= OriginalFile.downloadable_objects.filter(
+                    project_id=project_id, is_bulk=True
+                )
+
+        return files
+
+    @property
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
 
@@ -230,36 +273,56 @@ class Dataset(TimestampedModel):
     @property
     def original_file_zip_paths(self) -> Set[Path]:
         original_file_zip_paths = set()
-        for original_file in self.original_files:
-            # Project output paths are relative to project directory
-            output_path = original_file.s3_key_path.relative_to(
-                Path(original_file.s3_key_info.project_id_part)
-            )
 
-            # Transform merged and bulk project data files to no longer be in nested directories
-            if original_file.is_merged:
-                original_file_zip_paths.add(output_path.relative_to(common.MERGED_INPUT_DIR))
-            elif original_file.is_bulk:
-                original_file_zip_paths.add(output_path.relative_to(common.BULK_INPUT_DIR))
-            # Nest sample reports into individual_reports directory in merged download
-            # The merged summmary html file should not go into this directory
-            elif self.ccdl_type.get("includes_merged", False) and original_file.is_supplementary:
-                original_file_zip_paths.add(Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path)
-            else:
-                original_file_zip_paths.add(output_path)
-
-        if Project.objects.filter(
-            scpca_id__in=self.data.keys(), has_multiplexed_data=True
-        ).exists():
-            # Delimeter must be exchanged if file has multiplexed samples
-            return {
-                utils.path_replace(
-                    zip_file_path,
-                    common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
-                    common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+        original_files_by_project = self.original_files_by_project
+        for project_id, project_config in self.data.items():
+            original_file_zip_paths_project = set()
+            for original_file in original_files_by_project[project_id]:
+                # Project output paths are relative to project directory
+                output_path = original_file.s3_key_path.relative_to(
+                    Path(original_file.s3_key_info.project_id_part)
                 )
-                for zip_file_path in original_file_zip_paths
-            }
+
+                if original_file.is_merged:
+                    if not project_config["merge_single_cell"]:
+                        continue
+                    parent_dir = Path(f"{original_file.project_id}_merged")
+                    original_file_zip_paths_project.add(
+                        parent_dir / output_path.relative_to(common.MERGED_INPUT_DIR)
+                    )
+                # Nest sample reports into individual_reports directory in merged folder
+                # The merged summmary html file should not go into this directory
+                elif project_config["merge_single_cell"] and original_file.is_supplementary:
+                    parent_dir = Path(f"{original_file.project_id}_merged")
+                    original_file_zip_paths_project.add(
+                        parent_dir / Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path
+                    )
+                elif original_file.is_bulk:
+                    if not project_config["includes_bulk"]:
+                        continue
+                    parent_dir = Path(f"{original_file.project_id}_bulk_rna")
+                    original_file_zip_paths_project.add(
+                        parent_dir / output_path.relative_to(common.BULK_INPUT_DIR)
+                    )
+                else:
+                    modality = (
+                        Modalities.SINGLE_CELL.value
+                        if original_file.is_single_cell
+                        else Modalities.SPATIAL.value
+                    )
+                    parent_dir = Path(f"{original_file.project_id}_{modality.lower()}")
+                    original_file_zip_paths_project.add(parent_dir / output_path)
+
+            if Project.objects.filter(scpca_id=project_id, has_multiplexed_data=True):
+                original_file_zip_paths_project = {
+                    utils.path_replace(
+                        zip_file_path,
+                        common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
+                        common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+                    )
+                    for zip_file_path in original_file_zip_paths_project
+                }
+            original_file_zip_paths.update(original_file_zip_paths_project)
 
         return original_file_zip_paths
 
