@@ -1,9 +1,11 @@
 import hashlib
 import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
 
 from django.db import models
+from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
@@ -137,6 +139,14 @@ class Dataset(TimestampedModel):
             }
 
         return data
+
+    def on_uncaught_failure(self, failure_reason: str) -> Self:
+        self.is_processing = False
+        self.is_errored = True
+        self.errored_at = make_aware(datetime.now())
+        self.error_message = failure_reason
+
+        return self
 
     @property
     def is_hash_changed(self) -> bool:
