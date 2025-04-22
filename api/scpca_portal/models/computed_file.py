@@ -9,10 +9,9 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_file, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import CCDLDatasetNames, Modalities
+from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
-from scpca_portal.models.project import Project
 
 logger = get_and_configure_logger(__name__)
 
@@ -134,7 +133,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                     True
                     for project_id, project_config in dataset.data.items()
                     if project_config.get("includes_bulk")
-                    and Project.objects.filter(scpca_id=project_id, has_bulk_rna_seq=True).exists()
+                    and dataset.projects.filter(scpca_id=project_id, has_bulk_rna_seq=True).exists()
                 )
             ),
             has_cite_seq_data=dataset.libraries.filter(has_cite_seq_data=True).exists(),
@@ -143,7 +142,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             includes_celltype_report=dataset.projects.filter(samples__is_cell_line=False).exists(),
             includes_merged=dataset.ccdl_type.get("includes_merged"),
             modality=dataset.ccdl_type.get("modality"),
-            metadata_only=dataset.ccdl_name == CCDLDatasetNames.ALL_METADATA.value,
+            metadata_only=dataset.ccdl_name == DatasetFormats.METADATA,
             s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
             s3_key=dataset.pk,
             size_in_bytes=dataset.computed_file_local_path.stat().st_size,
