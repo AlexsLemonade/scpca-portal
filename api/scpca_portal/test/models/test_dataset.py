@@ -1,4 +1,3 @@
-import hashlib
 from pathlib import Path
 from unittest.mock import PropertyMock, patch
 
@@ -509,15 +508,8 @@ class TestDataset(TestCase):
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
         dataset = Dataset(data=data, format=format)
 
-        metadata_file_name = "metadata_file_single_cell_single_cell_experiment_SCPCP999990.tsv"
-        with open(
-            f"scpca_portal/test/expected_values/{metadata_file_name}", encoding="utf-8"
-        ) as file:
-            metadata_file_contents = file.read().replace("\n", "\r\n")
-            file_hash = hashlib.md5(metadata_file_contents.encode("utf-8")).hexdigest()
-            self.assertEqual(dataset.current_metadata_hash, file_hash)
-            expected_metadata_hash = "14540bede594d7e0808a68924a0ed25c"
-            self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
+        expected_metadata_hash = "14540bede594d7e0808a68924a0ed25c"
+        self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
     def test_current_readme_hash(self):
         data = {

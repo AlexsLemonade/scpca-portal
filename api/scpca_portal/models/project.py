@@ -1,7 +1,7 @@
 import csv
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -108,7 +108,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @property
-    def computed_files(self):
+    def computed_files(self) -> Iterable[ComputedFile]:
         return self.project_computed_files.order_by("created_at")
 
     @property
@@ -134,70 +134,6 @@ class Project(CommonDataAttributes, TimestampedModel):
     @property
     def input_samples_metadata_file_path(self):
         return self.input_data_path / "samples_metadata.csv"
-
-    @property
-    def multiplexed_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                has_multiplexed_data=True,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                includes_merged=False,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_merged_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                includes_merged=True,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_anndata_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                format=ComputedFile.OutputFileFormats.ANN_DATA,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                includes_merged=False,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_anndata_merged_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                format=ComputedFile.OutputFileFormats.ANN_DATA,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                includes_merged=True,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def spatial_computed_file(self):
-        try:
-            return self.project_computed_files.get(
-                modality=ComputedFile.OutputFileModalities.SPATIAL
-            )
-        except ComputedFile.DoesNotExist:
-            pass
 
     @property
     def url(self):

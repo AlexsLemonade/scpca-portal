@@ -2,31 +2,31 @@ from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 
 class DatasetAllMetadata:
-    CCDL_NAME = CCDLDatasetNames.ALL_METADATA.value
+    CCDL_NAME = CCDLDatasetNames.ALL_METADATA.name
     VALUES = {
         "data": {
             "SCPCP999990": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
-                Modalities.SPATIAL.value: ["SCPCS999991"],
+                Modalities.SINGLE_CELL.name: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL.name: ["SCPCS999991"],
             },
             "SCPCP999991": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
-                Modalities.SPATIAL.value: [],
+                Modalities.SINGLE_CELL.name: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+                Modalities.SPATIAL.name: [],
             },
             "SCPCP999992": {
                 "merge_single_cell": False,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999996", "SCPCS999998"],
-                Modalities.SPATIAL.value: [],
+                Modalities.SINGLE_CELL.name: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL.name: [],
             },
         },
         "email": None,
         "start": False,
-        "format": DatasetFormats.METADATA.value,
+        "format": DatasetFormats.METADATA.name,
         "regenerated_from": None,
         "is_ccdl": True,
         "ccdl_name": CCDL_NAME,
