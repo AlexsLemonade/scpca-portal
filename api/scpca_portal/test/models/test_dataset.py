@@ -233,12 +233,12 @@ class TestDataset(TestCase):
     def test_get_or_find_ccdl_dataset(self):
         # Portal Dataset Check
         ccdl_portal_datasets_expected_values = [
-            test_data.Dataset.AllMetadata,
-            test_data.Dataset.SingleCellSingleCellExperiment,
-            test_data.Dataset.SingleCellSingleCellExperimentMerged,
-            test_data.Dataset.SingleCellAnndata,
-            test_data.Dataset.SingleCellAnndataMerged,
-            test_data.Dataset.SpatialSingleCellExperiment,
+            test_data.DatasetAllMetadata,
+            test_data.DatasetSingleCellSingleCellExperiment,
+            test_data.DatasetSingleCellSingleCellExperimentMerged,
+            test_data.DatasetSingleCellAnndata,
+            test_data.DatasetSingleCellAnndataMerged,
+            test_data.DatasetSpatialSingleCellExperiment,
         ]
 
         for ccdl_portal_dataset in ccdl_portal_datasets_expected_values:
@@ -261,7 +261,7 @@ class TestDataset(TestCase):
 
         # Project Dataset Check
         ccdl_project_dataset = (
-            test_data.Dataset.SingleCellSingleCellExperimentNoMultiplexedSCPCP999991
+            test_data.DatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991
         )
         dataset, found = Dataset.get_or_find_ccdl_dataset(
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
