@@ -1,11 +1,9 @@
 from scpca_portal.test.expected_values.computed_file_project import Computed_File_Project
 from scpca_portal.test.expected_values.computed_file_sample import Computed_File_Sample
+from scpca_portal.test.expected_values.dataset import Dataset
 from scpca_portal.test.expected_values.dataset_all_metadata import DatasetAllMetadata
 from scpca_portal.test.expected_values.dataset_all_metadata_SCPCP999990 import (
     DatasetAllMetadataSCPCP999990,
-)
-from scpca_portal.test.expected_values.dataset_computed_file_single_cell_single_cell_experiment_SCPCP999990 import (
-    DatasetComputedFileSingleCellSingleCellExperimentSCPCP999990,
 )
 from scpca_portal.test.expected_values.dataset_single_cell_ann_data import DatasetSingleCellAnndata
 from scpca_portal.test.expected_values.dataset_single_cell_ann_data_merged import (
