@@ -37,7 +37,7 @@ class TestSyncBatchJobs(TestCase):
     def test_sync_batch_jobs(self, mock_batch_get_jobs):
         # Set up mock for get_jobs
         mock_response = [{"jobId": job.batch_job_id} for job in self.jobs]
-        # All AWS Batch job statuses (7) + FAILED and terminated job (1)
+        # All AWS Batch job statuses (7) + FAILED & terminated job (1)
         mock_response[0]["status"] = "SUBMITTED"
         mock_response[1]["status"] = "PENDING"
         mock_response[2]["status"] = "RUNNABLE"
@@ -56,7 +56,7 @@ class TestSyncBatchJobs(TestCase):
 
         self.assertEqual(Job.objects.exclude(state=JobStates.SUBMITTED).count(), 3)
 
-        # No change made to SUBMITTED job
+        # SUBMITTED job should remain unchanged
         submitted_job = Job.objects.filter(state=JobStates.SUBMITTED).first()
         self.assertIsNone(submitted_job.failure_reason)
         self.assert_dataset(
@@ -67,7 +67,7 @@ class TestSyncBatchJobs(TestCase):
             error_message=None,
         )
 
-        # Job state and dataset should be updated for succeeded COMPLETED job
+        # Succeeded COMPLETED job state and dataset should be updated
         succeeded_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_005").first()
         self.assertEqual(succeeded_job.state, JobStates.COMPLETED)
         self.assertIsNone(succeeded_job.failure_reason)
@@ -79,7 +79,7 @@ class TestSyncBatchJobs(TestCase):
             error_message=None,
         )
 
-        # Job state and dataset should be updated for failed COMPLETED job with failed reason
+        # Failed COMPLETED job state and dataset should be updated with failed reason
         failed_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_006").first()
         self.assertEqual(failed_job.state, JobStates.COMPLETED)
         self.assertIsNotNone(failed_job.failure_reason)
@@ -91,7 +91,7 @@ class TestSyncBatchJobs(TestCase):
             error_message=failed_job.failure_reason,
         )
 
-        # Job state and dataset should be updated for TERMINATED job
+        # TERMINATED job state and dataset should be updated
         terminated_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_007").first()
         self.assertEqual(terminated_job.state, JobStates.TERMINATED)
         self.assertIsNone(terminated_job.failure_reason)

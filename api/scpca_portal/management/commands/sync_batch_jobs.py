@@ -7,8 +7,8 @@ logger = get_and_configure_logger(__name__)
 
 
 class Command(BaseCommand):
-    help = """Sync all submitted job instances' states with
-    their corresponding remote AWS Batch job statuses.
+    help = """Sync all local submitted jobs' states with
+    their corresponding AWS Batch job statuses.
     """
 
     def handle(self, *args, **kwargs):

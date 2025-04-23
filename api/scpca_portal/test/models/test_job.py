@@ -141,18 +141,18 @@ class TestJob(TestCase):
             state=JobStates.SUBMITTED, dataset=DatasetFactory(is_processing=True)
         )
 
-        # Set up mock for failed get_jobs call
+        # Set up mock for get_jobs call
         mock_batch_get_jobs.return_value = False
 
         success = submitted_job.sync_state()
         mock_batch_get_jobs.assert_called()
-        self.assertFalse(success)
+        self.assertFalse(success)  # Synced but no update in the db
 
-        # The job should remain unchanged and unsaved
+        # Job should remain unchanged and unsaved
         saved_job = Job.objects.get(pk=submitted_job.pk)
         self.assertEqual(saved_job, submitted_job)
 
-        # Set up mock for get_jobs for RUNNING
+        # Set up mock for get_jobs for 'RUNNING'
         mock_batch_get_jobs.return_value = [
             {
                 "status": "RUNNING",
@@ -164,11 +164,11 @@ class TestJob(TestCase):
         mock_batch_get_jobs.assert_called()
         self.assertFalse(success)  # Synced but no update in the db
 
-        # The job should remain unchanged and unsaved
+        # Job should remain unchanged and unsaved
         saved_job = Job.objects.get(pk=submitted_job.pk)
         self.assertEqual(saved_job, submitted_job)
 
-        # Set up mock for get_jobs with TERMINATED
+        # Set up mock for get_jobs with'TERMINATED'
         mock_batch_get_jobs.return_value = [
             {
                 "status": "FAILED",
@@ -194,7 +194,7 @@ class TestJob(TestCase):
             error_message=None,
         )
 
-        # Set up mock for get_jobs with FAILED
+        # Set up mock for get_jobs with 'FAILED'
         submitted_job.state = JobStates.SUBMITTED
 
         mock_batch_get_jobs.return_value = [
@@ -229,7 +229,7 @@ class TestJob(TestCase):
             for _ in range(8)
         ]
         mock_response = [{"jobId": job.batch_job_id} for job in jobs_to_sync]
-        # All AWS Batch job statuses (7) + FAILED and terminated job (1)
+        # All AWS Batch job statuses (7) + FAILED & terminated job (1)
         mock_response[0]["status"] = "SUBMITTED"
         mock_response[1]["status"] = "PENDING"
         mock_response[2]["status"] = "RUNNABLE"
@@ -251,6 +251,7 @@ class TestJob(TestCase):
         terminated_jobs = Job.objects.filter(state=JobStates.TERMINATED)
         submitted_jobs = Job.objects.exclude(state__in=[JobStates.COMPLETED, JobStates.TERMINATED])
 
+        # COMPLETED jobs should be updated
         for completed_job in completed_jobs:
             if completed_job.failure_reason:
                 self.assert_dataset(
@@ -269,6 +270,7 @@ class TestJob(TestCase):
                     error_message=None,
                 )
 
+        # TERMINATED jobs should be updated
         for terminated_job in terminated_jobs:
             self.assertIsNone(terminated_job.failure_reason)
             self.assertIsInstance(terminated_job.terminated_at, datetime)
@@ -280,6 +282,7 @@ class TestJob(TestCase):
                 error_message=None,
             )
 
+        # SUBMITTED jobs should not be updated
         for submitted_job in submitted_jobs:
             self.assertIsNone(submitted_job.failure_reason)
             self.assertIsNone(submitted_job.completed_at)
@@ -308,7 +311,7 @@ class TestJob(TestCase):
         ]
         mock_batch_get_jobs.return_value = mock_response
 
-        # A missing batch job should not interrupt the remaining jobs
+        # A missing batch job should not interrupt the syncing process
         success = Job.bulk_sync_state()
         mock_batch_get_jobs.assert_called()
         self.assertTrue(success)
