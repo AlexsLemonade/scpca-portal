@@ -229,49 +229,6 @@ class Dataset(TimestampedModel):
         return files
 
     @property
-    def original_files_by_project(self) -> Dict[str, Iterable[OriginalFile]]:
-        """Returns all of a Dataset's associated OriginalFiles."""
-        files = {project_id: OriginalFile.objects.none() for project_id in self.data.keys()}
-
-        for project_id, project_config in self.data.items():
-            files[project_id] |= OriginalFile.downloadable_objects.filter(project_id=project_id)
-
-            # add spatial files
-            files[project_id] |= OriginalFile.downloadable_objects.filter(
-                project_id=project_id,
-                is_spatial=True,
-                sample_ids__overlap=project_config["SPATIAL"],
-            )
-
-            # add single-cell supplementary
-            files[project_id] |= OriginalFile.downloadable_objects.filter(
-                project_id=project_id,
-                is_single_cell=True,
-                is_supplementary=True,
-                sample_ids__overlap=project_config["SINGLE_CELL"],
-            )
-
-            if project_config["merge_single_cell"]:
-                merged_files = OriginalFile.downloadable_objects.filter(
-                    project_id=project_id, is_merged=True
-                )
-                files[project_id] |= merged_files.filter(formats__contains=[self.format])
-                files[project_id] |= merged_files.filter(is_supplementary=True)
-            else:
-                files[project_id] |= OriginalFile.downloadable_objects.filter(
-                    project_id=project_id,
-                    is_single_cell=True,
-                    formats__contains=[self.format],
-                    sample_ids__overlap=project_config["SINGLE_CELL"],
-                )
-            if project_config["includes_bulk"]:
-                files[project_id] |= OriginalFile.downloadable_objects.filter(
-                    project_id=project_id, is_bulk=True
-                )
-
-        return files
-
-    @property
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
 
@@ -283,10 +240,10 @@ class Dataset(TimestampedModel):
     def original_file_zip_paths(self) -> Set[Path]:
         original_file_zip_paths = set()
 
-        original_files_by_project = self.original_files_by_project
+        original_files = self.original_files
         for project_id, project_config in self.data.items():
             original_file_zip_paths_project = set()
-            for original_file in original_files_by_project[project_id]:
+            for original_file in original_files.filter(project_id=project_id):
                 # Project output paths are relative to project directory
                 output_path = original_file.s3_key_path.relative_to(
                     Path(original_file.s3_key_info.project_id_part)
