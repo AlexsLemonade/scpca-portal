@@ -1,0 +1,80 @@
+from datetime import datetime
+from functools import partial
+from unittest.mock import patch
+
+from django.core.management import call_command
+from django.test import TestCase
+
+from scpca_portal.enums import JobStates
+from scpca_portal.models import Job
+from scpca_portal.test.factories import DatasetFactory, JobFactory
+
+
+class TestTerminateBatchJobs(TestCase):
+    def setUp(self):
+        self.terminate_batch_jobs = partial(call_command, "terminate_batch_jobs")
+
+    def assertDatasetState(
+        self, dataset, is_processing=False, is_errored=False, errored_at=None, error_message=None
+    ):
+        """
+        Helper for asserting the dataset state.
+        """
+        self.assertEqual(dataset.is_processing, is_processing)
+        self.assertEqual(dataset.is_errored, is_errored)
+
+        if errored_at:
+            self.assertIsInstance(dataset.errored_at, datetime)
+        else:
+            self.assertEqual(dataset.errored_at, errored_at)
+
+        self.assertEqual(dataset.error_message, error_message)
+
+    @patch("scpca_portal.batch.terminate_job")
+    def test_terminate_batch_jobs(self, mock_batch_terminate_job):
+        # Set up 3 SUBMITTED jobs
+        for _ in range(3):
+            JobFactory(state=JobStates.SUBMITTED, dataset=DatasetFactory(is_processing=True))
+
+        # Should call terminated_job 3 times
+        self.terminate_batch_jobs()
+        self.assertEqual(mock_batch_terminate_job.call_count, 3)
+
+        # SUBMITTED jobs should be updated to TERMINATED
+        saved_jobs = Job.objects.all()
+
+        for saved_job in saved_jobs:
+            self.assertEqual(saved_job.state, JobStates.TERMINATED)
+            # Associated dataset should be updated
+            self.assertDatasetState(saved_job.dataset, is_processing=False)
+
+        # Set up additinoal 3 SUBMITTED jobs
+        for _ in range(3):
+            JobFactory(state=JobStates.SUBMITTED, dataset=DatasetFactory(is_processing=True))
+
+        # Before the call, only 3 TERMINATED jobs are in the db
+        self.assertEqual(Job.objects.filter(state=JobStates.TERMINATED).count(), 3)
+
+        # Should call terminated_job 3 times
+        self.terminate_batch_jobs(no_retry=False)  # Create new retry jobs
+        self.assertEqual(mock_batch_terminate_job.call_count, 6)  # prev (3) + new (3)
+
+        # After termination, 6 TERMINATED jobs should be in the db
+        saved_jobs = Job.objects.filter(state=JobStates.TERMINATED)
+        self.assertEqual(saved_jobs.count(), 6)  # prev (3) + new (3)
+        # 3 new CREATED retry jobs should be saved in the database
+        self.assertEqual(Job.objects.filter(state=JobStates.CREATED).count(), 3)
+
+    @patch("scpca_portal.batch.terminate_job")
+    def test_terminate_batch_jobs_not_called(self, mock_batch_terminate_job):
+        # Set up 3 COMPLETED jobs
+        for _ in range(3):
+            JobFactory(state=JobStates.COMPLETED, dataset=DatasetFactory(is_processing=False))
+
+        # Should not call terminated_job
+        self.terminate_batch_jobs()
+        mock_batch_terminate_job.assert_not_called()
+
+        # COMPLETED job should remian unchanged
+        for job in Job.objects.all():
+            self.assertEqual(job.state, JobStates.COMPLETED)
