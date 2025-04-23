@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from scpca_portal import loader
-from scpca_portal.enums import CCDLDatasetNames
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import ComputedFile, Dataset
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
@@ -108,3 +108,30 @@ class TestGetFile(TestCase):
         ):
             msg = f"The actual and expected `{attribute}` values differ in {computed_file}"
             self.assertEqual(getattr(computed_file, attribute), value, msg)
+
+    def test_original_file_zip_paths(self):
+        data = {
+            "SCPCP999990": {
+                "merge_single_cell": False,
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "merge_single_cell": False,
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "merge_single_cell": True,
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
+        dataset = Dataset(data=data, format=format)
+        dataset.save()
+
+        ComputedFile.get_dataset_file(dataset)
