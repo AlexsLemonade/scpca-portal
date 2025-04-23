@@ -125,16 +125,16 @@ class Dataset(TimestampedModel):
             if modality := self.ccdl_type.get("modality"):
                 samples = samples.filter(libraries__modality=modality)
 
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL.value)
-            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL.value)
+            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
+            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
 
             data[project.scpca_id] = {
                 "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: list(
+                Modalities.SINGLE_CELL: list(
                     single_cell_samples.values_list("scpca_id", flat=True)
                 ),
-                Modalities.SPATIAL.value: list(spatial_samples.values_list("scpca_id", flat=True)),
+                Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
             }
 
         return data
@@ -158,24 +158,26 @@ class Dataset(TimestampedModel):
         return self.combined_hash != self.current_combined_hash
 
     @property
+    def projects(self) -> Iterable[Project]:
+        """Returns all Project instances associated with the Dataset."""
+        if project_ids := self.data.keys():
+            return Project.objects.filter(scpca_id__in=project_ids).order_by("scpca_id")
+        return Project.objects.none()
+
+    @property
     def libraries(self) -> Iterable[Library]:
         """Returns all of a Dataset's library, based on Data and Format attrs."""
         dataset_libraries = Library.objects.none()
 
         for project_config in self.data.values():
-            for modality in [Modalities.SINGLE_CELL.value, Modalities.SPATIAL.value]:
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
                 for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
                     sample_libraries = sample.libraries.filter(modality=modality)
-                    if self.format != DatasetFormats.METADATA.value:
+                    if self.format != DatasetFormats.METADATA:
                         sample_libraries.filter(formats__contains=[self.format])
                     dataset_libraries |= sample_libraries
 
         return dataset_libraries
-
-    @property
-    def projects(self) -> Iterable[Project]:
-        """Returns all Project instances associated with the Dataset."""
-        return Project.objects.filter(scpca_id__in=self.data.keys())
 
     @property
     def ccdl_type(self) -> Dict:
@@ -192,7 +194,6 @@ class Dataset(TimestampedModel):
         """Returns all of a Dataset's associated OriginalFiles."""
         files = OriginalFile.objects.none()
         for project_id, project_config in self.data.items():
-
             # add spatial files
             files |= OriginalFile.downloadable_objects.filter(
                 project_id=project_id,
@@ -307,9 +308,7 @@ class Dataset(TimestampedModel):
 
     @property
     def readme_file_contents(self) -> str:
-        return readme_file.get_file_contents(
-            self.ccdl_type, Project.objects.filter(scpca_id__in=self.data.keys())
-        )
+        return readme_file.get_file_contents_dataset(self)
 
     @property
     def current_data_hash(self) -> str:
@@ -330,14 +329,11 @@ class Dataset(TimestampedModel):
     @property
     def current_readme_hash(self) -> str:
         """Computes and returns the current readme hash."""
-        ##########
-        # Return 1 until readme_file.get_file_contents is refactored to handle ccdl dataset type
-        ##########
-        # # remove first line which contains date
-        # readme_file_contents_no_date = self.readme_file_contents.split("\n", 1)[1].strip()
-        # readme_file_contents_no_date_bytes = readme_file_contents_no_date.encode("utf-8")
-        # return hashlib.md5(readme_file_contents_no_date_bytes).hexdigest()
-        return hashlib.md5(b"1").hexdigest()
+        # the first line in the readme file contains the current date
+        # we must remove this before hashing
+        readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
+        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
+        return hashlib.md5(readme_file_contents_bytes).hexdigest()
 
     @property
     def combined_hash(self) -> str:
@@ -369,6 +365,46 @@ class Dataset(TimestampedModel):
     @property
     def computed_file_local_path(self) -> Path:
         return settings.OUTPUT_DATA_PATH / self.computed_file_name
+
+    @property
+    def spatial_projects(self) -> Iterable[Project]:
+        if self.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
+            return Project.objects.none()
+
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(Modalities.SPATIAL, [])
+        ]:
+            return self.projects.filter(scpca_id__in=project_ids)
+
+        return Project.objects.none()
+
+    @property
+    def single_cell_projects(self) -> Iterable[Project]:
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(Modalities.SINGLE_CELL)
+        ]:
+            return Project.objects.filter(scpca_id__in=project_ids)
+
+        return Project.objects.none()
+
+    @property
+    def bulk_single_cell_projects(self) -> Iterable[Project]:
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(DatasetDataProjectConfig.INCLUDES_BULK)
+        ]:
+            return Project.objects.filter(scpca_id__in=project_ids)
+
+        return Project.objects.none()
+
+    @property
+    def cite_seq_projects(self) -> Iterable[Project]:
+        return self.projects.filter(has_cite_seq_data=True)
 
 
 class DataValidator:
