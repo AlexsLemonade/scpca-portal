@@ -1,9 +1,17 @@
+import re
+from collections import namedtuple
 from typing import Dict, Iterable
 
 from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils  # ccdl_datasets,
+from scpca_portal.enums import (
+    CCDLDatasetNames,
+    DatasetDataProjectConfig,
+    DatasetFormats,
+    Modalities,
+)
 
 # from scpca_portal.enums import CCDLDatasetNames
 
@@ -11,6 +19,181 @@ OUTPUT_NAME = "README.md"
 
 TEMPLATE_ROOT = settings.TEMPLATE_PATH / "readme"
 TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "readme.md"
+
+# Dataset Readme Templates
+README_ROOT = settings.TEMPLATE_PATH / "dataset_readme"
+
+METADATA_LINK = "METADATA_LINK"
+ANN_DATA_LINK = "ANN_DATA_LINK"
+ANN_DATA_WITH_CITE_SEQ_LINK = "ANN_DATA_WITH_CITE_SEQ_LINK"
+ANN_DATA_MERGED_LINK = "ANN_DATA_MERGED_LINK"
+ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = "ANN_DATA_MERGED_WITH_CITE_SEQ_LINK"
+SINGLE_CELL_EXPERIMENT_LINK = "SINGLE_CELL_EXPERIMENT_LINK"
+SINGLE_CELL_EXPERIMENT_MERGED_LINK = "SINGLE_CELL_EXPERIMENT_MERGED_LINK"
+SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = "SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK"
+SPATIAL_LINK = "SPATIAL_LINK"
+BULK_LINK = "BULK_LINK"
+
+PORTAL_CCDL_DATASET_LINKS = {
+    CCDLDatasetNames.ALL_METADATA: "PORTAL_METADATA_LINK",
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT: (
+        "PORTAL_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_LINK"
+    ),
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: (
+        "PORTAL_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED_LINK"
+    ),
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA: "PORTAL_SINGLE_CELL_ANN_DATA_LINK",
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: "PORTAL_SINGLE_CELL_ANN_DATA_MERGED_LINK",
+    CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT: "PORTAL_SPATIAL_SINGLE_CELL_EXPERIMENT_LINK",
+}
+
+# used in get_content_table_rows and in 2_contents.md
+ContentRow = namedtuple("ContentRow", ["project", "modality", "format", "docs"])
+
+
+def add_ccdl_dataset_content_rows(content_rows: set, dataset) -> set:
+    return content_rows
+
+
+def add_ann_data_content_rows(content_rows: set, dataset) -> set:
+    """
+    Takes a dataset and returns the set of ContentRows
+    for the content section table for ANN_DATA.
+    """
+    # SINGLE_CELL
+    for project in dataset.single_cell_projects:
+        # ANN_DATA
+        docs_link = ANN_DATA_LINK
+
+        # HAS CITE-SEQ
+        if project.has_cite_seq_data:
+            docs_link = ANN_DATA_WITH_CITE_SEQ_LINK
+
+        # ANN_DATA_MERGED
+        if dataset.data[project.scpca_id].get(DatasetDataProjectConfig.MERGE_SINGLE_CELL):
+            docs_link = ANN_DATA_MERGED_LINK
+            # ANN_DATA_MERGED_WITH_CITE
+            if project.has_cite_seq_data:
+                docs_link = ANN_DATA_MERGED_WITH_CITE_SEQ_LINK
+
+        content_rows.add(ContentRow(project, Modalities.SINGLE_CELL, dataset.format, docs_link))
+
+    return content_rows
+
+
+def add_single_cell_experiment_content_rows(content_rows: set, dataset) -> set:
+    """
+    Takes a dataset and returns the set of ContentRows
+    for the content section table for SINGLE_CELL_EXPERIMENT.
+    """
+    # SINGLE_CELL
+    for project in dataset.single_cell_projects:
+        # SINGLE_CELL_EXPERIMENT
+        docs_link = SINGLE_CELL_EXPERIMENT_LINK
+
+        # SINGLE_CELL_EXPERIMENT_MERGED
+        if dataset.data[project.scpca_id].get(DatasetDataProjectConfig.MERGE_SINGLE_CELL):
+            docs_link = SINGLE_CELL_EXPERIMENT_MERGED_LINK
+        # SINGLE_CELL_EXPERIMENT_MULTIPLEXED
+        elif (
+            dataset.get_samples(project.scpca_id, Modalities.SINGLE_CELL)
+            .filter(has_multiplexed_data=True)
+            .exists()
+        ):
+            docs_link = SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK
+
+        content_rows.add(ContentRow(project, Modalities.SINGLE_CELL, dataset.format, docs_link))
+
+    return content_rows
+
+
+def get_content_table_rows(dataset) -> list[ContentRow]:
+    """
+    Returns a list of ContentRows for non-metadata downloads.
+    """
+    # No table for metadata downloads
+    if dataset.format == DatasetFormats.METADATA:
+        return []
+
+    # Metadata
+    content_rows: set[ContentRow] = set()
+
+    # These rows depend on the format
+    if dataset.format == DatasetFormats.ANN_DATA:
+        content_rows = add_ann_data_content_rows(content_rows, dataset)
+    elif dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
+        content_rows = add_single_cell_experiment_content_rows(content_rows, dataset)
+
+    # SPATIAL get their own row
+    if dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
+        for project in dataset.spatial_projects:
+            content_rows.add(ContentRow(project, Modalities.SPATIAL, dataset.format, SPATIAL_LINK))
+
+    # BULK get their own row when data is present
+    if dataset.format != DatasetFormats.METADATA:
+        for project in dataset.bulk_single_cell_projects:
+            content_rows.add(ContentRow(project, Modalities.BULK_RNA_SEQ, "BULK_FORMAT", BULK_LINK))
+
+    return sorted(
+        content_rows,
+        key=lambda content_row: (content_row.project.scpca_id, content_row.modality),
+    )
+
+
+def get_content_portal_wide_link(dataset):
+    """
+    Returns the link to the documentation if dataset is a ccdl portal wide download
+    """
+    if dataset.is_ccdl and not dataset.ccdl_project_id:
+        return PORTAL_CCDL_DATASET_LINKS.get(dataset.ccdl_name)
+    return None
+
+
+def get_content_metadata_link(dataset):
+    """
+    Returns the link to the documentation if dataset is for metadata.
+    Portal wide metadata is handled by `content_portal_wide_link`.
+    """
+    if dataset.format == DatasetFormats.METADATA and not dataset.ccdl_project_id:
+        return METADATA_LINK
+    return None
+
+
+def get_file_contents_dataset(dataset) -> str:
+    """Return newly generated readme file as a string for immediate writing to a zip archive."""
+
+    # data that is passed into templates
+    context = {
+        "context": {
+            "date": utils.helpers.get_today_string(),
+            "dataset": dataset,
+            "content_portal_wide_link": get_content_portal_wide_link(dataset),
+            "content_metadata_link": get_content_metadata_link(dataset),
+            "content_table_rows": get_content_table_rows(dataset),
+        }
+    }
+
+    return merge_partials(
+        [
+            render_to_string(README_ROOT / "1_header.md", **context),
+            render_to_string(README_ROOT / "2_contents.md", **context),
+            render_to_string(README_ROOT / "3_usage.md", **context),
+            render_to_string(README_ROOT / "4_changelog.md", **context),
+            render_to_string(README_ROOT / "5_contact.md", **context),
+            render_to_string(README_ROOT / "6_citation.md", **context),
+            render_to_string(README_ROOT / "7_terms_of_use.md", **context),
+        ]
+    )
+
+
+def merge_partials(partials: list[str]):
+    """
+    Takes a list of rendered templates, strips, removes empty and combines with new line.
+    Also replaces anything greater than 2 new lines with 2 newlines.
+    """
+    readme_partials = list(filter(None, [re.sub(r"\n\n+", "\n\n", p.strip()) for p in partials]))
+
+    return "\n\n".join(readme_partials)
 
 
 def get_file_contents(download_config: Dict, projects: Iterable) -> str:
