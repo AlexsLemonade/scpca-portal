@@ -250,8 +250,6 @@ class Dataset(TimestampedModel):
                 )
 
                 if original_file.is_merged:
-                    if not project_config["merge_single_cell"]:
-                        continue
                     parent_dir = Path(f"{original_file.project_id}_merged")
                     original_file_zip_paths_project.add(
                         parent_dir / output_path.relative_to(common.MERGED_INPUT_DIR)
@@ -264,8 +262,6 @@ class Dataset(TimestampedModel):
                         parent_dir / Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path
                     )
                 elif original_file.is_bulk:
-                    if not project_config["includes_bulk"]:
-                        continue
                     parent_dir = Path(f"{original_file.project_id}_bulk_rna")
                     original_file_zip_paths_project.add(
                         parent_dir / output_path.relative_to(common.BULK_INPUT_DIR)
@@ -279,7 +275,11 @@ class Dataset(TimestampedModel):
                     parent_dir = Path(f"{original_file.project_id}_{modality.lower()}")
                     original_file_zip_paths_project.add(parent_dir / output_path)
 
-            if Project.objects.filter(scpca_id=project_id, has_multiplexed_data=True):
+            if (
+                self.get_samples(project_id, Modalities.SINGLE_CELL)
+                .filter(has_multiplexed_data=True)
+                .exists()
+            ):
                 original_file_zip_paths_project = {
                     utils.path_replace(
                         zip_file_path,
