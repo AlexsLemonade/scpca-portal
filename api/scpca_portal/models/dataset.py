@@ -139,6 +139,15 @@ class Dataset(TimestampedModel):
 
         return data
 
+    def get_samples(self, project_id: str, modality: Modalities) -> Iterable[Sample]:
+        """
+        Takes project's scpca_id and a modality.
+        Returns Sample instances defined in data attribute.
+        """
+        if sample_ids := self.data.get(project_id, {}).get(modality, []):
+            return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
+        return Sample.objects.none()
+
     @property
     def is_hash_changed(self) -> bool:
         """
