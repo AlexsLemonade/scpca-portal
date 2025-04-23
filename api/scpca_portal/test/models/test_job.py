@@ -10,7 +10,9 @@ from scpca_portal.test.factories import DatasetFactory, JobFactory
 
 
 class TestJob(TestCase):
-    def assertDatasetState(self, dataset, is_processing, is_errored, errored_at, error_message):
+    def assertDatasetState(
+        self, dataset, is_processing=False, is_errored=False, errored_at=None, error_message=None
+    ):
         """
         Helper for asserting the dataset state.
         """
@@ -186,13 +188,7 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertIsInstance(saved_job.terminated_at, datetime)
         self.assertIsNone(saved_job.failure_reason)
-        self.assertDatasetState(
-            saved_job.dataset,
-            is_processing=False,
-            is_errored=False,
-            errored_at=None,
-            error_message=None,
-        )
+        self.assertDatasetState(saved_job.dataset, is_processing=False)
 
         # Set up mock for get_jobs with 'FAILED'
         submitted_job.state = JobStates.SUBMITTED
@@ -262,38 +258,20 @@ class TestJob(TestCase):
                     error_message=completed_job.failure_reason,
                 )
             else:
-                self.assertDatasetState(
-                    completed_job.dataset,
-                    is_processing=False,
-                    is_errored=False,
-                    errored_at=None,
-                    error_message=None,
-                )
+                self.assertDatasetState(completed_job.dataset, is_processing=False)
 
         # TERMINATED jobs should be updated
         for terminated_job in terminated_jobs:
             self.assertIsNone(terminated_job.failure_reason)
             self.assertIsInstance(terminated_job.terminated_at, datetime)
-            self.assertDatasetState(
-                terminated_job.dataset,
-                is_processing=False,
-                is_errored=False,
-                errored_at=None,
-                error_message=None,
-            )
+            self.assertDatasetState(terminated_job.dataset, is_processing=False)
 
         # SUBMITTED jobs should not be updated
         for submitted_job in submitted_jobs:
             self.assertIsNone(submitted_job.failure_reason)
             self.assertIsNone(submitted_job.completed_at)
             self.assertIsNone(submitted_job.terminated_at)
-            self.assertDatasetState(
-                submitted_job.dataset,
-                is_processing=True,
-                is_errored=False,
-                errored_at=None,
-                error_message=None,
-            )
+            self.assertDatasetState(submitted_job.dataset, is_processing=True)
 
     @patch("scpca_portal.batch.get_jobs")
     def test_bulk_sync_state_no_matching_batch_job_found(self, mock_batch_get_jobs):
