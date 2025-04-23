@@ -302,6 +302,7 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertTrue(saved_job.retry_on_termination)
         self.assertIsInstance(saved_job.terminated_at, datetime)
+        self.assertDatasetState(saved_job.dataset, is_processing=False)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_job_failure(self, mock_batch_terminate_job):
