@@ -318,6 +318,13 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.COMPLETED)
         self.assertEqual(saved_job.failure_reason, "Job FAILED")
         self.assertIsInstance(saved_job.completed_at, datetime)
+        self.assert_dataset(
+            saved_job.dataset,
+            is_processing=False,
+            is_errored=True,
+            errored_at=saved_job.dataset.errored_at,
+            error_message=saved_job.failure_reason,
+        )
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_job(self, mock_batch_terminate_job):
