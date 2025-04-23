@@ -247,7 +247,7 @@ class Job(TimestampedModel):
     @classmethod
     def bulk_sync_state(cls) -> bool:
         """
-        Sync all submitted job instances' states with the remote AWS Batch job statuses.
+        Sync all submitted jobs' states with the remote AWS Batch job statuses.
         Save each job and its associated dataset if the state changes.
         """
         if submitted_jobs := cls.objects.filter(state=JobStates.SUBMITTED):

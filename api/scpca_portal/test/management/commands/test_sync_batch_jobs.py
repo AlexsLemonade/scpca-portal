@@ -19,7 +19,7 @@ class TestSyncBatchJobs(TestCase):
             for _ in range(8)
         ]
 
-    def assert_dataset(self, dataset, is_processing, is_errored, errored_at, error_message):
+    def assertDatasetState(self, dataset, is_processing, is_errored, errored_at, error_message):
         """
         Helper for asserting the dataset state.
         """
@@ -59,7 +59,7 @@ class TestSyncBatchJobs(TestCase):
         # SUBMITTED job should remain unchanged
         submitted_job = Job.objects.filter(state=JobStates.SUBMITTED).first()
         self.assertIsNone(submitted_job.failure_reason)
-        self.assert_dataset(
+        self.assertDatasetState(
             submitted_job.dataset,
             is_processing=True,
             is_errored=False,
@@ -71,7 +71,7 @@ class TestSyncBatchJobs(TestCase):
         succeeded_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_005").first()
         self.assertEqual(succeeded_job.state, JobStates.COMPLETED)
         self.assertIsNone(succeeded_job.failure_reason)
-        self.assert_dataset(
+        self.assertDatasetState(
             succeeded_job.dataset,
             is_processing=False,
             is_errored=False,
@@ -83,7 +83,7 @@ class TestSyncBatchJobs(TestCase):
         failed_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_006").first()
         self.assertEqual(failed_job.state, JobStates.COMPLETED)
         self.assertIsNotNone(failed_job.failure_reason)
-        self.assert_dataset(
+        self.assertDatasetState(
             failed_job.dataset,
             is_processing=False,
             is_errored=True,
@@ -95,7 +95,7 @@ class TestSyncBatchJobs(TestCase):
         terminated_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_007").first()
         self.assertEqual(terminated_job.state, JobStates.TERMINATED)
         self.assertIsNone(terminated_job.failure_reason)
-        self.assert_dataset(
+        self.assertDatasetState(
             terminated_job.dataset,
             is_processing=False,
             is_errored=False,

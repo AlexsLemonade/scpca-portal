@@ -10,7 +10,7 @@ from scpca_portal.test.factories import DatasetFactory, JobFactory
 
 
 class TestJob(TestCase):
-    def assert_dataset(self, dataset, is_processing, is_errored, errored_at, error_message):
+    def assertDatasetState(self, dataset, is_processing, is_errored, errored_at, error_message):
         """
         Helper for asserting the dataset state.
         """
@@ -186,7 +186,7 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertIsInstance(saved_job.terminated_at, datetime)
         self.assertIsNone(saved_job.failure_reason)
-        self.assert_dataset(
+        self.assertDatasetState(
             saved_job.dataset,
             is_processing=False,
             is_errored=False,
@@ -213,7 +213,7 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.COMPLETED)
         self.assertEqual(saved_job.failure_reason, "Job FAILED")
         self.assertIsInstance(saved_job.completed_at, datetime)
-        self.assert_dataset(
+        self.assertDatasetState(
             saved_job.dataset,
             is_processing=False,
             is_errored=True,
@@ -254,7 +254,7 @@ class TestJob(TestCase):
         # COMPLETED jobs should be updated
         for completed_job in completed_jobs:
             if completed_job.failure_reason:
-                self.assert_dataset(
+                self.assertDatasetState(
                     completed_job.dataset,
                     is_processing=False,
                     is_errored=True,
@@ -262,7 +262,7 @@ class TestJob(TestCase):
                     error_message=completed_job.failure_reason,
                 )
             else:
-                self.assert_dataset(
+                self.assertDatasetState(
                     completed_job.dataset,
                     is_processing=False,
                     is_errored=False,
@@ -274,7 +274,7 @@ class TestJob(TestCase):
         for terminated_job in terminated_jobs:
             self.assertIsNone(terminated_job.failure_reason)
             self.assertIsInstance(terminated_job.terminated_at, datetime)
-            self.assert_dataset(
+            self.assertDatasetState(
                 terminated_job.dataset,
                 is_processing=False,
                 is_errored=False,
@@ -287,7 +287,7 @@ class TestJob(TestCase):
             self.assertIsNone(submitted_job.failure_reason)
             self.assertIsNone(submitted_job.completed_at)
             self.assertIsNone(submitted_job.terminated_at)
-            self.assert_dataset(
+            self.assertDatasetState(
                 submitted_job.dataset,
                 is_processing=True,
                 is_errored=False,
@@ -321,7 +321,7 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.COMPLETED)
         self.assertEqual(saved_job.failure_reason, "Job FAILED")
         self.assertIsInstance(saved_job.completed_at, datetime)
-        self.assert_dataset(
+        self.assertDatasetState(
             saved_job.dataset,
             is_processing=False,
             is_errored=True,
