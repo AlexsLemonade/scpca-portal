@@ -309,22 +309,17 @@ class Job(TimestampedModel):
         if self.state is not JobStates.SUBMITTED:
             return False
 
-        fetched_jobs = batch.get_jobs([self])
+        if aws_jobs := batch.get_jobs([self]):
+            new_state, failure_reason = self.get_job_state(aws_jobs[0])
 
-        if not fetched_jobs:
-            return False
+            if new_state != self.state:
+                self.state = new_state
+                self.failure_reason = failure_reason
+                self.apply_state_at()
 
-        aws_job = fetched_jobs[0]
-        new_state, failure_reason = self.get_job_state(aws_job)
+                Job.bulk_update_state([self])
 
-        if new_state != self.state:
-            self.state = new_state
-            self.failure_reason = failure_reason
-            self.apply_state_at()
-
-            Job.bulk_update_state([self])
-
-            return True
+                return True
 
         return False
 
