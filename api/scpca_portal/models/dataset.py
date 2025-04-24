@@ -237,40 +237,35 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     @property
-    def original_file_local_paths(self) -> Set[Path]:
-        return {settings.INPUT_DATA_PATH / of.s3_key for of in self.original_files}
-
-    @property
-    def original_file_zip_paths(self) -> Set[Path]:
-        original_file_zip_paths = set()
+    def original_file_zip_map(self) -> Dict[Path, Path]:
+        original_file_zip_map = {}
 
         original_files = self.original_files
         for project_id, project_config in self.data.items():
-            original_file_zip_paths_project = set()
+            original_file_zip_map_project = {}
             for original_file in original_files.filter(project_id=project_id):
                 zip_file_path = original_file.zip_file_path_dataset
                 if project_config["merge_single_cell"]:
                     if merged_file_path := original_file.zip_file_path_merged_dataset:
                         zip_file_path = merged_file_path
 
-                original_file_zip_paths_project.add(zip_file_path)
+                local_file_path = settings.INPUT_DATA_PATH / original_file.s3_key
+                original_file_zip_map_project[local_file_path] = zip_file_path
 
             if (
                 self.get_samples(project_id, Modalities.SINGLE_CELL)
                 .filter(has_multiplexed_data=True)
                 .exists()
             ):
-                original_file_zip_paths_project = {
-                    utils.path_replace(
+                for local_file_path, zip_file_path in original_file_zip_map_project.items():
+                    original_file_zip_map_project[local_file_path] = utils.path_replace(
                         zip_file_path,
                         common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
                         common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
                     )
-                    for zip_file_path in original_file_zip_paths_project
-                }
-            original_file_zip_paths.update(original_file_zip_paths_project)
+            original_file_zip_map.update(original_file_zip_map_project)
 
-        return original_file_zip_paths
+        return original_file_zip_map
 
     @property
     def metadata_file_map(self) -> Dict[str, str]:

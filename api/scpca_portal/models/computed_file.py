@@ -113,19 +113,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
             # Metadata files
             for metadata_file_path, metadata_file_contents in dataset.metadata_file_map.items():
-                zip_file.writestr(
-                    str(metadata_file_path),
-                    metadata_file_contents,
-                )
+                zip_file.writestr(str(metadata_file_path), metadata_file_contents)
 
             # Original files
-            for original_file_local_path, original_file_zip_path in zip(
-                dataset.original_file_local_paths, dataset.original_file_zip_paths
-            ):
-                zip_file.write(
-                    original_file_local_path,
-                    original_file_zip_path,
-                )
+            for local_file_path, zip_file_path in dataset.original_file_zip_map.items():
+                zip_file.write(local_file_path, zip_file_path)
 
         computed_file = cls(
             dataset=dataset,
