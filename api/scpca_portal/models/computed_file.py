@@ -111,11 +111,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Readme file
             zip_file.writestr(readme_file.OUTPUT_NAME, dataset.readme_file_contents)
 
-            # Metadata file
-            zip_file.writestr(
-                dataset.metadata_file_name,
-                dataset.metadata_file_contents,
-            )
+            # Metadata files
+            for metadata_file_path, metadata_file_contents in dataset.metadata_file_map.items():
+                zip_file.writestr(
+                    str(metadata_file_path),
+                    metadata_file_contents,
+                )
 
             # Original files
             for original_file_local_path, original_file_zip_path in zip(
