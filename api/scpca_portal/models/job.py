@@ -26,7 +26,7 @@ class Job(TimestampedModel):
     critical_error = models.BooleanField(default=False)  # Set to True if the job is irrecoverable
     failure_reason = models.TextField(blank=True, null=True)
     retry_on_termination = models.BooleanField(default=False)
-    state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED.value)
+    state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED)
 
     submitted_at = models.DateTimeField(null=True)
     completed_at = models.DateTimeField(null=True)
@@ -180,21 +180,22 @@ class Job(TimestampedModel):
     def submit_created(cls) -> List[Self]:
         """
         Submits all saved CREATED jobs to AWS Batch.
-        Updates each job instance's batch_job_id, state, and submitted_at, and
-        saves the changes to the db on success.
+        Updates each job instance's batch_job_id, state, and submitted_at fields,
+        and its associated dataset state.
+        Saves the changes to the db on success.
         Returns all the submitted jobs.
         """
         submitted_jobs = []
 
-        if jobs := Job.objects.filter(state=JobStates.CREATED.value):
+        if jobs := Job.objects.filter(state=JobStates.CREATED):
             for job in jobs:
                 if aws_job_id := batch.submit_job(job):
                     job.batch_job_id = aws_job_id
-                    job.state = JobStates.SUBMITTED.value
-                    job.submitted_at = make_aware(datetime.now())
+                    job.state = JobStates.SUBMITTED
+                    job.apply_state_at()
                     submitted_jobs.append(job)
 
-            Job.objects.bulk_update(submitted_jobs, ["batch_job_id", "state", "submitted_at"])
+            cls.bulk_update_state(submitted_jobs)
 
         return submitted_jobs
 
@@ -220,16 +221,23 @@ class Job(TimestampedModel):
         return terminated_jobs
 
     @classmethod
-    def bulk_update_state(cls, synced_jobs: List[Self]):
+    def bulk_update_state(cls, jobs: List[Self]):
         """
-        Updates the states of the synced jobs and their associated datasets.
+        Bulk updates states of the given jobs and their associated datasets.
         """
         cls.objects.bulk_update(
-            synced_jobs,
-            ["state", "failure_reason", "completed_at"],
+            jobs,
+            [
+                "batch_job_id",
+                "state",
+                "failure_reason",
+                "retry_on_termination",
+                "completed_at",
+                "submitted_at",
+            ],
         )
 
-        Dataset.apply_last_jobs(synced_jobs)
+        Dataset.apply_last_jobs(jobs)
 
     @classmethod
     def bulk_sync_state(cls) -> bool:
@@ -284,19 +292,22 @@ class Job(TimestampedModel):
 
     def submit(self) -> bool:
         """
-        Submits the CREATED job to AWS Batch.
-        Updates batch_job_id, state, and submitted_at, and
-        saves the changes to the db on success.
+        Submits the unsaved CREATED job to AWS Batch.
+        Updates batch_job_id, state, and submitted_at fields,
+        and its associated dataset state.
+        Saves the changes to the db on success.
         """
-        if self.state is not JobStates.CREATED.value:
+        if self.state is not JobStates.CREATED:
             return False
 
         if job_id := batch.submit_job(self):
             self.batch_job_id = job_id
-            self.state = JobStates.SUBMITTED.value
-            self.submitted_at = make_aware(datetime.now())
+            self.state = JobStates.SUBMITTED
+            self.apply_state_at()
 
-            self.save()
+            self.save()  # Save this instance before bulk updating fields
+            Job.bulk_update_state([self])
+
             return True
 
         return False

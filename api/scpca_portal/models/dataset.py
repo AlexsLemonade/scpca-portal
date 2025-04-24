@@ -105,8 +105,8 @@ class Dataset(TimestampedModel):
         for job in synced_jobs:
             if job.state == JobStates.FAILED:
                 job.dataset.on_uncaught_failure(job.failure_reason)
-
-            job.dataset.is_processing = False
+            # is_processing is set to True only if the job is in the SUBMITTED state
+            job.dataset.is_processing = job.state == JobStates.SUBMITTED
             synced_datasets.append(job.dataset)
 
         cls.objects.bulk_update(
