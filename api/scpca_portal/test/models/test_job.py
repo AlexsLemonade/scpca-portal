@@ -27,7 +27,7 @@ class TestJob(TestCase):
         self.assertEqual(dataset.error_message, error_message)
 
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_job(self, mock_batch_submit_job):
+    def test_submit(self, mock_batch_submit_job):
         # Set up mock for submit_job
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
@@ -38,7 +38,7 @@ class TestJob(TestCase):
             download_config_name="MOCK_DOWNLOAD_CONFIG_NAME",
         )
 
-        # Temporary add dataset
+        # TODO: Temporary add dataset - removed later
         job.dataset = DatasetFactory(is_processing=False)
 
         # Before submission, the job instance should not have an ID
@@ -64,7 +64,7 @@ class TestJob(TestCase):
         self.assertIsInstance(saved_job.submitted_at, datetime)
 
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_job_not_called(self, mock_batch_submit_job):
+    def test_submit_not_called(self, mock_batch_submit_job):
         # Set up an already submitted job
         job = JobFactory(state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False))
 
