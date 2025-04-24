@@ -4,12 +4,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
 
+from django.conf import settings
 from django.db import models
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, metadata_file, readme_file
+from scpca_portal import ccdl_datasets, common, metadata_file, readme_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -114,7 +115,7 @@ class Dataset(TimestampedModel):
 
     @classmethod
     def get_or_find_ccdl_dataset(
-        cls, ccdl_name, project_id: str | None = None
+        cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
     ) -> tuple[Self, bool]:
         if dataset := cls.objects.filter(
             is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
@@ -146,19 +147,28 @@ class Dataset(TimestampedModel):
             if modality := self.ccdl_type.get("modality"):
                 samples = samples.filter(libraries__modality=modality)
 
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL.value)
-            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL.value)
+            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
+            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
 
             data[project.scpca_id] = {
                 "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: list(
+                Modalities.SINGLE_CELL: list(
                     single_cell_samples.values_list("scpca_id", flat=True)
                 ),
-                Modalities.SPATIAL.value: list(spatial_samples.values_list("scpca_id", flat=True)),
+                Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
             }
 
         return data
+
+    def get_samples(self, project_id: str, modality: Modalities) -> Iterable[Sample]:
+        """
+        Takes project's scpca_id and a modality.
+        Returns Sample instances defined in data attribute.
+        """
+        if sample_ids := self.data.get(project_id, {}).get(modality, []):
+            return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
+        return Sample.objects.none()
 
     def on_uncaught_failure(self, failure_reason: str) -> Self:
         """
@@ -181,15 +191,22 @@ class Dataset(TimestampedModel):
         return self.combined_hash != self.current_combined_hash
 
     @property
-    def libraries(self) -> Library:
+    def projects(self) -> Iterable[Project]:
+        """Returns all Project instances associated with the Dataset."""
+        if project_ids := self.data.keys():
+            return Project.objects.filter(scpca_id__in=project_ids).order_by("scpca_id")
+        return Project.objects.none()
+
+    @property
+    def libraries(self) -> Iterable[Library]:
         """Returns all of a Dataset's library, based on Data and Format attrs."""
         dataset_libraries = Library.objects.none()
 
         for project_config in self.data.values():
-            for modality in [Modalities.SINGLE_CELL.value, Modalities.SPATIAL.value]:
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
                 for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
                     sample_libraries = sample.libraries.filter(modality=modality)
-                    if self.format != DatasetFormats.METADATA.value:
+                    if self.format != DatasetFormats.METADATA:
                         sample_libraries.filter(formats__contains=[self.format])
                     dataset_libraries |= sample_libraries
 
@@ -210,7 +227,6 @@ class Dataset(TimestampedModel):
         """Returns all of a Dataset's associated OriginalFiles."""
         files = OriginalFile.objects.none()
         for project_id, project_config in self.data.items():
-
             # add spatial files
             files |= OriginalFile.downloadable_objects.filter(
                 project_id=project_id,
@@ -251,15 +267,61 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     @property
+    def original_file_local_paths(self) -> Set[Path]:
+        return {settings.INPUT_DATA_PATH / of.s3_key for of in self.original_files}
+
+    @property
+    def original_file_zip_paths(self) -> Set[Path]:
+        original_file_zip_paths = set()
+        for original_file in self.original_files:
+            # Project output paths are relative to project directory
+            output_path = original_file.s3_key_path.relative_to(
+                Path(original_file.s3_key_info.project_id_part)
+            )
+
+            # Transform merged and bulk project data files to no longer be in nested directories
+            if original_file.is_merged:
+                original_file_zip_paths.add(output_path.relative_to(common.MERGED_INPUT_DIR))
+            elif original_file.is_bulk:
+                original_file_zip_paths.add(output_path.relative_to(common.BULK_INPUT_DIR))
+            # Nest sample reports into individual_reports directory in merged download
+            # The merged summmary html file should not go into this directory
+            elif self.ccdl_type.get("includes_merged", False) and original_file.is_supplementary:
+                original_file_zip_paths.add(Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path)
+            else:
+                original_file_zip_paths.add(output_path)
+
+        if Project.objects.filter(
+            scpca_id__in=self.data.keys(), has_multiplexed_data=True
+        ).exists():
+            # Delimeter must be exchanged if file has multiplexed samples
+            return {
+                utils.path_replace(
+                    zip_file_path,
+                    common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
+                    common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+                )
+                for zip_file_path in original_file_zip_paths
+            }
+
+        return original_file_zip_paths
+
+    @property
+    def metadata_file_name(self) -> str:
+        """Return metadata file name according to passed modality."""
+        base_name = "metadata.tsv"
+        if modality := self.ccdl_type.get("modality"):
+            return f"{modality.lower()}_{base_name}"
+        return base_name
+
+    @property
     def metadata_file_contents(self) -> str:
         libraries_metadata = Library.get_libraries_metadata(self.libraries)
         return metadata_file.get_file_contents(libraries_metadata)
 
     @property
     def readme_file_contents(self) -> str:
-        return readme_file.get_file_contents(
-            self.ccdl_type, Project.objects.filter(scpca_id__in=self.data.keys())
-        )
+        return readme_file.get_file_contents_dataset(self)
 
     @property
     def current_data_hash(self) -> str:
@@ -280,14 +342,11 @@ class Dataset(TimestampedModel):
     @property
     def current_readme_hash(self) -> str:
         """Computes and returns the current readme hash."""
-        ##########
-        # Return 1 until readme_file.get_file_contents is refactored to handle ccdl dataset type
-        ##########
-        # # remove first line which contains date
-        # readme_file_contents_no_date = self.readme_file_contents.split("\n", 1)[1].strip()
-        # readme_file_contents_no_date_bytes = readme_file_contents_no_date.encode("utf-8")
-        # return hashlib.md5(readme_file_contents_no_date_bytes).hexdigest()
-        return hashlib.md5(b"1").hexdigest()
+        # the first line in the readme file contains the current date
+        # we must remove this before hashing
+        readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
+        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
+        return hashlib.md5(readme_file_contents_bytes).hexdigest()
 
     @property
     def combined_hash(self) -> str:
@@ -310,9 +369,51 @@ class Dataset(TimestampedModel):
         if not self.libraries:
             return False
 
-        return Project.objects.filter(
-            scpca_id__in=self.data.keys(), **self.ccdl_type.get("constraints", {})
-        )
+        return self.projects.filter(**self.ccdl_type.get("constraints", {}))
+
+    @property
+    def computed_file_local_path(self) -> Path:
+        return settings.OUTPUT_DATA_PATH / str(self.pk)
+
+    @property
+    def spatial_projects(self) -> Iterable[Project]:
+        if self.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
+            return Project.objects.none()
+
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(Modalities.SPATIAL, [])
+        ]:
+            return self.projects.filter(scpca_id__in=project_ids)
+
+        return Project.objects.none()
+
+    @property
+    def single_cell_projects(self) -> Iterable[Project]:
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(Modalities.SINGLE_CELL)
+        ]:
+            return Project.objects.filter(scpca_id__in=project_ids)
+
+        return Project.objects.none()
+
+    @property
+    def bulk_single_cell_projects(self) -> Iterable[Project]:
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(DatasetDataProjectConfig.INCLUDES_BULK)
+        ]:
+            return Project.objects.filter(scpca_id__in=project_ids)
+
+        return Project.objects.none()
+
+    @property
+    def cite_seq_projects(self) -> Iterable[Project]:
+        return self.projects.filter(has_cite_seq_data=True)
 
 
 class DataValidator:

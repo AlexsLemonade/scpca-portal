@@ -1,4 +1,3 @@
-import hashlib
 from pathlib import Path
 from unittest.mock import PropertyMock, patch
 
@@ -491,7 +490,10 @@ class TestDataset(TestCase):
         mock_original_files = OriginalFile.objects.filter(s3_key__in=mock_file_hashes.keys())
 
         with patch.object(
-            Dataset, "original_files", new_callable=PropertyMock, return_value=mock_original_files
+            Dataset,
+            "original_files",
+            new_callable=PropertyMock,
+            return_value=mock_original_files,
         ):
             dataset = Dataset()
             expected_data_hash = "c60e50797610f0063688a0830b0a727e"
@@ -509,15 +511,8 @@ class TestDataset(TestCase):
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
         dataset = Dataset(data=data, format=format)
 
-        metadata_file_name = "metadata_file_single_cell_single_cell_experiment_SCPCP999990.tsv"
-        with open(
-            f"scpca_portal/test/expected_values/{metadata_file_name}", encoding="utf-8"
-        ) as file:
-            metadata_file_contents = file.read().replace("\n", "\r\n")
-            file_hash = hashlib.md5(metadata_file_contents.encode("utf-8")).hexdigest()
-            self.assertEqual(dataset.current_metadata_hash, file_hash)
-            expected_metadata_hash = "14540bede594d7e0808a68924a0ed25c"
-            self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
+        expected_metadata_hash = "14540bede594d7e0808a68924a0ed25c"
+        self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
     def test_current_readme_hash(self):
         data = {
@@ -528,22 +523,10 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: [],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
         dataset = Dataset(
-            data=data, format=format, ccdl_name=CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
+            data=data,
+            format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
+            ccdl_name=CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT,
         )
-        # readme_file_name = "readme_file_single_cell_single_cell_experiment_SCPCP999990.md"
-        # with open(
-        #     f"scpca_portal/test/expected_values/{readme_file_name}", encoding="utf-8"
-        # ) as file:
-        #     readme_file_contents = file.read()
-        #     # remove first line which contains date
-        #     readme_file_contents_no_date = readme_file_contents.split("\n", 1)[1].strip()
-        #     readme_file_contents_no_date_bytes = readme_file_contents_no_date.encode("utf-8")
-        #     file_hash = hashlib.md5(readme_file_contents_no_date_bytes).hexdigest())
-        #     self.assertEqual(dataset.current_readme_hash,
-        #########
-        # Test current_readme_hash equals default `1` until readme_file.get_file_contents refactored
-        #########
-        expected_readme_hash = "c4ca4238a0b923820dcc509a6f75849b"
+        expected_readme_hash = "93ce0b3571f15cd41db81d9e25dcb873"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
