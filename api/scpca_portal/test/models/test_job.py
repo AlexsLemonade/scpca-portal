@@ -362,7 +362,7 @@ class TestJob(TestCase):
         for _ in range(3):
             JobFactory(state=JobStates.SUBMITTED, dataset=DatasetFactory(is_processing=True))
 
-        # Should call terminated_job 3 times for submitted, incompleted jobs
+        # Should call terminate_job 3 times for submitted, incompleted jobs
         response = Job.terminate_submitted()
         mock_batch_terminate_job.assert_called()
         self.assertEqual(mock_batch_terminate_job.call_count, 3)
@@ -396,7 +396,7 @@ class TestJob(TestCase):
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_submitted_no_termination(self, mock_batch_terminate_job):
         # Set up jobs that are already terminated or completed
-        for state in [JobStates.COMPLETED, JobStates.TERMINATED]:
+        for state in [JobStates.FAILED, JobStates.TERMINATED]:
             JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
         mock_batch_terminate_job.return_value = []
 
@@ -408,8 +408,8 @@ class TestJob(TestCase):
     def test_get_retry_job(self):
         # Set up a non-terminated job
         job = JobFactory(
-            dataset=DatasetFactory(),
             state=JobStates.SUBMITTED,
+            dataset=DatasetFactory(is_processing=True),
         )
 
         # After execution, the call should returns None
@@ -418,6 +418,7 @@ class TestJob(TestCase):
 
         # Change the job state to TERMINATED
         job.state = JobStates.TERMINATED
+        job.retry_on_termination = True
 
         # Set up mock field values for base terminated jobs
         job.batch_job_name = "BATCH_JOB_NAME"
@@ -430,6 +431,10 @@ class TestJob(TestCase):
         # After execution, the call should returns a new unsaved instance for retry
         retry_job = job.get_retry_job()
         self.assertIsNone(retry_job.id)  # Should not have an ID
+        # Base job's retry_on_termination should update to prevent duplicate retry
+        self.assertFalse(
+            Job.objects.filter(state=JobStates.TERMINATED).first().retry_on_termination
+        )
         # Should correctly copy the exsiting field values
         self.assertEqual(retry_job.batch_job_name, job.batch_job_name)
         self.assertEqual(retry_job.batch_job_definition, job.batch_job_definition)
@@ -453,6 +458,7 @@ class TestJob(TestCase):
                 batch_container_overrides=batch_container_overrides,
                 attempt=attempt,
                 retry_on_termination=True,
+                dataset=DatasetFactory(is_processing=False),
             )
             for _ in range(3)
         ]
@@ -471,9 +477,14 @@ class TestJob(TestCase):
 
         for job in saved_retry_jobs:
             self.assertEqual(job.state, JobStates.CREATED)
+            self.assertFalse(job.retry_on_termination)  # Should update to prevent duplicate retry
             # Should correctly copy the base instance's field values
             self.assertEqual(job.batch_job_name, batch_job_name)
             self.assertEqual(job.batch_job_definition, batch_job_definition)
             self.assertEqual(job.batch_job_queue, batch_job_queue)
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
             self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
+
+        # Base job's retry_on_termination should update to prevent duplicate retry
+        for base_terminated_job in Job.objects.filter(state=JobStates.TERMINATED):
+            self.assertFalse(base_terminated_job.retry_on_termination)

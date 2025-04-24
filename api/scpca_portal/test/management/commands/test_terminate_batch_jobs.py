@@ -34,9 +34,12 @@ class TestTerminateBatchJobs(TestCase):
     def test_terminate_batch_jobs(self, mock_batch_terminate_job):
         # Set up 3 SUBMITTED jobs
         for _ in range(3):
-            JobFactory(state=JobStates.SUBMITTED, dataset=DatasetFactory(is_processing=True))
+            JobFactory(
+                state=JobStates.SUBMITTED,
+                dataset=DatasetFactory(is_processing=True),
+            )
 
-        # Should call terminated_job 3 times
+        # Should call terminate_job 3 times
         self.terminate_batch_jobs()
         self.assertEqual(mock_batch_terminate_job.call_count, 3)
 
@@ -45,17 +48,21 @@ class TestTerminateBatchJobs(TestCase):
 
         for saved_job in saved_jobs:
             self.assertEqual(saved_job.state, JobStates.TERMINATED)
-            # Associated dataset should be updated
+            self.assertIsInstance(saved_job.completed_at, datetime)
+            self.assertEqual(saved_job.failure_reason, "Terminated SUBMITTED")
             self.assertDatasetState(saved_job.dataset, is_processing=False)
 
         # Set up additinoal 3 SUBMITTED jobs
         for _ in range(3):
-            JobFactory(state=JobStates.SUBMITTED, dataset=DatasetFactory(is_processing=True))
+            JobFactory(
+                state=JobStates.SUBMITTED,
+                dataset=DatasetFactory(is_processing=True),
+            )
 
         # Before the call, only 3 TERMINATED jobs are in the db
         self.assertEqual(Job.objects.filter(state=JobStates.TERMINATED).count(), 3)
 
-        # Should call terminated_job 3 times
+        # Should call terminate_job 3 times (for the new jobs)
         self.terminate_batch_jobs(no_retry=False)  # Create new retry jobs
         self.assertEqual(mock_batch_terminate_job.call_count, 6)  # prev (3) + new (3)
 
@@ -67,14 +74,10 @@ class TestTerminateBatchJobs(TestCase):
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_batch_jobs_not_called(self, mock_batch_terminate_job):
-        # Set up 3 COMPLETED jobs
+        # Set up 3 SUCCEEDED jobs
         for _ in range(3):
-            JobFactory(state=JobStates.COMPLETED, dataset=DatasetFactory(is_processing=False))
+            JobFactory(state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False))
 
-        # Should not call terminated_job
+        # Should not call terminate_job
         self.terminate_batch_jobs()
         mock_batch_terminate_job.assert_not_called()
-
-        # COMPLETED job should remian unchanged
-        for job in Job.objects.all():
-            self.assertEqual(job.state, JobStates.COMPLETED)

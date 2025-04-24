@@ -170,6 +170,7 @@ class Job(TimestampedModel):
             terminated_job.retry_on_termination = False
             retry_jobs.append(terminated_job.get_retry_job())
 
+        cls.bulk_update_state(terminated_jobs)
         cls.objects.bulk_create(retry_jobs)
 
         return retry_jobs
@@ -204,34 +205,32 @@ class Job(TimestampedModel):
         saves the changes to the db on success.
         Returns all the terminated jobs.
         """
+        failure_reason = "Terminated SUBMITTED"
         terminated_jobs = []
-        updated_datasets = []
 
         if jobs := cls.objects.filter(state=JobStates.SUBMITTED):
             for job in jobs:
                 if batch.terminate_job(job):
-                    job.state = JobStates.TERMINATED.value
-                    job.completed_at = make_aware(datetime.now())
+                    job.state = JobStates.TERMINATED
+                    job.failure_reason = failure_reason
+                    job.apply_state_at()
                     terminated_jobs.append(job)
-                    job.dataset.is_processing = False
-                    updated_datasets.append(job.dataset)
 
-            Job.objects.bulk_update(terminated_jobs, ["state", "completed_at"])
-            Dataset.objects.bulk_update(updated_datasets, ["is_processing"])
+            cls.bulk_update_state(terminated_jobs)
 
         return terminated_jobs
 
     @classmethod
-    def bulk_update_state(cls, synced_jobs: List[Self]):
+    def bulk_update_state(cls, jobs: List[Self]):
         """
-        Updates the states of the synced jobs and their associated datasets.
+        Bulk updates states of the given jobs and their associated datasets.
         """
         cls.objects.bulk_update(
-            synced_jobs,
-            ["state", "failure_reason", "completed_at"],
+            jobs,
+            ["state", "failure_reason", "retry_on_termination", "completed_at"],
         )
 
-        Dataset.apply_last_jobs(synced_jobs)
+        Dataset.apply_last_jobs(jobs)
 
     @classmethod
     def bulk_sync_state(cls) -> bool:
@@ -334,15 +333,16 @@ class Job(TimestampedModel):
         if self.state in FINAL_JOB_STATES:
             return self.state == JobStates.TERMINATED
 
+        failure_reason = "Terminated SUBMITTED"
+
         if batch.terminate_job(self):
             self.state = JobStates.TERMINATED
+            self.failure_reason = failure_reason
             self.retry_on_termination = retry_on_termination
-            self.completed_at = make_aware(datetime.now())
+            self.apply_state_at()
 
-            self.dataset.is_processing = False
+            Job.bulk_update_state([self])
 
-            self.save()
-            self.dataset.save()
             return True
 
         return False
@@ -358,6 +358,9 @@ class Job(TimestampedModel):
         # TODO: How should we handle attempting critically failed jobs?
         # if self.critical_error:
         #     return None
+
+        self.retry_on_termination = False
+        Job.bulk_update_state([self])
 
         return Job(
             attempt=self.attempt + 1,
