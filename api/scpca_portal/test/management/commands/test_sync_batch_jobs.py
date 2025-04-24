@@ -13,11 +13,6 @@ from scpca_portal.test.factories import DatasetFactory, JobFactory
 class TestSyncBatchJobs(TestCase):
     def setUp(self):
         self.sync_batch_jobs = partial(call_command, "sync_batch_jobs")
-        # Set up mock jobs
-        self.jobs = [
-            JobFactory(state=JobStates.SUBMITTED, dataset=DatasetFactory(is_processing=True))
-            for _ in range(8)
-        ]
 
     def assertDatasetState(self, dataset, is_processing, is_errored, errored_at, error_message):
         """
@@ -35,6 +30,24 @@ class TestSyncBatchJobs(TestCase):
 
     @patch("scpca_portal.batch.get_jobs")
     def test_sync_batch_jobs(self, mock_batch_get_jobs):
+        # Set up mock jobs
+        self.jobs = [
+            JobFactory(
+                state=JobStates.SUBMITTED,
+                batch_job_id=batch_job_id,
+                dataset=DatasetFactory(is_processing=True),
+            )
+            for batch_job_id in [
+                "MOCK_JOB_ID_0",
+                "MOCK_JOB_ID_1",
+                "MOCK_JOB_ID_2",
+                "MOCK_JOB_ID_3",
+                "MOCK_JOB_ID_4",
+                "MOCK_JOB_ID_5",
+                "MOCK_JOB_ID_6",
+                "MOCK_JOB_ID_7",
+            ]
+        ]
         # Set up mock for get_jobs
         mock_response = [{"jobId": job.batch_job_id} for job in self.jobs]
         # All AWS Batch job statuses (7) + FAILED & terminated job (1)
@@ -43,9 +56,9 @@ class TestSyncBatchJobs(TestCase):
         mock_response[2]["status"] = "RUNNABLE"
         mock_response[3]["status"] = "STARTING"
         mock_response[4]["status"] = "RUNNING"
-        mock_response[5]["status"] = "SUCCEEDED"  # MOCK_JOB_ID_005
-        mock_response[6]["status"] = "FAILED"  # MOCK_JOB_ID_006
-        mock_response[7]["status"] = "FAILED"  # MOCK_JOB_ID_007
+        mock_response[5]["status"] = "SUCCEEDED"  # MOCK_JOB_ID_5
+        mock_response[6]["status"] = "FAILED"  # MOCK_JOB_ID_6
+        mock_response[7]["status"] = "FAILED"  # MOCK_JOB_ID_7
         mock_response[7]["isTerminated"] = True
         mock_response = [{**job, "statusReason": f"Job {job['status']}"} for job in mock_response]
         mock_batch_get_jobs.return_value = mock_response
@@ -68,7 +81,7 @@ class TestSyncBatchJobs(TestCase):
         )
 
         # SUCCEEDED job state and dataset should be updated
-        succeeded_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_005").first()
+        succeeded_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_5").first()
         self.assertEqual(succeeded_job.state, JobStates.SUCCEEDED)
         self.assertIsNone(succeeded_job.failure_reason)
         self.assertDatasetState(
@@ -80,7 +93,7 @@ class TestSyncBatchJobs(TestCase):
         )
 
         # FAILED job state and dataset should be updated with failed reason
-        failed_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_006").first()
+        failed_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_6").first()
         self.assertEqual(failed_job.state, JobStates.FAILED)
         self.assertIsNotNone(failed_job.failure_reason)
         self.assertDatasetState(
@@ -92,7 +105,7 @@ class TestSyncBatchJobs(TestCase):
         )
 
         # TERMINATED job state and dataset should be updated
-        terminated_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_007").first()
+        terminated_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_7").first()
         self.assertEqual(terminated_job.state, JobStates.TERMINATED)
         self.assertIsNotNone(failed_job.failure_reason)
         self.assertDatasetState(
