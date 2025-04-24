@@ -110,6 +110,8 @@ class TestGetFile(TestCase):
             self.assertEqual(getattr(computed_file, attribute), value, msg)
 
     def test_original_file_zip_paths(self):
+        self.maxDiff = None
+
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,

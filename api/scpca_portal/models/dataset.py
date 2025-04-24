@@ -248,37 +248,12 @@ class Dataset(TimestampedModel):
         for project_id, project_config in self.data.items():
             original_file_zip_paths_project = set()
             for original_file in original_files.filter(project_id=project_id):
-                # Project output paths are relative to project directory
-                output_path = original_file.s3_key_path.relative_to(
-                    Path(original_file.s3_key_info.project_id_part)
-                )
+                zip_file_path = original_file.zip_file_path_dataset
+                if project_config["merge_single_cell"]:
+                    if merged_file_path := original_file.zip_file_path_merged_dataset:
+                        zip_file_path = merged_file_path
 
-                if original_file.is_merged:
-                    parent_dir = Path(f"{original_file.project_id}_single-cell_merged")
-                    original_file_zip_paths_project.add(
-                        parent_dir / output_path.relative_to(common.MERGED_INPUT_DIR)
-                    )
-                # Nest sample reports into individual_reports directory in merged folder
-                # The merged summmary html file should not go into this directory
-                elif project_config["merge_single_cell"] and original_file.is_supplementary:
-                    parent_dir = Path(f"{original_file.project_id}_single-cell_merged")
-                    original_file_zip_paths_project.add(
-                        parent_dir / Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path
-                    )
-                elif original_file.is_bulk:
-                    parent_dir = Path(f"{original_file.project_id}_bulk_rna")
-                    original_file_zip_paths_project.add(
-                        parent_dir / output_path.relative_to(common.BULK_INPUT_DIR)
-                    )
-                else:
-                    modality = (
-                        Modalities.SINGLE_CELL.value
-                        if original_file.is_single_cell
-                        else Modalities.SPATIAL.value
-                    )
-                    formatted_modality = modality.lower().replace("_", "-")
-                    parent_dir = Path(f"{original_file.project_id}_{formatted_modality}")
-                    original_file_zip_paths_project.add(parent_dir / output_path)
+                original_file_zip_paths_project.add(zip_file_path)
 
             if (
                 self.get_samples(project_id, Modalities.SINGLE_CELL)
