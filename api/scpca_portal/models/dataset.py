@@ -276,7 +276,8 @@ class Dataset(TimestampedModel):
                         if original_file.is_single_cell
                         else Modalities.SPATIAL.value
                     )
-                    parent_dir = Path(f"{original_file.project_id}_{modality.lower()}")
+                    formatted_modality = modality.lower().replace("_", "-")
+                    parent_dir = Path(f"{original_file.project_id}_{formatted_modality}")
                     original_file_zip_paths_project.add(parent_dir / output_path)
 
             if (
