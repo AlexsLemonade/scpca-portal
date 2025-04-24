@@ -69,7 +69,7 @@ class TestSyncBatchJobs(TestCase):
 
         # Succeeded COMPLETED job state and dataset should be updated
         succeeded_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_005").first()
-        self.assertEqual(succeeded_job.state, JobStates.COMPLETED)
+        self.assertEqual(succeeded_job.state, JobStates.SUCCEEDED)
         self.assertIsNone(succeeded_job.failure_reason)
         self.assertDatasetState(
             succeeded_job.dataset,
@@ -81,20 +81,20 @@ class TestSyncBatchJobs(TestCase):
 
         # Failed COMPLETED job state and dataset should be updated with failed reason
         failed_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_006").first()
-        self.assertEqual(failed_job.state, JobStates.COMPLETED)
+        self.assertEqual(failed_job.state, JobStates.FAILED)
         self.assertIsNotNone(failed_job.failure_reason)
         self.assertDatasetState(
             failed_job.dataset,
             is_processing=False,
             is_errored=True,
             errored_at=failed_job.dataset.errored_at,
-            error_message=failed_job.failure_reason,
+            error_message="Job FAILED",
         )
 
         # TERMINATED job state and dataset should be updated
         terminated_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_007").first()
         self.assertEqual(terminated_job.state, JobStates.TERMINATED)
-        self.assertIsNone(terminated_job.failure_reason)
+        self.assertIsNotNone(failed_job.failure_reason)
         self.assertDatasetState(
             terminated_job.dataset,
             is_processing=False,
