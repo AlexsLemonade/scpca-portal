@@ -135,3 +135,10 @@ class TestGetFile(TestCase):
         dataset.save()
 
         ComputedFile.get_dataset_file(dataset)
+
+        with ZipFile(dataset.computed_file_local_path) as project_zip:
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                sorted(test_data.DatasetCustomSingleCellExperiment.COMPUTED_FILE_LIST),
+            )
