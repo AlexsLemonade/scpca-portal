@@ -12,7 +12,7 @@ from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
 
-FINAL_JOB_STATES = [JobStates.COMPLETED, JobStates.TERMINATED]
+FINAL_JOB_STATES = [JobStates.SUCCEEDED, JobStates.FAILED, JobStates.TERMINATED]
 
 
 class Job(TimestampedModel):
