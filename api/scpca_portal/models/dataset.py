@@ -15,6 +15,7 @@ from scpca_portal.enums import (
     CCDLDatasetNames,
     DatasetDataProjectConfig,
     DatasetFormats,
+    JobStates,
     Modalities,
 )
 from scpca_portal.models.api_token import APIToken
@@ -93,6 +94,25 @@ class Dataset(TimestampedModel):
         return f"Dataset {self.id}"
 
     @classmethod
+    def apply_last_jobs(cls, synced_jobs: Iterable):
+        """
+        Bulk updates the states based on the given latest synced jobs.
+        Each dataset is marked as errored if its corresponding job has failed.
+        """
+        synced_datasets = []
+
+        for job in synced_jobs:
+            if job.state == JobStates.FAILED:
+                job.dataset.on_uncaught_failure(job.failure_reason)
+
+            job.dataset.is_processing = False
+            synced_datasets.append(job.dataset)
+
+        cls.objects.bulk_update(
+            synced_datasets, ["is_processing", "is_errored", "errored_at", "error_message"]
+        )
+
+    @classmethod
     def get_or_find_ccdl_dataset(
         cls, ccdl_name, project_id: str | None = None
     ) -> tuple[Self, bool]:
@@ -141,7 +161,10 @@ class Dataset(TimestampedModel):
         return data
 
     def on_uncaught_failure(self, failure_reason: str) -> Self:
-        self.is_processing = False
+        """
+        Handles an uncaught job failure detected during job state syncing
+        by marking itself as errored.
+        """
         self.is_errored = True
         self.errored_at = make_aware(datetime.now())
         self.error_message = failure_reason
