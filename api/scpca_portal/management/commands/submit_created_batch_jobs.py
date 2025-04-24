@@ -23,4 +23,4 @@ class Command(BaseCommand):
         if submitted_jobs:
             logger.info("Successfully submitted jobs to AWS Batch!")
         else:
-            logger.info("No job were submitted to AWS Batch")
+            logger.info("No jobs were submitted to AWS Batch")
