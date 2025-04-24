@@ -299,7 +299,7 @@ class Dataset(TimestampedModel):
 
     @property
     def metadata_file_map(self) -> Dict[str, str]:
-        metadata_map = {}
+        metadata_file_map = {}
         for project_id, project_config in self.data.items():
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
                 if not project_config[modality.value]:
@@ -309,9 +309,9 @@ class Dataset(TimestampedModel):
                 metadata_contents = self.get_metadata_file_contents(
                     self.get_sample_libraries(project_id, modality)
                 )
-                metadata_map[metadata_path] = metadata_contents
+                metadata_file_map[metadata_path] = metadata_contents
 
-        return metadata_map
+        return metadata_file_map
 
     def get_metadata_file_path(self, project_id: str, modality: Modalities) -> Path:
         """Return metadata file path, modality name inside of project_modality directory."""
@@ -344,7 +344,7 @@ class Dataset(TimestampedModel):
     @property
     def current_metadata_hash(self) -> str:
         """Computes and returns the current metadata hash."""
-        all_metadata_file_contents = "".join(sorted(self.metadata_map.values()))
+        all_metadata_file_contents = "".join(sorted(self.metadata_file_map.values()))
         all_metadata_file_contents_bytes = all_metadata_file_contents.encode("utf-8")
         return hashlib.md5(all_metadata_file_contents_bytes).hexdigest()
 
