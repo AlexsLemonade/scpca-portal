@@ -189,7 +189,7 @@ class SampleSerializer(SampleLeafSerializer):
     computed_files = ComputedFileSerializer(read_only=True, many=True)
 
 
-class DatasetSerializer:
+class DatasetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
         fields = (
