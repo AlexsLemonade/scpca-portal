@@ -118,7 +118,7 @@ class Project_SCPCP999992:
                 "SCPCP999992/SCPCS999996/SCPCL999996_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "development",
+            "workflow_version": "v0.8.7",
         }
 
     class Library_SCPCL999998:
@@ -145,7 +145,7 @@ class Project_SCPCP999992:
                 "SCPCP999992/SCPCS999998/SCPCL999998_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "development",
+            "workflow_version": "v0.8.7",
         }
 
     class Summary1:

@@ -138,7 +138,7 @@ class Project_SCPCP999991:
                 "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_unfiltered.rds",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "development",
+            "workflow_version": "v0.8.7",
         }
 
     class Library_SCPCL999995:
@@ -161,7 +161,7 @@ class Project_SCPCP999991:
             "has_cite_seq_data": False,
             "is_multiplexed": False,
             "scpca_id": SCPCA_ID,
-            "workflow_version": "development",
+            "workflow_version": "v0.8.7",
         }
 
     class Summary1:
