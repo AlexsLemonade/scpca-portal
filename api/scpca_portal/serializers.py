@@ -14,6 +14,7 @@ from rest_framework import serializers
 from scpca_portal.models import (
     ComputedFile,
     Contact,
+    Dataset,
     ExternalAccession,
     Project,
     ProjectSummary,
@@ -186,3 +187,34 @@ class SampleLeafSerializer(serializers.ModelSerializer):
 
 class SampleSerializer(SampleLeafSerializer):
     computed_files = ComputedFileSerializer(read_only=True, many=True)
+
+
+class DatasetSerializer:
+    class Meta:
+        model = Dataset
+        fields = (
+            "id",
+            "data",
+            "email",
+            "start",
+            "format",
+            "regenerated_from",
+            "data_hash",
+            "metadata_hash",
+            "readme_hash",
+            "is_ccdl",
+            "ccdl_name",
+            "ccdl_project_id",
+            "started_at",
+            "is_started",
+            "is_processing",
+            "processed_at",
+            "is_processed",
+            "errored_at",
+            "is_errored",
+            "error_message",
+            "expires_at",
+            "is_expired",
+            "computed_file",
+            "regenerated_datasets",
+        )
