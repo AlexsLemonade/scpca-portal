@@ -45,7 +45,7 @@ class Project_SCPCP999991:
         VALUES = {
             "age": "2",
             "age_timing": "unknown",
-            "demux_cell_count_estimate_sum": 0,
+            "demux_cell_count_estimate_sum": 100,
             "diagnosis": "diagnosis4",
             "disease_timing": "Initial diagnosis",
             "has_bulk_rna_seq": False,
@@ -72,7 +72,7 @@ class Project_SCPCP999991:
         VALUES = {
             "age": "2",
             "age_timing": "diagnosis",
-            "demux_cell_count_estimate_sum": 0,
+            "demux_cell_count_estimate_sum": 110,
             "diagnosis": "diagnosis3",
             "disease_timing": "Initial diagnosis",
             "has_bulk_rna_seq": False,
@@ -111,7 +111,7 @@ class Project_SCPCP999991:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 3428,
+            "sample_cell_count_estimate": 3424,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": "cell",
