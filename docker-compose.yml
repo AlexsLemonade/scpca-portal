@@ -1,3 +1,7 @@
+networks:
+  default:
+    name: scpca_portal
+
 services:
   postgres:
     image: postgres:11.6
