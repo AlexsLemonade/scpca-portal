@@ -15,7 +15,7 @@ class Local(Common):
     UPDATE_S3_DATA = False
 
     # AWS
-    AWS_REGION = None
+    AWS_REGION = "us-east-1"
 
     # AWS S3
     AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-inputs"
