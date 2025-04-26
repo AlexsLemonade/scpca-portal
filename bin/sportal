@@ -2,66 +2,151 @@
 
 import argparse
 import os
+import subprocess
 from pathlib import Path
+from enum import Enum
+
+
+class Colors(Enum):
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    MAGENTA = "\033[35m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
+    RESET = "\033[0m"  # Resets to default color
+
+
+def print_color(msg, color: Colors = Colors.GREEN):
+    print(f"{color.value}{msg}{Colors.RESET.value}")
+
 
 # Exit if not called from project root.
 if not Path("bin/sportal").exists():
     print("Please call sportal from the project's root")
-    exit()
+    exit(1)
 
-# Every docker-compose run api command looks like this.
-run_api = (
-    # Docker compose uses the current directory in the network name. We
-    # need to pass the network name into containers, so we have to know what it is.
-    f"API_NETWORK={Path.cwd().name}_default "
-    f"docker compose --env-file ./docker-compose.env run --rm api {{}}"
-)
+# Use the correct .env file by default.
+docker_compose = ["docker", "compose", "--env-file", "./docker-compose.env"]
+run_api = docker_compose + ["run", "--rm", "api"]
+manage_py = run_api + ["python3", "manage.py"]
 
 # List of available commands.
 commands = {
-    "up": "docker compose --env-file ./docker-compose.env up",
-    "down": "docker compose --env-file ./docker-compose.env down",
-    "build": "docker compose --env-file ./docker-compose.env build",
-    "shell": run_api.format('bash -c "./manage.py shell"'),
-    "recreate-schema": "./recreate_schema.sh",
-    "test-api": run_api.format('bash -c "./run_tests.sh {}"'),
-    "makemigrations": run_api.format('bash -c "./manage.py makemigrations scpca_portal {}"'),
-    "migrate": run_api.format('bash -c "./manage.py migrate {}"'),
-    "showmigrations": run_api.format('bash -c "./manage.py showmigrations {}"'),
-    "postgres-cli": "./run_psql_client.sh",
-    "graph-models": run_api.format("./manage.py graph_models scpca_portal > models.dot"),
+    "up": docker_compose + ["up"],
+    "down": docker_compose + ["down"],
+    "build": docker_compose + ["build"],
+    "shell": manage_py + ["shell"],
+    "recreate-schema": [
+        "./recreate_schema.sh"
+    ],  # this should be imported unless something else uses it
+    "test-api": run_api + ["bash", "./run_tests.sh"],
+    "makemigrations": manage_py + ["makemigrations", "scpca_portal"],
+    "migrate": manage_py + ["migrate"],
+    "showmigrations": manage_py + ["showmigrations"],
+    "postgres-cli": ["/run_psql_client.sh"],
+    "graph-models": manage_py + ["graph_models", "scpca_portal", ">", "models.dot"],
     "run-api": run_api,
-    "manage-api": run_api.format("./manage.py {}"),
-    "create-portal-metadata": run_api.format("./manage.py create_portal_metadata {}"),
-    "load-data": run_api.format("./manage.py load_data {}"),
-    "load-metadata": run_api.format("./manage.py load_metadata {}"),
-    "generate-computed-files": run_api.format("./manage.py generate_computed_files {}"),
-    "sync-original-files": run_api.format("./manage.py sync_original_files {}"),
-    "run-black": run_api.format("black --line-length=100 --exclude=volumes_postgres ."),
-    "env": "cat ./docker-compose.env",
-    "configure-aws-cli": run_api.format("./manage.py configure_aws_cli {}"),
+    "manage-api": manage_py,
+    "create-portal-metadata": manage_py + ["create_portal_metadata"],
+    "load-data": manage_py + ["load_data"],
+    "load-metadata": manage_py + ["load_metadata"],
+    "generate-computed-files": manage_py + ["generate_computed_files"],
+    "sync-original-files": manage_py + ["sync_original_files"],
+    "run-black": ["black", "--line-length=100", "--exclude=volumes_postgres", "."],
+    "env": ["cat", "./docker-compose.env"],
+    "configure-aws-cli": manage_py + ["configure_aws_cli"],
 }
 
 parser = argparse.ArgumentParser(
+    usage="sportal [--sso PROFILE_NAME] [command] [...comman_args]] [--help]",
     description="ScPCA Portal Helper Commands. Expected to be called from project root.",
-    usage="sportal [command] [command and args for run-api or manage-api]",
 )
-parser.add_argument("command", help="The command you want to run", choices=commands)
+parser.formatter_class = lambda prog: argparse.RawTextHelpFormatter(
+    prog, max_help_position=10
+)
+parser.add_argument("--sso", help="The AWS SSO profile to use for this command")
+parser.add_argument(
+    "command",
+    metavar="command",
+    help='\n'.join(commands.keys()),
+)
 parser.add_argument(
     "command_args",
-    help="The command and args for manage-api or run-api",
     nargs=argparse.REMAINDER,
+    help="Any additional arguments will be passed to the command.",
 )
-args = parser.parse_args()
 
-try:
-    command = commands[args.command]
-    waitstatus = os.system(command.format(" ".join(args.command_args)))
 
-    # The exit code of this script matches the command it called.
-    # os.system() outputs a waitstatus instead of an exitcode.
-    # In python3.9 this becomes the much more sane
-    # os.waitstatus_to_exitcode() function.
-    exit(os.WEXITSTATUS(waitstatus))
-except KeyError:
-    print("Unknown Command")
+def get_aws_env_from_profile(profile: str, merge: bool = True) -> dict:
+    """
+    Takes an AWS SSO Profile as a string.
+    Returns a dictionary of the profile credentials as env dict.
+    """
+    env = {}
+
+    if merge:
+        print("Attempting to merge AWS SSO credentials with current session envars.")
+        env = os.environ.copy()
+
+    cmd = f"aws configure export-credentials --profile {profile} --format env-no-export"
+    p = subprocess.Popen(
+        cmd,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+
+    code = p.wait()
+
+    if stdout := p.stdout:
+        output = stdout.read().decode("UTF-8")
+
+    if code != 0:
+        print(f"Failed getting credentials with: {cmd}")
+        print(f"Failed with output: {output.strip()}")
+        if code == 255:
+            print_color(
+                f"You may need to login with: aws sso login --profile {profile}",
+                Colors.RED,
+            )
+        exit(code)
+
+    for line in output.split("\n"):
+        if line:
+            key, value = line.split("=", 1)
+            env[key] = value
+    return env
+
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    env = os.environ.copy()
+
+    if args.sso:
+        print("Will attept to use AWS SSO Profile:", args.sso)
+        env = get_aws_env_from_profile(args.sso)
+        print_color("Successfully read AWS SSO credentials.", Colors.GREEN)
+    else:
+        print("Running command with no AWS SSO Profile.")
+
+    if command := commands.get(args.command):
+        cmd = command + args.command_args
+
+        print("Executing command:", " ".join(cmd))
+
+        try:
+            p = subprocess.Popen(cmd, env=env)
+            code = p.wait()
+
+            if code != 0:
+                print("Command encountered error.")
+
+            exit(code)
+        except Exception as e:
+            print_color(e, Colors.RED)
+            exit(1)
+
+    print("Unknown Command:", args.command)
+    exit(1)
