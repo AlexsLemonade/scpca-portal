@@ -274,7 +274,7 @@ class OriginalFile(TimestampedModel):
         return parent_dir / output_path
 
     @property
-    def zip_file_path_merged_dataset(self) -> Path | None:
+    def zip_file_path_merged_dataset(self) -> Path:
         # Nest sample reports into individual_reports directory in merged folder
         # The merged summmary html file should not go into this directory
         if self.is_supplementary and not self.is_merged:
@@ -283,7 +283,7 @@ class OriginalFile(TimestampedModel):
             parent_dir = Path(f"{self.project_id}_single-cell_merged")
             return parent_dir / Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path
 
-        return None
+        return self.zip_file_path_dataset
 
     @staticmethod
     def get_bucket_paths(original_files) -> Dict[Tuple, List[Path]]:
