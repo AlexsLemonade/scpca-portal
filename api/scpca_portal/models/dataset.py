@@ -8,7 +8,7 @@ from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, metadata_file, readme_file, utils
+from scpca_portal import ccdl_datasets, common, metadata_file, readme_file
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -235,37 +235,6 @@ class Dataset(TimestampedModel):
     @property
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
-
-    @property
-    def original_file_zip_map(self) -> Dict[Path, Path]:
-        original_file_zip_map = {}
-
-        original_files = self.original_files
-        for project_id, project_config in self.data.items():
-            original_file_zip_map_project = {}
-            for original_file in original_files.filter(project_id=project_id):
-                zip_file_path = original_file.zip_file_path_dataset
-                if project_config["merge_single_cell"]:
-                    if merged_file_path := original_file.zip_file_path_merged_dataset:
-                        zip_file_path = merged_file_path
-
-                local_file_path = settings.INPUT_DATA_PATH / original_file.s3_key
-                original_file_zip_map_project[local_file_path] = zip_file_path
-
-            if (
-                self.get_samples(project_id, Modalities.SINGLE_CELL)
-                .filter(has_multiplexed_data=True)
-                .exists()
-            ):
-                for local_file_path, zip_file_path in original_file_zip_map_project.items():
-                    original_file_zip_map_project[local_file_path] = utils.path_replace(
-                        zip_file_path,
-                        common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
-                        common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
-                    )
-            original_file_zip_map.update(original_file_zip_map_project)
-
-        return original_file_zip_map
 
     @property
     def metadata_file_map(self) -> Dict[str, str]:
