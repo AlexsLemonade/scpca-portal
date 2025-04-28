@@ -131,8 +131,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 zip_file.writestr(str(metadata_file_path), metadata_file_contents)
 
             # Original files
-            for local_file_path, zip_file_path in dataset.original_file_zip_map.items():
-                zip_file.write(local_file_path, zip_file_path)
+            for original_file in dataset.original_files:
+                zip_file.write(
+                    original_file.local_file_path,
+                    cls.get_original_file_zip_path(original_file, dataset),
+                )
 
         computed_file = cls(
             dataset=dataset,
