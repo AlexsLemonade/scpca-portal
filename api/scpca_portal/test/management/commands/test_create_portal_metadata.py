@@ -73,7 +73,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(computed_files.count(), 1)
         computed_file = computed_files.first()
         # Make sure the computed file size is as expected range
-        self.assertEqualWithVariance(computed_file.size_in_bytes, 8367)
+        self.assertEqualWithVariance(
+            computed_file.size_in_bytes, 8367
+        )  # TODO: add to expected_values portal wide dataset file
         # Make sure all the fields have correct values
         self.assertTrue(computed_file.metadata_only)
         self.assertTrue(computed_file.portal_metadata_only)

@@ -511,6 +511,7 @@ class TestDataset(TestCase):
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
         dataset = Dataset(data=data, format=format)
 
+        # TODO: add to expected_values dataset file (along with other hash values)
         expected_metadata_hash = "0b7dbc87e8b07426b8cc54653f99459f"
         self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
