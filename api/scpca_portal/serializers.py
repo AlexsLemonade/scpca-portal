@@ -198,7 +198,6 @@ class DatasetSerializer(serializers.ModelSerializer):
             "email",
             "start",
             "format",
-            "regenerated_from",
             "data_hash",
             "metadata_hash",
             "readme_hash",
@@ -216,5 +215,4 @@ class DatasetSerializer(serializers.ModelSerializer):
             "expires_at",
             "is_expired",
             "computed_file",
-            "regenerated_datasets",
         )
