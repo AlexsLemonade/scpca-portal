@@ -12,6 +12,7 @@ from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
+from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
 
@@ -95,6 +96,20 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         where the zipfile will be saved locally before upload."""
         if download_config is common.PORTAL_METADATA_DOWNLOAD_CONFIG:
             return settings.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
+
+    @staticmethod
+    def get_original_file_zip_path(original_file: OriginalFile, dataset) -> Path:
+        zip_file_path = (
+            original_file.zip_file_path_merged_dataset
+            if dataset.data.get(original_file.project_id, {}).get("merge_single_cell", False)
+            else original_file.zip_file_path_dataset
+        )
+        # Make sure that multiplexed sample files are adequately transformed by default
+        return utils.path_replace(
+            zip_file_path,
+            common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
+            common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+        )
 
     @classmethod
     def get_dataset_file(cls, dataset) -> Self:
