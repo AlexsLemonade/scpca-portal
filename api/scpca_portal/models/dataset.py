@@ -96,6 +96,12 @@ class Dataset(TimestampedModel):
     def __str__(self):
         return f"Dataset {self.id}"
 
+    @staticmethod
+    def reset_state(dataset: Self):
+        dataset.is_processing = False
+        dataset.is_errored = False
+        dataset.is_terminated = False
+
     @classmethod
     def get_or_find_ccdl_dataset(
         cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
@@ -219,7 +225,7 @@ class Dataset(TimestampedModel):
         Marks the dataset as successfully processed based on the given job,
         and sets is_processing to False.
         """
-        self.is_processing = False
+        Dataset.reset_state(self)
         self.is_processed = True
         self.apply_state_at(last_job)
         return self
@@ -229,7 +235,7 @@ class Dataset(TimestampedModel):
         Marks the dataset as errored and stores the error reason based on the given job,
         and sets is_processing to False.
         """
-        self.is_processing = False
+        Dataset.reset_state(self)
         self.is_errored = True
         self.error_message = last_job.failure_reason
         self.apply_state_at(last_job)
@@ -240,7 +246,7 @@ class Dataset(TimestampedModel):
         Marks itself as terminated based on the given job,
         and set is_processing to False.
         """
-        self.is_processing = False
+        Dataset.reset_state(self)
         self.is_terminated = True
         self.apply_state_at(last_job)
         return self
