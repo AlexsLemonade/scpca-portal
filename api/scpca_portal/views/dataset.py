@@ -30,6 +30,7 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
+    # Partial update and delete are intentionally disabled
     def partial_update(self, request, pk=None):
         return Response(
             {"detail": "Partial updates to datasets are not allowed at this time."},
