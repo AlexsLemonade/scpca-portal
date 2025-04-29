@@ -9,10 +9,11 @@ class DatasetsTestCase(APITestCase):
     """Tests /datasets/ operations."""
 
     def setUp(self):
-        self.dataset = DatasetFactory()
+        self.ccdl_dataset = DatasetFactory(is_ccdl=True)
+        self.custom_dataset = DatasetFactory(is_ccdl=False)
 
     def test_get_single(self):
-        url = reverse("datasets-detail", args=[self.dataset.id])
+        url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -30,13 +31,13 @@ class DatasetsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_put_is_not_allowed(self):
-        url = reverse("datasets-detail", args=[self.dataset.id])
+        url = reverse("datasets-detail", args=[self.custom_dataset.id])
         response = self.client.put(url, data={})
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_delete_is_not_allowed(self):
-        url = reverse("datasets-detail", args=[self.dataset.id])
+        url = reverse("datasets-detail", args=[self.custom_dataset.id])
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
