@@ -48,7 +48,7 @@ class TestTerminateBatchJobs(TestCase):
 
         for saved_job in saved_jobs:
             self.assertEqual(saved_job.state, JobStates.TERMINATED)
-            self.assertIsInstance(saved_job.completed_at, datetime)
+            self.assertIsInstance(saved_job.terminated_at, datetime)
             self.assertEqual(saved_job.failure_reason, "Terminated SUBMITTED")
             self.assertDatasetState(saved_job.dataset, is_processing=False)
 
