@@ -214,12 +214,15 @@ class Dataset(TimestampedModel):
 
     def reset_state(self) -> None:
         """
-        Rests state fields to their default values except is_processed.
+        Resets the dataset’s state and timestamp fields to their default values,
+        except for the successfully processed ones.
         """
-        self.is_processing = False
+        self.is_processing = False  # Sets False for final job states (SUCCEEDED|FAILED|TERMINATED)
         self.is_errored = False
         self.error_message = None
+        self.errored_at = None
         self.is_terminated = False
+        self.terminated_at = False
 
     def on_succeeded(self) -> Self:
         """
