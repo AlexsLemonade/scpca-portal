@@ -255,36 +255,6 @@ class OriginalFile(TimestampedModel):
             common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
         )
 
-    @property
-    def zip_file_path_dataset(self) -> Path:
-        # Project output paths are relative to project directory
-        output_path = self.s3_key_path.relative_to(Path(self.s3_key_info.project_id_part))
-
-        if self.is_merged:
-            parent_dir = Path(f"{self.project_id}_single-cell_merged")
-            return parent_dir / output_path.relative_to(common.MERGED_INPUT_DIR)
-
-        if self.is_bulk:
-            parent_dir = Path(f"{self.project_id}_bulk_rna")
-            return parent_dir / output_path.relative_to(common.BULK_INPUT_DIR)
-
-        modality = Modalities.SINGLE_CELL.value if self.is_single_cell else Modalities.SPATIAL.value
-        formatted_modality = modality.lower().replace("_", "-")
-        parent_dir = Path(f"{self.project_id}_{formatted_modality}")
-        return parent_dir / output_path
-
-    @property
-    def zip_file_path_merged_dataset(self) -> Path:
-        # Nest sample reports into individual_reports directory in merged folder
-        # The merged summmary html file should not go into this directory
-        if self.is_supplementary and not self.is_merged:
-            # Project output paths are relative to project directory
-            output_path = self.s3_key_path.relative_to(Path(self.s3_key_info.project_id_part))
-            parent_dir = Path(f"{self.project_id}_single-cell_merged")
-            return parent_dir / Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path
-
-        return self.zip_file_path_dataset
-
     @staticmethod
     def get_bucket_paths(original_files) -> Dict[Tuple, List[Path]]:
         """

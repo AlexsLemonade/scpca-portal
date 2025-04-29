@@ -98,20 +98,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return settings.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
 
     @staticmethod
-    def get_original_file_zip_path_old(original_file: OriginalFile, dataset) -> Path:
-        zip_file_path = (
-            original_file.zip_file_path_merged_dataset
-            if dataset.data.get(original_file.project_id, {}).get("merge_single_cell", False)
-            else original_file.zip_file_path_dataset
-        )
-        # Make sure that multiplexed sample files are adequately transformed by default
-        return utils.path_replace(
-            zip_file_path,
-            common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
-            common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
-        )
-
-    @staticmethod
     def get_original_file_zip_path(original_file: OriginalFile, dataset) -> Path:
         requested_merged = dataset.data.get(original_file.project_id, {}).get(
             "merge_single_cell", False
