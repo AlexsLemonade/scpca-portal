@@ -195,7 +195,7 @@ class Job(TimestampedModel):
                 if aws_job_id := batch.submit_job(job):
                     job.batch_job_id = aws_job_id
                     job.state = JobStates.SUBMITTED
-                    job.apply_state_at()
+                    job.update_state_at()
                     submitted_jobs.append(job)
 
             cls.bulk_update_state(submitted_jobs)
@@ -313,7 +313,7 @@ class Job(TimestampedModel):
         if job_id := batch.submit_job(self):
             self.batch_job_id = job_id
             self.state = JobStates.SUBMITTED
-            self.apply_state_at()
+            self.update_state_at()
 
             self.save()  # Save this instance before bulk updating fields
             Job.bulk_update_state([self])
