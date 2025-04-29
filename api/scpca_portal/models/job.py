@@ -23,9 +23,7 @@ class Job(TimestampedModel):
 
     # Internal Attributes
     attempt = models.PositiveIntegerField(default=1)  # Incremented on every retry
-    critical_error = models.BooleanField(default=False)  # Set to True if the job is irrecoverable
     failure_reason = models.TextField(blank=True, null=True)
-    retry_on_termination = models.BooleanField(default=False)
     state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED)
 
     submitted_at = models.DateTimeField(null=True)
@@ -164,13 +162,11 @@ class Job(TimestampedModel):
     def create_terminated_retry_jobs(cls, terminated_jobs: List[Self]) -> List[Self]:
         """
         Creates new jobs to retry the given terminated jobs.
-        Sets retry_on_termination to False for each terminated job to prevent duplicate retry.
         Returns the newly created retry jobs.
         """
         retry_jobs = []
 
         for terminated_job in terminated_jobs:
-            terminated_job.retry_on_termination = False
             retry_jobs.append(terminated_job.get_retry_job())
 
         cls.bulk_update_state(terminated_jobs)
@@ -339,10 +335,10 @@ class Job(TimestampedModel):
 
         return False
 
-    def terminate(self, retry_on_termination: bool = False) -> bool:
+    def terminate(self) -> bool:
         """
         Terminates the submitted, incomplete job on AWS Batch.
-        Updates state, retry_on_termination, and completed_at, and
+        Updates state and terminated_at, and
         saves the changes to the db on success.
         """
         if self.state in FINAL_JOB_STATES:
@@ -353,7 +349,6 @@ class Job(TimestampedModel):
         if batch.terminate_job(self):
             self.state = JobStates.TERMINATED
             self.failure_reason = failure_reason
-            self.retry_on_termination = retry_on_termination
             self.apply_state_at()
 
             Job.bulk_update_state([self])
@@ -370,11 +365,6 @@ class Job(TimestampedModel):
         if self.state not in FINAL_JOB_STATES:
             return False
 
-        # TODO: How should we handle attempting critically failed jobs?
-        # if self.critical_error:
-        #     return None
-
-        self.retry_on_termination = False
         Job.bulk_update_state([self])
 
         return Job(

@@ -15,20 +15,31 @@ class TestTerminateBatchJobs(TestCase):
         self.terminate_batch_jobs = partial(call_command, "terminate_batch_jobs")
 
     def assertDatasetState(
-        self, dataset, is_processing=False, is_errored=False, errored_at=None, error_message=None
+        self,
+        dataset,
+        is_processing=False,
+        is_processed=False,
+        is_errored=False,
+        error_message=None,
+        is_terminated=False,
     ):
         """
         Helper for asserting the dataset state.
         """
         self.assertEqual(dataset.is_processing, is_processing)
+
+        self.assertEqual(dataset.is_processed, is_processed)
+        if is_processed:
+            self.assertIsInstance(dataset.processed_at, datetime)
+
         self.assertEqual(dataset.is_errored, is_errored)
-
-        if errored_at:
+        if is_errored:
             self.assertIsInstance(dataset.errored_at, datetime)
-        else:
-            self.assertEqual(dataset.errored_at, errored_at)
-
         self.assertEqual(dataset.error_message, error_message)
+
+        self.assertEqual(dataset.is_terminated, is_terminated)
+        if is_terminated:
+            self.assertIsInstance(dataset.terminated_at, datetime)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_batch_jobs(self, mock_batch_terminate_job):
@@ -50,7 +61,7 @@ class TestTerminateBatchJobs(TestCase):
             self.assertEqual(saved_job.state, JobStates.TERMINATED)
             self.assertIsInstance(saved_job.terminated_at, datetime)
             self.assertEqual(saved_job.failure_reason, "Terminated SUBMITTED")
-            self.assertDatasetState(saved_job.dataset, is_processing=False)
+            self.assertDatasetState(saved_job.dataset, is_terminated=True)
 
         # Set up additinoal 3 SUBMITTED jobs
         for _ in range(3):
