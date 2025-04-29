@@ -109,7 +109,7 @@ class TestGetFile(TestCase):
             msg = f"The actual and expected `{attribute}` values differ in {computed_file}"
             self.assertEqual(getattr(computed_file, attribute), value, msg)
 
-    def test_original_file_zip_map(self):
+    def test_original_file_zip_namelist(self):
         self.maxDiff = None
 
         data = {
