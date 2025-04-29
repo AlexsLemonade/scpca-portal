@@ -204,6 +204,10 @@ class Dataset(TimestampedModel):
         timestamp = make_aware(datetime.now())
         last_job = self.jobs.order_by("-created_at").first()
 
+        # Reset timestamps for FAILED|TERMINATED before applying the new state (when retry)
+        self.errored_at = None
+        self.terminated_at = None
+
         match last_job.state:
             case JobStates.SUCCEEDED:
                 self.processed_at = timestamp
@@ -214,15 +218,13 @@ class Dataset(TimestampedModel):
 
     def reset_state(self) -> None:
         """
-        Resets the dataset’s state and timestamp fields to their default values,
+        Resets the dataset’s state fields to their default values,
         except for the successfully processed ones.
         """
-        self.is_processing = False  # Sets False for final job states (SUCCEEDED|FAILED|TERMINATED)
+        self.is_processing = False  # Sets False for final job states, SUCCEEDED|FAILED|TERMINATED
         self.is_errored = False
         self.error_message = None
-        self.errored_at = None
         self.is_terminated = False
-        self.terminated_at = False
 
     def on_succeeded(self) -> Self:
         """
