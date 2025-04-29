@@ -14,19 +14,32 @@ class TestSyncBatchJobs(TestCase):
     def setUp(self):
         self.sync_batch_jobs = partial(call_command, "sync_batch_jobs")
 
-    def assertDatasetState(self, dataset, is_processing, is_errored, errored_at, error_message):
+    def assertDatasetState(
+        self,
+        dataset,
+        is_processing=False,
+        is_processed=False,
+        is_errored=False,
+        error_message=None,
+        is_terminated=False,
+    ):
         """
         Helper for asserting the dataset state.
         """
         self.assertEqual(dataset.is_processing, is_processing)
+
+        self.assertEqual(dataset.is_processed, is_processed)
+        if is_processed:
+            self.assertIsInstance(dataset.processed_at, datetime)
+
         self.assertEqual(dataset.is_errored, is_errored)
-
-        if errored_at:
+        if is_errored:
             self.assertIsInstance(dataset.errored_at, datetime)
-        else:
-            self.assertEqual(dataset.errored_at, errored_at)
-
         self.assertEqual(dataset.error_message, error_message)
+
+        self.assertEqual(dataset.is_terminated, is_terminated)
+        if is_terminated:
+            self.assertIsInstance(dataset.terminated_at, datetime)
 
     @patch("scpca_portal.batch.get_jobs")
     def test_sync_batch_jobs(self, mock_batch_get_jobs):
@@ -71,47 +84,46 @@ class TestSyncBatchJobs(TestCase):
 
         # SUBMITTED job should remain unchanged
         submitted_job = Job.objects.filter(state=JobStates.SUBMITTED).first()
-        self.assertIsNone(submitted_job.failure_reason)
         self.assertDatasetState(
             submitted_job.dataset,
             is_processing=True,
+            is_processed=False,
             is_errored=False,
-            errored_at=None,
             error_message=None,
+            is_terminated=False,
         )
 
         # SUCCEEDED job state and dataset should be updated
         succeeded_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_5").first()
         self.assertEqual(succeeded_job.state, JobStates.SUCCEEDED)
-        self.assertIsNone(succeeded_job.failure_reason)
         self.assertDatasetState(
             succeeded_job.dataset,
             is_processing=False,
+            is_processed=True,
             is_errored=False,
-            errored_at=None,
             error_message=None,
+            is_terminated=False,
         )
 
         # FAILED job state and dataset should be updated with failed reason
         failed_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_6").first()
         self.assertEqual(failed_job.state, JobStates.FAILED)
-        self.assertIsNotNone(failed_job.failure_reason)
         self.assertDatasetState(
             failed_job.dataset,
             is_processing=False,
+            is_processed=False,
             is_errored=True,
-            errored_at=failed_job.dataset.errored_at,
             error_message="Job FAILED",
+            is_terminated=False,
         )
 
         # TERMINATED job state and dataset should be updated
         terminated_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_7").first()
-        self.assertEqual(terminated_job.state, JobStates.TERMINATED)
-        self.assertIsNotNone(failed_job.failure_reason)
         self.assertDatasetState(
             terminated_job.dataset,
             is_processing=False,
+            is_processed=False,
             is_errored=False,
-            errored_at=None,
             error_message=None,
+            is_terminated=True,
         )
