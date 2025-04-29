@@ -197,17 +197,19 @@ class Dataset(TimestampedModel):
         if save:
             self.save()
 
-    def apply_state_at(self) -> None:
+    def update_state_at(self, save=False) -> None:
         """
-        Sets timestamp fields, *_at, based on the last job state.
+        Sets final states' timestamps, *_at, based on the last job state.
+        Resets timestamps before applying changes.
+        If 'save' is True, the instance will be saved.
         """
-        timestamp = make_aware(datetime.now())
         last_job = self.jobs.order_by("-created_at").first()
 
-        # Reset timestamps for FAILED|TERMINATED before applying the new state (when retry)
+        self.processed_at = None
         self.errored_at = None
         self.terminated_at = None
 
+        timestamp = make_aware(datetime.now())
         match last_job.state:
             case JobStates.SUCCEEDED:
                 self.processed_at = timestamp
@@ -216,12 +218,15 @@ class Dataset(TimestampedModel):
             case JobStates.TERMINATED:
                 self.terminated_at = timestamp
 
+        if save:
+            self.save()
+
     def reset_state(self) -> None:
         """
-        Resets the dataset’s state fields to their default values,
-        except for the successfully processed ones.
+        Resets the dataset’s state flags to their default values.
         """
-        self.is_processing = False  # Sets False for final job states, SUCCEEDED|FAILED|TERMINATED
+        self.is_processing = False  # Resets for final job states, SUCCEEDED|FAILED|TERMINATED
+        self.is_processed = False
         self.is_errored = False
         self.error_message = None
         self.is_terminated = False
@@ -232,7 +237,7 @@ class Dataset(TimestampedModel):
         """
         self.reset_state()
         self.is_processed = True
-        self.apply_state_at()
+        self.update_state_at()
         return self
 
     def on_failed(self, failure_reason: str) -> Self:
@@ -242,7 +247,7 @@ class Dataset(TimestampedModel):
         self.reset_state()
         self.is_errored = True
         self.error_message = failure_reason
-        self.apply_state_at()
+        self.update_state_at()
         return self
 
     def on_terminated(self) -> Self:
@@ -251,7 +256,7 @@ class Dataset(TimestampedModel):
         """
         self.reset_state()
         self.is_terminated = True
-        self.apply_state_at()
+        self.update_state_at()
         return self
 
     @property
