@@ -159,17 +159,17 @@ class Job(TimestampedModel):
         )
 
     @classmethod
-    def create_terminated_retry_jobs(cls, terminated_jobs: List[Self]) -> List[Self]:
+    def create_retry_jobs(cls, jobs: List[Self]) -> List[Self]:
         """
-        Creates new jobs to retry the given terminated jobs.
+        Creates new jobs to retry the given jobs.
         Returns the newly created retry jobs.
         """
         retry_jobs = []
 
-        for terminated_job in terminated_jobs:
-            retry_jobs.append(terminated_job.get_retry_job())
+        for job in jobs:
+            retry_jobs.append(job.get_retry_job())
 
-        cls.bulk_update_state(terminated_jobs)
+        cls.bulk_update_state(jobs)
         cls.objects.bulk_create(retry_jobs)
 
         return retry_jobs
@@ -359,7 +359,7 @@ class Job(TimestampedModel):
 
     def get_retry_job(self) -> Self | bool:
         """
-        Prepares a new Job instance to retry the terminated job.
+        Prepares a new Job instance for retry.
         Returns newly instantiated jobs.
         """
         if self.state not in FINAL_JOB_STATES:

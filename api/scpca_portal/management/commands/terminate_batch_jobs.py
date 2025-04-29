@@ -27,7 +27,7 @@ class Command(BaseCommand):
 
         if not no_retry:
             logger.info("Creating new retry jobs...")
-            retry_jobs = Job.create_terminated_retry_jobs(terminated_jobs)
+            retry_jobs = Job.create_retry_jobs(terminated_jobs)
 
             if retry_jobs:
                 logger.info("Successfully created new retry jobs.")

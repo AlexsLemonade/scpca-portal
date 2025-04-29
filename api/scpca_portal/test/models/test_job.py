@@ -442,7 +442,7 @@ class TestJob(TestCase):
         self.assertEqual(retry_job.batch_job_queue, job.batch_job_queue)
         self.assertEqual(retry_job.attempt, job.attempt + 1)
 
-    def test_create_terminated_retry_jobs(self):
+    def test_create_retry_jobs(self):
         # Set up mock field values for base terminated jobs
         batch_job_name = "BATCH_JOB_NAME"
         batch_job_definition = "BATCH_JOB_DEFINITION"
@@ -467,7 +467,7 @@ class TestJob(TestCase):
         self.assertEqual(Job.objects.count(), 3)
 
         # After retry, the call should return a list of jobs for retry
-        retry_jobs = Job.create_terminated_retry_jobs(terminated_jobs)
+        retry_jobs = Job.create_retry_jobs(terminated_jobs)
         self.assertNotEqual(retry_jobs, [])
 
         # Should be 6 jobs (base 3  + new 3) in the db
