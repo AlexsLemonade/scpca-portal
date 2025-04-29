@@ -8,7 +8,7 @@ from scpca_portal.serializers import DatasetSerializer
 
 
 class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = Dataset.objects.order_by("-created_at")
+    queryset = Dataset.objects.filter(is_ccdl=True).order_by("-created_at")
     ordering_fields = "__all__"
     serializer_class = DatasetSerializer
 
