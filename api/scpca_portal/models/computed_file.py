@@ -99,16 +99,13 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @staticmethod
     def get_original_file_zip_path(original_file: OriginalFile, dataset) -> Path:
-        requested_merged = dataset.data.get(original_file.project_id, {}).get(
-            "merge_single_cell", False
-        )
-
+        """Return an original file's path for the zip file being computed."""
         # always remove project directory
         zip_file_path = original_file.s3_key_path.relative_to(
             Path(original_file.s3_key_info.project_id_part)
         )
 
-        # SPATIAL / UNMERGED SC
+        # spatial / unmerged single cell
         modality = (
             Modalities.SINGLE_CELL.value
             if original_file.is_single_cell
@@ -117,9 +114,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         formatted_modality = modality.lower().replace("_", "-")
         parent_dir = Path(f"{original_file.project_id}_{formatted_modality}")
 
+        # merged single cell
+        requested_merged = dataset.data.get(original_file.project_id, {}).get(
+            "merge_single_cell", False
+        )
         is_mergeable_file = original_file.is_single_cell or original_file.is_merged
         if requested_merged and is_mergeable_file:
-            # print(original_file)
             parent_dir = Path(f"{original_file.project_id}_single-cell_merged")
             # supplementary files at the merged project level
             if (
