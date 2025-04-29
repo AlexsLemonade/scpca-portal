@@ -29,7 +29,10 @@ class Job(TimestampedModel):
     state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED)
 
     submitted_at = models.DateTimeField(null=True)
-    completed_at = models.DateTimeField(null=True)
+    succeeded_at = models.DateTimeField(null=True)
+    failed_at = models.DateTimeField(null=True)
+    completed_at = models.DateTimeField(null=True)  # TODO: Removed in #1210
+    terminated_at = models.DateTimeField(null=True)
 
     # Job Information Sent to AWS (via Request)
     batch_job_name = models.TextField(null=True)
@@ -221,23 +224,23 @@ class Job(TimestampedModel):
         return terminated_jobs
 
     @classmethod
-    def bulk_update_state(cls, jobs: List[Self]):
+    def bulk_update_state(cls, synced_jobs: List[Self]) -> None:
         """
         Bulk updates states of the given jobs and their associated datasets.
         """
         cls.objects.bulk_update(
-            jobs,
+            synced_jobs,
             [
-                "batch_job_id",
                 "state",
-                "failure_reason",
-                "retry_on_termination",
-                "completed_at",
                 "submitted_at",
+                "succeeded_at",
+                "failed_at",
+                "failure_reason",
+                "terminated_at",
             ],
         )
 
-        Dataset.apply_last_jobs(jobs)
+        Dataset.update_from_last_jobs([job.dataset for job in synced_jobs])
 
     @classmethod
     def bulk_sync_state(cls) -> bool:
@@ -278,17 +281,22 @@ class Job(TimestampedModel):
 
         return False
 
-    def apply_state_at(self):
+    def apply_state_at(self) -> None:
         """
         Sets timestamp fields, *_at, based on the instance state.
+        Each JobStatus have its corresponding timestamp field
         """
         timestamp = make_aware(datetime.now())
 
         match self.state:
             case JobStates.SUBMITTED:
                 self.submitted_at = timestamp
-            case JobStates.SUCCEEDED | JobStates.FAILED | JobStates.TERMINATED:
-                self.completed_at = timestamp
+            case JobStates.SUCCEEDED:
+                self.succeeded_at = timestamp
+            case JobStates.FAILED:
+                self.failed_at = timestamp
+            case JobStates.TERMINATED:
+                self.terminated_at = timestamp
 
     def submit(self) -> bool:
         """
