@@ -12,6 +12,7 @@ from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
+from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
 
@@ -96,6 +97,51 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         if download_config is common.PORTAL_METADATA_DOWNLOAD_CONFIG:
             return settings.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
 
+    @staticmethod
+    def get_original_file_zip_path(original_file: OriginalFile, dataset) -> Path:
+        """Return an original file's path for the zip file being computed."""
+        # always remove project directory
+        zip_file_path = original_file.s3_key_path.relative_to(
+            Path(original_file.s3_key_info.project_id_part)
+        )
+
+        # spatial / unmerged single cell
+        modality = (
+            Modalities.SINGLE_CELL.value
+            if original_file.is_single_cell
+            else Modalities.SPATIAL.value
+        )
+        formatted_modality = modality.lower().replace("_", "-")
+        parent_dir = Path(f"{original_file.project_id}_{formatted_modality}")
+
+        # merged single cell
+        requested_merged = dataset.data.get(original_file.project_id, {}).get(
+            "merge_single_cell", False
+        )
+        is_mergeable_file = original_file.is_single_cell or original_file.is_merged
+        if requested_merged and is_mergeable_file:
+            parent_dir = Path(f"{original_file.project_id}_single-cell_merged")
+            # supplementary files at the merged project level
+            if (
+                original_file.is_supplementary and not original_file.is_merged
+            ):  # move to property on of
+                parent_dir /= Path(common.MERGED_REPORTS_PREFEX_DIR)
+            # supplementary files on the sample level
+            else:
+                zip_file_path = zip_file_path.relative_to(common.MERGED_INPUT_DIR)
+        elif original_file.is_bulk:
+            parent_dir = Path(f"{original_file.project_id}_bulk_rna")
+            zip_file_path = zip_file_path.relative_to(common.BULK_INPUT_DIR)
+
+        zip_file_path = parent_dir / zip_file_path
+
+        # Make sure that multiplexed sample files are adequately transformed by default
+        return utils.path_replace(
+            zip_file_path,
+            common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
+            common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+        )
+
     @classmethod
     def get_dataset_file(cls, dataset) -> Self:
         """
@@ -111,19 +157,15 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Readme file
             zip_file.writestr(readme_file.OUTPUT_NAME, dataset.readme_file_contents)
 
-            # Metadata file
-            zip_file.writestr(
-                dataset.metadata_file_name,
-                dataset.metadata_file_contents,
-            )
+            # Metadata files
+            for metadata_file_path, metadata_file_contents in dataset.metadata_file_map.items():
+                zip_file.writestr(str(metadata_file_path), metadata_file_contents)
 
             # Original files
-            for original_file_local_path, original_file_zip_path in zip(
-                dataset.original_file_local_paths, dataset.original_file_zip_paths
-            ):
+            for original_file in dataset.original_files:
                 zip_file.write(
-                    original_file_local_path,
-                    original_file_zip_path,
+                    original_file.local_file_path,
+                    cls.get_original_file_zip_path(original_file, dataset),
                 )
 
         computed_file = cls(
@@ -144,7 +186,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             modality=dataset.ccdl_type.get("modality"),
             metadata_only=dataset.ccdl_name == DatasetFormats.METADATA,
             s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            s3_key=dataset.pk,
+            s3_key=dataset.computed_file_name,
             size_in_bytes=dataset.computed_file_local_path.stat().st_size,
             workflow_version=utils.join_workflow_versions(
                 library.workflow_version for library in dataset.libraries

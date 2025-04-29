@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from scpca_portal import loader
-from scpca_portal.enums import CCDLDatasetNames
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import ComputedFile, Dataset
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
@@ -108,3 +108,39 @@ class TestGetFile(TestCase):
         ):
             msg = f"The actual and expected `{attribute}` values differ in {computed_file}"
             self.assertEqual(getattr(computed_file, attribute), value, msg)
+
+    def test_original_file_zip_namelist(self):
+        self.maxDiff = None
+
+        data = {
+            "SCPCP999990": {
+                "merge_single_cell": False,
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL.value: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "merge_single_cell": False,
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL.value: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+                Modalities.SPATIAL.value: [],
+            },
+            "SCPCP999992": {
+                "merge_single_cell": True,
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL.value: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
+        dataset = Dataset(data=data, format=format)
+        dataset.save()
+
+        ComputedFile.get_dataset_file(dataset)
+
+        with ZipFile(dataset.computed_file_local_path) as project_zip:
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                sorted(test_data.DatasetCustomSingleCellExperiment.COMPUTED_FILE_LIST),
+            )

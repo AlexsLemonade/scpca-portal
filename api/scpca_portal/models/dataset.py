@@ -8,7 +8,7 @@ from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, metadata_file, readme_file, utils
+from scpca_portal import ccdl_datasets, common, metadata_file, readme_file
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -148,6 +148,9 @@ class Dataset(TimestampedModel):
             return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
         return Sample.objects.none()
 
+    def get_sample_libraries(self, project_id: str, modality: Modalities) -> Iterable[Library]:
+        return Library.objects.filter(samples__in=self.get_samples(project_id, modality)).distinct()
+
     @property
     def is_hash_changed(self) -> bool:
         """
@@ -234,56 +237,33 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     @property
-    def original_file_local_paths(self) -> Set[Path]:
-        return {settings.INPUT_DATA_PATH / of.s3_key for of in self.original_files}
+    def metadata_file_map(self) -> Dict[str, str]:
+        metadata_file_map = {}
+        for project_id, project_config in self.data.items():
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                if not project_config[modality.value]:
+                    continue
 
-    @property
-    def original_file_zip_paths(self) -> Set[Path]:
-        original_file_zip_paths = set()
-        for original_file in self.original_files:
-            # Project output paths are relative to project directory
-            output_path = original_file.s3_key_path.relative_to(
-                Path(original_file.s3_key_info.project_id_part)
-            )
-
-            # Transform merged and bulk project data files to no longer be in nested directories
-            if original_file.is_merged:
-                original_file_zip_paths.add(output_path.relative_to(common.MERGED_INPUT_DIR))
-            elif original_file.is_bulk:
-                original_file_zip_paths.add(output_path.relative_to(common.BULK_INPUT_DIR))
-            # Nest sample reports into individual_reports directory in merged download
-            # The merged summmary html file should not go into this directory
-            elif self.ccdl_type.get("includes_merged", False) and original_file.is_supplementary:
-                original_file_zip_paths.add(Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path)
-            else:
-                original_file_zip_paths.add(output_path)
-
-        if Project.objects.filter(
-            scpca_id__in=self.data.keys(), has_multiplexed_data=True
-        ).exists():
-            # Delimeter must be exchanged if file has multiplexed samples
-            return {
-                utils.path_replace(
-                    zip_file_path,
-                    common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
-                    common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+                metadata_path = self.get_metadata_file_path(project_id, modality)
+                metadata_contents = self.get_metadata_file_contents(
+                    self.get_sample_libraries(project_id, modality)
                 )
-                for zip_file_path in original_file_zip_paths
-            }
+                metadata_file_map[metadata_path] = metadata_contents
 
-        return original_file_zip_paths
+        return metadata_file_map
 
-    @property
-    def metadata_file_name(self) -> str:
-        """Return metadata file name according to passed modality."""
-        base_name = "metadata.tsv"
-        if modality := self.ccdl_type.get("modality"):
-            return f"{modality.lower()}_{base_name}"
-        return base_name
+    def get_metadata_file_path(self, project_id: str, modality: Modalities) -> Path:
+        """Return metadata file path, modality name inside of project_modality directory."""
+        modality_formatted = modality.value.lower().replace("_", "-")
+        metadata_file_name = f"{modality_formatted}_metadata.tsv"
 
-    @property
-    def metadata_file_contents(self) -> str:
-        libraries_metadata = Library.get_libraries_metadata(self.libraries)
+        if self.data.get(project_id, {}).get("merge_single_cell", False):
+            modality_formatted += "_merged"
+        metadata_dir = f"{project_id}_{modality_formatted}"
+        return Path(metadata_dir) / Path(metadata_file_name)
+
+    def get_metadata_file_contents(self, libraries: Iterable[Library]) -> str:
+        libraries_metadata = Library.get_libraries_metadata(libraries)
         return metadata_file.get_file_contents(libraries_metadata)
 
     @property
@@ -303,8 +283,9 @@ class Dataset(TimestampedModel):
     @property
     def current_metadata_hash(self) -> str:
         """Computes and returns the current metadata hash."""
-        metadata_file_contents_bytes = self.metadata_file_contents.encode("utf-8")
-        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
+        all_metadata_file_contents = "".join(sorted(self.metadata_file_map.values()))
+        all_metadata_file_contents_bytes = all_metadata_file_contents.encode("utf-8")
+        return hashlib.md5(all_metadata_file_contents_bytes).hexdigest()
 
     @property
     def current_readme_hash(self) -> str:
@@ -339,8 +320,12 @@ class Dataset(TimestampedModel):
         return self.projects.filter(**self.ccdl_type.get("constraints", {}))
 
     @property
+    def computed_file_name(self) -> Path:
+        return Path(f"{self.pk}.zip")
+
+    @property
     def computed_file_local_path(self) -> Path:
-        return settings.OUTPUT_DATA_PATH / str(self.pk)
+        return settings.OUTPUT_DATA_PATH / self.computed_file_name
 
     @property
     def spatial_projects(self) -> Iterable[Project]:
