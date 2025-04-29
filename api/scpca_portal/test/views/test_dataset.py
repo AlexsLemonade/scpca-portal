@@ -22,7 +22,11 @@ class DatasetsTestCase(APITestCase):
         url = reverse("datasets-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_json = response.json()
         self.assertEqual(response.json()["count"], 1)
+        self.assertNotEqual(response_json["results"][0].get("id"), str(self.custom_dataset.id))
+        self.assertEqual(response_json["results"][0].get("id"), str(self.ccdl_dataset.id))
 
     def test_post_is_not_allowed(self):
         url = reverse("datasets-list", args=[])
