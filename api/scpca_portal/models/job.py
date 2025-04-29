@@ -212,7 +212,7 @@ class Job(TimestampedModel):
                 if batch.terminate_job(job):
                     job.state = JobStates.TERMINATED
                     job.failure_reason = failure_reason
-                    job.apply_state_at()
+                    job.update_state_at()
                     terminated_jobs.append(job)
 
             cls.bulk_update_state(terminated_jobs)
@@ -351,7 +351,7 @@ class Job(TimestampedModel):
         if batch.terminate_job(self):
             self.state = JobStates.TERMINATED
             self.failure_reason = failure_reason
-            self.apply_state_at()
+            self.update_state_at()
 
             Job.bulk_update_state([self])
 
