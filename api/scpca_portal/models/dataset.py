@@ -156,7 +156,7 @@ class Dataset(TimestampedModel):
     @classmethod
     def update_from_last_jobs(cls, datasets: List[Self], bulk_save: bool = True) -> None:
         """
-        Bulk modify datasets state based on their latest jobs.
+        Updates datasets' state based on their latest jobs.
         If 'bulk_save' is True, bulk update the instances, Otherwise, each dataset
         is individually saved during processing.
         """
@@ -197,9 +197,9 @@ class Dataset(TimestampedModel):
         if save:
             self.save()
 
-    def apply_state_at(self):
+    def apply_state_at(self) -> None:
         """
-        Sets timestamp fields, *_at, based on the given last job state.
+        Sets timestamp fields, *_at, based on the last job state.
         """
         timestamp = make_aware(datetime.now())
         last_job = self.jobs.order_by("-created_at").first()
@@ -212,15 +212,18 @@ class Dataset(TimestampedModel):
             case JobStates.TERMINATED:
                 self.terminated_at = timestamp
 
-    def reset_state(self):
+    def reset_state(self) -> None:
+        """
+        Rests state fields to their default values except is_processed.
+        """
         self.is_processing = False
         self.is_errored = False
+        self.error_message = None
         self.is_terminated = False
 
     def on_succeeded(self) -> Self:
         """
-        Marks the dataset as successfully processed based on the given job,
-        and sets is_processing to False.
+        Marks the dataset as successfully processed based on the last job.
         """
         self.reset_state()
         self.is_processed = True
@@ -229,8 +232,7 @@ class Dataset(TimestampedModel):
 
     def on_failed(self, failure_reason: str) -> Self:
         """
-        Marks the dataset as errored and stores the error reason based on the given job,
-        and sets is_processing to False.
+        Marks the dataset as errored with the error reason based on the last job.
         """
         self.reset_state()
         self.is_errored = True
@@ -240,8 +242,7 @@ class Dataset(TimestampedModel):
 
     def on_terminated(self) -> Self:
         """
-        Marks itself as terminated based on the given job,
-        and set is_processing to False.
+        Marks the dataset as terminated based on the last job.
         """
         self.reset_state()
         self.is_terminated = True

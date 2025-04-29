@@ -223,7 +223,7 @@ class Job(TimestampedModel):
         return terminated_jobs
 
     @classmethod
-    def bulk_update_state(cls, synced_jobs: List[Self]):
+    def bulk_update_state(cls, synced_jobs: List[Self]) -> None:
         """
         Updates the states of the synced jobs and their associated datasets.
         """
@@ -280,7 +280,7 @@ class Job(TimestampedModel):
 
         return False
 
-    def apply_state_at(self):
+    def apply_state_at(self) -> None:
         """
         Sets timestamp fields, *_at, based on the instance state.
         Each JobStatus have its corresponding timestamp field
