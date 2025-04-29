@@ -269,7 +269,7 @@ class Job(TimestampedModel):
                 if new_state != job.state:
                     job.state = new_state
                     job.failure_reason = failure_reason
-                    job.apply_state_at()
+                    job.update_state_at()
                     synced_jobs.append(job)
                 else:
                     continue
@@ -280,10 +280,9 @@ class Job(TimestampedModel):
 
         return False
 
-    def apply_state_at(self) -> None:
+    def update_state_at(self, save=False) -> None:
         """
-        Sets timestamp fields, *_at, based on the instance state.
-        Each JobStatus have its corresponding timestamp field
+        Sets timestamp fields, *_at, based on the latest job state.
         """
         timestamp = make_aware(datetime.now())
 
@@ -296,6 +295,9 @@ class Job(TimestampedModel):
                 self.failed_at = timestamp
             case JobStates.TERMINATED:
                 self.terminated_at = timestamp
+
+        if save:
+            self.save()
 
     def submit(self) -> bool:
         """
@@ -330,7 +332,7 @@ class Job(TimestampedModel):
             if new_state != self.state:
                 self.state = new_state
                 self.failure_reason = failure_reason
-                self.apply_state_at()
+                self.update_state_at()
 
                 Job.bulk_update_state([self])
 
