@@ -8,7 +8,7 @@ from scpca_portal.serializers import DatasetSerializer
 
 
 class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = Dataset.objects.order_by("-created_at")
+    queryset = Dataset.objects.filter(is_ccdl=True).order_by("-created_at")
     ordering_fields = "__all__"
     serializer_class = DatasetSerializer
 
@@ -30,6 +30,7 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
+    # Partial update and delete are intentionally disabled
     def partial_update(self, request, pk=None):
         return Response(
             {"detail": "Partial updates to datasets are not allowed at this time."},
