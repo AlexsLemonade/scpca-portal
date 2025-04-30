@@ -216,3 +216,12 @@ class DatasetSerializer(serializers.ModelSerializer):
             "is_expired",
             "computed_file",
         )
+
+
+class DatasetUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dataset
+        fields = (
+            "data",
+            "email",
+        )
