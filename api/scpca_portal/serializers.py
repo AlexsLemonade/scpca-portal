@@ -218,6 +218,16 @@ class DatasetSerializer(serializers.ModelSerializer):
         )
 
 
+class DatasetCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dataset
+        fields = (
+            "data",
+            "email",
+            "format",
+        )
+
+
 class DatasetUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
