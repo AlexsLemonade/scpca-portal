@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
 from scpca_portal.test.factories import DatasetFactory
 
 
@@ -34,11 +35,15 @@ class DatasetsTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_put_is_not_allowed(self):
+    def test_put(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
-        response = self.client.put(url, data={})
+        data = {
+            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+        }
+        response = self.client.put(url, data)
 
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_is_not_allowed(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
