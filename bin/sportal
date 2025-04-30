@@ -1,76 +1,216 @@
 #!/usr/bin/env python3
-
+import signal
 import argparse
 import os
 import subprocess
 from pathlib import Path
 from enum import Enum
+from functools import partial
 
 
+# SCRIPT CONFIG
 class Colors(Enum):
-    RED = "\033[31m"
-    GREEN = "\033[32m"
-    YELLOW = "\033[33m"
-    BLUE = "\033[34m"
-    MAGENTA = "\033[35m"
-    CYAN = "\033[36m"
+    RED = "\033[31m"  # Error
+    GREEN = "\033[32m"  # Success
+    YELLOW = "\033[33m"  # Warning
+    BLUE = "\033[34m"  # Debug
+    MAGENTA = "\033[35m"  # ???
+    CYAN = "\033[36m"  # Info
     WHITE = "\033[37m"
     RESET = "\033[0m"  # Resets to default color
 
 
-def print_color(msg, color: Colors = Colors.GREEN):
-    print(f"{color.value}{msg}{Colors.RESET.value}")
-
-
-# Exit if not called from project root.
-if not Path("bin/sportal").exists():
-    print("Please call sportal from the project's root")
-    exit(1)
-
-# Use the correct .env file by default.
-docker_compose = ["docker", "compose", "--env-file", "./docker-compose.env"]
-run_api = docker_compose + ["run", "--rm", "api"]
-manage_py = run_api + ["python3", "manage.py"]
-
-# List of available commands.
-commands = {
-    "up": docker_compose + ["up"],
-    "down": docker_compose + ["down"],
-    "build": docker_compose + ["build"],
-    "shell": manage_py + ["shell"],
-    "recreate-schema": [
-        "./recreate_schema.sh"
-    ],  # this should be imported unless something else uses it
-    "test-api": run_api + ["bash", "./run_tests.sh"],
-    "makemigrations": manage_py + ["makemigrations", "scpca_portal"],
-    "migrate": manage_py + ["migrate"],
-    "showmigrations": manage_py + ["showmigrations"],
-    "postgres-cli": ["/run_psql_client.sh"],
-    "graph-models": manage_py + ["graph_models", "scpca_portal", ">", "models.dot"],
-    "run-api": run_api,
-    "manage-api": manage_py,
-    "create-portal-metadata": manage_py + ["create_portal_metadata"],
-    "load-data": manage_py + ["load_data"],
-    "load-metadata": manage_py + ["load_metadata"],
-    "generate-computed-files": manage_py + ["generate_computed_files"],
-    "sync-original-files": manage_py + ["sync_original_files"],
-    "run-black": ["black", "--line-length=100", "--exclude=volumes_postgres", "."],
-    "env": ["cat", "./docker-compose.env"],
-    "configure-aws-cli": manage_py + ["configure_aws_cli"],
+# Envars that should be passed into sportal
+# AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are handled by the --sso flag
+DEPLOY_ENVS = {
+    "DEPLOY_USER": "user argument for the deploy script",
+    "DOCKERHUB_ACCOUNT": "docker hub account to push builds",
+    "DOCKER_USERNAME": "deploy script; docker username to login",
+    "DOCKER_PASSWORD": "deploy script: docker password or PAT if using MFA",
+    "SSH_PRIVATE_KEY": "ssh private key to ssh onto dev stack API",
+    "SSH_PUBLIC_KEY": "ssh private key to save on dev stack API",
+    "DATABASE_PASSWORD": "used for api instance",
+    "DJANGO_SECRET_KEY": "used for api instance",
+    "SENTRY_DSN": "used for api sentry",
+    "SLACK_CCDL_TEST_CHANNEL_EMAIL": "used for testing email",
+    "AWS_ACCESS_KEY_ID": "AWS credential accessing input bucket or any project resources.",
+    "AWS_SECRET_ACCESS_KEY": "AWS credential accessing input bucket or any project resources.",
 }
 
+# Everything needs access to the system env.
+global env
+env = os.environ.copy()
+
+
+# UTILITY
+def print_color(msg, color: Colors = Colors.BLUE):
+    print(f"{color.value}{msg}{Colors.RESET.value}", flush=True)
+
+
+print_success = partial(print_color, color=Colors.GREEN)
+print_info = partial(print_color, color=Colors.BLUE)
+print_help = partial(print_color, color=Colors.CYAN)
+print_warning = partial(print_color, color=Colors.YELLOW)
+print_error = partial(print_color, color=Colors.RED)
+
+
+# Internal Methods.
+def check_envs(envs: dict):
+    missing_envars = [envar for envar in envs.keys() if not env.get(envar)]
+
+    # print_error(f"Missing {len(missing_envars)} envars:")
+    # for envar in missing_envars:
+    print_info("--------------")
+    for envar in envs.keys():
+        if envar not in missing_envars:
+            print_success(f"{envar} - {env.get(envar)}")
+        else:
+            print_error(f"{envar} - {DEPLOY_ENVS[envar]}")
+    print_info("--------------")
+    if missing_envars:
+        print_error(f"Found {len(missing_envars)} missing envars.")
+    else:
+        print_success("Sucess! But values are not confirmed.")
+
+
+def get_aws_env_from_profile(profile: str) -> bool:
+    """
+    Takes an AWS SSO Profile as a string.
+    Adds credential envars to global env dict variable.
+    """
+    if not profile:
+        print_warning("Running command with no AWS SSO Profile.")
+        return False
+
+    aws_cmd = [
+        "aws",
+        "configure",
+        "export-credentials",
+        "--profile",
+        profile,
+        "--format",
+        "env-no-export",
+    ]
+
+    print_info(f"Executing Command: {' '.join(aws_cmd)}")
+
+    # Override STDOUT
+    p = subprocess.Popen(
+        aws_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    code = p.wait()
+
+    if p_stderr := p.stderr:
+        stderr = p_stderr.read().decode("UTF-8")
+
+    if code != 0:
+        if code == 255:
+            print_help(f"You may need to login with: aws sso login --profile {profile}")
+        print_error(f"Command Failed: {stderr.strip()}")
+        exit(code)
+
+    if p_stdout := p.stdout:
+        stdout = p_stdout.read().decode("UTF-8")
+
+    # Mutate globel env dict variable
+    for line in stdout.split("\n"):
+        if line:
+            key, value = line.split("=", 1)
+            env[key] = value
+
+    print_success("Successfully read AWS SSO credentials.")
+    return True
+
+
+commands_cwd = {
+    "deploy:up": Path("infrastructure"),
+    "deploy:down": Path("infrastructure"),
+}
+
+# Commands that require shell. Joined and passed as a string.
+shell_commands = ["deploy:up"]
+
+# Use the correct docker .env file by default.
+docker_compose = ["docker", "compose", "--env-file", "./docker-compose.env"]
+run = docker_compose + ["run", "--rm"]
+run_api = run + ["api"]
+run_postgres = run + ["postgres", "psql", "-h", "postgres", "-U", "postgres"]
+manage = run_api + ["python3", "manage.py"]
+
+command_desriptions = {
+    # print envars available in this shell
+    "debug:env": "Show status of envars that are passed to commands.",
+    "docker:compose": "Same as 'docker compose' but handles passing env to containers.",
+    "postgres:cli": "Local postgres shell",
+    "postgres:drop": "Wipes local postgress db.",
+    "api:run": "Start local API.",
+    "api:manage": "Run local API management command. Requires manage command name as argument.",
+    "api:test": "Run API tests.",
+    "api:graphmodels": "Update the models.dot file.",
+    "api:lint:black": "Lint API python code with black.",
+    "deploy:up": "Spin up a dev stack. Requires successful debug:env.",
+    "deploy:down": "Tear down existing dev stack.",
+}
+
+# All available commands and their execution.
+commands = {
+    # print envars available in this shell
+    "debug:env": [partial(check_envs, DEPLOY_ENVS)],
+    "docker:compose": docker_compose,  # up / down / etc
+    "postgres:cli": run_postgres + ["-d", "postgres"],
+    "postgres:drop": run_postgres
+    + ["-a", "-c", "DROP SCHEMA public CASCADE;CREATE SCHEMA public;"],
+    "api:run": run_api,
+    "api:manage": manage,
+    "api:test": run_api + ["bash", "./run_tests.sh"],
+    "api:graphmodels": manage + ["graph_models", "scpca_portal", ">", "models.dot"],
+    "api:lint:black": ["black", "--line-length=100", "--exclude=volumes_postgres", "."],
+    "deploy:up": [
+        "python3",
+        "deploy.py",
+        "-e",
+        "dev",
+        "-u",
+        os.environ.get("DEPLOY_USER"),
+        "-d",
+        os.environ.get("DOCKERHUB_ACCOUNT"),
+        "-v",
+        "$(git rev-parse HEAD)",
+    ],
+    "deploy:down": [
+        "python3",
+        "destroy_terraform.py",
+        "-e",
+        "dev",
+        "-u",
+        os.environ.get("DEPLOY_USER"),
+    ],
+}
+
+
+# Arguments
 parser = argparse.ArgumentParser(
     usage="sportal [--sso PROFILE_NAME] [command] [...comman_args]] [--help]",
     description="ScPCA Portal Helper Commands. Expected to be called from project root.",
+    epilog="Run `sportal debug:env` to ensure your environment is set up correctly.",
 )
-parser.formatter_class = lambda prog: argparse.RawTextHelpFormatter(
-    prog, max_help_position=10
+parser.formatter_class = argparse.RawTextHelpFormatter
+parser.add_argument(
+    "--sso", help="The AWS SSO profile to use for this command. Must be before command."
 )
-parser.add_argument("--sso", help="The AWS SSO profile to use for this command")
 parser.add_argument(
     "command",
     metavar="command",
-    help='\n'.join(commands.keys()),
+    choices=commands.keys(),
+    help="\n".join(
+        [
+            f"{key: <15} - {command_desriptions.get(key, 'No description available.')}"
+            for key in commands.keys()
+        ]
+    ),
 )
 parser.add_argument(
     "command_args",
@@ -79,74 +219,43 @@ parser.add_argument(
 )
 
 
-def get_aws_env_from_profile(profile: str, merge: bool = True) -> dict:
-    """
-    Takes an AWS SSO Profile as a string.
-    Returns a dictionary of the profile credentials as env dict.
-    """
-    env = {}
-
-    if merge:
-        print("Attempting to merge AWS SSO credentials with current session envars.")
-        env = os.environ.copy()
-
-    cmd = f"aws configure export-credentials --profile {profile} --format env-no-export"
-    p = subprocess.Popen(
-        cmd,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-
-    code = p.wait()
-
-    if stdout := p.stdout:
-        output = stdout.read().decode("UTF-8")
-
-    if code != 0:
-        print(f"Failed getting credentials with: {cmd}")
-        print(f"Failed with output: {output.strip()}")
-        if code == 255:
-            print_color(
-                f"You may need to login with: aws sso login --profile {profile}",
-                Colors.RED,
-            )
-        exit(code)
-
-    for line in output.split("\n"):
-        if line:
-            key, value = line.split("=", 1)
-            env[key] = value
-    return env
-
-
+# Sportal Command
 if __name__ == "__main__":
+    # Exit if not called from project root.
+    if not Path("bin/sportal").exists():
+        print_error("Please call sportal from the project's root")
+        exit(1)
+
     args = parser.parse_args()
-    env = os.environ.copy()
+    # update global env dict variable
+    get_aws_env_from_profile(args.sso)
 
-    if args.sso:
-        print("Will attept to use AWS SSO Profile:", args.sso)
-        env = get_aws_env_from_profile(args.sso)
-        print_color("Successfully read AWS SSO credentials.", Colors.GREEN)
-    else:
-        print("Running command with no AWS SSO Profile.")
+    # get command as list of parts
+    cmd = commands.get(args.command, []) + args.command_args
+    cwd = commands_cwd.get(args.command, Path(".")).absolute()
+    cmd_str = " ".join(cmd)
 
-    if command := commands.get(args.command):
-        cmd = command + args.command_args
+    if hasattr(cmd[0], "__call__"):
+        cmd[0]()
+        exit(0)
 
-        print("Executing command:", " ".join(cmd))
+    print_info(f"Command directory: {cwd.absolute()}")
+    print_info(f"Command: {cmd_str}")
 
-        try:
-            p = subprocess.Popen(cmd, env=env)
-            code = p.wait()
+    # some commands may have shell substitutions
+    is_shell = args.command in shell_commands
 
-            if code != 0:
-                print("Command encountered error.")
+    try:
+        p = subprocess.Popen(
+            cmd_str if is_shell else cmd, env=env, cwd=cwd, shell=is_shell
+        )
+        p.wait()
+        exit(p.returncode)
 
-            exit(code)
-        except Exception as e:
-            print_color(e, Colors.RED)
-            exit(1)
+    except KeyboardInterrupt:
+        p.send_signal(signal.SIGINT)
+        exit(p.returncode)
 
-    print("Unknown Command:", args.command)
-    exit(1)
+    except Exception as e:
+        print_error(e)
+        exit(1)
