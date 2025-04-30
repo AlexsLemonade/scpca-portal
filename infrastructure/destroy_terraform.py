@@ -1,8 +1,6 @@
 import argparse
-import signal
-import subprocess
 
-from init_terraform import init_terraform
+from terraform import destroy
 
 
 def destroy_terraform():
@@ -30,20 +28,7 @@ def destroy_terraform():
 
     args = parser.parse_args()
 
-    init_terraform(args.env, args.user)
-
-    var_file_arg = "-var-file=tf_vars/{}.tfvars".format(args.env)
-
-    # Make sure that Terraform is allowed to shut down gracefully.
-    try:
-        terraform_process = subprocess.Popen(
-            ["terraform", "destroy", var_file_arg, "-auto-approve"]
-        )
-        terraform_process.wait()
-        exit(terraform_process.returncode)
-    except KeyboardInterrupt:
-        terraform_process.send_signal(signal.SIGINT)
-
+    destroy(args.env, args.user)
 
 if __name__ == "__main__":
     destroy_terraform()

@@ -11,6 +11,12 @@ def init_terraform(env, user):
     init_bucket = f"-backend-config=bucket=scpca-portal-tfstate-{env}"
     init_key = f"-backend-config=key=terraform-{user}.tfstate"
 
+    if env == "dev":
+        init_bucket = "-backend-config=bucket=scpca-portal-backend-tfstate"
+        init_key = f"-backend-config={user}-{env}.json"
+
+    print(init_key)
+    init_dynamodb_table = "-backend-config=dynamodb_table=scpca-portal-terraform-lock", # depricated
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
         command = [
@@ -19,7 +25,7 @@ def init_terraform(env, user):
             "-upgrade",
             init_bucket,
             init_key,
-            "-backend-config=dynamodb_table=scpca-portal-terraform-lock",
+            init_dynamodb_table,
             "-force-copy",
         ]
         terraform_process = subprocess.Popen(command, env=dict(os.environ, TF_LOG="TRACE"))
