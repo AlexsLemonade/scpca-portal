@@ -233,11 +233,12 @@ if __name__ == "__main__":
     # get command as list of parts
     cmd = commands.get(args.command, []) + args.command_args
     cwd = commands_cwd.get(args.command, Path(".")).absolute()
-    cmd_str = " ".join(cmd)
 
     if hasattr(cmd[0], "__call__"):
         cmd[0]()
         exit(0)
+
+    cmd_str = " ".join(cmd)
 
     print_info(f"Command directory: {cwd.absolute()}")
     print_info(f"Command: {cmd_str}")
