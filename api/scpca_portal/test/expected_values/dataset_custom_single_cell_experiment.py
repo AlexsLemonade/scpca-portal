@@ -23,7 +23,7 @@ class DatasetCustomSingleCellExperiment:
                 Modalities.SPATIAL: [],
             },
         },
-        "email": None,
+        "email": "user@example.com",
         "start": False,
         "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,
         "regenerated_from": None,
