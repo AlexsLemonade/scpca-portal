@@ -234,6 +234,9 @@ class DatasetUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
         fields = (
+            "id",
             "data",
             "email",
+            "format",
         )
+        read_only_fields = ("id", "format")

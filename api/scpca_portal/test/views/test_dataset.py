@@ -61,8 +61,17 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
         }
         response = self.client.put(url, data)
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # check to see that read_only format field was not mutated
+        data = {
+            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "format": "format",
+        }
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(self.custom_dataset.format, data.get("format"))
 
     def test_delete_is_not_allowed(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
