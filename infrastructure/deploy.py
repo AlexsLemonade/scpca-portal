@@ -5,14 +5,10 @@ import os
 import subprocess
 import time
 
-import terraform
-import docker
+from deploy_modules import docker, terraform
 
-# from init_terraform import init_terraform
-# from run_terraform import run_terraform
 NEW_ENVS = ["dev"]
 PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
-PUBLIC_KEY_FILE_PATH = "scpca-portal-key.pub"
 
 DEV_SECRETS_FILE = "api-configuration/dev-secrets"
 TAINT_ON_APPLY = ["aws_instance.api_server_1"]

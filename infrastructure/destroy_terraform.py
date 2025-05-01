@@ -1,6 +1,6 @@
 import argparse
 
-from terraform import destroy
+from deploy_modules import terraform
 
 
 def destroy_terraform():
@@ -28,7 +28,7 @@ def destroy_terraform():
 
     args = parser.parse_args()
 
-    destroy(args.env, args.user)
+    terraform.destroy(args.env, args.user)
 
 if __name__ == "__main__":
     destroy_terraform()
