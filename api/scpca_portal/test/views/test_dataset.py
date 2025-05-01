@@ -17,8 +17,13 @@ class DatasetsTestCase(APITestCase):
     def test_get_single(self):
         url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
         response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json().get("id"), str(self.ccdl_dataset.id))
 
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        url = reverse("datasets-detail", args=[self.custom_dataset.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json().get("id"), str(self.custom_dataset.id))
 
     def test_get_list(self):
         url = reverse("datasets-list")
