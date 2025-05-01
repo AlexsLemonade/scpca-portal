@@ -24,15 +24,16 @@ class Job(TimestampedModel):
     # Internal Attributes
     attempt = models.PositiveIntegerField(default=1)  # Incremented on every retry
     critical_error = models.BooleanField(default=False)  # Set to True if the job is irrecoverable
-    failure_reason = models.TextField(blank=True, null=True)
     retry_on_termination = models.BooleanField(default=False)
     state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED.value)
 
     submitted_at = models.DateTimeField(null=True)
     succeeded_at = models.DateTimeField(null=True)
     failed_at = models.DateTimeField(null=True)
+    failed_reason = models.TextField(blank=True, null=True)
     completed_at = models.DateTimeField(null=True)  # TODO: Removed in #1210
     terminated_at = models.DateTimeField(null=True)
+    terminated_reason = models.TextField(blank=True, null=True)
 
     # Job Information Sent to AWS (via Request)
     batch_job_name = models.TextField(null=True)
@@ -234,7 +235,7 @@ class Job(TimestampedModel):
                 "submitted_at",
                 "succeeded_at",
                 "failed_at",
-                "failure_reason",
+                "failed_reason",
                 "terminated_at",
             ],
         )
@@ -264,12 +265,12 @@ class Job(TimestampedModel):
 
         for job in submitted_jobs:
             if aws_job := aws_jobs.get(job.batch_job_id):
-                new_state, failure_reason = cls.get_job_state(aws_job)
+                new_state, failed_reason = cls.get_job_state(aws_job)
 
                 if new_state != job.state:
                     job.state = new_state
-                    job.failure_reason = failure_reason
-                    job.update_state_at()
+                    job.failed_reason = failed_reason
+                    job.apply_state_at()
                     synced_jobs.append(job)
                 else:
                     continue
@@ -280,7 +281,7 @@ class Job(TimestampedModel):
 
         return False
 
-    def update_state_at(self, save=False) -> None:
+    def apply_state_at(self) -> None:
         """
         Sets timestamp fields, *_at, based on the latest job state.
         """
@@ -295,9 +296,6 @@ class Job(TimestampedModel):
                 self.failed_at = timestamp
             case JobStates.TERMINATED:
                 self.terminated_at = timestamp
-
-        if save:
-            self.save()
 
     def submit(self) -> bool:
         """
@@ -327,12 +325,12 @@ class Job(TimestampedModel):
             return False
 
         if aws_jobs := batch.get_jobs([self]):
-            new_state, failure_reason = self.get_job_state(aws_jobs[0])
+            new_state, failed_reason = self.get_job_state(aws_jobs[0])
 
             if new_state != self.state:
                 self.state = new_state
-                self.failure_reason = failure_reason
-                self.update_state_at()
+                self.failed_reason = failed_reason
+                self.apply_state_at()
 
                 Job.bulk_update_state([self])
 

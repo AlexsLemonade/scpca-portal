@@ -66,15 +66,16 @@ class Dataset(TimestampedModel):
     started_at = models.DateTimeField(null=True)
     is_started = models.BooleanField(default=False)
     is_processing = models.BooleanField(default=False)
-    processed_at = models.DateTimeField(null=True)
-    is_processed = models.BooleanField(default=False)
-    errored_at = models.DateTimeField(null=True)
-    is_errored = models.BooleanField(default=False)
-    error_message = models.TextField(null=True)
+    succeeded_at = models.DateTimeField(null=True)
+    is_succeeded = models.BooleanField(default=False)
+    failed_at = models.DateTimeField(null=True)
+    is_failed = models.BooleanField(default=False)
+    failed_reason = models.TextField(null=True)
     expires_at = models.DateTimeField(null=True)
     is_expired = models.BooleanField(default=False)  # Set by cronjob
-    is_terminated = models.BooleanField(default=False)
     terminated_at = models.DateTimeField(null=True)
+    is_terminated = models.BooleanField(default=False)
+    terminated_reason = models.TextField(null=True)
 
     computed_file = models.OneToOneField(
         ComputedFile,
@@ -114,30 +115,28 @@ class Dataset(TimestampedModel):
         return dataset, False
 
     @classmethod
-    def update_from_last_jobs(cls, datasets: List[Self], bulk_save: bool = True) -> None:
+    def update_from_last_jobs(cls, datasets: List[Self]) -> None:
         """
         Updates datasets' state based on their latest jobs.
         If 'bulk_save' is True, bulk update the instances, Otherwise, each dataset
         is individually saved during processing.
         """
-
         for dataset in datasets:
-            dataset.update_from_last_job(save=not bulk_save)
+            dataset.update_from_last_job(save=False)
 
-        if bulk_save:
-            cls.objects.bulk_update(
-                datasets,
-                [
-                    "is_processing",
-                    "is_processed",
-                    "processed_at",
-                    "is_errored",
-                    "errored_at",
-                    "error_message",
-                    "is_terminated",
-                    "terminated_at",
-                ],
-            )
+        cls.objects.bulk_update(
+            datasets,
+            [
+                "is_processing",
+                "is_succeeded",
+                "succeeded_at",
+                "is_failed",
+                "failed_at",
+                "failed_reason",
+                "is_terminated",
+                "terminated_at",
+            ],
+        )
 
     def get_ccdl_data(self) -> Dict:
         if not self.is_ccdl:
@@ -191,75 +190,72 @@ class Dataset(TimestampedModel):
 
         match last_job.state:
             case JobStates.SUCCEEDED:
-                self.on_succeeded()
+                self.on_job_succeeded(last_job)
             case JobStates.FAILED:
-                self.on_failed(last_job.failure_reason)
+                self.on_job_failed(last_job)
             case JobStates.TERMINATED:
-                self.on_terminated()
+                self.on_job_terminated(last_job)
 
         if save:
             self.save()
 
-    def update_state_at(self, save=False) -> None:
+    def apply_job_state(self, last_job) -> None:
         """
-        Sets final states' timestamps, *_at, based on the last job state.
-        Resets timestamps before applying changes.
-        If 'save' is True, the instance will be saved.
+        Sets the dataset state (flag, reason, timestamps) based on the last job state.
+        Resets states before applying changes.
         """
+        # TODO: Use common.FINAL_JOB_STATES
+        FINAL_JOB_STATES = [
+            JobStates.SUCCEEDED,
+            JobStates.FAILED,
+            JobStates.TERMINATED,
+        ]
+
+        # Resets all state flags and reasons
+        for state in JobStates:
+            state_str = state.lower()
+
+            setattr(self, f"is_{state_str}", False)
+            reason_attr = f"{state_str}_reason"
+
+            if hasattr(self, reason_attr):
+                setattr(self, reason_attr, None)
+
+        # Resets timestemps except pending_at and processing_at
+        time_stamps = [f"{state.lower()}_at" for state in FINAL_JOB_STATES]
+
+        for timestamp in time_stamps:
+            setattr(self, timestamp, None)
+
+        # Sets the current states
         last_job = self.jobs.order_by("-created_at").first()
+        state_str = last_job.state.lower()
+        reason_attr = f"{state_str}_reason"
 
-        self.processed_at = None
-        self.errored_at = None
-        self.terminated_at = None
+        setattr(self, f"is_{state_str}", True)
+        setattr(self, f"{state_str}_at", make_aware(datetime.now()))
+        if hasattr(self, f"{state_str}_reason"):
+            setattr(self, f"{state_str}_reason", getattr(last_job, reason_attr))
 
-        timestamp = make_aware(datetime.now())
-        match last_job.state:
-            case JobStates.SUCCEEDED:
-                self.processed_at = timestamp
-            case JobStates.FAILED:
-                self.errored_at = timestamp
-            case JobStates.TERMINATED:
-                self.terminated_at = timestamp
-
-        if save:
-            self.save()
-
-    def reset_state(self) -> None:
+    def on_job_succeeded(self, last_job) -> Self:
         """
-        Resets the dataset’s state flags to their default values.
+        Marks the dataset as succeeded based on the last job.
         """
-        self.is_processing = False  # Resets for final job states, SUCCEEDED|FAILED|TERMINATED
-        self.is_processed = False
-        self.is_errored = False
-        self.error_message = None
-        self.is_terminated = False
-
-    def on_succeeded(self) -> Self:
-        """
-        Marks the dataset as successfully processed based on the last job.
-        """
-        self.reset_state()
-        self.is_processed = True
-        self.update_state_at()
+        self.apply_job_state(last_job)
         return self
 
-    def on_failed(self, failure_reason: str) -> Self:
+    def on_job_failed(self, last_job) -> Self:
         """
-        Marks the dataset as errored with the error reason based on the last job.
+        Marks the dataset as failed with the failure reason based on the last job.
         """
-        self.reset_state()
-        self.is_errored = True
-        self.error_message = failure_reason
-        self.update_state_at()
+        self.apply_job_state(last_job)
         return self
 
-    def on_terminated(self) -> Self:
+    def on_job_terminated(self, last_job) -> Self:
         """
-        Marks the dataset as terminated based on the last job.
+        Marks the dataset as terminated with the terminated reason based on the last job.
         """
-        self.reset_state()
-        self.is_terminated = True
-        self.update_state_at()
+        self.apply_job_state(last_job)  # TODO: Pass terminated_reason here
         return self
 
     @property
