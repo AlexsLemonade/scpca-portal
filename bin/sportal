@@ -70,7 +70,7 @@ def check_envs(envs: dict):
     if missing_envars:
         print_error(f"Found {len(missing_envars)} missing envars.")
     else:
-        print_success("Sucess! But values are not confirmed.")
+        print_success("Success! But values are not confirmed.")
 
 
 def get_aws_env_from_profile(profile: str) -> bool:
@@ -193,7 +193,7 @@ commands = {
 
 # Arguments
 parser = argparse.ArgumentParser(
-    usage="sportal [--sso PROFILE_NAME] [command] [...comman_args]] [--help]",
+    usage="sportal [--sso PROFILE_NAME] [command] [...command_args] [--help]",
     description="ScPCA Portal Helper Commands. Expected to be called from project root.",
     epilog="Run `sportal debug:env` to ensure your environment is set up correctly.",
 )
