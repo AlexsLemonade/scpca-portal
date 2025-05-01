@@ -218,6 +218,10 @@ class DatasetSerializer(serializers.ModelSerializer):
         )
 
 
+class DatasetDetailSerializer(DatasetSerializer):
+    computed_file = ComputedFileSerializer(read_only=True, many=False)
+
+
 class DatasetCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
