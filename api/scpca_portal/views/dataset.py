@@ -21,10 +21,8 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             # only custom datasets can be updated
             datasets = datasets.filter(is_ccdl=False)
         elif self.action == "list":
-            # only ccdl datasets should be publicallay listable
+            # only ccdl datasets should be publicly listable
             datasets = datasets.filter(is_ccdl=True)
-        else:
-            datasets = datasets.none()  # prevent accidental exposure
 
         return datasets.order_by("-created_at")
 
