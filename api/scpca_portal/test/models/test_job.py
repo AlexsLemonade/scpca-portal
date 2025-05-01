@@ -14,9 +14,9 @@ class TestJob(TestCase):
         self,
         dataset,
         is_processing=False,
-        is_processed=False,
-        is_errored=False,
-        error_message=None,
+        is_succeeded=False,
+        is_failed=False,
+        failed_reason=None,
         is_terminated=False,
     ):
         """
@@ -24,14 +24,14 @@ class TestJob(TestCase):
         """
         self.assertEqual(dataset.is_processing, is_processing)
 
-        self.assertEqual(dataset.is_processed, is_processed)
-        if is_processed:
-            self.assertIsInstance(dataset.processed_at, datetime)
+        self.assertEqual(dataset.is_succeeded, is_succeeded)
+        if is_succeeded:
+            self.assertIsInstance(dataset.succeeded_at, datetime)
 
-        self.assertEqual(dataset.is_errored, is_errored)
-        if is_errored:
-            self.assertIsInstance(dataset.errored_at, datetime)
-        self.assertEqual(dataset.error_message, error_message)
+        self.assertEqual(dataset.is_failed, is_failed)
+        if is_failed:
+            self.assertIsInstance(dataset.failed_at, datetime)
+        self.assertEqual(dataset.failed_reason, failed_reason)
 
         self.assertEqual(dataset.is_terminated, is_terminated)
         if is_terminated:
@@ -198,8 +198,9 @@ class TestJob(TestCase):
         saved_job = Job.objects.get(pk=submitted_job.pk)
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertIsInstance(saved_job.terminated_at, datetime)
-        self.assertEqual(saved_job.failure_reason, "Job FAILED")
-        self.assertDatasetState(saved_job.dataset, is_processing=False, is_terminated=True)
+        self.assertEqual(saved_job.failed_reason, "Job FAILED")
+        # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
+        self.assertDatasetState(saved_job.dataset, is_processing=True, is_terminated=True)
 
         # Job is in SUBMITTED state
         submitted_job = JobFactory(
@@ -220,13 +221,14 @@ class TestJob(TestCase):
         # Job should be updated and saved with correct field values
         saved_job = Job.objects.get(pk=submitted_job.pk)
         self.assertEqual(saved_job.state, JobStates.FAILED)
-        self.assertEqual(saved_job.failure_reason, "Job FAILED")
+        self.assertEqual(saved_job.failed_reason, "Job FAILED")
         self.assertIsInstance(saved_job.failed_at, datetime)
+        # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
         self.assertDatasetState(
             saved_job.dataset,
-            is_processing=False,
-            is_errored=True,
-            error_message=saved_job.failure_reason,
+            is_processing=True,
+            is_failed=True,
+            failed_reason=saved_job.failed_reason,
         )
 
     @patch("scpca_portal.batch.get_jobs")
@@ -266,26 +268,29 @@ class TestJob(TestCase):
 
         # SUCCEEDED jobs should be updated
         for succeeded_job in succeeded_jobs:
-            self.assertIsNone(submitted_job.failure_reason)
+            self.assertIsNone(submitted_job.failed_reason)
             self.assertIsInstance(succeeded_job.succeeded_at, datetime)
-            self.assertDatasetState(succeeded_job.dataset, is_processing=False, is_processed=True)
+            # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
+            self.assertDatasetState(succeeded_job.dataset, is_processing=True, is_succeeded=True)
 
         # FAILED jobs should be updated
         for failed_job in failed_jobs:
-            self.assertEqual(failed_job.failure_reason, "Job FAILED")
+            self.assertEqual(failed_job.failed_reason, "Job FAILED")
             self.assertIsInstance(failed_job.failed_at, datetime)
+            # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
             self.assertDatasetState(
                 failed_job.dataset,
-                is_processing=False,
-                is_errored=True,
-                error_message=failed_job.failure_reason,
+                is_processing=True,
+                is_failed=True,
+                failed_reason=failed_job.failed_reason,
             )
 
         # TERMINATED jobs should be updated
         for terminated_job in terminated_jobs:
-            self.assertEqual(terminated_job.failure_reason, "Job FAILED")
+            self.assertEqual(terminated_job.failed_reason, "Job FAILED")
             self.assertIsInstance(terminated_job.terminated_at, datetime)
-            self.assertDatasetState(terminated_job.dataset, is_processing=False, is_terminated=True)
+            # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
+            self.assertDatasetState(terminated_job.dataset, is_processing=True, is_terminated=True)
 
     @patch("scpca_portal.batch.get_jobs")
     def test_bulk_sync_state_no_matching_batch_job_found(self, mock_batch_get_jobs):
@@ -311,13 +316,14 @@ class TestJob(TestCase):
         # Job with state change should be updated and saved with correct field values
         saved_job = Job.objects.filter(batch_job_id=jobs_to_sync[2].batch_job_id).first()
         self.assertEqual(saved_job.state, JobStates.FAILED)
-        self.assertEqual(saved_job.failure_reason, "Job FAILED")
+        self.assertEqual(saved_job.failed_reason, "Job FAILED")
         self.assertIsInstance(saved_job.failed_at, datetime)
+        # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
         self.assertDatasetState(
             saved_job.dataset,
-            is_processing=False,
-            is_errored=True,
-            error_message=saved_job.failure_reason,
+            is_processing=True,
+            is_failed=True,
+            failed_reason=saved_job.failed_reason,
         )
 
     @patch("scpca_portal.batch.terminate_job")

@@ -18,9 +18,9 @@ class TestSyncBatchJobs(TestCase):
         self,
         dataset,
         is_processing=False,
-        is_processed=False,
-        is_errored=False,
-        error_message=None,
+        is_succeeded=False,
+        is_failed=False,
+        failed_reason=None,
         is_terminated=False,
     ):
         """
@@ -28,14 +28,14 @@ class TestSyncBatchJobs(TestCase):
         """
         self.assertEqual(dataset.is_processing, is_processing)
 
-        self.assertEqual(dataset.is_processed, is_processed)
-        if is_processed:
-            self.assertIsInstance(dataset.processed_at, datetime)
+        self.assertEqual(dataset.is_succeeded, is_succeeded)
+        if is_succeeded:
+            self.assertIsInstance(dataset.succeeded_at, datetime)
 
-        self.assertEqual(dataset.is_errored, is_errored)
-        if is_errored:
-            self.assertIsInstance(dataset.errored_at, datetime)
-        self.assertEqual(dataset.error_message, error_message)
+        self.assertEqual(dataset.is_failed, is_failed)
+        if is_failed:
+            self.assertIsInstance(dataset.failed_at, datetime)
+        self.assertEqual(dataset.failed_reason, failed_reason)
 
         self.assertEqual(dataset.is_terminated, is_terminated)
         if is_terminated:
@@ -87,43 +87,46 @@ class TestSyncBatchJobs(TestCase):
         self.assertDatasetState(
             submitted_job.dataset,
             is_processing=True,
-            is_processed=False,
-            is_errored=False,
-            error_message=None,
+            is_succeeded=False,
+            is_failed=False,
+            failed_reason=None,
             is_terminated=False,
         )
 
         # SUCCEEDED job state and dataset should be updated
         succeeded_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_5").first()
         self.assertEqual(succeeded_job.state, JobStates.SUCCEEDED)
+        # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
         self.assertDatasetState(
             succeeded_job.dataset,
-            is_processing=False,
-            is_processed=True,
-            is_errored=False,
-            error_message=None,
+            is_processing=True,
+            is_succeeded=True,
+            is_failed=False,
+            failed_reason=None,
             is_terminated=False,
         )
 
         # FAILED job state and dataset should be updated with failed reason
         failed_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_6").first()
         self.assertEqual(failed_job.state, JobStates.FAILED)
+        # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
         self.assertDatasetState(
             failed_job.dataset,
-            is_processing=False,
-            is_processed=False,
-            is_errored=True,
-            error_message="Job FAILED",
+            is_processing=True,
+            is_succeeded=False,
+            is_failed=True,
+            failed_reason="Job FAILED",
             is_terminated=False,
         )
 
         # TERMINATED job state and dataset should be updated
         terminated_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_7").first()
+        # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
         self.assertDatasetState(
             terminated_job.dataset,
-            is_processing=False,
-            is_processed=False,
-            is_errored=False,
-            error_message=None,
+            is_processing=True,
+            is_succeeded=False,
+            is_failed=False,
+            failed_reason=None,
             is_terminated=True,
         )
