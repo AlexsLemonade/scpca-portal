@@ -190,16 +190,16 @@ class Dataset(TimestampedModel):
 
         match last_job.state:
             case JobStates.SUCCEEDED:
-                self.on_job_succeeded(last_job)
+                self.on_job_succeeded()
             case JobStates.FAILED:
-                self.on_job_failed(last_job)
+                self.on_job_failed()
             case JobStates.TERMINATED:
-                self.on_job_terminated(last_job)
+                self.on_job_terminated()
 
         if save:
             self.save()
 
-    def apply_job_state(self, last_job) -> None:
+    def apply_job_state(self) -> None:
         """
         Sets the dataset state (flag, reason, timestamps) based on the last job state.
         Resets states before applying changes.
@@ -237,25 +237,25 @@ class Dataset(TimestampedModel):
         if hasattr(self, f"{state_str}_reason"):
             setattr(self, f"{state_str}_reason", getattr(last_job, reason_attr))
 
-    def on_job_succeeded(self, last_job) -> Self:
+    def on_job_succeeded(self) -> Self:
         """
         Marks the dataset as succeeded based on the last job.
         """
-        self.apply_job_state(last_job)
+        self.apply_job_state()
         return self
 
-    def on_job_failed(self, last_job) -> Self:
+    def on_job_failed(self) -> Self:
         """
         Marks the dataset as failed with the failure reason based on the last job.
         """
-        self.apply_job_state(last_job)
+        self.apply_job_state()
         return self
 
-    def on_job_terminated(self, last_job) -> Self:
+    def on_job_terminated(self) -> Self:
         """
         Marks the dataset as terminated with the terminated reason based on the last job.
         """
-        self.apply_job_state(last_job)  # TODO: Pass terminated_reason here
+        self.apply_job_state()
         return self
 
     @property
