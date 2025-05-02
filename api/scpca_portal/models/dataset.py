@@ -133,6 +133,7 @@ class Dataset(TimestampedModel):
             "failed_reason",
             "is_terminated",
             "terminated_at",
+            "terminated_reason",
         ]
         cls.objects.bulk_update(datasets, updated_attrs)
 

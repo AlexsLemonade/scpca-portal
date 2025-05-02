@@ -22,6 +22,7 @@ class TestSyncBatchJobs(TestCase):
         is_failed=False,
         failed_reason=None,
         is_terminated=False,
+        terminated_reason=None,
     ):
         """
         Helper for asserting the dataset state.
@@ -40,6 +41,7 @@ class TestSyncBatchJobs(TestCase):
         self.assertEqual(dataset.is_terminated, is_terminated)
         if is_terminated:
             self.assertIsInstance(dataset.terminated_at, datetime)
+        self.assertEqual(dataset.terminated_reason, terminated_reason)
 
     @patch("scpca_portal.batch.get_jobs")
     def test_sync_batch_jobs(self, mock_batch_get_jobs):
@@ -129,4 +131,5 @@ class TestSyncBatchJobs(TestCase):
             is_failed=False,
             failed_reason=None,
             is_terminated=True,
+            terminated_reason=terminated_job.terminated_reason,
         )
