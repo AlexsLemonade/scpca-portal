@@ -18,6 +18,7 @@ class TestJob(TestCase):
         is_failed=False,
         failed_reason=None,
         is_terminated=False,
+        terminated_reason=None,
     ):
         """
         Helper for asserting the dataset state.
@@ -36,6 +37,7 @@ class TestJob(TestCase):
         self.assertEqual(dataset.is_terminated, is_terminated)
         if is_terminated:
             self.assertIsInstance(dataset.terminated_at, datetime)
+        self.assertEqual(dataset.terminated_reason, terminated_reason)
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_job(self, mock_batch_submit_job):
@@ -200,7 +202,12 @@ class TestJob(TestCase):
         self.assertIsInstance(saved_job.terminated_at, datetime)
         self.assertEqual(saved_job.failed_reason, "Job FAILED")
         # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
-        self.assertDatasetState(saved_job.dataset, is_processing=True, is_terminated=True)
+        self.assertDatasetState(
+            saved_job.dataset,
+            is_processing=True,
+            is_terminated=True,
+            terminated_reason=saved_job.terminated_reason,
+        )
 
         # Job is in SUBMITTED state
         submitted_job = JobFactory(
@@ -290,7 +297,12 @@ class TestJob(TestCase):
             self.assertEqual(terminated_job.failed_reason, "Job FAILED")
             self.assertIsInstance(terminated_job.terminated_at, datetime)
             # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
-            self.assertDatasetState(terminated_job.dataset, is_processing=True, is_terminated=True)
+            self.assertDatasetState(
+                terminated_job.dataset,
+                is_processing=True,
+                is_terminated=True,
+                terminated_reason=terminated_job.terminated_reason,
+            )
 
     @patch("scpca_portal.batch.get_jobs")
     def test_bulk_sync_state_no_matching_batch_job_found(self, mock_batch_get_jobs):
