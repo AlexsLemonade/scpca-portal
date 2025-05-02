@@ -85,7 +85,8 @@ def parse_args():
     # DESTROY
     destroy_help_text = "Specify that you want to destroy existing stack."
     parser.add_argument("--destroy", help=destroy_help_text, action=argparse.BooleanOptionalAction)
-    # PROJECT ACCOUNT
+
+    # SKIP DOCKER
     skip_docker_text = "Specify that you want to skip building docker container."
     parser.add_argument(
         "--skip-docker", help=skip_docker_text, action=argparse.BooleanOptionalAction
