@@ -23,8 +23,6 @@ class Job(TimestampedModel):
 
     # Internal Attributes
     attempt = models.PositiveIntegerField(default=1)  # Incremented on every retry
-    critical_error = models.BooleanField(default=False)  # Set to True if the job is irrecoverable
-    retry_on_termination = models.BooleanField(default=False)
     state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED)
 
     submitted_at = models.DateTimeField(null=True)
