@@ -84,13 +84,7 @@ def apply(var_file_arg, taints=[], env=os.environ.copy(), print_output=True):
     return process.returncode, merged_output
 
 
-def destroy(stage, backend_configs=[]):
-    # init terrafrom first
-    init(backend_configs)
-
-    # locally defined defaults
-    var_file_arg = f"-var-file=tf_vars/{stage}.tfvars"
-
+def destroy(var_file_arg):
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
         terraform_process = subprocess.Popen(

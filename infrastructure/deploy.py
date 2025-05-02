@@ -223,19 +223,20 @@ if __name__ == "__main__":
             "use_lockfile=true",
         ]
 
-    if args.destroy:
-        terraform.init()
-        terraform.destroy(args.stage, backend_configs)
-        exit(1)
-
+    # Always init first
     init_code = terraform.init(backend_configs)
 
     if init_code != 0:
         exit(init_code)
 
-    terraform_code, terraform_output = terraform.apply(
-        f"-var-file=tf_vars/{args.stage}.tfvars", taints=TAINT_ON_APPLY, env=env
-    )
+    # Shared for destroy and apply
+    var_file_arg = f"-var-file=tf_vars/{args.stage}.tfvars"
+
+    if args.destroy:
+        terraform.destroy(var_file_arg)
+        exit(1)
+
+    terraform_code, terraform_output = terraform.apply(var_file_arg, taints=TAINT_ON_APPLY, env=env)
 
     if terraform_code != 0:
         exit(terraform_code)
