@@ -10,10 +10,10 @@ Exported functions:
     - replace_provider
 """
 
-import subprocess
 import json
-import signal
 import os
+import signal
+import subprocess
 
 
 def init(backend_configs=[], init_args=["-upgrade"], log_trace=False):
@@ -28,7 +28,7 @@ def init(backend_configs=[], init_args=["-upgrade"], log_trace=False):
     backend_configs_args = [f"-backend-config={config}" for config in backend_configs]
 
     # -reconfigure
-    terraform_init = ["terraform", "init" ] + init_args
+    terraform_init = ["terraform", "init"] + init_args
     command = terraform_init + backend_configs_args + ["-force-copy"]
 
     # Pass environment to init
@@ -66,9 +66,7 @@ def apply(var_file_arg, taints=[], env=os.environ.copy(), print_output=True):
             process.wait()
             taint_output.update(output())
 
-        process = subprocess.Popen(
-            ["terraform", "apply", var_file_arg, "-auto-approve"], env=env
-        )
+        process = subprocess.Popen(["terraform", "apply", var_file_arg, "-auto-approve"], env=env)
         process.wait()
 
         apply_output = output()

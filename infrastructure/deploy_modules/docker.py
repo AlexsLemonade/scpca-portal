@@ -1,5 +1,5 @@
-import subprocess
 import os
+import subprocess
 
 
 def build_and_push_docker_image(image_name, *build_args, build_dir="../api"):
