@@ -49,9 +49,9 @@ def build_and_push_docker_image(image_name, *build_args, build_dir="../api"):
 
     try:
         completed_command = subprocess.check_call(docker_login_command)
-        print("Logged into docker.")
+        print("Logged into docker.")  # noqa
     except subprocess.CalledProcessError:
-        print("Failed to login to docker.")
+        print("Failed to login to docker.")  # noqa
         return 1
 
     if completed_command != 0:
