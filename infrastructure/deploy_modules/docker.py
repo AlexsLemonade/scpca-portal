@@ -42,13 +42,16 @@ def build_and_push_docker_image(image_name, *build_args, build_dir="../api"):
 
         if "DOCKER_PASSWORD" in os.environ:
             docker_login_command = (
-                ["echo", "$DOCKER_PASSWORD", "|"]  # pipe password
+                ["printenv", "DOCKER_PASSWORD", "|"]  # pipe password
                 + docker_login_command
                 + ["--password-stdin"]  # take password from pipe
             )
 
     try:
-        completed_command = subprocess.check_call(docker_login_command)
+        completed_command = subprocess.check_call(
+            " ".join(docker_login_command),
+            shell=True,  # shell for pipe support
+        )
         print("Logged into docker.")  # noqa
     except subprocess.CalledProcessError:
         print("Failed to login to docker.")  # noqa
@@ -57,7 +60,13 @@ def build_and_push_docker_image(image_name, *build_args, build_dir="../api"):
     if completed_command != 0:
         return completed_command
 
-    completed_command = subprocess.check_call(["docker", "push", image_name])
+    try:
+        completed_command = subprocess.check_call(["docker", "push", image_name])
+        print(f"Pushed {image_name} to docker.")  # noqa
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to push {image_name} to docker.")  # noqa
+        print(e)  # noqa
+        return 1
 
     # Change dir back so terraform is run from the correct location:
     os.chdir(cwd)
