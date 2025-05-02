@@ -301,17 +301,19 @@ class Job(TimestampedModel):
         if self.state is not JobStates.CREATED:
             return False
 
-        if job_id := batch.submit_job(self):
-            self.batch_job_id = job_id
-            self.state = JobStates.SUBMITTED
-            self.apply_state_at()
+        job_id = batch.submit_job(self)
 
-            self.save()  # Save this instance before bulk updating fields
-            Job.bulk_update_state([self])
+        if not job_id:
+            return False
 
-            return True
+        self.batch_job_id = job_id
+        self.state = JobStates.SUBMITTED
+        self.apply_state_at()
 
-        return False
+        self.save()  # Save this instance before bulk updating fields
+        Job.bulk_update_state([self])
+
+        return True
 
     def sync_state(self) -> bool:
         if self.state is not JobStates.SUBMITTED:
