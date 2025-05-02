@@ -7,17 +7,18 @@ import time
 
 from deploy_modules import docker, terraform
 
-NEW_ENVS = ["dev"]
-PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
 
+# CONFIGS
+PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
 DEV_SECRETS_FILE = "api-configuration/dev-secrets"
 TAINT_ON_APPLY = ["aws_instance.api_server_1"]
+# TAINT_ON_APPLY = []
 
 # These environment variables are passed to terraform
 # via parse_args args attribute.
 TF_ARG_VAR = {
     "user": "TF_VAR_user",
-    "env": "TF_VAR_stage",
+    "stage": "TF_VAR_stage",
     "region": "TF_VAR_region",
     "dockerhub_account": "TF_VAR_dockerhub_account",
     "system_version": "TF_VAR_system_version",
@@ -43,43 +44,67 @@ def parse_args():
     a local dev box. This script must be run from /infrastructure!"""
     parser = argparse.ArgumentParser(description=description)
 
-    env_help_text = """Specify the environment you would like to deploy to.
+    # STAGE
+    env_help_text = """Specify the stage you would like to deploy to.
     Not optional. Valid values are: prod, staging, and dev `prod` and `staging`
     will deploy the production stack. These should only be used from a
     deployment machine. `dev` will deploy a dev stack which is appropriate
     for a single developer to use to test."""
     parser.add_argument(
-        "-e",
-        "--env",
+        "-s",
+        "--stage",
         help=env_help_text,
         required=True,
         choices=["dev", "staging", "prod"],
     )
 
+    # USER
     user_help_text = (
         "Specify the username of the deployer. "
         "Should be the developer's name in development stacks."
     )
     parser.add_argument("-u", "--user", help=user_help_text, required=True)
 
+    # DOCKER ACCOUNT
     dockerhub_help_text = (
         "Specify the dockerhub account from which to pull the docker image."
         " Can be useful for using your own dockerhub account for a development stack."
     )
     parser.add_argument(
-        "-d",
+        "-a",
         "--dockerhub-account",
         help=dockerhub_help_text,
         required=True,
     )
 
+    # VERSION INFO
     version_help_text = "Specify the version of the system that is being deployed."
     parser.add_argument("-v", "--system-version", help=version_help_text, required=True)
 
+    # REGION
     region_help_text = (
         "Specify the AWS region to deploy the stack to. Default is us-east-1."
     )
     parser.add_argument("-r", "--region", help=region_help_text, default="us-east-1")
+
+    # DESTROY
+    destroy_help_text = "Specify that you want to destroy existing stack."
+    parser.add_argument(
+        "--destroy", help=destroy_help_text, action=argparse.BooleanOptionalAction
+    )
+    # PROJECT ACCOUNT
+    skip_docker_text = "Specify that you want to skip building docker container."
+    parser.add_argument(
+        "--skip-docker", help=skip_docker_text, action=argparse.BooleanOptionalAction
+    )
+
+    # TEMP
+    # PROJECT ACCOUNT
+    project_help_text = "Specify that you want to deploy with new settings."
+    parser.add_argument(
+        "--project", help=project_help_text, action=argparse.BooleanOptionalAction
+    )
+
     return parser.parse_args()
 
 
@@ -105,6 +130,7 @@ def get_env(script_args: dict):
 
 
 def run_remote_command(ip_address, command):
+    print(f"Remote Command on {ip_address}: '{command}'")
     completed_command = subprocess.check_output(
         [
             "ssh",
@@ -122,7 +148,7 @@ def run_remote_command(ip_address, command):
 
 def restart_api_if_still_running(args, api_ip_address):
     try:
-        if not run_remote_command(api_ip_address, "docker ps -q -a"):
+        if not run_remote_command(api_ip_address, "sudo docker ps -q -a"):
             print(
                 "Seems like the API came up, but has no docker containers "
                 "so it will start them itself."
@@ -134,7 +160,7 @@ def restart_api_if_still_running(args, api_ip_address):
 
     print("The API is still up! Restarting!")
     run_remote_command(
-        api_ip_address, "docker rm -f $(docker ps -a -q) 2>/dev/null || true"
+        api_ip_address, "sudo docker rm -f $(sudo docker ps -a -q) 2>/dev/null || true"
     )
 
     print("Waiting for API container to stop.")
@@ -159,7 +185,7 @@ def restart_api_if_still_running(args, api_ip_address):
     return 0
 
 
-def post_deploy_hook():
+def post_deploy_hook(terraform_output: dict):
     api_ip_key = "api_server_1_ip"
     api_ip_address = terraform_output.get(api_ip_key, {}).get("value", None)
 
@@ -184,46 +210,52 @@ def post_deploy_hook():
 # This is the deploy process.
 if __name__ == "__main__":
     args = parse_args()
+
     # get environ to inject into terraform commands
-    environ = get_env(vars(args))
+    env = get_env(vars(args))
 
-    docker_code = docker.build_and_push_docker_image(
-        f"{args.dockerhub_account}/scpca_portal_api",
-        f"--build-arg SYSTEM_VERSION={args.system_version}",
-        "--build-arg HTTP_PORT=8081",
-    )
+    if args.destroy:
+        terraform.init()
+        terraform.destroy(args.stage, args.user)
 
-    if docker_code != 0:
-        exit(docker_code)
+    if not args.skip_docker:
+        docker_code = docker.build_and_push_docker_image(
+            f"{args.dockerhub_account}/scpca_portal_api",
+            f"--build-arg SYSTEM_VERSION={args.system_version}",
+            "--build-arg HTTP_PORT=8081",
+        )
 
-    configs = [
-        f"bucket=scpca-portal-tfstate-{args.env}",
+        if docker_code != 0:
+            exit(docker_code)
+
+    # OLD LOCK FILE
+    backend_configs = [
+        f"bucket=scpca-portal-tfstate-{args.stage}",
         f"key=terraform-{args.user}.tfstate",
-        "dynamodb_table=scpca-portal-terraform-lock",
+        "use_lockfile=true",
     ]
 
-    # OVERRIDES
-
-    if args.env in NEW_ENVS:
-        configs = [
+    # NEW LOCK FILE
+    if args.project:
+        backend_configs = [
             "bucket=scpca-portal-terraform-backend",
-            f"key={args.user}-{args.env}.tfstate",
+            f"key={args.user}-{args.stage}.tfstate",
             "use_lockfile=true",
         ]
 
-    init_code = terraform.init(configs)
+    init_code = terraform.init(backend_configs)
 
     if init_code != 0:
         exit(init_code)
 
     terraform_code, terraform_output = terraform.apply(
-        f"-var-file=tf_vars/{args.env}.tfvars", environ=environ, taints=TAINT_ON_APPLY
+        f"-var-file=tf_vars/{args.stage}.tfvars", taints=TAINT_ON_APPLY, env=env
     )
 
     if terraform_code != 0:
         exit(terraform_code)
 
-    return_code = post_deploy_hook()
+    return_code = post_deploy_hook(terraform_output)
 
     if return_code == 0:
         print("\nDeploy completed successfully!!")
