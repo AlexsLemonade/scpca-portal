@@ -198,7 +198,7 @@ if __name__ == "__main__":
     # get environ to inject into terraform commands
     env = get_env(vars(args))
 
-    if not args.skip_docker or args.destroy:
+    if not args.skip_docker and not args.destroy:
         docker_code = docker.build_and_push_docker_image(
             f"{args.dockerhub_account}/scpca_portal_api",
             f"--build-arg SYSTEM_VERSION={args.system_version}",
