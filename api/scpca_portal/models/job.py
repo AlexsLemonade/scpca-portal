@@ -198,14 +198,12 @@ class Job(TimestampedModel):
         return submitted_jobs
 
     @classmethod
-    def terminate_submitted(cls) -> List[Self]:
+    def terminate_submitted(cls, reason: str | None = "Terminated submitted jobs") -> List[Self]:
         """
         Terminates all submitted, incomplete jobs on AWS Batch.
-        Updates each instance's state and completed_at, and
-        saves the changes to the db on success.
+        Updates each job's state and terminated_at with the given terminated reason.
         Returns all the terminated jobs.
         """
-        terminated_reason = "Terminated SUBMITTED"
         terminated_jobs = []
 
         if jobs := cls.objects.filter(state=JobStates.SUBMITTED):
@@ -213,7 +211,7 @@ class Job(TimestampedModel):
             for job in jobs:
                 if batch.terminate_job(job):
                     job.state = JobStates.TERMINATED
-                    job.terminated_reason = terminated_reason
+                    job.terminated_reason = reason
                     job.apply_state_at()
                     terminated_jobs.append(job)
 
@@ -333,27 +331,24 @@ class Job(TimestampedModel):
 
         return True
 
-    def terminate(self) -> bool:
+    def terminate(self, reason: str | None = "Terminated submitted job") -> bool:
         """
         Terminates the submitted, incomplete job on AWS Batch.
-        Updates state and terminated_at, and
-        saves the changes to the db on success.
+        Updates state and terminated_at with the given terminated reason.
         """
         if self.state in FINAL_JOB_STATES:
             return self.state == JobStates.TERMINATED
 
-        terminated_reason = "Terminated SUBMITTED"
+        if not batch.terminate_job(self):
+            return False
 
-        if batch.terminate_job(self):
-            self.state = JobStates.TERMINATED
-            self.terminated_reason = terminated_reason
-            self.apply_state_at()
+        self.state = JobStates.TERMINATED
+        self.terminated_reason = reason
+        self.apply_state_at()
 
-            Job.bulk_update_state([self])
+        Job.bulk_update_state([self])
 
-            return True
-
-        return False
+        return True
 
     def get_retry_job(self) -> Self | bool:
         """

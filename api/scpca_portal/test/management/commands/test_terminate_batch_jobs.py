@@ -22,6 +22,7 @@ class TestTerminateBatchJobs(TestCase):
         is_failed=False,
         failed_reason=None,
         is_terminated=False,
+        terminated_reason=None,
     ):
         """
         Helper for asserting the dataset state.
@@ -40,6 +41,7 @@ class TestTerminateBatchJobs(TestCase):
         self.assertEqual(dataset.is_terminated, is_terminated)
         if is_terminated:
             self.assertIsInstance(dataset.terminated_at, datetime)
+        self.assertEqual(dataset.terminated_reason, terminated_reason)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_batch_jobs(self, mock_batch_terminate_job):
@@ -49,9 +51,10 @@ class TestTerminateBatchJobs(TestCase):
                 state=JobStates.SUBMITTED,
                 dataset=DatasetFactory(is_processing=True),
             )
+        terminated_reason = "Terminated jobs for deploy"
 
         # Should call terminate_job 3 times
-        self.terminate_batch_jobs()
+        self.terminate_batch_jobs(reason=terminated_reason)
         self.assertEqual(mock_batch_terminate_job.call_count, 3)
 
         # SUBMITTED jobs should be updated to TERMINATED
@@ -60,9 +63,14 @@ class TestTerminateBatchJobs(TestCase):
         for saved_job in saved_jobs:
             self.assertEqual(saved_job.state, JobStates.TERMINATED)
             self.assertIsInstance(saved_job.terminated_at, datetime)
-            self.assertEqual(saved_job.terminated_reason, "Terminated SUBMITTED")
+            self.assertEqual(saved_job.terminated_reason, terminated_reason)
             # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
-            self.assertDatasetState(saved_job.dataset, is_processing=True, is_terminated=True)
+            self.assertDatasetState(
+                saved_job.dataset,
+                is_processing=True,
+                is_terminated=True,
+                terminated_reason=saved_job.terminated_reason,
+            )
 
         # Set up additinoal 3 SUBMITTED jobs
         for _ in range(3):

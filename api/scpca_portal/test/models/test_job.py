@@ -364,7 +364,12 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertIsInstance(saved_job.terminated_at, datetime)
         # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
-        self.assertDatasetState(saved_job.dataset, is_processing=True, is_terminated=True)
+        self.assertDatasetState(
+            saved_job.dataset,
+            is_processing=True,
+            is_terminated=True,
+            terminated_reason=saved_job.terminated_reason,
+        )
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_job_failure(self, mock_batch_terminate_job):
@@ -399,7 +404,12 @@ class TestJob(TestCase):
             self.assertEqual(saved_job.state, JobStates.TERMINATED)
             self.assertIsInstance(saved_job.terminated_at, datetime)
             # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
-            self.assertDatasetState(saved_job.dataset, is_processing=True, is_terminated=True)
+            self.assertDatasetState(
+                saved_job.dataset,
+                is_processing=True,
+                is_terminated=True,
+                terminated_reason=saved_job.terminated_reason,
+            )
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_submitted_failure(self, mock_batch_terminate_job):
