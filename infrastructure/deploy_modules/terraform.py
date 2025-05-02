@@ -78,8 +78,8 @@ def apply(var_file_arg, taints=[], env=os.environ.copy(), print_output=True):
     merged_output = {**taint_output, **apply_output}
 
     if print_output:
-        print("Print output")
-        print(json.dumps(merged_output, indent=2))
+        print("Print output")  # noqa
+        print(json.dumps(merged_output, indent=2))  # noqa
 
     return process.returncode, merged_output
 
