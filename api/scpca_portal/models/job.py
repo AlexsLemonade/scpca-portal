@@ -228,17 +228,15 @@ class Job(TimestampedModel):
         """
         Updates the states of the synced jobs and their associated datasets.
         """
-        cls.objects.bulk_update(
-            synced_jobs,
-            [
-                "state",
-                "submitted_at",
-                "succeeded_at",
-                "failed_at",
-                "failed_reason",
-                "terminated_at",
-            ],
-        )
+        updated_attrs = [
+            "state",
+            "submitted_at",
+            "succeeded_at",
+            "failed_at",
+            "failed_reason",
+            "terminated_at",
+        ]
+        cls.objects.bulk_update(synced_jobs, updated_attrs)
 
         Dataset.update_from_last_jobs([job.dataset for job in synced_jobs])
 
@@ -272,14 +270,12 @@ class Job(TimestampedModel):
                     job.failed_reason = failed_reason
                     job.apply_state_at()
                     synced_jobs.append(job)
-                else:
-                    continue
 
-        if synced_jobs:
-            cls.bulk_update_state(synced_jobs)
-            return True
+        if not synced_jobs:
+            return False
 
-        return False
+        cls.bulk_update_state(synced_jobs)
+        return True
 
     def apply_state_at(self) -> None:
         """
@@ -317,26 +313,26 @@ class Job(TimestampedModel):
         return False
 
     def sync_state(self) -> bool:
-        """
-        Sync the submitted job state with the remote AWS Batch job status.
-        Save the job and its associated dataset if the state changes.
-        """
         if self.state is not JobStates.SUBMITTED:
             return False
 
-        if aws_jobs := batch.get_jobs([self]):
-            new_state, failed_reason = self.get_job_state(aws_jobs[0])
+        aws_jobs = batch.get_jobs([self])
 
-            if new_state != self.state:
-                self.state = new_state
-                self.failed_reason = failed_reason
-                self.apply_state_at()
+        if not aws_jobs:
+            return False
 
-                Job.bulk_update_state([self])
+        new_state, failed_reason = self.get_job_state(aws_jobs[0])
 
-                return True
+        if new_state == self.state:
+            return False
 
-        return False
+        self.state = new_state
+        self.failed_reason = failed_reason
+        self.apply_state_at()
+
+        Job.bulk_update_state([self])
+
+        return True
 
     def terminate(self, retry_on_termination: bool = False) -> bool:
         """

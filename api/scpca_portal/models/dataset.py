@@ -124,19 +124,17 @@ class Dataset(TimestampedModel):
         for dataset in datasets:
             dataset.update_from_last_job(save=False)
 
-        cls.objects.bulk_update(
-            datasets,
-            [
-                "is_processing",
-                "is_succeeded",
-                "succeeded_at",
-                "is_failed",
-                "failed_at",
-                "failed_reason",
-                "is_terminated",
-                "terminated_at",
-            ],
-        )
+        updated_attrs = [
+            "is_processing",
+            "is_succeeded",
+            "succeeded_at",
+            "is_failed",
+            "failed_at",
+            "failed_reason",
+            "is_terminated",
+            "terminated_at",
+        ]
+        cls.objects.bulk_update(datasets, updated_attrs)
 
     def get_ccdl_data(self) -> Dict:
         if not self.is_ccdl:
