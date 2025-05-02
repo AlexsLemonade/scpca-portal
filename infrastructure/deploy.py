@@ -10,9 +10,8 @@ from deploy_modules import docker, terraform
 
 # CONFIGS
 PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
-DEV_SECRETS_FILE = "api-configuration/dev-secrets"
+# TODO: Convert to argument
 TAINT_ON_APPLY = ["aws_instance.api_server_1"]
-# TAINT_ON_APPLY = []
 
 # These environment variables are passed to terraform
 # via parse_args args attribute.
@@ -25,7 +24,6 @@ TF_ARG_VAR = {
 }
 
 # These environment variables are injected based on the envar name.
-# This may be overriden by contents of DEV_SECRETS_FILE
 TF_ENV_VAR = {
     "DATABASE_PASSWORD": "TF_VAR_database_password",
     "DJANGO_SECRET_KEY": "TF_VAR_django_secret_key",
@@ -109,11 +107,7 @@ def parse_args():
 
 
 def get_env(script_args: dict):
-    """Load environment specific variables.
-
-    For dev environment, just use the variables contained in
-    api-configuration/dev-secrets.
-    """
+    """Load environment specific variables."""
     env = os.environ.copy()
 
     # Copy envar to TF_VAR envar
