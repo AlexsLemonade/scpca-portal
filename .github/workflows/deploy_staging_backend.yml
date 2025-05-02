@@ -37,12 +37,12 @@ jobs:
           terraform_version: 1.11.4
 
       - name: Destroy Legacy
-        run: cd infrastructure && python3 deploy.py -s staging -u deployer -v $(git rev-parse HEAD) --destroy
+        run: cd infrastructure && python3 deploy.py -s staging -u deployer -a ccdlstaging -v $(git rev-parse HEAD) --destroy
         env:
           SENTRY_ENV: staging-api
 
       - name: Deploy
-        run: cd infrastructure && python3 deploy.py -s staging -u deployer -v $(git rev-parse HEAD) --project
+        run: cd infrastructure && python3 deploy.py -s staging -u deployer -a ccdlstaging -v $(git rev-parse HEAD) --project
         env:
           SENTRY_ENV: staging-api
           AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
