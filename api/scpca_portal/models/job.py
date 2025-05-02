@@ -23,14 +23,17 @@ class Job(TimestampedModel):
 
     # Internal Attributes
     attempt = models.PositiveIntegerField(default=1)  # Incremented on every retry
-    failure_reason = models.TextField(blank=True, null=True)
+    critical_error = models.BooleanField(default=False)  # Set to True if the job is irrecoverable
+    retry_on_termination = models.BooleanField(default=False)
     state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED)
 
     submitted_at = models.DateTimeField(null=True)
     succeeded_at = models.DateTimeField(null=True)
     failed_at = models.DateTimeField(null=True)
+    failed_reason = models.TextField(blank=True, null=True)
     completed_at = models.DateTimeField(null=True)  # TODO: Removed in #1210
     terminated_at = models.DateTimeField(null=True)
+    terminated_reason = models.TextField(blank=True, null=True)
 
     # Job Information Sent to AWS (via Request)
     batch_job_name = models.TextField(null=True)
@@ -204,15 +207,16 @@ class Job(TimestampedModel):
         saves the changes to the db on success.
         Returns all the terminated jobs.
         """
-        failure_reason = "Terminated SUBMITTED"
+        terminated_reason = "Terminated SUBMITTED"
         terminated_jobs = []
 
         if jobs := cls.objects.filter(state=JobStates.SUBMITTED):
+
             for job in jobs:
                 if batch.terminate_job(job):
                     job.state = JobStates.TERMINATED
-                    job.failure_reason = failure_reason
-                    job.update_state_at()
+                    job.terminated_reason = terminated_reason
+                    job.apply_state_at()
                     terminated_jobs.append(job)
 
             cls.bulk_update_state(terminated_jobs)
@@ -224,17 +228,16 @@ class Job(TimestampedModel):
         """
         Bulk updates states of the given jobs and their associated datasets.
         """
-        cls.objects.bulk_update(
-            synced_jobs,
-            [
-                "state",
-                "submitted_at",
-                "succeeded_at",
-                "failed_at",
-                "failure_reason",
-                "terminated_at",
-            ],
-        )
+        updated_attrs = [
+            "state",
+            "submitted_at",
+            "succeeded_at",
+            "failed_at",
+            "failed_reason",
+            "terminated_at",
+            "terminated_reason",
+        ]
+        cls.objects.bulk_update(synced_jobs, updated_attrs)
 
         Dataset.update_from_last_jobs([job.dataset for job in synced_jobs])
 
@@ -261,23 +264,21 @@ class Job(TimestampedModel):
 
         for job in submitted_jobs:
             if aws_job := aws_jobs.get(job.batch_job_id):
-                new_state, failure_reason = cls.get_job_state(aws_job)
+                new_state, failed_reason = cls.get_job_state(aws_job)
 
                 if new_state != job.state:
                     job.state = new_state
-                    job.failure_reason = failure_reason
-                    job.update_state_at()
+                    job.failed_reason = failed_reason
+                    job.apply_state_at()
                     synced_jobs.append(job)
-                else:
-                    continue
 
-        if synced_jobs:
-            cls.bulk_update_state(synced_jobs)
-            return True
+        if not synced_jobs:
+            return False
 
-        return False
+        cls.bulk_update_state(synced_jobs)
+        return True
 
-    def update_state_at(self, save=False) -> None:
+    def apply_state_at(self) -> None:
         """
         Sets timestamp fields, *_at, based on the latest job state.
         """
@@ -292,9 +293,6 @@ class Job(TimestampedModel):
                 self.failed_at = timestamp
             case JobStates.TERMINATED:
                 self.terminated_at = timestamp
-
-        if save:
-            self.save()
 
     def submit(self) -> bool:
         """
@@ -316,26 +314,26 @@ class Job(TimestampedModel):
         return False
 
     def sync_state(self) -> bool:
-        """
-        Sync the submitted job state with the remote AWS Batch job status.
-        Save the job and its associated dataset if the state changes.
-        """
         if self.state is not JobStates.SUBMITTED:
             return False
 
-        if aws_jobs := batch.get_jobs([self]):
-            new_state, failure_reason = self.get_job_state(aws_jobs[0])
+        aws_jobs = batch.get_jobs([self])
 
-            if new_state != self.state:
-                self.state = new_state
-                self.failure_reason = failure_reason
-                self.update_state_at()
+        if not aws_jobs:
+            return False
 
-                Job.bulk_update_state([self])
+        new_state, failed_reason = self.get_job_state(aws_jobs[0])
 
-                return True
+        if new_state == self.state:
+            return False
 
-        return False
+        self.state = new_state
+        self.failed_reason = failed_reason
+        self.apply_state_at()
+
+        Job.bulk_update_state([self])
+
+        return True
 
     def terminate(self) -> bool:
         """
@@ -346,12 +344,12 @@ class Job(TimestampedModel):
         if self.state in FINAL_JOB_STATES:
             return self.state == JobStates.TERMINATED
 
-        failure_reason = "Terminated SUBMITTED"
+        terminated_reason = "Terminated SUBMITTED"
 
         if batch.terminate_job(self):
             self.state = JobStates.TERMINATED
-            self.failure_reason = failure_reason
-            self.update_state_at()
+            self.terminated_reason = terminated_reason
+            self.apply_state_at()
 
             Job.bulk_update_state([self])
 

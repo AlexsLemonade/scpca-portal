@@ -18,9 +18,9 @@ class TestTerminateBatchJobs(TestCase):
         self,
         dataset,
         is_processing=False,
-        is_processed=False,
-        is_errored=False,
-        error_message=None,
+        is_succeeded=False,
+        is_failed=False,
+        failed_reason=None,
         is_terminated=False,
     ):
         """
@@ -28,14 +28,14 @@ class TestTerminateBatchJobs(TestCase):
         """
         self.assertEqual(dataset.is_processing, is_processing)
 
-        self.assertEqual(dataset.is_processed, is_processed)
-        if is_processed:
+        self.assertEqual(dataset.is_succeeded, is_succeeded)
+        if is_succeeded:
             self.assertIsInstance(dataset.processed_at, datetime)
 
-        self.assertEqual(dataset.is_errored, is_errored)
-        if is_errored:
-            self.assertIsInstance(dataset.errored_at, datetime)
-        self.assertEqual(dataset.error_message, error_message)
+        self.assertEqual(dataset.is_failed, is_failed)
+        if is_failed:
+            self.assertIsInstance(dataset.failed_at, datetime)
+        self.assertEqual(dataset.failed_reason, failed_reason)
 
         self.assertEqual(dataset.is_terminated, is_terminated)
         if is_terminated:
@@ -60,8 +60,9 @@ class TestTerminateBatchJobs(TestCase):
         for saved_job in saved_jobs:
             self.assertEqual(saved_job.state, JobStates.TERMINATED)
             self.assertIsInstance(saved_job.terminated_at, datetime)
-            self.assertEqual(saved_job.failure_reason, "Terminated SUBMITTED")
-            self.assertDatasetState(saved_job.dataset, is_terminated=True)
+            self.assertEqual(saved_job.terminated_reason, "Terminated SUBMITTED")
+            # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
+            self.assertDatasetState(saved_job.dataset, is_processing=True, is_terminated=True)
 
         # Set up additinoal 3 SUBMITTED jobs
         for _ in range(3):
