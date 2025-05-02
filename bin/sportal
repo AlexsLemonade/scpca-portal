@@ -156,6 +156,20 @@ command_desriptions = {
 }
 
 # All available commands and their execution.
+deploy = [
+    "python3",
+    "deploy.py",
+    "--stage",
+    "dev",
+    "--user",
+    os.environ.get("DEPLOY_USER"),
+    "--dockerhub-account",
+    os.environ.get("DOCKERHUB_ACCOUNT"),
+    "--system-version",
+    "$(git rev-parse HEAD)",
+    "--project"
+]
+
 commands = {
     # print envars available in this shell
     "debug:env": [partial(check_envs, DEPLOY_ENVS)],
@@ -168,26 +182,8 @@ commands = {
     "api:test": run_api + ["bash", "./run_tests.sh"],
     "api:graphmodels": manage + ["graph_models", "scpca_portal", ">", "models.dot"],
     "api:lint:black": ["black", "--line-length=100", "--exclude=volumes_postgres", "."],
-    "deploy:up": [
-        "python3",
-        "deploy.py",
-        "-e",
-        "dev",
-        "-u",
-        os.environ.get("DEPLOY_USER"),
-        "-d",
-        os.environ.get("DOCKERHUB_ACCOUNT"),
-        "-v",
-        "$(git rev-parse HEAD)",
-    ],
-    "deploy:down": [
-        "python3",
-        "destroy_terraform.py",
-        "-e",
-        "dev",
-        "-u",
-        os.environ.get("DEPLOY_USER"),
-    ],
+    "deploy:up": deploy,
+    "deploy:down": deploy + ["--destroy"],
 }
 
 
@@ -227,6 +223,7 @@ if __name__ == "__main__":
         exit(1)
 
     args = parser.parse_args()
+
     # update global env dict variable
     get_aws_env_from_profile(args.sso)
 
