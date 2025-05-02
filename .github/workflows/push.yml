@@ -50,4 +50,4 @@ jobs:
       - name: Build the stack
         run: docker compose --env-file ./docker-compose.env build
       - name: Test
-        run: ./bin/sportal test-api
+        run: ./bin/sportal api:test
