@@ -7,7 +7,6 @@ import time
 
 from deploy_modules import docker, terraform
 
-
 # CONFIGS
 PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
 # TODO: Convert to argument
@@ -80,16 +79,12 @@ def parse_args():
     parser.add_argument("-v", "--system-version", help=version_help_text, required=True)
 
     # REGION
-    region_help_text = (
-        "Specify the AWS region to deploy the stack to. Default is us-east-1."
-    )
+    region_help_text = "Specify the AWS region to deploy the stack to. Default is us-east-1."
     parser.add_argument("-r", "--region", help=region_help_text, default="us-east-1")
 
     # DESTROY
     destroy_help_text = "Specify that you want to destroy existing stack."
-    parser.add_argument(
-        "--destroy", help=destroy_help_text, action=argparse.BooleanOptionalAction
-    )
+    parser.add_argument("--destroy", help=destroy_help_text, action=argparse.BooleanOptionalAction)
     # PROJECT ACCOUNT
     skip_docker_text = "Specify that you want to skip building docker container."
     parser.add_argument(
@@ -99,9 +94,7 @@ def parse_args():
     # TEMP
     # PROJECT ACCOUNT
     project_help_text = "Specify that you want to deploy with new settings."
-    parser.add_argument(
-        "--project", help=project_help_text, action=argparse.BooleanOptionalAction
-    )
+    parser.add_argument("--project", help=project_help_text, action=argparse.BooleanOptionalAction)
 
     return parser.parse_args()
 
@@ -166,9 +159,7 @@ def restart_api_if_still_running(args, api_ip_address):
     try:
         run_remote_command(api_ip_address, "test -e start_api_with_migrations.sh")
     except subprocess.CalledProcessError:
-        print(
-            "API start script not written yet, letting the init script run it instead."
-        )
+        print("API start script not written yet, letting the init script run it instead.")
         return 0
 
     try:
@@ -184,9 +175,7 @@ def post_deploy_hook(terraform_output: dict):
     api_ip_address = terraform_output.get(api_ip_key, {}).get("value", None)
 
     if not api_ip_address:
-        print(
-            "Could not find the API's IP address. Something has gone wrong or changed."
-        )
+        print("Could not find the API's IP address. Something has gone wrong or changed.")
         print(f"{api_ip_key} not defined in outputs")
         exit(1)
 
