@@ -16,7 +16,7 @@ import signal
 import os
 
 
-def init(configs=[], log_trace=True):
+def init(backend_configs=[], init_args=["-upgrade"], log_trace=False):
     """Initializes terraform's backend.
 
     Should be called before calling other terraform commands.
@@ -25,12 +25,11 @@ def init(configs=[], log_trace=True):
     ex: bucket=the-name-of-your-bucket
     """
 
-    # TODO: Remove bucket and key defaults?
-    backend_config = [f"-backend-config={config}" for config in configs]
+    backend_configs_args = [f"-backend-config={config}" for config in backend_configs]
 
     # -reconfigure
-    terraform_init = ["terraform", "init", "-upgrade"]
-    command = terraform_init + backend_config + ["-force-copy"]
+    terraform_init = ["terraform", "init" ] + init_args
+    command = terraform_init + backend_configs_args + ["-force-copy"]
 
     # Pass environment to init
     init_environ = os.environ.copy()
@@ -57,19 +56,18 @@ def output():
     return json.loads(process.stdout.read().decode("utf-8"))
 
 
-def apply(var_file_arg, taints=[], environ=os.environ.copy(), print_output=True):
+def apply(var_file_arg, taints=[], env=os.environ.copy(), print_output=True):
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
         taint_output = {}
 
         for taint in taints:
-            process = subprocess.Popen(["terraform", "taint", taint], env=environ)
+            process = subprocess.Popen(["terraform", "taint", taint], env=env)
             process.wait()
-
             taint_output.update(output())
 
         process = subprocess.Popen(
-            ["terraform", "apply", var_file_arg, "-auto-approve"], env=environ
+            ["terraform", "apply", var_file_arg, "-auto-approve"], env=env
         )
         process.wait()
 
@@ -82,17 +80,18 @@ def apply(var_file_arg, taints=[], environ=os.environ.copy(), print_output=True)
     merged_output = {**taint_output, **apply_output}
 
     if print_output:
+        print("Print output")
         print(json.dumps(merged_output, indent=2))
 
     return process.returncode, merged_output
 
 
-def destroy(env, user):
+def destroy(stage, user):
     # init terrafrom first
-    init(env, user)
+    init()
 
     # locally defined defaults
-    var_file_arg = f"-var-file=tf_vars/{env}.tfvars"
+    var_file_arg = f"-var-file=tf_vars/{stage}.tfvars"
 
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
