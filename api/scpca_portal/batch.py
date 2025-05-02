@@ -1,7 +1,7 @@
 from typing import Dict, Iterable, List
 
-from django.template.defaultfilters import pluralize
 from django.conf import settings
+from django.template.defaultfilters import pluralize
 
 import boto3
 from botocore.client import Config
