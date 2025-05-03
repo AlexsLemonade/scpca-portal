@@ -117,24 +117,25 @@ class Job(TimestampedModel):
         """
 
         batch_job_name = f"{project_id}-{download_config_name}"
-        notify_flag = "--notify" if notify else ""
+
+        command = [
+            "python",
+            "manage.py",
+            "generate_computed_file",
+            "--project-id",
+            project_id,
+            "--download-config-name",
+            download_config_name,
+        ]
+
+        if notify:
+            command.extend(["--notify"])
 
         return cls(
             batch_job_name=batch_job_name,
             batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
             batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
-            batch_container_overrides={
-                "command": [
-                    "python",
-                    "manage.py",
-                    "generate_computed_file",
-                    "--project-id",
-                    project_id,
-                    "--download-config-name",
-                    download_config_name,
-                    notify_flag,
-                ],
-            },
+            batch_container_overrides={"command": command},
         )
 
     @classmethod
@@ -149,23 +150,26 @@ class Job(TimestampedModel):
         """
 
         batch_job_name = f"{sample_id}-{download_config_name}"
-        notify_flag = "--notify" if notify else ""
+
+        command = [
+            "python",
+            "manage.py",
+            "generate_computed_file",
+            "--sample-id",
+            sample_id,
+            "--download-config-name",
+            download_config_name,
+        ]
+
+        if notify:
+            command.extend("--notify")
 
         return cls(
             batch_job_name=batch_job_name,
             batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
             batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
             batch_container_overrides={
-                "command": [
-                    "python",
-                    "manage.py",
-                    "generate_computed_file",
-                    "--sample-id",
-                    sample_id,
-                    "--download-config-name",
-                    download_config_name,
-                    notify_flag,
-                ],
+                "command": command,
             },
         )
 
