@@ -30,7 +30,7 @@ def submit_job(job) -> str | None:
         )
     except Exception as error:
         logger.exception(
-            f"Failed to terminate the job due to: \n\t{error}",
+            f"Failed to submit the job due to: \n\t{error}",
             job_id=job.pk,
             batch_job_id=job.batch_job_id,
         )
