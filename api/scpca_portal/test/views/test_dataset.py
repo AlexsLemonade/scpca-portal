@@ -32,6 +32,7 @@ class DatasetsTestCase(APITestCase):
 
         response_json = response.json()
         self.assertEqual(response.json()["count"], 1)
+        # Assert that only CCDL datasets are listable
         self.assertNotEqual(response_json["results"][0].get("id"), str(self.custom_dataset.id))
         self.assertEqual(response_json["results"][0].get("id"), str(self.ccdl_dataset.id))
 
