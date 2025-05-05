@@ -424,7 +424,7 @@ class TestJob(TestCase):
         # After termination, the jobs should remain unchanged
         for saved_job in Job.objects.all():
             self.assertEqual(saved_job.state, JobStates.SUBMITTED)
-            self.assertIsNone(saved_job.completed_at)
+            self.assertIsNone(saved_job.terminated_at)
             self.assertDatasetState(saved_job.dataset, is_processing=True)
 
     @patch("scpca_portal.batch.terminate_job")

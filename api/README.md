@@ -7,26 +7,26 @@ All commands from this README should be run from the project's root directory.
 Start the dev server for local development:
 
 ```bash
-sportal up
+sportal docker:compose up
 ```
 
 Run a command inside the docker container:
 
 ```bash
-sportal run-api [command]
+sportal api:run [command]
 ```
 
 Or run the tests:
 
 ```
-sportal test-api
+sportal api:test
 ```
 
 Note that the tests are run with the Django unittest runner, so specific modules, classes, or methods may be specified in the standard unittest manner: https://docs.python.org/3/library/unittest.html#unittest-test-discovery.
 For example:
 
 ```
-sportal test-api scpca_portal.test.serializers.test_project.TestProjectSerializer
+sportal api:test scpca_portal.test.serializers.test_project.TestProjectSerializer
 ```
 
 will run all the tests in the TestProjectSerializer class.
@@ -43,13 +43,13 @@ The dev server runs by default on port 8000 with the docs being served at 8001.
 If these ports are already in use on your local machine, you can run them at different ports with:
 
 ```bash
-HTTP_PORT=8002 DOCS_PORT=8003 sportal up
+HTTP_PORT=8002 DOCS_PORT=8003 sportal docker:compose up
 ```
 
 A postgres command line client can be started by running:
 
 ```
-sportal postgres-cli
+sportal postgres:cli
 ```
 
 ## Example Local Requests
@@ -92,7 +92,7 @@ Before data can be processed, the `OriginalFile` table must be populated and syn
 
 Syncing is carried out as follows:
 ```bash
-sportal sync-original-files
+sportal api:manage sync_original_files
 ```
 
 By default the `sync_original_files` command uses the default bucket defined in the config file associated with the environment calling the command. This can be overriden by passing the `--bucket bucket-name` flag to sync the files of an alternative bucket.
@@ -107,64 +107,64 @@ There are two independent workflows carried out within the data processing  pipe
 
 To exclusively run the load metadata workflow, call:
 ```
-sportal load-metadata
+sportal api:manage load_metadata
 ```
 To exclusively run the generate computed files workflow, call:
 ```
-sportal generate-computed-files
+sportal api:manage generate_computed_files
 ```
 To run them both successively, one after the next, call:
 ```
-sportal load-data
+sportal api:manage load_data
 ```
 
 ### Load-Data Configuration Options
-Calling just `sportal load-data` will populate your local database by pulling metadata from the `scpca-portal-inputs` bucket, and generate computed files locally. To save time, by default it will not package up the actual data in that bucket and upload it to `scpca-local-data`.
+Calling just `sportal api:manage load_data` will populate your local database by pulling metadata from the `scpca-portal-inputs` bucket, and generate computed files locally. To save time, by default it will not package up the actual data in that bucket and upload it to `scpca-local-data`.
 
 If you would like to update the data in the `scpca-local-data` bucket, you can do so with the following command:
 
 ```
-sportal load-data --update-s3
+sportal api:manage load_data --update-s3
 ```
 
 By default the command also will only look for new projects.
 If you would like to reimport existing projects you can run
 
 ```
-sportal load-data --reload-existing
+sportal api:manage load_data --reload-existing
 ```
 
 or to reimport and upload all projects:
 
 ```
-sportal load-data --reload-existing --update-s3
+sportal api:manage load_data --reload-existing --update-s3
 ```
 
 If you would like to update a specific project use --scpca-project-id flag:
 
 ```
-sportal load-data --scpca-project-id SCPCP000001
+sportal api:manage load_data --scpca-project-id SCPCP000001
 ```
 
 If you would like to purge a project and remove its files from the S3 bucket, you can use:
 
 ```
-sportal manage-api purge_project --scpca-project-id SCPCP000001 --delete-from-s3
+sportal api:manage purge_project --scpca-project-id SCPCP000001 --delete-from-s3
 ```
 
 The `--clean-up-input-data` flag can help you control the projects input data size. If flag is set the input data cleanup process will be run for each project right after its processing is over.
 ```
-sportal load-data --clean-up-input-data --reload-all --update-s3
+sportal api:manage load_data --clean-up-input-data --reload-all --update-s3
 ```
 
 The `--clean-up-output-data` flag can help you control the projects output data size. If flag is set the output (no longer needed) data cleanup process will be run for each project right after its processing is over.
 ```
-sportal load-data --clean-up-output-data --reload-all --update-s3
+sportal api:manage load_data --clean-up-output-data --reload-all --update-s3
 ```
 
 The `--max-workers` flag can be used for setting a number of simultaneously processed projects/samples to speed up the data loading process. The provided number will be used to spawn threads within two separate thread pool executors -- for project and sample processing.
 ```
-sportal load-data --max-workers 10 --reload-existing --update-s3
+sportal api:manage load_data --max-workers 10 --reload-existing --update-s3
 ```
 
 ### Load Metadata and Generate Computed Files Flags

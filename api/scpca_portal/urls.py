@@ -11,6 +11,7 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 from scpca_portal.views import (
     APITokenViewSet,
     ComputedFileViewSet,
+    DatasetViewSet,
     FilterOptionsViewSet,
     ProjectViewSet,
     SampleViewSet,
@@ -47,6 +48,7 @@ router = ExtendedDefaultRouter()
 router.trailing_slash = "/?"
 
 router.register(r"computed-files", ComputedFileViewSet, basename="computed-files")
+router.register(r"datasets", DatasetViewSet, basename="datasets")
 router.register(r"projects", ProjectViewSet, basename="projects")
 router.register(r"samples", SampleViewSet, basename="samples")
 router.register(r"tokens", APITokenViewSet, basename="tokens")

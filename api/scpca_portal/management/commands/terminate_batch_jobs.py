@@ -17,16 +17,16 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--reason", type=str, default="Terminated submitted jobs")
-        parser.add_argument("--no-retry", action=BooleanOptionalAction, type=bool, default=True)
+        parser.add_argument("--retry", action=BooleanOptionalAction, type=bool, default=True)
 
     def handle(self, *args, **kwargs):
         self.terminate_batch_jobs(**kwargs)
 
-    def terminate_batch_jobs(self, reason, no_retry: bool = False, **kwargs):
+    def terminate_batch_jobs(self, reason, retry: bool = False, **kwargs):
         logger.info("Terminating jobs on AWS Batch...")
         terminated_jobs = Job.terminate_submitted(reason)
 
-        if not no_retry:
+        if retry:
             logger.info("Creating new retry jobs...")
             retry_jobs = Job.create_retry_jobs(terminated_jobs)
 

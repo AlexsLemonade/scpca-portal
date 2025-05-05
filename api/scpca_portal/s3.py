@@ -12,7 +12,9 @@ from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
-aws_s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
+aws_s3 = boto3.client(
+    "s3", config=Config(signature_version="s3v4", region_name=settings.AWS_REGION)
+)
 
 S3_OBJECT_KEYS = [
     # format is as follows: (old_key, new_key, default_value)

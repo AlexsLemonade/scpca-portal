@@ -34,9 +34,9 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.0.8
+          terraform_version: 1.11.4
 
       - name: Deploy
-        run: cd infrastructure && python3 deploy.py -e prod -u deployer -d ccdl -v $(git rev-parse HEAD)
+        run: cd infrastructure && python3 deploy.py -s prod -u deployer -a ccdl -v $(git rev-parse HEAD)
         env:
           SENTRY_ENV: prod-api

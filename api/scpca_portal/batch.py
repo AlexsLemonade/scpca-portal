@@ -1,5 +1,6 @@
 from typing import Dict, Iterable, List
 
+from django.conf import settings
 from django.template.defaultfilters import pluralize
 
 import boto3
@@ -9,7 +10,9 @@ from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
-aws_batch = boto3.client("batch", config=Config(signature_version="s3v4"))
+aws_batch = boto3.client(
+    "batch", config=Config(signature_version="s3v4", region_name=settings.AWS_REGION)
+)
 
 
 def submit_job(job) -> str | None:
@@ -27,7 +30,7 @@ def submit_job(job) -> str | None:
         )
     except Exception as error:
         logger.exception(
-            f"Failed to terminate the job due to: \n\t{error}",
+            f"Failed to submit the job due to: \n\t{error}",
             job_id=job.pk,
             batch_job_id=job.batch_job_id,
         )

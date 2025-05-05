@@ -53,24 +53,29 @@ class TestTerminateBatchJobs(TestCase):
             )
         terminated_reason = "Terminated jobs for deploy"
 
-        # Should call terminate_job 3 times
+        # Should call terminate_job 3 times and create 3 new retry jobs
         self.terminate_batch_jobs(reason=terminated_reason)
         self.assertEqual(mock_batch_terminate_job.call_count, 3)
 
-        # SUBMITTED jobs should be updated to TERMINATED
-        saved_jobs = Job.objects.all()
+        # 3 SUBMITTED jobs should be updated to TERMINATED
+        self.assertEqual(Job.objects.filter(state=JobStates.SUBMITTED).count(), 0)
+        terminate_jobs = Job.objects.filter(state=JobStates.TERMINATED)
+        self.assertEqual(terminate_jobs.count(), 3)
 
-        for saved_job in saved_jobs:
-            self.assertEqual(saved_job.state, JobStates.TERMINATED)
-            self.assertIsInstance(saved_job.terminated_at, datetime)
-            self.assertEqual(saved_job.terminated_reason, terminated_reason)
+        for terminate_job in terminate_jobs:
+            self.assertEqual(terminate_job.state, JobStates.TERMINATED)
+            self.assertIsInstance(terminate_job.terminated_at, datetime)
+            self.assertEqual(terminate_job.terminated_reason, terminated_reason)
             # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
             self.assertDatasetState(
-                saved_job.dataset,
+                terminate_job.dataset,
                 is_processing=True,
                 is_terminated=True,
-                terminated_reason=saved_job.terminated_reason,
+                terminated_reason=terminate_job.terminated_reason,
             )
+
+        # 3 new CREATED jobs should be saved in the database
+        self.assertEqual(Job.objects.filter(state=JobStates.CREATED).count(), 3)
 
         # Set up additinoal 3 SUBMITTED jobs
         for _ in range(3):
@@ -82,15 +87,17 @@ class TestTerminateBatchJobs(TestCase):
         # Before the call, only 3 TERMINATED jobs are in the db
         self.assertEqual(Job.objects.filter(state=JobStates.TERMINATED).count(), 3)
 
-        # Should call terminate_job 3 times (for the new jobs)
-        self.terminate_batch_jobs(no_retry=False)  # Create new retry jobs
+        # Should call terminate_job 3 times without creating retry jobs
+        self.terminate_batch_jobs(retry=False)
         self.assertEqual(mock_batch_terminate_job.call_count, 6)  # prev (3) + new (3)
 
         # After termination, 6 TERMINATED jobs should be in the db
-        saved_jobs = Job.objects.filter(state=JobStates.TERMINATED)
-        self.assertEqual(saved_jobs.count(), 6)  # prev (3) + new (3)
-        # 3 new CREATED retry jobs should be saved in the database
-        self.assertEqual(Job.objects.filter(state=JobStates.CREATED).count(), 3)
+        terminated_jobs = Job.objects.filter(state=JobStates.TERMINATED)
+        self.assertEqual(terminated_jobs.count(), 6)  # prev (3) + new (3)
+        # no new retry jobs should be saved in the database
+        self.assertEqual(
+            Job.objects.filter(state=JobStates.CREATED).count(), 3
+        )  # prev (3) + new(0)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_batch_jobs_not_called(self, mock_batch_terminate_job):
