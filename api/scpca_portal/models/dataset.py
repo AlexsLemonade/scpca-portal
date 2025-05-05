@@ -1,10 +1,12 @@
 import hashlib
 import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
 
 from django.conf import settings
 from django.db import models
+from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
@@ -14,6 +16,7 @@ from scpca_portal.enums import (
     CCDLDatasetNames,
     DatasetDataProjectConfig,
     DatasetFormats,
+    JobStates,
     Modalities,
 )
 from scpca_portal.models.api_token import APIToken
@@ -63,13 +66,16 @@ class Dataset(TimestampedModel):
     started_at = models.DateTimeField(null=True)
     is_started = models.BooleanField(default=False)
     is_processing = models.BooleanField(default=False)
-    processed_at = models.DateTimeField(null=True)
-    is_processed = models.BooleanField(default=False)
-    errored_at = models.DateTimeField(null=True)
-    is_errored = models.BooleanField(default=False)
-    error_message = models.TextField(null=True)
+    succeeded_at = models.DateTimeField(null=True)
+    is_succeeded = models.BooleanField(default=False)
+    failed_at = models.DateTimeField(null=True)
+    is_failed = models.BooleanField(default=False)
+    failed_reason = models.TextField(null=True)
     expires_at = models.DateTimeField(null=True)
     is_expired = models.BooleanField(default=False)  # Set by cronjob
+    terminated_at = models.DateTimeField(null=True)
+    is_terminated = models.BooleanField(default=False)
+    terminated_reason = models.TextField(null=True)
 
     computed_file = models.OneToOneField(
         ComputedFile,
@@ -107,6 +113,29 @@ class Dataset(TimestampedModel):
         dataset.metadata_hash = dataset.current_metadata_hash
         dataset.readme_hash = dataset.current_readme_hash
         return dataset, False
+
+    @classmethod
+    def update_from_last_jobs(cls, datasets: List[Self]) -> None:
+        """
+        Updates datasets' state based on their latest jobs.
+        If 'bulk_save' is True, bulk update the instances, Otherwise, each dataset
+        is individually saved during processing.
+        """
+        for dataset in datasets:
+            dataset.update_from_last_job(save=False)
+
+        updated_attrs = [
+            "is_processing",
+            "is_succeeded",
+            "succeeded_at",
+            "is_failed",
+            "failed_at",
+            "failed_reason",
+            "is_terminated",
+            "terminated_at",
+            "terminated_reason",
+        ]
+        cls.objects.bulk_update(datasets, updated_attrs)
 
     def get_ccdl_data(self) -> Dict:
         if not self.is_ccdl:
@@ -150,6 +179,83 @@ class Dataset(TimestampedModel):
 
     def get_sample_libraries(self, project_id: str, modality: Modalities) -> Iterable[Library]:
         return Library.objects.filter(samples__in=self.get_samples(project_id, modality)).distinct()
+
+    def update_from_last_job(self, save=True) -> None:
+        """
+        Updates the dataset's state based on the latest job.
+        If 'save' is True, the instance will be saved.
+        """
+        last_job = self.jobs.order_by("-created_at").first()
+
+        match last_job.state:
+            case JobStates.SUCCEEDED:
+                self.on_job_succeeded()
+            case JobStates.FAILED:
+                self.on_job_failed()
+            case JobStates.TERMINATED:
+                self.on_job_terminated()
+
+        if save:
+            self.save()
+
+    def apply_job_state(self) -> None:
+        """
+        Sets the dataset state (flag, reason, timestamps) based on the last job state.
+        Resets states before applying changes.
+        """
+        # TODO: Use common.FINAL_JOB_STATES
+        FINAL_JOB_STATES = [
+            JobStates.SUCCEEDED,
+            JobStates.FAILED,
+            JobStates.TERMINATED,
+        ]
+
+        # Resets all state flags and reasons
+        for state in JobStates:
+            state_str = state.lower()
+
+            setattr(self, f"is_{state_str}", False)
+            reason_attr = f"{state_str}_reason"
+
+            if hasattr(self, reason_attr):
+                setattr(self, reason_attr, None)
+
+        # Resets timestemps except pending_at and processing_at
+        time_stamps = [f"{state.lower()}_at" for state in FINAL_JOB_STATES]
+
+        for timestamp in time_stamps:
+            setattr(self, timestamp, None)
+
+        # Sets the current states
+        last_job = self.jobs.order_by("-created_at").first()
+        state_str = last_job.state.lower()
+        reason_attr = f"{state_str}_reason"
+
+        setattr(self, f"is_{state_str}", True)
+        setattr(self, f"{state_str}_at", make_aware(datetime.now()))
+        if hasattr(self, f"{state_str}_reason"):
+            setattr(self, f"{state_str}_reason", getattr(last_job, reason_attr))
+
+    def on_job_succeeded(self) -> Self:
+        """
+        Marks the dataset as succeeded based on the last job.
+        """
+        self.apply_job_state()
+        return self
+
+    def on_job_failed(self) -> Self:
+        """
+        Marks the dataset as failed with the failure reason based on the last job.
+        """
+        self.apply_job_state()
+        return self
+
+    def on_job_terminated(self) -> Self:
+        """
+        Marks the dataset as terminated with the terminated reason based on the last job.
+        """
+        self.apply_job_state()
+        return self
 
     @property
     def is_hash_changed(self) -> bool:
