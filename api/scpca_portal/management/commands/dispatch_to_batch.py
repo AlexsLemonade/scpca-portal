@@ -2,18 +2,11 @@ import logging
 from argparse import BooleanOptionalAction
 from collections import Counter
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.template.defaultfilters import pluralize
 
-import boto3
-
 from scpca_portal.models import Job, Project
 
-batch = boto3.client(
-    "batch",
-    region_name=settings.AWS_REGION,
-)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())

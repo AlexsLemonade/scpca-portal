@@ -60,7 +60,7 @@ class Project_SCPCP999992:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 3425,
+            "sample_cell_count_estimate": 3419,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": "cell",
@@ -87,7 +87,7 @@ class Project_SCPCP999992:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 5247,
+            "sample_cell_count_estimate": 5244,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": "cell",
@@ -118,7 +118,7 @@ class Project_SCPCP999992:
                 "SCPCP999992/SCPCS999996/SCPCL999996_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "development",
+            "workflow_version": "v0.8.7",
         }
 
     class Library_SCPCL999998:
@@ -145,7 +145,7 @@ class Project_SCPCP999992:
                 "SCPCP999992/SCPCS999998/SCPCL999998_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "development",
+            "workflow_version": "v0.8.7",
         }
 
     class Summary1:

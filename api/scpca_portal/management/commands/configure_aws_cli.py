@@ -1,6 +1,7 @@
 import logging
 import subprocess
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 import boto3
@@ -10,7 +11,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
-boto3.client("s3", config=Config(signature_version="s3v4"))
+boto3.client("s3", config=Config(signature_version="s3v4", region_name=settings.AWS_REGION))
 
 
 class Command(BaseCommand):
