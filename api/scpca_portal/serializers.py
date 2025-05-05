@@ -218,6 +218,56 @@ class DatasetSerializer(serializers.ModelSerializer):
         )
 
 
+class DatasetCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dataset
+        fields = (
+            "data",
+            "email",
+            "format",
+            "id",
+            "start",
+            "data_hash",
+            "metadata_hash",
+            "readme_hash",
+            "is_ccdl",
+            "ccdl_name",
+            "ccdl_project_id",
+            "started_at",
+            "is_started",
+            "is_processing",
+            "processed_at",
+            "is_processed",
+            "errored_at",
+            "is_errored",
+            "error_message",
+            "expires_at",
+            "is_expired",
+            "computed_file",
+        )
+        read_only_fields = (
+            "id",
+            "start",
+            "data_hash",
+            "metadata_hash",
+            "readme_hash",
+            "is_ccdl",
+            "ccdl_name",
+            "ccdl_project_id",
+            "started_at",
+            "is_started",
+            "is_processing",
+            "processed_at",
+            "is_processed",
+            "errored_at",
+            "is_errored",
+            "error_message",
+            "expires_at",
+            "is_expired",
+            "computed_file",
+        )
+
+
 class DatasetUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
