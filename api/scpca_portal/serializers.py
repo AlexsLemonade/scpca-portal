@@ -229,8 +229,8 @@ class DatasetCreateSerializer(serializers.ModelSerializer):
             "data",
             "email",
             "format",
-            "id",
             "start",
+            "id",
             "data_hash",
             "metadata_hash",
             "readme_hash",
@@ -251,7 +251,6 @@ class DatasetCreateSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             "id",
-            "start",
             "data_hash",
             "metadata_hash",
             "readme_hash",
@@ -278,8 +277,8 @@ class DatasetUpdateSerializer(serializers.ModelSerializer):
         fields = (
             "data",
             "email",
-            "id",
             "start",
+            "id",
             "format",
             "data_hash",
             "metadata_hash",
@@ -301,7 +300,6 @@ class DatasetUpdateSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             "id",
-            "start",
             "format",
             "data_hash",
             "metadata_hash",
