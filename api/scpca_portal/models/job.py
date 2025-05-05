@@ -191,7 +191,7 @@ class Job(TimestampedModel):
                 if aws_job_id := batch.submit_job(job):
                     job.batch_job_id = aws_job_id
                     job.state = JobStates.SUBMITTED
-                    job.apply_state_at()
+                    job.update_state_at(save=False)
                     submitted_jobs.append(job)
 
             cls.bulk_update_state(submitted_jobs)
@@ -213,7 +213,7 @@ class Job(TimestampedModel):
                 if batch.terminate_job(job):
                     job.state = JobStates.TERMINATED
                     job.terminated_reason = reason
-                    job.apply_state_at()
+                    job.update_state_at(save=False)
                     terminated_jobs.append(job)
 
             cls.bulk_update_state(terminated_jobs)
@@ -266,7 +266,7 @@ class Job(TimestampedModel):
                 if new_state != job.state:
                     job.state = new_state
                     job.failed_reason = failed_reason
-                    job.apply_state_at()
+                    job.update_state_at(save=False)
                     synced_jobs.append(job)
 
         if not synced_jobs:
@@ -275,9 +275,11 @@ class Job(TimestampedModel):
         cls.bulk_update_state(synced_jobs)
         return True
 
-    def apply_state_at(self) -> None:
+    def update_state_at(self, save: bool = True) -> None:
         """
-        Sets timestamp fields, *_at, based on the latest job state.
+        Updates timestamp fields, *_at, based on the latest job state.
+        Make sure to set 'save' to False when calling this from bulk update methods
+        or from instance methods that call save() within.
         """
         timestamp = make_aware(datetime.now())
 
@@ -290,6 +292,9 @@ class Job(TimestampedModel):
                 self.failed_at = timestamp
             case JobStates.TERMINATED:
                 self.terminated_at = timestamp
+
+        if save:
+            self.save()
 
     def submit(self) -> bool:
         """
@@ -308,7 +313,7 @@ class Job(TimestampedModel):
 
         self.batch_job_id = job_id
         self.state = JobStates.SUBMITTED
-        self.apply_state_at()
+        self.update_state_at(save=False)
 
         self.save()  # Save this instance before bulk updating fields
         Job.bulk_update_state([self])
@@ -331,7 +336,7 @@ class Job(TimestampedModel):
 
         self.state = new_state
         self.failed_reason = failed_reason
-        self.apply_state_at()
+        self.update_state_at(save=False)
 
         Job.bulk_update_state([self])
 
@@ -350,7 +355,7 @@ class Job(TimestampedModel):
 
         self.state = JobStates.TERMINATED
         self.terminated_reason = reason
-        self.apply_state_at()
+        self.update_state_at(save=False)
 
         Job.bulk_update_state([self])
 
