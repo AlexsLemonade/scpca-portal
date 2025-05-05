@@ -36,8 +36,8 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-            "size_in_bytes": 9040,
-            "workflow_version": "development",
+            "size_in_bytes": 9060,
+            "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
 
@@ -70,8 +70,8 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999991_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MULTIPLEXED.zip",
-            "size_in_bytes": 9478,
-            "workflow_version": "development",
+            "size_in_bytes": 9514,
+            "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
 
@@ -102,8 +102,8 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MERGED.zip",
-            "size_in_bytes": 8437,
-            "workflow_version": "development",
+            "size_in_bytes": 8457,
+            "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
 
@@ -138,8 +138,8 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_ANN-DATA.zip",
-            "size_in_bytes": 9455,
-            "workflow_version": "development",
+            "size_in_bytes": 9475,
+            "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
 
@@ -170,8 +170,8 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_ANN-DATA_MERGED.zip",
-            "size_in_bytes": 8563,
-            "workflow_version": "development",
+            "size_in_bytes": 8583,
+            "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
 
@@ -208,8 +208,8 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SPATIAL_SINGLE-CELL-EXPERIMENT.zip",
-            "size_in_bytes": 9154,
-            "workflow_version": "development",
+            "size_in_bytes": 8978,
+            "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
 
@@ -229,7 +229,7 @@ class Computed_File_Project:
             "metadata_only": True,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_ALL_METADATA.zip",
-            "size_in_bytes": 5145,
-            "workflow_version": "development",
+            "size_in_bytes": 5168,
+            "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
