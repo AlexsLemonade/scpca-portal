@@ -66,11 +66,12 @@ class TestSubmitCreatedBatchJobs(TestCase):
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_created_batch_jobs_not_called(self, mock_batch_submit_job):
-        # Set up 3 already submitted jobs
+        # Set up 4 jobs that are either already submitted or in the final states
         for state in [
-            JobStates.SUBMITTED.value,
-            JobStates.COMPLETED.value,
-            JobStates.TERMINATED.value,
+            JobStates.SUBMITTED,
+            JobStates.SUCCEEDED,
+            JobStates.FAILED,
+            JobStates.TERMINATED,
         ]:
             JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
 
