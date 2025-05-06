@@ -13,6 +13,7 @@ class TestJob(TestCase):
     def assertDatasetState(
         self,
         dataset,
+        is_pending=False,
         is_processing=False,
         is_succeeded=False,
         is_failed=False,
@@ -23,12 +24,18 @@ class TestJob(TestCase):
         """
         Helper for asserting the dataset state.
         """
+        self.assertEqual(dataset.is_pending, is_pending)
+        if is_pending:
+            self.assertIsInstance(dataset.pending_at, datetime)
+
         self.assertEqual(dataset.is_processing, is_processing)
         if is_processing:
             self.assertIsInstance(dataset.processing_at, datetime)
+
         self.assertEqual(dataset.is_succeeded, is_succeeded)
         if is_succeeded:
             self.assertIsInstance(dataset.succeeded_at, datetime)
+
         self.assertEqual(dataset.is_failed, is_failed)
         if is_failed:
             self.assertIsInstance(dataset.failed_at, datetime)
@@ -87,55 +94,58 @@ class TestJob(TestCase):
         self.assertFalse(success)
 
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_created(self, mock_batch_submit_job):
-        # Set up 3 saved CREATED jobs + 4 jobs that are either processing or in the final states
+    def test_submit_pending(self, mock_batch_submit_job):
+        # Set up 3 saved PENDING jobs + 4 jobs that are either processing or in the final states
         for _ in range(3):
-            JobFactory(state=JobStates.CREATED, dataset=DatasetFactory(is_processing=False))
+            JobFactory(
+                state=JobStates.PENDING,
+                dataset=DatasetFactory(is_pending=True, is_processing=False),
+            )
         for state in [
             JobStates.PROCESSING,
             JobStates.SUCCEEDED,
             JobStates.FAILED,
             JobStates.TERMINATED,
         ]:
-            JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
+            JobFactory(state=state, dataset=DatasetFactory(is_pending=False, is_processing=False))
 
         # Before submission, there are 1 job in PROCESSING state
         self.assertEqual(Job.objects.filter(state=JobStates.PROCESSING).count(), 1)
 
-        # Should call submit_job 3 times to submit CREATED jobs
-        response = Job.submit_created()
+        # Should call submit_job 3 times to submit PENDING jobs
+        response = Job.submit_pending()
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
         self.assertNotEqual(response, [])
 
-        # After submission, each CREATE job state should be updated to PROCESSING
+        # After submission, each PENDING job state should be updated to PROCESSING
         self.assertEqual(Job.objects.filter(state=JobStates.PROCESSING).count(), 4)
 
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_created_failure(self, mock_batch_submit_job):
-        # Set up 3 saved CREATED jobs
+    def test_submit_pending_failure(self, mock_batch_submit_job):
+        # Set up 3 saved PENDING jobs
         for _ in range(3):
-            JobFactory(state=JobStates.CREATED, dataset=DatasetFactory(is_processing=False))
+            JobFactory(state=JobStates.PENDING, dataset=DatasetFactory(is_pending=False))
         mock_batch_submit_job.return_value = []
 
         # Should call submit_job 3 times, each time with an exception
-        response = Job.submit_created()
+        response = Job.submit_pending()
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
         self.assertEqual(response, [])
 
         # After submission, the jobs should remain unchanged
-        self.assertEqual(Job.objects.filter(state=JobStates.CREATED).count(), 3)
+        self.assertEqual(Job.objects.filter(state=JobStates.PENDING).count(), 3)
 
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_created_no_submission(self, mock_batch_submit_job):
+    def test_submit_pending_no_submission(self, mock_batch_submit_job):
         # Set up already submitted jobs
         for _ in range(3):
             JobFactory(state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True))
         mock_batch_submit_job.return_value = []
 
         # Should return an empty list without calling submit_job
-        response = Job.submit_created()
+        response = Job.submit_pending()
         mock_batch_submit_job.assert_not_called()
         self.assertEqual(response, [])  # No submission with no error
 
@@ -504,10 +514,10 @@ class TestJob(TestCase):
         # Should be 6 jobs (base 3  + new 3) in the db
         self.assertEqual(Job.objects.count(), 6)
         # Make sure that the job is saved in the db with correct field values
-        saved_retry_jobs = Job.objects.filter(state=JobStates.CREATED)
+        saved_retry_jobs = Job.objects.filter(state=JobStates.PENDING)
 
         for job in saved_retry_jobs:
-            self.assertEqual(job.state, JobStates.CREATED)
+            self.assertEqual(job.state, JobStates.PENDING)
             # Should correctly copy the base instance's field values
             self.assertEqual(job.batch_job_name, batch_job_name)
             self.assertEqual(job.batch_job_definition, batch_job_definition)

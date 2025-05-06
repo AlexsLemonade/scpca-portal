@@ -17,6 +17,7 @@ class TestSyncBatchJobs(TestCase):
     def assertDatasetState(
         self,
         dataset,
+        is_pending=False,
         is_processing=False,
         is_succeeded=False,
         is_failed=False,
@@ -27,12 +28,18 @@ class TestSyncBatchJobs(TestCase):
         """
         Helper for asserting the dataset state.
         """
+        self.assertEqual(dataset.is_pending, is_pending)
+        if is_pending:
+            self.assertIsInstance(dataset.pending_at, datetime)
+
         self.assertEqual(dataset.is_processing, is_processing)
         if is_processing:
             self.assertIsInstance(dataset.processing_at, datetime)
+
         self.assertEqual(dataset.is_succeeded, is_succeeded)
         if is_succeeded:
             self.assertIsInstance(dataset.succeeded_at, datetime)
+
         self.assertEqual(dataset.is_failed, is_failed)
         if is_failed:
             self.assertIsInstance(dataset.failed_at, datetime)
