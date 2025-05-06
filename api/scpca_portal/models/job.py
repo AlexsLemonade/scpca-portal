@@ -23,8 +23,9 @@ class Job(TimestampedModel):
 
     # Internal Attributes
     attempt = models.PositiveIntegerField(default=1)  # Incremented on every retry
-    state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED)
+    state = models.TextField(choices=JobStates.choices, default=JobStates.PENDING)
 
+    pending_at = models.DateTimeField(auto_now_add=True)
     processing_at = models.DateTimeField(null=True)
     succeeded_at = models.DateTimeField(null=True)
     failed_at = models.DateTimeField(null=True)
@@ -179,9 +180,9 @@ class Job(TimestampedModel):
         return retry_jobs
 
     @classmethod
-    def submit_created(cls) -> List[Self]:
+    def submit_pending(cls) -> List[Self]:
         """
-        Submits all saved CREATED jobs to AWS Batch.
+        Submits all saved PENDING jobs to AWS Batch.
         Updates each job instance's batch_job_id, state, and processing_at fields,
         and its associated dataset state.
         Saves the changes to the db on success.
@@ -189,7 +190,7 @@ class Job(TimestampedModel):
         """
         submitted_jobs = []
 
-        if jobs := Job.objects.filter(state=JobStates.CREATED):
+        if jobs := Job.objects.filter(state=JobStates.PENDING):
             for job in jobs:
                 if aws_job_id := batch.submit_job(job):
                     job.batch_job_id = aws_job_id
@@ -301,12 +302,12 @@ class Job(TimestampedModel):
 
     def submit(self) -> bool:
         """
-        Submits the unsaved CREATED job to AWS Batch.
+        Submits the unsaved PENDING job to AWS Batch.
         Updates batch_job_id, state, and processing_at fields,
         and its associated dataset state.
         Saves the changes to the db on success.
         """
-        if self.state is not JobStates.CREATED:
+        if self.state is not JobStates.PENDING:
             return False
 
         job_id = batch.submit_job(self)

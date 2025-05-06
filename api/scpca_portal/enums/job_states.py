@@ -2,7 +2,7 @@ from django.db.models import TextChoices
 
 
 class JobStates(TextChoices):
-    CREATED = "CREATED"
+    PENDING = "PENDING"
     PROCESSING = "PROCESSING"
     SUCCEEDED = "SUCCEEDED"
     FAILED = "FAILED"
