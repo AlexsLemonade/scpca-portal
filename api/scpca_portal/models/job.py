@@ -29,7 +29,6 @@ class Job(TimestampedModel):
     succeeded_at = models.DateTimeField(null=True)
     failed_at = models.DateTimeField(null=True)
     failed_reason = models.TextField(blank=True, null=True)
-    completed_at = models.DateTimeField(null=True)  # TODO: Removed in #1210
     terminated_at = models.DateTimeField(null=True)
     terminated_reason = models.TextField(blank=True, null=True)
 

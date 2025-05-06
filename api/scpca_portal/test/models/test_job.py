@@ -88,12 +88,13 @@ class TestJob(TestCase):
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_created(self, mock_batch_submit_job):
-        # Set up 3 saved CREATED jobs + 3 jobs that are already submitted
+        # Set up 3 saved CREATED jobs + 4 jobs that are either submitted or in the final states
         for _ in range(3):
             JobFactory(state=JobStates.CREATED, dataset=DatasetFactory(is_processing=False))
         for state in [
             JobStates.SUBMITTED,
-            JobStates.COMPLETED,
+            JobStates.SUCCEEDED,
+            JobStates.FAILED,
             JobStates.TERMINATED,
         ]:
             JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
@@ -429,8 +430,8 @@ class TestJob(TestCase):
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_submitted_no_termination(self, mock_batch_terminate_job):
-        # Set up jobs that are already terminated or completed
-        for state in [JobStates.FAILED, JobStates.TERMINATED]:
+        # Set up jobs that are already in the final states
+        for state in [JobStates.SUCCEEDED, JobStates.FAILED, JobStates.TERMINATED]:
             JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
         mock_batch_terminate_job.return_value = []
 
