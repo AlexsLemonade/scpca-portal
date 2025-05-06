@@ -99,7 +99,8 @@ class Dataset(TimestampedModel):
 
     @property
     def uncompressed_size(self) -> str:
-        pass
+        file_size_sum = sum(of.size_in_bytes for of in self.original_files)
+        return f"{file_size_sum}GB"
 
     @property
     def stats(self) -> Dict:
