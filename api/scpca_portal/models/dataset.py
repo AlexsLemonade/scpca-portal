@@ -97,6 +97,20 @@ class Dataset(TimestampedModel):
     def __str__(self):
         return f"Dataset {self.id}"
 
+    @property
+    def uncompressed_size(self) -> str:
+        pass
+
+    @property
+    def stats(self) -> Dict:
+        return {
+            "current_data_hash": self.current_data_hash,
+            "current_readme_hash": self.current_readme_hash,
+            "current_metadata_hash": self.current_metadata_hash,
+            "is_hash_changed": self.combined_hash == self.current_combined_hash,
+            "uncompressed_size": self.uncompressed_size,
+        }
+
     @classmethod
     def get_or_find_ccdl_dataset(
         cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
