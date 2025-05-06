@@ -5,6 +5,7 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.test import TestCase
 
+from scpca_portal import common
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Job
 from scpca_portal.test.factories import DatasetFactory, JobFactory
@@ -73,12 +74,7 @@ class TestSubmitBatchJobs(TestCase):
     @patch("scpca_portal.batch.submit_job")
     def test_submit_batch_jobs_not_called(self, mock_batch_submit_job):
         # Set up 4 jobs that are either in processing or in the final states
-        for state in [
-            JobStates.PROCESSING,
-            JobStates.SUCCEEDED,
-            JobStates.FAILED,
-            JobStates.TERMINATED,
-        ]:
+        for state in [JobStates.PROCESSING] + common.FINAL_JOB_STATES:
             JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
 
         # Should not call submit_job

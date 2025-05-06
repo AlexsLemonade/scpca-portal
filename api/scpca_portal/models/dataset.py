@@ -212,13 +212,6 @@ class Dataset(TimestampedModel):
         Sets the dataset state (flag, reason, timestamps) based on the last job state.
         Resets states before applying changes.
         """
-        # TODO: Use common.FINAL_JOB_STATES
-        FINAL_JOB_STATES = [
-            JobStates.SUCCEEDED,
-            JobStates.FAILED,
-            JobStates.TERMINATED,
-        ]
-
         # Resets all state flags and reasons
         for state in JobStates:
             state_str = state.lower()
@@ -230,7 +223,7 @@ class Dataset(TimestampedModel):
                 setattr(self, reason_attr, None)
 
         # Resets timestamps (reset all for PENDING, otherwise FINAL_JOB_STATES)
-        reset_states = JobStates if state == JobStates.PENDING else FINAL_JOB_STATES
+        reset_states = JobStates if state == JobStates.PENDING else common.FINAL_JOB_STATES
         for state in reset_states:
             setattr(self, f"{state.lower()}_at", None)
 

@@ -1,3 +1,5 @@
+from scpca_portal.enums import JobStates
+
 CSV_MULTI_VALUE_DELIMITER = ";"
 
 TAB = "\t"
@@ -186,3 +188,6 @@ PORTAL_METADATA_DOWNLOAD_CONFIG = {
 }
 
 PORTAL_METADATA_COMPUTED_FILE_NAME = "PORTAL_ALL_METADATA.zip"
+
+# Batch job
+FINAL_JOB_STATES = [JobStates.SUCCEEDED, JobStates.FAILED, JobStates.TERMINATED]
