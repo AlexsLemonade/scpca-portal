@@ -28,11 +28,11 @@ class TestTerminateBatchJobs(TestCase):
         Helper for asserting the dataset state.
         """
         self.assertEqual(dataset.is_processing, is_processing)
-
+        if is_processing:
+            self.assertIsInstance(dataset.processing_at, datetime)
         self.assertEqual(dataset.is_succeeded, is_succeeded)
         if is_succeeded:
-            self.assertIsInstance(dataset.processed_at, datetime)
-
+            self.assertIsInstance(dataset.succeeded_at, datetime)
         self.assertEqual(dataset.is_failed, is_failed)
         if is_failed:
             self.assertIsInstance(dataset.failed_at, datetime)
@@ -45,10 +45,10 @@ class TestTerminateBatchJobs(TestCase):
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_batch_jobs(self, mock_batch_terminate_job):
-        # Set up 3 SUBMITTED jobs
+        # Set up 3 PROCESSING jobs
         for _ in range(3):
             JobFactory(
-                state=JobStates.SUBMITTED,
+                state=JobStates.PROCESSING,
                 dataset=DatasetFactory(is_processing=True),
             )
         terminated_reason = "Terminated jobs for deploy"
@@ -57,8 +57,8 @@ class TestTerminateBatchJobs(TestCase):
         self.terminate_batch_jobs(reason=terminated_reason, retry=True)
         self.assertEqual(mock_batch_terminate_job.call_count, 3)
 
-        # 3 SUBMITTED jobs should be updated to TERMINATED
-        self.assertEqual(Job.objects.filter(state=JobStates.SUBMITTED).count(), 0)
+        # 3 PROCESSING jobs should be updated to TERMINATED
+        self.assertEqual(Job.objects.filter(state=JobStates.PROCESSING).count(), 0)
         terminate_jobs = Job.objects.filter(state=JobStates.TERMINATED)
         self.assertEqual(terminate_jobs.count(), 3)
 
@@ -66,10 +66,9 @@ class TestTerminateBatchJobs(TestCase):
             self.assertEqual(terminate_job.state, JobStates.TERMINATED)
             self.assertIsInstance(terminate_job.terminated_at, datetime)
             self.assertEqual(terminate_job.terminated_reason, terminated_reason)
-            # TODO: Assertion will fixed after update SUBMITTED (e.g., is_submitted) to PROCESSING
             self.assertDatasetState(
                 terminate_job.dataset,
-                is_processing=True,
+                is_processing=False,
                 is_terminated=True,
                 terminated_reason=terminate_job.terminated_reason,
             )
@@ -77,10 +76,10 @@ class TestTerminateBatchJobs(TestCase):
         # 3 new CREATED jobs should be saved in the database
         self.assertEqual(Job.objects.filter(state=JobStates.CREATED).count(), 3)
 
-        # Set up additinoal 3 SUBMITTED jobs
+        # Set up additinoal 3 PROCESSING jobs
         for _ in range(3):
             JobFactory(
-                state=JobStates.SUBMITTED,
+                state=JobStates.PROCESSING,
                 dataset=DatasetFactory(is_processing=True),
             )
 
