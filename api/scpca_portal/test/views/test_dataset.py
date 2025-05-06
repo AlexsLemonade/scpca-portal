@@ -4,7 +4,7 @@ from rest_framework.test import APITestCase
 
 from scpca_portal.models import Dataset
 from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
-from scpca_portal.test.factories import DatasetFactory
+from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory
 
 
 class DatasetsTestCase(APITestCase):
@@ -13,12 +13,21 @@ class DatasetsTestCase(APITestCase):
     def setUp(self):
         self.ccdl_dataset = DatasetFactory(is_ccdl=True)
         self.custom_dataset = DatasetFactory(is_ccdl=False)
+        self.custom_dataset.computed_file = LeafComputedFileFactory()
+        self.custom_dataset.save()
 
     def test_get_single(self):
         url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
         response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json().get("id"), str(self.ccdl_dataset.id))
 
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        url = reverse("datasets-detail", args=[self.custom_dataset.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json().get("id"), str(self.custom_dataset.id))
+        # Assert that computed_file attribute is a dict an not just the pk
+        self.assertIsInstance(response.json().get("computed_file"), dict)
 
     def test_get_list(self):
         url = reverse("datasets-list")
