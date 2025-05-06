@@ -11,12 +11,12 @@ logger.addHandler(logging.StreamHandler())
 
 
 class Command(BaseCommand):
-    help = """Terminates all submitted, incomplete jobs on AWS Batch,
+    help = """Terminates all processing, incomplete jobs on AWS Batch,
     and creates new retry jobs if the retry flag is passed.
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("--reason", type=str, default="Terminated submitted jobs")
+        parser.add_argument("--reason", type=str, default="Terminated processing jobs")
         parser.add_argument("--retry", action=BooleanOptionalAction, type=bool, default=False)
 
     def handle(self, *args, **kwargs):
@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
     def terminate_batch_jobs(self, reason, retry: bool = False, **kwargs):
         logger.info("Terminating jobs on AWS Batch...")
-        terminated_jobs = Job.terminate_submitted(reason)
+        terminated_jobs = Job.terminate_processing(reason)
 
         if terminated_jobs:
             logger.info("Successfully terminated jobs on AWS Batch!")
