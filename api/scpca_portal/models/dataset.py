@@ -223,7 +223,7 @@ class Dataset(TimestampedModel):
             if hasattr(self, reason_attr):
                 setattr(self, reason_attr, None)
 
-        # Resets timestamps (reset processing_at only in CREARED)
+        # Resets timestamps (reset processing_at only in CREATED)
         reset_states = JobStates if state == JobStates.CREATED else FINAL_JOB_STATES
         for state in reset_states:
             setattr(self, f"{state.lower()}_at", None)
