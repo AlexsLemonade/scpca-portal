@@ -339,22 +339,6 @@ class Dataset(TimestampedModel):
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
 
-    @property
-    def metadata_file_map(self) -> Dict[str, str]:
-        metadata_file_map = {}
-        for project_id, project_config in self.data.items():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                if not project_config[modality.value]:
-                    continue
-
-                metadata_path = self.get_metadata_file_path(project_id, modality)
-                metadata_contents = self.get_metadata_file_content(
-                    self.get_project_modality_libraries(project_id, modality)
-                )
-                metadata_file_map[metadata_path] = metadata_contents
-
-        return metadata_file_map
-
     def get_metadata_file_path(self, project_id: str, modality: Modalities) -> Path:
         """Return metadata file path, modality name inside of project_modality directory."""
         modality_formatted = modality.value.lower().replace("_", "-")
