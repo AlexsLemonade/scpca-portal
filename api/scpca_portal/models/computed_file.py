@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -142,6 +142,20 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
         )
 
+    @staticmethod
+    def get_metadata_file_contents(dataset) -> List[tuple[str, Modalities, str]]:
+        metadata_file_contents = []
+        for project_id, project_config in dataset.data.items():
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                if not project_config[modality.value]:
+                    continue
+
+                metadata_file_content = dataset.get_project_modality_metadata_file_content(
+                    project_id, modality
+                )
+                metadata_file_contents.append((project_id, modality, metadata_file_content))
+        return metadata_file_contents
+
     @classmethod
     def get_dataset_file(cls, dataset) -> Self:
         """
@@ -158,14 +172,22 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             zip_file.writestr(readme_file.OUTPUT_NAME, dataset.readme_file_contents)
 
             # Metadata files
-            for metadata_file_path, metadata_file_contents in dataset.metadata_file_map.items():
-                zip_file.writestr(str(metadata_file_path), metadata_file_contents)
+            for (
+                project_id,
+                modality,
+                metadata_file_content,
+            ) in ComputedFile.get_metadata_file_contents(dataset):
+                zip_file.writestr(
+                    str(dataset.get_metadata_file_path(project_id, modality)), metadata_file_content
+                )
+            # for metadata_file_path, metadata_file_contents in dataset.metadata_file_map.items():
+            #    zip_file.writestr(str(metadata_file_path), metadata_file_contents)
 
             # Original files
             for original_file in dataset.original_files:
                 zip_file.write(
                     original_file.local_file_path,
-                    cls.get_original_file_zip_path(original_file, dataset),
+                    ComputedFile.get_original_file_zip_path(original_file, dataset),
                 )
 
         computed_file = cls(

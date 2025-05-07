@@ -376,7 +376,7 @@ class Dataset(TimestampedModel):
 
     def get_project_modality_metadata_file_content(self, project_id: str, modality: Modalities):
         libraries = self.get_project_modality_libraries(project_id, modality)
-        return self.get_metadata_file_contents(libraries)
+        return self.get_metadata_file_content(libraries)
 
     @property
     def readme_file_contents(self) -> str:
