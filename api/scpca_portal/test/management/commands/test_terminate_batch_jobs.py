@@ -54,7 +54,7 @@ class TestTerminateBatchJobs(TestCase):
         terminated_reason = "Terminated jobs for deploy"
 
         # Should call terminate_job 3 times and create 3 new retry jobs
-        self.terminate_batch_jobs(reason=terminated_reason, retry=True)
+        self.terminate_batch_jobs(reason=terminated_reason)
         self.assertEqual(mock_batch_terminate_job.call_count, 3)
 
         # 3 SUBMITTED jobs should be updated to TERMINATED
