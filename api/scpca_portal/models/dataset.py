@@ -177,9 +177,6 @@ class Dataset(TimestampedModel):
             return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
         return Sample.objects.none()
 
-    def get_sample_libraries(self, project_id: str, modality: Modalities) -> Iterable[Library]:
-        return Library.objects.filter(samples__in=self.get_samples(project_id, modality)).distinct()
-
     def update_from_last_job(self, save=True) -> None:
         """
         Updates the dataset's state based on the latest job.
@@ -351,8 +348,8 @@ class Dataset(TimestampedModel):
                     continue
 
                 metadata_path = self.get_metadata_file_path(project_id, modality)
-                metadata_contents = self.get_metadata_file_contents(
-                    self.get_sample_libraries(project_id, modality)
+                metadata_contents = self.get_metadata_file_content(
+                    self.get_project_modality_libraries(project_id, modality)
                 )
                 metadata_file_map[metadata_path] = metadata_contents
 
@@ -368,9 +365,18 @@ class Dataset(TimestampedModel):
         metadata_dir = f"{project_id}_{modality_formatted}"
         return Path(metadata_dir) / Path(metadata_file_name)
 
-    def get_metadata_file_contents(self, libraries: Iterable[Library]) -> str:
+    def get_metadata_file_content(self, libraries: Iterable[Library]) -> str:
         libraries_metadata = Library.get_libraries_metadata(libraries)
         return metadata_file.get_file_contents(libraries_metadata)
+
+    def get_project_modality_libraries(
+        self, project_id: str, modality: Modalities
+    ) -> Iterable[Library]:
+        return Library.objects.filter(samples__in=self.get_samples(project_id, modality)).distinct()
+
+    def get_project_modality_metadata_file_content(self, project_id: str, modality: Modalities):
+        libraries = self.get_project_modality_libraries(project_id, modality)
+        return self.get_metadata_file_contents(libraries)
 
     @property
     def readme_file_contents(self) -> str:
