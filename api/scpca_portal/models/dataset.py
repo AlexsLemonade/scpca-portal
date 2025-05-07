@@ -395,9 +395,12 @@ class Dataset(TimestampedModel):
     @property
     def current_metadata_hash(self) -> str:
         """Computes and returns the current metadata hash."""
-        all_metadata_file_contents = "".join(sorted(self.metadata_file_map.values()))
-        all_metadata_file_contents_bytes = all_metadata_file_contents.encode("utf-8")
-        return hashlib.md5(all_metadata_file_contents_bytes).hexdigest()
+        all_metadata_file_contents = [
+            file_content for _, _, file_content in ComputedFile.get_metadata_file_contents(self)
+        ]
+        concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
+        metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
+        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
 
     @property
     def current_readme_hash(self) -> str:
