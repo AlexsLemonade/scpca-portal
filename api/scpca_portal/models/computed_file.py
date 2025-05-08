@@ -101,15 +101,21 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     @staticmethod
     def get_output_file_parent_dir(
         project_id: str,
-        modality: Modalities,
         dataset,
         input_file_path: Path = Path(),
     ) -> Path:
         """Return the correct output file parent directory of the passed input file path"""
+        file_info = InputBucketS3KeyInfo(input_file_path)
+
+        # spatial / unmerged single cell
+        modality = (
+            Modalities.SPATIAL.value
+            if Modalities.SPATIAL in file_info.modalities
+            else Modalities.SINGLE_CELL.value
+        )
         modality_formatted = modality.value.lower().replace("_", "-")
         parent_dir = Path(f"{project_id}_{modality_formatted}")
 
-        file_info = InputBucketS3KeyInfo(input_file_path)
         if Modalities.BULK_RNA_SEQ in file_info.modalities:
             return Path(f"{project_id}_bulk_rna")
 
@@ -138,35 +144,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         zip_file_path = original_file.s3_key_path.relative_to(
             Path(original_file.s3_key_info.project_id_part)
         )
+        if zip_file_path.parts[0] in [common.BULK_INPUT_DIR, common.MERGED_INPUT_DIR]:
+            zip_file_path = Path(**zip_file_path.parts[1:])
 
-        # spatial / unmerged single cell
-        modality = (
-            Modalities.SINGLE_CELL.value
-            if original_file.is_single_cell
-            else Modalities.SPATIAL.value
+        parent_dir = ComputedFile.get_output_file_parent_dir(
+            original_file.project_id, dataset, original_file.s3_key_path
         )
-        formatted_modality = modality.lower().replace("_", "-")
-        parent_dir = Path(f"{original_file.project_id}_{formatted_modality}")
-
-        # merged single cell
-        requested_merged = dataset.data.get(original_file.project_id, {}).get(
-            "merge_single_cell", False
-        )
-        is_mergeable_file = original_file.is_single_cell or original_file.is_merged
-        if requested_merged and is_mergeable_file:
-            parent_dir = Path(f"{original_file.project_id}_single-cell_merged")
-            # supplementary files at the merged project level
-            if (
-                original_file.is_supplementary and not original_file.is_merged
-            ):  # move to property on of
-                parent_dir /= Path(common.MERGED_REPORTS_PREFEX_DIR)
-            # supplementary files on the sample level
-            else:
-                zip_file_path = zip_file_path.relative_to(common.MERGED_INPUT_DIR)
-        elif original_file.is_bulk:
-            parent_dir = Path(f"{original_file.project_id}_bulk_rna")
-            zip_file_path = zip_file_path.relative_to(common.BULK_INPUT_DIR)
-
         zip_file_path = parent_dir / zip_file_path
 
         # Make sure that multiplexed sample files are adequately transformed by default
