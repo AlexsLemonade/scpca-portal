@@ -1,6 +1,15 @@
+import random
+import string
+from datetime import datetime
+
+from django.conf import settings
+from django.utils.timezone import make_aware
+
 import factory
 
-from scpca_portal.models import ComputedFile, Library
+from scpca_portal import common
+from scpca_portal.enums import DatasetFormats, FileFormats, Modalities
+from scpca_portal.models import ComputedFile
 
 
 class ProjectSummaryFactory(factory.django.DjangoModelFactory):
@@ -121,14 +130,9 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Library"
 
-    data_file_paths = [
-        factory.Sequence(
-            lambda n: f"SCPCP{str(n).zfill(6)}/SCPCS{str(n).zfill(6)}/SCPCL{str(n).zfill(6)}"
-        )
-    ]
-    formats = [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
+    formats = [FileFormats.SINGLE_CELL_EXPERIMENT]
     is_multiplexed = False
-    modality = Library.Modalities.SINGLE_CELL
+    modality = Modalities.SINGLE_CELL
     project = factory.SubFactory(LeafProjectFactory)
     scpca_id = factory.Sequence(lambda n: f"SCPCL{str(n).zfill(6)}")
     workflow_version = "development"
@@ -186,3 +190,70 @@ class ProjectFactory(LeafProjectFactory):
         library = self.libraries.first()
 
         sample.libraries.add(library)
+
+
+class DatasetFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.Dataset"
+
+    data = {
+        "SCPCP999990": {
+            "merge_single_cell": False,
+            "includes_bulk": True,
+            Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
+            Modalities.SPATIAL.value: ["SCPCS999991"],
+        },
+        "SCPCP999991": {
+            "merge_single_cell": False,
+            "includes_bulk": True,
+            Modalities.SINGLE_CELL.value: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+            Modalities.SPATIAL.value: [],
+        },
+    }
+    email = "user@example.com"
+    format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
+
+
+class JobFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.Job"
+
+    batch_job_id = factory.Sequence(lambda n: f"MOCK_JOB_ID_{str(n).zfill(3)}")
+    batch_job_name = "SCPCP000000-MOCK_DOWNLOAD_CONFIG_NAME"
+    batch_job_queue = settings.AWS_BATCH_JOB_QUEUE_NAME
+    batch_job_definition = settings.AWS_BATCH_JOB_DEFINITION_NAME
+    batch_container_overrides = factory.LazyAttribute(
+        lambda obj: {
+            "command": [
+                "python",
+                "manage.py",
+                "generate_computed_file",
+                (
+                    "--project-id"
+                    if obj.batch_job_name.startswith(common.PROJECT_ID_PREFIX)
+                    else "--sample-id"
+                ),
+                (
+                    "SCPCP000000"
+                    if obj.batch_job_name.startswith(common.PROJECT_ID_PREFIX)
+                    else "SCPCS000000"
+                ),
+                "--download-config-name",
+                "MOCK_DOWNLOAD_CONFIG_NAME",
+            ]
+        }
+    )
+
+
+class OriginalFileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.OriginalFile"
+
+    s3_bucket = settings.AWS_S3_INPUT_BUCKET_NAME
+    s3_key = factory.Sequence(lambda n: f"SCPCP999999/SCPCS999999/SCPCL{str(n).zfill(6)}.txt")
+    size_in_bytes = factory.LazyAttribute(lambda _: random.randint(0, 1000000))
+    hash = factory.LazyAttribute(
+        lambda _: "".join(random.choices(string.ascii_lowercase + string.digits, k=33))
+    )
+    hash_change_at = factory.LazyAttribute(lambda _: make_aware(datetime.now()))
+    bucket_sync_at = factory.LazyAttribute(lambda _: make_aware(datetime.now()))

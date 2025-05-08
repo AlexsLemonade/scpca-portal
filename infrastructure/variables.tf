@@ -69,7 +69,11 @@ variable "ssh_public_key" {
 }
 
 variable "ses_domain" {
-  default = "scpca.alexslemonade.org"
+  default = "staging.scpca.alexslemonade.org"
+}
+
+variable "slack_ccdl_test_channel_email" {
+  default = "testing@example.com"
 }
 
 output "environment_variables" {

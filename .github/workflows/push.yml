@@ -11,7 +11,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.10'
-      - uses: pre-commit/action@v2.0.0
+      - uses: pre-commit/action@v3.0.1
 
   run-linters:
     name: Run linters
@@ -50,4 +50,4 @@ jobs:
       - name: Build the stack
         run: docker compose --env-file ./docker-compose.env build
       - name: Test
-        run: ./bin/sportal test-api
+        run: ./bin/sportal api:test

@@ -9,8 +9,10 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_file, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
+from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
 
@@ -95,6 +97,104 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         if download_config is common.PORTAL_METADATA_DOWNLOAD_CONFIG:
             return settings.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
 
+    @staticmethod
+    def get_original_file_zip_path(original_file: OriginalFile, dataset) -> Path:
+        """Return an original file's path for the zip file being computed."""
+        # always remove project directory
+        zip_file_path = original_file.s3_key_path.relative_to(
+            Path(original_file.s3_key_info.project_id_part)
+        )
+
+        # spatial / unmerged single cell
+        modality = (
+            Modalities.SINGLE_CELL.value
+            if original_file.is_single_cell
+            else Modalities.SPATIAL.value
+        )
+        formatted_modality = modality.lower().replace("_", "-")
+        parent_dir = Path(f"{original_file.project_id}_{formatted_modality}")
+
+        # merged single cell
+        requested_merged = dataset.data.get(original_file.project_id, {}).get(
+            "merge_single_cell", False
+        )
+        is_mergeable_file = original_file.is_single_cell or original_file.is_merged
+        if requested_merged and is_mergeable_file:
+            parent_dir = Path(f"{original_file.project_id}_single-cell_merged")
+            # supplementary files at the merged project level
+            if (
+                original_file.is_supplementary and not original_file.is_merged
+            ):  # move to property on of
+                parent_dir /= Path(common.MERGED_REPORTS_PREFEX_DIR)
+            # supplementary files on the sample level
+            else:
+                zip_file_path = zip_file_path.relative_to(common.MERGED_INPUT_DIR)
+        elif original_file.is_bulk:
+            parent_dir = Path(f"{original_file.project_id}_bulk_rna")
+            zip_file_path = zip_file_path.relative_to(common.BULK_INPUT_DIR)
+
+        zip_file_path = parent_dir / zip_file_path
+
+        # Make sure that multiplexed sample files are adequately transformed by default
+        return utils.path_replace(
+            zip_file_path,
+            common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
+            common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
+        )
+
+    @classmethod
+    def get_dataset_file(cls, dataset) -> Self:
+        """
+        Computes a given dataset's zip archive and returns a corresponding ComputedFile object.
+        """
+        # If the query returns empty, then throw an error occurred.
+        if not dataset.libraries.exists():
+            raise ValueError("Unable to find libraries for Dataset.")
+
+        s3.download_files(dataset.original_files)
+
+        with ZipFile(dataset.computed_file_local_path, "w") as zip_file:
+            # Readme file
+            zip_file.writestr(readme_file.OUTPUT_NAME, dataset.readme_file_contents)
+
+            # Metadata files
+            for metadata_file_path, metadata_file_contents in dataset.metadata_file_map.items():
+                zip_file.writestr(str(metadata_file_path), metadata_file_contents)
+
+            # Original files
+            for original_file in dataset.original_files:
+                zip_file.write(
+                    original_file.local_file_path,
+                    cls.get_original_file_zip_path(original_file, dataset),
+                )
+
+        computed_file = cls(
+            dataset=dataset,
+            has_bulk_rna_seq=(
+                any(
+                    True
+                    for project_id, project_config in dataset.data.items()
+                    if project_config.get("includes_bulk")
+                    and dataset.projects.filter(scpca_id=project_id, has_bulk_rna_seq=True).exists()
+                )
+            ),
+            has_cite_seq_data=dataset.libraries.filter(has_cite_seq_data=True).exists(),
+            has_multiplexed_data=dataset.libraries.filter(is_multiplexed=True).exists(),
+            format=dataset.ccdl_type.get("format"),
+            includes_celltype_report=dataset.projects.filter(samples__is_cell_line=False).exists(),
+            includes_merged=dataset.ccdl_type.get("includes_merged"),
+            modality=dataset.ccdl_type.get("modality"),
+            metadata_only=dataset.ccdl_name == DatasetFormats.METADATA,
+            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
+            s3_key=dataset.computed_file_name,
+            size_in_bytes=dataset.computed_file_local_path.stat().st_size,
+            workflow_version=utils.join_workflow_versions(
+                library.workflow_version for library in dataset.libraries
+            ),
+        )
+
+        return computed_file
+
     @classmethod
     def get_portal_metadata_file(cls, projects, download_config: Dict) -> Self:
         """
@@ -106,11 +206,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         libraries = Library.objects.all()
         # If the query returns empty, then an error occurred, and we should abort early
         if not libraries.exists():
-            logger.error("There are no libraries on the portal!")
-            return
+            raise ValueError("There are no libraries on the portal!")
 
         libraries_metadata = utils.filter_dict_list_by_keys(
-            [lib for library in libraries for lib in library.get_combined_library_metadata()],
+            Library.get_libraries_metadata(libraries),
             common.METADATA_COLUMN_SORT_ORDER,
         )
 
@@ -144,7 +243,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_project_file(cls, project, download_config: Dict) -> Self | None:
+    def get_project_file(cls, project, download_config: Dict) -> Self:
         """
         Queries for a project's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -156,17 +255,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         if not libraries.exists():
             raise ValueError("Unable to find libraries for download_config.")
 
-        libraries_metadata = [
-            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
-        ]
-
-        library_data_file_paths = [
-            fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
-        ]
-        project_data_file_paths = project.get_download_config_file_paths(download_config)
-        s3.download_input_files(
-            library_data_file_paths + project_data_file_paths, project.s3_input_bucket
-        )
+        libraries_metadata = Library.get_libraries_metadata(libraries)
+        original_files = Library.get_libraries_original_files(libraries, download_config)
+        s3.download_files(original_files)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / project.get_output_file_name(download_config)
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -182,22 +273,17 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 metadata_file.get_file_contents(libraries_metadata),
             )
 
+            # Original files
             if not download_config.get("metadata_only", False):
-                for file_path in library_data_file_paths:
+                for original_file in original_files:
                     zip_file.write(
-                        Library.get_local_file_path(file_path),
-                        Library.get_zip_file_path(file_path, download_config),
-                    )
-                for file_path in project_data_file_paths:
-                    zip_file.write(
-                        Library.get_local_file_path(file_path),
-                        Library.get_zip_file_path(file_path, download_config),
+                        original_file.local_file_path,
+                        original_file.get_zip_file_path(download_config),
                     )
 
         computed_file = cls(
             has_bulk_rna_seq=(
-                download_config["modality"] == Library.Modalities.SINGLE_CELL
-                and project.has_bulk_rna_seq
+                download_config["modality"] == Modalities.SINGLE_CELL and project.has_bulk_rna_seq
             ),
             has_cite_seq_data=project.has_cite_seq_data,
             has_multiplexed_data=libraries.filter(is_multiplexed=True).exists(),
@@ -218,7 +304,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_sample_file(cls, sample, download_config: Dict) -> Self | None:
+    def get_sample_file(cls, sample, download_config: Dict) -> Self:
         """
         Queries for a sample's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -230,13 +316,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         if not libraries.exists():
             raise ValueError("Unable to find libraries for download_config.")
 
-        libraries_metadata = [
-            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
-        ]
-        library_data_file_paths = [
-            fp for lib in libraries for fp in lib.get_download_config_file_paths(download_config)
-        ]
-        s3.download_input_files(library_data_file_paths, sample.project.s3_input_bucket)
+        libraries_metadata = Library.get_libraries_metadata(libraries)
+        original_files = Library.get_libraries_original_files(libraries, download_config)
+        s3.download_files(original_files)
 
         zip_file_path = settings.OUTPUT_DATA_PATH / sample.get_output_file_name(download_config)
         with ZipFile(zip_file_path, "w") as zip_file:
@@ -251,10 +333,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 metadata_file.get_file_contents(libraries_metadata),
             )
 
-            for file_path in library_data_file_paths:
+            # Original files
+            for original_file in original_files:
                 zip_file.write(
-                    Library.get_local_file_path(file_path),
-                    Library.get_zip_file_path(file_path, download_config),
+                    original_file.local_file_path,
+                    original_file.get_zip_file_path(download_config),
                 )
 
         computed_file = cls(

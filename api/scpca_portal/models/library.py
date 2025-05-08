@@ -1,11 +1,10 @@
-from pathlib import Path
 from typing import Dict, List
 
-from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, s3
+from scpca_portal import common
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
 
@@ -16,30 +15,11 @@ class Library(TimestampedModel):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
-    class FileFormats:
-        ANN_DATA = "ANN_DATA"
-        SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
-
-        CHOICES = (
-            (ANN_DATA, "AnnData"),
-            (SINGLE_CELL_EXPERIMENT, "Single cell experiment"),
-        )
-
-    class Modalities:
-        SINGLE_CELL = "SINGLE_CELL"
-        SPATIAL = "SPATIAL"
-
-        CHOICES = (
-            (SINGLE_CELL, "Single Cell"),
-            (SPATIAL, "Spatial"),
-        )
-
-    data_file_paths = ArrayField(models.TextField(), default=list)
-    formats = ArrayField(models.TextField(choices=FileFormats.CHOICES), default=list)
+    formats = ArrayField(models.TextField(choices=FileFormats.choices), default=list)
     has_cite_seq_data = models.BooleanField(default=False)
     is_multiplexed = models.BooleanField(default=False)
     metadata = models.JSONField(default=dict)
-    modality = models.TextField(choices=Modalities.CHOICES)
+    modality = models.TextField(choices=Modalities.choices)
     scpca_id = models.TextField(unique=True)
     workflow_version = models.TextField()
 
@@ -50,16 +30,29 @@ class Library(TimestampedModel):
 
     @classmethod
     def get_from_dict(cls, data, project):
-        data_file_paths = Library.get_data_file_paths(data, project.s3_input_bucket)
+        library_id = data["scpca_library_id"]
+        original_files = OriginalFile.downloadable_objects.filter(library_id=library_id)
+
+        modality = ""
+        if original_files.filter(is_single_cell=True).exists():
+            modality = Modalities.SINGLE_CELL
+        elif original_files.filter(is_spatial=True).exists():
+            modality = Modalities.SPATIAL
+
+        formats = []
+        if original_files.filter(is_single_cell_experiment=True).exists():
+            formats.append(FileFormats.SINGLE_CELL_EXPERIMENT)
+        if original_files.filter(is_anndata=True).exists():
+            formats.append(FileFormats.ANN_DATA)
+
         library = cls(
-            data_file_paths=data_file_paths,
-            formats=Library.get_formats_from_file_paths(data_file_paths),
+            formats=sorted(formats),
             is_multiplexed=data.get("is_multiplexed", False),
-            has_cite_seq_data=any(fp for fp in data_file_paths if "_adt." in fp.name),
+            has_cite_seq_data=original_files.filter(is_cite_seq=True).exists(),
             metadata=data,
-            modality=Library.get_modality_from_file_paths(data_file_paths),
+            modality=modality,
             project=project,
-            scpca_id=data["scpca_library_id"],
+            scpca_id=library_id,
             workflow_version=data["workflow_version"],
         )
 
@@ -82,50 +75,11 @@ class Library(TimestampedModel):
 
     @property
     def original_files(self):
-        return OriginalFile.objects.filter(library_id=self.scpca_id)
+        return OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
 
-    @classmethod
-    def get_data_file_paths(cls, data: Dict, s3_input_bucket: str) -> List[Path]:
-        """
-        Retrieves all data file paths on the aws input bucket associated
-        with the inputted Library object metadata dict, and returns them as a list.
-        """
-        # TODO: Pop property for now until attribute added to source json
-        project_id = data.pop("scpca_project_id")
-        sample_id = data.get("scpca_sample_id")
-        library_id = data.get("scpca_library_id")
-        relative_path = Path(f"{project_id}/{sample_id}/{library_id}")
-
-        file_paths = s3.list_input_paths(relative_path, s3_input_bucket)
-
-        # input metadata json is excluded from single_cell downloads
-        if Library.get_modality_from_file_paths(file_paths) == Library.Modalities.SINGLE_CELL:
-            return [file_path for file_path in file_paths if "metadata" not in file_path.name]
-
-        return file_paths
-
-    @classmethod
-    def get_modality_from_file_paths(cls, file_paths: List[Path]) -> str:
-        if any(path for path in file_paths if "spatial" in path.parts):
-            return Library.Modalities.SPATIAL
-        return Library.Modalities.SINGLE_CELL
-
-    @classmethod
-    def get_formats_from_file_paths(cls, file_paths: List[Path]) -> List[str]:
-        if Library.get_modality_from_file_paths(file_paths) is Library.Modalities.SPATIAL:
-            return [Library.FileFormats.SINGLE_CELL_EXPERIMENT]
-
-        extensions_format = {v: k for k, v in common.FORMAT_EXTENSIONS.items()}
-        formats = set(
-            extensions_format[path.suffix]
-            for path in file_paths
-            if path.suffix in extensions_format
-        )
-        return sorted(list(formats))
-
-    @staticmethod
-    def get_local_path_from_data_file_path(data_file_path: Path) -> Path:
-        return settings.INPUT_DATA_PATH / data_file_path
+    @property
+    def original_file_paths(self) -> List[str]:
+        return sorted(self.original_files.values_list("s3_key", flat=True))
 
     def get_metadata(self, demux_cell_count_estimate_id) -> Dict:
         excluded_metadata_attributes = {
@@ -152,48 +106,45 @@ class Library(TimestampedModel):
             for sample in self.samples.all()
         ]
 
-    def get_download_config_file_paths(self, download_config: Dict) -> List[Path]:
+    def get_original_files_by_download_config(self, download_config: Dict):
         """
         Return all of a library's file paths that are suitable for the passed download config.
         """
-
         if download_config.get("metadata_only", False):
-            return []
+            return OriginalFile.objects.none()
 
-        omit_suffixes = set(common.FORMAT_EXTENSIONS.values())
-
+        original_files = OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
         if not download_config.get("includes_merged", False):
-            requested_suffix = common.FORMAT_EXTENSIONS.get(download_config["format"])
-            omit_suffixes.remove(requested_suffix)
+            if download_config["format"] == FileFormats.ANN_DATA:
+                return original_files.exclude(is_single_cell_experiment=True)
+            if download_config["format"] == FileFormats.SINGLE_CELL_EXPERIMENT:
+                return original_files.exclude(is_anndata=True)
 
+        return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
+
+    @staticmethod
+    def get_libraries_metadata(libraries) -> List[Dict]:
         return [
-            file_path
-            for file_path in [Path(fp) for fp in self.data_file_paths]
-            if file_path.suffix not in omit_suffixes
+            lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
 
     @staticmethod
-    def get_local_file_path(file_path: Path):
-        return settings.INPUT_DATA_PATH / file_path
+    def get_libraries_original_files(libraries, download_config):
+        """
+        Return file paths associated with the libraries according to the passed download_config.
+        Files are then downloaded and included in computed files.
+        """
+        library_original_files = [
+            of
+            for lib in libraries
+            for of in lib.get_original_files_by_download_config(download_config)
+        ]
 
-    @staticmethod
-    def get_zip_file_path(file_path: Path, download_config: Dict) -> Path:
-        path_parts = [Path(path) for path in file_path.parts]
-
-        # Project output paths are relative to project directory
         if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
-            output_path = file_path.relative_to(path_parts[0])
-        # Sample output paths are relative to project and sample directories
-        else:
-            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
+            project = libraries.first().project
+            project_original_files = [
+                of for of in project.get_original_files_by_download_config(download_config)
+            ]
+            return project_original_files + library_original_files
 
-        # Transform merged and bulk project data files to no longer be nested in a merged directory
-        if file_path.parent.name in ["bulk", "merged"]:
-            output_path = file_path.relative_to(path_parts[0] / path_parts[1])
-        # Nest sample reports into individual_reports directory in merged download
-        # The merged summmary html file should not go into this directory
-        elif download_config.get("includes_merged", False) and output_path.suffix == ".html":
-            output_path = Path("individual_reports") / output_path
-
-        # Comma separated lists of multiplexed samples should become underscore separated
-        return Path(str(output_path).replace(",", "_"))
+        return library_original_files

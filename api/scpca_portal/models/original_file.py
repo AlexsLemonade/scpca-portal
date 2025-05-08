@@ -1,15 +1,24 @@
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from typing_extensions import Self
 
-from scpca_portal import common
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
 
 logger = get_and_configure_logger(__name__)
+
+
+class DownloadableFileManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_downloadable=True)
 
 
 class OriginalFile(TimestampedModel):
@@ -28,50 +37,79 @@ class OriginalFile(TimestampedModel):
 
     # inferred relationship ids
     project_id = models.TextField(null=True)
-    sample_id = models.TextField(null=True)
+    sample_ids = ArrayField(models.TextField(null=True), default=list)
     library_id = models.TextField(null=True)
 
     # existence attributes
+    # modalities
     is_single_cell = models.BooleanField(default=False)
     is_spatial = models.BooleanField(default=False)
+    is_cite_seq = models.BooleanField(default=False)  # indicates if file is exclusively cite_seq
+    is_bulk = models.BooleanField(default=False)
+    # formats
+    formats = ArrayField(models.TextField(choices=FileFormats.choices), default=list)
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
-    is_bulk = models.BooleanField(default=False)
-    is_merged = models.BooleanField(default=False)
+    is_supplementary = models.BooleanField(default=False)
     is_metadata = models.BooleanField(default=False)
+    # other
+    is_merged = models.BooleanField(default=False)
+    is_project_file = models.BooleanField(default=False)
+    is_downloadable = models.BooleanField(default=True)
+
+    # queryset managers
+    objects = models.Manager()
+    downloadable_objects = DownloadableFileManager()
 
     def __str__(self):
         return f"Original File {self.s3_key} from Project {self.project_id} ({self.size_in_bytes}B)"
 
     @classmethod
     def get_from_dict(cls, file_object, bucket, sync_timestamp):
-        s3_key = Path(file_object["s3_key"])
-
-        project_id, sample_id, library_id = OriginalFile.get_relationship_ids(s3_key)
-        is_single_cell, is_spatial = OriginalFile.get_modalities(s3_key)
-        is_single_cell_experiment, is_anndata, is_metadata = OriginalFile.get_formats(s3_key)
-        is_bulk, is_merged = OriginalFile.get_project_file_properties(s3_key)
+        s3_key_info = utils.InputBucketS3KeyInfo(Path(file_object["s3_key"]))
+        modalities = s3_key_info.modalities
+        formats = s3_key_info.formats
 
         original_file = cls(
             s3_bucket=bucket,
-            s3_key=s3_key,
+            s3_key=file_object["s3_key"],
             size_in_bytes=file_object["size_in_bytes"],
             hash=file_object["hash"],
             hash_change_at=sync_timestamp,
             bucket_sync_at=sync_timestamp,
-            project_id=project_id,
-            sample_id=sample_id,
-            library_id=library_id,
-            is_single_cell=is_single_cell,
-            is_spatial=is_spatial,
-            is_single_cell_experiment=is_single_cell_experiment,
-            is_anndata=is_anndata,
-            is_bulk=is_bulk,
-            is_merged=is_merged,
-            is_metadata=is_metadata,
+            project_id=s3_key_info.project_id,
+            sample_ids=s3_key_info.sample_ids,
+            library_id=s3_key_info.library_id,
+            is_single_cell=(Modalities.SINGLE_CELL in modalities),
+            is_spatial=(Modalities.SPATIAL in modalities),
+            is_cite_seq=(Modalities.CITE_SEQ in modalities),
+            is_bulk=(Modalities.BULK_RNA_SEQ in modalities),
+            formats=formats,
+            is_single_cell_experiment=(FileFormats.SINGLE_CELL_EXPERIMENT in formats),
+            is_anndata=(FileFormats.ANN_DATA in formats),
+            is_supplementary=(FileFormats.SUPPLEMENTARY in formats),
+            is_metadata=(FileFormats.METADATA in formats),
+            is_merged=s3_key_info.is_merged,
+            is_project_file=s3_key_info.is_project_file,
+            is_downloadable=OriginalFile._is_downloadable(s3_key_info),
         )
 
         return original_file
+
+    @staticmethod
+    def _is_downloadable(s3_key_info: utils.InputBucketS3KeyInfo):
+        """
+        Returns whether or not a file is downloadable.
+        Most files are downloadable, with the exception of input metadata files.
+        """
+        if Modalities.SPATIAL in s3_key_info.modalities:
+            # Spatial input metadata files are downloadable (an exception to the rule)
+            return True
+
+        if FileFormats.METADATA in s3_key_info.formats:
+            return False
+
+        return True
 
     @classmethod
     def bulk_create_from_dicts(cls, file_objects, bucket, sync_timestamp) -> List[Self]:
@@ -140,69 +178,94 @@ class OriginalFile(TimestampedModel):
         deletable_files.delete()
         return deletable_file_list
 
-    @staticmethod
-    def is_project_file(s3_key: Path) -> bool:
-        """Checks to see if file is a project data file, and not a library data file."""
-        # project files will not have sample subdirectories
-        return next((True for p in s3_key.parts if common.SAMPLE_ID_PREFIX in p), False)
+    @property
+    def s3_key_info(self) -> utils.InputBucketS3KeyInfo:
+        return utils.InputBucketS3KeyInfo(self.s3_key_path)
 
-    @staticmethod
-    def get_relationship_ids(s3_key: Path) -> Tuple:
-        """Parses s3_key and returns project, sample and library ids."""
-        project_id = next(
-            (p for p in s3_key.parts if common.PROJECT_ID_PREFIX in p),
-            None,  # the only file w.o. a project id path part should be the projects metadata file
+    @property
+    def s3_key_path(self) -> Path:
+        return Path(self.s3_key)
+
+    @property
+    def s3_bucket_path(self) -> Path:
+        return Path(self.s3_bucket)
+
+    @property
+    def s3_absolute_path(self) -> Path:
+        return self.s3_bucket_path / self.s3_key_path
+
+    @property
+    def download_dir(self) -> Path:
+        """
+        Return an original file's download directory.
+
+        To produce more efficient downloads, files are downloaded as collections.
+        Collections are formed as granularly as possible,
+        at either the sample/merged/bulk, project, or bucket levels.
+        """
+        if sample_id_part := self.s3_key_info.sample_id_part:
+            return Path(self.s3_key_info.project_id_part, sample_id_part)
+
+        if project_id_part := self.s3_key_info.project_id:
+            return Path(project_id_part)
+
+        # default to bucket dir
+        return Path()
+
+    @property
+    def download_path(self) -> Path:
+        """Return the remaining part of self.s3_key that's not the download_dir."""
+        return self.s3_key_path.relative_to(self.download_dir)
+
+    @property
+    def local_file_path(self):
+        return settings.INPUT_DATA_PATH / self.s3_key_path
+
+    def _get_zip_file_path(self, download_config: Dict) -> Path:
+        """
+        Return file path with requested directory structure according to download config.
+        The multiplexed sample delimeter is not replaced in this method.
+        """
+        # Project output paths are relative to project directory
+        output_path = self.s3_key_path.relative_to(Path(self.s3_key_info.project_id_part))
+
+        # Sample output paths are relative to sample directory
+        if download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values():
+            return output_path.relative_to(Path(self.s3_key_info.sample_id_part))
+
+        # Transform merged and bulk project data files to no longer be nested in a merged directory
+        if self.is_merged:
+            return output_path.relative_to(common.MERGED_INPUT_DIR)
+        if self.is_bulk:
+            return output_path.relative_to(common.BULK_INPUT_DIR)
+
+        # Nest sample reports into individual_reports directory in merged download
+        # The merged summmary html file should not go into this directory
+        if download_config.get("includes_merged", False) and self.is_supplementary:
+            return Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path
+
+        return output_path
+
+    def get_zip_file_path(self, download_config: Dict) -> Path:
+        """Returns the formatted file path while replacing the multiplexed sample delimter."""
+        # Delimeter must be exchanged if file has multiplexed samples
+        return utils.path_replace(
+            self._get_zip_file_path(download_config),
+            common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
+            common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
         )
-        sample_id = next((p for p in s3_key.parts if common.SAMPLE_ID_PREFIX in p), None)
-        library_id = next(
-            # library ids are prepended to files followed by an underscore
-            (p.split("_")[0] for p in s3_key.parts if common.LIBRARY_ID_PREFIX in p),
-            None,
-        )
-
-        return project_id, sample_id, library_id
 
     @staticmethod
-    def get_modalities(s3_key: Path) -> Tuple:
-        """Returns file modalities using s3_key."""
-        is_single_cell, is_spatial = False, False
+    def get_bucket_paths(original_files) -> Dict[Tuple, List[Path]]:
+        """
+        Collect and return files for download according to their bucket names and download dirs.
+        """
+        bucket_paths = defaultdict(list)
+        for original_file in original_files:
+            # if a file doesn't exist locally, then it should be downloaded
+            if not original_file.s3_key_path.exists():
+                bucket_paths[(original_file.s3_bucket_path, original_file.download_dir)].append(
+                    original_file.download_path
+                )
 
-        if OriginalFile.is_project_file(s3_key):
-            return is_single_cell, is_spatial
-
-        # spatial files will have a "spatial" subdirectory
-        if next((True for p in s3_key.parts if "spatial" in p), False):
-            is_spatial = True
-        else:
-            is_single_cell = True
-
-        return is_single_cell, is_spatial
-
-    @staticmethod
-    def get_formats(s3_key: Path) -> Tuple:
-        """Returns file formats using s3_key."""
-        is_single_cell_experiment, is_anndata, is_metadata = False, False, False
-
-        if s3_key.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]:
-            is_single_cell_experiment = True
-        elif s3_key.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]:
-            is_anndata = True
-        elif s3_key.suffix in [".csv", ".json"]:
-            is_metadata = True
-
-        return is_single_cell_experiment, is_anndata, is_metadata
-
-    @staticmethod
-    def get_project_file_properties(s3_key: Path) -> Tuple:
-        """Returns project file properties using s3_key."""
-        is_bulk, is_merged = False, False
-
-        if not OriginalFile.is_project_file(s3_key):
-            return is_bulk, is_merged
-
-        if "bulk" in s3_key.parts:
-            is_bulk = True
-        elif "merged" in s3_key.parts:
-            is_merged = True
-
-        return is_bulk, is_merged
+        return bucket_paths

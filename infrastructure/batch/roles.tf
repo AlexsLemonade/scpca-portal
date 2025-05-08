@@ -15,7 +15,7 @@ resource "aws_iam_role" "batch_service_role" {
 }
 EOF
 
-  tags               = var.batch_tags
+  tags = var.batch_tags
 }
 
 resource "aws_iam_role_policy_attachment" "batch_service_role" {
@@ -142,4 +142,28 @@ EOF
 resource "aws_iam_role_policy_attachment" "batch_job_s3_access" {
   role       = aws_iam_role.batch_job_role.name
   policy_arn = aws_iam_policy.batch_job_s3_access.arn
+}
+
+resource "aws_iam_policy" "batch_ses_send_email" {
+  name   = "scpca-portal-batch-ses-send-email-${var.user}-${var.stage}"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ses:SendEmail",
+        "ses:SendRawEmail"
+      ],
+      "Resource": "arn:aws:ses:${var.region}:${var.aws_caller_identity_current.account_id}:identity/${var.ses_domain}"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "batch_ses_send_policy" {
+  role       = aws_iam_role.batch_job_role.name
+  policy_arn = aws_iam_policy.batch_ses_send_email.arn
 }

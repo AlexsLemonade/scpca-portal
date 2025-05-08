@@ -20,12 +20,14 @@ export const config = {
       'https://scpca.readthedocs.io/en/stable/download_files.html#multiplexed-sample-libraries',
     what_est_demux_cell:
       'https://scpca.readthedocs.io/en/stable/faq.html#what-are-estimated-demux-cell-counts',
+    what_review_dataset: 'https://example.com',
     when_downloading_merged_objects:
       'https://scpca.readthedocs.io/en/stable/faq.html#when-should-i-download-a-project-as-a-merged-object',
     which_projects_are_merged_objects:
       'https://scpca.readthedocs.io/en/stable/faq.html#which-projects-can-i-download-as-merged-objects',
     which_samples_can_download_as_anndata:
       'https://scpca.readthedocs.io/en/stable/faq.html#which-samples-can-i-download-as-anndata-objects',
+    why_changing_merged_project: 'https://example.com',
     how_processed:
       'https://scpca.readthedocs.io/en/stable/processing_information.html',
     how_processed_multiplexed:

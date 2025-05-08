@@ -22,13 +22,13 @@ repos:
           - flake8-print
 
   - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v4.3.21
+    rev: v5.10.1
     hooks:
       - id: isort
         exclude: ^api/scpca_portal/wsgi.py$
 
   - repo: https://github.com/psf/black
-    rev: 22.3.0
+    rev: 25.1.0
     hooks:
       - id: black
         language_version: python3

@@ -1,7 +1,6 @@
 import React from 'react'
 import { Box, Button, Paragraph, Text, TextInput } from 'grommet'
 import { FormPrevious, FormNext } from 'grommet-icons'
-import { isOnlyNumbers } from 'helpers/isOnlyNumbers'
 import {
   offsetToPage,
   pageToOffset,
@@ -29,13 +28,12 @@ export const Pagination = ({
   const atEnd = offset === last
 
   const handlePageNumberRequest = ({ target: { value } }) => {
-    if (isOnlyNumbers(value)) {
-      const newOffset = pageToOffset(value)
-      const inRange = newOffset <= last && newOffset >= 0
-      setEnteredPageNumberInRange(inRange)
-      setEnteredPageNumber(value)
-    }
     if (value === '') setEnteredPageNumber('')
+
+    const newOffset = pageToOffset(value, limit)
+    const inRange = newOffset <= last && newOffset >= 0
+    setEnteredPageNumberInRange(inRange)
+    setEnteredPageNumber(value)
   }
 
   const updateOffset = (newOffset) => {
@@ -54,7 +52,7 @@ export const Pagination = ({
   }
 
   const goToOffsetRequest = () => {
-    updateOffset(pageToOffset(parseInt(enteredPageNumber, 10)))
+    updateOffset(pageToOffset(parseInt(enteredPageNumber, 10), limit))
   }
 
   const [buttonOffsets, setButtonOffsets] = React.useState([])
@@ -168,6 +166,9 @@ export const Pagination = ({
         </Paragraph>{' '}
         <Box width="xsmall">
           <TextInput
+            type="number"
+            min="1"
+            max={offsetToPage(last, limit)}
             size="medium"
             value={enteredPageNumber}
             aria-label="Jump to page"

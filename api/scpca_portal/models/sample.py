@@ -6,8 +6,8 @@ from django.db import models
 
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
-from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.library import Library
 
 logger = get_and_configure_logger(__name__)
@@ -18,20 +18,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         db_table = "samples"
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
-
-    class Modalities:
-        BULK_RNA_SEQ = "BULK_RNA_SEQ"
-        CITE_SEQ = "CITE_SEQ"
-        MULTIPLEXED = "MULTIPLEXED"
-        SINGLE_CELL = "SINGLE_CELL"
-        SPATIAL = "SPATIAL"
-
-        NAME_MAPPING = {
-            BULK_RNA_SEQ: "Bulk RNA-seq",
-            CITE_SEQ: "CITE-seq",
-            MULTIPLEXED: "Multiplexed",
-            SPATIAL: "Spatial Data",
-        }
 
     age = models.TextField()
     age_timing = models.TextField()
@@ -152,7 +138,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             formats__contains=[download_config["format"]],
         )
 
-    def get_computed_file(self, download_config: Dict) -> ComputedFile:
+    def get_computed_file(self, download_config: Dict):
         "Return the sample computed file that matches the passed download_config."
         return self.computed_files.filter(
             modality=download_config["modality"],
@@ -169,26 +155,26 @@ class Sample(CommonDataAttributes, TimestampedModel):
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
         return {
-            Sample.Modalities.MULTIPLEXED: settings.OUTPUT_DATA_PATH
+            Modalities.MULTIPLEXED: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_multiplexed_metadata.tsv",
-            Sample.Modalities.SINGLE_CELL: settings.OUTPUT_DATA_PATH
+            Modalities.SINGLE_CELL: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_libraries_metadata.tsv",
-            Sample.Modalities.SPATIAL: settings.OUTPUT_DATA_PATH
+            Modalities.SPATIAL: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_spatial_metadata.tsv",
         }.get(modality)
 
     @property
     def modalities(self):
         attr_name_modality_mapping = {
-            "has_bulk_rna_seq": Sample.Modalities.BULK_RNA_SEQ,
-            "has_cite_seq_data": Sample.Modalities.CITE_SEQ,
-            "has_multiplexed_data": Sample.Modalities.MULTIPLEXED,
-            "has_spatial_data": Sample.Modalities.SPATIAL,
+            "has_bulk_rna_seq": Modalities.BULK_RNA_SEQ,
+            "has_cite_seq_data": Modalities.CITE_SEQ,
+            "has_multiplexed_data": Modalities.MULTIPLEXED,
+            "has_spatial_data": Modalities.SPATIAL,
         }
 
         return sorted(
             [
-                Sample.Modalities.NAME_MAPPING[modality_name]
+                modality_name.label
                 for attr_name, modality_name in attr_name_modality_mapping.items()
                 if getattr(self, attr_name)
             ]
@@ -217,57 +203,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
     def is_last_multiplexed_sample(self):
         """Return True if sample id is highest in list of multiplexed ids, False if not"""
         return self.scpca_id == self.multiplexed_ids[-1]
-
-    @property
-    def multiplexed_computed_file(self):
-        try:
-            return self.sample_computed_files.get(
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                has_multiplexed_data=True,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_computed_file(self):
-        try:
-            return self.sample_computed_files.get(
-                format=ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                has_multiplexed_data=False,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_anndata_computed_file(self):
-        try:
-            return self.sample_computed_files.get(
-                format=ComputedFile.OutputFileFormats.ANN_DATA,
-                modality=ComputedFile.OutputFileModalities.SINGLE_CELL,
-                has_multiplexed_data=False,
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def spatial_computed_file(self):
-        try:
-            return self.sample_computed_files.get(
-                modality=ComputedFile.OutputFileModalities.SPATIAL
-            )
-        except ComputedFile.DoesNotExist:
-            pass
-
-    @property
-    def single_cell_file_formats(self):
-        file_formats = []
-        if self.has_single_cell_data:
-            file_formats.append(ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT)
-        if self.includes_anndata:
-            file_formats.append(ComputedFile.OutputFileFormats.ANN_DATA)
-        return file_formats
 
     def get_output_file_name(self, download_config: Dict) -> str:
         """

@@ -29,13 +29,16 @@ jobs:
           SSH_PRIVATE_KEY: "${{ secrets.OP_SSH_PRIVATE_KEY }}"
           SSH_PUBLIC_KEY: "${{ secrets.OP_SSH_PUBLIC_KEY }}"
           SENTRY_DSN: "${{ secrets.OP_SENTRY_DSN }}"
+          SLACK_CCDL_TEST_CHANNEL_EMAIL: "${{ secrets.OP_SLACK_CCDL_TEST_CHANNEL_EMAIL }}"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.0.8
+          terraform_version: 1.11.4
 
       - name: Deploy
-        run: cd infrastructure && python3 deploy.py -e staging -u deployer -d ccdlstaging -v $(git rev-parse HEAD)
+        run: cd infrastructure && python3 deploy.py -s staging -u deployer -a ccdlstaging -v $(git rev-parse HEAD) --project
         env:
           SENTRY_ENV: staging-api
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"

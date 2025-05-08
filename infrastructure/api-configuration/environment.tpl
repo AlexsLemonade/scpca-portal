@@ -11,5 +11,7 @@ AWS_BATCH_JOB_QUEUE_NAME=${aws_batch_job_queue_name}
 AWS_BATCH_JOB_DEFINITION_NAME=${aws_batch_job_definition_name}
 AWS_REGION=${aws_region}
 AWS_S3_BUCKET_NAME=${aws_s3_bucket_name}
+AWS_SES_DOMAIN=${aws_ses_domain}
 SENTRY_DSN=${sentry_dsn}
 SENTRY_ENV=${sentry_env}
+SLACK_CCDL_TEST_CHANNEL_EMAIL=${slack_ccdl_test_channel_email}

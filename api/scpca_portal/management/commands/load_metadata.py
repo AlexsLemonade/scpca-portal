@@ -64,7 +64,7 @@ class Command(BaseCommand):
         """Loads metadata from input metadata files on s3 and creates model objects in the db."""
         loader.prep_data_dirs()
 
-        for project_metadata in loader.get_projects_metadata(input_bucket_name, scpca_project_id):
+        for project_metadata in loader.get_projects_metadata(scpca_project_id):
             # validate that a project can be added to the db,
             # then creates it, all its samples and libraries, and all other relations
             if project := loader.create_project(

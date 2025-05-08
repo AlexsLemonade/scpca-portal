@@ -22,6 +22,9 @@ METADATA_FILE = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
 class TestCreatePortalMetadata(TransactionTestCase):
     def setUp(self):
+        # make sure OriginalFile table is populated
+        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+
         self.create_portal_metadata = partial(call_command, "create_portal_metadata")
         self.load_data = partial(call_command, "load_data")
 
@@ -70,7 +73,9 @@ class TestCreatePortalMetadata(TransactionTestCase):
         self.assertEqual(computed_files.count(), 1)
         computed_file = computed_files.first()
         # Make sure the computed file size is as expected range
-        self.assertEqualWithVariance(computed_file.size_in_bytes, 8430)
+        self.assertEqualWithVariance(
+            computed_file.size_in_bytes, 8367
+        )  # TODO: add to expected_values portal wide dataset file
         # Make sure all the fields have correct values
         self.assertTrue(computed_file.metadata_only)
         self.assertTrue(computed_file.portal_metadata_only)

@@ -1,5 +1,5 @@
- module "batch" {
-   source = "./batch"
+module "batch" {
+  source = "./batch"
 
   # networking
   scpca_portal_vpc = aws_vpc.scpca_portal_vpc
@@ -19,7 +19,11 @@
   # security
   scpca_portal_db_security_group = aws_security_group.scpca_portal_db
 
+  # ses
+  ses_domain = var.ses_domain
+
   # general configuration
+  aws_caller_identity_current = data.aws_caller_identity.current
   user = var.user
   stage = var.stage
   batch_tags = {

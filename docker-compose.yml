@@ -1,4 +1,6 @@
-version: '2'
+networks:
+  default:
+    name: scpca_portal
 
 services:
   postgres:
@@ -20,6 +22,7 @@ services:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
+      - AWS_DEFAULT_REGION=us-east-1
       - DEV_HOST=http://localhost:${API_PORT}
       - LOG_RUNTIMES
     command: >
@@ -28,7 +31,6 @@ services:
                ./manage.py runserver 0.0.0.0:${API_PORT}'
     volumes:
       - ./api:/home/user/code
-      - '${HOME}/.aws:/home/user/.aws'
     depends_on:
       - client
       - postgres
