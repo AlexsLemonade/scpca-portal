@@ -107,7 +107,7 @@ class Dataset(TimestampedModel):
             "current_data_hash": self.current_data_hash,
             "current_readme_hash": self.current_readme_hash,
             "current_metadata_hash": self.current_metadata_hash,
-            "is_hash_changed": self.combined_hash == self.current_combined_hash,
+            "is_hash_changed": self.combined_hash != self.current_combined_hash,
             "uncompressed_size": self.estimated_size_in_bytes,
         }
 
@@ -417,15 +417,18 @@ class Dataset(TimestampedModel):
         return hashlib.md5(readme_file_contents_bytes).hexdigest()
 
     @property
-    def combined_hash(self) -> str:
+    def combined_hash(self) -> str | None:
         """
         Combines, computes and returns the combined cached data, metadata and readme hashes.
         """
+        # Return None if hashes have not been calculated yet
+        if not (self.data_hash and self.metadata_hash and self.readme_hash):
+            return None
         concat_hash = self.data_hash + self.metadata_hash + self.readme_hash
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
     @property
-    def current_combined_hash(self) -> str:
+    def current_combined_hash(self) -> str | None:
         """
         Combines, computes and returns the combined current data, metadata and readme hashes.
         """
