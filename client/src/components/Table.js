@@ -290,10 +290,10 @@ export const Table = ({
   })
 
   useEffect(() => {
-    if (instance?.page) {
+    if (instance.page) {
       onFilteredRowsChange(instance.page.map((row) => row.original))
     }
-  }, [instance?.page])
+  }, [instance.page])
 
   useEffect(() => {
     setHiddenColumns(
