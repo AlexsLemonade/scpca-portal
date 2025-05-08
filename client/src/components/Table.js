@@ -28,6 +28,9 @@ import { useResponsive } from 'hooks/useResponsive'
 const TableRow = styled(GrommetTableRow)`
  ${({ theme }) => css`
    cursor: pointer;
+   td {
+     vertical-align: middle;
+   }
    &.selected {
      > td {
        background: ${theme.global.colors['powder-blue']} !important;
