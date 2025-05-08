@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -153,20 +153,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         metadata_dir = f"{project_id}_{modality_formatted}"
         return Path(metadata_dir) / Path(metadata_file_name)
 
-    @staticmethod
-    def get_metadata_file_contents(dataset) -> List[tuple[str, Modalities, str]]:
-        metadata_file_contents = []
-        for project_id, project_config in dataset.data.items():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                if not project_config[modality.value]:
-                    continue
-
-                metadata_file_content = dataset.get_project_modality_metadata_file_content(
-                    project_id, modality
-                )
-                metadata_file_contents.append((project_id, modality, metadata_file_content))
-        return metadata_file_contents
-
     @classmethod
     def get_dataset_file(cls, dataset) -> Self:
         """
@@ -183,11 +169,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             zip_file.writestr(readme_file.OUTPUT_NAME, dataset.readme_file_contents)
 
             # Metadata files
-            for (
-                project_id,
-                modality,
-                metadata_file_content,
-            ) in ComputedFile.get_metadata_file_contents(dataset):
+            for project_id, modality, metadata_file_content in dataset.get_metadata_file_contents():
                 zip_file.writestr(
                     str(ComputedFile.get_metadata_file_zip_path(dataset, project_id, modality)),
                     metadata_file_content,

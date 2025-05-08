@@ -352,6 +352,19 @@ class Dataset(TimestampedModel):
         libraries = self.get_project_modality_libraries(project_id, modality)
         return self.get_metadata_file_content(libraries)
 
+    def get_metadata_file_contents(self) -> List[tuple[str, Modalities, str]]:
+        metadata_file_contents = []
+        for project_id, project_config in self.data.items():
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                if not project_config.get(modality.value, []):
+                    continue
+
+                metadata_file_content = self.get_project_modality_metadata_file_content(
+                    project_id, modality
+                )
+                metadata_file_contents.append((project_id, modality, metadata_file_content))
+        return metadata_file_contents
+
     @property
     def readme_file_contents(self) -> str:
         return readme_file.get_file_contents_dataset(self)
@@ -370,7 +383,7 @@ class Dataset(TimestampedModel):
     def current_metadata_hash(self) -> str:
         """Computes and returns the current metadata hash."""
         all_metadata_file_contents = [
-            file_content for _, _, file_content in ComputedFile.get_metadata_file_contents(self)
+            file_content for _, _, file_content in self.get_metadata_file_contents()
         ]
         concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
         metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
