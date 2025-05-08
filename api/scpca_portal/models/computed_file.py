@@ -163,12 +163,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def get_metadata_file_zip_path(dataset, project_id: str, modality: Modalities) -> Path:
         """Return metadata file path, modality name inside of project_modality directory."""
         modality_formatted = modality.value.lower().replace("_", "-")
-        metadata_file_name = f"{modality_formatted}_metadata.tsv"
+        metadata_file_name_path = Path(f"{modality_formatted}_metadata.tsv")
 
-        if dataset.data.get(project_id, {}).get("merge_single_cell", False):
-            modality_formatted += "_merged"
-        metadata_dir = f"{project_id}_{modality_formatted}"
-        return Path(metadata_dir) / Path(metadata_file_name)
+        metadata_dir = ComputedFile.get_output_file_parent_dir(
+            project_id, dataset, metadata_file_name_path
+        )
+        return Path(metadata_dir) / Path(metadata_file_name_path)
 
     @classmethod
     def get_dataset_file(cls, dataset) -> Self:
