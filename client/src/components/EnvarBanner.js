@@ -30,10 +30,7 @@ export const EnvarBanner = ({ id = 'environment-variable-banner', width }) => {
             size="36px"
             aria-hidden="true"
           />
-          <Box
-            color="black"
-            margin={{ left: 'medium' }}
-          >
+          <Box color="black" margin={{ left: 'medium' }}>
             {lines.map((content) => (
               <StyledMarkdown key={content}>{content}</StyledMarkdown>
             ))}
