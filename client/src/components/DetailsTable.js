@@ -27,6 +27,10 @@ const DetailsTableDetail = ({ datum, emptyString = 'Not Specified' }) => {
   const isArray = Array.isArray(value)
   if (isArray) return <Paragraph>{value.join(', ')}</Paragraph>
 
+  // check if it is already a component
+  const isObject = typeof value === "object"
+  if (isObject) return value
+
   return <Paragraph>{value}</Paragraph>
 }
 
