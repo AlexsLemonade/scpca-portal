@@ -102,7 +102,7 @@ class TestJob(TestCase):
                 state=JobStates.PENDING,
                 dataset=DatasetFactory(is_pending=True, is_processing=False),
             )
-        for state in [JobStates.PROCESSING] + common.FINAL_JOB_STATES:
+        for state in common.SUBMITTED_JOB_STATES:
             JobFactory(state=state, dataset=DatasetFactory(is_pending=False, is_processing=False))
 
         # Before submission, there are 1 job in PROCESSING state
