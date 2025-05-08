@@ -38,6 +38,12 @@ LIBRARY_METADATA_KEYS = [
     ("filtered_cells", "filtered_cell_count", None),
 ]
 
+BULK_METADATA_KEYS = [
+    ("project_id", "scpca_project_id", None),
+    ("sample_id", "scpca_sample_id", None),
+    ("library_id", "scpca_library_id", None),
+]
+
 
 def load_projects_metadata(*, filter_on_project_id: str = None):
     """
@@ -74,6 +80,20 @@ def load_library_metadata(metadata_file_path: Path):
     """
     with open(metadata_file_path) as raw_file:
         return utils.transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
+
+
+def load_bulk_metadata(metadata_file_path: Path):
+    """
+    Opens, loads and parses bulk metadata located at inputted metadata_file_path.
+    Transforms keys in data dicts to match associated model attributes.
+    """
+    with open(metadata_file_path) as raw_file:
+        bulk_metadata_dicts = list(csv.DictReader(raw_file, delimiter=common.TAB))
+
+    for bulk_metadata_dict in bulk_metadata_dicts:
+        utils.transform_keys(bulk_metadata_dict, BULK_METADATA_KEYS)
+
+    return bulk_metadata_dicts
 
 
 class MetadataFilenames:
