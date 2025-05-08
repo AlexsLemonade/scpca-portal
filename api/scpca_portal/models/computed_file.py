@@ -113,7 +113,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             if Modalities.SPATIAL in file_info.modalities
             else Modalities.SINGLE_CELL.value
         )
-        modality_formatted = modality.value.lower().replace("_", "-")
+        modality_formatted = modality.lower().replace("_", "-")
         parent_dir = Path(f"{project_id}_{modality_formatted}")
 
         if Modalities.BULK_RNA_SEQ in file_info.modalities:
@@ -145,7 +145,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             Path(original_file.s3_key_info.project_id_part)
         )
         if zip_file_path.parts[0] in [common.BULK_INPUT_DIR, common.MERGED_INPUT_DIR]:
-            zip_file_path = Path(**zip_file_path.parts[1:])
+            zip_file_path = Path(*zip_file_path.parts[1:])
 
         parent_dir = ComputedFile.get_output_file_parent_dir(
             original_file.project_id, dataset, original_file.s3_key_path
