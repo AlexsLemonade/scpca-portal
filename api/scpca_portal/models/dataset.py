@@ -10,7 +10,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, metadata_file, readme_file, utils
+from scpca_portal import ccdl_datasets, common, metadata_file, readme_file
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -98,9 +98,8 @@ class Dataset(TimestampedModel):
         return f"Dataset {self.id}"
 
     @property
-    def uncompressed_size(self) -> str:
-        file_size_in_bytes = sum(of.size_in_bytes for of in self.original_files)
-        return f"{utils.convert_bytes_to_gb(file_size_in_bytes):.2f}GB"
+    def estimated_size_in_bytes(self) -> int:
+        return self.original_files.aggregate(models.Sum("size_in_bytes")).get("size_in_bytes__sum")
 
     @property
     def stats(self) -> Dict:
@@ -109,7 +108,7 @@ class Dataset(TimestampedModel):
             "current_readme_hash": self.current_readme_hash,
             "current_metadata_hash": self.current_metadata_hash,
             "is_hash_changed": self.combined_hash == self.current_combined_hash,
-            "uncompressed_size": self.uncompressed_size,
+            "uncompressed_size": self.estimated_size_in_bytes,
         }
 
     @classmethod

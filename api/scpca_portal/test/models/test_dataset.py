@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, tag
 
-from scpca_portal import loader, utils
+from scpca_portal import loader
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import Dataset, OriginalFile
 from scpca_portal.test import expected_values as test_data
@@ -533,7 +533,7 @@ class TestDataset(TestCase):
         expected_readme_hash = "93ce0b3571f15cd41db81d9e25dcb873"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
 
-    def test_uncompressed_size(self):
+    def estimated_size_in_bytes(self):
         data = {
             "SCPCP999990": {
                 "merge_single_cell": False,
@@ -565,7 +565,4 @@ class TestDataset(TestCase):
 
             expected_file_size += original_file.size_in_bytes
 
-        expected_file_size_in_gb_formatted = (
-            f"{utils.convert_bytes_to_gb(expected_file_size):.2f}GB"
-        )
-        self.assertEqual(dataset.uncompressed_size, expected_file_size_in_gb_formatted)
+        self.assertEqual(dataset.estimated_size_in_bytes, expected_file_size)
