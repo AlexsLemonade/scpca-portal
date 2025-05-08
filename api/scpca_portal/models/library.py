@@ -38,6 +38,8 @@ class Library(TimestampedModel):
             modality = Modalities.SINGLE_CELL
         elif original_files.filter(is_spatial=True).exists():
             modality = Modalities.SPATIAL
+        elif data.get("seq_unit") == "bulk":
+            modality = Modalities.BULK_RNA_SEQ
 
         formats = []
         if original_files.filter(is_single_cell_experiment=True).exists():
