@@ -181,8 +181,8 @@ class Dataset(TimestampedModel):
     def update_from_last_job(self, save: bool = True) -> None:
         """
         Updates the dataset's state based on the latest job.
-        Make sure to set 'save' to False when calling this from bulk update methods
-        or from instance methods that call save() within.
+        Setting save to False will mutate the instance but not persist to the db.
+        This is useful for bulk operations.
         """
         last_job = self.jobs.order_by("-created_at").first()
 
