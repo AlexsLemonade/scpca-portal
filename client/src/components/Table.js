@@ -287,7 +287,9 @@ export const Table = ({
   })
 
   useEffect(() => {
-    onFilteredRowsChange(instance.page.map((row) => row.original))
+    if (instance.page) {
+      onFilteredRowsChange(instance.page.map((row) => row.original))
+    }
   }, [instance.page])
 
   useEffect(() => {
