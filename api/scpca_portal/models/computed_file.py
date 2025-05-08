@@ -9,10 +9,11 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_file, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import DatasetFormats, Modalities
+from scpca_portal.enums import DatasetFormats, FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
+from scpca_portal.utils.input_bucket_s3_key_info import InputBucketS3KeyInfo
 
 logger = get_and_configure_logger(__name__)
 
@@ -96,6 +97,39 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         where the zipfile will be saved locally before upload."""
         if download_config is common.PORTAL_METADATA_DOWNLOAD_CONFIG:
             return settings.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
+
+    @staticmethod
+    def get_output_file_parent_dir(
+        project_id: str,
+        modality: Modalities,
+        dataset,
+        input_file_path: Path = Path(),
+    ) -> Path:
+        """Return the correct output file parent directory of the passed input file path"""
+        modality_formatted = modality.value.lower().replace("_", "-")
+        parent_dir = Path(f"{project_id}_{modality_formatted}")
+
+        file_info = InputBucketS3KeyInfo(input_file_path)
+        if Modalities.BULK_RNA_SEQ in file_info.modalities:
+            return Path(f"{project_id}_bulk_rna")
+
+        # merged single cell
+        requested_merged = dataset.data.get(project_id, {}).get("merge_single_cell", False)
+        # only single cell supplementary and merged files should be nested in a merge directory
+        if requested_merged and Modalities.SPATIAL not in file_info.modalities:
+            parent_dir = Path(f"{project_id}_single-cell_merged")
+            if input_file_path.suffix == common.OUTPUT_METADATA_EXTENSION:
+                return parent_dir
+
+            is_non_merged_supplementary_file = (
+                FileFormats.SUPPLEMENTARY in file_info.formats and not file_info.is_merged
+            )
+            # only library supplementary files should be in an individual_reports dir,
+            # not merged supplementary files
+            if is_non_merged_supplementary_file:
+                return parent_dir / Path(common.MERGED_REPORTS_PREFEX_DIR)
+
+        return parent_dir
 
     @staticmethod
     def get_original_file_zip_path(original_file: OriginalFile, dataset) -> Path:
