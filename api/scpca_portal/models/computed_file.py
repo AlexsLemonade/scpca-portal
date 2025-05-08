@@ -143,6 +143,17 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
 
     @staticmethod
+    def get_metadata_file_zip_path(dataset, project_id: str, modality: Modalities) -> Path:
+        """Return metadata file path, modality name inside of project_modality directory."""
+        modality_formatted = modality.value.lower().replace("_", "-")
+        metadata_file_name = f"{modality_formatted}_metadata.tsv"
+
+        if dataset.data.get(project_id, {}).get("merge_single_cell", False):
+            modality_formatted += "_merged"
+        metadata_dir = f"{project_id}_{modality_formatted}"
+        return Path(metadata_dir) / Path(metadata_file_name)
+
+    @staticmethod
     def get_metadata_file_contents(dataset) -> List[tuple[str, Modalities, str]]:
         metadata_file_contents = []
         for project_id, project_config in dataset.data.items():
@@ -178,10 +189,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 metadata_file_content,
             ) in ComputedFile.get_metadata_file_contents(dataset):
                 zip_file.writestr(
-                    str(dataset.get_metadata_file_path(project_id, modality)), metadata_file_content
+                    str(ComputedFile.get_metadata_file_zip_path(dataset, project_id, modality)),
+                    metadata_file_content,
                 )
-            # for metadata_file_path, metadata_file_contents in dataset.metadata_file_map.items():
-            #    zip_file.writestr(str(metadata_file_path), metadata_file_contents)
 
             # Original files
             for original_file in dataset.original_files:

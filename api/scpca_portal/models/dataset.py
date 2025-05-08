@@ -339,16 +339,6 @@ class Dataset(TimestampedModel):
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
 
-    def get_metadata_file_path(self, project_id: str, modality: Modalities) -> Path:
-        """Return metadata file path, modality name inside of project_modality directory."""
-        modality_formatted = modality.value.lower().replace("_", "-")
-        metadata_file_name = f"{modality_formatted}_metadata.tsv"
-
-        if self.data.get(project_id, {}).get("merge_single_cell", False):
-            modality_formatted += "_merged"
-        metadata_dir = f"{project_id}_{modality_formatted}"
-        return Path(metadata_dir) / Path(metadata_file_name)
-
     def get_metadata_file_content(self, libraries: Iterable[Library]) -> str:
         libraries_metadata = Library.get_libraries_metadata(libraries)
         return metadata_file.get_file_contents(libraries_metadata)
