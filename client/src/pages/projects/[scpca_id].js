@@ -90,7 +90,7 @@ const Project = ({ project }) => {
                         project.contacts.length > 0 ? (
                           <>
                             {project.contacts.map((contact, i) => (
-                              <Text>
+                              <Text key={contact}>
                                 {i ? ', ' : ''}
                                 <Link
                                   key={contact.name}
