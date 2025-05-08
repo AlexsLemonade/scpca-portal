@@ -1,9 +1,15 @@
 import React from 'react'
 import { useResponsive } from 'hooks/useResponsive'
-import { Box, Paragraph, Markdown } from 'grommet'
+import { Box, Markdown } from 'grommet'
 import { Banner } from 'components/Banner'
 import { Icon } from 'components/Icon'
 import getTemplateLines from 'helpers/getTemplateLines'
+import styled from 'styled-components'
+
+// options does not honor wrapper override
+const StyledMarkdown = styled(Markdown)`
+  text-align: center;
+`
 
 export const EnvarBanner = ({ id = 'environment-variable-banner', width }) => {
   const lines = getTemplateLines(process.env.BANNER_CONTENT)
@@ -24,15 +30,11 @@ export const EnvarBanner = ({ id = 'environment-variable-banner', width }) => {
             size="36px"
             aria-hidden="true"
           />
-          <Paragraph
-            color="black"
-            margin={{ left: 'medium' }}
-            textAlign="center"
-          >
+          <Box color="black" margin={{ left: 'medium' }}>
             {lines.map((content) => (
-              <Markdown key={content}>{content}</Markdown>
+              <StyledMarkdown key={content}>{content}</StyledMarkdown>
             ))}
-          </Paragraph>
+          </Box>
         </Box>
       </Box>
     </Banner>
