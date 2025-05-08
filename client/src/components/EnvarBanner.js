@@ -1,6 +1,6 @@
 import React from 'react'
 import { useResponsive } from 'hooks/useResponsive'
-import { Box, Paragraph, Markdown } from 'grommet'
+import { Box, Markdown } from 'grommet'
 import { Banner } from 'components/Banner'
 import { Icon } from 'components/Icon'
 import getTemplateLines from 'helpers/getTemplateLines'
