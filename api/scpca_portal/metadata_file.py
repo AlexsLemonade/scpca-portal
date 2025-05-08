@@ -32,8 +32,9 @@ PROJECT_METADATA_KEYS = [
 PROJECT_METADATA_VALUES_TRANSFORMS = {"diagnoses": lambda d: ", ".join(sorted(d.split(";")))}
 
 LIBRARY_METADATA_KEYS = [
-    ("library_id", "scpca_library_id", None),
+    ("project_id", "scpca_project_id", None),
     ("sample_id", "scpca_sample_id", None),
+    ("library_id", "scpca_library_id", None),
     # Field only included in Single cell (and Multiplexed) libraries
     ("filtered_cells", "filtered_cell_count", None),
 ]
