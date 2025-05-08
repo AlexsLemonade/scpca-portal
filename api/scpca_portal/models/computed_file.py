@@ -101,6 +101,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     @staticmethod
     def get_output_file_parent_dir(
         project_id: str,
+        modality: Modalities,
         dataset,
         input_file_path: Path = Path(),
     ) -> Path:
@@ -108,12 +109,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         file_info = InputBucketS3KeyInfo(input_file_path)
 
         # spatial / unmerged single cell
-        modality = (
-            Modalities.SPATIAL.value
-            if Modalities.SPATIAL in file_info.modalities
-            else Modalities.SINGLE_CELL.value
-        )
-        modality_formatted = modality.lower().replace("_", "-")
+        modality_formatted = modality.value.lower().replace("_", "-")
         parent_dir = Path(f"{project_id}_{modality_formatted}")
 
         if Modalities.BULK_RNA_SEQ in file_info.modalities:
@@ -147,8 +143,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         if zip_file_path.parts[0] in [common.BULK_INPUT_DIR, common.MERGED_INPUT_DIR]:
             zip_file_path = Path(*zip_file_path.parts[1:])
 
+        modality = Modalities.SINGLE_CELL if original_file.is_single_cell else Modalities.SPATIAL
         parent_dir = ComputedFile.get_output_file_parent_dir(
-            original_file.project_id, dataset, original_file.s3_key_path
+            original_file.project_id, modality, dataset, original_file.s3_key_path
         )
         zip_file_path = parent_dir / zip_file_path
 
@@ -166,7 +163,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         metadata_file_name_path = Path(f"{modality_formatted}_metadata.tsv")
 
         metadata_dir = ComputedFile.get_output_file_parent_dir(
-            project_id, dataset, metadata_file_name_path
+            project_id, modality, dataset, metadata_file_name_path
         )
         return Path(metadata_dir) / Path(metadata_file_name_path)
 
