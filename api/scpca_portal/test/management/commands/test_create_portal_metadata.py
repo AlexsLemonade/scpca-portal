@@ -37,7 +37,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         # Expected object counts
         PROJECTS_COUNT = 3
         SAMPLES_COUNT = 9
-        LIBRARIES_COUNT = 7
+        LIBRARIES_COUNT = 8
 
         self.load_data(
             input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
@@ -74,7 +74,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
         computed_file = computed_files.first()
         # Make sure the computed file size is as expected range
         self.assertEqualWithVariance(
-            computed_file.size_in_bytes, 8367
+            computed_file.size_in_bytes, 8803
         )  # TODO: add to expected_values portal wide dataset file
         # Make sure all the fields have correct values
         self.assertTrue(computed_file.metadata_only)
@@ -115,7 +115,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
                 rows = list(csv_reader)
                 column_headers = list(rows[0].keys())
                 # Make sure the number of rows matches the expected count (excludes the header)
-                expected_row_count = 8  # 8 records - 1 header
+                expected_row_count = 9  # 9 records - 1 header
                 self.assertEqual(len(rows), expected_row_count)
                 # Make sure the header keys match the common sort order list (excludes '*')
                 expected_keys = set(common.METADATA_COLUMN_SORT_ORDER) - set(["*"])
