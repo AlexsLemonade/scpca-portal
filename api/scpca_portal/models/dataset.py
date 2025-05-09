@@ -65,6 +65,8 @@ class Dataset(TimestampedModel):
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
     is_started = models.BooleanField(default=False)
+    pending_at = models.DateTimeField(null=True)
+    is_pending = models.BooleanField(default=False)
     processing_at = models.DateTimeField(null=True)
     is_processing = models.BooleanField(default=False)
     succeeded_at = models.DateTimeField(null=True)
@@ -138,6 +140,8 @@ class Dataset(TimestampedModel):
             dataset.update_from_last_job(save=False)
 
         updated_attrs = [
+            "is_pending",
+            "pending_at",
             "is_processing",
             "processing_at",
             "is_succeeded",
@@ -200,9 +204,11 @@ class Dataset(TimestampedModel):
         Setting save to False will mutate the instance but not persist to the db.
         This is useful for bulk operations.
         """
-        last_job = self.jobs.order_by("-created_at").first()
+        last_job = self.jobs.order_by("-pending_at").first()
 
         match last_job.state:
+            case JobStates.PENDING:
+                self.on_job_pending()
             case JobStates.PROCESSING:
                 self.on_job_processing()
             case JobStates.SUCCEEDED:
@@ -237,13 +243,13 @@ class Dataset(TimestampedModel):
             if hasattr(self, reason_attr):
                 setattr(self, reason_attr, None)
 
-        # Resets timestamps (reset processing_at only in CREATED)
-        reset_states = JobStates if state == JobStates.CREATED else FINAL_JOB_STATES
+        # Resets timestamps (reset all for PENDING, otherwise FINAL_JOB_STATES)
+        reset_states = JobStates if state == JobStates.PENDING else FINAL_JOB_STATES
         for state in reset_states:
             setattr(self, f"{state.lower()}_at", None)
 
         # Sets the current states
-        last_job = self.jobs.order_by("-created_at").first()
+        last_job = self.jobs.order_by("-pending_at").first()
         state_str = last_job.state.lower()
         reason_attr = f"{state_str}_reason"
 
@@ -251,6 +257,13 @@ class Dataset(TimestampedModel):
         setattr(self, f"{state_str}_at", make_aware(datetime.now()))
         if hasattr(self, f"{state_str}_reason"):
             setattr(self, f"{state_str}_reason", getattr(last_job, reason_attr))
+
+    def on_job_pending(self) -> Self:
+        """
+        Marks the dataset as pending based on the last job.
+        """
+        self.apply_job_state()
+        return self
 
     def on_job_processing(self) -> Self:
         """

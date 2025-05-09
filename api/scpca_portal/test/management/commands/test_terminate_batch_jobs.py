@@ -17,6 +17,7 @@ class TestTerminateBatchJobs(TestCase):
     def assertDatasetState(
         self,
         dataset,
+        is_pending=False,
         is_processing=False,
         is_succeeded=False,
         is_failed=False,
@@ -27,12 +28,18 @@ class TestTerminateBatchJobs(TestCase):
         """
         Helper for asserting the dataset state.
         """
+        self.assertEqual(dataset.is_pending, is_pending)
+        if is_pending:
+            self.assertIsInstance(dataset.pending_at, datetime)
+
         self.assertEqual(dataset.is_processing, is_processing)
         if is_processing:
             self.assertIsInstance(dataset.processing_at, datetime)
+
         self.assertEqual(dataset.is_succeeded, is_succeeded)
         if is_succeeded:
             self.assertIsInstance(dataset.succeeded_at, datetime)
+
         self.assertEqual(dataset.is_failed, is_failed)
         if is_failed:
             self.assertIsInstance(dataset.failed_at, datetime)
@@ -73,8 +80,8 @@ class TestTerminateBatchJobs(TestCase):
                 terminated_reason=terminate_job.terminated_reason,
             )
 
-        # 3 new CREATED jobs should be saved in the database
-        self.assertEqual(Job.objects.filter(state=JobStates.CREATED).count(), 3)
+        # 3 new PENDING jobs should be saved in the database
+        self.assertEqual(Job.objects.filter(state=JobStates.PENDING).count(), 3)
 
         # Set up additinoal 3 PROCESSING jobs
         for _ in range(3):
@@ -95,7 +102,7 @@ class TestTerminateBatchJobs(TestCase):
         self.assertEqual(terminated_jobs.count(), 6)  # prev (3) + new (3)
         # no new retry jobs should be saved in the database
         self.assertEqual(
-            Job.objects.filter(state=JobStates.CREATED).count(), 3
+            Job.objects.filter(state=JobStates.PENDING).count(), 3
         )  # prev (3) + new(0)
 
     @patch("scpca_portal.batch.terminate_job")

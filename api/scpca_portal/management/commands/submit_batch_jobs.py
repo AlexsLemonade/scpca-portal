@@ -10,15 +10,15 @@ logger.addHandler(logging.StreamHandler())
 
 
 class Command(BaseCommand):
-    help = """Submits all created jobs to AWS Batch for processing.
+    help = """Submits all pending jobs to AWS Batch for processing.
     """
 
     def handle(self, *args, **kwargs):
-        self.submit_created_batch_jobs()
+        self.submit_batch_jobs()
 
-    def submit_created_batch_jobs(self):
-        logger.info("Submitting created jobs to AWS Batch...")
-        submitted_jobs = Job.submit_created()
+    def submit_batch_jobs(self):
+        logger.info("Submitting pending jobs to AWS Batch...")
+        submitted_jobs = Job.submit_pending()
 
         if submitted_jobs:
             logger.info("Successfully submitted jobs to AWS Batch!")
