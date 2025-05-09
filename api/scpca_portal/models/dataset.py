@@ -65,6 +65,7 @@ class Dataset(TimestampedModel):
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
     is_started = models.BooleanField(default=False)
+    processing_at = models.DateTimeField(null=True)
     is_processing = models.BooleanField(default=False)
     succeeded_at = models.DateTimeField(null=True)
     is_succeeded = models.BooleanField(default=False)
@@ -138,6 +139,7 @@ class Dataset(TimestampedModel):
 
         updated_attrs = [
             "is_processing",
+            "processing_at",
             "is_succeeded",
             "succeeded_at",
             "is_failed",
@@ -201,6 +203,8 @@ class Dataset(TimestampedModel):
         last_job = self.jobs.order_by("-created_at").first()
 
         match last_job.state:
+            case JobStates.PROCESSING:
+                self.on_job_processing()
             case JobStates.SUCCEEDED:
                 self.on_job_succeeded()
             case JobStates.FAILED:
@@ -233,11 +237,10 @@ class Dataset(TimestampedModel):
             if hasattr(self, reason_attr):
                 setattr(self, reason_attr, None)
 
-        # Resets timestemps except pending_at and processing_at
-        time_stamps = [f"{state.lower()}_at" for state in FINAL_JOB_STATES]
-
-        for timestamp in time_stamps:
-            setattr(self, timestamp, None)
+        # Resets timestamps (reset processing_at only in CREATED)
+        reset_states = JobStates if state == JobStates.CREATED else FINAL_JOB_STATES
+        for state in reset_states:
+            setattr(self, f"{state.lower()}_at", None)
 
         # Sets the current states
         last_job = self.jobs.order_by("-created_at").first()
@@ -248,6 +251,13 @@ class Dataset(TimestampedModel):
         setattr(self, f"{state_str}_at", make_aware(datetime.now()))
         if hasattr(self, f"{state_str}_reason"):
             setattr(self, f"{state_str}_reason", getattr(last_job, reason_attr))
+
+    def on_job_processing(self) -> Self:
+        """
+        Marks the dataset as processing based on the last job.
+        """
+        self.apply_job_state()
+        return self
 
     def on_job_succeeded(self) -> Self:
         """
