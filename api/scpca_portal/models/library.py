@@ -38,6 +38,8 @@ class Library(TimestampedModel):
             modality = Modalities.SINGLE_CELL
         elif original_files.filter(is_spatial=True).exists():
             modality = Modalities.SPATIAL
+        elif data.get("seq_unit") == "bulk":
+            modality = Modalities.BULK_RNA_SEQ
 
         formats = []
         if original_files.filter(is_single_cell_experiment=True).exists():
@@ -66,8 +68,6 @@ class Library(TimestampedModel):
             if existing_library := Library.objects.filter(scpca_id=library_id).first():
                 sample.libraries.add(existing_library)
             else:
-                # TODO: remove when scpca_project_id is in source json
-                library_json["scpca_project_id"] = sample.project.scpca_id
                 libraries.append(Library.get_from_dict(library_json, sample.project))
 
         Library.objects.bulk_create(libraries)

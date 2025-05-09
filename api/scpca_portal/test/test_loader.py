@@ -137,7 +137,7 @@ class TestLoader(TransactionTestCase):
         self.assertDictIsNonEmpty(sample.metadata)
 
         # CHECK LIBRARY VALUES
-        self.assertEqual(project.libraries.count(), 3)
+        self.assertEqual(project.libraries.count(), 4)
 
         # SCPCL999990
         library = project.libraries.filter(
@@ -157,6 +157,17 @@ class TestLoader(TransactionTestCase):
         self.assertIsNotNone(library)
         self.assertObjectProperties(
             library, test_data.Project_SCPCP999990.Library_SCPCL999991.VALUES
+        )
+        # Assert that metadata attribute has been populated and did not default to empty dict
+        self.assertDictIsNonEmpty(library.metadata)
+
+        # SCPCL999994
+        library = project.libraries.filter(
+            scpca_id=test_data.Project_SCPCP999990.Library_SCPCL999994.SCPCA_ID
+        ).first()
+        self.assertIsNotNone(library)
+        self.assertObjectProperties(
+            library, test_data.Project_SCPCP999990.Library_SCPCL999994.VALUES
         )
         # Assert that metadata attribute has been populated and did not default to empty dict
         self.assertDictIsNonEmpty(library.metadata)

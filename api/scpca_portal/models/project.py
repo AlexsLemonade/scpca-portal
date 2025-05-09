@@ -174,6 +174,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             ):
                 return self.libraries.none()
 
+        # non-bulk libraries
         libraries_queryset = self.libraries.filter(
             modality=download_config["modality"],
             formats__contains=[download_config["format"]],
@@ -258,6 +259,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         self.load_samples()
         self.load_libraries()
+        if self.has_bulk_rna_seq:
+            self.load_bulk_libraries()
 
         self.update_sample_derived_properties()
         self.update_project_derived_properties()
@@ -289,6 +292,21 @@ class Project(CommonDataAttributes, TimestampedModel):
                 # we should skip creating that library as the sample won't exist.
                 if sample := self.samples.filter(scpca_id=sample_id).first():
                     Library.bulk_create_from_dicts([library_metadata], sample)
+
+    def load_bulk_libraries(self) -> None:
+        """
+        Parses bulk metadata tsv files and create Library objets for bulk-only samples
+        """
+        if not self.has_bulk_rna_seq:
+            raise Exception("Trying to load bulk libraries for project with no bulk data")
+
+        all_bulk_libraries_metadata = metadata_file.load_bulk_metadata(
+            self.input_bulk_metadata_file_path
+        )
+        for library_metadata in all_bulk_libraries_metadata:
+            sample_id = library_metadata["scpca_sample_id"]
+            if sample := self.samples.filter(scpca_id=sample_id).first():
+                Library.bulk_create_from_dicts([library_metadata], sample)
 
     def purge(self, delete_from_s3: bool = False) -> None:
         """Purges project and its related data."""
