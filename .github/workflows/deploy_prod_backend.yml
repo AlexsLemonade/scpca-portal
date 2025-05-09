@@ -37,6 +37,6 @@ jobs:
           terraform_version: 1.11.4
 
       - name: Deploy
-        run: cd infrastructure && python3 deploy.py -s prod -u deployer -a ccdl -v $(git rev-parse HEAD)
+        run: cd infrastructure && python3 deploy.py -s prod -u deployer -a ccdl -v $(git rev-parse HEAD) --project
         env:
-          SENTRY_ENV: prod-api
+          SENTRY_ENV: staging-api
