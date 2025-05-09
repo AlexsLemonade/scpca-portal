@@ -183,7 +183,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         if download_config["excludes_multiplexed"]:
             return libraries_queryset.exclude(is_multiplexed=True)
 
-        # If the project includes balk data and not SPATIAL, include bulk libraries
+        # If the project includes bulk data and not SPATIAL, include bulk libraries
         if self.has_bulk_rna_seq and not download_config["modality"] == Modalities.SPATIAL:
             bulk_libraries = self.libraries.filter(modality=Modalities.BULK_RNA_SEQ)
             libraries_queryset = libraries_queryset.union(bulk_libraries)
