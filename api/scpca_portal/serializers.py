@@ -334,3 +334,10 @@ class DatasetUpdateSerializer(serializers.ModelSerializer):
             "terminated_reason",
             "computed_file",
         )
+
+    def update(self, instance, validated_data):
+        # If a dataset has already been generated, only the start field should be mutable
+        if instance.jobs:
+            validated_data = {"start": validated_data.get("start", False)}
+
+        return super().update(instance, validated_data)
