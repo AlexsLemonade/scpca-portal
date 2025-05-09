@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -88,3 +90,34 @@ class DatasetsTestCase(APITestCase):
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @patch("scpca_portal.models.Job.submit")
+    def test_create_submit_job(self, mock_submit_job):
+        url = reverse("datasets-list", args=[])
+
+        # Test job not started
+        data = {
+            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            "start": False,
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_submit_job.assert_not_called()
+
+        # Test job started
+        data = {
+            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            "start": True,
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_submit_job.assert_called_once()
+
+        # Assert that start attribute was reset to False after kicking off job
+        created_dataset_id = response.json().get("id")
+        created_dataset = Dataset.objects.filter(id=created_dataset_id).first()
+        self.assertFalse(created_dataset.start)
