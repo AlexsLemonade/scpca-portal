@@ -58,14 +58,14 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def perform_update(self, serializer):
         dataset = serializer.save()
         if dataset.start:
+            # If dataset already has active job, don't allow user to spawn additional job
+            if dataset.is_started or dataset.is_processing:
+                return
+
             self.submit_job(dataset)
 
     def submit_job(self, dataset: Dataset):
         """Create and submit a user generated dataset job."""
-        # If dataset already has active job, don't allow user to spawn additional job
-        if dataset.is_started or dataset.is_processing:
-            return
-
         dataset_job = Job.get_dataset_job(dataset)
         dataset_job.submit()
 
