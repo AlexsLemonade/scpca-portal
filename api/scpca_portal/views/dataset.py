@@ -3,7 +3,7 @@ from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from scpca_portal.models import Dataset
+from scpca_portal.models import Dataset, Job
 from scpca_portal.serializers import (
     DatasetCreateSerializer,
     DatasetDetailSerializer,
@@ -49,3 +49,26 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             {"detail": "Deleting datasets is not allowed."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
+
+    def perform_create(self, serializer):
+        dataset = serializer.save()
+        if dataset.start:
+            self.submit_job(dataset)
+
+    def perform_update(self, serializer):
+        dataset = serializer.save()
+        if dataset.start:
+            self.submit_job(dataset)
+
+    def submit_job(self, dataset: Dataset):
+        """Create and submit a user generated dataset job."""
+        # If dataset already has active job, don't allow user to spawn additional job
+        if dataset.is_started or dataset.is_processing:
+            return
+
+        dataset_job = Job.get_dataset_job(dataset)
+        dataset_job.submit()
+
+        # Reset start attribute so dataset can be regenerated
+        dataset.start = False
+        dataset.save()
