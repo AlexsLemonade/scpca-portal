@@ -7,12 +7,10 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import batch
+from scpca_portal import batch, common
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
-
-FINAL_JOB_STATES = [JobStates.SUCCEEDED, JobStates.FAILED, JobStates.TERMINATED]
 
 
 class Job(TimestampedModel):
@@ -351,7 +349,7 @@ class Job(TimestampedModel):
         Terminates the processing, incomplete job on AWS Batch.
         Updates state and terminated_at with the given terminated reason.
         """
-        if self.state in FINAL_JOB_STATES:
+        if self.state in common.FINAL_JOB_STATES:
             return self.state == JobStates.TERMINATED
 
         if not batch.terminate_job(self):
@@ -370,7 +368,7 @@ class Job(TimestampedModel):
         Prepares a new Job instance for retry.
         Returns newly instantiated jobs.
         """
-        if self.state not in FINAL_JOB_STATES:
+        if self.state not in common.FINAL_JOB_STATES:
             return False
 
         Job.bulk_update_state([self])

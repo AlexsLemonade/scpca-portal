@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.test import TestCase
 
+from scpca_portal import common
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Job
 from scpca_portal.test.factories import DatasetFactory, JobFactory
@@ -101,12 +102,7 @@ class TestJob(TestCase):
                 state=JobStates.PENDING,
                 dataset=DatasetFactory(is_pending=True, is_processing=False),
             )
-        for state in [
-            JobStates.PROCESSING,
-            JobStates.SUCCEEDED,
-            JobStates.FAILED,
-            JobStates.TERMINATED,
-        ]:
+        for state in common.SUBMITTED_JOB_STATES:
             JobFactory(state=state, dataset=DatasetFactory(is_pending=False, is_processing=False))
 
         # Before submission, there are 1 job in PROCESSING state
@@ -444,7 +440,7 @@ class TestJob(TestCase):
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_processing_no_termination(self, mock_batch_terminate_job):
         # Set up jobs that are already in the final states
-        for state in [JobStates.SUCCEEDED, JobStates.FAILED, JobStates.TERMINATED]:
+        for state in common.FINAL_JOB_STATES:
             JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
         mock_batch_terminate_job.return_value = []
 
