@@ -40,7 +40,7 @@ class TestJob(TestCase):
         self.assertEqual(dataset.terminated_reason, terminated_reason)
 
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_job(self, mock_batch_submit_job):
+    def test_submit(self, mock_batch_submit_job):
         # Set up mock for submit_job
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
@@ -51,6 +51,9 @@ class TestJob(TestCase):
             download_config_name="MOCK_DOWNLOAD_CONFIG_NAME",
         )
 
+        # TODO: Temporary add dataset - removed later
+        job.dataset = DatasetFactory(is_processing=False)
+
         # Before submission, the job instance should not have an ID
         self.assertIsNone(job.id)
 
@@ -59,7 +62,7 @@ class TestJob(TestCase):
 
         # After submission, the job should be updated
         self.assertEqual(job.batch_job_id, mock_batch_job_id)
-        self.assertEqual(job.state, JobStates.SUBMITTED.value)
+        self.assertEqual(job.state, JobStates.SUBMITTED)
         self.assertIsInstance(job.submitted_at, datetime)
 
         # Make sure that the job is saved in the db with correct field values
@@ -70,39 +73,33 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.batch_job_definition, settings.AWS_BATCH_JOB_DEFINITION_NAME)
         self.assertIn("--project-id", saved_job.batch_container_overrides["command"])
         self.assertIn(project_id, saved_job.batch_container_overrides["command"])
-        self.assertEqual(saved_job.state, JobStates.SUBMITTED.value)
+        self.assertEqual(saved_job.state, JobStates.SUBMITTED)
         self.assertIsInstance(saved_job.submitted_at, datetime)
 
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_job_failure(self, mock_batch_submit_job):
-        job = JobFactory.build()
-        self.assertIsNone(job.id)  # No job created in the db yet
+    def test_submit_not_called(self, mock_batch_submit_job):
+        # Set up an already submitted job
+        job = JobFactory(state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False))
 
-        # Set up mock for a failed submission
-        mock_batch_submit_job.return_value = None
-
+        # Should return False early without calling submit_job
         success = job.submit()
-        mock_batch_submit_job.assert_called_once()
+        mock_batch_submit_job.assert_not_called()
         self.assertFalse(success)
-
-        # The job state should remain default and unsaved
-        self.assertEqual(Job.objects.count(), 0)
-        self.assertEqual(job.state, JobStates.CREATED.value)
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_created(self, mock_batch_submit_job):
         # Set up 3 saved CREATED jobs + 3 jobs that are already submitted
         for _ in range(3):
-            JobFactory(state=JobStates.CREATED.value)
+            JobFactory(state=JobStates.CREATED, dataset=DatasetFactory(is_processing=False))
         for state in [
-            JobStates.SUBMITTED.value,
-            JobStates.COMPLETED.value,
-            JobStates.TERMINATED.value,
+            JobStates.SUBMITTED,
+            JobStates.COMPLETED,
+            JobStates.TERMINATED,
         ]:
-            JobFactory(state=state)
+            JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
 
         # Before submission, there are 1 job in SUBMITTED state
-        self.assertEqual(Job.objects.filter(state=JobStates.SUBMITTED.value).count(), 1)
+        self.assertEqual(Job.objects.filter(state=JobStates.SUBMITTED).count(), 1)
 
         # Should call submit_job 3 times to submit CREATED jobs
         response = Job.submit_created()
@@ -111,13 +108,13 @@ class TestJob(TestCase):
         self.assertNotEqual(response, [])
 
         # After submission, each CREATE job state should be updated to SUBMITTED
-        self.assertEqual(Job.objects.filter(state=JobStates.SUBMITTED.value).count(), 4)
+        self.assertEqual(Job.objects.filter(state=JobStates.SUBMITTED).count(), 4)
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_created_failure(self, mock_batch_submit_job):
         # Set up 3 saved CREATED jobs
         for _ in range(3):
-            JobFactory(state=JobStates.CREATED.value)
+            JobFactory(state=JobStates.CREATED, dataset=DatasetFactory(is_processing=False))
         mock_batch_submit_job.return_value = []
 
         # Should call submit_job 3 times, each time with an exception
@@ -133,7 +130,7 @@ class TestJob(TestCase):
     def test_submit_created_no_submission(self, mock_batch_submit_job):
         # Set up already submitted jobs
         for _ in range(3):
-            JobFactory(state=JobStates.SUBMITTED.value)
+            JobFactory(state=JobStates.SUBMITTED, dataset=DatasetFactory(is_processing=True))
         mock_batch_submit_job.return_value = []
 
         # Should return an empty list without calling submit_job

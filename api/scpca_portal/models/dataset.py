@@ -132,8 +132,6 @@ class Dataset(TimestampedModel):
     def update_from_last_jobs(cls, datasets: List[Self]) -> None:
         """
         Updates datasets' state based on their latest jobs.
-        If 'bulk_save' is True, bulk update the instances, Otherwise, each dataset
-        is individually saved during processing.
         """
         for dataset in datasets:
             dataset.update_from_last_job(save=False)
@@ -194,10 +192,11 @@ class Dataset(TimestampedModel):
     def get_sample_libraries(self, project_id: str, modality: Modalities) -> Iterable[Library]:
         return Library.objects.filter(samples__in=self.get_samples(project_id, modality)).distinct()
 
-    def update_from_last_job(self, save=True) -> None:
+    def update_from_last_job(self, save: bool = True) -> None:
         """
         Updates the dataset's state based on the latest job.
-        If 'save' is True, the instance will be saved.
+        Setting save to False will mutate the instance but not persist to the db.
+        This is useful for bulk operations.
         """
         last_job = self.jobs.order_by("-created_at").first()
 
