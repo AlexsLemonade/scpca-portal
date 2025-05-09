@@ -73,7 +73,7 @@ class TestSyncBatchJobs(TestCase):
         # Set up mock for get_jobs
         mock_response = [{"jobId": job.batch_job_id} for job in self.jobs]
         # All AWS Batch job statuses (7) + FAILED & terminated job (1)
-        mock_response[0]["status"] = "PROCESSING"
+        mock_response[0]["status"] = "SUBMITTED"
         mock_response[1]["status"] = "PENDING"
         mock_response[2]["status"] = "RUNNABLE"
         mock_response[3]["status"] = "STARTING"

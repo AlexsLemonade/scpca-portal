@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/bin/bash
+
+set -e
 
 python wait_for_postgres.py
 export AWS_DEFAULT_REGION=us-east-1
