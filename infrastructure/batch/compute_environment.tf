@@ -54,7 +54,7 @@ resource "aws_batch_compute_environment" "scpca_portal_ec2" {
 
 resource "aws_launch_template" "scpca_portal_ec2" {
   name = "scpca-portal-ec2-launch-template-${var.user}-${var.stage}-"
-  image_id = data.aws_ssm_parameter.ecs_ami.value
+  image_id = data.aws_ami.ecs_optimized_amazon_linux.id
 
   block_device_mappings {
     device_name = "/dev/xvda"
@@ -75,6 +75,19 @@ resource "aws_launch_template" "scpca_portal_ec2" {
   }
 }
 
-data "aws_ssm_parameter" "ecs_ami" {
-  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
+# aws ami which is ecs optimized for amazon linux
+data "aws_ami" "ecs_optimized_amazon_linux" {
+  most_recent = true
+  owners = ["591542846629"] # ECS team account
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-ecs-hvm-*-x86_64-ebs"]
+  }
+
+  filter {
+    name   = "owner-alias"
+    values = ["amazon"]
+  }
+
 }
