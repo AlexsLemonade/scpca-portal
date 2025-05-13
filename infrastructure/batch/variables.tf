@@ -11,9 +11,6 @@ variable "sentry_dsn" { default = "" }
 variable "scpca_portal_bucket" { default = "" }
 variable "postgres_db" { default = "" }
 
-# ec2 vars
-variable "ec2_key_name" { default = "" }
-
 # security
 variable "scpca_portal_db_security_group" { default = "" }
 
