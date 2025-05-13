@@ -172,7 +172,8 @@ export const ProjectSamplesTable = ({
     { Header: 'Technology', accessor: 'technologies' },
     {
       Header: 'Modalities',
-      accessor: ({ modalities }) => ['Single-cell', ...modalities].join(', ')
+      accessor: ({ has_single_cell_data: hasSingleCellData, modalities }) =>
+        [hasSingleCellData && 'Single-cell', ...modalities].join(', ')
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
