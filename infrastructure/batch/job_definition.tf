@@ -70,6 +70,7 @@ locals {
       }
     ]
 
+    executionRoleArn = aws_iam_role.ecs_task_role.arn
     jobRoleArn = aws_iam_role.batch_job_role.arn
   }
 }
@@ -78,9 +79,7 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
   name = "scpca-portal-project-job-definition-${var.user}-${var.stage}"
   type = "container"
 
-  platform_capabilities = [
-    "FARGATE",
-  ]
+  platform_capabilities = ["FARGATE"]
   container_properties = jsonencode(merge(
     local.common_container_props,
     {
@@ -96,7 +95,6 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
         sizeInGib = 200
       }
 
-      executionRoleArn = aws_iam_role.ecs_task_role.arn
     }
   ))
 
