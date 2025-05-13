@@ -47,7 +47,7 @@ class TestLoadMetadata(TestCase):
         self.project = Project()
         self.mock_create_project.return_value = self.project
 
-        # Populate OriginalFile
+        # Populate OriginalFile to prevent exception when calling load_metadata
         OriginalFileFactory()
 
     def tearDown(self):
