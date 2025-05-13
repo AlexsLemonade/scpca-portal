@@ -35,7 +35,7 @@ resource "aws_batch_compute_environment" "scpca_portal_ec2" {
     ]
 
     # t2.large is the api's instance type but we should decide if we to change it
-    instance_type = "t2.large"
+    instance_type = ["t2.large"]
     instance_role = aws_iam_instance_profile.batch_instance_profile.arn
 
     launch_template {

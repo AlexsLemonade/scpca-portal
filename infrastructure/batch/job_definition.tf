@@ -111,7 +111,7 @@ resource "aws_batch_job_definition" "scpca_portal_ec2" {
 
   platform_capabilities = ["EC2"]
 
-  container_properties = jsondecode(local.common_container_props)
+  container_properties = jsonencode(local.common_container_props)
 
   retry_strategy {
     attempts = 3

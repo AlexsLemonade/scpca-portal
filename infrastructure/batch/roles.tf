@@ -189,7 +189,7 @@ EOF
 
 resource "aws_iam_instance_profile" "batch_instance_profile" {
   name = "scpca-portal-batch-instance-profile-${var.user}-${var.stage}"
-  role = aws_iam_role.scpca_portal_batch_instance.name
+  role = aws_iam_role.batch_instance.name
 }
 
 resource "aws_iam_role_policy_attachment" "batch_instance_ecs" {
