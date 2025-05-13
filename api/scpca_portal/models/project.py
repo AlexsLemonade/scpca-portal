@@ -452,8 +452,8 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         # Get the seq_unit and technology values of bulk libraries to exclude them later
         bulk_libraries = Library.objects.filter(modality=Modalities.BULK_RNA_SEQ)
-        bulk_seq_units = {library.metadata.get("seq_unit") for library in bulk_libraries}
-        bulk_technologies = {library.metadata.get("technology") for library in bulk_libraries}
+        bulk_seq_units = set(bulk_libraries.values_list("metadata__seq_unit", flat=True))
+        bulk_technologies = set(bulk_libraries.values_list("metadata__technology", flat=True))
 
         for sample in self.samples.all():
             additional_metadata_keys.update(sample.additional_metadata.keys())
@@ -512,8 +512,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
             project_summary.sample_count = count
             project_summary.save(update_fields=("sample_count",))
-
-        return self.summaries.all()
 
     def update_downloadable_sample_count(self):
         """
