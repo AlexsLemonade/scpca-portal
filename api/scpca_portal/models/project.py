@@ -441,7 +441,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         The Project and ProjectSummary models cache aggregated sample metadata.
         We need to update these after any project's sample gets added/deleted.
         """
-
         additional_metadata_keys = set()
         diagnoses_counts = Counter()
         disease_timings = set()
@@ -451,16 +450,28 @@ class Project(CommonDataAttributes, TimestampedModel):
         summaries_counts = Counter()
         technologies = set()
 
+        # Get the seq_unit and technology values of bulk libraries to exclude them later
+        bulk_libraries = Library.objects.filter(modality=Modalities.BULK_RNA_SEQ)
+        bulk_seq_units = {library.metadata.get("seq_unit") for library in bulk_libraries}
+        bulk_technologies = {library.metadata.get("technology") for library in bulk_libraries}
+
         for sample in self.samples.all():
             additional_metadata_keys.update(sample.additional_metadata.keys())
             diagnoses_counts.update({sample.diagnosis: 1})
             disease_timings.add(sample.disease_timing)
             modalities.update(sample.modalities)
+
             if "organism" in sample.additional_metadata:
                 organisms.add(sample.additional_metadata["organism"])
 
-            sample_seq_units = sample.seq_units.split(", ")
-            sample_technologies = sample.technologies.split(", ")
+            # Exclude bulk values from the sample's metadata
+            sample_seq_units = set(sample.seq_units.split(", ")) - bulk_seq_units
+            sample_technologies = set(sample.technologies.split(", ")) - bulk_technologies
+
+            if not sample_seq_units or not sample_technologies:
+                continue
+
+            # TODO: Revise to remove invalid combinations (e.g., 'bulk' with '10Xv3') for accuracy
             for seq_unit in sample_seq_units:
                 for technology in sample_technologies:
                     summaries_counts.update(
@@ -501,6 +512,8 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
             project_summary.sample_count = count
             project_summary.save(update_fields=("sample_count",))
+
+        return self.summaries.all()
 
     def update_downloadable_sample_count(self):
         """

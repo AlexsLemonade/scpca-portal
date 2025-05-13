@@ -184,7 +184,8 @@ class TestLoader(TransactionTestCase):
         self.assertDictIsNonEmpty(library.metadata)
 
         # CHECK PROJECT SUMMARIES VALUES
-        self.assertEqual(project.summaries.count(), 4)
+        self.assertEqual(project.summaries.count(), 3)
+
         self.assertTrue(
             project.summaries.filter(**test_data.Project_SCPCP999990.Summary1.VALUES).exists(),
             f"No Project Summary exists for {project.scpca_id} which matches the following values: "
@@ -194,11 +195,6 @@ class TestLoader(TransactionTestCase):
             project.summaries.filter(**test_data.Project_SCPCP999990.Summary2.VALUES).exists(),
             f"No Project Summary exists for {project.scpca_id} which matches the following values: "
             f"{test_data.Project_SCPCP999990.Summary2.VALUES}",
-        )
-        self.assertTrue(
-            project.summaries.filter(**test_data.Project_SCPCP999990.Summary3.VALUES).exists(),
-            f"No Project Summary exists for {project.scpca_id} which matches the following values: "
-            f"{test_data.Project_SCPCP999990.Summary3.VALUES}",
         )
         self.assertTrue(
             project.summaries.filter(**test_data.Project_SCPCP999990.Summary4.VALUES).exists(),
