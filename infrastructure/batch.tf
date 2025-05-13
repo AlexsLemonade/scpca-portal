@@ -10,7 +10,6 @@ module "batch" {
   region = var.region
   scpca_portal_bucket = aws_s3_bucket.scpca_portal_bucket
   postgres_db = aws_db_instance.postgres_db
-  instance_type = var.api_instance_type
 
   # job_definition secret envars
   django_secret_key = aws_secretsmanager_secret.django_secret_key
