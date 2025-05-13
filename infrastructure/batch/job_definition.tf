@@ -75,8 +75,8 @@ locals {
   }
 }
 
-resource "aws_batch_job_definition" "scpca_portal_project" {
-  name = "scpca-portal-project-job-definition-${var.user}-${var.stage}"
+resource "aws_batch_job_definition" "scpca_portal_fargate" {
+  name = "scpca-portal-fargate-job-definition-${var.user}-${var.stage}"
   type = "container"
 
   platform_capabilities = ["FARGATE"]
@@ -94,7 +94,6 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
       ephemeralStorage = {
         sizeInGib = 200
       }
-
     }
   ))
 

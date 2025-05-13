@@ -1,5 +1,5 @@
-resource "aws_batch_compute_environment" "scpca_portal_project" {
-  compute_environment_name = "scpca-portal-project-compute-${var.user}-${var.stage}"
+resource "aws_batch_compute_environment" "scpca_portal_fargate" {
+  compute_environment_name = "scpca-portal-fargate-compute-${var.user}-${var.stage}"
 
   compute_resources {
     type = "FARGATE"
