@@ -468,9 +468,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             sample_seq_units = set(sample.seq_units.split(", ")) - bulk_seq_units
             sample_technologies = set(sample.technologies.split(", ")) - bulk_technologies
 
-            if not sample_seq_units or not sample_technologies:
-                continue
-
             # TODO: Revise to remove invalid combinations (e.g., 'bulk' with '10Xv3') for accuracy
             for seq_unit in sample_seq_units:
                 for technology in sample_technologies:
