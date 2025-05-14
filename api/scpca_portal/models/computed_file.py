@@ -9,11 +9,10 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_file, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import DatasetFormats, FileFormats, Modalities
+from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
-from scpca_portal.utils.input_bucket_s3_key_info import InputBucketS3KeyInfo
 
 logger = get_and_configure_logger(__name__)
 
@@ -100,35 +99,29 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @staticmethod
     def get_output_file_parent_dir(
-        project_id: str,
-        modality: Modalities,
+        original_file,
         dataset,
-        input_file_path: Path = Path(),
     ) -> Path:
-        """Return the correct output file parent directory of the passed input file path."""
-        file_info = InputBucketS3KeyInfo(input_file_path)
-
+        """Return the correct output file parent directory of the passed original_file."""
         # spatial / unmerged single cell
+        modality = Modalities.SINGLE_CELL if original_file.is_single_cell else Modalities.SPATIAL
         modality_formatted = modality.value.lower().replace("_", "-")
-        parent_dir = Path(f"{project_id}_{modality_formatted}")
+        parent_dir = Path(f"{original_file.project_id}_{modality_formatted}")
 
-        if Modalities.BULK_RNA_SEQ in file_info.modalities:
-            return Path(f"{project_id}_bulk_rna")
+        if original_file.is_bulk:
+            return Path(f"{original_file.project_id}_bulk_rna")
 
         # merged single cell
-        requested_merged = dataset.data.get(project_id, {}).get("merge_single_cell", False)
+        requested_merged = dataset.data.get(original_file.project_id, {}).get(
+            "merge_single_cell", False
+        )
         # only single cell supplementary and merged files should be nested in a merge directory
-        if requested_merged and Modalities.SPATIAL not in file_info.modalities:
-            parent_dir = Path(f"{project_id}_single-cell_merged")
-            if input_file_path.suffix == common.OUTPUT_METADATA_EXTENSION:
-                return parent_dir
+        if requested_merged and not original_file.is_spatial:
+            parent_dir = Path(f"{original_file.project_id}_single-cell_merged")
 
-            is_non_merged_supplementary_file = (
-                FileFormats.SUPPLEMENTARY in file_info.formats and not file_info.is_merged
-            )
             # only library supplementary files should be in an individual_reports dir,
-            # not merged supplementary files
-            if is_non_merged_supplementary_file:
+            # not the merged supplementary file
+            if original_file.is_supplementary and not original_file.is_merged:
                 return parent_dir / Path(common.MERGED_REPORTS_PREFEX_DIR)
 
         return parent_dir
@@ -140,13 +133,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         zip_file_path = original_file.s3_key_path.relative_to(
             Path(original_file.s3_key_info.project_id_part)
         )
-        if zip_file_path.parts[0] in [common.BULK_INPUT_DIR, common.MERGED_INPUT_DIR]:
+        if original_file.is_bulk or original_file.is_merged:
+            # bulk and merged files come in nested directories, which should be popped off
             zip_file_path = Path(*zip_file_path.parts[1:])
 
-        modality = Modalities.SINGLE_CELL if original_file.is_single_cell else Modalities.SPATIAL
-        parent_dir = ComputedFile.get_output_file_parent_dir(
-            original_file.project_id, modality, dataset, original_file.s3_key_path
-        )
+        parent_dir = ComputedFile.get_output_file_parent_dir(original_file, dataset)
         zip_file_path = parent_dir / zip_file_path
 
         # Make sure that multiplexed sample files are adequately transformed by default
@@ -157,14 +148,14 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
 
     @staticmethod
-    def get_metadata_file_zip_path(dataset, project_id: str, modality: Modalities) -> Path:
+    def get_metadata_file_zip_path(project_id: str, modality: Modalities, dataset) -> Path:
         """Return metadata file path, modality name inside of project_modality directory."""
         modality_formatted = modality.value.lower().replace("_", "-")
         metadata_file_name_path = Path(f"{modality_formatted}_metadata.tsv")
 
-        metadata_dir = ComputedFile.get_output_file_parent_dir(
-            project_id, modality, dataset, metadata_file_name_path
-        )
+        metadata_dir = f"{project_id}_{modality_formatted}"
+        if dataset.data.get(project_id, {}).get("merge_single_cell", False):
+            metadata_dir += "_merged"
         return Path(metadata_dir) / Path(metadata_file_name_path)
 
     @classmethod
@@ -185,7 +176,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Metadata files
             for project_id, modality, metadata_file_content in dataset.get_metadata_file_contents():
                 zip_file.writestr(
-                    str(ComputedFile.get_metadata_file_zip_path(dataset, project_id, modality)),
+                    str(ComputedFile.get_metadata_file_zip_path(project_id, modality, dataset)),
                     metadata_file_content,
                 )
 
