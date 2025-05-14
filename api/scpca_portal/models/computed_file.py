@@ -153,6 +153,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         modality_formatted = modality.value.lower().replace("_", "-")
         metadata_file_name_path = Path(f"{modality_formatted}_metadata.tsv")
 
+        # Metadata only downloads are not associated with a specific project_id or modality
+        if not project_id and not modality:
+            return Path("metadata.tsv")
+
         metadata_dir = f"{project_id}_{modality_formatted}"
         if dataset.data.get(project_id, {}).get("merge_single_cell", False):
             metadata_dir += "_merged"
