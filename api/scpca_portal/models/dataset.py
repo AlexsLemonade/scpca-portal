@@ -340,21 +340,30 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     def get_metadata_file_content(self, libraries: Iterable[Library]) -> str:
+        """Return a string of the metadata file content of a collection of libraries."""
         libraries_metadata = Library.get_libraries_metadata(libraries)
         return metadata_file.get_file_contents(libraries_metadata)
 
     def get_project_modality_libraries(
         self, project_id: str, modality: Modalities
     ) -> Iterable[Library]:
+        """Return all libraries according to a project and modality combination."""
         return Library.objects.filter(
             samples__in=self.get_samples(project_id, modality), modality=modality
         ).distinct()
 
-    def get_project_modality_metadata_file_content(self, project_id: str, modality: Modalities):
+    def get_project_modality_metadata_file_content(
+        self, project_id: str, modality: Modalities
+    ) -> str:
+        """Return a string of the metadata file for a project and modality combination."""
         libraries = self.get_project_modality_libraries(project_id, modality)
         return self.get_metadata_file_content(libraries)
 
     def get_metadata_file_contents(self) -> List[tuple[str | None, Modalities | None, str]]:
+        """
+        Return a list of three element tuples which includes the project_id, modality,
+        and their associatied metadata file contents as a string.
+        """
         metadata_file_contents = []
         for project_id, project_config in self.data.items():
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
