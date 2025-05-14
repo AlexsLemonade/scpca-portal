@@ -65,6 +65,9 @@ class Dataset(TimestampedModel):
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
     is_started = models.BooleanField(default=False)
+    pending_at = models.DateTimeField(null=True)
+    is_pending = models.BooleanField(default=False)
+    processing_at = models.DateTimeField(null=True)
     is_processing = models.BooleanField(default=False)
     succeeded_at = models.DateTimeField(null=True)
     is_succeeded = models.BooleanField(default=False)
@@ -97,6 +100,20 @@ class Dataset(TimestampedModel):
     def __str__(self):
         return f"Dataset {self.id}"
 
+    @property
+    def estimated_size_in_bytes(self) -> int:
+        return self.original_files.aggregate(models.Sum("size_in_bytes")).get("size_in_bytes__sum")
+
+    @property
+    def stats(self) -> Dict:
+        return {
+            "current_data_hash": self.current_data_hash,
+            "current_readme_hash": self.current_readme_hash,
+            "current_metadata_hash": self.current_metadata_hash,
+            "is_hash_changed": self.combined_hash != self.current_combined_hash,
+            "uncompressed_size": self.estimated_size_in_bytes,
+        }
+
     @classmethod
     def get_or_find_ccdl_dataset(
         cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
@@ -118,14 +135,15 @@ class Dataset(TimestampedModel):
     def update_from_last_jobs(cls, datasets: List[Self]) -> None:
         """
         Updates datasets' state based on their latest jobs.
-        If 'bulk_save' is True, bulk update the instances, Otherwise, each dataset
-        is individually saved during processing.
         """
         for dataset in datasets:
             dataset.update_from_last_job(save=False)
 
         updated_attrs = [
+            "is_pending",
+            "pending_at",
             "is_processing",
+            "processing_at",
             "is_succeeded",
             "succeeded_at",
             "is_failed",
@@ -177,14 +195,22 @@ class Dataset(TimestampedModel):
             return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
         return Sample.objects.none()
 
-    def update_from_last_job(self, save=True) -> None:
+    def get_sample_libraries(self, project_id: str, modality: Modalities) -> Iterable[Library]:
+        return Library.objects.filter(samples__in=self.get_samples(project_id, modality)).distinct()
+
+    def update_from_last_job(self, save: bool = True) -> None:
         """
         Updates the dataset's state based on the latest job.
-        If 'save' is True, the instance will be saved.
+        Setting save to False will mutate the instance but not persist to the db.
+        This is useful for bulk operations.
         """
-        last_job = self.jobs.order_by("-created_at").first()
+        last_job = self.jobs.order_by("-pending_at").first()
 
         match last_job.state:
+            case JobStates.PENDING:
+                self.on_job_pending()
+            case JobStates.PROCESSING:
+                self.on_job_processing()
             case JobStates.SUCCEEDED:
                 self.on_job_succeeded()
             case JobStates.FAILED:
@@ -200,13 +226,6 @@ class Dataset(TimestampedModel):
         Sets the dataset state (flag, reason, timestamps) based on the last job state.
         Resets states before applying changes.
         """
-        # TODO: Use common.FINAL_JOB_STATES
-        FINAL_JOB_STATES = [
-            JobStates.SUCCEEDED,
-            JobStates.FAILED,
-            JobStates.TERMINATED,
-        ]
-
         # Resets all state flags and reasons
         for state in JobStates:
             state_str = state.lower()
@@ -217,14 +236,13 @@ class Dataset(TimestampedModel):
             if hasattr(self, reason_attr):
                 setattr(self, reason_attr, None)
 
-        # Resets timestemps except pending_at and processing_at
-        time_stamps = [f"{state.lower()}_at" for state in FINAL_JOB_STATES]
-
-        for timestamp in time_stamps:
-            setattr(self, timestamp, None)
+        # Resets timestamps (reset all for PENDING, otherwise FINAL_JOB_STATES)
+        reset_states = JobStates if state == JobStates.PENDING else common.FINAL_JOB_STATES
+        for state in reset_states:
+            setattr(self, f"{state.lower()}_at", None)
 
         # Sets the current states
-        last_job = self.jobs.order_by("-created_at").first()
+        last_job = self.jobs.order_by("-pending_at").first()
         state_str = last_job.state.lower()
         reason_attr = f"{state_str}_reason"
 
@@ -232,6 +250,20 @@ class Dataset(TimestampedModel):
         setattr(self, f"{state_str}_at", make_aware(datetime.now()))
         if hasattr(self, f"{state_str}_reason"):
             setattr(self, f"{state_str}_reason", getattr(last_job, reason_attr))
+
+    def on_job_pending(self) -> Self:
+        """
+        Marks the dataset as pending based on the last job.
+        """
+        self.apply_job_state()
+        return self
+
+    def on_job_processing(self) -> Self:
+        """
+        Marks the dataset as processing based on the last job.
+        """
+        self.apply_job_state()
+        return self
 
     def on_job_succeeded(self) -> Self:
         """
@@ -410,15 +442,18 @@ class Dataset(TimestampedModel):
         return hashlib.md5(readme_file_contents_bytes).hexdigest()
 
     @property
-    def combined_hash(self) -> str:
+    def combined_hash(self) -> str | None:
         """
         Combines, computes and returns the combined cached data, metadata and readme hashes.
         """
+        # Return None if hashes have not been calculated yet
+        if not (self.data_hash and self.metadata_hash and self.readme_hash):
+            return None
         concat_hash = self.data_hash + self.metadata_hash + self.readme_hash
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
     @property
-    def current_combined_hash(self) -> str:
+    def current_combined_hash(self) -> str | None:
         """
         Combines, computes and returns the combined current data, metadata and readme hashes.
         """

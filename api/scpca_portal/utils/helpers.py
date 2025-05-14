@@ -150,3 +150,8 @@ def find_first_contained(value: Any, containers: Iterable[Iterable[Any]]) -> Ite
 def path_replace(path: Path, old_value: str, new_value: str) -> Path:
     """Return path with all occurrences of old_value replaced with new_value."""
     return Path(str(path).replace(old_value, new_value))
+
+
+def convert_bytes_to_gb(size_in_bytes: int) -> float:
+    """Return a number in bytes its equivalent value in gigabytes."""
+    return size_in_bytes / 1000000000

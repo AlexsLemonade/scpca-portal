@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 from unittest.mock import PropertyMock, patch
 
@@ -531,3 +532,37 @@ class TestDataset(TestCase):
         )
         expected_readme_hash = "93ce0b3571f15cd41db81d9e25dcb873"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
+
+    def estimated_size_in_bytes(self):
+        data = {
+            "SCPCP999990": {
+                "merge_single_cell": False,
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+        expected_files = {
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_qc.html"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_processed.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_celltype-report.html"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_qc.html"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_unfiltered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_filtered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_processed.rds"),
+        }
+        expected_file_size = 0
+        for file in expected_files:
+            original_file = OriginalFile.objects.filter(s3_key=str(file)).first()
+            random_file_size = random.randint(1, 1000000000)
+            original_file.size_in_bytes = random_file_size
+            original_file.save()
+
+            expected_file_size += original_file.size_in_bytes
+
+        self.assertEqual(dataset.estimated_size_in_bytes, expected_file_size)
