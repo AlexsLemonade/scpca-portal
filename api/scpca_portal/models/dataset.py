@@ -346,7 +346,9 @@ class Dataset(TimestampedModel):
     def get_project_modality_libraries(
         self, project_id: str, modality: Modalities
     ) -> Iterable[Library]:
-        return Library.objects.filter(samples__in=self.get_samples(project_id, modality)).distinct()
+        return Library.objects.filter(
+            samples__in=self.get_samples(project_id, modality), modality=modality
+        ).distinct()
 
     def get_project_modality_metadata_file_content(self, project_id: str, modality: Modalities):
         libraries = self.get_project_modality_libraries(project_id, modality)

@@ -105,7 +105,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         dataset,
         input_file_path: Path = Path(),
     ) -> Path:
-        """Return the correct output file parent directory of the passed input file path"""
+        """Return the correct output file parent directory of the passed input file path."""
         file_info = InputBucketS3KeyInfo(input_file_path)
 
         # spatial / unmerged single cell
