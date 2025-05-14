@@ -27,6 +27,7 @@ resource "aws_batch_compute_environment" "scpca_portal_ec2" {
   compute_resources {
     type = "EC2"
     max_vcpus = 16
+    desired_vcpus = 2
     security_group_ids = [
       aws_security_group.scpca_portal_batch.id
     ]
@@ -53,7 +54,7 @@ resource "aws_batch_compute_environment" "scpca_portal_ec2" {
 }
 
 resource "aws_launch_template" "scpca_portal_ec2" {
-  name = "scpca-portal-ec2-launch-template-${var.user}-${var.stage}-"
+  name = "scpca-portal-ec2-launch-template-${var.user}-${var.stage}"
   image_id = data.aws_ami.ecs_optimized_amazon_linux.id
 
   block_device_mappings {
@@ -83,11 +84,6 @@ data "aws_ami" "ecs_optimized_amazon_linux" {
   filter {
     name   = "name"
     values = ["amzn2-ami-ecs-hvm-*-x86_64-ebs"]
-  }
-
-  filter {
-    name   = "owner-alias"
-    values = ["amazon"]
   }
 
 }
