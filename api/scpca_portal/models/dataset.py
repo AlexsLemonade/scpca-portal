@@ -354,7 +354,7 @@ class Dataset(TimestampedModel):
         libraries = self.get_project_modality_libraries(project_id, modality)
         return self.get_metadata_file_content(libraries)
 
-    def get_metadata_file_contents(self) -> List[tuple[str, Modalities, str]]:
+    def get_metadata_file_contents(self) -> List[tuple[str | None, Modalities | None, str]]:
         metadata_file_contents = []
         for project_id, project_config in self.data.items():
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
