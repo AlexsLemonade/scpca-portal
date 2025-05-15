@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
@@ -17,16 +18,12 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         match self.action:
-            case "create":
-                return DatasetCreateSerializer
-            case "retrieve":
-                return DatasetDetailSerializer
             case "update":
                 return DatasetUpdateSerializer
 
     def get_queryset(self):
         datasets = Dataset.objects.all()
-        if self.action in ["create", "update"]:
+        if self.action in ["update"]:
             # only custom datasets can be updated
             datasets = datasets.filter(is_ccdl=False)
 
@@ -35,6 +32,23 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def list(self, request):
         queryset = Dataset.objects.filter(is_ccdl=True)
         serializer = DatasetSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = DatasetCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=False)
+        dataset = serializer.save()
+
+        if dataset.start:
+            dataset_job = Job.get_dataset_job(dataset)
+            dataset_job.submit()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def retrieve(self, request, pk=None):
+        queryset = Dataset.objects.filter()
+        dataset = get_object_or_404(queryset, pk=pk)
+        serializer = DatasetDetailSerializer(dataset, many=False)
         return Response(serializer.data)
 
     # Partial update and delete are intentionally disabled
@@ -49,11 +63,6 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             {"detail": "Deleting datasets is not allowed."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
-
-    def perform_create(self, serializer):
-        dataset = serializer.save()
-        if dataset.start:
-            self.submit_job(dataset)
 
     def perform_update(self, serializer):
         dataset = serializer.save()
