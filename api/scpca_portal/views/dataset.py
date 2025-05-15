@@ -84,12 +84,3 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             {"detail": "Deleting datasets is not allowed."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
-
-    def submit_job(self, dataset: Dataset):
-        """Create and submit a user generated dataset job."""
-        dataset_job = Job.get_dataset_job(dataset)
-        dataset_job.submit()
-
-        # Reset start attribute so dataset can be regenerated
-        dataset.start = False
-        dataset.save()
