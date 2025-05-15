@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from scpca_portal import common, loader
+from scpca_portal.models import OriginalFile
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -62,6 +63,11 @@ class Command(BaseCommand):
         **kwargs,
     ) -> None:
         """Loads metadata from input metadata files on s3 and creates model objects in the db."""
+        if not OriginalFile.objects.exists():
+            raise Exception(
+                "OriginalFile table is empty. Run 'sync_original_files' first to populate it."
+            )
+
         loader.prep_data_dirs()
 
         for project_metadata in loader.get_projects_metadata(scpca_project_id):
