@@ -31,6 +31,12 @@ class DatasetsTestCase(APITestCase):
         # Assert that computed_file attribute is a dict an not just the pk
         self.assertIsInstance(response.json().get("computed_file"), dict)
 
+        # Assert non existing dataset adequately 404s
+        dataset = Dataset(data={})
+        url = reverse("datasets-detail", args=[dataset.id])
+        response = self.client.put(url, {})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_get_list(self):
         url = reverse("datasets-list")
         response = self.client.get(url)
@@ -84,6 +90,12 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(self.custom_dataset.format, data.get("format"))
+
+        # Assert non existing dataset adequately 404s
+        dataset = Dataset(data={})
+        url = reverse("datasets-detail", args=[dataset.id])
+        response = self.client.put(url, {})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_is_not_allowed(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
@@ -164,19 +176,3 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
-
-        # Assert non existing dataset adequately 404s
-        dataset = Dataset(
-            data=DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            email=DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            format=DatasetCustomSingleCellExperiment.VALUES.get("format"),
-            start=True,
-        )
-        url = reverse("datasets-detail", args=[dataset.id])
-
-        # Assert that job cannot be started when it's already processing
-        data = {
-            "start": True,
-        }
-        response = self.client.put(url, data)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
