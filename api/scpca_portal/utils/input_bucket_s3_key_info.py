@@ -108,5 +108,5 @@ class InputBucketS3KeyInfo:
 
     @property
     def _is_metadata(self):
-        # make sure to check the file is metadata and not bulk
+        # ensure the file is metadata, not bulk (bulk is metadata but also included in downloads)
         return not self._is_bulk and self.s3_key_path.suffix in common.METADATA_EXTENSIONS

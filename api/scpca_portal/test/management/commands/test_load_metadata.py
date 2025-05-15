@@ -7,6 +7,7 @@ from django.test import TestCase
 
 from scpca_portal import common
 from scpca_portal.models import Project
+from scpca_portal.test.factories import OriginalFileFactory
 
 
 class TestLoadMetadata(TestCase):
@@ -45,6 +46,9 @@ class TestLoadMetadata(TestCase):
         self.mock_get_projects_metadata.return_value = self.projects_metadata
         self.project = Project()
         self.mock_create_project.return_value = self.project
+
+        # Populate OriginalFile to prevent exception when calling load_metadata
+        OriginalFileFactory()
 
     def tearDown(self):
         for p in self.patches:
