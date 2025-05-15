@@ -19,8 +19,6 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         match self.action:
             case "create":
                 return DatasetCreateSerializer
-            case "list":
-                return DatasetSerializer
             case "retrieve":
                 return DatasetDetailSerializer
             case "update":
@@ -31,11 +29,13 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if self.action in ["create", "update"]:
             # only custom datasets can be updated
             datasets = datasets.filter(is_ccdl=False)
-        elif self.action == "list":
-            # only ccdl datasets should be publicly listable
-            datasets = datasets.filter(is_ccdl=True)
 
         return datasets.order_by("-created_at")
+
+    def list(self, request):
+        queryset = Dataset.objects.filter(is_ccdl=True)
+        serializer = DatasetSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     # Partial update and delete are intentionally disabled
     def partial_update(self, request, pk=None):

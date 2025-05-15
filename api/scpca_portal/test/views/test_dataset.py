@@ -37,10 +37,10 @@ class DatasetsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
-        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(len(response.json()), 1)
         # Assert that only CCDL datasets are listable
-        self.assertNotEqual(response_json["results"][0].get("id"), str(self.custom_dataset.id))
-        self.assertEqual(response_json["results"][0].get("id"), str(self.ccdl_dataset.id))
+        self.assertNotEqual(response_json[0].get("id"), str(self.custom_dataset.id))
+        self.assertEqual(response_json[0].get("id"), str(self.ccdl_dataset.id))
 
     def test_post(self):
         url = reverse("datasets-list", args=[])
