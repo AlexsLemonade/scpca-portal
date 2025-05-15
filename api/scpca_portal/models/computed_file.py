@@ -103,13 +103,13 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         dataset,
     ) -> Path:
         """Return the correct output file parent directory of the passed original_file."""
+        if original_file.is_bulk:
+            return Path(f"{original_file.project_id}_bulk_rna")
+
         # spatial / unmerged single cell
         modality = Modalities.SINGLE_CELL if original_file.is_single_cell else Modalities.SPATIAL
         modality_formatted = modality.value.lower().replace("_", "-")
         parent_dir = Path(f"{original_file.project_id}_{modality_formatted}")
-
-        if original_file.is_bulk:
-            return Path(f"{original_file.project_id}_bulk_rna")
 
         # merged single cell
         requested_merged = dataset.data.get(original_file.project_id, {}).get(
@@ -150,16 +150,17 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     @staticmethod
     def get_metadata_file_zip_path(project_id: str, modality: Modalities, dataset) -> Path:
         """Return metadata file path, modality name inside of project_modality directory."""
+        # Metadata only downloads are not associated with a specific project_id or modality
+        if dataset.format == DatasetFormats.METADATA:
+            return Path("metadata.tsv")
+
         modality_formatted = modality.value.lower().replace("_", "-")
         metadata_file_name_path = Path(f"{modality_formatted}_metadata.tsv")
-
-        # Metadata only downloads are not associated with a specific project_id or modality
-        if not project_id and not modality:
-            return Path("metadata.tsv")
 
         metadata_dir = f"{project_id}_{modality_formatted}"
         if dataset.data.get(project_id, {}).get("merge_single_cell", False):
             metadata_dir += "_merged"
+
         return Path(metadata_dir) / Path(metadata_file_name_path)
 
     @classmethod
