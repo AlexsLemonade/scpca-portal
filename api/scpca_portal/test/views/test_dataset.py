@@ -131,52 +131,52 @@ class DatasetsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         mock_submit_job.assert_called_once()
 
-        # Assert that start attribute was reset to False after kicking off job
-        created_dataset_id = response.json().get("id")
-        created_dataset = Dataset.objects.filter(id=created_dataset_id).first()
-        self.assertFalse(created_dataset.start)
-
     @patch("scpca_portal.models.Job.submit")
     def test_update_submit_job(self, mock_submit_job):
+        # Assert that job cannot be started when it's already processing
+        dataset = Dataset(
+            data=DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            email=DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            format=DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            start=True,
+        )
+        dataset.save()
+        url = reverse("datasets-detail", args=[dataset.id])
+        data = {
+            "start": True,
+        }
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        mock_submit_job.assert_not_called()
+
+        # Assert that not started job can be started
         dataset = Dataset(
             data=DatasetCustomSingleCellExperiment.VALUES.get("data"),
             email=DatasetCustomSingleCellExperiment.VALUES.get("email"),
             format=DatasetCustomSingleCellExperiment.VALUES.get("format"),
             start=False,
         )
+        dataset.save()
+        url = reverse("datasets-detail", args=[dataset.id])
+        data = {
+            "start": True,
+        }
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_submit_job.assert_called_once()
+
+        # Assert non existing dataset adequately 404s
+        dataset = Dataset(
+            data=DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            email=DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            format=DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            start=True,
+        )
         url = reverse("datasets-detail", args=[dataset.id])
 
-        # Assert job not started when is_started is True
-        dataset.is_started = True
-        dataset.save()
+        # Assert that job cannot be started when it's already processing
         data = {
             "start": True,
         }
         response = self.client.put(url, data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_submit_job.assert_not_called()
-        dataset.is_started = False
-        dataset.save()
-
-        # Assert job not started when is_processing is True
-        dataset.is_processing = True
-        dataset.save()
-        data = {
-            "start": True,
-        }
-        response = self.client.put(url, data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_submit_job.assert_not_called()
-        dataset.is_processing = False
-        dataset.save()
-
-        # Assert job started
-        data = {
-            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            "start": True,
-        }
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_submit_job.assert_called_once()
-        # Assert that start attribute was reset to False after kicking off job
-        self.assertFalse(dataset.start)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
