@@ -1,10 +1,11 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from scpca_portal.models import Dataset, Job
+from scpca_portal.models import APIToken, Dataset, Job
 from scpca_portal.serializers import (
     DatasetCreateSerializer,
     DatasetDetailSerializer,
@@ -35,6 +36,13 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request):
+        if token_id := self.request.META.get("HTTP_API_KEY"):
+            token = APIToken.verify(token_id)
+            if not token:
+                raise PermissionDenied(
+                    {"message": "Your token is not valid or not activated.", "token_id": token_id}
+                )
+
         serializer = DatasetCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=False)
         dataset = serializer.save()
@@ -52,6 +60,13 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def update(self, request, pk=None):
+        if token_id := self.request.META.get("HTTP_API_KEY"):
+            token = APIToken.verify(token_id)
+            if not token:
+                raise PermissionDenied(
+                    {"message": "Your token is not valid or not activated.", "token_id": token_id}
+                )
+
         queryset = Dataset.objects.filter(is_ccdl=False)
         existing_dataset = get_object_or_404(queryset, pk=pk)
         if existing_dataset.start:
@@ -82,15 +97,6 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             {"detail": "Deleting datasets is not allowed."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
-
-    def perform_update(self, serializer):
-        dataset = serializer.save()
-        if dataset.start:
-            # If dataset already has active job, don't allow user to spawn additional job
-            if dataset.is_started or dataset.is_processing:
-                return
-
-            self.submit_job(dataset)
 
     def submit_job(self, dataset: Dataset):
         """Create and submit a user generated dataset job."""
