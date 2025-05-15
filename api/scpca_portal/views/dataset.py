@@ -17,19 +17,6 @@ from scpca_portal.serializers import (
 class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     ordering_fields = "__all__"
 
-    def get_serializer_class(self):
-        match self.action:
-            case "update":
-                return DatasetUpdateSerializer
-
-    def get_queryset(self):
-        datasets = Dataset.objects.all()
-        if self.action in ["update"]:
-            # only custom datasets can be updated
-            datasets = datasets.filter(is_ccdl=False)
-
-        return datasets.order_by("-created_at")
-
     def list(self, request):
         queryset = Dataset.objects.filter(is_ccdl=True)
         serializer = DatasetSerializer(queryset, many=True)
