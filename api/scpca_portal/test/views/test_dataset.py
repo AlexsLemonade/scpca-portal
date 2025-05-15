@@ -81,7 +81,7 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # check to see that read_only format field was not mutated
+        # Assert that read_only format field was not mutated
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
@@ -90,6 +90,17 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(self.custom_dataset.format, data.get("format"))
+
+        # Assert that processing dataset cannot be modified
+        self.custom_dataset.start = True
+        self.custom_dataset.save()
+        data = {
+            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "format": "format",
+        }
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
         # Assert non existing dataset adequately 404s
         dataset = Dataset(data={})

@@ -54,9 +54,9 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def update(self, request, pk=None):
         queryset = Dataset.objects.filter(is_ccdl=False)
         existing_dataset = get_object_or_404(queryset, pk=pk)
-        if existing_dataset.start and request.data.get("start", False):
+        if existing_dataset.start:
             return Response(
-                {"detail": "Invalid request: Cannot start a dataset which is already processing."},
+                {"detail": "Invalid request: Processing dataset cannot be modified."},
                 status=status.HTTP_409_CONFLICT,
             )
 
