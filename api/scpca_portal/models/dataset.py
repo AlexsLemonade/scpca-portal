@@ -371,35 +371,42 @@ class Dataset(TimestampedModel):
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
 
-    @property
-    def metadata_file_map(self) -> Dict[str, str]:
-        metadata_file_map = {}
-        for project_id, project_config in self.data.items():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                if not project_config[modality.value]:
-                    continue
-
-                metadata_path = self.get_metadata_file_path(project_id, modality)
-                metadata_contents = self.get_metadata_file_contents(
-                    self.get_sample_libraries(project_id, modality)
-                )
-                metadata_file_map[metadata_path] = metadata_contents
-
-        return metadata_file_map
-
-    def get_metadata_file_path(self, project_id: str, modality: Modalities) -> Path:
-        """Return metadata file path, modality name inside of project_modality directory."""
-        modality_formatted = modality.value.lower().replace("_", "-")
-        metadata_file_name = f"{modality_formatted}_metadata.tsv"
-
-        if self.data.get(project_id, {}).get("merge_single_cell", False):
-            modality_formatted += "_merged"
-        metadata_dir = f"{project_id}_{modality_formatted}"
-        return Path(metadata_dir) / Path(metadata_file_name)
-
-    def get_metadata_file_contents(self, libraries: Iterable[Library]) -> str:
+    def get_metadata_file_content(self, libraries: Iterable[Library]) -> str:
+        """Return a string of the metadata file content of a collection of libraries."""
         libraries_metadata = Library.get_libraries_metadata(libraries)
         return metadata_file.get_file_contents(libraries_metadata)
+
+    def get_project_modality_libraries(
+        self, project_id: str, modality: Modalities
+    ) -> Iterable[Library]:
+        """Return all libraries according to a project and modality combination."""
+        return Library.objects.filter(
+            samples__in=self.get_samples(project_id, modality), modality=modality
+        ).distinct()
+
+    def get_project_modality_metadata_file_content(
+        self, project_id: str, modality: Modalities
+    ) -> str:
+        """Return a string of the metadata file for a project and modality combination."""
+        libraries = self.get_project_modality_libraries(project_id, modality)
+        return self.get_metadata_file_content(libraries)
+
+    def get_metadata_file_contents(self) -> List[tuple[str | None, Modalities | None, str]]:
+        """
+        Return a list of three element tuples which includes the project_id, modality,
+        and their associatied metadata file contents as a string.
+        """
+        metadata_file_contents = []
+        for project_id, project_config in self.data.items():
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                if not project_config.get(modality.value, []):
+                    continue
+
+                metadata_file_content = self.get_project_modality_metadata_file_content(
+                    project_id, modality
+                )
+                metadata_file_contents.append((project_id, modality, metadata_file_content))
+        return metadata_file_contents
 
     @property
     def readme_file_contents(self) -> str:
@@ -418,9 +425,12 @@ class Dataset(TimestampedModel):
     @property
     def current_metadata_hash(self) -> str:
         """Computes and returns the current metadata hash."""
-        all_metadata_file_contents = "".join(sorted(self.metadata_file_map.values()))
-        all_metadata_file_contents_bytes = all_metadata_file_contents.encode("utf-8")
-        return hashlib.md5(all_metadata_file_contents_bytes).hexdigest()
+        all_metadata_file_contents = [
+            file_content for _, _, file_content in self.get_metadata_file_contents()
+        ]
+        concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
+        metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
+        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
 
     @property
     def current_readme_hash(self) -> str:
