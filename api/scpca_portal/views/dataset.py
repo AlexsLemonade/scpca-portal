@@ -51,6 +51,25 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         serializer = DatasetDetailSerializer(dataset, many=False)
         return Response(serializer.data)
 
+    def update(self, request, pk=None):
+        queryset = Dataset.objects.filter(is_ccdl=False)
+        existing_dataset = get_object_or_404(queryset, pk=pk)
+        if existing_dataset.start and request.data.get("start", False):
+            return Response(
+                {"detail": "Invalid request: Cannot start a dataset which is already processing."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        serializer = DatasetUpdateSerializer(existing_dataset, data=request.data)
+        serializer.is_valid(raise_exception=False)
+        modified_dataset = serializer.save()
+
+        if modified_dataset.start:
+            dataset_job = Job.get_dataset_job(modified_dataset)
+            dataset_job.submit()
+
+        return Response(serializer.data)
+
     # Partial update and delete are intentionally disabled
     def partial_update(self, request, pk=None):
         return Response(
