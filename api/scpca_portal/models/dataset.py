@@ -328,6 +328,9 @@ class Dataset(TimestampedModel):
         data_validator = DataValidator(self.data)
         return data_validator.is_valid
 
+    def is_merged_project(self, project_id) -> bool:
+        return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == ["MERGED"]
+
     def get_merged_sample_ids(self, project_id) -> List[str]:
         return list(
             self.get_project_modality_samples(project_id, Modalities.SINGLE_CELL)
@@ -348,7 +351,7 @@ class Dataset(TimestampedModel):
             # add single-cell supplementary
             single_cell_sample_ids = (
                 project_config["SINGLE_CELL"]
-                if not project_config["SINGLE_CELL"] == ["MERGED"]
+                if self.is_merged_project(project_id)
                 else self.get_merged_sample_ids(project_id)
             )
             files |= OriginalFile.downloadable_objects.filter(
@@ -358,7 +361,7 @@ class Dataset(TimestampedModel):
                 sample_ids__overlap=single_cell_sample_ids,
             )
 
-            if project_config["SINGLE_CELL"] == ["MERGED"]:
+            if self.is_merged_project(project_id):
                 merged_files = OriginalFile.downloadable_objects.filter(
                     project_id=project_id, is_merged=True
                 )
