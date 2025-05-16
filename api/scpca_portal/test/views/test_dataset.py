@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -29,16 +31,22 @@ class DatasetsTestCase(APITestCase):
         # Assert that computed_file attribute is a dict an not just the pk
         self.assertIsInstance(response.json().get("computed_file"), dict)
 
+        # Assert non existing dataset adequately 404s
+        dataset = Dataset(data={})
+        url = reverse("datasets-detail", args=[dataset.id])
+        response = self.client.put(url, {})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_get_list(self):
         url = reverse("datasets-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
-        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(len(response.json()), 1)
         # Assert that only CCDL datasets are listable
-        self.assertNotEqual(response_json["results"][0].get("id"), str(self.custom_dataset.id))
-        self.assertEqual(response_json["results"][0].get("id"), str(self.ccdl_dataset.id))
+        self.assertNotEqual(response_json[0].get("id"), str(self.custom_dataset.id))
+        self.assertEqual(response_json[0].get("id"), str(self.ccdl_dataset.id))
 
     def test_post(self):
         url = reverse("datasets-list", args=[])
@@ -73,7 +81,7 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # check to see that read_only format field was not mutated
+        # Assert that read_only format field was not mutated
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
@@ -82,6 +90,23 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(self.custom_dataset.format, data.get("format"))
+
+        # Assert that processing dataset cannot be modified
+        self.custom_dataset.start = True
+        self.custom_dataset.save()
+        data = {
+            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "format": "format",
+        }
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+
+        # Assert non existing dataset adequately 404s
+        dataset = Dataset(data={})
+        url = reverse("datasets-detail", args=[dataset.id])
+        response = self.client.put(url, {})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_is_not_allowed(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
@@ -102,3 +127,63 @@ class DatasetsTestCase(APITestCase):
         }
         for field in stats_property_fields:
             self.assertIn(field, stats_property)
+
+    @patch("scpca_portal.models.Job.submit")
+    def test_create_submit_job(self, mock_submit_job):
+        url = reverse("datasets-list", args=[])
+
+        # Assert job not started
+        data = {
+            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            "start": False,
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_submit_job.assert_not_called()
+
+        # Assert job started
+        data = {
+            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            "start": True,
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_submit_job.assert_called_once()
+
+    @patch("scpca_portal.models.Job.submit")
+    def test_update_submit_job(self, mock_submit_job):
+        # Assert that job cannot be started when it's already processing
+        dataset = Dataset(
+            data=DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            email=DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            format=DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            start=True,
+        )
+        dataset.save()
+        url = reverse("datasets-detail", args=[dataset.id])
+        data = {
+            "start": True,
+        }
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        mock_submit_job.assert_not_called()
+
+        # Assert that not started job can be started
+        dataset = Dataset(
+            data=DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            email=DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            format=DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            start=False,
+        )
+        dataset.save()
+        url = reverse("datasets-detail", args=[dataset.id])
+        data = {
+            "start": True,
+        }
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_submit_job.assert_called_once()
