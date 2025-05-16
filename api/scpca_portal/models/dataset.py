@@ -538,9 +538,6 @@ class DataValidator:
         if not self._validate_project_id(project_id):
             return False
 
-        if not self._validate_merge_single_cell(project_id):
-            return False
-
         if not self._validate_includes_bulk(project_id):
             return False
 
@@ -565,12 +562,6 @@ class DataValidator:
         id_number = id.removeprefix(prefix)
         return len(id_number) == 6 and id_number.isdigit()
 
-    def _validate_merge_single_cell(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.MERGE_SINGLE_CELL):
-            return isinstance(value, bool)
-
-        return True
-
     def _validate_includes_bulk(self, project_id) -> bool:
         if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.INCLUDES_BULK):
             return isinstance(value, bool)
@@ -579,6 +570,8 @@ class DataValidator:
 
     def _validate_single_cell(self, project_id) -> bool:
         if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SINGLE_CELL):
+            if value == ["MERGED"]:
+                return True
             return self._validate_modality(value)
 
         return True
