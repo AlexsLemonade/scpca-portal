@@ -36,7 +36,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-            "size_in_bytes": 9060,
+            "size_in_bytes": 9025,
             "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
@@ -70,7 +70,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999991_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MULTIPLEXED.zip",
-            "size_in_bytes": 9514,
+            "size_in_bytes": 9467,
             "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
@@ -102,7 +102,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MERGED.zip",
-            "size_in_bytes": 8457,
+            "size_in_bytes": 8422,
             "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
@@ -138,7 +138,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_ANN-DATA.zip",
-            "size_in_bytes": 9475,
+            "size_in_bytes": 9440,
             "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
@@ -170,7 +170,7 @@ class Computed_File_Project:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_SINGLE-CELL_ANN-DATA_MERGED.zip",
-            "size_in_bytes": 8583,
+            "size_in_bytes": 8548,
             "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
@@ -217,7 +217,7 @@ class Computed_File_Project:
         PROJECT_ID = "SCPCP999990"
         DOWNLOAD_CONFIG_NAME = "ALL_METADATA"
         DOWNLOAD_CONFIG = common.PROJECT_DOWNLOAD_CONFIGS[DOWNLOAD_CONFIG_NAME]
-        LIBRARIES = {"SCPCL999990", "SCPCL999991", "SCPCL999997"}
+        LIBRARIES = {"SCPCL999990", "SCPCL999991", "SCPCL999994", "SCPCL999997"}
         FILE_LIST = ["README.md", "metadata.tsv"]
         VALUES = {
             "format": None,
@@ -229,7 +229,7 @@ class Computed_File_Project:
             "metadata_only": True,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCP999990_ALL_METADATA.zip",
-            "size_in_bytes": 5168,
+            "size_in_bytes": 5559,
             "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
         }
