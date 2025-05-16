@@ -331,10 +331,13 @@ class Dataset(TimestampedModel):
     def is_merged_project(self, project_id) -> bool:
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == ["MERGED"]
 
-    def get_merged_sample_ids(self, project_id) -> List[str]:
+    def get_project_sample_ids(self, project_id) -> List[str]:
+        """Return all of a project's sample ids."""
         return list(
-            self.get_project_modality_samples(project_id, Modalities.SINGLE_CELL)
-        ).values_list("scpca_id", flat=True)
+            self.get_project_modality_samples(project_id, Modalities.SINGLE_CELL).values_list(
+                "scpca_id", flat=True
+            )
+        )
 
     @property
     def original_files(self) -> Iterable[OriginalFile]:
@@ -351,8 +354,8 @@ class Dataset(TimestampedModel):
             # add single-cell supplementary
             single_cell_sample_ids = (
                 project_config["SINGLE_CELL"]
-                if self.is_merged_project(project_id)
-                else self.get_merged_sample_ids(project_id)
+                if not self.is_merged_project(project_id)
+                else self.get_project_sample_ids(project_id)
             )
             files |= OriginalFile.downloadable_objects.filter(
                 project_id=project_id,
@@ -394,8 +397,13 @@ class Dataset(TimestampedModel):
         self, project_id: str, modality: Modalities
     ) -> Iterable[Library]:
         """Return all samples according to a project and modality combination."""
+        project_samples = Sample.objects.filter(project__scpca_id=project_id)
+        if modality == Modalities.SINGLE_CELL:
+            return project_samples.filter(has_single_cell_data=True)
+        if modality == Modalities.SPATIAL:
+            return project_samples.filter(has_spatial_data=True)
 
-        return Sample.objects.filter(project__id=project_id, modality=modality)
+        Sample.objects.none()
 
     def get_project_modality_libraries(
         self, project_id: str, modality: Modalities
