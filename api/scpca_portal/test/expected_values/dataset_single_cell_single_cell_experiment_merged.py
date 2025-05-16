@@ -6,21 +6,18 @@ class DatasetSingleCellSingleCellExperimentMerged:
     VALUES = {
         "data": {
             "SCPCP999990": {
-                "merge_single_cell": True,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SINGLE_CELL.value: ["MERGED"],
                 Modalities.SPATIAL.value: [],
             },
             "SCPCP999991": {
-                "merge_single_cell": True,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999995"],
+                Modalities.SINGLE_CELL.value: ["MERGED"],
                 Modalities.SPATIAL.value: [],
             },
             "SCPCP999992": {
-                "merge_single_cell": True,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SINGLE_CELL.value: ["MERGED"],
                 Modalities.SPATIAL.value: [],
             },
         },

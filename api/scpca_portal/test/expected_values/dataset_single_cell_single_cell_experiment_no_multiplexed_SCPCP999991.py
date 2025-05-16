@@ -7,7 +7,6 @@ class DatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991:
     VALUES = {
         "data": {
             PROJECT_ID: {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999995"],
                 Modalities.SPATIAL.value: [],
