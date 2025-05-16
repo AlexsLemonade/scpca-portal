@@ -6,19 +6,16 @@ class DatasetSpatialSingleCellExperiment:
     VALUES = {
         "data": {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: [],
                 Modalities.SPATIAL.value: ["SCPCS999991"],
             },
             "SCPCP999991": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: [],
                 Modalities.SPATIAL.value: [],
             },
             "SCPCP999992": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: [],
                 Modalities.SPATIAL.value: [],
