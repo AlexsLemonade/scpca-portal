@@ -176,10 +176,11 @@ class Dataset(TimestampedModel):
             spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
 
             data[project.scpca_id] = {
-                "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL: list(
-                    single_cell_samples.values_list("scpca_id", flat=True)
+                Modalities.SINGLE_CELL: (
+                    list(single_cell_samples.values_list("scpca_id", flat=True))
+                    if not self.ccdl_type.get("includes_merged")
+                    else ["MERGED"]
                 ),
                 Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
             }
@@ -327,6 +328,11 @@ class Dataset(TimestampedModel):
         data_validator = DataValidator(self.data)
         return data_validator.is_valid
 
+    def get_merged_sample_ids(self, project_id) -> List[str]:
+        return list(
+            self.get_project_modality_samples(project_id, Modalities.SINGLE_CELL)
+        ).values_list("scpca_id", flat=True)
+
     @property
     def original_files(self) -> Iterable[OriginalFile]:
         """Returns all of a Dataset's associated OriginalFiles."""
@@ -340,14 +346,19 @@ class Dataset(TimestampedModel):
             )
 
             # add single-cell supplementary
+            single_cell_sample_ids = (
+                project_config["SINGLE_CELL"]
+                if not project_config["SINGLE_CELL"] == ["MERGED"]
+                else self.get_merged_sample_ids(project_id)
+            )
             files |= OriginalFile.downloadable_objects.filter(
                 project_id=project_id,
                 is_single_cell=True,
                 is_supplementary=True,
-                sample_ids__overlap=project_config["SINGLE_CELL"],
+                sample_ids__overlap=single_cell_sample_ids,
             )
 
-            if project_config["merge_single_cell"]:
+            if project_config["SINGLE_CELL"] == ["MERGED"]:
                 merged_files = OriginalFile.downloadable_objects.filter(
                     project_id=project_id, is_merged=True
                 )
@@ -375,6 +386,13 @@ class Dataset(TimestampedModel):
         """Return a string of the metadata file content of a collection of libraries."""
         libraries_metadata = Library.get_libraries_metadata(libraries)
         return metadata_file.get_file_contents(libraries_metadata)
+
+    def get_project_modality_samples(
+        self, project_id: str, modality: Modalities
+    ) -> Iterable[Library]:
+        """Return all samples according to a project and modality combination."""
+
+        return Sample.objects.filter(project__id=project_id, modality=modality)
 
     def get_project_modality_libraries(
         self, project_id: str, modality: Modalities
