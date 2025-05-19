@@ -1,8 +1,17 @@
 locals {
-  common_container_props = {
+  job_image = {
     image = "${var.dockerhub_account}/scpca_portal_api:latest"
-    command = []
+  }
+}
 
+locals {
+  job_command = {
+    command = []
+  }
+}
+
+locals {
+  job_environment = {
     environment = [
       {
         name  = "DJANGO_CONFIGURATION"
@@ -41,7 +50,11 @@ locals {
         value = "${var.stage}-batch"
       }
     ]
+  }
+}
 
+locals {
+  job_secrets = {
     # command definition expected in cotaninerOverrides when using this job definition
     secrets = [
       {
@@ -57,7 +70,11 @@ locals {
         valueFrom = "${var.sentry_dsn.arn}"
       },
     ]
+  }
+}
 
+locals {
+  job_resource_requirements = {
     # requirements match api requirements, which uses a t2.medium (2 vcpus and 4.0 GB of RAM)
     resourceRequirements = [
       {
@@ -69,7 +86,11 @@ locals {
         value = "4096"
       }
     ]
+  }
+}
 
+locals {
+  job_role_arns = {
     executionRoleArn = aws_iam_role.ecs_task_role.arn
     jobRoleArn = aws_iam_role.batch_job_role.arn
   }
@@ -81,7 +102,12 @@ resource "aws_batch_job_definition" "scpca_portal_fargate" {
 
   platform_capabilities = ["FARGATE"]
   container_properties = jsonencode(merge(
-    local.common_container_props,
+    local.job_image,
+    local.job_command,
+    local.job_environment,
+    local.job_secrets,
+    local.job_resource_requirements,
+    local.job_role_arns,
     {
       # this gives the job outbound network access so that it can pull an image from an external container registry
       networkConfiguration = {
@@ -111,7 +137,15 @@ resource "aws_batch_job_definition" "scpca_portal_ec2" {
 
   platform_capabilities = ["EC2"]
 
-  container_properties = jsonencode(local.common_container_props)
+  container_properties = jsonencode(merge(
+    local.job_image,
+    local.job_command,
+    local.job_environment,
+    local.job_secrets,
+    local.job_resource_requirements,
+    local.job_role_arns,
+    )
+  )
 
   retry_strategy {
     attempts = 3
