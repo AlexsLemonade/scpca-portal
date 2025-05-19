@@ -23,12 +23,11 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        if token_id := self.request.META.get("HTTP_API_KEY"):
-            token = APIToken.verify(token_id)
-            if not token:
-                raise PermissionDenied(
-                    {"message": "Your token is not valid or not activated.", "token_id": token_id}
-                )
+        token_id = self.request.META.get("HTTP_API_KEY")
+        if not token_id or not APIToken.verify(token_id):
+            raise PermissionDenied(
+                {"message": "Your token is not valid or not activated.", "token_id": token_id}
+            )
 
         serializer = DatasetCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=False)
@@ -47,12 +46,11 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def update(self, request, pk=None):
-        if token_id := self.request.META.get("HTTP_API_KEY"):
-            token = APIToken.verify(token_id)
-            if not token:
-                raise PermissionDenied(
-                    {"message": "Your token is not valid or not activated.", "token_id": token_id}
-                )
+        token_id = self.request.META.get("HTTP_API_KEY")
+        if not token_id or not APIToken.verify(token_id):
+            raise PermissionDenied(
+                {"message": "Your token is not valid or not activated.", "token_id": token_id}
+            )
 
         queryset = Dataset.objects.filter(is_ccdl=False)
         existing_dataset = get_object_or_404(queryset, pk=pk)
