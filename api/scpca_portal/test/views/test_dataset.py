@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from scpca_portal.models import Dataset
+from scpca_portal.models import APIToken, Dataset
 from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
 from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory
 
@@ -13,10 +13,17 @@ class DatasetsTestCase(APITestCase):
     """Tests /datasets/ operations."""
 
     def setUp(self):
-        self.ccdl_dataset = DatasetFactory(is_ccdl=True)
-        self.custom_dataset = DatasetFactory(is_ccdl=False)
-        self.custom_dataset.computed_file = LeafComputedFileFactory()
-        self.custom_dataset.save()
+        self.token = APIToken(email="user@example.com", is_activated=True)
+        self.token.save()
+
+        self.auth_headers = {"HTTP_API_KEY": str(self.token.id)}
+
+        self.ccdl_dataset = DatasetFactory(is_ccdl=True, token=self.token)
+        self.custom_dataset = DatasetFactory(
+            is_ccdl=False,
+            token=self.token,
+            computed_file=LeafComputedFileFactory(),
+        )
 
     def test_get_single(self):
         url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
@@ -55,20 +62,24 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
         }
+        # Assert failure when token is not passed
         response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+        # Assert success when token is passed
+        response = self.client.post(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # test adding ccdl datasets doesn't work
+        # Assert that adding ccdl datasets doesn't work
         data = {
             "is_ccdl": True,  # this non serialized field should be ignored by DRF
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
         }
-        response = self.client.post(url, data)
-
+        response = self.client.post(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         created_dataset = Dataset.objects.filter(id=response.json().get("id")).first()
         self.assertFalse(created_dataset.is_ccdl)
 
@@ -78,8 +89,13 @@ class DatasetsTestCase(APITestCase):
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
         }
+        # Assert failure when token is not passed
         response = self.client.put(url, data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Assert success when token is passed
+        response = self.client.put(url, data, **self.auth_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Assert that read_only format field was not mutated
         data = {
@@ -87,7 +103,7 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": "format",
         }
-        response = self.client.put(url, data)
+        response = self.client.put(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(self.custom_dataset.format, data.get("format"))
 
@@ -99,13 +115,13 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": "format",
         }
-        response = self.client.put(url, data)
+        response = self.client.put(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
         # Assert non existing dataset adequately 404s
         dataset = Dataset(data={})
         url = reverse("datasets-detail", args=[dataset.id])
-        response = self.client.put(url, {})
+        response = self.client.put(url, {}, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_is_not_allowed(self):
