@@ -41,7 +41,7 @@ class DatasetsTestCase(APITestCase):
         # Assert non existing dataset adequately 404s
         dataset = Dataset(data={})
         url = reverse("datasets-detail", args=[dataset.id])
-        response = self.client.put(url, {})
+        response = self.client.get(url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_list(self):
@@ -95,7 +95,7 @@ class DatasetsTestCase(APITestCase):
 
         # Assert success when token is passed
         response = self.client.put(url, data, **self.auth_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Assert that read_only format field was not mutated
         data = {
@@ -155,7 +155,7 @@ class DatasetsTestCase(APITestCase):
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
             "start": False,
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         mock_submit_job.assert_not_called()
 
@@ -166,7 +166,7 @@ class DatasetsTestCase(APITestCase):
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
             "start": True,
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         mock_submit_job.assert_called_once()
 
@@ -184,7 +184,7 @@ class DatasetsTestCase(APITestCase):
         data = {
             "start": True,
         }
-        response = self.client.put(url, data)
+        response = self.client.put(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         mock_submit_job.assert_not_called()
 
@@ -200,6 +200,6 @@ class DatasetsTestCase(APITestCase):
         data = {
             "start": True,
         }
-        response = self.client.put(url, data)
+        response = self.client.put(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
