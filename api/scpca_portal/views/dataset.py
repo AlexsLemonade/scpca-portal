@@ -40,7 +40,7 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, pk=None):
-        queryset = Dataset.objects.filter()
+        queryset = Dataset.objects.all()
         dataset = get_object_or_404(queryset, pk=pk)
         serializer = DatasetDetailSerializer(dataset, many=False)
         return Response(serializer.data)
