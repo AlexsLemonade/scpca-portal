@@ -114,21 +114,18 @@ class TestGetFile(TestCase):
 
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
                 Modalities.SPATIAL.value: ["SCPCS999991"],
             },
             "SCPCP999991": {
-                "merge_single_cell": False,
                 "includes_bulk": False,
                 Modalities.SINGLE_CELL.value: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
                 Modalities.SPATIAL.value: [],
             },
             "SCPCP999992": {
-                "merge_single_cell": True,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SINGLE_CELL.value: ["MERGED"],
                 Modalities.SPATIAL.value: [],
             },
         }
