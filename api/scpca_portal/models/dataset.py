@@ -308,9 +308,15 @@ class Dataset(TimestampedModel):
         """Returns all of a Dataset's library, based on Data and Format attrs."""
         dataset_libraries = Library.objects.none()
 
-        for project_config in self.data.values():
+        for project_id, project_config in self.data.items():
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
+                for sample in self.get_project_modality_samples(project_id, modality):
+                    # Non merged projects should only grab explicitly passed sample ids
+                    if (
+                        project_config[modality.value] != ["MERGED"]
+                        and sample.scpca_id not in project_config[modality]
+                    ):
+                        continue
                     sample_libraries = sample.libraries.filter(modality=modality)
                     if self.format != DatasetFormats.METADATA:
                         sample_libraries.filter(formats__contains=[self.format])
@@ -494,7 +500,7 @@ class Dataset(TimestampedModel):
         if not self.libraries:
             return False
 
-        return self.projects.filter(**self.ccdl_type.get("constraints", {}))
+        return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
 
     @property
     def computed_file_name(self) -> Path:
