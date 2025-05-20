@@ -41,8 +41,8 @@ class Project_SCPCP999990:
         "s3_input_bucket": settings.AWS_S3_INPUT_BUCKET_NAME,
         "sample_count": 4,
         "scpca_id": SCPCA_ID,
-        "seq_units": "cell, spot",
-        "technologies": "10Xv3, visium",
+        "seq_units": "bulk, cell, spot",
+        "technologies": "10Xv3, paired_end, visium",
         "title": "TBD",
         "unavailable_samples_count": 1,
     }
