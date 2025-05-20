@@ -252,6 +252,29 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return original_files.filter(is_merged=False)
 
+    def get_valid_seq_unit_techonology_pairs(self, exclude_bulk: bool = False):
+        valid_pairs = set()
+        for sample in self.samples.all():
+            for library in sample.libraries.all():
+                seq_unit = library.metadata["seq_unit"].strip()
+                technology = library.metadata["technology"].strip()
+
+                if seq_unit and technology:
+                    valid_pairs.add((seq_unit, technology))
+
+        if exclude_bulk:
+            bulk_pairs = set()
+            for library in Library.objects.filter(modality=Modalities.BULK_RNA_SEQ):
+                seq_unit = library.metadata["seq_unit"].strip()
+                technology = library.metadata["technology"].strip()
+
+                if seq_unit and technology:
+                    bulk_pairs.add((seq_unit, technology))
+
+            valid_pairs -= bulk_pairs
+
+        return sorted(valid_pairs)
+
     def load_metadata(self) -> None:
         """
         Loads sample and library metadata files, creates Sample and Library objects,
@@ -450,10 +473,10 @@ class Project(CommonDataAttributes, TimestampedModel):
         summaries_counts = Counter()
         technologies = set()
 
-        # Get the seq_unit and technology values of bulk libraries to exclude them later
-        bulk_libraries = Library.objects.filter(modality=Modalities.BULK_RNA_SEQ)
-        bulk_seq_units = set(bulk_libraries.values_list("metadata__seq_unit", flat=True))
-        bulk_technologies = set(bulk_libraries.values_list("metadata__technology", flat=True))
+        # We currently exclude bulk data in the project summary
+        valid_seq_unit_techonology_pairs = self.get_valid_seq_unit_techonology_pairs(
+            exclude_bulk=True
+        )
 
         for sample in self.samples.all():
             additional_metadata_keys.update(sample.additional_metadata.keys())
@@ -464,16 +487,15 @@ class Project(CommonDataAttributes, TimestampedModel):
             if "organism" in sample.additional_metadata:
                 organisms.add(sample.additional_metadata["organism"])
 
-            # Exclude bulk values from the sample's metadata
-            sample_seq_units = set(sample.seq_units.split(", ")) - bulk_seq_units
-            sample_technologies = set(sample.technologies.split(", ")) - bulk_technologies
+            sample_seq_units = set(sample.seq_units.split(", "))
+            sample_technologies = set(sample.technologies.split(", "))
 
-            # TODO: Revise to remove invalid combinations (e.g., 'bulk' with '10Xv3') for accuracy
             for seq_unit in sample_seq_units:
                 for technology in sample_technologies:
-                    summaries_counts.update(
-                        {(sample.diagnosis, seq_unit.strip(), technology.strip()): 1}
-                    )
+                    if (seq_unit, technology) in valid_seq_unit_techonology_pairs:
+                        summaries_counts.update(
+                            {(sample.diagnosis, seq_unit.strip(), technology.strip()): 1}
+                        )
 
             seq_units.update(sample_seq_units)
             technologies.update(sample_technologies)
