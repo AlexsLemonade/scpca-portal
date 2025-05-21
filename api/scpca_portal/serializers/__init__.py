@@ -1,5 +1,5 @@
+from .computed_file import ComputedFileSerializer
 from .serializers import (
-    ComputedFileSerializer,
     DatasetCreateSerializer,
     DatasetDetailSerializer,
     DatasetSerializer,
