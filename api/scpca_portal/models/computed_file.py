@@ -113,7 +113,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         # merged single cell
         # only single cell supplementary and merged files should be nested in a merge directory
-        if dataset.is_merged_project(original_file.project_id) and not original_file.is_spatial:
+        if dataset.get_is_merged_project(original_file.project_id) and not original_file.is_spatial:
             parent_dir = Path(f"{original_file.project_id}_single-cell_merged")
 
             # only library supplementary files should be in an individual_reports dir,
@@ -155,7 +155,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         metadata_file_name_path = Path(f"{modality_formatted}_metadata.tsv")
 
         metadata_dir = f"{project_id}_{modality_formatted}"
-        if dataset.is_merged_project(project_id):
+        if dataset.get_is_merged_project(project_id):
             metadata_dir += "_merged"
 
         return Path(metadata_dir) / Path(metadata_file_name_path)

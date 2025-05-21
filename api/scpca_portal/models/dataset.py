@@ -321,7 +321,7 @@ class Dataset(TimestampedModel):
         data_validator = DataValidator(self.data)
         return data_validator.is_valid
 
-    def is_merged_project(self, project_id) -> bool:
+    def get_is_merged_project(self, project_id) -> bool:
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == ["MERGED"]
 
     def get_project_sample_ids(self, project_id) -> List[str]:
@@ -347,7 +347,7 @@ class Dataset(TimestampedModel):
             # add single-cell supplementary
             single_cell_sample_ids = (
                 project_config["SINGLE_CELL"]
-                if not self.is_merged_project(project_id)
+                if not self.get_is_merged_project(project_id)
                 else self.get_project_sample_ids(project_id)
             )
             files |= OriginalFile.downloadable_objects.filter(
@@ -357,7 +357,7 @@ class Dataset(TimestampedModel):
                 sample_ids__overlap=single_cell_sample_ids,
             )
 
-            if self.is_merged_project(project_id):
+            if self.get_is_merged_project(project_id):
                 merged_files = OriginalFile.downloadable_objects.filter(
                     project_id=project_id, is_merged=True
                 )
@@ -395,7 +395,7 @@ class Dataset(TimestampedModel):
         """
 
         project_samples = Sample.objects.filter(project__scpca_id=project_id)
-        if self.is_merged_project(project_id):
+        if self.get_is_merged_project(project_id):
             return project_samples.filter(has_single_cell_data=True)
         return project_samples.filter(
             scpca_id__in=self.data.get(project_id, {}).get(modality.value)
@@ -409,7 +409,7 @@ class Dataset(TimestampedModel):
         Returns Library instances associated with Samples defined in data attribute.
         """
         # Merged projects should not have any libraries
-        if self.is_merged_project(project_id):
+        if self.get_is_merged_project(project_id):
             return Library.objects.none()
 
         libraries = Library.objects.filter(

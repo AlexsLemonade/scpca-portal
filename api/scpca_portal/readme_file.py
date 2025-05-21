@@ -63,7 +63,7 @@ def add_ann_data_content_rows(content_rows: set, dataset) -> set:
             docs_link = ANN_DATA_WITH_CITE_SEQ_LINK
 
         # ANN_DATA_MERGED
-        if dataset.is_merged_project(project.scpca_id):
+        if dataset.get_is_merged_project(project.scpca_id):
             # ANN_DATA_MERGED_WITH_CITE
             if project.has_cite_seq_data:
                 docs_link = ANN_DATA_MERGED_WITH_CITE_SEQ_LINK
@@ -84,7 +84,7 @@ def add_single_cell_experiment_content_rows(content_rows: set, dataset) -> set:
         docs_link = SINGLE_CELL_EXPERIMENT_LINK
 
         # SINGLE_CELL_EXPERIMENT_MERGED
-        if dataset.is_merged_project(project.scpca_id):
+        if dataset.get_is_merged_project(project.scpca_id):
             docs_link = SINGLE_CELL_EXPERIMENT_MERGED_LINK
         # SINGLE_CELL_EXPERIMENT_MULTIPLEXED
         elif (
