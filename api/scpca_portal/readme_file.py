@@ -88,7 +88,7 @@ def add_single_cell_experiment_content_rows(content_rows: set, dataset) -> set:
             docs_link = SINGLE_CELL_EXPERIMENT_MERGED_LINK
         # SINGLE_CELL_EXPERIMENT_MULTIPLEXED
         elif (
-            dataset.get_samples(project.scpca_id, Modalities.SINGLE_CELL)
+            dataset.get_project_modality_samples(project.scpca_id, Modalities.SINGLE_CELL)
             .filter(has_multiplexed_data=True)
             .exists()
         ):

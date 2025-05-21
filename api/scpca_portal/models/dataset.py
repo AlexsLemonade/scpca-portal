@@ -187,18 +187,6 @@ class Dataset(TimestampedModel):
 
         return data
 
-    def get_samples(self, project_id: str, modality: Modalities) -> Iterable[Sample]:
-        """
-        Takes project's scpca_id and a modality.
-        Returns Sample instances defined in data attribute.
-        """
-        if sample_ids := self.data.get(project_id, {}).get(modality, []):
-            return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
-        return Sample.objects.none()
-
-    def get_sample_libraries(self, project_id: str, modality: Modalities) -> Iterable[Library]:
-        return Library.objects.filter(samples__in=self.get_samples(project_id, modality)).distinct()
-
     def update_from_last_job(self, save: bool = True) -> None:
         """
         Updates the dataset's state based on the latest job.
@@ -402,12 +390,13 @@ class Dataset(TimestampedModel):
         self, project_id: str, modality: Modalities
     ) -> Iterable[Library]:
         """
-        Return all samples according to their data attribute's project and modality combination.
+        Takes project's scpca_id and a modality.
+        Returns Sample instances defined in data attribute.
         """
 
         project_samples = Sample.objects.filter(project__scpca_id=project_id)
         if self.is_merged_project(project_id):
-            return project_samples.filter(has_single_celll_data=True)
+            return project_samples.filter(has_single_cell_data=True)
         return project_samples.filter(
             scpca_id__in=self.data.get(project_id, {}).get(modality.value)
         )
@@ -416,7 +405,8 @@ class Dataset(TimestampedModel):
         self, project_id: str, modality: Modalities
     ) -> Iterable[Library]:
         """
-        Return all libraries according to their data attribute's project and modality combination.
+        Takes project's scpca_id and a modality.
+        Returns Library instances associated with Samples defined in data attribute.
         """
         # Merged projects should not have any libraries
         if self.is_merged_project(project_id):
