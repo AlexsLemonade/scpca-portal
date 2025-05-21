@@ -304,23 +304,22 @@ class Dataset(TimestampedModel):
         return Project.objects.none()
 
     @property
+    def samples(self) -> Iterable[Sample]:
+        dataset_samples = Sample.objects.none()
+        for project_id in self.data.keys():
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                dataset_samples |= self.get_project_modality_samples(project_id, modality)
+
+        return dataset_samples
+
+    @property
     def libraries(self) -> Iterable[Library]:
         """Returns all of a Dataset's library, based on Data and Format attrs."""
         dataset_libraries = Library.objects.none()
 
-        for project_id, project_config in self.data.items():
+        for project_id in self.data.keys():
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                for sample in self.get_project_modality_samples(project_id, modality):
-                    # Non merged projects should only grab explicitly passed sample ids
-                    if (
-                        project_config[modality.value] != ["MERGED"]
-                        and sample.scpca_id not in project_config[modality]
-                    ):
-                        continue
-                    sample_libraries = sample.libraries.filter(modality=modality)
-                    if self.format != DatasetFormats.METADATA:
-                        sample_libraries.filter(formats__contains=[self.format])
-                    dataset_libraries |= sample_libraries
+                dataset_libraries |= self.get_project_modality_libraries(project_id, modality)
 
         return dataset_libraries
 
@@ -402,22 +401,33 @@ class Dataset(TimestampedModel):
     def get_project_modality_samples(
         self, project_id: str, modality: Modalities
     ) -> Iterable[Library]:
-        """Return all samples according to a project and modality combination."""
-        project_samples = Sample.objects.filter(project__scpca_id=project_id)
-        if modality == Modalities.SINGLE_CELL:
-            return project_samples.filter(has_single_cell_data=True)
-        if modality == Modalities.SPATIAL:
-            return project_samples.filter(has_spatial_data=True)
+        """
+        Return all samples according to their data attribute's project and modality combination.
+        """
 
-        Sample.objects.none()
+        project_samples = Sample.objects.filter(project__scpca_id=project_id)
+        if self.is_merged_project(project_id):
+            return project_samples.filter(has_single_celll_data=True)
+        return project_samples.filter(
+            scpca_id__in=self.data.get(project_id, {}).get(modality.value)
+        )
 
     def get_project_modality_libraries(
         self, project_id: str, modality: Modalities
     ) -> Iterable[Library]:
-        """Return all libraries according to a project and modality combination."""
-        return Library.objects.filter(
-            samples__in=self.get_samples(project_id, modality), modality=modality
+        """
+        Return all libraries according to their data attribute's project and modality combination.
+        """
+        # Merged projects should not have any libraries
+        if self.is_merged_project(project_id):
+            return Library.objects.none()
+
+        libraries = Library.objects.filter(
+            samples__in=self.get_project_modality_samples(project_id, modality)
         ).distinct()
+        if self.format != DatasetFormats.METADATA:
+            libraries = libraries.filter(formats__contains=[self.format])
+        return libraries
 
     def get_project_modality_metadata_file_content(
         self, project_id: str, modality: Modalities
