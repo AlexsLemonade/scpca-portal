@@ -9,16 +9,16 @@ SlugRelatedFields.
 The one exception is the ProjectSerializer because it will always include its summaries.
 """
 
-from .computed_file import ComputedFileSerializer
-from .contact import ContactSerializer
-from .dataset import (
+from scpca_portal.serializers.computed_file import ComputedFileSerializer
+from scpca_portal.serializers.contact import ContactSerializer
+from scpca_portal.serializers.dataset import (
     DatasetCreateSerializer,
     DatasetDetailSerializer,
     DatasetSerializer,
     DatasetUpdateSerializer,
 )
-from .external_accession import ExternalAccessionSerializer
-from .project import ProjectLeafSerializer, ProjectSerializer
-from .project_summary import ProjectSummarySerializer
-from .publication import PublicationSerializer
-from .sample import SampleSerializer
+from scpca_portal.serializers.external_accession import ExternalAccessionSerializer
+from scpca_portal.serializers.project import ProjectLeafSerializer, ProjectSerializer
+from scpca_portal.serializers.project_summary import ProjectSummarySerializer
+from scpca_portal.serializers.publication import PublicationSerializer
+from scpca_portal.serializers.sample import SampleSerializer

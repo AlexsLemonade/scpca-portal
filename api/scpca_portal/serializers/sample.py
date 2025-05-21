@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
 from scpca_portal.models import Sample
-
-from .computed_file import ComputedFileSerializer
+from scpca_portal.serializers.computed_file import ComputedFileSerializer
 
 
 class SampleLeafSerializer(serializers.ModelSerializer):

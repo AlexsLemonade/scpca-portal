@@ -1,12 +1,11 @@
 from rest_framework import serializers
 
 from scpca_portal.models import Project
-
-from .computed_file import ComputedFileSerializer
-from .contact import ContactSerializer
-from .external_accession import ExternalAccessionSerializer
-from .project_summary import ProjectSummarySerializer
-from .publication import PublicationSerializer
+from scpca_portal.serializers.computed_file import ComputedFileSerializer
+from scpca_portal.serializers.contact import ContactSerializer
+from scpca_portal.serializers.external_accession import ExternalAccessionSerializer
+from scpca_portal.serializers.project_summary import ProjectSummarySerializer
+from scpca_portal.serializers.publication import PublicationSerializer
 
 
 class ProjectLeafSerializer(serializers.ModelSerializer):
