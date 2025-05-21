@@ -1,14 +1,3 @@
-"""This file houses serializers which can be used for nested relationships.
-
-These serializers do not use nested relationships themselves, so that
-if a sample object links to a computed file and the computed file
-links to the sample, the JSON won't recur infinitely. For any
-relationships, these serializers will use PrimaryKeyRelatedFields or
-SlugRelatedFields.
-
-The one exception is the ProjectSerializer because it will always include its summaries.
-"""
-
 from rest_framework import serializers
 
 from scpca_portal.models import Dataset
