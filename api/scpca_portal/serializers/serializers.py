@@ -11,58 +11,13 @@ The one exception is the ProjectSerializer because it will always include its su
 
 from rest_framework import serializers
 
-from scpca_portal.models import (
-    Contact,
-    Dataset,
-    ExternalAccession,
-    Project,
-    ProjectSummary,
-    Publication,
-    Sample,
-)
+from scpca_portal.models import Dataset, Project, Sample
 
 from .computed_file import ComputedFileSerializer
-
-
-class ContactSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Contact
-        fields = (
-            "email",
-            "name",
-        )
-
-
-class ExternalAccessionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ExternalAccession
-        fields = (
-            "accession",
-            "has_raw",
-            "url",
-        )
-
-
-class PublicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Publication
-        fields = (
-            "citation",
-            "doi",
-            "doi_url",
-        )
-
-
-class ProjectSummarySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProjectSummary
-        fields = (
-            "diagnosis",
-            "sample_count",
-            "seq_unit",
-            "technology",
-            "updated_at",
-        )
+from .contact import ContactSerializer
+from .external_accession import ExternalAccessionSerializer
+from .project_summary import ProjectSummarySerializer
+from .publication import PublicationSerializer
 
 
 class ProjectLeafSerializer(serializers.ModelSerializer):
