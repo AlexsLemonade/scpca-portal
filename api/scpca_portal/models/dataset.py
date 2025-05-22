@@ -497,7 +497,16 @@ class Dataset(TimestampedModel):
 
     @property
     def valid_ccdl_dataset(self) -> bool:
-        if not self.libraries:
+        merged_ccdl_datasets = [
+            ccdl_datasets.CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED,
+            ccdl_datasets.CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED,
+        ]
+        if self.ccdl_name in merged_ccdl_datasets:
+            # Because merged downloads don't have associated libraries,
+            # it's sufficient to assert that they have samples and merged files
+            return self.samples.exists() and self.original_files.filter(is_merged=True).exists()
+
+        if not self.libraries.exists():
             return False
 
         return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
