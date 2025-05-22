@@ -252,29 +252,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return original_files.filter(is_merged=False)
 
-    def get_valid_seq_unit_techonology_pairs(self, exclude_bulk: bool = False):
-        valid_pairs = set()
-        for sample in self.samples.all():
-            for library in sample.libraries.all():
-                seq_unit = library.metadata["seq_unit"].strip()
-                technology = library.metadata["technology"].strip()
-
-                if seq_unit and technology:
-                    valid_pairs.add((seq_unit, technology))
-
-        if exclude_bulk:
-            bulk_pairs = set()
-            for library in Library.objects.filter(modality=Modalities.BULK_RNA_SEQ):
-                seq_unit = library.metadata["seq_unit"].strip()
-                technology = library.metadata["technology"].strip()
-
-                if seq_unit and technology:
-                    bulk_pairs.add((seq_unit, technology))
-
-            valid_pairs -= bulk_pairs
-
-        return sorted(valid_pairs)
-
     def load_metadata(self) -> None:
         """
         Loads sample and library metadata files, creates Sample and Library objects,
@@ -473,11 +450,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         summaries_counts = Counter()
         technologies = set()
 
-        # We currently exclude bulk data in the project summary
-        valid_seq_unit_techonology_pairs = self.get_valid_seq_unit_techonology_pairs(
-            exclude_bulk=True
-        )
-
         for sample in self.samples.all():
             additional_metadata_keys.update(sample.additional_metadata.keys())
             diagnoses_counts.update({sample.diagnosis: 1})
@@ -487,18 +459,14 @@ class Project(CommonDataAttributes, TimestampedModel):
             if "organism" in sample.additional_metadata:
                 organisms.add(sample.additional_metadata["organism"])
 
-            sample_seq_units = set(sample.seq_units.split(", "))
-            sample_technologies = set(sample.technologies.split(", "))
+            # We currently exlude bulk data in the project summary and aggregate values
+            for library in sample.libraries.exclude(modality=Modalities.BULK_RNA_SEQ):
+                seq_unit = library.metadata.get("seq_unit", "").strip()
+                technology = library.metadata.get("technology", "").strip()
+                summaries_counts.update({(sample.diagnosis, seq_unit, technology): 1})
 
-            for seq_unit in sample_seq_units:
-                for technology in sample_technologies:
-                    if (seq_unit, technology) in valid_seq_unit_techonology_pairs:
-                        summaries_counts.update(
-                            {(sample.diagnosis, seq_unit.strip(), technology.strip()): 1}
-                        )
-
-            seq_units.update(sample_seq_units)
-            technologies.update(sample_technologies)
+                seq_units.add(seq_unit)
+                technologies.add(technology)
 
         diagnoses_strings = sorted(
             (f"{diagnosis} ({count})" for diagnosis, count in diagnoses_counts.items())
