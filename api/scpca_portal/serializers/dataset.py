@@ -78,58 +78,8 @@ class DatasetCreateSerializer(DatasetSerializer):
 
 
 class DatasetUpdateSerializer(DatasetSerializer):
-    class Meta:
-        model = Dataset
-        fields = (
-            "data",
-            "email",
-            "start",
-            "id",
-            "format",
-            "stats",
-            "data_hash",
-            "metadata_hash",
-            "readme_hash",
-            "is_ccdl",
-            "ccdl_name",
-            "ccdl_project_id",
-            "started_at",
-            "is_started",
-            "is_processing",
-            "succeeded_at",
-            "is_succeeded",
-            "failed_at",
-            "is_failed",
-            "failed_reason",
-            "expires_at",
-            "is_expired",
-            "terminated_at",
-            "is_terminated",
-            "terminated_reason",
-            "computed_file",
-        )
-        read_only_fields = (
-            "id",
-            "format",
-            "stats",
-            "data_hash",
-            "metadata_hash",
-            "readme_hash",
-            "is_ccdl",
-            "ccdl_name",
-            "ccdl_project_id",
-            "started_at",
-            "is_started",
-            "is_processing",
-            "succeeded_at",
-            "is_succeeded",
-            "failed_at",
-            "is_failed",
-            "failed_reason",
-            "expires_at",
-            "is_expired",
-            "terminated_at",
-            "is_terminated",
-            "terminated_reason",
-            "computed_file",
+    class Meta(DatasetSerializer.Meta):
+        modifiable_fields = ("data", "email", "start")
+        read_only_fields = tuple(
+            set(DatasetSerializer.Meta.read_only_fields) - set(modifiable_fields)
         )
