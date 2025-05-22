@@ -324,14 +324,6 @@ class Dataset(TimestampedModel):
     def get_is_merged_project(self, project_id) -> bool:
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == ["MERGED"]
 
-    def get_project_sample_ids(self, project_id) -> List[str]:
-        """Return all of a project's sample ids."""
-        return list(
-            self.get_project_modality_samples(project_id, Modalities.SINGLE_CELL).values_list(
-                "scpca_id", flat=True
-            )
-        )
-
     @property
     def original_files(self) -> Iterable[OriginalFile]:
         """Returns all of a Dataset's associated OriginalFiles."""
@@ -341,15 +333,14 @@ class Dataset(TimestampedModel):
             files |= OriginalFile.downloadable_objects.filter(
                 project_id=project_id,
                 is_spatial=True,
-                sample_ids__overlap=project_config["SPATIAL"],
+                sample_ids__overlap=project_config[DatasetDataProjectConfig.SPATIAL],
             )
 
             # add single-cell supplementary
-            single_cell_sample_ids = (
-                project_config["SINGLE_CELL"]
-                if not self.get_is_merged_project(project_id)
-                else self.get_project_sample_ids(project_id)
-            )
+            single_cell_sample_ids = [
+                sample.scpca_id
+                for sample in self.get_project_modality_samples(project_id, Modalities.SINGLE_CELL)
+            ]
             files |= OriginalFile.downloadable_objects.filter(
                 project_id=project_id,
                 is_single_cell=True,
@@ -368,9 +359,9 @@ class Dataset(TimestampedModel):
                     project_id=project_id,
                     is_single_cell=True,
                     formats__contains=[self.format],
-                    sample_ids__overlap=project_config["SINGLE_CELL"],
+                    sample_ids__overlap=single_cell_sample_ids,
                 )
-            if project_config["includes_bulk"]:
+            if project_config[DatasetDataProjectConfig.INCLUDES_BULK]:
                 files |= OriginalFile.downloadable_objects.filter(
                     project_id=project_id, is_bulk=True
                 )
