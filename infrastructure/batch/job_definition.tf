@@ -79,7 +79,7 @@ locals {
     resourceRequirements = [
       {
         type  = "VCPU"
-        value = "1.0"
+        value = "1"
       },
       {
         type  = "MEMORY"
