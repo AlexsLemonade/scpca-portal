@@ -1,12 +1,12 @@
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
 from django.test import TestCase
 
 from scpca_portal import common
 from scpca_portal.enums import JobStates
-from scpca_portal.models import Job
+from scpca_portal.models import Dataset, Job
 from scpca_portal.test.factories import DatasetFactory, JobFactory
 
 
@@ -77,8 +77,10 @@ class TestJob(TestCase):
         self.assertEqual(Job.objects.count(), 1)
         saved_job = Job.objects.first()
         self.assertEqual(saved_job.batch_job_id, mock_batch_job_id)
-        self.assertEqual(saved_job.batch_job_queue, settings.AWS_BATCH_JOB_QUEUE_NAME)
-        self.assertEqual(saved_job.batch_job_definition, settings.AWS_BATCH_JOB_DEFINITION_NAME)
+        self.assertEqual(saved_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
+        self.assertEqual(
+            saved_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+        )
         self.assertIn("--project-id", saved_job.batch_container_overrides["command"])
         self.assertIn(project_id, saved_job.batch_container_overrides["command"])
         self.assertEqual(saved_job.state, JobStates.PROCESSING)
@@ -520,3 +522,32 @@ class TestJob(TestCase):
             self.assertEqual(job.batch_job_queue, batch_job_queue)
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
             self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
+
+    def test_dynamically_set_dataset_job_pipeline(self):
+        dataset = DatasetFactory()
+        with patch.object(
+            Dataset, "estimated_size_in_bytes", new_callable=PropertyMock
+        ) as mock_size:
+            # job size is below threshold
+            mock_size.return_value = Job.MAX_FARGATE_SIZE_IN_BYTES - 1000
+            dataset_job = Job.get_dataset_job(dataset)
+            self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
+            self.assertEqual(
+                dataset_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+            )
+
+            # job size is at threshold
+            mock_size.return_value = Job.MAX_FARGATE_SIZE_IN_BYTES
+            dataset_job = Job.get_dataset_job(dataset)
+            self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
+            self.assertEqual(
+                dataset_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+            )
+
+            # job size is above threshold
+            mock_size.return_value = Job.MAX_FARGATE_SIZE_IN_BYTES + 1000
+            dataset_job = Job.get_dataset_job(dataset)
+            self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_EC2_JOB_QUEUE_NAME)
+            self.assertEqual(
+                dataset_job.batch_job_definition, settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
+            )

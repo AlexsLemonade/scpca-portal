@@ -44,6 +44,11 @@ class Job(TimestampedModel):
     # Datasets should never be deleted
     dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
 
+    # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
+    # Number should be half of max fargate ephemeral storage (which is 200 GB)
+    # Each instance downloads all dataset files, copies them to a zip file, and uploads the zip file
+    MAX_FARGATE_SIZE_IN_BYTES = 100 * common.GB_IN_BYTES
+
     def __str__(self):
         if self.batch_job_id:
             return f"Job {self.id} - {self.batch_job_id} - {self.state}"
@@ -79,10 +84,17 @@ class Job(TimestampedModel):
         # TODO: we should allow for users to request no notification via Dataset.notify attr
         notify_flag = "--notify" if (not dataset.is_ccdl or notify) else ""
 
+        # dynamically choose queue based on dataset size
+        batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
+        batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+        if dataset.estimated_size_in_bytes > Job.MAX_FARGATE_SIZE_IN_BYTES:
+            batch_job_queue = settings.AWS_BATCH_EC2_JOB_QUEUE_NAME
+            batch_job_definition = settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
+
         return cls(
             batch_job_name=dataset.id,
-            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_job_queue=batch_job_queue,
+            batch_job_definition=batch_job_definition,
             batch_container_overrides={
                 "command": [
                     "python",
@@ -121,8 +133,8 @@ class Job(TimestampedModel):
 
         return cls(
             batch_job_name=batch_job_name,
-            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_job_queue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
             batch_container_overrides={"command": command},
         )
 
@@ -154,8 +166,8 @@ class Job(TimestampedModel):
 
         return cls(
             batch_job_name=batch_job_name,
-            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_job_queue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
             batch_container_overrides={
                 "command": command,
             },
