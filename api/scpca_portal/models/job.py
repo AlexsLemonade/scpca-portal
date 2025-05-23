@@ -45,7 +45,8 @@ class Job(TimestampedModel):
     dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
 
     # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
-    MAX_FARGATE_SIZE_IN_GB = 200
+    # Number calculated as 2.5x size of dataset which would hit 200 GB ephemeral storage max
+    MAX_FARGATE_SIZE_IN_GB = 80
 
     def __str__(self):
         if self.batch_job_id:

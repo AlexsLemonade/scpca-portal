@@ -528,6 +528,7 @@ class TestJob(TestCase):
         with patch.object(
             Dataset, "estimated_size_in_bytes", new_callable=PropertyMock
         ) as mock_size:
+            # job size is below threshold
             mock_size.return_value = utils.convert_gb_to_bytes(Job.MAX_FARGATE_SIZE_IN_GB - 1)
             dataset_job = Job.get_dataset_job(dataset)
             self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
@@ -535,6 +536,7 @@ class TestJob(TestCase):
                 dataset_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
             )
 
+            # job size is at threshold
             mock_size.return_value = utils.convert_gb_to_bytes(Job.MAX_FARGATE_SIZE_IN_GB)
             dataset_job = Job.get_dataset_job(dataset)
             self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
@@ -542,6 +544,7 @@ class TestJob(TestCase):
                 dataset_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
             )
 
+            # job size is at threshold
             mock_size.return_value = utils.convert_gb_to_bytes(Job.MAX_FARGATE_SIZE_IN_GB + 1)
             dataset_job = Job.get_dataset_job(dataset)
             self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_EC2_JOB_QUEUE_NAME)
