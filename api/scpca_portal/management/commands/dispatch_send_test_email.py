@@ -43,8 +43,8 @@ class Command(BaseCommand):
 
         response = batch.submit_job(
             jobName=job_name,
-            jobQueue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            jobDefinition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            jobQueue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
+            jobDefinition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
             containerOverrides={
                 "command": command,
             },

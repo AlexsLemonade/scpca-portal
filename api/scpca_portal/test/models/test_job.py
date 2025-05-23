@@ -77,8 +77,10 @@ class TestJob(TestCase):
         self.assertEqual(Job.objects.count(), 1)
         saved_job = Job.objects.first()
         self.assertEqual(saved_job.batch_job_id, mock_batch_job_id)
-        self.assertEqual(saved_job.batch_job_queue, settings.AWS_BATCH_JOB_QUEUE_NAME)
-        self.assertEqual(saved_job.batch_job_definition, settings.AWS_BATCH_JOB_DEFINITION_NAME)
+        self.assertEqual(saved_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
+        self.assertEqual(
+            saved_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+        )
         self.assertIn("--project-id", saved_job.batch_container_overrides["command"])
         self.assertIn(project_id, saved_job.batch_container_overrides["command"])
         self.assertEqual(saved_job.state, JobStates.PROCESSING)

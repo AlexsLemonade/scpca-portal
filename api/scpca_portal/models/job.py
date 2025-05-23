@@ -81,8 +81,8 @@ class Job(TimestampedModel):
 
         return cls(
             batch_job_name=dataset.id,
-            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_job_queue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
             batch_container_overrides={
                 "command": [
                     "python",
@@ -121,8 +121,8 @@ class Job(TimestampedModel):
 
         return cls(
             batch_job_name=batch_job_name,
-            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_job_queue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
             batch_container_overrides={"command": command},
         )
 
@@ -154,8 +154,8 @@ class Job(TimestampedModel):
 
         return cls(
             batch_job_name=batch_job_name,
-            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_job_queue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
             batch_container_overrides={
                 "command": command,
             },
