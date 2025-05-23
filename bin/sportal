@@ -140,7 +140,7 @@ run_api = run + ["api"]
 run_postgres = run + ["postgres", "psql", "-h", "postgres", "-U", "postgres"]
 manage = run_api + ["python3", "manage.py"]
 
-command_desriptions = {
+command_descriptions = {
     # print envars available in this shell
     "debug:env": "Show status of envars that are passed to commands.",
     "docker:compose": "Same as 'docker compose' but handles passing env to containers.",
@@ -203,7 +203,7 @@ parser.add_argument(
     choices=commands.keys(),
     help="\n".join(
         [
-            f"{key: <15} - {command_desriptions.get(key, 'No description available.')}"
+            f"{key: <15} - {command_descriptions.get(key, 'No description available.')}"
             for key in commands.keys()
         ]
     ),
