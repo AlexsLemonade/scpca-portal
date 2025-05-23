@@ -399,10 +399,6 @@ class Dataset(TimestampedModel):
         Takes project's scpca_id and a modality.
         Returns Library instances associated with Samples defined in data attribute.
         """
-        # Merged projects should not have any libraries
-        if self.get_is_merged_project(project_id):
-            return Library.objects.none()
-
         libraries = Library.objects.filter(
             samples__in=self.get_project_modality_samples(project_id, modality)
         ).distinct()
@@ -488,15 +484,6 @@ class Dataset(TimestampedModel):
 
     @property
     def valid_ccdl_dataset(self) -> bool:
-        merged_ccdl_datasets = [
-            ccdl_datasets.CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED,
-            ccdl_datasets.CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED,
-        ]
-        if self.ccdl_name in merged_ccdl_datasets:
-            # Because merged downloads don't have associated libraries,
-            # it's sufficient to assert that they have samples and merged files
-            return self.samples.exists() and self.original_files.filter(is_merged=True).exists()
-
         if not self.libraries.exists():
             return False
 
