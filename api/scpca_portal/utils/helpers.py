@@ -157,6 +157,6 @@ def convert_bytes_to_gb(size_in_bytes: int | float) -> float:
     return size_in_bytes / 1000000000
 
 
-def convert_gb_to_bytes(size_in_gb: int | float) -> float:
+def convert_gb_to_bytes(size_in_gb: int | float) -> int:
     """Return a number currently in gigabytes its equivalent value in bytes."""
-    return size_in_gb * 1000000000
+    return int(size_in_gb * 1000000000)
