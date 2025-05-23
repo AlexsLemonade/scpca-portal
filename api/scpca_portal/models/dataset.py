@@ -176,27 +176,16 @@ class Dataset(TimestampedModel):
             spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
 
             data[project.scpca_id] = {
-                "merge_single_cell": self.ccdl_type.get("includes_merged"),
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL: list(
-                    single_cell_samples.values_list("scpca_id", flat=True)
+                Modalities.SINGLE_CELL: (
+                    list(single_cell_samples.values_list("scpca_id", flat=True))
+                    if not self.ccdl_type.get("includes_merged")
+                    else ["MERGED"]
                 ),
                 Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
             }
 
         return data
-
-    def get_samples(self, project_id: str, modality: Modalities) -> Iterable[Sample]:
-        """
-        Takes project's scpca_id and a modality.
-        Returns Sample instances defined in data attribute.
-        """
-        if sample_ids := self.data.get(project_id, {}).get(modality, []):
-            return Sample.objects.filter(scpca_id__in=sample_ids).order_by("scpca_id")
-        return Sample.objects.none()
-
-    def get_sample_libraries(self, project_id: str, modality: Modalities) -> Iterable[Library]:
-        return Library.objects.filter(samples__in=self.get_samples(project_id, modality)).distinct()
 
     def update_from_last_job(self, save: bool = True) -> None:
         """
@@ -303,17 +292,22 @@ class Dataset(TimestampedModel):
         return Project.objects.none()
 
     @property
+    def samples(self) -> Iterable[Sample]:
+        dataset_samples = Sample.objects.none()
+        for project_id in self.data.keys():
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                dataset_samples |= self.get_project_modality_samples(project_id, modality)
+
+        return dataset_samples
+
+    @property
     def libraries(self) -> Iterable[Library]:
         """Returns all of a Dataset's library, based on Data and Format attrs."""
         dataset_libraries = Library.objects.none()
 
-        for project_config in self.data.values():
+        for project_id in self.data.keys():
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                for sample in Sample.objects.filter(scpca_id__in=project_config[modality]):
-                    sample_libraries = sample.libraries.filter(modality=modality)
-                    if self.format != DatasetFormats.METADATA:
-                        sample_libraries.filter(formats__contains=[self.format])
-                    dataset_libraries |= sample_libraries
+                dataset_libraries |= self.get_project_modality_libraries(project_id, modality)
 
         return dataset_libraries
 
@@ -327,6 +321,9 @@ class Dataset(TimestampedModel):
         data_validator = DataValidator(self.data)
         return data_validator.is_valid
 
+    def get_is_merged_project(self, project_id) -> bool:
+        return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == ["MERGED"]
+
     @property
     def original_files(self) -> Iterable[OriginalFile]:
         """Returns all of a Dataset's associated OriginalFiles."""
@@ -336,18 +333,22 @@ class Dataset(TimestampedModel):
             files |= OriginalFile.downloadable_objects.filter(
                 project_id=project_id,
                 is_spatial=True,
-                sample_ids__overlap=project_config["SPATIAL"],
+                sample_ids__overlap=project_config[DatasetDataProjectConfig.SPATIAL],
             )
 
             # add single-cell supplementary
+            single_cell_sample_ids = [
+                sample.scpca_id
+                for sample in self.get_project_modality_samples(project_id, Modalities.SINGLE_CELL)
+            ]
             files |= OriginalFile.downloadable_objects.filter(
                 project_id=project_id,
                 is_single_cell=True,
                 is_supplementary=True,
-                sample_ids__overlap=project_config["SINGLE_CELL"],
+                sample_ids__overlap=single_cell_sample_ids,
             )
 
-            if project_config["merge_single_cell"]:
+            if self.get_is_merged_project(project_id):
                 merged_files = OriginalFile.downloadable_objects.filter(
                     project_id=project_id, is_merged=True
                 )
@@ -358,9 +359,9 @@ class Dataset(TimestampedModel):
                     project_id=project_id,
                     is_single_cell=True,
                     formats__contains=[self.format],
-                    sample_ids__overlap=project_config["SINGLE_CELL"],
+                    sample_ids__overlap=single_cell_sample_ids,
                 )
-            if project_config["includes_bulk"]:
+            if project_config[DatasetDataProjectConfig.INCLUDES_BULK]:
                 files |= OriginalFile.downloadable_objects.filter(
                     project_id=project_id, is_bulk=True
                 )
@@ -376,13 +377,34 @@ class Dataset(TimestampedModel):
         libraries_metadata = Library.get_libraries_metadata(libraries)
         return metadata_file.get_file_contents(libraries_metadata)
 
+    def get_project_modality_samples(
+        self, project_id: str, modality: Modalities
+    ) -> Iterable[Library]:
+        """
+        Takes project's scpca_id and a modality.
+        Returns Sample instances defined in data attribute.
+        """
+
+        project_samples = Sample.objects.filter(project__scpca_id=project_id)
+        if self.get_is_merged_project(project_id):
+            return project_samples.filter(has_single_cell_data=True)
+        return project_samples.filter(
+            scpca_id__in=self.data.get(project_id, {}).get(modality.value)
+        )
+
     def get_project_modality_libraries(
         self, project_id: str, modality: Modalities
     ) -> Iterable[Library]:
-        """Return all libraries according to a project and modality combination."""
-        return Library.objects.filter(
-            samples__in=self.get_samples(project_id, modality), modality=modality
+        """
+        Takes project's scpca_id and a modality.
+        Returns Library instances associated with Samples defined in data attribute.
+        """
+        libraries = Library.objects.filter(
+            samples__in=self.get_project_modality_samples(project_id, modality)
         ).distinct()
+        if self.format != DatasetFormats.METADATA:
+            libraries = libraries.filter(formats__contains=[self.format])
+        return libraries
 
     def get_project_modality_metadata_file_content(
         self, project_id: str, modality: Modalities
@@ -462,10 +484,10 @@ class Dataset(TimestampedModel):
 
     @property
     def valid_ccdl_dataset(self) -> bool:
-        if not self.libraries:
+        if not self.libraries.exists():
             return False
 
-        return self.projects.filter(**self.ccdl_type.get("constraints", {}))
+        return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
 
     @property
     def computed_file_name(self) -> Path:
@@ -538,9 +560,6 @@ class DataValidator:
         if not self._validate_project_id(project_id):
             return False
 
-        if not self._validate_merge_single_cell(project_id):
-            return False
-
         if not self._validate_includes_bulk(project_id):
             return False
 
@@ -565,12 +584,6 @@ class DataValidator:
         id_number = id.removeprefix(prefix)
         return len(id_number) == 6 and id_number.isdigit()
 
-    def _validate_merge_single_cell(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.MERGE_SINGLE_CELL):
-            return isinstance(value, bool)
-
-        return True
-
     def _validate_includes_bulk(self, project_id) -> bool:
         if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.INCLUDES_BULK):
             return isinstance(value, bool)
@@ -579,6 +592,8 @@ class DataValidator:
 
     def _validate_single_cell(self, project_id) -> bool:
         if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SINGLE_CELL):
+            if value == ["MERGED"]:
+                return True
             return self._validate_modality(value)
 
         return True

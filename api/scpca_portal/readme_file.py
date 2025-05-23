@@ -6,14 +6,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils  # ccdl_datasets,
-from scpca_portal.enums import (
-    CCDLDatasetNames,
-    DatasetDataProjectConfig,
-    DatasetFormats,
-    Modalities,
-)
-
-# from scpca_portal.enums import CCDLDatasetNames
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 OUTPUT_NAME = "README.md"
 
@@ -70,8 +63,7 @@ def add_ann_data_content_rows(content_rows: set, dataset) -> set:
             docs_link = ANN_DATA_WITH_CITE_SEQ_LINK
 
         # ANN_DATA_MERGED
-        if dataset.data[project.scpca_id].get(DatasetDataProjectConfig.MERGE_SINGLE_CELL):
-            docs_link = ANN_DATA_MERGED_LINK
+        if dataset.get_is_merged_project(project.scpca_id):
             # ANN_DATA_MERGED_WITH_CITE
             if project.has_cite_seq_data:
                 docs_link = ANN_DATA_MERGED_WITH_CITE_SEQ_LINK
@@ -92,11 +84,11 @@ def add_single_cell_experiment_content_rows(content_rows: set, dataset) -> set:
         docs_link = SINGLE_CELL_EXPERIMENT_LINK
 
         # SINGLE_CELL_EXPERIMENT_MERGED
-        if dataset.data[project.scpca_id].get(DatasetDataProjectConfig.MERGE_SINGLE_CELL):
+        if dataset.get_is_merged_project(project.scpca_id):
             docs_link = SINGLE_CELL_EXPERIMENT_MERGED_LINK
         # SINGLE_CELL_EXPERIMENT_MULTIPLEXED
         elif (
-            dataset.get_samples(project.scpca_id, Modalities.SINGLE_CELL)
+            dataset.get_project_modality_samples(project.scpca_id, Modalities.SINGLE_CELL)
             .filter(has_multiplexed_data=True)
             .exists()
         ):
