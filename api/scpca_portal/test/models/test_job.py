@@ -4,7 +4,7 @@ from unittest.mock import PropertyMock, patch
 from django.conf import settings
 from django.test import TestCase
 
-from scpca_portal import common, utils
+from scpca_portal import common
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset, Job
 from scpca_portal.test.factories import DatasetFactory, JobFactory
@@ -529,7 +529,7 @@ class TestJob(TestCase):
             Dataset, "estimated_size_in_bytes", new_callable=PropertyMock
         ) as mock_size:
             # job size is below threshold
-            mock_size.return_value = utils.convert_gb_to_bytes(Job.MAX_FARGATE_SIZE_IN_GB - 1)
+            mock_size.return_value = Job.MAX_FARGATE_SIZE_IN_BYTES - 1000
             dataset_job = Job.get_dataset_job(dataset)
             self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
             self.assertEqual(
@@ -537,7 +537,7 @@ class TestJob(TestCase):
             )
 
             # job size is at threshold
-            mock_size.return_value = utils.convert_gb_to_bytes(Job.MAX_FARGATE_SIZE_IN_GB)
+            mock_size.return_value = Job.MAX_FARGATE_SIZE_IN_BYTES
             dataset_job = Job.get_dataset_job(dataset)
             self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
             self.assertEqual(
@@ -545,7 +545,7 @@ class TestJob(TestCase):
             )
 
             # job size is above threshold
-            mock_size.return_value = utils.convert_gb_to_bytes(Job.MAX_FARGATE_SIZE_IN_GB + 1)
+            mock_size.return_value = Job.MAX_FARGATE_SIZE_IN_BYTES + 1000
             dataset_job = Job.get_dataset_job(dataset)
             self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_EC2_JOB_QUEUE_NAME)
             self.assertEqual(

@@ -7,7 +7,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import batch, common, utils
+from scpca_portal import batch, common
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
@@ -45,8 +45,9 @@ class Job(TimestampedModel):
     dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
 
     # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
-    # Number calculated as 2.5x size of dataset which would hit 200 GB ephemeral storage max
-    MAX_FARGATE_SIZE_IN_GB = 80
+    # Number should be half of max fargate ephemeral storage (which is 200 GB)
+    # Each instance downloads all dataset files, copies them to a zip file, and uploads the zip file
+    MAX_FARGATE_SIZE_IN_BYTES = 100 * common.GB_IN_BYTES
 
     def __str__(self):
         if self.batch_job_id:
@@ -86,7 +87,7 @@ class Job(TimestampedModel):
         # dynamically choose queue based on dataset size
         batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
         batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
-        if utils.convert_bytes_to_gb(dataset.estimated_size_in_bytes) > Job.MAX_FARGATE_SIZE_IN_GB:
+        if dataset.estimated_size_in_bytes > Job.MAX_FARGATE_SIZE_IN_BYTES:
             batch_job_queue = settings.AWS_BATCH_EC2_JOB_QUEUE_NAME
             batch_job_definition = settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
 
