@@ -544,7 +544,7 @@ class TestJob(TestCase):
                 dataset_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
             )
 
-            # job size is at threshold
+            # job size is above threshold
             mock_size.return_value = utils.convert_gb_to_bytes(Job.MAX_FARGATE_SIZE_IN_GB + 1)
             dataset_job = Job.get_dataset_job(dataset)
             self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_EC2_JOB_QUEUE_NAME)
