@@ -153,10 +153,10 @@ def path_replace(path: Path, old_value: str, new_value: str) -> Path:
 
 
 def convert_bytes_to_gb(size_in_bytes: int | float) -> float:
-    """Return a number currently in bytes its equivalent value in gigabytes."""
+    """Return the converted value in gb for a number originally in bytes."""
     return size_in_bytes / 1000000000
 
 
 def convert_gb_to_bytes(size_in_gb: int | float) -> int:
-    """Return a number currently in gigabytes its equivalent value in bytes."""
+    """Return the converted value in bytes for a number originally in gigabytes."""
     return int(size_in_gb * 1000000000)
