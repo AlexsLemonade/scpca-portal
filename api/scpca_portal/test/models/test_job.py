@@ -1,12 +1,12 @@
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
 from django.test import TestCase
 
-from scpca_portal import common
+from scpca_portal import common, utils
 from scpca_portal.enums import JobStates
-from scpca_portal.models import Job
+from scpca_portal.models import Dataset, Job
 from scpca_portal.test.factories import DatasetFactory, JobFactory
 
 
@@ -522,3 +522,29 @@ class TestJob(TestCase):
             self.assertEqual(job.batch_job_queue, batch_job_queue)
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
             self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
+
+    def test_dynamically_set_dataset_job_pipeline(self):
+        dataset = DatasetFactory()
+        with patch.object(
+            Dataset, "estimated_size_in_bytes", new_callable=PropertyMock
+        ) as mock_size:
+            mock_size.return_value = utils.convert_gb_to_bytes(Job.MAX_FARGATE_SIZE_IN_GB - 1)
+            dataset_job = Job.get_dataset_job(dataset)
+            self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
+            self.assertEqual(
+                dataset_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+            )
+
+            mock_size.return_value = utils.convert_gb_to_bytes(Job.MAX_FARGATE_SIZE_IN_GB)
+            dataset_job = Job.get_dataset_job(dataset)
+            self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
+            self.assertEqual(
+                dataset_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+            )
+
+            mock_size.return_value = utils.convert_gb_to_bytes(Job.MAX_FARGATE_SIZE_IN_GB + 1)
+            dataset_job = Job.get_dataset_job(dataset)
+            self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_EC2_JOB_QUEUE_NAME)
+            self.assertEqual(
+                dataset_job.batch_job_definition, settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
+            )
