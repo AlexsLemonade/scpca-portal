@@ -7,10 +7,13 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import batch, common
+from scpca_portal import batch, common, utils
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
+
+# Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
+MAX_FARGATE_SIZE_IN_GB = 200
 
 
 class Job(TimestampedModel):
@@ -79,10 +82,17 @@ class Job(TimestampedModel):
         # TODO: we should allow for users to request no notification via Dataset.notify attr
         notify_flag = "--notify" if (not dataset.is_ccdl or notify) else ""
 
+        # dynamically choose queue based on dataset size
+        batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
+        batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+        if utils.convert_bytes_to_gb(dataset.estimated_size_in_bytes) > MAX_FARGATE_SIZE_IN_GB:
+            batch_job_queue = settings.AWS_BATCH_EC2_JOB_QUEUE_NAME
+            batch_job_definition = settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
+
         return cls(
             batch_job_name=dataset.id,
-            batch_job_queue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
-            batch_job_definition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
+            batch_job_queue=batch_job_queue,
+            batch_job_definition=batch_job_definition,
             batch_container_overrides={
                 "command": [
                     "python",
