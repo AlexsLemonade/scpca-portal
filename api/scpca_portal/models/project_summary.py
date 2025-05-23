@@ -6,9 +6,10 @@ from scpca_portal.models.base import TimestampedModel
 class ProjectSummary(TimestampedModel):
     """One of multiple summaries of a project.
 
-    There will be one of these per combination of `diagnosis`,
-    `seq_unit`, and `technology`. `sample_count` denotes how many
-    samples in the project have those values. For example:
+    There will be one of these per project samples `diagnosis`,
+    each sample's libraries `seq_unit` and `technology`.
+    `sample_count` denotes how many samples in the project have those values.
+    For example:
         diagnosis=AML
         seq_unit=cell
         technology=10Xv2_5prime
