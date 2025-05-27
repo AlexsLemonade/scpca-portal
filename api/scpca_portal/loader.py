@@ -181,6 +181,17 @@ def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_d
     connection.close()
 
 
+def process_dataset(
+    dataset,
+    update_s3: bool = True,
+) -> None:
+    if old_dataset_file := dataset.computed_file:
+        old_dataset_file.purge(update_s3)
+
+    dataset_file = ComputedFile.get_dataset_file(dataset)
+    _create_computed_file(dataset_file, update_s3, clean_up_output_data=False)
+
+
 def generate_computed_file(
     *,
     download_config: Dict,
