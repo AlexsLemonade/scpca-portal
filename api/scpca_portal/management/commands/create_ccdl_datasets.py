@@ -1,4 +1,5 @@
 import logging
+from argparse import BooleanOptionalAction
 
 from django.core.management.base import BaseCommand
 
@@ -15,15 +16,21 @@ class Command(BaseCommand):
     Create all ccdl datasets and dispatch them as jobs to AWS Batch.
     """
 
+    def add_arguments(self, parser):
+        parser.add_argument("--ignore-hash", type=bool, default=False, action=BooleanOptionalAction)
+
     def handle(self, *args, **kwargs):
         self.create_ccdl_datasets(**kwargs)
 
-    def attempt_dataset(self, ccdl_name, project_id: str | None = None) -> bool:
+    def attempt_dataset(
+        self, ccdl_name, project_id: str | None = None, ignore_hash: bool = False
+    ) -> bool:
         dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
         if not found and not dataset.valid_ccdl_dataset:
             return False
-        if found and not dataset.is_hash_changed:
-            return False
+        if found:
+            if not dataset.is_hash_changed and not ignore_hash:
+                return False
         dataset.save()
 
         job = Job.get_dataset_job(dataset)
