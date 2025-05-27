@@ -92,7 +92,7 @@ class Job(TimestampedModel):
             batch_job_definition = settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
 
         return cls(
-            batch_job_name=dataset.id,
+            batch_job_name=str(dataset.id),
             batch_job_queue=batch_job_queue,
             batch_job_definition=batch_job_definition,
             batch_container_overrides={
