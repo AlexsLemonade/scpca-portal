@@ -1,8 +1,8 @@
 from unittest.mock import patch
 
-from django.urls import reverse
 from django.conf import settings
 from django.core.management import call_command
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
