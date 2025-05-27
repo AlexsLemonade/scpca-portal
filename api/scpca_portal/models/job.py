@@ -81,9 +81,6 @@ class Job(TimestampedModel):
         Prepare a Job instance for a dataset without saving it to the db.
         """
 
-        # TODO: we should allow for users to request no notification via Dataset.notify attr
-        notify_flag = "--notify" if (not dataset.is_ccdl or notify) else ""
-
         # dynamically choose queue based on dataset size
         batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
         batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
@@ -91,20 +88,24 @@ class Job(TimestampedModel):
             batch_job_queue = settings.AWS_BATCH_EC2_JOB_QUEUE_NAME
             batch_job_definition = settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
 
+        batch_container_overrides = {
+            "command": [
+                "python",
+                "manage.py",
+                "generate_computed_file",
+                "--dataset-id",
+                str(dataset.id),
+            ],
+        }
+        # TODO: we should allow for users to request no notification via Dataset.notify attr
+        if not dataset.is_ccdl or notify:
+            batch_container_overrides["command"].append("--notify")
+
         return cls(
             batch_job_name=str(dataset.id),
             batch_job_queue=batch_job_queue,
             batch_job_definition=batch_job_definition,
-            batch_container_overrides={
-                "command": [
-                    "python",
-                    "manage.py",
-                    "generate_computed_file",
-                    "--dataset-id",
-                    str(dataset.id),
-                    notify_flag,
-                ],
-            },
+            batch_container_overrides=batch_container_overrides,
             dataset=dataset,
         )
 
