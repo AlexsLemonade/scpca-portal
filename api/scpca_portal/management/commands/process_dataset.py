@@ -32,6 +32,8 @@ class Command(BaseCommand):
         self.process_dataset(**kwargs)
 
     def process_dataset(self, dataset_id: str, notify: bool, **kwargs) -> None:
+        loader.prep_data_dirs()
+
         dataset = Dataset.objects.filter(id=dataset_id).first()
         if not dataset:
             logger.error(f"{dataset} does not exist.")
