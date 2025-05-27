@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+from django.conf import settings
+from django.core.management import call_command
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -13,6 +15,7 @@ class DatasetsTestCase(APITestCase):
     """Tests /datasets/ operations."""
 
     def setUp(self):
+        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         self.token = APIToken(email="user@example.com", is_activated=True)
         self.token.save()
 

@@ -250,7 +250,7 @@ class Job(TimestampedModel):
         ]
         cls.objects.bulk_update(synced_jobs, updated_attrs)
 
-        Dataset.update_from_last_jobs([job.dataset for job in synced_jobs])
+        Dataset.update_from_last_jobs([job.dataset for job in synced_jobs if job.dataset])
 
     @classmethod
     def bulk_sync_state(cls) -> bool:
