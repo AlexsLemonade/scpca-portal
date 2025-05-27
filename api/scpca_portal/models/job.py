@@ -92,7 +92,7 @@ class Job(TimestampedModel):
             "command": [
                 "python",
                 "manage.py",
-                "generate_computed_file",
+                "process_dataset",
                 "--dataset-id",
                 str(dataset.id),
             ],
