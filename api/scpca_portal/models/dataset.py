@@ -102,7 +102,10 @@ class Dataset(TimestampedModel):
 
     @property
     def estimated_size_in_bytes(self) -> int:
-        return self.original_files.aggregate(models.Sum("size_in_bytes")).get("size_in_bytes__sum")
+        estimated_size_in_bytes = self.original_files.aggregate(models.Sum("size_in_bytes")).get(
+            "size_in_bytes__sum"
+        )
+        return estimated_size_in_bytes if estimated_size_in_bytes else 0
 
     @property
     def stats(self) -> Dict:
