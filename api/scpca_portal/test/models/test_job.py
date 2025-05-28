@@ -52,18 +52,10 @@ class TestJob(TestCase):
         # Set up mock for submit_job
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
-        project_id = "SCPCP000000"
 
-        job = Job.get_project_job(
-            project_id=project_id,
-            download_config_name="MOCK_DOWNLOAD_CONFIG_NAME",
-        )
-
-        # TODO: Temporary add dataset - removed later
-        job.dataset = DatasetFactory(is_processing=False)
-
-        # Before submission, the job instance should not have an ID
-        self.assertIsNone(job.id)
+        dataset = DatasetFactory(is_processing=False)
+        job = Job.get_dataset_job(dataset)
+        job.dataset = dataset
 
         job.submit()
         mock_batch_submit_job.assert_called_once()
@@ -81,8 +73,8 @@ class TestJob(TestCase):
         self.assertEqual(
             saved_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
         )
-        self.assertIn("--project-id", saved_job.batch_container_overrides["command"])
-        self.assertIn(project_id, saved_job.batch_container_overrides["command"])
+        self.assertIn("--job-id", saved_job.batch_container_overrides["command"])
+        self.assertIn(str(job.id), saved_job.batch_container_overrides["command"])
         self.assertEqual(saved_job.state, JobStates.PROCESSING)
         self.assertIsInstance(saved_job.processing_at, datetime)
 
@@ -523,7 +515,12 @@ class TestJob(TestCase):
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
             self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
 
-    def test_dynamically_set_dataset_job_pipeline(self):
+    @patch("scpca_portal.batch.submit_job")
+    def test_dynamically_set_dataset_job_pipeline(self, mock_batch_submit_job):
+        # Set up mock for submit_job
+        mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
+        mock_batch_submit_job.return_value = mock_batch_job_id
+
         dataset = DatasetFactory()
         with patch.object(
             Dataset, "estimated_size_in_bytes", new_callable=PropertyMock
@@ -531,6 +528,7 @@ class TestJob(TestCase):
             # job size is below threshold
             mock_size.return_value = Job.MAX_FARGATE_SIZE_IN_BYTES - 1000
             dataset_job = Job.get_dataset_job(dataset)
+            dataset_job.submit()
             self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
             self.assertEqual(
                 dataset_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
@@ -539,6 +537,7 @@ class TestJob(TestCase):
             # job size is at threshold
             mock_size.return_value = Job.MAX_FARGATE_SIZE_IN_BYTES
             dataset_job = Job.get_dataset_job(dataset)
+            dataset_job.submit()
             self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME)
             self.assertEqual(
                 dataset_job.batch_job_definition, settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
@@ -547,6 +546,7 @@ class TestJob(TestCase):
             # job size is above threshold
             mock_size.return_value = Job.MAX_FARGATE_SIZE_IN_BYTES + 1000
             dataset_job = Job.get_dataset_job(dataset)
+            dataset_job.submit()
             self.assertEqual(dataset_job.batch_job_queue, settings.AWS_BATCH_EC2_JOB_QUEUE_NAME)
             self.assertEqual(
                 dataset_job.batch_job_definition, settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
