@@ -39,8 +39,10 @@ class Command(BaseCommand):
         job = Job.objects.filter(id=job_id).first()
         if not job:
             logger.error(f"{job_id} does not exist.")
+            return
         if not job.dataset:
             logger.error(f"{job_id} does not have a dataset.")
+            return
 
         try:
             job.process_dataset_job()
