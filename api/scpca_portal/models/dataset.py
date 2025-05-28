@@ -288,6 +288,10 @@ class Dataset(TimestampedModel):
         return self.combined_hash != self.current_combined_hash
 
     @property
+    def is_hash_unchanged(self) -> bool:
+        return not self.is_hash_changed
+
+    @property
     def projects(self) -> Iterable[Project]:
         """Returns all Project instances associated with the Dataset."""
         if project_ids := self.data.keys():

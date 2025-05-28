@@ -1,10 +1,12 @@
 import logging
 from argparse import BooleanOptionalAction
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from scpca_portal import loader, notifications
-from scpca_portal.models import Dataset
+from scpca_portal.enums import JobStates
+from scpca_portal.models import Job
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -23,19 +25,31 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("--dataset-id", type=str)
-        parser.add_argument("--notify", type=bool, default=False, action=BooleanOptionalAction)
+        parser.add_argument("--job-id", type=str)
+        parser.add_argument(
+            "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
+        )
 
     def handle(self, *args, **kwargs):
         self.process_dataset(**kwargs)
 
-    def process_dataset(self, dataset_id: str, notify: bool, **kwargs) -> None:
+    def process_dataset(self, job_id: str, **kwargs) -> None:
         loader.prep_data_dirs()
 
-        dataset = Dataset.objects.filter(id=dataset_id).first()
-        if not dataset:
-            logger.error(f"{dataset} does not exist.")
-        loader.process_dataset(dataset)
+        job = Job.objects.filter(id=job_id).first()
+        if not job:
+            logger.error(f"{job_id} does not exist.")
+        if not job.dataset:
+            logger.error(f"{job_id} does not have a dataset.")
 
-        if notify:
-            notifications.send_dataset_file_completed_email(dataset_id)
+        try:
+            job.process_dataset_job()
+            job.state = JobStates.SUCCEEDED
+        except Exception:
+            job.state = JobStates.FAILED
+
+        job.update_state_at()
+        job.save()
+
+        if job.dataset.email:
+            notifications.send_dataset_file_completed_email(job)

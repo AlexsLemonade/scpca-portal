@@ -7,10 +7,11 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import batch, common
+from scpca_portal import batch, common, s3
 from scpca_portal.enums import JobStates
-from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.dataset import Dataset
 
 
 class Job(TimestampedModel):
@@ -76,38 +77,32 @@ class Job(TimestampedModel):
                 return JobStates.PROCESSING, None
 
     @classmethod
-    def get_dataset_job(cls, dataset: Dataset, notify: bool = False) -> Self:
+    def get_dataset_job(cls, dataset: Dataset) -> Self:
         """
         Prepare a Job instance for a dataset without saving it to the db.
         """
-
-        # dynamically choose queue based on dataset size
-        batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
-        batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
-        if dataset.estimated_size_in_bytes > Job.MAX_FARGATE_SIZE_IN_BYTES:
-            batch_job_queue = settings.AWS_BATCH_EC2_JOB_QUEUE_NAME
-            batch_job_definition = settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
-
-        batch_container_overrides = {
-            "command": [
-                "python",
-                "manage.py",
-                "process_dataset",
-                "--dataset-id",
-                str(dataset.id),
-            ],
-        }
-        # TODO: we should allow for users to request no notification via Dataset.notify attr
-        if not dataset.is_ccdl or notify:
-            batch_container_overrides["command"].append("--notify")
-
         return cls(
             batch_job_name=str(dataset.id),
-            batch_job_queue=batch_job_queue,
-            batch_job_definition=batch_job_definition,
-            batch_container_overrides=batch_container_overrides,
             dataset=dataset,
         )
+
+    def process_dataset_job(
+        self,
+        update_s3: bool = True,
+        clean_up_output_data=False,
+    ) -> None:
+        if old_dataset_file := self.dataset.computed_file:
+            old_dataset_file.purge(update_s3)
+
+        computed_file = ComputedFile.get_dataset_file(self.dataset)
+
+        if update_s3:
+            s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
+
+        computed_file.save()
+
+        if clean_up_output_data:
+            computed_file.clean_up_local_computed_file()
 
     @classmethod
     def get_project_job(
@@ -320,6 +315,29 @@ class Job(TimestampedModel):
         """
         if self.state is not JobStates.PENDING:
             return False
+
+        # if job has dataset, dynamically configure job and save before submitting
+        if self.dataset:
+            # dynamically choose queue based on dataset size
+            self.batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
+            self.batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+            if self.dataset.estimated_size_in_bytes > Job.MAX_FARGATE_SIZE_IN_BYTES:
+                self.batch_job_queue = settings.AWS_BATCH_EC2_JOB_QUEUE_NAME
+                self.batch_job_definition = settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
+
+            self.save()
+
+            self.batch_container_overrides = {
+                "command": [
+                    "python",
+                    "manage.py",
+                    "process_dataset",
+                    "--job-id",
+                    str(self.id),
+                ],
+            }
+
+            self.save()
 
         job_id = batch.submit_job(self)
 
