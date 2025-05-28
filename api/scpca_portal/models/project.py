@@ -450,11 +450,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         summaries_counts = Counter()
         technologies = set()
 
-        # Get the seq_unit and technology values of bulk libraries to exclude them later
-        bulk_libraries = Library.objects.filter(modality=Modalities.BULK_RNA_SEQ)
-        bulk_seq_units = set(bulk_libraries.values_list("metadata__seq_unit", flat=True))
-        bulk_technologies = set(bulk_libraries.values_list("metadata__technology", flat=True))
-
         for sample in self.samples.all():
             additional_metadata_keys.update(sample.additional_metadata.keys())
             diagnoses_counts.update({sample.diagnosis: 1})
@@ -464,19 +459,14 @@ class Project(CommonDataAttributes, TimestampedModel):
             if "organism" in sample.additional_metadata:
                 organisms.add(sample.additional_metadata["organism"])
 
-            # Exclude bulk values from the sample's metadata
-            sample_seq_units = set(sample.seq_units.split(", ")) - bulk_seq_units
-            sample_technologies = set(sample.technologies.split(", ")) - bulk_technologies
+            # We currently exlude bulk data in the project summary and aggregate values
+            for library in sample.libraries.exclude(modality=Modalities.BULK_RNA_SEQ):
+                seq_unit = library.metadata.get("seq_unit", "").strip()
+                technology = library.metadata.get("technology", "").strip()
+                summaries_counts.update({(sample.diagnosis, seq_unit, technology): 1})
 
-            # TODO: Revise to remove invalid combinations (e.g., 'bulk' with '10Xv3') for accuracy
-            for seq_unit in sample_seq_units:
-                for technology in sample_technologies:
-                    summaries_counts.update(
-                        {(sample.diagnosis, seq_unit.strip(), technology.strip()): 1}
-                    )
-
-            seq_units.update(sample_seq_units)
-            technologies.update(sample_technologies)
+                seq_units.add(seq_unit)
+                technologies.add(technology)
 
         diagnoses_strings = sorted(
             (f"{diagnosis} ({count})" for diagnosis, count in diagnoses_counts.items())
