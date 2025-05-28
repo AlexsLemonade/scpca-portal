@@ -13,10 +13,8 @@ logger.addHandler(logging.StreamHandler())
 
 class Command(BaseCommand):
     help = """
-    This command is meant to be called as an entrypoint to AWS Batch Fargate job instance.
-    Individual files are computed according:
-        - To the project or sample id
-        - An appropriate corresponding download config
+    This command is meant to be called as an entrypoint to a AWS Batch job instance.
+    Individual files are computed according to their passed dataset.
 
     When computation is completed, files are uploaded to S3, and the job is marked as completed.
 
