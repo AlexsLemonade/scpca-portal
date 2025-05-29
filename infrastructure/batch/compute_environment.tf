@@ -41,7 +41,7 @@ resource "aws_batch_compute_environment" "scpca_portal_ec2" {
 
     launch_template {
       launch_template_id = aws_launch_template.scpca_portal_ec2.id
-      version = aws_launch_template.scpca_portal_ec2.latest_version
+      version = "$Latest"
     }
 
   }
