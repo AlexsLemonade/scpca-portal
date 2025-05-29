@@ -60,7 +60,7 @@ resource "aws_launch_template" "scpca_portal_ec2" {
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {
-      volume_size = 500
+      volume_size = 800
       volume_type = "gp3"
       delete_on_termination = true
     }
