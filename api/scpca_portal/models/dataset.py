@@ -102,7 +102,10 @@ class Dataset(TimestampedModel):
 
     @property
     def estimated_size_in_bytes(self) -> int:
-        return self.original_files.aggregate(models.Sum("size_in_bytes")).get("size_in_bytes__sum")
+        estimated_size_in_bytes = self.original_files.aggregate(models.Sum("size_in_bytes")).get(
+            "size_in_bytes__sum"
+        )
+        return estimated_size_in_bytes if estimated_size_in_bytes else 0
 
     @property
     def stats(self) -> Dict:
@@ -283,6 +286,10 @@ class Dataset(TimestampedModel):
         or for datasets where at least one hash attribute has changed.
         """
         return self.combined_hash != self.current_combined_hash
+
+    @property
+    def is_hash_unchanged(self) -> bool:
+        return not self.is_hash_changed
 
     @property
     def projects(self) -> Iterable[Project]:
