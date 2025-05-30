@@ -14,6 +14,10 @@ resource "aws_batch_compute_environment" "scpca_portal_fargate" {
 
   }
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   service_role = aws_iam_role.batch_service_role.arn
   type         = "MANAGED"
   depends_on   = [aws_iam_role_policy_attachment.batch_service_role]
@@ -48,6 +52,10 @@ resource "aws_batch_compute_environment" "scpca_portal_ec2" {
       version = "$Latest"
     }
 
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   service_role = aws_iam_role.batch_service_role.arn
