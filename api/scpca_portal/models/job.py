@@ -100,6 +100,8 @@ class Job(TimestampedModel):
             s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
 
         computed_file.save()
+        self.dataset.computed_file = computed_file
+        self.dataset.save()
 
         if clean_up_output_data:
             computed_file.clean_up_local_computed_file()
