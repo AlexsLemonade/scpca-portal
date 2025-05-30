@@ -41,6 +41,10 @@ resource "aws_batch_compute_environment" "scpca_portal_ec2" {
 
     launch_template {
       launch_template_id = aws_launch_template.scpca_portal_ec2.id
+      # The version attr was changed from aws_launch_template.scpca_portal_ec2.latest_version to $Latest
+      # because the latest_version attribute kept switching versions unexpectedly in between deploys.
+      # This ultimately necessitated the spinning down of the entire stack
+      # due to a chicken and egg situation with the compute env and its linked job queue.
       version = "$Latest"
     }
 
