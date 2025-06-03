@@ -21,7 +21,7 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("--sender", type=str, default=settings.TEST_EMAIL_SENDER)
+        parser.add_argument("--sender", type=str, default=settings.EMAIL_SENDER)
         parser.add_argument("--recipient", type=str, default=settings.TEST_EMAIL_RECIPIENT)
 
     def handle(self, *args, **kwargs):
@@ -43,8 +43,8 @@ class Command(BaseCommand):
 
         response = batch.submit_job(
             jobName=job_name,
-            jobQueue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            jobDefinition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            jobQueue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
+            jobDefinition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
             containerOverrides={
                 "command": command,
             },

@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 from unittest.mock import PropertyMock, patch
 
@@ -38,7 +39,6 @@ class TestDataset(TestCase):
         # Valid project id
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL.value: ["SCPCS999992"],
@@ -49,7 +49,6 @@ class TestDataset(TestCase):
         # Incorrect project ids
         data = {
             "project_id": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL.value: ["SCPCS999992"],
@@ -60,7 +59,6 @@ class TestDataset(TestCase):
         # Lack of SCPCP prefix
         data = {
             "SCPCA999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL.value: ["SCPCS999992"],
@@ -71,7 +69,6 @@ class TestDataset(TestCase):
         # Incorrect number of digits
         data = {
             "SCPCP9999900": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL.value: ["SCPCS999992"],
@@ -84,7 +81,6 @@ class TestDataset(TestCase):
         # Valid config
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL.value: ["SCPCS999992"],
@@ -98,31 +94,9 @@ class TestDataset(TestCase):
         }
         self.assertTrue(DatasetFactory(data=data).is_data_valid)
 
-        # Merge single cell - missing (valid)
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        self.assertTrue(DatasetFactory(data=data).is_data_valid)
-
-        # Merge single cell - wrong data type (invalid)
-        data = {
-            "SCPCP999990": {
-                "merge_single_cell": "True",
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
-
         # Includes bulk - missing (valid)
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
@@ -132,7 +106,6 @@ class TestDataset(TestCase):
         # Includes bulk - wrong data type (invalid)
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": "True",
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL.value: ["SCPCS999992"],
@@ -143,7 +116,6 @@ class TestDataset(TestCase):
         # Single Cell - missing (valid)
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
@@ -153,7 +125,6 @@ class TestDataset(TestCase):
         # Single Cell - wrong data type (invalid)
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: "SCPCS999990",
                 Modalities.SPATIAL.value: ["SCPCS999992"],
@@ -161,10 +132,20 @@ class TestDataset(TestCase):
         }
         self.assertFalse(DatasetFactory(data=data).is_data_valid)
 
+        # Merge single cell - wrong data type (invalid)
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: "MERGED",  # should be ["MERGED"]
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+
+        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+
         # Single Cell - wrong inner data type (invalid)
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: [1, 2, 3],
                 Modalities.SPATIAL.value: ["SCPCS999992"],
@@ -175,7 +156,6 @@ class TestDataset(TestCase):
         # Single Cell - invalid sample id (invalid)
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["sample_id"],
                 Modalities.SPATIAL.value: ["SCPCS999992"],
@@ -186,7 +166,6 @@ class TestDataset(TestCase):
         # Spatial - missing (valid)
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
             },
@@ -196,7 +175,6 @@ class TestDataset(TestCase):
         # Spatial - wrong data type (invalid)
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL.value: "SCPCS999992",
@@ -207,7 +185,6 @@ class TestDataset(TestCase):
         # Spatial - wrong inner data type (invalid)
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL.value: [1, 2, 3],
@@ -218,7 +195,6 @@ class TestDataset(TestCase):
         # Spatial - invalid sample id (invalid)
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL.value: ["sample_id"],
@@ -285,7 +261,6 @@ class TestDataset(TestCase):
         # SINGLE_CELL SCE
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": False,
                 Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
                 Modalities.SPATIAL: [],
@@ -310,7 +285,6 @@ class TestDataset(TestCase):
         # SINGLE_CELL ANN_DATA
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": False,
                 Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
                 Modalities.SPATIAL: [],
@@ -335,9 +309,8 @@ class TestDataset(TestCase):
         # SINGLE_CELL SCE MERGED
         data = {
             "SCPCP999990": {
-                "merge_single_cell": True,
                 "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SINGLE_CELL: ["MERGED"],
                 Modalities.SPATIAL: [],
             },
         }
@@ -356,9 +329,8 @@ class TestDataset(TestCase):
         # SINGLE_CELL ANN_DATA MERGED
         data = {
             "SCPCP999990": {
-                "merge_single_cell": True,
                 "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SINGLE_CELL: ["MERGED"],
                 Modalities.SPATIAL: [],
             },
         }
@@ -376,7 +348,6 @@ class TestDataset(TestCase):
         # SPATIAL SCE
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": False,
                 Modalities.SINGLE_CELL: [],
                 Modalities.SPATIAL: ["SCPCS999991"],
@@ -417,7 +388,6 @@ class TestDataset(TestCase):
         # BULK
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL: [],
                 Modalities.SPATIAL: [],
@@ -434,21 +404,18 @@ class TestDataset(TestCase):
         # MIXED USAGE
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999991"],
                 Modalities.SPATIAL: ["SCPCS999997"],
             },
             "SCPCP999991": {
-                "merge_single_cell": False,
                 "includes_bulk": False,
                 Modalities.SINGLE_CELL: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
                 Modalities.SPATIAL: [],
             },
             "SCPCP999992": {
-                "merge_single_cell": True,
                 "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+                Modalities.SINGLE_CELL: ["MERGED"],
                 Modalities.SPATIAL: [],
             },
         }
@@ -456,24 +423,28 @@ class TestDataset(TestCase):
         dataset = Dataset(data=data, format=format)
         expected_files = {
             Path("SCPCP999990/bulk/SCPCP999990_bulk_metadata.tsv"),
-            Path("SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_filtered.rds"),
+            Path("SCPCP999990/bulk/SCPCP999990_bulk_quant.tsv"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html"),
             Path("SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_processed.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_qc.html"),
+            Path("SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_filtered.rds"),
+            Path("SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_unfiltered.rds"),
             Path("SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_processed.rds"),
             Path("SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_qc.html"),
-            Path("SCPCP999991/SCPCS999995/SCPCL999995_unfiltered.rds"),
             Path("SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_celltype-report.html"),
+            Path("SCPCP999991/SCPCS999995/SCPCL999995_unfiltered.rds"),
             Path("SCPCP999991/SCPCS999995/SCPCL999995_processed.rds"),
-            Path("SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html"),
             Path("SCPCP999991/SCPCS999995/SCPCL999995_celltype-report.html"),
-            Path("SCPCP999990/SCPCS999990/SCPCL999990_processed.rds"),
-            Path("SCPCP999990/bulk/SCPCP999990_bulk_quant.tsv"),
             Path("SCPCP999991/SCPCS999995/SCPCL999995_qc.html"),
-            Path("SCPCP999990/SCPCS999990/SCPCL999990_qc.html"),
-            Path("SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_unfiltered.rds"),
-            Path("SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds"),
-            Path("SCPCP999992/merged/SCPCP999992_merged.rds"),
             Path("SCPCP999991/SCPCS999995/SCPCL999995_filtered.rds"),
+            Path("SCPCP999992/merged/SCPCP999992_merged.rds"),
             Path("SCPCP999992/merged/SCPCP999992_merged-summary-report.html"),
+            Path("SCPCP999992/SCPCS999996/SCPCL999996_celltype-report.html"),
+            Path("SCPCP999992/SCPCS999996/SCPCL999996_qc.html"),
+            Path("SCPCP999992/SCPCS999998/SCPCL999998_celltype-report.html"),
+            Path("SCPCP999992/SCPCS999998/SCPCL999998_qc.html"),
         }
         self.assertEqual(dataset.original_file_paths, expected_files)
 
@@ -502,7 +473,6 @@ class TestDataset(TestCase):
     def test_current_metadata_hash(self):
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": False,
                 Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
                 Modalities.SPATIAL: [],
@@ -512,13 +482,12 @@ class TestDataset(TestCase):
         dataset = Dataset(data=data, format=format)
 
         # TODO: add to expected_values dataset file (along with other hash values)
-        expected_metadata_hash = "0b7dbc87e8b07426b8cc54653f99459f"
+        expected_metadata_hash = "46ed5abd84c4b86ef348779b045b8cdf"
         self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
     def test_current_readme_hash(self):
         data = {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": False,
                 Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
                 Modalities.SPATIAL: [],
@@ -531,3 +500,36 @@ class TestDataset(TestCase):
         )
         expected_readme_hash = "93ce0b3571f15cd41db81d9e25dcb873"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
+
+    def estimated_size_in_bytes(self):
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+        expected_files = {
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_qc.html"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_processed.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_celltype-report.html"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_qc.html"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_unfiltered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_filtered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_processed.rds"),
+        }
+        expected_file_size = 0
+        for file in expected_files:
+            original_file = OriginalFile.objects.filter(s3_key=str(file)).first()
+            random_file_size = random.randint(1, 1000000000)
+            original_file.size_in_bytes = random_file_size
+            original_file.save()
+
+            expected_file_size += original_file.size_in_bytes
+
+        self.assertEqual(dataset.estimated_size_in_bytes, expected_file_size)

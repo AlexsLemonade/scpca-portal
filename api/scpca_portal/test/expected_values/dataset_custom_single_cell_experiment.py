@@ -5,21 +5,18 @@ class DatasetCustomSingleCellExperiment:
     VALUES = {
         "data": {
             "SCPCP999990": {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
                 Modalities.SPATIAL: ["SCPCS999991"],
             },
             "SCPCP999991": {
-                "merge_single_cell": False,
                 "includes_bulk": False,
                 Modalities.SINGLE_CELL: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
                 Modalities.SPATIAL: [],
             },
             "SCPCP999992": {
-                "merge_single_cell": True,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SINGLE_CELL: ["MERGED"],
                 Modalities.SPATIAL: [],
             },
         },

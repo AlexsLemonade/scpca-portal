@@ -52,8 +52,10 @@ resource "aws_instance" "api_server_1" {
           database_user = aws_db_instance.postgres_db.username
           database_name = aws_db_instance.postgres_db.db_name
           database_password = var.database_password
-          aws_batch_job_queue_name = module.batch.job_queue_name
-          aws_batch_job_definition_name = module.batch.job_definition_name
+          aws_batch_fargate_job_queue_name = module.batch.job_queue_name_fargate
+          aws_batch_fargate_job_definition_name = module.batch.job_definition_name_fargate
+          aws_batch_ec2_job_queue_name = module.batch.job_queue_name_ec2
+          aws_batch_ec2_job_definition_name = module.batch.job_definition_name_ec2
           aws_region  = var.region
           aws_s3_bucket_name = aws_s3_bucket.scpca_portal_bucket.id
           aws_ses_domain = var.ses_domain

@@ -20,8 +20,10 @@ class Production(Common):
     AWS_S3_OUTPUT_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME")
 
     # AWS Batch
-    AWS_BATCH_JOB_QUEUE_NAME = os.environ.get("AWS_BATCH_JOB_QUEUE_NAME")
-    AWS_BATCH_JOB_DEFINITION_NAME = os.environ.get("AWS_BATCH_JOB_DEFINITION_NAME")
+    AWS_BATCH_FARGATE_JOB_QUEUE_NAME = os.environ.get("AWS_BATCH_FARGATE_JOB_QUEUE_NAME")
+    AWS_BATCH_FARGATE_JOB_DEFINITION_NAME = os.environ.get("AWS_BATCH_FARGATE_JOB_DEFINITION_NAME")
+    AWS_BATCH_EC2_JOB_QUEUE_NAME = os.environ.get("AWS_BATCH_EC2_JOB_QUEUE_NAME")
+    AWS_BATCH_EC2_JOB_DEFINITION_NAME = os.environ.get("AWS_BATCH_EC2_JOB_DEFINITION_NAME")
 
     # https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#cache-control
     # Response can be cached by browser and any intermediary caches

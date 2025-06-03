@@ -235,3 +235,13 @@ class TestPathReplace(TestCase):
         expected_folder_count = 3
         actual_folder_count = str(new_path).count(new_value)
         self.assertEqual(actual_folder_count, expected_folder_count)
+
+
+class TestByteConversions(TestCase):
+    def test_convert_bytes_to_gb(self):
+        size_in_bytes = 1234567890
+        self.assertEqual(utils.convert_bytes_to_gb(size_in_bytes), 1.23456789)
+
+    def test_convert_gb_to_bytes(self):
+        size_in_bytes = 1.23456789
+        self.assertEqual(utils.convert_bytes_to_gb(size_in_bytes), 1234567890)

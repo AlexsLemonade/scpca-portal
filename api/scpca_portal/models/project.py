@@ -174,6 +174,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             ):
                 return self.libraries.none()
 
+        # non-bulk libraries
         libraries_queryset = self.libraries.filter(
             modality=download_config["modality"],
             formats__contains=[download_config["format"]],
@@ -258,6 +259,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         self.load_samples()
         self.load_libraries()
+        if self.has_bulk_rna_seq:
+            self.load_bulk_libraries()
 
         self.update_sample_derived_properties()
         self.update_project_derived_properties()
@@ -289,6 +292,21 @@ class Project(CommonDataAttributes, TimestampedModel):
                 # we should skip creating that library as the sample won't exist.
                 if sample := self.samples.filter(scpca_id=sample_id).first():
                     Library.bulk_create_from_dicts([library_metadata], sample)
+
+    def load_bulk_libraries(self) -> None:
+        """
+        Parses bulk metadata tsv files and create Library objets for bulk-only samples
+        """
+        if not self.has_bulk_rna_seq:
+            raise Exception("Trying to load bulk libraries for project with no bulk data")
+
+        all_bulk_libraries_metadata = metadata_file.load_bulk_metadata(
+            self.input_bulk_metadata_file_path
+        )
+        for library_metadata in all_bulk_libraries_metadata:
+            sample_id = library_metadata["scpca_sample_id"]
+            if sample := self.samples.filter(scpca_id=sample_id).first():
+                Library.bulk_create_from_dicts([library_metadata], sample)
 
     def purge(self, delete_from_s3: bool = False) -> None:
         """Purges project and its related data."""
@@ -423,7 +441,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         The Project and ProjectSummary models cache aggregated sample metadata.
         We need to update these after any project's sample gets added/deleted.
         """
-
         additional_metadata_keys = set()
         diagnoses_counts = Counter()
         disease_timings = set()
@@ -438,19 +455,18 @@ class Project(CommonDataAttributes, TimestampedModel):
             diagnoses_counts.update({sample.diagnosis: 1})
             disease_timings.add(sample.disease_timing)
             modalities.update(sample.modalities)
+
             if "organism" in sample.additional_metadata:
                 organisms.add(sample.additional_metadata["organism"])
 
-            sample_seq_units = sample.seq_units.split(", ")
-            sample_technologies = sample.technologies.split(", ")
-            for seq_unit in sample_seq_units:
-                for technology in sample_technologies:
-                    summaries_counts.update(
-                        {(sample.diagnosis, seq_unit.strip(), technology.strip()): 1}
-                    )
+            # We currently exlude bulk data in the project summary and aggregate values
+            for library in sample.libraries.exclude(modality=Modalities.BULK_RNA_SEQ):
+                seq_unit = library.metadata.get("seq_unit", "").strip()
+                technology = library.metadata.get("technology", "").strip()
+                summaries_counts.update({(sample.diagnosis, seq_unit, technology): 1})
 
-            seq_units.update(sample_seq_units)
-            technologies.update(sample_technologies)
+                seq_units.add(seq_unit)
+                technologies.add(technology)
 
         diagnoses_strings = sorted(
             (f"{diagnosis} ({count})" for diagnosis, count in diagnoses_counts.items())

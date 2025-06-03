@@ -9,7 +9,6 @@ class DatasetSingleCellSingleCellExperimentSCPCP999990:
     VALUES = {
         "data": {
             PROJECT_ID: {
-                "merge_single_cell": False,
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
                 Modalities.SPATIAL.value: [],
@@ -58,7 +57,7 @@ class DatasetSingleCellSingleCellExperimentSCPCP999990:
         "modality": Modalities.SINGLE_CELL.value,
         "metadata_only": False,
         "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-        "size_in_bytes": 7363,
+        "size_in_bytes": 7328,
         "workflow_version": "v0.8.7",
         "includes_celltype_report": True,
     }

@@ -7,9 +7,8 @@ class DatasetSingleCellAnndataMergedSCPCP999990:
     VALUES = {
         "data": {
             PROJECT_ID: {
-                "merge_single_cell": True,
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SINGLE_CELL.value: ["MERGED"],
                 Modalities.SPATIAL.value: [],
             }
         },

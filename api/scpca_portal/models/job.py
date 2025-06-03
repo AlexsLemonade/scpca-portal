@@ -7,12 +7,11 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import batch
+from scpca_portal import batch, common, s3
 from scpca_portal.enums import JobStates
-from scpca_portal.models import Dataset
 from scpca_portal.models.base import TimestampedModel
-
-FINAL_JOB_STATES = [JobStates.SUCCEEDED, JobStates.FAILED, JobStates.TERMINATED]
+from scpca_portal.models.computed_file import ComputedFile
+from scpca_portal.models.dataset import Dataset
 
 
 class Job(TimestampedModel):
@@ -23,13 +22,13 @@ class Job(TimestampedModel):
 
     # Internal Attributes
     attempt = models.PositiveIntegerField(default=1)  # Incremented on every retry
-    state = models.TextField(choices=JobStates.choices, default=JobStates.CREATED)
+    state = models.TextField(choices=JobStates.choices, default=JobStates.PENDING)
 
-    submitted_at = models.DateTimeField(null=True)
+    pending_at = models.DateTimeField(auto_now_add=True)
+    processing_at = models.DateTimeField(null=True)
     succeeded_at = models.DateTimeField(null=True)
     failed_at = models.DateTimeField(null=True)
     failed_reason = models.TextField(blank=True, null=True)
-    completed_at = models.DateTimeField(null=True)  # TODO: Removed in #1210
     terminated_at = models.DateTimeField(null=True)
     terminated_reason = models.TextField(blank=True, null=True)
 
@@ -45,6 +44,11 @@ class Job(TimestampedModel):
 
     # Datasets should never be deleted
     dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
+
+    # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
+    # Number should be half of max fargate ephemeral storage (which is 200 GB)
+    # Each instance downloads all dataset files, copies them to a zip file, and uploads the zip file
+    MAX_FARGATE_SIZE_IN_BYTES = 100 * common.GB_IN_BYTES
 
     def __str__(self):
         if self.batch_job_id:
@@ -70,33 +74,37 @@ class Job(TimestampedModel):
                 return JobStates.FAILED, reason
 
             case _:
-                return JobStates.SUBMITTED, None
+                return JobStates.PROCESSING, None
 
     @classmethod
-    def get_dataset_job(cls, dataset: Dataset, notify: bool = False) -> Self:
+    def get_dataset_job(cls, dataset: Dataset) -> Self:
         """
         Prepare a Job instance for a dataset without saving it to the db.
         """
-
-        # TODO: we should allow for users to request no notification via Dataset.notify attr
-        notify_flag = "--notify" if (not dataset.is_ccdl or notify) else ""
-
         return cls(
-            batch_job_name=dataset.id,
-            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
-            batch_container_overrides={
-                "command": [
-                    "python",
-                    "manage.py",
-                    "generate_computed_file",
-                    "--dataset-id",
-                    str(dataset.id),
-                    notify_flag,
-                ],
-            },
+            batch_job_name=str(dataset.id),
             dataset=dataset,
         )
+
+    def process_dataset_job(
+        self,
+        update_s3: bool = True,
+        clean_up_output_data=False,
+    ) -> None:
+        if old_dataset_file := self.dataset.computed_file:
+            old_dataset_file.purge(update_s3)
+
+        computed_file = ComputedFile.get_dataset_file(self.dataset)
+
+        if update_s3:
+            s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
+
+        computed_file.save()
+        self.dataset.computed_file = computed_file
+        self.dataset.save()
+
+        if clean_up_output_data:
+            computed_file.clean_up_local_computed_file()
 
     @classmethod
     def get_project_job(
@@ -123,8 +131,8 @@ class Job(TimestampedModel):
 
         return cls(
             batch_job_name=batch_job_name,
-            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_job_queue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
             batch_container_overrides={"command": command},
         )
 
@@ -156,8 +164,8 @@ class Job(TimestampedModel):
 
         return cls(
             batch_job_name=batch_job_name,
-            batch_job_queue=settings.AWS_BATCH_JOB_QUEUE_NAME,
-            batch_job_definition=settings.AWS_BATCH_JOB_DEFINITION_NAME,
+            batch_job_queue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
+            batch_job_definition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
             batch_container_overrides={
                 "command": command,
             },
@@ -180,43 +188,44 @@ class Job(TimestampedModel):
         return retry_jobs
 
     @classmethod
-    def submit_created(cls) -> List[Self]:
+    def submit_pending(cls) -> List[Self]:
         """
-        Submits all saved CREATED jobs to AWS Batch.
-        Updates each job instance's batch_job_id, state, and submitted_at, and
-        saves the changes to the db on success.
+        Submits all saved PENDING jobs to AWS Batch.
+        Updates each job instance's batch_job_id, state, and processing_at fields,
+        and its associated dataset state.
+        Saves the changes to the db on success.
         Returns all the submitted jobs.
         """
         submitted_jobs = []
 
-        if jobs := Job.objects.filter(state=JobStates.CREATED.value):
+        if jobs := Job.objects.filter(state=JobStates.PENDING):
             for job in jobs:
                 if aws_job_id := batch.submit_job(job):
                     job.batch_job_id = aws_job_id
-                    job.state = JobStates.SUBMITTED.value
-                    job.submitted_at = make_aware(datetime.now())
+                    job.state = JobStates.PROCESSING
+                    job.update_state_at(save=False)
                     submitted_jobs.append(job)
 
-            Job.objects.bulk_update(submitted_jobs, ["batch_job_id", "state", "submitted_at"])
+            cls.bulk_update_state(submitted_jobs)
 
         return submitted_jobs
 
     @classmethod
-    def terminate_submitted(cls, reason: str | None = "Terminated submitted jobs") -> List[Self]:
+    def terminate_processing(cls, reason: str | None = "Terminated processing jobs") -> List[Self]:
         """
-        Terminates all submitted, incomplete jobs on AWS Batch.
+        Terminates all processing, incomplete jobs on AWS Batch.
         Updates each job's state and terminated_at with the given terminated reason.
         Returns all the terminated jobs.
         """
         terminated_jobs = []
 
-        if jobs := cls.objects.filter(state=JobStates.SUBMITTED):
+        if jobs := cls.objects.filter(state=JobStates.PROCESSING):
 
             for job in jobs:
                 if batch.terminate_job(job):
                     job.state = JobStates.TERMINATED
                     job.terminated_reason = reason
-                    job.apply_state_at()
+                    job.update_state_at(save=False)
                     terminated_jobs.append(job)
 
             cls.bulk_update_state(terminated_jobs)
@@ -230,7 +239,7 @@ class Job(TimestampedModel):
         """
         updated_attrs = [
             "state",
-            "submitted_at",
+            "processing_at",
             "succeeded_at",
             "failed_at",
             "failed_reason",
@@ -239,20 +248,20 @@ class Job(TimestampedModel):
         ]
         cls.objects.bulk_update(synced_jobs, updated_attrs)
 
-        Dataset.update_from_last_jobs([job.dataset for job in synced_jobs])
+        Dataset.update_from_last_jobs([job.dataset for job in synced_jobs if job.dataset])
 
     @classmethod
     def bulk_sync_state(cls) -> bool:
         """
-        Syncs all submitted jobs' states with the remote AWS Batch job statuses.
+        Syncs all processing jobs' states with the remote AWS Batch job statuses.
         Saves each job and its associated dataset if the state changes.
         """
-        submitted_jobs = cls.objects.filter(state=JobStates.SUBMITTED)
+        processing_jobs = cls.objects.filter(state=JobStates.PROCESSING)
 
-        if not submitted_jobs.exists():
+        if not processing_jobs.exists():
             return False
 
-        fetched_jobs = batch.get_jobs(submitted_jobs)
+        fetched_jobs = batch.get_jobs(processing_jobs)
 
         if not fetched_jobs:
             return False
@@ -262,14 +271,14 @@ class Job(TimestampedModel):
 
         synced_jobs = []
 
-        for job in submitted_jobs:
+        for job in processing_jobs:
             if aws_job := aws_jobs.get(job.batch_job_id):
                 new_state, failed_reason = cls.get_job_state(aws_job)
 
                 if new_state != job.state:
                     job.state = new_state
                     job.failed_reason = failed_reason
-                    job.apply_state_at()
+                    job.update_state_at(save=False)
                     synced_jobs.append(job)
 
         if not synced_jobs:
@@ -278,15 +287,17 @@ class Job(TimestampedModel):
         cls.bulk_update_state(synced_jobs)
         return True
 
-    def apply_state_at(self) -> None:
+    def update_state_at(self, save: bool = True) -> None:
         """
-        Sets timestamp fields, *_at, based on the latest job state.
+        Updates timestamp fields, *_at, based on the latest job state.
+        Make sure to set 'save' to False when calling this from bulk update methods
+        or from instance methods that call save() within.
         """
         timestamp = make_aware(datetime.now())
 
         match self.state:
-            case JobStates.SUBMITTED:
-                self.submitted_at = timestamp
+            case JobStates.PROCESSING:
+                self.processing_at = timestamp
             case JobStates.SUCCEEDED:
                 self.succeeded_at = timestamp
             case JobStates.FAILED:
@@ -294,27 +305,58 @@ class Job(TimestampedModel):
             case JobStates.TERMINATED:
                 self.terminated_at = timestamp
 
+        if save:
+            self.save()
+
     def submit(self) -> bool:
         """
-        Submits the CREATED job to AWS Batch.
-        Updates batch_job_id, state, and submitted_at, and
-        saves the changes to the db on success.
+        Submits the unsaved PENDING job to AWS Batch.
+        Updates batch_job_id, state, and processing_at fields,
+        and its associated dataset state.
+        Saves the changes to the db on success.
         """
-        if self.state is not JobStates.CREATED:
+        if self.state is not JobStates.PENDING:
             return False
 
-        if job_id := batch.submit_job(self):
-            self.batch_job_id = job_id
-            self.state = JobStates.SUBMITTED
-            self.submitted_at = make_aware(datetime.now())
+        # if job has dataset, dynamically configure job and save before submitting
+        if self.dataset:
+            # dynamically choose queue based on dataset size
+            self.batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
+            self.batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+            if self.dataset.estimated_size_in_bytes > Job.MAX_FARGATE_SIZE_IN_BYTES:
+                self.batch_job_queue = settings.AWS_BATCH_EC2_JOB_QUEUE_NAME
+                self.batch_job_definition = settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
 
             self.save()
-            return True
 
-        return False
+            self.batch_container_overrides = {
+                "command": [
+                    "python",
+                    "manage.py",
+                    "process_dataset",
+                    "--job-id",
+                    str(self.id),
+                ],
+            }
+
+            self.save()
+
+        job_id = batch.submit_job(self)
+
+        if not job_id:
+            return False
+
+        self.batch_job_id = job_id
+        self.state = JobStates.PROCESSING
+        self.update_state_at(save=False)
+
+        self.save()  # Save this instance before bulk updating fields
+        Job.bulk_update_state([self])
+
+        return True
 
     def sync_state(self) -> bool:
-        if self.state is not JobStates.SUBMITTED:
+        if self.state is not JobStates.PROCESSING:
             return False
 
         aws_jobs = batch.get_jobs([self])
@@ -329,18 +371,18 @@ class Job(TimestampedModel):
 
         self.state = new_state
         self.failed_reason = failed_reason
-        self.apply_state_at()
+        self.update_state_at(save=False)
 
         Job.bulk_update_state([self])
 
         return True
 
-    def terminate(self, reason: str | None = "Terminated submitted job") -> bool:
+    def terminate(self, reason: str | None = "Terminated processing job") -> bool:
         """
-        Terminates the submitted, incomplete job on AWS Batch.
+        Terminates the processing, incomplete job on AWS Batch.
         Updates state and terminated_at with the given terminated reason.
         """
-        if self.state in FINAL_JOB_STATES:
+        if self.state in common.FINAL_JOB_STATES:
             return self.state == JobStates.TERMINATED
 
         if not batch.terminate_job(self):
@@ -348,7 +390,7 @@ class Job(TimestampedModel):
 
         self.state = JobStates.TERMINATED
         self.terminated_reason = reason
-        self.apply_state_at()
+        self.update_state_at(save=False)
 
         Job.bulk_update_state([self])
 
@@ -359,7 +401,7 @@ class Job(TimestampedModel):
         Prepares a new Job instance for retry.
         Returns newly instantiated jobs.
         """
-        if self.state not in FINAL_JOB_STATES:
+        if self.state not in common.FINAL_JOB_STATES:
             return False
 
         Job.bulk_update_state([self])

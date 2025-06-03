@@ -1,18 +1,17 @@
-resource "aws_batch_job_definition" "scpca_portal_project" {
-  name = "scpca-portal-project-job-definition-${var.user}-${var.stage}"
-  type = "container"
-
-  platform_capabilities = [
-    "FARGATE",
-  ]
-  container_properties = jsonencode({
+locals {
+  job_image = {
     image = "${var.dockerhub_account}/scpca_portal_api:latest"
-    # this gives the job outbound network access so that it can pull an image from an external container registry
-    networkConfiguration = {
-      assignPublicIp = "ENABLED"
-    }
-    # command definition expected in cotaninerOverrides when using this job definition
+  }
+}
+
+locals {
+  job_command = {
     command = []
+  }
+}
+
+locals {
+  job_environment = {
     environment = [
       {
         name  = "DJANGO_CONFIGURATION"
@@ -51,7 +50,12 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
         value = "${var.stage}-batch"
       }
     ]
+  }
+}
 
+locals {
+  job_secrets = {
+    # command definition expected in cotaninerOverrides when using this job definition
     secrets = [
       {
         name      = "DJANGO_SECRET_KEY",
@@ -66,35 +70,87 @@ resource "aws_batch_job_definition" "scpca_portal_project" {
         valueFrom = "${var.sentry_dsn.arn}"
       },
     ]
+  }
+}
 
-    fargatePlatformConfiguration = {
-      platformVersion = "LATEST"
-    }
+locals {
+  job_resource_requirements = {
     # requirements match api requirements, which uses a t2.medium (2 vcpus and 4.0 GB of RAM)
     resourceRequirements = [
       {
         type  = "VCPU"
-        value = "1.0"
+        value = "1"
       },
       {
         type  = "MEMORY"
         value = "4096"
       }
     ]
-    # without this declaration, ephemeralStroage defaults to 20GB
-    ephemeralStorage = {
-      sizeInGib = 200
-    }
+  }
+}
 
+locals {
+  job_role_arns = {
     executionRoleArn = aws_iam_role.ecs_task_role.arn
     jobRoleArn = aws_iam_role.batch_job_role.arn
-  })
+  }
+}
+
+resource "aws_batch_job_definition" "scpca_portal_fargate" {
+  name = "scpca-portal-fargate-job-definition-${var.user}-${var.stage}"
+  type = "container"
+
+  platform_capabilities = ["FARGATE"]
+  container_properties = jsonencode(merge(
+    local.job_image,
+    local.job_command,
+    local.job_environment,
+    local.job_secrets,
+    local.job_resource_requirements,
+    local.job_role_arns,
+    {
+      # this gives the job outbound network access so that it can pull an image from an external container registry
+      networkConfiguration = {
+        assignPublicIp = "ENABLED"
+      }
+      fargatePlatformConfiguration = {
+        platformVersion = "LATEST"
+      }
+      # without this declaration, ephemeralStroage defaults to 20GB
+      ephemeralStorage = {
+        sizeInGib = 200
+      }
+    }
+  ))
 
   retry_strategy {
     attempts = 3
   }
 
   propagate_tags = true
+  tags = var.batch_tags
+}
 
+resource "aws_batch_job_definition" "scpca_portal_ec2" {
+  name = "scpca-portal-ec2-job-definition-${var.user}-${var.stage}"
+  type = "container"
+
+  platform_capabilities = ["EC2"]
+
+  container_properties = jsonencode(merge(
+    local.job_image,
+    local.job_command,
+    local.job_environment,
+    local.job_secrets,
+    local.job_resource_requirements,
+    local.job_role_arns,
+    )
+  )
+
+  retry_strategy {
+    attempts = 3
+  }
+
+  propagate_tags = true
   tags = var.batch_tags
 }

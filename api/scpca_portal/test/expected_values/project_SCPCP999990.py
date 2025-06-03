@@ -121,9 +121,9 @@ class Project_SCPCP999990:
             "sample_cell_count_estimate": 0,
             "scpca_id": SCPCA_ID,
             "sex": "M",
-            "seq_units": "",
+            "seq_units": "bulk",
             "subdiagnosis": "NA",
-            "technologies": "",
+            "technologies": "paired_end",
             "tissue_location": "tissue5",
             "treatment": "",
         }
@@ -208,6 +208,18 @@ class Project_SCPCP999990:
             "workflow_version": "v0.8.7",
         }
 
+    class Library_SCPCL999994:
+        SCPCA_ID = "SCPCL999994"
+        VALUES = {
+            "formats": [],
+            "has_cite_seq_data": False,
+            "is_multiplexed": False,
+            "modality": Modalities.BULK_RNA_SEQ,
+            "original_file_paths": [],
+            "scpca_id": SCPCA_ID,
+            "workflow_version": "v0.8.7",
+        }
+
     class Library_SCPCL999997:
         SCPCA_ID = "SCPCL999997"
         VALUES = {
@@ -252,8 +264,8 @@ class Project_SCPCP999990:
         VALUES = {
             "diagnosis": "diagnosis5",
             "sample_count": 1,
-            "seq_unit": "",
-            "technology": "",
+            "seq_unit": "bulk",
+            "technology": "paired_end",
         }
 
     class Summary4:
