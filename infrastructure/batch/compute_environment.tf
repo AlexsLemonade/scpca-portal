@@ -26,7 +26,9 @@ resource "aws_batch_compute_environment" "scpca_portal_fargate" {
 }
 
 resource "aws_batch_compute_environment" "scpca_portal_ec2" {
-  compute_environment_name = "scpca-portal-ec2-compute-${var.user}-${var.stage}"
+  # Prefix to avoid error on deploy.
+  # ClientException: Cannot delete, found existing JobQueue relationship.
+  compute_environment_name_prefix = "scpca-portal-ec2-compute-${var.user}-${var.stage}"
 
   compute_resources {
     type = "EC2"
