@@ -62,11 +62,11 @@ resource "aws_s3_bucket_acl" "scpca_portal_cert_bucket" {
   bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
   rule {
     id = "auto-delete-after-30-days-${var.user}-${var.stage}"
+    filter {}
     status = "Enabled"
     abort_incomplete_multipart_upload {
       days_after_initiation = 1
     }
-
     expiration {
       days = 30
     }
