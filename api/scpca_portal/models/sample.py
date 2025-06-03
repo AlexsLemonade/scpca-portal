@@ -34,10 +34,10 @@ class Sample(CommonDataAttributes, TimestampedModel):
     multiplexed_with = ArrayField(models.TextField(), default=list)
     sample_cell_count_estimate = models.IntegerField(null=True)
     scpca_id = models.TextField(unique=True)
-    seq_units = models.TextField(blank=True, null=True)
+    seq_units = ArrayField(models.TextField(), default=list)
     sex = models.TextField(blank=True, null=True)
     subdiagnosis = models.TextField(blank=True, null=True)
-    technologies = models.TextField()
+    technologies = ArrayField(models.TextField(), default=list)
     tissue_location = models.TextField(blank=True, null=True)
     treatment = models.TextField(blank=True, null=True)
 

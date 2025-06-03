@@ -30,11 +30,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         ordering = ["updated_at"]
 
     abstract = models.TextField()
-    additional_metadata_keys = models.TextField(blank=True, null=True)
+    additional_metadata_keys = ArrayField(models.TextField(), default=list)
     additional_restrictions = models.TextField(blank=True, null=True)
-    diagnoses = models.TextField(blank=True, null=True)
-    diagnoses_counts = models.TextField(blank=True, null=True)
-    disease_timings = models.TextField()
+    diagnoses = ArrayField(models.TextField(), default=list)
+    diagnoses_counts = models.JSONField(default=dict)
+    disease_timings = ArrayField(models.TextField(), default=list)
     downloadable_sample_count = models.IntegerField(default=0)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
@@ -51,8 +51,8 @@ class Project(CommonDataAttributes, TimestampedModel):
     s3_input_bucket = models.TextField(default=settings.AWS_S3_INPUT_BUCKET_NAME)
     sample_count = models.IntegerField(default=0)
     scpca_id = models.TextField(unique=True)
-    seq_units = models.TextField(blank=True, null=True)
-    technologies = models.TextField(blank=True, null=True)
+    seq_units = ArrayField(models.TextField(), default=list)
+    technologies = ArrayField(models.TextField(), default=list)
     title = models.TextField()
     unavailable_samples_count = models.PositiveIntegerField(default=0)
 
