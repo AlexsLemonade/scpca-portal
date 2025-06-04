@@ -368,20 +368,27 @@ class Project(CommonDataAttributes, TimestampedModel):
         We need to update these after libraries are added/deleted.
         """
         for sample in self.samples.all():
-            sample_cell_count_estimate = 0
-            sample_seq_units = set()
-            sample_technologies = set()
+            libraries = sample.libraries.all()
 
-            for library in sample.libraries.all():
-                if library.modality == Modalities.SINGLE_CELL:
-                    if not library.is_multiplexed:
-                        sample_cell_count_estimate += library.metadata.get("filtered_cell_count")
+            # Sequence Units
+            sample.seq_units = sorted(
+                {
+                    seq_unit
+                    for library in libraries
+                    if (seq_unit := library.metadata.get("seq_unit", "").strip())
+                },
+                key=str.lower,
+            )
 
-                sample_seq_units.add(library.metadata["seq_unit"].strip())
-                sample_technologies.add(library.metadata["technology"].strip())
-
-            sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
-            sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
+            # Technologies
+            sample.technologies = sorted(
+                {
+                    technology
+                    for library in libraries
+                    if (technology := library.metadata.get("technology", "").strip())
+                },
+                key=str.lower,
+            )
 
             if multiplexed_libraries := sample.libraries.filter(is_multiplexed=True):
                 # Cache all sample ID's related through the multiplexed libraries.
@@ -396,7 +403,13 @@ class Project(CommonDataAttributes, TimestampedModel):
                     for library in multiplexed_libraries
                 )
             else:
-                sample.sample_cell_count_estimate = sample_cell_count_estimate
+                # Sum of filtered_cell_count from non-multiplexed Single-cell libraries.
+                sample.sample_cell_count_estimate = sum(
+                    library.metadata.get("filtered_cell_count", 0)
+                    for library in libraries.filter(
+                        modality=Modalities.SINGLE_CELL, is_multiplexed=False
+                    )
+                )
 
             sample.save()
 
@@ -441,57 +454,79 @@ class Project(CommonDataAttributes, TimestampedModel):
         The Project and ProjectSummary models cache aggregated sample metadata.
         We need to update these after any project's sample gets added/deleted.
         """
-        additional_metadata_keys = set()
-        diagnoses_counts = Counter()
-        disease_timings = set()
-        modalities = set()
-        organisms = set()
-        seq_units = set()
+        samples = self.samples.all()
+
+        bulk_libraries = Library.objects.filter(samples__in=samples).exclude(
+            modality=Modalities.BULK_RNA_SEQ
+        )
+
+        # Additional Metadata Keys
+        self.additional_metadata_keys = sorted(
+            {
+                key
+                for sample in samples
+                for key in sample.additional_metadata.keys()
+                # Include keys except multiplexed_with
+                if not (self.has_multiplexed_data and key == "multiplexed_with")
+            },
+            key=str.lower,
+        )
+
+        # Diagnoses Counts
+        self.diagnoses_counts = dict(
+            sorted(Counter(samples.values_list("diagnosis", flat=True)).items())
+        )
+
+        # Disease Timings
+        self.disease_timings = list(set(samples.values_list("disease_timing", flat=True)))
+
+        # Modalities
+        self.modalities = sorted({modality for sample in samples for modality in sample.modalities})
+
+        # Organisms
+        self.organisms = sorted(
+            {
+                sample.additional_metadata["organism"]
+                for sample in samples
+                if "organism" in sample.additional_metadata
+            }
+        )
+
+        # Sequence Units
+        self.seq_units = sorted(
+            {
+                seq_unit
+                for library in bulk_libraries
+                if (seq_unit := library.metadata.get("seq_unit", "").strip())
+            }
+        )
+
+        # Technologies
+        self.technologies = sorted(
+            {
+                technology
+                for library in bulk_libraries
+                if (technology := library.metadata.get("technology", "").strip())
+            }
+        )
+
+        multiplexed_sample_count = self.samples.filter(has_multiplexed_data=True).count()
+        sample_count = self.samples.count()
+        self.multiplexed_sample_count = multiplexed_sample_count
+        self.sample_count = sample_count
+        self.unavailable_samples_count = self.samples.filter(
+            has_single_cell_data=False, has_spatial_data=False
+        ).count()
+
+        self.save()
+
         summaries_counts = Counter()
-        technologies = set()
-
         for sample in self.samples.all():
-            additional_metadata_keys.update(sample.additional_metadata.keys())
-            diagnoses_counts.update({sample.diagnosis: 1})
-            disease_timings.add(sample.disease_timing)
-            modalities.update(sample.modalities)
-
-            if "organism" in sample.additional_metadata:
-                organisms.add(sample.additional_metadata["organism"])
-
             # We currently exlude bulk data in the project summary and aggregate values
             for library in sample.libraries.exclude(modality=Modalities.BULK_RNA_SEQ):
                 seq_unit = library.metadata.get("seq_unit", "").strip()
                 technology = library.metadata.get("technology", "").strip()
                 summaries_counts.update({(sample.diagnosis, seq_unit, technology): 1})
-
-                seq_units.add(seq_unit)
-                technologies.add(technology)
-
-        diagnoses_strings = sorted(
-            (f"{diagnosis} ({count})" for diagnosis, count in diagnoses_counts.items())
-        )
-        multiplexed_sample_count = self.samples.filter(has_multiplexed_data=True).count()
-        sample_count = self.samples.count()
-        seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
-        technologies = sorted((technology for technology in technologies if technology))
-
-        if self.has_multiplexed_data and "multiplexed_with" in additional_metadata_keys:
-            additional_metadata_keys.remove("multiplexed_with")
-
-        self.additional_metadata_keys = ", ".join(sorted(additional_metadata_keys, key=str.lower))
-        self.diagnoses_counts = ", ".join(diagnoses_strings)
-        self.disease_timings = ", ".join(disease_timings)
-        self.modalities = sorted(modalities)
-        self.multiplexed_sample_count = multiplexed_sample_count
-        self.organisms = sorted(organisms)
-        self.sample_count = sample_count
-        self.seq_units = ", ".join(seq_units)
-        self.technologies = ", ".join(technologies)
-        self.unavailable_samples_count = self.samples.filter(
-            has_single_cell_data=False, has_spatial_data=False
-        ).count()
-        self.save()
 
         for (diagnosis, seq_unit, technology), count in summaries_counts.items():
             project_summary, _ = ProjectSummary.objects.get_or_create(

@@ -62,10 +62,10 @@ class Sample(CommonDataAttributes, TimestampedModel):
             sample_cell_count_estimate=(data.get("sample_cell_count_estimate", None)),
             project=project,
             scpca_id=data["scpca_sample_id"],
-            seq_units=data.get("seq_units", ""),
+            seq_units=data.get("seq_units", []),
             sex=data["sex"],
             subdiagnosis=data["subdiagnosis"],
-            technologies=data.get("technologies", ""),
+            technologies=data.get("technologies", []),
             tissue_location=data["tissue_location"],
             treatment=data.get("treatment", ""),
         )
