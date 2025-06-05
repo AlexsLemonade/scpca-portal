@@ -1,6 +1,6 @@
 import hashlib
-import uuid
 import sys
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
