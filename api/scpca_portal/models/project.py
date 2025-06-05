@@ -472,9 +472,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
         # Diagnoses Counts
-        self.diagnoses_counts = dict(
-            sorted(Counter(samples.values_list("diagnosis", flat=True)).items())
-        )
+        self.diagnoses_counts = dict(Counter(samples.values_list("diagnosis", flat=True)))
 
         # Disease Timings excluding "NA"
         self.disease_timings = [
