@@ -125,7 +125,7 @@ class TestGetFile(TestCase):
             },
             "SCPCP999992": {
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["MERGED"],
+                Modalities.SINGLE_CELL.value: "MERGED",
                 Modalities.SPATIAL.value: [],
             },
         }

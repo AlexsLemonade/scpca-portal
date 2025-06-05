@@ -8,7 +8,7 @@ class DatasetSingleCellAnndataMergedSCPCP999990:
         "data": {
             PROJECT_ID: {
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["MERGED"],
+                Modalities.SINGLE_CELL.value: "MERGED",
                 Modalities.SPATIAL.value: [],
             }
         },
