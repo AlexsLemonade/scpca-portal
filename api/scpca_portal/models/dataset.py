@@ -1,5 +1,6 @@
 import hashlib
 import uuid
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -102,10 +103,18 @@ class Dataset(TimestampedModel):
 
     @property
     def estimated_size_in_bytes(self) -> int:
-        estimated_size_in_bytes = self.original_files.aggregate(models.Sum("size_in_bytes")).get(
+        original_files_size = self.original_files.aggregate(models.Sum("size_in_bytes")).get(
             "size_in_bytes__sum"
-        )
-        return estimated_size_in_bytes if estimated_size_in_bytes else 0
+        ) or 0
+
+        metadata_file_string = "".join([
+            file_content for _, _, file_content in self.get_metadata_file_contents()
+        ])
+        metadata_file_size = sys.getsizeof(metadata_file_string)
+
+        readme_file_size = sys.getsizeof(self.readme_file_contents)
+
+        return original_files_size+ metadata_file_size + readme_file_size
 
     @property
     def stats(self) -> Dict:
