@@ -103,18 +103,19 @@ class Dataset(TimestampedModel):
 
     @property
     def estimated_size_in_bytes(self) -> int:
-        original_files_size = self.original_files.aggregate(models.Sum("size_in_bytes")).get(
-            "size_in_bytes__sum"
-        ) or 0
+        original_files_size = (
+            self.original_files.aggregate(models.Sum("size_in_bytes")).get("size_in_bytes__sum")
+            or 0
+        )
 
-        metadata_file_string = "".join([
-            file_content for _, _, file_content in self.get_metadata_file_contents()
-        ])
+        metadata_file_string = "".join(
+            [file_content for _, _, file_content in self.get_metadata_file_contents()]
+        )
         metadata_file_size = sys.getsizeof(metadata_file_string)
 
         readme_file_size = sys.getsizeof(self.readme_file_contents)
 
-        return original_files_size+ metadata_file_size + readme_file_size
+        return original_files_size + metadata_file_size + readme_file_size
 
     @property
     def stats(self) -> Dict:
