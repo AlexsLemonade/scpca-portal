@@ -183,7 +183,7 @@ class Dataset(TimestampedModel):
                 Modalities.SINGLE_CELL: (
                     list(single_cell_samples.values_list("scpca_id", flat=True))
                     if not self.ccdl_type.get("includes_merged")
-                    else ["MERGED"]
+                    else "MERGED"
                 ),
                 Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
             }
@@ -329,7 +329,7 @@ class Dataset(TimestampedModel):
         return data_validator.is_valid
 
     def get_is_merged_project(self, project_id) -> bool:
-        return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == ["MERGED"]
+        return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
 
     @property
     def original_files(self) -> Iterable[OriginalFile]:
@@ -599,7 +599,7 @@ class DataValidator:
 
     def _validate_single_cell(self, project_id) -> bool:
         if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SINGLE_CELL):
-            if value == ["MERGED"]:
+            if value == "MERGED":
                 return True
             return self._validate_modality(value)
 
