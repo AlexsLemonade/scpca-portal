@@ -9,6 +9,8 @@ from scpca_portal.serializers.publication import PublicationSerializer
 
 
 class ProjectLeafSerializer(serializers.ModelSerializer):
+    diagnoses_counts = serializers.SerializerMethodField()
+
     class Meta:
         model = Project
         fields = (
@@ -58,6 +60,10 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     publications = PublicationSerializer(read_only=True, many=True)
     samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
     summaries = ProjectSummarySerializer(many=True, read_only=True)
+
+    # Retain diagnoses_counts keys in alphabetical order
+    def get_diagnoses_counts(self, obj):
+        return dict(sorted((obj.diagnoses_counts).items()))
 
 
 class ProjectSerializer(ProjectLeafSerializer):
