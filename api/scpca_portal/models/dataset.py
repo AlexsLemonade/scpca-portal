@@ -1,4 +1,5 @@
 import hashlib
+import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -102,10 +103,19 @@ class Dataset(TimestampedModel):
 
     @property
     def estimated_size_in_bytes(self) -> int:
-        estimated_size_in_bytes = self.original_files.aggregate(models.Sum("size_in_bytes")).get(
-            "size_in_bytes__sum"
+        original_files_size = (
+            self.original_files.aggregate(models.Sum("size_in_bytes")).get("size_in_bytes__sum")
+            or 0
         )
-        return estimated_size_in_bytes if estimated_size_in_bytes else 0
+
+        metadata_file_string = "".join(
+            [file_content for _, _, file_content in self.get_metadata_file_contents()]
+        )
+        metadata_file_size = sys.getsizeof(metadata_file_string)
+
+        readme_file_size = sys.getsizeof(self.readme_file_contents)
+
+        return original_files_size + metadata_file_size + readme_file_size
 
     @property
     def stats(self) -> Dict:
@@ -335,6 +345,10 @@ class Dataset(TimestampedModel):
     def original_files(self) -> Iterable[OriginalFile]:
         """Returns all of a Dataset's associated OriginalFiles."""
         files = OriginalFile.objects.none()
+
+        if self.format == DatasetFormats.METADATA:
+            return files
+
         for project_id, project_config in self.data.items():
             # add spatial files
             files |= OriginalFile.downloadable_objects.filter(
