@@ -521,15 +521,15 @@ class Project(CommonDataAttributes, TimestampedModel):
         We need to update these after any project's sample gets added/deleted.
         """
         counts = self.samples.aggregate(
-            all=Count("scpca_id"),
-            multiplexed=Count("scpca_id", filter=Q(has_multiplexed_data=True)),
-            unavailable=Count(
+            sample_count=Count("scpca_id"),
+            multiplexed_sample_count=Count("scpca_id", filter=Q(has_multiplexed_data=True)),
+            unavailable_samples_count=Count(
                 "scpca_id", filter=Q(has_single_cell_data=False, has_spatial_data=False)
             ),
         )
-        self.sample_count = counts["all"]
-        self.multiplexed_sample_count = counts["multiplexed"]
-        self.unavailable_samples_count = counts["unavailable"]
+        self.sample_count = counts["sample_count"]
+        self.multiplexed_sample_count = counts["multiplexed_sample_count"]
+        self.unavailable_samples_count = counts["unavailable_samples_count"]
 
         self.save()
 
