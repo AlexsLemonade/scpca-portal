@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import { Box, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { Badge } from 'components/Badge'
@@ -55,7 +55,14 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
       <Box>
         <Box margin={{ bottom: '24px' }}>
           <Label label="Diagnosis" />
-          <Text>{projectStats.diagnoses_counts}</Text>
+          {Object.entries(projectStats.diagnoses_counts)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([k, v], i) => (
+              <Fragment key={k}>
+                {i > 0 && ', '}
+                {k} ({v})
+              </Fragment>
+            ))}
         </Box>
         <Box margin={{ bottom: 'xsmall' }}>
           <Label label="Download Options" />

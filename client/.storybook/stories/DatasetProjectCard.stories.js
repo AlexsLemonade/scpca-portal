@@ -43,29 +43,27 @@ const datasets = [
         projects: {
           // each of the project cards here
           SCPCP999991: {
-            diagnoses_counts:
-              'pilocytic astrocytoma (10), ganglioglioma/ATRT (10), ganglioglioma (9), low grade glioma (1)',
+            diagnoses_counts: { 'pilocytic astrocytoma': 10, 'ganglioglioma/ATRT': 10, ganglioglioma: 9, 'low grade glioma': 1 },
             samples_difference_count: 5,
             downloadable_sample_count: 6,
             title:
               'Single-Cell Profiling of Acute Myeloid Leukemia for High-Resolution Chemo-immunotherapy Target Discovery'
           },
           SCPCP999992: {
-            diagnoses_counts:
-              'Ependymoma (1), Ganglioglioma (5), Ganglioglioma/ATRT (1)',
+            diagnoses_counts: { Ependymoma : 1, Ganglioglioma: 5, 'Ganglioglioma/ATRT' :1 },
             samples_difference_count: 0,
             downloadable_sample_count: 1,
             title: 'Single cell RNA sequencing of pediatric low-grade gliomas'
           },
           SCPCP999993: {
-            diagnoses_counts: 'Neuroblastoma (40)',
+            diagnoses_counts: { Neuroblastoma: 40 },
             samples_difference_count: 1,
             downloadable_sample_count: 3,
             title:
               'Profiling the transcriptional heterogeneity of diverse pediatric solid tumors - Neuroblastoma'
           },
           SCPCP999994: {
-            diagnoses_counts: 'Osteosarcoma (28)',
+            diagnoses_counts: { Osteosarcoma: 28 },
             samples_difference_count: 0,
             downloadable_sample_count: 3,
             title: 'A Single Cell Atlas of Pediatric Sarcoma'

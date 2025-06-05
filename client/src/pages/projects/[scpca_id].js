@@ -81,7 +81,16 @@ const Project = ({ project }) => {
                           ''
                         )
                     },
-                    'disease_timings',
+                    {
+                      label: 'disease_timings',
+                      value:
+                        project.disease_timings.length > 0 ? (
+                          <Text>{project.disease_timings.join(', ')}</Text>
+                        ) : (
+                          ''
+                        )
+                    },
+
                     'sample_count',
                     'human_readable_pi_name',
                     {
