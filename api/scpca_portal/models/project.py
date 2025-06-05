@@ -477,7 +477,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
         # Disease Timings
-        self.disease_timings = list(set(samples.values_list("disease_timing", flat=True)))
+        self.disease_timings = [
+            dt for dt in set(samples.values_list("disease_timing", flat=True)) if dt != common.NA
+        ]
 
         # Modalities
         self.modalities = sorted({modality for sample in samples for modality in sample.modalities})
