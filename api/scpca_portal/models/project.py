@@ -476,7 +476,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             sorted(Counter(samples.values_list("diagnosis", flat=True)).items())
         )
 
-        # Disease Timings
+        # Disease Timings excluding "NA"
         self.disease_timings = [
             dt for dt in set(samples.values_list("disease_timing", flat=True)) if dt != common.NA
         ]
