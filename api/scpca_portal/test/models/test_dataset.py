@@ -136,7 +136,7 @@ class TestDataset(TestCase):
         data = {
             "SCPCP999990": {
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: "MERGED",  # should be ["MERGED"]
+                Modalities.SINGLE_CELL.value: ["MERGED"],  # should be "MERGED"
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
@@ -310,7 +310,7 @@ class TestDataset(TestCase):
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["MERGED"],
+                Modalities.SINGLE_CELL: "MERGED",
                 Modalities.SPATIAL: [],
             },
         }
@@ -330,7 +330,7 @@ class TestDataset(TestCase):
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["MERGED"],
+                Modalities.SINGLE_CELL: "MERGED",
                 Modalities.SPATIAL: [],
             },
         }
@@ -415,7 +415,7 @@ class TestDataset(TestCase):
             },
             "SCPCP999992": {
                 "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["MERGED"],
+                Modalities.SINGLE_CELL: "MERGED",
                 Modalities.SPATIAL: [],
             },
         }

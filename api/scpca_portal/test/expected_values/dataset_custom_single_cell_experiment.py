@@ -16,7 +16,7 @@ class DatasetCustomSingleCellExperiment:
             },
             "SCPCP999992": {
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL: ["MERGED"],
+                Modalities.SINGLE_CELL: "MERGED",
                 Modalities.SPATIAL: [],
             },
         },
