@@ -6,6 +6,7 @@ from typing import Dict, Iterable, List
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import Count, Q
 
 from scpca_portal import common, metadata_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
@@ -370,7 +371,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         for sample in self.samples.all():
             libraries = sample.libraries.all()
 
-            # Sequence Units
+            # Sequencing Units
             sample.seq_units = sorted(
                 {
                     seq_unit
@@ -420,6 +421,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         self.update_project_modality_properties()
         self.update_project_aggregate_properties()
+        self.update_project_sample_aggregate_counts()
+        self.update_project_summaries_aggregate_properties()
 
     def update_project_modality_properties(self):
         """
@@ -451,14 +454,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def update_project_aggregate_properties(self):
         """
-        The Project and ProjectSummary models cache aggregated sample metadata.
+        The Project model cache aggregated sample metadata.
         We need to update these after any project's sample gets added/deleted.
         """
         samples = self.samples.all()
-
-        bulk_libraries = Library.objects.filter(samples__in=samples).exclude(
-            modality=Modalities.BULK_RNA_SEQ
-        )
 
         # Additional Metadata Keys
         self.additional_metadata_keys = sorted(
@@ -492,7 +491,11 @@ class Project(CommonDataAttributes, TimestampedModel):
             }
         )
 
-        # Sequence Units
+        bulk_libraries = Library.objects.filter(samples__in=samples).exclude(
+            modality=Modalities.BULK_RNA_SEQ
+        )
+
+        # Sequencing Units
         self.seq_units = sorted(
             {
                 seq_unit
@@ -510,17 +513,33 @@ class Project(CommonDataAttributes, TimestampedModel):
             }
         )
 
-        multiplexed_sample_count = self.samples.filter(has_multiplexed_data=True).count()
-        sample_count = self.samples.count()
-        self.multiplexed_sample_count = multiplexed_sample_count
-        self.sample_count = sample_count
-        self.unavailable_samples_count = self.samples.filter(
-            has_single_cell_data=False, has_spatial_data=False
-        ).count()
+        self.save()
+
+    def update_project_sample_aggregate_counts(self):
+        """
+        The Project model cache aggregated sample counts.
+        We need to update these after any project's sample gets added/deleted.
+        """
+        counts = self.samples.aggregate(
+            all=Count("scpca_id"),
+            multiplexed=Count("scpca_id", filter=Q(has_multiplexed_data=True)),
+            unavailable=Count(
+                "scpca_id", filter=Q(has_single_cell_data=False, has_spatial_data=False)
+            ),
+        )
+        self.sample_count = counts["all"]
+        self.multiplexed_sample_count = counts["multiplexed"]
+        self.unavailable_samples_count = counts["unavailable"]
 
         self.save()
 
+    def update_project_summaries_aggregate_properties(self):
+        """
+        The ProjectSummary model cache aggregated sample metadata.
+        We need to update these after any project's sample gets added/deleted.
+        """
         summaries_counts = Counter()
+
         for sample in self.samples.all():
             # We currently exlude bulk data in the project summary and aggregate values
             for library in sample.libraries.exclude(modality=Modalities.BULK_RNA_SEQ):
@@ -533,6 +552,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 diagnosis=diagnosis, project=self, seq_unit=seq_unit, technology=technology
             )
             project_summary.sample_count = count
+
             project_summary.save(update_fields=("sample_count",))
 
     def update_downloadable_sample_count(self):
