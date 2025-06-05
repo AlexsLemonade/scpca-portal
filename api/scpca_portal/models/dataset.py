@@ -344,6 +344,10 @@ class Dataset(TimestampedModel):
     def original_files(self) -> Iterable[OriginalFile]:
         """Returns all of a Dataset's associated OriginalFiles."""
         files = OriginalFile.objects.none()
+
+        if self.format == DatasetFormats.METADATA:
+            return files
+
         for project_id, project_config in self.data.items():
             # add spatial files
             files |= OriginalFile.downloadable_objects.filter(
