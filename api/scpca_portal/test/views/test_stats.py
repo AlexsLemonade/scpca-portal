@@ -14,8 +14,8 @@ class StatsTestCase(APITestCase):
         SampleFactory(
             diagnosis="different",
             project=ProjectFactory(),
-            seq_units="cell, bulk",
-            technologies="10Xv4, 10Xv5",
+            seq_units=["cell", "bulk"],
+            technologies=["10Xv4", "10Xv5"],
         )
 
     def test_get(self):

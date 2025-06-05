@@ -12,8 +12,8 @@ class FilterOptionsTestCase(APITestCase):
         sample = SampleFactory(
             diagnosis="different",
             project=ProjectFactory(),
-            seq_units="cell, bulk",
-            technologies="10Xv4, 10Xv5",
+            seq_units=["cell", "bulk"],
+            technologies=["10Xv4", "10Xv5"],
         )
         sample.project.update_project_aggregate_properties()
 
