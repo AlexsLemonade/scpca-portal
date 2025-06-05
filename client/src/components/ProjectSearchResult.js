@@ -19,7 +19,21 @@ export const ProjectSearchResult = ({ project }) => {
   const searchDetails = [
     {
       title: 'Diagnosis',
-      value: project.diagnoses_counts
+      value:
+        Object.keys(project.diagnoses_counts).length > 0 ? (
+          <>
+            {Object.entries(project.diagnoses_counts)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([k, v], i) => (
+                <Text key={k}>
+                  {i > 0 && ', '}
+                  {k} ({v})
+                </Text>
+              ))}
+          </>
+        ) : (
+          ''
+        )
     },
     {
       title: 'Abstract',
@@ -48,7 +62,12 @@ export const ProjectSearchResult = ({ project }) => {
     },
     {
       title: 'Additional Sample Metadata Fields',
-      value: project.additional_metadata_keys
+      value:
+        project.publications.length > 0 ? (
+          <Text>{project.additional_metadata_keys.join(', ')}</Text>
+        ) : (
+          ''
+        )
     }
   ]
   return (

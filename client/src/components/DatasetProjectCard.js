@@ -55,7 +55,14 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
       <Box>
         <Box margin={{ bottom: '24px' }}>
           <Label label="Diagnosis" />
-          <Text>{projectStats.diagnoses_counts}</Text>
+          {Object.entries(projectStats.diagnoses_counts)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([k, v], i) => (
+              <Text key={k}>
+                {i > 0 && ', '}
+                {k} ({v})
+              </Text>
+            ))}
         </Box>
         <Box margin={{ bottom: 'xsmall' }}>
           <Label label="Download Options" />
