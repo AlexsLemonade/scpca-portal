@@ -174,7 +174,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sorted(
             [
-                modality_name.label
+                modality_name
                 for attr_name, modality_name in attr_name_modality_mapping.items()
                 if getattr(self, attr_name)
             ]
