@@ -10,6 +10,7 @@ import { Pill } from 'components/Pill'
 import { WarningText } from 'components/WarningText'
 import { capitalize } from 'helpers/capitalize'
 import { getReadable } from 'helpers/getReadable'
+import { getReadableModalities } from 'helpers/getReadableModalities'
 import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
 
 export const ProjectHeader = ({ project, linked = false }) => {
@@ -65,7 +66,10 @@ export const ProjectHeader = ({ project, linked = false }) => {
           <Badge badge="SeqUnit" label={capitalize(project.seq_units || '')} />
           <Badge badge="Kit" label={project.technologies} />
           {project.modalities.length > 0 && (
-            <Badge badge="Modality" label={project.modalities.join(', ')} />
+            <Badge
+              badge="Modality"
+              label={getReadableModalities(project.modalities).join(', ')}
+            />
           )}
         </Grid>
 
