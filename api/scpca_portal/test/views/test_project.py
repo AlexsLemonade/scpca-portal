@@ -47,10 +47,20 @@ class ProjectsTestCase(APITestCase):
         datasets = [DatasetFactory(ccdl_project_id=self.project.scpca_id) for _ in range(3)]
         expected_dataset_ids = {str(dataset.id) for dataset in datasets}
 
+        # detail view
         url = reverse("projects-detail", args=[self.project.scpca_id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
         actual_dataset_ids = {dataset["id"] for dataset in response_json["datasets"]}
+        self.assertEqual(actual_dataset_ids, expected_dataset_ids)
+
+        # list view
+        url = reverse("projects-list", args=[])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_json = response.json()
+        actual_dataset_ids = set(response_json["results"][0]["datasets"])
         self.assertEqual(actual_dataset_ids, expected_dataset_ids)
