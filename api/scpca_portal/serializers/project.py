@@ -7,6 +7,7 @@ from scpca_portal.serializers.dataset import DatasetSerializer
 from scpca_portal.serializers.external_accession import ExternalAccessionSerializer
 from scpca_portal.serializers.project_summary import ProjectSummarySerializer
 from scpca_portal.serializers.publication import PublicationSerializer
+from scpca_portal.serializers.sample import SampleSerializer
 
 
 class ProjectLeafSerializer(serializers.ModelSerializer):
@@ -69,3 +70,8 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(ProjectLeafSerializer):
     computed_files = ComputedFileSerializer(read_only=True, many=True)
+
+
+class ProjectDetailSerializer(ProjectSerializer):
+    datasets = serializers.SerializerMethodField()
+    samples = SampleSerializer(many=True, read_only=True)
