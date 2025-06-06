@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from scpca_portal.test.factories import ProjectFactory
+from scpca_portal.test.factories import DatasetFactory, ProjectFactory
 
 
 class ProjectsTestCase(APITestCase):
@@ -42,3 +42,15 @@ class ProjectsTestCase(APITestCase):
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_datasets_field(self):
+        datasets = [DatasetFactory(ccdl_project_id=self.project.scpca_id) for _ in range(3)]
+        expected_dataset_ids = {str(dataset.id) for dataset in datasets}
+
+        url = reverse("projects-detail", args=[self.project.scpca_id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_json = response.json()
+        actual_dataset_ids = {dataset["id"] for dataset in response_json["datasets"]}
+        self.assertEqual(actual_dataset_ids, expected_dataset_ids)
