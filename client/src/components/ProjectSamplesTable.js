@@ -7,6 +7,7 @@ import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { useProjectMetadataOnly } from 'hooks/useProjectMetadataOnly'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
+import { getReadableModalities } from 'helpers/getReadableModalities'
 import { DownloadModal } from 'components/DownloadModal'
 import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
 import { Icon } from 'components/Icon'
@@ -174,7 +175,7 @@ export const ProjectSamplesTable = ({
       Header: 'Modalities',
       accessor: ({ has_single_cell_data: hasSingleCellData, modalities }) => {
         const singleCell = hasSingleCellData ? ['Single-cell'] : []
-        return [...singleCell, ...modalities].join(', ')
+        return [...singleCell, ...getReadableModalities(modalities)].join(', ')
       }
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
