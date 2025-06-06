@@ -3,6 +3,7 @@ from rest_framework import serializers
 from scpca_portal.models import Dataset, Project
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 from scpca_portal.serializers.contact import ContactSerializer
+from scpca_portal.serializers.dataset import DatasetSerializer
 from scpca_portal.serializers.external_accession import ExternalAccessionSerializer
 from scpca_portal.serializers.project_summary import ProjectSummarySerializer
 from scpca_portal.serializers.publication import PublicationSerializer
@@ -62,7 +63,8 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
     def get_datasets(self, obj):
-        return Dataset.objects.filter(project_id=obj.scpca_id)
+        datasets = Dataset.objects.filter(ccdl_project_id=obj.scpca_id)
+        return DatasetSerializer(datasets, many=True).data
 
 
 class ProjectSerializer(ProjectLeafSerializer):
