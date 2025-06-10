@@ -245,3 +245,12 @@ class TestByteConversions(TestCase):
     def test_convert_gb_to_bytes(self):
         size_in_bytes = 1.23456789
         self.assertEqual(utils.convert_bytes_to_gb(size_in_bytes), 1234567890)
+
+    def test_format_bytes(self):
+        # assert round down formatted property
+        size_in_bytes = 1234567890
+        self.assertEqual(utils.format_bytes(size_in_bytes), "1.23 GB")
+
+        # assert round up formatted properly
+        size_in_bytes = 9876543210
+        self.assertEqual(utils.format_bytes(size_in_bytes), "9.88 GB")
