@@ -156,13 +156,3 @@ def format_bytes(size_in_bytes: int) -> str:
     """Return a formatted string of the passed value converted from bytes to gb."""
     converted_value = float(size_in_bytes / 1000000000)
     return f"{round(converted_value, 2)} GB"
-
-
-def convert_bytes_to_gb(size_in_bytes: int | float) -> float:
-    """Return the converted value in gb for a number originally in bytes."""
-    return size_in_bytes / 1000000000
-
-
-def convert_gb_to_bytes(size_in_gb: int | float) -> int:
-    """Return the converted value in bytes for a number originally in gigabytes."""
-    return int(size_in_gb * 1000000000)
