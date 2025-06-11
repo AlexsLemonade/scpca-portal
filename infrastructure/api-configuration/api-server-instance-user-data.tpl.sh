@@ -128,6 +128,9 @@ echo "
     maxage 3
 }" >> /etc/logrotate.conf
 
+# Add entry to cronfile calling sync_batch_jobs every 10 minutes
+(crontab -l 2>/dev/null; echo "*/10 * * * * /home/ubuntu/run_command.sh sync_batch_jobs") | crontab -
+
 # Install our environment variables
 cat <<"EOF" > environment
 ${api_environment}
