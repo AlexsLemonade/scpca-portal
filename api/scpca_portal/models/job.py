@@ -311,18 +311,18 @@ class Job(TimestampedModel):
     def set_state(self, state: JobStates, reason: str = None):
         """
         Sets the job state and its corresponding timestamp.
-        Calls the associated dataset event handler.
+        Calls the associated dataset's on_job_<state> event handler.
         """
         state_str = state.lower()
         reason_attr = f"{state_str}_reason"
-        event_hanlder = f"on_job_{state_str}"
+        event_handler = f"on_job_{state_str}"
 
         self.state = state
         if hasattr(self, reason_attr):
             setattr(self, reason_attr, reason)
         self.update_state_at()
 
-        getattr(self.dataset, event_hanlder)()
+        getattr(self.dataset, event_handler)()
 
     def submit(self) -> bool:
         """
