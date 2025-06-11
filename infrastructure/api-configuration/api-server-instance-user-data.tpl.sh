@@ -89,6 +89,11 @@ file = /var/log/nginx/access.log
 log_group_name = ${log_group}
 log_stream_name = log-stream-api-nginx-access-${user}-${stage}
 
+[/var/log/cron.log]
+file = /var/log/cron.log
+log_group_name = ${log_group}
+log_stream_name = log-stream-api-cron-${user}-${stage}
+
 EOF
 
 mkdir /var/lib/awslogs
@@ -110,6 +115,15 @@ echo "
     notifempty
     compress
     size 20k
+    daily
+    maxage 3
+}" >> /etc/logrotate.conf
+echo "
+/var/log/cron.log {
+    missingok
+    notifempty
+    compress
+    size 20K
     daily
     maxage 3
 }" >> /etc/logrotate.conf
