@@ -128,6 +128,10 @@ echo "
     maxage 3
 }" >> /etc/logrotate.conf
 
+# Enable cron logging to /var/log/cron.log via rsyslog
+sudo sed -i 's/^#cron\.\*/cron\.\* /' /etc/rsyslog.d/50-default.conf
+sudo systemctl restart rsyslog
+
 # Add entry to cronfile calling sync_batch_jobs every 10 minutes
 (crontab -l 2>/dev/null; echo "*/10 * * * * /home/ubuntu/run_command.sh sync_batch_jobs") | crontab -
 
