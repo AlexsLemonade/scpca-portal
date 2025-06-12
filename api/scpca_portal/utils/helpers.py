@@ -1,6 +1,7 @@
 """Misc utils."""
 
 import inspect
+import math
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
@@ -153,6 +154,18 @@ def path_replace(path: Path, old_value: str, new_value: str) -> Path:
 
 
 def format_bytes(size_in_bytes: int) -> str:
-    """Return a formatted string of the passed value converted from bytes to gb."""
-    converted_value = float(size_in_bytes / 1000000000)
-    return f"{round(converted_value, 2)} GB"
+    """
+    Return a formatted string of the passed value converted from bytes to a more appropriate size.
+    """
+    # This function was inspired by https://stackoverflow.com/a/18650828/763705.
+
+    if size_in_bytes < 0:
+        raise ValueError("size in bytes must be a positive number.")
+
+    k = 1024
+    if size_in_bytes < k:
+        return f"{size_in_bytes} Bytes"
+
+    sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+    i = math.floor(math.log(size_in_bytes) / math.log(k))
+    return f"{size_in_bytes / k**i:.2f} {sizes[i]}"
