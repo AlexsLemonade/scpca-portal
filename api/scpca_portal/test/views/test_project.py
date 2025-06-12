@@ -44,7 +44,9 @@ class ProjectsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_datasets_field(self):
-        datasets = [DatasetFactory(ccdl_project_id=self.project.scpca_id) for _ in range(3)]
+        datasets = [
+            DatasetFactory(is_ccdl=True, ccdl_project_id=self.project.scpca_id) for _ in range(3)
+        ]
         expected_dataset_ids = {str(dataset.id) for dataset in datasets}
 
         # detail view
@@ -62,5 +64,5 @@ class ProjectsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
-        actual_dataset_ids = set(response_json["results"][0]["datasets"])
+        actual_dataset_ids = {dataset["id"] for dataset in response_json["results"][0]["datasets"]}
         self.assertEqual(actual_dataset_ids, expected_dataset_ids)
