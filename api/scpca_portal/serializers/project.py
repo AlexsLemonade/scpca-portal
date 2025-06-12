@@ -66,7 +66,9 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     def get_datasets(self, obj):
         # list action should only return dataset ids
         return list(
-            Dataset.objects.filter(ccdl_project_id=obj.scpca_id).values_list("id", flat=True)
+            Dataset.objects.filter(is_ccdl=True, ccdl_project_id=obj.scpca_id).values_list(
+                "id", flat=True
+            )
         )
 
 
@@ -80,5 +82,5 @@ class ProjectDetailSerializer(ProjectSerializer):
 
     def get_datasets(self, obj):
         # retrieve action should return entire serialized dataset objects
-        datasets = Dataset.objects.filter(ccdl_project_id=obj.scpca_id)
+        datasets = Dataset.objects.filter(is_ccdl=True, ccdl_project_id=obj.scpca_id)
         return DatasetSerializer(datasets, many=True).data
