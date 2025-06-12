@@ -169,6 +169,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             "has_bulk_rna_seq": Modalities.BULK_RNA_SEQ,
             "has_cite_seq_data": Modalities.CITE_SEQ,
             "has_multiplexed_data": Modalities.MULTIPLEXED,
+            "has_single_cell_data": Modalities.SINGLE_CELL,
             "has_spatial_data": Modalities.SPATIAL,
         }
 

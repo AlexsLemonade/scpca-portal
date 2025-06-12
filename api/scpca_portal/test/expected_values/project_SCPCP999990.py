@@ -26,6 +26,7 @@ class Project_SCPCP999990:
         "includes_xenografts": False,
         "modalities": [
             Modalities.BULK_RNA_SEQ,
+            Modalities.SINGLE_CELL,
             Modalities.SPATIAL,
         ],
         "multiplexed_sample_count": 0,

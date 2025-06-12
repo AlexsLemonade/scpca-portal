@@ -24,7 +24,10 @@ class Project_SCPCP999992:
         "includes_merged_sce": True,
         "includes_merged_anndata": True,
         "includes_xenografts": False,
-        "modalities": [Modalities.CITE_SEQ],
+        "modalities": [
+            Modalities.CITE_SEQ,
+            Modalities.SINGLE_CELL,
+        ],
         "multiplexed_sample_count": 0,
         "organisms": ["Homo sapiens"],
         "original_file_paths": [
