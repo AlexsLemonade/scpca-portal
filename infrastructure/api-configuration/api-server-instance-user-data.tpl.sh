@@ -28,7 +28,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docke
     tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update -y
 apt install docker-ce docker-ce-cli -y
-usermod -a -G docker root && usermod -a -G docker ubuntu && newgrp docker
+sudo usermod -a -G docker ubuntu && newgrp docker
 
 if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
     # Check here for the cert in S3, if present install, if not run certbot.
@@ -82,8 +82,8 @@ sudo systemctl restart rsyslog
 # Add entry to cronfile calling sync_batch_jobs every 10 minutes
 DJANGO_CMD="sync_batch_jobs"
 CRON_CMD="/home/ubuntu/run_command.sh $DJANGO_CMD"
-CRON_ENTRY="*/10 * * * * ($CRON_CMD 2>&1 | /usr/bin/logger -t $DJANGO_CMD)"
-(crontab -l 2>/dev/null; echo "$CRON_ENTRY") | crontab -
+CRON_ENTRY="*/10 * * * * ($CRON_CMD 2>&1 | /usr/bin/logger -p cron.info -t $DJANGO_CMD)"
+(crontab -u ubuntu -l 2>/dev/null; echo "$CRON_ENTRY") | crontab -u ubuntu -
 
 # Install, configure and launch our CloudWatch Logs agent
 cat <<EOF >awslogs.conf
