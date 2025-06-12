@@ -74,6 +74,16 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
     fi
 fi
 
+# Enable cron logging to /var/log/cron.log via rsyslog
+sudo sed -i 's/^#cron\.\*/cron\.\* /' /etc/rsyslog.d/50-default.conf
+sudo systemctl restart rsyslog
+
+# Add entry to cronfile calling sync_batch_jobs every 10 minutes
+DJANGO_CMD="sync_batch_jobs"
+CRON_CMD="/home/ubuntu/run_command.sh $DJANGO_CMD"
+CRON_ENTRY="*/10 * * * * ($CRON_CMD 2>&1 | /usr/bin/logger -t $DJANGO_CMD)"
+(crontab -l 2>/dev/null; echo "$CRON_ENTRY") | crontab -
+
 # Install, configure and launch our CloudWatch Logs agent
 cat <<EOF >awslogs.conf
 [general]
@@ -127,13 +137,6 @@ echo "
     daily
     maxage 3
 }" >> /etc/logrotate.conf
-
-# Enable cron logging to /var/log/cron.log via rsyslog
-sudo sed -i 's/^#cron\.\*/cron\.\* /' /etc/rsyslog.d/50-default.conf
-sudo systemctl restart rsyslog
-
-# Add entry to cronfile calling sync_batch_jobs every 10 minutes
-(crontab -l 2>/dev/null; echo "*/10 * * * * /home/ubuntu/run_command.sh sync_batch_jobs") | crontab -
 
 # Install our environment variables
 cat <<"EOF" > environment
