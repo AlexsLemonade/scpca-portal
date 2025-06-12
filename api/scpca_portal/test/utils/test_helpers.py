@@ -239,10 +239,23 @@ class TestPathReplace(TestCase):
 
 class TestByteConversion(TestCase):
     def test_format_bytes(self):
-        # assert round down formatted property
+        # assert gb formatted correctly
         size_in_bytes = 1234567890
-        self.assertEqual(utils.format_bytes(size_in_bytes), "1.23 GB")
+        self.assertEqual(utils.format_bytes(size_in_bytes), "1.15 GB")
 
-        # assert round up formatted properly
-        size_in_bytes = 9876543210
-        self.assertEqual(utils.format_bytes(size_in_bytes), "9.88 GB")
+        # assert mb formatted correctly
+        size_in_bytes = 12345678
+        self.assertEqual(utils.format_bytes(size_in_bytes), "11.77 MB")
+
+        # assert kb formatted correctly
+        size_in_bytes = 123456
+        self.assertEqual(utils.format_bytes(size_in_bytes), "120.56 KB")
+
+        # assert bytes formatted correctly
+        size_in_bytes = 123
+        self.assertEqual(utils.format_bytes(size_in_bytes), "123 Bytes")
+
+        # assert invalid size_in_bytes throws exception
+        size_in_bytes = -10
+        with self.assertRaises(ValueError):
+            utils.format_bytes(size_in_bytes)
