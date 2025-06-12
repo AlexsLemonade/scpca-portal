@@ -21,13 +21,14 @@ apt install nginx awscli zip -y
 cp nginx.conf /etc/nginx/nginx.conf
 service nginx restart
 
-# install and run docker
+# Install and run docker
 apt install apt-transport-https ca-certificates curl software-properties-common -y
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable" | \
     tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update -y
 apt install docker-ce docker-ce-cli -y
+usermod -a -G docker root && usermod -a -G docker ubuntu && newgrp docker
 
 if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
     # Check here for the cert in S3, if present install, if not run certbot.
