@@ -157,7 +157,7 @@ export const DatasetSamplesTable = ({ samples, stickies = 3 }) => {
     {
       Header: 'Modalities',
       accessor: ({ modalities }) =>
-        ['Single-cell', ...getReadableModalities(modalities)].join(', ')
+        [...getReadableModalities(modalities, true)].join(', ')
     },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
     {

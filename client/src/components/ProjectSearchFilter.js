@@ -33,7 +33,11 @@ export const ProjectSearchFilter = ({
 
   const safeDefaultFilters = getSafeDefaultFilters(defaultFilters)
   const [filters, setFilters] = useState(safeDefaultFilters)
-  const [filterOptions, setFilterOptions] = useState(defaultOptions)
+  // Filter out Single-cell option
+  const [filterOptions, setFilterOptions] = useState({
+    ...defaultOptions,
+    modalities: defaultOptions.modalities.filter((m) => m !== 'SINGLE_CELL')
+  })
 
   useEffect(() => {
     setFilters(getSafeDefaultFilters(defaultFilters))
