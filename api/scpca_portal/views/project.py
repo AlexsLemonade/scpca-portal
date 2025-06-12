@@ -4,11 +4,7 @@ from django_filters import rest_framework as filters
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import Project
-from scpca_portal.serializers import ProjectSerializer, SampleSerializer
-
-
-class ProjectDetailSerializer(ProjectSerializer):
-    samples = SampleSerializer(many=True, read_only=True)
+from scpca_portal.serializers import ProjectDetailSerializer, ProjectSerializer
 
 
 class ProjectFilter(filters.FilterSet):
