@@ -26,6 +26,7 @@ class Project_SCPCP999991:
         "includes_xenografts": False,
         "modalities": [
             Modalities.MULTIPLEXED,
+            Modalities.SINGLE_CELL,
         ],
         "multiplexed_sample_count": 2,
         "organisms": ["Homo sapiens"],
