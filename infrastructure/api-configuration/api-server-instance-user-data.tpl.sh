@@ -95,20 +95,20 @@ cat <<EOF >awslogs.json
                 "collect_list": [
                     {
                         "file_path": "/var/log/nginx/access.log",
-                        "log_group_name": ${log_group},
-                        "log_stream_name": ${nginx_access_log_stream},
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${nginx_access_log_stream}",
                         "retention_in_days": 30
                     },
                     {
                         "file_path": "/var/log/nginx/error.log",
-                        "log_group_name": ${log_group},
-                        "log_stream_name": ${nginx_error_log_stream},
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${nginx_error_log_stream}",
                         "retention_in_days": 30
-                    }
+                    },
                     {
                         "file_path": "/var/log/cron/sync_batch_jobs.log",
-                        "log_group_name": ${log_group},
-                        "log_stream_name": ${sync_batch_jobs_log_stream}
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${sync_batch_jobs_log_stream}",
                         "retention_in_days": 30
                     }
                 ]
