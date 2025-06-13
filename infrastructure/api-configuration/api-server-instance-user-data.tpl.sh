@@ -84,30 +84,44 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 fi
 
 # Install, configure and launch our CloudWatch Logs agent
-cat <<EOF >awslogs.conf
-[general]
-state_file = /var/lib/awslogs/agent-state
-
-[/var/log/nginx/error.log]
-file = /var/log/nginx/error.log
-log_group_name = ${log_group}
-log_stream_name = log-stream-api-nginx-error-${user}-${stage}
-
-[/var/log/nginx/access.log]
-file = /var/log/nginx/access.log
-log_group_name = ${log_group}
-log_stream_name = log-stream-api-nginx-access-${user}-${stage}
-
-[/var/log/cron.log]
-file = /var/log/cron.log
-log_group_name = ${log_group}
-log_stream_name = log-stream-api-cron-${user}-${stage}
-
+cat <<EOF >awslogs.json
+{
+    "agent": {
+        "run_as_user": "root"
+    },
+    "logs": {
+        "logs_collected": {
+            "files": {
+                "collect_list": [
+                    {
+                        "file_path": "/var/log/nginx/access.log",
+                        "log_group_name": ${log_group},
+                        "log_stream_name": ${nginx_access_log_stream},
+                        "retention_in_days": 30
+                    },
+                    {
+                        "file_path": "/var/log/nginx/error.log",
+                        "log_group_name": ${log_group},
+                        "log_stream_name": ${nginx_error_log_stream},
+                        "retention_in_days": 30
+                    }
+                    {
+                        "file_path": "/var/log/cron/sync_batch_jobs.log",
+                        "log_group_name": ${log_group},
+                        "log_stream_name": ${sync_batch_jobs_log_stream}
+                        "retention_in_days": 30
+                    }
+                ]
+            }
+        }
+    }
+}
 EOF
 
-mkdir /var/lib/awslogs
-wget https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
-python3 ./awslogs-agent-setup.py --region ${region} --non-interactive --configfile awslogs.conf
+wget https://amazoncloudwatch-agent-us-east-1.s3.us-east-1.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+dpkg -i -E ./amazon-cloudwatch-agent.deb
+amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:awslogs.json
+
 # Rotate the logs, delete after 3 days.
 echo "
 /var/log/nginx/error.log {
@@ -128,7 +142,7 @@ echo "
     maxage 3
 }" >> /etc/logrotate.conf
 echo "
-/var/log/cron.log {
+/var/log/cron/sync_batch_jobs.log {
     missingok
     notifempty
     compress

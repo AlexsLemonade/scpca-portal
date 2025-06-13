@@ -29,7 +29,7 @@ resource "aws_cloudwatch_log_stream" "log_stream_api_nginx_error" {
   log_group_name = aws_cloudwatch_log_group.scpca_portal_log_group.name
 }
 
-resource "aws_cloudwatch_log_stream" "log_stream_api_cron" {
-  name = "log-stream-api-cron-${var.user}-${var.stage}"
+resource "aws_cloudwatch_log_stream" "log_stream_api_sync_batch_jobs" {
+  name = "log-stream-api-sync-batch-jobs-${var.user}-${var.stage}"
   log_group_name = aws_cloudwatch_log_group.scpca_portal_log_group.name
 }
