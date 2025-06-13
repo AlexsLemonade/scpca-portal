@@ -63,8 +63,11 @@ export const ProjectHeader = ({ project, linked = false }) => {
             badge="Samples"
             label={`${project.downloadable_sample_count} Downloadable Samples`}
           />
-          <Badge badge="SeqUnit" label={capitalize(project.seq_units || '')} />
-          <Badge badge="Kit" label={project.technologies} />
+          <Badge
+            badge="SeqUnit"
+            label={project.seq_units.map((su) => capitalize(su || ''))}
+          />
+          <Badge badge="Kit" label={project.technologies.join(', ')} />
           {project.modalities.length > 0 && (
             <Badge
               badge="Modality"

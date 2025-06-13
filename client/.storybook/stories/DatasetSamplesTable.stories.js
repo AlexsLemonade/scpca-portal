@@ -37,9 +37,9 @@ const samples = [
       project: 'SCPCP000006',
       sample_cell_count_estimate: 0,
       scpca_id: 'SCPCS000249',
-      seq_units: 'spot',
+      seq_units: ['spot'],
       subdiagnosis: 'Anaplastic',
-      technologies: 'visium',
+      technologies: ['visium'],
       tissue_location: 'Kidney',
       treatment: 'Resection post chemotherapy'
     },
@@ -77,9 +77,9 @@ const samples = [
       project: 'SCPCP000006',
       sample_cell_count_estimate: 0,
       scpca_id: 'SCPCS000209',
-      seq_units: 'spot',
+      seq_units: ['spot'],
       subdiagnosis: 'Anaplastic',
-      technologies: 'visium',
+      technologies: ['visium'],
       tissue_location: 'Kidney',
       treatment: 'Resection post chemotherapy'
     },
@@ -113,10 +113,10 @@ const samples = [
       project: 'SCPCP000006',
       sample_cell_count_estimate: 14854,
       scpca_id: 'SCPCS000208',
-      seq_units: 'nucleus',
+      seq_units: ['nucleus'],
       subdiagnosis: 'Anaplastic',
       tissue_location: 'Kidney',
-      technologies: '10Xv3.1',
+      technologies: ['10Xv3.1'],
       treatment: 'Upfront resection'
     },
     {
@@ -149,10 +149,10 @@ const samples = [
       project: 'SCPCP000006',
       sample_cell_count_estimate: 14854,
       scpca_id: 'SCPCS000207',
-      seq_units: 'nucleus',
+      seq_units: ['nucleus'],
       subdiagnosis: 'Anaplastic',
       tissue_location: 'Diaphragm',
-      technologies: '10Xv3.1',
+      technologies: ['10Xv3.1'],
       treatment: 'Upfront resection'
     },
     {
@@ -187,10 +187,10 @@ const samples = [
       project: 'SCPCP000006',
       sample_cell_count_estimate: 9421,
       scpca_id: 'SCPCS000206',
-      seq_units: 'nucleus, spot',
+      seq_units: ['nucleus', 'spot'],
       subdiagnosis: 'Anaplastic',
       tissue_location: 'Left kidney',
-      technologies: '10Xv3.1, visium',
+      technologies: ['10Xv3.1', 'visium'],
       treatment: 'Resection post chemotherapy'
     },
     {
@@ -218,9 +218,9 @@ const samples = [
       project: 'SCPCP000006',
       sample_cell_count_estimate: 13108,
       scpca_id: 'SCPCS000205',
-      seq_units: 'nucleus, spot',
+      seq_units: ['nucleus', 'spot'],
       subdiagnosis: 'Favorable',
-      technologies: '10Xv3.1, visium',
+      technologies: ['10Xv3.1', 'visium'],
       tissue_location: 'Kidney',
       treatment: 'Upfront resection'
     },
@@ -255,10 +255,10 @@ const samples = [
       project: 'SCPCP000006',
       sample_cell_count_estimate: 13463,
       scpca_id: 'SCPCS000182',
-      seq_units: 'nucleus, spot',
+      seq_units: ['nucleus', 'spot'],
       subdiagnosis: 'Anaplastic',
       tissue_location: 'Kidney',
-      technologies: '10Xv3.1, visium',
+      technologies: ['10Xv3.1', 'visium'],
       treatment: 'Resection post chemotherapy'
     },
     {
@@ -295,9 +295,9 @@ const samples = [
       project: 'SCPCP000006',
       sample_cell_count_estimate: 13108,
       scpca_id: 'SCPCS000204',
-      seq_units: 'nucleus, spot',
+      seq_units: ['nucleus', 'spot'],
       subdiagnosis: 'Favorable',
-      technologies: '10Xv3.1, visium',
+      technologies: ['10Xv3.1', 'visium'],
       tissue_location: 'Kidney',
       treatment: 'Upfront resection'
     },

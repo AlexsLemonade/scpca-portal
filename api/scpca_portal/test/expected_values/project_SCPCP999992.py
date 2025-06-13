@@ -8,9 +8,9 @@ class Project_SCPCP999992:
     VALUES = {
         "abstract": "TBD",
         "additional_restrictions": "Research or academic purposes only",
-        "diagnoses": "diagnosis7",
-        "diagnoses_counts": "diagnosis7 (2)",
-        "disease_timings": "Initial diagnosis",
+        "diagnoses": ["diagnosis7"],
+        "diagnoses_counts": {"diagnosis7": 2},
+        "disease_timings": ["Initial diagnosis"],
         # This value is not determined until after computed file generation, and should be 2
         "downloadable_sample_count": 0,
         "has_bulk_rna_seq": False,
@@ -40,8 +40,8 @@ class Project_SCPCP999992:
         "s3_input_bucket": settings.AWS_S3_INPUT_BUCKET_NAME,
         "sample_count": 2,
         "scpca_id": SCPCA_ID,
-        "seq_units": "cell",
-        "technologies": "10Xv2_5prime, 10Xv3",
+        "seq_units": ["cell"],
+        "technologies": ["10Xv2_5prime", "10Xv3"],
         "title": "TBD",
         "unavailable_samples_count": 0,
     }
@@ -66,9 +66,9 @@ class Project_SCPCP999992:
             "sample_cell_count_estimate": 3419,
             "scpca_id": SCPCA_ID,
             "sex": "M",
-            "seq_units": "cell",
+            "seq_units": ["cell"],
             "subdiagnosis": "NA",
-            "technologies": "10Xv3",
+            "technologies": ["10Xv3"],
             "tissue_location": "tissue7",
             "treatment": "",
         }
@@ -93,9 +93,9 @@ class Project_SCPCP999992:
             "sample_cell_count_estimate": 5244,
             "scpca_id": SCPCA_ID,
             "sex": "M",
-            "seq_units": "cell",
+            "seq_units": ["cell"],
             "subdiagnosis": "NA",
-            "technologies": "10Xv2_5prime",
+            "technologies": ["10Xv2_5prime"],
             "tissue_location": "tissue9",
             "treatment": "",
         }

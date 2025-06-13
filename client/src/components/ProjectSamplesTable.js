@@ -169,8 +169,16 @@ export const ProjectSamplesTable = ({
       ),
       isVisible: hasMultiplexedData
     },
-    { Header: 'Sequencing Units', accessor: 'seq_units' },
-    { Header: 'Technology', accessor: 'technologies' },
+    {
+      Header: 'Sequencing Units',
+      accessor: 'seq_units',
+      Cell: ({ row }) => <Text>{row.original.seq_units.join(', ')}</Text>
+    },
+    {
+      Header: 'Technology',
+      accessor: 'technologies',
+      Cell: ({ row }) => <Text>{row.original.technologies.join(', ')}</Text>
+    },
     {
       Header: 'Modalities',
       accessor: ({ modalities }) => {

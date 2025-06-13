@@ -237,11 +237,25 @@ class TestPathReplace(TestCase):
         self.assertEqual(actual_folder_count, expected_folder_count)
 
 
-class TestByteConversions(TestCase):
-    def test_convert_bytes_to_gb(self):
+class TestByteConversion(TestCase):
+    def test_format_bytes(self):
+        # assert gb formatted correctly
         size_in_bytes = 1234567890
-        self.assertEqual(utils.convert_bytes_to_gb(size_in_bytes), 1.23456789)
+        self.assertEqual(utils.format_bytes(size_in_bytes), "1.15 GB")
 
-    def test_convert_gb_to_bytes(self):
-        size_in_bytes = 1.23456789
-        self.assertEqual(utils.convert_bytes_to_gb(size_in_bytes), 1234567890)
+        # assert mb formatted correctly
+        size_in_bytes = 12345678
+        self.assertEqual(utils.format_bytes(size_in_bytes), "11.77 MB")
+
+        # assert kb formatted correctly
+        size_in_bytes = 123456
+        self.assertEqual(utils.format_bytes(size_in_bytes), "120.56 KB")
+
+        # assert bytes formatted correctly
+        size_in_bytes = 123
+        self.assertEqual(utils.format_bytes(size_in_bytes), "123 Bytes")
+
+        # assert invalid size_in_bytes throws exception
+        size_in_bytes = -10
+        with self.assertRaises(ValueError):
+            utils.format_bytes(size_in_bytes)
