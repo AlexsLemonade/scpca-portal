@@ -10,6 +10,8 @@ import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
+import { formatCounts } from 'helpers/formatCounts'
+import { sortArrayString } from 'helpers/sortArrayString'
 
 export const ProjectSearchResult = ({ project }) => {
   const { responsive } = useResponsive()
@@ -22,14 +24,14 @@ export const ProjectSearchResult = ({ project }) => {
       value:
         Object.keys(project.diagnoses_counts).length > 0 ? (
           <>
-            {Object.entries(project.diagnoses_counts)
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([k, v], i) => (
-                <Text key={k}>
+            {sortArrayString(formatCounts(project.diagnoses_counts)).map(
+              (dc, i) => (
+                <Text key={dc}>
                   {i > 0 && ', '}
-                  {k} ({v})
+                  {dc}
                 </Text>
-              ))}
+              )
+            )}
           </>
         ) : (
           ''
