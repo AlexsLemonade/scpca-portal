@@ -19,6 +19,8 @@ export const readableNames = {
   summaries: 'Summaries',
   technologies: 'Technologies',
   title: 'Title',
+  BULK_RNA_SEQ: 'Bulk RNA-seq',
+  CITE_SEQ: 'CITE-seq',
   SINGLE_CELL: 'Single-cell',
   SPATIAL: 'Spatial',
   MULTIPLEXED: 'Multiplexed',

@@ -3,7 +3,9 @@ import { Box, Text, CheckBox } from 'grommet'
 import { Loader } from 'components/Loader'
 import { api } from 'api'
 import { useAnalytics } from 'hooks/useAnalytics'
+import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
+import { getReadableModality } from 'helpers/getReadableModality'
 
 export const ProjectSearchFilter = ({
   filters: defaultFilters = {},
@@ -32,7 +34,11 @@ export const ProjectSearchFilter = ({
 
   const safeDefaultFilters = getSafeDefaultFilters(defaultFilters)
   const [filters, setFilters] = useState(safeDefaultFilters)
-  const [filterOptions, setFilterOptions] = useState(defaultOptions)
+  // Filter out Single-cell option
+  const [filterOptions, setFilterOptions] = useState({
+    ...defaultOptions,
+    modalities: filterOut(defaultOptions.modalities, 'SINGLE_CELL')
+  })
 
   useEffect(() => {
     setFilters(getSafeDefaultFilters(defaultFilters))
@@ -115,7 +121,7 @@ export const ProjectSearchFilter = ({
             {filterOptions[f].map((o) => (
               <CheckBox
                 key={`${f}-${o}`}
-                label={o}
+                label={getReadableModality(o)}
                 value
                 checked={hasFilterOption(f, o)}
                 onChange={() => toggleFilterOption(f, o)}
