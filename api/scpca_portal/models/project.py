@@ -372,24 +372,20 @@ class Project(CommonDataAttributes, TimestampedModel):
             libraries = sample.libraries.all()
 
             # Sequencing Units
-            sample.seq_units = sorted(
-                {
-                    seq_unit
-                    for library in libraries
-                    if (seq_unit := library.metadata.get("seq_unit", "").strip())
-                },
-                key=str.lower,
-            )
+            seq_units = {
+                seq_unit
+                for library in libraries
+                if (seq_unit := library.metadata.get("seq_unit", "").strip())
+            }
+            sample.seq_units = sorted(seq_units, key=str.lower)
 
             # Technologies
-            sample.technologies = sorted(
-                {
-                    technology
-                    for library in libraries
-                    if (technology := library.metadata.get("technology", "").strip())
-                },
-                key=str.lower,
-            )
+            technologies = {
+                technology
+                for library in libraries
+                if (technology := library.metadata.get("technology", "").strip())
+            }
+            sample.technologies = sorted(technologies, key=str.lower)
 
             if multiplexed_libraries := sample.libraries.filter(is_multiplexed=True):
                 # Cache all sample ID's related through the multiplexed libraries.
@@ -460,16 +456,14 @@ class Project(CommonDataAttributes, TimestampedModel):
         samples = self.samples.all()
 
         # Additional Metadata Keys
-        self.additional_metadata_keys = sorted(
-            {
-                key
-                for sample in samples
-                for key in sample.additional_metadata.keys()
-                # Include keys except multiplexed_with
-                if not (self.has_multiplexed_data and key == "multiplexed_with")
-            },
-            key=str.lower,
-        )
+        additional_metadata_keys = {
+            key
+            for sample in samples
+            for key in sample.additional_metadata.keys()
+            # Include keys except multiplexed_with
+            if not (self.has_multiplexed_data and key == "multiplexed_with")
+        }
+        self.additional_metadata_keys = sorted(additional_metadata_keys, key=str.lower)
 
         # Diagnoses Counts
         self.diagnoses_counts = dict(Counter(samples.values_list("diagnosis", flat=True)))
@@ -483,35 +477,32 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.modalities = sorted({modality for sample in samples for modality in sample.modalities})
 
         # Organisms
-        self.organisms = sorted(
-            {
-                sample.additional_metadata["organism"]
-                for sample in samples
-                if "organism" in sample.additional_metadata
-            }
-        )
+        organisms = {
+            sample.additional_metadata["organism"]
+            for sample in samples
+            if "organism" in sample.additional_metadata
+        }
+        self.organisms = sorted(organisms)
 
         bulk_libraries = Library.objects.filter(samples__in=samples).exclude(
             modality=Modalities.BULK_RNA_SEQ
         )
 
         # Sequencing Units
-        self.seq_units = sorted(
-            {
-                seq_unit
-                for library in bulk_libraries
-                if (seq_unit := library.metadata.get("seq_unit", "").strip())
-            }
-        )
+        seq_units = {
+            seq_unit
+            for library in bulk_libraries
+            if (seq_unit := library.metadata.get("seq_unit", "").strip())
+        }
+        self.seq_units = sorted(seq_units)
 
         # Technologies
-        self.technologies = sorted(
-            {
-                technology
-                for library in bulk_libraries
-                if (technology := library.metadata.get("technology", "").strip())
-            }
-        )
+        technologies = {
+            technology
+            for library in bulk_libraries
+            if (technology := library.metadata.get("technology", "").strip())
+        }
+        self.technologies = sorted(technologies)
 
         self.save()
 
