@@ -152,7 +152,11 @@ export const DatasetSamplesTable = ({ samples, stickies = 3 }) => {
         </Box>
       )
     },
-    { Header: 'Sequencing Units', accessor: 'seq_units' },
+    {
+      Header: 'Sequencing Units',
+      accessor: 'seq_units',
+      Cell: ({ row }) => <Text>{row.original.seq_units.join(', ')}</Text>
+    },
     {
       Header: 'Modalities',
       accessor: ({ modalities }) => ['Single-cell', ...modalities].join(', ')
