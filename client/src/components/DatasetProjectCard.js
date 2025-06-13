@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react'
+import React from 'react'
 import { Box, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { Badge } from 'components/Badge'
@@ -57,13 +57,8 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
       <Box>
         <Box margin={{ bottom: '24px' }}>
           <Label label="Diagnosis" />
-          {sortArrayString(formatCounts(projectStats.diagnoses_counts)).map(
-            (dc, i) => (
-              <Fragment key={dc}>
-                {i > 0 && ', '}
-                {dc}
-              </Fragment>
-            )
+          {sortArrayString(formatCounts(projectStats.diagnoses_counts)).join(
+            ', '
           )}
         </Box>
         <Box margin={{ bottom: 'xsmall' }}>

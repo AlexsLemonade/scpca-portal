@@ -23,16 +23,9 @@ export const ProjectSearchResult = ({ project }) => {
       title: 'Diagnosis',
       value:
         Object.keys(project.diagnoses_counts).length > 0 ? (
-          <>
-            {sortArrayString(formatCounts(project.diagnoses_counts)).map(
-              (dc, i) => (
-                <Text key={dc}>
-                  {i > 0 && ', '}
-                  {dc}
-                </Text>
-              )
-            )}
-          </>
+          <Text>
+            {sortArrayString(formatCounts(project.diagnoses_counts)).join(', ')}
+          </Text>
         ) : (
           ''
         )
