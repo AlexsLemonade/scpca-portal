@@ -3,6 +3,7 @@ import { Box, Text, CheckBox } from 'grommet'
 import { Loader } from 'components/Loader'
 import { api } from 'api'
 import { useAnalytics } from 'hooks/useAnalytics'
+import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 
@@ -36,7 +37,7 @@ export const ProjectSearchFilter = ({
   // Filter out Single-cell option
   const [filterOptions, setFilterOptions] = useState({
     ...defaultOptions,
-    modalities: defaultOptions.modalities.filter((m) => m !== 'SINGLE_CELL')
+    modalities: filterOut(defaultOptions.modalities, 'SINGLE_CELL')
   })
 
   useEffect(() => {

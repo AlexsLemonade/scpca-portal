@@ -6,8 +6,9 @@ import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { Button } from 'components/Button'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
+import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
-import { getReadableModalities } from 'helpers/getReadableModalities'
+import { getReadableModality } from 'helpers/getReadableModality'
 
 const CheckBox = styled(GrommetCheckBox)`
   + div {
@@ -160,8 +161,14 @@ export const DatasetSamplesTable = ({ samples, stickies = 3 }) => {
     },
     {
       Header: 'Modalities',
-      accessor: ({ modalities }) =>
-        [...getReadableModalities(modalities, true)].join(', ')
+      accessor: ({ modalities, has_single_cell_data: hasSingleCellData }) => {
+        const singleCell = 'SINGLE_CELL'
+        // Prepend 'SINGLE_CELL' if present
+        const reordered = hasSingleCellData
+          ? [singleCell, ...filterOut(modalities, singleCell)]
+          : modalities
+        return reordered.map(getReadableModality).join(', ')
+      }
     },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
     {

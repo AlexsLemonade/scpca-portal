@@ -5,9 +5,10 @@ import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { useProjectMetadataOnly } from 'hooks/useProjectMetadataOnly'
+import { filterOut } from 'helpers/filterOut'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
-import { getReadableModalities } from 'helpers/getReadableModalities'
+import { getReadableModality } from 'helpers/getReadableModality'
 import { DownloadModal } from 'components/DownloadModal'
 import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
 import { Icon } from 'components/Icon'
@@ -181,8 +182,13 @@ export const ProjectSamplesTable = ({
     },
     {
       Header: 'Modalities',
-      accessor: ({ modalities }) => {
-        return [...getReadableModalities(modalities, true)].join(', ')
+      accessor: ({ modalities, has_single_cell_data: hasSingleCellData }) => {
+        const singleCell = 'SINGLE_CELL'
+        // Prepend 'SINGLE_CELL' if present
+        const reordered = hasSingleCellData
+          ? [singleCell, ...filterOut(modalities, singleCell)]
+          : modalities
+        return reordered.map(getReadableModality).join(', ')
       }
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },

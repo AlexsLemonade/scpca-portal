@@ -9,8 +9,9 @@ import { InfoText } from 'components/InfoText'
 import { Pill } from 'components/Pill'
 import { WarningText } from 'components/WarningText'
 import { capitalize } from 'helpers/capitalize'
+import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
-import { getReadableModalities } from 'helpers/getReadableModalities'
+import { getReadableModality } from 'helpers/getReadableModality'
 import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
 
 export const ProjectHeader = ({ project, linked = false }) => {
@@ -71,7 +72,9 @@ export const ProjectHeader = ({ project, linked = false }) => {
           {project.modalities.length > 0 && (
             <Badge
               badge="Modality"
-              label={getReadableModalities(project.modalities).join(', ')}
+              label={filterOut(project.modalities, 'SINGLE_CELL')
+                .map(getReadableModality)
+                .join(', ')}
             />
           )}
         </Grid>
