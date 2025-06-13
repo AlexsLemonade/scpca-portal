@@ -5,6 +5,10 @@ data "local_file" "api_nginx_config" {
   filename = "api-configuration/nginx_config.conf"
 }
 
+data "local_file" "api_crontab_file" {
+  filename = "api-configuration/crontab.txt"
+}
+
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners = ["099720109477"]
@@ -42,6 +46,7 @@ resource "aws_instance" "api_server_1" {
     "api-configuration/api-server-instance-user-data.tpl.sh",
     {
       nginx_config = data.local_file.api_nginx_config.content
+      crontab_file = data.local_file.api_crontab_file.content
       scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
       api_environment = templatefile(
         "api-configuration/environment.tpl",

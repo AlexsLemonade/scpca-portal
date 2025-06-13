@@ -1,0 +1,1 @@
+*/10 * * * * /home/ubuntu/run_command.sh sync_batch_jobs >> /home/ubuntu/sync_batch_jobs.log 2>&1
