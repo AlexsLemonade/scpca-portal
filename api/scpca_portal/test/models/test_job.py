@@ -47,6 +47,32 @@ class TestJob(TestCase):
             self.assertIsInstance(dataset.terminated_at, datetime)
         self.assertEqual(dataset.terminated_reason, terminated_reason)
 
+    def test_set_state(self):
+        # TODO: After refactoring dataset methods, add assertDatasetState.
+        job = JobFactory(state=JobStates.PENDING, dataset=DatasetFactory())
+
+        job.set_state(JobStates.PROCESSING)
+        saved_job = Job.objects.get(pk=job.pk)
+        self.assertEqual(saved_job.state, JobStates.PROCESSING)
+        self.assertIsInstance(saved_job.processing_at, datetime)
+
+        job.set_state(JobStates.SUCCEEDED)
+        saved_job = Job.objects.get(pk=job.pk)
+        self.assertEqual(saved_job.state, JobStates.SUCCEEDED)
+        self.assertIsInstance(saved_job.succeeded_at, datetime)
+
+        job.set_state(JobStates.FAILED, reason=f"Job {JobStates.FAILED}")
+        saved_job = Job.objects.get(pk=job.pk)
+        self.assertEqual(saved_job.state, JobStates.FAILED)
+        self.assertEqual(saved_job.failed_reason, f"Job {JobStates.FAILED}")
+        self.assertIsInstance(saved_job.failed_at, datetime)
+
+        job.set_state(JobStates.TERMINATED, reason=f"Job {JobStates.TERMINATED}")
+        saved_job = Job.objects.get(pk=job.pk)
+        self.assertEqual(saved_job.state, JobStates.TERMINATED)
+        self.assertEqual(saved_job.terminated_reason, f"Job {JobStates.TERMINATED}")
+        self.assertIsInstance(saved_job.terminated_at, datetime)
+
     @patch("scpca_portal.batch.submit_job")
     def test_submit(self, mock_batch_submit_job):
         # Set up mock for submit_job
