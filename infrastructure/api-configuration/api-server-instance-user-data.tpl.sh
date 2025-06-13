@@ -21,6 +21,14 @@ apt install nginx awscli zip -y
 cp nginx.conf /etc/nginx/nginx.conf
 service nginx restart
 
+# Initialize crontab
+mkdir /var/log/cron
+cat <<"EOF" >crontab.txt
+${crontab_file}
+EOF
+crontab crontab.txt
+rm crontab.txt
+
 # Install and run docker
 apt install apt-transport-https ca-certificates curl software-properties-common -y
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker.gpg
@@ -74,16 +82,6 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
         service nginx restart
     fi
 fi
-
-# Enable cron logging to /var/log/cron.log via rsyslog
-sudo sed -i 's/^#cron\.\*/cron\.\* /' /etc/rsyslog.d/50-default.conf
-sudo systemctl restart rsyslog
-
-# Add entry to cronfile calling sync_batch_jobs every 10 minutes
-DJANGO_CMD="sync_batch_jobs"
-CRON_CMD="/home/ubuntu/run_command.sh $DJANGO_CMD"
-CRON_ENTRY="*/10 * * * * ($CRON_CMD 2>&1 | /usr/bin/logger -p cron.info -t $DJANGO_CMD)"
-(crontab -u ubuntu -l 2>/dev/null; echo "$CRON_ENTRY") | crontab -u ubuntu -
 
 # Install, configure and launch our CloudWatch Logs agent
 cat <<EOF >awslogs.conf
