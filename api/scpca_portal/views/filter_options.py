@@ -16,11 +16,11 @@ class FilterOptionsViewSet(viewsets.ViewSet):
         for project in Project.objects.values(
             "diagnoses", "modalities", "seq_units", "technologies", "organisms"
         ):
-            diagnoses_options.update((d for d in (project["diagnoses"] or "").split(", ") if d))
+            diagnoses_options.update((d for d in project["diagnoses"] if d))
             modalities.update(project["modalities"])
-            seq_units_options.update(su for su in (project["seq_units"] or "").split(", ") if su)
-            technologies_options.update(t for t in (project["technologies"] or "").split(", ") if t)
-            organisms_options.update(o for o in project["organisms"] or "" if o)
+            seq_units_options.update(su for su in project["seq_units"] if su)
+            technologies_options.update(t for t in project["technologies"] if t)
+            organisms_options.update(o for o in project["organisms"] if o)
 
         return JsonResponse(
             {
