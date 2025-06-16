@@ -474,7 +474,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
         # Modalities
-        self.modalities = sorted({modality for sample in samples for modality in sample.modalities})
+        self.modalities = utils.get_sorted_modalities(
+            {modality for sample in samples for modality in sample.modalities}
+        )
 
         # Organisms
         organisms = {

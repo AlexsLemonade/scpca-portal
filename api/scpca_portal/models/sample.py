@@ -173,7 +173,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             "has_spatial_data": Modalities.SPATIAL,
         }
 
-        return sorted(
+        return utils.get_sorted_modalities(
             [
                 modality_name
                 for attr_name, modality_name in attr_name_modality_mapping.items()

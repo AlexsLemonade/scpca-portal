@@ -1,4 +1,4 @@
-from scpca_portal.enums import JobStates
+from scpca_portal.enums import JobStates, Modalities
 
 CSV_MULTI_VALUE_DELIMITER = ";"
 
@@ -42,6 +42,15 @@ SUBMITTER_WHITELIST = {
     "soragni",
     "pushel",
 }
+
+# Modalities sort order
+MODALITIES_SORT_ORDER = [
+    Modalities.SINGLE_CELL,
+    Modalities.BULK_RNA_SEQ,
+    Modalities.CITE_SEQ,
+    Modalities.MULTIPLEXED,
+    Modalities.SPATIAL,
+]
 
 # Global sort order for Metadata TSVs
 # Columns
