@@ -21,13 +21,22 @@ apt install nginx awscli zip -y
 cp nginx.conf /etc/nginx/nginx.conf
 service nginx restart
 
-# install and run docker
+# Initialize crontab
+mkdir /var/log/cron
+cat <<"EOF" >crontab.txt
+${crontab_file}
+EOF
+crontab crontab.txt
+rm crontab.txt
+
+# Install and run docker
 apt install apt-transport-https ca-certificates curl software-properties-common -y
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable" | \
     tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update -y
 apt install docker-ce docker-ce-cli -y
+sudo usermod -a -G docker ubuntu && newgrp docker
 
 if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
     # Check here for the cert in S3, if present install, if not run certbot.
@@ -75,25 +84,44 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 fi
 
 # Install, configure and launch our CloudWatch Logs agent
-cat <<EOF >awslogs.conf
-[general]
-state_file = /var/lib/awslogs/agent-state
-
-[/var/log/nginx/error.log]
-file = /var/log/nginx/error.log
-log_group_name = ${log_group}
-log_stream_name = log-stream-api-nginx-error-${user}-${stage}
-
-[/var/log/nginx/access.log]
-file = /var/log/nginx/access.log
-log_group_name = ${log_group}
-log_stream_name = log-stream-api-nginx-access-${user}-${stage}
-
+cat <<EOF >awslogs.json
+{
+    "agent": {
+        "run_as_user": "root"
+    },
+    "logs": {
+        "logs_collected": {
+            "files": {
+                "collect_list": [
+                    {
+                        "file_path": "/var/log/nginx/access.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${nginx_access_log_stream}",
+                        "retention_in_days": 30
+                    },
+                    {
+                        "file_path": "/var/log/nginx/error.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${nginx_error_log_stream}",
+                        "retention_in_days": 30
+                    },
+                    {
+                        "file_path": "/var/log/cron/sync_batch_jobs.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${sync_batch_jobs_log_stream}",
+                        "retention_in_days": 30
+                    }
+                ]
+            }
+        }
+    }
+}
 EOF
 
-mkdir /var/lib/awslogs
-wget https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
-python3 ./awslogs-agent-setup.py --region ${region} --non-interactive --configfile awslogs.conf
+wget https://amazoncloudwatch-agent-us-east-1.s3.us-east-1.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+dpkg -i -E ./amazon-cloudwatch-agent.deb
+amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:awslogs.json
+
 # Rotate the logs, delete after 3 days.
 echo "
 /var/log/nginx/error.log {
@@ -110,6 +138,15 @@ echo "
     notifempty
     compress
     size 20k
+    daily
+    maxage 3
+}" >> /etc/logrotate.conf
+echo "
+/var/log/cron/sync_batch_jobs.log {
+    missingok
+    notifempty
+    compress
+    size 20K
     daily
     maxage 3
 }" >> /etc/logrotate.conf
