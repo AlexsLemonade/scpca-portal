@@ -315,14 +315,15 @@ class Job(TimestampedModel):
         """
         state_str = state.lower()
         reason_attr = f"{state_str}_reason"
-        event_handler = f"on_job_{state_str}"
+        # event_handler = f"on_job_{state_str}"
 
         self.state = state
         if hasattr(self, reason_attr):
             setattr(self, reason_attr, reason)
         self.update_state_at()
 
-        getattr(self.dataset, event_handler)()
+        # TODO: Update and improve Dataset model
+        # getattr(self.dataset, event_handler)()
 
     def submit(self) -> bool:
         """
