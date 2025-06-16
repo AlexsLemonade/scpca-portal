@@ -169,12 +169,13 @@ class Sample(CommonDataAttributes, TimestampedModel):
             "has_bulk_rna_seq": Modalities.BULK_RNA_SEQ,
             "has_cite_seq_data": Modalities.CITE_SEQ,
             "has_multiplexed_data": Modalities.MULTIPLEXED,
+            "has_single_cell_data": Modalities.SINGLE_CELL,
             "has_spatial_data": Modalities.SPATIAL,
         }
 
-        return sorted(
+        return utils.get_sorted_modalities(
             [
-                modality_name.label
+                modality_name
                 for attr_name, modality_name in attr_name_modality_mapping.items()
                 if getattr(self, attr_name)
             ]

@@ -25,7 +25,8 @@ class Project_SCPCP999991:
         "includes_merged_anndata": False,
         "includes_xenografts": False,
         "modalities": [
-            Modalities.MULTIPLEXED.label,
+            Modalities.SINGLE_CELL,
+            Modalities.MULTIPLEXED,
         ],
         "multiplexed_sample_count": 2,
         "organisms": ["Homo sapiens"],
