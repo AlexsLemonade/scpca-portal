@@ -97,6 +97,16 @@ def get_sorted_field_names(fieldnames: List | Set) -> List:
     )
 
 
+def get_sorted_modalities(modalities: List | Set) -> List:
+    """
+    Returns a list of sorted modality values.
+    """
+    return sorted(
+        sorted(modalities),  # Sort modalities first
+        key=lambda m: (common.MODALITIES_SORT_ORDER.index(m)),
+    )
+
+
 def get_csv_zipped_values(
     data: Dict,
     *args: List[str],
