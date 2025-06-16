@@ -5,7 +5,6 @@ import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { useProjectMetadataOnly } from 'hooks/useProjectMetadataOnly'
-import { filterOut } from 'helpers/filterOut'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
@@ -182,14 +181,8 @@ export const ProjectSamplesTable = ({
     },
     {
       Header: 'Modalities',
-      accessor: ({ modalities, has_single_cell_data: hasSingleCellData }) => {
-        const singleCell = 'SINGLE_CELL'
-        // Prepend 'SINGLE_CELL' if present
-        const reordered = hasSingleCellData
-          ? [singleCell, ...filterOut(modalities, singleCell)]
-          : modalities
-        return reordered.map(getReadableModality).join(', ')
-      }
+      accessor: ({ modalities }) =>
+        modalities.map(getReadableModality).join(', ')
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
