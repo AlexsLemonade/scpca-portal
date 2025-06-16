@@ -1,28 +1,17 @@
+from django.contrib.postgres.fields import ArrayField
 from rest_framework import viewsets
 
 from django_filters import rest_framework as filters
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import Project
-from scpca_portal.serializers import ProjectSerializer, SampleSerializer
+from scpca_portal.serializers import ProjectDetailSerializer, ProjectSerializer
 
 
-class ProjectDetailSerializer(ProjectSerializer):
-    samples = SampleSerializer(many=True, read_only=True)
-
-
-class ProjectFilter(filters.FilterSet):
-    diagnoses = filters.CharFilter(field_name="diagnoses", lookup_expr="icontains")
-    seq_units = filters.CharFilter(field_name="seq_units", lookup_expr="icontains")
-    modalities = filters.CharFilter(field_name="modalities", lookup_expr="icontains")
-    organisms = filters.CharFilter(field_name="organisms", lookup_expr="icontains")
-    technologies = filters.CharFilter(field_name="technologies", lookup_expr="icontains")
-    disease_timings = filters.CharFilter(field_name="disease_timings", lookup_expr="icontains")
-    human_readable_pi_name = filters.CharFilter(
-        field_name="human_readable_pi_name", lookup_expr="icontains"
-    )
-    title = filters.CharFilter(field_name="title", lookup_expr="icontains")
-    abstract = filters.CharFilter(field_name="abstract", lookup_expr="icontains")
+class ProjectFilterSet(filters.FilterSet):
+    """
+    Custom FilterSet to support ArrayField.
+    """
 
     class Meta:
         model = Project
@@ -36,14 +25,32 @@ class ProjectFilter(filters.FilterSet):
             "has_spatial_data",
             "includes_cell_lines",
             "includes_xenografts",
+            "diagnoses",
+            "seq_units",
+            "modalities",
+            "organisms",
+            "technologies",
+            "disease_timings",
+            "human_readable_pi_name",
+            "title",
+            "abstract",
         ]
+
+        filter_overrides = {
+            ArrayField: {
+                "filter_class": filters.CharFilter,
+                "extra": lambda f: {
+                    "lookup_expr": "icontains",
+                },
+            }
+        }
 
 
 class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Project.objects.all().order_by("created_at")
     ordering_fields = "__all__"
     lookup_field = "scpca_id"
-    filterset_class = ProjectFilter
+    filterset_class = ProjectFilterSet
 
     def get_serializer_class(self):
         if self.action == "list":

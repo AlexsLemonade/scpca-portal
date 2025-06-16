@@ -29,7 +29,7 @@ PROJECT_METADATA_KEYS = [
     ("citation_doi", "doi", None),
 ]
 
-PROJECT_METADATA_VALUES_TRANSFORMS = {"diagnoses": lambda d: ", ".join(sorted(d.split(";")))}
+PROJECT_METADATA_VALUES_TRANSFORMS = {"diagnoses": lambda d: sorted(d.split(";"))}
 
 LIBRARY_METADATA_KEYS = [
     ("project_id", "scpca_project_id", None),

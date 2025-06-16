@@ -9,7 +9,9 @@ import { InfoText } from 'components/InfoText'
 import { Pill } from 'components/Pill'
 import { WarningText } from 'components/WarningText'
 import { capitalize } from 'helpers/capitalize'
+import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
+import { getReadableModality } from 'helpers/getReadableModality'
 import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
 
 export const ProjectHeader = ({ project, linked = false }) => {
@@ -62,10 +64,18 @@ export const ProjectHeader = ({ project, linked = false }) => {
             badge="Samples"
             label={`${project.downloadable_sample_count} Downloadable Samples`}
           />
-          <Badge badge="SeqUnit" label={capitalize(project.seq_units || '')} />
-          <Badge badge="Kit" label={project.technologies} />
+          <Badge
+            badge="SeqUnit"
+            label={project.seq_units.map((su) => capitalize(su || ''))}
+          />
+          <Badge badge="Kit" label={project.technologies.join(', ')} />
           {project.modalities.length > 0 && (
-            <Badge badge="Modality" label={project.modalities.join(', ')} />
+            <Badge
+              badge="Modality"
+              label={filterOut(project.modalities, 'SINGLE_CELL')
+                .map(getReadableModality)
+                .join(', ')}
+            />
           )}
         </Grid>
 
