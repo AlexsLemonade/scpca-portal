@@ -7,6 +7,7 @@ import { Button } from 'components/Button'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
 import { getReadable } from 'helpers/getReadable'
+import { getReadableModality } from 'helpers/getReadableModality'
 
 const CheckBox = styled(GrommetCheckBox)`
   + div {
@@ -159,7 +160,8 @@ export const DatasetSamplesTable = ({ samples, stickies = 3 }) => {
     },
     {
       Header: 'Modalities',
-      accessor: ({ modalities }) => ['Single-cell', ...modalities].join(', ')
+      accessor: ({ modalities }) =>
+        modalities.map(getReadableModality).join(', ')
     },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
     {
