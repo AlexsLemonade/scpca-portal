@@ -100,10 +100,11 @@ def get_sorted_field_names(fieldnames: List | Set) -> List:
 def get_sorted_modalities(modalities: List | Set) -> List:
     """
     Returns a list of sorted modality values.
+    By default, SINGLE_CELL always comes first.
     """
     return sorted(
         sorted(modalities),  # Sort modalities first
-        key=lambda m: (common.MODALITIES_SORT_ORDER.index(m)),
+        key=lambda m: (common.MODALITIES_DEFAULT_SORT_ORDER.index(m)),
     )
 
 

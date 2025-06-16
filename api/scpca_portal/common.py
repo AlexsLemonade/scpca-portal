@@ -43,8 +43,8 @@ SUBMITTER_WHITELIST = {
     "pushel",
 }
 
-# Modalities sort order
-MODALITIES_SORT_ORDER = [
+# Modalities default sort order
+MODALITIES_DEFAULT_SORT_ORDER = [
     Modalities.SINGLE_CELL,
     Modalities.BULK_RNA_SEQ,
     Modalities.CITE_SEQ,
