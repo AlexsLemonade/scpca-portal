@@ -135,6 +135,23 @@ def upload_output_file(key: str, bucket_name: str) -> bool:
     return True
 
 
+def check_file_empty(key: str, bucket: str) -> bool:
+    """
+    Checks to see if the passed bucket and key correspond to an empty file.
+    """
+    command_parts = ["aws", "s3api", "head-object", "--bucket", bucket, "--key", key]
+
+    try:
+        result = subprocess.run(command_parts, capture_output=True, text=True, check=True)
+        raw_json_output = result.stdout
+        json_output = json.loads(raw_json_output)
+    except subprocess.CalledProcessError:
+        logger.error("Either the request was malformed or there was a network error.")
+        raise
+
+    return json_output["ContentLength"] == 0
+
+
 def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
     return aws_s3.generate_presigned_url(
         ClientMethod="get_object",
