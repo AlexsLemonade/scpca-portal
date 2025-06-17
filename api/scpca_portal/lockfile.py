@@ -1,8 +1,9 @@
-from typing import List
+from pathlib import Path
+from typing import Dict, List
 
 from django.conf import settings
 
-from scpca_portal import s3
+from scpca_portal import s3, utils
 from scpca_portal.models import OriginalFile, Project
 
 LOCKFILE_KEY = "projects.lock"
@@ -48,3 +49,15 @@ def lock_projects() -> List[str]:
     LOCKFILE_PATH.unlink()
 
     return lockable_project_ids
+
+
+def get_unlocked_files(file_objects: List[Dict], locked_project_ids: List[str]):
+    unlocked_files = []
+    for file_object in file_objects:
+        if (
+            utils.InputBucketS3KeyInfo(Path(file_object["s3_key"])).project_id
+            not in locked_project_ids
+        ):
+            unlocked_files.append(file_objects)
+
+    return unlocked_files
