@@ -1,5 +1,6 @@
 import json
 import subprocess
+from pathlib import Path
 from typing import Dict, List
 
 from django.conf import settings
@@ -130,6 +131,22 @@ def upload_output_file(key: str, bucket_name: str) -> bool:
         subprocess.check_call(command_parts)
     except subprocess.CalledProcessError as error:
         logger.error(f"Computed file failed to upload due to the following error:\n\t{error}")
+        return False
+
+    return True
+
+
+def upload_file(key: str, bucket_name: str, local_path: Path) -> bool:
+    """Upload a file to S3 using the AWS CLI tool."""
+
+    aws_path = f"s3://{bucket_name}/{key}"
+    command_parts = ["aws", "s3", "cp", local_path, aws_path]
+
+    logger.info(f"Uploading File {key}")
+    try:
+        subprocess.check_call(command_parts)
+    except subprocess.CalledProcessError as error:
+        logger.error(f"File failed to upload due to the following error:\n\t{error}")
         return False
 
     return True

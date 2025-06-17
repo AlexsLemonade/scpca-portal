@@ -5,8 +5,6 @@ CSV_MULTI_VALUE_DELIMITER = ";"
 TAB = "\t"
 NA = "NA"  # "Not Available"
 
-LOCKFILE_KEY = "projects.lock"
-
 GB_IN_BYTES = 1000000000
 
 IGNORED_INPUT_VALUES = {"", NA, "TBD"}
