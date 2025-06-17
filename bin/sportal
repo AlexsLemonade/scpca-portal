@@ -158,7 +158,11 @@ command_descriptions = {
     "deploy:down": "Tear down existing dev stack.",
     "deploy:init": "Terraform init via the deploy command.",
     "deploy:plan": "Terraform plan via the deploy command.",
-    "deploy:console": "Access a terraform console to help test data structures. Use --save-plan to save to infrastructure/PLAN. View with `terraform show PLAN`",
+    "deploy:console": (
+        "Access a terraform console to help test data structures."
+        "Use --save-plan to save to infrastructure/PLAN."
+        "View with `terraform show PLAN`"
+    ),
 }
 
 # All available commands and their execution.
