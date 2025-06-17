@@ -119,6 +119,7 @@ venv.bak/
 infrastructure/*.tfstate*
 infrastructure/.terraform/
 infrastructure/.terraform.lock.hcl
+infrastructure/PLAN
 .circleci/s3_tfstate/.terraform
 
 # MacOS
