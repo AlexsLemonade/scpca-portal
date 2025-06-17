@@ -8,7 +8,7 @@ from django.db import connection
 from django.db.models import Q
 from django.template.defaultfilters import pluralize
 
-from scpca_portal import metadata_file, s3
+from scpca_portal import metadata_parser, s3
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import (
     ComputedFile,
@@ -64,7 +64,7 @@ def get_projects_metadata(filter_on_project_id: str = "") -> List[Dict[str, Any]
 
     s3.download_files(metadata_original_files | bulk_original_files)
 
-    projects_metadata = metadata_file.load_projects_metadata(
+    projects_metadata = metadata_parser.load_projects_metadata(
         filter_on_project_id=filter_on_project_id
     )
     return projects_metadata
