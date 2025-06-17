@@ -47,7 +47,8 @@ def init(backend_configs=[], init_args=["-upgrade"], log_trace=False):
 
     return terraform_process.returncode
 
-def plan(var_file_arg, out = False):
+
+def plan(var_file_arg, out=False):
     """Plan changes that will be made to infrastructure.
 
     Should be called after init.
@@ -67,6 +68,7 @@ def plan(var_file_arg, out = False):
     except KeyboardInterrupt:
         terraform_process.send_signal(signal.SIGINT)
 
+
 def console(var_file_arg):
     """Enter a terraform REPL.
 
@@ -74,9 +76,7 @@ def console(var_file_arg):
     """
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
-        terraform_process = subprocess.Popen(
-            ["terraform", "console", var_file_arg, "-plan"]
-        )
+        terraform_process = subprocess.Popen(["terraform", "console", var_file_arg, "-plan"])
         terraform_process.wait()
         exit(terraform_process.returncode)
     except KeyboardInterrupt:

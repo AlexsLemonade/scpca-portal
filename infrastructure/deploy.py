@@ -96,7 +96,9 @@ def parse_args():
 
     # SAVE PLAN
     save_out_help_text = "Used with --plan. Saves output for next deploy."
-    parser.add_argument("--save-plan", help=save_out_help_text, action=argparse.BooleanOptionalAction)
+    parser.add_argument(
+        "--save-plan", help=save_out_help_text, action=argparse.BooleanOptionalAction
+    )
 
     # CONSOLE
     console_help_text = "Run terraform console. Skips docker builds."
