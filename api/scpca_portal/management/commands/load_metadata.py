@@ -36,6 +36,7 @@ class Command(BaseCommand):
             default=settings.PRODUCTION,
         )
         parser.add_argument("--reload-existing", action="store_true", default=False)
+        parser.add_argument("--reload-locked", action="store_true", default=False)
         parser.add_argument("--scpca-project-id", type=str)
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
@@ -57,6 +58,7 @@ class Command(BaseCommand):
         input_bucket_name: str,
         clean_up_input_data: bool,
         reload_existing: bool,
+        reload_locked: bool,
         scpca_project_id: str,
         update_s3: bool,
         submitter_whitelist: Set[str],
