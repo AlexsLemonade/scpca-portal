@@ -93,7 +93,8 @@ class Library(TimestampedModel):
     @classmethod
     def load_metadata(cls, project) -> None:
         """
-        Parses library metadata json files and creates Library objects
+        Parses library metadata json files and creates Library objects.
+        If the project has bulk, loads bulk libraries.
         """
         library_metadata_paths = set(Path(project.input_data_path).rglob("*_metadata.json"))
         all_libraries_metadata = [
@@ -108,6 +109,9 @@ class Library(TimestampedModel):
                 # we should skip creating that library as the sample won't exist.
                 if sample := project.samples.filter(scpca_id=sample_id).first():
                     Library.bulk_create_from_dicts([library_metadata], sample)
+
+        if project.has_bulk_rna_seq:
+            Library.load_bulk_metadata(project)
 
     @property
     def original_files(self):

@@ -242,17 +242,10 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def load_metadata(self) -> None:
         """
-        Loads sample and library metadata files, creates Sample and Library objects,
+        Loads sample metadata files and creates Sample objects,
         and archives Project and Sample computed files.
         """
         Sample.load_metadata(self)
-        Library.load_metadata(self)
-        if self.has_bulk_rna_seq:
-            Library.load_bulk_metadata(self)
-
-        # Update sample properties based on library queries after processing all samples
-        Sample.update_modality_properties(self)
-        Sample.update_aggregate_properties(self)
 
         # Update project properties based on sample queries after processing all samples
         self.update_project_modality_properties()
