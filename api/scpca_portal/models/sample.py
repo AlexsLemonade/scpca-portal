@@ -86,7 +86,8 @@ class Sample(CommonDataAttributes, TimestampedModel):
     def load_metadata(cls, project) -> None:
         """
         Parses sample metadata csv, creates Sample objects,
-        and loads library metadata files for the given project.
+        loads library metadata for the given project, and
+        updates sample aggregate values.
         """
         samples_metadata = metadata_file.load_samples_metadata(
             Sample.get_input_metadata_file_path(project)

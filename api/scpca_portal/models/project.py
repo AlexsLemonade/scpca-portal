@@ -242,8 +242,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def load_metadata(self) -> None:
         """
-        Loads sample metadata files and creates Sample objects,
-        and archives Project and Sample computed files.
+        Loads sample metadata and updates project aggregate values.
         """
         Sample.load_metadata(self)
 
