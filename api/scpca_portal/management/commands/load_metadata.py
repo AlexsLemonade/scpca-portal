@@ -5,7 +5,7 @@ from typing import Set
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from scpca_portal import common, loader
+from scpca_portal import common, loader, lockfile
 from scpca_portal.models import OriginalFile, Project
 
 logger = logging.getLogger()
@@ -73,7 +73,9 @@ class Command(BaseCommand):
         loader.prep_data_dirs()
 
         loadable_project_ids = list(
-            Project.objects.filter(is_locked=reload_locked).values_list("scpca_id", flat=True)
+            Project.objects.filter(is_locked=reload_locked)
+            .exclude(scpca_id__in=lockfile.get_lockfile_project_ids())
+            .values_list("scpca_id", flat=True)
         )
         if scpca_project_id:
             loadable_project_ids = [scpca_project_id]
