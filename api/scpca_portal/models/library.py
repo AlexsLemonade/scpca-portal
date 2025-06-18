@@ -1,9 +1,10 @@
+from pathlib import Path
 from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common
+from scpca_portal import common, metadata_file
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
@@ -72,6 +73,41 @@ class Library(TimestampedModel):
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
+
+    @classmethod
+    def load_bulk_metadata(cls, project) -> None:
+        """
+        Parses bulk metadata tsv files and create Library objets for bulk-only samples
+        """
+        if not project.has_bulk_rna_seq:
+            raise Exception("Trying to load bulk libraries for project with no bulk data")
+
+        all_bulk_libraries_metadata = metadata_file.load_bulk_metadata(
+            project.input_bulk_metadata_file_path
+        )
+        for library_metadata in all_bulk_libraries_metadata:
+            sample_id = library_metadata["scpca_sample_id"]
+            if sample := project.samples.filter(scpca_id=sample_id).first():
+                Library.bulk_create_from_dicts([library_metadata], sample)
+
+    @classmethod
+    def load_metadata(cls, project) -> None:
+        """
+        Parses library metadata json files and creates Library objects
+        """
+        library_metadata_paths = set(Path(project.input_data_path).rglob("*_metadata.json"))
+        all_libraries_metadata = [
+            metadata_file.load_library_metadata(lib_path) for lib_path in library_metadata_paths
+        ]
+        for library_metadata in all_libraries_metadata:
+            # Multiplexed samples are represented in scpca_sample_id as comma separated lists
+            # This ensures that all samples with be related to the correct library
+            for sample_id in library_metadata["scpca_sample_id"].split(","):
+                # We create samples based on what is in samples_metadata.csv
+                # If the sample folder is in the input bucket, but not listed
+                # we should skip creating that library as the sample won't exist.
+                if sample := project.samples.filter(scpca_id=sample_id).first():
+                    Library.bulk_create_from_dicts([library_metadata], sample)
 
     @property
     def original_files(self):
