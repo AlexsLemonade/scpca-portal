@@ -46,7 +46,7 @@ BULK_METADATA_KEYS = [
 ]
 
 
-def load_projects_metadata(*, filter_on_project_id: str = None):
+def load_projects_metadata(*, filter_on_project_ids: List[str] = []):
     """
     Opens, loads and parses list of project metadata dicts.
     Transforms keys in data dicts to match associated model attributes.
@@ -59,8 +59,8 @@ def load_projects_metadata(*, filter_on_project_id: str = None):
         utils.transform_keys(project_metadata, PROJECT_METADATA_KEYS)
         utils.transform_values(project_metadata, PROJECT_METADATA_VALUES_TRANSFORMS)
 
-    if filter_on_project_id:
-        return [pm for pm in projects_metadata if pm["scpca_project_id"] == filter_on_project_id]
+    if filter_on_project_ids:
+        return [pm for pm in projects_metadata if pm["scpca_project_id"] in filter_on_project_ids]
 
     return projects_metadata
 
