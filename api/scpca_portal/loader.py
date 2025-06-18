@@ -49,14 +49,22 @@ def remove_project_input_files(project_id: str) -> None:
     shutil.rmtree(settings.INPUT_DATA_PATH / project_id, ignore_errors=True)
 
 
-def get_projects_metadata(filter_on_project_id: str = "") -> List[Dict[str, Any]]:
+def get_projects_metadata(
+    filter_on_project_id: str = "", *, filter_on_project_ids: List[str] = []
+) -> List[Dict[str, Any]]:
     """
     Download all metadata files from the passed input bucket,
     load the project metadata file and return project metadata dicts.
     """
     metadata_original_files = OriginalFile.objects.filter(is_metadata=True)
     bulk_original_files = OriginalFile.objects.filter(is_bulk=True)
-    if filter_on_project_id:
+
+    if filter_on_project_ids:
+        metadata_original_files = metadata_original_files.filter(
+            Q(project_id__in=filter_on_project_ids) | Q(project_id__isnull=True)
+        )
+        bulk_original_files = bulk_original_files.filter(project_id__in=filter_on_project_ids)
+    elif filter_on_project_id:
         metadata_original_files = metadata_original_files.filter(
             Q(project_id=filter_on_project_id) | Q(project_id__isnull=True)
         )
