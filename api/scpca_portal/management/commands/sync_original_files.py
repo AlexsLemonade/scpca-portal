@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils.timezone import make_aware
 
-from scpca_portal import s3
+from scpca_portal import lockfile, s3
 from scpca_portal.models import OriginalFile
 
 logger = logging.getLogger()
@@ -50,6 +50,9 @@ class Command(BaseCommand):
     def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs):
         logger.info("Initiating listing of bucket objects...")
         listed_objects = s3.list_bucket_objects(bucket)
+
+        if locked_project_ids := lockfile.lock_projects():
+            listed_objects = lockfile.get_unlocked_files(listed_objects, locked_project_ids)
 
         logger.info("Syncing database...")
         sync_timestamp = make_aware(datetime.now())

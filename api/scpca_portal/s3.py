@@ -1,5 +1,6 @@
 import json
 import subprocess
+from pathlib import Path
 from typing import Dict, List
 
 from django.conf import settings
@@ -133,6 +134,39 @@ def upload_output_file(key: str, bucket_name: str) -> bool:
         return False
 
     return True
+
+
+def upload_file(key: str, bucket_name: str, local_path: Path) -> bool:
+    """Upload a file to S3 using the AWS CLI tool."""
+
+    aws_path = f"s3://{bucket_name}/{key}"
+    command_parts = ["aws", "s3", "cp", local_path, aws_path]
+
+    logger.info(f"Uploading File {key}")
+    try:
+        subprocess.check_call(command_parts)
+    except subprocess.CalledProcessError as error:
+        logger.error(f"File failed to upload due to the following error:\n\t{error}")
+        return False
+
+    return True
+
+
+def check_file_empty(key: str, bucket: str) -> bool:
+    """
+    Checks to see if the passed bucket and key correspond to an empty file.
+    """
+    command_parts = ["aws", "s3api", "head-object", "--bucket", bucket, "--key", key]
+
+    try:
+        result = subprocess.run(command_parts, capture_output=True, text=True, check=True)
+        raw_json_output = result.stdout
+        json_output = json.loads(raw_json_output)
+    except subprocess.CalledProcessError:
+        logger.error("Either the request was malformed or there was a network error.")
+        raise
+
+    return json_output["ContentLength"] == 0
 
 
 def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:

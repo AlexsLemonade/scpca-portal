@@ -45,6 +45,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     includes_merged_anndata = models.BooleanField(default=False)
     includes_merged_sce = models.BooleanField(default=False)
     includes_xenografts = models.BooleanField(default=False)
+    is_locked = models.BooleanField(default=False)
     modalities = ArrayField(models.TextField(), default=list)
     multiplexed_sample_count = models.IntegerField(default=0)
     organisms = ArrayField(models.TextField(), default=list)

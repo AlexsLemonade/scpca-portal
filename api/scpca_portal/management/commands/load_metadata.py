@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from scpca_portal import common, loader
-from scpca_portal.models import OriginalFile
+from scpca_portal.models import OriginalFile, Project
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -36,6 +36,7 @@ class Command(BaseCommand):
             default=settings.PRODUCTION,
         )
         parser.add_argument("--reload-existing", action="store_true", default=False)
+        parser.add_argument("--reload-locked", action="store_true", default=False)
         parser.add_argument("--scpca-project-id", type=str)
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
@@ -57,6 +58,7 @@ class Command(BaseCommand):
         input_bucket_name: str,
         clean_up_input_data: bool,
         reload_existing: bool,
+        reload_locked: bool,
         scpca_project_id: str,
         update_s3: bool,
         submitter_whitelist: Set[str],
@@ -70,7 +72,14 @@ class Command(BaseCommand):
 
         loader.prep_data_dirs()
 
-        for project_metadata in loader.get_projects_metadata(scpca_project_id):
+        loadable_project_ids = list(
+            Project.objects.filter(is_locked=reload_locked).values_list("scpca_id", flat=True)
+        )
+        if scpca_project_id:
+            loadable_project_ids = [scpca_project_id]
+        for project_metadata in loader.get_projects_metadata(
+            filter_on_project_ids=loadable_project_ids
+        ):
             # validate that a project can be added to the db,
             # then creates it, all its samples and libraries, and all other relations
             if project := loader.create_project(
