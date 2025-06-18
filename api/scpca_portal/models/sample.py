@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, metadata_file, utils
+from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
@@ -89,7 +89,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         loads library metadata for the given project, and
         updates sample aggregate values.
         """
-        samples_metadata = metadata_file.load_samples_metadata(
+        samples_metadata = metadata_parser.load_samples_metadata(
             Sample.get_input_metadata_file_path(project)
         )
 

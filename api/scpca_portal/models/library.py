@@ -4,7 +4,7 @@ from typing import Dict, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, metadata_file
+from scpca_portal import common, metadata_parser
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
@@ -82,7 +82,7 @@ class Library(TimestampedModel):
         if not project.has_bulk_rna_seq:
             raise Exception("Trying to load bulk libraries for project with no bulk data")
 
-        all_bulk_libraries_metadata = metadata_file.load_bulk_metadata(
+        all_bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
             project.input_bulk_metadata_file_path
         )
         for library_metadata in all_bulk_libraries_metadata:
@@ -98,7 +98,7 @@ class Library(TimestampedModel):
         """
         library_metadata_paths = set(Path(project.input_data_path).rglob("*_metadata.json"))
         all_libraries_metadata = [
-            metadata_file.load_library_metadata(lib_path) for lib_path in library_metadata_paths
+            metadata_parser.load_library_metadata(lib_path) for lib_path in library_metadata_paths
         ]
         for library_metadata in all_libraries_metadata:
             # Multiplexed samples are represented in scpca_sample_id as comma separated lists
