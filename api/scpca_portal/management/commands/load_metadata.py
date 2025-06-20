@@ -72,15 +72,22 @@ class Command(BaseCommand):
 
         loader.prep_data_dirs()
 
-        loadable_project_ids = list(
-            Project.objects.filter(is_locked=reload_locked)
-            .exclude(scpca_id__in=lockfile.get_lockfile_project_ids())
-            .values_list("scpca_id", flat=True)
-        )
-        if scpca_project_id:
-            loadable_project_ids = [scpca_project_id]
+        filter_on_project_ids = None
+        if reload_existing:
+            loadable_projects = Project.objects.filter(is_locked=reload_locked)
+            if reload_locked:
+                # only reload locked projects if their ids have been removed from the lockfile
+                loadable_projects = loadable_projects.exclude(
+                    scpca_id__in=lockfile.get_lockfile_project_ids()
+                )
+
+            if scpca_project_id and loadable_projects.filter(scpca_id=scpca_project_id).exists():
+                filter_on_project_ids = [scpca_project_id]
+            else:
+                filter_on_project_ids = list(loadable_projects.values_list("scpca_id", flat=True))
+
         for project_metadata in loader.get_projects_metadata(
-            filter_on_project_ids=loadable_project_ids
+            filter_on_project_ids=filter_on_project_ids
         ):
             # validate that a project can be added to the db,
             # then creates it, all its samples and libraries, and all other relations
