@@ -15,7 +15,8 @@ class DatasetsTestCase(APITestCase):
     """Tests /datasets/ operations."""
 
     def setUp(self):
-        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         self.token = APIToken(email="user@example.com", is_activated=True)
         self.token.save()
 

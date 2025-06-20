@@ -6,9 +6,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils.timezone import make_aware
 
-from api.scpca_portal.models.project import Project
 from scpca_portal import lockfile, s3
-from scpca_portal.models import OriginalFile
+from scpca_portal.models import OriginalFile, Project
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

@@ -12,7 +12,8 @@ from scpca_portal.test.factories import OriginalFileFactory
 
 class TestLoadMetadata(TestCase):
     def setUp(self):
-        self.load_metadata = partial(call_command, "load_metadata")
+        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
+            self.load_metadata = partial(call_command, "load_metadata")
         # Bind default function params to test object for easy access
         self.input_bucket_name = settings.AWS_S3_INPUT_BUCKET_NAME
         self.clean_up_input_data = False
@@ -63,7 +64,6 @@ class TestLoadMetadata(TestCase):
         self.load_metadata()
         self.assertMethodsCalled()
 
-        self.mock_get_projects_metadata.assert_called_once_with(self.scpca_project_id)
         self.mock_create_project.assert_called_once_with(
             self.projects_metadata[0],
             self.submitter_whitelist,
@@ -75,7 +75,6 @@ class TestLoadMetadata(TestCase):
         input_bucket_name = "input_bucket_name"
         self.load_metadata(input_bucket_name=input_bucket_name)
 
-        self.mock_get_projects_metadata.assert_called_with(self.scpca_project_id)
         self.mock_create_project.assert_called_with(
             self.projects_metadata[0],
             self.submitter_whitelist,
@@ -115,13 +114,13 @@ class TestLoadMetadata(TestCase):
         )
 
     def test_scpca_project_id(self):
-        self.load_metadata()
-        self.assertMethodsCalled()
-        self.mock_get_projects_metadata.assert_called_once_with(self.scpca_project_id)
-
         scpca_project_id = "scpca_project_id"
-        self.load_metadata(scpca_project_id=scpca_project_id)
-        self.mock_get_projects_metadata.assert_called_with(scpca_project_id)
+        project = Project(scpca_id=scpca_project_id)
+        project.save()
+
+        # project must exist and reload_existing  must be set to load specific project
+        self.load_metadata(scpca_project_id=scpca_project_id, reload_existing=True)
+        self.mock_get_projects_metadata.assert_called_with(filter_on_project_ids=[scpca_project_id])
 
     def test_update_s3(self):
         self.load_metadata()

@@ -1,12 +1,14 @@
 import csv
 from collections import Counter
 from pathlib import Path
-from typing import Dict, Iterable, List, Self
+from typing import Dict, Iterable, List
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count, Q
+
+from typing_extensions import Self
 
 from scpca_portal import common, metadata_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
