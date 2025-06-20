@@ -33,12 +33,29 @@ S3_OBJECT_VALUES = {
 }
 
 
-def remove_listed_directories(listed_objects):
+def _exclude_objects_with_key_substrings(
+    bucket_objects: List[Dict], substrings: List[str]
+) -> List[Dict]:
+    """
+    Return filtered version of passed bucket objects,
+    removing all objects whose s3 keys include any of the passed substrings.
+    """
+    if not substrings:
+        return bucket_objects
+
+    return [
+        bucket_object
+        for bucket_object in bucket_objects
+        if not any(sub in bucket_object["s3_key"] for sub in substrings)
+    ]
+
+
+def _remove_listed_directories(listed_objects):
     """Returns cleaned list of object files without directories objects."""
     return [obj for obj in listed_objects if not obj["s3_key"].endswith("/")]
 
 
-def list_bucket_objects(bucket: str) -> List[Dict]:
+def list_bucket_objects(bucket: str, *, excluded_key_substrings: List[str] = []) -> List[Dict]:
     """
     Queries the aws s3api for all of a bucket's objects
     and returns a list of dictionaries with properties of contained objects.
@@ -66,12 +83,13 @@ def list_bucket_objects(bucket: str) -> List[Dict]:
         logger.info(f"Queried s3 bucket ({bucket}) is empty.")
         return []
 
-    all_listed_objects = json_output.get("Contents")
-    for listed_object in all_listed_objects:
-        utils.transform_keys(listed_object, S3_OBJECT_KEYS)
-        utils.transform_values(listed_object, S3_OBJECT_VALUES, prefix)
+    bucket_objects = json_output.get("Contents")
+    for bucket_object in bucket_objects:
+        utils.transform_keys(bucket_object, S3_OBJECT_KEYS)
+        utils.transform_values(bucket_object, S3_OBJECT_VALUES, prefix)
+    filtered_objects = _exclude_objects_with_key_substrings(bucket_objects, excluded_key_substrings)
 
-    return remove_listed_directories(all_listed_objects)
+    return _remove_listed_directories(filtered_objects)
 
 
 def download_files(original_files) -> bool:
