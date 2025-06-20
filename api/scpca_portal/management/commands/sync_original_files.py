@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils.timezone import make_aware
 
+from api.scpca_portal.models.project import Project
 from scpca_portal import lockfile, s3
 from scpca_portal.models import OriginalFile
 
@@ -49,19 +50,20 @@ class Command(BaseCommand):
 
     def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs):
         logger.info("Initiating listing of bucket objects...")
-        listed_objects = s3.list_bucket_objects(bucket)
 
-        if locked_project_ids := lockfile.lock_projects():
-            listed_objects = lockfile.get_unlocked_files(listed_objects, locked_project_ids)
+        locked_project_ids = lockfile.get_lockfile_project_ids()
+        Project.lock_projects(locked_project_ids)
+
+        bucket_objects = s3.list_bucket_objects(bucket, excluded_key_substrings=locked_project_ids)
 
         logger.info("Syncing database...")
         sync_timestamp = make_aware(datetime.now())
 
         logger.info("Updating modified existing OriginalFiles.")
-        updated_files = OriginalFile.bulk_update_from_dicts(listed_objects, bucket, sync_timestamp)
+        updated_files = OriginalFile.bulk_update_from_dicts(bucket_objects, bucket, sync_timestamp)
 
         logger.info("Inserting new OriginalFiles.")
-        created_files = OriginalFile.bulk_create_from_dicts(listed_objects, bucket, sync_timestamp)
+        created_files = OriginalFile.bulk_create_from_dicts(bucket_objects, bucket, sync_timestamp)
 
         logger.info("Purging OriginalFiles that were deleted from s3.")
         deleted_files = OriginalFile.purge_deleted_files(bucket, sync_timestamp, allow_bucket_wipe)

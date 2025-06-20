@@ -1,7 +1,7 @@
 import csv
 from collections import Counter
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Self
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -77,6 +77,17 @@ class Project(CommonDataAttributes, TimestampedModel):
                     setattr(project, key, data.get(key))
 
         return project
+
+    @classmethod
+    def lock_projects(cls, locked_project_ids: List[str]) -> List[Self]:
+        locked_projects = []
+        for project_id in locked_project_ids:
+            project = cls.objects.filter(scpca_id=project_id).first()
+            project.is_locked = True
+            locked_projects.append(project)
+        cls.objects.bulk_update(locked_projects, ["is_locked"])
+
+        return locked_projects
 
     @property
     def samples_to_generate(self):
