@@ -10,7 +10,7 @@ from django.db.models import Count, Q
 
 from typing_extensions import Self
 
-from scpca_portal import common, metadata_file, utils
+from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
@@ -284,7 +284,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         Parses sample metadata csv and creates Sample objects
         """
-        samples_metadata = metadata_file.load_samples_metadata(
+        samples_metadata = metadata_parser.load_samples_metadata(
             self.input_samples_metadata_file_path
         )
 
@@ -296,7 +296,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         library_metadata_paths = set(Path(self.input_data_path).rglob("*_metadata.json"))
         all_libraries_metadata = [
-            metadata_file.load_library_metadata(lib_path) for lib_path in library_metadata_paths
+            metadata_parser.load_library_metadata(lib_path) for lib_path in library_metadata_paths
         ]
         for library_metadata in all_libraries_metadata:
             # Multiplexed samples are represented in scpca_sample_id as comma separated lists
@@ -315,7 +315,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         if not self.has_bulk_rna_seq:
             raise Exception("Trying to load bulk libraries for project with no bulk data")
 
-        all_bulk_libraries_metadata = metadata_file.load_bulk_metadata(
+        all_bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
             self.input_bulk_metadata_file_path
         )
         for library_metadata in all_bulk_libraries_metadata:
