@@ -1,11 +1,12 @@
-from django.test import TestCase
+from django.test import TestCase, tag
 
 from scpca_portal import common
 from scpca_portal.enums import Modalities
+from scpca_portal.models import Project
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory
 
 
-class TestGetLibraries(TestCase):
+class TestProject(TestCase):
     def setUp(self):
         self.project = ProjectFactory(has_multiplexed_data=True)
         self.library_single_cell_no_multiplexed = LibraryFactory(
@@ -16,6 +17,7 @@ class TestGetLibraries(TestCase):
         )
         self.library_spatial = LibraryFactory(project=self.project, modality=Modalities.SPATIAL)
 
+    @tag("get_libraries")
     def test_get_libraries_valid_config(self):
         download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED"
         download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
@@ -24,6 +26,7 @@ class TestGetLibraries(TestCase):
         self.assertIn(self.library_single_cell_no_multiplexed, result)
         self.assertIn(self.library_single_cell_multiplexed, result)
 
+    @tag("get_libraries")
     def test_get_libraries_invalid_config(self):
         download_config = {
             "modality": None,
@@ -35,6 +38,7 @@ class TestGetLibraries(TestCase):
         with self.assertRaises(ValueError):
             self.project.get_libraries(download_config)
 
+    @tag("get_libraries")
     def test_get_libraries_empty_config(self):
         download_config = {}
         result = self.project.get_libraries(download_config)
@@ -42,12 +46,14 @@ class TestGetLibraries(TestCase):
         self.assertIn(self.library_single_cell_multiplexed, result)
         self.assertIn(self.library_spatial, result)
 
+    @tag("get_libraries")
     def test_get_libraries_no_config_passed(self):
         result = self.project.get_libraries()
         self.assertIn(self.library_single_cell_no_multiplexed, result)
         self.assertIn(self.library_single_cell_multiplexed, result)
         self.assertIn(self.library_spatial, result)
 
+    @tag("get_libraries")
     def test_get_libraries_metadata_only(self):
         download_config_name = "ALL_METADATA"
         download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
@@ -57,6 +63,7 @@ class TestGetLibraries(TestCase):
         self.assertIn(self.library_single_cell_multiplexed, result)
         self.assertIn(self.library_spatial, result)
 
+    @tag("get_libraries")
     def test_get_libraries_excludes_multiplexed(self):
         download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"
         download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
@@ -65,6 +72,7 @@ class TestGetLibraries(TestCase):
         self.assertIn(self.library_single_cell_no_multiplexed, result)
         self.assertNotIn(self.library_single_cell_multiplexed, result)
 
+    @tag("get_libraries")
     def test_get_libraries_includes_merged_merged_file_exists(self):
         download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED"
         download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
@@ -73,6 +81,7 @@ class TestGetLibraries(TestCase):
         result = self.project.get_libraries(download_config)
         self.assertIn(self.library_single_cell_no_multiplexed, result)
 
+    @tag("get_libraries")
     def test_get_libraries_includes_merged_no_merged_file(self):
         download_config_name = "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED"
         download_config = common.PROJECT_DOWNLOAD_CONFIGS[download_config_name]
@@ -81,3 +90,15 @@ class TestGetLibraries(TestCase):
 
         result = self.project.get_libraries(download_config)
         self.assertFalse(result.exists())
+
+    @tag("lock_projects")
+    def test_lock_projects(self):
+        projects = [ProjectFactory() for _ in range(3)]
+        for project in projects:
+            self.assertFalse(project.is_locked)
+
+        project_ids = [p.scpca_id for p in projects]
+        Project.lock_projects(project_ids)
+
+        for project in Project.objects.filter(scpca_id__in=project_ids):
+            self.assertTrue(project.is_locked)
