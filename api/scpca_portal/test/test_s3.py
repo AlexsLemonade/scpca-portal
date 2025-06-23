@@ -193,10 +193,10 @@ class TestS3(TestCase):
     @tag("check_file_empty")
     def test_check_test_inputs(self):
         bucket = settings.AWS_S3_INPUT_BUCKET_NAME
+
         # TODO: uncomment when empty lockfile is added to test bucket
         # empty_file = lockfile.LOCKFILE_KEY
         # self.assertTrue(s3.check_file_empty(empty_file, bucket))
 
-        bucket = settings.AWS_S3_INPUT_BUCKET_NAME
-        empty_file = metadata_parser.PROJECT_METADATA_S3_KEY
-        self.assertFalse(s3.check_file_empty(empty_file, bucket))
+        non_empty_file = metadata_parser.PROJECT_METADATA_S3_KEY
+        self.assertFalse(s3.check_file_empty(non_empty_file, bucket))

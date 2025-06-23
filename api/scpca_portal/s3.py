@@ -161,6 +161,9 @@ def check_file_empty(key: str, bucket: str) -> bool:
     bucket_without_prefix = bucket.split("/", 1)[0]
     command_parts = ["aws", "s3api", "head-object", "--bucket", bucket_without_prefix, "--key", key]
 
+    if "public" in bucket:
+        command_parts.append("--no-sign-request")
+
     try:
         result = subprocess.run(command_parts, capture_output=True, text=True, check=True)
         raw_json_output = result.stdout
