@@ -18,6 +18,7 @@ class TestLoadMetadata(TestCase):
         self.input_bucket_name = settings.AWS_S3_INPUT_BUCKET_NAME
         self.clean_up_input_data = False
         self.reload_existing = False
+        self.reload_locked = False
         self.scpca_project_id = None
         self.update_s3 = False
         self.submitter_whitelist = common.SUBMITTER_WHITELIST
@@ -69,6 +70,7 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
+            self.reload_locked,
             self.update_s3,
         )
 
@@ -80,6 +82,7 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             input_bucket_name,
             self.reload_existing,
+            self.reload_locked,
             self.update_s3,
         )
 
@@ -100,6 +103,7 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
+            self.reload_locked,
             self.update_s3,
         )
 
@@ -110,6 +114,31 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             reload_existing,
+            self.reload_locked,
+            self.update_s3,
+        )
+
+    def test_reload_locked(self):
+        self.load_metadata()
+        self.assertMethodsCalled()
+        self.mock_create_project.assert_called_once_with(
+            self.projects_metadata[0],
+            self.submitter_whitelist,
+            self.input_bucket_name,
+            self.reload_existing,
+            self.reload_locked,
+            self.update_s3,
+        )
+
+        reload_locked = True
+        reload_existing = True
+        self.load_metadata(reload_locked=reload_locked, reload_existing=reload_existing)
+        self.mock_create_project.assert_called_with(
+            self.projects_metadata[0],
+            self.submitter_whitelist,
+            self.input_bucket_name,
+            reload_existing,
+            reload_locked,
             self.update_s3,
         )
 
@@ -130,6 +159,7 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
+            self.reload_locked,
             self.update_s3,
         )
 
@@ -140,6 +170,7 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
+            self.reload_locked,
             update_s3,
         )
 
@@ -151,6 +182,7 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
+            self.reload_locked,
             self.update_s3,
         )
 
@@ -161,6 +193,7 @@ class TestLoadMetadata(TestCase):
             submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
+            self.reload_locked,
             self.update_s3,
         )
 
