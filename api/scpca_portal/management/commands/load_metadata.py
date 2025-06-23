@@ -35,9 +35,6 @@ class Command(BaseCommand):
             type=bool,
             default=settings.PRODUCTION,
         )
-        parser.add_argument("--reload-existing", action="store_true", default=False)
-        parser.add_argument("--reload-locked", action="store_true", default=False)
-        parser.add_argument("--scpca-project-id", type=str)
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
         )
@@ -46,6 +43,27 @@ class Command(BaseCommand):
             type=self.comma_separated_set,
             default=common.SUBMITTER_WHITELIST,
         )
+
+        reload_existing_help_text = """
+        Reload projects that have previously been loaded into the db.
+        Without --reload-existing, only new projects will be processed.
+        """
+        parser.add_argument(
+            "--reload-existing", action="store_true", default=False, help=reload_existing_help_text
+        )
+
+        reload_locked_help_text = """
+        Reload projects that were previously in the lockfile but have since been removed.
+        It must be passed with the --reload-existing flag.
+        """
+        parser.add_argument(
+            "--reload-locked", action="store_true", default=False, help=reload_locked_help_text
+        )
+
+        scpca_portal_id_help_text = """
+        Reload an individual project. It must be passed with the --reload-existing flag.
+        """
+        parser.add_argument("--scpca-project-id", type=str, help=scpca_portal_id_help_text)
 
     def handle(self, *args, **kwargs):
         self.load_metadata(**kwargs)
@@ -72,7 +90,7 @@ class Command(BaseCommand):
 
         loader.prep_data_dirs()
 
-        filter_on_project_ids = None
+        filter_on_project_ids = []
         if reload_existing:
             loadable_projects = Project.objects.filter(is_locked=reload_locked)
             if reload_locked:
@@ -81,10 +99,12 @@ class Command(BaseCommand):
                     scpca_id__in=lockfile.get_lockfile_project_ids()
                 )
 
-            if scpca_project_id and loadable_projects.filter(scpca_id=scpca_project_id).exists():
-                filter_on_project_ids = [scpca_project_id]
+            if scpca_project_id:
+                filter_on_project_ids.append(scpca_project_id)
             else:
-                filter_on_project_ids = list(loadable_projects.values_list("scpca_id", flat=True))
+                filter_on_project_ids.extend(
+                    list(loadable_projects.values_list("scpca_id", flat=True))
+                )
 
         for project_metadata in loader.get_projects_metadata(
             filter_on_project_ids=filter_on_project_ids
