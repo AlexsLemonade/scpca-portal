@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Set
 
 from django.conf import settings
@@ -6,6 +5,7 @@ from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from scpca_portal import metadata_parser
+from scpca_portal.models import Library, Sample
 from scpca_portal.test.factories import ProjectFactory
 
 
@@ -58,7 +58,7 @@ class TestMetadataParser(TransactionTestCase):
 
         for project_id, expected_sample_ids in PROJECT_SAMPLES_IDS.items():
             project = ProjectFactory(scpca_id=project_id)
-            sample_metadata_path = project.samples.first().get_input_metadata_file_path(project)
+            sample_metadata_path = Sample.get_input_metadata_file_path(project)
 
             # Load metadata for samples
             samples_metadata = metadata_parser.load_samples_metadata(sample_metadata_path)
@@ -76,7 +76,7 @@ class TestMetadataParser(TransactionTestCase):
 
         for project_id, expected_library_ids in PROJECT_LIBRARY_IDS.items():
             project = ProjectFactory(scpca_id=project_id)
-            library_metadata_paths = set(Path(project.input_data_path).rglob("*_metadata.json"))
+            library_metadata_paths = Library.get_project_input_metadata_file_paths(project)
 
             # Load metadata for libraries
             libraries_metadata = [

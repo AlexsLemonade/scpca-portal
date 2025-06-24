@@ -96,10 +96,11 @@ class Library(TimestampedModel):
         Parses library metadata json files and creates Library objects.
         If the project has bulk, loads bulk libraries.
         """
-        library_metadata_paths = set(Path(project.input_data_path).rglob("*_metadata.json"))
+        library_metadata_paths = Library.get_project_input_metadata_file_paths(project)
         all_libraries_metadata = [
             metadata_parser.load_library_metadata(lib_path) for lib_path in library_metadata_paths
         ]
+
         for library_metadata in all_libraries_metadata:
             # Multiplexed samples are represented in scpca_sample_id as comma separated lists
             # This ensures that all samples with be related to the correct library
@@ -161,6 +162,18 @@ class Library(TimestampedModel):
                 return original_files.exclude(is_anndata=True)
 
         return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
+
+    @staticmethod
+    def get_project_input_metadata_file_paths(project) -> Path:
+        return [
+            lib.local_file_path
+            for lib in OriginalFile.objects.filter(
+                is_metadata=True,
+                project_id=project.scpca_id,
+                library_id__isnull=False,
+                s3_key__endswith="_metadata.json",  # Exclude other .csv, .json files
+            )
+        ]
 
     @staticmethod
     def get_libraries_metadata(libraries) -> List[Dict]:
