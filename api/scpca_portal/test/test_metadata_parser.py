@@ -76,16 +76,17 @@ class TestMetadataParser(TransactionTestCase):
 
         for project_id, expected_library_ids in PROJECT_LIBRARY_IDS.items():
             project = ProjectFactory(scpca_id=project_id)
-            library_metadata_paths = Library.get_project_input_metadata_file_paths(project)
 
             # Load metadata for libraries
             libraries_metadata = [
-                metadata_parser.load_library_metadata(lib_path)
-                for lib_path in library_metadata_paths
+                metadata_parser.load_library_metadata(lib.local_file_path)
+                for lib in Library.get_project_original_file_libraries(project)
             ]
 
             # Make sure all libraries metadata are loaded
-            actual_library_ids = [lib_meta["scpca_library_id"] for lib_meta in libraries_metadata]
+            actual_library_ids = [
+                lib_metadata["scpca_library_id"] for lib_metadata in libraries_metadata
+            ]
             self.assertEqual(sorted(actual_library_ids), expected_library_ids)
 
             # Verify that metadata keys are transformed correctly

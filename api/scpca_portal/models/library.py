@@ -85,10 +85,10 @@ class Library(TimestampedModel):
         all_bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
             project.input_bulk_metadata_file_path
         )
-        for library_metadata in all_bulk_libraries_metadata:
-            sample_id = library_metadata["scpca_sample_id"]
+        for lib_metadata in all_bulk_libraries_metadata:
+            sample_id = lib_metadata["scpca_sample_id"]
             if sample := project.samples.filter(scpca_id=sample_id).first():
-                Library.bulk_create_from_dicts([library_metadata], sample)
+                Library.bulk_create_from_dicts([lib_metadata], sample)
 
     @classmethod
     def load_metadata(cls, project) -> None:
@@ -96,20 +96,27 @@ class Library(TimestampedModel):
         Parses library metadata json files and creates Library objects.
         If the project has bulk, loads bulk libraries.
         """
-        library_metadata_paths = Library.get_project_input_metadata_file_paths(project)
+        original_file_libraries = Library.get_project_original_file_libraries(project)
+
         all_libraries_metadata = [
-            metadata_parser.load_library_metadata(lib_path) for lib_path in library_metadata_paths
+            metadata_parser.load_library_metadata(lib.local_file_path)
+            for lib in original_file_libraries
         ]
 
-        for library_metadata in all_libraries_metadata:
-            # Multiplexed samples are represented in scpca_sample_id as comma separated lists
-            # This ensures that all samples with be related to the correct library
-            for sample_id in library_metadata["scpca_sample_id"].split(","):
-                # We create samples based on what is in samples_metadata.csv
-                # If the sample folder is in the input bucket, but not listed
-                # we should skip creating that library as the sample won't exist.
-                if sample := project.samples.filter(scpca_id=sample_id).first():
-                    Library.bulk_create_from_dicts([library_metadata], sample)
+        library_metadata_by_id = {
+            lib_metadata["scpca_library_id"]: lib_metadata
+            for lib_metadata in all_libraries_metadata
+        }
+
+        sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}
+
+        for lib in original_file_libraries:
+            if lib_metadata := library_metadata_by_id.get(lib.library_id):
+                #  Multiplexed samples will have multiple sample IDs in lib.sample_ids
+                for sample_id in lib.sample_ids:
+                    # Only create the library if the sample exists in the project
+                    if sample := sample_by_id.get(sample_id):
+                        Library.bulk_create_from_dicts([lib_metadata], sample)
 
         if project.has_bulk_rna_seq:
             Library.load_bulk_metadata(project)
@@ -164,9 +171,13 @@ class Library(TimestampedModel):
         return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
 
     @staticmethod
-    def get_project_input_metadata_file_paths(project) -> Path:
+    def get_project_original_file_libraries(project) -> Path:
+        """
+        Returns all metadata OriginalFile instances for a given project.
+        Filters to library metadata JSON files only.
+        """
         return [
-            lib.local_file_path
+            lib
             for lib in OriginalFile.objects.filter(
                 is_metadata=True,
                 project_id=project.scpca_id,
