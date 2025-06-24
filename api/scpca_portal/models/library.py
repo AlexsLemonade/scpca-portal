@@ -85,9 +85,11 @@ class Library(TimestampedModel):
         all_bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
             project.input_bulk_metadata_file_path
         )
+
+        sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}
+
         for lib_metadata in all_bulk_libraries_metadata:
-            sample_id = lib_metadata["scpca_sample_id"]
-            if sample := project.samples.filter(scpca_id=sample_id).first():
+            if sample := sample_by_id.get(lib_metadata["scpca_sample_id"]):
                 Library.bulk_create_from_dicts([lib_metadata], sample)
 
     @classmethod
