@@ -5,7 +5,7 @@ from typing import Set
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from scpca_portal import common, loader, lockfile
+from scpca_portal import common, loader, lockfile, metadata_parser
 from scpca_portal.models import OriginalFile, Project
 
 logger = logging.getLogger()
@@ -90,21 +90,24 @@ class Command(BaseCommand):
 
         loader.prep_data_dirs()
 
-        filter_on_project_ids = []
-        if reload_existing:
-            loadable_projects = Project.objects.filter(is_locked=reload_locked)
-            if reload_locked:
-                # only reload locked projects if their ids have been removed from the lockfile
-                loadable_projects = loadable_projects.exclude(
-                    scpca_id__in=lockfile.get_lockfile_project_ids()
-                )
+        projects_metadata_ids = set(metadata_parser.get_projects_metadata_ids())
+        lockfile_project_ids = set(lockfile.get_lockfile_project_ids())
+        safe_project_ids = projects_metadata_ids - lockfile_project_ids
 
-            if scpca_project_id:
-                filter_on_project_ids.append(scpca_project_id)
-            else:
-                filter_on_project_ids.extend(
-                    list(loadable_projects.values_list("scpca_id", flat=True))
+        filter_on_project_ids = list(safe_project_ids)
+        if reload_locked:
+            filter_on_project_ids = list(
+                Project.objects.filter(scpca_id__in=safe_project_ids, is_locked=True).values_list(
+                    "scpca_id", flat=True
                 )
+            )
+
+        if scpca_project_id:
+            if scpca_project_id in safe_project_ids:
+                filter_on_project_ids = [scpca_project_id]
+            else:
+                logger.info(f"{scpca_project_id} is not available to reload.")
+                return
 
         for project_metadata in loader.get_projects_metadata(
             filter_on_project_ids=filter_on_project_ids
