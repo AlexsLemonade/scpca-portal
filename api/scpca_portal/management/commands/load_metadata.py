@@ -53,16 +53,13 @@ class Command(BaseCommand):
         )
 
         reload_locked_help_text = """
-        Reload projects that were previously in the lockfile but have since been removed.
-        It must be passed with the --reload-existing flag.
+        Only reload projects that were previously in the lockfile but have since been removed.
         """
         parser.add_argument(
             "--reload-locked", action="store_true", default=False, help=reload_locked_help_text
         )
 
-        scpca_portal_id_help_text = """
-        Reload an individual project. It must be passed with the --reload-existing flag.
-        """
+        scpca_portal_id_help_text = "Reload an individual project."
         parser.add_argument("--scpca-project-id", type=str, help=scpca_portal_id_help_text)
 
     def handle(self, *args, **kwargs):
