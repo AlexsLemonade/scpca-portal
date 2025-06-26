@@ -46,6 +46,16 @@ BULK_METADATA_KEYS = [
 ]
 
 
+def get_projects_metadata_ids() -> List[str]:
+    """
+    Opens the projects metadata file and returns a list of all project ids.
+
+    """
+    with open(PROJECT_METADATA_PATH) as raw_file:
+        projects_metadata = csv.DictReader(raw_file)
+        return [row["scpca_project_id"] for row in projects_metadata]
+
+
 def load_projects_metadata(*, filter_on_project_ids: List[str] = []):
     """
     Opens, loads and parses list of project metadata dicts.
