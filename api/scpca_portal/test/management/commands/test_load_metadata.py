@@ -5,15 +5,14 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
-from scpca_portal import common
+from scpca_portal import common, metadata_parser
 from scpca_portal.models import Project
 from scpca_portal.test.factories import OriginalFileFactory
 
 
 class TestLoadMetadata(TestCase):
     def setUp(self):
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
-            self.load_metadata = partial(call_command, "load_metadata")
+        self.load_metadata = partial(call_command, "load_metadata")
         # Bind default function params to test object for easy access
         self.input_bucket_name = settings.AWS_S3_INPUT_BUCKET_NAME
         self.clean_up_input_data = False
@@ -25,12 +24,14 @@ class TestLoadMetadata(TestCase):
 
         # Handle patching in setUp function
         prep_data_dirs_patch = patch("scpca_portal.loader.prep_data_dirs")
+        get_lockfile_project_ids = patch("scpca_portal.lockfile.get_lockfile_project_ids")
         get_projects_metadata_patch = patch("scpca_portal.loader.get_projects_metadata")
         create_project_patch = patch("scpca_portal.loader.create_project")
         remove_project_input_files_patch = patch("scpca_portal.loader.remove_project_input_files")
 
         # Start patches
         self.mock_prep_data_dirs = prep_data_dirs_patch.start()
+        self.mock_get_lockfile_project_ids = get_lockfile_project_ids.start()
         self.mock_get_projects_metadata = get_projects_metadata_patch.start()
         self.mock_create_project = create_project_patch.start()
         self.mock_remove_project_input_files = remove_project_input_files_patch.start()
@@ -38,12 +39,14 @@ class TestLoadMetadata(TestCase):
         # Save patches that so they can be stopped during tearDown
         self.patches = [
             prep_data_dirs_patch,
+            get_lockfile_project_ids,
             get_projects_metadata_patch,
             create_project_patch,
             remove_project_input_files_patch,
         ]
 
         # Configure necessary output values
+        self.mock_get_lockfile_project_ids.return_value = []
         self.projects_metadata = [{"key": "value"}]
         self.mock_get_projects_metadata.return_value = self.projects_metadata
         self.project = Project()
@@ -70,7 +73,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.reload_locked,
             self.update_s3,
         )
 
@@ -82,7 +84,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             input_bucket_name,
             self.reload_existing,
-            self.reload_locked,
             self.update_s3,
         )
 
@@ -103,7 +104,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.reload_locked,
             self.update_s3,
         )
 
@@ -114,7 +114,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             reload_existing,
-            self.reload_locked,
             self.update_s3,
         )
 
@@ -126,29 +125,25 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.reload_locked,
             self.update_s3,
         )
 
         reload_locked = True
-        reload_existing = True
-        self.load_metadata(reload_locked=reload_locked, reload_existing=reload_existing)
+        self.load_metadata(reload_locked=reload_locked)
         self.mock_create_project.assert_called_with(
             self.projects_metadata[0],
             self.submitter_whitelist,
             self.input_bucket_name,
-            reload_existing,
-            reload_locked,
+            self.reload_existing,
             self.update_s3,
         )
 
     def test_scpca_project_id(self):
-        scpca_project_id = "scpca_project_id"
+        scpca_project_id = metadata_parser.get_projects_metadata_ids()[0]
         project = Project(scpca_id=scpca_project_id)
         project.save()
 
-        # project must exist and reload_existing  must be set to load specific project
-        self.load_metadata(scpca_project_id=scpca_project_id, reload_existing=True)
+        self.load_metadata(scpca_project_id=scpca_project_id)
         self.mock_get_projects_metadata.assert_called_with(filter_on_project_ids=[scpca_project_id])
 
     def test_update_s3(self):
@@ -159,7 +154,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.reload_locked,
             self.update_s3,
         )
 
@@ -170,7 +164,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.reload_locked,
             update_s3,
         )
 
@@ -182,7 +175,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.reload_locked,
             self.update_s3,
         )
 
@@ -193,7 +185,6 @@ class TestLoadMetadata(TestCase):
             submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.reload_locked,
             self.update_s3,
         )
 
