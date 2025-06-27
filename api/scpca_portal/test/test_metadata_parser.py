@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Set
 
 from django.conf import settings
@@ -6,6 +5,7 @@ from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from scpca_portal import metadata_parser
+from scpca_portal.models import Library, Sample
 from scpca_portal.test.factories import ProjectFactory
 
 
@@ -58,11 +58,10 @@ class TestMetadataParser(TransactionTestCase):
 
         for project_id, expected_sample_ids in PROJECT_SAMPLES_IDS.items():
             project = ProjectFactory(scpca_id=project_id)
+            sample_metadata_path = Sample.get_input_metadata_file_path(project)
 
             # Load metadata for samples
-            samples_metadata = metadata_parser.load_samples_metadata(
-                project.input_samples_metadata_file_path
-            )
+            samples_metadata = metadata_parser.load_samples_metadata(sample_metadata_path)
 
             # Make sure all project samples metadata are loaded
             actual_sample_ids = [sample["scpca_sample_id"] for sample in samples_metadata]
@@ -77,16 +76,17 @@ class TestMetadataParser(TransactionTestCase):
 
         for project_id, expected_library_ids in PROJECT_LIBRARY_IDS.items():
             project = ProjectFactory(scpca_id=project_id)
-            library_metadata_paths = set(Path(project.input_data_path).rglob("*_metadata.json"))
 
             # Load metadata for libraries
             libraries_metadata = [
-                metadata_parser.load_library_metadata(lib_path)
-                for lib_path in library_metadata_paths
+                metadata_parser.load_library_metadata(lib.local_file_path)
+                for lib in Library.get_project_original_file_libraries(project)
             ]
 
             # Make sure all libraries metadata are loaded
-            actual_library_ids = [lib_meta["scpca_library_id"] for lib_meta in libraries_metadata]
+            actual_library_ids = [
+                lib_metadata["scpca_library_id"] for lib_metadata in libraries_metadata
+            ]
             self.assertEqual(sorted(actual_library_ids), expected_library_ids)
 
             # Verify that metadata keys are transformed correctly
