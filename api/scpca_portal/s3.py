@@ -39,9 +39,6 @@ def _exclude_objects_with_key_substrings(
     Return filtered version of passed bucket objects,
     removing all objects whose s3 keys include any of the passed substrings.
     """
-    if not substrings:
-        return bucket_objects
-
     return [
         bucket_object
         for bucket_object in bucket_objects
@@ -86,9 +83,13 @@ def list_bucket_objects(bucket: str, *, excluded_key_substrings: List[str] = [])
     for bucket_object in bucket_objects:
         utils.transform_keys(bucket_object, S3_OBJECT_KEYS)
         utils.transform_values(bucket_object, S3_OBJECT_VALUES, prefix)
-    filtered_objects = _exclude_objects_with_key_substrings(bucket_objects, excluded_key_substrings)
 
-    return _remove_listed_directories(filtered_objects)
+    if excluded_key_substrings:
+        bucket_objects = _exclude_objects_with_key_substrings(
+            bucket_objects, excluded_key_substrings
+        )
+
+    return _remove_listed_directories(bucket_objects)
 
 
 def download_files(original_files) -> bool:
