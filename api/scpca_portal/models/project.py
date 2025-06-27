@@ -7,6 +7,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count, Q
 
+from typing_extensions import Self
+
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
@@ -44,6 +46,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     includes_merged_anndata = models.BooleanField(default=False)
     includes_merged_sce = models.BooleanField(default=False)
     includes_xenografts = models.BooleanField(default=False)
+    is_locked = models.BooleanField(default=False)
     modalities = ArrayField(models.TextField(), default=list)
     multiplexed_sample_count = models.IntegerField(default=0)
     organisms = ArrayField(models.TextField(), default=list)
@@ -75,6 +78,16 @@ class Project(CommonDataAttributes, TimestampedModel):
                     setattr(project, key, data.get(key))
 
         return project
+
+    @classmethod
+    def lock_projects(cls, locked_project_ids: List[str]) -> List[Self]:
+        locked_projects = []
+        for project in cls.objects.filter(scpca_id__in=locked_project_ids):
+            project.is_locked = True
+            locked_projects.append(project)
+        cls.objects.bulk_update(locked_projects, ["is_locked"])
+
+        return locked_projects
 
     @property
     def samples_to_generate(self):

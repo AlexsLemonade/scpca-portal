@@ -16,16 +16,17 @@ from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 class TestDataset(TestCase):
     @classmethod
     def setUpTestData(cls):
-        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
-        for project_metadata in loader.get_projects_metadata():
-            loader.create_project(
-                project_metadata,
-                submitter_whitelist={"scpca"},
-                input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
-                reload_existing=True,
-                update_s3=False,
-            )
+            for project_metadata in loader.get_projects_metadata():
+                loader.create_project(
+                    project_metadata,
+                    submitter_whitelist={"scpca"},
+                    input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
+                    reload_existing=True,
+                    update_s3=False,
+                )
 
     def test_dataset_saved_to_db(self):
         dataset = DatasetFactory()
