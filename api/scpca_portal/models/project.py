@@ -83,8 +83,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     @classmethod
     def lock_projects(cls, locked_project_ids: List[str]) -> List[Self]:
         locked_projects = []
-        for project_id in locked_project_ids:
-            project = cls.objects.filter(scpca_id=project_id).first()
+        for project in cls.objects.filter(scpca_id__in=locked_project_ids):
             project.is_locked = True
             locked_projects.append(project)
         cls.objects.bulk_update(locked_projects, ["is_locked"])
