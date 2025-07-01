@@ -16,30 +16,59 @@ from scpca_portal.config.logging import get_and_configure_logger
 logger = get_and_configure_logger(__name__)
 
 
-def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -> None:
+def create_data_dirs(
+    wipe_input_dir: bool = False,
+    wipe_output_dir: bool = True,
+    input_dir=settings.INPUT_DATA_PATH,
+    output_dir=settings.OUTPUT_DATA_PATH,
+):
     """
-    Create the input and output data dirs, if they do not yet exist.
-    Allow for options to be passed to wipe these dirs if they do exist.
-        - wipe_input_dir defaults to False because we typically want to keep input data files
+    Creates the input and output data dirs.
+    Wipes these dirs first based on the given wipe flags:
+     - wipe_input_dir defaults to False because we typically want to keep input data files
         between testing rounds to speed up our tests.
-        - wipe_output_dir defaults to True because we typically don't want to keep around
+      - wipe_output_dir defaults to True because we typically don't want to keep around
         computed files after execution.
-    The options are given to the caller for to customize behavior for different use cases.
+    Calls can adjust the dafault behavior as necessary.
     """
-    # Prepare data input directory.
+    remove_data_dirs(
+        wipe_input_dir=wipe_input_dir,
+        wipe_output_dir=wipe_output_dir,
+        input_dir=input_dir,
+        output_dir=output_dir,
+    )
+    input_dir.mkdir(exist_ok=True, parents=True)
+    output_dir.mkdir(exist_ok=True, parents=True)
+
+
+def remove_data_dirs(
+    wipe_input_dir: bool = True,
+    wipe_output_dir: bool = True,
+    input_dir=settings.INPUT_DATA_PATH,
+    output_dir=settings.OUTPUT_DATA_PATH,
+):
+    """
+    Removs the input and outout data dirs based on the given wipe flags.
+    """
     if wipe_input_dir:
-        shutil.rmtree(settings.INPUT_DATA_PATH, ignore_errors=True)
-    settings.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
-
-    # Prepare data output directory.
+        shutil.rmtree(input_dir, ignore_errors=True)
     if wipe_output_dir:
-        shutil.rmtree(settings.OUTPUT_DATA_PATH, ignore_errors=True)
-    settings.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
+        shutil.rmtree(output_dir, ignore_errors=True)
 
 
-def remove_project_input_files(project_id: str) -> None:
-    """Remove the input files located at the project_id's input directory."""
-    shutil.rmtree(settings.INPUT_DATA_PATH / project_id, ignore_errors=True)
+def remove_project_data_dirs(
+    project_id: str, wipe_input_dir: bool = True, wipe_output_dir: bool = False
+):
+    """
+    Remove the input files located at the project_id's input directory.
+    By default, it only wipes the input dir.
+    """
+    remove_data_dirs(
+        wipe_input_dir,
+        wipe_output_dir,
+        input_dir=settings.INPUT_DATA_PATH / project_id,
+        output_dir=settings.OUTPUT_DATA_PATH / project_id,
+    )
 
 
 def boolean_from_string(value: str) -> bool:
