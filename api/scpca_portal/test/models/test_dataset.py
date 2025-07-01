@@ -502,7 +502,7 @@ class TestDataset(TestCase):
         expected_readme_hash = "93ce0b3571f15cd41db81d9e25dcb873"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
 
-    def estimated_size_in_bytes(self):
+    def test_estimated_size_in_bytes(self):
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,
@@ -534,3 +534,45 @@ class TestDataset(TestCase):
             expected_file_size += original_file.size_in_bytes
 
         self.assertEqual(dataset.estimated_size_in_bytes, expected_file_size)
+
+    def test_contains_project_ids(self):
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+        self.assertTrue(dataset.contains_project_ids(set(data.keys())))
+        self.assertTrue(dataset.contains_project_ids({"SCPCP999990"}))
+        self.assertTrue(dataset.contains_project_ids({"SCPCP999992"}))
+        self.assertFalse(dataset.contains_project_ids({"SCPCP999991"}))
+
+    def test_has_lockfile_projects(self):
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+
+        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
+            self.assertFalse(dataset.has_lockfile_projects)
+
+        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=["SCPCP999990"]):
+            self.assertTrue(dataset.has_lockfile_projects)
