@@ -1,5 +1,8 @@
 from scpca_portal.enums import JobStates, Modalities
 
+TODO_AFTER_DATASET_RELEASE = "Remove after the dataset release"
+TODO_AFTER_BULK_REFACTOR = "Remove after bulk state sync flow refactor"
+
 CSV_MULTI_VALUE_DELIMITER = ";"
 
 TAB = "\t"
