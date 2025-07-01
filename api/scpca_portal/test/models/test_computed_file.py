@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
-from scpca_portal import loader
+from scpca_portal import loader, utils
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import ComputedFile, Dataset
 from scpca_portal.test import expected_values as test_data
@@ -81,7 +81,7 @@ class TestGetFile(TestCase):
             ComputedFile.get_sample_file(self.sample, invalid_download_config)
 
     def test_get_ccdl_dataset_file(self):
-        loader.prep_data_dirs()
+        utils.prep_data_dirs()
 
         ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
         project_id = "SCPCP999990"
