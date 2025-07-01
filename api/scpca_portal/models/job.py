@@ -8,10 +8,13 @@ from django.utils.timezone import make_aware
 from typing_extensions import Self
 
 from scpca_portal import batch, common, s3
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.dataset import Dataset
+
+logger = get_and_configure_logger(__name__)
 
 
 class Job(TimestampedModel):
@@ -197,16 +200,13 @@ class Job(TimestampedModel):
         Returns all the submitted jobs.
         """
         submitted_jobs = []
-
-        if jobs := Job.objects.filter(state=JobStates.PENDING):
-            for job in jobs:
-                if aws_job_id := batch.submit_job(job):
-                    job.batch_job_id = aws_job_id
-                    job.state = JobStates.PROCESSING
-                    job.update_state_at(save=False)
-                    submitted_jobs.append(job)
-
-            cls.bulk_update_state(submitted_jobs)
+        for job in Job.objects.filter(state=JobStates.PENDING):
+            try:
+                job.submit()
+                submitted_jobs.append(job)
+            except Exception as error:
+                logger.exception(error)
+                job.save()
 
         return submitted_jobs
 
