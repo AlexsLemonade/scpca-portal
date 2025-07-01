@@ -209,6 +209,16 @@ class Dataset(TimestampedModel):
         """Returns whether or not the dataset contains any project ids in the lockfile."""
         return self.contains_project_ids(set(lockfile.get_lockfile_project_ids()))
 
+    @property
+    def locked_projects(self) -> Iterable[Project]:
+        """Returns a queryset of all of the dataset's locked project."""
+        return self.projects.filter(is_locked=True)
+
+    @property
+    def has_locked_projects(self) -> bool:
+        """Returns whether or not the dataset contains locked projects."""
+        return self.locked_projects.exists()
+
     def update_from_last_job(self, save: bool = True) -> None:
         """
         Updates the dataset's state based on the latest job.
