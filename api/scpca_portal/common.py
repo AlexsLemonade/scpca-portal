@@ -1,5 +1,7 @@
 from scpca_portal.enums import JobStates, Modalities
 
+TODO_AFTER_DATASET_RELEASE = "Remove after the dataset release"
+
 CSV_MULTI_VALUE_DELIMITER = ";"
 
 TAB = "\t"
