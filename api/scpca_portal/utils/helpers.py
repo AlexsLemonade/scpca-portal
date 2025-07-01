@@ -21,7 +21,7 @@ def create_data_dirs(
     wipe_output_dir: bool = True,
     input_dir=settings.INPUT_DATA_PATH,
     output_dir=settings.OUTPUT_DATA_PATH,
-):
+) -> None:
     """
     Creates the input and output data dirs.
     Wipes these dirs first based on the given wipe flags:
@@ -46,7 +46,7 @@ def remove_data_dirs(
     wipe_output_dir: bool = True,
     input_dir=settings.INPUT_DATA_PATH,
     output_dir=settings.OUTPUT_DATA_PATH,
-):
+) -> None:
     """
     Removs the input and outout data dirs based on the given wipe flags.
     """
@@ -58,7 +58,7 @@ def remove_data_dirs(
 
 def remove_project_data_dirs(
     project_id: str, wipe_input_dir: bool = True, wipe_output_dir: bool = False
-):
+) -> None:
     """
     Remove the input files located at the project_id's input directory.
     By default, it only wipes the input dir.
