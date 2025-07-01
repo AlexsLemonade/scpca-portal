@@ -33,8 +33,12 @@ class Command(BaseCommand):
         dataset.save()
 
         job = Job.get_dataset_job(dataset)
-        if job.submit():
+        try:
+            job.submit()
             logger.info(f"{dataset} job submitted successfully.")
+        except Exception as error:
+            logger.exception(error)
+            job.save()
 
         return True
 
