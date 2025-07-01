@@ -333,10 +333,13 @@ class Job(TimestampedModel):
         Saves the changes to the db on success.
         """
         if self.state is not JobStates.PENDING:
-            return False
+            raise Exception("Job not pending.")
 
         # if job has dataset, dynamically configure job and save before submitting
         if self.dataset:
+            if self.dataset.has_lockfile_projects or self.dataset.has_locked_projects:
+                raise Exception("Dataset has a locked project.")
+
             # dynamically choose queue based on dataset size
             self.batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
             self.batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
@@ -361,7 +364,7 @@ class Job(TimestampedModel):
         job_id = batch.submit_job(self)
 
         if not job_id:
-            return False
+            raise Exception("Job submission to Batch failed.")
 
         self.batch_job_id = job_id
         self.state = JobStates.PROCESSING
