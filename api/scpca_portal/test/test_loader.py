@@ -89,7 +89,7 @@ class TestLoader(TransactionTestCase):
         self.assertEqual(original_file_libraries, expected_libraries)
 
     def test_create_project_SCPCP999990(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         returned_project = self.create_project(
             self.get_project_metadata(test_data.Project_SCPCP999990.SCPCA_ID)
@@ -259,7 +259,7 @@ class TestLoader(TransactionTestCase):
         self.assertObjectProperties(publication, test_data.Project_SCPCP999990.Publication2.VALUES)
 
     def test_create_project_SCPCP999991(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         returned_project = self.create_project(
             self.get_project_metadata(test_data.Project_SCPCP999991.SCPCA_ID)
@@ -398,7 +398,7 @@ class TestLoader(TransactionTestCase):
         self.assertObjectProperties(publication, test_data.Project_SCPCP999991.Publication2.VALUES)
 
     def test_create_project_SCPCP999992(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         returned_project = self.create_project(
             self.get_project_metadata(test_data.Project_SCPCP999992.SCPCA_ID)
@@ -524,7 +524,7 @@ class TestLoader(TransactionTestCase):
         self.assertObjectProperties(publication, test_data.Project_SCPCP999992.Publication2.VALUES)
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project = self.create_project(
@@ -568,7 +568,7 @@ class TestLoader(TransactionTestCase):
         )
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project = self.create_project(
@@ -621,7 +621,7 @@ class TestLoader(TransactionTestCase):
         )
 
     def test_project_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project = self.create_project(
@@ -669,7 +669,7 @@ class TestLoader(TransactionTestCase):
         )
 
     def test_project_generate_computed_files_SINGLE_CELL_ANN_DATA(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project = self.create_project(
@@ -717,7 +717,7 @@ class TestLoader(TransactionTestCase):
         )
 
     def test_project_generate_computed_files_SINGLE_CELL_ANN_DATA_MERGED(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project = self.create_project(
@@ -769,7 +769,7 @@ class TestLoader(TransactionTestCase):
         )
 
     def test_project_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project = self.create_project(
@@ -821,7 +821,7 @@ class TestLoader(TransactionTestCase):
         )
 
     def test_project_generate_computed_files_ALL_METADATA(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project_id = test_data.Computed_File_Project.ALL_METADATA.PROJECT_ID
@@ -866,7 +866,7 @@ class TestLoader(TransactionTestCase):
         )
 
     def test_sample_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project_id = test_data.Computed_File_Sample.SINGLE_CELL_SCE.PROJECT_ID
@@ -921,7 +921,7 @@ class TestLoader(TransactionTestCase):
         )
 
     def test_sample_generate_computed_files_SINGLE_CELL_ANN_DATA(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project_id = test_data.Computed_File_Sample.SINGLE_CELL_ANN_DATA.PROJECT_ID
@@ -978,7 +978,7 @@ class TestLoader(TransactionTestCase):
         )
 
     def test_sample_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project_id = test_data.Computed_File_Sample.SPATIAL_SCE.PROJECT_ID
@@ -1031,7 +1031,7 @@ class TestLoader(TransactionTestCase):
         )
 
     def test_multiplexed_sample_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project_id = test_data.Computed_File_Sample.MULTIPLEXED_SINGLE_CELL_SCE.PROJECT_ID

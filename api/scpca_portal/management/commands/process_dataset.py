@@ -34,7 +34,7 @@ class Command(BaseCommand):
         self.process_dataset(**kwargs)
 
     def process_dataset(self, job_id: str, **kwargs) -> None:
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         job = Job.objects.filter(id=job_id).first()
         if not job:
