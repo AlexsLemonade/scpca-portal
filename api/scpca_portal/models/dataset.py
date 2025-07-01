@@ -11,7 +11,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, metadata_file, readme_file
+from scpca_portal import ccdl_datasets, common, lockfile, metadata_file, readme_file
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -199,6 +199,15 @@ class Dataset(TimestampedModel):
             }
 
         return data
+
+    def contains_project_ids(self, project_ids: Set[str]) -> bool:
+        """Returns whether or not the dataset contains samples in any of the passed projects."""
+        return any(dataset_project_id in project_ids for dataset_project_id in self.data.keys())
+
+    @property
+    def has_lockfile_projects(self) -> bool:
+        """Returns whether or not the dataset contains any project ids in the lockfile."""
+        return self.contains_project_ids(set(lockfile.get_lockfile_project_ids()))
 
     def update_from_last_job(self, save: bool = True) -> None:
         """
