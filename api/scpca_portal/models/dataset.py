@@ -200,7 +200,7 @@ class Dataset(TimestampedModel):
 
         return data
 
-    # TODO: common.TODO_AFTER_BULK_REFACTOR
+    # TODO: Remove after bulk state sync flow refactor
     def update_from_last_job(self, save: bool = True) -> None:
         """
         Updates the dataset's state based on the latest job.
@@ -253,7 +253,7 @@ class Dataset(TimestampedModel):
         if hasattr(self, f"{state_str}_reason"):
             setattr(self, f"{state_str}_reason", getattr(job, reason_attr))
 
-    # TODO: common.TODO_AFTER_BULK_REFACTOR
+    # TODO: Remove after bulk state sync flow refactor
     def on_job_pending(self, job) -> Self:
         """
         Marks the dataset as pending based on the last job.
@@ -261,7 +261,7 @@ class Dataset(TimestampedModel):
         self.apply_job_state(job)
         return self
 
-    # TODO: common.TODO_AFTER_BULK_REFACTOR
+    # TODO: Remove after bulk state sync flow refactor
     def on_job_processing(self, job) -> Self:
         """
         Marks the dataset as processing based on the last job.
@@ -269,7 +269,7 @@ class Dataset(TimestampedModel):
         self.apply_job_state(job)
         return self
 
-    # TODO: common.TODO_AFTER_BULK_REFACTOR
+    # TODO: Remove after bulk state sync flow refactor
     def on_job_succeeded(self, job) -> Self:
         """
         Marks the dataset as succeeded based on the last job.
@@ -277,7 +277,7 @@ class Dataset(TimestampedModel):
         self.apply_job_state(job)
         return self
 
-    # TODO: common.TODO_AFTER_BULK_REFACTOR
+    # TODO: Remove after bulk state sync flow refactor
     def on_job_failed(self, job) -> Self:
         """
         Marks the dataset as failed with the failure reason based on the last job.
@@ -285,7 +285,7 @@ class Dataset(TimestampedModel):
         self.apply_job_state(job)
         return self
 
-    # TODO: common.TODO_AFTER_BULK_REFACTOR
+    # TODO: Remove after bulk state sync flow refactor
     def on_job_terminated(self, job) -> Self:
         """
         Marks the dataset as terminated with the terminated reason based on the last job.
