@@ -3,7 +3,8 @@ from argparse import BooleanOptionalAction
 
 from django.core.management.base import BaseCommand
 
-from scpca_portal import ccdl_datasets
+from scpca_portal import ccdl_datasets, common
+from scpca_portal.enums import JobStates
 from scpca_portal.models import Dataset, Job, Project
 
 logger = logging.getLogger()
@@ -36,8 +37,12 @@ class Command(BaseCommand):
         try:
             job.submit()
             logger.info(f"{dataset} job submitted successfully.")
-        except Exception as error:
-            logger.exception(error)
+        except Exception:
+            logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
+            job.attempt += 1
+            if job.attempt > common.MAX_JOB_ATTEMPTS:
+                job.state = JobStates.FAILED
+                job.update_state_at()
             job.save()
 
         return True

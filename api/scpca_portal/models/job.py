@@ -204,8 +204,12 @@ class Job(TimestampedModel):
             try:
                 job.submit()
                 submitted_jobs.append(job)
-            except Exception as error:
-                logger.exception(error)
+            except Exception:
+                logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
+                job.attempt += 1
+                if job.attempt > common.MAX_JOB_ATTEMPTS:
+                    job.state = JobStates.FAILED
+                    job.update_state_at()
                 job.save()
 
         return submitted_jobs
