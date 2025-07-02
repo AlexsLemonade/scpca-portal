@@ -103,4 +103,4 @@ class Command(BaseCommand):
 
                 if clean_up_input_data:
                     logger.info(f"Cleaning up '{project}' input files")
-                    utils.remove_project_data_dirs(project.scpca_id)
+                    utils.remove_nested_data_dirs(project.scpca_id)

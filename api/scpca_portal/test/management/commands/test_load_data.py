@@ -27,14 +27,14 @@ class TestLoadData(TestCase):
         get_projects_metadata_patch = patch("scpca_portal.loader.get_projects_metadata")
         create_project_patch = patch("scpca_portal.loader.create_project")
         generate_computed_files_patch = patch("scpca_portal.loader.generate_computed_files")
-        remove_project_data_dirs_patch = patch("scpca_portal.utils.remove_project_data_dirs")
+        remove_nested_data_dirs_patch = patch("scpca_portal.utils.remove_nested_data_dirs")
 
         # Start patches
         self.mock_create_data_dirs = create_data_dirs_patch.start()
         self.mock_get_projects_metadata = get_projects_metadata_patch.start()
         self.mock_create_project = create_project_patch.start()
         self.mock_generate_computed_files = generate_computed_files_patch.start()
-        self.mock_remove_project_data_dirs = remove_project_data_dirs_patch.start()
+        self.mock_remove_nested_data_dirs = remove_nested_data_dirs_patch.start()
 
         # Save patches that so they can be stopped during tearDown
         self.patches = [
@@ -42,7 +42,7 @@ class TestLoadData(TestCase):
             get_projects_metadata_patch,
             create_project_patch,
             generate_computed_files_patch,
-            remove_project_data_dirs_patch,
+            remove_nested_data_dirs_patch,
         ]
 
         # Configure necessary output values
@@ -89,11 +89,11 @@ class TestLoadData(TestCase):
     def test_clean_up_input_data(self):
         self.load_data()
         self.assertMethodsCalled()
-        self.mock_remove_project_data_dirs.assert_not_called()
+        self.mock_remove_nested_data_dirs.assert_not_called()
 
         clean_up_input_data = True
         self.load_data(clean_up_input_data=clean_up_input_data)
-        self.mock_remove_project_data_dirs.assert_called_once()
+        self.mock_remove_nested_data_dirs.assert_called_once()
 
     def test_clean_up_output_data(self):
         self.load_data()
@@ -210,7 +210,7 @@ class TestLoadData(TestCase):
         self.mock_get_projects_metadata.assert_called_once()
         self.mock_create_project.assert_not_called()
         self.mock_generate_computed_files.assert_not_called()
-        self.mock_remove_project_data_dirs.assert_not_called()
+        self.mock_remove_nested_data_dirs.assert_not_called()
 
     def test_create_project_failure(self):
         self.mock_create_project.return_value = None
@@ -220,4 +220,4 @@ class TestLoadData(TestCase):
         self.mock_get_projects_metadata.assert_called_once()
         self.mock_create_project.assert_called_once()
         self.mock_generate_computed_files.assert_not_called()
-        self.mock_remove_project_data_dirs.assert_not_called()
+        self.mock_remove_nested_data_dirs.assert_not_called()

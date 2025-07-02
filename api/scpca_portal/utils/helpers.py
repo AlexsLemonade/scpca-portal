@@ -16,6 +16,15 @@ from scpca_portal.config.logging import get_and_configure_logger
 logger = get_and_configure_logger(__name__)
 
 
+def validate_dir(dir: Path, base_dir: Path) -> None:
+    """
+    Validates if the given directory is inside the specified base directory.
+    Raise an exception if not.
+    """
+    if not dir.is_relative_to(base_dir):
+        raise Exception(f"{dir} must be within the {base_dir} directory.")
+
+
 def create_data_dirs(
     wipe_input_dir: bool = False,
     wipe_output_dir: bool = True,
@@ -29,6 +38,8 @@ def create_data_dirs(
         testing rounds to speed up our tests.
       - wipe_output_dir defaults to True. Computed files are typically removed after execution.
     Callers can adjust the dafault behavior as necessary.
+
+    NOTE: Passing a directory outside the data directories is not allowed.
     """
     remove_data_dirs(
         wipe_input_dir=wipe_input_dir,
@@ -43,30 +54,35 @@ def create_data_dirs(
 def remove_data_dirs(
     wipe_input_dir: bool = True,
     wipe_output_dir: bool = True,
-    input_dir=settings.INPUT_DATA_PATH,
-    output_dir=settings.OUTPUT_DATA_PATH,
+    input_dir: Path = settings.INPUT_DATA_PATH,
+    output_dir: Path = settings.OUTPUT_DATA_PATH,
 ) -> None:
     """
     Removes the input and/or output data directories based on the given wipe flags.
+    Validates input_dir/output_dir to ensure they are within the data directories before removal.
     """
+    # Ensure input_dir/output_dir are within the data directories
+    validate_dir(input_dir, settings.INPUT_DATA_PATH)
+    validate_dir(output_dir, settings.OUTPUT_DATA_PATH)
+
     if wipe_input_dir:
         shutil.rmtree(input_dir, ignore_errors=True)
     if wipe_output_dir:
         shutil.rmtree(output_dir, ignore_errors=True)
 
 
-def remove_project_data_dirs(
-    project_id: str, wipe_input_dir: bool = True, wipe_output_dir: bool = False
+def remove_nested_data_dirs(
+    data_dir: str, wipe_input_dir: bool = True, wipe_output_dir: bool = False
 ) -> None:
     """
-    Removes input and/or output files in the project_id' folder within the data directories.
-    By default, only wipes the input directory.
+    Removes the given nested folder within the input and/or output data directories.
+    By default, only wipes the nested folder in the input directory.
     """
     remove_data_dirs(
         wipe_input_dir,
         wipe_output_dir,
-        input_dir=settings.INPUT_DATA_PATH / project_id,
-        output_dir=settings.OUTPUT_DATA_PATH / project_id,
+        input_dir=settings.INPUT_DATA_PATH / data_dir,
+        output_dir=settings.OUTPUT_DATA_PATH / data_dir,
     )
 
 
