@@ -1,4 +1,5 @@
 import random
+import sys
 from pathlib import Path
 from unittest.mock import PropertyMock, patch
 
@@ -532,6 +533,13 @@ class TestDataset(TestCase):
             original_file.save()
 
             expected_file_size += original_file.size_in_bytes
+
+        metadata_file_string = "".join(
+            [file_content for _, _, file_content in dataset.get_metadata_file_contents()]
+        )
+        metadata_file_size = sys.getsizeof(metadata_file_string)
+        readme_file_size = sys.getsizeof(dataset.readme_file_contents)
+        expected_file_size += metadata_file_size + readme_file_size
 
         self.assertEqual(dataset.estimated_size_in_bytes, expected_file_size)
 
