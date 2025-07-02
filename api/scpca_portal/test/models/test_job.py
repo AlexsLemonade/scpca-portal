@@ -51,40 +51,25 @@ class TestJob(TestCase):
         job = JobFactory(state=JobStates.PENDING, dataset=DatasetFactory())
 
         # Update the state to PROCESSING
-        changed = job.apply_state(JobStates.PROCESSING)
-        if changed:
-            job.save()
-            job.dataset.save()
-        # Saved job and dataset should be updated
-        saved_job = Job.objects.get(pk=job.pk)
-        self.assertEqual(saved_job.state, JobStates.PROCESSING)
-        self.assertIsInstance(saved_job.processing_at, datetime)
-        self.assertDatasetState(saved_job.dataset, is_pending=False, is_processing=True)
+        job.apply_state(JobStates.PROCESSING)
+        self.assertEqual(job.state, JobStates.PROCESSING)
+        self.assertIsInstance(job.processing_at, datetime)
+        self.assertDatasetState(job.dataset, is_pending=False, is_processing=True)
 
         # Update the state to SUCEEDED
-        changed = job.apply_state(JobStates.SUCCEEDED)
-        if changed:
-            job.save()
-            job.dataset.save()
-        # Saved job and dataset should be updated
-        saved_job = Job.objects.get(pk=job.pk)
-        self.assertEqual(saved_job.state, JobStates.SUCCEEDED)
-        self.assertIsInstance(saved_job.succeeded_at, datetime)
-        self.assertDatasetState(saved_job.dataset, is_processing=False, is_succeeded=True)
+        job.apply_state(JobStates.SUCCEEDED)
+        self.assertEqual(job.state, JobStates.SUCCEEDED)
+        self.assertIsInstance(job.succeeded_at, datetime)
+        self.assertDatasetState(job.dataset, is_processing=False, is_succeeded=True)
 
         # Update the state to FAILED
         failed_reason = f"Job {JobStates.FAILED}"
-        changed = job.apply_state(JobStates.FAILED, failed_reason)
-        if changed:
-            job.save()
-            job.dataset.save()
-        # Saved job and dataset should be updated
-        saved_job = Job.objects.get(pk=job.pk)
-        self.assertEqual(saved_job.state, JobStates.FAILED)
-        self.assertEqual(saved_job.failed_reason, failed_reason)
-        self.assertIsInstance(saved_job.failed_at, datetime)
+        job.apply_state(JobStates.FAILED, failed_reason)
+        self.assertEqual(job.state, JobStates.FAILED)
+        self.assertEqual(job.failed_reason, failed_reason)
+        self.assertIsInstance(job.failed_at, datetime)
         self.assertDatasetState(
-            saved_job.dataset,
+            job.dataset,
             is_succeeded=False,
             is_failed=True,
             failed_reason=failed_reason,
@@ -92,17 +77,12 @@ class TestJob(TestCase):
 
         # Update the state to TERMINATED
         terminated_reason = f"Job {JobStates.TERMINATED}"
-        changed = job.apply_state(JobStates.TERMINATED, terminated_reason)
-        if changed:
-            job.save()
-            job.dataset.save()
-        # Saved job and dataset should be updated
-        saved_job = Job.objects.get(pk=job.pk)
-        self.assertEqual(saved_job.state, JobStates.TERMINATED)
-        self.assertEqual(saved_job.terminated_reason, terminated_reason)
-        self.assertIsInstance(saved_job.terminated_at, datetime)
+        job.apply_state(JobStates.TERMINATED, terminated_reason)
+        self.assertEqual(job.state, JobStates.TERMINATED)
+        self.assertEqual(job.terminated_reason, terminated_reason)
+        self.assertIsInstance(job.terminated_at, datetime)
         self.assertDatasetState(
-            saved_job.dataset,
+            job.dataset,
             is_failed=False,
             failed_reason=None,
             is_terminated=True,
