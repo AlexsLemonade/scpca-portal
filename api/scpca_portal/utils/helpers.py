@@ -28,8 +28,8 @@ def validate_dir(dir: Path, base_dir: Path) -> None:
 def create_data_dirs(
     wipe_input_dir: bool = False,
     wipe_output_dir: bool = True,
-    input_dir=settings.INPUT_DATA_PATH,
-    output_dir=settings.OUTPUT_DATA_PATH,
+    input_dir: Path = settings.INPUT_DATA_PATH,
+    output_dir: Path = settings.OUTPUT_DATA_PATH,
 ) -> None:
     """
     Creates the input and/or output data directories.
