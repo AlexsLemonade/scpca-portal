@@ -2,6 +2,9 @@ from scpca_portal.enums import JobStates, Modalities
 
 TODO_AFTER_DATASET_RELEASE = "Remove after the dataset release"
 TODO_AFTER_BULK_REFACTOR = "Remove after bulk state sync flow refactor"
+TODO_REMOVE_OBSOLETE = (
+    "Remove obsolete code blocks related to old sync state flows throughout the codebase"
+)
 
 CSV_MULTI_VALUE_DELIMITER = ";"
 

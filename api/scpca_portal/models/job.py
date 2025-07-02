@@ -305,6 +305,7 @@ class Job(TimestampedModel):
         self.dataset.apply_job_state(self)  # Sync the dataset state
         return True
 
+    # TODO: common.TODO_REMOVE_OBSOLETE
     def update_state_at(self, save: bool = True) -> None:
         """
         Updates timestamp fields, *_at, based on the latest job state.
@@ -325,23 +326,6 @@ class Job(TimestampedModel):
 
         if save:
             self.save()
-
-    def set_state(self, state: JobStates, reason: str = None):
-        """
-        Sets the job state and its corresponding timestamp.
-        Calls the associated dataset's on_job_<state> event handler.
-        """
-        state_str = state.lower()
-        reason_attr = f"{state_str}_reason"
-        # event_handler = f"on_job_{state_str}"
-
-        self.state = state
-        if hasattr(self, reason_attr):
-            setattr(self, reason_attr, reason)
-        self.update_state_at()
-
-        # TODO: Update and improve Dataset model
-        # getattr(self.dataset, event_handler)()
 
     def submit(self) -> bool:
         """
