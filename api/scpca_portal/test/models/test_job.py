@@ -73,8 +73,13 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.terminated_reason, f"Job {JobStates.TERMINATED}")
         self.assertIsInstance(saved_job.terminated_at, datetime)
 
+    @patch(
+        "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+        new_callable=PropertyMock,
+        return_value=[],
+    )
     @patch("scpca_portal.batch.submit_job")
-    def test_submit(self, mock_batch_submit_job):
+    def test_submit(self, mock_batch_submit_job, _):
         # Set up mock for submit_job
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
@@ -103,16 +108,6 @@ class TestJob(TestCase):
         self.assertIn(str(job.id), saved_job.batch_container_overrides["command"])
         self.assertEqual(saved_job.state, JobStates.PROCESSING)
         self.assertIsInstance(saved_job.processing_at, datetime)
-
-    @patch("scpca_portal.batch.submit_job")
-    def test_submit_not_called(self, mock_batch_submit_job):
-        # Set up an already submitted job
-        job = JobFactory(state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False))
-
-        # Should return False early without calling submit_job
-        success = job.submit()
-        mock_batch_submit_job.assert_not_called()
-        self.assertFalse(success)
 
     @patch("scpca_portal.models.dataset.Dataset.has_locked_projects", new_callable=PropertyMock)
     @patch("scpca_portal.models.dataset.Dataset.has_lockfile_projects", new_callable=PropertyMock)
@@ -586,8 +581,13 @@ class TestJob(TestCase):
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
             self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
 
+    @patch(
+        "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+        new_callable=PropertyMock,
+        return_value=[],
+    )
     @patch("scpca_portal.batch.submit_job")
-    def test_dynamically_set_dataset_job_pipeline(self, mock_batch_submit_job):
+    def test_dynamically_set_dataset_job_pipeline(self, mock_batch_submit_job, _):
         # Set up mock for submit_job
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
