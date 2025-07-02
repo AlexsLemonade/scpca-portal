@@ -45,6 +45,17 @@ class Job(TimestampedModel):
     # Datasets should never be deleted
     dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
 
+    # Required state fields to update during bulk operations
+    STATE_UPDATE_ATTRS = [
+        "state",
+        "processing_at",
+        "succeeded_at",
+        "failed_at",
+        "failed_reason",
+        "terminated_at",
+        "terminated_reason",
+    ]
+
     # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
     # Number should be half of max fargate ephemeral storage (which is 200 GB)
     # Each instance downloads all dataset files, copies them to a zip file, and uploads the zip file
@@ -233,22 +244,11 @@ class Job(TimestampedModel):
         return terminated_jobs
 
     @classmethod
-    def bulk_update_state(cls, synced_jobs: List[Self]) -> None:
+    def bulk_update_state(cls, jobs: List[Self]) -> None:
         """
-        Updates the states of the synced jobs and their associated datasets.
+        Updates state attributes of the given jobs in bulk.
         """
-        updated_attrs = [
-            "state",
-            "processing_at",
-            "succeeded_at",
-            "failed_at",
-            "failed_reason",
-            "terminated_at",
-            "terminated_reason",
-        ]
-        cls.objects.bulk_update(synced_jobs, updated_attrs)
-
-        Dataset.update_from_last_jobs([job.dataset for job in synced_jobs if job.dataset])
+        cls.objects.bulk_update(jobs, Job.STATE_UPDATE_ATTRS)
 
     @classmethod
     def bulk_sync_state(cls) -> bool:

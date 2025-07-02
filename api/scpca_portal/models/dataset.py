@@ -98,6 +98,22 @@ class Dataset(TimestampedModel):
         related_name="downloaded_datasets",
     )
 
+    # Required state fields to update during bulk operations
+    STATE_UPDATE_ATTRS = [
+        "is_pending",
+        "pending_at",
+        "is_processing",
+        "processing_at",
+        "is_succeeded",
+        "succeeded_at",
+        "is_failed",
+        "failed_at",
+        "failed_reason",
+        "is_terminated",
+        "terminated_at",
+        "terminated_reason",
+    ]
+
     def __str__(self):
         return f"Dataset {self.id}"
 
@@ -145,28 +161,14 @@ class Dataset(TimestampedModel):
         return dataset, False
 
     @classmethod
-    def update_from_last_jobs(cls, datasets: List[Self]) -> None:
+    def bulk_update_state(cls, datasets: List[Self]) -> None:
         """
-        Updates datasets' state based on their latest jobs.
+        Updates state attributes of the given datasets in bulk.
         """
         for dataset in datasets:
             dataset.update_from_last_job(save=False)
 
-        updated_attrs = [
-            "is_pending",
-            "pending_at",
-            "is_processing",
-            "processing_at",
-            "is_succeeded",
-            "succeeded_at",
-            "is_failed",
-            "failed_at",
-            "failed_reason",
-            "is_terminated",
-            "terminated_at",
-            "terminated_reason",
-        ]
-        cls.objects.bulk_update(datasets, updated_attrs)
+        cls.objects.bulk_update(datasets, Dataset.STATE_UPDATE_ATTRS)
 
     def get_ccdl_data(self) -> Dict:
         if not self.is_ccdl:
