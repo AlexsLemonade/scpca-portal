@@ -45,7 +45,7 @@ def get_projects_metadata(filter_on_project_ids: List[str] = []) -> List[Dict[st
     return projects_metadata
 
 
-# TODO: common.TODO_AFTER_DATASET_RELEASE
+# TODO: Remove after the dataset release
 def _can_process_project(project_metadata: Dict[str, Any], submitter_whitelist: Set[str]) -> bool:
     """
     Validate that a project can be processed by assessing that:
@@ -67,7 +67,7 @@ def _can_process_project(project_metadata: Dict[str, Any], submitter_whitelist: 
     return True
 
 
-# TODO: common.TODO_AFTER_DATASET_RELEASE
+# TODO: Remove after the dataset release
 def _can_purge_project(
     project: Project,
     *,
@@ -128,7 +128,7 @@ def create_project(
     return project
 
 
-# TODO: common.TODO_AFTER_DATASET_RELEASE
+# TODO: Remove after the dataset release
 def _create_computed_file(
     computed_file: ComputedFile, update_s3: bool, clean_up_output_data: bool
 ) -> None:
@@ -148,7 +148,7 @@ def _create_computed_file(
         computed_file.save()
 
 
-# TODO: common.TODO_AFTER_DATASET_RELEASE
+# TODO: Remove after the dataset release
 def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
     """
     Wrap computed file saving and uploading to s3 in a way that accommodates multiprocessing.
@@ -160,7 +160,7 @@ def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_d
     connection.close()
 
 
-# TODO: common.TODO_AFTER_DATASET_RELEASE
+# TODO: Remove after the dataset release
 def generate_computed_file(
     *,
     download_config: Dict,
@@ -180,7 +180,7 @@ def generate_computed_file(
         sample.project.update_downloadable_sample_count()
 
 
-# TODO: common.TODO_AFTER_DATASET_RELEASE
+# TODO: Remove after the dataset release
 def generate_computed_files(
     project: Project,
     max_workers: int,
