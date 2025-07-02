@@ -8,7 +8,7 @@ from django.test import TestCase, tag
 
 from scpca_portal import loader
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
-from scpca_portal.models import Dataset, OriginalFile
+from scpca_portal.models import Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 
@@ -576,3 +576,77 @@ class TestDataset(TestCase):
 
         with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=["SCPCP999990"]):
             self.assertTrue(dataset.has_lockfile_projects)
+
+    def test_projects(self):
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+
+        dataset_projects = dataset.projects
+        self.assertIn(Project.objects.filter(scpca_id="SCPCP999990").first(), dataset_projects)
+        self.assertNotIn(Project.objects.filter(scpca_id="SCPCP999991").first(), dataset_projects)
+        self.assertIn(Project.objects.filter(scpca_id="SCPCP999992").first(), dataset_projects)
+
+    def test_locked_projects(self):
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+
+        locked_project = Project.objects.filter(scpca_id="SCPCP999990").first()
+        locked_project.is_locked = True
+        locked_project.save()
+
+        dataset_locked_projects = dataset.locked_projects
+        self.assertIn(
+            Project.objects.filter(scpca_id="SCPCP999990").first(), dataset_locked_projects
+        )
+        self.assertNotIn(
+            Project.objects.filter(scpca_id="SCPCP999991").first(), dataset_locked_projects
+        )
+        self.assertNotIn(
+            Project.objects.filter(scpca_id="SCPCP999992").first(), dataset_locked_projects
+        )
+
+    def test_has_locked_projects(self):
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+        self.assertFalse(dataset.has_locked_projects)
+
+        locked_project = Project.objects.filter(scpca_id="SCPCP999990").first()
+        locked_project.is_locked = True
+        locked_project.save()
+        self.assertTrue(dataset.has_locked_projects)
