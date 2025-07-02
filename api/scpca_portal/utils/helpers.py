@@ -23,13 +23,12 @@ def create_data_dirs(
     output_dir=settings.OUTPUT_DATA_PATH,
 ) -> None:
     """
-    Creates the input and output data dirs.
-    Wipes these dirs first based on the given wipe flags:
-     - wipe_input_dir defaults to False because we typically want to keep input data files
-        between testing rounds to speed up our tests.
-      - wipe_output_dir defaults to True because we typically don't want to keep around
-        computed files after execution.
-    Calls can adjust the dafault behavior as necessary.
+    Creates the input and/or output data directories.
+    Directories are wiped first based on the given wipe flags:
+     - wipe_input_dir defaults to False. Input files are typically preserved between
+        testing rounds to speed up our tests.
+      - wipe_output_dir defaults to True. Computed files are typically removed after execution.
+    Callers can adjust the dafault behavior as necessary.
     """
     remove_data_dirs(
         wipe_input_dir=wipe_input_dir,
@@ -48,7 +47,7 @@ def remove_data_dirs(
     output_dir=settings.OUTPUT_DATA_PATH,
 ) -> None:
     """
-    Removs the input and outout data dirs based on the given wipe flags.
+    Removes the input and/or output data directories based on the given wipe flags.
     """
     if wipe_input_dir:
         shutil.rmtree(input_dir, ignore_errors=True)
@@ -60,8 +59,8 @@ def remove_project_data_dirs(
     project_id: str, wipe_input_dir: bool = True, wipe_output_dir: bool = False
 ) -> None:
     """
-    Remove the input files located at the project_id's input directory.
-    By default, it only wipes the input dir.
+    Removes input and/or output files in the project_id' folder within the data directories.
+    By default, only wipes the input directory.
     """
     remove_data_dirs(
         wipe_input_dir,
