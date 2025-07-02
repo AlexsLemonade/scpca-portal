@@ -114,6 +114,51 @@ class TestJob(TestCase):
         mock_batch_submit_job.assert_not_called()
         self.assertFalse(success)
 
+    @patch("scpca_portal.models.dataset.Dataset.has_locked_projects", new_callable=PropertyMock)
+    @patch("scpca_portal.models.dataset.Dataset.has_lockfile_projects", new_callable=PropertyMock)
+    @patch("scpca_portal.batch.submit_job")
+    def test_submit_handle_exceptions(
+        self, mock_batch_submit_job, mock_has_lockfile_projects, mock_has_locked_projects
+    ):
+        # Set default mock return values
+        mock_batch_submit_job.return_value = "MOCK_JOB_ID"
+        mock_has_lockfile_projects.return_value = False
+        mock_has_locked_projects.return_value = False
+
+        # Assert "Job not pending" exception thrown correctly
+        non_pending_job = JobFactory(
+            state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False)
+        )
+        with self.assertRaises(Exception) as e:
+            non_pending_job.submit()
+        self.assertEqual(str(e.exception), "Job not pending.")
+
+        # Assert "Dataset has a locked project" exception thrown correctly
+        dataset = DatasetFactory(is_processing=False)
+        job = Job.get_dataset_job(dataset)
+        job.dataset = dataset
+
+        mock_has_lockfile_projects.return_value = True
+        mock_has_locked_projects.return_value = False
+        with self.assertRaises(Exception) as e:
+            job.submit()
+        self.assertEqual(str(e.exception), "Dataset has a locked project.")
+
+        mock_has_lockfile_projects.return_value = False
+        mock_has_locked_projects.return_value = True
+        with self.assertRaises(Exception) as e:
+            job.submit()
+        self.assertEqual(str(e.exception), "Dataset has a locked project.")
+
+        mock_has_lockfile_projects.return_value = False
+        mock_has_locked_projects.return_value = False
+
+        # Assert "Job submission to Batch failed" exception thrown correctly
+        mock_batch_submit_job.return_value = None
+        with self.assertRaises(Exception) as e:
+            job.submit()
+        self.assertEqual(str(e.exception), "Job submission to Batch failed.")
+
     @patch("scpca_portal.batch.submit_job")
     def test_submit_pending(self, mock_batch_submit_job):
         # Set up 3 saved PENDING jobs + 4 jobs that are either processing or in the final states
