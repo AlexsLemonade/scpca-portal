@@ -148,11 +148,11 @@ class TestJob(TestCase):
         mock_has_lockfile_projects.return_value = False
         mock_has_locked_projects.return_value = False
 
-        # Assert "Job submission to Batch failed" exception thrown correctly
+        # Assert "Error submitting job to Batch." exception thrown correctly
         mock_batch_submit_job.return_value = None
         with self.assertRaises(Exception) as e:
             job.submit()
-        self.assertEqual(str(e.exception), "Job submission to Batch failed.")
+        self.assertEqual(str(e.exception), "Error submitting job to Batch.")
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_pending(self, mock_batch_submit_job):

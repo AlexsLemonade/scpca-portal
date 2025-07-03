@@ -563,7 +563,7 @@ class TestDataset(TestCase):
         self.assertTrue(dataset.contains_project_ids({"SCPCP999992"}))
         self.assertFalse(dataset.contains_project_ids({"SCPCP999991"}))
 
-    def test_has_lockfile_projects(self):
+    def test_has_lockfile_projects_property(self):
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,
@@ -585,7 +585,7 @@ class TestDataset(TestCase):
         with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=["SCPCP999990"]):
             self.assertTrue(dataset.has_lockfile_projects)
 
-    def test_projects(self):
+    def test_projects_property(self):
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,
@@ -606,7 +606,7 @@ class TestDataset(TestCase):
         self.assertNotIn(Project.objects.filter(scpca_id="SCPCP999991").first(), dataset_projects)
         self.assertIn(Project.objects.filter(scpca_id="SCPCP999992").first(), dataset_projects)
 
-    def test_locked_projects(self):
+    def test_locked_projects_property(self):
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,
@@ -637,7 +637,7 @@ class TestDataset(TestCase):
             Project.objects.filter(scpca_id="SCPCP999992").first(), dataset_locked_projects
         )
 
-    def test_has_locked_projects(self):
+    def test_has_locked_projects_property(self):
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,

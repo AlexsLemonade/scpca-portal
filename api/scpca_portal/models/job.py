@@ -377,7 +377,7 @@ class Job(TimestampedModel):
         job_id = batch.submit_job(self)
 
         if not job_id:
-            raise Exception("Job submission to Batch failed.")
+            raise Exception("Error submitting job to Batch.")
 
         self.batch_job_id = job_id
         self.state = JobStates.PROCESSING
