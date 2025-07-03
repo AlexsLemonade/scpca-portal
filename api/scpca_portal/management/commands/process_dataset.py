@@ -46,12 +46,12 @@ class Command(BaseCommand):
 
         try:
             job.process_dataset_job()
-            job.state = JobStates.SUCCEEDED
+            job.apply_state(JobStates.SUCCEEDED)
         except Exception:
-            job.state = JobStates.FAILED
-
-        job.update_state_at()
-        job.save()
-
-        if job.dataset.email:
-            notifications.send_dataset_file_completed_email(job)
+            job.apply_state(JobStates.FAILED)
+        finally:
+            job.save()
+            if job.dataset:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                job.dataset.save()
+                if job.dataset.email:
+                    notifications.send_dataset_file_completed_email(job)
