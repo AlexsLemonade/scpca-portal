@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from scpca_portal import loader
-from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames
 from scpca_portal.models import ComputedFile, Dataset
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
@@ -113,25 +113,10 @@ class TestGetFile(TestCase):
     def test_original_file_zip_namelist(self):
         self.maxDiff = None
 
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
-                Modalities.SPATIAL.value: ["SCPCS999991"],
-            },
-            "SCPCP999991": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL.value: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
-                Modalities.SPATIAL.value: [],
-            },
-            "SCPCP999992": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: "MERGED",
-                Modalities.SPATIAL.value: [],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
-        dataset = Dataset(data=data, format=format)
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
         dataset.save()
 
         ComputedFile.get_dataset_file(dataset)

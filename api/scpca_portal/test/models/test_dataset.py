@@ -544,40 +544,20 @@ class TestDataset(TestCase):
         self.assertEqual(dataset.estimated_size_in_bytes, expected_file_size)
 
     def test_contains_project_ids(self):
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
-                Modalities.SPATIAL: [],
-            },
-            "SCPCP999992": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: "MERGED",
-                Modalities.SPATIAL: [],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
-        dataset = Dataset(data=data, format=format)
-        self.assertTrue(dataset.contains_project_ids(set(data.keys())))
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
+        self.assertTrue(dataset.contains_project_ids(set(dataset.data.keys())))
         self.assertTrue(dataset.contains_project_ids({"SCPCP999990"}))
         self.assertTrue(dataset.contains_project_ids({"SCPCP999992"}))
         self.assertFalse(dataset.contains_project_ids({"SCPCP999991"}))
 
     def test_has_lockfile_projects_property(self):
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
-                Modalities.SPATIAL: [],
-            },
-            "SCPCP999992": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: "MERGED",
-                Modalities.SPATIAL: [],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
-        dataset = Dataset(data=data, format=format)
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
 
         with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
             self.assertFalse(dataset.has_lockfile_projects)
@@ -586,20 +566,10 @@ class TestDataset(TestCase):
             self.assertTrue(dataset.has_lockfile_projects)
 
     def test_projects_property(self):
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
-                Modalities.SPATIAL: [],
-            },
-            "SCPCP999992": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: "MERGED",
-                Modalities.SPATIAL: [],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
-        dataset = Dataset(data=data, format=format)
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
 
         dataset_projects = dataset.projects
         self.assertIn(Project.objects.filter(scpca_id="SCPCP999990").first(), dataset_projects)
@@ -607,20 +577,10 @@ class TestDataset(TestCase):
         self.assertIn(Project.objects.filter(scpca_id="SCPCP999992").first(), dataset_projects)
 
     def test_locked_projects_property(self):
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
-                Modalities.SPATIAL: [],
-            },
-            "SCPCP999992": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: "MERGED",
-                Modalities.SPATIAL: [],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
-        dataset = Dataset(data=data, format=format)
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
 
         locked_project = Project.objects.filter(scpca_id="SCPCP999990").first()
         locked_project.is_locked = True
@@ -638,20 +598,10 @@ class TestDataset(TestCase):
         )
 
     def test_has_locked_projects_property(self):
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
-                Modalities.SPATIAL: [],
-            },
-            "SCPCP999992": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: "MERGED",
-                Modalities.SPATIAL: [],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
-        dataset = Dataset(data=data, format=format)
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
         self.assertFalse(dataset.has_locked_projects)
 
         locked_project = Project.objects.filter(scpca_id="SCPCP999990").first()
