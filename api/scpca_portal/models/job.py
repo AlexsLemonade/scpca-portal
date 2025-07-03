@@ -202,8 +202,10 @@ class Job(TimestampedModel):
         submitted_jobs = []
         for job in Job.objects.filter(state=JobStates.PENDING):
             try:
+                logger.info(f"Trying {job.dataset} job ({job.state}).")
                 job.submit()
                 submitted_jobs.append(job)
+                logger.info(f"{job.dataset} job successfully dispatched.")
             except Exception:
                 logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
                 job.attempt += 1
@@ -336,7 +338,7 @@ class Job(TimestampedModel):
         and its associated dataset state.
         Saves the changes to the db on success.
         """
-        if self.state is not JobStates.PENDING:
+        if self.state != JobStates.PENDING:
             raise Exception("Job not pending.")
 
         # if job has dataset, dynamically configure job and save before submitting

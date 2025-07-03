@@ -167,9 +167,15 @@ class TestJob(TestCase):
 
         # Before submission, there are 1 job in PROCESSING state
         self.assertEqual(Job.objects.filter(state=JobStates.PROCESSING).count(), 1)
+        mock_batch_submit_job.return_value = "MOCK_JOB_ID"
 
         # Should call submit_job 3 times to submit PENDING jobs
-        response = Job.submit_pending()
+        with patch(
+            "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+            new_callable=PropertyMock,
+            return_value=[],
+        ):
+            response = Job.submit_pending()
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
         self.assertNotEqual(response, [])
@@ -185,7 +191,12 @@ class TestJob(TestCase):
         mock_batch_submit_job.return_value = []
 
         # Should call submit_job 3 times, each time with an exception
-        response = Job.submit_pending()
+        with patch(
+            "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+            new_callable=PropertyMock,
+            return_value=[],
+        ):
+            response = Job.submit_pending()
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
         self.assertEqual(response, [])
