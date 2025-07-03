@@ -1,12 +1,9 @@
-import React, { createContext, useContext } from 'react'
-import { ScPCAPortalContext } from 'contexts/ScPCAPortalContext'
+import React, { createContext } from 'react'
 import { useLocalStorage } from 'hooks/useLocalStorage'
 
 export const DatasetManagerContext = createContext({})
 
 export const DatasetManagerContextProvider = ({ children }) => {
-  const { userFormat, setUserFormat } = useContext(ScPCAPortalContext)
-
   const [myDataset, setMyDataset] = useLocalStorage({})
   const [datasets, setDatasets] = useLocalStorage([]) // List of user-created dataset IDs for historical references
   const [email, setEmail] = useLocalStorage(null) // Email associated with myDataset
@@ -19,9 +16,7 @@ export const DatasetManagerContextProvider = ({ children }) => {
         datasets,
         setDatasets,
         email,
-        setEmail,
-        userFormat,
-        setUserFormat
+        setEmail
       }}
     >
       {children}
