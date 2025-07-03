@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from django.core.management import call_command
 from django.test import TestCase
+from django.utils.timezone import make_aware
 
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Job
@@ -57,7 +58,9 @@ class TestSyncBatchJobs(TestCase):
             JobFactory(
                 state=JobStates.PROCESSING,
                 batch_job_id=batch_job_id,
-                dataset=DatasetFactory(is_processing=True),
+                dataset=DatasetFactory(
+                    is_processing=True, processing_at=make_aware(datetime.now())
+                ),
             )
             for batch_job_id in [
                 "MOCK_JOB_ID_0",
@@ -80,9 +83,10 @@ class TestSyncBatchJobs(TestCase):
         mock_response[4]["status"] = "RUNNING"
         mock_response[5]["status"] = "SUCCEEDED"  # MOCK_JOB_ID_5
         mock_response[6]["status"] = "FAILED"  # MOCK_JOB_ID_6
+        mock_response[6]["statusReason"] = "Job FAILED"
         mock_response[7]["status"] = "FAILED"  # MOCK_JOB_ID_7
         mock_response[7]["isTerminated"] = True
-        mock_response = [{**job, "statusReason": f"Job {job['status']}"} for job in mock_response]
+        mock_response[7]["statusReason"] = "Job TERMINATED"
         mock_batch_get_jobs.return_value = mock_response
 
         self.sync_batch_jobs()
@@ -93,7 +97,6 @@ class TestSyncBatchJobs(TestCase):
 
         # PROCESSING job should remain unchanged
         processing_job = Job.objects.filter(state=JobStates.PROCESSING).first()
-        processing_job.dataset.update_from_last_job()  # Sync the associated dataset
         self.assertDatasetState(processing_job.dataset, is_processing=True)
 
         # SUCCEEDED job state and dataset should be updated
@@ -109,7 +112,5 @@ class TestSyncBatchJobs(TestCase):
         # TERMINATED job state and dataset should be updated
         terminated_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_7").first()
         self.assertDatasetState(
-            terminated_job.dataset,
-            is_terminated=True,
-            terminated_reason=terminated_job.terminated_reason,
+            terminated_job.dataset, is_terminated=True, terminated_reason="Job TERMINATED"
         )

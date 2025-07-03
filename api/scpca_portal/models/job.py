@@ -183,63 +183,81 @@ class Job(TimestampedModel):
         )
 
     @classmethod
-    def create_retry_jobs(cls, jobs: List[Self]) -> List[Self]:
+    def create_retry_jobs(cls, jobs: List[Self]) -> List[Self | None]:
         """
-        Creates new jobs to retry the given jobs.
+        Creates new PENDING jobs to retry the given jobs.
+        Calls the datasets' method to sync the jobs' state.
         Returns the newly created retry jobs.
         """
+        if jobs is None:
+            return []
+
         retry_jobs = []
+        retry_datasets = []
 
         for job in jobs:
-            retry_jobs.append(job.get_retry_job(save=False))
+            if retry_job := job.get_retry_job(save=False):
+                retry_jobs.append(retry_job)
+                if job.dataset:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                    retry_datasets.append(job.dataset)
 
-        cls.bulk_update_state(jobs)
-        cls.objects.bulk_create(retry_jobs)
+        if retry_jobs:
+            cls.objects.bulk_create(retry_jobs)
+            if retry_datasets:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                Dataset.bulk_update_state(retry_datasets)
 
         return retry_jobs
 
     @classmethod
     def submit_pending(cls) -> List[Self]:
         """
-        Submits all saved PENDING jobs to AWS Batch.
-        Updates each job instance's batch_job_id, state, and processing_at fields,
-        and its associated dataset state.
-        Saves the changes to the db on success.
+        Submits all PENDING jobs to AWS Batch.
+        Updates the jobs' batch_job_id and saves them as PROCESSING (state, timestamp).
+        Calls the datasets' method to sync the jobs' state.
         Returns all the submitted jobs.
         """
         submitted_jobs = []
+        submitted_datasets = []
 
         if jobs := Job.objects.filter(state=JobStates.PENDING):
             for job in jobs:
                 if aws_job_id := batch.submit_job(job):
                     job.batch_job_id = aws_job_id
-                    job.state = JobStates.PROCESSING
-                    job.update_state_at(save=False)
+                    job.apply_state(JobStates.PROCESSING)
                     submitted_jobs.append(job)
+                    if job.dataset:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                        submitted_datasets.append(job.dataset)
 
-            cls.bulk_update_state(submitted_jobs)
+            if submitted_jobs:
+                cls.bulk_update_state(submitted_jobs)
+                if submitted_datasets:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                    Dataset.bulk_update_state(submitted_datasets)
 
         return submitted_jobs
 
     @classmethod
     def terminate_processing(cls, reason: str | None = "Terminated processing jobs") -> List[Self]:
         """
-        Terminates all processing, incomplete jobs on AWS Batch.
-        Updates each job's state and terminated_at with the given terminated reason.
+        Terminates all PROCESSING jobs (incomplete) on AWS Batch.
+        Saves the jobs as TERMINATED (state, timestamp, reason).
+        Calls the datasets' method to sync the jobs' state.
         Returns all the terminated jobs.
         """
         terminated_jobs = []
+        terminated_datasets = []
 
         if jobs := cls.objects.filter(state=JobStates.PROCESSING):
-
             for job in jobs:
                 if batch.terminate_job(job):
-                    job.state = JobStates.TERMINATED
-                    job.terminated_reason = reason
-                    job.update_state_at(save=False)
+                    job.apply_state(JobStates.TERMINATED, reason)
                     terminated_jobs.append(job)
+                    if job.dataset:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                        terminated_datasets.append(job.dataset)
 
-            cls.bulk_update_state(terminated_jobs)
+            if terminated_jobs:
+                cls.bulk_update_state(terminated_jobs)
+                if terminated_datasets:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                    Dataset.bulk_update_state(terminated_datasets)
 
         return terminated_jobs
 
@@ -253,16 +271,16 @@ class Job(TimestampedModel):
     @classmethod
     def bulk_sync_state(cls) -> bool:
         """
-        Syncs all processing jobs' states with the remote AWS Batch job statuses.
-        Saves each job and its associated dataset if the state changes.
+        Syncs all PROCESSING jobs' states with the corresponding AWS Batch jobs.
+        Saves the jobs (state, timestamp, reason).
+        Calls the datasets' method to sync the jobs' state.
+        Returns a boolean indicating if the jobs and datasets were updated and saved.
         """
         processing_jobs = cls.objects.filter(state=JobStates.PROCESSING)
-
         if not processing_jobs.exists():
             return False
 
         fetched_jobs = batch.get_jobs(processing_jobs)
-
         if not fetched_jobs:
             return False
 
@@ -270,21 +288,23 @@ class Job(TimestampedModel):
         aws_jobs = {job["jobId"]: job for job in fetched_jobs}
 
         synced_jobs = []
+        synced_datasets = []
 
         for job in processing_jobs:
             if aws_job := aws_jobs.get(job.batch_job_id):
-                new_state, failed_reason = cls.get_job_state(aws_job)
-
-                if new_state != job.state:
-                    job.state = new_state
-                    job.failed_reason = failed_reason
-                    job.update_state_at(save=False)
+                new_state, reason = cls.get_job_state(aws_job)
+                if job.apply_state(new_state, reason):
                     synced_jobs.append(job)
+                    if job.dataset:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                        synced_datasets.append(job.dataset)
 
         if not synced_jobs:
             return False
 
         cls.bulk_update_state(synced_jobs)
+        if synced_datasets:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+            Dataset.bulk_update_state(synced_datasets)
+
         return True
 
     def apply_state(self, state: JobStates, reason: str | None = None) -> bool:

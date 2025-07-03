@@ -3,6 +3,7 @@ from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
 from django.test import TestCase
+from django.utils.timezone import make_aware
 
 from scpca_portal import common
 from scpca_portal.enums import JobStates
@@ -241,7 +242,6 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertIsInstance(saved_job.terminated_at, datetime)
         self.assertEqual(saved_job.terminated_reason, "Job TERMINATED")
-        saved_job.dataset.update_from_last_job()  # Sync the associated dataset
         self.assertDatasetState(
             saved_job.dataset,
             is_processing=False,
@@ -270,7 +270,6 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.FAILED)
         self.assertEqual(saved_job.failed_reason, "Job FAILED")
         self.assertIsInstance(saved_job.failed_at, datetime)
-        saved_job.dataset.update_from_last_job()  # Sync the associated dataset
         self.assertDatasetState(
             saved_job.dataset,
             is_processing=False,
@@ -282,7 +281,12 @@ class TestJob(TestCase):
     def test_bulk_sync_state(self, mock_batch_get_jobs):
         # Set up mock for get_jobs
         jobs_to_sync = [
-            JobFactory(state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True))
+            JobFactory(
+                state=JobStates.PROCESSING,
+                dataset=DatasetFactory(
+                    is_processing=True, processing_at=make_aware(datetime.now())
+                ),
+            )
             for _ in range(8)
         ]
         mock_response = [{"jobId": job.batch_job_id} for job in jobs_to_sync]
@@ -294,9 +298,11 @@ class TestJob(TestCase):
         mock_response[4]["status"] = "RUNNING"
         mock_response[5]["status"] = "SUCCEEDED"
         mock_response[6]["status"] = "FAILED"
+        mock_response[6]["statusReason"] = "Job FAILED"
         mock_response[7]["status"] = "FAILED"
         mock_response[7]["isTerminated"] = True
-        mock_response = [{**job, "statusReason": f"Job {job['status']}"} for job in mock_response]
+        mock_response[7]["statusReason"] = "Job TERMINATED"
+
         mock_batch_get_jobs.return_value = mock_response
 
         success = Job.bulk_sync_state()
@@ -311,21 +317,18 @@ class TestJob(TestCase):
 
         # PROCESSING jobs should not be updated
         for processing_job in processing_jobs:
-            processing_job.dataset.update_from_last_job()  # Sync the associated dataset
             self.assertDatasetState(processing_job.dataset, is_processing=True)
 
         # SUCCEEDED jobs should be updated
         for succeeded_job in succeeded_jobs:
             self.assertIsNone(processing_job.failed_reason)
             self.assertIsInstance(succeeded_job.succeeded_at, datetime)
-            succeeded_job.dataset.update_from_last_job()  # Sync the associated dataset state
             self.assertDatasetState(succeeded_job.dataset, is_processing=False, is_succeeded=True)
 
         # FAILED jobs should be updated
         for failed_job in failed_jobs:
             self.assertEqual(failed_job.failed_reason, "Job FAILED")
             self.assertIsInstance(failed_job.failed_at, datetime)
-            failed_job.dataset.update_from_last_job()  # Sync the associated dataset state
             self.assertDatasetState(
                 failed_job.dataset,
                 is_processing=False,
@@ -335,9 +338,8 @@ class TestJob(TestCase):
 
         # TERMINATED jobs should be updated
         for terminated_job in terminated_jobs:
-            self.assertEqual(terminated_job.failed_reason, "Job FAILED")
+            self.assertEqual(terminated_job.terminated_reason, "Job TERMINATED")
             self.assertIsInstance(terminated_job.terminated_at, datetime)
-            terminated_job.dataset.update_from_last_job()  # Sync the associated dataset state
             self.assertDatasetState(
                 terminated_job.dataset,
                 is_processing=False,
@@ -371,7 +373,6 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.FAILED)
         self.assertEqual(saved_job.failed_reason, "Job FAILED")
         self.assertIsInstance(saved_job.failed_at, datetime)
-        saved_job.dataset.update_from_last_job()  # Sync the associated dataset state
         self.assertDatasetState(
             saved_job.dataset,
             is_processing=False,
@@ -404,7 +405,6 @@ class TestJob(TestCase):
         saved_job = Job.objects.get(pk=processing_job.pk)
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertIsInstance(saved_job.terminated_at, datetime)
-        saved_job.dataset.update_from_last_job()  # Sync the associated dataset
         self.assertDatasetState(
             saved_job.dataset,
             is_processing=False,
@@ -414,7 +414,10 @@ class TestJob(TestCase):
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_job_failure(self, mock_batch_terminate_job):
-        job = JobFactory(state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True))
+        job = JobFactory(
+            state=JobStates.PROCESSING,
+            dataset=DatasetFactory(is_processing=True, processing_at=make_aware(datetime.now())),
+        )
 
         # Set up mock for a failed termination
         mock_batch_terminate_job.return_value = False
@@ -426,7 +429,6 @@ class TestJob(TestCase):
         saved_job = Job.objects.get(pk=job.pk)
         # The job state should remain unchanged
         self.assertEqual(saved_job.state, job.state)
-        saved_job.dataset.update_from_last_job()  # Sync the associated dataset
         self.assertDatasetState(saved_job.dataset, is_processing=True)
 
     @patch("scpca_portal.batch.terminate_job")
@@ -445,7 +447,6 @@ class TestJob(TestCase):
         for saved_job in Job.objects.all():
             self.assertEqual(saved_job.state, JobStates.TERMINATED)
             self.assertIsInstance(saved_job.terminated_at, datetime)
-            saved_job.dataset.update_from_last_job()  # Sync the associated dataset
             self.assertDatasetState(
                 saved_job.dataset,
                 is_processing=False,
@@ -457,7 +458,12 @@ class TestJob(TestCase):
     def test_terminate_processing_failure(self, mock_batch_terminate_job):
         # Set up mock for 3 unsuccessful terminations
         for _ in range(3):
-            JobFactory(state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True))
+            JobFactory(
+                state=JobStates.PROCESSING,
+                dataset=DatasetFactory(
+                    is_processing=True, processing_at=make_aware(datetime.now())
+                ),
+            )
         mock_batch_terminate_job.return_value = []
 
         # Should call terminate_job 3 times, each time with an exception
@@ -470,7 +476,6 @@ class TestJob(TestCase):
         for saved_job in Job.objects.all():
             self.assertEqual(saved_job.state, JobStates.PROCESSING)
             self.assertIsNone(saved_job.terminated_at)
-            saved_job.dataset.update_from_last_job()  # Sync the associated dataset
             self.assertDatasetState(saved_job.dataset, is_processing=True)
 
     @patch("scpca_portal.batch.terminate_job")
