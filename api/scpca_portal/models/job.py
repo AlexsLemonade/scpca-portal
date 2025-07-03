@@ -183,7 +183,7 @@ class Job(TimestampedModel):
         )
 
     @classmethod
-    def create_retry_jobs(cls, jobs: List[Self]) -> List[Self | None]:
+    def create_retry_jobs(cls, jobs: List[Self]) -> List[Self]:
         """
         Creates new PENDING jobs to retry the given jobs.
         Calls the datasets' method to sync the jobs' state.
