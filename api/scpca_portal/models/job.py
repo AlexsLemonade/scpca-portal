@@ -366,8 +366,8 @@ class Job(TimestampedModel):
             return False
 
         self.batch_job_id = job_id
-        changed = self.apply_state(JobStates.PROCESSING)
-        if changed:
+
+        if self.apply_state(JobStates.PROCESSING):
             self.save()
             if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
@@ -394,8 +394,7 @@ class Job(TimestampedModel):
         if new_state == self.state:
             return False
 
-        changed = self.apply_state(new_state, reason)
-        if changed:
+        if self.apply_state(new_state, reason):
             self.save()
             if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
@@ -415,8 +414,7 @@ class Job(TimestampedModel):
         if not batch.terminate_job(self):
             return False
 
-        changed = self.apply_state(JobStates.TERMINATED, reason)
-        if changed:
+        if self.apply_state(JobStates.TERMINATED, reason):
             self.save()
             if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
