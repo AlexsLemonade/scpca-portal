@@ -305,7 +305,7 @@ class Job(TimestampedModel):
         self.dataset.apply_job_state(self)  # Sync the dataset state
         return True
 
-    # TODO: common.TODO_REMOVE_OBSOLETE
+    # TODO: Remove obsolete code blocks related to old sync state flows
     def update_state_at(self, save: bool = True) -> None:
         """
         Updates timestamp fields, *_at, based on the latest job state.
@@ -366,10 +366,10 @@ class Job(TimestampedModel):
             return False
 
         self.batch_job_id = job_id
-        changed = self.apply_state(JobStates.PROCESSING)
-        if changed:
+
+        if self.apply_state(JobStates.PROCESSING):
             self.save()
-            if self.dataset:  # TODD: common.TODO_AFTER_DATASET_RELEASE
+            if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
 
         return True
@@ -394,10 +394,9 @@ class Job(TimestampedModel):
         if new_state == self.state:
             return False
 
-        changed = self.apply_state(new_state, reason)
-        if changed:
+        if self.apply_state(new_state, reason):
             self.save()
-            if self.dataset:  # TODD: common.TODO_AFTER_DATASET_RELEASE
+            if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
 
         return True
@@ -415,10 +414,9 @@ class Job(TimestampedModel):
         if not batch.terminate_job(self):
             return False
 
-        changed = self.apply_state(JobStates.TERMINATED, reason)
-        if changed:
+        if self.apply_state(JobStates.TERMINATED, reason):
             self.save()
-            if self.dataset:  # TODD: common.TODO_AFTER_DATASET_RELEASE
+            if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
 
         return True
@@ -449,7 +447,7 @@ class Job(TimestampedModel):
         new_job.apply_state(JobStates.PENDING)
         if save:
             new_job.save()
-            if new_job.dataset:  # TODD: common.TODO_AFTER_DATASET_RELEASE
+            if new_job.dataset:  # TODO: Remove after the dataset release
                 new_job.dataset.save()
 
         return new_job
