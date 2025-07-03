@@ -429,13 +429,13 @@ class Job(TimestampedModel):
 
         return True
 
-    def get_retry_job(self) -> Self | bool:
+    def get_retry_job(self) -> Self:
         """
         Prepares a new Job instance for retry.
         Returns newly instantiated jobs.
         """
         if self.state not in common.FINAL_JOB_STATES:
-            return False
+            raise Exception("Jobs in final states cannot be retried.")
 
         Job.bulk_update_state([self])
 
