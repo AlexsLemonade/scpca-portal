@@ -45,17 +45,6 @@ class Job(TimestampedModel):
     # Datasets should never be deleted
     dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
 
-    # Required state fields to update during bulk operations
-    STATE_UPDATE_ATTRS = [
-        "state",
-        "processing_at",
-        "succeeded_at",
-        "failed_at",
-        "failed_reason",
-        "terminated_at",
-        "terminated_reason",
-    ]
-
     # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
     # Number should be half of max fargate ephemeral storage (which is 200 GB)
     # Each instance downloads all dataset files, copies them to a zip file, and uploads the zip file
@@ -198,12 +187,12 @@ class Job(TimestampedModel):
         for job in jobs:
             if retry_job := job.get_retry_job(save=False):
                 retry_jobs.append(retry_job)
-                if job.dataset:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                if job.dataset:  # TODO: Remove after the dataset release
                     retry_datasets.append(job.dataset)
 
         if retry_jobs:
             cls.objects.bulk_create(retry_jobs)
-            if retry_datasets:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+            if retry_datasets:  # TODO: Remove after the dataset release
                 Dataset.bulk_update_state(retry_datasets)
 
         return retry_jobs
@@ -225,12 +214,12 @@ class Job(TimestampedModel):
                     job.batch_job_id = aws_job_id
                     job.apply_state(JobStates.PROCESSING)
                     submitted_jobs.append(job)
-                    if job.dataset:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                    if job.dataset:  # TODO: Remove after the dataset release
                         submitted_datasets.append(job.dataset)
 
             if submitted_jobs:
                 cls.bulk_update_state(submitted_jobs)
-                if submitted_datasets:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                if submitted_datasets:  # TODO: Remove after the dataset release
                     Dataset.bulk_update_state(submitted_datasets)
 
         return submitted_jobs
@@ -251,12 +240,12 @@ class Job(TimestampedModel):
                 if batch.terminate_job(job):
                     job.apply_state(JobStates.TERMINATED, reason)
                     terminated_jobs.append(job)
-                    if job.dataset:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                    if job.dataset:  # TODO: Remove after the dataset release
                         terminated_datasets.append(job.dataset)
 
             if terminated_jobs:
                 cls.bulk_update_state(terminated_jobs)
-                if terminated_datasets:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                if terminated_datasets:  # TODO: Remove after the dataset release
                     Dataset.bulk_update_state(terminated_datasets)
 
         return terminated_jobs
@@ -266,7 +255,16 @@ class Job(TimestampedModel):
         """
         Updates state attributes of the given jobs in bulk.
         """
-        cls.objects.bulk_update(jobs, Job.STATE_UPDATE_ATTRS)
+        STATE_UPDATE_ATTRS = [
+            "state",
+            "processing_at",
+            "succeeded_at",
+            "failed_at",
+            "failed_reason",
+            "terminated_at",
+            "terminated_reason",
+        ]
+        cls.objects.bulk_update(jobs, STATE_UPDATE_ATTRS)
 
     @classmethod
     def bulk_sync_state(cls) -> bool:
@@ -295,14 +293,14 @@ class Job(TimestampedModel):
                 new_state, reason = cls.get_job_state(aws_job)
                 if job.apply_state(new_state, reason):
                     synced_jobs.append(job)
-                    if job.dataset:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+                    if job.dataset:  # TODO: Remove after the dataset release
                         synced_datasets.append(job.dataset)
 
         if not synced_jobs:
             return False
 
         cls.bulk_update_state(synced_jobs)
-        if synced_datasets:  # TODO: common.TODO_AFTER_DATASET_RELEASE
+        if synced_datasets:  # TODO: Remove after the dataset release
             Dataset.bulk_update_state(synced_datasets)
 
         return True
