@@ -178,7 +178,7 @@ class Job(TimestampedModel):
         Calls the datasets' method to sync the jobs' state.
         Returns the newly created retry jobs.
         """
-        if jobs is None:
+        if not jobs:
             return []
 
         retry_jobs = []
