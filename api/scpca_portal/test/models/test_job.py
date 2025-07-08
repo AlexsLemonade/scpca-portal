@@ -649,11 +649,11 @@ class TestJob(TestCase):
                 dataset_job.batch_job_definition, settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
             )
 
-    def test_update_attempt_state(self):
+    def test_increment_attempt_or_fail(self):
         job = JobFactory(state=JobStates.PENDING, dataset=DatasetFactory(is_processing=False))
 
         for _ in range(common.MAX_JOB_ATTEMPTS):
             self.assertEqual(job.state, JobStates.PENDING)
-            job.update_attempt_state()
+            job.increment_attempt_or_fail()
 
         self.assertEqual(job.state, JobStates.FAILED)

@@ -208,8 +208,7 @@ class Job(TimestampedModel):
                 logger.info(f"{job.dataset} job successfully dispatched.")
             except Exception:
                 logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
-                job.update_attempt_state()
-                job.save()
+                job.increment_attempt_or_fail()
 
         return submitted_jobs
 
@@ -290,15 +289,17 @@ class Job(TimestampedModel):
         cls.bulk_update_state(synced_jobs)
         return True
 
-    def update_attempt_state(self) -> None:
+    def increment_attempt_or_fail(self) -> None:
         """
-        After a failed job attempt, update a job's attempt state,
-        and fail the job should its attempts exceed the max allotted job attempts.
+        Increment a job's attempt count.
+        If attempts exceed the max allotted job attempts, fail the job.
         """
-        self.attempt += 1
-        if self.attempt > common.MAX_JOB_ATTEMPTS:
-            self.state = JobStates.FAILED
-            self.update_state_at()
+        if self.attempt >= common.MAX_JOB_ATTEMPTS:
+            self.apply_state(JobStates.FAILED, "Unable to dispatch job to aws")
+        else:
+            self.attempt += 1
+
+        self.save()
 
     def apply_state(self, state: JobStates, reason: str | None = None) -> bool:
         """

@@ -38,8 +38,7 @@ class Command(BaseCommand):
             logger.info(f"{dataset} job submitted successfully.")
         except Exception:
             logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
-            job.update_attempt_state()
-            job.save()
+            job.increment_attempt_or_fail()
 
         return True
 
