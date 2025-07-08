@@ -544,7 +544,7 @@ class TestJob(TestCase):
         )
 
         with self.assertRaises(Exception) as e:
-            job.submit()
+            job.get_retry_job()
             self.assertEqual(str(e.exception), "Jobs in final states cannot be retried.")
 
         # Change the job state to TERMINATED
