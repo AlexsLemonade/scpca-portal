@@ -23,11 +23,11 @@ class TestLoadMetadata(TestCase):
         self.submitter_whitelist = common.SUBMITTER_WHITELIST
 
         # Handle patching in setUp function
-        prep_data_dirs_patch = patch("scpca_portal.loader.prep_data_dirs")
+        prep_data_dirs_patch = patch("scpca_portal.utils.prep_data_dirs")
         get_lockfile_project_ids = patch("scpca_portal.lockfile.get_lockfile_project_ids")
         get_projects_metadata_patch = patch("scpca_portal.loader.get_projects_metadata")
         create_project_patch = patch("scpca_portal.loader.create_project")
-        remove_project_input_files_patch = patch("scpca_portal.loader.remove_project_input_files")
+        remove_project_input_files_patch = patch("scpca_portal.utils.remove_project_input_files")
 
         # Start patches
         self.mock_prep_data_dirs = prep_data_dirs_patch.start()

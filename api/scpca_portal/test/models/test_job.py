@@ -47,31 +47,47 @@ class TestJob(TestCase):
             self.assertIsInstance(dataset.terminated_at, datetime)
         self.assertEqual(dataset.terminated_reason, terminated_reason)
 
-    def test_set_state(self):
-        # TODO: After refactoring dataset methods, add assertDatasetState.
+    def test_apply_state(self):
         job = JobFactory(state=JobStates.PENDING, dataset=DatasetFactory())
 
-        job.set_state(JobStates.PROCESSING)
-        saved_job = Job.objects.get(pk=job.pk)
-        self.assertEqual(saved_job.state, JobStates.PROCESSING)
-        self.assertIsInstance(saved_job.processing_at, datetime)
+        # Update the state to PROCESSING
+        job.apply_state(JobStates.PROCESSING)
+        self.assertEqual(job.state, JobStates.PROCESSING)
+        self.assertIsInstance(job.processing_at, datetime)
+        self.assertDatasetState(job.dataset, is_pending=False, is_processing=True)
 
-        job.set_state(JobStates.SUCCEEDED)
-        saved_job = Job.objects.get(pk=job.pk)
-        self.assertEqual(saved_job.state, JobStates.SUCCEEDED)
-        self.assertIsInstance(saved_job.succeeded_at, datetime)
+        # Update the state to SUCEEDED
+        job.apply_state(JobStates.SUCCEEDED)
+        self.assertEqual(job.state, JobStates.SUCCEEDED)
+        self.assertIsInstance(job.succeeded_at, datetime)
+        self.assertDatasetState(job.dataset, is_processing=False, is_succeeded=True)
 
-        job.set_state(JobStates.FAILED, reason=f"Job {JobStates.FAILED}")
-        saved_job = Job.objects.get(pk=job.pk)
-        self.assertEqual(saved_job.state, JobStates.FAILED)
-        self.assertEqual(saved_job.failed_reason, f"Job {JobStates.FAILED}")
-        self.assertIsInstance(saved_job.failed_at, datetime)
+        # Update the state to FAILED
+        failed_reason = f"Job {JobStates.FAILED}"
+        job.apply_state(JobStates.FAILED, failed_reason)
+        self.assertEqual(job.state, JobStates.FAILED)
+        self.assertEqual(job.failed_reason, failed_reason)
+        self.assertIsInstance(job.failed_at, datetime)
+        self.assertDatasetState(
+            job.dataset,
+            is_succeeded=False,
+            is_failed=True,
+            failed_reason=failed_reason,
+        )
 
-        job.set_state(JobStates.TERMINATED, reason=f"Job {JobStates.TERMINATED}")
-        saved_job = Job.objects.get(pk=job.pk)
-        self.assertEqual(saved_job.state, JobStates.TERMINATED)
-        self.assertEqual(saved_job.terminated_reason, f"Job {JobStates.TERMINATED}")
-        self.assertIsInstance(saved_job.terminated_at, datetime)
+        # Update the state to TERMINATED
+        terminated_reason = f"Job {JobStates.TERMINATED}"
+        job.apply_state(JobStates.TERMINATED, terminated_reason)
+        self.assertEqual(job.state, JobStates.TERMINATED)
+        self.assertEqual(job.terminated_reason, terminated_reason)
+        self.assertIsInstance(job.terminated_at, datetime)
+        self.assertDatasetState(
+            job.dataset,
+            is_failed=False,
+            failed_reason=None,
+            is_terminated=True,
+            terminated_reason=terminated_reason,
+        )
 
     @patch(
         "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
@@ -262,7 +278,7 @@ class TestJob(TestCase):
         mock_batch_get_jobs.return_value = [
             {
                 "status": "FAILED",
-                "statusReason": "Job FAILED",
+                "statusReason": "Job TERMINATED",
                 "isTerminated": True,
             }
         ]
@@ -275,7 +291,7 @@ class TestJob(TestCase):
         saved_job = Job.objects.get(pk=processing_job.pk)
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertIsInstance(saved_job.terminated_at, datetime)
-        self.assertEqual(saved_job.failed_reason, "Job FAILED")
+        self.assertEqual(saved_job.terminated_reason, "Job TERMINATED")
         saved_job.dataset.update_from_last_job()  # Sync the associated dataset
         self.assertDatasetState(
             saved_job.dataset,
@@ -541,9 +557,8 @@ class TestJob(TestCase):
         job.batch_container_overrides = "BATCH_CONTAINER_OVERRIDES"
         job.attempt = 1
 
-        # After execution, the call should returns a new unsaved instance for retry
+        # After execution, the call should returns a new saved instance for retry
         retry_job = job.get_retry_job()
-        self.assertIsNone(retry_job.id)  # Should not have an ID
         # Should correctly copy the exsiting field values
         self.assertEqual(retry_job.batch_job_name, job.batch_job_name)
         self.assertEqual(retry_job.batch_job_definition, job.batch_job_definition)
@@ -634,11 +649,11 @@ class TestJob(TestCase):
                 dataset_job.batch_job_definition, settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
             )
 
-    def test_update_attempt_state(self):
+    def test_increment_attempt_or_fail(self):
         job = JobFactory(state=JobStates.PENDING, dataset=DatasetFactory(is_processing=False))
 
         for _ in range(common.MAX_JOB_ATTEMPTS):
             self.assertEqual(job.state, JobStates.PENDING)
-            job.update_attempt_state()
+            job.increment_attempt_or_fail()
 
         self.assertEqual(job.state, JobStates.FAILED)

@@ -42,8 +42,7 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 dataset_job.submit()
             except Exception:
                 logger.info(f"{dataset} job (attempt {dataset_job.attempt}) is being requeued.")
-                dataset_job.update_attempt_state()
-                dataset_job.save()
+                dataset_job.increment_attempt_or_fail()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -80,8 +79,7 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 logger.info(
                     f"{modified_dataset} job (attempt {dataset_job.attempt}) is being requeued."
                 )
-                dataset_job.update_attempt_state()
-                dataset_job.save()
+                dataset_job.increment_attempt_or_fail()
 
         return Response(serializer.data)
 
