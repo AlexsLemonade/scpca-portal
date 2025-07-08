@@ -200,15 +200,18 @@ class Job(TimestampedModel):
         Returns all the submitted jobs.
         """
         submitted_jobs = []
+        non_submitted_jobs = []
         for job in Job.objects.filter(state=JobStates.PENDING):
             try:
-                logger.info(f"Trying {job.dataset} job ({job.state}).")
                 job.submit()
                 submitted_jobs.append(job)
-                logger.info(f"{job.dataset} job successfully dispatched.")
             except Exception:
-                logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
                 job.increment_attempt_or_fail()
+                non_submitted_jobs.append(job)
+
+        logger.info(f"Submitted {len(submitted_jobs)} jobs to AWS.")
+        if non_submitted_jobs:
+            logger.info(f"Failed to submit {len(non_submitted_jobs)} pending jobs.")
 
         return submitted_jobs
 
