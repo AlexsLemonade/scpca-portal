@@ -208,18 +208,24 @@ class Job(TimestampedModel):
         Returns all the submitted jobs.
         """
         submitted_jobs = []
-        non_submitted_jobs = []
+        pending_jobs = []
+        failed_jobs = []
+
         for job in Job.objects.filter(state=JobStates.PENDING):
             try:
                 job.submit()
                 submitted_jobs.append(job)
             except (JobError, DatasetError):
-                job.increment_attempt_or_fail()
-                non_submitted_jobs.append(job)
+                if job.increment_attempt_or_fail():
+                    pending_jobs.append(job)
+                else:
+                    failed_jobs.append(job)
 
         logger.info(f"Submitted {len(submitted_jobs)} jobs to AWS.")
-        if non_submitted_jobs:
-            logger.info(f"Failed to submit {len(non_submitted_jobs)} pending jobs.")
+        if pending_jobs:
+            logger.info(f"{len(pending_jobs)} jobs were not submitted but are still pending.")
+        if failed_jobs:
+            logger.info(f"{len(failed_jobs)} jobs failed.")
 
         return submitted_jobs
 
@@ -300,17 +306,19 @@ class Job(TimestampedModel):
         cls.bulk_update_state(synced_jobs)
         return True
 
-    def increment_attempt_or_fail(self) -> None:
+    def increment_attempt_or_fail(self) -> bool:
         """
         Increment a job's attempt count.
         If attempts exceed the max allotted job attempts, fail the job.
         """
         if self.attempt >= common.MAX_JOB_ATTEMPTS:
             self.apply_state(JobStates.FAILED, "Unable to dispatch job to aws")
-        else:
-            self.attempt += 1
+            self.save()
+            return False
 
+        self.attempt += 1
         self.save()
+        return True
 
     def apply_state(self, state: JobStates, reason: str | None = None) -> bool:
         """
