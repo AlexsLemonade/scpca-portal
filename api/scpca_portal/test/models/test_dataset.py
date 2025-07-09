@@ -1,4 +1,5 @@
 import random
+import sys
 from pathlib import Path
 from unittest.mock import PropertyMock, patch
 
@@ -8,7 +9,7 @@ from django.test import TestCase, tag
 
 from scpca_portal import loader
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
-from scpca_portal.models import Dataset, OriginalFile
+from scpca_portal.models import Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 
@@ -502,7 +503,7 @@ class TestDataset(TestCase):
         expected_readme_hash = "93ce0b3571f15cd41db81d9e25dcb873"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
 
-    def estimated_size_in_bytes(self):
+    def test_estimated_size_in_bytes(self):
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,
@@ -533,4 +534,77 @@ class TestDataset(TestCase):
 
             expected_file_size += original_file.size_in_bytes
 
+        metadata_file_string = "".join(
+            [file_content for _, _, file_content in dataset.get_metadata_file_contents()]
+        )
+        metadata_file_size = sys.getsizeof(metadata_file_string)
+        readme_file_size = sys.getsizeof(dataset.readme_file_contents)
+        expected_file_size += metadata_file_size + readme_file_size
+
         self.assertEqual(dataset.estimated_size_in_bytes, expected_file_size)
+
+    def test_contains_project_ids(self):
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
+        self.assertTrue(dataset.contains_project_ids(set(dataset.data.keys())))
+        self.assertTrue(dataset.contains_project_ids({"SCPCP999990"}))
+        self.assertTrue(dataset.contains_project_ids({"SCPCP999992"}))
+        self.assertFalse(dataset.contains_project_ids({"SCPCP999991"}))
+
+    def test_has_lockfile_projects_property(self):
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
+
+        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
+            self.assertFalse(dataset.has_lockfile_projects)
+
+        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=["SCPCP999990"]):
+            self.assertTrue(dataset.has_lockfile_projects)
+
+    def test_projects_property(self):
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
+
+        dataset_projects = dataset.projects
+        self.assertIn(Project.objects.filter(scpca_id="SCPCP999990").first(), dataset_projects)
+        self.assertNotIn(Project.objects.filter(scpca_id="SCPCP999991").first(), dataset_projects)
+        self.assertIn(Project.objects.filter(scpca_id="SCPCP999992").first(), dataset_projects)
+
+    def test_locked_projects_property(self):
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
+
+        locked_project = Project.objects.filter(scpca_id="SCPCP999990").first()
+        locked_project.is_locked = True
+        locked_project.save()
+
+        dataset_locked_projects = dataset.locked_projects
+        self.assertIn(
+            Project.objects.filter(scpca_id="SCPCP999990").first(), dataset_locked_projects
+        )
+        self.assertNotIn(
+            Project.objects.filter(scpca_id="SCPCP999991").first(), dataset_locked_projects
+        )
+        self.assertNotIn(
+            Project.objects.filter(scpca_id="SCPCP999992").first(), dataset_locked_projects
+        )
+
+    def test_has_locked_projects_property(self):
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
+        self.assertFalse(dataset.has_locked_projects)
+
+        locked_project = Project.objects.filter(scpca_id="SCPCP999990").first()
+        locked_project.is_locked = True
+        locked_project.save()
+        self.assertTrue(dataset.has_locked_projects)

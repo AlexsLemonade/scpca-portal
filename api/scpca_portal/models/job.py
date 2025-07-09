@@ -8,10 +8,13 @@ from django.utils.timezone import make_aware
 from typing_extensions import Self
 
 from scpca_portal import batch, common, s3
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.dataset import Dataset
+
+logger = get_and_configure_logger(__name__)
 
 
 class Job(TimestampedModel):
@@ -197,16 +200,24 @@ class Job(TimestampedModel):
         Returns all the submitted jobs.
         """
         submitted_jobs = []
+        pending_jobs = []
+        failed_jobs = []
 
-        if jobs := Job.objects.filter(state=JobStates.PENDING):
-            for job in jobs:
-                if aws_job_id := batch.submit_job(job):
-                    job.batch_job_id = aws_job_id
-                    job.state = JobStates.PROCESSING
-                    job.update_state_at(save=False)
-                    submitted_jobs.append(job)
+        for job in Job.objects.filter(state=JobStates.PENDING):
+            try:
+                job.submit()
+                submitted_jobs.append(job)
+            except Exception:
+                if job.increment_attempt_or_fail():
+                    pending_jobs.append(job)
+                else:
+                    failed_jobs.append(job)
 
-            cls.bulk_update_state(submitted_jobs)
+        logger.info(f"Submitted {len(submitted_jobs)} jobs to AWS.")
+        if pending_jobs:
+            logger.info(f"{len(pending_jobs)} jobs were not submitted but are still pending.")
+        if failed_jobs:
+            logger.info(f"{len(failed_jobs)} jobs failed.")
 
         return submitted_jobs
 
@@ -287,6 +298,20 @@ class Job(TimestampedModel):
         cls.bulk_update_state(synced_jobs)
         return True
 
+    def increment_attempt_or_fail(self) -> bool:
+        """
+        Increment a job's attempt count.
+        If attempts exceed the max allotted job attempts, fail the job.
+        """
+        if self.attempt >= common.MAX_JOB_ATTEMPTS:
+            self.apply_state(JobStates.FAILED, "Unable to dispatch job to aws")
+            self.save()
+            return False
+
+        self.attempt += 1
+        self.save()
+        return True
+
     def apply_state(self, state: JobStates, reason: str | None = None) -> bool:
         """
         Sets the job's state, timestamp, and reason.
@@ -334,11 +359,14 @@ class Job(TimestampedModel):
         Calls the dataset's method to sync the job's state.
         Returns a boolean indicating if the job and dataset were updated and saved.
         """
-        if self.state is not JobStates.PENDING:
-            return False
+        if self.state != JobStates.PENDING:
+            raise Exception("Job not pending.")
 
         # if job has dataset, dynamically configure job and save before submitting
         if self.dataset:
+            if self.dataset.has_lockfile_projects or self.dataset.has_locked_projects:
+                raise Exception("Dataset has a locked project.")
+
             # dynamically choose queue based on dataset size
             self.batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
             self.batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
@@ -363,7 +391,7 @@ class Job(TimestampedModel):
         job_id = batch.submit_job(self)
 
         if not job_id:
-            return False
+            raise Exception("Error submitting job to Batch.")
 
         self.batch_job_id = job_id
 
