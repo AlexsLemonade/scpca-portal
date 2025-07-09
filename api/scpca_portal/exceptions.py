@@ -1,10 +1,15 @@
+from scpca_portal.enums import ErrorMessages
+
+
 class JobError(Exception):
     """Base exception for job-related errors."""
 
-    pass
+    def __init__(self, message=None):
+        super().__init__(message or ErrorMessages.JOB_GENERIC)
 
 
 class DatasetError(Exception):
     """Base exception for dataset-related errors."""
 
-    pass
+    def __init__(self, message=None):
+        super().__init__(message or ErrorMessages.DATASET_GENERIC)
