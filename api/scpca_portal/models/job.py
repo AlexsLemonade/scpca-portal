@@ -9,7 +9,8 @@ from typing_extensions import Self
 
 from scpca_portal import batch, common, s3
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import JobStates
+from scpca_portal.enums import DatasetErrorMessages, JobErrorMessages, JobStates
+from scpca_portal.exceptions import DatasetError, JobError
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.dataset import Dataset
@@ -352,12 +353,12 @@ class Job(TimestampedModel):
         Returns a boolean indicating if the job and dataset were updated and saved.
         """
         if self.state != JobStates.PENDING:
-            raise Exception("Job is not in a pending state.")
+            raise JobError(JobErrorMessages.NOT_PENDING)
 
         # if job has dataset, dynamically configure job and save before submitting
         if self.dataset:
             if self.dataset.has_lockfile_projects or self.dataset.has_locked_projects:
-                raise Exception("Dataset has a locked project.")
+                raise DatasetError(DatasetErrorMessages.HAS_LOCKED_PROJECTS)
 
             # dynamically choose queue based on dataset size
             self.batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
@@ -383,7 +384,7 @@ class Job(TimestampedModel):
         job_id = batch.submit_job(self)
 
         if not job_id:
-            raise Exception("Error submitting job to Batch.")
+            raise JobError(JobErrorMessages.SUBMISSION_FAILED)
 
         self.batch_job_id = job_id
 
@@ -453,7 +454,7 @@ class Job(TimestampedModel):
         Returns the new job, or False if the current job is not in a final state.
         """
         if self.state not in common.FINAL_JOB_STATES:
-            raise Exception("Jobs in final states cannot be retried.")
+            raise JobError(JobErrorMessages.INVALID_RETRY_STATE)
 
         new_job = Job(
             attempt=self.attempt + 1,
