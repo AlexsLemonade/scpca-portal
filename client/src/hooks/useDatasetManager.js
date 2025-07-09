@@ -19,29 +19,27 @@ export const useDatasetManager = () => {
   const createDataset = async (dataset) => {
     // Asserts that format is defined and save if defined
     const newDataset = await api.datasets.create(dataset, token)
-    // If success, update myDataset
+    // On success, update myDataset
     return newDataset
   }
 
   const getDataset = async (dataset) => {
     // A valid API token is required for dataset file downloads
     const latestDataset = await api.datasets.get(dataset.id, token)
-    // If success, updates myDataset
+    // On success, updates myDataset
     return latestDataset
   }
 
   const processDataset = async (dataset) => {
-    // Sets the start flag to true to process the dataset
-    const latestDataset = !dataset.id
-      ? await createDataset(dataset)
-      : await updateDataset(dataset)
-    // If success, removes myDataset(no longer editable)
+    // Sets the start flag to true for dataset processing
+    const latestDataset = await updateDataset({ ...dataset, start: true })
+    // On success, removes myDataset(no longer editable)
     return latestDataset
   }
 
   const updateDataset = async (dataset) => {
     const latestDataset = await api.datasets.update(dataset.id, dataset, token)
-    // If success, updates myDataset
+    // On success, updates myDataset
     return latestDataset
   }
 
