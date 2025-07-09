@@ -26,11 +26,6 @@ class JobNotPendingError(JobError):
         super().__init__(ErrorMessages.JOB_NOT_PENDING)
 
 
-class JobMaxAttemptsExceeedError(JobError):
-    def __init__(self):
-        super().__init__(ErrorMessages.JOB_MAX_ATTEMPTS_EXCEEDED)
-
-
 class JobSubmissionFailedError(JobError):
     def __init__(self):
         super().__init__(ErrorMessages.JOB_SUBMISSION_FAILED)
