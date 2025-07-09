@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
 from django.core.management import call_command
@@ -23,8 +23,13 @@ class TestCreateCCDLDatasets(TestCase):
                 update_s3=False,
             )
 
+    @patch(
+        "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+        new_callable=PropertyMock,
+        return_value=[],
+    )
     @patch("scpca_portal.batch.submit_job")
-    def test_correct_datasets_and_jobs_processed(self, mock_batch_submit_job):
+    def test_correct_datasets_and_jobs_processed(self, mock_batch_submit_job, _):
         mock_batch_job_id = "MOCK_JOB_ID"
         mock_batch_submit_job.return_value = mock_batch_job_id
 
