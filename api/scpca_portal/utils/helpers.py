@@ -16,13 +16,29 @@ from scpca_portal.config.logging import get_and_configure_logger
 logger = get_and_configure_logger(__name__)
 
 
-def validate_dir(dir: Path, base_dir: Path) -> None:
+def remove_data_dirs(
+    wipe_input_dir: bool = True,
+    wipe_output_dir: bool = True,
+    input_dir: Path = settings.INPUT_DATA_PATH,
+    output_dir: Path = settings.OUTPUT_DATA_PATH,
+) -> None:
     """
-    Validates if the given directory is inside the specified base directory.
-    Raise an exception if not.
+    Removes the input and/or output data directories based on the given wipe flags.
+    Validates input_dir/output_dir to ensure they are within the data directories before removal.
+    Raises an exception if not.
     """
-    if not dir.is_relative_to(base_dir):
-        raise Exception(f"{dir} must be within the {base_dir} directory.")
+    # Ensure input_dir/output_dir are within the data directories
+    base_input_dir = settings.INPUT_DATA_PATH
+    base_output_dir = settings.OUTPUT_DATA_PATH
+
+    if wipe_input_dir:
+        if not input_dir.is_relative_to(base_input_dir):
+            raise Exception(f"{input_dir} must be within the {base_input_dir} directory.")
+        shutil.rmtree(input_dir, ignore_errors=True)
+    if wipe_output_dir:
+        if not output_dir.is_relative_to(base_output_dir):
+            raise Exception(f"{output_dir} must be within the {base_output_dir} directory.")
+        shutil.rmtree(output_dir, ignore_errors=True)
 
 
 def create_data_dirs(
@@ -49,26 +65,6 @@ def create_data_dirs(
     )
     input_dir.mkdir(exist_ok=True, parents=True)
     output_dir.mkdir(exist_ok=True, parents=True)
-
-
-def remove_data_dirs(
-    wipe_input_dir: bool = True,
-    wipe_output_dir: bool = True,
-    input_dir: Path = settings.INPUT_DATA_PATH,
-    output_dir: Path = settings.OUTPUT_DATA_PATH,
-) -> None:
-    """
-    Removes the input and/or output data directories based on the given wipe flags.
-    Validates input_dir/output_dir to ensure they are within the data directories before removal.
-    """
-    # Ensure input_dir/output_dir are within the data directories
-    validate_dir(input_dir, settings.INPUT_DATA_PATH)
-    validate_dir(output_dir, settings.OUTPUT_DATA_PATH)
-
-    if wipe_input_dir:
-        shutil.rmtree(input_dir, ignore_errors=True)
-    if wipe_output_dir:
-        shutil.rmtree(output_dir, ignore_errors=True)
 
 
 def remove_nested_data_dirs(
