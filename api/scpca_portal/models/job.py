@@ -352,7 +352,7 @@ class Job(TimestampedModel):
         Returns a boolean indicating if the job and dataset were updated and saved.
         """
         if self.state != JobStates.PENDING:
-            raise Exception("Job not pending.")
+            raise Exception("Job is not in a pending state.")
 
         # if job has dataset, dynamically configure job and save before submitting
         if self.dataset:

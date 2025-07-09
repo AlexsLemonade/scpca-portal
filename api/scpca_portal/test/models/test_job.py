@@ -136,13 +136,13 @@ class TestJob(TestCase):
         mock_has_lockfile_projects.return_value = False
         mock_has_locked_projects.return_value = False
 
-        # Assert "Job not pending" exception thrown correctly
+        # Assert "Job is not in a pending state" exception thrown correctly
         non_pending_job = JobFactory(
             state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False)
         )
         with self.assertRaises(Exception) as e:
             non_pending_job.submit()
-        self.assertEqual(str(e.exception), "Job not pending.")
+        self.assertEqual(str(e.exception), "Job is not in a pending state.")
 
         # Assert "Dataset has a locked project" exception thrown correctly
         dataset = DatasetFactory(is_processing=False)
