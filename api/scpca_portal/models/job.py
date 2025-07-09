@@ -206,7 +206,7 @@ class Job(TimestampedModel):
             try:
                 job.submit()
                 submitted_jobs.append(job)
-            except Exception:
+            except (JobError, DatasetError):
                 job.increment_attempt_or_fail()
                 non_submitted_jobs.append(job)
 
