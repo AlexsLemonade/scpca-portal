@@ -21,9 +21,9 @@ class JobError(Exception):
         super().__init__(message or ErrorMessages.JOB_GENERIC)
 
 
-class JobNotPendingError(JobError):
+class JobSubmitNotPendingError(JobError):
     def __init__(self):
-        super().__init__(ErrorMessages.JOB_NOT_PENDING)
+        super().__init__(ErrorMessages.JOB_SUBMIT_NOT_PENDING)
 
 
 class JobSubmissionFailedError(JobError):

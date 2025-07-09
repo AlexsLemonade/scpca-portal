@@ -15,8 +15,8 @@ from scpca_portal.exceptions import (
     DatasetLockedProjectError,
     JobError,
     JobInvalidRetryStateError,
-    JobNotPendingError,
     JobSubmissionFailedError,
+    JobSubmitNotPendingError,
 )
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -368,7 +368,7 @@ class Job(TimestampedModel):
         Returns a boolean indicating if the job and dataset were updated and saved.
         """
         if self.state != JobStates.PENDING:
-            raise JobNotPendingError
+            raise JobSubmitNotPendingError
 
         # if job has dataset, dynamically configure job and save before submitting
         if self.dataset:

@@ -9,8 +9,8 @@ from scpca_portal.enums import JobStates
 from scpca_portal.exceptions import (
     DatasetLockedProjectError,
     JobInvalidRetryStateError,
-    JobNotPendingError,
     JobSubmissionFailedError,
+    JobSubmitNotPendingError,
 )
 from scpca_portal.models import Dataset, Job
 from scpca_portal.test.factories import DatasetFactory, JobFactory
@@ -146,7 +146,7 @@ class TestJob(TestCase):
         non_pending_job = JobFactory(
             state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False)
         )
-        with self.assertRaises(JobNotPendingError):
+        with self.assertRaises(JobSubmitNotPendingError):
             non_pending_job.submit()
 
         # Assert "Dataset has a locked project" exception thrown correctly
