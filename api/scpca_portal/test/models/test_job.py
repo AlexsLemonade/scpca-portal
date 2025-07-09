@@ -543,9 +543,9 @@ class TestJob(TestCase):
             dataset=DatasetFactory(is_processing=True),
         )
 
-        # After execution, the call should returns None
-        retry_job = job.get_retry_job()
-        self.assertFalse(retry_job)
+        with self.assertRaises(Exception) as e:
+            job.get_retry_job()
+            self.assertEqual(str(e.exception), "Jobs in final states cannot be retried.")
 
         # Change the job state to TERMINATED
         job.state = JobStates.TERMINATED

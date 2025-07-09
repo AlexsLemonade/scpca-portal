@@ -449,7 +449,7 @@ class Job(TimestampedModel):
 
         return True
 
-    def get_retry_job(self, save: bool = True) -> Self | bool:
+    def get_retry_job(self, save: bool = True) -> Self:
         """
         Prepares a new PENDING job for retry with:
         - incremented attempt count
@@ -461,7 +461,7 @@ class Job(TimestampedModel):
         Returns the new job, or False if the current job is not in a final state.
         """
         if self.state not in common.FINAL_JOB_STATES:
-            return False
+            raise Exception("Jobs in final states cannot be retried.")
 
         new_job = Job(
             attempt=self.attempt + 1,

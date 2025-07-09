@@ -47,7 +47,9 @@ class Command(BaseCommand):
         try:
             job.process_dataset_job()
             job.state = JobStates.SUCCEEDED
-        except Exception:
+        except Exception as e:
+            if str(e) == "Dataset has a locked project.":
+                job.get_retry_job()
             job.state = JobStates.FAILED
 
         job.update_state_at()
