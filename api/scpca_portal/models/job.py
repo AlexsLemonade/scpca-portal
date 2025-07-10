@@ -217,7 +217,7 @@ class Job(TimestampedModel):
         Returns all the submitted jobs.
         """
         submitted_jobs = []
-        submitted_datasets = []
+        submitted_datasets = []  # will be used in bulk updating (see TODO comment below)
         pending_jobs = []
         failed_jobs = []
 
