@@ -85,7 +85,7 @@ class Command(BaseCommand):
                 "OriginalFile table is empty. Run 'sync_original_files' first to populate it."
             )
 
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         projects_metadata_ids = set(metadata_parser.get_projects_metadata_ids())
         lockfile_project_ids = set(lockfile.get_lockfile_project_ids())
@@ -116,4 +116,4 @@ class Command(BaseCommand):
             ):
                 if clean_up_input_data:
                     logger.info(f"Cleaning up '{project}' input files")
-                    utils.remove_project_input_files(project.scpca_id)
+                    utils.remove_nested_data_dirs(project.scpca_id)

@@ -35,7 +35,7 @@ class Command(BaseCommand):
         self.process_dataset(**kwargs)
 
     def process_dataset(self, job_id: str, **kwargs) -> None:
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         job = Job.objects.filter(id=job_id).first()
         if not job:
@@ -47,16 +47,16 @@ class Command(BaseCommand):
 
         try:
             job.process_dataset_job()
-            job.state = JobStates.SUCCEEDED
+            job.apply_state(JobStates.SUCCEEDED)
         except (DatasetLockedProjectError, DatasetMissingLibrariesError) as e:
             # only locked datasets should generate retry jobs
             # datasets without libraries are malformed and should not be retried
             if isinstance(e, DatasetLockedProjectError):
                 job.get_retry_job()
-            job.state = JobStates.FAILED
+            job.apply_state(JobStates.FAILED)
 
-        job.update_state_at()
         job.save()
-
-        if job.dataset.email:
-            notifications.send_dataset_file_completed_email(job)
+        if job.dataset:  # TODO: Remove after the dataset release
+            job.dataset.save()
+            if job.dataset.email:
+                notifications.send_dataset_file_completed_email(job)

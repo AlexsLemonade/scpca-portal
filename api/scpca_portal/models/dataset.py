@@ -145,14 +145,11 @@ class Dataset(TimestampedModel):
         return dataset, False
 
     @classmethod
-    def update_from_last_jobs(cls, datasets: List[Self]) -> None:
+    def bulk_update_state(cls, datasets: List[Self]) -> None:
         """
-        Updates datasets' state based on their latest jobs.
+        Updates state attributes of the given datasets in bulk.
         """
-        for dataset in datasets:
-            dataset.update_from_last_job(save=False)
-
-        updated_attrs = [
+        STATE_UPDATE_ATTRS = [
             "is_pending",
             "pending_at",
             "is_processing",
@@ -166,7 +163,7 @@ class Dataset(TimestampedModel):
             "terminated_at",
             "terminated_reason",
         ]
-        cls.objects.bulk_update(datasets, updated_attrs)
+        cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
 
     def get_ccdl_data(self) -> Dict:
         if not self.is_ccdl:
@@ -219,30 +216,6 @@ class Dataset(TimestampedModel):
         """Returns whether or not the dataset contains locked projects."""
         return self.locked_projects.exists()
 
-    # TODO: Remove after bulk state sync flow refactor
-    def update_from_last_job(self, save: bool = True) -> None:
-        """
-        Updates the dataset's state based on the latest job.
-        Setting save to False will mutate the instance but not persist to the db.
-        This is useful for bulk operations.
-        """
-        last_job = self.jobs.order_by("-pending_at").first()
-
-        match last_job.state:
-            case JobStates.PENDING:
-                self.on_job_pending(last_job)
-            case JobStates.PROCESSING:
-                self.on_job_processing(last_job)
-            case JobStates.SUCCEEDED:
-                self.on_job_succeeded(last_job)
-            case JobStates.FAILED:
-                self.on_job_failed(last_job)
-            case JobStates.TERMINATED:
-                self.on_job_terminated(last_job)
-
-        if save:
-            self.save()
-
     def apply_job_state(self, job) -> None:
         """
         Sets the dataset state (flag, reason, timestamps) based on the given job.
@@ -263,7 +236,7 @@ class Dataset(TimestampedModel):
         for state in reset_states:
             setattr(self, f"{state.lower()}_at", None)
 
-        # Sets new states based on the given job
+        # Sets new state based on the given job
         state_str = job.state.lower()
         reason_attr = f"{state_str}_reason"
 
@@ -271,46 +244,6 @@ class Dataset(TimestampedModel):
         setattr(self, f"{state_str}_at", make_aware(datetime.now()))
         if hasattr(self, f"{state_str}_reason"):
             setattr(self, f"{state_str}_reason", getattr(job, reason_attr))
-
-    # TODO: Remove after bulk state sync flow refactor
-    def on_job_pending(self, job) -> Self:
-        """
-        Marks the dataset as pending based on the last job.
-        """
-        self.apply_job_state(job)
-        return self
-
-    # TODO: Remove after bulk state sync flow refactor
-    def on_job_processing(self, job) -> Self:
-        """
-        Marks the dataset as processing based on the last job.
-        """
-        self.apply_job_state(job)
-        return self
-
-    # TODO: Remove after bulk state sync flow refactor
-    def on_job_succeeded(self, job) -> Self:
-        """
-        Marks the dataset as succeeded based on the last job.
-        """
-        self.apply_job_state(job)
-        return self
-
-    # TODO: Remove after bulk state sync flow refactor
-    def on_job_failed(self, job) -> Self:
-        """
-        Marks the dataset as failed with the failure reason based on the last job.
-        """
-        self.apply_job_state(job)
-        return self
-
-    # TODO: Remove after bulk state sync flow refactor
-    def on_job_terminated(self, job) -> Self:
-        """
-        Marks the dataset as terminated with the terminated reason based on the last job.
-        """
-        self.apply_job_state(job)
-        return self
 
     @property
     def is_hash_changed(self) -> bool:

@@ -87,7 +87,7 @@ class Command(BaseCommand):
         **kwargs,
     ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
-        utils.prep_data_dirs()
+        utils.create_data_dirs()
 
         # load metadata
         for project_metadata in loader.get_projects_metadata(scpca_project_id):
@@ -103,4 +103,4 @@ class Command(BaseCommand):
 
                 if clean_up_input_data:
                     logger.info(f"Cleaning up '{project}' input files")
-                    utils.remove_project_input_files(project.scpca_id)
+                    utils.remove_nested_data_dirs(project.scpca_id)
