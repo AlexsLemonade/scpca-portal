@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 
 from scpca_portal import notifications, utils
 from scpca_portal.enums import JobStates
-from scpca_portal.exceptions import DatasetError, DatasetLockedProjectError
+from scpca_portal.exceptions import DatasetLockedProjectError, DatasetMissingLibrariesError
 from scpca_portal.models import Job
 
 logger = logging.getLogger()
@@ -48,8 +48,10 @@ class Command(BaseCommand):
         try:
             job.process_dataset_job()
             job.state = JobStates.SUCCEEDED
-        except DatasetError as e:
-            if e is DatasetLockedProjectError:
+        except (DatasetLockedProjectError, DatasetMissingLibrariesError) as e:
+            # only locked datasets should generate retry jobs
+            # datasets without libraries are malformed and should not be retried
+            if isinstance(e, DatasetLockedProjectError):
                 job.get_retry_job()
             job.state = JobStates.FAILED
 
