@@ -33,8 +33,12 @@ class Command(BaseCommand):
         dataset.save()
 
         job = Job.get_dataset_job(dataset)
-        if job.submit():
+        try:
+            job.submit()
             logger.info(f"{dataset} job submitted successfully.")
+        except Exception:
+            logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
+            job.increment_attempt_or_fail()
 
         return True
 

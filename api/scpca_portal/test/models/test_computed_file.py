@@ -1,12 +1,12 @@
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 from zipfile import ZipFile
 
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
-from scpca_portal import loader
-from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
+from scpca_portal import loader, utils
+from scpca_portal.enums import CCDLDatasetNames
 from scpca_portal.models import ComputedFile, Dataset
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
@@ -81,7 +81,7 @@ class TestGetFile(TestCase):
             ComputedFile.get_sample_file(self.sample, invalid_download_config)
 
     def test_get_ccdl_dataset_file(self):
-        loader.prep_data_dirs()
+        utils.create_data_dirs()
 
         ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
         project_id = "SCPCP999990"
@@ -89,7 +89,12 @@ class TestGetFile(TestCase):
         dataset, _ = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
         dataset.save()
 
-        computed_file = ComputedFile.get_dataset_file(dataset)
+        with patch(
+            "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+            new_callable=PropertyMock,
+            return_value=[],
+        ):
+            computed_file = ComputedFile.get_dataset_file(dataset)
 
         # CHECK ZIP FILE
         with ZipFile(dataset.computed_file_local_path) as project_zip:
@@ -113,28 +118,18 @@ class TestGetFile(TestCase):
     def test_original_file_zip_namelist(self):
         self.maxDiff = None
 
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
-                Modalities.SPATIAL.value: ["SCPCS999991"],
-            },
-            "SCPCP999991": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL.value: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
-                Modalities.SPATIAL.value: [],
-            },
-            "SCPCP999992": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: "MERGED",
-                Modalities.SPATIAL.value: [],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
-        dataset = Dataset(data=data, format=format)
+        dataset = Dataset(
+            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
+            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        )
         dataset.save()
 
-        ComputedFile.get_dataset_file(dataset)
+        with patch(
+            "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+            new_callable=PropertyMock,
+            return_value=[],
+        ):
+            ComputedFile.get_dataset_file(dataset)
 
         with ZipFile(dataset.computed_file_local_path) as project_zip:
             # Check if file list is as expected

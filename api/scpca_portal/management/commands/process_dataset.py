@@ -4,7 +4,7 @@ from argparse import BooleanOptionalAction
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from scpca_portal import loader, notifications
+from scpca_portal import notifications, utils
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Job
 
@@ -34,7 +34,7 @@ class Command(BaseCommand):
         self.process_dataset(**kwargs)
 
     def process_dataset(self, job_id: str, **kwargs) -> None:
-        loader.prep_data_dirs()
+        utils.create_data_dirs()
 
         job = Job.objects.filter(id=job_id).first()
         if not job:
@@ -47,7 +47,9 @@ class Command(BaseCommand):
         try:
             job.process_dataset_job()
             job.apply_state(JobStates.SUCCEEDED)
-        except Exception:
+        except Exception as e:
+            if str(e) == "Dataset has a locked project.":
+                job.get_retry_job()
             job.apply_state(JobStates.FAILED)
 
         job.save()

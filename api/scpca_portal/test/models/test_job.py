@@ -90,8 +90,13 @@ class TestJob(TestCase):
             terminated_reason=terminated_reason,
         )
 
+    @patch(
+        "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+        new_callable=PropertyMock,
+        return_value=[],
+    )
     @patch("scpca_portal.batch.submit_job")
-    def test_submit(self, mock_batch_submit_job):
+    def test_submit(self, mock_batch_submit_job, _):
         # Set up mock for submit_job
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
@@ -121,15 +126,50 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.PROCESSING)
         self.assertIsInstance(saved_job.processing_at, datetime)
 
+    @patch("scpca_portal.models.dataset.Dataset.has_locked_projects", new_callable=PropertyMock)
+    @patch("scpca_portal.models.dataset.Dataset.has_lockfile_projects", new_callable=PropertyMock)
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_not_called(self, mock_batch_submit_job):
-        # Set up an already submitted job
-        job = JobFactory(state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False))
+    def test_submit_handle_exceptions(
+        self, mock_batch_submit_job, mock_has_lockfile_projects, mock_has_locked_projects
+    ):
+        # Set default mock return values
+        mock_batch_submit_job.return_value = "MOCK_JOB_ID"
+        mock_has_lockfile_projects.return_value = False
+        mock_has_locked_projects.return_value = False
 
-        # Should return False early without calling submit_job
-        success = job.submit()
-        mock_batch_submit_job.assert_not_called()
-        self.assertFalse(success)
+        # Assert "Job not pending" exception thrown correctly
+        non_pending_job = JobFactory(
+            state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False)
+        )
+        with self.assertRaises(Exception) as e:
+            non_pending_job.submit()
+        self.assertEqual(str(e.exception), "Job not pending.")
+
+        # Assert "Dataset has a locked project" exception thrown correctly
+        dataset = DatasetFactory(is_processing=False)
+        job = Job.get_dataset_job(dataset)
+        job.dataset = dataset
+
+        mock_has_lockfile_projects.return_value = True
+        mock_has_locked_projects.return_value = False
+        with self.assertRaises(Exception) as e:
+            job.submit()
+        self.assertEqual(str(e.exception), "Dataset has a locked project.")
+
+        mock_has_lockfile_projects.return_value = False
+        mock_has_locked_projects.return_value = True
+        with self.assertRaises(Exception) as e:
+            job.submit()
+        self.assertEqual(str(e.exception), "Dataset has a locked project.")
+
+        mock_has_lockfile_projects.return_value = False
+        mock_has_locked_projects.return_value = False
+
+        # Assert "Error submitting job to Batch." exception thrown correctly
+        mock_batch_submit_job.return_value = None
+        with self.assertRaises(Exception) as e:
+            job.submit()
+        self.assertEqual(str(e.exception), "Error submitting job to Batch.")
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_pending(self, mock_batch_submit_job):
@@ -144,9 +184,15 @@ class TestJob(TestCase):
 
         # Before submission, there are 1 job in PROCESSING state
         self.assertEqual(Job.objects.filter(state=JobStates.PROCESSING).count(), 1)
+        mock_batch_submit_job.return_value = "MOCK_JOB_ID"
 
         # Should call submit_job 3 times to submit PENDING jobs
-        response = Job.submit_pending()
+        with patch(
+            "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+            new_callable=PropertyMock,
+            return_value=[],
+        ):
+            response = Job.submit_pending()
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
         self.assertNotEqual(response, [])
@@ -162,7 +208,12 @@ class TestJob(TestCase):
         mock_batch_submit_job.return_value = []
 
         # Should call submit_job 3 times, each time with an exception
-        response = Job.submit_pending()
+        with patch(
+            "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+            new_callable=PropertyMock,
+            return_value=[],
+        ):
+            response = Job.submit_pending()
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
         self.assertEqual(response, [])
@@ -497,9 +548,9 @@ class TestJob(TestCase):
             dataset=DatasetFactory(is_processing=True),
         )
 
-        # After execution, the call should returns None
-        retry_job = job.get_retry_job()
-        self.assertFalse(retry_job)
+        with self.assertRaises(Exception) as e:
+            job.get_retry_job()
+            self.assertEqual(str(e.exception), "Jobs in final states cannot be retried.")
 
         # Change the job state to TERMINATED
         job.state = JobStates.TERMINATED
@@ -561,8 +612,13 @@ class TestJob(TestCase):
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
             self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
 
+    @patch(
+        "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+        new_callable=PropertyMock,
+        return_value=[],
+    )
     @patch("scpca_portal.batch.submit_job")
-    def test_dynamically_set_dataset_job_pipeline(self, mock_batch_submit_job):
+    def test_dynamically_set_dataset_job_pipeline(self, mock_batch_submit_job, _):
         # Set up mock for submit_job
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
@@ -597,3 +653,12 @@ class TestJob(TestCase):
             self.assertEqual(
                 dataset_job.batch_job_definition, settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
             )
+
+    def test_increment_attempt_or_fail(self):
+        job = JobFactory(state=JobStates.PENDING, dataset=DatasetFactory(is_processing=False))
+
+        for _ in range(common.MAX_JOB_ATTEMPTS):
+            self.assertEqual(job.state, JobStates.PENDING)
+            job.increment_attempt_or_fail()
+
+        self.assertEqual(job.state, JobStates.FAILED)

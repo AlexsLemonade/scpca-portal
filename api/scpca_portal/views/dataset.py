@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import APIToken, Dataset, Job
 from scpca_portal.serializers import (
     DatasetCreateSerializer,
@@ -12,6 +13,8 @@ from scpca_portal.serializers import (
     DatasetSerializer,
     DatasetUpdateSerializer,
 )
+
+logger = get_and_configure_logger(__name__)
 
 
 class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -35,7 +38,11 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         if dataset.start:
             dataset_job = Job.get_dataset_job(dataset)
-            dataset_job.submit()
+            try:
+                dataset_job.submit()
+            except Exception:
+                logger.info(f"{dataset} job (attempt {dataset_job.attempt}) is being requeued.")
+                dataset_job.increment_attempt_or_fail()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -66,7 +73,13 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         if modified_dataset.start:
             dataset_job = Job.get_dataset_job(modified_dataset)
-            dataset_job.submit()
+            try:
+                dataset_job.submit()
+            except Exception:
+                logger.info(
+                    f"{modified_dataset} job (attempt {dataset_job.attempt}) is being requeued."
+                )
+                dataset_job.increment_attempt_or_fail()
 
         return Response(serializer.data)
 
