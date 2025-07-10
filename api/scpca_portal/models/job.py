@@ -364,12 +364,12 @@ class Job(TimestampedModel):
         Returns a boolean indicating if the job and dataset were updated and saved.
         """
         if self.state != JobStates.PENDING:
-            raise JobSubmitNotPendingError
+            raise JobSubmitNotPendingError(self.id)
 
         # if job has dataset, dynamically configure job and save before submitting
         if self.dataset:
             if self.dataset.has_lockfile_projects or self.dataset.has_locked_projects:
-                raise DatasetLockedProjectError
+                raise DatasetLockedProjectError(self.dataset.id)
 
             # dynamically choose queue based on dataset size
             self.batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
@@ -395,7 +395,7 @@ class Job(TimestampedModel):
         job_id = batch.submit_job(self)
 
         if not job_id:
-            raise JobSubmissionFailedError
+            raise JobSubmissionFailedError(self.id)
 
         self.batch_job_id = job_id
 
@@ -465,7 +465,7 @@ class Job(TimestampedModel):
         Returns the new job, or False if the current job is not in a final state.
         """
         if self.state not in common.FINAL_JOB_STATES:
-            raise JobInvalidRetryStateError
+            raise JobInvalidRetryStateError(self.id)
 
         new_job = Job(
             attempt=self.attempt + 1,
