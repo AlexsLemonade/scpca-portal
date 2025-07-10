@@ -49,9 +49,9 @@ class Command(BaseCommand):
             job.apply_state(JobStates.SUCCEEDED)
         except Exception:
             job.apply_state(JobStates.FAILED)
-        finally:
-            job.save()
-            if job.dataset:  # TODO: Remove after the dataset release
-                job.dataset.save()
-                if job.dataset.email:
-                    notifications.send_dataset_file_completed_email(job)
+
+        job.save()
+        if job.dataset:  # TODO: Remove after the dataset release
+            job.dataset.save()
+            if job.dataset.email:
+                notifications.send_dataset_file_completed_email(job)
