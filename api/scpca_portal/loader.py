@@ -1,4 +1,3 @@
-import shutil
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from typing import Any, Dict, List, Set
@@ -21,32 +20,6 @@ from scpca_portal.models import (
 )
 
 logger = get_and_configure_logger(__name__)
-
-
-def prep_data_dirs(wipe_input_dir: bool = False, wipe_output_dir: bool = True) -> None:
-    """
-    Create the input and output data dirs, if they do not yet exist.
-    Allow for options to be passed to wipe these dirs if they do exist.
-        - wipe_input_dir defaults to False because we typically want to keep input data files
-        between testing rounds to speed up our tests.
-        - wipe_output_dir defaults to True because we typically don't want to keep around
-        computed files after execution.
-    The options are given to the caller for to customize behavior for different use cases.
-    """
-    # Prepare data input directory.
-    if wipe_input_dir:
-        shutil.rmtree(settings.INPUT_DATA_PATH, ignore_errors=True)
-    settings.INPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
-
-    # Prepare data output directory.
-    if wipe_output_dir:
-        shutil.rmtree(settings.OUTPUT_DATA_PATH, ignore_errors=True)
-    settings.OUTPUT_DATA_PATH.mkdir(exist_ok=True, parents=True)
-
-
-def remove_project_input_files(project_id: str) -> None:
-    """Remove the input files located at the project_id's input directory."""
-    shutil.rmtree(settings.INPUT_DATA_PATH / project_id, ignore_errors=True)
 
 
 def get_projects_metadata(filter_on_project_ids: List[str] = []) -> List[Dict[str, Any]]:
@@ -72,6 +45,7 @@ def get_projects_metadata(filter_on_project_ids: List[str] = []) -> List[Dict[st
     return projects_metadata
 
 
+# TODO: Remove after the dataset release
 def _can_process_project(project_metadata: Dict[str, Any], submitter_whitelist: Set[str]) -> bool:
     """
     Validate that a project can be processed by assessing that:
@@ -93,6 +67,7 @@ def _can_process_project(project_metadata: Dict[str, Any], submitter_whitelist: 
     return True
 
 
+# TODO: Remove after the dataset release
 def _can_purge_project(
     project: Project,
     *,
@@ -153,6 +128,7 @@ def create_project(
     return project
 
 
+# TODO: Remove after the dataset release
 def _create_computed_file(
     computed_file: ComputedFile, update_s3: bool, clean_up_output_data: bool
 ) -> None:
@@ -172,6 +148,7 @@ def _create_computed_file(
         computed_file.save()
 
 
+# TODO: Remove after the dataset release
 def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
     """
     Wrap computed file saving and uploading to s3 in a way that accommodates multiprocessing.
@@ -183,6 +160,7 @@ def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_d
     connection.close()
 
 
+# TODO: Remove after the dataset release
 def generate_computed_file(
     *,
     download_config: Dict,
@@ -202,6 +180,7 @@ def generate_computed_file(
         sample.project.update_downloadable_sample_count()
 
 
+# TODO: Remove after the dataset release
 def generate_computed_files(
     project: Project,
     max_workers: int,

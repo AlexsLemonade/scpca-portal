@@ -5,7 +5,7 @@ from typing import Set
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from scpca_portal import common, loader, lockfile, metadata_parser
+from scpca_portal import common, loader, lockfile, metadata_parser, utils
 from scpca_portal.models import OriginalFile, Project
 
 logger = logging.getLogger()
@@ -85,7 +85,7 @@ class Command(BaseCommand):
                 "OriginalFile table is empty. Run 'sync_original_files' first to populate it."
             )
 
-        loader.prep_data_dirs()
+        utils.create_data_dirs()
 
         projects_metadata_ids = set(metadata_parser.get_projects_metadata_ids())
         lockfile_project_ids = set(lockfile.get_lockfile_project_ids())
@@ -116,4 +116,4 @@ class Command(BaseCommand):
             ):
                 if clean_up_input_data:
                     logger.info(f"Cleaning up '{project}' input files")
-                    loader.remove_project_input_files(project.scpca_id)
+                    utils.remove_nested_data_dirs(project.scpca_id)

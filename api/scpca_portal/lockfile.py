@@ -4,7 +4,7 @@ from django.conf import settings
 
 from scpca_portal import s3
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.models import OriginalFile
+from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
 

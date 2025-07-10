@@ -4,7 +4,7 @@ from argparse import BooleanOptionalAction
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from scpca_portal import loader
+from scpca_portal import loader, utils
 from scpca_portal.models import Project
 
 logger = logging.getLogger()
@@ -71,7 +71,7 @@ class Command(BaseCommand):
         **kwargs,
     ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
-        loader.prep_data_dirs()
+        utils.create_data_dirs()
 
         project = Project.objects.filter(scpca_id=scpca_project_id).first()
 
@@ -83,4 +83,4 @@ class Command(BaseCommand):
         # Output data is deleted on a computed file level - after each file is created it's deleted.
         if clean_up_input_data:
             logger.info(f"Cleaning up '{project}' input files")
-            loader.remove_project_input_files(project.scpca_id)
+            utils.remove_nested_data_dirs(project.scpca_id)
