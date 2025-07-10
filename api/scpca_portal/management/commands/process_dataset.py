@@ -46,14 +46,14 @@ class Command(BaseCommand):
 
         try:
             job.process_dataset_job()
-            job.state = JobStates.SUCCEEDED
+            job.apply_state(JobStates.SUCCEEDED)
         except Exception as e:
             if str(e) == "Dataset has a locked project.":
                 job.get_retry_job()
-            job.state = JobStates.FAILED
+            job.apply_state(JobStates.FAILED)
 
-        job.update_state_at()
         job.save()
-
-        if job.dataset.email:
-            notifications.send_dataset_file_completed_email(job)
+        if job.dataset:  # TODO: Remove after the dataset release
+            job.dataset.save()
+            if job.dataset.email:
+                notifications.send_dataset_file_completed_email(job)

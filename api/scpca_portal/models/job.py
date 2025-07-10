@@ -348,28 +348,6 @@ class Job(TimestampedModel):
         self.dataset.apply_job_state(self)  # Sync the dataset state
         return True
 
-    # TODO: Remove obsolete code blocks related to old sync state flows
-    def update_state_at(self, save: bool = True) -> None:
-        """
-        Updates timestamp fields, *_at, based on the latest job state.
-        Make sure to set 'save' to False when calling this from bulk update methods
-        or from instance methods that call save() within.
-        """
-        timestamp = make_aware(datetime.now())
-
-        match self.state:
-            case JobStates.PROCESSING:
-                self.processing_at = timestamp
-            case JobStates.SUCCEEDED:
-                self.succeeded_at = timestamp
-            case JobStates.FAILED:
-                self.failed_at = timestamp
-            case JobStates.TERMINATED:
-                self.terminated_at = timestamp
-
-        if save:
-            self.save()
-
     def submit(self) -> bool:
         """
         Submits the PENDING job to AWS Batch and assigns batch_job_id.
