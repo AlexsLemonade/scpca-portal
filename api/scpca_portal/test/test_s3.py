@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.test import TestCase, tag
 
-from scpca_portal import metadata_parser, s3
+from scpca_portal import s3
 
 
 class TestS3(TestCase):
@@ -198,5 +198,5 @@ class TestS3(TestCase):
         # empty_file = lockfile.LOCKFILE_KEY
         # self.assertTrue(s3.check_file_empty(empty_file, bucket))
 
-        non_empty_file = metadata_parser.PROJECT_METADATA_S3_KEY
+        non_empty_file = "project_metadata.csv"
         self.assertFalse(s3.check_file_empty(non_empty_file, bucket))

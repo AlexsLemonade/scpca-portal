@@ -87,7 +87,9 @@ class Command(BaseCommand):
 
         utils.create_data_dirs()
 
-        projects_metadata_ids = set(metadata_parser.get_projects_metadata_ids())
+        projects_metadata_ids = set(
+            metadata_parser.get_projects_metadata_ids(Project.get_input_metadata_original_file())
+        )
         lockfile_project_ids = set(lockfile.get_lockfile_project_ids())
         safe_project_ids = projects_metadata_ids - lockfile_project_ids
 
@@ -107,7 +109,7 @@ class Command(BaseCommand):
                 return
 
         for project_metadata in loader.get_projects_metadata(
-            filter_on_project_ids=filter_on_project_ids
+            Project.get_input_metadata_original_file(), filter_on_project_ids=filter_on_project_ids
         ):
             # validate that a project can be added to the db,
             # then creates it, all its samples and libraries, and all other relations

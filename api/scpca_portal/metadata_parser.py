@@ -6,8 +6,6 @@ from typing import List
 from scpca_portal import common, utils
 from scpca_portal.models.original_file import OriginalFile
 
-PROJECT_METADATA_S3_KEY = "project_metadata.csv"
-
 PROJECT_METADATA_KEYS = [
     # Fields used in Project model object creation
     ("has_bulk", "has_bulk_rna_seq", False),
@@ -45,12 +43,12 @@ BULK_METADATA_KEYS = [
 ]
 
 
-def get_projects_metadata_ids() -> List[str]:
+def get_projects_metadata_ids(metadata_original_file: OriginalFile) -> List[str]:
     """
     Opens the projects metadata file and returns a list of all project ids.
 
     """
-    with open(OriginalFile.get_s3_key_local_file_path(PROJECT_METADATA_S3_KEY)) as raw_file:
+    with open(metadata_original_file.local_file_path) as raw_file:
         projects_metadata = csv.DictReader(raw_file)
         return [row["scpca_project_id"] for row in projects_metadata]
 

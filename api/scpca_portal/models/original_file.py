@@ -217,13 +217,6 @@ class OriginalFile(TimestampedModel):
         """Return the remaining part of self.s3_key that's not the download_dir."""
         return self.s3_key_path.relative_to(self.download_dir)
 
-    @classmethod
-    def get_s3_key_local_file_path(cls, s3_key: str) -> Path:
-        original_file = cls.objects.filter(
-            s3_key=s3_key, s3_bucket=settings.AWS_S3_INPUT_BUCKET_NAME
-        ).first()
-        return original_file.local_file_path
-
     @property
     def local_file_path(self):
         return settings.INPUT_DATA_PATH / self.s3_key_path
