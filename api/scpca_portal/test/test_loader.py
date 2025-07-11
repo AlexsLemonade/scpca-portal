@@ -17,7 +17,10 @@ from scpca_portal.test import expected_values as test_data
 
 class TestLoader(TransactionTestCase):
     def setUp(self):
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
+        with patch(
+            "scpca_portal.lockfile.get_lockfile_project_ids",
+            return_value=[],
+        ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
             # When passing a project_id to get_projects_metadata, a list of one item is returned

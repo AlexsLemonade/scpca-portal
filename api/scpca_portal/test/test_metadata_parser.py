@@ -3,15 +3,16 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.core.management import call_command
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from scpca_portal import metadata_parser
 from scpca_portal.models import Library, Sample
 from scpca_portal.test.factories import ProjectFactory
 
 
-class TestMetadataParser(TransactionTestCase):
-    def setUp(self):
+class TestMetadataParser(TestCase):
+    @classmethod
+    def setUpTestData(cls):
         with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
