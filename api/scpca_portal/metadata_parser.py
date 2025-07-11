@@ -3,12 +3,11 @@ import json
 from pathlib import Path
 from typing import List
 
-from django.conf import settings
-
 from scpca_portal import common, utils
+from scpca_portal.models.original_file import OriginalFile
 
 PROJECT_METADATA_S3_KEY = "project_metadata.csv"
-PROJECT_METADATA_PATH = settings.INPUT_DATA_PATH / PROJECT_METADATA_S3_KEY
+
 PROJECT_METADATA_KEYS = [
     # Fields used in Project model object creation
     ("has_bulk", "has_bulk_rna_seq", False),
@@ -51,7 +50,7 @@ def get_projects_metadata_ids() -> List[str]:
     Opens the projects metadata file and returns a list of all project ids.
 
     """
-    with open(PROJECT_METADATA_PATH) as raw_file:
+    with open(OriginalFile.get_s3_key_local_file_path(PROJECT_METADATA_S3_KEY)) as raw_file:
         projects_metadata = csv.DictReader(raw_file)
         return [row["scpca_project_id"] for row in projects_metadata]
 
@@ -62,7 +61,7 @@ def load_projects_metadata(*, filter_on_project_ids: List[str] = []):
     Transforms keys in data dicts to match associated model attributes.
     If an optional project id is passed, all projects are filtered out except for the one passed.
     """
-    with open(PROJECT_METADATA_PATH) as raw_file:
+    with open(OriginalFile.get_s3_key_local_file_path(PROJECT_METADATA_S3_KEY)) as raw_file:
         projects_metadata = list(csv.DictReader(raw_file))
 
     for project_metadata in projects_metadata:
