@@ -55,13 +55,15 @@ def get_projects_metadata_ids() -> List[str]:
         return [row["scpca_project_id"] for row in projects_metadata]
 
 
-def load_projects_metadata(*, filter_on_project_ids: List[str] = []):
+def load_projects_metadata(
+    metadata_original_file: OriginalFile, *, filter_on_project_ids: List[str] = []
+):
     """
     Opens, loads and parses list of project metadata dicts.
     Transforms keys in data dicts to match associated model attributes.
     If an optional project id is passed, all projects are filtered out except for the one passed.
     """
-    with open(OriginalFile.get_s3_key_local_file_path(PROJECT_METADATA_S3_KEY)) as raw_file:
+    with open(metadata_original_file.local_file_path) as raw_file:
         projects_metadata = list(csv.DictReader(raw_file))
 
     for project_metadata in projects_metadata:
