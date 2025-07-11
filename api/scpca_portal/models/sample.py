@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Dict, List
 
 from django.conf import settings
@@ -10,6 +9,7 @@ from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
+from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
 
@@ -90,7 +90,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         updates sample aggregate values.
         """
         samples_metadata = metadata_parser.load_samples_metadata(
-            Sample.get_input_metadata_file_path(project)
+            Sample.get_input_metadata_original_file(project)
         )
 
         Sample.bulk_create_from_dicts(samples_metadata, project)
@@ -262,8 +262,10 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return "_".join(self.multiplexed_ids + sorted(download_config.values()))
 
     @staticmethod
-    def get_input_metadata_file_path(project) -> Path:
-        return project.input_data_path / "samples_metadata.csv"
+    def get_input_metadata_original_file(project) -> OriginalFile:
+        return OriginalFile.objects.filter(
+            is_metadata=True, project_id=project.scpca_id, sample_ids=[], library_id=None
+        ).first()
 
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):

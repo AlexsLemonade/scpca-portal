@@ -61,10 +61,10 @@ class TestMetadataParser(TestCase):
 
         for project_id, expected_sample_ids in PROJECT_SAMPLES_IDS.items():
             project = ProjectFactory(scpca_id=project_id)
-            sample_metadata_path = Sample.get_input_metadata_file_path(project)
+            sample_metadata_original_file = Sample.get_input_metadata_original_file(project)
 
             # Load metadata for samples
-            samples_metadata = metadata_parser.load_samples_metadata(sample_metadata_path)
+            samples_metadata = metadata_parser.load_samples_metadata(sample_metadata_original_file)
 
             # Make sure all project samples metadata are loaded
             actual_sample_ids = [sample["scpca_sample_id"] for sample in samples_metadata]

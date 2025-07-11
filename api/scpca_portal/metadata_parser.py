@@ -74,12 +74,12 @@ def load_projects_metadata(*, filter_on_project_ids: List[str] = []):
     return projects_metadata
 
 
-def load_samples_metadata(metadata_file_path: Path):
+def load_samples_metadata(metadata_original_file: OriginalFile):
     """
     Opens, loads and parses list of sample metadata located at inputted metadata_file_path.
     Transforms keys in data dicts to match associated model attributes.
     """
-    with open(metadata_file_path) as raw_file:
+    with open(metadata_original_file.local_file_path) as raw_file:
         return list(csv.DictReader(raw_file))
 
 
