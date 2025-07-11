@@ -84,8 +84,8 @@ class TestMetadataParser(TestCase):
 
             # Load metadata for libraries
             libraries_metadata = [
-                metadata_parser.load_library_metadata(lib.local_file_path)
-                for lib in Library.get_project_original_file_libraries(project)
+                metadata_parser.load_library_metadata(original_file)
+                for original_file in Library.get_project_original_file_libraries(project)
             ]
 
             # Make sure all libraries metadata are loaded

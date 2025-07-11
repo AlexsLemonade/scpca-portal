@@ -1,5 +1,4 @@
-from pathlib import Path
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -101,8 +100,8 @@ class Library(TimestampedModel):
         original_file_libraries = Library.get_project_original_file_libraries(project)
 
         all_libraries_metadata = [
-            metadata_parser.load_library_metadata(lib.local_file_path)
-            for lib in original_file_libraries
+            metadata_parser.load_library_metadata(original_file)
+            for original_file in original_file_libraries
         ]
 
         library_metadata_by_id = {
@@ -173,20 +172,17 @@ class Library(TimestampedModel):
         return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
 
     @staticmethod
-    def get_project_original_file_libraries(project) -> Path:
+    def get_project_original_file_libraries(project) -> Iterable[OriginalFile]:
         """
         Returns all metadata OriginalFile instances for a given project.
         Filters to library metadata JSON files only.
         """
-        return [
-            lib
-            for lib in OriginalFile.objects.filter(
-                is_metadata=True,
-                project_id=project.scpca_id,
-                library_id__isnull=False,
-                s3_key__endswith="_metadata.json",  # Exclude other .csv, .json files
-            )
-        ]
+        return OriginalFile.objects.filter(
+            is_metadata=True,
+            project_id=project.scpca_id,
+            library_id__isnull=False,
+            s3_key__endswith="_metadata.json",  # Exclude other .csv, .json files
+        )
 
     @staticmethod
     def get_libraries_metadata(libraries) -> List[Dict]:
