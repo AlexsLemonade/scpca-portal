@@ -129,12 +129,12 @@ class Project(CommonDataAttributes, TimestampedModel):
         return settings.INPUT_DATA_PATH / self.scpca_id
 
     @property
-    def input_merged_data_path(self):
-        return self.input_data_path / "merged"
-
-    @property
     def input_bulk_metadata_file_path(self):
         return self.input_data_path / "bulk" / f"{self.scpca_id}_bulk_metadata.tsv"
+
+    @staticmethod
+    def get_input_metadata_original_file() -> OriginalFile:
+        return OriginalFile.objects.filter(is_metadata=True, project_id=None).first()
 
     @property
     def url(self):
