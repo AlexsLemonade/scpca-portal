@@ -118,6 +118,98 @@ class Dataset(TimestampedModel):
         return original_files_size + metadata_file_size + readme_file_size
 
     @property
+    def diagnoses_summary(self) -> dict:
+        """
+        Counts present all diagnoses for samples in datasets.
+        Returns dict where key is the diagnosis and value is a dict
+        of project and sample counts.
+        """
+        # all diagnoses in the dataset
+        if diagnoses := self.samples.values("diagnosis").annotate(
+            samples=models.Count("scpca_id", distinct=True),
+            projects=models.Count("project_id", distinct=True),
+        ):
+            return {d.pop("diagnosis"): d for d in diagnoses}
+
+        return {}
+
+    # TODO: Bulk samples are not present in libraries but will need to be included.
+    @property
+    def files_summary(self) -> list[dict]:
+        """
+        Iterates over pre-defined file types that will be present in the dataset download.
+        This break down looks at the type of information present in the individual files as well.
+        Returns a list of dicts with name, samples_count, and format as keys.
+        """
+
+        # Name describes the type of files being summarized.
+        # Filter describes how to match libraries in the dataset.
+        # Format defaults to dataset format but can be overridden here.
+        # Order is important, more specific should precede less specific.
+        summary_queries = [
+            {
+                "name": "Single-nuclei multiplexed samples",
+                "filter": {"is_multiplexed": True, "metadata__seq_unit": "nucleus"},
+            },
+            {
+                "name": "Single-cell multiplexed samples",
+                "filter": {"is_multiplexed": True},
+            },
+            {
+                "name": "Single-nuclei samples",
+                "filter": {"metadata__seq_unit": "nucleus"},
+            },
+            {
+                "name": "Single-cell samples with CITE-seq",
+                "filter": {"has_cite_seq_data": True},
+            },
+            {
+                "name": "Single-cell samples",
+                "filter": {"modality": Modalities.SINGLE_CELL},
+            },
+            {
+                "name": "Spatial samples",
+                "filter": {"modality": Modalities.SPATIAL},
+                "format": "Spatial format",
+            },
+            {
+                "name": "Bulk-RNA seq samples",
+                "filter": {"modality": Modalities.BULK_RNA_SEQ},
+                "format": ".tsv",
+            },
+        ]
+
+        summaries = []
+        seen_libraries = []
+
+        for file_summary_query in summary_queries:
+            if (
+                library_ids := self.libraries.filter(**file_summary_query["filter"])
+                .exclude(scpca_id__in=seen_libraries)
+                .distinct()
+                .values_list("scpca_id", flat=True)
+            ):
+                nested_ids = self.original_files.filter(library_id__in=library_ids).values_list(
+                    "sample_ids", flat=True
+                )
+                samples = {s for ss in nested_ids for s in ss}
+                samples_count = len(samples)
+
+                seen_libraries.extend(library_ids)
+
+                summaries.append(
+                    {
+                        "samples_count": samples_count,
+                        "name": file_summary_query["name"],
+                        "format": file_summary_query.get(
+                            "format", common.FORMAT_EXTENSIONS[self.format]
+                        ),
+                    }
+                )
+
+        return summaries
+
+    @property
     def stats(self) -> Dict:
         return {
             "current_data_hash": self.current_data_hash,
@@ -125,6 +217,8 @@ class Dataset(TimestampedModel):
             "current_metadata_hash": self.current_metadata_hash,
             "is_hash_changed": self.combined_hash != self.current_combined_hash,
             "uncompressed_size": self.estimated_size_in_bytes,
+            "diagnoses_summary": self.diagnoses_summary,
+            "files_summary": self.files_summary,
         }
 
     @classmethod
