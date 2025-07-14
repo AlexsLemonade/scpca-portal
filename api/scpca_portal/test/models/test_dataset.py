@@ -609,7 +609,6 @@ class TestDataset(TestCase):
         locked_project.save()
         self.assertTrue(dataset.has_locked_projects)
 
-        
     def test_diagnoses_summary(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
@@ -708,7 +707,6 @@ class TestDataset(TestCase):
             self.assertEqual(actual["name"], expected["name"])
             self.assertEqual(actual["format"], expected["format"])
 
-
         ann_data_dataset = Dataset(
             format=DatasetFormats.ANN_DATA,
             data={
@@ -748,4 +746,3 @@ class TestDataset(TestCase):
             self.assertEqual(actual["samples_count"], expected["samples_count"])
             self.assertEqual(actual["name"], expected["name"])
             self.assertEqual(actual["format"], expected["format"])
-

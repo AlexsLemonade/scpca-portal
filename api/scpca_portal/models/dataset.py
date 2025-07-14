@@ -189,7 +189,6 @@ class Dataset(TimestampedModel):
                 .distinct()
                 .values_list("scpca_id", flat=True)
             ):
-                print("already_counted", seen_libraries)
                 nested_ids = self.original_files.filter(library_id__in=library_ids).values_list(
                     "sample_ids", flat=True
                 )
