@@ -608,3 +608,144 @@ class TestDataset(TestCase):
         locked_project.is_locked = True
         locked_project.save()
         self.assertTrue(dataset.has_locked_projects)
+
+        
+    def test_diagnoses_summary(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        expected_counts = {
+            "diagnosis1": {"samples": 1, "projects": 1},
+            "diagnosis2": {"samples": 1, "projects": 1},
+            "diagnosis3": {"samples": 1, "projects": 1},
+            "diagnosis4": {"samples": 1, "projects": 1},
+            "diagnosis5": {"samples": 1, "projects": 1},
+            "diagnosis6": {"samples": 1, "projects": 1},
+            "diagnosis7": {"samples": 1, "projects": 1},
+        }
+
+        summary = dataset.diagnoses_summary
+
+        # assert that that all diagnoses match exactly
+        self.assertEqual(summary.keys(), expected_counts.keys())
+
+        for key in expected_counts.keys():
+            self.assertEqual(summary[key]["projects"], expected_counts[key]["projects"])
+            self.assertEqual(summary[key]["samples"], expected_counts[key]["samples"])
+
+    def test_files_summary(self):
+
+        single_cell_dataset = Dataset(
+            format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
+            data={
+                "SCPCP999990": {
+                    "includes_bulk": True,
+                    Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                    Modalities.SPATIAL: ["SCPCS999991"],
+                },
+                "SCPCP999991": {
+                    "includes_bulk": False,
+                    Modalities.SINGLE_CELL: [
+                        "SCPCS999992",
+                        "SCPCS999993",
+                        "SCPCS999995",
+                    ],
+                    Modalities.SPATIAL: [],
+                },
+                "SCPCP999992": {
+                    "includes_bulk": False,
+                    Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                    Modalities.SPATIAL: [],
+                },
+            },
+        )
+
+        expected_single_cell = [
+            {
+                "samples_count": 2,
+                "name": "Single-nuclei multiplexed samples",
+                "format": ".rds",
+            },
+            {
+                "samples_count": 1,
+                "name": "Single-cell samples with CITE-seq",
+                "format": ".rds",
+            },
+            {
+                "samples_count": 4,
+                "name": "Single-cell samples",
+                "format": ".rds",
+            },
+            {
+                "samples_count": 1,
+                "name": "Spatial samples",
+                "format": "Spatial format",
+            },
+        ]
+
+        for actual, expected in zip(single_cell_dataset.files_summary, expected_single_cell):
+            self.assertEqual(actual["samples_count"], expected["samples_count"])
+            self.assertEqual(actual["name"], expected["name"])
+            self.assertEqual(actual["format"], expected["format"])
+
+
+        ann_data_dataset = Dataset(
+            format=DatasetFormats.ANN_DATA,
+            data={
+                "SCPCP999990": {
+                    "includes_bulk": True,
+                    Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                    Modalities.SPATIAL: [],
+                },
+                "SCPCP999991": {
+                    "includes_bulk": False,
+                    Modalities.SINGLE_CELL: [
+                        "SCPCS999995",
+                    ],
+                    Modalities.SPATIAL: [],
+                },
+                "SCPCP999992": {
+                    "includes_bulk": False,
+                    Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                    Modalities.SPATIAL: [],
+                },
+            },
+        )
+        expected_ann_data = [
+            {
+                "samples_count": 1,
+                "name": "Single-cell samples with CITE-seq",
+                "format": ".h5ad",
+            },
+            {
+                "samples_count": 4,
+                "name": "Single-cell samples",
+                "format": ".h5ad",
+            },
+        ]
+
+        for actual, expected in zip(ann_data_dataset.files_summary, expected_ann_data):
+            self.assertEqual(actual["samples_count"], expected["samples_count"])
+            self.assertEqual(actual["name"], expected["name"])
+            self.assertEqual(actual["format"], expected["format"])
+
