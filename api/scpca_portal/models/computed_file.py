@@ -167,17 +167,17 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         Computes a given dataset's zip archive and returns a corresponding ComputedFile object.
         """
         if dataset.has_lockfile_projects or dataset.has_locked_projects:
-            raise DatasetLockedProjectError(dataset.id)
+            raise DatasetLockedProjectError(dataset)
 
         # If the query returns empty, then throw an error occurred.
         if not dataset.libraries.exists():
-            raise DatasetMissingLibrariesError(dataset.id)
+            raise DatasetMissingLibrariesError(dataset)
 
         dataset_original_files = dataset.original_files
         for project in dataset.projects:
             s3.download_files(dataset_original_files.filter(project_id=project.scpca_id))
             if dataset.has_lockfile_projects or dataset.has_locked_projects:
-                raise DatasetLockedProjectError(dataset.id)
+                raise DatasetLockedProjectError(dataset)
 
         with ZipFile(dataset.computed_file_local_path, "w") as zip_file:
             # Readme file
