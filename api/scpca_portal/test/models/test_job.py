@@ -12,6 +12,8 @@ from scpca_portal.exceptions import (
     JobInvalidRetryStateError,
     JobSubmissionFailedError,
     JobSubmitNotPendingError,
+    JobTerminateNotProcessingError,
+    JobTerminationFailedError,
 )
 from scpca_portal.models import Dataset, Job
 from scpca_portal.test.factories import DatasetFactory, JobFactory
@@ -434,25 +436,16 @@ class TestJob(TestCase):
         )
 
     @patch("scpca_portal.batch.terminate_job")
-    def test_terminate_job(self, mock_batch_terminate_job):
-        # Job already in TERMINATED state
-        terminated_job = JobFactory(
-            state=JobStates.TERMINATED, dataset=DatasetFactory(is_terminated=True)
-        )
+    def test_terminate(self, mock_batch_terminate_job):
+        # Set up mock return value for successful termination
+        mock_batch_terminate_job.return_value = True
 
-        # Should return True early without calling terminate_job
-        success = terminated_job.terminate()
-        mock_batch_terminate_job.assert_not_called()
-        self.assertTrue(success)
-
-        # Job is in PROCESSING state
         processing_job = JobFactory(
             state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True)
         )
 
-        success = processing_job.terminate()
+        processing_job.terminate()
         mock_batch_terminate_job.assert_called_once()
-        self.assertTrue(success)
 
         # After termination, the job should be saved with correct field values
         saved_job = Job.objects.get(pk=processing_job.pk)
@@ -466,23 +459,43 @@ class TestJob(TestCase):
         )
 
     @patch("scpca_portal.batch.terminate_job")
-    def test_terminate_job_failure(self, mock_batch_terminate_job):
-        job = JobFactory(
+    def test_terminate_handle_exception(self, mock_batch_terminate_job):
+        # Set up mock return value for JobTerminationFailedError
+        mock_batch_terminate_job.return_value = False
+
+        processing_job = JobFactory(
             state=JobStates.PROCESSING,
             dataset=DatasetFactory(is_processing=True, processing_at=make_aware(datetime.now())),
         )
 
-        # Set up mock for a failed termination
-        mock_batch_terminate_job.return_value = False
+        with self.assertRaises(JobTerminationFailedError):
+            processing_job.terminate()
 
-        success = job.terminate()
         mock_batch_terminate_job.assert_called_once()
-        self.assertFalse(success)
 
-        saved_job = Job.objects.get(pk=job.pk)
+        saved_job = Job.objects.get(pk=processing_job.pk)
         # The job state should remain unchanged
-        self.assertEqual(saved_job.state, job.state)
+        self.assertEqual(saved_job.state, processing_job.state)
         self.assertDatasetState(saved_job.dataset, is_processing=True)
+
+        # Reset mock call attributes for JobTerminateNotProcessingError
+        mock_batch_terminate_job.reset_mock()
+
+        succeeded_job = JobFactory(
+            state=JobStates.SUCCEEDED,
+            dataset=DatasetFactory(is_succeeded=True, succeeded_at=make_aware(datetime.now())),
+        )
+
+        with self.assertRaises(JobTerminateNotProcessingError):
+            succeeded_job.terminate()
+
+        # Should not call terminate_job for the job in final states
+        mock_batch_terminate_job.assert_not_called()
+
+        saved_job = Job.objects.get(pk=succeeded_job.pk)
+        # The job state should remain unchanged
+        self.assertEqual(saved_job.state, succeeded_job.state)
+        self.assertDatasetState(saved_job.dataset, is_succeeded=True)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_processing(self, mock_batch_terminate_job):

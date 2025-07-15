@@ -398,6 +398,10 @@ class Job(TimestampedModel):
                 self.batch_job_queue = settings.AWS_BATCH_EC2_JOB_QUEUE_NAME
                 self.batch_job_definition = settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
 
+            # Save job to get ID before submitting
+            if not self.id:
+                self.save()
+
             self.batch_container_overrides = {
                 "command": [
                     "python",
