@@ -543,7 +543,7 @@ class TestJob(TestCase):
         mock_batch_terminate_job.assert_not_called()
         self.assertEqual(response, [])  # No termination with no error
 
-    def test_get_retry_job(self):
+    def test_create_retry_job(self):
         # Set up a non-terminated job
         job = JobFactory(
             state=JobStates.PROCESSING,
@@ -551,7 +551,7 @@ class TestJob(TestCase):
         )
 
         with self.assertRaises(JobInvalidRetryStateError):
-            job.get_retry_job()
+            job.create_retry_job()
 
         # Change the job state to TERMINATED
         job.state = JobStates.TERMINATED
@@ -564,7 +564,7 @@ class TestJob(TestCase):
         job.attempt = 1
 
         # After execution, the call should returns a new saved instance for retry
-        retry_job = job.get_retry_job()
+        retry_job = job.create_retry_job()
         # Should correctly copy the exsiting field values
         self.assertEqual(retry_job.batch_job_name, job.batch_job_name)
         self.assertEqual(retry_job.batch_job_definition, job.batch_job_definition)

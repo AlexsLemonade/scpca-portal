@@ -196,7 +196,7 @@ class Job(TimestampedModel):
         retry_datasets = []
 
         for job in jobs:
-            if retry_job := job.get_retry_job(save=False):
+            if retry_job := job.create_retry_job(save=False):
                 retry_jobs.append(retry_job)
                 if job.dataset:  # TODO: Remove after the dataset release
                     retry_datasets.append(job.dataset)
@@ -453,7 +453,7 @@ class Job(TimestampedModel):
 
         return True
 
-    def get_retry_job(self, save: bool = True) -> Self:
+    def create_retry_job(self, save: bool = True) -> Self:
         """
         Prepares a new PENDING job for retry with:
         - incremented attempt count
