@@ -264,7 +264,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
     @staticmethod
     def get_input_metadata_original_file(project) -> OriginalFile:
         return OriginalFile.objects.filter(
-            is_metadata=True, project_id=project.scpca_id, sample_ids=[], library_id=None
+            is_metadata=True,
+            is_bulk=False,
+            project_id=project.scpca_id,
+            sample_ids=[],
+            library_id=None,
         ).first()
 
     @staticmethod

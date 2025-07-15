@@ -107,7 +107,8 @@ class OriginalFile(TimestampedModel):
             return True
 
         if FileFormats.METADATA in s3_key_info.formats:
-            return False
+            # the bulk metadata file is downloadable, while all others are not
+            return Modalities.BULK_RNA_SEQ in s3_key_info.modalities
 
         return True
 
