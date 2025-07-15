@@ -114,6 +114,12 @@ class Common(Configuration):
 
     # Management commands should remove locally downloaded or created data.
     CLEAN_UP_DATA = False
+
+    # Enable features before completed.
+    # Use this to prevent certain areas from going to production.
+    # By default this is enabled for local and tests.
+    ENABLE_FEATURE_PREVIEW = True
+
     # Logging.
     LOGGING = {
         "version": 1,

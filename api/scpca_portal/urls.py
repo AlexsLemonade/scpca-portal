@@ -55,7 +55,7 @@ router.register(r"project-options", FilterOptionsViewSet, basename="project-opti
 router.register(r"stats", StatsViewSet, basename="stats")
 
 # Datasets are not ready for prime time yet.
-if not settings.ENABLE_DATASETS:
+if not settings.ENABLE_FEATURE_PREVIEW:
     router.register(r"datasets", DatasetViewSet, basename="datasets")
 
 urlpatterns = [

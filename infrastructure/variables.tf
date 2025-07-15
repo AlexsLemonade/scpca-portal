@@ -76,8 +76,8 @@ variable "slack_ccdl_test_channel_email" {
   default = "testing@example.com"
 }
 
-variable "enable_datasets" {
-  default = "no"
+variable "enable_feature_preview" {
+  default = "false"
 }
 
 output "environment_variables" {

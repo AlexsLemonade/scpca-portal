@@ -49,6 +49,8 @@ class Production(Common):
 
     CLEAN_UP_DATA = True
 
+    ENABLE_FEATURE_PREVIEW = strtobool(os.getenv("ENABLE_FEATURE_PREVIEW", "false"))
+
     SENTRY_DSN = os.getenv("SENTRY_DSN", None)
 
     if SENTRY_DSN == "None":

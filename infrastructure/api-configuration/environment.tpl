@@ -17,4 +17,4 @@ AWS_SES_DOMAIN=${aws_ses_domain}
 SENTRY_DSN=${sentry_dsn}
 SENTRY_ENV=${sentry_env}
 SLACK_CCDL_TEST_CHANNEL_EMAIL=${slack_ccdl_test_channel_email}
-ENABLE_DATASETS=${enable_datasets}
+ENABLE_FEATURE_PREVIEW=${enable_feature_preview}
