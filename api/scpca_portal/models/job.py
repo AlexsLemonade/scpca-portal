@@ -223,7 +223,7 @@ class Job(TimestampedModel):
 
         for job in Job.objects.filter(state=JobStates.PENDING):
             try:
-                job.submit()
+                job.submit(save=False)
                 submitted_jobs.append(job)
                 if job.dataset:  # TODO: Remove after the dataset release
                     submitted_datasets.append(job.dataset)
@@ -233,9 +233,12 @@ class Job(TimestampedModel):
                 else:
                     failed_jobs.append(job)
 
-        # TODO: Bulk update jobs and datasets after adding 'save' to submit()
+        if submitted_jobs:
+            logger.info(f"Submitted {len(submitted_jobs)} jobs to AWS.")
+            cls.bulk_update_state(submitted_jobs)
+            if submitted_datasets:  # TODO: Remove after the dataset release
+                Dataset.bulk_update_state(submitted_datasets)
 
-        logger.info(f"Submitted {len(submitted_jobs)} jobs to AWS.")
         if pending_jobs:
             logger.info(f"{len(pending_jobs)} jobs were not submitted but are still pending.")
         if failed_jobs:
@@ -356,17 +359,21 @@ class Job(TimestampedModel):
         self.dataset.apply_job_state(self)  # Sync the dataset state
         return True
 
-    def submit(self) -> bool:
+    def submit(self, save=True):
         """
         Submits the PENDING job to AWS Batch and assigns batch_job_id.
-        Saves the job as PROCESSING (state, timestamp).
+        By default, saves the job as PROCESSING (state, timestamp).
+        (For bulk operations, the caller should pass False to prevent saving.)
         Calls the dataset's method to sync the job's state.
-        Returns a boolean indicating if the job and dataset were updated and saved.
+        Raises an error when no job is submitted:
+        - JobSubmitNotPendingError
+        - DatasetLockedProjectError
+        - JobSubmissionFailedError
         """
         if self.state != JobStates.PENDING:
             raise JobSubmitNotPendingError(self)
 
-        # if job has dataset, dynamically configure job and save before submitting
+        # if job has dataset, dynamically configure job for submission
         if self.dataset:
             if self.dataset.has_lockfile_projects or self.dataset.has_locked_projects:
                 raise DatasetLockedProjectError(self.dataset)
@@ -378,8 +385,6 @@ class Job(TimestampedModel):
                 self.batch_job_queue = settings.AWS_BATCH_EC2_JOB_QUEUE_NAME
                 self.batch_job_definition = settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
 
-            self.save()
-
             self.batch_container_overrides = {
                 "command": [
                     "python",
@@ -390,21 +395,18 @@ class Job(TimestampedModel):
                 ],
             }
 
-            self.save()
-
         job_id = batch.submit_job(self)
 
         if not job_id:
             raise JobSubmissionFailedError(self)
 
         self.batch_job_id = job_id
+        self.apply_state(JobStates.PROCESSING)
 
-        if self.apply_state(JobStates.PROCESSING):
+        if save:
             self.save()
             if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
-
-        return True
 
     def sync_state(self) -> bool:
         """
