@@ -1,6 +1,5 @@
 import csv
 import json
-from pathlib import Path
 from typing import List
 
 from scpca_portal import common, utils
@@ -92,12 +91,12 @@ def load_library_metadata(metadata_original_file: OriginalFile):
         return utils.transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
 
 
-def load_bulk_metadata(metadata_file_path: Path):
+def load_bulk_metadata(metadata_original_file: OriginalFile):
     """
     Opens, loads and parses bulk metadata located at inputted metadata_file_path.
     Transforms keys in data dicts to match associated model attributes.
     """
-    with open(metadata_file_path) as raw_file:
+    with open(metadata_original_file.local_file_path) as raw_file:
         bulk_metadata_dicts = list(csv.DictReader(raw_file, delimiter=common.TAB))
 
     for bulk_metadata_dict in bulk_metadata_dicts:

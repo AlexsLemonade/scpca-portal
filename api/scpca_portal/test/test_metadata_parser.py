@@ -112,7 +112,7 @@ class TestMetadataParser(TestCase):
 
         # Load metadata for bulk libraries
         bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
-            project.input_bulk_metadata_file_path
+            project.input_bulk_metadata_original_file
         )
 
         # Make sure the bulk library metadata are loaded

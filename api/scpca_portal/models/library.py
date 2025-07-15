@@ -82,7 +82,7 @@ class Library(TimestampedModel):
             raise Exception("Trying to load bulk libraries for project with no bulk data")
 
         all_bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
-            project.input_bulk_metadata_file_path
+            project.input_bulk_metadata_original_file
         )
 
         sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}

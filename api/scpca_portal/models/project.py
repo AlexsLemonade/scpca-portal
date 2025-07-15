@@ -129,8 +129,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         return settings.INPUT_DATA_PATH / self.scpca_id
 
     @property
-    def input_bulk_metadata_file_path(self):
-        return self.input_data_path / "bulk" / f"{self.scpca_id}_bulk_metadata.tsv"
+    def input_bulk_metadata_original_file(self):
+        return OriginalFile.objects.filter(is_metadata=True, is_bulk=True).first()
 
     @staticmethod
     def get_input_metadata_original_file() -> OriginalFile:
@@ -224,7 +224,9 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Returns set of bulk RNA sequencing sample IDs."""
         bulk_rna_seq_sample_ids = set()
         if self.has_bulk_rna_seq:
-            with open(self.input_bulk_metadata_file_path, "r") as bulk_metadata_file:
+            with open(
+                self.input_bulk_metadata_original_file.local_file_path, "r"
+            ) as bulk_metadata_file:
                 bulk_rna_seq_sample_ids.update(
                     (
                         line["sample_id"]
