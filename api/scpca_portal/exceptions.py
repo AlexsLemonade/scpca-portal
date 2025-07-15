@@ -46,3 +46,15 @@ class JobInvalidRetryStateError(JobError):
     def __init__(self, job=None):
         message = "Jobs in final states cannot be retried."
         super().__init__(message, job)
+
+
+class JobTerminateNotProcessingError(JobError):
+    def __init__(self, job=None):
+        message = "Jobs in final states cannot be terminated."
+        super().__init__(message, job)
+
+
+class JobTerminationFailedError(JobError):
+    def __init__(self, job=None):
+        message = "Error terminating job in Batch."
+        super().__init__(message, job)

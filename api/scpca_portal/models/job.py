@@ -17,6 +17,8 @@ from scpca_portal.exceptions import (
     JobInvalidRetryStateError,
     JobSubmissionFailedError,
     JobSubmitNotPendingError,
+    JobTerminateNotProcessingError,
+    JobTerminationFailedError,
 )
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -256,19 +258,30 @@ class Job(TimestampedModel):
         """
         terminated_jobs = []
         terminated_datasets = []
+        final_state_jobs = []
+        failed_jobs = []
 
-        if jobs := cls.objects.filter(state=JobStates.PROCESSING):
-            for job in jobs:
-                if batch.terminate_job(job):
-                    job.apply_state(JobStates.TERMINATED, reason)
-                    terminated_jobs.append(job)
-                    if job.dataset:  # TODO: Remove after the dataset release
-                        terminated_datasets.append(job.dataset)
+        for job in cls.objects.filter(state=JobStates.PROCESSING):
+            try:
+                job.terminate(reason=reason, save=False)
+                terminated_jobs.append(job)
+                if job.dataset:  # TODO: Remove after the dataset release
+                    terminated_datasets.append(job.dataset)
+            except JobTerminateNotProcessingError:
+                final_state_jobs.append(job)
+            except JobError:
+                failed_jobs.append(job)
 
-            if terminated_jobs:
-                cls.bulk_update_state(terminated_jobs)
-                if terminated_datasets:  # TODO: Remove after the dataset release
-                    Dataset.bulk_update_state(terminated_datasets)
+        if terminated_jobs:
+            logger.info(f"Terminated {len(terminated_jobs)} jobs on AWS.")
+            cls.bulk_update_state(terminated_jobs)
+            if terminated_datasets:  # TODO: Remove after the dataset release
+                Dataset.bulk_update_state(terminated_datasets)
+
+        if final_state_jobs:
+            logger.info(f"{len(final_state_jobs)} jobs were not terminated due to final states.")
+        if failed_jobs:
+            logger.info(f"{len(failed_jobs)} jobs failed to terminate.")
 
         return terminated_jobs
 
@@ -435,25 +448,27 @@ class Job(TimestampedModel):
 
         return True
 
-    def terminate(self, reason: str | None = "Terminated processing job") -> bool:
+    def terminate(self, reason: str | None = "Terminated processing job", save=True):
         """
         Terminates the PROCESSING job (incomplete) on AWS Batch.
-        Save the job as TERMINATED (state, timestamp, reason)
+        By default, saves the job as TERMINATED (state, timestamp, reason)
         Calls the dataset's method to sync the job's state.
-        Returns a boolean indicating if the job and dataset were updated and saved.
+        Raises an error when no job is terminated:
+        - JobTerminateNotProcessingError
+        - JobTerminationFailedError
         """
         if self.state in common.FINAL_JOB_STATES:
-            return self.state == JobStates.TERMINATED
+            raise JobTerminateNotProcessingError(self)
 
         if not batch.terminate_job(self):
-            return False
+            raise JobTerminationFailedError(self)
 
-        if self.apply_state(JobStates.TERMINATED, reason):
+        self.apply_state(JobStates.TERMINATED, reason)
+
+        if save:
             self.save()
             if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
-
-        return True
 
     def create_retry_job(self, save: bool = True) -> Self:
         """
