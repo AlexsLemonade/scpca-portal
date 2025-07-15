@@ -46,6 +46,8 @@ class Production(Common):
 
     PRODUCTION = True
 
+    CLEAN_UP_DATA = True
+
     SENTRY_DSN = os.getenv("SENTRY_DSN", None)
 
     if SENTRY_DSN == "None":

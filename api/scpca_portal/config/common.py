@@ -112,6 +112,8 @@ class Common(Configuration):
     # Indicates running in prod environment.
     PRODUCTION = False
 
+    # Management commands should remove locally downloaded or created data.
+    CLEAN_UP_DATA = False
     # Logging.
     LOGGING = {
         "version": 1,

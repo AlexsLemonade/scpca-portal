@@ -33,7 +33,7 @@ class Command(BaseCommand):
             "--clean-up-input-data",
             action=BooleanOptionalAction,
             type=bool,
-            default=settings.PRODUCTION,
+            default=settings.CLEAN_UP_DATA,
         )
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
