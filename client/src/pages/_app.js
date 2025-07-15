@@ -25,21 +25,21 @@ const Portal = ({ Component, pageProps }) => {
   return (
     <>
       <Reset />
-      <Grommet theme={theme}>
-        <ScPCAPortalContextProvider>
-          <AnalyticsContextProvider>
-            <PageTitle />
-            <BannerContextProvider>
-              <Layout>
-                <Sentry.ErrorBoundary fallback={Fallback} showDialog>
+      <Sentry.ErrorBoundary fallback={Fallback} showDialog>
+        <Grommet theme={theme}>
+          <ScPCAPortalContextProvider>
+            <AnalyticsContextProvider>
+              <PageTitle />
+              <BannerContextProvider>
+                <Layout>
                   {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                   <Component {...pageProps} />
-                </Sentry.ErrorBoundary>
-              </Layout>
-            </BannerContextProvider>
-          </AnalyticsContextProvider>
-        </ScPCAPortalContextProvider>
-      </Grommet>
+                </Layout>
+              </BannerContextProvider>
+            </AnalyticsContextProvider>
+          </ScPCAPortalContextProvider>
+        </Grommet>
+      </Sentry.ErrorBoundary>
     </>
   )
 }
