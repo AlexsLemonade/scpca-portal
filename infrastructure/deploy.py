@@ -30,6 +30,7 @@ TF_ENV_VAR = {
     "SENTRY_ENV": "TF_VAR_sentry_env",
     "SSH_PUBLIC_KEY": "TF_VAR_ssh_public_key",
     "SLACK_CCDL_TEST_CHANNEL_EMAIL": "TF_VAR_slack_ccdl_test_channel_email",
+    "ENABLE_DATASETS": "TF_VAR_enable_datasets",
 }
 
 

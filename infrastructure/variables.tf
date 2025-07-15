@@ -76,6 +76,10 @@ variable "slack_ccdl_test_channel_email" {
   default = "testing@example.com"
 }
 
+variable "enable_datasets" {
+  default = "no"
+}
+
 output "environment_variables" {
   value = [
     {name = "DATABASE_NAME"
