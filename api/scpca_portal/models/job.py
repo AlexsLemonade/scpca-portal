@@ -15,9 +15,9 @@ from scpca_portal.exceptions import (
     DatasetLockedProjectError,
     JobError,
     JobInvalidRetryStateError,
+    JobInvalidTerminateStateError,
     JobSubmissionFailedError,
     JobSubmitNotPendingError,
-    JobTerminateNotProcessingError,
     JobTerminationFailedError,
 )
 from scpca_portal.models.base import TimestampedModel
@@ -244,7 +244,7 @@ class Job(TimestampedModel):
         if pending_jobs:
             logger.info(f"{len(pending_jobs)} jobs were not submitted but are still pending.")
         if failed_jobs:
-            logger.info(f"{len(failed_jobs)} jobs failed.")
+            logger.info(f"{len(failed_jobs)} jobs failed to submit.")
 
         return submitted_jobs
 
@@ -267,7 +267,7 @@ class Job(TimestampedModel):
                 terminated_jobs.append(job)
                 if job.dataset:  # TODO: Remove after the dataset release
                     terminated_datasets.append(job.dataset)
-            except JobTerminateNotProcessingError:
+            except JobInvalidTerminateStateError:
                 final_state_jobs.append(job)
             except JobError:
                 failed_jobs.append(job)
@@ -279,7 +279,7 @@ class Job(TimestampedModel):
                 Dataset.bulk_update_state(terminated_datasets)
 
         if final_state_jobs:
-            logger.info(f"{len(final_state_jobs)} jobs were not terminated due to final states.")
+            logger.info(f"{len(final_state_jobs)} jobs were not in a terminable state.")
         if failed_jobs:
             logger.info(f"{len(failed_jobs)} jobs failed to terminate.")
 
@@ -378,7 +378,7 @@ class Job(TimestampedModel):
         By default, saves the job as PROCESSING (state, timestamp).
         (For bulk operations, the caller should pass False to prevent saving.)
         Calls the dataset's method to sync the job's state.
-        Raises an error when no job is submitted:
+        Raises an error when unable to submit:
         - JobSubmitNotPendingError
         - DatasetLockedProjectError
         - JobSubmissionFailedError
@@ -457,12 +457,12 @@ class Job(TimestampedModel):
         Terminates the PROCESSING job (incomplete) on AWS Batch.
         By default, saves the job as TERMINATED (state, timestamp, reason)
         Calls the dataset's method to sync the job's state.
-        Raises an error when no job is terminated:
-        - JobTerminateNotProcessingError
+        Raises an error when unable to terminate:
+        - JobInvalidTerminateStateError
         - JobTerminationFailedError
         """
         if self.state in common.FINAL_JOB_STATES:
-            raise JobTerminateNotProcessingError(self)
+            raise JobInvalidTerminateStateError(self)
 
         if not batch.terminate_job(self):
             raise JobTerminationFailedError(self)
@@ -483,6 +483,8 @@ class Job(TimestampedModel):
         By default, saves the new job as PENDING (state, timestamp).
         (For bulk operations, the caller should pass False to prevent saving.)
         Calls the dataset's method to sync the job's state.
+        Raises an error when unable to create a retry job:
+        - JobInvalidRetryStateError
         Returns the new job, or False if the current job is not in a final state.
         """
         if self.state not in common.FINAL_JOB_STATES:

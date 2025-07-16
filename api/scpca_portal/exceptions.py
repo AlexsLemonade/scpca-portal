@@ -48,7 +48,7 @@ class JobInvalidRetryStateError(JobError):
         super().__init__(message, job)
 
 
-class JobTerminateNotProcessingError(JobError):
+class JobInvalidTerminateStateError(JobError):
     def __init__(self, job=None):
         message = "Jobs in final states cannot be terminated."
         super().__init__(message, job)

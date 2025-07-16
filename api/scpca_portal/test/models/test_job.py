@@ -10,9 +10,9 @@ from scpca_portal.enums import JobStates
 from scpca_portal.exceptions import (
     DatasetLockedProjectError,
     JobInvalidRetryStateError,
+    JobInvalidTerminateStateError,
     JobSubmissionFailedError,
     JobSubmitNotPendingError,
-    JobTerminateNotProcessingError,
     JobTerminationFailedError,
 )
 from scpca_portal.models import Dataset, Job
@@ -478,7 +478,7 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, processing_job.state)
         self.assertDatasetState(saved_job.dataset, is_processing=True)
 
-        # Reset mock call attributes for JobTerminateNotProcessingError
+        # Reset mock call attributes for JobInvalidTerminateStateError
         mock_batch_terminate_job.reset_mock()
 
         succeeded_job = JobFactory(
@@ -486,7 +486,7 @@ class TestJob(TestCase):
             dataset=DatasetFactory(is_succeeded=True, succeeded_at=make_aware(datetime.now())),
         )
 
-        with self.assertRaises(JobTerminateNotProcessingError):
+        with self.assertRaises(JobInvalidTerminateStateError):
             succeeded_job.terminate()
 
         # Should not call terminate_job for the job in final states
