@@ -159,8 +159,13 @@ def check_file_empty(key: str, bucket: str) -> bool:
     Checks to see if the passed bucket and key correspond to an empty file.
     """
     # head-object command doesn't support prefixes, it will search entire bucket for key
-    bucket_without_prefix = bucket.split("/", 1)[0]
-    command_parts = ["aws", "s3api", "head-object", "--bucket", bucket_without_prefix, "--key", key]
+    command_parts = ["aws", "s3api", "head-object"]
+
+    if "/" in bucket:
+        bucket, prefix = bucket.split("/", 1)
+        key = f"{prefix}/{key}"
+    command_parts.extend(["--bucket", bucket])
+    command_parts.extend(["--key", key])
 
     if "public" in bucket:
         command_parts.append("--no-sign-request")
