@@ -111,7 +111,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         ]
 
     @property
-    def original_files(self):
+    def original_files(self) -> Iterable[OriginalFile]:
         return OriginalFile.downloadable_objects.filter(
             project_id=self.scpca_id, is_project_file=True
         )
@@ -125,11 +125,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         return self.project_computed_files.order_by("created_at")
 
     @property
-    def input_data_path(self):
-        return settings.INPUT_DATA_PATH / self.scpca_id
-
-    @property
-    def input_bulk_metadata_original_file(self):
+    def input_bulk_metadata_original_file(self) -> OriginalFile:
         return OriginalFile.objects.filter(is_metadata=True, is_bulk=True).first()
 
     @staticmethod
