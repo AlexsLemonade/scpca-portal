@@ -17,17 +17,16 @@ from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 class TestDataset(TestCase):
     @classmethod
     def setUpTestData(cls):
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
-            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
-            for project_metadata in loader.get_projects_metadata():
-                loader.create_project(
-                    project_metadata,
-                    submitter_whitelist={"scpca"},
-                    input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
-                    reload_existing=True,
-                    update_s3=False,
-                )
+        for project_metadata in loader.get_projects_metadata():
+            loader.create_project(
+                project_metadata,
+                submitter_whitelist={"scpca"},
+                input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
+                reload_existing=True,
+                update_s3=False,
+            )
 
     def test_dataset_saved_to_db(self):
         dataset = DatasetFactory()
@@ -484,7 +483,7 @@ class TestDataset(TestCase):
         dataset = Dataset(data=data, format=format)
 
         # TODO: add to expected_values dataset file (along with other hash values)
-        expected_metadata_hash = "46ed5abd84c4b86ef348779b045b8cdf"
+        expected_metadata_hash = "bd32dc05b6dc4a20fdd510bd2d3f669b"
         self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
     def test_current_readme_hash(self):
@@ -559,8 +558,8 @@ class TestDataset(TestCase):
             format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
         )
 
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
-            self.assertFalse(dataset.has_lockfile_projects)
+        # lockfile in test bucket is empty by default
+        self.assertFalse(dataset.has_lockfile_projects)
 
         with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=["SCPCP999990"]):
             self.assertTrue(dataset.has_lockfile_projects)

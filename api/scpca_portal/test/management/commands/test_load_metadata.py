@@ -24,14 +24,12 @@ class TestLoadMetadata(TestCase):
 
         # Handle patching in setUp function
         create_data_dirs_patch = patch("scpca_portal.utils.create_data_dirs")
-        get_lockfile_project_ids = patch("scpca_portal.lockfile.get_lockfile_project_ids")
         get_projects_metadata_patch = patch("scpca_portal.loader.get_projects_metadata")
         create_project_patch = patch("scpca_portal.loader.create_project")
         remove_nested_data_dirs_patch = patch("scpca_portal.utils.remove_nested_data_dirs")
 
         # Start patches
         self.mock_create_data_dirs = create_data_dirs_patch.start()
-        self.mock_get_lockfile_project_ids = get_lockfile_project_ids.start()
         self.mock_get_projects_metadata = get_projects_metadata_patch.start()
         self.mock_create_project = create_project_patch.start()
         self.mock_remove_nested_data_dirs = remove_nested_data_dirs_patch.start()
@@ -39,14 +37,12 @@ class TestLoadMetadata(TestCase):
         # Save patches that so they can be stopped during tearDown
         self.patches = [
             create_data_dirs_patch,
-            get_lockfile_project_ids,
             get_projects_metadata_patch,
             create_project_patch,
             remove_nested_data_dirs_patch,
         ]
 
         # Configure necessary output values
-        self.mock_get_lockfile_project_ids.return_value = []
         self.projects_metadata = [{"key": "value"}]
         self.mock_get_projects_metadata.return_value = self.projects_metadata
         self.project = Project()
