@@ -11,6 +11,13 @@ from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
 from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory
 
 
+class EmptyDatasetTestCase(APITestCase):
+    def test_get_list(self):
+        url = reverse("datasets-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
 class DatasetsTestCase(APITestCase):
     """Tests /datasets/ operations."""
 
