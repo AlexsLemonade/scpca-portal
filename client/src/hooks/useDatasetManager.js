@@ -24,6 +24,11 @@ export const useDatasetManager = () => {
     return returnValue
   }
 
+  const clearError = () => {
+    // Removes error message (e..g, by ID)
+    // TODO: This method is used by UI components or other hooks (e.g., popups)
+  }
+
   /* Dataset-level */
   const createDataset = async (dataset) => {
     // TODO: Component is reponsible for generating a valid token before request
@@ -175,6 +180,7 @@ export const useDatasetManager = () => {
     datasets,
     email,
     errors,
+    clearError,
     clearDataset,
     getDataset,
     processDataset,
