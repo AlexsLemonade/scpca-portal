@@ -1,6 +1,6 @@
 import csv
 import json
-from typing import List
+from typing import Dict, List
 
 from scpca_portal import common, utils
 from scpca_portal.models.original_file import OriginalFile
@@ -53,7 +53,7 @@ def get_projects_metadata_ids() -> List[str]:
         return [row["scpca_project_id"] for row in projects_metadata]
 
 
-def load_projects_metadata(*, filter_on_project_ids: List[str] = []):
+def load_projects_metadata(*, filter_on_project_ids: List[str] = []) -> List[Dict]:
     """
     Opens, loads and parses list of project metadata dicts.
     Transforms keys in data dicts to match associated model attributes.
@@ -91,12 +91,13 @@ def load_library_metadata(metadata_original_file: OriginalFile):
         return utils.transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
 
 
-def load_bulk_metadata(metadata_original_file: OriginalFile):
+def load_bulk_metadata(project_id: str) -> List[Dict]:
     """
     Opens, loads and parses bulk metadata located at inputted metadata_file_path.
     Transforms keys in data dicts to match associated model attributes.
     """
-    with open(metadata_original_file.local_file_path) as raw_file:
+    bulk_metadata_file = OriginalFile.get_input_project_bulk_metadata_file(project_id)
+    with open(bulk_metadata_file.local_file_path) as raw_file:
         bulk_metadata_dicts = list(csv.DictReader(raw_file, delimiter=common.TAB))
 
     for bulk_metadata_dict in bulk_metadata_dicts:

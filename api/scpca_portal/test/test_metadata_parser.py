@@ -107,9 +107,7 @@ class TestMetadataParser(TestCase):
         project = ProjectFactory(scpca_id=PROJECT_ID)
 
         # Load metadata for bulk libraries
-        bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
-            project.input_bulk_metadata_original_file
-        )
+        bulk_libraries_metadata = metadata_parser.load_bulk_metadata(project.scpca_id)
 
         # Make sure the bulk library metadata are loaded
         actual_library_id = bulk_libraries_metadata[0].get("scpca_library_id")
