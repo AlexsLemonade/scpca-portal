@@ -1,5 +1,4 @@
 from typing import Set
-from unittest.mock import patch
 
 from django.conf import settings
 from django.core.management import call_command
@@ -13,8 +12,7 @@ from scpca_portal.test.factories import ProjectFactory
 class TestMetadataParser(TestCase):
     @classmethod
     def setUpTestData(cls):
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
-            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
     def assertTransformedKeys(self, expected_keys: Set, actual_keys: Set):
         """
