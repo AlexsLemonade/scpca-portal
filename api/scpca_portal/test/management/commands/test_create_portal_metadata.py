@@ -22,12 +22,11 @@ METADATA_FILE = metadata_file.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
 class TestCreatePortalMetadata(TransactionTestCase):
     def setUp(self):
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
-            # make sure OriginalFile table is populated
-            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        # make sure OriginalFile table is populated
+        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
-            self.create_portal_metadata = partial(call_command, "create_portal_metadata")
-            self.load_data = partial(call_command, "load_data")
+        self.create_portal_metadata = partial(call_command, "create_portal_metadata")
+        self.load_data = partial(call_command, "load_data")
 
     @classmethod
     def tearDownClass(cls):
