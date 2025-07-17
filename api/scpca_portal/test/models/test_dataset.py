@@ -483,7 +483,7 @@ class TestDataset(TestCase):
         dataset = Dataset(data=data, format=format)
 
         # TODO: add to expected_values dataset file (along with other hash values)
-        expected_metadata_hash = "46ed5abd84c4b86ef348779b045b8cdf"
+        expected_metadata_hash = "bd32dc05b6dc4a20fdd510bd2d3f669b"
         self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
     def test_current_readme_hash(self):
