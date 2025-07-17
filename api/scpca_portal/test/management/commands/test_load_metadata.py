@@ -148,16 +148,12 @@ class TestLoadMetadata(TestCase):
         )
 
     def test_scpca_project_id(self):
-        scpca_project_id = metadata_parser.get_projects_metadata_ids(
-            Project.get_input_metadata_original_file()
-        )[0]
+        scpca_project_id = metadata_parser.get_projects_metadata_ids()[0]
         project = Project(scpca_id=scpca_project_id)
         project.save()
 
         self.load_metadata(scpca_project_id=scpca_project_id)
-        self.mock_get_projects_metadata.assert_called_with(
-            Project.get_input_metadata_original_file(), filter_on_project_ids=[scpca_project_id]
-        )
+        self.mock_get_projects_metadata.assert_called_with(filter_on_project_ids=[scpca_project_id])
 
     def test_update_s3(self):
         self.load_metadata()

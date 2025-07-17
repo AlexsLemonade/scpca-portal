@@ -270,3 +270,7 @@ class OriginalFile(TimestampedModel):
                 )
 
         return bucket_paths
+
+    @classmethod
+    def get_input_projects_metadata_file(cls) -> Self:
+        return OriginalFile.objects.filter(is_metadata=True, project_id=None).first()

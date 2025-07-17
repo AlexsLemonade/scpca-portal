@@ -5,7 +5,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from scpca_portal import metadata_parser
-from scpca_portal.models import Library, Project, Sample
+from scpca_portal.models import Library, Sample
 from scpca_portal.test.factories import ProjectFactory
 
 
@@ -25,9 +25,7 @@ class TestMetadataParser(TestCase):
         PROJECT_IDS = ["SCPCP999990", "SCPCP999991", "SCPCP999992"]
 
         # Load metadata for projects
-        projects_metadata = metadata_parser.load_projects_metadata(
-            Project.get_input_metadata_original_file()
-        )
+        projects_metadata = metadata_parser.load_projects_metadata()
 
         # Make sure that all projects metadata are loaded
         actual_project_ids = [project["scpca_project_id"] for project in projects_metadata]

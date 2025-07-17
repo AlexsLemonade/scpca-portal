@@ -130,10 +130,6 @@ class Project(CommonDataAttributes, TimestampedModel):
             project_id=self.scpca_id, is_metadata=True, is_bulk=True
         ).first()
 
-    @staticmethod
-    def get_input_metadata_original_file() -> OriginalFile:
-        return OriginalFile.objects.filter(is_metadata=True, project_id=None).first()
-
     @property
     def url(self):
         return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
