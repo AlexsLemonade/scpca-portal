@@ -5,7 +5,6 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from scpca_portal import metadata_parser
-from scpca_portal.models import Library
 from scpca_portal.test.factories import ProjectFactory
 
 
@@ -73,13 +72,8 @@ class TestMetadataParser(TestCase):
         }
 
         for project_id, expected_library_ids in PROJECT_LIBRARY_IDS.items():
-            project = ProjectFactory(scpca_id=project_id)
-
             # Load metadata for libraries
-            libraries_metadata = [
-                metadata_parser.load_library_metadata(original_file)
-                for original_file in Library.get_project_original_file_libraries(project)
-            ]
+            libraries_metadata = metadata_parser.load_libraries_metadata(project_id)
 
             # Make sure all libraries metadata are loaded
             actual_library_ids = [

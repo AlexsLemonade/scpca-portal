@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, List
+from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -95,16 +95,12 @@ class Library(TimestampedModel):
         Parses library metadata json files and creates Library objects.
         If the project has bulk, loads bulk libraries.
         """
-        original_file_libraries = Library.get_project_original_file_libraries(project)
+        original_file_libraries = OriginalFile.get_input_library_metadata_files(project.scpca_id)
 
-        all_libraries_metadata = [
-            metadata_parser.load_library_metadata(original_file)
-            for original_file in original_file_libraries
-        ]
+        libraries_metadata = metadata_parser.load_libraries_metadata(project.scpca_id)
 
         library_metadata_by_id = {
-            lib_metadata["scpca_library_id"]: lib_metadata
-            for lib_metadata in all_libraries_metadata
+            lib_metadata["scpca_library_id"]: lib_metadata for lib_metadata in libraries_metadata
         }
 
         sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}
@@ -168,19 +164,6 @@ class Library(TimestampedModel):
                 return original_files.exclude(is_anndata=True)
 
         return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
-
-    @staticmethod
-    def get_project_original_file_libraries(project) -> Iterable[OriginalFile]:
-        """
-        Returns all metadata OriginalFile instances for a given project.
-        Filters to library metadata JSON files only.
-        """
-        return OriginalFile.objects.filter(
-            is_metadata=True,
-            project_id=project.scpca_id,
-            library_id__isnull=False,
-            s3_key__endswith="_metadata.json",  # Exclude other .csv, .json files
-        )
 
     @staticmethod
     def get_libraries_metadata(libraries) -> List[Dict]:

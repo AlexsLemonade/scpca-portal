@@ -1,6 +1,6 @@
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, Iterable, List, Tuple
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -284,6 +284,15 @@ class OriginalFile(TimestampedModel):
             sample_ids=[],
             library_id=None,
         ).first()
+
+    @classmethod
+    def get_input_library_metadata_files(cls, project_id: str) -> Iterable[Self]:
+        return OriginalFile.objects.filter(
+            is_metadata=True,
+            project_id=project_id,
+            library_id__isnull=False,
+            s3_key__endswith="_metadata.json",  # Exclude other .csv, .json files
+        )
 
     @classmethod
     def get_input_project_bulk_metadata_file(cls, project_id) -> Self:
