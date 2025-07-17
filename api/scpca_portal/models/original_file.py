@@ -276,6 +276,16 @@ class OriginalFile(TimestampedModel):
         return OriginalFile.objects.filter(is_metadata=True, project_id=None).first()
 
     @classmethod
+    def get_input_samples_metadata_file(cls, project_id: str) -> Self:
+        return OriginalFile.objects.filter(
+            is_metadata=True,
+            is_bulk=False,
+            project_id=project_id,
+            sample_ids=[],
+            library_id=None,
+        ).first()
+
+    @classmethod
     def get_input_project_bulk_metadata_file(cls, project_id) -> Self:
         return OriginalFile.objects.filter(
             project_id=project_id, is_metadata=True, is_bulk=True

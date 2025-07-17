@@ -9,7 +9,6 @@ from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
-from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
 
@@ -89,9 +88,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         loads library metadata for the given project, and
         updates sample aggregate values.
         """
-        samples_metadata = metadata_parser.load_samples_metadata(
-            Sample.get_input_metadata_original_file(project)
-        )
+        samples_metadata = metadata_parser.load_samples_metadata(project.scpca_id)
 
         Sample.bulk_create_from_dicts(samples_metadata, project)
 
@@ -260,16 +257,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         Multiplexed samples are not considered unique as they share the same output.
         """
         return "_".join(self.multiplexed_ids + sorted(download_config.values()))
-
-    @staticmethod
-    def get_input_metadata_original_file(project) -> OriginalFile:
-        return OriginalFile.objects.filter(
-            is_metadata=True,
-            is_bulk=False,
-            project_id=project.scpca_id,
-            sample_ids=[],
-            library_id=None,
-        ).first()
 
     @staticmethod
     def get_output_metadata_file_path(scpca_sample_id, modality):
