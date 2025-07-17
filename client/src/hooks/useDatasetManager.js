@@ -4,36 +4,44 @@ import { api } from 'api'
 import { useScPCAPortal } from './useScPCAPortal'
 
 export const useDatasetManager = () => {
-  const { myDataset, setMyDataset, datasets, setDatasets, email, setEmail } =
-    useContext(DatasetManagerContext)
+  const {
+    myDataset,
+    setMyDataset,
+    datasets,
+    setDatasets,
+    email,
+    setEmail,
+    errors,
+    setErrors
+  } = useContext(DatasetManagerContext)
   const { token } = useScPCAPortal()
 
-  /* Dataset-level */
-  const isMyDatasetId = (dataset) =>
-    myDataset.id !== null && dataset.id === myDataset.id
+  /* Helper */
+  const setError = (message, returnValue = null) => {
+    // Sets error message for UI components
+    console.error(message)
+    setErrors((prev) => [...prev, message])
+    return returnValue
+  }
 
+  /* Dataset-level */
   const createDataset = async (dataset) => {
     // TODO: Component is reponsible for generating a valid token before request
     // Assumption: If myDataset creation initiated via UI, token should exist.
     if (!token) {
-      console.error('A valid token is required to create a dataset')
-      throw new Error('Token required') // if necessary
+      return setError('A valid token is required to create a dataset')
     }
 
     // TODO: Component is reponsible for setting format before request
     // Assumption: If myDataset creation initiated via UI, format should exist.
     if (!dataset.format) {
-      console.error('A format is required to create a dataset.')
-      throw new Error('Format required') // if necessary
+      return setError('A format is required to create a dataset.')
     }
 
     const datasetRequest = await api.datasets.create(dataset, token)
 
     if (!datasetRequest.isOk) {
-      console.error('An error occurred while trying to create a new dataset.')
-      // TODO: Should we display this error message to users in the UI?
-      // e.g., show notification popup
-      return null
+      return setError('An error occurred while trying to create a new dataset.')
     }
 
     // Add the newly generated dataset ID for historical record
@@ -56,16 +64,12 @@ export const useDatasetManager = () => {
     if (!datasetRequest.isOk) {
       // TODO:
       // '/dataset': handle fetch and errors via getServerSide
-      // '/download': Should we display this error message to users in the UI?
-      // e.g., show notification popup
-      console.error('An error occurred while trying to fetch the dataset')
+      // '/download': Display the error message to users in the UI
+      return setError('An error occurred while trying to fetch the dataset')
     }
 
-    // This method is used for both myDataset and non-myDataset
-    // Update myDataset if this dataset is the user's
-    if (isMyDatasetId(dataset)) {
-      setMyDataset(datasetRequest.response)
-    }
+    // TODO: non-myDataset will always be fetched via useDataset
+    setMyDataset(datasetRequest.response)
 
     return datasetRequest.response
   }
@@ -74,17 +78,16 @@ export const useDatasetManager = () => {
     // TODO: Component is reponsible for generating a valid token before request
     // Assumption: If myDataset exists, token should exist.
     if (!token) {
-      console.error('A valid token is required to update the dataset')
-      throw new Error('Token required') // if necessary
+      return setError('A valid token is required to update the dataset')
     }
 
     const datasetRequest = await api.datasets.update(dataset.id, dataset, token)
 
     if (!datasetRequest.isOk) {
-      console.error('An error occurred while trying to update the dataset')
-      // TODO: Should we display this error message to users in the UI?
-      // e.g., show notification popup
-      return dataset
+      return setError(
+        'An error occurred while trying to update the dataset',
+        dataset
+      )
     }
 
     // Set only unprocessed dataset to myDataset
@@ -100,8 +103,7 @@ export const useDatasetManager = () => {
     // TODO: Component is reponsible for generating a valid token and passing email
     // Assumption: Upon form submission, token and email should exist.
     if (!dataset.email) {
-      console.error('An email is required to process the dataset')
-      throw new Error('Email is required') // if necessary
+      return setError('An email is required to process the dataset')
     }
 
     // Save the user email
@@ -128,8 +130,9 @@ export const useDatasetManager = () => {
     // Returns an object that would populate dataset.data.[project.scpca_id]
     // TODO: Component is reponsible for correctly setting the merged flag, so this check might be unnecessary
     if (merged && modality !== 'SINGLE_CELL') {
-      console.error('Samples cannot be merged')
-      throw new Error('Merged object supported for Single-cell only') // if necessary
+      return setError(
+        'Merging samples is supported only for Single-cell modality.'
+      )
     }
 
     const hasModality = `has_${modality.toLowerCase()}_data`
@@ -171,6 +174,7 @@ export const useDatasetManager = () => {
     myDataset,
     datasets,
     email,
+    errors,
     clearDataset,
     getDataset,
     processDataset,
