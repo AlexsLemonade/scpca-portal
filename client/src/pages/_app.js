@@ -25,8 +25,8 @@ const Portal = ({ Component, pageProps }) => {
   return (
     <>
       <Reset />
-      <Sentry.ErrorBoundary fallback={Fallback} showDialog>
-        <Grommet theme={theme}>
+      <Grommet theme={theme}>
+        <Sentry.ErrorBoundary fallback={Fallback} showDialog>
           <ScPCAPortalContextProvider>
             <AnalyticsContextProvider>
               <PageTitle />
@@ -38,8 +38,8 @@ const Portal = ({ Component, pageProps }) => {
               </BannerContextProvider>
             </AnalyticsContextProvider>
           </ScPCAPortalContextProvider>
-        </Grommet>
-      </Sentry.ErrorBoundary>
+        </Sentry.ErrorBoundary>
+      </Grommet>
     </>
   )
 }
