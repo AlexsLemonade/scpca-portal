@@ -7,6 +7,12 @@ from django.utils.timezone import make_aware
 
 from scpca_portal import common
 from scpca_portal.enums import JobStates
+from scpca_portal.exceptions import (
+    DatasetLockedProjectError,
+    JobInvalidRetryStateError,
+    JobSubmissionFailedError,
+    JobSubmitNotPendingError,
+)
 from scpca_portal.models import Dataset, Job
 from scpca_portal.test.factories import DatasetFactory, JobFactory
 
@@ -137,13 +143,12 @@ class TestJob(TestCase):
         mock_has_lockfile_projects.return_value = False
         mock_has_locked_projects.return_value = False
 
-        # Assert "Job not pending" exception thrown correctly
+        # Assert "Job is not in a pending state" exception thrown correctly
         non_pending_job = JobFactory(
             state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False)
         )
-        with self.assertRaises(Exception) as e:
+        with self.assertRaises(JobSubmitNotPendingError):
             non_pending_job.submit()
-        self.assertEqual(str(e.exception), "Job not pending.")
 
         # Assert "Dataset has a locked project" exception thrown correctly
         dataset = DatasetFactory(is_processing=False)
@@ -152,24 +157,21 @@ class TestJob(TestCase):
 
         mock_has_lockfile_projects.return_value = True
         mock_has_locked_projects.return_value = False
-        with self.assertRaises(Exception) as e:
+        with self.assertRaises(DatasetLockedProjectError):
             job.submit()
-        self.assertEqual(str(e.exception), "Dataset has a locked project.")
 
         mock_has_lockfile_projects.return_value = False
         mock_has_locked_projects.return_value = True
-        with self.assertRaises(Exception) as e:
+        with self.assertRaises(DatasetLockedProjectError):
             job.submit()
-        self.assertEqual(str(e.exception), "Dataset has a locked project.")
 
         mock_has_lockfile_projects.return_value = False
         mock_has_locked_projects.return_value = False
 
         # Assert "Error submitting job to Batch." exception thrown correctly
         mock_batch_submit_job.return_value = None
-        with self.assertRaises(Exception) as e:
+        with self.assertRaises(JobSubmissionFailedError):
             job.submit()
-        self.assertEqual(str(e.exception), "Error submitting job to Batch.")
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_pending(self, mock_batch_submit_job):
@@ -548,9 +550,8 @@ class TestJob(TestCase):
             dataset=DatasetFactory(is_processing=True),
         )
 
-        with self.assertRaises(Exception) as e:
+        with self.assertRaises(JobInvalidRetryStateError):
             job.get_retry_job()
-            self.assertEqual(str(e.exception), "Jobs in final states cannot be retried.")
 
         # Change the job state to TERMINATED
         job.state = JobStates.TERMINATED
