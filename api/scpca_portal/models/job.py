@@ -372,7 +372,7 @@ class Job(TimestampedModel):
         self.dataset.apply_job_state(self)  # Sync the dataset state
         return True
 
-    def submit(self, save=True):
+    def submit(self, *, save=True):
         """
         Submits the PENDING job to AWS Batch and assigns batch_job_id.
         By default, saves the job as PROCESSING (state, timestamp).
@@ -452,7 +452,7 @@ class Job(TimestampedModel):
 
         return True
 
-    def terminate(self, reason: str | None = "Terminated processing job", save=True):
+    def terminate(self, reason: str | None = "Terminated processing job", *, save=True):
         """
         Terminates the PROCESSING job (incomplete) on AWS Batch.
         By default, saves the job as TERMINATED (state, timestamp, reason)
@@ -474,7 +474,7 @@ class Job(TimestampedModel):
             if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
 
-    def create_retry_job(self, save: bool = True) -> Self:
+    def create_retry_job(self, *, save: bool = True) -> Self:
         """
         Prepares a new PENDING job for retry with:
         - incremented attempt count
