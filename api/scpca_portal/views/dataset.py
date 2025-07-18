@@ -21,6 +21,12 @@ logger = get_and_configure_logger(__name__)
 class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     ordering_fields = "__all__"
 
+    # TODO: Either add serializer_class/queryset to the class or use viewsets.ViewSet
+    # Fixes browser error 500 (not caught by tests) by setting default serializer and queryset
+    # https://www.django-rest-framework.org/api-guide/generic-views/#examples
+    queryset = Dataset.objects.all()
+    serializer_class = DatasetSerializer
+
     def list(self, request):
         queryset = Dataset.objects.filter(is_ccdl=True)
         serializer = DatasetSerializer(queryset, many=True)
