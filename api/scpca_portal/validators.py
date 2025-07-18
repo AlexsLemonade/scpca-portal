@@ -33,8 +33,7 @@ class ProjectData(BaseModel):
 
 
 class DatasetData(BaseModel):
-    projects_data: Dict[str, ProjectData]
-    # __root__: Dict[str, ProjectData]  # alternative to projects_data declaration approach
+    __root__: Dict[str, ProjectData]
 
     @field_validator("projects_data", mode="after")
     @classmethod
