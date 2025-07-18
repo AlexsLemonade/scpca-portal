@@ -11,6 +11,7 @@ from scpca_portal import batch, common, s3
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.exceptions import (
+    BatchGetJobsFailedError,
     DatasetError,
     DatasetLockedProjectError,
     JobError,
@@ -18,6 +19,8 @@ from scpca_portal.exceptions import (
     JobInvalidTerminateStateError,
     JobSubmissionFailedError,
     JobSubmitNotPendingError,
+    JobSyncNotProcessingError,
+    JobSyncStateFailedError,
     JobTerminationFailedError,
 )
 from scpca_portal.models.base import TimestampedModel
@@ -219,7 +222,7 @@ class Job(TimestampedModel):
         Returns all the submitted jobs.
         """
         submitted_jobs = []
-        submitted_datasets = []  # will be used in bulk updating (see TODO comment below)
+        submitted_datasets = []
         pending_jobs = []
         failed_jobs = []
 
@@ -307,21 +310,26 @@ class Job(TimestampedModel):
         Syncs all PROCESSING jobs' states with the corresponding AWS Batch jobs.
         Saves the jobs (state, timestamp, reason).
         Calls the datasets' method to sync the jobs' state.
-        Returns a boolean indicating if the jobs and datasets were updated and saved.
+        Returns a boolean indicating if the jobs and datasets were updated during sync.
         """
         processing_jobs = cls.objects.filter(state=JobStates.PROCESSING)
         if not processing_jobs.exists():
+            logger.info("No processing jobs to sync.")
             return False
-
-        fetched_jobs = batch.get_jobs(processing_jobs)
-        if not fetched_jobs:
-            return False
-
-        # Map the fetched AWS jobs for easy lookup by batch_job_id
-        aws_jobs = {job["jobId"]: job for job in fetched_jobs}
 
         synced_jobs = []
         synced_datasets = []
+        unchanged_jobs = []
+        failed_job_ids = []
+
+        fetched_jobs = []
+        try:
+            fetched_jobs = batch.get_jobs(processing_jobs)
+        except BatchGetJobsFailedError as error:
+            failed_job_ids.extend(error.job_ids)
+
+        # Map the fetched AWS jobs for easy lookup by batch_job_id
+        aws_jobs = {job["jobId"]: job for job in fetched_jobs}
 
         for job in processing_jobs:
             if aws_job := aws_jobs.get(job.batch_job_id):
@@ -330,13 +338,22 @@ class Job(TimestampedModel):
                     synced_jobs.append(job)
                     if job.dataset:  # TODO: Remove after the dataset release
                         synced_datasets.append(job.dataset)
+                else:
+                    unchanged_jobs.append(job)
 
         if not synced_jobs:
+            logger.info("No jobs were updated during sync.")
             return False
 
+        logger.info(f"Synced {len(synced_jobs)} jobs with AWS.")
         cls.bulk_update_state(synced_jobs)
         if synced_datasets:  # TODO: Remove after the dataset release
             Dataset.bulk_update_state(synced_datasets)
+
+        if unchanged_jobs:
+            logger.info(f"{len(unchanged_jobs)} jobs remain unchanged and are still processing.")
+        if failed_job_ids:
+            logger.info(f"{len(failed_job_ids)} jobs failed to sync.")
 
         return True
 
@@ -430,15 +447,18 @@ class Job(TimestampedModel):
         Syncs the job state with the AWS Batch status.
         Saves the job if the state has changed (state, timestamp, reason).
         Calls the dataset's method to sync the job's state.
-        Returns a boolean indicating if the job and dataset were updated and saved.
+        Raises an error when unable to sync:
+        - JobSyncNotProcessingError
+        - JobSyncStateFailedError
+        Returns a boolean indicating if the job and dataset were changed during sync.
         """
         if self.state is not JobStates.PROCESSING:
-            return False
+            raise JobSyncNotProcessingError(self)
 
-        aws_jobs = batch.get_jobs([self])
-
-        if not aws_jobs:
-            return False
+        try:
+            aws_jobs = batch.get_jobs([self])
+        except BatchGetJobsFailedError as error:
+            raise JobSyncStateFailedError(self) from error
 
         new_state, reason = self.get_job_state(aws_jobs[0])
 
