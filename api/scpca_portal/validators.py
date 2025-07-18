@@ -19,12 +19,14 @@ class ProjectData(BaseModel):
             return value
 
         if not isinstance(value, list):
+            # TODO: add custom exceptions
             raise TypeError(
                 "Expected a list of Sample IDs or a 'MERGED' string (for single-cell only)."
             )
 
         for sample_id in value:
             if not re.match(SAMPLE_ID_REGEX, sample_id):
+                # TODO: add custom exceptions
                 raise ValueError(f"Invalid sample ID: {sample_id}.")
 
         return value
@@ -39,5 +41,6 @@ class DatasetData(BaseModel):
     def validate_project_ids(cls, values: Iterable[Any]):
         for project_id in values:
             if not re.match(PROJECT_ID_REGEX, project_id):
+                # TODO: add custom exceptions
                 raise ValueError(f"Invalid project ID: {project_id}")
         return values
