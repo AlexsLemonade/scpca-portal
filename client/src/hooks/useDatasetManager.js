@@ -24,7 +24,7 @@ export const useDatasetManager = () => {
     return returnValue
   }
 
-  const clearError = () => {
+  const removeError = () => {
     // Removes error message (e..g, by ID)
     // TODO: This method is used by UI components or other hooks (e.g., popups)
   }
@@ -180,7 +180,7 @@ export const useDatasetManager = () => {
     datasets,
     email,
     errors,
-    clearError,
+    removeError,
     clearDataset,
     getDataset,
     processDataset,
