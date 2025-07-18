@@ -133,7 +133,6 @@ class Dataset(TimestampedModel):
 
         return {}
 
-    # TODO: Bulk samples are not present in libraries but will need to be included.
     @property
     def files_summary(self) -> list[dict]:
         """
@@ -363,7 +362,7 @@ class Dataset(TimestampedModel):
     def samples(self) -> Iterable[Sample]:
         dataset_samples = Sample.objects.none()
         for project_id in self.data.keys():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
                 dataset_samples |= self.get_project_modality_samples(project_id, modality)
 
         return dataset_samples
@@ -374,7 +373,7 @@ class Dataset(TimestampedModel):
         dataset_libraries = Library.objects.none()
 
         for project_id in self.data.keys():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
                 dataset_libraries |= self.get_project_modality_libraries(project_id, modality)
 
         return dataset_libraries
@@ -458,8 +457,12 @@ class Dataset(TimestampedModel):
         """
 
         project_samples = Sample.objects.filter(project__scpca_id=project_id)
-        if self.get_is_merged_project(project_id):
+        if modality is Modalities.SINGLE_CELL and self.get_is_merged_project(project_id):
             return project_samples.filter(has_single_cell_data=True)
+        elif modality is Modalities.BULK_RNA_SEQ and self.data.get(project_id, {}).get(
+            DatasetDataProjectConfig.INCLUDES_BULK, False
+        ):
+            return project_samples.filter(has_bulk_rna_seq=True)
         return project_samples.filter(
             scpca_id__in=self.data.get(project_id, {}).get(modality.value)
         )
