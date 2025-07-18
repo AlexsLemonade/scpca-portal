@@ -95,20 +95,18 @@ class Library(TimestampedModel):
         Parses library metadata json files and creates Library objects.
         If the project has bulk, loads bulk libraries.
         """
-        original_file_libraries = OriginalFile.get_input_library_metadata_files(project.scpca_id)
-
         libraries_metadata = metadata_parser.load_libraries_metadata(project.scpca_id)
+        library_files = OriginalFile.get_input_library_metadata_files(project.scpca_id)
 
         library_metadata_by_id = {
             lib_metadata["scpca_library_id"]: lib_metadata for lib_metadata in libraries_metadata
         }
-
         sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}
 
-        for lib in original_file_libraries:
-            if lib_metadata := library_metadata_by_id.get(lib.library_id):
+        for library_file in library_files:
+            if lib_metadata := library_metadata_by_id.get(library_file.library_id):
                 #  Multiplexed samples will have multiple sample IDs in lib.sample_ids
-                for sample_id in lib.sample_ids:
+                for sample_id in library_file.sample_ids:
                     # Only create the library if the sample exists in the project
                     if sample := sample_by_id.get(sample_id):
                         Library.bulk_create_from_dicts([lib_metadata], sample)
