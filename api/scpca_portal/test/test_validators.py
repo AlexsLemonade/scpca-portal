@@ -14,36 +14,31 @@ class TestProjectData(TestCase):
         }
         validated_project_data = ProjectData.model_validate(project_data)
 
-        expected_ids = ["SCPCS000001", "SCPCS000002"]
-        self.assertEqual(validated_project_data.single_cell, expected_ids)
+        expected_single_cell_ids = ["SCPCS999990", "SCPCS999992"]
+        self.assertEqual(validated_project_data.single_cell, expected_single_cell_ids)
 
     def test_valid_single_cell_merged_string(self):
         project_data = {"includes_bulk": False, "single_cell": "MERGED", "spatial": []}
         validated_project_data = ProjectData.model_validate(project_data)
         self.assertEqual(validated_project_data.single_cell, "MERGED")
 
-    def test_invalid_sample_id(self):
+    def test_invalid_single_cell_sample_id(self):
         project_data = {"single_cell": ["INVALID_SAMPLE_ID"]}
         with self.assertRaises(ValidationError) as context:
             ProjectData.model_validate(project_data)
-        self.assertIn("Invalid sample ID", str(context.exception))
+        self.assertIn("Invalid sample ID format", str(context.exception))
 
-    def test_invalid_single_cell_type(self):
-        project_data = {"single_cell": 123}  # not a list or "MERGED" string
+    def test_invalid_single_cell_merged_string(self):
+        project_data = {"single_cell": "NOT_MERGED"}
         with self.assertRaises(ValidationError) as context:
             ProjectData.model_validate(project_data)
-        self.assertIn("Expected a list of Sample IDs", str(context.exception))
+        self.assertIn("Invalid string value for 'single-cell' modality", str(context.exception))
 
-    def test_invalid_spatial_type(self):
-        project_data = {"spatial": 123}  # not a list
+    def test_invalid_spatial_sample_id(self):
+        project_data = {"spatial": ["INVALID_SAMPLE_ID"]}
         with self.assertRaises(ValidationError) as context:
             ProjectData.model_validate(project_data)
-        self.assertIn("Expected a list of Sample IDs", str(context.exception))
-
-    def test_invalid_includes_bulk_type(self):
-        project_data = {"spatial": 123}  # not a bool
-        with self.assertRaises(ValidationError):
-            ProjectData.model_validate(project_data)
+        self.assertIn("Invalid sample ID format", str(context.exception))
 
 
 class TestDatasetData(TestCase):
@@ -61,17 +56,17 @@ class TestDatasetData(TestCase):
             },
         }
         validated_data = DatasetData.model_validate(data)
-        self.assertIn("SCPCP999990", validated_data.__root__)
-        self.assertEqual(validated_data.__root__["SCPCP999991"].single_cell, "MERGED")
+        self.assertIn("SCPCP999990", validated_data.root)
+        self.assertEqual(validated_data.root["SCPCP999991"].single_cell, "MERGED")
 
     def test_invalid_project_id(self):
         data = {"INVALID_PROJECT_ID": {"single_cell": ["SCPCS999990"]}}
         with self.assertRaises(ValidationError) as context:
             DatasetData.model_validate(data)
-        self.assertIn("Invalid project ID", str(context.exception))
+        self.assertIn("Invalid project ID format", str(context.exception))
 
     def test_invalid_nested_sample_id(self):
         data = {"SCPCP999990": {"single_cell": ["INVALID_SAMPLE_ID"]}}
         with self.assertRaises(ValidationError) as context:
             DatasetData.model_validate(data)
-        self.assertIn("Invalid sample ID", str(context.exception))
+        self.assertIn("Invalid sample ID format", str(context.exception))
