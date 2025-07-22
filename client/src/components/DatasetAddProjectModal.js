@@ -35,6 +35,7 @@ export const DatasetAddProjectModal = ({
   const [includeMerge, setIncludeMerge] = useState(false)
   const [projectData, setProjectData] = useState({})
 
+  // Make sure users cannot add a project without specifying both format and modalities
   const canAddProject = format && modalities.length > 0
 
   const singleCell = 'SINGLE_CELL'
@@ -44,6 +45,7 @@ export const DatasetAddProjectModal = ({
 
   const handleAddProject = () => {
     addProject(project, format, projectData)
+    setShowing(false) // TODO: Temporarily closes the modal after adding the project (need to revise)
   }
 
   useEffect(() => {

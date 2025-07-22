@@ -1,7 +1,8 @@
 import { useContext } from 'react'
 import { DatasetManagerContext } from 'contexts/DatasetManagerContext'
+import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
-import { useScPCAPortal } from './useScPCAPortal'
+import { filterWhere } from 'helpers/filterWhere'
 
 export const useDatasetManager = () => {
   const {
@@ -14,7 +15,7 @@ export const useDatasetManager = () => {
     errors,
     setErrors
   } = useContext(DatasetManagerContext)
-  const { token } = useScPCAPortal()
+  const { token, setUserFormat } = useScPCAPortal()
 
   /* Helper */
   const addError = (message, returnValue = null) => {
@@ -32,13 +33,12 @@ export const useDatasetManager = () => {
   /* Dataset-level */
   const createDataset = async (dataset) => {
     // TODO: Component is reponsible for generating a valid token before request
-    // Assumption: If myDataset creation initiated via UI, token should exist.
+    // Currently, using a token generated locally via the token endpoint
+    // We'll need to add a step in the UI to generate the token before creating a new dataset
     if (!token) {
       return addError('A valid token is required to create a dataset')
     }
 
-    // TODO: Component is reponsible for setting format before request
-    // Assumption: If myDataset creation initiated via UI, format should exist.
     if (!dataset.format) {
       return addError('A format is required to create a dataset.')
     }
@@ -49,16 +49,16 @@ export const useDatasetManager = () => {
       return addError('An error occurred while trying to create a new dataset.')
     }
 
+    const newDataset = datasetRequest.response
+
+    setMyDataset(newDataset)
+    setUserFormat(myDataset.format) // Update user preference to match dataset format
     // Add the newly generated dataset ID for historical record
     setDatasets((prev) =>
-      prev.includes(datasetRequest.response.id)
-        ? prev
-        : [...prev, datasetRequest.response.id]
+      prev.includes(newDataset.id) ? prev : [...prev, newDataset.id]
     )
 
-    setMyDataset(datasetRequest.response)
-
-    return datasetRequest.response
+    return newDataset
   }
 
   const getDataset = async (downloadToken = '') => {
@@ -80,7 +80,7 @@ export const useDatasetManager = () => {
   }
 
   const updateDataset = async (dataset) => {
-    // TODO: Component is reponsible for generating a valid token before request
+    // TODO: Component is responsible for generating a valid token before request
     // Assumption: If myDataset exists, token should exist.
     if (!token) {
       return addError('A valid token is required to update the dataset')
@@ -95,8 +95,10 @@ export const useDatasetManager = () => {
       )
     }
 
-    // Set only unprocessed dataset to myDataset
-    setMyDataset(dataset.start != null ? null : datasetRequest.response)
+    // TODO: (TBD) To clearly distinguish between unprocessed and processed datasets on the client side,
+    // either default the 'start' field to null or add the 'processing_at' field in the serializer.
+    // Set only unprocessed dataset to myDataset (temporarily using 'start_at')
+    setMyDataset(dataset.start_at != null ? {} : datasetRequest.response)
 
     return datasetRequest.response
   }
@@ -118,10 +120,18 @@ export const useDatasetManager = () => {
   }
 
   /* Project-level */
-  const addProject = async (dataset, project, projectData) => {
-    const datasetCopy = structuredClone(dataset)
+  const addProject = async (project, format, projectData) => {
+    const datasetCopy = structuredClone(myDataset)
+
+    // Set format only for a new dataset
+    if (datasetCopy.format === undefined) {
+      datasetCopy.format = format
+    }
+
+    // Make sure data is defined for a new dataset
+    datasetCopy.data = datasetCopy.data ?? {}
     datasetCopy.data[project.scpca_id] = {
-      ...(datasetCopy.data[project.scpca_id] || {}),
+      ...(datasetCopy.data[project.scpca_id] ?? {}),
       ...projectData
     }
 
@@ -132,26 +142,29 @@ export const useDatasetManager = () => {
   }
 
   const getProjectData = (project, modality, merged = false) => {
-    // Returns an object that would populate dataset.data.[project.scpca_id]
-    // TODO: Component is reponsible for correctly setting the merged flag, so this check might be unnecessary
+    // Populates dataset.data.[project.scpca_id] for addProject
     if (merged && modality !== 'SINGLE_CELL') {
       return addError(
         'Merging samples is supported only for Single-cell modality.'
       )
     }
 
-    const hasModality = `has_${modality.toLowerCase()}_data`
-    const filteredSamples = merged
-      ? 'MERGED'
-      : project.samples.filter((s) => s[hasModality]).map((s) => s.scpca_id)
+    const { datasets: projectDatasets, scpca_id: projectId } = project
+    const projectDataset = filterWhere(projectDatasets, {
+      format: 'SINGLE_CELL_EXPERIMENT'
+    })
 
-    return { [modality]: filteredSamples }
+    const projectSamples = merged
+      ? 'MERGED'
+      : projectDataset.map((d) => d.data[projectId][modality]).flat()
+
+    return { [modality]: projectSamples }
   }
 
   const getProjectIDs = (dataset) => Object.keys(dataset.data)
 
-  const removeProject = async (dataset, project) => {
-    const datasetCopy = structuredClone(dataset)
+  const removeProject = async (project) => {
+    const datasetCopy = structuredClone(myDataset)
     delete datasetCopy.data[project.scpca_id]
 
     const updatedDataset = await updateDataset(datasetCopy)
