@@ -33,6 +33,12 @@ class TestProjectData(TestCase):
             ProjectData.model_validate(project_data)
         self.assertIn("Invalid sample ID format", str(context.exception))
 
+    def test_invalid_single_cell_sample_id_passed_as_string(self):
+        project_data = {Modalities.SINGLE_CELL.value: "SCPCS999990"}
+        with self.assertRaises(ValidationError) as context:
+            ProjectData.model_validate(project_data)
+        self.assertIn("Sample IDs must be inside an Array", str(context.exception))
+
     def test_invalid_single_cell_merged_string(self):
         project_data = {Modalities.SINGLE_CELL.value: "NOT_MERGED"}
         with self.assertRaises(ValidationError) as context:

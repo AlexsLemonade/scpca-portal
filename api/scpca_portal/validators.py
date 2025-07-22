@@ -21,8 +21,12 @@ class ProjectData(BaseModel):
         # because if a str is passed to the "SPATIAL" field, pydantic type checking will catch it.
         # The check is included here for extra clarity.
         if info.field_name == Modalities.SINGLE_CELL.value and isinstance(modality_value, str):
+            if re.match(SAMPLE_ID_REGEX, modality_value):
+                raise ValueError("Sample IDs must be inside an Array.")
+
             if modality_value == "MERGED":
                 return modality_value
+
             # TODO: add custom exception
             raise ValueError(
                 f"""
