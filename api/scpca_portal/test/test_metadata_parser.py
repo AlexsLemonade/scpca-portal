@@ -2,15 +2,15 @@ from typing import Set
 
 from django.conf import settings
 from django.core.management import call_command
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from scpca_portal import metadata_parser
-from scpca_portal.models import Library, Sample
 from scpca_portal.test.factories import ProjectFactory
 
 
-class TestMetadataParser(TransactionTestCase):
-    def setUp(self):
+class TestMetadataParser(TestCase):
+    @classmethod
+    def setUpTestData(cls):
         call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
     def assertTransformedKeys(self, expected_keys: Set, actual_keys: Set):
@@ -57,11 +57,8 @@ class TestMetadataParser(TransactionTestCase):
         }
 
         for project_id, expected_sample_ids in PROJECT_SAMPLES_IDS.items():
-            project = ProjectFactory(scpca_id=project_id)
-            sample_metadata_path = Sample.get_input_metadata_file_path(project)
-
             # Load metadata for samples
-            samples_metadata = metadata_parser.load_samples_metadata(sample_metadata_path)
+            samples_metadata = metadata_parser.load_samples_metadata(project_id)
 
             # Make sure all project samples metadata are loaded
             actual_sample_ids = [sample["scpca_sample_id"] for sample in samples_metadata]
@@ -75,13 +72,8 @@ class TestMetadataParser(TransactionTestCase):
         }
 
         for project_id, expected_library_ids in PROJECT_LIBRARY_IDS.items():
-            project = ProjectFactory(scpca_id=project_id)
-
             # Load metadata for libraries
-            libraries_metadata = [
-                metadata_parser.load_library_metadata(lib.local_file_path)
-                for lib in Library.get_project_original_file_libraries(project)
-            ]
+            libraries_metadata = metadata_parser.load_libraries_metadata(project_id)
 
             # Make sure all libraries metadata are loaded
             actual_library_ids = [
@@ -106,9 +98,7 @@ class TestMetadataParser(TransactionTestCase):
         project = ProjectFactory(scpca_id=PROJECT_ID)
 
         # Load metadata for bulk libraries
-        bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
-            project.input_bulk_metadata_file_path
-        )
+        bulk_libraries_metadata = metadata_parser.load_bulk_metadata(project.scpca_id)
 
         # Make sure the bulk library metadata are loaded
         actual_library_id = bulk_libraries_metadata[0].get("scpca_library_id")

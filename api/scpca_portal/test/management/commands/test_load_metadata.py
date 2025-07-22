@@ -11,7 +11,20 @@ from scpca_portal.test.factories import OriginalFileFactory
 
 
 class TestLoadMetadata(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        with patch(
+            "scpca_portal.lockfile.get_lockfile_project_ids",
+            return_value=[],
+        ):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+
     def setUp(self):
+        with patch(
+            "scpca_portal.lockfile.get_lockfile_project_ids",
+            return_value=[],
+        ):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         self.load_metadata = partial(call_command, "load_metadata")
         # Bind default function params to test object for easy access
         self.input_bucket_name = settings.AWS_S3_INPUT_BUCKET_NAME

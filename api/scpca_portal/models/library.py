@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Dict, List
 
 from django.contrib.postgres.fields import ArrayField
@@ -82,9 +81,7 @@ class Library(TimestampedModel):
         if not project.has_bulk_rna_seq:
             raise Exception("Trying to load bulk libraries for project with no bulk data")
 
-        all_bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
-            project.input_bulk_metadata_file_path
-        )
+        all_bulk_libraries_metadata = metadata_parser.load_bulk_metadata(project.scpca_id)
 
         sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}
 
@@ -98,24 +95,18 @@ class Library(TimestampedModel):
         Parses library metadata json files and creates Library objects.
         If the project has bulk, loads bulk libraries.
         """
-        original_file_libraries = Library.get_project_original_file_libraries(project)
-
-        all_libraries_metadata = [
-            metadata_parser.load_library_metadata(lib.local_file_path)
-            for lib in original_file_libraries
-        ]
+        libraries_metadata = metadata_parser.load_libraries_metadata(project.scpca_id)
+        library_files = OriginalFile.get_input_library_metadata_files(project.scpca_id)
 
         library_metadata_by_id = {
-            lib_metadata["scpca_library_id"]: lib_metadata
-            for lib_metadata in all_libraries_metadata
+            lib_metadata["scpca_library_id"]: lib_metadata for lib_metadata in libraries_metadata
         }
-
         sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}
 
-        for lib in original_file_libraries:
-            if lib_metadata := library_metadata_by_id.get(lib.library_id):
+        for library_file in library_files:
+            if lib_metadata := library_metadata_by_id.get(library_file.library_id):
                 #  Multiplexed samples will have multiple sample IDs in lib.sample_ids
-                for sample_id in lib.sample_ids:
+                for sample_id in library_file.sample_ids:
                     # Only create the library if the sample exists in the project
                     if sample := sample_by_id.get(sample_id):
                         Library.bulk_create_from_dicts([lib_metadata], sample)
@@ -171,22 +162,6 @@ class Library(TimestampedModel):
                 return original_files.exclude(is_anndata=True)
 
         return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
-
-    @staticmethod
-    def get_project_original_file_libraries(project) -> Path:
-        """
-        Returns all metadata OriginalFile instances for a given project.
-        Filters to library metadata JSON files only.
-        """
-        return [
-            lib
-            for lib in OriginalFile.objects.filter(
-                is_metadata=True,
-                project_id=project.scpca_id,
-                library_id__isnull=False,
-                s3_key__endswith="_metadata.json",  # Exclude other .csv, .json files
-            )
-        ]
 
     @staticmethod
     def get_libraries_metadata(libraries) -> List[Dict]:
