@@ -14,8 +14,7 @@ const Download = () => {
   useEffect(() => {
     const fetchDataset = async () => {
       if (myDataset.id) {
-        // TODO: Remove `myDataset` from here after adding useDataset hook
-        await getDataset(myDataset)
+        await getDataset()
       }
       setLoading(false)
       // TODO: Remove temporary log after completing integration
