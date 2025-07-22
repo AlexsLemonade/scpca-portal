@@ -3,7 +3,7 @@ import { useResponsive } from 'hooks/useResponsive'
 import { config } from 'config'
 import { Box, Grid, Text } from 'grommet'
 import { Badge } from 'components/Badge'
-import { DownloadModal } from 'components/DownloadModal'
+import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
 import { Link } from 'components/Link'
 import { InfoText } from 'components/InfoText'
 import { Pill } from 'components/Pill'
@@ -50,9 +50,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
             pad={{ top: responsive('medium', 'none') }}
           >
             <Box align="center" gap="small">
-              {project.computed_files.length > 0 && (
-                <DownloadModal label="Download Project" resource={project} />
-              )}
+              <DatasetAddProjectModal project={project} />
               {project.has_bulk_rna_seq && (
                 <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
               )}
