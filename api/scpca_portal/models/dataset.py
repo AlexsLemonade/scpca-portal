@@ -18,6 +18,7 @@ from scpca_portal.enums import (
     CCDLDatasetNames,
     DatasetDataProjectConfig,
     DatasetFormats,
+    FileFormats,
     JobStates,
     Modalities,
 )
@@ -388,6 +389,29 @@ class Dataset(TimestampedModel):
     @staticmethod
     def validate_data(data: Mapping[str, Any]) -> DatasetData:
         return DatasetData.model_validate(data)
+
+    def validate(self) -> None:
+        """
+        Validates that projects and samples, who's ids were passed in through the data attribute,
+        both exist and are correctly related.
+        Raises exceptions if projects, samples or their associations do not exist.
+        """
+        if self.format == FileFormats.ANN_DATA.value:
+            if any(
+                project_data.get(Modalities.SPATIAL.value, [])
+                for project_data in self.data.values()
+            ):
+                # TODO: add custom exception
+                raise Exception("No Spatial data for ANNDATA")
+
+        # validate that all projects exist
+        existing_ids = Project.objects.filter(scpca_id__in=self.data.keys()).values_list(
+            "scpca_id", flat=True
+        )
+        if missing_keys := set(self.data.keys()) - set(existing_ids):
+            raise Exception(f"The following projects do not exist: {missing_keys}")
+
+        # TODO: sample modality existence check
 
     @property
     def is_data_valid(self) -> bool:
