@@ -13,14 +13,9 @@ export const DatasetProjectDataFormat = ({
 }) => {
   const { myDataset } = useDatasetManager()
 
-  const {
-    has_single_cell_data: hasSingleCellData,
-    includes_anndata: includeAnndata
-  } = project
-
   const defaultOptions = [
-    { key: 'SINGLE_CELL_EXPERIMENT', value: hasSingleCellData },
-    { key: 'ANN_DATA', value: includeAnndata }
+    { key: 'SINGLE_CELL_EXPERIMENT', value: project.has_single_cell_data },
+    { key: 'ANN_DATA', value: project.includes_anndata }
   ]
     .filter((f) => f.value)
     .map((f) => f.key)
