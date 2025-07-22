@@ -1,16 +1,28 @@
 import re
 from typing import Any, Dict, List
 
-from pydantic import BaseModel, Field, RootModel, ValidationInfo, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
+
+from scpca_portal.enums.modalities import Modalities
 
 PROJECT_ID_REGEX = r"^SCPCP\d{6}$"
 SAMPLE_ID_REGEX = r"^SCPCS\d{6}$"
 
 
 class ProjectData(BaseModel):
+    model_config = ConfigDict(validate_by_alias=True)
+
     includes_bulk: bool = Field(default=True)
-    single_cell: List[str] | str = Field(default_factory=list)
-    spatial: List[str] = Field(default_factory=list)
+    single_cell: List[str] | str = Field(default_factory=list, alias=Modalities.SINGLE_CELL.value)
+    spatial: List[str] = Field(default_factory=list, alias=Modalities.SPATIAL.value)
 
     @field_validator("single_cell", "spatial", mode="after")
     @classmethod
@@ -21,6 +33,7 @@ class ProjectData(BaseModel):
         if info.field_name == "single_cell" and isinstance(modality_value, str):
             if modality_value == "MERGED":
                 return modality_value
+            # TODO: add custom exception
             raise ValueError(
                 """
                 Invalid string value for 'single-cell' modality: {modality_value}.

@@ -69,4 +69,5 @@ class TestDatasetData(TestCase):
         data = {"SCPCP999990": {"single_cell": ["INVALID_SAMPLE_ID"]}}
         with self.assertRaises(ValidationError) as context:
             DatasetData.model_validate(data)
+
         self.assertIn("Invalid sample ID format", str(context.exception))
