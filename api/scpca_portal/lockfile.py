@@ -27,9 +27,7 @@ def get_lockfile_project_ids(*, bucket=settings.AWS_S3_INPUT_BUCKET_NAME) -> Lis
     # create default lockfile original file in memory
     # if method is called during initial syncing of original files
     if not lockfile_original_file:
-        lockfile_original_file = OriginalFile(
-            s3_key=LOCKFILE_S3_KEY, s3_bucket=settings.AWS_S3_INPUT_BUCKET_NAME
-        )
+        lockfile_original_file = OriginalFile(s3_key=LOCKFILE_S3_KEY, s3_bucket=bucket)
     # only check size if lockfile original file exists
     elif lockfile_original_file.size_in_bytes == 0:
         return []
