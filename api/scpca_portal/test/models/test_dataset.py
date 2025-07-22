@@ -7,6 +7,8 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, tag
 
+from pydantic import ValidationError
+
 from scpca_portal import loader
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import Dataset, OriginalFile, Project
@@ -34,6 +36,184 @@ class TestDataset(TestCase):
 
         returned_dataset = Dataset.objects.filter(pk=dataset.id).first()
         self.assertEqual(returned_dataset, dataset)
+
+    @tag("validate_data")
+    def test_validate_project_id(self):
+        # Valid project id
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        Dataset.validate_data(data)
+
+        # Incorrect project ids
+        data = {
+            "project_id": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
+
+        # Lack of SCPCP prefix
+        data = {
+            "SCPCA999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
+
+        # Incorrect number of digits
+        data = {
+            "SCPCP9999900": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
+
+    @tag("validate_data")
+    def test_validate_config(self):
+        # Valid config
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        Dataset.validate_data(data)
+
+        # Empty config (valid)
+        data = {
+            "SCPCP999990": {},
+        }
+        Dataset.validate_data(data)
+
+        # Includes bulk - missing (valid)
+        data = {
+            "SCPCP999990": {
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        Dataset.validate_data(data)
+
+        # Includes bulk - wrong type
+        # However, Pydantic will correct this
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": "True",
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        Dataset.validate_data(data)
+
+        # Single Cell - missing (valid)
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        Dataset.validate_data(data)
+
+        # Single Cell - wrong type (invalid)
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: "SCPCS999990",
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
+
+        # Merge single cell - wrong type (invalid)
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["MERGED"],  # invalid sample id
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
+
+        # Single Cell - wrong inner type (invalid)
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: [1, 2, 3],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
+
+        # Single Cell - invalid sample id (invalid)
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["sample_id"],
+                Modalities.SPATIAL.value: ["SCPCS999992"],
+            },
+        }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
+
+        # Spatial - missing (valid)
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+            },
+        }
+        Dataset.validate_data(data)
+
+        # Spatial - wrong type (invalid)
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: "SCPCS999992",
+            },
+        }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
+
+        # Spatial - wrong inner type (invalid)
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: [1, 2, 3],
+            },
+        }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
+
+        # Spatial - invalid sample id (invalid)
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
+                Modalities.SPATIAL.value: ["sample_id"],
+            },
+        }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
 
     @tag("is_data_valid")
     def test_is_data_valid_project_id(self):

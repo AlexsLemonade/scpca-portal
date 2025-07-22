@@ -1,6 +1,7 @@
 import hashlib
 import sys
 import uuid
+from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -27,6 +28,7 @@ from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
+from scpca_portal.validators import DatasetData
 
 logger = get_and_configure_logger(__name__)
 
@@ -382,6 +384,10 @@ class Dataset(TimestampedModel):
     @property
     def ccdl_type(self) -> Dict:
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
+
+    @staticmethod
+    def validate_data(data: Mapping[str, Any]) -> DatasetData:
+        return DatasetData.model_validate(data)
 
     @property
     def is_data_valid(self) -> bool:
