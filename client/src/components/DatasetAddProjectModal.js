@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading } from 'grommet'
+import { useScPCAPortal } from 'hooks/useScPCAPortal'
+import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditionalOptions'
@@ -16,14 +18,43 @@ export const DatasetAddProjectModal = ({
   title = 'Add Project to Dataset',
   disabled = false
 }) => {
+  const { userFormat } = useScPCAPortal()
+  const { myDataset, addProject, getProjectData } = useDatasetManager()
   const { responsive } = useResponsive()
-  const { has_spatial_data: hasSpatialData } = project
-  const sampleDifferenceForSpatial = 5
-  const [showing, setShowing] = useState(false)
 
+  // Modal toggle
+  const [showing, setShowing] = useState(false)
   const handleClick = () => {
     setShowing(true)
   }
+
+  // Dataset attributes
+  const [format, setFormat] = useState(myDataset.format || userFormat)
+  const [modalities, setModalities] = useState([])
+  const [includeBulk, setIncludeBulk] = useState(false)
+  const [includeMerge, setIncludeMerge] = useState(false)
+  const [projectData, setProjectData] = useState({})
+
+  const canAddProject = format && modalities.length > 0
+
+  const singleCell = 'SINGLE_CELL'
+  const spatial = 'SPATIAL'
+  // TODO: Replace with actual stats value once ready
+  const sampleDifferenceForSpatial = 5
+
+  const handleAddProject = () => {
+    addProject(project, format, projectData)
+  }
+
+  useEffect(() => {
+    setProjectData({
+      ...(modalities.includes(singleCell) &&
+        getProjectData(project, singleCell, includeMerge)),
+      ...(modalities.includes(spatial) &&
+        getProjectData(project, spatial, false)), // Merge Spatial samples not supported
+      includes_bulk: includeBulk
+    })
+  }, [modalities, includeBulk, includeMerge])
 
   return (
     <>
@@ -47,17 +78,37 @@ export const DatasetAddProjectModal = ({
             </Heading>
             <Box pad={{ top: 'small' }}>
               <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
-                <DatasetProjectDataFormat project={project} />
-                <DatasetProjectModalityOptions project={project} />
-                <DatasetProjectAdditionalOptions project={project} />
+                <DatasetProjectDataFormat
+                  project={project}
+                  format={format}
+                  handleSetFormat={setFormat}
+                />
+                <DatasetProjectModalityOptions
+                  project={project}
+                  format={format}
+                  modalities={modalities}
+                  handleSetModalities={setModalities}
+                />
+                <DatasetProjectAdditionalOptions
+                  project={project}
+                  format={format}
+                  handleIncludeBulk={setIncludeBulk}
+                  handleIncludeMerge={setIncludeMerge}
+                />
               </Box>
               <Box
                 align="center"
                 direction={responsive('column', 'row')}
                 gap="xlarge"
               >
-                <Button primary aria-label={label} label={label} />
-                {hasSpatialData && (
+                <Button
+                  primary
+                  aria-label={label}
+                  label={label}
+                  disabled={!canAddProject}
+                  onClick={handleAddProject}
+                />
+                {project.has_spatial_data && (
                   <DatasetWarningSpatialSamples
                     sampleCount={sampleDifferenceForSpatial}
                   />
