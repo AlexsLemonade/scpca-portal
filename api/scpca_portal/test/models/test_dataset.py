@@ -43,7 +43,7 @@ class TestDataset(TestCase):
         self.assertEqual(returned_dataset, dataset)
 
     @tag("validate_data")
-    def test_validate_project_id(self):
+    def test_validate_data_project_id(self):
         # Valid project id
         data = {
             "SCPCP999990": {
@@ -88,7 +88,7 @@ class TestDataset(TestCase):
             Dataset.validate_data(data)
 
     @tag("validate_data")
-    def test_validate_config(self):
+    def test_validate_data_project_data(self):
         # Valid config
         data = {
             "SCPCP999990": {
