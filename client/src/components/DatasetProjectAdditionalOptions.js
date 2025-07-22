@@ -1,5 +1,6 @@
 import React from 'react'
 import { Box, CheckBox, Text } from 'grommet'
+import { useDatasetManager } from 'hooks/useDatasetManager'
 import { config } from 'config'
 import { HelpLink } from 'components/HelpLink'
 import { InfoText } from 'components/InfoText'
@@ -7,7 +8,14 @@ import { Link } from 'components/Link'
 import { FormField } from 'components/FormField'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
-export const DatasetProjectAdditionalOptions = ({ project }) => {
+export const DatasetProjectAdditionalOptions = ({
+  project,
+  format,
+  handleIncludeBulk,
+  handleIncludeMerge
+}) => {
+  const { myDataset } = useDatasetManager()
+
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
     has_multiplexed_data: hasMultiplexed,
@@ -15,8 +23,13 @@ export const DatasetProjectAdditionalOptions = ({ project }) => {
     includes_merged_anndata: includesMergedAnnData
   } = project
 
-  const isMergedObjectsAvailable = includesMergedSce || includesMergedAnnData
-  const isExcludeMultiplexedAvailable = false
+  const isMergedObjectsAvailable =
+    (includesMergedSce || includesMergedAnnData) && !hasMultiplexed
+
+  // Multiplexed samples are not available for ANN_DATA
+  const canExcludeMultiplexed = myDataset.format
+    ? myDataset.format !== 'ANN_DATA'
+    : format !== 'ANN_DATA'
 
   const handleChange = () => {}
 
@@ -26,7 +39,7 @@ export const DatasetProjectAdditionalOptions = ({ project }) => {
         <CheckBox
           disabled={!isMergedObjectsAvailable}
           label="Merge single-cell samples into 1 object"
-          onChange={handleChange}
+          onChange={({ target: { checked } }) => handleIncludeMerge(checked)}
         />
         <HelpLink link={config.links.when_downloading_merged_objects} />
       </Box>
@@ -47,7 +60,7 @@ export const DatasetProjectAdditionalOptions = ({ project }) => {
         <Box direction="row">
           <CheckBox
             label="Include all bulk RNA-seq data in the project"
-            onChange={handleChange}
+            onChange={({ target: { checked } }) => handleIncludeBulk(checked)}
           />
         </Box>
       )}
@@ -55,12 +68,12 @@ export const DatasetProjectAdditionalOptions = ({ project }) => {
         <>
           <Box direction="row">
             <CheckBox
-              disabled
+              disabled={!canExcludeMultiplexed}
               label="Exclude multiplexed samples"
               onChange={handleChange}
             />
           </Box>
-          {!isExcludeMultiplexedAvailable && <WarningAnnDataMultiplexed />}
+          {!canExcludeMultiplexed && <WarningAnnDataMultiplexed />}
         </>
       )}
     </FormField>

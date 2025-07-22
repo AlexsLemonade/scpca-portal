@@ -1,14 +1,29 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Select } from 'grommet'
 import { config } from 'config'
+import { useDatasetManager } from 'hooks/useDatasetManager'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
-export const DatasetProjectDataFormat = () => {
-  // NOTE: The dataset endpoint should include all available format options fields per resource
-  const formatOptions = ['SINGLE_CELL_EXPERIMENT', 'ANN_DATA']
-  const [format, setFormat] = useState(formatOptions[0])
+export const DatasetProjectDataFormat = ({
+  project,
+  format,
+  handleSetFormat
+}) => {
+  const { myDataset } = useDatasetManager()
+
+  const {
+    has_single_cell_data: hasSingleCellData,
+    includes_anndata: includeAnndata
+  } = project
+
+  const defaultOptions = [
+    { key: 'SINGLE_CELL_EXPERIMENT', value: hasSingleCellData },
+    { key: 'ANN_DATA', value: includeAnndata }
+  ]
+    .filter((f) => f.value)
+    .map((f) => f.key)
 
   return (
     <FormField
@@ -19,11 +34,12 @@ export const DatasetProjectDataFormat = () => {
       fieldWidth="200px"
     >
       <Select
-        options={getReadableOptions(formatOptions)}
+        disabled={!!myDataset.format}
+        options={getReadableOptions(defaultOptions)}
         labelKey="label"
         valueKey={{ key: 'value', reduce: true }}
-        value={format || formatOptions[0]}
-        onChange={({ value }) => setFormat(value)}
+        value={myDataset.format || format}
+        onChange={({ value }) => handleSetFormat(value)}
       />
     </FormField>
   )
