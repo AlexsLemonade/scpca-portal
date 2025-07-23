@@ -1,4 +1,5 @@
 import computedFiles from './resources/computedFiles'
+import datasets from './resources/datasets'
 import projects from './resources/projects'
 import samples from './resources/samples'
 import tokens from './resources/tokens'
@@ -7,6 +8,7 @@ import stats from './resources/stats'
 
 export const api = {
   computedFiles,
+  datasets,
   projects,
   samples,
   tokens,
