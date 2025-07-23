@@ -81,17 +81,16 @@ def get_jobs(batch_jobs: Iterable["Job"]) -> List[Dict] | None:  # noqa: F821
     jobs = []
 
     if batch_job_ids := [job.batch_job_id for job in batch_jobs]:
-        try:
-            for chunk in utils.get_chunk_list(batch_job_ids, max_limit):
+        for chunk in utils.get_chunk_list(batch_job_ids, max_limit):
+            try:
                 response = aws_batch.describe_jobs(jobs=chunk)
                 jobs.extend(response["jobs"])
-        except Exception as error:
-            logger.exception(
-                f"Failed to bulk fetch AWS Batch job{pluralize(len(batch_job_ids))} "
-                f"for job ID{pluralize(len(batch_job_ids))}: "
-                f"{', '.join(batch_job_ids)} due to: \n\t{error}"
-            )
-            raise BatchGetJobsFailedError(job_ids=batch_job_ids) from error
+            except Exception as error:
+                logger.exception(
+                    f"Failed to bulk fetch AWS Batch job{pluralize(len(chunk))} "
+                    f"for job IDs: {', '.join(chunk)} due to: \n\t{error}"
+                )
+                raise BatchGetJobsFailedError(job_ids=batch_job_ids) from error
 
     logger.info("AWS Job fetch complete.", batch_job_ids=batch_job_ids)
 

@@ -314,12 +314,10 @@ class Job(TimestampedModel):
         """
         processing_jobs = cls.objects.filter(state=JobStates.PROCESSING)
         if not processing_jobs.exists():
-            logger.info("No processing jobs to sync.")
             return False
 
         synced_jobs = []
         synced_datasets = []
-        unchanged_jobs = []
         failed_job_ids = []
 
         fetched_jobs = []
@@ -338,8 +336,6 @@ class Job(TimestampedModel):
                     synced_jobs.append(job)
                     if job.dataset:  # TODO: Remove after the dataset release
                         synced_datasets.append(job.dataset)
-                else:
-                    unchanged_jobs.append(job)
 
         if not synced_jobs:
             logger.info("No jobs were updated during sync.")
@@ -347,11 +343,10 @@ class Job(TimestampedModel):
 
         logger.info(f"Synced {len(synced_jobs)} jobs with AWS.")
         cls.bulk_update_state(synced_jobs)
+
         if synced_datasets:  # TODO: Remove after the dataset release
             Dataset.bulk_update_state(synced_datasets)
 
-        if unchanged_jobs:
-            logger.info(f"{len(unchanged_jobs)} jobs remain unchanged and are still processing.")
         if failed_job_ids:
             logger.info(f"{len(failed_job_ids)} jobs failed to sync.")
 

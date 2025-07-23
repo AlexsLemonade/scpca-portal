@@ -4,7 +4,7 @@ from django.template.defaultfilters import pluralize
 # scpca_portal.batch
 class BatchError(Exception):
     def __init__(self, message: str | None = None, job=None, job_ids=None):
-        default_message = "A boto3 batch client error occurred."
+        default_message = "An error occurred while communicating with AWS Batch API."
         message = message or default_message
         super().__init__(message)
         # For logging
