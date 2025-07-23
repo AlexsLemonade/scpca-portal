@@ -343,7 +343,6 @@ class Job(TimestampedModel):
 
         logger.info(f"Synced {len(synced_jobs)} jobs with AWS.")
         cls.bulk_update_state(synced_jobs)
-
         if synced_datasets:  # TODO: Remove after the dataset release
             Dataset.bulk_update_state(synced_datasets)
 
