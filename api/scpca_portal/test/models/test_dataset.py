@@ -9,7 +9,7 @@ from django.test import TestCase, tag
 
 from scpca_portal import loader
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
-from scpca_portal.models import Dataset, OriginalFile, Project
+from scpca_portal.models import Dataset, OriginalFile, Project, Sample
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 
@@ -618,7 +618,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999991"],
             },
             "SCPCP999991": {
-                "includes_bulk": True,
+                "includes_bulk": False,
                 Modalities.SINGLE_CELL: [
                     "SCPCS999992",
                     "SCPCS999993",
@@ -627,7 +627,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: [],
             },
             "SCPCP999992": {
-                "includes_bulk": True,
+                "includes_bulk": False,
                 Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
                 Modalities.SPATIAL: [],
             },
@@ -680,32 +680,23 @@ class TestDataset(TestCase):
         )
 
         expected_single_cell = [
-            {
-                "samples_count": 2,
-                "name": "Single-nuclei multiplexed samples",
-                "format": ".rds",
-            },
-            {
-                "samples_count": 1,
-                "name": "Single-cell samples with CITE-seq",
-                "format": ".rds",
-            },
-            {
-                "samples_count": 4,
-                "name": "Single-cell samples",
-                "format": ".rds",
-            },
-            {
-                "samples_count": 1,
-                "name": "Spatial samples",
-                "format": "Spatial format",
-            },
+            {"samples_count": 2, "name": "Single-nuclei multiplexed samples", "format": ".rds"},
+            {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".rds"},
+            {"samples_count": 4, "name": "Single-cell samples", "format": ".rds"},
+            {"samples_count": 1, "name": "Spatial samples", "format": "Spatial format"},
+            {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
         ]
 
-        for actual, expected in zip(single_cell_dataset.files_summary, expected_single_cell):
-            self.assertEqual(actual["samples_count"], expected["samples_count"])
+        single_cell_files_summary = single_cell_dataset.files_summary
+
+        self.assertEqual(len(single_cell_files_summary), len(expected_single_cell))
+
+        for actual, expected in zip(single_cell_files_summary, expected_single_cell):
             self.assertEqual(actual["name"], expected["name"])
-            self.assertEqual(actual["format"], expected["format"])
+            self.assertEqual(
+                actual["samples_count"], expected["samples_count"], f" in {actual['name']}"
+            )
+            self.assertEqual(actual["format"], expected["format"], f" in {actual['name']}")
 
         ann_data_dataset = Dataset(
             format=DatasetFormats.ANN_DATA,
@@ -729,20 +720,18 @@ class TestDataset(TestCase):
                 },
             },
         )
+
         expected_ann_data = [
-            {
-                "samples_count": 1,
-                "name": "Single-cell samples with CITE-seq",
-                "format": ".h5ad",
-            },
-            {
-                "samples_count": 4,
-                "name": "Single-cell samples",
-                "format": ".h5ad",
-            },
+            {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".h5ad"},
+            {"samples_count": 4, "name": "Single-cell samples", "format": ".h5ad"},
+            {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
         ]
 
-        for actual, expected in zip(ann_data_dataset.files_summary, expected_ann_data):
-            self.assertEqual(actual["samples_count"], expected["samples_count"])
+        ann_data_files_summary = ann_data_dataset.files_summary
+
+        for actual, expected in zip(ann_data_files_summary, expected_ann_data):
             self.assertEqual(actual["name"], expected["name"])
-            self.assertEqual(actual["format"], expected["format"])
+            self.assertEqual(
+                actual["samples_count"], expected["samples_count"], f" in {actual['name']}"
+            )
+            self.assertEqual(actual["format"], expected["format"], f" in {actual['name']}")
