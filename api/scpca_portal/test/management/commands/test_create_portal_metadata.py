@@ -43,7 +43,6 @@ class TestCreatePortalMetadata(TransactionTestCase):
             input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
             clean_up_input_data=False,
             reload_existing=False,
-            scpca_project_id="",
             update_s3=False,
             submitter_whitelist="scpca",
         )
