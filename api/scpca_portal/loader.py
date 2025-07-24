@@ -38,9 +38,7 @@ def get_projects_metadata(filter_on_project_ids: List[str]) -> List[Dict[str, An
 
     s3.download_files(metadata_original_files | bulk_original_files)
 
-    projects_metadata = metadata_parser.load_projects_metadata(
-        filter_on_project_ids=filter_on_project_ids
-    )
+    projects_metadata = metadata_parser.load_projects_metadata(filter_on_project_ids)
     return projects_metadata
 
 

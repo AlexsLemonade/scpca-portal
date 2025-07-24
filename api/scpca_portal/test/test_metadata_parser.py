@@ -28,9 +28,7 @@ class TestMetadataParser(TestCase):
     def test_load_projects_metadata(self):
         # Load metadata for projects
         project_ids = metadata_parser.get_projects_metadata_ids()
-        projects_metadata = metadata_parser.load_projects_metadata(
-            filter_on_project_ids=project_ids
-        )
+        projects_metadata = metadata_parser.load_projects_metadata(project_ids)
 
         # Verify that metadata keys are transformed correctly
         expected_keys = {
