@@ -11,8 +11,8 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 export const DatasetProjectAdditionalOptions = ({
   project,
   format,
-  handleIncludeBulk,
-  handleIncludeMerge
+  onIncludeBulkChange,
+  onIncludeMergeChange
 }) => {
   const { myDataset } = useDatasetManager()
 
@@ -39,7 +39,7 @@ export const DatasetProjectAdditionalOptions = ({
         <CheckBox
           disabled={!isMergedObjectsAvailable}
           label="Merge single-cell samples into 1 object"
-          onChange={({ target: { checked } }) => handleIncludeMerge(checked)}
+          onChange={({ target: { checked } }) => onIncludeMergeChange(checked)}
         />
         <HelpLink link={config.links.when_downloading_merged_objects} />
       </Box>
@@ -60,7 +60,7 @@ export const DatasetProjectAdditionalOptions = ({
         <Box direction="row">
           <CheckBox
             label="Include all bulk RNA-seq data in the project"
-            onChange={({ target: { checked } }) => handleIncludeBulk(checked)}
+            onChange={({ target: { checked } }) => onIncludeBulkChange(checked)}
           />
         </Box>
       )}

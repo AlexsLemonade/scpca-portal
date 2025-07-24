@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading } from 'grommet'
-import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
@@ -18,8 +17,8 @@ export const DatasetAddProjectModal = ({
   title = 'Add Project to Dataset',
   disabled = false
 }) => {
-  const { userFormat } = useScPCAPortal()
-  const { myDataset, addProject, getProjectData } = useDatasetManager()
+  const { myDataset, userFormat, addProject, getProjectData } =
+    useDatasetManager()
   const { responsive } = useResponsive()
 
   // Modal toggle
@@ -29,14 +28,14 @@ export const DatasetAddProjectModal = ({
   }
 
   // Dataset attributes
-  const [format, setFormat] = useState(myDataset.format || userFormat)
   const [modalities, setModalities] = useState([])
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
   const [projectData, setProjectData] = useState({})
 
   // Make sure users cannot add a project without specifying both format and modalities
-  const canAddProject = format && modalities.length > 0
+  const canAddProject =
+    (myDataset.format || userFormat) && modalities.length > 0
 
   const singleCell = 'SINGLE_CELL'
   const spatial = 'SPATIAL'
@@ -44,7 +43,7 @@ export const DatasetAddProjectModal = ({
   const sampleDifferenceForSpatial = 5
 
   const handleAddProject = () => {
-    addProject(project, format, projectData)
+    addProject(project, userFormat, projectData)
     setShowing(false) // TODO: Temporarily closes the modal after adding the project (need to revise)
   }
 
@@ -80,22 +79,17 @@ export const DatasetAddProjectModal = ({
             </Heading>
             <Box pad={{ top: 'small' }}>
               <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
-                <DatasetProjectDataFormat
-                  project={project}
-                  format={format}
-                  handleSetFormat={setFormat}
-                />
+                <DatasetProjectDataFormat project={project} />
                 <DatasetProjectModalityOptions
                   project={project}
-                  format={format}
                   modalities={modalities}
-                  handleSetModalities={setModalities}
+                  onModalitiesChange={setModalities}
                 />
                 <DatasetProjectAdditionalOptions
                   project={project}
-                  format={format}
-                  handleIncludeBulk={setIncludeBulk}
-                  handleIncludeMerge={setIncludeMerge}
+                  selectedModalities={modalities}
+                  onIncludeBulkChange={setIncludeBulk}
+                  onIncludeMergeChange={setIncludeMerge}
                 />
               </Box>
               <Box

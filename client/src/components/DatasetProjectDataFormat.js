@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Select } from 'grommet'
 import { config } from 'config'
 import { useDatasetManager } from 'hooks/useDatasetManager'
@@ -6,12 +6,9 @@ import { getReadableOptions } from 'helpers/getReadableOptions'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
-export const DatasetProjectDataFormat = ({
-  project,
-  format,
-  handleSetFormat
-}) => {
-  const { myDataset } = useDatasetManager()
+export const DatasetProjectDataFormat = ({ project }) => {
+  const { myDataset, userFormat, setUserFormat } = useDatasetManager()
+  const [format, setFormat] = useState(myDataset.format || userFormat)
 
   const defaultOptions = [
     { key: 'SINGLE_CELL_EXPERIMENT', value: project.has_single_cell_data },
@@ -19,6 +16,11 @@ export const DatasetProjectDataFormat = ({
   ]
     .filter((f) => f.value)
     .map((f) => f.key)
+
+  const handleFormatChange = (value) => {
+    setFormat(value)
+    setUserFormat(value)
+  }
 
   return (
     <FormField

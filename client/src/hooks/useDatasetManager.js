@@ -15,7 +15,7 @@ export const useDatasetManager = () => {
     errors,
     setErrors
   } = useContext(DatasetManagerContext)
-  const { token, setUserFormat } = useScPCAPortal()
+  const { token, userFormat, setUserFormat } = useScPCAPortal()
 
   /* Helper */
   const addError = (message, returnValue = null) => {
@@ -193,6 +193,8 @@ export const useDatasetManager = () => {
     datasets,
     email,
     errors,
+    userFormat,
+    setUserFormat,
     removeError,
     clearDataset,
     getDataset,

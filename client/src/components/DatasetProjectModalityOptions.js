@@ -8,7 +8,7 @@ export const DatasetProjectModalityOptions = ({
   project,
   format,
   modalities,
-  handleSetModalities
+  onModalitiesChange
 }) => {
   const { myDataset } = useDatasetManager()
 
@@ -30,7 +30,7 @@ export const DatasetProjectModalityOptions = ({
     if (isAnnData && modalities.includes('SPATIAL')) {
       const updated = modalities.filter((m) => m !== 'SPATIAL')
       if (updated.length !== modalities.length) {
-        handleSetModalities(updated)
+        onModalitiesChange(updated)
       }
     }
   }, [isAnnData, modalities])
@@ -40,7 +40,7 @@ export const DatasetProjectModalityOptions = ({
       <CheckBoxGroup
         options={modalityOptions}
         value={modalities}
-        onChange={({ value }) => handleSetModalities(value)}
+        onChange={({ value }) => onModalitiesChange(value)}
       />
     </FormField>
   )
