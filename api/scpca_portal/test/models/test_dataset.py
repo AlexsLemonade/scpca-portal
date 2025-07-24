@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, tag
 
-from scpca_portal import loader
+from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
@@ -17,13 +17,15 @@ from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 class TestDataset(TestCase):
     @classmethod
     def setUpTestData(cls):
-        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        bucket = settings.AWS_S3_INPUT_BUCKET_NAME
+        call_command("sync_original_files", bucket=bucket)
 
-        for project_metadata in loader.get_projects_metadata():
+        project_ids = metadata_parser.get_projects_metadata_ids(bucket=bucket)
+        for project_metadata in loader.get_projects_metadata(filter_on_project_ids=project_ids):
             loader.create_project(
                 project_metadata,
                 submitter_whitelist={"scpca"},
-                input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
+                input_bucket_name=bucket,
                 reload_existing=True,
                 update_s3=False,
             )

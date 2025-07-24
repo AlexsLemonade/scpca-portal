@@ -22,20 +22,19 @@ from scpca_portal.models import (
 logger = get_and_configure_logger(__name__)
 
 
-def get_projects_metadata(filter_on_project_ids: List[str] = []) -> List[Dict[str, Any]]:
+def get_projects_metadata(filter_on_project_ids: List[str]) -> List[Dict[str, Any]]:
     """
-    Download all metadata files from the passed project list,
-    or from all projects if none passed,
+    Download all metadata files associated with the project ids in the passed project id list,
     load the project metadata files and return project metadata dicts.
     """
-    metadata_original_files = OriginalFile.objects.filter(is_metadata=True)
-    bulk_original_files = OriginalFile.objects.filter(is_bulk=True)
+    all_metadata_original_files = OriginalFile.objects.filter(is_metadata=True)
+    metadata_original_files = all_metadata_original_files.filter(
+        Q(project_id__in=filter_on_project_ids) | Q(project_id__isnull=True)
+    )
 
-    if filter_on_project_ids:
-        metadata_original_files = metadata_original_files.filter(
-            Q(project_id__in=filter_on_project_ids) | Q(project_id__isnull=True)
-        )
-        bulk_original_files = bulk_original_files.filter(project_id__in=filter_on_project_ids)
+    bulk_original_files = OriginalFile.objects.filter(
+        is_bulk=True, project_id__in=filter_on_project_ids
+    )
 
     s3.download_files(metadata_original_files | bulk_original_files)
 
