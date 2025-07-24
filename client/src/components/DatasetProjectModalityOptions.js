@@ -6,13 +6,12 @@ import { FormField } from 'components/FormField'
 
 export const DatasetProjectModalityOptions = ({
   project,
-  format,
   modalities,
   onModalitiesChange
 }) => {
-  const { myDataset } = useDatasetManager()
+  const { myDataset, userFormat } = useDatasetManager()
 
-  const isAnnData = myDataset.format === 'ANN_DATA' || format === 'ANN_DATA'
+  const isAnnData = myDataset.format === 'ANN_DATA' || userFormat === 'ANN_DATA'
   const modalityOptions = [
     { key: 'SINGLE_CELL', value: project.has_single_cell_data },
     { key: 'SPATIAL', value: project.has_spatial_data }

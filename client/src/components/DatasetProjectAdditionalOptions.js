@@ -10,40 +10,45 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const DatasetProjectAdditionalOptions = ({
   project,
-  format,
+  selectedModalities,
+  onExcludeMultiplexedChange,
   onIncludeBulkChange,
   onIncludeMergeChange
 }) => {
-  const { myDataset } = useDatasetManager()
+  const { myDataset, userFormat } = useDatasetManager()
 
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
     has_multiplexed_data: hasMultiplexed,
+    has_single_cell_data: hasSingleCellData,
     includes_merged_sce: includesMergedSce,
     includes_merged_anndata: includesMergedAnnData
   } = project
 
   const isMergedObjectsAvailable =
-    (includesMergedSce || includesMergedAnnData) && !hasMultiplexed
+    (includesMergedSce || includesMergedAnnData) &&
+    (selectedModalities.includes('SINGLE_CELL') ||
+      (selectedModalities.length === 0 && hasSingleCellData && !hasMultiplexed))
 
   // Multiplexed samples are not available for ANN_DATA
   const canExcludeMultiplexed = myDataset.format
     ? myDataset.format !== 'ANN_DATA'
-    : format !== 'ANN_DATA'
+    : userFormat !== 'ANN_DATA'
 
-  const handleChange = () => {}
+  // Show the merged objects warning only for multiplexed samples
+  const showMergedObjectWarning = !isMergedObjectsAvailable && hasMultiplexed
 
   return (
     <FormField label="Additional Options" gap="medium" labelWeight="bold">
       <Box direction="row">
         <CheckBox
-          disabled={!isMergedObjectsAvailable}
           label="Merge single-cell samples into 1 object"
+          disabled={!isMergedObjectsAvailable}
           onChange={({ target: { checked } }) => onIncludeMergeChange(checked)}
         />
         <HelpLink link={config.links.when_downloading_merged_objects} />
       </Box>
-      {!isMergedObjectsAvailable && (
+      {showMergedObjectWarning && (
         <InfoText>
           <Text>
             "Merged objects are not available for projects with multiplexed
@@ -68,9 +73,11 @@ export const DatasetProjectAdditionalOptions = ({
         <>
           <Box direction="row">
             <CheckBox
-              disabled={!canExcludeMultiplexed}
               label="Exclude multiplexed samples"
-              onChange={handleChange}
+              disabled={!canExcludeMultiplexed}
+              onChange={({ target: { checked } }) =>
+                onExcludeMultiplexedChange(checked)
+              }
             />
           </Box>
           {!canExcludeMultiplexed && <WarningAnnDataMultiplexed />}

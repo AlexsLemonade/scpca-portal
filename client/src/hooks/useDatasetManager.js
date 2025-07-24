@@ -2,6 +2,7 @@ import { useContext } from 'react'
 import { DatasetManagerContext } from 'contexts/DatasetManagerContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
+import { countArrayElements } from 'helpers/countArrayElements'
 import { filterWhere } from 'helpers/filterWhere'
 
 export const useDatasetManager = () => {
@@ -141,7 +142,12 @@ export const useDatasetManager = () => {
     return updatedDataset
   }
 
-  const getProjectData = (project, modality, merged = false) => {
+  const getProjectData = (
+    project,
+    modality,
+    merged = false,
+    excludeMultiplexed = false
+  ) => {
     // Populates dataset.data.[project.scpca_id] for addProject
     if (merged && modality !== 'SINGLE_CELL') {
       return addError(
@@ -153,10 +159,19 @@ export const useDatasetManager = () => {
     const projectDataset = filterWhere(projectDatasets, {
       format: 'SINGLE_CELL_EXPERIMENT'
     })
+    const mergedStr = 'MERGED'
 
-    const projectSamples = merged
-      ? 'MERGED'
+    let projectSamples = merged
+      ? mergedStr
       : projectDataset.map((d) => d.data[projectId][modality]).flat()
+
+    if (excludeMultiplexed) {
+      // TODO: Adjust filtering of multiplexed samples once API is updated
+      // Temporarily filter out repeated sample IDs in dataset.data.[project.scpca_id]['SINGLE_CELL']
+      // NOTE: some multiplexed samples (e.g., SCPCS000131. SCPCS000153) should still be filtered
+      const sampleCounts = countArrayElements(projectSamples)
+      projectSamples = projectSamples.filter((s) => sampleCounts[s] === 1)
+    }
 
     return { [modality]: projectSamples }
   }

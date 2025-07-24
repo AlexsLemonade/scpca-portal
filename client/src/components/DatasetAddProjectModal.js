@@ -28,9 +28,10 @@ export const DatasetAddProjectModal = ({
   }
 
   // Dataset attributes
-  const [modalities, setModalities] = useState([])
+  const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
+  const [modalities, setModalities] = useState([])
   const [projectData, setProjectData] = useState({})
 
   // Make sure users cannot add a project without specifying both format and modalities
@@ -47,15 +48,25 @@ export const DatasetAddProjectModal = ({
     setShowing(false) // TODO: Temporarily closes the modal after adding the project (need to revise)
   }
 
+  // Reset all Dataset attribute states on modal close
+  useEffect(() => {
+    if (!showing) {
+      setExcludeMultiplexed(false)
+      setIncludeBulk(false)
+      setIncludeMerge(false)
+      setModalities([])
+    }
+  }, [showing])
+
   useEffect(() => {
     setProjectData({
       ...(modalities.includes(singleCell) &&
-        getProjectData(project, singleCell, includeMerge)),
+        getProjectData(project, singleCell, includeMerge, excludeMultiplexed)),
       ...(modalities.includes(spatial) &&
         getProjectData(project, spatial, false)), // Merge Spatial samples not supported
       includes_bulk: includeBulk
     })
-  }, [modalities, includeBulk, includeMerge])
+  }, [modalities, excludeMultiplexed, includeBulk, includeMerge])
 
   return (
     <>
@@ -88,6 +99,7 @@ export const DatasetAddProjectModal = ({
                 <DatasetProjectAdditionalOptions
                   project={project}
                   selectedModalities={modalities}
+                  onExcludeMultiplexedChange={setExcludeMultiplexed}
                   onIncludeBulkChange={setIncludeBulk}
                   onIncludeMergeChange={setIncludeMerge}
                 />
