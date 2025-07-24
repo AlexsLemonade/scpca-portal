@@ -20,15 +20,17 @@ class TestMetadataParser(TestCase):
         """
         self.assertTrue(any(expected_key in actual_keys for expected_key in expected_keys))
 
+    def test_get_projects_metadata_ids(self):
+        expected_project_ids = ["SCPCP999990", "SCPCP999991", "SCPCP999992"]
+        actual_project_ids = metadata_parser.get_projects_metadata_ids()
+        self.assertListEqual(actual_project_ids, expected_project_ids)
+
     def test_load_projects_metadata(self):
-        PROJECT_IDS = ["SCPCP999990", "SCPCP999991", "SCPCP999992"]
-
         # Load metadata for projects
-        projects_metadata = metadata_parser.load_projects_metadata()
-
-        # Make sure that all projects metadata are loaded
-        actual_project_ids = [project["scpca_project_id"] for project in projects_metadata]
-        self.assertEqual(sorted(actual_project_ids), PROJECT_IDS)
+        project_ids = metadata_parser.get_projects_metadata_ids()
+        projects_metadata = metadata_parser.load_projects_metadata(
+            filter_on_project_ids=project_ids
+        )
 
         # Verify that metadata keys are transformed correctly
         expected_keys = {

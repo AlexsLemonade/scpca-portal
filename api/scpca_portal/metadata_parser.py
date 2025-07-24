@@ -56,7 +56,7 @@ def get_projects_metadata_ids(*, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
 
 
 def load_projects_metadata(
-    *, filter_on_project_ids: List[str] = [], bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+    *, filter_on_project_ids: List[str], bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
 ) -> List[Dict]:
     """
     Opens, loads and parses list of project metadata dicts.
