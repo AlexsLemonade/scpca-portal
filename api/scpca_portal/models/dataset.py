@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
+from collections import Counter
 
 from django.conf import settings
 from django.db import models
@@ -216,6 +217,16 @@ class Dataset(TimestampedModel):
         return summaries
 
     @property
+    def project_diagnoses(self) -> Dict:
+
+        diagnoses_counts = {key: Counter() for key in self.data.keys()}
+
+        for project_id, diagnosis in self.samples.values_list("project__scpca_id", "diagnosis"):
+            diagnoses_counts[project_id].update({diagnosis: 1})
+
+        return diagnoses_counts
+
+    @property
     def stats(self) -> Dict:
         return {
             "current_data_hash": self.current_data_hash,
@@ -225,6 +236,7 @@ class Dataset(TimestampedModel):
             "uncompressed_size": self.estimated_size_in_bytes,
             "diagnoses_summary": self.diagnoses_summary,
             "files_summary": self.files_summary,
+            "project_diagnoses": self.project_diagnoses,
         }
 
     @classmethod

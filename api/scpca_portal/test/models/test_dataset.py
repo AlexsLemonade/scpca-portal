@@ -735,3 +735,41 @@ class TestDataset(TestCase):
                 actual["samples_count"], expected["samples_count"], f" in {actual['name']}"
             )
             self.assertEqual(actual["format"], expected["format"], f" in {actual['name']}")
+
+    def test_project_diagnoses(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        expected_counts = {
+            "SCPCP999990": {"diagnosis5": 2, "diagnosis1": 1, "diagnosis2": 1},
+            "SCPCP999991": {"diagnosis4": 1, "diagnosis3": 1, "diagnosis6": 1},
+            "SCPCP999992": {"diagnosis7": 2},
+        }
+
+        actual_counts = dataset.project_diagnoses
+
+        for project_id in actual_counts.keys():
+            for diagnosis in actual_counts[project_id].keys():
+                self.assertEqual(
+                    actual_counts[project_id][diagnosis], expected_counts[project_id][diagnosis]
+                )
