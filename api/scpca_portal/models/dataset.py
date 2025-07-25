@@ -199,6 +199,7 @@ class Dataset(TimestampedModel):
             if samples_ids := (
                 dataset_samples.filter(libraries__scpca_id__in=library_ids)
                 .exclude(scpca_id__in=seen_samples)
+                .distinct()
                 .values_list("scpca_id", flat=True)
             ):
 
