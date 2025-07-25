@@ -218,6 +218,10 @@ class Dataset(TimestampedModel):
 
     @property
     def project_diagnoses(self) -> Dict:
+        """
+        Returns dict where key is a project id in the dataset and value
+        is the number of samples with that diagnosis in the dataset for that project.
+        """
 
         diagnoses_counts = {key: Counter() for key in self.data.keys()}
 
@@ -225,6 +229,29 @@ class Dataset(TimestampedModel):
             diagnoses_counts[project_id].update({diagnosis: 1})
 
         return diagnoses_counts
+
+    @property
+    def project_modality_counts(self) -> Dict:
+        """
+        Returns a dict where the key is a project id in the dataset and
+        the value is an object of SINGLE_CELL and SPATIAL samples present in the dataset for that project.
+        """
+        modality_samples_counts = {key: Counter() for key in self.data.keys()}
+
+        for project_id, modality, samples_count in (
+            self.libraries.filter(modality__in=[Modalities.SINGLE_CELL, Modalities.SPATIAL])
+            .annotate(samples_count=models.Count("samples"))
+            .values_list("project__scpca_id", "modality", "samples_count")
+        ):
+            modality_samples_counts[project_id].update({modality: samples_count})
+
+        return modality_samples_counts
+
+    @property
+    def project_titles(self) -> Dict:
+        return {
+            scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
+        }
 
     @property
     def stats(self) -> Dict:
@@ -237,6 +264,8 @@ class Dataset(TimestampedModel):
             "diagnoses_summary": self.diagnoses_summary,
             "files_summary": self.files_summary,
             "project_diagnoses": self.project_diagnoses,
+            "project_modality_counts": self.project_modality_counts,
+            "project_titles": self.project_titles,
         }
 
     @classmethod
