@@ -60,10 +60,12 @@ export const DatasetAddProjectModal = ({
 
   useEffect(() => {
     setProjectData({
-      ...(modalities.includes(singleCell) &&
-        getProjectData(project, singleCell, includeMerge, excludeMultiplexed)),
-      ...(modalities.includes(spatial) &&
-        getProjectData(project, spatial, false)), // Merge Spatial samples not supported
+      ...(modalities.includes(singleCell)
+        ? getProjectData(project, singleCell, includeMerge, excludeMultiplexed)
+        : { [singleCell]: [] }),
+      ...(modalities.includes(spatial)
+        ? getProjectData(project, spatial, false) // No merge objects for Spatial
+        : { [spatial]: [] }),
       includes_bulk: includeBulk
     })
   }, [modalities, excludeMultiplexed, includeBulk, includeMerge])
