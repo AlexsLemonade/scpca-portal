@@ -21,7 +21,7 @@ class TestDataset(TestCase):
         call_command("sync_original_files", bucket=bucket)
 
         project_ids = metadata_parser.get_projects_metadata_ids(bucket=bucket)
-        for project_metadata in loader.get_projects_metadata(filter_on_project_ids=project_ids):
+        for project_metadata in loader.get_projects_metadata(project_ids):
             loader.create_project(
                 project_metadata,
                 submitter_whitelist={"scpca"},

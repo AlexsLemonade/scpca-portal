@@ -153,7 +153,7 @@ class TestLoadMetadata(TestCase):
         project.save()
 
         self.load_metadata(scpca_project_id=scpca_project_id)
-        self.mock_get_projects_metadata.assert_called_with(filter_on_project_ids=[scpca_project_id])
+        self.mock_get_projects_metadata.assert_called_with([scpca_project_id])
 
     def test_update_s3(self):
         self.load_metadata()

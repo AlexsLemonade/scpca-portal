@@ -21,9 +21,7 @@ class TestLoader(TransactionTestCase):
 
         # When passing a project_id to get_projects_metadata, a list of one item is returned
         # This lambda creates a shorthand to access the single returned project_metadata
-        self.get_project_metadata = lambda project_id: loader.get_projects_metadata(
-            filter_on_project_ids=[project_id]
-        )[0]
+        self.get_project_metadata = lambda project_id: loader.get_projects_metadata([project_id])[0]
 
         self.create_project = partial(
             loader.create_project,
