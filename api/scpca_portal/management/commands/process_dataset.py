@@ -52,7 +52,7 @@ class Command(BaseCommand):
             # only locked datasets should generate retry jobs
             # datasets without libraries are malformed and should not be retried
             if isinstance(e, DatasetLockedProjectError):
-                job.get_retry_job()
+                job.create_retry_job()
             job.apply_state(JobStates.FAILED)
 
         job.save()
