@@ -26,6 +26,17 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     # https://www.django-rest-framework.org/api-guide/generic-views/#examples
     queryset = Dataset.objects.all()
     serializer_class = DatasetSerializer
+    filterset_fields = (
+        "id",
+        "email",
+        "is_ccdl",
+        "ccdl_name",
+        "ccdl_project_id",
+        "format",
+        # data  # TODO: consider if we want to query for modality on CCDL datasets
+        # or included project ids, modalities, and bulk in custom datasets
+        # TODO: decide if we want to allow querying on is_state attributes
+    )
 
     def list(self, request):
         queryset = Dataset.objects.filter(is_ccdl=True)
