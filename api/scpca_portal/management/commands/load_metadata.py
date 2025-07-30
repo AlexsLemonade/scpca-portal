@@ -108,7 +108,7 @@ class Command(BaseCommand):
                 return
 
         loader.download_projects_related_metadata(filter_on_project_ids)
-        for project_metadata in loader.get_projects_metadata(filter_on_project_ids):
+        for project_metadata in metadata_parser.load_projects_metadata(filter_on_project_ids):
             # validate that a project can be added to the db,
             # then creates it, all its samples and libraries, and all other relations
             if project := loader.create_project(
