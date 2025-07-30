@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.exceptions import DatasetError, JobError
 from scpca_portal.models import APIToken, Dataset, Job
@@ -57,7 +58,7 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def list(self, request):
         queryset = Dataset.objects.all()
         # if custom datasets are requested (with is_ccdl set to false), then a token must be present
-        if request.query_params.get("is_ccdl").lower() == "false":
+        if not utils.boolean_from_string(request.query_params.get("is_ccdl", True)):
             token = self.get_and_validate_token(request)
             queryset = queryset.filter(is_ccdl=False, token=token)
         # ccdl datasets are queried when the is_ccdl param is set
