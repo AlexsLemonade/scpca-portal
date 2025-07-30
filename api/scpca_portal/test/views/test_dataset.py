@@ -216,3 +216,31 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
+
+    def test_filtering_by_query_params(self):
+        url = reverse("datasets-list")
+
+        # Assert CCDL Dataset request is filtered correctly
+        response = self.client.get(url, {"is_ccdl": True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.json()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["id"], str(self.ccdl_dataset.id))
+
+        # Assert Non CCDL Dataset request without token is forbidden
+        response = self.client.get(url, {"is_ccdl": False})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        results = response.json()
+        exepcted_message = (
+            "A token was either not passed or is invalid. "
+            "A valid token must be present to retrieve, create or modify custom datasets."
+        )
+        self.assertEqual(results["message"], exepcted_message)
+        self.assertEqual(results["token_id"], "None")
+
+        # Assert Non CCDL Dataset request with token is filtered correctly
+        response = self.client.get(url, {"is_ccdl": False}, **self.auth_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.json()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["id"], str(self.custom_dataset.id))

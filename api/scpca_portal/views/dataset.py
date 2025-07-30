@@ -28,7 +28,6 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = DatasetSerializer
     filterset_fields = (
         "id",
-        "email",
         "is_ccdl",
         "ccdl_name",
         "ccdl_project_id",
@@ -44,10 +43,11 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if not token:
             raise PermissionDenied(
                 {
-                    "message": """
-                        A token was either not passed or is invalid.
-                        A valid token must be present to retrieve, create or modify custom datasets.
-                    """,
+                    "message": (
+                        "A token was either not passed or is invalid. "
+                        "A valid token must be present to "
+                        "retrieve, create or modify custom datasets."
+                    ),
                     "token_id": token_id,
                 }
             )
@@ -57,7 +57,7 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def list(self, request):
         queryset = Dataset.objects.all()
         # if custom datasets are requested (with is_ccdl set to false), then a token must be present
-        if request.query_params.get("is_ccdl") == "false":
+        if request.query_params.get("is_ccdl").lower() == "false":
             token = self.get_and_validate_token(request)
             queryset = queryset.filter(is_ccdl=False, token=token)
         # ccdl datasets are queried when the is_ccdl param is set
