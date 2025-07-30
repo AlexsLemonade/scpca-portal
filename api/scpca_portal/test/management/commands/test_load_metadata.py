@@ -37,12 +37,14 @@ class TestLoadMetadata(TestCase):
 
         # Handle patching in setUp function
         create_data_dirs_patch = patch("scpca_portal.utils.create_data_dirs")
+        download_files_patch = patch("scpca_portal.s3.download_files")
         get_projects_metadata_patch = patch("scpca_portal.loader.get_projects_metadata")
         create_project_patch = patch("scpca_portal.loader.create_project")
         remove_nested_data_dirs_patch = patch("scpca_portal.utils.remove_nested_data_dirs")
 
         # Start patches
         self.mock_create_data_dirs = create_data_dirs_patch.start()
+        self.mock_download_files_patch = download_files_patch.start()
         self.mock_get_projects_metadata = get_projects_metadata_patch.start()
         self.mock_create_project = create_project_patch.start()
         self.mock_remove_nested_data_dirs = remove_nested_data_dirs_patch.start()
@@ -50,6 +52,7 @@ class TestLoadMetadata(TestCase):
         # Save patches that so they can be stopped during tearDown
         self.patches = [
             create_data_dirs_patch,
+            download_files_patch,
             get_projects_metadata_patch,
             create_project_patch,
             remove_nested_data_dirs_patch,
