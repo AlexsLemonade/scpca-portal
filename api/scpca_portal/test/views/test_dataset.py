@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from scpca_portal.enums import DatasetFormats
 from scpca_portal.models import APIToken, Dataset
 from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
 from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory
@@ -29,7 +30,7 @@ class DatasetsTestCase(APITestCase):
 
         cls.auth_headers = {"HTTP_API_KEY": str(cls.token.id)}
 
-        cls.ccdl_dataset = DatasetFactory(is_ccdl=True, token=cls.token)
+        cls.ccdl_dataset = DatasetFactory(is_ccdl=True)
         cls.custom_dataset = DatasetFactory(
             is_ccdl=False,
             token=cls.token,
@@ -244,3 +245,28 @@ class DatasetsTestCase(APITestCase):
         results = response.json()
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["id"], str(self.custom_dataset.id))
+
+        # Assert correct querying of other query params
+        project_id = "SCPCP999990"
+        ccdl_project_modality_datasets = [
+            DatasetFactory(
+                is_ccdl=True, ccdl_project_id=project_id, format=DatasetFormats.ANN_DATA
+            ),
+            DatasetFactory(
+                is_ccdl=True,
+                ccdl_project_id=project_id,
+                format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
+            ),
+            DatasetFactory(
+                is_ccdl=True, ccdl_project_id=project_id, format=DatasetFormats.METADATA
+            ),
+        ]
+
+        response = self.client.get(url, {"is_ccdl": True, "ccdl_project_id": project_id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.json()
+        self.assertEqual(len(results), 3)
+
+        expected_dataset_ids = {str(dataset.id) for dataset in ccdl_project_modality_datasets}
+        actual_dataset_ids = {result["id"] for result in results}
+        self.assertEqual(actual_dataset_ids, expected_dataset_ids)
