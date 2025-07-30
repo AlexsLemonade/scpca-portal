@@ -38,17 +38,38 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         # TODO: decide if we want to allow querying on is_state attributes
     )
 
+    def get_and_validate_token(self, request) -> APIToken:
+        token_id = request.META.get("HTTP_API_KEY")
+        token = APIToken.verify(token_id) if token_id else None
+        if not token:
+            raise PermissionDenied(
+                {
+                    "message": """
+                        A token was either not passed or is invalid.
+                        A valid token must be present to retrieve, create or modify custom datasets.
+                    """,
+                    "token_id": token_id,
+                }
+            )
+
+        return token
+
     def list(self, request):
-        queryset = Dataset.objects.filter(is_ccdl=True)
-        serializer = DatasetSerializer(queryset, many=True)
+        queryset = Dataset.objects.all()
+        # if custom datasets are requested (with is_ccdl set to false), then a token must be present
+        if request.query_params.get("is_ccdl") == "false":
+            token = self.get_and_validate_token(request)
+            queryset = queryset.filter(is_ccdl=False, token=token)
+        # ccdl datasets are queried when the is_ccdl param is set
+        # and by default if no is_ccdl param is passed
+        else:
+            queryset = queryset.filter(is_ccdl=True)
+
+        serializer = DatasetSerializer(self.filter_queryset(queryset), many=True)
         return Response(serializer.data)
 
     def create(self, request):
-        token_id = self.request.META.get("HTTP_API_KEY")
-        if not token_id or not APIToken.verify(token_id):
-            raise PermissionDenied(
-                {"message": "Your token is not valid or not activated.", "token_id": token_id}
-            )
+        self.get_and_validate_token(request)
 
         serializer = DatasetCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=False)
@@ -67,18 +88,18 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         queryset = Dataset.objects.all()
         dataset = get_object_or_404(queryset, pk=pk)
+        if not dataset.is_ccdl:
+            self.get_and_validate_token(request)
+
         serializer = DatasetDetailSerializer(dataset, many=False)
         return Response(serializer.data)
 
     def update(self, request, pk=None):
-        token_id = self.request.META.get("HTTP_API_KEY")
-        if not token_id or not APIToken.verify(token_id):
-            raise PermissionDenied(
-                {"message": "Your token is not valid or not activated.", "token_id": token_id}
-            )
-
-        queryset = Dataset.objects.filter(is_ccdl=False)
+        queryset = Dataset.objects.all()
         existing_dataset = get_object_or_404(queryset, pk=pk)
+        if not existing_dataset.is_ccdl:
+            self.get_and_validate_token(request)
+
         if existing_dataset.start:
             return Response(
                 {"detail": "Invalid request: Processing dataset cannot be modified."},
