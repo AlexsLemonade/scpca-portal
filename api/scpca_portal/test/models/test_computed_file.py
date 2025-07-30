@@ -44,7 +44,10 @@ class TestGetFile(TestCase):
         bucket = settings.AWS_S3_INPUT_BUCKET_NAME
         call_command("sync_original_files", bucket=bucket)
 
+        loader.download_projects_metadata()
         project_ids = metadata_parser.get_projects_metadata_ids(bucket=bucket)
+
+        loader.download_projects_related_metadata(project_ids)
         for project_metadata in metadata_parser.load_projects_metadata(project_ids):
             loader.create_project(
                 project_metadata,

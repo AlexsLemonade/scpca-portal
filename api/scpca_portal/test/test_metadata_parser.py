@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
-from scpca_portal import metadata_parser
+from scpca_portal import loader, metadata_parser
 from scpca_portal.test.factories import ProjectFactory
 
 
@@ -22,12 +22,16 @@ class TestMetadataParser(TestCase):
 
     def test_get_projects_metadata_ids(self):
         expected_project_ids = ["SCPCP999990", "SCPCP999991", "SCPCP999992"]
+        loader.download_projects_metadata()
         actual_project_ids = metadata_parser.get_projects_metadata_ids()
         self.assertListEqual(actual_project_ids, expected_project_ids)
 
     def test_load_projects_metadata(self):
         # Load metadata for projects
+        loader.download_projects_metadata()
         project_ids = metadata_parser.get_projects_metadata_ids()
+
+        loader.download_projects_related_metadata(project_ids)
         projects_metadata = metadata_parser.load_projects_metadata(project_ids)
 
         # Verify that metadata keys are transformed correctly
