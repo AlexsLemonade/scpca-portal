@@ -4,7 +4,7 @@ from typing import Dict, List
 
 from django.conf import settings
 
-from scpca_portal import common, s3, utils
+from scpca_portal import common, utils
 from scpca_portal.models.original_file import OriginalFile
 
 PROJECT_METADATA_KEYS = [
@@ -50,9 +50,6 @@ def get_projects_metadata_ids(*, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
 
     """
     projects_metadata_file = OriginalFile.get_input_projects_metadata_file(bucket=bucket)
-
-    if projects_metadata_file.local_file_path:
-        s3.download_files([projects_metadata_file])
 
     with open(projects_metadata_file.local_file_path) as raw_file:
         projects_metadata = csv.DictReader(raw_file)
