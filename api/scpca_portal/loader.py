@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import connection
 from django.template.defaultfilters import pluralize
 
-from scpca_portal import metadata_parser, s3
+from scpca_portal import s3
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import (
     ComputedFile,
@@ -40,14 +40,6 @@ def download_projects_related_metadata(filter_on_project_ids: List[str]) -> None
     bulk_original_files = filter_on_projects_files.filter(is_bulk=True)
 
     s3.download_files(metadata_original_files | bulk_original_files)
-
-
-def get_projects_metadata(filter_on_project_ids: List[str]) -> List[Dict[str, Any]]:
-    """
-    Load the project metadata files and return project metadata dicts.
-    """
-    projects_metadata = metadata_parser.load_projects_metadata(filter_on_project_ids)
-    return projects_metadata
 
 
 # TODO: Remove after the dataset release
