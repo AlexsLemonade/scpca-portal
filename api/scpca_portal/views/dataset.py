@@ -44,7 +44,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
                 }
             )
 
-    def retrieve(self, request):
+    def retrieve(self, request, pk=None):
         dataset = self.get_object()
         serializer = DatasetDetailSerializer(dataset, many=False)
         return Response(serializer.data)
@@ -66,7 +66,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def update(self, request):
+    def update(self, request, pk=None):
         existing_dataset = self.get_object()
         if existing_dataset.start:
             return Response(

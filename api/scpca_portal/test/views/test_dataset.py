@@ -6,17 +6,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from scpca_portal.enums import DatasetFormats
 from scpca_portal.models import APIToken, Dataset
 from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
 from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory
-
-
-class EmptyDatasetTestCase(APITestCase):
-    def test_get_list(self):
-        url = reverse("datasets-list")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class DatasetsTestCase(APITestCase):
@@ -30,7 +22,7 @@ class DatasetsTestCase(APITestCase):
 
         cls.auth_headers = {"HTTP_API_KEY": str(cls.token.id)}
 
-        cls.ccdl_dataset = DatasetFactory(is_ccdl=True)
+        cls.ccdl_dataset = DatasetFactory(is_ccdl=True, token=cls.token)
         cls.custom_dataset = DatasetFactory(
             is_ccdl=False,
             token=cls.token,
@@ -38,34 +30,28 @@ class DatasetsTestCase(APITestCase):
         )
 
     def test_get_single(self):
-        url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json().get("id"), str(self.ccdl_dataset.id))
-
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
-        response = self.client.get(url)
+        response = self.client.get(url, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json().get("id"), str(self.custom_dataset.id))
+
         # Assert that computed_file attribute is a dict an not just the pk
         self.assertIsInstance(response.json().get("computed_file"), dict)
+
+        # Assert failure when token is not passed
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Assert that only Custom datasets are retrievable
+        url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
+        response = self.client.get(url, **self.auth_headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Assert non existing dataset adequately 404s
         dataset = Dataset(data={})
         url = reverse("datasets-detail", args=[dataset.id])
-        response = self.client.get(url, {})
+        response = self.client.get(url, {}, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_get_list(self):
-        url = reverse("datasets-list")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        response_json = response.json()
-        self.assertEqual(len(response.json()), 1)
-        # Assert that only CCDL datasets are listable
-        self.assertNotEqual(response_json[0].get("id"), str(self.custom_dataset.id))
-        self.assertEqual(response_json[0].get("id"), str(self.ccdl_dataset.id))
 
     def test_post(self):
         url = reverse("datasets-list", args=[])
@@ -136,27 +122,20 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, {}, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_list_is_not_allowed(self):
+        url = reverse("datasets-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_patch_is_not_allowed(self):
+        url = reverse("datasets-detail", args=[self.custom_dataset.id])
+        response = self.client.patch(url)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def test_delete_is_not_allowed(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
         response = self.client.delete(url)
-
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def test_stats_property_keys(self):
-        url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
-        response = self.client.get(url)
-        stats_property = response.json().get("stats")
-        stats_property_fields = {
-            "current_data_hash",
-            "current_readme_hash",
-            "current_metadata_hash",
-            "is_hash_changed",
-            "uncompressed_size",
-            "diagnoses_summary",
-            "files_summary",
-        }
-        for field in stats_property_fields:
-            self.assertIn(field, stats_property)
 
     @patch("scpca_portal.models.Job.submit")
     def test_create_submit_job(self, mock_submit_job):
@@ -217,56 +196,3 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
-
-    def test_filtering_by_query_params(self):
-        url = reverse("datasets-list")
-
-        # Assert CCDL Dataset request is filtered correctly
-        response = self.client.get(url, {"is_ccdl": True})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.json()
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["id"], str(self.ccdl_dataset.id))
-
-        # Assert Non CCDL Dataset request without token is forbidden
-        response = self.client.get(url, {"is_ccdl": False})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        results = response.json()
-        exepcted_message = (
-            "A token was either not passed or is invalid. "
-            "A valid token must be present to retrieve, create or modify custom datasets."
-        )
-        self.assertEqual(results["message"], exepcted_message)
-        self.assertEqual(results["token_id"], "None")
-
-        # Assert Non CCDL Dataset request with token is filtered correctly
-        response = self.client.get(url, {"is_ccdl": False}, **self.auth_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.json()
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["id"], str(self.custom_dataset.id))
-
-        # Assert correct querying of other query params
-        project_id = "SCPCP999990"
-        ccdl_project_modality_datasets = [
-            DatasetFactory(
-                is_ccdl=True, ccdl_project_id=project_id, format=DatasetFormats.ANN_DATA
-            ),
-            DatasetFactory(
-                is_ccdl=True,
-                ccdl_project_id=project_id,
-                format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
-            ),
-            DatasetFactory(
-                is_ccdl=True, ccdl_project_id=project_id, format=DatasetFormats.METADATA
-            ),
-        ]
-
-        response = self.client.get(url, {"is_ccdl": True, "ccdl_project_id": project_id})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.json()
-        self.assertEqual(len(results), 3)
-
-        expected_dataset_ids = {str(dataset.id) for dataset in ccdl_project_modality_datasets}
-        actual_dataset_ids = {result["id"] for result in results}
-        self.assertEqual(actual_dataset_ids, expected_dataset_ids)
