@@ -6,6 +6,7 @@ import { theme } from 'theme'
 import { Layout } from 'components/Layout'
 import { Reset } from 'styles/Reset'
 import { BannerContextProvider } from 'contexts/BannerContext'
+import { DatasetManagerContextProvider } from 'contexts/DatasetManagerContext'
 import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
 import { AnalyticsContextProvider } from 'contexts/AnalyticsContext'
 import { PageTitle } from 'components/PageTitle'
@@ -31,10 +32,13 @@ const Portal = ({ Component, pageProps }) => {
             <AnalyticsContextProvider>
               <PageTitle />
               <BannerContextProvider>
-                <Layout>
-                  {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                  <Component {...pageProps} />
-                </Layout>
+                <DatasetManagerContextProvider>
+                  <Layout>
+
+                      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                      <Component {...pageProps} />
+                  </Layout>
+                </DatasetManagerContextProvider>
               </BannerContextProvider>
             </AnalyticsContextProvider>
           </ScPCAPortalContextProvider>
