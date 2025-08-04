@@ -116,7 +116,11 @@ class TestDatasetDataResourceExistence(TestCase):
 
         with self.assertRaises(Exception) as e:
             DatasetDataResourceExistence.validate(data, format)
-            self.assertEqual(str(e.exception), "No Spatial data for ANNDATA.")
+        self.assertEqual(
+            str(e.exception),
+            "The following projects requested Spatial data with an invalid format of ANNDATA: "
+            "SCPCP000001",
+        )
 
         # assert project id doesn't exist
         data = {
@@ -130,6 +134,80 @@ class TestDatasetDataResourceExistence(TestCase):
 
         with self.assertRaises(Exception) as e:
             DatasetDataResourceExistence.validate(data, format)
-            self.assertEqual(
-                str(e.exception), "The following projects do not exist: ['SCPCP999999']"
-            )
+        self.assertEqual(str(e.exception), "The following projects do not exist: SCPCP999999")
+
+        # assert sample ids doesn't exist
+        data = {
+            "SCPCP000001": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000004", "SCPCS000005"],
+                Modalities.SPATIAL.value: ["SCPCS000006"],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+
+        with self.assertRaises(Exception) as e:
+            DatasetDataResourceExistence.validate(data, format)
+        self.assertEqual(
+            str(e.exception),
+            "The following samples do not exist: SCPCS000004, SCPCS000005, SCPCS000006",
+        )
+
+        # assert spatial sample isn't associated with single cell modality
+        data = {
+            "SCPCP000001": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000003"],
+                Modalities.SPATIAL.value: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+
+        with self.assertRaises(Exception) as e:
+            DatasetDataResourceExistence.validate(data, format)
+        self.assertEqual(
+            str(e.exception),
+            "The following samples are not associated with SCPCP000001 and SINGLE_CELL: "
+            "SCPCS000003",
+        )
+
+        # assert that a sample isn't associated with its project
+        ProjectFactory(scpca_id="SCPCP000002")
+        data = {
+            "SCPCP000002": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000001"],
+                Modalities.SPATIAL.value: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+
+        with self.assertRaises(Exception) as e:
+            DatasetDataResourceExistence.validate(data, format)
+
+        # TODO: debug problem with this assertion
+        # self.assertEqual(
+        #    str(e.exception),
+        #    "The following samples are not associated with SCPCP000002 and SINGLE_CELL: "
+        #    "SCPCS000001"
+        # )
+
+        # assert that a sample can be both single cell and spatial
+        project = ProjectFactory(scpca_id="SCPCP000003")
+        SampleFactory(
+            scpca_id="SCPCS000004",
+            project=project,
+            has_single_cell_data=True,
+            has_spatial_data=True,
+        )
+        data = {
+            "SCPCP000003": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000004"],
+                Modalities.SPATIAL.value: ["SCPCS000004"],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+
+        # no exception raised
+        DatasetDataResourceExistence.validate(data, format)

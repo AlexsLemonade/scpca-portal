@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, RootModel, ValidationInfo, field_validato
 
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models.project import Project
+from scpca_portal.models.sample import Sample
 
 PROJECT_ID_REGEX = r"^SCPCP\d{6}$"
 SAMPLE_ID_REGEX = r"^SCPCS\d{6}$"
@@ -67,18 +68,75 @@ class DatasetDataResourceExistence:
         Raises exceptions if projects, samples or their associations do not exist.
         """
         if format == DatasetFormats.ANN_DATA.value:
-            if any(
-                project_data.get(Modalities.SPATIAL.value, []) for project_data in data.values()
-            ):
+            if invalid_ids := [
+                project_id
+                for project_id, project_data in data.items()
+                if project_data.get(Modalities.SPATIAL.value)
+            ]:
                 # TODO: add custom exception
-                raise Exception("No Spatial data for ANNDATA.")
+                "The following projects requested Spatial data with an invalid format of ANNADATA:"
+                raise Exception(
+                    "The following projects requested Spatial data "
+                    "with an invalid format of ANNDATA: "
+                    f"{', '.join(sorted(invalid_ids))}"
+                )
 
         # validate that all projects exist
-        existing_ids = Project.objects.filter(scpca_id__in=data.keys()).values_list(
+        existing_project_ids = Project.objects.filter(scpca_id__in=data.keys()).values_list(
             "scpca_id", flat=True
         )
-        if missing_keys := set(data.keys()) - set(existing_ids):
-            raise Exception(f"The following projects do not exist: {list(missing_keys)}")
+        if missing_keys := set(data.keys()) - set(existing_project_ids):
+            # TODO: add custom exception
+            raise Exception(
+                f"The following projects do not exist: {', '.join(sorted(missing_keys))}"
+            )
 
-        # TODO: sample modality existence check
+        # validate that all samples exist
+        data_sample_ids = {
+            sample_id
+            for project_data in data.values()
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]
+            for sample_id in project_data[modality]
+        }
+        data_samples = Sample.objects.filter(scpca_id__in=data_sample_ids).values(
+            "scpca_id", "project__scpca_id", "has_single_cell_data", "has_spatial_data"
+        )
+        if missing_keys := data_sample_ids - {sample["scpca_id"] for sample in data_samples}:
+            # TODO: add custom exception
+            raise Exception(
+                f"The following samples do not exist: {', '.join(sorted(missing_keys))}"
+            )
+
+        # validate that existing samples were put with their associated projects and modalities
+        valid_project_modality_sample_ids = {
+            project_id: {Modalities.SINGLE_CELL: [], Modalities.SPATIAL: []}
+            for project_id in existing_project_ids
+        }
+
+        for sample in data_samples:
+            project_id = sample["project__scpca_id"]
+
+            if sample["has_single_cell_data"]:
+                valid_project_modality_sample_ids[project_id][Modalities.SINGLE_CELL].append(
+                    sample["scpca_id"]
+                )
+
+            if sample["has_spatial_data"]:
+                valid_project_modality_sample_ids[project_id][Modalities.SPATIAL].append(
+                    sample["scpca_id"]
+                )
+
+        for project_id, project_data in data.items():
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                existing_ids = project_data[modality]
+                if missing_keys := set(existing_ids) - set(
+                    valid_project_modality_sample_ids[project_id][modality]
+                ):
+                    # TODO: add custom exception
+                    raise Exception(
+                        "The following samples are not associated "
+                        f"with {project_id} and {modality}: "
+                        "{', '.join(sorted(missing_keys))}"
+                    )
+
         return data
