@@ -91,6 +91,8 @@ class DatasetDataResourceExistence:
                 f"The following projects do not exist: {', '.join(sorted(missing_keys))}"
             )
 
+        # TODO add bulk check here
+
         # validate that all samples exist
         data_sample_ids = {
             sample_id
