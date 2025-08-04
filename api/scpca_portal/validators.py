@@ -138,7 +138,7 @@ class DatasetDataResourceExistence:
                     raise Exception(
                         "The following samples are not associated "
                         f"with {project_id} and {modality}: "
-                        "{', '.join(sorted(missing_keys))}"
+                        f"{', '.join(sorted(missing_keys))}"
                     )
 
         return data

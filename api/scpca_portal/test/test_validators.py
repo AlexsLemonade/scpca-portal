@@ -195,7 +195,7 @@ class TestDatasetDataResourceExistence(TestCase):
         # assert that a sample can be both single cell and spatial
         project = ProjectFactory(scpca_id="SCPCP000003")
         SampleFactory(
-            scpca_id="SCPCS000004",
+            scpca_id="SCPCS000010",
             project=project,
             has_single_cell_data=True,
             has_spatial_data=True,
@@ -203,8 +203,8 @@ class TestDatasetDataResourceExistence(TestCase):
         data = {
             "SCPCP000003": {
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000004"],
-                Modalities.SPATIAL.value: ["SCPCS000004"],
+                Modalities.SINGLE_CELL.value: ["SCPCS000010"],
+                Modalities.SPATIAL.value: ["SCPCS000010"],
             },
         }
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT
