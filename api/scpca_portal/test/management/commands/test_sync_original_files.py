@@ -83,8 +83,7 @@ class TestSyncOriginalFiles(TestCase):
 
         self.empty_objects_list = []
 
-    @patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[])
-    def test_sync_original_files(self, _):
+    def test_sync_original_files(self):
         # TEST ORIGINAL FILE CREATION
         with patch("scpca_portal.s3.list_bucket_objects", return_value=self.original_objects_list):
             self.sync_original_files()

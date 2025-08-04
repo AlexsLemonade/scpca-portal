@@ -5,7 +5,7 @@ from typing import Set
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from scpca_portal import common, loader, lockfile, metadata_parser
+from scpca_portal import common, loader, lockfile, metadata_parser, utils
 from scpca_portal.models import OriginalFile, Project
 
 logger = logging.getLogger()
@@ -33,7 +33,7 @@ class Command(BaseCommand):
             "--clean-up-input-data",
             action=BooleanOptionalAction,
             type=bool,
-            default=settings.PRODUCTION,
+            default=settings.CLEAN_UP_DATA,
         )
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
@@ -85,7 +85,8 @@ class Command(BaseCommand):
                 "OriginalFile table is empty. Run 'sync_original_files' first to populate it."
             )
 
-        loader.prep_data_dirs()
+        utils.create_data_dirs()
+        loader.download_projects_metadata()
 
         projects_metadata_ids = set(metadata_parser.get_projects_metadata_ids())
         lockfile_project_ids = set(lockfile.get_lockfile_project_ids())
@@ -106,9 +107,8 @@ class Command(BaseCommand):
                 logger.info(f"{scpca_project_id} is not available to reload.")
                 return
 
-        for project_metadata in loader.get_projects_metadata(
-            filter_on_project_ids=filter_on_project_ids
-        ):
+        loader.download_projects_related_metadata(filter_on_project_ids)
+        for project_metadata in metadata_parser.load_projects_metadata(filter_on_project_ids):
             # validate that a project can be added to the db,
             # then creates it, all its samples and libraries, and all other relations
             if project := loader.create_project(
@@ -116,4 +116,4 @@ class Command(BaseCommand):
             ):
                 if clean_up_input_data:
                     logger.info(f"Cleaning up '{project}' input files")
-                    loader.remove_project_input_files(project.scpca_id)
+                    utils.remove_nested_data_dirs(project.scpca_id)
