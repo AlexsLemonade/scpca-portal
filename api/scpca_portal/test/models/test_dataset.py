@@ -13,12 +13,7 @@ from scpca_portal import loader
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import (
-    DatasetFactory,
-    OriginalFileFactory,
-    ProjectFactory,
-    SampleFactory,
-)
+from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 
 
 class TestDataset(TestCase):
@@ -52,7 +47,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        Dataset.validate_data(data)
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+
+        Dataset.validate_data(data, format)
 
         # Incorrect project ids
         data = {
@@ -62,8 +59,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
+            Dataset.validate_data(data, format)
 
         # Lack of SCPCP prefix
         data = {
@@ -73,8 +71,10 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+
         with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
+            Dataset.validate_data(data, format)
 
         # Incorrect number of digits
         data = {
@@ -84,8 +84,10 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+
         with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
+            Dataset.validate_data(data, format)
 
     @tag("validate_data")
     def test_validate_data_project_data(self):
@@ -97,13 +99,15 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        Dataset.validate_data(data)
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        Dataset.validate_data(data, format)
 
         # Empty config (valid)
         data = {
             "SCPCP999990": {},
         }
-        Dataset.validate_data(data)
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        Dataset.validate_data(data, format)
 
         # Includes bulk - missing (valid)
         data = {
@@ -112,7 +116,8 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        Dataset.validate_data(data)
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        Dataset.validate_data(data, format)
 
         # Includes bulk - wrong type
         # However, Pydantic will correct this
@@ -123,7 +128,8 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        Dataset.validate_data(data)
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        Dataset.validate_data(data, format)
 
         # Single Cell - missing (valid)
         data = {
@@ -132,7 +138,8 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        Dataset.validate_data(data)
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        Dataset.validate_data(data, format)
 
         # Single Cell - wrong type (invalid)
         data = {
@@ -142,8 +149,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
+            Dataset.validate_data(data, format)
 
         # Merge single cell - wrong type (invalid)
         data = {
@@ -153,8 +161,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
+            Dataset.validate_data(data, format)
 
         # Single Cell - wrong inner type (invalid)
         data = {
@@ -164,8 +173,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
+            Dataset.validate_data(data, format)
 
         # Single Cell - invalid sample id (invalid)
         data = {
@@ -175,8 +185,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
+            Dataset.validate_data(data, format)
 
         # Spatial - missing (valid)
         data = {
@@ -185,7 +196,8 @@ class TestDataset(TestCase):
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
             },
         }
-        Dataset.validate_data(data)
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        Dataset.validate_data(data, format)
 
         # Spatial - wrong type (invalid)
         data = {
@@ -195,8 +207,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: "SCPCS999992",
             },
         }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
+            Dataset.validate_data(data, format)
 
         # Spatial - wrong inner type (invalid)
         data = {
@@ -206,8 +219,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: [1, 2, 3],
             },
         }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
+            Dataset.validate_data(data, format)
 
         # Spatial - invalid sample id (invalid)
         data = {
@@ -217,59 +231,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["sample_id"],
             },
         }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-    def test_validate(self):
-        project = ProjectFactory(scpca_id="SCPCP000001")
-        SampleFactory(scpca_id="SCPCS000001", project=project, has_single_cell_data=True)
-        SampleFactory(scpca_id="SCPCS000002", project=project, has_single_cell_data=True)
-        SampleFactory(scpca_id="SCPCS000003", project=project, has_spatial_data=True)
-
-        # no exceptions thrown
-        data = {
-            "SCPCP000001": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
-                Modalities.SPATIAL.value: ["SCPCS000003"],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
-        dataset = Dataset(data=data, format=format)
-
-        dataset.validate()  # no exception should be thrown here
-
-        # assert spatial samples cannot be requested with anndata format
-        data = {
-            "SCPCP000001": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
-                Modalities.SPATIAL.value: ["SCPCS000003"],
-            },
-        }
-        format = DatasetFormats.ANN_DATA
-        dataset = Dataset(data=data, format=format)
-
-        with self.assertRaises(Exception) as e:
-            dataset.validate()
-            self.assertEqual(str(e.exception), "No Spatial data for ANNDATA.")
-
-        # assert project id doesn't exist
-        data = {
-            "SCPCP999999": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
-                Modalities.SPATIAL.value: ["SCPCS000003"],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
-        dataset = Dataset(data=data, format=format)
-
-        with self.assertRaises(Exception) as e:
-            dataset.validate()
-            self.assertEqual(
-                str(e.exception), "The following projects do not exist: ['SCPCP999999']"
-            )
+            Dataset.validate_data(data, format)
 
     def test_is_ccdl_default_set(self):
         dataset = DatasetFactory()
