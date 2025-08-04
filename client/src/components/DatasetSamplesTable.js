@@ -1,77 +1,13 @@
 import React from 'react'
-import { Box, CheckBox as GrommetCheckBox, Text } from 'grommet'
-import { FormCheckmark } from 'grommet-icons'
-import styled, { css } from 'styled-components'
+import { Box, Text } from 'grommet'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
-import { Button } from 'components/Button'
-import { Pill } from 'components/Pill'
-import { Table } from 'components/Table'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
-
-const CheckBox = styled(GrommetCheckBox)`
-  + div {
-    width: 24px;
-    height: 24px;
-  }
-  ${({ theme }) => css`
-    &:not(:checked) {
-      + div {
-        background: ${theme.global.colors.white};
-      }
-    }
-  `}
-`
-
-// NOTE: Ask Deepa for a checkmark SVG Icon
-const TriStateModalityCheckBox = ({ modality }) => {
-  const { selectedSamples, filteredSamples, toggleAllSamples } =
-    useDatasetSamplesTable()
-
-  const sampleIdsOnPage = filteredSamples.map((sample) => sample.scpca_id)
-  const currentSelectedSamples = selectedSamples[modality]
-
-  const selectedCountOnPage = sampleIdsOnPage.filter((id) =>
-    currentSelectedSamples.includes(id)
-  ).length
-
-  const isNoneSelected = selectedCountOnPage === 0
-  const isAllSelected = selectedCountOnPage === sampleIdsOnPage.length
-  const isSomeSelected = !isNoneSelected && !isAllSelected
-
-  return (
-    <Box
-      align="center"
-      border={{
-        side: 'all',
-        color: !isNoneSelected ? 'brand' : 'black-tint-60'
-      }}
-      justify="center"
-      round="4px"
-      width="24px"
-      height="24px"
-      onClick={() => toggleAllSamples(modality)}
-    >
-      {isSomeSelected && (
-        <Box background="brand" round="inherit" width="10px" height="3px" />
-      )}
-      {isAllSelected && <FormCheckmark color="brand" size="20px" />}
-    </Box>
-  )
-}
-
-const ModalityCheckBox = ({ modality, sampleId, disabled, onClick }) => {
-  const { selectedSamples } = useDatasetSamplesTable()
-
-  return (
-    <CheckBox
-      name={modality}
-      checked={!disabled ? selectedSamples[modality].includes(sampleId) : false}
-      disabled={disabled}
-      onClick={onClick}
-    />
-  )
-}
+import { Button } from 'components/Button'
+import { ModalityCheckBox } from 'components/ModalityCheckBox'
+import { Pill } from 'components/Pill'
+import { Table } from 'components/Table'
+import { TriStateModalityCheckBox } from 'components/TriStateModalityCheckBox'
 
 // NOTE: This component accepts 'samples' prop but it's subject to change
 // Currently mock data is used via Storybook for development
