@@ -34,9 +34,8 @@ const Portal = ({ Component, pageProps }) => {
               <BannerContextProvider>
                 <DatasetManagerContextProvider>
                   <Layout>
-
-                      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                      <Component {...pageProps} />
+                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                    <Component {...pageProps} />
                   </Layout>
                 </DatasetManagerContextProvider>
               </BannerContextProvider>
