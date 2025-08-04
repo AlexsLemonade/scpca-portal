@@ -8,7 +8,12 @@ from rest_framework.test import APITestCase
 
 from scpca_portal.models import APIToken, Dataset
 from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
-from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory
+from scpca_portal.test.factories import (
+    DatasetFactory,
+    LeafComputedFileFactory,
+    ProjectFactory,
+    SampleFactory,
+)
 
 
 class DatasetsTestCase(APITestCase):
@@ -28,6 +33,16 @@ class DatasetsTestCase(APITestCase):
             token=cls.token,
             computed_file=LeafComputedFileFactory(),
         )
+
+        # create custom dataset project and samples objects
+        project = ProjectFactory(scpca_id="SCPCP999990")
+        SampleFactory(scpca_id="SCPCS999990", project=project, has_single_cell_data=True)
+        SampleFactory(scpca_id="SCPCS999997", project=project, has_single_cell_data=True)
+        SampleFactory(scpca_id="SCPCS999991", project=project, has_spatial_data=True)
+
+        project = ProjectFactory(scpca_id="SCPCP999992")
+        SampleFactory(scpca_id="SCPCS999996", project=project, has_single_cell_data=True)
+        SampleFactory(scpca_id="SCPCS999998", project=project, has_single_cell_data=True)
 
     def test_get_single(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
