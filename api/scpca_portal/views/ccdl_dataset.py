@@ -11,9 +11,8 @@ class CCDLDatasetViewSet(viewsets.ReadOnlyModelViewSet):
         "id",
         "ccdl_name",
         "ccdl_project_id",
+        "ccdl_modality",
         "format",
-        # data  # TODO: consider if we want to query for modality on CCDL datasets
-        #   or included project ids, modalities, and bulk in custom datasets
     )
 
     def get_serializer_class(self):
