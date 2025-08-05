@@ -11,11 +11,8 @@ class CCDLDatasetViewSet(viewsets.ReadOnlyModelViewSet):
         "id",
         "ccdl_name",
         "ccdl_project_id",
-        # "format", # TODO: format is unqueriable due to an unknown error
-        #   the suspicion is that the enum value in the db
-        #   is not matching correctly to the string value in the request json
-        # data  # TODO: consider if we want to query for modality on CCDL datasets
-        #   or included project ids, modalities, and bulk in custom datasets
+        "ccdl_modality",
+        "format",
     )
 
     def get_serializer_class(self):

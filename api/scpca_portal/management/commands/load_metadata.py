@@ -86,6 +86,7 @@ class Command(BaseCommand):
             )
 
         utils.create_data_dirs()
+        loader.download_projects_metadata()
 
         projects_metadata_ids = set(metadata_parser.get_projects_metadata_ids())
         lockfile_project_ids = set(lockfile.get_lockfile_project_ids())
@@ -106,9 +107,8 @@ class Command(BaseCommand):
                 logger.info(f"{scpca_project_id} is not available to reload.")
                 return
 
-        for project_metadata in loader.get_projects_metadata(
-            filter_on_project_ids=filter_on_project_ids
-        ):
+        loader.download_projects_related_metadata(filter_on_project_ids)
+        for project_metadata in metadata_parser.load_projects_metadata(filter_on_project_ids):
             # validate that a project can be added to the db,
             # then creates it, all its samples and libraries, and all other relations
             if project := loader.create_project(

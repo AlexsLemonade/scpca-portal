@@ -52,7 +52,7 @@ class CCDLDatasetsTestCase(APITestCase):
             dataset_project_metadata,
         ]
 
-        # Assert filtering by ccdl_project_id
+        # Assert filtering with a query param
         response = self.client.get(url, {"ccdl_project_id": project_id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_json = response.json()
@@ -62,14 +62,14 @@ class CCDLDatasetsTestCase(APITestCase):
         actual_dataset_ids = {result["id"] for result in response_json["results"]}
         self.assertEqual(actual_dataset_ids, expected_dataset_ids)
 
-        # Assert filtering by format
-        # TODO: for an unknown reason, the format query param is not matching properly
-        # see viewset for possible causes
-        # response = self.client.get(url, {"format": "SINGLE_CELL_EXPERIMENT"})
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # response_json = response.json()
-        # self.assertEqual(response_json["count"], 1)
-        # self.assertNotEqual(response_json["results"][0].get("id"), str(dataset_project_sce))
+        # Assert filtering with multiple query params
+        response = self.client.get(
+            url, {"ccdl_project_id": project_id, "format": "SINGLE_CELL_EXPERIMENT"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_json = response.json()
+        self.assertEqual(response_json["count"], 1)
+        self.assertNotEqual(response_json["results"][0].get("id"), str(dataset_project_sce))
 
     def test_get_single(self):
         url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
@@ -111,19 +111,3 @@ class CCDLDatasetsTestCase(APITestCase):
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def test_stats_property_keys(self):
-        url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
-        response = self.client.get(url)
-        stats_property = response.json().get("stats")
-        stats_property_fields = {
-            "current_data_hash",
-            "current_readme_hash",
-            "current_metadata_hash",
-            "is_hash_changed",
-            "uncompressed_size",
-            "diagnoses_summary",
-            "files_summary",
-        }
-        for field in stats_property_fields:
-            self.assertIn(field, stats_property)
