@@ -9,7 +9,7 @@ from django.test import TestCase, tag
 
 from pydantic import ValidationError
 
-from scpca_portal import loader
+from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
@@ -24,13 +24,18 @@ from scpca_portal.test.factories import (
 class TestDataset(TestCase):
     @classmethod
     def setUpTestData(cls):
-        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        bucket = settings.AWS_S3_INPUT_BUCKET_NAME
+        call_command("sync_original_files", bucket=bucket)
 
-        for project_metadata in loader.get_projects_metadata():
+        loader.download_projects_metadata()
+        project_ids = metadata_parser.get_projects_metadata_ids(bucket=bucket)
+
+        loader.download_projects_related_metadata(project_ids)
+        for project_metadata in metadata_parser.load_projects_metadata(project_ids):
             loader.create_project(
                 project_metadata,
                 submitter_whitelist={"scpca"},
-                input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
+                input_bucket_name=bucket,
                 reload_existing=True,
                 update_s3=False,
             )

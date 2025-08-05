@@ -4,10 +4,9 @@ from typing import Any, Dict, List, Set
 
 from django.conf import settings
 from django.db import connection
-from django.db.models import Q
 from django.template.defaultfilters import pluralize
 
-from scpca_portal import metadata_parser, s3
+from scpca_portal import s3
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import (
     ComputedFile,
@@ -22,27 +21,25 @@ from scpca_portal.models import (
 logger = get_and_configure_logger(__name__)
 
 
-def get_projects_metadata(filter_on_project_ids: List[str] = []) -> List[Dict[str, Any]]:
-    """
-    Download all metadata files from the passed project list,
-    or from all projects if none passed,
-    load the project metadata files and return project metadata dicts.
-    """
-    metadata_original_files = OriginalFile.objects.filter(is_metadata=True)
-    bulk_original_files = OriginalFile.objects.filter(is_bulk=True)
+def download_projects_metadata() -> None:
+    """Download the projects metadata file."""
+    projects_metadata_file = OriginalFile.objects.filter(
+        is_metadata=True, project_id__isnull=True
+    ).first()
 
-    if filter_on_project_ids:
-        metadata_original_files = metadata_original_files.filter(
-            Q(project_id__in=filter_on_project_ids) | Q(project_id__isnull=True)
-        )
-        bulk_original_files = bulk_original_files.filter(project_id__in=filter_on_project_ids)
+    s3.download_files([projects_metadata_file])
+
+
+def download_projects_related_metadata(filter_on_project_ids: List[str]) -> None:
+    """
+    Download all metadata files associated with the project ids in the passed project id list.
+    """
+    filter_on_projects_files = OriginalFile.objects.filter(project_id__in=filter_on_project_ids)
+
+    metadata_original_files = filter_on_projects_files.filter(is_metadata=True)
+    bulk_original_files = filter_on_projects_files.filter(is_bulk=True)
 
     s3.download_files(metadata_original_files | bulk_original_files)
-
-    projects_metadata = metadata_parser.load_projects_metadata(
-        filter_on_project_ids=filter_on_project_ids
-    )
-    return projects_metadata
 
 
 # TODO: Remove after the dataset release
