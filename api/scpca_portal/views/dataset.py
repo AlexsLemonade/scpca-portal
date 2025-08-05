@@ -1,11 +1,10 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.exceptions import DatasetError, JobError
-from scpca_portal.models import APIToken, Dataset, Job
+from scpca_portal.models import Dataset, Job
 from scpca_portal.serializers import (
     DatasetCreateSerializer,
     DatasetDetailSerializer,
@@ -22,27 +21,10 @@ class DatasetViewSet(viewsets.ModelViewSet):
         return Dataset.objects.filter(is_ccdl=False)
 
     def get_object(self):
-        self.validate_token(self.request)
-
         queryset = self.get_queryset()
         dataset = get_object_or_404(queryset, pk=self.kwargs[self.lookup_field])
 
         return dataset
-
-    def validate_token(self, request):
-        token_id = request.META.get("HTTP_API_KEY")
-        token = APIToken.verify(token_id) if token_id else None
-        if not token:
-            raise PermissionDenied(
-                {
-                    "message": (
-                        "A token was either not passed or is invalid. "
-                        "A valid token must be present to "
-                        "retrieve, create or modify custom datasets."
-                    ),
-                    "token_id": token_id,
-                }
-            )
 
     def retrieve(self, request, pk=None):
         dataset = self.get_object()
@@ -50,8 +32,6 @@ class DatasetViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        self.validate_token(request)
-
         serializer = DatasetCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=False)
         dataset = serializer.save()

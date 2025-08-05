@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from scpca_portal.models import APIToken, Dataset
+from scpca_portal.models import Dataset
 from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
 from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory
 
@@ -17,40 +17,30 @@ class DatasetsTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
         call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
-        cls.token = APIToken(email="user@example.com", is_activated=True)
-        cls.token.save()
-
-        cls.auth_headers = {"HTTP_API_KEY": str(cls.token.id)}
-
-        cls.ccdl_dataset = DatasetFactory(is_ccdl=True, token=cls.token)
+        cls.ccdl_dataset = DatasetFactory(is_ccdl=True)
         cls.custom_dataset = DatasetFactory(
             is_ccdl=False,
-            token=cls.token,
             computed_file=LeafComputedFileFactory(),
         )
 
     def test_get_single(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
-        response = self.client.get(url, **self.auth_headers)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json().get("id"), str(self.custom_dataset.id))
 
         # Assert that computed_file attribute is a dict an not just the pk
         self.assertIsInstance(response.json().get("computed_file"), dict)
 
-        # Assert failure when token is not passed
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        # Assert that only Custom datasets are retrievable
+        # Assert that only custom datasets are retrievable
         url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
-        response = self.client.get(url, **self.auth_headers)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Assert non existing dataset adequately 404s
         dataset = Dataset(data={})
         url = reverse("datasets-detail", args=[dataset.id])
-        response = self.client.get(url, {}, **self.auth_headers)
+        response = self.client.get(url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_post(self):
@@ -60,13 +50,6 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
         }
-        # Assert failure when token is not passed
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        # Assert success when token is passed
-        response = self.client.post(url, data, **self.auth_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Assert that adding ccdl datasets doesn't work
         data = {
@@ -75,7 +58,7 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
         }
-        response = self.client.post(url, data, **self.auth_headers)
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         created_dataset = Dataset.objects.filter(id=response.json().get("id")).first()
@@ -87,21 +70,13 @@ class DatasetsTestCase(APITestCase):
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
         }
-        # Assert failure when token is not passed
-        response = self.client.put(url, data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        # Assert success when token is passed
-        response = self.client.put(url, data, **self.auth_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         # Assert that read_only format field was not mutated
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": "format",
         }
-        response = self.client.put(url, data, **self.auth_headers)
+        response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(self.custom_dataset.format, data.get("format"))
 
@@ -113,13 +88,13 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": "format",
         }
-        response = self.client.put(url, data, **self.auth_headers)
+        response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
         # Assert non existing dataset adequately 404s
         dataset = Dataset(data={})
         url = reverse("datasets-detail", args=[dataset.id])
-        response = self.client.put(url, {}, **self.auth_headers)
+        response = self.client.put(url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_is_not_allowed(self):
@@ -148,7 +123,7 @@ class DatasetsTestCase(APITestCase):
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
             "start": False,
         }
-        response = self.client.post(url, data, **self.auth_headers)
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         mock_submit_job.assert_not_called()
 
@@ -159,7 +134,7 @@ class DatasetsTestCase(APITestCase):
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
             "start": True,
         }
-        response = self.client.post(url, data, **self.auth_headers)
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         mock_submit_job.assert_called_once()
 
@@ -177,7 +152,7 @@ class DatasetsTestCase(APITestCase):
         data = {
             "start": True,
         }
-        response = self.client.put(url, data, **self.auth_headers)
+        response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         mock_submit_job.assert_not_called()
 
@@ -193,7 +168,7 @@ class DatasetsTestCase(APITestCase):
         data = {
             "start": True,
         }
-        response = self.client.put(url, data, **self.auth_headers)
+        response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
 
