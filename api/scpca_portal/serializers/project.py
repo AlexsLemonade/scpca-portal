@@ -60,7 +60,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     datasets = serializers.SerializerMethodField()
     external_accessions = ExternalAccessionSerializer(read_only=True, many=True)
     publications = PublicationSerializer(read_only=True, many=True)
-    samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
+    samples = SampleSerializer(many=True, read_only=True)
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
     def get_datasets(self, obj):
