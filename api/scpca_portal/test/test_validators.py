@@ -19,6 +19,15 @@ class TestProjectDataModel(TestCase):
         expected_single_cell_ids = ["SCPCS999990", "SCPCS999992"]
         self.assertEqual(validated_project_data.SINGLE_CELL, expected_single_cell_ids)
 
+    def test_valid_single_cell_list_with_missing_keys(self):
+        project_data = {
+            Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999992"],
+        }
+        validated_project_data = ProjectDataModel.model_validate(project_data)
+
+        expected_single_cell_ids = ["SCPCS999990", "SCPCS999992"]
+        self.assertEqual(validated_project_data.SINGLE_CELL, expected_single_cell_ids)
+
     def test_valid_single_cell_merged_string(self):
         project_data = {
             "includes_bulk": False,
@@ -27,6 +36,15 @@ class TestProjectDataModel(TestCase):
         }
         validated_project_data = ProjectDataModel.model_validate(project_data)
         self.assertEqual(validated_project_data.SINGLE_CELL, "MERGED")
+
+    def test_valid_bulk_string(self):
+        project_data = {
+            "includes_bulk": "True",
+            Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999992"],
+            Modalities.SPATIAL.value: ["SCPCS999991"],
+        }
+        validated_project_data = ProjectDataModel.model_validate(project_data)
+        self.assertTrue(validated_project_data.includes_bulk)
 
     def test_invalid_single_cell_sample_id(self):
         project_data = {Modalities.SINGLE_CELL.value: ["INVALID_SAMPLE_ID"]}
