@@ -146,7 +146,7 @@ class Project_SCPCP999990:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 1568,
+            "sample_cell_count_estimate": 1571,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": ["cell"],
