@@ -1,12 +1,21 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Box } from 'grommet'
 import { FormCheckmark } from 'grommet-icons'
+import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 
 // NOTE: Ask Deepa for a checkmark SVG Icon
-export const TriStateModalityCheckBox = ({ modality }) => {
+export const TriStateModalityCheckBox = ({ modality, disabled }) => {
+  const { myDataset, userFormat } = useDatasetManager()
   const { selectedSamples, filteredSamples, toggleAllSamples } =
     useDatasetSamplesTable()
+
+  const disableSpatial =
+    modality === 'SPATIAL' && (myDataset.format || userFormat) === 'ANN_DATA'
+
+  const borderRegular = !isNoneSelected && !disabled ? 'brand' : 'black-tint-60'
+  const borderColor =
+    disabled || disableSpatial ? 'black-tint-80' : borderRegular
 
   const sampleIdsOnPage = filteredSamples.map((sample) => sample.scpca_id)
   const currentSelectedSamples = selectedSamples[modality]
@@ -19,18 +28,31 @@ export const TriStateModalityCheckBox = ({ modality }) => {
   const isAllSelected = selectedCountOnPage === sampleIdsOnPage.length
   const isSomeSelected = !isNoneSelected && !isAllSelected
 
+  const handleToggleAllSamples = () => {
+    if (disabled) return
+    toggleAllSamples(modality)
+  }
+
+  // Deselect all samples for spatial when a user selects ANN_DATA
+  useEffect(() => {
+    if (disableSpatial) {
+      toggleAllSamples('SPATIAL')
+    }
+  }, [userFormat])
+
   return (
     <Box
       align="center"
       border={{
         side: 'all',
-        color: !isNoneSelected ? 'brand' : 'black-tint-60'
+        color: borderColor
       }}
       justify="center"
       round="4px"
       width="24px"
       height="24px"
-      onClick={() => toggleAllSamples(modality)}
+      style={{ pointerEvents: disabled || disableSpatial ? 'none' : 'auto' }}
+      onClick={handleToggleAllSamples}
     >
       {isSomeSelected && (
         <Box background="brand" round="inherit" width="10px" height="3px" />
