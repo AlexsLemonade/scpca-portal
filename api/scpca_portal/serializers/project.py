@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from scpca_portal.models import Dataset, Project
+from scpca_portal.models import Dataset, Project, Sample
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 from scpca_portal.serializers.contact import ContactSerializer
 from scpca_portal.serializers.dataset import DatasetSerializer
@@ -8,6 +8,21 @@ from scpca_portal.serializers.external_accession import ExternalAccessionSeriali
 from scpca_portal.serializers.project_summary import ProjectSummarySerializer
 from scpca_portal.serializers.publication import PublicationSerializer
 from scpca_portal.serializers.sample import SampleSerializer
+
+
+# Includes only the necessary Sample fields for adding project samples to a dataset
+class ProjectSampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sample
+        fields = (
+            "scpca_id",
+            "has_bulk_rna_seq",
+            "has_cite_seq_data",
+            "has_multiplexed_data",
+            "has_single_cell_data",
+            "has_spatial_data",
+            "includes_anndata",
+        )
 
 
 class ProjectLeafSerializer(serializers.ModelSerializer):
@@ -60,7 +75,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     datasets = serializers.SerializerMethodField()
     external_accessions = ExternalAccessionSerializer(read_only=True, many=True)
     publications = PublicationSerializer(read_only=True, many=True)
-    samples = SampleSerializer(many=True, read_only=True)
+    samples = ProjectSampleSerializer(many=True, read_only=True)
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
     def get_datasets(self, obj):
