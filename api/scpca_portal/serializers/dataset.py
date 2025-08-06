@@ -70,7 +70,7 @@ class DatasetCreateSerializer(DatasetSerializer):
             except PydanticValidationError as e:
                 raise serializers.ValidationError({"data": f"Invalid data structure: {e}"})
             except Exception as e:
-                raise serializers.ValidationError({"data": f"Data validation failed: {str(e)}"})
+                raise serializers.ValidationError({"data": f"Data validation failed: {e}"})
 
         return validated_attrs
 
@@ -87,6 +87,6 @@ class DatasetUpdateSerializer(DatasetSerializer):
             return Dataset.validate_data(value, self.instance.format)
         # serializer exceptions return a 400 response to the client
         except PydanticValidationError as e:
-            raise serializers.ValidationError(f"Invalid data structure: {e}")
+            raise serializers.ValidationError({"data": f"Invalid data structure: {e}"})
         except Exception as e:
-            raise serializers.ValidationError(f"Data validation failed: {str(e)}")
+            raise serializers.ValidationError({"data": f"Data validation failed: {e}"})
