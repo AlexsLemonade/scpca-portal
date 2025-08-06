@@ -10,7 +10,6 @@ const datasets = {
     }),
   get: (id, authorization = '') =>
     request(getAPIUrl(`datasets/${id}`), { authorization }), // token required for file downloads
-  list: (query) => request(getAPIUrl('datasets', query)),
   update: (id, body, authorization) =>
     request(getAPIUrl(`datasets/${id}`), {
       method: 'PUT',
