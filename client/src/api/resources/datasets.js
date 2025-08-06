@@ -8,7 +8,7 @@ const datasets = {
       authorization,
       body: JSON.stringify(body)
     }),
-  get: (id, authorization = '') =>
+  get: (id, authorization) =>
     request(getAPIUrl(`datasets/${id}`), { authorization }), // token required for file downloads
   update: (id, body, authorization) =>
     request(getAPIUrl(`datasets/${id}`), {
