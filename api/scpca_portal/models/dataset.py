@@ -521,10 +521,9 @@ class Dataset(TimestampedModel):
         Takes project's scpca_id and a modality.
         Returns Library instances associated with Samples defined in data attribute.
         """
-        libraries = Library.objects.none()
-
-        if samples := self.get_project_modality_samples(project_id, modality):
-            libraries = Library.objects.filter(samples__in=samples, modality=modality).distinct()
+        libraries = Library.objects.filter(
+            samples__in=self.get_project_modality_samples(project_id, modality), modality=modality
+        ).distinct()
 
         if self.format != DatasetFormats.METADATA and modality != Modalities.BULK_RNA_SEQ:
             libraries = libraries.filter(formats__contains=[self.format])
