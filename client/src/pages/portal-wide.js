@@ -47,60 +47,64 @@ const PortalWideDownloads = () => {
   ]
 
   return (
-    <Box alignSelf="start" pad={{ left: 'medium' }} margin={{ top: 'none' }}>
-      <Box pad={{ bottom: 'medium' }}>
-        <Text size="xlarge" weight="bold">
-          Portal-wide Downloads
-        </Text>
-      </Box>
-      <Box pad={{ top: 'large' }}>
-        <Text size="medium" margin={{ top: 'small' }}>
-          Data from the projects in the ScPCA portal is packaged together for
-          your convenience.
-          <Anchor
-            label=" Please learn more about the portal-wide downloads here."
-            href="#"
-          />
-        </Text>
-      </Box>
+    <>
+      <Box alignSelf="start" pad={{ left: 'medium' }} margin={{ top: 'none' }}>
+        <Box pad={{ bottom: 'medium' }}>
+          <Text size="xlarge" weight="bold">
+            Portal-wide Downloads
+          </Text>
+        </Box>
+        <Box pad={{ top: 'large' }}>
+          <Text size="medium" margin={{ top: 'small' }}>
+            Data from the projects in the ScPCA portal is packaged together for
+            your convenience.
+            <Anchor
+              label=" Please learn more about the portal-wide downloads here."
+              href="#"
+            />
+          </Text>
+        </Box>
 
-      <Box pad={{ top: 'large', bottom: 'xlarge' }}>
-        <Text size="large" margin={{ bottom: 'medium' }}>
-          Metadata Downloads
-        </Text>
-        <Box>
-          <DatasetPortalWideDownloadCard dataset={metadataDataset} />
+        <Box pad={{ top: 'large', bottom: 'xlarge' }}>
+          <Text size="large" margin={{ bottom: 'medium' }}>
+            Metadata Downloads
+          </Text>
+          <Box>
+            <DatasetPortalWideDownloadCard dataset={metadataDataset} />
+          </Box>
         </Box>
       </Box>
 
-      <Box pad={{ bottom: 'xlarge' }}>
-        <Text size="large" margin={{ bottom: 'small' }}>
-          Data Downloads
-        </Text>
-        <Text size="medium" margin={{ bottom: 'medium' }}>
-          Single-cell data from all projects are packaged together by data
-          format and whether single-cell samples in each project are merged into
-          1 object.
-          <br />A separate spatial only download is also available.
-        </Text>
-        <Box
-          direction="row"
-          wrap
-          gap="xlarge"
-          justify="between"
-          pad={{ vertical: 'medium' }}
-        >
-          {dataDatasets.map((dataset) => (
-            <Box
-              key={`${dataset.modality}-${dataset.format}`}
-              pad={{ bottom: 'xlarge' }}
-            >
-              <DatasetPortalWideDownloadCard dataset={dataset} />
-            </Box>
-          ))}
+      <Box background="#EDF7FD">
+        <Box pad={{ horizontal: 'large', vertical: 'large' }}>
+          <Text size="large" margin={{ bottom: 'small' }}>
+            Data Downloads
+          </Text>
+          <Text size="medium" margin={{ bottom: 'medium' }}>
+            Single-cell data from all projects are packaged together by data
+            format and whether single-cell samples in each project are merged
+            into 1 object.
+            <br />A separate spatial only download is also available.
+          </Text>
+          <Box
+            direction="row"
+            wrap
+            gap="xlarge"
+            justify="between"
+            pad={{ vertical: 'medium' }}
+          >
+            {dataDatasets.map((dataset) => (
+              <Box
+                key={`${dataset.modality}-${dataset.format}`}
+                pad={{ bottom: 'xlarge' }}
+              >
+                <DatasetPortalWideDownloadCard dataset={dataset} />
+              </Box>
+            ))}
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </>
   )
 }
 
