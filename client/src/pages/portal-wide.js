@@ -1,12 +1,9 @@
 import React from 'react'
 import { Anchor, Box, Text } from 'grommet'
-import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
 import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownloadCard'
 
 const PortalWideDownloads = () => {
-  const { responsive } = useResponsive()
-
   const metadataDataset = {
     format: null,
     modality: null,
