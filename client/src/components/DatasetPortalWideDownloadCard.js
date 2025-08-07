@@ -70,7 +70,7 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
               </>
             )}
           </Box>
-          {includeMerged && (
+          {!metadataOnly && (
             <Box direction="row" margin={{ bottom: '24px' }}>
               <CheckBox
                 label="Merge samples into one object per project"
