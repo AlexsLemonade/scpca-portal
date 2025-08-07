@@ -184,6 +184,7 @@ class DatasetsTestCase(APITestCase):
             "uncompressed_size",
             "diagnoses_summary",
             "files_summary",
+            "project_diagnoses",
         }
         for field in stats_property_fields:
             self.assertIn(field, stats_property)

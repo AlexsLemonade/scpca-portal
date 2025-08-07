@@ -1,6 +1,7 @@
 import hashlib
 import sys
 import uuid
+from collections import Counter
 from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
@@ -136,7 +137,6 @@ class Dataset(TimestampedModel):
 
         return {}
 
-    # TODO: Bulk samples are not present in libraries but will need to be included.
     @property
     def files_summary(self) -> list[dict]:
         """
@@ -182,27 +182,33 @@ class Dataset(TimestampedModel):
             },
         ]
 
+        # cache
+        dataset_samples = self.samples
+        dataset_libraries = self.libraries
+
+        seen_samples = set()
         summaries = []
-        seen_libraries = []
 
         for file_summary_query in summary_queries:
-            if (
-                library_ids := self.libraries.filter(**file_summary_query["filter"])
-                .exclude(scpca_id__in=seen_libraries)
+            library_ids = (
+                dataset_libraries.filter(**file_summary_query["filter"])
+                .distinct()
+                .values_list("scpca_id", flat=True)
+            )
+
+            if not library_ids:
+                continue
+
+            if samples_ids := (
+                dataset_samples.filter(libraries__scpca_id__in=library_ids)
+                .exclude(scpca_id__in=seen_samples)
                 .distinct()
                 .values_list("scpca_id", flat=True)
             ):
-                nested_ids = self.original_files.filter(library_id__in=library_ids).values_list(
-                    "sample_ids", flat=True
-                )
-                samples = {s for ss in nested_ids for s in ss}
-                samples_count = len(samples)
-
-                seen_libraries.extend(library_ids)
 
                 summaries.append(
                     {
-                        "samples_count": samples_count,
+                        "samples_count": len(samples_ids),
                         "name": file_summary_query["name"],
                         "format": file_summary_query.get(
                             "format", common.FORMAT_EXTENSIONS[self.format]
@@ -210,7 +216,19 @@ class Dataset(TimestampedModel):
                     }
                 )
 
+                seen_samples.update(samples_ids)
+
         return summaries
+
+    @property
+    def project_diagnoses(self) -> Dict:
+
+        diagnoses_counts = {key: Counter() for key in self.data.keys()}
+
+        for project_id, diagnosis in self.samples.values_list("project__scpca_id", "diagnosis"):
+            diagnoses_counts[project_id].update({diagnosis: 1})
+
+        return diagnoses_counts
 
     @property
     def stats(self) -> Dict:
@@ -222,6 +240,7 @@ class Dataset(TimestampedModel):
             "uncompressed_size": self.estimated_size_in_bytes,
             "diagnoses_summary": self.diagnoses_summary,
             "files_summary": self.files_summary,
+            "project_diagnoses": self.project_diagnoses,
         }
 
     @classmethod
@@ -367,7 +386,7 @@ class Dataset(TimestampedModel):
     def samples(self) -> Iterable[Sample]:
         dataset_samples = Sample.objects.none()
         for project_id in self.data.keys():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
                 dataset_samples |= self.get_project_modality_samples(project_id, modality)
 
         return dataset_samples
@@ -378,7 +397,7 @@ class Dataset(TimestampedModel):
         dataset_libraries = Library.objects.none()
 
         for project_id in self.data.keys():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
                 dataset_libraries |= self.get_project_modality_libraries(project_id, modality)
 
         return dataset_libraries
@@ -481,13 +500,19 @@ class Dataset(TimestampedModel):
         Takes project's scpca_id and a modality.
         Returns Sample instances defined in data attribute.
         """
+        project_data = self.data.get(project_id, {})
 
         project_samples = Sample.objects.filter(project__scpca_id=project_id)
-        if self.get_is_merged_project(project_id):
+
+        if modality is Modalities.SINGLE_CELL and self.get_is_merged_project(project_id):
             return project_samples.filter(has_single_cell_data=True)
-        return project_samples.filter(
-            scpca_id__in=self.data.get(project_id, {}).get(modality.value)
-        )
+
+        if modality is Modalities.BULK_RNA_SEQ and project_data.get(
+            DatasetDataProjectConfig.INCLUDES_BULK
+        ):
+            return project_samples.filter(has_bulk_rna_seq=True)
+
+        return project_samples.filter(scpca_id__in=project_data.get(modality, []))
 
     def get_project_modality_libraries(
         self, project_id: str, modality: Modalities
@@ -497,10 +522,12 @@ class Dataset(TimestampedModel):
         Returns Library instances associated with Samples defined in data attribute.
         """
         libraries = Library.objects.filter(
-            samples__in=self.get_project_modality_samples(project_id, modality)
+            samples__in=self.get_project_modality_samples(project_id, modality), modality=modality
         ).distinct()
-        if self.format != DatasetFormats.METADATA:
+
+        if self.format != DatasetFormats.METADATA and modality != Modalities.BULK_RNA_SEQ:
             libraries = libraries.filter(formats__contains=[self.format])
+
         return libraries
 
     def get_project_modality_metadata_file_content(
