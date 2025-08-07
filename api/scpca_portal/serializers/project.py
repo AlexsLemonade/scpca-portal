@@ -8,6 +8,7 @@ from scpca_portal.serializers.external_accession import ExternalAccessionSeriali
 from scpca_portal.serializers.project_summary import ProjectSummarySerializer
 from scpca_portal.serializers.publication import PublicationSerializer
 from scpca_portal.serializers.sample import SampleSerializer
+from scpca_portal.enums.dataset_formats import DatasetFormats
 
 
 class ProjectLeafSerializer(serializers.ModelSerializer):
@@ -20,7 +21,6 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "computed_files",
             "contacts",
             "created_at",
-            "datasets",
             "diagnoses_counts",
             "diagnoses",
             "disease_timings",
@@ -37,6 +37,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "includes_merged_anndata",
             "includes_merged_sce",
             "includes_xenografts",
+            "metadata_dataset",
             "modalities",
             "multiplexed_sample_count",
             "organisms",
@@ -57,15 +58,17 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     # but we want these to always be included.
     computed_files = ComputedFileSerializer(read_only=True, many=True)
     contacts = ContactSerializer(read_only=True, many=True)
-    datasets = serializers.SerializerMethodField()
+    metadata_dataset = serializers.SerializerMethodField()
     external_accessions = ExternalAccessionSerializer(read_only=True, many=True)
     publications = PublicationSerializer(read_only=True, many=True)
     samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
-    def get_datasets(self, obj):
-        datasets = Dataset.objects.filter(is_ccdl=True, ccdl_project_id=obj.scpca_id)
-        return DatasetSerializer(datasets, many=True).data
+    def get_metadata_dataset(self, obj):
+        dataset = Dataset.objects.filter(
+            is_ccdl=True, ccdl_project_id=obj.scpca_id, format=DatasetFormats.METADATA
+        ).first()
+        return DatasetSerializer(dataset).data
 
 
 class ProjectSerializer(ProjectLeafSerializer):

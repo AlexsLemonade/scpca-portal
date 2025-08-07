@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from scpca_portal.test.factories import DatasetFactory, ProjectFactory
+from scpca_portal.enums.dataset_formats import DatasetFormats
 
 
 class ProjectsTestCase(APITestCase):
@@ -47,7 +48,9 @@ class ProjectsTestCase(APITestCase):
         datasets = [
             DatasetFactory(is_ccdl=True, ccdl_project_id=self.project.scpca_id) for _ in range(3)
         ]
-        expected_dataset_ids = {str(dataset.id) for dataset in datasets}
+        metadata_dataset = datasets[-1]
+        metadata_dataset.format = DatasetFormats.METADATA
+        metadata_dataset.save()
 
         # detail view
         url = reverse("projects-detail", args=[self.project.scpca_id])
@@ -55,8 +58,7 @@ class ProjectsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
-        actual_dataset_ids = {dataset["id"] for dataset in response_json["datasets"]}
-        self.assertEqual(actual_dataset_ids, expected_dataset_ids)
+        self.assertEqual(response_json["metadata_dataset"]["id"], str(metadata_dataset.id))
 
         # list view
         url = reverse("projects-list", args=[])
@@ -64,5 +66,4 @@ class ProjectsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
-        actual_dataset_ids = {dataset["id"] for dataset in response_json["results"][0]["datasets"]}
-        self.assertEqual(actual_dataset_ids, expected_dataset_ids)
+        self.assertEqual(response_json["results"][0]["metadata_dataset"]["id"], str(metadata_dataset.id))
