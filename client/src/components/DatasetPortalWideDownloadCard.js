@@ -22,7 +22,7 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
   const {
     format,
     modality,
-    includes_merged: includeMerged,
+    // includes_merged: includeMerged, // TODO: for when we handle checkbox state logic
     metadata_only: metadataOnly
   } = dataset
 
