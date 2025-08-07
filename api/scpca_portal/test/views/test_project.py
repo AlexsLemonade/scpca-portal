@@ -2,8 +2,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from scpca_portal.test.factories import DatasetFactory, ProjectFactory
 from scpca_portal.enums.dataset_formats import DatasetFormats
+from scpca_portal.test.factories import DatasetFactory, ProjectFactory
 
 
 class ProjectsTestCase(APITestCase):
@@ -66,4 +66,6 @@ class ProjectsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
-        self.assertEqual(response_json["results"][0]["metadata_dataset"]["id"], str(metadata_dataset.id))
+        self.assertEqual(
+            response_json["results"][0]["metadata_dataset"]["id"], str(metadata_dataset.id)
+        )
