@@ -5,13 +5,26 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
-from scpca_portal import common, metadata_parser
+from scpca_portal import common
 from scpca_portal.models import Project
 from scpca_portal.test.factories import OriginalFileFactory
 
 
 class TestLoadMetadata(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        with patch(
+            "scpca_portal.lockfile.get_lockfile_project_ids",
+            return_value=[],
+        ):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+
     def setUp(self):
+        with patch(
+            "scpca_portal.lockfile.get_lockfile_project_ids",
+            return_value=[],
+        ):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         self.load_metadata = partial(call_command, "load_metadata")
         # Bind default function params to test object for easy access
         self.input_bucket_name = settings.AWS_S3_INPUT_BUCKET_NAME
@@ -24,31 +37,30 @@ class TestLoadMetadata(TestCase):
 
         # Handle patching in setUp function
         create_data_dirs_patch = patch("scpca_portal.utils.create_data_dirs")
-        get_lockfile_project_ids = patch("scpca_portal.lockfile.get_lockfile_project_ids")
-        get_projects_metadata_patch = patch("scpca_portal.loader.get_projects_metadata")
+        download_files_patch = patch("scpca_portal.s3.download_files")
+        load_projects_metadata_patch = patch("scpca_portal.metadata_parser.load_projects_metadata")
         create_project_patch = patch("scpca_portal.loader.create_project")
         remove_nested_data_dirs_patch = patch("scpca_portal.utils.remove_nested_data_dirs")
 
         # Start patches
         self.mock_create_data_dirs = create_data_dirs_patch.start()
-        self.mock_get_lockfile_project_ids = get_lockfile_project_ids.start()
-        self.mock_get_projects_metadata = get_projects_metadata_patch.start()
+        self.mock_download_files_patch = download_files_patch.start()
+        self.mock_load_projects_metadata = load_projects_metadata_patch.start()
         self.mock_create_project = create_project_patch.start()
         self.mock_remove_nested_data_dirs = remove_nested_data_dirs_patch.start()
 
         # Save patches that so they can be stopped during tearDown
         self.patches = [
             create_data_dirs_patch,
-            get_lockfile_project_ids,
-            get_projects_metadata_patch,
+            download_files_patch,
+            load_projects_metadata_patch,
             create_project_patch,
             remove_nested_data_dirs_patch,
         ]
 
         # Configure necessary output values
-        self.mock_get_lockfile_project_ids.return_value = []
         self.projects_metadata = [{"key": "value"}]
-        self.mock_get_projects_metadata.return_value = self.projects_metadata
+        self.mock_load_projects_metadata.return_value = self.projects_metadata
         self.project = Project()
         self.mock_create_project.return_value = self.project
 
@@ -61,7 +73,7 @@ class TestLoadMetadata(TestCase):
 
     def assertMethodsCalled(self):
         self.mock_create_data_dirs.assert_called()
-        self.mock_get_projects_metadata.assert_called()
+        self.mock_load_projects_metadata.assert_called()
         self.mock_create_project.assert_called()
 
     def test_input_bucket_name(self):
@@ -139,12 +151,12 @@ class TestLoadMetadata(TestCase):
         )
 
     def test_scpca_project_id(self):
-        scpca_project_id = metadata_parser.get_projects_metadata_ids()[0]
+        scpca_project_id = "SCPCP999990"
         project = Project(scpca_id=scpca_project_id)
         project.save()
 
         self.load_metadata(scpca_project_id=scpca_project_id)
-        self.mock_get_projects_metadata.assert_called_with(filter_on_project_ids=[scpca_project_id])
+        self.mock_load_projects_metadata.assert_called_with([scpca_project_id])
 
     def test_update_s3(self):
         self.load_metadata()
@@ -188,12 +200,12 @@ class TestLoadMetadata(TestCase):
             self.update_s3,
         )
 
-    def test_get_projects_metadata_failure(self):
-        self.mock_get_projects_metadata.return_value = []
+    def test_load_projects_metadata_failure(self):
+        self.mock_load_projects_metadata.return_value = []
         self.load_metadata()
 
         self.mock_create_data_dirs.assert_called_once()
-        self.mock_get_projects_metadata.assert_called_once()
+        self.mock_load_projects_metadata.assert_called_once()
         self.mock_create_project.assert_not_called()
         self.mock_remove_nested_data_dirs.assert_not_called()
 
@@ -202,6 +214,6 @@ class TestLoadMetadata(TestCase):
         self.load_metadata()
 
         self.mock_create_data_dirs.assert_called_once()
-        self.mock_get_projects_metadata.assert_called_once()
+        self.mock_load_projects_metadata.assert_called_once()
         self.mock_create_project.assert_called_once()
         self.mock_remove_nested_data_dirs.assert_not_called()

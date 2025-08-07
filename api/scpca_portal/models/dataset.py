@@ -2,6 +2,7 @@ import hashlib
 import sys
 import uuid
 from collections import Counter
+from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -28,6 +29,7 @@ from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
+from scpca_portal.validators import DatasetData
 
 logger = get_and_configure_logger(__name__)
 
@@ -63,6 +65,7 @@ class Dataset(TimestampedModel):
     is_ccdl = models.BooleanField(default=False)
     ccdl_name = models.TextField(choices=CCDLDatasetNames.choices, null=True)
     ccdl_project_id = models.TextField(null=True)
+    ccdl_modality = models.TextField(choices=Modalities.choices, null=True)
 
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
@@ -250,6 +253,7 @@ class Dataset(TimestampedModel):
             return dataset, True
 
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
+        dataset.ccdl_modality = dataset.ccdl_type["modality"]
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
         dataset.data_hash = dataset.current_data_hash
@@ -402,11 +406,32 @@ class Dataset(TimestampedModel):
     def ccdl_type(self) -> Dict:
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
-    @property
-    def is_data_valid(self) -> bool:
-        """Determines if the Dataset's Data attr is valid."""
-        data_validator = DataValidator(self.data)
-        return data_validator.is_valid
+    @staticmethod
+    def validate_data(data: Mapping[str, Any]) -> DatasetData:
+        return DatasetData.model_validate(data)
+
+    def validate(self) -> None:
+        """
+        Validates that projects and samples, who's ids were passed in through the data attribute,
+        both exist and are correctly related.
+        Raises exceptions if projects, samples or their associations do not exist.
+        """
+        if self.format == DatasetFormats.ANN_DATA.value:
+            if any(
+                project_data.get(Modalities.SPATIAL.value, [])
+                for project_data in self.data.values()
+            ):
+                # TODO: add custom exception
+                raise Exception("No Spatial data for ANNDATA.")
+
+        # validate that all projects exist
+        existing_ids = Project.objects.filter(scpca_id__in=self.data.keys()).values_list(
+            "scpca_id", flat=True
+        )
+        if missing_keys := set(self.data.keys()) - set(existing_ids):
+            raise Exception(f"The following projects do not exist: {list(missing_keys)}")
+
+        # TODO: sample modality existence check
 
     def get_is_merged_project(self, project_id) -> bool:
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
@@ -636,80 +661,3 @@ class Dataset(TimestampedModel):
     @property
     def cite_seq_projects(self) -> Iterable[Project]:
         return self.projects.filter(has_cite_seq_data=True)
-
-
-class DataValidator:
-    def __init__(self, data: Dict[str, Dict]) -> None:
-        self.data: Dict[str, Dict[str, Any]] = data
-
-    @property
-    def is_valid(self) -> bool:
-        return all(self.validate_project(project_id) for project_id in self.data.keys())
-
-    @property
-    def valid_projects(self) -> List[str]:
-        return [project_id for project_id in self.data.keys() if self.validate_project(project_id)]
-
-    @property
-    def invalid_projects(self) -> List[str]:
-        return [
-            project_id for project_id in self.data.keys() if not self.validate_project(project_id)
-        ]
-
-    def validate_project(self, project_id: str) -> bool:
-        if not self._validate_project_id(project_id):
-            return False
-
-        if not self._validate_includes_bulk(project_id):
-            return False
-
-        if not self._validate_single_cell(project_id):
-            return False
-
-        if not self._validate_spatial(project_id):
-            return False
-
-        return True
-
-    def _validate_project_id(self, project_id):
-        return self._validate_id(project_id, common.PROJECT_ID_PREFIX)
-
-    def _validate_id(self, id: str, prefix: str) -> bool:
-        if not isinstance(id, str):
-            return False
-
-        if not id.startswith(prefix):
-            return False
-
-        id_number = id.removeprefix(prefix)
-        return len(id_number) == 6 and id_number.isdigit()
-
-    def _validate_includes_bulk(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.INCLUDES_BULK):
-            return isinstance(value, bool)
-
-        return True
-
-    def _validate_single_cell(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SINGLE_CELL):
-            if value == "MERGED":
-                return True
-            return self._validate_modality(value)
-
-        return True
-
-    def _validate_spatial(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SPATIAL):
-            return self._validate_modality(value)
-
-        return True
-
-    def _validate_modality(self, modality_sample_ids: List) -> bool:
-        if not isinstance(modality_sample_ids, list):
-            return False
-
-        for sample_id in modality_sample_ids:
-            if not self._validate_id(sample_id, common.SAMPLE_ID_PREFIX):
-                return False
-
-        return True

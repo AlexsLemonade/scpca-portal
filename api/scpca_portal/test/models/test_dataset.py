@@ -7,27 +7,38 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, tag
 
-from scpca_portal import loader
+from pydantic import ValidationError
+
+from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
+from scpca_portal.test.factories import (
+    DatasetFactory,
+    OriginalFileFactory,
+    ProjectFactory,
+    SampleFactory,
+)
 
 
 class TestDataset(TestCase):
     @classmethod
     def setUpTestData(cls):
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
-            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        bucket = settings.AWS_S3_INPUT_BUCKET_NAME
+        call_command("sync_original_files", bucket=bucket)
 
-            for project_metadata in loader.get_projects_metadata():
-                loader.create_project(
-                    project_metadata,
-                    submitter_whitelist={"scpca"},
-                    input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
-                    reload_existing=True,
-                    update_s3=False,
-                )
+        loader.download_projects_metadata()
+        project_ids = metadata_parser.get_projects_metadata_ids(bucket=bucket)
+
+        loader.download_projects_related_metadata(project_ids)
+        for project_metadata in metadata_parser.load_projects_metadata(project_ids):
+            loader.create_project(
+                project_metadata,
+                submitter_whitelist={"scpca"},
+                input_bucket_name=bucket,
+                reload_existing=True,
+                update_s3=False,
+            )
 
     def test_dataset_saved_to_db(self):
         dataset = DatasetFactory()
@@ -36,8 +47,8 @@ class TestDataset(TestCase):
         returned_dataset = Dataset.objects.filter(pk=dataset.id).first()
         self.assertEqual(returned_dataset, dataset)
 
-    @tag("is_data_valid")
-    def test_is_data_valid_project_id(self):
+    @tag("validate_data")
+    def test_validate_data_project_id(self):
         # Valid project id
         data = {
             "SCPCP999990": {
@@ -46,7 +57,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertTrue(DatasetFactory(data=data).is_data_valid)
+        Dataset.validate_data(data)
 
         # Incorrect project ids
         data = {
@@ -56,7 +67,8 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
 
         # Lack of SCPCP prefix
         data = {
@@ -66,7 +78,8 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
 
         # Incorrect number of digits
         data = {
@@ -76,10 +89,11 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
 
-    @tag("is_data_valid")
-    def test_is_data_valid_config(self):
+    @tag("validate_data")
+    def test_validate_data_project_data(self):
         # Valid config
         data = {
             "SCPCP999990": {
@@ -88,13 +102,13 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertTrue(DatasetFactory(data=data).is_data_valid)
+        Dataset.validate_data(data)
 
         # Empty config (valid)
         data = {
             "SCPCP999990": {},
         }
-        self.assertTrue(DatasetFactory(data=data).is_data_valid)
+        Dataset.validate_data(data)
 
         # Includes bulk - missing (valid)
         data = {
@@ -103,9 +117,10 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertTrue(DatasetFactory(data=data).is_data_valid)
+        Dataset.validate_data(data)
 
-        # Includes bulk - wrong data type (invalid)
+        # Includes bulk - wrong type
+        # However, Pydantic will correct this
         data = {
             "SCPCP999990": {
                 "includes_bulk": "True",
@@ -113,7 +128,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+        Dataset.validate_data(data)
 
         # Single Cell - missing (valid)
         data = {
@@ -122,9 +137,9 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertTrue(DatasetFactory(data=data).is_data_valid)
+        Dataset.validate_data(data)
 
-        # Single Cell - wrong data type (invalid)
+        # Single Cell - wrong type (invalid)
         data = {
             "SCPCP999990": {
                 "includes_bulk": True,
@@ -132,20 +147,21 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
 
-        # Merge single cell - wrong data type (invalid)
+        # Merge single cell - wrong type (invalid)
         data = {
             "SCPCP999990": {
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["MERGED"],  # should be "MERGED"
+                Modalities.SINGLE_CELL.value: ["MERGED"],  # invalid sample id
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
 
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
-
-        # Single Cell - wrong inner data type (invalid)
+        # Single Cell - wrong inner type (invalid)
         data = {
             "SCPCP999990": {
                 "includes_bulk": True,
@@ -153,7 +169,8 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
 
         # Single Cell - invalid sample id (invalid)
         data = {
@@ -163,7 +180,8 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS999992"],
             },
         }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
 
         # Spatial - missing (valid)
         data = {
@@ -172,9 +190,9 @@ class TestDataset(TestCase):
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
             },
         }
-        self.assertTrue(DatasetFactory(data=data).is_data_valid)
+        Dataset.validate_data(data)
 
-        # Spatial - wrong data type (invalid)
+        # Spatial - wrong type (invalid)
         data = {
             "SCPCP999990": {
                 "includes_bulk": True,
@@ -182,9 +200,10 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: "SCPCS999992",
             },
         }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
 
-        # Spatial - wrong inner data type (invalid)
+        # Spatial - wrong inner type (invalid)
         data = {
             "SCPCP999990": {
                 "includes_bulk": True,
@@ -192,7 +211,8 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: [1, 2, 3],
             },
         }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
 
         # Spatial - invalid sample id (invalid)
         data = {
@@ -202,7 +222,59 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL.value: ["sample_id"],
             },
         }
-        self.assertFalse(DatasetFactory(data=data).is_data_valid)
+        with self.assertRaises(ValidationError):
+            Dataset.validate_data(data)
+
+    def test_validate(self):
+        project = ProjectFactory(scpca_id="SCPCP000001")
+        SampleFactory(scpca_id="SCPCS000001", project=project, has_single_cell_data=True)
+        SampleFactory(scpca_id="SCPCS000002", project=project, has_single_cell_data=True)
+        SampleFactory(scpca_id="SCPCS000003", project=project, has_spatial_data=True)
+
+        # no exceptions thrown
+        data = {
+            "SCPCP000001": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
+                Modalities.SPATIAL.value: ["SCPCS000003"],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+
+        dataset.validate()  # no exception should be thrown here
+
+        # assert spatial samples cannot be requested with anndata format
+        data = {
+            "SCPCP000001": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
+                Modalities.SPATIAL.value: ["SCPCS000003"],
+            },
+        }
+        format = DatasetFormats.ANN_DATA
+        dataset = Dataset(data=data, format=format)
+
+        with self.assertRaises(Exception) as e:
+            dataset.validate()
+            self.assertEqual(str(e.exception), "No Spatial data for ANNDATA.")
+
+        # assert project id doesn't exist
+        data = {
+            "SCPCP999999": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
+                Modalities.SPATIAL.value: ["SCPCS000003"],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+
+        with self.assertRaises(Exception) as e:
+            dataset.validate()
+            self.assertEqual(
+                str(e.exception), "The following projects do not exist: ['SCPCP999999']"
+            )
 
     def test_is_ccdl_default_set(self):
         dataset = DatasetFactory()
@@ -484,7 +556,7 @@ class TestDataset(TestCase):
         dataset = Dataset(data=data, format=format)
 
         # TODO: add to expected_values dataset file (along with other hash values)
-        expected_metadata_hash = "46ed5abd84c4b86ef348779b045b8cdf"
+        expected_metadata_hash = "bd32dc05b6dc4a20fdd510bd2d3f669b"
         self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
     def test_current_readme_hash(self):
@@ -559,8 +631,8 @@ class TestDataset(TestCase):
             format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
         )
 
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
-            self.assertFalse(dataset.has_lockfile_projects)
+        # lockfile in test bucket is empty by default
+        self.assertFalse(dataset.has_lockfile_projects)
 
         with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=["SCPCP999990"]):
             self.assertTrue(dataset.has_lockfile_projects)

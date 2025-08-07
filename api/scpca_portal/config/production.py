@@ -1,4 +1,5 @@
 import os
+from distutils.util import strtobool
 from pathlib import Path
 
 import sentry_sdk
@@ -45,6 +46,10 @@ class Production(Common):
     }
 
     PRODUCTION = True
+
+    CLEAN_UP_DATA = True
+
+    ENABLE_FEATURE_PREVIEW = strtobool(os.getenv("ENABLE_FEATURE_PREVIEW", "false"))
 
     SENTRY_DSN = os.getenv("SENTRY_DSN", None)
 
