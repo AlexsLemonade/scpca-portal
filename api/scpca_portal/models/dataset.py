@@ -64,6 +64,7 @@ class Dataset(TimestampedModel):
     is_ccdl = models.BooleanField(default=False)
     ccdl_name = models.TextField(choices=CCDLDatasetNames.choices, null=True)
     ccdl_project_id = models.TextField(null=True)
+    ccdl_modality = models.TextField(choices=Modalities.choices, null=True)
 
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
@@ -233,6 +234,7 @@ class Dataset(TimestampedModel):
             return dataset, True
 
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
+        dataset.ccdl_modality = dataset.ccdl_type["modality"]
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
         dataset.data_hash = dataset.current_data_hash
