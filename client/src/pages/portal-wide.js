@@ -1,21 +1,26 @@
 import React from 'react'
-import { Box, Text } from 'grommet'
+import { Anchor, Box, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
-import Error from 'pages/_error'
 
-// NOTE: This page is used to display CCDL datasets
-const Datasets = ({ datasets }) => {
+const PortalWideDownloads = () => {
   const { responsive } = useResponsive()
 
-  // we don't want to 404 here we want to show that the api is down
-  if (!datasets) return <Error />
-
   return (
-    <Box width="full" pad={responsive({ horizontal: 'medium' })}>
-      <Box pad={{ bottom: 'large' }}>
-        <Text serif size="xlarge">
-          CCDL Datasets
+    <Box alignSelf="start" pad={{ left: 'medium' }} margin={{ top: 'none' }}>
+      <Box pad={{ bottom: 'medium' }}>
+        <Text serif size="xlarge" weight="bold">
+          Portal-wide Downloads
+        </Text>
+      </Box>
+      <Box pad={{ top: 'large' }}>
+        <Text serif size="medium" margin={{ top: 'small' }}>
+          Data from the projects in the ScPCA portal is packaged together for
+          your convenience.
+          <Anchor
+            label=" Please learn more about the portal-wide downloads here."
+            href="#"
+          />
         </Text>
       </Box>
     </Box>
@@ -39,4 +44,4 @@ export const getServerSideProps = async ({ query }) => {
   return { props: { datasets: null } }
 }
 
-export default Datasets
+export default PortalWideDownloads
