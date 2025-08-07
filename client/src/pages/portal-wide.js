@@ -2,14 +2,23 @@ import React from 'react'
 import { Anchor, Box, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
+import DatasetPortalWideDownloadCard from 'components/DatasetPortalWideDownloadCard'
 
 const PortalWideDownloads = () => {
   const { responsive } = useResponsive()
 
+  const metadataDataset = {
+    id: 'metadata',
+    format: null,
+    modality: null,
+    includes_merged: null,
+    metadata_only: true
+  }
+
   return (
     <Box alignSelf="start" pad={{ left: 'medium' }} margin={{ top: 'none' }}>
       <Box pad={{ bottom: 'medium' }}>
-        <Text serif size="xlarge" weight="bold">
+        <Text size="xlarge" weight="bold">
           Portal-wide Downloads
         </Text>
       </Box>
@@ -22,6 +31,18 @@ const PortalWideDownloads = () => {
             href="#"
           />
         </Text>
+      </Box>
+
+      <Box pad={{ top: 'large', bottom: 'xlarge' }}>
+        <Text size="large" margin={{ bottom: 'medium' }}>
+          Metadata Downloads
+        </Text>
+        <Box>
+          <DatasetPortalWideDownloadCard
+            key={metadataDataset.id}
+            dataset={metadataDataset}
+          />
+        </Box>
       </Box>
     </Box>
   )
