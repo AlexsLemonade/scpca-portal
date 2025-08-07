@@ -112,23 +112,6 @@ class DatasetsTestCase(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_stats_property_keys(self):
-        url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
-        response = self.client.get(url)
-        stats_property = response.json().get("stats")
-        stats_property_fields = {
-            "current_data_hash",
-            "current_readme_hash",
-            "current_metadata_hash",
-            "is_hash_changed",
-            "uncompressed_size",
-            "diagnoses_summary",
-            "files_summary",
-            "project_diagnoses",
-        }
-        for field in stats_property_fields:
-            self.assertIn(field, stats_property)
-
     @patch("scpca_portal.models.Job.submit")
     def test_create_submit_job(self, mock_submit_job):
         url = reverse("datasets-list", args=[])
@@ -201,6 +184,7 @@ class DatasetsTestCase(APITestCase):
             "uncompressed_size",
             "diagnoses_summary",
             "files_summary",
+            "project_diagnoses",
         }
         for field in stats_property_fields:
             self.assertIn(field, stats_property)
