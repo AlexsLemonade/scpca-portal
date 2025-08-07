@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { config } from 'config'
@@ -10,12 +10,18 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const DatasetProjectAdditionalOptions = ({
   project,
+  samples,
   selectedModalities,
-  onExcludeMultiplexedChange,
-  onIncludeBulkChange,
-  onIncludeMergeChange
+  additionalOptions,
+  setAdditionalOptions
 }) => {
-  const { myDataset, userFormat } = useDatasetManager()
+  const {
+    myDataset,
+    userFormat,
+    isProjectBulkIncluded,
+    isProjectExcludedMultiplexed,
+    isProjectSingleCellMerged
+  } = useDatasetManager()
 
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
@@ -38,13 +44,43 @@ export const DatasetProjectAdditionalOptions = ({
   // Show the merged objects warning only for multiplexed samples
   const showMergedObjectWarning = !isMergedObjectsAvailable && hasMultiplexed
 
+  const handleExcludeMultiplexedChange = (value) => {
+    setAdditionalOptions((prev) => ({ ...prev, excludeMultiplexed: value }))
+  }
+
+  const handleIncludeBulkChange = (value) => {
+    setAdditionalOptions((prev) => ({ ...prev, includeBulk: value }))
+  }
+
+  const handleIncludeMergeChange = (value) => {
+    setAdditionalOptions((prev) => ({ ...prev, includeMerge: value }))
+  }
+
+  // Preselect options based on existing values in myDataset
+  useEffect(() => {
+    if (isProjectBulkIncluded(project)) {
+      handleIncludeBulkChange(true)
+    }
+
+    if (isProjectExcludedMultiplexed(project, samples)) {
+      handleExcludeMultiplexedChange(true)
+    }
+
+    if (isProjectSingleCellMerged(project)) {
+      handleIncludeMergeChange(true)
+    }
+  }, [project, samples])
+
   return (
     <FormField label="Additional Options" gap="medium" labelWeight="bold">
       <Box direction="row">
         <CheckBox
           label="Merge single-cell samples into 1 object"
+          checked={additionalOptions.includeMerge}
           disabled={!isMergedObjectsAvailable}
-          onChange={({ target: { checked } }) => onIncludeMergeChange(checked)}
+          onChange={({ target: { checked } }) =>
+            handleIncludeMergeChange(checked)
+          }
         />
         <HelpLink link={config.links.when_downloading_merged_objects} />
       </Box>
@@ -60,12 +96,14 @@ export const DatasetProjectAdditionalOptions = ({
           </Text>
         </InfoText>
       )}
-
       {hasBulkRnaSeq && (
         <Box direction="row">
           <CheckBox
             label="Include all bulk RNA-seq data in the project"
-            onChange={({ target: { checked } }) => onIncludeBulkChange(checked)}
+            checked={additionalOptions.includeBulk}
+            onChange={({ target: { checked } }) =>
+              handleIncludeBulkChange(checked)
+            }
           />
         </Box>
       )}
@@ -74,9 +112,10 @@ export const DatasetProjectAdditionalOptions = ({
           <Box direction="row">
             <CheckBox
               label="Exclude multiplexed samples"
+              checked={additionalOptions.excludeMultiplexed}
               disabled={!canExcludeMultiplexed}
               onChange={({ target: { checked } }) =>
-                onExcludeMultiplexedChange(checked)
+                handleExcludeMultiplexedChange(checked)
               }
             />
           </Box>
