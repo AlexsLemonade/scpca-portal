@@ -58,7 +58,7 @@ class DatasetDataModel(RootModel):
         return instance
 
 
-class DatasetDataResourceExistence:
+class DatasetDataModelRelations:
 
     @staticmethod
     def validate(data: Dict[str, Any], format: DatasetFormats) -> Dict:
@@ -74,10 +74,9 @@ class DatasetDataResourceExistence:
                 if project_data.get(Modalities.SPATIAL.value)
             ]:
                 # TODO: add custom exception
-                "The following projects requested Spatial data with an invalid format of ANNADATA:"
                 raise Exception(
-                    "The following projects requested Spatial data "
-                    "with an invalid format of ANNDATA: "
+                    "Datasets with format ANN_DATA "
+                    "do not support projects with SPATIAL samples: "
                     f"{', '.join(sorted(invalid_ids))}"
                 )
 

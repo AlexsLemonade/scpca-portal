@@ -4,7 +4,7 @@ from pydantic import ValidationError
 
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.test.factories import ProjectFactory, SampleFactory
-from scpca_portal.validators import DatasetDataModel, DatasetDataResourceExistence, ProjectDataModel
+from scpca_portal.validators import DatasetDataModel, DatasetDataModelRelations, ProjectDataModel
 
 
 class TestProjectDataModel(TestCase):
@@ -103,7 +103,7 @@ class TestDatasetDataModel(TestCase):
         self.assertIn("Invalid sample ID format", str(context.exception))
 
 
-class TestDatasetDataResourceExistence(TestCase):
+class TestDatasetDataModelRelations(TestCase):
     def test_validate(self):
         project = ProjectFactory(scpca_id="SCPCP000001")
         SampleFactory(scpca_id="SCPCS000001", project=project, has_single_cell_data=True)
@@ -120,7 +120,7 @@ class TestDatasetDataResourceExistence(TestCase):
         }
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
-        DatasetDataResourceExistence.validate(data, format)  # no exception should be thrown here
+        DatasetDataModelRelations.validate(data, format)  # no exception should be thrown here
 
         # assert spatial samples cannot be requested with anndata format
         data = {
@@ -133,7 +133,7 @@ class TestDatasetDataResourceExistence(TestCase):
         format = DatasetFormats.ANN_DATA
 
         with self.assertRaises(Exception) as e:
-            DatasetDataResourceExistence.validate(data, format)
+            DatasetDataModelRelations.validate(data, format)
         self.assertEqual(
             str(e.exception),
             "The following projects requested Spatial data with an invalid format of ANNDATA: "
@@ -151,7 +151,7 @@ class TestDatasetDataResourceExistence(TestCase):
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         with self.assertRaises(Exception) as e:
-            DatasetDataResourceExistence.validate(data, format)
+            DatasetDataModelRelations.validate(data, format)
         self.assertEqual(str(e.exception), "The following projects do not exist: SCPCP999999")
 
         # assert sample ids doesn't exist
@@ -165,7 +165,7 @@ class TestDatasetDataResourceExistence(TestCase):
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         with self.assertRaises(Exception) as e:
-            DatasetDataResourceExistence.validate(data, format)
+            DatasetDataModelRelations.validate(data, format)
         self.assertEqual(
             str(e.exception),
             "The following samples do not exist: SCPCS000004, SCPCS000005, SCPCS000006",
@@ -182,7 +182,7 @@ class TestDatasetDataResourceExistence(TestCase):
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         with self.assertRaises(Exception) as e:
-            DatasetDataResourceExistence.validate(data, format)
+            DatasetDataModelRelations.validate(data, format)
         self.assertEqual(
             str(e.exception),
             "The following samples are not associated with SCPCP000001 and SINGLE_CELL: "
@@ -201,7 +201,7 @@ class TestDatasetDataResourceExistence(TestCase):
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         with self.assertRaises(Exception) as e:
-            DatasetDataResourceExistence.validate(data, format)
+            DatasetDataModelRelations.validate(data, format)
 
         # TODO: debug problem with this assertion
         # self.assertEqual(
@@ -228,4 +228,4 @@ class TestDatasetDataResourceExistence(TestCase):
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         # no exception raised
-        DatasetDataResourceExistence.validate(data, format)
+        DatasetDataModelRelations.validate(data, format)

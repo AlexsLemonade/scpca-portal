@@ -27,7 +27,7 @@ from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
-from scpca_portal.validators import DatasetDataModel, DatasetDataResourceExistence
+from scpca_portal.validators import DatasetDataModel, DatasetDataModelRelations
 
 logger = get_and_configure_logger(__name__)
 
@@ -389,7 +389,7 @@ class Dataset(TimestampedModel):
     @staticmethod
     def validate_data(data: Dict[str, Any], format: DatasetFormats) -> Dict:
         structured_data = DatasetDataModel.model_validate(data).model_dump()
-        validated_data = DatasetDataResourceExistence.validate(structured_data, format)
+        validated_data = DatasetDataModelRelations.validate(structured_data, format)
 
         return validated_data
 
