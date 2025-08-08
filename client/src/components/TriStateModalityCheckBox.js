@@ -42,7 +42,7 @@ export const TriStateModalityCheckBox = ({ modality, disabled }) => {
     if (disableSpatial && hasSelectedSpatialSamples()) {
       toggleAllSamples('SPATIAL')
     }
-  }, [modality, myDataset.format, userFormat])
+  }, [modality, myDataset.format, userFormat, selectedSamples, filteredSamples])
 
   return (
     <Box
