@@ -102,6 +102,35 @@ class TestDatasetDataModel(TestCase):
 
         self.assertIn("Invalid sample ID format", str(context.exception))
 
+    def test_validate_anndata_has_no_spatial_data(self):
+        data = {
+            "SCPCP000001": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
+                Modalities.SPATIAL.value: [],
+            },
+        }
+        format = DatasetFormats.ANN_DATA
+        # no exception raised
+        DatasetDataModel.model_validate(data, context={"format": format})
+
+        data = {
+            "SCPCP000001": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
+                Modalities.SPATIAL.value: ["SCPCS000003"],
+            },
+        }
+        format = DatasetFormats.ANN_DATA
+
+        with self.assertRaises(Exception) as e:
+            DatasetDataModel.model_validate(data, context={"format": format})
+        self.assertIn(
+            "Datasets with format ANN_DATA do not support projects with SPATIAL samples: "
+            "SCPCP000001",
+            str(e.exception),
+        )
+
 
 class TestDatasetDataModelRelations(TestCase):
     def test_validate(self):
@@ -121,24 +150,6 @@ class TestDatasetDataModelRelations(TestCase):
         format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         DatasetDataModelRelations.validate(data, format)  # no exception should be thrown here
-
-        # assert spatial samples cannot be requested with anndata format
-        data = {
-            "SCPCP000001": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
-                Modalities.SPATIAL.value: ["SCPCS000003"],
-            },
-        }
-        format = DatasetFormats.ANN_DATA
-
-        with self.assertRaises(Exception) as e:
-            DatasetDataModelRelations.validate(data, format)
-        self.assertEqual(
-            str(e.exception),
-            "The following projects requested Spatial data with an invalid format of ANNDATA: "
-            "SCPCP000001",
-        )
 
         # assert project id doesn't exist
         data = {

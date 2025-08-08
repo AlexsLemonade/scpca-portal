@@ -388,8 +388,10 @@ class Dataset(TimestampedModel):
 
     @staticmethod
     def validate_data(data: Dict[str, Any], format: DatasetFormats) -> Dict:
-        structured_data = DatasetDataModel.model_validate(data).model_dump()
-        validated_data = DatasetDataModelRelations.validate(structured_data, format)
+        structured_data = DatasetDataModel.model_validate(
+            data, context={"format": format}
+        ).model_dump()
+        validated_data = DatasetDataModelRelations.validate(structured_data)
 
         return validated_data
 

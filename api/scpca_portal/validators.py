@@ -49,37 +49,37 @@ class DatasetDataModel(RootModel):
     root: Dict[str, ProjectDataModel]
 
     @model_validator(mode="after")
-    @classmethod
-    def validate_project_ids(cls, instance):
-        for project_id in instance.root:
+    def validate_project_ids(self):
+        for project_id in self.root:
             if not re.match(PROJECT_ID_REGEX, project_id):
                 # TODO: add custom exception
                 raise ValueError(f"Invalid project ID format: {project_id}")
-        return instance
+        return self
+
+    @model_validator(mode="after")
+    def validate_anndata_has_no_spatial_data(self, info: ValidationInfo):
+        if info.context and info.context.get("format") == DatasetFormats.ANN_DATA.value:
+            if invalid_project_ids := [
+                project_id for project_id, project_data in self.root.items() if project_data.SPATIAL
+            ]:
+                raise ValueError(
+                    "Datasets with format ANN_DATA "
+                    "do not support projects with SPATIAL samples: "
+                    f"{', '.join(sorted(invalid_project_ids))}"
+                )
+
+        return self
 
 
 class DatasetDataModelRelations:
 
     @staticmethod
-    def validate(data: Dict[str, Any], format: DatasetFormats) -> Dict:
+    def validate(data: Dict[str, Any]) -> Dict:
         """
         Validates that projects and samples passed into the data attribute,
         both exist and are correctly related.
         Raises exceptions if projects, samples or their associations do not exist.
         """
-        if format == DatasetFormats.ANN_DATA.value:
-            if invalid_ids := [
-                project_id
-                for project_id, project_data in data.items()
-                if project_data.get(Modalities.SPATIAL.value)
-            ]:
-                # TODO: add custom exception
-                raise Exception(
-                    "Datasets with format ANN_DATA "
-                    "do not support projects with SPATIAL samples: "
-                    f"{', '.join(sorted(invalid_ids))}"
-                )
-
         # validate that all projects exist
         existing_project_ids = Project.objects.filter(scpca_id__in=data.keys()).values_list(
             "scpca_id", flat=True
