@@ -64,8 +64,8 @@ class DatasetDataModel(RootModel):
             ]:
                 raise ValueError(
                     "Datasets with format ANN_DATA "
-                    "do not support projects with SPATIAL samples: "
-                    f"{', '.join(sorted(invalid_project_ids))}"
+                    "do not support projects with SPATIAL samples. "
+                    f"Invalid projects: {', '.join(sorted(invalid_project_ids))}"
                 )
 
         return self

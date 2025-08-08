@@ -126,8 +126,8 @@ class TestDatasetDataModel(TestCase):
         with self.assertRaises(Exception) as e:
             DatasetDataModel.model_validate(data, context={"format": format})
         self.assertIn(
-            "Datasets with format ANN_DATA do not support projects with SPATIAL samples: "
-            "SCPCP000001",
+            "Datasets with format ANN_DATA do not support projects with SPATIAL samples. "
+            "Invalid projects: SCPCP000001",
             str(e.exception),
         )
 
@@ -147,9 +147,8 @@ class TestDatasetDataModelRelations(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS000003"],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
-        DatasetDataModelRelations.validate(data, format)  # no exception should be thrown here
+        DatasetDataModelRelations.validate(data)  # no exception should be thrown here
 
         # assert project id doesn't exist
         data = {
@@ -159,10 +158,9 @@ class TestDatasetDataModelRelations(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS000003"],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         with self.assertRaises(Exception) as e:
-            DatasetDataModelRelations.validate(data, format)
+            DatasetDataModelRelations.validate(data)
         self.assertEqual(str(e.exception), "The following projects do not exist: SCPCP999999")
 
         # assert sample ids doesn't exist
@@ -173,10 +171,9 @@ class TestDatasetDataModelRelations(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS000006"],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         with self.assertRaises(Exception) as e:
-            DatasetDataModelRelations.validate(data, format)
+            DatasetDataModelRelations.validate(data)
         self.assertEqual(
             str(e.exception),
             "The following samples do not exist: SCPCS000004, SCPCS000005, SCPCS000006",
@@ -190,10 +187,9 @@ class TestDatasetDataModelRelations(TestCase):
                 Modalities.SPATIAL.value: [],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         with self.assertRaises(Exception) as e:
-            DatasetDataModelRelations.validate(data, format)
+            DatasetDataModelRelations.validate(data)
         self.assertEqual(
             str(e.exception),
             "The following samples are not associated with SCPCP000001 and SINGLE_CELL: "
@@ -209,10 +205,9 @@ class TestDatasetDataModelRelations(TestCase):
                 Modalities.SPATIAL.value: [],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         with self.assertRaises(Exception) as e:
-            DatasetDataModelRelations.validate(data, format)
+            DatasetDataModelRelations.validate(data)
 
         # TODO: debug problem with this assertion
         # self.assertEqual(
@@ -236,7 +231,6 @@ class TestDatasetDataModelRelations(TestCase):
                 Modalities.SPATIAL.value: ["SCPCS000010"],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
 
         # no exception raised
-        DatasetDataModelRelations.validate(data, format)
+        DatasetDataModelRelations.validate(data)
