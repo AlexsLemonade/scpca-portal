@@ -7,8 +7,12 @@ import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 // NOTE: Ask Deepa for a checkmark SVG Icon
 export const TriStateModalityCheckBox = ({ modality, disabled }) => {
   const { myDataset, userFormat } = useDatasetManager()
-  const { selectedSamples, filteredSamples, toggleAllSamples } =
-    useDatasetSamplesTable()
+  const {
+    selectedSamples,
+    filteredSamples,
+    hasSelectedSpatialSamples,
+    toggleAllSamples
+  } = useDatasetSamplesTable()
 
   const disableSpatial =
     modality === 'SPATIAL' && (myDataset.format || userFormat) === 'ANN_DATA'
@@ -17,7 +21,7 @@ export const TriStateModalityCheckBox = ({ modality, disabled }) => {
   const borderColor =
     disabled || disableSpatial ? 'black-tint-80' : borderRegular
 
-  const sampleIdsOnPage = filteredSamples.map((sample) => sample.scpca_id)
+  const sampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
   const currentSelectedSamples = selectedSamples[modality]
 
   const selectedCountOnPage = sampleIdsOnPage.filter((id) =>
@@ -35,10 +39,10 @@ export const TriStateModalityCheckBox = ({ modality, disabled }) => {
 
   // Deselect all samples for spatial when a user selects ANN_DATA
   useEffect(() => {
-    if (disableSpatial) {
+    if (disableSpatial && hasSelectedSpatialSamples()) {
       toggleAllSamples('SPATIAL')
     }
-  }, [userFormat])
+  }, [modality, myDataset.format, userFormat])
 
   return (
     <Box
