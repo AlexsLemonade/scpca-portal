@@ -3,6 +3,8 @@ import { Anchor, Box, Text } from 'grommet'
 import { api } from 'api'
 import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownloadCard'
 
+// TODO: PortalWideDownloads should accept the arg `{ datasets }`
+// which will come from getServerSideProps
 const PortalWideDownloads = () => {
   const metadataDataset = {
     format: null,
@@ -107,7 +109,7 @@ const PortalWideDownloads = () => {
 
 export const getServerSideProps = async () => {
   // default limit is 10, so here we will set it to 100 unless specified
-  const datasetRequest = await api.datasets.list()
+  const datasetRequest = await api.datasets.list() // TODO: change to ccdlDatasets when implemented
 
   if (datasetRequest.isOk) {
     // TODO: Replace with response.results if required (currently returns an array of CCDL datasets)
