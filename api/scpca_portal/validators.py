@@ -118,52 +118,56 @@ class DatasetDataModelRelations:
             )
 
         # validate that all samples exist
-        data_sample_ids = {
+        data_sample_ids = [
             sample_id
             for project_data in data.values()
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]
             for sample_id in project_data[modality]
             if re.match(SAMPLE_ID_REGEX, sample_id)  # don't iterate over the "MERGED" string
-        }
-        data_samples = Sample.objects.filter(scpca_id__in=data_sample_ids).values(
+        ]
+        existing_samples = Sample.objects.filter(scpca_id__in=data_sample_ids).values(
             "scpca_id", "project__scpca_id", "has_single_cell_data", "has_spatial_data"
         )
-        if missing_keys := data_sample_ids - {sample["scpca_id"] for sample in data_samples}:
+        existing_sample_ids = [sample["scpca_id"] for sample in existing_samples]
+        if invalid_sample_ids := set(data_sample_ids) - set(existing_sample_ids):
             # TODO: add custom exception
             raise Exception(
-                f"The following samples do not exist: {', '.join(sorted(missing_keys))}"
+                f"The following samples do not exist: {', '.join(sorted(invalid_sample_ids))}"
             )
 
         # validate that existing samples were put with their associated projects and modalities
-        valid_project_modality_sample_ids = {
+        existing_project_modality_sample_ids = {
             project_id: {Modalities.SINGLE_CELL: [], Modalities.SPATIAL: []}
             for project_id in existing_project_ids
         }
 
-        for sample in data_samples:
+        for sample in existing_samples:
             project_id = sample["project__scpca_id"]
 
             if sample["has_single_cell_data"]:
-                valid_project_modality_sample_ids[project_id][Modalities.SINGLE_CELL].append(
+                existing_project_modality_sample_ids[project_id][Modalities.SINGLE_CELL].append(
                     sample["scpca_id"]
                 )
 
             if sample["has_spatial_data"]:
-                valid_project_modality_sample_ids[project_id][Modalities.SPATIAL].append(
+                existing_project_modality_sample_ids[project_id][Modalities.SPATIAL].append(
                     sample["scpca_id"]
                 )
 
         for project_id, project_data in data.items():
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                existing_ids = project_data[modality]
-                if missing_keys := set(existing_ids) - set(
-                    valid_project_modality_sample_ids[project_id][modality]
+                if project_data[modality] == "MERGED":
+                    continue
+
+                data_modality_sample_ids = project_data[modality]
+                if invalid_sample_ids := set(data_modality_sample_ids) - set(
+                    existing_project_modality_sample_ids[project_id][modality]
                 ):
                     # TODO: add custom exception
                     raise Exception(
                         "The following samples are not associated "
                         f"with {project_id} and {modality}: "
-                        f"{', '.join(sorted(missing_keys))}"
+                        f"{', '.join(sorted(invalid_sample_ids ))}"
                     )
 
         return data

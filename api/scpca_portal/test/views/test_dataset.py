@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from scpca_portal.enums import DatasetFormats
 from scpca_portal.models import Dataset
 from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
 from scpca_portal.test.factories import (
@@ -29,12 +30,14 @@ class DatasetsTestCase(APITestCase):
         )
 
         # create custom dataset project and samples objects
-        project = ProjectFactory(scpca_id="SCPCP999990")
+        project = ProjectFactory(scpca_id="SCPCP999990", has_bulk_rna_seq=True)
         SampleFactory(scpca_id="SCPCS999990", project=project, has_single_cell_data=True)
         SampleFactory(scpca_id="SCPCS999997", project=project, has_single_cell_data=True)
         SampleFactory(scpca_id="SCPCS999991", project=project, has_spatial_data=True)
 
-        project = ProjectFactory(scpca_id="SCPCP999992")
+        project = ProjectFactory(
+            scpca_id="SCPCP999992", has_bulk_rna_seq=True, includes_merged_sce=True
+        )
         SampleFactory(scpca_id="SCPCS999996", project=project, has_single_cell_data=True)
         SampleFactory(scpca_id="SCPCS999998", project=project, has_single_cell_data=True)
 
@@ -81,15 +84,14 @@ class DatasetsTestCase(APITestCase):
 
     def test_put(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
-        data = {
-            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-        }
+
+        self.custom_dataset.format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        self.custom_dataset.save()
+
         # Assert that read_only format field was not mutated
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": "format",
         }
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
