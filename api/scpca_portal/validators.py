@@ -74,23 +74,48 @@ class DatasetDataModel(RootModel):
 class DatasetDataModelRelations:
 
     @staticmethod
-    def validate(data: Dict[str, Any]) -> Dict:
+    def validate(data: Dict[str, Any], format) -> Dict:
         """
         Validates that projects and samples passed into the data attribute,
         both exist and are correctly related.
         Raises exceptions if projects, samples or their associations do not exist.
         """
         # validate that all projects exist
-        existing_project_ids = Project.objects.filter(scpca_id__in=data.keys()).values_list(
-            "scpca_id", flat=True
-        )
-        if missing_keys := set(data.keys()) - set(existing_project_ids):
+        existing_projects = Project.objects.filter(scpca_id__in=data.keys())
+        existing_project_ids = existing_projects.values_list("scpca_id", flat=True)
+        if invalid_project_ids := set(data.keys()) - set(existing_project_ids):
             # TODO: add custom exception
             raise Exception(
-                f"The following projects do not exist: {', '.join(sorted(missing_keys))}"
+                f"The following projects do not exist: {', '.join(sorted(invalid_project_ids ))}"
             )
 
-        # TODO add bulk check here
+        # validate that requested merged projects have merged data
+        invalid_merged_ids = []
+        for project in existing_projects:
+            if data.get(project.scpca_id, {}).get(Modalities.SINGLE_CELL) == "MERGED":
+                if (format == DatasetFormats.ANN_DATA and project.includes_merged_anndata) or (
+                    format == DatasetFormats.SINGLE_CELL_EXPERIMENT and project.includes_merged_sce
+                ):
+                    invalid_merged_ids.append(project.scpca_id)
+        if invalid_merged_ids:
+            # TODO: add custom exception
+            raise Exception(
+                "The following projects do not have merged files: "
+                f"{', '.join(sorted(invalid_merged_ids))}"
+            )
+
+        # validate that projects have requested bulk data
+        invalid_merged_ids = []
+        if invalid_bulk_ids := [
+            project.scpca_id
+            for project in existing_projects
+            if data.get(project.scpca_id, {}).get("includes_bulk") and project.has_bulk_rna_seq
+        ]:
+            # TODO: add custom exception
+            raise Exception(
+                "The following projects do not have bulk data: "
+                f"{', '.join(sorted(invalid_bulk_ids))}"
+            )
 
         # validate that all samples exist
         data_sample_ids = {
@@ -98,6 +123,7 @@ class DatasetDataModelRelations:
             for project_data in data.values()
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]
             for sample_id in project_data[modality]
+            if re.match(SAMPLE_ID_REGEX, sample_id)  # don't iterate over the "MERGED" string
         }
         data_samples = Sample.objects.filter(scpca_id__in=data_sample_ids).values(
             "scpca_id", "project__scpca_id", "has_single_cell_data", "has_spatial_data"
