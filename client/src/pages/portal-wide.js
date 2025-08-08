@@ -74,7 +74,7 @@ const PortalWideDownloads = () => {
         </Box>
       </Box>
 
-      <Box background="#EDF7FD">
+      <Box background="dawn">
         <Box pad={{ horizontal: 'large', vertical: 'large' }}>
           <Text size="large" margin={{ bottom: 'small' }}>
             Data Downloads
