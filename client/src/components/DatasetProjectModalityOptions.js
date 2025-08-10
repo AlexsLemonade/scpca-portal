@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { CheckBoxGroup } from 'grommet'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { getReadable } from 'helpers/getReadable'
+import { uniqueArray } from 'helpers/uniqueArray'
 import { FormField } from 'components/FormField'
 
 export const DatasetProjectModalityOptions = ({
@@ -9,7 +10,8 @@ export const DatasetProjectModalityOptions = ({
   modalities,
   onModalitiesChange
 }) => {
-  const { myDataset, userFormat } = useDatasetManager()
+  const { myDataset, userFormat, getAddedProjectModalities } =
+    useDatasetManager()
 
   const isAnnData = myDataset.format === 'ANN_DATA' || userFormat === 'ANN_DATA'
   const modalityOptions = [
@@ -23,6 +25,16 @@ export const DatasetProjectModalityOptions = ({
       // Disable the SPATIAL checkbox for ANN_DATA
       disabled: key === 'SPATIAL' && isAnnData
     }))
+
+  // Preselect modalities if already added to myDataset
+  useEffect(() => {
+    const selectedAndAddedModalites = uniqueArray([
+      ...modalities,
+      ...getAddedProjectModalities(project)
+    ])
+
+    onModalitiesChange(selectedAndAddedModalites)
+  }, [project])
 
   // Deselect and disable the SPATIAL checkbox if ANN_DATA is selected
   useEffect(() => {

@@ -108,4 +108,4 @@ class InputBucketS3KeyInfo:
 
     @property
     def _is_metadata(self):
-        return self.s3_key_path.suffix in common.METADATA_EXTENSIONS
+        return self.s3_key_path.stem.endswith("metadata")

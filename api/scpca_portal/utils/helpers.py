@@ -2,15 +2,84 @@
 
 import inspect
 import math
+import shutil
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Iterable, List, Set, Tuple
 
+from django.conf import settings
+
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
+
+
+def remove_data_dirs(
+    wipe_input_dir: bool = True,
+    wipe_output_dir: bool = True,
+    input_dir: Path = settings.INPUT_DATA_PATH,
+    output_dir: Path = settings.OUTPUT_DATA_PATH,
+) -> None:
+    """
+    Removes the input and/or output data directories based on the given wipe flags.
+    Validates input_dir/output_dir to ensure they are within the data directories before removal.
+    Raises an exception if not.
+    """
+    # Ensure input_dir/output_dir are within the data directories
+    base_input_dir = settings.INPUT_DATA_PATH
+    base_output_dir = settings.OUTPUT_DATA_PATH
+
+    if wipe_input_dir:
+        if not input_dir.is_relative_to(base_input_dir):
+            raise Exception(f"{input_dir} must be within the {base_input_dir} directory.")
+        shutil.rmtree(input_dir, ignore_errors=True)
+    if wipe_output_dir:
+        if not output_dir.is_relative_to(base_output_dir):
+            raise Exception(f"{output_dir} must be within the {base_output_dir} directory.")
+        shutil.rmtree(output_dir, ignore_errors=True)
+
+
+def create_data_dirs(
+    wipe_input_dir: bool = False,
+    wipe_output_dir: bool = True,
+    input_dir: Path = settings.INPUT_DATA_PATH,
+    output_dir: Path = settings.OUTPUT_DATA_PATH,
+) -> None:
+    """
+    Creates the input and/or output data directories.
+    Directories are wiped first based on the given wipe flags:
+     - wipe_input_dir defaults to False. Input files are typically preserved between
+        testing rounds to speed up our tests.
+      - wipe_output_dir defaults to True. Computed files are typically removed after execution.
+    Callers can adjust the dafault behavior as necessary.
+
+    NOTE: Passing a directory outside the data directories is not allowed.
+    """
+    remove_data_dirs(
+        wipe_input_dir=wipe_input_dir,
+        wipe_output_dir=wipe_output_dir,
+        input_dir=input_dir,
+        output_dir=output_dir,
+    )
+    input_dir.mkdir(exist_ok=True, parents=True)
+    output_dir.mkdir(exist_ok=True, parents=True)
+
+
+def remove_nested_data_dirs(
+    data_dir: str, wipe_input_dir: bool = True, wipe_output_dir: bool = False
+) -> None:
+    """
+    Removes the given nested folder within the input and/or output data directories.
+    By default, only wipes the nested folder in the input directory.
+    """
+    remove_data_dirs(
+        wipe_input_dir,
+        wipe_output_dir,
+        input_dir=settings.INPUT_DATA_PATH / data_dir,
+        output_dir=settings.OUTPUT_DATA_PATH / data_dir,
+    )
 
 
 def boolean_from_string(value: str) -> bool:

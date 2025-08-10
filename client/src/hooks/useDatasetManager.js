@@ -2,8 +2,6 @@ import { useContext } from 'react'
 import { DatasetManagerContext } from 'contexts/DatasetManagerContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
-import { countArrayElements } from 'helpers/countArrayElements'
-import { filterWhere } from 'helpers/filterWhere'
 
 export const useDatasetManager = () => {
   const {
@@ -33,9 +31,8 @@ export const useDatasetManager = () => {
 
   /* Dataset-level */
   const createDataset = async (dataset) => {
-    // TODO: Component is reponsible for generating a valid token before request
-    // Currently, using a token generated locally via the token endpoint
-    // We'll need to add a step in the UI to generate the token before creating a new dataset
+    // TODO: Token check will be removed once the BE is updated
+    // Token is only required for processing and downloading
     if (!token) {
       return addError('A valid token is required to create a dataset')
     }
@@ -81,8 +78,8 @@ export const useDatasetManager = () => {
   }
 
   const updateDataset = async (dataset) => {
-    // TODO: Component is responsible for generating a valid token before request
-    // Assumption: If myDataset exists, token should exist.
+    // TODO: Token check will be removed once the BE is updated
+    // Token is only required for processing and downloading
     if (!token) {
       return addError('A valid token is required to update the dataset')
     }
@@ -108,8 +105,9 @@ export const useDatasetManager = () => {
     updateDataset({ ...dataset, data: {} })
 
   const processDataset = async (dataset) => {
-    // TODO: Component is reponsible for generating a valid token and passing email
-    // Assumption: Upon form submission, token and email should exist.
+    // TODO: Token check will be added once the BE is updated
+    // Token is required for dataset processing
+
     if (!dataset.email) {
       return addError('An email is required to process the dataset')
     }
@@ -121,8 +119,18 @@ export const useDatasetManager = () => {
   }
 
   /* Project-level */
-  const addProject = async (project, format, projectData) => {
+  const addProject = async (project, format, newProjectData) => {
     const datasetCopy = structuredClone(myDataset)
+    const projectData = datasetCopy.data?.[project.scpca_id]
+
+    // Remove the existing project if no samples are added
+    if (
+      projectData &&
+      !newProjectData.SINGLE_CELL.length &&
+      !newProjectData.SPATIAL.length
+    ) {
+      return removeProject(project)
+    }
 
     // Set format only for a new dataset
     if (datasetCopy.format === undefined) {
@@ -132,8 +140,8 @@ export const useDatasetManager = () => {
     // Make sure data is defined for a new dataset
     datasetCopy.data = datasetCopy.data ?? {}
     datasetCopy.data[project.scpca_id] = {
-      ...(datasetCopy.data[project.scpca_id] ?? {}),
-      ...projectData
+      ...(projectData ?? {}),
+      ...newProjectData
     }
 
     const updatedDataset = !datasetCopy.id
@@ -142,41 +150,68 @@ export const useDatasetManager = () => {
     return updatedDataset
   }
 
-  const getProjectData = (
+  const getAddedProjectModalities = (project) => {
+    const projectData = myDataset.data?.[project.scpca_id] || {}
+    const availableModalities = ['SINGLE_CELL', 'SPATIAL']
+
+    const hasData = (v) => v === 'MERGED' || (Array.isArray(v) && v.length > 0)
+
+    return availableModalities.filter((m) => hasData(projectData[m]))
+  }
+
+  const getProjectDataSamples = (
     project,
-    modality,
+    selectedModalities,
+    singleCellSamples,
+    spatialSamples
+  ) => {
+    // Populate modality samples for the project data
+    const dataCopy = { ...myDataset.data?.[project.scpca_id] } || {}
+
+    const hasModality = (m) => selectedModalities.includes(m)
+
+    dataCopy.SINGLE_CELL = hasModality('SINGLE_CELL') ? singleCellSamples : []
+    dataCopy.SPATIAL = hasModality('SPATIAL') ? spatialSamples : []
+
+    return dataCopy
+  }
+
+  const getProjectSingleCellSamples = (
+    samples,
     merged = false,
     excludeMultiplexed = false
   ) => {
-    // Populates dataset.data.[project.scpca_id] for addProject
-    if (merged && modality !== 'SINGLE_CELL') {
-      return addError(
-        'Merging samples is supported only for Single-cell modality.'
-      )
-    }
+    if (merged) return 'MERGED'
 
-    const { datasets: projectDatasets, scpca_id: projectId } = project
-    const projectDataset = filterWhere(projectDatasets, {
-      format: 'SINGLE_CELL_EXPERIMENT'
-    })
-    const mergedStr = 'MERGED'
-
-    let projectSamples = merged
-      ? mergedStr
-      : projectDataset.map((d) => d.data[projectId][modality]).flat()
+    let projectSamples = samples.filter((s) => s.has_single_cell_data)
 
     if (excludeMultiplexed) {
-      // TODO: Adjust filtering of multiplexed samples once API is updated
-      // Temporarily filter out repeated sample IDs in dataset.data.[project.scpca_id]['SINGLE_CELL']
-      // NOTE: some multiplexed samples (e.g., SCPCS000131. SCPCS000153) should still be filtered
-      const sampleCounts = countArrayElements(projectSamples)
-      projectSamples = projectSamples.filter((s) => sampleCounts[s] === 1)
+      projectSamples = projectSamples.filter((s) => !s.has_multiplexed_data)
     }
 
-    return { [modality]: projectSamples }
+    return projectSamples.map((s) => s.scpca_id)
   }
 
+  const getProjectSpatialSamples = (samples) =>
+    samples.filter((s) => s.has_spatial_data).map((s) => s.scpca_id)
+
   const getProjectIDs = (dataset) => Object.keys(dataset.data)
+
+  const isProjectBulkIncluded = (project) =>
+    myDataset.data?.[project.scpca_id]?.includes_bulk
+
+  const isProjectExcludedMultiplexed = (project, samples) => {
+    const singleCellData = myDataset.data?.[project.scpca_id]?.SINGLE_CELL || []
+    const multiplexedSamples = getProjectSingleCellSamples(samples, false, true)
+
+    return (
+      singleCellData.length === multiplexedSamples.length &&
+      singleCellData.every((s) => multiplexedSamples.includes(s))
+    )
+  }
+
+  const isProjectSingleCellMerged = (project) =>
+    myDataset.data?.[project.scpca_id]?.SINGLE_CELL === 'MERGED'
 
   const removeProject = async (project) => {
     const datasetCopy = structuredClone(myDataset)
@@ -215,9 +250,15 @@ export const useDatasetManager = () => {
     getDataset,
     processDataset,
     addProject,
-    getProjectData,
-    removeProject,
+    getAddedProjectModalities,
+    getProjectDataSamples,
+    getProjectSingleCellSamples,
+    getProjectSpatialSamples,
     getProjectIDs,
+    isProjectBulkIncluded,
+    isProjectExcludedMultiplexed,
+    isProjectSingleCellMerged,
+    removeProject,
     setSamples
   }
 }

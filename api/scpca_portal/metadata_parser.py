@@ -1,14 +1,12 @@
 import csv
 import json
-from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from django.conf import settings
 
 from scpca_portal import common, utils
+from scpca_portal.models.original_file import OriginalFile
 
-PROJECT_METADATA_S3_KEY = "project_metadata.csv"
-PROJECT_METADATA_PATH = settings.INPUT_DATA_PATH / PROJECT_METADATA_S3_KEY
 PROJECT_METADATA_KEYS = [
     # Fields used in Project model object creation
     ("has_bulk", "has_bulk_rna_seq", False),
@@ -46,23 +44,28 @@ BULK_METADATA_KEYS = [
 ]
 
 
-def get_projects_metadata_ids() -> List[str]:
+def get_projects_metadata_ids(*, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME) -> List[str]:
     """
     Opens the projects metadata file and returns a list of all project ids.
 
     """
-    with open(PROJECT_METADATA_PATH) as raw_file:
+    projects_metadata_file = OriginalFile.get_input_projects_metadata_file(bucket=bucket)
+
+    with open(projects_metadata_file.local_file_path) as raw_file:
         projects_metadata = csv.DictReader(raw_file)
         return [row["scpca_project_id"] for row in projects_metadata]
 
 
-def load_projects_metadata(*, filter_on_project_ids: List[str] = []):
+def load_projects_metadata(
+    filter_on_project_ids: List[str], *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Dict]:
     """
     Opens, loads and parses list of project metadata dicts.
     Transforms keys in data dicts to match associated model attributes.
     If an optional project id is passed, all projects are filtered out except for the one passed.
     """
-    with open(PROJECT_METADATA_PATH) as raw_file:
+    projects_metadata_file = OriginalFile.get_input_projects_metadata_file(bucket=bucket)
+    with open(projects_metadata_file.local_file_path) as raw_file:
         projects_metadata = list(csv.DictReader(raw_file))
 
     for project_metadata in projects_metadata:
@@ -75,30 +78,50 @@ def load_projects_metadata(*, filter_on_project_ids: List[str] = []):
     return projects_metadata
 
 
-def load_samples_metadata(metadata_file_path: Path):
+def load_samples_metadata(
+    project_id: str, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Dict]:
     """
-    Opens, loads and parses list of sample metadata located at inputted metadata_file_path.
+    Opens, loads and parses list of samples metadata.
     Transforms keys in data dicts to match associated model attributes.
     """
-    with open(metadata_file_path) as raw_file:
+    samples_metadata_file = OriginalFile.get_input_samples_metadata_file(project_id, bucket=bucket)
+    with open(samples_metadata_file.local_file_path) as raw_file:
         return list(csv.DictReader(raw_file))
 
 
-def load_library_metadata(metadata_file_path: Path):
+def load_libraries_metadata(
+    project_id: str, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Dict]:
     """
-    Opens, loads and parses single library's metadata located at inputted metadata_file_path.
+    Opens, loads and parses all of a project's libraries metadata.
     Transforms keys in data dicts to match associated model attributes.
     """
-    with open(metadata_file_path) as raw_file:
-        return utils.transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
+    library_metadata_files = OriginalFile.get_input_library_metadata_files(
+        project_id, bucket=bucket
+    )
+
+    libraries_metadata = []
+    for library_metadata_file in library_metadata_files:
+        with open(library_metadata_file.local_file_path) as raw_file:
+            libraries_metadata.append(
+                utils.transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
+            )
+
+    return libraries_metadata
 
 
-def load_bulk_metadata(metadata_file_path: Path):
+def load_bulk_metadata(
+    project_id: str, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Dict]:
     """
     Opens, loads and parses bulk metadata located at inputted metadata_file_path.
     Transforms keys in data dicts to match associated model attributes.
     """
-    with open(metadata_file_path) as raw_file:
+    bulk_metadata_file = OriginalFile.get_input_project_bulk_metadata_file(
+        project_id, bucket=bucket
+    )
+    with open(bulk_metadata_file.local_file_path) as raw_file:
         bulk_metadata_dicts = list(csv.DictReader(raw_file, delimiter=common.TAB))
 
     for bulk_metadata_dict in bulk_metadata_dicts:

@@ -23,31 +23,34 @@ class TestLoadData(TestCase):
         self.submitter_whitelist = common.SUBMITTER_WHITELIST
 
         # Handle patching in setUp function
-        prep_data_dirs_patch = patch("scpca_portal.loader.prep_data_dirs")
-        get_projects_metadata_patch = patch("scpca_portal.loader.get_projects_metadata")
+        create_data_dirs_patch = patch("scpca_portal.utils.create_data_dirs")
+        download_files_patch = patch("scpca_portal.s3.download_files")
+        load_projects_metadata_patch = patch("scpca_portal.metadata_parser.load_projects_metadata")
         create_project_patch = patch("scpca_portal.loader.create_project")
         generate_computed_files_patch = patch("scpca_portal.loader.generate_computed_files")
-        remove_project_input_files_patch = patch("scpca_portal.loader.remove_project_input_files")
+        remove_nested_data_dirs_patch = patch("scpca_portal.utils.remove_nested_data_dirs")
 
         # Start patches
-        self.mock_prep_data_dirs = prep_data_dirs_patch.start()
-        self.mock_get_projects_metadata = get_projects_metadata_patch.start()
+        self.mock_create_data_dirs = create_data_dirs_patch.start()
+        self.mock_download_files_patch = download_files_patch.start()
+        self.mock_load_projects_metadata = load_projects_metadata_patch.start()
         self.mock_create_project = create_project_patch.start()
         self.mock_generate_computed_files = generate_computed_files_patch.start()
-        self.mock_remove_project_input_files = remove_project_input_files_patch.start()
+        self.mock_remove_nested_data_dirs = remove_nested_data_dirs_patch.start()
 
         # Save patches that so they can be stopped during tearDown
         self.patches = [
-            prep_data_dirs_patch,
-            get_projects_metadata_patch,
+            create_data_dirs_patch,
+            download_files_patch,
+            load_projects_metadata_patch,
             create_project_patch,
             generate_computed_files_patch,
-            remove_project_input_files_patch,
+            remove_nested_data_dirs_patch,
         ]
 
         # Configure necessary output values
         self.projects_metadata = [{"key": "value"}]
-        self.mock_get_projects_metadata.return_value = self.projects_metadata
+        self.mock_load_projects_metadata.return_value = self.projects_metadata
         self.project = Project()
         self.mock_create_project.return_value = self.project
 
@@ -56,8 +59,8 @@ class TestLoadData(TestCase):
             p.stop()
 
     def assertMethodsCalled(self):
-        self.mock_prep_data_dirs.assert_called()
-        self.mock_get_projects_metadata.assert_called()
+        self.mock_create_data_dirs.assert_called()
+        self.mock_load_projects_metadata.assert_called()
         self.mock_create_project.assert_called()
         self.mock_generate_computed_files.assert_called()
 
@@ -65,7 +68,7 @@ class TestLoadData(TestCase):
         self.load_data()
         self.assertMethodsCalled()
 
-        self.mock_get_projects_metadata.assert_called_once_with(self.scpca_project_id)
+        self.mock_load_projects_metadata.assert_called_once_with([self.scpca_project_id])
         self.mock_create_project.assert_called_once_with(
             self.projects_metadata[0],
             self.submitter_whitelist,
@@ -77,7 +80,7 @@ class TestLoadData(TestCase):
         input_bucket_name = "input_bucket_name"
         self.load_data(input_bucket_name=input_bucket_name)
 
-        self.mock_get_projects_metadata.assert_called_with(self.scpca_project_id)
+        self.mock_load_projects_metadata.assert_called_with([self.scpca_project_id])
         self.mock_create_project.assert_called_with(
             self.projects_metadata[0],
             self.submitter_whitelist,
@@ -89,11 +92,11 @@ class TestLoadData(TestCase):
     def test_clean_up_input_data(self):
         self.load_data()
         self.assertMethodsCalled()
-        self.mock_remove_project_input_files.assert_not_called()
+        self.mock_remove_nested_data_dirs.assert_not_called()
 
         clean_up_input_data = True
         self.load_data(clean_up_input_data=clean_up_input_data)
-        self.mock_remove_project_input_files.assert_called_once()
+        self.mock_remove_nested_data_dirs.assert_called_once()
 
     def test_clean_up_output_data(self):
         self.load_data()
@@ -146,11 +149,11 @@ class TestLoadData(TestCase):
     def test_scpca_project_id(self):
         self.load_data()
         self.assertMethodsCalled()
-        self.mock_get_projects_metadata.assert_called_once_with(self.scpca_project_id)
+        self.mock_load_projects_metadata.assert_called_once_with([self.scpca_project_id])
 
         scpca_project_id = "scpca_project_id"
         self.load_data(scpca_project_id=scpca_project_id)
-        self.mock_get_projects_metadata.assert_called_with(scpca_project_id)
+        self.mock_load_projects_metadata.assert_called_with([scpca_project_id])
 
     def test_update_s3(self):
         self.load_data()
@@ -202,22 +205,22 @@ class TestLoadData(TestCase):
             self.update_s3,
         )
 
-    def test_get_projects_metadata_failure(self):
-        self.mock_get_projects_metadata.return_value = []
+    def test_load_projects_metadata_failure(self):
+        self.mock_load_projects_metadata.return_value = []
         self.load_data()
 
-        self.mock_prep_data_dirs.assert_called_once()
-        self.mock_get_projects_metadata.assert_called_once()
+        self.mock_create_data_dirs.assert_called_once()
+        self.mock_load_projects_metadata.assert_called_once()
         self.mock_create_project.assert_not_called()
         self.mock_generate_computed_files.assert_not_called()
-        self.mock_remove_project_input_files.assert_not_called()
+        self.mock_remove_nested_data_dirs.assert_not_called()
 
     def test_create_project_failure(self):
         self.mock_create_project.return_value = None
         self.load_data()
 
-        self.mock_prep_data_dirs.assert_called_once()
-        self.mock_get_projects_metadata.assert_called_once()
+        self.mock_create_data_dirs.assert_called_once()
+        self.mock_load_projects_metadata.assert_called_once()
         self.mock_create_project.assert_called_once()
         self.mock_generate_computed_files.assert_not_called()
-        self.mock_remove_project_input_files.assert_not_called()
+        self.mock_remove_nested_data_dirs.assert_not_called()

@@ -27,21 +27,21 @@ const Portal = ({ Component, pageProps }) => {
     <>
       <Reset />
       <Grommet theme={theme}>
-        <ScPCAPortalContextProvider>
-          <AnalyticsContextProvider>
-            <PageTitle />
-            <BannerContextProvider>
-              <DatasetManagerContextProvider>
-                <Layout>
-                  <Sentry.ErrorBoundary fallback={Fallback} showDialog>
+        <Sentry.ErrorBoundary fallback={Fallback} showDialog>
+          <ScPCAPortalContextProvider>
+            <AnalyticsContextProvider>
+              <PageTitle />
+              <BannerContextProvider>
+                <DatasetManagerContextProvider>
+                  <Layout>
                     {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                     <Component {...pageProps} />
-                  </Sentry.ErrorBoundary>
-                </Layout>
-              </DatasetManagerContextProvider>
-            </BannerContextProvider>
-          </AnalyticsContextProvider>
-        </ScPCAPortalContextProvider>
+                  </Layout>
+                </DatasetManagerContextProvider>
+              </BannerContextProvider>
+            </AnalyticsContextProvider>
+          </ScPCAPortalContextProvider>
+        </Sentry.ErrorBoundary>
       </Grommet>
     </>
   )

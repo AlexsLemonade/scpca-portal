@@ -128,6 +128,9 @@ def get_aws_env_from_profile(profile: str) -> bool:
 commands_cwd = {
     "deploy:up": Path("infrastructure"),
     "deploy:down": Path("infrastructure"),
+    "deploy:init": Path("infrastructure"),
+    "deploy:plan": Path("infrastructure"),
+    "deploy:console": Path("infrastructure"),
 }
 
 # Commands that require shell. Joined and passed as a string.
@@ -153,6 +156,13 @@ command_descriptions = {
     "api:lint:black": "Lint API python code with black.",
     "deploy:up": "Spin up a dev stack. Requires successful debug:env.",
     "deploy:down": "Tear down existing dev stack.",
+    "deploy:init": "Terraform init via the deploy command.",
+    "deploy:plan": "Terraform plan via the deploy command.",
+    "deploy:console": (
+        "Access a terraform console to help test data structures."
+        "Use --save-plan to save to infrastructure/PLAN."
+        "View with `terraform show PLAN`"
+    ),
 }
 
 # All available commands and their execution.
@@ -184,6 +194,9 @@ commands = {
     "api:lint:black": ["black", "--line-length=100", "--exclude=volumes_postgres", "."],
     "deploy:up": deploy,
     "deploy:down": deploy + ["--destroy"],
+    "deploy:init": deploy + ["--init"],
+    "deploy:plan": deploy + ["--plan"],
+    "deploy:console": deploy + ["--console"],
 }
 
 
