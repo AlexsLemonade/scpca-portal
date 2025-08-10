@@ -111,7 +111,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         ]
 
     @property
-    def original_files(self):
+    def original_files(self) -> Iterable[OriginalFile]:
         return OriginalFile.downloadable_objects.filter(
             project_id=self.scpca_id, is_project_file=True
         )
@@ -123,18 +123,6 @@ class Project(CommonDataAttributes, TimestampedModel):
     @property
     def computed_files(self) -> Iterable[ComputedFile]:
         return self.project_computed_files.order_by("created_at")
-
-    @property
-    def input_data_path(self):
-        return settings.INPUT_DATA_PATH / self.scpca_id
-
-    @property
-    def input_merged_data_path(self):
-        return self.input_data_path / "merged"
-
-    @property
-    def input_bulk_metadata_file_path(self):
-        return self.input_data_path / "bulk" / f"{self.scpca_id}_bulk_metadata.tsv"
 
     @property
     def url(self):
@@ -224,7 +212,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Returns set of bulk RNA sequencing sample IDs."""
         bulk_rna_seq_sample_ids = set()
         if self.has_bulk_rna_seq:
-            with open(self.input_bulk_metadata_file_path, "r") as bulk_metadata_file:
+            bulk_metadata_file = OriginalFile.get_input_project_bulk_metadata_file(self.scpca_id)
+            with open(bulk_metadata_file.local_file_path, "r") as bulk_metadata_file:
                 bulk_rna_seq_sample_ids.update(
                     (
                         line["sample_id"]

@@ -1,6 +1,7 @@
 import hashlib
 import sys
 import uuid
+from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -11,7 +12,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, metadata_file, readme_file
+from scpca_portal import ccdl_datasets, common, lockfile, metadata_file, readme_file
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -27,6 +28,7 @@ from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
+from scpca_portal.validators import DatasetData
 
 logger = get_and_configure_logger(__name__)
 
@@ -118,6 +120,98 @@ class Dataset(TimestampedModel):
         return original_files_size + metadata_file_size + readme_file_size
 
     @property
+    def diagnoses_summary(self) -> dict:
+        """
+        Counts present all diagnoses for samples in datasets.
+        Returns dict where key is the diagnosis and value is a dict
+        of project and sample counts.
+        """
+        # all diagnoses in the dataset
+        if diagnoses := self.samples.values("diagnosis").annotate(
+            samples=models.Count("scpca_id", distinct=True),
+            projects=models.Count("project_id", distinct=True),
+        ):
+            return {d.pop("diagnosis"): d for d in diagnoses}
+
+        return {}
+
+    # TODO: Bulk samples are not present in libraries but will need to be included.
+    @property
+    def files_summary(self) -> list[dict]:
+        """
+        Iterates over pre-defined file types that will be present in the dataset download.
+        This break down looks at the type of information present in the individual files as well.
+        Returns a list of dicts with name, samples_count, and format as keys.
+        """
+
+        # Name describes the type of files being summarized.
+        # Filter describes how to match libraries in the dataset.
+        # Format defaults to dataset format but can be overridden here.
+        # Order is important, more specific should precede less specific.
+        summary_queries = [
+            {
+                "name": "Single-nuclei multiplexed samples",
+                "filter": {"is_multiplexed": True, "metadata__seq_unit": "nucleus"},
+            },
+            {
+                "name": "Single-cell multiplexed samples",
+                "filter": {"is_multiplexed": True},
+            },
+            {
+                "name": "Single-nuclei samples",
+                "filter": {"metadata__seq_unit": "nucleus"},
+            },
+            {
+                "name": "Single-cell samples with CITE-seq",
+                "filter": {"has_cite_seq_data": True},
+            },
+            {
+                "name": "Single-cell samples",
+                "filter": {"modality": Modalities.SINGLE_CELL},
+            },
+            {
+                "name": "Spatial samples",
+                "filter": {"modality": Modalities.SPATIAL},
+                "format": "Spatial format",
+            },
+            {
+                "name": "Bulk-RNA seq samples",
+                "filter": {"modality": Modalities.BULK_RNA_SEQ},
+                "format": ".tsv",
+            },
+        ]
+
+        summaries = []
+        seen_libraries = []
+
+        for file_summary_query in summary_queries:
+            if (
+                library_ids := self.libraries.filter(**file_summary_query["filter"])
+                .exclude(scpca_id__in=seen_libraries)
+                .distinct()
+                .values_list("scpca_id", flat=True)
+            ):
+                nested_ids = self.original_files.filter(library_id__in=library_ids).values_list(
+                    "sample_ids", flat=True
+                )
+                samples = {s for ss in nested_ids for s in ss}
+                samples_count = len(samples)
+
+                seen_libraries.extend(library_ids)
+
+                summaries.append(
+                    {
+                        "samples_count": samples_count,
+                        "name": file_summary_query["name"],
+                        "format": file_summary_query.get(
+                            "format", common.FORMAT_EXTENSIONS[self.format]
+                        ),
+                    }
+                )
+
+        return summaries
+
+    @property
     def stats(self) -> Dict:
         return {
             "current_data_hash": self.current_data_hash,
@@ -125,6 +219,8 @@ class Dataset(TimestampedModel):
             "current_metadata_hash": self.current_metadata_hash,
             "is_hash_changed": self.combined_hash != self.current_combined_hash,
             "uncompressed_size": self.estimated_size_in_bytes,
+            "diagnoses_summary": self.diagnoses_summary,
+            "files_summary": self.files_summary,
         }
 
     @classmethod
@@ -145,14 +241,11 @@ class Dataset(TimestampedModel):
         return dataset, False
 
     @classmethod
-    def update_from_last_jobs(cls, datasets: List[Self]) -> None:
+    def bulk_update_state(cls, datasets: List[Self]) -> None:
         """
-        Updates datasets' state based on their latest jobs.
+        Updates state attributes of the given datasets in bulk.
         """
-        for dataset in datasets:
-            dataset.update_from_last_job(save=False)
-
-        updated_attrs = [
+        STATE_UPDATE_ATTRS = [
             "is_pending",
             "pending_at",
             "is_processing",
@@ -166,7 +259,7 @@ class Dataset(TimestampedModel):
             "terminated_at",
             "terminated_reason",
         ]
-        cls.objects.bulk_update(datasets, updated_attrs)
+        cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
 
     def get_ccdl_data(self) -> Dict:
         if not self.is_ccdl:
@@ -200,32 +293,28 @@ class Dataset(TimestampedModel):
 
         return data
 
-    def update_from_last_job(self, save: bool = True) -> None:
-        """
-        Updates the dataset's state based on the latest job.
-        Setting save to False will mutate the instance but not persist to the db.
-        This is useful for bulk operations.
-        """
-        last_job = self.jobs.order_by("-pending_at").first()
+    def contains_project_ids(self, project_ids: Set[str]) -> bool:
+        """Returns whether or not the dataset contains samples in any of the passed projects."""
+        return any(dataset_project_id in project_ids for dataset_project_id in self.data.keys())
 
-        match last_job.state:
-            case JobStates.PENDING:
-                self.on_job_pending()
-            case JobStates.PROCESSING:
-                self.on_job_processing()
-            case JobStates.SUCCEEDED:
-                self.on_job_succeeded()
-            case JobStates.FAILED:
-                self.on_job_failed()
-            case JobStates.TERMINATED:
-                self.on_job_terminated()
+    @property
+    def has_lockfile_projects(self) -> bool:
+        """Returns whether or not the dataset contains any project ids in the lockfile."""
+        return self.contains_project_ids(set(lockfile.get_lockfile_project_ids()))
 
-        if save:
-            self.save()
+    @property
+    def locked_projects(self) -> Iterable[Project]:
+        """Returns a queryset of all of the dataset's locked project."""
+        return self.projects.filter(is_locked=True)
 
-    def apply_job_state(self) -> None:
+    @property
+    def has_locked_projects(self) -> bool:
+        """Returns whether or not the dataset contains locked projects."""
+        return self.locked_projects.exists()
+
+    def apply_job_state(self, job) -> None:
         """
-        Sets the dataset state (flag, reason, timestamps) based on the last job state.
+        Sets the dataset state (flag, reason, timestamps) based on the given job.
         Resets states before applying changes.
         """
         # Resets all state flags and reasons
@@ -243,50 +332,14 @@ class Dataset(TimestampedModel):
         for state in reset_states:
             setattr(self, f"{state.lower()}_at", None)
 
-        # Sets the current states
-        last_job = self.jobs.order_by("-pending_at").first()
-        state_str = last_job.state.lower()
+        # Sets new state based on the given job
+        state_str = job.state.lower()
         reason_attr = f"{state_str}_reason"
 
         setattr(self, f"is_{state_str}", True)
         setattr(self, f"{state_str}_at", make_aware(datetime.now()))
         if hasattr(self, f"{state_str}_reason"):
-            setattr(self, f"{state_str}_reason", getattr(last_job, reason_attr))
-
-    def on_job_pending(self) -> Self:
-        """
-        Marks the dataset as pending based on the last job.
-        """
-        self.apply_job_state()
-        return self
-
-    def on_job_processing(self) -> Self:
-        """
-        Marks the dataset as processing based on the last job.
-        """
-        self.apply_job_state()
-        return self
-
-    def on_job_succeeded(self) -> Self:
-        """
-        Marks the dataset as succeeded based on the last job.
-        """
-        self.apply_job_state()
-        return self
-
-    def on_job_failed(self) -> Self:
-        """
-        Marks the dataset as failed with the failure reason based on the last job.
-        """
-        self.apply_job_state()
-        return self
-
-    def on_job_terminated(self) -> Self:
-        """
-        Marks the dataset as terminated with the terminated reason based on the last job.
-        """
-        self.apply_job_state()
-        return self
+            setattr(self, f"{state_str}_reason", getattr(job, reason_attr))
 
     @property
     def is_hash_changed(self) -> bool:
@@ -332,11 +385,32 @@ class Dataset(TimestampedModel):
     def ccdl_type(self) -> Dict:
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
-    @property
-    def is_data_valid(self) -> bool:
-        """Determines if the Dataset's Data attr is valid."""
-        data_validator = DataValidator(self.data)
-        return data_validator.is_valid
+    @staticmethod
+    def validate_data(data: Mapping[str, Any]) -> DatasetData:
+        return DatasetData.model_validate(data)
+
+    def validate(self) -> None:
+        """
+        Validates that projects and samples, who's ids were passed in through the data attribute,
+        both exist and are correctly related.
+        Raises exceptions if projects, samples or their associations do not exist.
+        """
+        if self.format == DatasetFormats.ANN_DATA.value:
+            if any(
+                project_data.get(Modalities.SPATIAL.value, [])
+                for project_data in self.data.values()
+            ):
+                # TODO: add custom exception
+                raise Exception("No Spatial data for ANNDATA.")
+
+        # validate that all projects exist
+        existing_ids = Project.objects.filter(scpca_id__in=self.data.keys()).values_list(
+            "scpca_id", flat=True
+        )
+        if missing_keys := set(self.data.keys()) - set(existing_ids):
+            raise Exception(f"The following projects do not exist: {list(missing_keys)}")
+
+        # TODO: sample modality existence check
 
     def get_is_merged_project(self, project_id) -> bool:
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
@@ -557,80 +631,3 @@ class Dataset(TimestampedModel):
     @property
     def cite_seq_projects(self) -> Iterable[Project]:
         return self.projects.filter(has_cite_seq_data=True)
-
-
-class DataValidator:
-    def __init__(self, data: Dict[str, Dict]) -> None:
-        self.data: Dict[str, Dict[str, Any]] = data
-
-    @property
-    def is_valid(self) -> bool:
-        return all(self.validate_project(project_id) for project_id in self.data.keys())
-
-    @property
-    def valid_projects(self) -> List[str]:
-        return [project_id for project_id in self.data.keys() if self.validate_project(project_id)]
-
-    @property
-    def invalid_projects(self) -> List[str]:
-        return [
-            project_id for project_id in self.data.keys() if not self.validate_project(project_id)
-        ]
-
-    def validate_project(self, project_id: str) -> bool:
-        if not self._validate_project_id(project_id):
-            return False
-
-        if not self._validate_includes_bulk(project_id):
-            return False
-
-        if not self._validate_single_cell(project_id):
-            return False
-
-        if not self._validate_spatial(project_id):
-            return False
-
-        return True
-
-    def _validate_project_id(self, project_id):
-        return self._validate_id(project_id, common.PROJECT_ID_PREFIX)
-
-    def _validate_id(self, id: str, prefix: str) -> bool:
-        if not isinstance(id, str):
-            return False
-
-        if not id.startswith(prefix):
-            return False
-
-        id_number = id.removeprefix(prefix)
-        return len(id_number) == 6 and id_number.isdigit()
-
-    def _validate_includes_bulk(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.INCLUDES_BULK):
-            return isinstance(value, bool)
-
-        return True
-
-    def _validate_single_cell(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SINGLE_CELL):
-            if value == "MERGED":
-                return True
-            return self._validate_modality(value)
-
-        return True
-
-    def _validate_spatial(self, project_id) -> bool:
-        if value := self.data.get(project_id, {}).get(DatasetDataProjectConfig.SPATIAL):
-            return self._validate_modality(value)
-
-        return True
-
-    def _validate_modality(self, modality_sample_ids: List) -> bool:
-        if not isinstance(modality_sample_ids, list):
-            return False
-
-        for sample_id in modality_sample_ids:
-            if not self._validate_id(sample_id, common.SAMPLE_ID_PREFIX):
-                return False
-
-        return True

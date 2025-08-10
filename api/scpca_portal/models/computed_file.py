@@ -10,6 +10,7 @@ from typing_extensions import Self
 from scpca_portal import common, metadata_file, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetFormats, Modalities
+from scpca_portal.exceptions import DatasetLockedProjectError, DatasetMissingLibrariesError
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
@@ -165,11 +166,18 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         """
         Computes a given dataset's zip archive and returns a corresponding ComputedFile object.
         """
+        if dataset.has_lockfile_projects or dataset.has_locked_projects:
+            raise DatasetLockedProjectError(dataset)
+
         # If the query returns empty, then throw an error occurred.
         if not dataset.libraries.exists():
-            raise ValueError("Unable to find libraries for Dataset.")
+            raise DatasetMissingLibrariesError(dataset)
 
-        s3.download_files(dataset.original_files)
+        dataset_original_files = dataset.original_files
+        for project in dataset.projects:
+            s3.download_files(dataset_original_files.filter(project_id=project.scpca_id))
+            if dataset.has_lockfile_projects or dataset.has_locked_projects:
+                raise DatasetLockedProjectError(dataset)
 
         with ZipFile(dataset.computed_file_local_path, "w") as zip_file:
             # Readme file

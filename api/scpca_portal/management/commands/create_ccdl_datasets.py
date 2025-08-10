@@ -4,6 +4,7 @@ from argparse import BooleanOptionalAction
 from django.core.management.base import BaseCommand
 
 from scpca_portal import ccdl_datasets
+from scpca_portal.exceptions import DatasetError, JobError
 from scpca_portal.models import Dataset, Job, Project
 
 logger = logging.getLogger()
@@ -33,8 +34,12 @@ class Command(BaseCommand):
         dataset.save()
 
         job = Job.get_dataset_job(dataset)
-        if job.submit():
+        try:
+            job.submit()
             logger.info(f"{dataset} job submitted successfully.")
+        except (DatasetError, JobError):
+            logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
+            job.increment_attempt_or_fail()
 
         return True
 

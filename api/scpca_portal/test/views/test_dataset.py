@@ -11,21 +11,28 @@ from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
 from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory
 
 
+class EmptyDatasetTestCase(APITestCase):
+    def test_get_list(self):
+        url = reverse("datasets-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
 class DatasetsTestCase(APITestCase):
     """Tests /datasets/ operations."""
 
-    def setUp(self):
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
-            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
-        self.token = APIToken(email="user@example.com", is_activated=True)
-        self.token.save()
+    @classmethod
+    def setUpTestData(cls):
+        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        cls.token = APIToken(email="user@example.com", is_activated=True)
+        cls.token.save()
 
-        self.auth_headers = {"HTTP_API_KEY": str(self.token.id)}
+        cls.auth_headers = {"HTTP_API_KEY": str(cls.token.id)}
 
-        self.ccdl_dataset = DatasetFactory(is_ccdl=True, token=self.token)
-        self.custom_dataset = DatasetFactory(
+        cls.ccdl_dataset = DatasetFactory(is_ccdl=True, token=cls.token)
+        cls.custom_dataset = DatasetFactory(
             is_ccdl=False,
-            token=self.token,
+            token=cls.token,
             computed_file=LeafComputedFileFactory(),
         )
 
@@ -144,6 +151,8 @@ class DatasetsTestCase(APITestCase):
             "current_metadata_hash",
             "is_hash_changed",
             "uncompressed_size",
+            "diagnoses_summary",
+            "files_summary",
         }
         for field in stats_property_fields:
             self.assertIn(field, stats_property)

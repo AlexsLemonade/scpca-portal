@@ -3,7 +3,7 @@ from argparse import BooleanOptionalAction
 
 from django.core.management.base import BaseCommand
 
-from scpca_portal import common, loader, notifications
+from scpca_portal import common, loader, notifications, utils
 from scpca_portal.models import Project, Sample
 
 logger = logging.getLogger()
@@ -42,7 +42,7 @@ class Command(BaseCommand):
         **kwargs,
     ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
-        loader.prep_data_dirs()
+        utils.create_data_dirs()
 
         ids_not_mutually_exclusive = project_id and sample_id or (not project_id and not sample_id)
         if ids_not_mutually_exclusive:

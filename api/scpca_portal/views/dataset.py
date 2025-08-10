@@ -5,6 +5,8 @@ from rest_framework.response import Response
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.exceptions import DatasetError, JobError
 from scpca_portal.models import APIToken, Dataset, Job
 from scpca_portal.serializers import (
     DatasetCreateSerializer,
@@ -13,9 +15,17 @@ from scpca_portal.serializers import (
     DatasetUpdateSerializer,
 )
 
+logger = get_and_configure_logger(__name__)
+
 
 class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     ordering_fields = "__all__"
+
+    # TODO: Either add serializer_class/queryset to the class or use viewsets.ViewSet
+    # Fixes browser error 500 (not caught by tests) by setting default serializer and queryset
+    # https://www.django-rest-framework.org/api-guide/generic-views/#examples
+    queryset = Dataset.objects.all()
+    serializer_class = DatasetSerializer
 
     def list(self, request):
         queryset = Dataset.objects.filter(is_ccdl=True)
@@ -35,7 +45,11 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         if dataset.start:
             dataset_job = Job.get_dataset_job(dataset)
-            dataset_job.submit()
+            try:
+                dataset_job.submit()
+            except (DatasetError, JobError):
+                logger.info(f"{dataset} job (attempt {dataset_job.attempt}) is being requeued.")
+                dataset_job.increment_attempt_or_fail()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -66,7 +80,13 @@ class DatasetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         if modified_dataset.start:
             dataset_job = Job.get_dataset_job(modified_dataset)
-            dataset_job.submit()
+            try:
+                dataset_job.submit()
+            except (DatasetError, JobError):
+                logger.info(
+                    f"{modified_dataset} job (attempt {dataset_job.attempt}) is being requeued."
+                )
+                dataset_job.increment_attempt_or_fail()
 
         return Response(serializer.data)
 
