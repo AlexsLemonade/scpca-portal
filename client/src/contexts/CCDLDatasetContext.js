@@ -8,7 +8,7 @@ export const CCDLDatasetContextProvider = ({ initialQuery = {}, children }) => {
   const [datasets, setDatasets] = useState([])
   // TODO: instead of loading immediately we should have an option to defer this
 
-  // Set states for the portal metedata
+  // Set states for the portal metadata
   useEffect(() => {
     const getCCDLDatasets = async () => {
       const resourceRequest = await api.ccdlDatasets.list(query)
