@@ -150,13 +150,21 @@ export const useDatasetManager = () => {
     return updatedDataset
   }
 
-  const getAddedProjectModalities = (project) => {
-    const projectData = myDataset.data?.[project.scpca_id] || {}
+  const getAddedProjectModalities = () => {
+    // Get the modalities of the most recently added project
+    const lastAddedProjectData = (myDataset?.data || {})[
+      Object.keys(myDataset?.data || []).slice(-1)[0]
+    ]
+
+    if (!lastAddedProjectData) {
+      return []
+    }
+
     const availableModalities = ['SINGLE_CELL', 'SPATIAL']
 
     const hasData = (v) => v === 'MERGED' || (Array.isArray(v) && v.length > 0)
 
-    return availableModalities.filter((m) => hasData(projectData[m]))
+    return availableModalities.filter((m) => hasData(lastAddedProjectData[m]))
   }
 
   const getProjectDataSamples = (
@@ -197,11 +205,13 @@ export const useDatasetManager = () => {
 
   const getProjectIDs = (dataset) => Object.keys(dataset.data)
 
-  const isProjectBulkIncluded = (project) =>
-    myDataset.data?.[project.scpca_id]?.includes_bulk
+  const isProjectAddedToDataset = (project) =>
+    Object.keys(myDataset?.data || []).includes(project.scpca_id)
 
-  const isProjectExcludedMultiplexed = (project, samples) => {
-    const singleCellData = myDataset.data?.[project.scpca_id]?.SINGLE_CELL || []
+  const isProjectBulkIncluded = (projectData) => projectData?.includes_bulk
+
+  const isProjectExcludedMultiplexed = (projectData, samples) => {
+    const singleCellData = projectData?.SINGLE_CELL || []
     const multiplexedSamples = getProjectSingleCellSamples(samples, false, true)
 
     return (
@@ -210,8 +220,8 @@ export const useDatasetManager = () => {
     )
   }
 
-  const isProjectSingleCellMerged = (project) =>
-    myDataset.data?.[project.scpca_id]?.SINGLE_CELL === 'MERGED'
+  const isProjectSingleCellMerged = (projectData) =>
+    projectData?.SINGLE_CELL === 'MERGED'
 
   const removeProject = async (project) => {
     const datasetCopy = structuredClone(myDataset)
@@ -255,6 +265,7 @@ export const useDatasetManager = () => {
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
     getProjectIDs,
+    isProjectAddedToDataset,
     isProjectBulkIncluded,
     isProjectExcludedMultiplexed,
     isProjectSingleCellMerged,

@@ -30,11 +30,11 @@ export const DatasetProjectModalityOptions = ({
   useEffect(() => {
     const selectedAndAddedModalites = uniqueArray([
       ...modalities,
-      ...getAddedProjectModalities(project)
+      ...getAddedProjectModalities()
     ])
 
     onModalitiesChange(selectedAndAddedModalites)
-  }, [project])
+  }, [])
 
   // Deselect and disable the SPATIAL checkbox if ANN_DATA is selected
   useEffect(() => {
