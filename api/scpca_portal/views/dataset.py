@@ -33,7 +33,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         serializer = DatasetCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=False)
+        serializer.is_valid(raise_exception=True)
         dataset = serializer.save()
 
         if dataset.start:

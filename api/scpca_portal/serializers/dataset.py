@@ -54,12 +54,6 @@ class DatasetCreateSerializer(DatasetSerializer):
     def validate(self, attrs):
         validated_attrs = super().validate(attrs)
 
-        # format is required for dataset creation
-        if "format" not in validated_attrs:
-            raise serializers.ValidationError(
-                {"data": "Format field is required when creating a dataset."}
-            )
-
         if "data" in validated_attrs:
             try:
                 validated_attrs["data"] = Dataset.validate_data(
@@ -68,9 +62,9 @@ class DatasetCreateSerializer(DatasetSerializer):
 
             # serializer exceptions return a 400 response to the client
             except PydanticValidationError as e:
-                raise serializers.ValidationError({"data": f"Invalid data structure: {e}"})
+                raise serializers.ValidationError({"detail": f"Invalid data structure: {e}"})
             except Exception as e:
-                raise serializers.ValidationError({"data": f"Data validation failed: {e}"})
+                raise serializers.ValidationError({"detail": f"Data validation failed: {e}"})
 
         return validated_attrs
 
@@ -87,6 +81,6 @@ class DatasetUpdateSerializer(DatasetSerializer):
             return Dataset.validate_data(value, self.instance.format)
         # serializer exceptions return a 400 response to the client
         except PydanticValidationError as e:
-            raise serializers.ValidationError({"data": f"Invalid data structure: {e}"})
+            raise serializers.ValidationError({"detail": f"Invalid data structure: {e}"})
         except Exception as e:
-            raise serializers.ValidationError({"data": f"Data validation failed: {e}"})
+            raise serializers.ValidationError({"detail": f"Data validation failed: {e}"})

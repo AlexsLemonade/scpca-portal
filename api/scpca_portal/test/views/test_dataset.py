@@ -68,6 +68,16 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
         }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Assert that format must be present
+        data = {
+            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Assert that adding ccdl datasets doesn't work
         data = {
