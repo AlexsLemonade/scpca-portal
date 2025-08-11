@@ -1,21 +1,15 @@
 import React from 'react'
 import { Box } from 'grommet'
 import { FormCheckmark } from 'grommet-icons'
-import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 
 // NOTE: Ask Deepa for a checkmark SVG Icon
 export const TriStateModalityCheckBox = ({ modality, disabled }) => {
-  const { myDataset, userFormat } = useDatasetManager()
   const { selectedSamples, filteredSamples, toggleAllSamples } =
     useDatasetSamplesTable()
 
-  const disableSpatial =
-    modality === 'SPATIAL' && (myDataset.format || userFormat) === 'ANN_DATA'
-
   const borderRegular = !isNoneSelected && !disabled ? 'brand' : 'black-tint-60'
-  const borderColor =
-    disabled || disableSpatial ? 'black-tint-80' : borderRegular
+  const borderColor = disabled ? 'black-tint-80' : borderRegular
 
   const sampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
   const currentSelectedSamples = selectedSamples[modality]
@@ -44,7 +38,7 @@ export const TriStateModalityCheckBox = ({ modality, disabled }) => {
       round="4px"
       width="24px"
       height="24px"
-      style={{ pointerEvents: disabled || disableSpatial ? 'none' : 'auto' }}
+      style={{ pointerEvents: disabled ? 'none' : 'auto' }}
       onClick={handleToggleAllSamples}
     >
       {isSomeSelected && (
