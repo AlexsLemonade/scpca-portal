@@ -72,14 +72,20 @@ class DatasetDataModel(RootModel):
 
 
 class DatasetDataModelRelations:
-
     @staticmethod
     def validate(data: Dict[str, Any]) -> Dict:
+        DatasetDataModelRelations.validate_projects(data)
+        DatasetDataModelRelations.validate_samples(data)
+        return data
+
+    @staticmethod
+    def validate_projects(data: Dict[str, Any]):
         """
-        Validates that projects and samples passed into the data attribute,
-        both exist and are correctly related.
-        Raises exceptions if projects, samples or their associations do not exist.
+        Validates that projects set in the data attribute
+        both exist and have the requested project level data (bulk and merged)
+        Raises exceptions if projects and the requested data do not exist.
         """
+
         # validate that all projects exist
         existing_projects = Project.objects.filter(scpca_id__in=data.keys())
         existing_project_ids = existing_projects.values_list("scpca_id", flat=True)
@@ -114,6 +120,18 @@ class DatasetDataModelRelations:
                 "The following projects do not have bulk data: "
                 f"{', '.join(sorted(invalid_bulk_ids))}"
             )
+
+    @staticmethod
+    def validate_samples(data: Dict[str, Any]):
+        """
+        Validates that samples set into the data attribute,
+        both exist and are correctly related with their projects.
+        Raises exceptions if projects, samples or their associations do not exist.
+        """
+
+        existing_project_ids = Project.objects.filter(scpca_id__in=data.keys()).values_list(
+            "scpca_id", flat=True
+        )
 
         # validate that all samples exist
         data_sample_ids = [
@@ -167,5 +185,3 @@ class DatasetDataModelRelations:
                         f"with {project_id} and {modality}: "
                         f"{', '.join(sorted(invalid_sample_ids ))}"
                     )
-
-        return data
