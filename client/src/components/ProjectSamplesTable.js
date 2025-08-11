@@ -6,7 +6,6 @@ import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
-import { DataFormatChangeModal } from 'components/DataFormatChangeModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
@@ -28,8 +27,6 @@ export const ProjectSamplesTable = ({
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
 
-  const [showing, setShowing] = useState(false)
-
   const hasMultiplexedData = project.has_multiplexed_data
   const showWarningMultiplexed =
     hasMultiplexedData && (myDataset.forat || userFormat) === 'ANN_DATA'
@@ -38,17 +35,6 @@ export const ProjectSamplesTable = ({
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
       : false
-
-  const availableFormats = [
-    // List of formats supported in the project
-    { key: 'SINGLE_CELL_EXPERIMENT', value: project.has_single_cell_data },
-    { key: 'ANN_DATA', value: project.includes_anndata }
-  ]
-    .filter((f) => f.value)
-    .map((f) => f.key)
-  const defaultFormat = availableFormats.includes(userFormat)
-    ? userFormat
-    : availableFormats[0]
 
   const allModalities = ['SINGLE_CELL', 'SPATIAL'] // List of all modalities available on the portal
   const checkBoxCellWidth = '200px'
@@ -228,23 +214,6 @@ export const ProjectSamplesTable = ({
       selectedRows={selectedSamples}
       onFilteredRowsChange={getFilteredSamples}
     >
-      <Box direction="row" justify="between" pad={{ bottom: 'medium' }}>
-        <Box direction="row" gap="xlarge" align="center">
-          <Box direction="row">
-            <Text weight="bold" margin={{ right: 'small' }}>
-              Data Format:
-            </Text>
-            <Text>{getReadable(myDataset.format || defaultFormat)}</Text>
-          </Box>
-          <DataFormatChangeModal
-            label="Change"
-            project={project}
-            disabled={!!myDataset.format} // TODO: Temporarily disable Change button until format flow is finalized.
-            showing={showing}
-            setShowing={setShowing}
-          />
-        </Box>
-      </Box>
       {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
     </Table>
   )

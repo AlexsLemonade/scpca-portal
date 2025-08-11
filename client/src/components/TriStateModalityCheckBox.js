@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Box } from 'grommet'
 import { FormCheckmark } from 'grommet-icons'
 import { useDatasetManager } from 'hooks/useDatasetManager'
@@ -7,12 +7,8 @@ import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 // NOTE: Ask Deepa for a checkmark SVG Icon
 export const TriStateModalityCheckBox = ({ modality, disabled }) => {
   const { myDataset, userFormat } = useDatasetManager()
-  const {
-    selectedSamples,
-    filteredSamples,
-    hasSelectedSpatialSamples,
-    toggleAllSamples
-  } = useDatasetSamplesTable()
+  const { selectedSamples, filteredSamples, toggleAllSamples } =
+    useDatasetSamplesTable()
 
   const disableSpatial =
     modality === 'SPATIAL' && (myDataset.format || userFormat) === 'ANN_DATA'
@@ -36,13 +32,6 @@ export const TriStateModalityCheckBox = ({ modality, disabled }) => {
     if (disabled) return
     toggleAllSamples(modality)
   }
-
-  // Deselect all samples for spatial when a user selects ANN_DATA
-  useEffect(() => {
-    if (disableSpatial && hasSelectedSpatialSamples()) {
-      toggleAllSamples('SPATIAL')
-    }
-  }, [disableSpatial, selectedSamples, filteredSamples])
 
   return (
     <Box

@@ -57,20 +57,10 @@ export const useDatasetSamplesTable = () => {
     })
   }
 
-  const hasSelectedSpatialSamples = () => {
-    const spatialSamplesIds = filteredSamples
-      .filter((s) => s.has_spatial_data)
-      .map((s) => s.scpca_id)
-    const selectedSpatialSampleIds = selectedSamples.SPATIAL || []
-
-    return selectedSpatialSampleIds.some((id) => spatialSamplesIds.includes(id))
-  }
-
   return {
     selectedSamples,
     filteredSamples,
     getFilteredSamples: setFilteredSamples,
-    hasSelectedSpatialSamples,
     toggleSample,
     toggleAllSamples
   }
