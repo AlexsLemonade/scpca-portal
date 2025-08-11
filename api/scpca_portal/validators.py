@@ -74,7 +74,7 @@ class DatasetDataModel(RootModel):
 class DatasetDataModelRelations:
 
     @staticmethod
-    def validate(data: Dict[str, Any], format) -> Dict:
+    def validate(data: Dict[str, Any]) -> Dict:
         """
         Validates that projects and samples passed into the data attribute,
         both exist and are correctly related.
@@ -93,9 +93,7 @@ class DatasetDataModelRelations:
         invalid_merged_ids = []
         for project in existing_projects:
             if data.get(project.scpca_id, {}).get(Modalities.SINGLE_CELL) == "MERGED":
-                if (format == DatasetFormats.ANN_DATA and project.includes_merged_anndata) or (
-                    format == DatasetFormats.SINGLE_CELL_EXPERIMENT and project.includes_merged_sce
-                ):
+                if not (project.includes_merged_anndata or project.includes_merged_sce):
                     invalid_merged_ids.append(project.scpca_id)
         if invalid_merged_ids:
             # TODO: add custom exception
@@ -109,7 +107,7 @@ class DatasetDataModelRelations:
         if invalid_bulk_ids := [
             project.scpca_id
             for project in existing_projects
-            if data.get(project.scpca_id, {}).get("includes_bulk") and project.has_bulk_rna_seq
+            if data.get(project.scpca_id, {}).get("includes_bulk") and not project.has_bulk_rna_seq
         ]:
             # TODO: add custom exception
             raise Exception(
