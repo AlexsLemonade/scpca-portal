@@ -2,9 +2,11 @@ import React from 'react'
 import { useResponsive } from 'hooks/useResponsive'
 import { config } from 'config'
 import { Box, Grid, Text } from 'grommet'
+import { useDatasetManager } from 'hooks/useDatasetManager'
 import { Badge } from 'components/Badge'
 import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
 import { Link } from 'components/Link'
+import { Icon } from 'components/Icon'
 import { InfoText } from 'components/InfoText'
 import { Pill } from 'components/Pill'
 import { WarningText } from 'components/WarningText'
@@ -15,6 +17,7 @@ import { getReadableModality } from 'helpers/getReadableModality'
 import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
 
 export const ProjectHeader = ({ project, linked = false }) => {
+  const { isProjectAddedToDataset } = useDatasetManager()
   const { responsive } = useResponsive()
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
   const unavailableSampleCountText =
@@ -50,7 +53,19 @@ export const ProjectHeader = ({ project, linked = false }) => {
             pad={{ top: responsive('medium', 'none') }}
           >
             <Box align="center" gap="small">
-              <DatasetAddProjectModal project={project} />
+              {isProjectAddedToDataset(project) ? (
+                <Box
+                  direction="row"
+                  align="center"
+                  gap="small"
+                  margin={{ vertical: 'small' }}
+                >
+                  <Icon color="success" name="Check" />
+                  <Text color="success">Added to Dataset</Text>
+                </Box>
+              ) : (
+                <DatasetAddProjectModal project={project} />
+              )}
               {project.has_bulk_rna_seq && (
                 <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
               )}

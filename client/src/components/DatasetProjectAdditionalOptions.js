@@ -56,17 +56,29 @@ export const DatasetProjectAdditionalOptions = ({
     setAdditionalOptions((prev) => ({ ...prev, includeMerge: value }))
   }
 
-  // Preselect options based on existing values in myDataset
+  // Preselect options based on the most recently added project in myDataset
   useEffect(() => {
-    if (isProjectBulkIncluded(project)) {
+    const lastAddedProjectData = (myDataset?.data || {})[
+      Object.keys(myDataset?.data || []).slice(-1)[0]
+    ]
+
+    if (hasBulkRnaSeq && isProjectBulkIncluded(lastAddedProjectData)) {
       handleIncludeBulkChange(true)
     }
 
-    if (isProjectExcludedMultiplexed(project, samples)) {
+    if (
+      hasMultiplexed &&
+      canExcludeMultiplexed &&
+      isProjectExcludedMultiplexed(lastAddedProjectData, samples)
+    ) {
       handleExcludeMultiplexedChange(true)
     }
 
-    if (isProjectSingleCellMerged(project)) {
+    if (
+      isMergedObjectsAvailable &&
+      !hasMultiplexed &&
+      isProjectSingleCellMerged(lastAddedProjectData)
+    ) {
       handleIncludeMergeChange(true)
     }
   }, [project, samples])
