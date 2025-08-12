@@ -195,6 +195,36 @@ class TestDatasetDataModelRelations(TestCase):
 
         DatasetDataModelRelations.validate_projects(data)  # no exception thrown
 
+        # assert bulk can't be requested from project without bulk data
+        self.project.has_bulk_rna_seq = False
+        self.project.save()
+        data = {
+            "SCPCP000001": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
+                Modalities.SPATIAL.value: ["SCPCS000003"],
+            },
+        }
+
+        with self.assertRaises(Exception) as e:
+            DatasetDataModelRelations.validate_projects(data)
+        self.assertEqual(
+            str(e.exception), "The following projects do not have bulk data: SCPCP000001"
+        )
+
+        # assert bulk can be requested from project with bulk data
+        self.project.has_bulk_rna_seq = True
+        self.project.save()
+        data = {
+            "SCPCP000001": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
+                Modalities.SPATIAL.value: ["SCPCS000003"],
+            },
+        }
+
+        DatasetDataModelRelations.validate_projects(data)  # no exception thrown
+
     def test_validate_samples(self):
         # assert sample ids doesn't exist
         data = {
