@@ -112,6 +112,14 @@ class Common(Configuration):
     # Indicates running in prod environment.
     PRODUCTION = False
 
+    # Management commands should remove locally downloaded or created data.
+    CLEAN_UP_DATA = False
+
+    # Enable features before completed.
+    # Use this to prevent certain areas from going to production.
+    # By default this is enabled for local and tests.
+    ENABLE_FEATURE_PREVIEW = True
+
     # Logging.
     LOGGING = {
         "version": 1,
@@ -168,6 +176,8 @@ class Common(Configuration):
 
     # Django Rest Framework.
     REST_FRAMEWORK = {
+        # format is an attribute on some of our models, so it collides in the query param filtering
+        "URL_FORMAT_OVERRIDE": None,
         "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
         "PAGE_SIZE": int(os.getenv("DJANGO_PAGINATION_LIMIT", 10)),
         "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],

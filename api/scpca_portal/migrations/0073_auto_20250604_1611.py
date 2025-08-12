@@ -11,54 +11,87 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
+        # Remove old Project fields
+        migrations.RemoveField(
+            model_name="project",
+            name="additional_metadata_keys",
+        ),
+        migrations.RemoveField(
+            model_name="project",
+            name="diagnoses",
+        ),
+        migrations.RemoveField(
+            model_name="project",
+            name="diagnoses_counts",
+        ),
+        migrations.RemoveField(
+            model_name="project",
+            name="disease_timings",
+        ),
+        migrations.RemoveField(
+            model_name="project",
+            name="seq_units",
+        ),
+        migrations.RemoveField(
+            model_name="project",
+            name="technologies",
+        ),
+        migrations.AddField(
             model_name="project",
             name="additional_metadata_keys",
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.TextField(), default=list, size=None
             ),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name="project",
             name="diagnoses",
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.TextField(), default=list, size=None
             ),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name="project",
             name="diagnoses_counts",
             field=models.JSONField(default=dict),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name="project",
             name="disease_timings",
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.TextField(), default=list, size=None
             ),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name="project",
             name="seq_units",
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.TextField(), default=list, size=None
             ),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name="project",
             name="technologies",
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.TextField(), default=list, size=None
             ),
         ),
-        migrations.AlterField(
+        migrations.RemoveField(
+            model_name="sample",
+            name="seq_units",
+        ),
+        migrations.RemoveField(
+            model_name="sample",
+            name="technologies",
+        ),
+        migrations.AddField(
             model_name="sample",
             name="seq_units",
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.TextField(), default=list, size=None
             ),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name="sample",
             name="technologies",
             field=django.contrib.postgres.fields.ArrayField(

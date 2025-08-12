@@ -1,19 +1,17 @@
 from typing import Set
-from unittest.mock import patch
 
 from django.conf import settings
 from django.core.management import call_command
-from django.test import TransactionTestCase
+from django.test import TestCase
 
-from scpca_portal import metadata_parser
-from scpca_portal.models import Library, Sample
+from scpca_portal import loader, metadata_parser
 from scpca_portal.test.factories import ProjectFactory
 
 
-class TestMetadataParser(TransactionTestCase):
-    def setUp(self):
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=[]):
-            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+class TestMetadataParser(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
     def assertTransformedKeys(self, expected_keys: Set, actual_keys: Set):
         """
@@ -22,15 +20,19 @@ class TestMetadataParser(TransactionTestCase):
         """
         self.assertTrue(any(expected_key in actual_keys for expected_key in expected_keys))
 
+    def test_get_projects_metadata_ids(self):
+        expected_project_ids = ["SCPCP999990", "SCPCP999991", "SCPCP999992"]
+        loader.download_projects_metadata()
+        actual_project_ids = metadata_parser.get_projects_metadata_ids()
+        self.assertListEqual(actual_project_ids, expected_project_ids)
+
     def test_load_projects_metadata(self):
-        PROJECT_IDS = ["SCPCP999990", "SCPCP999991", "SCPCP999992"]
-
         # Load metadata for projects
-        projects_metadata = metadata_parser.load_projects_metadata()
+        loader.download_projects_metadata()
+        project_ids = metadata_parser.get_projects_metadata_ids()
 
-        # Make sure that all projects metadata are loaded
-        actual_project_ids = [project["scpca_project_id"] for project in projects_metadata]
-        self.assertEqual(sorted(actual_project_ids), PROJECT_IDS)
+        loader.download_projects_related_metadata(project_ids)
+        projects_metadata = metadata_parser.load_projects_metadata(project_ids)
 
         # Verify that metadata keys are transformed correctly
         expected_keys = {
@@ -59,11 +61,8 @@ class TestMetadataParser(TransactionTestCase):
         }
 
         for project_id, expected_sample_ids in PROJECT_SAMPLES_IDS.items():
-            project = ProjectFactory(scpca_id=project_id)
-            sample_metadata_path = Sample.get_input_metadata_file_path(project)
-
             # Load metadata for samples
-            samples_metadata = metadata_parser.load_samples_metadata(sample_metadata_path)
+            samples_metadata = metadata_parser.load_samples_metadata(project_id)
 
             # Make sure all project samples metadata are loaded
             actual_sample_ids = [sample["scpca_sample_id"] for sample in samples_metadata]
@@ -77,13 +76,8 @@ class TestMetadataParser(TransactionTestCase):
         }
 
         for project_id, expected_library_ids in PROJECT_LIBRARY_IDS.items():
-            project = ProjectFactory(scpca_id=project_id)
-
             # Load metadata for libraries
-            libraries_metadata = [
-                metadata_parser.load_library_metadata(lib.local_file_path)
-                for lib in Library.get_project_original_file_libraries(project)
-            ]
+            libraries_metadata = metadata_parser.load_libraries_metadata(project_id)
 
             # Make sure all libraries metadata are loaded
             actual_library_ids = [
@@ -108,9 +102,7 @@ class TestMetadataParser(TransactionTestCase):
         project = ProjectFactory(scpca_id=PROJECT_ID)
 
         # Load metadata for bulk libraries
-        bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
-            project.input_bulk_metadata_file_path
-        )
+        bulk_libraries_metadata = metadata_parser.load_bulk_metadata(project.scpca_id)
 
         # Make sure the bulk library metadata are loaded
         actual_library_id = bulk_libraries_metadata[0].get("scpca_library_id")

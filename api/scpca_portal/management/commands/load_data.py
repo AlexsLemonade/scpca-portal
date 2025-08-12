@@ -5,7 +5,7 @@ from typing import Set
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from scpca_portal import common, loader, utils
+from scpca_portal import common, loader, metadata_parser, utils
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -48,13 +48,13 @@ class Command(BaseCommand):
             "--clean-up-input-data",
             action=BooleanOptionalAction,
             type=bool,
-            default=settings.PRODUCTION,
+            default=settings.CLEAN_UP_DATA,
         )
         parser.add_argument(
             "--clean-up-output-data",
             action=BooleanOptionalAction,
             type=bool,
-            default=settings.PRODUCTION,
+            default=settings.CLEAN_UP_DATA,
         )
         parser.add_argument("--max-workers", type=int, default=10)
         parser.add_argument("--reload-existing", action="store_true", default=False)
@@ -88,9 +88,11 @@ class Command(BaseCommand):
     ) -> None:
         """Loads data from S3. Creates projects and loads data for them."""
         utils.create_data_dirs()
+        loader.download_projects_metadata()
+        loader.download_projects_related_metadata([scpca_project_id])
 
         # load metadata
-        for project_metadata in loader.get_projects_metadata(scpca_project_id):
+        for project_metadata in metadata_parser.load_projects_metadata([scpca_project_id]):
             # validate that a project can be added to the db,
             # then creates it, all its samples and libraries, and all other relations
             if project := loader.create_project(

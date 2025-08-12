@@ -44,13 +44,13 @@ class Command(BaseCommand):
             "--clean-up-input-data",
             action=BooleanOptionalAction,
             type=bool,
-            default=settings.PRODUCTION,
+            default=settings.CLEAN_UP_DATA,
         )
         parser.add_argument(
             "--clean-up-output-data",
             action=BooleanOptionalAction,
             type=bool,
-            default=settings.PRODUCTION,
+            default=settings.CLEAN_UP_DATA,
         )
         parser.add_argument("--max-workers", type=int, default=10)
         parser.add_argument("--scpca-project-id", type=str)
