@@ -33,7 +33,9 @@ export const DatasetProjectAdditionalOptions = ({
       : includesMergedAnnData
 
   const disableMergedObjects =
-    !isMergedObjectsAvailable || !selectedModalities.includes('SINGLE_CELL')
+    (selectedModalities.length === 1 &&
+      !selectedModalities.includes('SINGLE_CELL')) ||
+    !isMergedObjectsAvailable
 
   // Show the merged objects warning only for multiplexed samples
   const showMergedMultiplexedWarning = disableMergedObjects && hasMultiplexed
@@ -52,7 +54,7 @@ export const DatasetProjectAdditionalOptions = ({
         <CheckBox
           label="Merge single-cell samples into 1 object"
           checked={includeMerge}
-          disabled={!isMergedObjectsAvailable}
+          disabled={disableMergedObjects}
           onChange={({ target: { checked } }) => onIncludeMergeChange(checked)}
         />
         <HelpLink link={config.links.when_downloading_merged_objects} />
