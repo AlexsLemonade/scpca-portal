@@ -1,3 +1,4 @@
+import ccdlDatasets from './resources/ccdlDatasets'
 import computedFiles from './resources/computedFiles'
 import datasets from './resources/datasets'
 import projects from './resources/projects'
@@ -7,6 +8,7 @@ import options from './resources/options'
 import stats from './resources/stats'
 
 export const api = {
+  ccdlDatasets,
   computedFiles,
   datasets,
   projects,
