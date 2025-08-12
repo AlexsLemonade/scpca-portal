@@ -6,25 +6,28 @@ import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownl
 // TODO: PortalWideDownloads should accept the arg `{ datasets }`
 // which will come from getServerSideProps
 const PortalWideDownloads = ({ datasets }) => {
-  const metadataDatasets = datasets.filter((dataset) => {
-    return dataset.metadata_only === true
-  })
+  const metadataDatasets = datasets.filter(
+    (dataset) => dataset.metadata_only === true
+  )
 
   const singleCellExperimentDatasets = datasets.filter(
-    (dataset) => dataset.metadata_only === false
+    (dataset) =>
+      dataset.modality === 'SINGLE_CELL' &&
+      dataset.format === 'SINGLE_CELL_EXPERIMENT'
   )
 
   const anndataDatasets = datasets.filter(
-    (dataset) => dataset.metadata_only === false
+    (dataset) =>
+      dataset.modality === 'SINGLE_CELL' && dataset.format === 'ANN_DATA'
   )
 
   const spatialDatasets = datasets.filter(
-    (dataset) => dataset.metadata_only === false
+    (dataset) => dataset.modality === 'SPATIAL'
   )
 
   return (
     <>
-      <Box width={{ max: 'xlarge' }} fill>
+      <Box width={{ max: 'xlarge' }} pad={{ top: 'xlarge' }} fill>
         <Box
           alignSelf="start"
           pad={{ left: 'medium' }}
