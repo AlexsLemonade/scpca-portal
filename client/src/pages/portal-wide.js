@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Anchor, Box, Text } from 'grommet'
 // import { api } from 'api'
 import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownloadCard'

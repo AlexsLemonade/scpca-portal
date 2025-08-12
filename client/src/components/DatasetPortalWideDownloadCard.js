@@ -6,7 +6,7 @@ import { CopyLinkButton } from 'components/CopyLinkButton'
 import { HelpLink } from 'components/HelpLink'
 import { config } from 'config'
 import { formatBytes } from 'helpers/formatBytes'
-import { getReadable, getReadableFiles } from 'helpers/getReadable'
+import { getReadableFiles } from 'helpers/getReadable'
 
 const Li = ({ children }) => (
   <Box as="li" style={{ display: 'list-item' }}>
