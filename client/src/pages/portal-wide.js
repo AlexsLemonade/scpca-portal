@@ -6,45 +6,6 @@ import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownl
 // TODO: PortalWideDownloads should accept the arg `{ datasets }`
 // which will come from getServerSideProps
 const PortalWideDownloads = () => {
-  const metadataDataset = {
-    format: null,
-    modality: null,
-    includes_merged: null,
-    metadata_only: true,
-    size_in_bytes: 0
-  }
-  const dataDatasets = [
-    {
-      format: 'SINGLE_CELL_EXPERIMENT',
-      modality: 'SINGLE_CELL',
-      includes_merged: false,
-      metadata_only: false,
-      has_single_cell: true,
-      has_cite_seq_data: true,
-      has_bulk_rna_seq: true,
-      size_in_bytes: 429496729600 // 400 GB
-    },
-    {
-      format: 'ANN_DATA',
-      modality: 'SINGLE_CELL',
-      includes_merged: false,
-      metadata_only: false,
-      has_single_cell: true,
-      has_cite_seq_data: true,
-      has_bulk_rna_seq: true,
-      size_in_bytes: 966367641600 // 900 GB
-    },
-    {
-      format: 'SINGLE_CELL_EXPERIMENT',
-      modality: 'SPATIAL',
-      includes_merged: false,
-      metadata_only: false,
-      has_spatial_data: true,
-      has_bulk_rna_seq: true,
-      size_in_bytes: 429496729600 // 400 GB
-    }
-  ]
-
   return (
     <>
       <Box alignSelf="start" pad={{ left: 'medium' }} margin={{ top: 'none' }}>
@@ -108,18 +69,56 @@ const PortalWideDownloads = () => {
 }
 
 export const getServerSideProps = async () => {
-  // default limit is 10, so here we will set it to 100 unless specified
-  const datasetRequest = await api.datasets.list() // TODO: change to ccdlDatasets when implemented
-
-  if (datasetRequest.isOk) {
-    // TODO: Replace with response.results if required (currently returns an array of CCDL datasets)
-    const datasets = datasetRequest.response || []
-    return {
-      props: { datasets }
+  const datasets = [
+    {
+      format: null,
+      modality: null,
+      includes_merged: null,
+      metadata_only: true,
+      size_in_bytes: 0
+    },
+    {
+      format: 'SINGLE_CELL_EXPERIMENT',
+      modality: 'SINGLE_CELL',
+      includes_merged: false,
+      metadata_only: false,
+      has_single_cell: true,
+      has_cite_seq_data: true,
+      has_bulk_rna_seq: true,
+      size_in_bytes: 429496729600 // 400 GB
+    },
+    {
+      format: 'ANN_DATA',
+      modality: 'SINGLE_CELL',
+      includes_merged: false,
+      metadata_only: false,
+      has_single_cell: true,
+      has_cite_seq_data: true,
+      has_bulk_rna_seq: true,
+      size_in_bytes: 966367641600 // 900 GB
+    },
+    {
+      format: 'SINGLE_CELL_EXPERIMENT',
+      modality: 'SPATIAL',
+      includes_merged: false,
+      metadata_only: false,
+      has_spatial_data: true,
+      has_bulk_rna_seq: true,
+      size_in_bytes: 429496729600 // 400 GB
     }
-  }
+  ]
 
-  return { props: { datasets: null } }
+  // default limit is 10, so here we will set it to 100 unless specified
+  // const datasetRequest = await api.ccdlDatasets.list({project_id__isnull: true})
+
+  // if (datasetRequest.isOk) {
+  //  return {
+  //    props: { datasets: datasetRequest.response }
+  //  }
+  // }
+
+  // return { props: { datasets: null } }
+  return { props: { datasets } }
 }
 
 export default PortalWideDownloads
