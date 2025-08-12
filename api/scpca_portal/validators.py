@@ -157,6 +157,7 @@ class DatasetDataModelRelations:
             for project_id in existing_project_ids
         }
 
+        # populate existing sample ids dict
         for sample in existing_samples:
             project_id = sample["project__scpca_id"]
 

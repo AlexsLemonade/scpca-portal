@@ -133,36 +133,69 @@ class TestDatasetDataModel(TestCase):
 
 
 class TestDatasetDataModelRelations(TestCase):
-    def test_validate(self):
-        project = ProjectFactory(scpca_id="SCPCP000001")
-        SampleFactory(scpca_id="SCPCS000001", project=project, has_single_cell_data=True)
-        SampleFactory(scpca_id="SCPCS000002", project=project, has_single_cell_data=True)
-        SampleFactory(scpca_id="SCPCS000003", project=project, has_spatial_data=True)
+    @classmethod
+    def setUpTestData(cls):
+        cls.project = ProjectFactory(scpca_id="SCPCP000001", sample=None)
+        SampleFactory(scpca_id="SCPCS000001", project=cls.project, has_single_cell_data=True)
+        SampleFactory(scpca_id="SCPCS000002", project=cls.project, has_single_cell_data=True)
+        SampleFactory(scpca_id="SCPCS000003", project=cls.project, has_spatial_data=True)
 
+    def test_validate_projects(self):
         # no exceptions thrown
         data = {
             "SCPCP000001": {
-                "includes_bulk": True,
+                "includes_bulk": False,
                 Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
                 Modalities.SPATIAL.value: ["SCPCS000003"],
             },
         }
 
-        DatasetDataModelRelations.validate(data)  # no exception should be thrown here
+        DatasetDataModelRelations.validate_projects(data)  # no exception should be thrown here
 
         # assert project id doesn't exist
         data = {
             "SCPCP999999": {
-                "includes_bulk": True,
+                "includes_bulk": False,
                 Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
                 Modalities.SPATIAL.value: ["SCPCS000003"],
             },
         }
 
         with self.assertRaises(Exception) as e:
-            DatasetDataModelRelations.validate(data)
+            DatasetDataModelRelations.validate_projects(data)
         self.assertEqual(str(e.exception), "The following projects do not exist: SCPCP999999")
 
+        # assert merged can't be requested from project without merged files
+        self.project.includes_merged_sce = False
+        self.project.save()
+        data = {
+            "SCPCP000001": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL.value: "MERGED",
+                Modalities.SPATIAL.value: [],
+            },
+        }
+
+        with self.assertRaises(Exception) as e:
+            DatasetDataModelRelations.validate_projects(data)
+        self.assertEqual(
+            str(e.exception), "The following projects do not have merged files: SCPCP000001"
+        )
+
+        # assert merged can be requested from project with merged files
+        self.project.includes_merged_sce = True
+        self.project.save()
+        data = {
+            "SCPCP000001": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL.value: "MERGED",
+                Modalities.SPATIAL.value: [],
+            },
+        }
+
+        DatasetDataModelRelations.validate_projects(data)  # no exception thrown
+
+    def test_validate_samples(self):
         # assert sample ids doesn't exist
         data = {
             "SCPCP000001": {
@@ -173,7 +206,7 @@ class TestDatasetDataModelRelations(TestCase):
         }
 
         with self.assertRaises(Exception) as e:
-            DatasetDataModelRelations.validate(data)
+            DatasetDataModelRelations.validate_samples(data)
         self.assertEqual(
             str(e.exception),
             "The following samples do not exist: SCPCS000004, SCPCS000005, SCPCS000006",
@@ -189,7 +222,7 @@ class TestDatasetDataModelRelations(TestCase):
         }
 
         with self.assertRaises(Exception) as e:
-            DatasetDataModelRelations.validate(data)
+            DatasetDataModelRelations.validate_samples(data)
         self.assertEqual(
             str(e.exception),
             "The following samples are not associated with SCPCP000001 and SINGLE_CELL: "
@@ -197,7 +230,7 @@ class TestDatasetDataModelRelations(TestCase):
         )
 
         # assert that a sample isn't associated with its project
-        ProjectFactory(scpca_id="SCPCP000002")
+        ProjectFactory(scpca_id="SCPCP000002", sample=None)
         data = {
             "SCPCP000002": {
                 "includes_bulk": True,
@@ -207,7 +240,7 @@ class TestDatasetDataModelRelations(TestCase):
         }
 
         with self.assertRaises(Exception) as e:
-            DatasetDataModelRelations.validate(data)
+            DatasetDataModelRelations.validate_samples(data)
 
         # TODO: debug problem with this assertion
         # self.assertEqual(
@@ -217,7 +250,7 @@ class TestDatasetDataModelRelations(TestCase):
         # )
 
         # assert that a sample can be both single cell and spatial
-        project = ProjectFactory(scpca_id="SCPCP000003")
+        project = ProjectFactory(scpca_id="SCPCP000003", sample=None)
         SampleFactory(
             scpca_id="SCPCS000010",
             project=project,
@@ -233,4 +266,4 @@ class TestDatasetDataModelRelations(TestCase):
         }
 
         # no exception raised
-        DatasetDataModelRelations.validate(data)
+        DatasetDataModelRelations.validate_samples(data)
