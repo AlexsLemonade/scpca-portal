@@ -234,7 +234,8 @@ class Dataset(TimestampedModel):
     def project_modality_counts(self) -> Dict:
         """
         Returns a dict where the key is a project id in the dataset and
-        the value is an object of SINGLE_CELL and SPATIAL samples present in the dataset for that project.
+        the value is an object of SINGLE_CELL and SPATIAL samples
+        that are present in the dataset for that project.
         """
         modality_samples_counts = {key: Counter() for key in self.data.keys()}
 
