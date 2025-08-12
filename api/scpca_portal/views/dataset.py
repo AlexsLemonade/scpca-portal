@@ -33,7 +33,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         serializer = DatasetCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=False)
+        serializer.is_valid(raise_exception=True)
         dataset = serializer.save()
 
         if dataset.start:
@@ -55,7 +55,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
             )
 
         serializer = DatasetUpdateSerializer(existing_dataset, data=request.data)
-        serializer.is_valid(raise_exception=False)
+        serializer.is_valid(raise_exception=True)
         modified_dataset = serializer.save()
 
         if modified_dataset.start:
