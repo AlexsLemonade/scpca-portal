@@ -6,83 +6,64 @@ import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownl
 // TODO: PortalWideDownloads should accept the arg `{ datasets }`
 // which will come from getServerSideProps
 const PortalWideDownloads = ({ datasets }) => {
-  const metadataDataset = datasets.find((dataset) => {
+  const metadataDatasets = datasets.filter((dataset) => {
     return dataset.metadata_only === true
   })
 
-  const singleCellUnmergedDataset = datasets.filter(
+  const singleCellExperimentDatasets = datasets.filter(
     (dataset) => dataset.metadata_only === false
   )
 
-  const singleCellMergedDataset = datasets.filter(
+  const anndataDatasets = datasets.filter(
     (dataset) => dataset.metadata_only === false
   )
 
-  const anndataUnmergedDataset = datasets.filter(
+  const spatialDatasets = datasets.filter(
     (dataset) => dataset.metadata_only === false
   )
-
-  const anndataMergedDataset = datasets.filter(
-    (dataset) => dataset.metadata_only === false
-  )
-
-  const spatialDataset = datasets.filter(
-    (dataset) => dataset.metadata_only === false
-  )
-
-  const [mergeSingleCell, setMergeSingleCell] = useState(false)
-  const [singleCellDataset, setSingleCellDataset] = useState(singleCellUnmergedDataset)
-
-  const [mergeAnndata, setMergeAnndata] = useState(false)
-  const [anndataDataset, setAnndataDataset] = useState(anndataUnmergedDataset)
-
-  useEffect(() => {
-    if (mergeSingleCell) {
-      setSingleCellDataset(singleCellMergedDataset)
-    } else {
-      setSingleCellDataset(singleCellUnmergedDataset)
-    }
-  }, [mergeSingleCell])
-
-  useEffect(() => {
-    if (mergeAnndata) {
-      setAnndataDataset(anndataUnmergedDataset)
-    } else {
-      setAnndataDataset(anndataMergedDataset)
-    }
-  }, [mergeAnndata])
 
   return (
     <>
-      <Box alignSelf="start" pad={{ left: 'medium' }} margin={{ top: 'none' }}>
-        <Box pad={{ bottom: 'medium' }}>
-          <Text size="xlarge" weight="bold">
-            Portal-wide Downloads
-          </Text>
-        </Box>
-        <Box pad={{ top: 'large' }}>
-          <Text size="medium" margin={{ top: 'small' }}>
-            Data from the projects in the ScPCA portal is packaged together for
-            your convenience.
-            <Anchor
-              label=" Please learn more about the portal-wide downloads here."
-              href="#"
-            />
-          </Text>
-        </Box>
+      <Box width={{ max: 'xlarge' }} fill>
+        <Box
+          alignSelf="start"
+          pad={{ left: 'medium' }}
+          margin={{ top: 'none' }}
+        >
+          <Box pad={{ bottom: 'medium' }}>
+            <Text size="xlarge" weight="bold">
+              Portal-wide Downloads
+            </Text>
+          </Box>
+          <Box pad={{ top: 'large' }}>
+            <Text size="medium" margin={{ top: 'small' }}>
+              Data from the projects in the ScPCA portal is packaged together
+              for your convenience.
+              <Anchor
+                label=" Please learn more about the portal-wide downloads here."
+                href="#"
+              />
+            </Text>
+          </Box>
 
-        <Box pad={{ top: 'large', bottom: 'xlarge' }}>
-          <Text size="large" margin={{ bottom: 'medium' }}>
-            Metadata Downloads
-          </Text>
-          <Box>
-            <DatasetPortalWideDownloadCard dataset={metadataDataset} />
+          <Box pad={{ top: 'large', bottom: 'xlarge' }}>
+            <Text size="large" margin={{ bottom: 'medium' }}>
+              Metadata Downloads
+            </Text>
+            <Box>
+              <DatasetPortalWideDownloadCard
+                title="Sample Metadata Download"
+                modality={null}
+                datasets={metadataDatasets}
+                metadataOnly
+              />
+            </Box>
           </Box>
         </Box>
       </Box>
 
-      <Box background="dawn">
-        <Box pad={{ horizontal: 'large', vertical: 'large' }}>
+      <Box background="dawn" fill align="center">
+        <Box width={{ max: 'xlarge' }} fill pad="large">
           <Text size="large" margin={{ bottom: 'small' }}>
             Data Downloads
           </Text>
@@ -99,15 +80,27 @@ const PortalWideDownloads = ({ datasets }) => {
             justify="between"
             pad={{ vertical: 'medium' }}
           >
-              <Box pad={{ bottom: 'xlarge' }}>
-                <DatasetPortalWideDownloadCard dataset={singleCellDataset} />
-              </Box>
-              <Box pad={{ bottom: 'xlarge' }}>
-                <DatasetPortalWideDownloadCard dataset={anndataDataset} />
-              </Box>
-              <Box pad={{ bottom: 'xlarge' }}>
-                <DatasetPortalWideDownloadCard dataset={spatialDataset} />
-              </Box>
+            <Box pad={{ bottom: 'xlarge' }}>
+              <DatasetPortalWideDownloadCard
+                title="SingleCellExperiment (R) Download"
+                modality="SINGLE_CELL_EXPERIMENT"
+                datasets={singleCellExperimentDatasets}
+              />
+            </Box>
+            <Box pad={{ bottom: 'xlarge' }}>
+              <DatasetPortalWideDownloadCard
+                title="AnnData (Python) Download"
+                modality="ANN_DATA"
+                datasets={anndataDatasets}
+              />
+            </Box>
+            <Box pad={{ bottom: 'xlarge' }}>
+              <DatasetPortalWideDownloadCard
+                title="Spatial Download"
+                modality="SINGLE_CELL_EXPERIMENT"
+                datasets={spatialDatasets}
+              />
+            </Box>
           </Box>
         </Box>
       </Box>
@@ -168,4 +161,4 @@ export const getServerSideProps = async () => {
   return { props: { datasets } }
 }
 
-export default PortalWideDownloadsexport default PortalWideDownloads
+export default PortalWideDownloads

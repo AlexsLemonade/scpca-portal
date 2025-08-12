@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
@@ -16,39 +16,37 @@ const Li = ({ children }) => (
 
 // NOTE: This component temporaily accepts 'dataset' but it's subject to change
 // Currently mock data is used via Storybook for development
-export const DatasetPortalWideDownloadCard = ({ dataset }) => {
+export const DatasetPortalWideDownloadCard = ({
+  title,
+  modality,
+  datasets = [],
+  metadataOnly = false
+}) => {
   const { responsive } = useResponsive()
 
-  const {
-    format,
-    modality,
-    // includes_merged: includeMerged, // TODO: for when we handle checkbox state logic
-    metadata_only: metadataOnly
-  } = dataset
+  const [includesMerged, setIncludesMerged] = useState(false)
+  const [dataset, setDataset] = useState(
+    datasets.find((d) => d.includes_merged === includesMerged)
+  )
 
   const fileItems = [
     modality,
-    ...['has_cite_seq_data', 'has_bulk_rna_seq'].filter((key) => dataset[key])
+    ...['has_cite_seq_data', 'has_bulk_rna_seq'].filter((key) => dataset?.[key])
   ].map((key) => getReadableFiles(key))
 
-  const projectsTitlePrefix =
-    modality === 'SPATIAL' ? getReadable(modality) : getReadable(format)
-  const cardTitle = `${
-    metadataOnly ? 'Sample Metadata' : projectsTitlePrefix
-  } Download`
-
-  const [mergeObject, setMergeObject] = useState(false)
-  const handleChangeMergedObject = () => setMergeObject(!mergeObject)
+  useEffect(() => {
+    setDataset(datasets.find((d) => d.includes_merged === includesMerged))
+  }, [includesMerged])
 
   return (
-    <Box elevation="medium" pad="24px" width="full">
+    <Box elevation="medium" background="white" pad="24px" width="full">
       <Box
         border={{ side: 'bottom' }}
         margin={{ bottom: '24px' }}
         pad={{ bottom: 'medium' }}
       >
         <Text color="brand" size="large" weight="bold">
-          {cardTitle}
+          {title}
         </Text>
       </Box>
       <Box justify="between" height="100%">
@@ -70,12 +68,14 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
               </>
             )}
           </Box>
-          {!metadataOnly && (
+          {datasets.length > 1 && (
             <Box direction="row" margin={{ bottom: '24px' }}>
               <CheckBox
                 label="Merge samples into one object per project"
-                checked={mergeObject}
-                onChange={handleChangeMergedObject}
+                checked={includesMerged}
+                onChange={({ target: { checked } }) =>
+                  setIncludesMerged(checked)
+                }
               />
               <HelpLink link={config.links.when_downloading_merged_objects} />
             </Box>
