@@ -167,6 +167,11 @@ export const useDatasetManager = () => {
     return availableModalities.filter((m) => hasData(lastAddedProjectData[m]))
   }
 
+  const getProjectData = (project) => {
+    // Get the myDataset.data[project.scpca_id] object
+    return myDataset?.data?.[project.scpca_id] || {}
+  }
+
   const getProjectDataSamples = (
     project,
     selectedModalities,
@@ -232,18 +237,16 @@ export const useDatasetManager = () => {
   }
 
   /* Sample-level */
-  const setSamples = async (dataset, project, modality, updatedSamples) => {
-    // updatedSamples: either sampleIDs[] or 'MERGE'
-    const datasetCopy = structuredClone(dataset)
+  const setSamples = async (project, format, projectData) => {
+    const datasetCopy = structuredClone(myDataset)
 
-    if (!datasetCopy.data[project.scpca_id]) {
-      datasetCopy.data[project.scpca_id] = {}
+    datasetCopy.data = {
+      ...(datasetCopy.data || {}),
+      [project.scpca_id]: projectData
     }
 
-    datasetCopy.data[project.scpca_id][modality] = updatedSamples
-
     const updatedDataset = !datasetCopy.id
-      ? await createDataset(datasetCopy)
+      ? await createDataset({ ...datasetCopy, format })
       : await updateDataset(datasetCopy)
     return updatedDataset
   }
@@ -261,6 +264,7 @@ export const useDatasetManager = () => {
     processDataset,
     addProject,
     getAddedProjectModalities,
+    getProjectData,
     getProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
