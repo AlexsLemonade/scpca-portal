@@ -1,11 +1,57 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Anchor, Box, Text } from 'grommet'
-import { api } from 'api'
+// import { api } from 'api'
 import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownloadCard'
 
 // TODO: PortalWideDownloads should accept the arg `{ datasets }`
 // which will come from getServerSideProps
-const PortalWideDownloads = () => {
+const PortalWideDownloads = ({ datasets }) => {
+  const metadataDataset = datasets.find((dataset) => {
+    return dataset.metadata_only === true
+  })
+
+  const singleCellUnmergedDataset = datasets.filter(
+    (dataset) => dataset.metadata_only === false
+  )
+
+  const singleCellMergedDataset = datasets.filter(
+    (dataset) => dataset.metadata_only === false
+  )
+
+  const anndataUnmergedDataset = datasets.filter(
+    (dataset) => dataset.metadata_only === false
+  )
+
+  const anndataMergedDataset = datasets.filter(
+    (dataset) => dataset.metadata_only === false
+  )
+
+  const spatialDataset = datasets.filter(
+    (dataset) => dataset.metadata_only === false
+  )
+
+  const [mergeSingleCell, setMergeSingleCell] = useState(false)
+  const [singleCellDataset, setSingleCellDataset] = useState(singleCellUnmergedDataset)
+
+  const [mergeAnndata, setMergeAnndata] = useState(false)
+  const [anndataDataset, setAnndataDataset] = useState(anndataUnmergedDataset)
+
+  useEffect(() => {
+    if (mergeSingleCell) {
+      setSingleCellDataset(singleCellMergedDataset)
+    } else {
+      setSingleCellDataset(singleCellUnmergedDataset)
+    }
+  }, [mergeSingleCell])
+
+  useEffect(() => {
+    if (mergeAnndata) {
+      setAnndataDataset(anndataUnmergedDataset)
+    } else {
+      setAnndataDataset(anndataMergedDataset)
+    }
+  }, [mergeAnndata])
+
   return (
     <>
       <Box alignSelf="start" pad={{ left: 'medium' }} margin={{ top: 'none' }}>
@@ -53,14 +99,15 @@ const PortalWideDownloads = () => {
             justify="between"
             pad={{ vertical: 'medium' }}
           >
-            {dataDatasets.map((dataset) => (
-              <Box
-                key={`${dataset.modality}-${dataset.format}`}
-                pad={{ bottom: 'xlarge' }}
-              >
-                <DatasetPortalWideDownloadCard dataset={dataset} />
+              <Box pad={{ bottom: 'xlarge' }}>
+                <DatasetPortalWideDownloadCard dataset={singleCellDataset} />
               </Box>
-            ))}
+              <Box pad={{ bottom: 'xlarge' }}>
+                <DatasetPortalWideDownloadCard dataset={anndataDataset} />
+              </Box>
+              <Box pad={{ bottom: 'xlarge' }}>
+                <DatasetPortalWideDownloadCard dataset={spatialDataset} />
+              </Box>
           </Box>
         </Box>
       </Box>
@@ -121,4 +168,4 @@ export const getServerSideProps = async () => {
   return { props: { datasets } }
 }
 
-export default PortalWideDownloads
+export default PortalWideDownloadsexport default PortalWideDownloads
