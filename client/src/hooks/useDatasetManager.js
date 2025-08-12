@@ -119,52 +119,24 @@ export const useDatasetManager = () => {
   }
 
   /* Project-level */
-  const addProject = async (project, format, newProjectData) => {
-    const datasetCopy = structuredClone(myDataset)
-    const projectData = datasetCopy.data?.[project.scpca_id]
+  const addProject = async (project, newProjectData) => {
+    const datasetDataCopy = structuredClone(myDataset.data) || {}
 
-    // Remove the existing project if no samples are added
-    if (
-      projectData &&
-      !newProjectData.SINGLE_CELL.length &&
-      !newProjectData.SPATIAL.length
-    ) {
-      return removeProject(project)
-    }
-
-    // Set format only for a new dataset
-    if (datasetCopy.format === undefined) {
-      datasetCopy.format = format
+    if (datasetDataCopy[project.scpca_id]) {
+      console.error('Project already present in myDataset')
     }
 
     // Make sure data is defined for a new dataset
-    datasetCopy.data = datasetCopy.data ?? {}
-    datasetCopy.data[project.scpca_id] = {
-      ...(projectData ?? {}),
-      ...newProjectData
+    datasetDataCopy[project.scpca_id] = newProjectData
+
+    const updatedDataset = {
+      ...myDataset,
+      data: datasetDataCopy
     }
 
-    const updatedDataset = !datasetCopy.id
-      ? await createDataset(datasetCopy)
-      : await updateDataset(datasetCopy)
-    return updatedDataset
-  }
-
-  const getAddedProjectModalities = () => {
-    // Get the modalities of the most recently added project
-    const lastAddedProjectData = (myDataset?.data || {})[
-      Object.keys(myDataset?.data || []).slice(-1)[0]
-    ]
-
-    if (!lastAddedProjectData) {
-      return []
-    }
-
-    const availableModalities = ['SINGLE_CELL', 'SPATIAL']
-
-    const hasData = (v) => v === 'MERGED' || (Array.isArray(v) && v.length > 0)
-
-    return availableModalities.filter((m) => hasData(lastAddedProjectData[m]))
+    return !myDataset.id
+      ? createDataset(updatedDataset)
+      : updateDataset(updatedDataset)
   }
 
   const getProjectData = (project) => {
@@ -213,21 +185,6 @@ export const useDatasetManager = () => {
   const isProjectAddedToDataset = (project) =>
     Object.keys(myDataset?.data || []).includes(project.scpca_id)
 
-  const isProjectBulkIncluded = (projectData) => projectData?.includes_bulk
-
-  const isProjectExcludedMultiplexed = (projectData, samples) => {
-    const singleCellData = projectData?.SINGLE_CELL || []
-    const multiplexedSamples = getProjectSingleCellSamples(samples, false, true)
-
-    return (
-      singleCellData.length === multiplexedSamples.length &&
-      singleCellData.every((s) => multiplexedSamples.includes(s))
-    )
-  }
-
-  const isProjectSingleCellMerged = (projectData) =>
-    projectData?.SINGLE_CELL === 'MERGED'
-
   const removeProject = async (project) => {
     const datasetCopy = structuredClone(myDataset)
     delete datasetCopy.data[project.scpca_id]
@@ -253,6 +210,7 @@ export const useDatasetManager = () => {
 
   return {
     myDataset,
+    setMyDataset,
     datasets,
     email,
     errors,
@@ -263,16 +221,12 @@ export const useDatasetManager = () => {
     getDataset,
     processDataset,
     addProject,
-    getAddedProjectModalities,
     getProjectData,
     getProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
     getProjectIDs,
     isProjectAddedToDataset,
-    isProjectBulkIncluded,
-    isProjectExcludedMultiplexed,
-    isProjectSingleCellMerged,
     removeProject,
     setSamples
   }

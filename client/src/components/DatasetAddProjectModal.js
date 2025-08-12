@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading } from 'grommet'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useResponsive } from 'hooks/useResponsive'
-import { resetObjectFlags } from 'helpers/resetObjectFlags'
 import { api } from 'api'
 import { Button } from 'components/Button'
 import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditionalOptions'
@@ -20,7 +19,6 @@ export const DatasetAddProjectModal = ({
   disabled = false
 }) => {
   const {
-    userFormat,
     addProject,
     getProjectDataSamples,
     getProjectSingleCellSamples,
@@ -31,13 +29,11 @@ export const DatasetAddProjectModal = ({
   // Modal toggle
   const [showing, setShowing] = useState(false)
 
-  // Dataset attributes
-  const [additionalOptions, setAdditionalOptions] = useState({
-    excludeMultiplexed: false,
-    includeBulk: false,
-    includeMerge: false
-  })
   const [modalities, setModalities] = useState([])
+  // For additional options
+  const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
+  const [includeBulk, setIncludeBulk] = useState(false)
+  const [includeMerge, setIncludeMerge] = useState(false)
 
   // For building the project data for the dataset
   const [projectData, setProjectData] = useState({})
@@ -51,18 +47,12 @@ export const DatasetAddProjectModal = ({
   // TODO: Replace with actual stats value once ready
   const sampleDifferenceForSpatial = 5
 
+  const canClickAddProject = modalities.length > 0
+
   const handleAddProject = () => {
-    addProject(project, userFormat, projectData)
+    addProject(project, projectData)
     setShowing(false)
   }
-
-  // Reset all Dataset attribute states on modal close
-  useEffect(() => {
-    if (!showing) {
-      setAdditionalOptions((prev) => resetObjectFlags(prev))
-      setModalities([])
-    }
-  }, [showing])
 
   // Fetch samples list when modal opens via Browse page
   useEffect(() => {
@@ -88,24 +78,27 @@ export const DatasetAddProjectModal = ({
         singleCellSamples,
         spatialSamples
       ),
-      includes_bulk: additionalOptions.includeBulk
+      includes_bulk: includeBulk
     })
-  }, [additionalOptions, modalities, singleCellSamples, spatialSamples])
+  }, [
+    excludeMultiplexed,
+    includeBulk,
+    includeMerge,
+    modalities,
+    singleCellSamples,
+    spatialSamples
+  ])
 
   // Update singleCellSamples based on user selections
   useEffect(() => {
     if (modalities.includes('SINGLE_CELL')) {
       setSingleCellSamples(
-        getProjectSingleCellSamples(
-          samples,
-          additionalOptions.includeMerge,
-          additionalOptions.excludeMultiplexed
-        )
+        getProjectSingleCellSamples(samples, includeMerge, excludeMultiplexed)
       )
     } else {
       setSingleCellSamples([])
     }
-  }, [additionalOptions, modalities])
+  }, [excludeMultiplexed, includeMerge, modalities])
 
   // Update spatialSamples based on user selections
   useEffect(() => {
@@ -149,10 +142,13 @@ export const DatasetAddProjectModal = ({
                   />
                   <DatasetProjectAdditionalOptions
                     project={project}
-                    samples={samples}
                     selectedModalities={modalities}
-                    additionalOptions={additionalOptions}
-                    setAdditionalOptions={setAdditionalOptions}
+                    excludeMultiplexed={excludeMultiplexed}
+                    includeBulk={includeBulk}
+                    includeMerge={includeMerge}
+                    onExcludeMultiplexedChange={setExcludeMultiplexed}
+                    onIncludeBulkChange={setIncludeBulk}
+                    onIncludeMergeChange={setIncludeMerge}
                   />
                 </Box>
                 <Box
@@ -164,6 +160,7 @@ export const DatasetAddProjectModal = ({
                     primary
                     aria-label={label}
                     label={label}
+                    disabled={!canClickAddProject}
                     onClick={handleAddProject}
                   />
                   {project.has_spatial_data && (
