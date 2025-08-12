@@ -160,14 +160,18 @@ class DatasetDataModelRelations:
         # populate existing sample ids dict
         for sample in existing_samples:
             project_id = sample["project__scpca_id"]
+            # this is the case when the project exists
+            # but the samples are applied to the wrong project
+            if project_id not in existing_project_modality_sample_ids:
+                continue
 
             if sample["has_single_cell_data"]:
-                existing_project_modality_sample_ids[project_id][Modalities.SINGLE_CELL].append(
-                    sample["scpca_id"]
-                )
+                existing_project_modality_sample_ids[project_id][
+                    Modalities.SINGLE_CELL.value
+                ].append(sample["scpca_id"])
 
             if sample["has_spatial_data"]:
-                existing_project_modality_sample_ids[project_id][Modalities.SPATIAL].append(
+                existing_project_modality_sample_ids[project_id][Modalities.SPATIAL.value].append(
                     sample["scpca_id"]
                 )
 
@@ -184,5 +188,5 @@ class DatasetDataModelRelations:
                     raise Exception(
                         "The following samples are not associated "
                         f"with {project_id} and {modality}: "
-                        f"{', '.join(sorted(invalid_sample_ids ))}"
+                        f"{', '.join(sorted(invalid_sample_ids))}"
                     )

@@ -245,7 +245,7 @@ class TestDatasetDataModelRelations(TestCase):
         # assert spatial sample isn't associated with single cell modality
         data = {
             "SCPCP000001": {
-                "includes_bulk": True,
+                "includes_bulk": False,
                 Modalities.SINGLE_CELL.value: ["SCPCS000003"],
                 Modalities.SPATIAL.value: [],
             },
@@ -263,8 +263,8 @@ class TestDatasetDataModelRelations(TestCase):
         ProjectFactory(scpca_id="SCPCP000002", sample=None)
         data = {
             "SCPCP000002": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000001"],
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
                 Modalities.SPATIAL.value: [],
             },
         }
@@ -272,12 +272,11 @@ class TestDatasetDataModelRelations(TestCase):
         with self.assertRaises(Exception) as e:
             DatasetDataModelRelations.validate_samples(data)
 
-        # TODO: debug problem with this assertion
-        # self.assertEqual(
-        #    str(e.exception),
-        #    "The following samples are not associated with SCPCP000002 and SINGLE_CELL: "
-        #    "SCPCS000001"
-        # )
+        self.assertEqual(
+            str(e.exception),
+            "The following samples are not associated with SCPCP000002 and SINGLE_CELL: "
+            "SCPCS000001, SCPCS000002",
+        )
 
         # assert that a sample can be both single cell and spatial
         project = ProjectFactory(scpca_id="SCPCP000003", sample=None)
