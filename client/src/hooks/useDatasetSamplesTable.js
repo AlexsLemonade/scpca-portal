@@ -4,19 +4,54 @@ import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useDatasetSamplesTable = () => {
   const {
+    allSamples,
+    setAllSamples,
     selectedSamples,
     setSelectedSamples,
     filteredSamples,
     setFilteredSamples
   } = useContext(DatasetSamplesTableContext)
 
+  const hasSelectedSpatialSamples = () => {
+    if (!filteredSamples) return false
+
+    const spatialSamplesIds = filteredSamples
+      .filter((s) => s.has_spatial_data)
+      .map((s) => s.scpca_id)
+    const selectedSpatialSampleIds = selectedSamples.SPATIAL || []
+
+    return selectedSpatialSampleIds.some((id) => spatialSamplesIds.includes(id))
+  }
+
+  const selectModalitySamplesByIds = (modality, sampleIds) => {
+    const samplesToBeSelected = allSamples
+      .filter((s) => sampleIds.includes(s.scpca_id))
+      .map((s) => s.scpca_id)
+
+    setSelectedSamples((prev) => {
+      const modalitySamples = prev[modality] || []
+
+      return {
+        ...prev,
+        [modality]: uniqueArray([...modalitySamples, ...samplesToBeSelected])
+      }
+    })
+  }
+
   // Bulk-add/remove only samples visible on the currently selected page
   const toggleAllSamples = (modality) => {
     setSelectedSamples((prevSelectedSamples) => {
       const currentSelectedSamples = prevSelectedSamples[modality]
-      const sampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
 
-      const isAllOrSomeSelected = sampleIdsOnPage.some((id) =>
+      const modalityFlags = {
+        SINGLE_CELL: 'has_single_cell_data',
+        SPATIAL: 'has_spatial_data'
+      }
+      const modalitySampleIds = filteredSamples
+        .filter((s) => s[modalityFlags[modality]])
+        .map((s) => s.scpca_id)
+
+      const isAllOrSomeSelected = modalitySampleIds.some((id) =>
         currentSelectedSamples.includes(id)
       )
 
@@ -24,14 +59,17 @@ export const useDatasetSamplesTable = () => {
         return {
           ...prevSelectedSamples,
           [modality]: currentSelectedSamples.filter(
-            (id) => !sampleIdsOnPage.includes(id)
+            (id) => !modalitySampleIds.includes(id)
           )
         }
       }
 
       return {
         ...prevSelectedSamples,
-        [modality]: uniqueArray([...currentSelectedSamples, ...sampleIdsOnPage])
+        [modality]: uniqueArray([
+          ...currentSelectedSamples,
+          ...modalitySampleIds
+        ])
       }
     })
   }
@@ -58,9 +96,13 @@ export const useDatasetSamplesTable = () => {
   }
 
   return {
+    allSamples,
+    setAllSamples,
     selectedSamples,
     filteredSamples,
-    getFilteredSamples: setFilteredSamples,
+    setFilteredSamples,
+    hasSelectedSpatialSamples,
+    selectModalitySamplesByIds,
     toggleSample,
     toggleAllSamples
   }

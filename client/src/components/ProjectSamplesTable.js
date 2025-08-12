@@ -6,6 +6,7 @@ import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
+import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
@@ -21,7 +22,7 @@ export const ProjectSamplesTable = ({
   stickies = 3
 }) => {
   const { myDataset, userFormat } = useDatasetManager()
-  const { getFilteredSamples, selectedSamples, toggleSample } =
+  const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
     useDatasetSamplesTable()
 
   const [loaded, setLoaded] = useState(false)
@@ -76,6 +77,7 @@ export const ProjectSamplesTable = ({
           {allModalities.map((m) => (
             <ModalityCheckBox
               key={`${row.original.scpca_id}_${m}`}
+              project={project}
               modality={m}
               sampleId={row.original.scpca_id}
               disabled={!row.original[`has_${m.toLowerCase()}_data`]}
@@ -202,19 +204,25 @@ export const ProjectSamplesTable = ({
     )
 
   return (
-    <Table
-      columns={columns}
-      data={samples}
-      filter
-      stickies={stickies}
-      pageSize={5}
-      pageSizeOptions={[5, 10, 20, 50]}
-      infoText={infoText}
-      defaultSort={[{ id: 'scpca_id', asc: true }]} // TODO: Ask about new defaultSort
-      selectedRows={selectedSamples}
-      onFilteredRowsChange={getFilteredSamples}
-    >
-      {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
-    </Table>
+    <>
+      <Box direction="row" justify="end">
+        <DatasetAddSamplesModal project={project} />
+      </Box>
+      <Table
+        columns={columns}
+        data={samples}
+        filter
+        stickies={stickies}
+        pageSize={5}
+        pageSizeOptions={[5, 10, 20, 50]}
+        infoText={infoText}
+        defaultSort={[{ id: 'scpca_id', asc: true }]} // TODO: Ask about new defaultSort
+        selectedRows={selectedSamples}
+        onAllRowsChange={setAllSamples}
+        onFilteredRowsChange={setFilteredSamples}
+      >
+        {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
+      </Table>
+    </>
   )
 }
