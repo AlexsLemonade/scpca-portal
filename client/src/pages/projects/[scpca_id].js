@@ -1,8 +1,9 @@
+import dynamic from 'next/dynamic'
 import React, { useState } from 'react'
 import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
 import { DatasetSamplesTableContextProvider } from 'contexts/DatasetSamplesTableContext'
-import { ProjectHeader } from 'components/ProjectHeader'
+
 import { DetailsTable } from 'components/DetailsTable'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
@@ -15,6 +16,10 @@ import { api } from 'api'
 import { useResponsive } from 'hooks/useResponsive'
 import { PageTitle } from 'components/PageTitle'
 import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
+
+const ProjectHeader = dynamic(() => import('components/ProjectHeader'), {
+  ssr: false
+})
 
 const Project = ({ project }) => {
   if (!project) return '404'
