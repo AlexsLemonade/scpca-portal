@@ -120,18 +120,18 @@ export const useDatasetManager = () => {
 
   /* Project-level */
   const addProject = async (project, newProjectData) => {
-    const datasetDataCopy = structuredClone(myDataset.data) || {}
+    const dataCopy = structuredClone(myDataset.data) || {}
 
-    if (datasetDataCopy[project.scpca_id]) {
+    if (dataCopy[project.scpca_id]) {
       console.error('Project already present in myDataset')
     }
 
     // Make sure data is defined for a new dataset
-    datasetDataCopy[project.scpca_id] = newProjectData
+    dataCopy[project.scpca_id] = newProjectData
 
     const updatedDataset = {
       ...myDataset,
-      data: datasetDataCopy
+      data: dataCopy
     }
 
     return !myDataset.id
@@ -151,14 +151,17 @@ export const useDatasetManager = () => {
     spatialSamples
   ) => {
     // Populate modality samples for the project data
-    const dataCopy = { ...myDataset.data?.[project.scpca_id] } || {}
+    const projectDataCopy =
+      structuredClone(myDataset.data?.[project.scpca_id]) || {}
 
     const hasModality = (m) => selectedModalities.includes(m)
 
-    dataCopy.SINGLE_CELL = hasModality('SINGLE_CELL') ? singleCellSamples : []
-    dataCopy.SPATIAL = hasModality('SPATIAL') ? spatialSamples : []
+    projectDataCopy.SINGLE_CELL = hasModality('SINGLE_CELL')
+      ? singleCellSamples
+      : []
+    projectDataCopy.SPATIAL = hasModality('SPATIAL') ? spatialSamples : []
 
-    return dataCopy
+    return projectDataCopy
   }
 
   const getProjectSingleCellSamples = (
