@@ -10,6 +10,13 @@ const DatasetSummary = dynamic(() => import('components/DatasetSummary'), {
   ssr: false
 })
 
+const DatasetDownloadFileSummary = dynamic(
+  () => import('components/DatasetDownloadFileSummary'),
+  {
+    ssr: false
+  }
+)
+
 const Download = () => {
   const { myDataset, errors, getDataset } = useDatasetManager()
   const { responsive } = useResponsive()
@@ -41,6 +48,9 @@ const Download = () => {
       </Box>
       <Box margin={{ bottom: 'large' }}>
         <DatasetSummary dataset={myDataset} />
+      </Box>
+      <Box margin={{ bottom: 'large' }}>
+        <DatasetDownloadFileSummary dataset={myDataset} />
       </Box>
     </Box>
   )
