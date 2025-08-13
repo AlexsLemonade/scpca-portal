@@ -31,12 +31,19 @@ export const ModalityCheckBox = ({
 
   // Preselect any samples that are in myDataset
   useEffect(() => {
-    const projectData = getProjectData(project)
-    const singleCellSamples = projectData?.SINGLE_CELL
-    const spatialSamples = projectData?.SPATIAL
+    const { SINGLE_CELL: singleCellSamples, SPATIAL: spatialSamples } =
+      getProjectData(project)
 
     if (singleCellSamples) {
-      selectModalitySamplesByIds('SINGLE_CELL', singleCellSamples)
+      // If the project is a merged object, add all SINGLE_CELL samples
+      const samplesToSelect =
+        singleCellSamples === 'MERGED'
+          ? allSamples
+              .filter((s) => s.has_single_cell_data)
+              .map((s) => s.scpca_id)
+          : singleCellSamples
+
+      selectModalitySamplesByIds('SINGLE_CELL', samplesToSelect)
     }
 
     if (spatialSamples) {

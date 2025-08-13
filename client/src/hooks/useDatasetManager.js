@@ -151,8 +151,7 @@ export const useDatasetManager = () => {
     spatialSamples
   ) => {
     // Populate modality samples for the project data
-    const projectDataCopy =
-      structuredClone(myDataset.data?.[project.scpca_id]) || {}
+    const projectDataCopy = structuredClone(getProjectData(project))
 
     const hasModality = (m) => selectedModalities.includes(m)
 
