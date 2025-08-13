@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
 import { DatasetSamplesTableContextProvider } from 'contexts/DatasetSamplesTableContext'
-
 import { DetailsTable } from 'components/DetailsTable'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
