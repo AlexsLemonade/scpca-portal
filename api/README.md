@@ -105,84 +105,85 @@ There are two independent workflows carried out within the data processing  pipe
 1. Loading metadata and populating the database
 2. Generating computed files and populating s3
 
-To exclusively run the load metadata workflow, call:
+To run the load metadata workflow, call:
 ```
 sportal api:manage load_metadata
 ```
-To exclusively run the generate computed files workflow, call:
+To run the generate computed files workflow, call:
 ```
 sportal api:manage generate_computed_files
 ```
-To run them both successively, one after the next, call:
-```
-sportal api:manage load_data
-```
 
-### Load-Data Configuration Options
-Calling just `sportal api:manage load_data` will populate your local database by pulling metadata from the `scpca-portal-inputs` bucket, and generate computed files locally. To save time, by default it will not package up the actual data in that bucket and upload it to `scpca-local-data`.
+### Load Metadata Configuration Options
+Calling `sportal api:manage load_metadata` will populate your local database by pulling metadata from the `scpca-portal-inputs` bucket.
 
-If you would like to update the data in the `scpca-local-data` bucket, you can do so with the following command:
+By default the command will only look for new projects.
+If you would like to reimport existing projects you can run:
 
 ```
-sportal api:manage load_data --update-s3
+sportal api:manage load_metadata --reload-existing
 ```
 
-By default the command also will only look for new projects.
-If you would like to reimport existing projects you can run
+If during the last run of `load_metadata` there were projects in the lockfile that are no longer being worked on, those projects can be reloaded by running:
 
 ```
-sportal api:manage load_data --reload-existing
+sportal api:manage load_metadata --reload-locked
 ```
 
-or to reimport and upload all projects:
+If you would like to update a specific project, use the `--scpca-project-id` flag:
 
 ```
-sportal api:manage load_data --reload-existing --update-s3
+sportal api:manage load_metadata --scpca-project-id SCPCP000001
 ```
 
-If you would like to update a specific project use --scpca-project-id flag:
+The default output bucket for local development is `scpca-portal-imports`. To pass a custom input bucket the `--input-bucket-name` flag can be passed, as illustrated below:
 
 ```
-sportal api:manage load_data --scpca-project-id SCPCP000001
-```
-
-If you would like to purge a project and remove its files from the S3 bucket, you can use:
-
-```
-sportal api:manage purge_project --scpca-project-id SCPCP000001 --delete-from-s3
+sportal api:manage load_metadata --input-bucket-name custom-input-bucket
 ```
 
 The `--clean-up-input-data` flag can help you control the projects input data size. If flag is set the input data cleanup process will be run for each project right after its processing is over.
 ```
-sportal api:manage load_data --clean-up-input-data --reload-all --update-s3
+sportal api:manage load_metadata --clean-up-input-data
+```
+
+If there are existing computed files in the output bucket, which for local development is set to `scpca-local-data` by default, it is best practice to remove project and sample computed files while reloading metadata. This is accomplished by running:
+
+```
+sportal api:manage load_metadata --update-s3
+```
+
+If you would like to purge a project from the db and remove its files from the S3 output bucket, the `purge_project` command should be used, as follows:
+
+```
+sportal api:manage purge_project --scpca-project-id SCPCP000001
+```
+
+### Generate Computed Files Configuration Options
+Calling `sportal api:manage generate_computed_files` will generate computed files locally. To save time, by default it will not package up the actual data in that bucket and upload it to `scpca-local-data`. The `generate_computed_files` command will fail if `load_metadata` was not previously called.
+
+If you would like to update the data in the `scpca-local-data` bucket, you can do so with the following command:
+
+```
+sportal api:manage generate_computed_files --update-s3
+```
+
+If you would like to generate computed files for a specific project, use the `--scpca-project-id` flag:
+
+```
+sportal api:manage generate_computed_files --scpca-project-id SCPCP000001
 ```
 
 The `--clean-up-output-data` flag can help you control the projects output data size. If flag is set the output (no longer needed) data cleanup process will be run for each project right after its processing is over.
 ```
-sportal api:manage load_data --clean-up-output-data --reload-all --update-s3
+sportal api:manage generate_computed_files --clean-up-output-data
 ```
 
 The `--max-workers` flag can be used for setting a number of simultaneously processed projects/samples to speed up the data loading process. The provided number will be used to spawn threads within two separate thread pool executors -- for project and sample processing.
 ```
-sportal api:manage load_data --max-workers 10 --reload-existing --update-s3
+sportal api:manage generate_computed_files --max-workers 10
 ```
 
-### Load Metadata and Generate Computed Files Flags
-Of all of the above mentioned flags, a subset of them can be called in the `load-metadata` command, while another subset can be called with the `generate-computed-files` command. Below is a list of which commands are compatible with which command.
-
-load_metadata flags
-- input-bucket-name
-- clean-up-input-data
-- reload-existing
-- scpca-project-id
-- update-s3
-
-generate_computed_files flags
-- clean-up-input-data
-- clean-up-output-data
-- max-workers
-- scpca-project-id
-- update-s3
 
 ## Cloud Data Management
 
