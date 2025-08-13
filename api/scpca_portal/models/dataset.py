@@ -1,7 +1,7 @@
 import hashlib
 import sys
 import uuid
-from collections.abc import Mapping
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -28,7 +28,7 @@ from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
-from scpca_portal.validators import DatasetData
+from scpca_portal.validators import DatasetDataModel, DatasetDataModelRelations
 
 logger = get_and_configure_logger(__name__)
 
@@ -64,6 +64,7 @@ class Dataset(TimestampedModel):
     is_ccdl = models.BooleanField(default=False)
     ccdl_name = models.TextField(choices=CCDLDatasetNames.choices, null=True)
     ccdl_project_id = models.TextField(null=True)
+    ccdl_modality = models.TextField(choices=Modalities.choices, null=True)
 
     # Non user-editable - set during processing
     started_at = models.DateTimeField(null=True)
@@ -135,7 +136,6 @@ class Dataset(TimestampedModel):
 
         return {}
 
-    # TODO: Bulk samples are not present in libraries but will need to be included.
     @property
     def files_summary(self) -> list[dict]:
         """
@@ -181,27 +181,33 @@ class Dataset(TimestampedModel):
             },
         ]
 
+        # cache
+        dataset_samples = self.samples
+        dataset_libraries = self.libraries
+
+        seen_samples = set()
         summaries = []
-        seen_libraries = []
 
         for file_summary_query in summary_queries:
-            if (
-                library_ids := self.libraries.filter(**file_summary_query["filter"])
-                .exclude(scpca_id__in=seen_libraries)
+            library_ids = (
+                dataset_libraries.filter(**file_summary_query["filter"])
+                .distinct()
+                .values_list("scpca_id", flat=True)
+            )
+
+            if not library_ids:
+                continue
+
+            if samples_ids := (
+                dataset_samples.filter(libraries__scpca_id__in=library_ids)
+                .exclude(scpca_id__in=seen_samples)
                 .distinct()
                 .values_list("scpca_id", flat=True)
             ):
-                nested_ids = self.original_files.filter(library_id__in=library_ids).values_list(
-                    "sample_ids", flat=True
-                )
-                samples = {s for ss in nested_ids for s in ss}
-                samples_count = len(samples)
-
-                seen_libraries.extend(library_ids)
 
                 summaries.append(
                     {
-                        "samples_count": samples_count,
+                        "samples_count": len(samples_ids),
                         "name": file_summary_query["name"],
                         "format": file_summary_query.get(
                             "format", common.FORMAT_EXTENSIONS[self.format]
@@ -209,7 +215,19 @@ class Dataset(TimestampedModel):
                     }
                 )
 
+                seen_samples.update(samples_ids)
+
         return summaries
+
+    @property
+    def project_diagnoses(self) -> Dict:
+
+        diagnoses_counts = {key: Counter() for key in self.data.keys()}
+
+        for project_id, diagnosis in self.samples.values_list("project__scpca_id", "diagnosis"):
+            diagnoses_counts[project_id].update({diagnosis: 1})
+
+        return diagnoses_counts
 
     @property
     def stats(self) -> Dict:
@@ -221,6 +239,7 @@ class Dataset(TimestampedModel):
             "uncompressed_size": self.estimated_size_in_bytes,
             "diagnoses_summary": self.diagnoses_summary,
             "files_summary": self.files_summary,
+            "project_diagnoses": self.project_diagnoses,
         }
 
     @classmethod
@@ -233,6 +252,7 @@ class Dataset(TimestampedModel):
             return dataset, True
 
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
+        dataset.ccdl_modality = dataset.ccdl_type["modality"]
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
         dataset.data_hash = dataset.current_data_hash
@@ -365,7 +385,7 @@ class Dataset(TimestampedModel):
     def samples(self) -> Iterable[Sample]:
         dataset_samples = Sample.objects.none()
         for project_id in self.data.keys():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
                 dataset_samples |= self.get_project_modality_samples(project_id, modality)
 
         return dataset_samples
@@ -376,7 +396,7 @@ class Dataset(TimestampedModel):
         dataset_libraries = Library.objects.none()
 
         for project_id in self.data.keys():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
                 dataset_libraries |= self.get_project_modality_libraries(project_id, modality)
 
         return dataset_libraries
@@ -386,31 +406,13 @@ class Dataset(TimestampedModel):
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
     @staticmethod
-    def validate_data(data: Mapping[str, Any]) -> DatasetData:
-        return DatasetData.model_validate(data)
+    def validate_data(data: Dict[str, Any], format: DatasetFormats) -> Dict:
+        structured_data = DatasetDataModel.model_validate(
+            data, context={"format": format}
+        ).model_dump()
+        validated_data = DatasetDataModelRelations.validate(structured_data)
 
-    def validate(self) -> None:
-        """
-        Validates that projects and samples, who's ids were passed in through the data attribute,
-        both exist and are correctly related.
-        Raises exceptions if projects, samples or their associations do not exist.
-        """
-        if self.format == DatasetFormats.ANN_DATA.value:
-            if any(
-                project_data.get(Modalities.SPATIAL.value, [])
-                for project_data in self.data.values()
-            ):
-                # TODO: add custom exception
-                raise Exception("No Spatial data for ANNDATA.")
-
-        # validate that all projects exist
-        existing_ids = Project.objects.filter(scpca_id__in=self.data.keys()).values_list(
-            "scpca_id", flat=True
-        )
-        if missing_keys := set(self.data.keys()) - set(existing_ids):
-            raise Exception(f"The following projects do not exist: {list(missing_keys)}")
-
-        # TODO: sample modality existence check
+        return validated_data
 
     def get_is_merged_project(self, project_id) -> bool:
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
@@ -479,13 +481,19 @@ class Dataset(TimestampedModel):
         Takes project's scpca_id and a modality.
         Returns Sample instances defined in data attribute.
         """
+        project_data = self.data.get(project_id, {})
 
         project_samples = Sample.objects.filter(project__scpca_id=project_id)
-        if self.get_is_merged_project(project_id):
+
+        if modality is Modalities.SINGLE_CELL and self.get_is_merged_project(project_id):
             return project_samples.filter(has_single_cell_data=True)
-        return project_samples.filter(
-            scpca_id__in=self.data.get(project_id, {}).get(modality.value)
-        )
+
+        if modality is Modalities.BULK_RNA_SEQ and project_data.get(
+            DatasetDataProjectConfig.INCLUDES_BULK
+        ):
+            return project_samples.filter(has_bulk_rna_seq=True)
+
+        return project_samples.filter(scpca_id__in=project_data.get(modality, []))
 
     def get_project_modality_libraries(
         self, project_id: str, modality: Modalities
@@ -495,10 +503,12 @@ class Dataset(TimestampedModel):
         Returns Library instances associated with Samples defined in data attribute.
         """
         libraries = Library.objects.filter(
-            samples__in=self.get_project_modality_samples(project_id, modality)
+            samples__in=self.get_project_modality_samples(project_id, modality), modality=modality
         ).distinct()
-        if self.format != DatasetFormats.METADATA:
+
+        if self.format != DatasetFormats.METADATA and modality != Modalities.BULK_RNA_SEQ:
             libraries = libraries.filter(formats__contains=[self.format])
+
         return libraries
 
     def get_project_modality_metadata_file_content(
