@@ -12,17 +12,6 @@ export const useDatasetSamplesTable = () => {
     setFilteredSamples
   } = useContext(DatasetSamplesTableContext)
 
-  const hasSelectedSpatialSamples = () => {
-    if (!filteredSamples) return false
-
-    const spatialSamplesIds = filteredSamples
-      .filter((s) => s.has_spatial_data)
-      .map((s) => s.scpca_id)
-    const selectedSpatialSampleIds = selectedSamples.SPATIAL || []
-
-    return selectedSpatialSampleIds.some((id) => spatialSamplesIds.includes(id))
-  }
-
   const selectModalitySamplesByIds = (modality, sampleIds) => {
     const samplesToBeSelected = allSamples
       .filter((s) => sampleIds.includes(s.scpca_id))
@@ -101,7 +90,6 @@ export const useDatasetSamplesTable = () => {
     selectedSamples,
     filteredSamples,
     setFilteredSamples,
-    hasSelectedSpatialSamples,
     selectModalitySamplesByIds,
     toggleSample,
     toggleAllSamples

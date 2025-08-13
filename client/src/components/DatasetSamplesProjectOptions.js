@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Box, CheckBox } from 'grommet'
-import { useDatasetManager } from 'hooks/useDatasetManager'
 import { FormField } from 'components/FormField'
 
 export const DatasetSamplesProjectOptions = ({
@@ -8,22 +7,13 @@ export const DatasetSamplesProjectOptions = ({
   includeBulk,
   onIncludeBulkChange
 }) => {
-  const { myDataset } = useDatasetManager()
-
-  useEffect(() => {
-    const projectData = myDataset?.data?.[project.scpca_id]
-    if (projectData) {
-      onIncludeBulkChange(projectData.includes_bulk)
-    }
-  }, [myDataset])
-
   return (
     <FormField label="Project Options" gap="medium" labelWeight="bold">
       <Box direction="row">
         <CheckBox
           label="Include all bulk RNA-seq data in the project"
           checked={includeBulk}
-          disabled={!project.includes_bulk}
+          disabled={!project.has_bulk_rna_seq}
           onChange={({ target: { checked } }) => onIncludeBulkChange(checked)}
         />
       </Box>

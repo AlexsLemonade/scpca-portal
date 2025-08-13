@@ -29,9 +29,6 @@ export const ModalityCheckBox = ({
   const { allSamples, selectedSamples, selectModalitySamplesByIds } =
     useDatasetSamplesTable()
 
-  const disableSpatial =
-    modality === 'SPATIAL' && myDataset?.format === 'ANN_DATA'
-
   // Preselect any samples that are in myDataset
   useEffect(() => {
     const projectData = getProjectData(project)
@@ -51,7 +48,7 @@ export const ModalityCheckBox = ({
     <CheckBox
       name={modality}
       checked={!disabled ? selectedSamples[modality].includes(sampleId) : false}
-      disabled={disabled || disableSpatial}
+      disabled={disabled}
       onClick={onClick}
     />
   )
