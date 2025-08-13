@@ -197,18 +197,19 @@ export const useDatasetManager = () => {
   }
 
   /* Sample-level */
-  const setSamples = async (project, format, projectData) => {
-    const datasetCopy = structuredClone(myDataset)
+  const setSamples = async (project, newProjectData) => {
+    const dataCopy = structuredClone(myDataset.data) || {}
 
-    datasetCopy.data = {
-      ...(datasetCopy.data || {}),
-      [project.scpca_id]: projectData
+    dataCopy[project.scpca_id] = newProjectData
+
+    const updatedDataset = {
+      ...myDataset,
+      data: dataCopy
     }
 
-    const updatedDataset = !datasetCopy.id
-      ? await createDataset({ ...datasetCopy, format })
-      : await updateDataset(datasetCopy)
-    return updatedDataset
+    return !myDataset.id
+      ? createDataset(updatedDataset)
+      : updateDataset(updatedDataset)
   }
 
   return {
