@@ -189,13 +189,13 @@ sportal api:manage generate_computed_files --max-workers 10
 
 ### Processing Options
 There are two options available for processing data in the Cloud:
-- Running `load_data` on the API instance (or a combination of `load_metadata` and `generate_computed_files`)
+- Running `generate_computed_files` on the API instance
 - Running `dispatch_to_batch` on the API instance, which kicks off processing on AWS Batch resources
 
 Due to the fact that processing on Batch is ~10x faster than processing on the API, we recommend using Batch for processing.
 
 ### Commands in Production
-To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh load_data --reload-all`.
+To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh generate_computed_files --reload-all`.
 
 ### Syncing the OriginalFile Table
 As mentioned in the above [Local Data Management - Syncing the OriginalFile Table section](#syncing-the-originalfile-table), the `OriginalFile` table must be populated before data can be processed via the `sync_original_files` command.
@@ -211,14 +211,6 @@ Details of the `sync_original_files` can be found in the Syncing the OriginalFil
 The following code can be used to process projects on the API, one by one, with a minimum disk space footprint:
 
 ```bash
-for i in $(seq -f "%02g" 1 25); do
-    ./run_command.sh load_data --clean-up-input-data --clean-up-output-data --reload-existing --scpca-project-id SCPCP0000$i
-done
-```
-
-Alternatively, for a more granular approach, first run `load_metadata`, and thereafter `generate_computed_files`, as follows:
-
-```bash
 ./run_command.sh load_metadata --clean-up-input-data --reload-existing
 
 for i in $(seq -f "%02g" 1 25);
@@ -227,7 +219,7 @@ done
 
 ```
 
-Note: Running `load_data` in production defaults to uploading completed computed files to S3. This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
+Note: Running `generate_computed_files` in production defaults to uploading completed computed files to S3. This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
 
 ### Processing via Batch
 The following code is used for processing projects via AWS Batch:
