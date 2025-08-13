@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic'
 import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
@@ -5,25 +6,25 @@ import { useDatasetManager } from 'hooks/useDatasetManager'
 import { Loader } from 'components/Loader'
 import Error from 'pages/_error'
 
+const DatasetSummary = dynamic(() => import('components/DatasetSummary'), {
+  ssr: false
+})
+
 const Download = () => {
   const { myDataset, errors, getDataset } = useDatasetManager()
   const { responsive } = useResponsive()
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchDataset = async () => {
-      if (myDataset.id) {
-        await getDataset()
-      }
+      setLoading(true)
+      await getDataset()
       setLoading(false)
-      // TODO: Remove temporary log after completing integration
-      // eslint-disable-next-line no-console
-      console.log({ myDataset })
     }
 
     fetchDataset()
-  }, [myDataset.id])
+  }, [])
 
   if (loading) return <Loader />
 
@@ -37,6 +38,9 @@ const Download = () => {
         <Text serif size="xlarge">
           My Dataset
         </Text>
+      </Box>
+      <Box margin={{ bottom: 'large' }}>
+        <DatasetSummary dataset={myDataset} />
       </Box>
     </Box>
   )

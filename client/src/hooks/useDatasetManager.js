@@ -62,6 +62,8 @@ export const useDatasetManager = () => {
   }
 
   const getDataset = async (downloadToken = '') => {
+    if (!myDataset.id) return null
+
     // A valid API token is required for dataset file downloads
     // TODO: Component is reponsible for generating a valid token for file download upon request
     const datasetRequest = await api.datasets.get(myDataset.id, downloadToken)
