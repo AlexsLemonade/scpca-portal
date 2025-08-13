@@ -80,14 +80,7 @@ export const DatasetAddProjectModal = ({
       ),
       includes_bulk: includeBulk
     })
-  }, [
-    excludeMultiplexed,
-    includeBulk,
-    includeMerge,
-    modalities,
-    singleCellSamples,
-    spatialSamples
-  ])
+  }, [includeBulk, modalities, singleCellSamples, spatialSamples])
 
   // Update singleCellSamples based on user selections
   useEffect(() => {

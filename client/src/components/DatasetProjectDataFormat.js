@@ -7,8 +7,7 @@ import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
 export const DatasetProjectDataFormat = ({ project }) => {
-  const { myDataset, setMyDataset, userFormat, setUserFormat } =
-    useDatasetManager()
+  const { myDataset, setMyDataset, userFormat } = useDatasetManager()
 
   const formatOptions = [
     { key: 'SINGLE_CELL_EXPERIMENT', value: project.has_single_cell_data },
@@ -23,7 +22,6 @@ export const DatasetProjectDataFormat = ({ project }) => {
 
   const handleFormatChange = (value) => {
     setMyDataset((prev) => ({ ...prev, format: value }))
-    setUserFormat(value)
   }
 
   useEffect(() => {
