@@ -6,7 +6,7 @@ import { getReadableOptions } from 'helpers/getReadableOptions'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
-export const DatasetProjectDataFormat = ({ project }) => {
+export const DatasetDataFormatOptions = ({ project }) => {
   const { myDataset, setMyDataset, userFormat } = useDatasetManager()
 
   const formatOptions = [
@@ -50,4 +50,4 @@ export const DatasetProjectDataFormat = ({ project }) => {
   )
 }
 
-export default DatasetProjectDataFormat
+export default DatasetDataFormatOptions

@@ -6,7 +6,7 @@ import { api } from 'api'
 import { Button } from 'components/Button'
 import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditionalOptions'
 import { DatasetProjectModalityOptions } from 'components/DatasetProjectModalityOptions'
-import { DatasetProjectDataFormat } from 'components/DatasetProjectDataFormat'
+import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
 import { DatasetWarningSpatialSamples } from 'components/DatasetWarningSpatialSamples'
 import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 
@@ -127,7 +127,7 @@ export const DatasetAddProjectModal = ({
               </Heading>
               <Box pad={{ top: 'small' }}>
                 <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
-                  <DatasetProjectDataFormat project={project} />
+                  <DatasetDataFormatOptions project={project} />
                   <DatasetProjectModalityOptions
                     project={project}
                     modalities={modalities}
