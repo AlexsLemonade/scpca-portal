@@ -33,7 +33,7 @@ export const DatasetProjectAdditionalOptions = ({
       : includesMergedAnnData
 
   const disableMergedObjects =
-    (selectedModalities.length === 1 &&
+    (selectedModalities.length > 0 &&
       !selectedModalities.includes('SINGLE_CELL')) ||
     !isMergedObjectsAvailable
 
