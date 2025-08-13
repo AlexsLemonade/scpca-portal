@@ -195,6 +195,9 @@ class ProjectFactory(LeafProjectFactory):
         sample = self.samples.first()
         library = self.libraries.first()
 
+        if not sample or not library:
+            return
+
         sample.libraries.add(library)
 
 

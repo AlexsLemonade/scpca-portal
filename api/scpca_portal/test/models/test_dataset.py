@@ -5,20 +5,13 @@ from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
 from django.core.management import call_command
-from django.test import TestCase, tag
-
-from pydantic import ValidationError
+from django.test import TestCase
 
 from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 from scpca_portal.models import Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import (
-    DatasetFactory,
-    OriginalFileFactory,
-    ProjectFactory,
-    SampleFactory,
-)
+from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
 
 
 class TestDataset(TestCase):
@@ -46,235 +39,6 @@ class TestDataset(TestCase):
 
         returned_dataset = Dataset.objects.filter(pk=dataset.id).first()
         self.assertEqual(returned_dataset, dataset)
-
-    @tag("validate_data")
-    def test_validate_data_project_id(self):
-        # Valid project id
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        Dataset.validate_data(data)
-
-        # Incorrect project ids
-        data = {
-            "project_id": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-        # Lack of SCPCP prefix
-        data = {
-            "SCPCA999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-        # Incorrect number of digits
-        data = {
-            "SCPCP9999900": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-    @tag("validate_data")
-    def test_validate_data_project_data(self):
-        # Valid config
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        Dataset.validate_data(data)
-
-        # Empty config (valid)
-        data = {
-            "SCPCP999990": {},
-        }
-        Dataset.validate_data(data)
-
-        # Includes bulk - missing (valid)
-        data = {
-            "SCPCP999990": {
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        Dataset.validate_data(data)
-
-        # Includes bulk - wrong type
-        # However, Pydantic will correct this
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": "True",
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        Dataset.validate_data(data)
-
-        # Single Cell - missing (valid)
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        Dataset.validate_data(data)
-
-        # Single Cell - wrong type (invalid)
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: "SCPCS999990",
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-        # Merge single cell - wrong type (invalid)
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["MERGED"],  # invalid sample id
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-        # Single Cell - wrong inner type (invalid)
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: [1, 2, 3],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-        # Single Cell - invalid sample id (invalid)
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["sample_id"],
-                Modalities.SPATIAL.value: ["SCPCS999992"],
-            },
-        }
-        with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-        # Spatial - missing (valid)
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-            },
-        }
-        Dataset.validate_data(data)
-
-        # Spatial - wrong type (invalid)
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: "SCPCS999992",
-            },
-        }
-        with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-        # Spatial - wrong inner type (invalid)
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: [1, 2, 3],
-            },
-        }
-        with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-        # Spatial - invalid sample id (invalid)
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999991"],
-                Modalities.SPATIAL.value: ["sample_id"],
-            },
-        }
-        with self.assertRaises(ValidationError):
-            Dataset.validate_data(data)
-
-    def test_validate(self):
-        project = ProjectFactory(scpca_id="SCPCP000001")
-        SampleFactory(scpca_id="SCPCS000001", project=project, has_single_cell_data=True)
-        SampleFactory(scpca_id="SCPCS000002", project=project, has_single_cell_data=True)
-        SampleFactory(scpca_id="SCPCS000003", project=project, has_spatial_data=True)
-
-        # no exceptions thrown
-        data = {
-            "SCPCP000001": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
-                Modalities.SPATIAL.value: ["SCPCS000003"],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
-        dataset = Dataset(data=data, format=format)
-
-        dataset.validate()  # no exception should be thrown here
-
-        # assert spatial samples cannot be requested with anndata format
-        data = {
-            "SCPCP000001": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
-                Modalities.SPATIAL.value: ["SCPCS000003"],
-            },
-        }
-        format = DatasetFormats.ANN_DATA
-        dataset = Dataset(data=data, format=format)
-
-        with self.assertRaises(Exception) as e:
-            dataset.validate()
-            self.assertEqual(str(e.exception), "No Spatial data for ANNDATA.")
-
-        # assert project id doesn't exist
-        data = {
-            "SCPCP999999": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
-                Modalities.SPATIAL.value: ["SCPCS000003"],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
-        dataset = Dataset(data=data, format=format)
-
-        with self.assertRaises(Exception) as e:
-            dataset.validate()
-            self.assertEqual(
-                str(e.exception), "The following projects do not exist: ['SCPCP999999']"
-            )
 
     def test_is_ccdl_default_set(self):
         dataset = DatasetFactory()
@@ -690,7 +454,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999991"],
             },
             "SCPCP999991": {
-                "includes_bulk": True,
+                "includes_bulk": False,
                 Modalities.SINGLE_CELL: [
                     "SCPCS999992",
                     "SCPCS999993",
@@ -699,7 +463,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: [],
             },
             "SCPCP999992": {
-                "includes_bulk": True,
+                "includes_bulk": False,
                 Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
                 Modalities.SPATIAL: [],
             },
@@ -752,32 +516,23 @@ class TestDataset(TestCase):
         )
 
         expected_single_cell = [
-            {
-                "samples_count": 2,
-                "name": "Single-nuclei multiplexed samples",
-                "format": ".rds",
-            },
-            {
-                "samples_count": 1,
-                "name": "Single-cell samples with CITE-seq",
-                "format": ".rds",
-            },
-            {
-                "samples_count": 4,
-                "name": "Single-cell samples",
-                "format": ".rds",
-            },
-            {
-                "samples_count": 1,
-                "name": "Spatial samples",
-                "format": "Spatial format",
-            },
+            {"samples_count": 2, "name": "Single-nuclei multiplexed samples", "format": ".rds"},
+            {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".rds"},
+            {"samples_count": 4, "name": "Single-cell samples", "format": ".rds"},
+            {"samples_count": 1, "name": "Spatial samples", "format": "Spatial format"},
+            {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
         ]
 
-        for actual, expected in zip(single_cell_dataset.files_summary, expected_single_cell):
-            self.assertEqual(actual["samples_count"], expected["samples_count"])
+        single_cell_files_summary = single_cell_dataset.files_summary
+
+        self.assertEqual(len(single_cell_files_summary), len(expected_single_cell))
+
+        for actual, expected in zip(single_cell_files_summary, expected_single_cell):
             self.assertEqual(actual["name"], expected["name"])
-            self.assertEqual(actual["format"], expected["format"])
+            self.assertEqual(
+                actual["samples_count"], expected["samples_count"], f" in {actual['name']}"
+            )
+            self.assertEqual(actual["format"], expected["format"], f" in {actual['name']}")
 
         ann_data_dataset = Dataset(
             format=DatasetFormats.ANN_DATA,
@@ -801,20 +556,56 @@ class TestDataset(TestCase):
                 },
             },
         )
+
         expected_ann_data = [
-            {
-                "samples_count": 1,
-                "name": "Single-cell samples with CITE-seq",
-                "format": ".h5ad",
-            },
-            {
-                "samples_count": 4,
-                "name": "Single-cell samples",
-                "format": ".h5ad",
-            },
+            {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".h5ad"},
+            {"samples_count": 4, "name": "Single-cell samples", "format": ".h5ad"},
+            {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
         ]
 
-        for actual, expected in zip(ann_data_dataset.files_summary, expected_ann_data):
-            self.assertEqual(actual["samples_count"], expected["samples_count"])
+        ann_data_files_summary = ann_data_dataset.files_summary
+
+        for actual, expected in zip(ann_data_files_summary, expected_ann_data):
             self.assertEqual(actual["name"], expected["name"])
-            self.assertEqual(actual["format"], expected["format"])
+            self.assertEqual(
+                actual["samples_count"], expected["samples_count"], f" in {actual['name']}"
+            )
+            self.assertEqual(actual["format"], expected["format"], f" in {actual['name']}")
+
+    def test_project_diagnoses(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        expected_counts = {
+            "SCPCP999990": {"diagnosis5": 2, "diagnosis1": 1, "diagnosis2": 1},
+            "SCPCP999991": {"diagnosis4": 1, "diagnosis3": 1, "diagnosis6": 1},
+            "SCPCP999992": {"diagnosis7": 2},
+        }
+
+        actual_counts = dataset.project_diagnoses
+
+        for project_id in actual_counts.keys():
+            for diagnosis in actual_counts[project_id].keys():
+                self.assertEqual(
+                    actual_counts[project_id][diagnosis], expected_counts[project_id][diagnosis]
+                )
