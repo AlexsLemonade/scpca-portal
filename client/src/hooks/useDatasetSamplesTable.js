@@ -1,5 +1,6 @@
 import { useContext } from 'react'
 import { DatasetSamplesTableContext } from 'contexts/DatasetSamplesTableContext'
+import { differenceArray } from 'helpers/differenceArray'
 import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useDatasetSamplesTable = () => {
@@ -28,7 +29,8 @@ export const useDatasetSamplesTable = () => {
   }
 
   // Bulk-add/remove only samples visible on the currently selected page
-  const toggleAllSamples = (modality) => {
+  // Exclude the toggling of samplesToExclude
+  const toggleSamples = (modality, samplesToExclude = []) => {
     setSelectedSamples((prevSelectedSamples) => {
       const currentSelectedSamples = prevSelectedSamples[modality]
 
@@ -36,11 +38,17 @@ export const useDatasetSamplesTable = () => {
         SINGLE_CELL: 'has_single_cell_data',
         SPATIAL: 'has_spatial_data'
       }
+
       const modalitySampleIds = filteredSamples
         .filter((s) => s[modalityFlags[modality]])
         .map((s) => s.scpca_id)
 
-      const isAllOrSomeSelected = modalitySampleIds.some((id) =>
+      const sampleIdsToToggle = differenceArray(
+        modalitySampleIds,
+        samplesToExclude
+      )
+
+      const isAllOrSomeSelected = sampleIdsToToggle.some((id) =>
         currentSelectedSamples.includes(id)
       )
 
@@ -48,7 +56,7 @@ export const useDatasetSamplesTable = () => {
         return {
           ...prevSelectedSamples,
           [modality]: currentSelectedSamples.filter(
-            (id) => !modalitySampleIds.includes(id)
+            (id) => !sampleIdsToToggle.includes(id)
           )
         }
       }
@@ -57,7 +65,7 @@ export const useDatasetSamplesTable = () => {
         ...prevSelectedSamples,
         [modality]: uniqueArray([
           ...currentSelectedSamples,
-          ...modalitySampleIds
+          ...sampleIdsToToggle
         ])
       }
     })
@@ -92,6 +100,6 @@ export const useDatasetSamplesTable = () => {
     setFilteredSamples,
     selectModalitySamplesByIds,
     toggleSample,
-    toggleAllSamples
+    toggleSamples
   }
 }

@@ -88,6 +88,7 @@ export const ProjectSamplesTable = ({
               key={`${row.original.scpca_id}_${m}`}
               project={project}
               modality={m}
+              samples={samples}
               sampleId={row.original.scpca_id}
               disabled={!row.original[`has_${m.toLowerCase()}_data`]}
               onClick={() => toggleSample(m, row.original)}
@@ -247,6 +248,7 @@ export const ProjectSamplesTable = ({
       <Box direction="row" justify="end">
         <DatasetAddSamplesModal
           project={project}
+          samples={samples}
           disabled={disableAddToDataset}
         />
       </Box>

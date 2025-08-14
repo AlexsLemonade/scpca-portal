@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading, Paragraph } from 'grommet'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
@@ -11,11 +11,13 @@ import { DatasetSamplesProjectOptions } from 'components/DatasetSamplesProjectOp
 
 export const DatasetAddSamplesModal = ({
   project,
+  samples,
   label = 'Add to Dataset',
   title = 'Add Samples to Dataset',
   disabled = false
 }) => {
-  const { getDatasetData, setSamples } = useDatasetManager()
+  const { getDatasetData, getProjectSingleCellSamples, setSamples } =
+    useDatasetManager()
   const { selectedSamples } = useDatasetSamplesTable()
   const { responsive } = useResponsive()
 
@@ -25,14 +27,10 @@ export const DatasetAddSamplesModal = ({
   // For project options
   const [includeBulk, setIncludeBulk] = useState(false)
 
-  // For to-be-added samples counts in the modal
-  const datasetData = getDatasetData(project)
-  const singleCellSamplesToAdd =
-    differenceArray(selectedSamples?.SINGLE_CELL, datasetData.SINGLE_CELL || [])
-      .length || 0
-  const spatialSamplesToAdd =
-    differenceArray(selectedSamples?.SPATIAL, datasetData.SPATIAL || [])
-      .length || 0
+  // For counts of to-be-added samples in the modal
+  const [singleCellSamplesToAdd, setSingleCellSamplesToAdd] = useState([])
+  const [spatialSamplesToAdd, setSpatialSamplesToAdd] = useState([])
+
   const totalSamples = singleCellSamplesToAdd + spatialSamplesToAdd
 
   const canClickAddSamples = totalSamples > 0
@@ -44,6 +42,27 @@ export const DatasetAddSamplesModal = ({
     })
     setShowing(false)
   }
+
+  // Calculate to-be-added samples for each modality
+  useEffect(() => {
+    if (samples) {
+      const datasetData = getDatasetData(project)
+
+      const singleCellSamples =
+        datasetData.SINGLE_CELL === 'MERGED'
+          ? getProjectSingleCellSamples(samples)
+          : datasetData.SINGLE_CELL || []
+      const spatialSamples = datasetData.SPATIAL || []
+
+      setSingleCellSamplesToAdd(
+        differenceArray(selectedSamples?.SINGLE_CELL, singleCellSamples)
+          .length || 0
+      )
+      setSpatialSamplesToAdd(
+        differenceArray(selectedSamples?.SPATIAL, spatialSamples).length || 0
+      )
+    }
+  }, [samples, selectedSamples])
 
   return (
     <>
