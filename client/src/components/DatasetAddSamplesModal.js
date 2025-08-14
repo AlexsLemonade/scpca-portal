@@ -3,6 +3,7 @@ import { Box, Grid, Heading, Paragraph } from 'grommet'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
+import { differenceArray } from 'helpers/differenceArray'
 import { Button } from 'components/Button'
 import { Modal, ModalBody } from 'components/Modal'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
@@ -14,7 +15,7 @@ export const DatasetAddSamplesModal = ({
   title = 'Add Samples to Dataset',
   disabled = false
 }) => {
-  const { setSamples } = useDatasetManager()
+  const { getDatasetData, setSamples } = useDatasetManager()
   const { selectedSamples } = useDatasetSamplesTable()
   const { responsive } = useResponsive()
 
@@ -24,9 +25,15 @@ export const DatasetAddSamplesModal = ({
   // For project options
   const [includeBulk, setIncludeBulk] = useState(false)
 
-  const singleCellSamples = selectedSamples?.SINGLE_CELL.length || 0
-  const spatialSamples = selectedSamples?.SPATIAL.length || 0
-  const totalSamples = singleCellSamples + spatialSamples
+  // For to-be-added samples counts in the modal
+  const datasetData = getDatasetData(project)
+  const singleCellSamplesToAdd =
+    differenceArray(selectedSamples?.SINGLE_CELL, datasetData.SINGLE_CELL || [])
+      .length || 0
+  const spatialSamplesToAdd =
+    differenceArray(selectedSamples?.SPATIAL, datasetData.SPATIAL || [])
+      .length || 0
+  const totalSamples = singleCellSamplesToAdd + spatialSamplesToAdd
 
   const canClickAddSamples = totalSamples > 0
 
@@ -67,10 +74,10 @@ export const DatasetAddSamplesModal = ({
                 style={{ listStyle: 'disc' }}
               >
                 <Box as="li" style={{ display: 'list-item' }}>
-                  {`${singleCellSamples} samples with single-cell modality`}
+                  {`${singleCellSamplesToAdd} samples with single-cell modality`}
                 </Box>
                 <Box as="li" style={{ display: 'list-item' }}>
-                  {`${spatialSamples} samples with spatial modality`}
+                  {`${spatialSamplesToAdd} samples with spatial modality`}
                 </Box>
               </Box>
             </Box>

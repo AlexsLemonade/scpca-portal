@@ -4,6 +4,7 @@ import { config } from 'config'
 import { Box, Text } from 'grommet'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
+import { differenceArray } from 'helpers/differenceArray'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
@@ -21,12 +22,19 @@ export const ProjectSamplesTable = ({
   samples: defaultSamples,
   stickies = 3
 }) => {
-  const { myDataset, userFormat } = useDatasetManager()
+  const {
+    myDataset,
+    userFormat,
+    getDatasetData,
+    getProjectSingleCellSamples,
+    getProjectSpatialSamples
+  } = useDatasetManager()
   const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
     useDatasetSamplesTable()
 
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
+  const [disableAddToDataset, setDisableAddToDataset] = useState(false)
 
   const hasMultiplexedData = project.has_multiplexed_data
   const showWarningMultiplexed =
@@ -57,6 +65,7 @@ export const ProjectSamplesTable = ({
               <Box key={m} align="center" pad={{ horizontal: 'small' }}>
                 <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
                 <TriStateModalityCheckBox
+                  project={project}
                   modality={m}
                   disabled={!project[`has_${m.toLowerCase()}_data`]}
                 />
@@ -196,6 +205,36 @@ export const ProjectSamplesTable = ({
     if (samples && !loaded) setLoaded(true)
   }, [samples, loaded])
 
+  useEffect(() => {
+    if (samples && loaded) {
+      const datasetData = getDatasetData(project)
+
+      const projectSamplesByModality = {
+        SINGLE_CELL: getProjectSingleCellSamples(samples),
+        SPATIAL: getProjectSpatialSamples(samples)
+      }
+
+      const datasetSamplesByModality = {
+        SINGLE_CELL:
+          datasetData.SINGLE_CELL === 'MERGED'
+            ? projectSamplesByModality.SINGLE_CELL
+            : datasetData.SINGLE_CELL || [],
+        SPATIAL: datasetData.SPATIAL || []
+      }
+
+      const samplesLeft = allModalities
+        .map((m) =>
+          differenceArray(
+            projectSamplesByModality[m],
+            datasetSamplesByModality[m] || []
+          )
+        )
+        .flat()
+
+      setDisableAddToDataset(samplesLeft.length === 0)
+    }
+  }, [myDataset, samples, loaded])
+
   if (!loaded)
     return (
       <Box margin="64px">
@@ -206,7 +245,10 @@ export const ProjectSamplesTable = ({
   return (
     <>
       <Box direction="row" justify="end">
-        <DatasetAddSamplesModal project={project} />
+        <DatasetAddSamplesModal
+          project={project}
+          disabled={disableAddToDataset}
+        />
       </Box>
       <Table
         columns={columns}
