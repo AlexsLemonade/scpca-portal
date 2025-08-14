@@ -3,6 +3,7 @@ import { Box, Grid, Heading } from 'grommet'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
+import { differenceArray } from 'helpers/differenceArray'
 import { Button } from 'components/Button'
 import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditionalOptions'
 import { DatasetProjectModalityOptions } from 'components/DatasetProjectModalityOptions'
@@ -45,7 +46,13 @@ export const DatasetAddProjectModal = ({
   const [spatialSamples, setSpatialSamples] = useState([])
 
   // TODO: Replace with actual stats value once ready
-  const sampleDifferenceForSpatial = 5
+  // For SPATAIL modality only
+  const allSingleCellSamples = getProjectSingleCellSamples(samples)
+  const allSpatialSamples = getProjectSpatialSamples(samples)
+  const sampleDifferenceForSpatial = [
+    ...differenceArray(allSingleCellSamples, allSpatialSamples),
+    ...differenceArray(allSpatialSamples, allSingleCellSamples)
+  ].length
 
   const canClickAddProject = modalities.length > 0
 
