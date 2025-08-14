@@ -6,7 +6,7 @@ import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 
 // NOTE: Ask Deepa for a checkmark SVG Icon
 export const TriStateModalityCheckBox = ({ project, modality, disabled }) => {
-  const { getDatasetData } = useDatasetManager()
+  const { getDatasetProjectData } = useDatasetManager()
   const { filteredSamples, selectedSamples, toggleSamples } =
     useDatasetSamplesTable()
 
@@ -27,7 +27,7 @@ export const TriStateModalityCheckBox = ({ project, modality, disabled }) => {
   const handleToggleAllSamples = () => {
     if (disabled) return
     // Exclude the toggling of samples that are already in myDataset
-    const samplesToExclude = getDatasetData(project)[modality] || []
+    const samplesToExclude = getDatasetProjectData(project)[modality] || []
     toggleSamples(modality, samplesToExclude)
   }
 

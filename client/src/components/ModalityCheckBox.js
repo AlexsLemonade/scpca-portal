@@ -26,14 +26,14 @@ export const ModalityCheckBox = ({
   disabled,
   onClick
 }) => {
-  const { myDataset, getDatasetData, getProjectSingleCellSamples } =
+  const { myDataset, getDatasetProjectData, getProjectSingleCellSamples } =
     useDatasetManager()
   const { allSamples, selectedSamples, selectModalitySamplesByIds } =
     useDatasetSamplesTable()
 
   const [isAlreadyInMyDataset, setIsAlreadyInMyDataset] = useState(false)
 
-  const datasetData = getDatasetData(project)
+  const datasetData = getDatasetProjectData(project)
 
   // Preselect samples that are already in myDataset
   useEffect(() => {

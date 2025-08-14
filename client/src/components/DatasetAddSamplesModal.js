@@ -16,7 +16,7 @@ export const DatasetAddSamplesModal = ({
   title = 'Add Samples to Dataset',
   disabled = false
 }) => {
-  const { getDatasetData, getProjectSingleCellSamples, setSamples } =
+  const { getDatasetProjectData, getProjectSingleCellSamples, setSamples } =
     useDatasetManager()
   const { selectedSamples } = useDatasetSamplesTable()
   const { responsive } = useResponsive()
@@ -46,7 +46,7 @@ export const DatasetAddSamplesModal = ({
   // Calculate to-be-added samples for each modality
   useEffect(() => {
     if (samples) {
-      const datasetData = getDatasetData(project)
+      const datasetData = getDatasetProjectData(project)
 
       const singleCellSamples =
         datasetData.SINGLE_CELL === 'MERGED'

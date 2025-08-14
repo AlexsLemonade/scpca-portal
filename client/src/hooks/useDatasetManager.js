@@ -139,7 +139,7 @@ export const useDatasetManager = () => {
       : updateDataset(updatedDataset)
   }
 
-  const getDatasetData = (project) => {
+  const getDatasetProjectData = (project) => {
     // Get the myDataset.data[project.scpca_id] object
     return myDataset?.data?.[project.scpca_id] || {}
   }
@@ -151,7 +151,9 @@ export const useDatasetManager = () => {
     spatialSamples
   ) => {
     // Populate modality samples for the project data
-    const datasetProjectDataCopy = structuredClone(getDatasetData(project))
+    const datasetProjectDataCopy = structuredClone(
+      getDatasetProjectData(project)
+    )
 
     const hasModality = (m) => selectedModalities.includes(m)
 
@@ -226,7 +228,7 @@ export const useDatasetManager = () => {
     getDataset,
     processDataset,
     addProject,
-    getDatasetData,
+    getDatasetProjectData,
     getProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,

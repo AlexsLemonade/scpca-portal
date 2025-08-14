@@ -25,7 +25,7 @@ export const ProjectSamplesTable = ({
   const {
     myDataset,
     userFormat,
-    getDatasetData,
+    getDatasetProjectData,
     getProjectSingleCellSamples,
     getProjectSpatialSamples
   } = useDatasetManager()
@@ -208,7 +208,7 @@ export const ProjectSamplesTable = ({
 
   useEffect(() => {
     if (samples && loaded) {
-      const datasetData = getDatasetData(project)
+      const datasetData = getDatasetProjectData(project)
 
       const projectSamplesByModality = {
         SINGLE_CELL: getProjectSingleCellSamples(samples),
