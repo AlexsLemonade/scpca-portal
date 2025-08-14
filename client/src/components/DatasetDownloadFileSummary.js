@@ -8,13 +8,20 @@ import { Link } from 'components/Link'
 export const DatasetDownloadFileSummary = ({ dataset }) => {
   const filesSummary = dataset.stats.files_summary
 
-  const data = filesSummary.map((fs) => ({
-    'Number of Samples': fs.samples_count,
-    'Samples Modality': fs.name,
-    'File Format': getReadable(fs.format)
-  }))
+  const columnOptions = [
+    { label: 'Number of Samples', value: 'samples_count' },
+    { label: 'Samples Modality', value: 'name' },
+    { label: 'File Format', value: 'format' }
+  ]
 
-  const columns = ['Number of Samples', 'Samples Modality', 'File Format']
+  const data = filesSummary.map((fs) =>
+    columnOptions.reduce((acc, { label, value }) => {
+      acc[label] = value === 'format' ? getReadable(fs[value]) : fs[value]
+      return acc
+    }, {})
+  )
+
+  const columns = columnOptions.map((co) => co.label)
 
   return (
     <Box>
