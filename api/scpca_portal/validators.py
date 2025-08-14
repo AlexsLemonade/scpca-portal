@@ -10,9 +10,11 @@ from scpca_portal.exceptions import (
     DatasetDataInvalidProjectIDError,
     DatasetDataInvalidSampleIDError,
     DatasetDataInvalidSampleIDLocationError,
-    DatasetDataProjectDoesntExistError,
-    DatasetDataProjectNoBulkDataError,
-    DatasetDataProjectNoMergedFilesError,
+    DatasetDataProjectsDontExistError,
+    DatasetDataProjectsNoBulkDataError,
+    DatasetDataProjectsNoMergedFilesError,
+    DatasetDataSampleAssociationsError,
+    DatasetDataSamplesDontExistError,
 )
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
@@ -87,7 +89,7 @@ class DatasetDataModelRelations:
         existing_projects = Project.objects.filter(scpca_id__in=data.keys())
         existing_project_ids = existing_projects.values_list("scpca_id", flat=True)
         if invalid_project_ids := set(data.keys()) - set(existing_project_ids):
-            raise DatasetDataProjectDoesntExistError(invalid_project_ids)
+            raise DatasetDataProjectsDontExistError(invalid_project_ids)
 
         # validate that requested merged projects have merged data
         invalid_merged_ids = []
@@ -96,7 +98,7 @@ class DatasetDataModelRelations:
                 if not (project.includes_merged_anndata or project.includes_merged_sce):
                     invalid_merged_ids.append(project.scpca_id)
         if invalid_merged_ids:
-            raise DatasetDataProjectNoMergedFilesError(invalid_merged_ids)
+            raise DatasetDataProjectsNoMergedFilesError(invalid_merged_ids)
 
         # validate that projects have requested bulk data
         invalid_merged_ids = []
@@ -105,7 +107,7 @@ class DatasetDataModelRelations:
             for project in existing_projects
             if data.get(project.scpca_id, {}).get("includes_bulk") and not project.has_bulk_rna_seq
         ]:
-            raise DatasetDataProjectNoBulkDataError(invalid_bulk_ids)
+            raise DatasetDataProjectsNoBulkDataError(invalid_bulk_ids)
 
     @staticmethod
     def validate_samples(data: Dict[str, Any]):
@@ -132,10 +134,7 @@ class DatasetDataModelRelations:
         )
         existing_sample_ids = [sample["scpca_id"] for sample in existing_samples]
         if invalid_sample_ids := set(data_sample_ids) - set(existing_sample_ids):
-            # TODO: add custom exception
-            raise Exception(
-                f"The following samples do not exist: {', '.join(sorted(invalid_sample_ids))}"
-            )
+            raise DatasetDataSamplesDontExistError(invalid_sample_ids)
 
         # validate that existing samples were put with their associated projects and modalities
         existing_project_modality_sample_ids = {
@@ -170,9 +169,6 @@ class DatasetDataModelRelations:
                 if invalid_sample_ids := set(data_modality_sample_ids) - set(
                     existing_project_modality_sample_ids[project_id][modality]
                 ):
-                    # TODO: add custom exception
-                    raise Exception(
-                        "The following samples are not associated "
-                        f"with {project_id} and {modality}: "
-                        f"{', '.join(sorted(invalid_sample_ids))}"
+                    raise DatasetDataSampleAssociationsError(
+                        project_id, modality, invalid_sample_ids
                     )

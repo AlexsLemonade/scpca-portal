@@ -2,6 +2,8 @@ from typing import Iterable
 
 from django.template.defaultfilters import pluralize
 
+from scpca_portal.enums import Modalities
+
 
 # scpca_portal.batch
 class BatchError(Exception):
@@ -146,13 +148,13 @@ class DatasetDataInvalidAnndataSpatialCombinationError(DatasetDataValidationErro
         super().__init__(message)
 
 
-class DatasetDataProjectDoesntExistError(DatasetDataValidationError):
+class DatasetDataProjectsDontExistError(DatasetDataValidationError):
     def __init__(self, invalid_project_ids: Iterable[str]):
         message = f"The following projects do not exist: {', '.join(sorted(invalid_project_ids))}"
         super().__init__(message)
 
 
-class DatasetDataProjectNoMergedFilesError(DatasetDataValidationError):
+class DatasetDataProjectsNoMergedFilesError(DatasetDataValidationError):
     def __init__(self, invalid_project_ids: Iterable[str]):
         message = (
             "The following projects do not have merged files: "
@@ -161,10 +163,26 @@ class DatasetDataProjectNoMergedFilesError(DatasetDataValidationError):
         super().__init__(message)
 
 
-class DatasetDataProjectNoBulkDataError(DatasetDataValidationError):
+class DatasetDataProjectsNoBulkDataError(DatasetDataValidationError):
     def __init__(self, invalid_project_ids: Iterable[str]):
         message = (
             "The following projects do not have bulk data: "
             f"{', '.join(sorted(invalid_project_ids))}"
+        )
+        super().__init__(message)
+
+
+class DatasetDataSamplesDontExistError(DatasetDataValidationError):
+    def __init__(self, invalid_sample_ids: Iterable[str]):
+        message = f"The following samples do not exist: {', '.join(sorted(invalid_sample_ids))}"
+        super().__init__(message)
+
+
+class DatasetDataSampleAssociationsError(DatasetDataValidationError):
+    def __init__(self, project_id: str, modality: Modalities, invalid_sample_ids: Iterable[str]):
+        message = (
+            "The following samples are not associated "
+            f"with {project_id} and {modality}: "
+            f"{', '.join(sorted(invalid_sample_ids))}"
         )
         super().__init__(message)
