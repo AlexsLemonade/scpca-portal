@@ -5,7 +5,9 @@ from pydantic import BaseModel, Field, RootModel, ValidationInfo, field_validato
 
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.exceptions import (
+    DatasetDataInvalidAnndataSpatialCombinationError,
     DatasetDataInvalidModalityStringError,
+    DatasetDataInvalidProjectIDError,
     DatasetDataInvalidSampleIDError,
     DatasetDataInvalidSampleIDLocationError,
 )
@@ -49,8 +51,7 @@ class DatasetDataModel(RootModel):
     def validate_project_ids(self):
         for project_id in self.root:
             if not re.match(PROJECT_ID_REGEX, project_id):
-                # TODO: add custom exception
-                raise ValueError(f"Invalid project ID format: {project_id}")
+                raise DatasetDataInvalidProjectIDError(project_id)
         return self
 
     @model_validator(mode="after")
@@ -59,11 +60,7 @@ class DatasetDataModel(RootModel):
             if invalid_project_ids := [
                 project_id for project_id, project_data in self.root.items() if project_data.SPATIAL
             ]:
-                raise ValueError(
-                    "Datasets with format ANN_DATA "
-                    "do not support projects with SPATIAL samples. "
-                    f"Invalid projects: {', '.join(sorted(invalid_project_ids))}"
-                )
+                raise DatasetDataInvalidAnndataSpatialCombinationError(invalid_project_ids)
 
         return self
 

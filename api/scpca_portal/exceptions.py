@@ -1,3 +1,5 @@
+from typing import List
+
 from django.template.defaultfilters import pluralize
 
 
@@ -125,4 +127,20 @@ class DatasetDataInvalidModalityStringError(DatasetDataValidationError):
 class DatasetDataInvalidSampleIDError(DatasetDataValidationError):
     def __init__(self, sample_id_str: str):
         message = f"Invalid sample ID format: {sample_id_str}."
+        super().__init__(message)
+
+
+class DatasetDataInvalidProjectIDError(DatasetDataValidationError):
+    def __init__(self, project_id_str: str):
+        message = f"Invalid project ID format: {project_id_str}."
+        super().__init__(message)
+
+
+class DatasetDataInvalidAnndataSpatialCombinationError(DatasetDataValidationError):
+    def __init__(self, invalid_project_ids: List[str]):
+        message = (
+            "Datasets with format ANN_DATA "
+            "do not support projects with SPATIAL samples. "
+            f"Invalid projects: {', '.join(sorted(invalid_project_ids))}"
+        )
         super().__init__(message)
