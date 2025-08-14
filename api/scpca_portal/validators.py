@@ -4,6 +4,11 @@ from typing import Any, Dict, List
 from pydantic import BaseModel, Field, RootModel, ValidationInfo, field_validator, model_validator
 
 from scpca_portal.enums import DatasetFormats, Modalities
+from scpca_portal.exceptions import (
+    DatasetDataInvalidModalityStringError,
+    DatasetDataInvalidSampleIDError,
+    DatasetDataInvalidSampleIDLocationError,
+)
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
 
@@ -24,24 +29,16 @@ class ProjectDataModel(BaseModel):
         # The check is included here for extra clarity.
         if info.field_name == Modalities.SINGLE_CELL.value and isinstance(modality_value, str):
             if re.match(SAMPLE_ID_REGEX, modality_value):
-                raise ValueError("Sample IDs must be inside an Array.")
+                raise DatasetDataInvalidSampleIDLocationError
 
             if modality_value == "MERGED":
                 return modality_value
 
-            # TODO: add custom exception
-            raise ValueError(
-                f"""
-                Invalid string value for 'single-cell' modality: {modality_value}.
-                Only valid value is 'MERGED'.
-                """
-            )
+            raise DatasetDataInvalidModalityStringError(modality_value)
 
         for sample_id in modality_value:
             if not re.match(SAMPLE_ID_REGEX, sample_id):
-                # TODO: add custom exception
-                raise ValueError(f"Invalid sample ID format: {sample_id}.")
-
+                raise DatasetDataInvalidSampleIDError(sample_id)
         return modality_value
 
 

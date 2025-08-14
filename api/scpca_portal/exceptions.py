@@ -105,3 +105,24 @@ class DatasetDataValidationError(ValueError):
 
         message = message or default_message
         super().__init__(message)
+
+
+class DatasetDataInvalidSampleIDLocationError(DatasetDataValidationError):
+    def __init__(self):
+        message = "Sample IDs must be inside an Array."
+        super().__init__(message)
+
+
+class DatasetDataInvalidModalityStringError(DatasetDataValidationError):
+    def __init__(self, invalid_value: str):
+        message = (
+            f"Invalid string value for 'single-cell' modality: {invalid_value}."
+            "Only valid value is 'MERGED'."
+        )
+        super().__init__(message)
+
+
+class DatasetDataInvalidSampleIDError(DatasetDataValidationError):
+    def __init__(self, sample_id_str: str):
+        message = f"Invalid sample ID format: {sample_id_str}."
+        super().__init__(message)
