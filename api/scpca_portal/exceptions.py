@@ -97,3 +97,11 @@ class JobTerminationFailedError(JobError):
     def __init__(self, job=None):
         message = "Error terminating job in Batch."
         super().__init__(message, job)
+
+
+class DatasetDataValidationError(ValueError):
+    def __init__(self, message: str | None = None):
+        default_message = "A validation error occurred with the dataset data attribute."
+
+        message = message or default_message
+        super().__init__(message)
