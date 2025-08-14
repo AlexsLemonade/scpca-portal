@@ -10,6 +10,9 @@ from scpca_portal.exceptions import (
     DatasetDataInvalidProjectIDError,
     DatasetDataInvalidSampleIDError,
     DatasetDataInvalidSampleIDLocationError,
+    DatasetDataProjectDoesntExistError,
+    DatasetDataProjectNoBulkDataError,
+    DatasetDataProjectNoMergedFilesError,
 )
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
@@ -84,10 +87,7 @@ class DatasetDataModelRelations:
         existing_projects = Project.objects.filter(scpca_id__in=data.keys())
         existing_project_ids = existing_projects.values_list("scpca_id", flat=True)
         if invalid_project_ids := set(data.keys()) - set(existing_project_ids):
-            # TODO: add custom exception
-            raise Exception(
-                f"The following projects do not exist: {', '.join(sorted(invalid_project_ids ))}"
-            )
+            raise DatasetDataProjectDoesntExistError(invalid_project_ids)
 
         # validate that requested merged projects have merged data
         invalid_merged_ids = []
@@ -96,11 +96,7 @@ class DatasetDataModelRelations:
                 if not (project.includes_merged_anndata or project.includes_merged_sce):
                     invalid_merged_ids.append(project.scpca_id)
         if invalid_merged_ids:
-            # TODO: add custom exception
-            raise Exception(
-                "The following projects do not have merged files: "
-                f"{', '.join(sorted(invalid_merged_ids))}"
-            )
+            raise DatasetDataProjectNoMergedFilesError(invalid_merged_ids)
 
         # validate that projects have requested bulk data
         invalid_merged_ids = []
@@ -109,11 +105,7 @@ class DatasetDataModelRelations:
             for project in existing_projects
             if data.get(project.scpca_id, {}).get("includes_bulk") and not project.has_bulk_rna_seq
         ]:
-            # TODO: add custom exception
-            raise Exception(
-                "The following projects do not have bulk data: "
-                f"{', '.join(sorted(invalid_bulk_ids))}"
-            )
+            raise DatasetDataProjectNoBulkDataError(invalid_bulk_ids)
 
     @staticmethod
     def validate_samples(data: Dict[str, Any]):
