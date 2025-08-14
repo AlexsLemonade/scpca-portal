@@ -11,14 +11,14 @@ export const DatasetSummary = ({ dataset }) => {
     { label: 'Projects', value: 'projects' }
   ]
 
-  const columns = columnOptions.map((co) => co.value)
-
   const data = Object.entries(diagnosesSummary).map(([diagnosis, counts]) =>
     columnOptions.reduce((acc, { label, value }) => {
       acc[label] = value === 'diagnosis' ? diagnosis : counts[value]
       return acc
     }, {})
   )
+
+  const columns = columnOptions.map((co) => co.label)
 
   return (
     <Box>
