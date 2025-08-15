@@ -22,8 +22,6 @@ export const DatasetPortalWideDownloadCard = ({
   datasets = [],
   metadataOnly = false
 }) => {
-  console.log('Datasets passeed to card: ', datasets)
-
   const { responsive } = useResponsive()
 
   const [includesMerged, setIncludesMerged] = useState(false)
