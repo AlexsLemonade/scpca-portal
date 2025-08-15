@@ -6,23 +6,23 @@ import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownl
 // TODO: PortalWideDownloads should accept the arg `{ datasets }`
 // which will come from getServerSideProps
 const PortalWideDownloads = ({ datasets }) => {
-  // console.log("Retrieved datasets: ", datasets)
-
-  const metadataDatasets = datasets?.filter((dataset) => dataset.metadata_only)
+  const metadataDatasets = datasets?.filter(
+    (dataset) => dataset.ccdl_modality === 'METADATA'
+  )
 
   const singleCellExperimentDatasets = datasets?.filter(
     (dataset) =>
-      dataset.modality === 'SINGLE_CELL' &&
+      dataset.ccdl_modality === 'SINGLE_CELL' &&
       dataset.format === 'SINGLE_CELL_EXPERIMENT'
   )
 
   const anndataDatasets = datasets?.filter(
     (dataset) =>
-      dataset.modality === 'SINGLE_CELL' && dataset.format === 'ANN_DATA'
+      dataset.ccdl_modality === 'SINGLE_CELL' && dataset.format === 'ANN_DATA'
   )
 
   const spatialDatasets = datasets?.filter(
-    (dataset) => dataset.modality === 'SPATIAL'
+    (dataset) => dataset.ccdl_modality === 'SPATIAL'
   )
 
   return (
@@ -86,21 +86,21 @@ const PortalWideDownloads = ({ datasets }) => {
             <Box pad={{ bottom: 'xlarge' }}>
               <DatasetPortalWideDownloadCard
                 title="SingleCellExperiment (R) Download"
-                modality="SINGLE_CELL_EXPERIMENT"
+                modality="SINGLE_CELL"
                 datasets={singleCellExperimentDatasets}
               />
             </Box>
             <Box pad={{ bottom: 'xlarge' }}>
               <DatasetPortalWideDownloadCard
                 title="AnnData (Python) Download"
-                modality="ANN_DATA"
+                modality="SINGLE_CELL"
                 datasets={anndataDatasets}
               />
             </Box>
             <Box pad={{ bottom: 'xlarge' }}>
               <DatasetPortalWideDownloadCard
                 title="Spatial Download"
-                modality="SINGLE_CELL_EXPERIMENT"
+                modality="SPATIAL"
                 datasets={spatialDatasets}
               />
             </Box>
@@ -114,7 +114,8 @@ const PortalWideDownloads = ({ datasets }) => {
 export const getServerSideProps = async () => {
   // default limit is 10, so here we will set it to 100 unless specified
   const datasetRequest = await api.ccdlDatasets.list({
-    project_id__isnull: true
+    ccdl_project_id__isnull: true,
+    limit: 100
   })
 
   if (datasetRequest.isOk) {
