@@ -160,6 +160,14 @@ export const useDatasetManager = () => {
     return updatedDataset
   }
 
+  const removeProjectById = async (projectId) => {
+    const datasetCopy = structuredClone(myDataset)
+    delete datasetCopy.data[projectId]
+
+    const updatedDataset = await updateDataset(datasetCopy)
+    return updatedDataset
+  }
+
   /* Sample-level */
   const setSamples = async (dataset, project, modality, updatedSamples) => {
     // updatedSamples: either sampleIDs[] or 'MERGE'
@@ -189,6 +197,7 @@ export const useDatasetManager = () => {
     addProject,
     getProjectData,
     removeProject,
+    removeProjectById,
     getProjectIDs,
     setSamples
   }
