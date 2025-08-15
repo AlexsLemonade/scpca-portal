@@ -1,27 +1,27 @@
 import React from 'react'
 import { Anchor, Box, Text } from 'grommet'
-// import { api } from 'api'
+import { api } from 'api'
 import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownloadCard'
 
 // TODO: PortalWideDownloads should accept the arg `{ datasets }`
 // which will come from getServerSideProps
 const PortalWideDownloads = ({ datasets }) => {
-  const metadataDatasets = datasets.filter(
-    (dataset) => dataset.metadata_only === true
-  )
+  // console.log("Retrieved datasets: ", datasets)
 
-  const singleCellExperimentDatasets = datasets.filter(
+  const metadataDatasets = datasets?.filter((dataset) => dataset.metadata_only)
+
+  const singleCellExperimentDatasets = datasets?.filter(
     (dataset) =>
       dataset.modality === 'SINGLE_CELL' &&
       dataset.format === 'SINGLE_CELL_EXPERIMENT'
   )
 
-  const anndataDatasets = datasets.filter(
+  const anndataDatasets = datasets?.filter(
     (dataset) =>
       dataset.modality === 'SINGLE_CELL' && dataset.format === 'ANN_DATA'
   )
 
-  const spatialDatasets = datasets.filter(
+  const spatialDatasets = datasets?.filter(
     (dataset) => dataset.modality === 'SPATIAL'
   )
 
@@ -112,56 +112,57 @@ const PortalWideDownloads = ({ datasets }) => {
 }
 
 export const getServerSideProps = async () => {
-  const datasets = [
-    {
-      format: null,
-      modality: null,
-      includes_merged: null,
-      metadata_only: true,
-      size_in_bytes: 0
-    },
-    {
-      format: 'SINGLE_CELL_EXPERIMENT',
-      modality: 'SINGLE_CELL',
-      includes_merged: false,
-      metadata_only: false,
-      has_single_cell: true,
-      has_cite_seq_data: true,
-      has_bulk_rna_seq: true,
-      size_in_bytes: 429496729600 // 400 GB
-    },
-    {
-      format: 'ANN_DATA',
-      modality: 'SINGLE_CELL',
-      includes_merged: false,
-      metadata_only: false,
-      has_single_cell: true,
-      has_cite_seq_data: true,
-      has_bulk_rna_seq: true,
-      size_in_bytes: 966367641600 // 900 GB
-    },
-    {
-      format: 'SINGLE_CELL_EXPERIMENT',
-      modality: 'SPATIAL',
-      includes_merged: false,
-      metadata_only: false,
-      has_spatial_data: true,
-      has_bulk_rna_seq: true,
-      size_in_bytes: 429496729600 // 400 GB
-    }
-  ]
-
   // default limit is 10, so here we will set it to 100 unless specified
-  // const datasetRequest = await api.ccdlDatasets.list({project_id__isnull: true})
+  const datasetRequest = await api.ccdlDatasets.list({
+    project_id__isnull: true
+  })
 
-  // if (datasetRequest.isOk) {
-  //  return {
-  //    props: { datasets: datasetRequest.response }
-  //  }
-  // }
+  if (datasetRequest.isOk) {
+    return {
+      props: { datasets: datasetRequest.response.results }
+    }
+  }
 
-  // return { props: { datasets: null } }
-  return { props: { datasets } }
+  return { props: { datasets: null } }
 }
+
+const datasets = [
+  {
+    format: null,
+    modality: null,
+    includes_merged: null,
+    metadata_only: true,
+    size_in_bytes: 0
+  },
+  {
+    format: 'SINGLE_CELL_EXPERIMENT',
+    modality: 'SINGLE_CELL',
+    includes_merged: false,
+    metadata_only: false,
+    has_single_cell: true,
+    has_cite_seq_data: true,
+    has_bulk_rna_seq: true,
+    size_in_bytes: 429496729600 // 400 GB
+  },
+  {
+    format: 'ANN_DATA',
+    modality: 'SINGLE_CELL',
+    includes_merged: false,
+    metadata_only: false,
+    has_single_cell: true,
+    has_cite_seq_data: true,
+    has_bulk_rna_seq: true,
+    size_in_bytes: 966367641600 // 900 GB
+  },
+  {
+    format: 'SINGLE_CELL_EXPERIMENT',
+    modality: 'SPATIAL',
+    includes_merged: false,
+    metadata_only: false,
+    has_spatial_data: true,
+    has_bulk_rna_seq: true,
+    size_in_bytes: 429496729600 // 400 GB
+  }
+]
 
 export default PortalWideDownloads

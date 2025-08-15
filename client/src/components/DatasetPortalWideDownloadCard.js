@@ -22,6 +22,8 @@ export const DatasetPortalWideDownloadCard = ({
   datasets = [],
   metadataOnly = false
 }) => {
+  // console.log("Datasets passeed to card: ", datasets)
+
   const { responsive } = useResponsive()
 
   const [includesMerged, setIncludesMerged] = useState(false)
@@ -89,7 +91,7 @@ export const DatasetPortalWideDownloadCard = ({
           <Box direction="column">
             {!metadataOnly && (
               <Text margin={{ bottom: 'small' }} weight="bold">
-                Size: {formatBytes(dataset.size_in_bytes)}
+                Size: {formatBytes(dataset?.size_in_bytes)}
               </Text>
             )}
             <Box
