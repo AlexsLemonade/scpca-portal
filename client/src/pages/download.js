@@ -1,24 +1,19 @@
-import dynamic from 'next/dynamic'
 import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { useDatasetManager } from 'hooks/useDatasetManager'
+import { DatasetSummary } from 'components/DatasetSummary'
 import { Loader } from 'components/Loader'
 import Error from 'pages/_error'
-
-const DatasetSummary = dynamic(() => import('components/DatasetSummary'), {
-  ssr: false
-})
 
 const Download = () => {
   const { myDataset, errors, getDataset } = useDatasetManager()
   const { responsive } = useResponsive()
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchDataset = async () => {
-      setLoading(true)
       await getDataset()
       setLoading(false)
     }
