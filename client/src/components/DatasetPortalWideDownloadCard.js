@@ -22,13 +22,13 @@ export const DatasetPortalWideDownloadCard = ({
   datasets = [],
   metadataOnly = false
 }) => {
-  // console.log("Datasets passeed to card: ", datasets)
+  console.log('Datasets passeed to card: ', datasets)
 
   const { responsive } = useResponsive()
 
   const [includesMerged, setIncludesMerged] = useState(false)
   const [dataset, setDataset] = useState(
-    datasets.find((d) => d.includes_merged === includesMerged)
+    datasets.find((d) => !d.ccdl_name.endsWith('MERGED'))
   )
 
   const fileItems = [
@@ -37,8 +37,15 @@ export const DatasetPortalWideDownloadCard = ({
   ].map((key) => getReadableFiles(key))
 
   useEffect(() => {
-    setDataset(datasets.find((d) => d.includes_merged === includesMerged))
-  }, [includesMerged])
+    setDataset(
+      datasets.find((d) => {
+        if (includesMerged) {
+          return d.ccdl_name.endsWith('MERGED')
+        }
+        return !d.ccdl_name.endsWith('MERGED')
+      })
+    )
+  }, [datasets, includesMerged])
 
   return (
     <Box elevation="medium" background="white" pad="24px" width="full">
@@ -91,7 +98,7 @@ export const DatasetPortalWideDownloadCard = ({
           <Box direction="column">
             {!metadataOnly && (
               <Text margin={{ bottom: 'small' }} weight="bold">
-                Size: {formatBytes(dataset?.size_in_bytes)}
+                Size: {formatBytes(dataset?.stats.uncompressed_size)}
               </Text>
             )}
             <Box
