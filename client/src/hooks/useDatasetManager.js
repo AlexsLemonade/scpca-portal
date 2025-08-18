@@ -98,7 +98,8 @@ export const useDatasetManager = () => {
     }
 
     // Set only unprocessed dataset to myDataset
-    setMyDataset(dataset.start != null ? null : datasetRequest.response)
+    // NOTE: This change is already included in PR #1376
+    setMyDataset(dataset.start_at != null ? {} : datasetRequest.response)
 
     return datasetRequest.response
   }
@@ -160,12 +161,11 @@ export const useDatasetManager = () => {
     return updatedDataset
   }
 
-  const removeProjectById = async (projectId) => {
+  const removeProjectById = (projectId) => {
     const datasetCopy = structuredClone(myDataset)
     delete datasetCopy.data[projectId]
 
-    const updatedDataset = await updateDataset(datasetCopy)
-    return updatedDataset
+    return updateDataset(datasetCopy)
   }
 
   /* Sample-level */

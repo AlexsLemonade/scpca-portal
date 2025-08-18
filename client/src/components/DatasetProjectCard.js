@@ -23,10 +23,10 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   const modalityCount = stats.project_modality_counts[projectId]
   const title = stats.project_titles[projectId]
 
-  // TODO: Revise based on #1380
+  // TODO: Revise based on PR #1380
   const downloadableSamples =
     stats.project_downloadable_sample_counts[projectId]
-  // TODO: Replace with actual stats value once ready or #1376 is merged
+  // TODO: Replace with actual stats value once ready or PR #1376 is merged
   // For SPATAIL modality only
   const hasSpatialData = projectId === 'SCPCP000006'
   const sampleDifferenceForSpatial = 5
@@ -40,9 +40,10 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   return (
     <Box elevation="medium" pad="24px" width="full">
       <Box
-        direction="row"
-        justify="between"
+        direction={responsive('column', 'row')}
+        justify={responsive('start', 'between')}
         border={{ side: 'bottom' }}
+        gap="large"
         margin={{ bottom: '24px' }}
         pad={{ bottom: '24px' }}
       >
@@ -51,7 +52,11 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
             {title}
           </Text>
         </Link>
-        <Button label="Remove" onClick={() => removeProjectById(projectId)} />
+        <Button
+          label="Remove"
+          alignSelf={responsive('stretch', 'start')}
+          onClick={() => removeProjectById(projectId)}
+        />
       </Box>
       <Box margin={{ bottom: '24px' }}>
         <Badge badge="Samples">
@@ -105,6 +110,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
           label="View/Edit Samples"
           aria-label="View/Edit Samples"
           href="#demo"
+          alignSelf={responsive('stretch', 'start')}
         />
         {hasSpatialData && (
           <WarningText iconMargin="0" iconSize="24px" margin="0">
