@@ -105,96 +105,97 @@ There are two independent workflows carried out within the data processing  pipe
 1. Loading metadata and populating the database
 2. Generating computed files and populating s3
 
-To exclusively run the load metadata workflow, call:
+To run the load metadata workflow, call:
 ```
 sportal api:manage load_metadata
 ```
-To exclusively run the generate computed files workflow, call:
+To run the generate computed files workflow, call:
 ```
 sportal api:manage generate_computed_files
 ```
-To run them both successively, one after the next, call:
+
+### Load Metadata Configuration Options
+Calling `sportal api:manage load_metadata` will populate your local database by pulling metadata from the `scpca-portal-inputs` bucket.
+
+By default the command will only look for new projects.
+If you would like to reimport existing projects you can run:
+
 ```
-sportal api:manage load_data
+sportal api:manage load_metadata --reload-existing
 ```
 
-### Load-Data Configuration Options
-Calling just `sportal api:manage load_data` will populate your local database by pulling metadata from the `scpca-portal-inputs` bucket, and generate computed files locally. To save time, by default it will not package up the actual data in that bucket and upload it to `scpca-local-data`.
+If during the last run of `load_metadata` there were projects in the lockfile that are no longer being worked on, those projects can be reloaded by running:
+
+```
+sportal api:manage load_metadata --reload-locked
+```
+
+If you would like to update a specific project, use the `--scpca-project-id` flag:
+
+```
+sportal api:manage load_metadata --scpca-project-id SCPCP000001
+```
+
+The default input bucket for local development is `scpca-portal-inputs`. To pass a custom input bucket the `--input-bucket-name` flag can be passed, as illustrated below:
+
+```
+sportal api:manage load_metadata --input-bucket-name custom-input-bucket
+```
+
+The `--clean-up-input-data` flag can help you control the projects input data size. If the flag is set, the input data cleanup process will be run for each project right after its processing is over.
+```
+sportal api:manage load_metadata --clean-up-input-data
+```
+
+If there are existing computed files in the output bucket, which for local development is set to `scpca-local-data` by default, it is best practice to remove project and sample computed files while reloading metadata. This is accomplished by running:
+
+```
+sportal api:manage load_metadata --update-s3
+```
+
+If you would like to purge a project from the db and remove its files from the S3 output bucket, the `purge_project` command should be used, as follows:
+
+```
+sportal api:manage purge_project --scpca-project-id SCPCP000001
+```
+
+### Generate Computed Files Configuration Options
+Calling `sportal api:manage generate_computed_files` will generate computed files locally. To save time, by default it will not package up the actual data in that bucket and upload it to `scpca-local-data`. The `generate_computed_files` command will fail if `load_metadata` was not previously called.
 
 If you would like to update the data in the `scpca-local-data` bucket, you can do so with the following command:
 
 ```
-sportal api:manage load_data --update-s3
+sportal api:manage generate_computed_files --update-s3
 ```
 
-By default the command also will only look for new projects.
-If you would like to reimport existing projects you can run
+If you would like to generate computed files for a specific project, use the `--scpca-project-id` flag:
 
 ```
-sportal api:manage load_data --reload-existing
+sportal api:manage generate_computed_files --scpca-project-id SCPCP000001
 ```
 
-or to reimport and upload all projects:
-
+The `--clean-up-output-data` flag can help you control the projects output data size. If the flag is set, the output (no longer needed) data cleanup process will be run for each project right after its processing is over.
 ```
-sportal api:manage load_data --reload-existing --update-s3
-```
-
-If you would like to update a specific project use --scpca-project-id flag:
-
-```
-sportal api:manage load_data --scpca-project-id SCPCP000001
-```
-
-If you would like to purge a project and remove its files from the S3 bucket, you can use:
-
-```
-sportal api:manage purge_project --scpca-project-id SCPCP000001 --delete-from-s3
-```
-
-The `--clean-up-input-data` flag can help you control the projects input data size. If flag is set the input data cleanup process will be run for each project right after its processing is over.
-```
-sportal api:manage load_data --clean-up-input-data --reload-all --update-s3
-```
-
-The `--clean-up-output-data` flag can help you control the projects output data size. If flag is set the output (no longer needed) data cleanup process will be run for each project right after its processing is over.
-```
-sportal api:manage load_data --clean-up-output-data --reload-all --update-s3
+sportal api:manage generate_computed_files --clean-up-output-data
 ```
 
 The `--max-workers` flag can be used for setting a number of simultaneously processed projects/samples to speed up the data loading process. The provided number will be used to spawn threads within two separate thread pool executors -- for project and sample processing.
 ```
-sportal api:manage load_data --max-workers 10 --reload-existing --update-s3
+sportal api:manage generate_computed_files --max-workers 10
 ```
 
-### Load Metadata and Generate Computed Files Flags
-Of all of the above mentioned flags, a subset of them can be called in the `load-metadata` command, while another subset can be called with the `generate-computed-files` command. Below is a list of which commands are compatible with which command.
-
-load_metadata flags
-- input-bucket-name
-- clean-up-input-data
-- reload-existing
-- scpca-project-id
-- update-s3
-
-generate_computed_files flags
-- clean-up-input-data
-- clean-up-output-data
-- max-workers
-- scpca-project-id
-- update-s3
 
 ## Cloud Data Management
 
 ### Processing Options
-There are two options available for processing data in the Cloud:
-- Running `load_data` on the API instance (or a combination of `load_metadata` and `generate_computed_files`)
+After syncing the database by running the `sync_original_files` and `load_metadata` commands, there are two options available for processing data in the Cloud:
+- Running `generate_computed_files` on the API instance
 - Running `dispatch_to_batch` on the API instance, which kicks off processing on AWS Batch resources
 
 Due to the fact that processing on Batch is ~10x faster than processing on the API, we recommend using Batch for processing.
 
 ### Commands in Production
-To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh load_data --reload-all`.
+To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh generate_computed_files --update-s3 --max-workers 4`.
 
 ### Syncing the OriginalFile Table
 As mentioned in the above [Local Data Management - Syncing the OriginalFile Table section](#syncing-the-originalfile-table), the `OriginalFile` table must be populated before data can be processed via the `sync_original_files` command.
@@ -210,14 +211,6 @@ Details of the `sync_original_files` can be found in the Syncing the OriginalFil
 The following code can be used to process projects on the API, one by one, with a minimum disk space footprint:
 
 ```bash
-for i in $(seq -f "%02g" 1 25); do
-    ./run_command.sh load_data --clean-up-input-data --clean-up-output-data --reload-existing --scpca-project-id SCPCP0000$i
-done
-```
-
-Alternatively, for a more granular approach, first run `load_metadata`, and thereafter `generate_computed_files`, as follows:
-
-```bash
 ./run_command.sh load_metadata --clean-up-input-data --reload-existing
 
 for i in $(seq -f "%02g" 1 25);
@@ -226,7 +219,7 @@ done
 
 ```
 
-Note: Running `load_data` in production defaults to uploading completed computed files to S3. This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
+**Note**: Running `generate_computed_files` in production defaults to uploading completed computed files to S3. This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
 
 ### Processing via Batch
 The following code is used for processing projects via AWS Batch:
