@@ -10,6 +10,7 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from scpca_portal.views import (
     APITokenViewSet,
+    CCDLDatasetViewSet,
     ComputedFileViewSet,
     DatasetViewSet,
     FilterOptionsViewSet,
@@ -56,6 +57,7 @@ router.register(r"stats", StatsViewSet, basename="stats")
 
 # Datasets are not ready for prime time yet.
 if settings.ENABLE_FEATURE_PREVIEW:
+    router.register(r"ccdl-datasets", CCDLDatasetViewSet, basename="ccdl-datasets")
     router.register(r"datasets", DatasetViewSet, basename="datasets")
 
 urlpatterns = [

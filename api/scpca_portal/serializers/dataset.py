@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from pydantic import ValidationError as PydanticValidationError
+
 from scpca_portal.models import Dataset
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 
@@ -49,6 +51,23 @@ class DatasetCreateSerializer(DatasetSerializer):
             set(DatasetSerializer.Meta.read_only_fields) - set(modifiable_fields)
         )
 
+    def validate(self, attrs):
+        validated_attrs = super().validate(attrs)
+
+        if "data" in validated_attrs:
+            try:
+                validated_attrs["data"] = Dataset.validate_data(
+                    validated_attrs["data"], validated_attrs["format"]
+                )
+
+            # serializer exceptions return a 400 response to the client
+            except PydanticValidationError as e:
+                raise serializers.ValidationError({"detail": f"Invalid data structure: {e}"})
+            except Exception as e:
+                raise serializers.ValidationError({"detail": f"Data validation failed: {e}"})
+
+        return validated_attrs
+
 
 class DatasetUpdateSerializer(DatasetSerializer):
     class Meta(DatasetSerializer.Meta):
@@ -56,3 +75,12 @@ class DatasetUpdateSerializer(DatasetSerializer):
         read_only_fields = tuple(
             set(DatasetSerializer.Meta.read_only_fields) - set(modifiable_fields)
         )
+
+    def validate_data(self, value):
+        try:
+            return Dataset.validate_data(value, self.instance.format)
+        # serializer exceptions return a 400 response to the client
+        except PydanticValidationError as e:
+            raise serializers.ValidationError({"detail": f"Invalid data structure: {e}"})
+        except Exception as e:
+            raise serializers.ValidationError({"detail": f"Data validation failed: {e}"})
