@@ -22,6 +22,7 @@ class DatasetSerializer(serializers.ModelSerializer):
             "is_ccdl",
             "ccdl_name",
             "ccdl_project_id",
+            "ccdl_modality",
             "started_at",
             "is_started",
             "is_processing",
