@@ -5,7 +5,7 @@ import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownl
 
 const PortalWideDownloads = ({ datasets }) => {
   const metadataDatasets = datasets?.filter(
-    (dataset) => dataset.ccdl_modality === 'METADATA'
+    (dataset) => dataset.format === 'METADATA'
   )
 
   const singleCellExperimentDatasets = datasets?.filter(
