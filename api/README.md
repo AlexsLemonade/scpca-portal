@@ -142,7 +142,7 @@ The default input bucket for local development is `scpca-portal-inputs`. To pass
 sportal api:manage load_metadata --input-bucket-name custom-input-bucket
 ```
 
-The `--clean-up-input-data` flag can help you control the projects input data size. If flag is set the input data cleanup process will be run for each project right after its processing is over.
+The `--clean-up-input-data` flag can help you control the projects input data size. If the flag is set, the input data cleanup process will be run for each project right after its processing is over.
 ```
 sportal api:manage load_metadata --clean-up-input-data
 ```
@@ -174,7 +174,7 @@ If you would like to generate computed files for a specific project, use the `--
 sportal api:manage generate_computed_files --scpca-project-id SCPCP000001
 ```
 
-The `--clean-up-output-data` flag can help you control the projects output data size. If flag is set the output (no longer needed) data cleanup process will be run for each project right after its processing is over.
+The `--clean-up-output-data` flag can help you control the projects output data size. If the flag is set, the output (no longer needed) data cleanup process will be run for each project right after its processing is over.
 ```
 sportal api:manage generate_computed_files --clean-up-output-data
 ```
@@ -188,14 +188,14 @@ sportal api:manage generate_computed_files --max-workers 10
 ## Cloud Data Management
 
 ### Processing Options
-There are two options available for processing data in the Cloud:
+After syncing the database by running the `sync_original_files` and `load_metadata` commands, there are two options available for processing data in the Cloud:
 - Running `generate_computed_files` on the API instance
 - Running `dispatch_to_batch` on the API instance, which kicks off processing on AWS Batch resources
 
 Due to the fact that processing on Batch is ~10x faster than processing on the API, we recommend using Batch for processing.
 
 ### Commands in Production
-To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh generate_computed_files --reload-all`.
+To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh generate_computed_files --update-s3 --max-workers 4`.
 
 ### Syncing the OriginalFile Table
 As mentioned in the above [Local Data Management - Syncing the OriginalFile Table section](#syncing-the-originalfile-table), the `OriginalFile` table must be populated before data can be processed via the `sync_original_files` command.
@@ -219,7 +219,7 @@ done
 
 ```
 
-Note: Running `generate_computed_files` in production defaults to uploading completed computed files to S3. This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
+**Note**: Running `generate_computed_files` in production defaults to uploading completed computed files to S3. This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
 
 ### Processing via Batch
 The following code is used for processing projects via AWS Batch:
