@@ -4,22 +4,22 @@ import { api } from 'api'
 import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownloadCard'
 
 const PortalWideDownloads = ({ datasets }) => {
-  const metadataDatasets = datasets?.filter(
+  const metadataDatasets = datasets.filter(
     (dataset) => dataset.format === 'METADATA'
   )
 
-  const singleCellExperimentDatasets = datasets?.filter(
+  const singleCellExperimentDatasets = datasets.filter(
     (dataset) =>
       dataset.ccdl_modality === 'SINGLE_CELL' &&
       dataset.format === 'SINGLE_CELL_EXPERIMENT'
   )
 
-  const anndataDatasets = datasets?.filter(
+  const anndataDatasets = datasets.filter(
     (dataset) =>
       dataset.ccdl_modality === 'SINGLE_CELL' && dataset.format === 'ANN_DATA'
   )
 
-  const spatialDatasets = datasets?.filter(
+  const spatialDatasets = datasets.filter(
     (dataset) => dataset.ccdl_modality === 'SPATIAL'
   )
 
