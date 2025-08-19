@@ -120,8 +120,8 @@ class DatasetDataInvalidSampleIDLocationError(DatasetDataValidationError):
 class DatasetDataInvalidModalityStringError(DatasetDataValidationError):
     def __init__(self, invalid_value: str):
         message = (
-            f"Invalid string value for 'single-cell' modality: {invalid_value}."
-            "Only valid value is 'MERGED'."
+            f"Invalid string value for 'single-cell' modality: {invalid_value}. "
+            "Allowed string values: 'MERGED'."
         )
         super().__init__(message)
 
