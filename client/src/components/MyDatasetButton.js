@@ -15,13 +15,13 @@ const YellowButton = styled(Button)`
       }
     `}
 `
-
+// TODO: Add getTotalSampleCount helper to useDatasetManager when building the download page
 export const MyDatasetButton = () => {
-  const count = 53
+  const count = 0
   return (
     <Box direction="row">
       <YellowButton
-        href="/"
+        href="/download"
         label="My Dataset"
         primary
         badge={
