@@ -136,7 +136,7 @@ If you would like to update a specific project, use the `--scpca-project-id` fla
 sportal api:manage load_metadata --scpca-project-id SCPCP000001
 ```
 
-The default output bucket for local development is `scpca-portal-imports`. To pass a custom input bucket the `--input-bucket-name` flag can be passed, as illustrated below:
+The default input bucket for local development is `scpca-portal-inputs`. To pass a custom input bucket the `--input-bucket-name` flag can be passed, as illustrated below:
 
 ```
 sportal api:manage load_metadata --input-bucket-name custom-input-bucket
