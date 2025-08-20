@@ -214,6 +214,19 @@ class Dataset(TimestampedModel):
         cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
 
     @property
+    def stats(self) -> Dict:
+        return {
+            "current_data_hash": self.current_data_hash,
+            "current_readme_hash": self.current_readme_hash,
+            "current_metadata_hash": self.current_metadata_hash,
+            "is_hash_changed": self.combined_hash != self.current_combined_hash,
+            "uncompressed_size": self.estimated_size_in_bytes,
+            "diagnoses_summary": self.diagnoses_summary,
+            "files_summary": self.files_summary,
+            "project_diagnoses": self.project_diagnoses,
+        }
+
+    @property
     def estimated_size_in_bytes(self) -> int:
         original_files_size = (
             self.original_files.aggregate(models.Sum("size_in_bytes")).get("size_in_bytes__sum")
@@ -339,23 +352,6 @@ class Dataset(TimestampedModel):
         return diagnoses_counts
 
     @property
-    def stats(self) -> Dict:
-        return {
-            "current_data_hash": self.current_data_hash,
-            "current_readme_hash": self.current_readme_hash,
-            "current_metadata_hash": self.current_metadata_hash,
-            "is_hash_changed": self.combined_hash != self.current_combined_hash,
-            "uncompressed_size": self.estimated_size_in_bytes,
-            "diagnoses_summary": self.diagnoses_summary,
-            "files_summary": self.files_summary,
-            "project_diagnoses": self.project_diagnoses,
-        }
-
-    def contains_project_ids(self, project_ids: Set[str]) -> bool:
-        """Returns whether or not the dataset contains samples in any of the passed projects."""
-        return any(dataset_project_id in project_ids for dataset_project_id in self.data.keys())
-
-    @property
     def is_hash_changed(self) -> bool:
         """
         Determines whether or not a computed file should be generated for the instance dataset.
@@ -367,6 +363,94 @@ class Dataset(TimestampedModel):
     @property
     def is_hash_unchanged(self) -> bool:
         return not self.is_hash_changed
+
+    def get_metadata_file_content(self, libraries: Iterable[Library]) -> str:
+        """Return a string of the metadata file content of a collection of libraries."""
+        libraries_metadata = Library.get_libraries_metadata(libraries)
+        return metadata_file.get_file_contents(libraries_metadata)
+
+    def get_project_modality_metadata_file_content(
+        self, project_id: str, modality: Modalities
+    ) -> str:
+        """Return a string of the metadata file for a project and modality combination."""
+        libraries = self.get_project_modality_libraries(project_id, modality)
+        return self.get_metadata_file_content(libraries)
+
+    def get_metadata_file_contents(self) -> List[tuple[str | None, Modalities | None, str]]:
+        """
+        Return a list of three element tuples which includes the project_id, modality,
+        and their associatied metadata file contents as a string.
+        """
+        metadata_file_contents = []
+        for project_id, project_config in self.data.items():
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                if not project_config.get(modality.value, []):
+                    continue
+
+                metadata_file_content = self.get_project_modality_metadata_file_content(
+                    project_id, modality
+                )
+                metadata_file_contents.append((project_id, modality, metadata_file_content))
+        return metadata_file_contents
+
+    @property
+    def readme_file_contents(self) -> str:
+        return readme_file.get_file_contents_dataset(self)
+
+    @property
+    def current_data_hash(self) -> str:
+        """Computes and returns the current data hash."""
+        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
+            "hash", flat=True
+        )
+        concat_hash = "".join(sorted_original_file_hashes)
+        concat_hash_bytes = concat_hash.encode("utf-8")
+        return hashlib.md5(concat_hash_bytes).hexdigest()
+
+    @property
+    def current_metadata_hash(self) -> str:
+        """Computes and returns the current metadata hash."""
+        all_metadata_file_contents = [
+            file_content for _, _, file_content in self.get_metadata_file_contents()
+        ]
+        concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
+        metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
+        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
+
+    @property
+    def current_readme_hash(self) -> str:
+        """Computes and returns the current readme hash."""
+        # the first line in the readme file contains the current date
+        # we must remove this before hashing
+        readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
+        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
+        return hashlib.md5(readme_file_contents_bytes).hexdigest()
+
+    @property
+    def combined_hash(self) -> str | None:
+        """
+        Combines, computes and returns the combined cached data, metadata and readme hashes.
+        """
+        # Return None if hashes have not been calculated yet
+        if not (self.data_hash and self.metadata_hash and self.readme_hash):
+            return None
+        concat_hash = self.data_hash + self.metadata_hash + self.readme_hash
+        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
+
+    @property
+    def current_combined_hash(self) -> str | None:
+        """
+        Combines, computes and returns the combined current data, metadata and readme hashes.
+        """
+        concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
+        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
+
+    @property
+    def is_valid_ccdl_dataset(self) -> bool:
+        if not self.libraries.exists():
+            return False
+
+        return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
 
     @property
     def projects(self) -> Iterable[Project]:
@@ -414,6 +498,10 @@ class Dataset(TimestampedModel):
     @property
     def cite_seq_projects(self) -> Iterable[Project]:
         return self.projects.filter(has_cite_seq_data=True)
+
+    def contains_project_ids(self, project_ids: Set[str]) -> bool:
+        """Returns whether or not the dataset contains samples in any of the passed projects."""
+        return any(dataset_project_id in project_ids for dataset_project_id in self.data.keys())
 
     @property
     def has_lockfile_projects(self) -> bool:
@@ -529,94 +617,6 @@ class Dataset(TimestampedModel):
     @property
     def ccdl_type(self) -> Dict:
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
-
-    def get_metadata_file_content(self, libraries: Iterable[Library]) -> str:
-        """Return a string of the metadata file content of a collection of libraries."""
-        libraries_metadata = Library.get_libraries_metadata(libraries)
-        return metadata_file.get_file_contents(libraries_metadata)
-
-    def get_project_modality_metadata_file_content(
-        self, project_id: str, modality: Modalities
-    ) -> str:
-        """Return a string of the metadata file for a project and modality combination."""
-        libraries = self.get_project_modality_libraries(project_id, modality)
-        return self.get_metadata_file_content(libraries)
-
-    def get_metadata_file_contents(self) -> List[tuple[str | None, Modalities | None, str]]:
-        """
-        Return a list of three element tuples which includes the project_id, modality,
-        and their associatied metadata file contents as a string.
-        """
-        metadata_file_contents = []
-        for project_id, project_config in self.data.items():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                if not project_config.get(modality.value, []):
-                    continue
-
-                metadata_file_content = self.get_project_modality_metadata_file_content(
-                    project_id, modality
-                )
-                metadata_file_contents.append((project_id, modality, metadata_file_content))
-        return metadata_file_contents
-
-    @property
-    def readme_file_contents(self) -> str:
-        return readme_file.get_file_contents_dataset(self)
-
-    @property
-    def current_data_hash(self) -> str:
-        """Computes and returns the current data hash."""
-        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
-            "hash", flat=True
-        )
-        concat_hash = "".join(sorted_original_file_hashes)
-        concat_hash_bytes = concat_hash.encode("utf-8")
-        return hashlib.md5(concat_hash_bytes).hexdigest()
-
-    @property
-    def current_metadata_hash(self) -> str:
-        """Computes and returns the current metadata hash."""
-        all_metadata_file_contents = [
-            file_content for _, _, file_content in self.get_metadata_file_contents()
-        ]
-        concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
-        metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
-        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
-
-    @property
-    def current_readme_hash(self) -> str:
-        """Computes and returns the current readme hash."""
-        # the first line in the readme file contains the current date
-        # we must remove this before hashing
-        readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
-        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
-        return hashlib.md5(readme_file_contents_bytes).hexdigest()
-
-    @property
-    def combined_hash(self) -> str | None:
-        """
-        Combines, computes and returns the combined cached data, metadata and readme hashes.
-        """
-        # Return None if hashes have not been calculated yet
-        if not (self.data_hash and self.metadata_hash and self.readme_hash):
-            return None
-        concat_hash = self.data_hash + self.metadata_hash + self.readme_hash
-        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
-
-    @property
-    def current_combined_hash(self) -> str | None:
-        """
-        Combines, computes and returns the combined current data, metadata and readme hashes.
-        """
-        concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
-        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
-
-    @property
-    def is_valid_ccdl_dataset(self) -> bool:
-        if not self.libraries.exists():
-            return False
-
-        return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
 
     @property
     def computed_file_name(self) -> Path:
