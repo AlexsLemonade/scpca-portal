@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic'
 import React, { useState } from 'react'
 import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
@@ -15,10 +14,7 @@ import { api } from 'api'
 import { useResponsive } from 'hooks/useResponsive'
 import { PageTitle } from 'components/PageTitle'
 import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
-
-const ProjectHeader = dynamic(() => import('components/ProjectHeader'), {
-  ssr: false
-})
+import { ProjectHeader } from 'components/ProjectHeader'
 
 const Project = ({ project }) => {
   if (!project) return '404'

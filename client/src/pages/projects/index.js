@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic'
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { Anchor, Box, Grid, Text } from 'grommet'
@@ -10,13 +9,7 @@ import { useResponsive } from 'hooks/useResponsive'
 import { delay } from 'helpers/delay'
 import { api } from 'api'
 import Error from 'pages/_error'
-
-const ProjectSearchResult = dynamic(
-  () => import('components/ProjectSearchResult'),
-  {
-    ssr: false
-  }
-)
+import { ProjectSearchResult } from 'components/ProjectSearchResult'
 
 const Project = ({ projects, count, filters, filterOptions }) => {
   const { browseFilters, setBrowseFilters } = useScPCAPortal()
