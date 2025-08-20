@@ -357,95 +357,6 @@ class Job(TimestampedModel):
         if clean_up_output_data:
             computed_file.clean_up_local_computed_file()
 
-    @classmethod
-    def submit_pending(cls) -> List[Self]:
-        """
-        Submits all PENDING jobs to AWS Batch.
-        Updates the jobs' batch_job_id and saves them as PROCESSING (state, timestamp).
-        Calls the datasets' method to sync the jobs' state.
-        Returns all the submitted jobs.
-        """
-        submitted_jobs = []
-        submitted_datasets = []
-        pending_jobs = []
-        failed_jobs = []
-
-        for job in Job.objects.filter(state=JobStates.PENDING):
-            try:
-                job.submit(save=False)
-                submitted_jobs.append(job)
-                if job.dataset:  # TODO: Remove after the dataset release
-                    submitted_datasets.append(job.dataset)
-            except (JobError, DatasetError):
-                if job.increment_attempt_or_fail():
-                    pending_jobs.append(job)
-                else:
-                    failed_jobs.append(job)
-
-        if submitted_jobs:
-            logger.info(f"Submitted {len(submitted_jobs)} jobs to AWS.")
-            cls.bulk_update_state(submitted_jobs)
-            if submitted_datasets:  # TODO: Remove after the dataset release
-                Dataset.bulk_update_state(submitted_datasets)
-
-        if pending_jobs:
-            logger.info(f"{len(pending_jobs)} jobs were not submitted but are still pending.")
-        if failed_jobs:
-            logger.info(f"{len(failed_jobs)} jobs failed to submit.")
-
-        return submitted_jobs
-
-    @classmethod
-    def terminate_processing(cls, reason: str | None = "Terminated processing jobs") -> List[Self]:
-        """
-        Terminates all PROCESSING jobs (incomplete) on AWS Batch.
-        Saves the jobs as TERMINATED (state, timestamp, reason).
-        Calls the datasets' method to sync the jobs' state.
-        Returns all the terminated jobs.
-        """
-        terminated_jobs = []
-        terminated_datasets = []
-        final_state_jobs = []
-        failed_jobs = []
-
-        for job in cls.objects.filter(state=JobStates.PROCESSING):
-            try:
-                job.terminate(reason=reason, save=False)
-                terminated_jobs.append(job)
-                if job.dataset:  # TODO: Remove after the dataset release
-                    terminated_datasets.append(job.dataset)
-            except JobInvalidTerminateStateError:
-                final_state_jobs.append(job)
-            except JobError:
-                failed_jobs.append(job)
-
-        if terminated_jobs:
-            logger.info(f"Terminated {len(terminated_jobs)} jobs on AWS.")
-            cls.bulk_update_state(terminated_jobs)
-            if terminated_datasets:  # TODO: Remove after the dataset release
-                Dataset.bulk_update_state(terminated_datasets)
-
-        if final_state_jobs:
-            logger.info(f"{len(final_state_jobs)} jobs were not in a terminable state.")
-        if failed_jobs:
-            logger.info(f"{len(failed_jobs)} jobs failed to terminate.")
-
-        return terminated_jobs
-
-    def increment_attempt_or_fail(self) -> bool:
-        """
-        Increment a job's attempt count.
-        If attempts exceed the max allotted job attempts, fail the job.
-        """
-        if self.attempt >= common.MAX_JOB_ATTEMPTS:
-            self.apply_state(JobStates.FAILED, "Unable to dispatch job to aws")
-            self.save()
-            return False
-
-        self.attempt += 1
-        self.save()
-        return True
-
     def submit(self, *, save=True):
         """
         Submits the PENDING job to AWS Batch and assigns batch_job_id.
@@ -499,6 +410,58 @@ class Job(TimestampedModel):
             if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
 
+    def increment_attempt_or_fail(self) -> bool:
+        """
+        Increment a job's attempt count.
+        If attempts exceed the max allotted job attempts, fail the job.
+        """
+        if self.attempt >= common.MAX_JOB_ATTEMPTS:
+            self.apply_state(JobStates.FAILED, "Unable to dispatch job to aws")
+            self.save()
+            return False
+
+        self.attempt += 1
+        self.save()
+        return True
+
+    @classmethod
+    def submit_pending(cls) -> List[Self]:
+        """
+        Submits all PENDING jobs to AWS Batch.
+        Updates the jobs' batch_job_id and saves them as PROCESSING (state, timestamp).
+        Calls the datasets' method to sync the jobs' state.
+        Returns all the submitted jobs.
+        """
+        submitted_jobs = []
+        submitted_datasets = []
+        pending_jobs = []
+        failed_jobs = []
+
+        for job in Job.objects.filter(state=JobStates.PENDING):
+            try:
+                job.submit(save=False)
+                submitted_jobs.append(job)
+                if job.dataset:  # TODO: Remove after the dataset release
+                    submitted_datasets.append(job.dataset)
+            except (JobError, DatasetError):
+                if job.increment_attempt_or_fail():
+                    pending_jobs.append(job)
+                else:
+                    failed_jobs.append(job)
+
+        if submitted_jobs:
+            logger.info(f"Submitted {len(submitted_jobs)} jobs to AWS.")
+            cls.bulk_update_state(submitted_jobs)
+            if submitted_datasets:  # TODO: Remove after the dataset release
+                Dataset.bulk_update_state(submitted_datasets)
+
+        if pending_jobs:
+            logger.info(f"{len(pending_jobs)} jobs were not submitted but are still pending.")
+        if failed_jobs:
+            logger.info(f"{len(failed_jobs)} jobs failed to submit.")
+
+        return submitted_jobs
+
     def terminate(self, reason: str | None = "Terminated processing job", *, save=True):
         """
         Terminates the PROCESSING job (incomplete) on AWS Batch.
@@ -520,3 +483,40 @@ class Job(TimestampedModel):
             self.save()
             if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
+
+    @classmethod
+    def terminate_processing(cls, reason: str | None = "Terminated processing jobs") -> List[Self]:
+        """
+        Terminates all PROCESSING jobs (incomplete) on AWS Batch.
+        Saves the jobs as TERMINATED (state, timestamp, reason).
+        Calls the datasets' method to sync the jobs' state.
+        Returns all the terminated jobs.
+        """
+        terminated_jobs = []
+        terminated_datasets = []
+        final_state_jobs = []
+        failed_jobs = []
+
+        for job in cls.objects.filter(state=JobStates.PROCESSING):
+            try:
+                job.terminate(reason=reason, save=False)
+                terminated_jobs.append(job)
+                if job.dataset:  # TODO: Remove after the dataset release
+                    terminated_datasets.append(job.dataset)
+            except JobInvalidTerminateStateError:
+                final_state_jobs.append(job)
+            except JobError:
+                failed_jobs.append(job)
+
+        if terminated_jobs:
+            logger.info(f"Terminated {len(terminated_jobs)} jobs on AWS.")
+            cls.bulk_update_state(terminated_jobs)
+            if terminated_datasets:  # TODO: Remove after the dataset release
+                Dataset.bulk_update_state(terminated_datasets)
+
+        if final_state_jobs:
+            logger.info(f"{len(final_state_jobs)} jobs were not in a terminable state.")
+        if failed_jobs:
+            logger.info(f"{len(failed_jobs)} jobs failed to terminate.")
+
+        return terminated_jobs
