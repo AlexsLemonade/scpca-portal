@@ -27,7 +27,7 @@ class Command(BaseCommand):
         self, ccdl_name, project_id: str | None = None, ignore_hash: bool = False
     ) -> bool:
         dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
-        if not found and not dataset.valid_ccdl_dataset:
+        if not found and not dataset.is_valid_ccdl_dataset:
             return False
         if found and dataset.is_hash_unchanged and not ignore_hash:
             return False

@@ -104,6 +104,115 @@ class Dataset(TimestampedModel):
     def __str__(self):
         return f"Dataset {self.id}"
 
+    @classmethod
+    def get_or_find_ccdl_dataset(
+        cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
+    ) -> tuple[Self, bool]:
+        if dataset := cls.objects.filter(
+            is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
+        ).first():
+            return dataset, True
+
+        dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
+        dataset.ccdl_modality = dataset.ccdl_type["modality"]
+        dataset.format = dataset.ccdl_type["format"]
+        dataset.data = dataset.get_ccdl_data()
+        dataset.data_hash = dataset.current_data_hash
+        dataset.metadata_hash = dataset.current_metadata_hash
+        dataset.readme_hash = dataset.current_readme_hash
+        return dataset, False
+
+    def get_ccdl_data(self) -> Dict:
+        if not self.is_ccdl:
+            raise ValueError("Invalid Dataset: Dataset must be CCDL.")
+
+        projects = Project.objects.all()
+        if self.ccdl_project_id:
+            projects = projects.filter(scpca_id=self.ccdl_project_id)
+
+        data = {}
+        for project in projects:
+            samples = project.samples.all()
+            if self.ccdl_type.get("excludes_multiplexed"):
+                samples = samples.filter(has_multiplexed_data=False)
+
+            if modality := self.ccdl_type.get("modality"):
+                samples = samples.filter(libraries__modality=modality)
+
+            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
+            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
+
+            data[project.scpca_id] = {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: (
+                    list(single_cell_samples.values_list("scpca_id", flat=True))
+                    if not self.ccdl_type.get("includes_merged")
+                    else "MERGED"
+                ),
+                Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
+            }
+
+        return data
+
+    @staticmethod
+    def validate_data(data: Dict[str, Any], format: DatasetFormats) -> Dict:
+        structured_data = DatasetDataModel.model_validate(
+            data, context={"format": format}
+        ).model_dump()
+        validated_data = DatasetDataModelRelations.validate(structured_data)
+
+        return validated_data
+
+    def apply_job_state(self, job) -> None:
+        """
+        Sets the dataset state (flag, reason, timestamps) based on the given job.
+        Resets states before applying changes.
+        """
+        # Resets all state flags and reasons
+        for state in JobStates:
+            state_str = state.lower()
+
+            setattr(self, f"is_{state_str}", False)
+            reason_attr = f"{state_str}_reason"
+
+            if hasattr(self, reason_attr):
+                setattr(self, reason_attr, None)
+
+        # Resets timestamps (reset all for PENDING, otherwise FINAL_JOB_STATES)
+        reset_states = JobStates if state == JobStates.PENDING else common.FINAL_JOB_STATES
+        for state in reset_states:
+            setattr(self, f"{state.lower()}_at", None)
+
+        # Sets new state based on the given job
+        state_str = job.state.lower()
+        reason_attr = f"{state_str}_reason"
+
+        setattr(self, f"is_{state_str}", True)
+        setattr(self, f"{state_str}_at", make_aware(datetime.now()))
+        if hasattr(self, f"{state_str}_reason"):
+            setattr(self, f"{state_str}_reason", getattr(job, reason_attr))
+
+    @classmethod
+    def bulk_update_state(cls, datasets: List[Self]) -> None:
+        """
+        Updates state attributes of the given datasets in bulk.
+        """
+        STATE_UPDATE_ATTRS = [
+            "is_pending",
+            "pending_at",
+            "is_processing",
+            "processing_at",
+            "is_succeeded",
+            "succeeded_at",
+            "is_failed",
+            "failed_at",
+            "failed_reason",
+            "is_terminated",
+            "terminated_at",
+            "terminated_reason",
+        ]
+        cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
+
     @property
     def estimated_size_in_bytes(self) -> int:
         original_files_size = (
@@ -242,77 +351,6 @@ class Dataset(TimestampedModel):
             "project_diagnoses": self.project_diagnoses,
         }
 
-    @classmethod
-    def get_or_find_ccdl_dataset(
-        cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
-    ) -> tuple[Self, bool]:
-        if dataset := cls.objects.filter(
-            is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
-        ).first():
-            return dataset, True
-
-        dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
-        dataset.ccdl_modality = dataset.ccdl_type["modality"]
-        dataset.format = dataset.ccdl_type["format"]
-        dataset.data = dataset.get_ccdl_data()
-        dataset.data_hash = dataset.current_data_hash
-        dataset.metadata_hash = dataset.current_metadata_hash
-        dataset.readme_hash = dataset.current_readme_hash
-        return dataset, False
-
-    @classmethod
-    def bulk_update_state(cls, datasets: List[Self]) -> None:
-        """
-        Updates state attributes of the given datasets in bulk.
-        """
-        STATE_UPDATE_ATTRS = [
-            "is_pending",
-            "pending_at",
-            "is_processing",
-            "processing_at",
-            "is_succeeded",
-            "succeeded_at",
-            "is_failed",
-            "failed_at",
-            "failed_reason",
-            "is_terminated",
-            "terminated_at",
-            "terminated_reason",
-        ]
-        cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
-
-    def get_ccdl_data(self) -> Dict:
-        if not self.is_ccdl:
-            raise ValueError("Invalid Dataset: Dataset must be CCDL.")
-
-        projects = Project.objects.all()
-        if self.ccdl_project_id:
-            projects = projects.filter(scpca_id=self.ccdl_project_id)
-
-        data = {}
-        for project in projects:
-            samples = project.samples.all()
-            if self.ccdl_type.get("excludes_multiplexed"):
-                samples = samples.filter(has_multiplexed_data=False)
-
-            if modality := self.ccdl_type.get("modality"):
-                samples = samples.filter(libraries__modality=modality)
-
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
-            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
-
-            data[project.scpca_id] = {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL: (
-                    list(single_cell_samples.values_list("scpca_id", flat=True))
-                    if not self.ccdl_type.get("includes_merged")
-                    else "MERGED"
-                ),
-                Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
-            }
-
-        return data
-
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""
         return any(dataset_project_id in project_ids for dataset_project_id in self.data.keys())
@@ -331,35 +369,6 @@ class Dataset(TimestampedModel):
     def has_locked_projects(self) -> bool:
         """Returns whether or not the dataset contains locked projects."""
         return self.locked_projects.exists()
-
-    def apply_job_state(self, job) -> None:
-        """
-        Sets the dataset state (flag, reason, timestamps) based on the given job.
-        Resets states before applying changes.
-        """
-        # Resets all state flags and reasons
-        for state in JobStates:
-            state_str = state.lower()
-
-            setattr(self, f"is_{state_str}", False)
-            reason_attr = f"{state_str}_reason"
-
-            if hasattr(self, reason_attr):
-                setattr(self, reason_attr, None)
-
-        # Resets timestamps (reset all for PENDING, otherwise FINAL_JOB_STATES)
-        reset_states = JobStates if state == JobStates.PENDING else common.FINAL_JOB_STATES
-        for state in reset_states:
-            setattr(self, f"{state.lower()}_at", None)
-
-        # Sets new state based on the given job
-        state_str = job.state.lower()
-        reason_attr = f"{state_str}_reason"
-
-        setattr(self, f"is_{state_str}", True)
-        setattr(self, f"{state_str}_at", make_aware(datetime.now()))
-        if hasattr(self, f"{state_str}_reason"):
-            setattr(self, f"{state_str}_reason", getattr(job, reason_attr))
 
     @property
     def is_hash_changed(self) -> bool:
@@ -404,15 +413,6 @@ class Dataset(TimestampedModel):
     @property
     def ccdl_type(self) -> Dict:
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
-
-    @staticmethod
-    def validate_data(data: Dict[str, Any], format: DatasetFormats) -> Dict:
-        structured_data = DatasetDataModel.model_validate(
-            data, context={"format": format}
-        ).model_dump()
-        validated_data = DatasetDataModelRelations.validate(structured_data)
-
-        return validated_data
 
     def get_is_merged_project(self, project_id) -> bool:
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
@@ -588,7 +588,7 @@ class Dataset(TimestampedModel):
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
     @property
-    def valid_ccdl_dataset(self) -> bool:
+    def is_valid_ccdl_dataset(self) -> bool:
         if not self.libraries.exists():
             return False
 
