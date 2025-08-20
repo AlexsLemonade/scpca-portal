@@ -239,7 +239,6 @@ export const Table = ({
   selectedRows, // For highlighting selected samples rows
   infoText,
   children,
-  onFilterChange = () => {},
   onFilteredRowsChange = () => {}
 }) => {
   const filterTypes = useMemo(
@@ -302,10 +301,6 @@ export const Table = ({
         .map((column) => column.accessor)
     )
   }, [setHiddenColumns, columns])
-
-  useEffect(() => {
-    onFilterChange(state.globalFilter)
-  }, [state.globalFilter])
 
   const justify = filter && infoText ? 'between' : 'end'
   const pad = filter ? { vertical: 'medium' } : {}

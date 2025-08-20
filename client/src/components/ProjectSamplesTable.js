@@ -2,20 +2,17 @@ import React, { useEffect, useState } from 'react'
 import { api } from 'api'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
-import { Download as DownloadIcon } from 'grommet-icons'
-import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
-import { useProjectMetadataOnly } from 'hooks/useProjectMetadataOnly'
-import { formatBytes } from 'helpers/formatBytes'
+import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
-import { DownloadModal } from 'components/DownloadModal'
-import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
+import { ModalityCheckBox } from 'components/ModalityCheckBox'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
-
+import { TriStateModalityCheckBox } from 'components/TriStateModalityCheckBox'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({
@@ -23,111 +20,70 @@ export const ProjectSamplesTable = ({
   samples: defaultSamples,
   stickies = 3
 }) => {
-  // We only want to show the applied donwload options.
-  // Also need some helpers for presentation.
-  const { modality, format, getFoundFile } = useDownloadOptionsContext()
-  const { metadataComputedFile, isMetadataOnlyAvailable } =
-    useProjectMetadataOnly(project)
+  const { myDataset, userFormat } = useDatasetManager()
+  const { getFilteredSamples, selectedSamples, toggleSample } =
+    useDatasetSamplesTable()
+
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
-  const [showDownloadOptions, setShowDownloadOptions] = useState(false)
-  const [hasFilter, setHasFilter] = useState(false) // For setting the metadata only download button state
+
   const hasMultiplexedData = project.has_multiplexed_data
+  const showWarningMultiplexed =
+    hasMultiplexedData && (myDataset.forat || userFormat) === 'ANN_DATA'
+
   const infoText =
     project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
       : false
 
-  const onFilterChange = (value) => {
-    setHasFilter(!!value)
-  }
-
-  const onOptionsSave = () => {
-    setShowDownloadOptions(false)
-    setLoaded(false)
-  }
-
-  // Update after save
-  useEffect(() => {
-    if (samples) setLoaded(false)
-  }, [samples, modality, format])
-
-  useEffect(() => {
-    const asyncFetch = async () => {
-      const samplesRequest = await api.samples.list({
-        project__scpca_id: project.scpca_id,
-        limit: 1000 // TODO:: 'all' option
-      })
-      if (samplesRequest.isOk) {
-        setSamples(samplesRequest.response.results)
-        setLoaded(true)
-      }
-    }
-    if (!samples && !loaded) asyncFetch()
-    if (samples && !loaded) setLoaded(true)
-  }, [samples, loaded])
-
-  if (!loaded)
-    return (
-      <Box margin="64px">
-        <Loader />
-      </Box>
-    )
+  const allModalities = ['SINGLE_CELL', 'SPATIAL'] // List of all modalities available on the portal
+  const checkBoxCellWidth = '200px'
 
   const columns = [
     {
-      Header: 'Download',
-      id: 'download',
-      accessor: ({ computed_files: computedFiles }) => {
-        if (computedFiles.length === 0) return -1
-        const computedFile = getFoundFile(computedFiles)
-        return computedFile ? computedFile.size_in_bytes : 0
-      },
-      Cell: ({ row }) => {
-        // there is nothing available to download
-        if (row.original.computed_files.length === 0) {
-          return (
-            <Box direction="row" align="center" gap="small">
-              <DownloadIcon color="status-disabled" />
-              <Box width={{ min: '120px' }}>
-                <Text>Not Available</Text>
-                <Text>for download</Text>
-              </Box>
-            </Box>
-          )
-        }
-
-        const computedFile = getFoundFile(row.original.computed_files, true)
-
-        if (computedFile) {
-          return (
-            <Box
-              align="center"
-              direction="row"
-              gap="small"
-              margin={{ top: 'small' }}
-            >
-              <DownloadModal
-                icon={<DownloadIcon color="brand" />}
-                resource={row.original}
-                publicComputedFile={computedFile}
-              />
-              <Text>{formatBytes(computedFile.size_in_bytes)}</Text>
-            </Box>
-          )
-        }
-
-        // No Match for the modality/format
-        return (
-          <Box direction="row" align="center" gap="small">
-            <DownloadIcon color="status-disabled" />
-            <Box width={{ min: '120px' }}>
-              <Text>Not available in</Text>
-              <Text>specified format</Text>
-            </Box>
+      Header: (
+        <Box width={checkBoxCellWidth}>
+          <Box align="center" margin={{ bottom: 'small' }} pad="small">
+            Select Modality
           </Box>
-        )
-      }
+          <Box
+            border={{ side: 'bottom' }}
+            width="100%"
+            style={{ position: 'absolute', top: '45px', left: 0 }}
+          />
+          <Box direction="row" justify="around">
+            {allModalities.map((m) => (
+              <Box key={m} align="center" pad={{ horizontal: 'small' }}>
+                <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
+                <TriStateModalityCheckBox
+                  modality={m}
+                  disabled={!project[`has_${m.toLowerCase()}_data`]}
+                />
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      ),
+      disableSortBy: true,
+      accessor: 'data',
+      Cell: ({ row }) => (
+        <Box
+          align="center"
+          direction="row"
+          justify="around"
+          width={checkBoxCellWidth}
+        >
+          {allModalities.map((m) => (
+            <ModalityCheckBox
+              key={`${row.original.scpca_id}_${m}`}
+              modality={m}
+              sampleId={row.original.scpca_id}
+              disabled={!row.original[`has_${m.toLowerCase()}_data`]}
+              onClick={() => toggleSample(m, row.original)}
+            />
+          ))}
+        </Box>
+      )
     },
     {
       Header: 'Sample ID',
@@ -223,52 +179,42 @@ export const ProjectSamplesTable = ({
     }
   ]
 
+  useEffect(() => {
+    const asyncFetch = async () => {
+      const samplesRequest = await api.samples.list({
+        project__scpca_id: project.scpca_id,
+        limit: 1000 // TODO:: 'all' option
+      })
+      if (samplesRequest.isOk) {
+        setSamples(samplesRequest.response.results)
+        setLoaded(true)
+      }
+    }
+    if (!samples && !loaded) asyncFetch()
+    if (samples && !loaded) setLoaded(true)
+  }, [samples, loaded])
+
+  if (!loaded)
+    return (
+      <Box margin="64px">
+        <Loader />
+      </Box>
+    )
+
   return (
     <Table
-      filter
       columns={columns}
       data={samples}
+      filter
       stickies={stickies}
       pageSize={5}
       pageSizeOptions={[5, 10, 20, 50]}
       infoText={infoText}
-      defaultSort={[{ id: 'download', desc: true }]}
-      onFilterChange={onFilterChange}
+      defaultSort={[{ id: 'scpca_id', asc: true }]} // TODO: Ask about new defaultSort
+      selectedRows={selectedSamples}
+      onFilteredRowsChange={getFilteredSamples}
     >
-      <Box direction="row" justify="between" pad={{ bottom: 'medium' }}>
-        <Box direction="row" gap="xlarge" align="center">
-          <Box direction="row">
-            <Text weight="bold" margin={{ right: 'small' }}>
-              Modality:
-            </Text>
-            <Text>{getReadable(modality)}</Text>
-          </Box>
-          <Box direction="row">
-            <Text weight="bold" margin={{ right: 'small' }}>
-              Data Format:
-            </Text>
-            <Text>{getReadable(format)}</Text>
-          </Box>
-          <DownloadOptionsModal
-            label="Change"
-            showing={showDownloadOptions}
-            setShowing={setShowDownloadOptions}
-            onSave={onOptionsSave}
-          />
-        </Box>
-        <Box>
-          <DownloadModal
-            label="Download Sample Metadata"
-            icon={<DownloadIcon color="brand" />}
-            resource={project}
-            publicComputedFile={metadataComputedFile}
-            disabled={!isMetadataOnlyAvailable || hasFilter}
-          />
-        </Box>
-      </Box>
-      {project.has_multiplexed_data && format === 'ANN_DATA' && (
-        <WarningAnnDataMultiplexed />
-      )}
+      {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
     </Table>
   )
 }
