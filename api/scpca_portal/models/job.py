@@ -71,6 +71,7 @@ class Job(TimestampedModel):
             return f"Job {self.id} - {self.batch_job_id} - {self.state}"
         return f"Job {self.id} - {self.state}"
 
+    # INSTANCE CREATIONAL LOGIC
     @classmethod
     def get_dataset_job(cls, dataset: Dataset) -> Self:
         """
@@ -205,6 +206,7 @@ class Job(TimestampedModel):
 
         return retry_jobs
 
+    # STATE LOGIC
     def apply_state(self, state: JobStates, reason: str | None = None) -> bool:
         """
         Sets the job's state, timestamp, and reason.
@@ -337,6 +339,7 @@ class Job(TimestampedModel):
 
         return True
 
+    # PROCESSING, SUBMISSION AND TERMINATION LOGIC
     def process_dataset_job(
         self,
         update_s3: bool = True,
