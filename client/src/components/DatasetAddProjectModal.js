@@ -3,12 +3,11 @@ import { Box, Grid, Heading } from 'grommet'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
-import { differenceArray } from 'helpers/differenceArray'
 import { Button } from 'components/Button'
 import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditionalOptions'
 import { DatasetProjectModalityOptions } from 'components/DatasetProjectModalityOptions'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
-import { DatasetWarningSpatialSamples } from 'components/DatasetWarningSpatialSamples'
+import { DatasetWarningMissingSamples } from 'components/DatasetWarningMissingSamples'
 import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 
 // Button and Modal to show when adding a project to My Dataset
@@ -23,7 +22,8 @@ export const DatasetAddProjectModal = ({
     addProject,
     getProjectDataSamples,
     getProjectSingleCellSamples,
-    getProjectSpatialSamples
+    getProjectSpatialSamples,
+    getMissingModaliesSamples
   } = useDatasetManager()
   const { responsive } = useResponsive()
 
@@ -45,14 +45,7 @@ export const DatasetAddProjectModal = ({
   const [singleCellSamples, setSingleCellSamples] = useState([])
   const [spatialSamples, setSpatialSamples] = useState([])
 
-  // TODO: Replace with actual stats value once ready
-  // For SPATAIL modality only
-  const allSingleCellSamples = getProjectSingleCellSamples(samples)
-  const allSpatialSamples = getProjectSpatialSamples(samples)
-  const sampleDifferenceForSpatial = [
-    ...differenceArray(allSingleCellSamples, allSpatialSamples),
-    ...differenceArray(allSpatialSamples, allSingleCellSamples)
-  ].length
+  const [sampleDifference, setSampleDifference] = useState([])
 
   const canClickAddProject = modalities.length > 0
 
@@ -109,6 +102,11 @@ export const DatasetAddProjectModal = ({
     }
   }, [modalities])
 
+  // Calculate missing modality samples
+  useEffect(() => {
+    setSampleDifference(getMissingModaliesSamples(samples, modalities))
+  }, [modalities, samples])
+
   return (
     <>
       <Button
@@ -163,9 +161,9 @@ export const DatasetAddProjectModal = ({
                     disabled={!canClickAddProject}
                     onClick={handleAddProject}
                   />
-                  {project.has_spatial_data && (
-                    <DatasetWarningSpatialSamples
-                      sampleCount={sampleDifferenceForSpatial}
+                  {sampleDifference.length > 0 && (
+                    <DatasetWarningMissingSamples
+                      sampleCount={sampleDifference.length}
                     />
                   )}
                 </Box>

@@ -2,6 +2,7 @@ import { useContext } from 'react'
 import { DatasetManagerContext } from 'contexts/DatasetManagerContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
+import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useDatasetManager = () => {
   const {
@@ -215,6 +216,27 @@ export const useDatasetManager = () => {
       : updateDataset(updatedDataset)
   }
 
+  const getMissingModaliesSamples = (samples, modalities) => {
+    const modalityAttributes = {
+      SINGLE_CELL: 'has_single_cell_data',
+      SPATIAL: 'has_spatial_data'
+    }
+
+    const filterdSamples = uniqueArray(
+      Object.keys(modalityAttributes)
+        .map((m) => samples.filter((s) => s[modalityAttributes[m]]))
+        .flat()
+    )
+
+    const missingSamples = uniqueArray(
+      modalities
+        .map((m) => filterdSamples.filter((s) => !s[modalityAttributes[m]]))
+        .flat()
+    )
+
+    return missingSamples
+  }
+
   return {
     myDataset,
     setMyDataset,
@@ -235,6 +257,7 @@ export const useDatasetManager = () => {
     getProjectIDs,
     isProjectAddedToDataset,
     removeProject,
-    setSamples
+    setSamples,
+    getMissingModaliesSamples
   }
 }
