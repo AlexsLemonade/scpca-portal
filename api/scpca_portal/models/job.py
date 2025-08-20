@@ -339,27 +339,7 @@ class Job(TimestampedModel):
 
         return True
 
-    # PROCESSING, SUBMISSION AND TERMINATION LOGIC
-    def process_dataset_job(
-        self,
-        update_s3: bool = True,
-        clean_up_output_data=False,
-    ) -> None:
-        if old_dataset_file := self.dataset.computed_file:
-            old_dataset_file.purge(update_s3)
-
-        computed_file = ComputedFile.get_dataset_file(self.dataset)
-
-        if update_s3:
-            s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
-
-        computed_file.save()
-        self.dataset.computed_file = computed_file
-        self.dataset.save()
-
-        if clean_up_output_data:
-            computed_file.clean_up_local_computed_file()
-
+    # API SUBMISSION AND TERMINATION LOGIC
     def submit(self, *, save=True):
         """
         Submits the PENDING job to AWS Batch and assigns batch_job_id.
@@ -523,3 +503,24 @@ class Job(TimestampedModel):
             logger.info(f"{len(failed_jobs)} jobs failed to terminate.")
 
         return terminated_jobs
+
+    # BATCH PROCESSING LOGIC
+    def process_dataset_job(
+        self,
+        update_s3: bool = True,
+        clean_up_output_data=False,
+    ) -> None:
+        if old_dataset_file := self.dataset.computed_file:
+            old_dataset_file.purge(update_s3)
+
+        computed_file = ComputedFile.get_dataset_file(self.dataset)
+
+        if update_s3:
+            s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
+
+        computed_file.save()
+        self.dataset.computed_file = computed_file
+        self.dataset.save()
+
+        if clean_up_output_data:
+            computed_file.clean_up_local_computed_file()
