@@ -205,6 +205,87 @@ class Job(TimestampedModel):
 
         return retry_jobs
 
+    def apply_state(self, state: JobStates, reason: str | None = None) -> bool:
+        """
+        Sets the job's state, timestamp, and reason.
+        Calls the dataset's method to sync the job's state.
+        Returns a boolean indicating if the caller should save updates.
+        """
+        if self.state == state:
+            return False
+
+        self.state = state
+        state_str = state.lower()
+        setattr(self, f"{state_str}_at", make_aware(datetime.now()))
+        if hasattr(self, f"{state_str}_reason"):
+            setattr(self, f"{state_str}_reason", reason)
+
+        self.dataset.apply_job_state(self)  # Sync the dataset state
+        return True
+
+    @classmethod
+    def bulk_update_state(cls, jobs: List[Self]) -> None:
+        """
+        Updates state attributes of the given jobs in bulk.
+        """
+        STATE_UPDATE_ATTRS = [
+            "state",
+            "processing_at",
+            "succeeded_at",
+            "failed_at",
+            "failed_reason",
+            "terminated_at",
+            "terminated_reason",
+        ]
+        cls.objects.bulk_update(jobs, STATE_UPDATE_ATTRS)
+
+    @classmethod
+    def bulk_sync_state(cls) -> bool:
+        """
+        Syncs all PROCESSING jobs' states with the corresponding AWS Batch jobs.
+        Saves the jobs (state, timestamp, reason).
+        Calls the datasets' method to sync the jobs' state.
+        Returns a boolean indicating if the jobs and datasets were updated during sync.
+        """
+        processing_jobs = cls.objects.filter(state=JobStates.PROCESSING)
+        if not processing_jobs.exists():
+            return False
+
+        synced_jobs = []
+        synced_datasets = []
+        failed_job_ids = []
+
+        fetched_jobs = []
+        try:
+            fetched_jobs = batch.get_jobs(processing_jobs)
+        except BatchGetJobsFailedError as error:
+            failed_job_ids.extend(error.job_ids)
+
+        # Map the fetched AWS jobs for easy lookup by batch_job_id
+        aws_jobs = {job["jobId"]: job for job in fetched_jobs}
+
+        for job in processing_jobs:
+            if aws_job := aws_jobs.get(job.batch_job_id):
+                new_state, reason = cls.get_job_state(aws_job)
+                if job.apply_state(new_state, reason):
+                    synced_jobs.append(job)
+                    if job.dataset:  # TODO: Remove after the dataset release
+                        synced_datasets.append(job.dataset)
+
+        if not synced_jobs:
+            logger.info("No jobs were updated during sync.")
+            return False
+
+        logger.info(f"Synced {len(synced_jobs)} jobs with AWS.")
+        cls.bulk_update_state(synced_jobs)
+        if synced_datasets:  # TODO: Remove after the dataset release
+            Dataset.bulk_update_state(synced_datasets)
+
+        if failed_job_ids:
+            logger.info(f"{len(failed_job_ids)} jobs failed to sync.")
+
+        return True
+
     @staticmethod
     def get_job_state(aws_job: dict) -> tuple[str, str | None]:
         """
@@ -225,6 +306,36 @@ class Job(TimestampedModel):
 
             case _:
                 return JobStates.PROCESSING, None
+
+    def sync_state(self) -> bool:
+        """
+        Syncs the job state with the AWS Batch status.
+        Saves the job if the state has changed (state, timestamp, reason).
+        Calls the dataset's method to sync the job's state.
+        Raises an error when unable to sync:
+        - JobSyncNotProcessingError
+        - JobSyncStateFailedError
+        Returns a boolean indicating if the job and dataset were changed during sync.
+        """
+        if self.state is not JobStates.PROCESSING:
+            raise JobSyncNotProcessingError(self)
+
+        try:
+            aws_jobs = batch.get_jobs([self])
+        except BatchGetJobsFailedError as error:
+            raise JobSyncStateFailedError(self) from error
+
+        new_state, reason = self.get_job_state(aws_jobs[0])
+
+        if new_state == self.state:
+            return False
+
+        if self.apply_state(new_state, reason):
+            self.save()
+            if self.dataset:  # TODO: Remove after the dataset release
+                self.dataset.save()
+
+        return True
 
     def process_dataset_job(
         self,
@@ -321,69 +432,6 @@ class Job(TimestampedModel):
 
         return terminated_jobs
 
-    @classmethod
-    def bulk_update_state(cls, jobs: List[Self]) -> None:
-        """
-        Updates state attributes of the given jobs in bulk.
-        """
-        STATE_UPDATE_ATTRS = [
-            "state",
-            "processing_at",
-            "succeeded_at",
-            "failed_at",
-            "failed_reason",
-            "terminated_at",
-            "terminated_reason",
-        ]
-        cls.objects.bulk_update(jobs, STATE_UPDATE_ATTRS)
-
-    @classmethod
-    def bulk_sync_state(cls) -> bool:
-        """
-        Syncs all PROCESSING jobs' states with the corresponding AWS Batch jobs.
-        Saves the jobs (state, timestamp, reason).
-        Calls the datasets' method to sync the jobs' state.
-        Returns a boolean indicating if the jobs and datasets were updated during sync.
-        """
-        processing_jobs = cls.objects.filter(state=JobStates.PROCESSING)
-        if not processing_jobs.exists():
-            return False
-
-        synced_jobs = []
-        synced_datasets = []
-        failed_job_ids = []
-
-        fetched_jobs = []
-        try:
-            fetched_jobs = batch.get_jobs(processing_jobs)
-        except BatchGetJobsFailedError as error:
-            failed_job_ids.extend(error.job_ids)
-
-        # Map the fetched AWS jobs for easy lookup by batch_job_id
-        aws_jobs = {job["jobId"]: job for job in fetched_jobs}
-
-        for job in processing_jobs:
-            if aws_job := aws_jobs.get(job.batch_job_id):
-                new_state, reason = cls.get_job_state(aws_job)
-                if job.apply_state(new_state, reason):
-                    synced_jobs.append(job)
-                    if job.dataset:  # TODO: Remove after the dataset release
-                        synced_datasets.append(job.dataset)
-
-        if not synced_jobs:
-            logger.info("No jobs were updated during sync.")
-            return False
-
-        logger.info(f"Synced {len(synced_jobs)} jobs with AWS.")
-        cls.bulk_update_state(synced_jobs)
-        if synced_datasets:  # TODO: Remove after the dataset release
-            Dataset.bulk_update_state(synced_datasets)
-
-        if failed_job_ids:
-            logger.info(f"{len(failed_job_ids)} jobs failed to sync.")
-
-        return True
-
     def increment_attempt_or_fail(self) -> bool:
         """
         Increment a job's attempt count.
@@ -396,24 +444,6 @@ class Job(TimestampedModel):
 
         self.attempt += 1
         self.save()
-        return True
-
-    def apply_state(self, state: JobStates, reason: str | None = None) -> bool:
-        """
-        Sets the job's state, timestamp, and reason.
-        Calls the dataset's method to sync the job's state.
-        Returns a boolean indicating if the caller should save updates.
-        """
-        if self.state == state:
-            return False
-
-        self.state = state
-        state_str = state.lower()
-        setattr(self, f"{state_str}_at", make_aware(datetime.now()))
-        if hasattr(self, f"{state_str}_reason"):
-            setattr(self, f"{state_str}_reason", reason)
-
-        self.dataset.apply_job_state(self)  # Sync the dataset state
         return True
 
     def submit(self, *, save=True):
@@ -468,36 +498,6 @@ class Job(TimestampedModel):
             self.save()
             if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
-
-    def sync_state(self) -> bool:
-        """
-        Syncs the job state with the AWS Batch status.
-        Saves the job if the state has changed (state, timestamp, reason).
-        Calls the dataset's method to sync the job's state.
-        Raises an error when unable to sync:
-        - JobSyncNotProcessingError
-        - JobSyncStateFailedError
-        Returns a boolean indicating if the job and dataset were changed during sync.
-        """
-        if self.state is not JobStates.PROCESSING:
-            raise JobSyncNotProcessingError(self)
-
-        try:
-            aws_jobs = batch.get_jobs([self])
-        except BatchGetJobsFailedError as error:
-            raise JobSyncStateFailedError(self) from error
-
-        new_state, reason = self.get_job_state(aws_jobs[0])
-
-        if new_state == self.state:
-            return False
-
-        if self.apply_state(new_state, reason):
-            self.save()
-            if self.dataset:  # TODO: Remove after the dataset release
-                self.dataset.save()
-
-        return True
 
     def terminate(self, reason: str | None = "Terminated processing job", *, save=True):
         """
