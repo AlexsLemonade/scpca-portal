@@ -2,7 +2,7 @@ import React from 'react'
 
 import { WarningText } from 'components/WarningText'
 
-export const DatasetWarningSpatialSamples = ({ sampleCount }) => {
+export const DatasetWarningMissingSamples = ({ sampleCount }) => {
   return (
     <WarningText
       text={`Selected modalities may not be available for ${sampleCount} ${
@@ -15,4 +15,4 @@ export const DatasetWarningSpatialSamples = ({ sampleCount }) => {
   )
 }
 
-export default DatasetWarningSpatialSamples
+export default DatasetWarningMissingSamples
