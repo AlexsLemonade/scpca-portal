@@ -356,21 +356,6 @@ class Dataset(TimestampedModel):
         return any(dataset_project_id in project_ids for dataset_project_id in self.data.keys())
 
     @property
-    def has_lockfile_projects(self) -> bool:
-        """Returns whether or not the dataset contains any project ids in the lockfile."""
-        return self.contains_project_ids(set(lockfile.get_lockfile_project_ids()))
-
-    @property
-    def locked_projects(self) -> Iterable[Project]:
-        """Returns a queryset of all of the dataset's locked project."""
-        return self.projects.filter(is_locked=True)
-
-    @property
-    def has_locked_projects(self) -> bool:
-        """Returns whether or not the dataset contains locked projects."""
-        return self.locked_projects.exists()
-
-    @property
     def is_hash_changed(self) -> bool:
         """
         Determines whether or not a computed file should be generated for the instance dataset.
@@ -391,6 +376,61 @@ class Dataset(TimestampedModel):
         return Project.objects.none()
 
     @property
+    def spatial_projects(self) -> Iterable[Project]:
+        if self.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
+            return Project.objects.none()
+
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(Modalities.SPATIAL, [])
+        ]:
+            return self.projects.filter(scpca_id__in=project_ids)
+
+        return Project.objects.none()
+
+    @property
+    def single_cell_projects(self) -> Iterable[Project]:
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(Modalities.SINGLE_CELL)
+        ]:
+            return Project.objects.filter(scpca_id__in=project_ids)
+
+        return Project.objects.none()
+
+    @property
+    def bulk_single_cell_projects(self) -> Iterable[Project]:
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(DatasetDataProjectConfig.INCLUDES_BULK)
+        ]:
+            return Project.objects.filter(scpca_id__in=project_ids)
+
+        return Project.objects.none()
+
+    @property
+    def cite_seq_projects(self) -> Iterable[Project]:
+        return self.projects.filter(has_cite_seq_data=True)
+
+    @property
+    def has_lockfile_projects(self) -> bool:
+        """Returns whether or not the dataset contains any project ids in the lockfile."""
+        return self.contains_project_ids(set(lockfile.get_lockfile_project_ids()))
+
+    @property
+    def locked_projects(self) -> Iterable[Project]:
+        """Returns a queryset of all of the dataset's locked project."""
+        return self.projects.filter(is_locked=True)
+
+    @property
+    def has_locked_projects(self) -> bool:
+        """Returns whether or not the dataset contains locked projects."""
+        return self.locked_projects.exists()
+
+    @property
     def samples(self) -> Iterable[Sample]:
         dataset_samples = Sample.objects.none()
         for project_id in self.data.keys():
@@ -398,6 +438,27 @@ class Dataset(TimestampedModel):
                 dataset_samples |= self.get_project_modality_samples(project_id, modality)
 
         return dataset_samples
+
+    def get_project_modality_samples(
+        self, project_id: str, modality: Modalities
+    ) -> Iterable[Library]:
+        """
+        Takes project's scpca_id and a modality.
+        Returns Sample instances defined in data attribute.
+        """
+        project_data = self.data.get(project_id, {})
+
+        project_samples = Sample.objects.filter(project__scpca_id=project_id)
+
+        if modality is Modalities.SINGLE_CELL and self.get_is_merged_project(project_id):
+            return project_samples.filter(has_single_cell_data=True)
+
+        if modality is Modalities.BULK_RNA_SEQ and project_data.get(
+            DatasetDataProjectConfig.INCLUDES_BULK
+        ):
+            return project_samples.filter(has_bulk_rna_seq=True)
+
+        return project_samples.filter(scpca_id__in=project_data.get(modality, []))
 
     @property
     def libraries(self) -> Iterable[Library]:
@@ -409,10 +470,6 @@ class Dataset(TimestampedModel):
                 dataset_libraries |= self.get_project_modality_libraries(project_id, modality)
 
         return dataset_libraries
-
-    @property
-    def ccdl_type(self) -> Dict:
-        return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
     def get_is_merged_project(self, project_id) -> bool:
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
@@ -469,47 +526,14 @@ class Dataset(TimestampedModel):
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
 
+    @property
+    def ccdl_type(self) -> Dict:
+        return ccdl_datasets.TYPES.get(self.ccdl_name, {})
+
     def get_metadata_file_content(self, libraries: Iterable[Library]) -> str:
         """Return a string of the metadata file content of a collection of libraries."""
         libraries_metadata = Library.get_libraries_metadata(libraries)
         return metadata_file.get_file_contents(libraries_metadata)
-
-    def get_project_modality_samples(
-        self, project_id: str, modality: Modalities
-    ) -> Iterable[Library]:
-        """
-        Takes project's scpca_id and a modality.
-        Returns Sample instances defined in data attribute.
-        """
-        project_data = self.data.get(project_id, {})
-
-        project_samples = Sample.objects.filter(project__scpca_id=project_id)
-
-        if modality is Modalities.SINGLE_CELL and self.get_is_merged_project(project_id):
-            return project_samples.filter(has_single_cell_data=True)
-
-        if modality is Modalities.BULK_RNA_SEQ and project_data.get(
-            DatasetDataProjectConfig.INCLUDES_BULK
-        ):
-            return project_samples.filter(has_bulk_rna_seq=True)
-
-        return project_samples.filter(scpca_id__in=project_data.get(modality, []))
-
-    def get_project_modality_libraries(
-        self, project_id: str, modality: Modalities
-    ) -> Iterable[Library]:
-        """
-        Takes project's scpca_id and a modality.
-        Returns Library instances associated with Samples defined in data attribute.
-        """
-        libraries = Library.objects.filter(
-            samples__in=self.get_project_modality_samples(project_id, modality), modality=modality
-        ).distinct()
-
-        if self.format != DatasetFormats.METADATA and modality != Modalities.BULK_RNA_SEQ:
-            libraries = libraries.filter(formats__contains=[self.format])
-
-        return libraries
 
     def get_project_modality_metadata_file_content(
         self, project_id: str, modality: Modalities
@@ -601,43 +625,3 @@ class Dataset(TimestampedModel):
     @property
     def computed_file_local_path(self) -> Path:
         return settings.OUTPUT_DATA_PATH / self.computed_file_name
-
-    @property
-    def spatial_projects(self) -> Iterable[Project]:
-        if self.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
-            return Project.objects.none()
-
-        if project_ids := [
-            project_id
-            for project_id, project_options in self.data.items()
-            if project_options.get(Modalities.SPATIAL, [])
-        ]:
-            return self.projects.filter(scpca_id__in=project_ids)
-
-        return Project.objects.none()
-
-    @property
-    def single_cell_projects(self) -> Iterable[Project]:
-        if project_ids := [
-            project_id
-            for project_id, project_options in self.data.items()
-            if project_options.get(Modalities.SINGLE_CELL)
-        ]:
-            return Project.objects.filter(scpca_id__in=project_ids)
-
-        return Project.objects.none()
-
-    @property
-    def bulk_single_cell_projects(self) -> Iterable[Project]:
-        if project_ids := [
-            project_id
-            for project_id, project_options in self.data.items()
-            if project_options.get(DatasetDataProjectConfig.INCLUDES_BULK)
-        ]:
-            return Project.objects.filter(scpca_id__in=project_ids)
-
-        return Project.objects.none()
-
-    @property
-    def cite_seq_projects(self) -> Iterable[Project]:
-        return self.projects.filter(has_cite_seq_data=True)
