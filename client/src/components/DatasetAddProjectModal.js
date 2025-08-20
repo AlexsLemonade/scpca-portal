@@ -163,6 +163,7 @@ export const DatasetAddProjectModal = ({
                   />
                   {sampleDifference.length > 0 && (
                     <DatasetWarningMissingSamples
+                      project={project}
                       sampleCount={sampleDifference.length}
                     />
                   )}
