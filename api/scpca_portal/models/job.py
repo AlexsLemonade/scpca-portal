@@ -71,27 +71,6 @@ class Job(TimestampedModel):
             return f"Job {self.id} - {self.batch_job_id} - {self.state}"
         return f"Job {self.id} - {self.state}"
 
-    @staticmethod
-    def get_job_state(aws_job: dict) -> tuple[str, str | None]:
-        """
-        Maps AWS Batch status to a corresponding local Job state.
-        Returns the local state and AWS Batch status reason for failed or terminated jobs.
-        """
-        status = aws_job.get("status")
-        reason = aws_job.get("statusReason")
-
-        match status:
-            case "SUCCEEDED":
-                return JobStates.SUCCEEDED, None
-
-            case "FAILED":
-                if aws_job.get("isCancelled") or aws_job.get("isTerminated"):
-                    return JobStates.TERMINATED, reason
-                return JobStates.FAILED, reason
-
-            case _:
-                return JobStates.PROCESSING, None
-
     @classmethod
     def get_dataset_job(cls, dataset: Dataset) -> Self:
         """
@@ -101,26 +80,6 @@ class Job(TimestampedModel):
             batch_job_name=str(dataset.id),
             dataset=dataset,
         )
-
-    def process_dataset_job(
-        self,
-        update_s3: bool = True,
-        clean_up_output_data=False,
-    ) -> None:
-        if old_dataset_file := self.dataset.computed_file:
-            old_dataset_file.purge(update_s3)
-
-        computed_file = ComputedFile.get_dataset_file(self.dataset)
-
-        if update_s3:
-            s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
-
-        computed_file.save()
-        self.dataset.computed_file = computed_file
-        self.dataset.save()
-
-        if clean_up_output_data:
-            computed_file.clean_up_local_computed_file()
 
     @classmethod
     def get_project_job(
@@ -187,6 +146,39 @@ class Job(TimestampedModel):
             },
         )
 
+    def create_retry_job(self, *, save: bool = True) -> Self:
+        """
+        Prepares a new PENDING job for retry with:
+        - incremented attempt count
+        - batch fields
+        - the associated dataset
+        By default, saves the new job as PENDING (state, timestamp).
+        (For bulk operations, the caller should pass False to prevent saving.)
+        Calls the dataset's method to sync the job's state.
+        Raises an error when unable to create a retry job:
+        - JobInvalidRetryStateError
+        Returns the new job, or False if the current job is not in a final state.
+        """
+        if self.state not in common.FINAL_JOB_STATES:
+            raise JobInvalidRetryStateError(self)
+
+        new_job = Job(
+            attempt=self.attempt + 1,
+            batch_job_name=self.batch_job_name,
+            batch_job_definition=self.batch_job_definition,
+            batch_job_queue=self.batch_job_queue,
+            batch_container_overrides=self.batch_container_overrides,
+            dataset=self.dataset,
+        )
+
+        new_job.apply_state(JobStates.PENDING)
+        if save:
+            new_job.save()
+            if new_job.dataset:  # TODO: Remove after the dataset release
+                new_job.dataset.save()
+
+        return new_job
+
     @classmethod
     def create_retry_jobs(cls, jobs: List[Self]) -> List[Self]:
         """
@@ -212,6 +204,47 @@ class Job(TimestampedModel):
                 Dataset.bulk_update_state(retry_datasets)
 
         return retry_jobs
+
+    @staticmethod
+    def get_job_state(aws_job: dict) -> tuple[str, str | None]:
+        """
+        Maps AWS Batch status to a corresponding local Job state.
+        Returns the local state and AWS Batch status reason for failed or terminated jobs.
+        """
+        status = aws_job.get("status")
+        reason = aws_job.get("statusReason")
+
+        match status:
+            case "SUCCEEDED":
+                return JobStates.SUCCEEDED, None
+
+            case "FAILED":
+                if aws_job.get("isCancelled") or aws_job.get("isTerminated"):
+                    return JobStates.TERMINATED, reason
+                return JobStates.FAILED, reason
+
+            case _:
+                return JobStates.PROCESSING, None
+
+    def process_dataset_job(
+        self,
+        update_s3: bool = True,
+        clean_up_output_data=False,
+    ) -> None:
+        if old_dataset_file := self.dataset.computed_file:
+            old_dataset_file.purge(update_s3)
+
+        computed_file = ComputedFile.get_dataset_file(self.dataset)
+
+        if update_s3:
+            s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
+
+        computed_file.save()
+        self.dataset.computed_file = computed_file
+        self.dataset.save()
+
+        if clean_up_output_data:
+            computed_file.clean_up_local_computed_file()
 
     @classmethod
     def submit_pending(cls) -> List[Self]:
@@ -487,36 +520,3 @@ class Job(TimestampedModel):
             self.save()
             if self.dataset:  # TODO: Remove after the dataset release
                 self.dataset.save()
-
-    def create_retry_job(self, *, save: bool = True) -> Self:
-        """
-        Prepares a new PENDING job for retry with:
-        - incremented attempt count
-        - batch fields
-        - the associated dataset
-        By default, saves the new job as PENDING (state, timestamp).
-        (For bulk operations, the caller should pass False to prevent saving.)
-        Calls the dataset's method to sync the job's state.
-        Raises an error when unable to create a retry job:
-        - JobInvalidRetryStateError
-        Returns the new job, or False if the current job is not in a final state.
-        """
-        if self.state not in common.FINAL_JOB_STATES:
-            raise JobInvalidRetryStateError(self)
-
-        new_job = Job(
-            attempt=self.attempt + 1,
-            batch_job_name=self.batch_job_name,
-            batch_job_definition=self.batch_job_definition,
-            batch_job_queue=self.batch_job_queue,
-            batch_container_overrides=self.batch_container_overrides,
-            dataset=self.dataset,
-        )
-
-        new_job.apply_state(JobStates.PENDING)
-        if save:
-            new_job.save()
-            if new_job.dataset:  # TODO: Remove after the dataset release
-                new_job.dataset.save()
-
-        return new_job
