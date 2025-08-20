@@ -104,6 +104,7 @@ class Dataset(TimestampedModel):
     def __str__(self):
         return f"Dataset {self.id}"
 
+    # INSTANCE CREATION AND MODIFICATION
     @classmethod
     def get_or_find_ccdl_dataset(
         cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
@@ -213,6 +214,18 @@ class Dataset(TimestampedModel):
         ]
         cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
 
+    @property
+    def is_valid_ccdl_dataset(self) -> bool:
+        if not self.libraries.exists():
+            return False
+
+        return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
+
+    @property
+    def ccdl_type(self) -> Dict:
+        return ccdl_datasets.TYPES.get(self.ccdl_name, {})
+
+    # STATS PROPERTY ATTRIBUTES
     @property
     def stats(self) -> Dict:
         return {
@@ -351,6 +364,7 @@ class Dataset(TimestampedModel):
 
         return diagnoses_counts
 
+    # HASHING LOGIC
     @property
     def is_hash_changed(self) -> bool:
         """
@@ -445,13 +459,7 @@ class Dataset(TimestampedModel):
         concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
-    @property
-    def is_valid_ccdl_dataset(self) -> bool:
-        if not self.libraries.exists():
-            return False
-
-        return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
-
+    # ASSOCIATIONS WITH OTHER MODELS
     @property
     def projects(self) -> Iterable[Project]:
         """Returns all Project instances associated with the Dataset."""
@@ -559,6 +567,22 @@ class Dataset(TimestampedModel):
 
         return dataset_libraries
 
+    def get_project_modality_libraries(
+        self, project_id: str, modality: Modalities
+    ) -> Iterable[Library]:
+        """
+        Takes project's scpca_id and a modality.
+        Returns Library instances associated with Samples defined in data attribute.
+        """
+        libraries = Library.objects.filter(
+            samples__in=self.get_project_modality_samples(project_id, modality), modality=modality
+        ).distinct()
+
+        if self.format != DatasetFormats.METADATA and modality != Modalities.BULK_RNA_SEQ:
+            libraries = libraries.filter(formats__contains=[self.format])
+
+        return libraries
+
     def get_is_merged_project(self, project_id) -> bool:
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
 
@@ -613,10 +637,6 @@ class Dataset(TimestampedModel):
     @property
     def original_file_paths(self) -> Set[Path]:
         return {Path(of.s3_key) for of in self.original_files}
-
-    @property
-    def ccdl_type(self) -> Dict:
-        return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
     @property
     def computed_file_name(self) -> Path:
