@@ -26,9 +26,11 @@ export const DatasetPortalWideDownloadCard = ({
 
   const [includesMerged, setIncludesMerged] = useState(false)
   const [dataset, setDataset] = useState(
+    // TODO: improve merged check when file items is added to the backend (see below comment)
     datasets.find((d) => !d.ccdl_name.endsWith('MERGED'))
   )
 
+  // TODO: add cite seq, bulk and merged as file items to the backend
   const fileItems = [
     modality,
     ...['has_cite_seq_data', 'has_bulk_rna_seq'].filter((key) => dataset?.[key])
@@ -96,6 +98,7 @@ export const DatasetPortalWideDownloadCard = ({
           <Box direction="column">
             {!metadataOnly && (
               <Text margin={{ bottom: 'small' }} weight="bold">
+                {/* TODO: when computed files are available update to dataset.computedFile.size_in_bytes */}
                 Size: {formatBytes(dataset?.stats.uncompressed_size)}
               </Text>
             )}
