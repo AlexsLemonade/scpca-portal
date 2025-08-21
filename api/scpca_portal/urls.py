@@ -2,7 +2,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path, re_path, reverse_lazy
 from django.views.generic.base import RedirectView
-from rest_framework import permissions
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework_extensions.routers import ExtendedDefaultRouter
