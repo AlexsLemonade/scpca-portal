@@ -239,6 +239,7 @@ export const Table = ({
   selectedRows, // For highlighting selected samples rows
   infoText,
   children,
+  onAllRowsChange = () => {},
   onFilteredRowsChange = () => {}
 }) => {
   const filterTypes = useMemo(
@@ -287,6 +288,12 @@ export const Table = ({
     // eslint-disable-next-line no-prototype-builtins, no-param-reassign
     if (!c.hasOwnProperty('isVisible')) c.isVisible = true
   })
+
+  useEffect(() => {
+    if (instance.rows) {
+      onAllRowsChange(instance.rows.map((row) => row.original))
+    }
+  }, [instance.rows])
 
   useEffect(() => {
     if (instance.page) {

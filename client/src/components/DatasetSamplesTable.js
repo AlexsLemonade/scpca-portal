@@ -13,7 +13,7 @@ import { TriStateModalityCheckBox } from 'components/TriStateModalityCheckBox'
 // Currently mock data is used via Storybook for development
 // Some cells are removed teemporarily (e.g., multiplexed only cells)
 export const DatasetSamplesTable = ({ samples, stickies = 3 }) => {
-  const { selectedSamples, toggleSample, getFilteredSamples } =
+  const { selectedSamples, toggleSample, setFilteredSamples } =
     useDatasetSamplesTable()
 
   const availableModalities = ['SINGLE_CELL', 'SPATIAL']
@@ -119,7 +119,7 @@ export const DatasetSamplesTable = ({ samples, stickies = 3 }) => {
       pageSize={5}
       pageSizeOptions={[5, 10, 20, 50]}
       selectedRows={selectedSamples}
-      onFilteredRowsChange={getFilteredSamples}
+      onFilteredRowsChange={setFilteredSamples}
     >
       <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
         <Button label="Add to Dataset" primary />

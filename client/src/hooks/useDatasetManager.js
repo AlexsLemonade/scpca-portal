@@ -121,23 +121,28 @@ export const useDatasetManager = () => {
 
   /* Project-level */
   const addProject = async (project, newProjectData) => {
-    const dataCopy = structuredClone(myDataset.data) || {}
+    const datasetDataCopy = structuredClone(myDataset.data) || {}
 
-    if (dataCopy[project.scpca_id]) {
+    if (datasetDataCopy[project.scpca_id]) {
       console.error('Project already present in myDataset')
     }
 
     // Make sure data is defined for a new dataset
-    dataCopy[project.scpca_id] = newProjectData
+    datasetDataCopy[project.scpca_id] = newProjectData
 
     const updatedDataset = {
       ...myDataset,
-      data: dataCopy
+      data: datasetDataCopy
     }
 
     return !myDataset.id
       ? createDataset(updatedDataset)
       : updateDataset(updatedDataset)
+  }
+
+  const getDatasetProjectData = (project) => {
+    // Get the myDataset.data[project.scpca_id] object
+    return myDataset?.data?.[project.scpca_id] || {}
   }
 
   const getProjectDataSamples = (
@@ -147,17 +152,20 @@ export const useDatasetManager = () => {
     spatialSamples
   ) => {
     // Populate modality samples for the project data
-    const projectDataCopy =
-      structuredClone(myDataset.data?.[project.scpca_id]) || {}
+    const datasetProjectDataCopy = structuredClone(
+      getDatasetProjectData(project)
+    )
 
     const hasModality = (m) => selectedModalities.includes(m)
 
-    projectDataCopy.SINGLE_CELL = hasModality('SINGLE_CELL')
+    datasetProjectDataCopy.SINGLE_CELL = hasModality('SINGLE_CELL')
       ? singleCellSamples
       : []
-    projectDataCopy.SPATIAL = hasModality('SPATIAL') ? spatialSamples : []
+    datasetProjectDataCopy.SPATIAL = hasModality('SPATIAL')
+      ? spatialSamples
+      : []
 
-    return projectDataCopy
+    return datasetProjectDataCopy
   }
 
   const getProjectSingleCellSamples = (
@@ -193,20 +201,19 @@ export const useDatasetManager = () => {
   }
 
   /* Sample-level */
-  const setSamples = async (dataset, project, modality, updatedSamples) => {
-    // updatedSamples: either sampleIDs[] or 'MERGE'
-    const datasetCopy = structuredClone(dataset)
+  const setSamples = async (project, newProjectData) => {
+    const datasetDataCopy = structuredClone(myDataset.data) || {}
 
-    if (!datasetCopy.data[project.scpca_id]) {
-      datasetCopy.data[project.scpca_id] = {}
+    datasetDataCopy[project.scpca_id] = newProjectData
+
+    const updatedDataset = {
+      ...myDataset,
+      data: datasetDataCopy
     }
 
-    datasetCopy.data[project.scpca_id][modality] = updatedSamples
-
-    const updatedDataset = !datasetCopy.id
-      ? await createDataset(datasetCopy)
-      : await updateDataset(datasetCopy)
-    return updatedDataset
+    return !myDataset.id
+      ? createDataset(updatedDataset)
+      : updateDataset(updatedDataset)
   }
 
   const getMissingModaliesSamples = (samples, modalities) => {
@@ -243,6 +250,7 @@ export const useDatasetManager = () => {
     getDataset,
     processDataset,
     addProject,
+    getDatasetProjectData,
     getProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,

@@ -4,8 +4,10 @@ import { config } from 'config'
 import { Box, Text } from 'grommet'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
+import { differenceArray } from 'helpers/differenceArray'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
+import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
@@ -20,12 +22,19 @@ export const ProjectSamplesTable = ({
   samples: defaultSamples,
   stickies = 3
 }) => {
-  const { myDataset, userFormat } = useDatasetManager()
-  const { getFilteredSamples, selectedSamples, toggleSample } =
+  const {
+    myDataset,
+    userFormat,
+    getDatasetProjectData,
+    getProjectSingleCellSamples,
+    getProjectSpatialSamples
+  } = useDatasetManager()
+  const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
     useDatasetSamplesTable()
 
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
+  const [disableAddToDataset, setDisableAddToDataset] = useState(false)
 
   const hasMultiplexedData = project.has_multiplexed_data
   const showWarningMultiplexed =
@@ -56,6 +65,7 @@ export const ProjectSamplesTable = ({
               <Box key={m} align="center" pad={{ horizontal: 'small' }}>
                 <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
                 <TriStateModalityCheckBox
+                  project={project}
                   modality={m}
                   disabled={!project[`has_${m.toLowerCase()}_data`]}
                 />
@@ -76,7 +86,9 @@ export const ProjectSamplesTable = ({
           {allModalities.map((m) => (
             <ModalityCheckBox
               key={`${row.original.scpca_id}_${m}`}
+              project={project}
               modality={m}
+              samples={samples}
               sampleId={row.original.scpca_id}
               disabled={!row.original[`has_${m.toLowerCase()}_data`]}
               onClick={() => toggleSample(m, row.original)}
@@ -194,6 +206,36 @@ export const ProjectSamplesTable = ({
     if (samples && !loaded) setLoaded(true)
   }, [samples, loaded])
 
+  useEffect(() => {
+    if (samples && loaded) {
+      const datasetData = getDatasetProjectData(project)
+
+      const projectSamplesByModality = {
+        SINGLE_CELL: getProjectSingleCellSamples(samples),
+        SPATIAL: getProjectSpatialSamples(samples)
+      }
+
+      const datasetSamplesByModality = {
+        SINGLE_CELL:
+          datasetData.SINGLE_CELL === 'MERGED'
+            ? projectSamplesByModality.SINGLE_CELL
+            : datasetData.SINGLE_CELL || [],
+        SPATIAL: datasetData.SPATIAL || []
+      }
+
+      const samplesLeft = allModalities
+        .map((m) =>
+          differenceArray(
+            projectSamplesByModality[m],
+            datasetSamplesByModality[m] || []
+          )
+        )
+        .flat()
+
+      setDisableAddToDataset(samplesLeft.length === 0)
+    }
+  }, [myDataset, samples, loaded])
+
   if (!loaded)
     return (
       <Box margin="64px">
@@ -202,19 +244,29 @@ export const ProjectSamplesTable = ({
     )
 
   return (
-    <Table
-      columns={columns}
-      data={samples}
-      filter
-      stickies={stickies}
-      pageSize={5}
-      pageSizeOptions={[5, 10, 20, 50]}
-      infoText={infoText}
-      defaultSort={[{ id: 'scpca_id', asc: true }]} // TODO: Ask about new defaultSort
-      selectedRows={selectedSamples}
-      onFilteredRowsChange={getFilteredSamples}
-    >
-      {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
-    </Table>
+    <>
+      <Box direction="row" justify="end">
+        <DatasetAddSamplesModal
+          project={project}
+          samples={samples}
+          disabled={disableAddToDataset}
+        />
+      </Box>
+      <Table
+        columns={columns}
+        data={samples}
+        filter
+        stickies={stickies}
+        pageSize={5}
+        pageSizeOptions={[5, 10, 20, 50]}
+        infoText={infoText}
+        defaultSort={[{ id: 'scpca_id', asc: true }]} // TODO: Ask about new defaultSort
+        selectedRows={selectedSamples}
+        onAllRowsChange={setAllSamples}
+        onFilteredRowsChange={setFilteredSamples}
+      >
+        {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
+      </Table>
+    </>
   )
 }
