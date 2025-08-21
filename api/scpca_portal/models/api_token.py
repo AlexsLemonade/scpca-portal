@@ -20,7 +20,7 @@ def validate_email_blacklist(value):
 
     blacklist = ["example.com"]
 
-    domain = value.split("@").lower()
+    domain = value.split("@")[1].lower()
     if domain in blacklist:
         raise ValidationError(f"Emails from the domain '{domain}' are not allowed.", code="invalid")
 
