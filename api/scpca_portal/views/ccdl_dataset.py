@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 
-from drf_spectacular.utils import extend_schema_view, extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from scpca_portal.models import Dataset
 from scpca_portal.serializers import DatasetDetailSerializer, DatasetSerializer
@@ -9,15 +9,14 @@ from scpca_portal.serializers import DatasetDetailSerializer, DatasetSerializer
 @extend_schema_view(
     list=extend_schema(
         auth=False,
-        description="""CCDL Datasets are immutable pre-generated datasets managed by the Data Lab.
-            ccdl_name describes the contents
-            ccdl_project_id indicates if the dataset only contains samples limited to a specific project.
-            ccdl_modality indicates if the dataset only contains samples limited to a specific modality.
-            All other attributes are the same as user defined dataset.""",
+        description="""CCDL Datasets are immutable pre-generated datasets managed by
+            the Data Lab. CCDL Datasets look similar to Datasets except that they
+            have a couple additional properties that describe their contents.""",
     ),
     retrieve=extend_schema(
         description="""CCDL Datasets are immutable pre-generated datasets.
-        You can retrieve a download_url by passing an API-KEY header with an activated token's id as the value.
+        In order to retrieve a CCDL dataset with a download_url you must
+        pass a API-KEY header.
         """
     ),
 )

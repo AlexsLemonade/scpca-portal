@@ -1,7 +1,7 @@
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import PermissionDenied
 
-from drf_spectacular.utils import extend_schema_view, extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import APIToken, ComputedFile, TokenDownload
@@ -53,16 +53,16 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
                 self.fields.pop("download_url")
 
 
-# @extend_schema_view(
-#     list=extend_schema(
-#         auth=False, description="""Computed Files are immutable pre-generated downloadable files."""
-#     ),
-#     retrieve=extend_schema(
-#         description="""Computed Files are immutable pre-generated downloadable files.
-#         You can retrieve a download_url by passing an API-KEY header with an activated token's id as the value.
-#         """
-#     ),
-# )
+@extend_schema_view(
+    list=extend_schema(
+        auth=False, description="""Computed Files are immutable pre-generated downloadable files."""
+    ),
+    retrieve=extend_schema(
+        description="""Computed Files are immutable pre-generated downloadable files..
+        In order to retrieve a Computed File with a download_url you must
+        pass a API-KEY header."""
+    ),
+)
 class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = ComputedFile.objects.order_by("-created_at")
     ordering_fields = "__all__"

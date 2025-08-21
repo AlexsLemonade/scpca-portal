@@ -34,7 +34,10 @@ class UpdateProcessingDatasetError(APIException):
         **An API-KEY header is required to set start to `true` at time of creation.**"""
     ),
     retrieve=extend_schema(
-        description="Retrieve Dataset by ID. `API-KEY` header is required for `download_url` to be populated.",
+        description="""Retrieve Dataset by ID. Datasts are immutable pre-generated datasets.
+        In order to retrieve a CCDL dataset with a download_url you must
+        pass a API-KEY header.
+        """
     ),
     update=extend_schema(description="Update the Dataset data, email or start values."),
 )

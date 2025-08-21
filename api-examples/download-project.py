@@ -38,8 +38,8 @@ def request_api(
     Genertic API Wrapper.
     Accepts:
      - resource: A string that is definied in API_RESOURCES. Ex: "samples"
-     - id: A string, int, or undefined: If specified will request that specific resource from the API.
-     - query: A dict that represents the query parameters to tack onto the request. Will be url encoded.
+     - id: A string, int, or undefined: Id of resource.
+     - query: A query parameters as a dict to be urlencoded to tack onto the request.
      - body: A dict that is the payload of your request.
      - token: A authenticated API token to add to the request headers.
      - method: HTTP Method: ex: "GET" or "POST" - defaults to "GET"

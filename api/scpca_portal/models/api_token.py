@@ -17,6 +17,7 @@ def validate_email_blacklist(value):
     # Email validation will get this.
     if "@" not in value:
         return
+
     blacklist = ["example.com"]
 
     domain = value.split("@")
