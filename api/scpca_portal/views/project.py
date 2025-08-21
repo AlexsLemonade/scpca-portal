@@ -46,9 +46,7 @@ class ProjectFilterSet(filters.FilterSet):
             }
         }
 
-@extend_schema(
-    auth=False
-)
+@extend_schema(auth=False)
 class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Project.objects.all().order_by("created_at")
     ordering_fields = "__all__"

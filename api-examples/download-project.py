@@ -1,8 +1,8 @@
-from urllib import request
-import urllib.parse
 import json
 import os
+import urllib.parse
 from pprint import pp
+from urllib import request
 
 # NOTE: UPDATE EMAIL OR SCRIPT WILL NOT WORK
 # save an api key here and use it for subsequest calls

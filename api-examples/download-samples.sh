@@ -22,7 +22,6 @@ API_ROOT="https://api.scpca.alexslemonade.org/v1"
 
 #
 # Step 1: Find samples of interest.
-#
 
 DIAGNOSIS="Ganglioglioma"
 
@@ -37,7 +36,6 @@ echo "Found $(echo $SAMPLES_RESPONSE | jq '.count') samples."
 
 #
 # Step 2: Get the computed files in the format and modality that you want.
-#
 
 # Get a flat list of computed files from the projects response.
 ALL_COMPUTED_FILES=$(
@@ -71,8 +69,7 @@ COMPUTED_FILE_IDS=$(
 
 
 #
-# Step 1: Create a token to get download urls
-#
+# Step 3: Create a token to get download urls
 
 if [ -f "$TOKEN_FILE" ]; then
   # Check if token file exists.
@@ -106,8 +103,7 @@ fi
 
 #
 # Step 4: Get the download URLs, they expire after 7 days
-#
-# 
+
 for computed_file_id in $COMPUTED_FILE_IDS; do
   COMPUTED_FILE_RESPONSE=$(curl -s --get \
     "${API_ROOT}/computed-files/$computed_file_id" \
