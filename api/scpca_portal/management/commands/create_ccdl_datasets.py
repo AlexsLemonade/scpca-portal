@@ -18,7 +18,17 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("--ignore-hash", type=bool, default=False, action=BooleanOptionalAction)
+        ignore_hash_help_text = """
+        By default, datasets are only processed if they are new or their hash has changed.
+        Ignore hash forces reprocessing even when the hash has not changed.
+        """
+        parser.add_argument(
+            "--ignore-hash",
+            type=bool,
+            default=False,
+            action=BooleanOptionalAction,
+            help=ignore_hash_help_text,
+        )
 
     def handle(self, *args, **kwargs):
         self.create_ccdl_datasets(**kwargs)
