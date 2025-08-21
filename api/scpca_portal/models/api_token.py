@@ -14,8 +14,12 @@ def validate_email_blacklist(value):
     Prevent the ability to use certain email addresses to create a token.
     This is primarily to prevent pollution from the swagger-ui documentation.
     """
+    # Email validation will get this.
+    if "@" not in value:
+        return
     blacklist = ["example.com"]
-    domain = value.split("@")[1]
+
+    domain = value.split("@")
     if domain in blacklist:
         raise ValidationError(f"Emails from the domain '{domain}' are not allowed.", code="invalid")
 
