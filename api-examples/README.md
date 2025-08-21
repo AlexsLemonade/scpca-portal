@@ -30,6 +30,12 @@ This indicates that you have accepted the [ScPCA Portal's Terms of Use](https://
 
 ## Language Specific Example Scripts
 
+We have prepared some example scripts for querying projects and samples then downloading their related computed files.
+
+> [!IMPORTANT]
+> Please review the script before running.
+> You will need to update the email address variable in order to successfully execute the script.
+
 ### Bash
 - [Download Project in Bash](./download-project.sh)
 - [Download Sample in Bash](./download-samples.sh)
