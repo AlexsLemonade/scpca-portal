@@ -1,4 +1,5 @@
 from rest_framework import mixins, serializers, viewsets
+
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 
 from scpca_portal.models import APIToken
@@ -27,8 +28,8 @@ class APITokenSerializer(serializers.ModelSerializer):
 )
 @extend_schema_view(
     create=extend_schema(
-        description="""Create an API token to confirm that Terms of Service are agreed. 
-        Used for adding a HTTP header to requests for any endpoint that requires token authentication. 
+        description="""Create an API token to confirm that Terms of Service are agreed.
+        Used for adding a HTTP header to requests for any endpoint that requires token authentication.
         **Do not share your Token ID**"""
     ),
     retrieve=extend_schema(description="Retreive token status by Token ID."),

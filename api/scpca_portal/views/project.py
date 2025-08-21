@@ -1,8 +1,8 @@
 from django.contrib.postgres.fields import ArrayField
 from rest_framework import viewsets
-from drf_spectacular.utils import extend_schema
 
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import Project
@@ -45,6 +45,7 @@ class ProjectFilterSet(filters.FilterSet):
                 },
             }
         }
+
 
 @extend_schema(auth=False)
 class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):

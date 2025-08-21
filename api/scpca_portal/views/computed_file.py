@@ -1,7 +1,7 @@
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import PermissionDenied
-from drf_spectacular.utils import extend_schema_view, extend_schema
 
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import APIToken, ComputedFile, TokenDownload

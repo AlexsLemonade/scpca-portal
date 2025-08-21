@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets, mixins
+from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import APIException
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
+
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.exceptions import DatasetError, JobError
@@ -28,7 +29,7 @@ class UpdateProcessingDatasetError(APIException):
 )
 @extend_schema_view(
     create=extend_schema(
-    description="""Datasets are described here.
+        description="""Datasets are described here.
         **Format is required at time of creation.**
         **An API-KEY header is required to set start to `true` at time of creation.**"""
     ),

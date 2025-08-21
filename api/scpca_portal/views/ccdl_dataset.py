@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+
 from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from scpca_portal.models import Dataset
@@ -12,13 +13,13 @@ from scpca_portal.serializers import DatasetDetailSerializer, DatasetSerializer
             ccdl_name describes the contents
             ccdl_project_id indicates if the dataset only contains samples limited to a specific project.
             ccdl_modality indicates if the dataset only contains samples limited to a specific modality.
-            All other attributes are the same as user defined dataset."""
+            All other attributes are the same as user defined dataset.""",
     ),
     retrieve=extend_schema(
         description="""CCDL Datasets are immutable pre-generated datasets.
         You can retrieve a download_url by passing an API-KEY header with an activated token's id as the value.
         """
-    )
+    ),
 )
 class CCDLDatasetViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Dataset.objects.filter(is_ccdl=True).order_by("ccdl_project_id")

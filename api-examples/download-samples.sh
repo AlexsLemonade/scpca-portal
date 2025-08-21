@@ -15,7 +15,6 @@ TOKEN_FILE=".token"
 
 #
 # Additional Configuration
-# 
 API_ROOT="https://api.scpca.alexslemonade.org/v1"
 
 

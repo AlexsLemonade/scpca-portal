@@ -1,7 +1,8 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from rest_framework import viewsets, serializers
+from rest_framework import serializers, viewsets
 from rest_framework.response import Response
+
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from scpca_portal.models import Project, Sample

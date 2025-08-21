@@ -17,6 +17,7 @@ from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
 
+
 class ComputedFile(CommonDataAttributes, TimestampedModel):
     class Meta:
         db_table = "computed_files"
@@ -40,7 +41,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             (ANN_DATA, "AnnData"),
             (SINGLE_CELL_EXPERIMENT, "Single cell experiment"),
         )
-    
+
     format = models.TextField(choices=OutputFileFormats.CHOICES, null=True)
     includes_merged = models.BooleanField(default=False)
     modality = models.TextField(choices=OutputFileModalities.CHOICES, null=True)

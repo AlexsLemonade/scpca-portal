@@ -4,9 +4,7 @@ from django.urls import include, path, re_path, reverse_lazy
 from django.views.generic.base import RedirectView
 from rest_framework import permissions
 
-# OpenAPI 3.0+
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from scpca_portal.views import (
@@ -49,7 +47,9 @@ urlpatterns = [
         "docs/",
         include(
             [
-                re_path(r"^$", RedirectView.as_view(url=reverse_lazy("swagger-ui"), permanent=False)),
+                re_path(
+                    r"^$", RedirectView.as_view(url=reverse_lazy("swagger-ui"), permanent=False)
+                ),
                 re_path(
                     r"^swagger/$",
                     SpectacularSwaggerView.as_view(url_name="schema"),

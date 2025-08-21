@@ -116,7 +116,6 @@ def filter_resources(resources: list, filters: dict):
     return matches
 
 
-
 # API TOKEN
 
 # Here we are creating a token using the above helper method.
@@ -138,7 +137,6 @@ else:
     print(f"Saving token to {API_TOKEN_FILENAME}")
     with open(API_TOKEN_FILENAME, "w") as f:
         f.writelines(token)
-
 
 
 # SAMPLES
