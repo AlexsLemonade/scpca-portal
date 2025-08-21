@@ -16,7 +16,7 @@ There, you can submit queries and see real API responses.
 
 ## Clients
 
-- (web)[https://scpca.alexslemonade.org]
+- [web](https://scpca.alexslemonade.org)
 
 <!-- Should we add an interest form or link to github issue? -->
 > [!NOTE]
