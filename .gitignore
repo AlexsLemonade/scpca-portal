@@ -174,3 +174,6 @@ api/test_data/
 api/data
 api/test_data*
 !api/test_data/readmes
+
+# API Exmples artifacts
+api-examples/.token
