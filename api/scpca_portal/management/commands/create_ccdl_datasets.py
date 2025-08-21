@@ -44,11 +44,16 @@ class Command(BaseCommand):
         return True
 
     def create_ccdl_datasets(self, **kwargs) -> None:
-        for ccdl_name in ccdl_datasets.TYPES:
-            # Project Datasets
-            for project in Project.objects.all():
-                self.attempt_dataset(ccdl_name, project.scpca_id)
+        ccdl_project_ids = list(Project.objects.values_list("scpca_id", flat=True))
+        portal_wide_ccdl_project_id = None
+        dataset_ccdl_project_ids = [*ccdl_project_ids, portal_wide_ccdl_project_id]
 
-            # Portal Wide datasets
-            if ccdl_name in ccdl_datasets.PORTAL_TYPE_NAMES:
-                self.attempt_dataset(ccdl_name)
+        for ccdl_name in ccdl_datasets.TYPES:
+            for ccdl_project_id in dataset_ccdl_project_ids:
+                if (
+                    ccdl_project_id is portal_wide_ccdl_project_id
+                    and ccdl_name not in ccdl_datasets.PORTAL_TYPE_NAMES
+                ):
+                    continue
+
+                self.attempt_dataset(ccdl_name, ccdl_project_id)
