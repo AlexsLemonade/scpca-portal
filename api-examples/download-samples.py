@@ -5,11 +5,9 @@ from pprint import pp
 from urllib import request
 
 # NOTE: UPDATE EMAIL OR SCRIPT WILL NOT WORK
-# save an api key here and use it for subsequest calls
-# this is where we will save the token for future calls
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
+# this is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
-API_TOKEN = None
 
 if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
     raise Exception("Please accept terms by adding a valid email for API_TOKEN_EMAIL")
@@ -119,6 +117,7 @@ def filter_resources(resources: list, filters: dict):
 
 # API TOKEN
 
+API_TOKEN = None
 # Here we are creating a token using the above helper method.
 # This also will save the file locally to API_TOKEN_FILENAME to use for future calls.
 # Please try to re-use your tokens and don't create a new one for every request.
