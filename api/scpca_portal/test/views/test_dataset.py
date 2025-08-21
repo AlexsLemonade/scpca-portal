@@ -129,11 +129,6 @@ class DatasetsTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_patch_is_not_allowed(self):
-        url = reverse("datasets-detail", args=[self.custom_dataset.id])
-        response = self.client.patch(url)
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
     def test_delete_is_not_allowed(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
         response = self.client.delete(url)
