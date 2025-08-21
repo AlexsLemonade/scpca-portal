@@ -32,7 +32,7 @@ class APITokenSerializer(serializers.ModelSerializer):
         Used for adding a HTTP header to requests for any endpoint that requires token
         authentication. **Do not share your Token ID**"""
     ),
-    retrieve=extend_schema(description="Retreive token status by Token ID."),
+    retrieve=extend_schema(description="Retrieve token status by Token ID."),
     update=extend_schema(description="Update the token's activation status."),
 )
 class APITokenViewSet(

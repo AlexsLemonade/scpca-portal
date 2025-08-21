@@ -19,7 +19,7 @@ class Common(Configuration):
         # Third party apps
         "rest_framework",  # utilities for rest apis
         "django_filters",  # for filtering rest endpoints
-        "django_extensions",  # additional managment commands
+        "django_extensions",  # additional management commands
         "drf_spectacular",  # OpenAPI 3.0
         "corsheaders",
         # Your apps
@@ -222,7 +222,7 @@ contained in https://github.com/AlexsLemonade/alsf-scpca.
 
 We are currently working towards replacing downloading computed-files directly with new endpoints for downloading datasets.
 
-There will be `ccdl-datasets` that closesly match existing project computed files.
+There will be `ccdl-datasets` that closely match existing project computed files.
 
 As well as `datasets` that are created and processed by API request.
 

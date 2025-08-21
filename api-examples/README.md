@@ -2,16 +2,16 @@
 
 ## Overview
 
-This documentation aims to help provide an introduction to using the ScPCA Portal's API.
+This documentation aims to provide an introduction to using the ScPCA Portal's API.
 
 ## Redoc
 
-For a quick overview of the ScPCA Portal's API available endpoints and responses please visit the [ScPCA Portal Redoc documentation](https://api.scpca.alexslemonade.org/docs/redoc).
+For a quick overview of the ScPCA Portal's API available endpoints and responses, please visit the [ScPCA Portal Redoc documentation](https://api.scpca.alexslemonade.org/docs/redoc).
 This shows all available endpoints, accepted query parameters, and the structure of endpoint responses.
 
 ## Swagger
 
-For an interactive user interface please visit the [ScPCA Portal Swagger documentation](https://api.scpca.alexslemonade.org/docs/swagger).
+For an interactive user interface, please visit the [ScPCA Portal Swagger documentation](https://api.scpca.alexslemonade.org/docs/swagger).
 There, you can submit queries and see real API responses.
 
 ## Clients
@@ -25,7 +25,7 @@ There, you can submit queries and see real API responses.
 ## API Tokens
 
 All endpoints can be accessed without using an API Token.
-However, in order to receive a download url for data you must create a token to attach to your request.
+However, in order to receive a download url for data, you must create a token to attach to your request.
 This indicates that you have accepted the [ScPCA Portal's Terms of Use](https://scpca.alexslemonade.org/terms-of-service).
 
 ## Language Specific Example Scripts
