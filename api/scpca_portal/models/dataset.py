@@ -589,6 +589,9 @@ class Dataset(TimestampedModel):
 
     @property
     def valid_ccdl_dataset(self) -> bool:
+        if not self.ccdl_project_id and self.ccdl_name not in ccdl_datasets.PORTAL_TYPE_NAMES:
+            return False
+
         if not self.libraries.exists():
             return False
 
