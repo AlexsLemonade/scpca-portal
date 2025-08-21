@@ -23,27 +23,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.create_ccdl_datasets(**kwargs)
 
-    def attempt_dataset(
-        self, ccdl_name, project_id: str | None = None, ignore_hash: bool = False
-    ) -> bool:
-        dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
-        if not found and not dataset.valid_ccdl_dataset:
-            return False
-        if found and dataset.is_hash_unchanged and not ignore_hash:
-            return False
-        dataset.save()
-
-        job = Job.get_dataset_job(dataset)
-        try:
-            job.submit()
-            logger.info(f"{dataset} job submitted successfully.")
-        except (DatasetError, JobError):
-            logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
-            job.increment_attempt_or_fail()
-
-        return True
-
-    def create_ccdl_datasets(self, **kwargs) -> None:
+    def create_ccdl_datasets(self, ignore_hash, **kwargs) -> None:
         ccdl_project_ids = list(Project.objects.values_list("scpca_id", flat=True))
         portal_wide_ccdl_project_id = None
         dataset_ccdl_project_ids = [*ccdl_project_ids, portal_wide_ccdl_project_id]
@@ -56,4 +36,18 @@ class Command(BaseCommand):
                 ):
                     continue
 
-                self.attempt_dataset(ccdl_name, ccdl_project_id)
+                dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, ccdl_project_id)
+                if not found and not dataset.valid_ccdl_dataset:
+                    continue
+                if found and dataset.is_hash_unchanged and not ignore_hash:
+                    continue
+
+                dataset.save()
+
+                job = Job.get_dataset_job(dataset)
+                try:
+                    job.submit()
+                    logger.info(f"{dataset} job submitted successfully.")
+                except (DatasetError, JobError):
+                    logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
+                    job.increment_attempt_or_fail()
