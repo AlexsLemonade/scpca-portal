@@ -9,13 +9,26 @@ from django.db import models
 from scpca_portal.models.base import TimestampedModel
 
 
+def validate_email_blacklist(value):
+    """
+    Prevent the ability to use certain email addresses to create a token.
+    This is primarily to prevent pollution from the swagger-ui documentation.
+    """
+    blacklist = ['example.com']
+    domain = value.split('@')[1]
+    if domain in blacklist:
+        raise ValidationError(
+            f"Emails from the domain '{domain}' are not allowed.",
+            code='invalid'
+        )
+
 class APIToken(TimestampedModel):
     """Controls API user access to the portal data."""
 
     class Meta:
         db_table = "api_tokens"
 
-    email = models.EmailField("email")
+    email = models.EmailField("email", validators=[validate_email_blacklist])
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     is_activated = models.BooleanField(default=False)
 
@@ -34,7 +47,7 @@ class APIToken(TimestampedModel):
             pass
 
     @property
-    def terms_and_conditions(self):
+    def terms_and_conditions(self) -> str:
         """Terms and conditions placeholder."""
 
         return settings.TERMS_AND_CONDITIONS
