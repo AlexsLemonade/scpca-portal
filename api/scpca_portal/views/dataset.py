@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
-from rest_framework.response import Response
+from rest_framework import status, viewsets, mixins
+from rest_framework.exceptions import APIException
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.exceptions import DatasetError, JobError
@@ -14,11 +15,48 @@ from scpca_portal.serializers import (
 logger = get_and_configure_logger(__name__)
 
 
-class DatasetViewSet(viewsets.ModelViewSet):
-    ordering_fields = "__all__"
+class UpdateProcessingDatasetError(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = "Invalid request: Processing datasets cannot be modified."
+    default_code = "conflict"
+
+
+@extend_schema(
+    examples=[
+        OpenApiExample("Example Dataset Response"),
+    ],
+)
+@extend_schema_view(
+    create=extend_schema(
+    description="""Datasets are described here.
+        **Format is required at time of creation.**
+        **An API-KEY header is required to set start to `true` at time of creation.**"""
+    ),
+    retrieve=extend_schema(
+        description="Retrieve Dataset by ID. `API-KEY` header is required for `download_url` to be populated.",
+    ),
+    update=extend_schema(description="Update the Dataset data, email or start values."),
+)
+class DatasetViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    model = Dataset
+    lookup_field = "id"
 
     def get_queryset(self):
         return Dataset.objects.filter(is_ccdl=False)
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return DatasetCreateSerializer
+
+        if self.action == "update":
+            return DatasetUpdateSerializer
+
+        return DatasetDetailSerializer
 
     def get_object(self):
         queryset = self.get_queryset()
@@ -26,13 +64,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
         return dataset
 
-    def retrieve(self, request, pk=None):
-        dataset = self.get_object()
-        serializer = DatasetDetailSerializer(dataset, many=False)
-        return Response(serializer.data)
-
-    def create(self, request):
-        serializer = DatasetCreateSerializer(data=request.data)
+    def perform_create(self, serializer):
         serializer.is_valid(raise_exception=True)
         dataset = serializer.save()
 
@@ -44,18 +76,15 @@ class DatasetViewSet(viewsets.ModelViewSet):
                 logger.info(f"{dataset} job (attempt {dataset_job.attempt}) is being requeued.")
                 dataset_job.increment_attempt_or_fail()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def perform_update(self, serializer):
 
-    def update(self, request, pk=None):
-        existing_dataset = self.get_object()
-        if existing_dataset.start:
-            return Response(
-                {"detail": "Invalid request: Processing dataset cannot be modified."},
-                status=status.HTTP_409_CONFLICT,
-            )
+        found_dataset = self.get_object()
 
-        serializer = DatasetUpdateSerializer(existing_dataset, data=request.data)
+        if found_dataset.start:
+            raise UpdateProcessingDatasetError
+
         serializer.is_valid(raise_exception=True)
+
         modified_dataset = serializer.save()
 
         if modified_dataset.start:
@@ -67,26 +96,3 @@ class DatasetViewSet(viewsets.ModelViewSet):
                     f"{modified_dataset} job (attempt {dataset_job.attempt}) is being requeued."
                 )
                 dataset_job.increment_attempt_or_fail()
-
-        return Response(serializer.data)
-
-    # List action is disabled
-    def list(self, request):
-        return Response(
-            {"detail": "Listing of custom datasets is unavailable."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-
-    # Partial update action is disabled
-    def partial_update(self, request, pk=None):
-        return Response(
-            {"detail": "Partial updates to datasets are not allowed at this time."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-
-    # Delete action is disabled
-    def destroy(self, request, pk=None):
-        return Response(
-            {"detail": "Deleting datasets is not allowed."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )

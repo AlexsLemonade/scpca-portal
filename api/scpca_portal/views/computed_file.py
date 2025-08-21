@@ -1,5 +1,6 @@
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import PermissionDenied
+from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -52,6 +53,16 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
                 self.fields.pop("download_url")
 
 
+# @extend_schema_view(
+#     list=extend_schema(
+#         auth=False, description="""Computed Files are immutable pre-generated downloadable files."""
+#     ),
+#     retrieve=extend_schema(
+#         description="""Computed Files are immutable pre-generated downloadable files.
+#         You can retrieve a download_url by passing an API-KEY header with an activated token's id as the value.
+#         """
+#     ),
+# )
 class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = ComputedFile.objects.order_by("-created_at")
     ordering_fields = "__all__"
@@ -79,9 +90,7 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         """
         serializer_context = super(ComputedFileViewSet, self).get_serializer_context()
 
-        token_id = self.request.META.get("HTTP_API_KEY")
-
-        if token_id:
+        if token_id := self.request.META.get("HTTP_API_KEY"):
             token = APIToken.verify(token_id)
             if not token:
                 raise PermissionDenied(

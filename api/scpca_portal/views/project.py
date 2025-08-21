@@ -1,5 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from rest_framework import viewsets
+from drf_spectacular.utils import extend_schema
 
 from django_filters import rest_framework as filters
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -45,7 +46,9 @@ class ProjectFilterSet(filters.FilterSet):
             }
         }
 
-
+@extend_schema(
+    auth=False
+)
 class ProjectViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Project.objects.all().order_by("created_at")
     ordering_fields = "__all__"
