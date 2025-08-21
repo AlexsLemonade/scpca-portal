@@ -30,18 +30,11 @@ class Command(BaseCommand):
 
         for ccdl_name in ccdl_datasets.TYPES:
             for ccdl_project_id in dataset_ccdl_project_ids:
-                if (
-                    ccdl_project_id is portal_wide_ccdl_project_id
-                    and ccdl_name not in ccdl_datasets.PORTAL_TYPE_NAMES
-                ):
-                    continue
-
                 dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, ccdl_project_id)
                 if not found and not dataset.valid_ccdl_dataset:
                     continue
                 if found and dataset.is_hash_unchanged and not ignore_hash:
                     continue
-
                 dataset.save()
 
                 job = Job.get_dataset_job(dataset)
