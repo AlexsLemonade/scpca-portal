@@ -2,7 +2,6 @@ import hashlib
 import sys
 import uuid
 from collections import Counter
-from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -29,7 +28,7 @@ from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
-from scpca_portal.validators import DatasetData
+from scpca_portal.validators import DatasetDataModel, DatasetDataModelRelations
 
 logger = get_and_configure_logger(__name__)
 
@@ -437,31 +436,13 @@ class Dataset(TimestampedModel):
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
     @staticmethod
-    def validate_data(data: Mapping[str, Any]) -> DatasetData:
-        return DatasetData.model_validate(data)
+    def validate_data(data: Dict[str, Any], format: DatasetFormats) -> Dict:
+        structured_data = DatasetDataModel.model_validate(
+            data, context={"format": format}
+        ).model_dump()
+        validated_data = DatasetDataModelRelations.validate(structured_data)
 
-    def validate(self) -> None:
-        """
-        Validates that projects and samples, who's ids were passed in through the data attribute,
-        both exist and are correctly related.
-        Raises exceptions if projects, samples or their associations do not exist.
-        """
-        if self.format == DatasetFormats.ANN_DATA.value:
-            if any(
-                project_data.get(Modalities.SPATIAL.value, [])
-                for project_data in self.data.values()
-            ):
-                # TODO: add custom exception
-                raise Exception("No Spatial data for ANNDATA.")
-
-        # validate that all projects exist
-        existing_ids = Project.objects.filter(scpca_id__in=self.data.keys()).values_list(
-            "scpca_id", flat=True
-        )
-        if missing_keys := set(self.data.keys()) - set(existing_ids):
-            raise Exception(f"The following projects do not exist: {list(missing_keys)}")
-
-        # TODO: sample modality existence check
+        return validated_data
 
     def get_is_merged_project(self, project_id) -> bool:
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
@@ -638,6 +619,9 @@ class Dataset(TimestampedModel):
 
     @property
     def valid_ccdl_dataset(self) -> bool:
+        if not self.ccdl_project_id and self.ccdl_name not in ccdl_datasets.PORTAL_TYPE_NAMES:
+            return False
+
         if not self.libraries.exists():
             return False
 
