@@ -188,7 +188,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         Sample.objects.bulk_update(updated_samples, updated_attrs)
 
     @property
-    def additional_metadata(self):
+    def additional_metadata(self) -> dict[str, str]:
         return {
             key: value
             for key, value in self.metadata.items()
@@ -270,7 +270,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         }.get(modality)
 
     @property
-    def modalities(self):
+    def modalities(self) -> list[Modalities]:
         attr_name_modality_mapping = {
             "has_bulk_rna_seq": Modalities.BULK_RNA_SEQ,
             "has_cite_seq_data": Modalities.CITE_SEQ,

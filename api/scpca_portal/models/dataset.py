@@ -164,6 +164,20 @@ class Dataset(TimestampedModel):
 
         return validated_data
 
+    @property
+    def ccdl_type(self) -> Dict:
+        return ccdl_datasets.TYPES.get(self.ccdl_name, {})
+
+    @property
+    def is_valid_ccdl_dataset(self) -> bool:
+        if not self.ccdl_project_id and self.ccdl_name not in ccdl_datasets.PORTAL_TYPE_NAMES:
+            return False
+
+        if not self.libraries.exists():
+            return False
+
+        return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
+
     def apply_job_state(self, job) -> None:
         """
         Sets the dataset state (flag, reason, timestamps) based on the given job.
@@ -213,17 +227,6 @@ class Dataset(TimestampedModel):
             "terminated_reason",
         ]
         cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
-
-    @property
-    def is_valid_ccdl_dataset(self) -> bool:
-        if not self.libraries.exists():
-            return False
-
-        return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
-
-    @property
-    def ccdl_type(self) -> Dict:
-        return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
     # STATS PROPERTY ATTRIBUTES
     @property

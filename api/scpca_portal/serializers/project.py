@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from drf_spectacular.utils import extend_schema_field
+
 from scpca_portal.enums.dataset_formats import DatasetFormats
 from scpca_portal.models import Dataset, Project
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
@@ -58,12 +60,13 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     # but we want these to always be included.
     computed_files = ComputedFileSerializer(read_only=True, many=True)
     contacts = ContactSerializer(read_only=True, many=True)
-    metadata_dataset = serializers.SerializerMethodField()
+    metadata_dataset = serializers.SerializerMethodField(read_only=True, default=None)
     external_accessions = ExternalAccessionSerializer(read_only=True, many=True)
     publications = PublicationSerializer(read_only=True, many=True)
     samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
+    @extend_schema_field(DatasetSerializer)
     def get_metadata_dataset(self, obj):
         dataset = Dataset.objects.filter(
             is_ccdl=True, ccdl_project_id=obj.scpca_id, format=DatasetFormats.METADATA
