@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Text } from 'grommet'
 import { config } from 'config'
 import { getReadable } from 'helpers/getReadable'
-import { mapRowsWithColums } from 'helpers/mapRowsWithColums'
+import { mapRowsWithColumns } from 'helpers/mapRowsWithColumns'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 import { Link } from 'components/Link'
 
@@ -11,7 +11,7 @@ export const DatasetDownloadFileSummary = ({ dataset }) => {
 
   const columns = ['Number of Samples', 'Samples Modality', 'File Format']
 
-  const data = mapRowsWithColums(
+  const data = mapRowsWithColumns(
     filesSummary.map((fs) => [
       fs.samples_count,
       fs.name,
