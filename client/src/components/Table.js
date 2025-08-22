@@ -239,7 +239,7 @@ export const Table = ({
   selectedRows, // For highlighting selected samples rows
   infoText,
   children,
-  onFilterChange = () => {},
+  onAllRowsChange = () => {},
   onFilteredRowsChange = () => {}
 }) => {
   const filterTypes = useMemo(
@@ -290,6 +290,12 @@ export const Table = ({
   })
 
   useEffect(() => {
+    if (instance.rows) {
+      onAllRowsChange(instance.rows.map((row) => row.original))
+    }
+  }, [instance.rows])
+
+  useEffect(() => {
     if (instance.page) {
       onFilteredRowsChange(instance.page.map((row) => row.original))
     }
@@ -302,10 +308,6 @@ export const Table = ({
         .map((column) => column.accessor)
     )
   }, [setHiddenColumns, columns])
-
-  useEffect(() => {
-    onFilterChange(state.globalFilter)
-  }, [state.globalFilter])
 
   const justify = filter && infoText ? 'between' : 'end'
   const pad = filter ? { vertical: 'medium' } : {}
