@@ -1,24 +1,19 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
+import { mapRowsWithColumns } from 'helpers/mapRowsWithColumns'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 
 export const DatasetSummary = ({ dataset }) => {
   const diagnosesSummary = dataset.stats.diagnoses_summary
 
-  const columnOptions = [
-    { label: 'Diagnosis', value: 'diagnosis' },
-    { label: 'Samples', value: 'samples' },
-    { label: 'Projects', value: 'projects' }
-  ]
+  const columns = ['Diagnosis', 'Samples', 'Projects']
 
-  const data = Object.entries(diagnosesSummary).map(([diagnosis, counts]) =>
-    columnOptions.reduce((acc, { label, value }) => {
-      acc[label] = value === 'diagnosis' ? diagnosis : counts[value]
-      return acc
-    }, {})
+  const data = mapRowsWithColumns(
+    Object.entries(diagnosesSummary).map(
+      ([diagnosis, { samples, projects }]) => [diagnosis, samples, projects]
+    ),
+    columns
   )
-
-  const columns = columnOptions.map((co) => co.label)
 
   return (
     <Box>

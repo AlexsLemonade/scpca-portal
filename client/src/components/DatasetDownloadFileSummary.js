@@ -2,26 +2,23 @@ import React from 'react'
 import { Box, Text } from 'grommet'
 import { config } from 'config'
 import { getReadable } from 'helpers/getReadable'
+import { mapRowsWithColumns } from 'helpers/mapRowsWithColumns'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 import { Link } from 'components/Link'
 
 export const DatasetDownloadFileSummary = ({ dataset }) => {
   const filesSummary = dataset.stats.files_summary
 
-  const columnOptions = [
-    { label: 'Number of Samples', value: 'samples_count' },
-    { label: 'Samples Modality', value: 'name' },
-    { label: 'File Format', value: 'format' }
-  ]
+  const columns = ['Number of Samples', 'Samples Modality', 'File Format']
 
-  const data = filesSummary.map((fs) =>
-    columnOptions.reduce((acc, { label, value }) => {
-      acc[label] = value === 'format' ? getReadable(fs[value]) : fs[value]
-      return acc
-    }, {})
+  const data = mapRowsWithColumns(
+    filesSummary.map((fs) => [
+      fs.samples_count,
+      fs.name,
+      getReadable(fs.format)
+    ]),
+    columns
   )
-
-  const columns = columnOptions.map((co) => co.label)
 
   return (
     <Box>

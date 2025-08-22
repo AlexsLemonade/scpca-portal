@@ -13,17 +13,19 @@ export const DatasetSamplesTableContext = createContext({})
  * </DatasetSamplesTableContextProvider>
  */
 export const DatasetSamplesTableContextProvider = ({ children }) => {
+  const [allSamples, setAllSamples] = useState([]) // Stores all samples available in the table
+  const [filteredSamples, setFilteredSamples] = useState([]) // Stores only visible and filtered samples on the selected page
   const [selectedSamples, setSelectedSamples] = useState({
-    // user-selected samples IDs per modality from the table (could store entire samples objects etc)
+    // Stores selected samples IDs per modality from the table
     SINGLE_CELL: [],
     SPATIAL: []
   })
 
-  const [filteredSamples, setFilteredSamples] = useState([]) // stores only visible and filtered samples on the selected page
-
   return (
     <DatasetSamplesTableContext.Provider
       value={{
+        allSamples,
+        setAllSamples,
         selectedSamples,
         setSelectedSamples,
         filteredSamples,
