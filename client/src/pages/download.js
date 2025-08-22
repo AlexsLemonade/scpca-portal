@@ -3,6 +3,7 @@ import { Box, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { DatasetSummary } from 'components/DatasetSummary'
+import { DatasetDownloadFileSummary } from 'components/DatasetDownloadFileSummary'
 import { Loader } from 'components/Loader'
 import Error from 'pages/_error'
 
@@ -36,6 +37,9 @@ const Download = () => {
       </Box>
       <Box margin={{ bottom: 'large' }}>
         <DatasetSummary dataset={myDataset} />
+      </Box>
+      <Box margin={{ bottom: 'large' }}>
+        <DatasetDownloadFileSummary dataset={myDataset} />
       </Box>
     </Box>
   )
