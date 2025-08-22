@@ -1,5 +1,6 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
+import { mapRowsWithColums } from 'helpers/mapRowsWithColums'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 
 export const DatasetSummary = ({ dataset }) => {
@@ -7,11 +8,12 @@ export const DatasetSummary = ({ dataset }) => {
 
   const columns = ['Diagnosis', 'Samples', 'Projects']
 
-  const data = Object.entries(diagnosesSummary)
-    .map(([diagnosis, { samples, projects }]) => [diagnosis, samples, projects])
-    .map((row) =>
-      Object.fromEntries(row.map((value, i) => [columns[i], value]))
-    )
+  const data = mapRowsWithColums(
+    Object.entries(diagnosesSummary).map(
+      ([diagnosis, { samples, projects }]) => [diagnosis, samples, projects]
+    ),
+    columns
+  )
 
   return (
     <Box>
