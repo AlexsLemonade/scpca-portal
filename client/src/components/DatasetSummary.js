@@ -5,20 +5,13 @@ import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 export const DatasetSummary = ({ dataset }) => {
   const diagnosesSummary = dataset.stats.diagnoses_summary
 
-  const columnOptions = [
-    { label: 'Diagnosis', value: 'diagnosis' },
-    { label: 'Samples', value: 'samples' },
-    { label: 'Projects', value: 'projects' }
-  ]
+  const columns = ['Diagnosis', 'Samples', 'Projects']
 
-  const data = Object.entries(diagnosesSummary).map(([diagnosis, counts]) =>
-    columnOptions.reduce((acc, { label, value }) => {
-      acc[label] = value === 'diagnosis' ? diagnosis : counts[value]
-      return acc
-    }, {})
-  )
-
-  const columns = columnOptions.map((co) => co.label)
+  const data = Object.entries(diagnosesSummary)
+    .map(([diagnosis, { samples, projects }]) => [diagnosis, samples, projects])
+    .map((row) =>
+      Object.fromEntries(row.map((value, i) => [columns[i], value]))
+    )
 
   return (
     <Box>
