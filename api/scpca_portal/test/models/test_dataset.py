@@ -615,7 +615,7 @@ class TestDataset(TestCase):
         dataset.data = {
             "SCPCP999990": {
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SINGLE_CELL: "MERGED",
                 Modalities.SPATIAL: ["SCPCS999991"],
             },
             "SCPCP999991": {
@@ -635,9 +635,9 @@ class TestDataset(TestCase):
         }
 
         expected_counts = {
-            "SCPCP999990": {"SINGLE_CELL": 2, "SPATIAL": 1},
-            "SCPCP999991": {"SINGLE_CELL": 3},
-            "SCPCP999992": {"SINGLE_CELL": 2},
+            "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 1},
+            "SCPCP999991": {Modalities.SINGLE_CELL: 3, Modalities.SPATIAL: 0},
+            "SCPCP999992": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 0},
         }
 
         actual_counts = dataset.project_modality_counts

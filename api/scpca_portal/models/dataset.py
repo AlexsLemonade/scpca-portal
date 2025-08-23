@@ -1,7 +1,7 @@
 import hashlib
 import sys
 import uuid
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -240,16 +240,15 @@ class Dataset(TimestampedModel):
         the value is an object of SINGLE_CELL and SPATIAL samples
         that are present in the dataset for that project.
         """
-        modality_samples_counts = {key: Counter() for key in self.data.keys()}
+        counts: dict[str, dict] = defaultdict(dict)
 
-        for project_id, modality, samples_count in (
-            self.libraries.filter(modality__in=[Modalities.SINGLE_CELL, Modalities.SPATIAL])
-            .annotate(samples_count=models.Count("samples"))
-            .values_list("project__scpca_id", "modality", "samples_count")
-        ):
-            modality_samples_counts[project_id].update({modality: samples_count})
+        for project_id in self.data.keys():
 
-        return modality_samples_counts
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                samples = self.get_project_modality_samples(project_id, modality)
+                counts[project_id][modality] = samples.count()
+
+        return counts
 
     @property
     def project_titles(self) -> Dict:
