@@ -1,7 +1,7 @@
 import hashlib
 import sys
 import uuid
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -240,6 +240,8 @@ class Dataset(TimestampedModel):
             "diagnoses_summary": self.diagnoses_summary,
             "files_summary": self.files_summary,
             "project_diagnoses": self.project_diagnoses,
+            "project_modality_counts": self.project_modality_counts,
+            "project_titles": self.project_titles,
         }
 
     @property
@@ -359,6 +361,10 @@ class Dataset(TimestampedModel):
 
     @property
     def project_diagnoses(self) -> Dict:
+        """
+        Returns dict where key is a project id in the dataset and value
+        is the number of samples with that diagnosis in the dataset for that project.
+        """
 
         diagnoses_counts = {key: Counter() for key in self.data.keys()}
 
@@ -366,6 +372,29 @@ class Dataset(TimestampedModel):
             diagnoses_counts[project_id].update({diagnosis: 1})
 
         return diagnoses_counts
+
+    @property
+    def project_modality_counts(self) -> Dict:
+        """
+        Returns a dict where the key is a project id in the dataset and
+        the value is an object of SINGLE_CELL and SPATIAL samples
+        that are present in the dataset for that project.
+        """
+        counts: dict[str, dict] = defaultdict(dict)
+
+        for project_id in self.data.keys():
+
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                samples = self.get_project_modality_samples(project_id, modality)
+                counts[project_id][modality] = samples.count()
+
+        return counts
+
+    @property
+    def project_titles(self) -> Dict:
+        return {
+            scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
+        }
 
     # HASHING LOGIC
     @property

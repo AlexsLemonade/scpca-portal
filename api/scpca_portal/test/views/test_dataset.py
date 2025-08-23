@@ -207,6 +207,8 @@ class DatasetsTestCase(APITestCase):
             "diagnoses_summary",
             "files_summary",
             "project_diagnoses",
+            "project_modality_counts",
+            "project_titles",
         }
         for field in stats_property_fields:
             self.assertIn(field, stats_property)
