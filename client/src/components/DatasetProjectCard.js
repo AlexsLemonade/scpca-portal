@@ -22,14 +22,12 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   const diagnoses = stats.project_diagnoses[projectId]
   const modalityCount = stats.project_modality_counts[projectId]
   const title = stats.project_titles[projectId]
-
-  // TODO: Revise based on PR #1380
+  // TODO: Remove this comment once project_modality_sample_difference is available (PR #1440)
   const downloadableSamples =
     stats.project_downloadable_sample_counts[projectId]
-  // TODO: Replace with actual stats value once ready or PR #1376 is merged
-  // For SPATAIL modality only
-  const hasSpatialData = projectId === 'SCPCP000006'
-  const sampleDifferenceForSpatial = 5
+  // TODO: Remove this comment once project_downloadable_sample_counts is available (PR #1440)
+  const modalitySampleDifference =
+    stats.project_modality_sample_difference[projectId]
 
   const options = [
     projectData.includes_bulk,
@@ -112,12 +110,12 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
           href="#demo"
           alignSelf={responsive('stretch', 'start')}
         />
-        {hasSpatialData && (
+        {modalitySampleDifference > 0 && (
           <WarningText iconMargin="0" iconSize="24px" margin="0">
             <Text>
               Selected modalities may not be available for{' '}
-              {sampleDifferenceForSpatial} sample
-              {sampleDifferenceForSpatial > 1 ? 's' : ''}.
+              {modalitySampleDifference} sample
+              {modalitySampleDifference > 1 ? 's' : ''}.
             </Text>
           </WarningText>
         )}

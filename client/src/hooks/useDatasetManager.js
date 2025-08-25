@@ -80,6 +80,9 @@ export const useDatasetManager = () => {
     return datasetRequest.response
   }
 
+  const hasDatasetData = () =>
+    !myDataset.data || Object.keys(myDataset.data || {}).length === 0
+
   const updateDataset = async (dataset) => {
     // TODO: Token check will be removed once the BE is updated
     // Token is only required for processing and downloading
@@ -257,6 +260,7 @@ export const useDatasetManager = () => {
     removeError,
     clearDataset,
     getDataset,
+    hasDatasetData,
     processDataset,
     addProject,
     removeProject,
