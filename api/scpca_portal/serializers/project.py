@@ -1,12 +1,9 @@
 from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema_field
-
 from scpca_portal.enums.dataset_formats import DatasetFormats
 from scpca_portal.models import Dataset, Project
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 from scpca_portal.serializers.contact import ContactSerializer
-from scpca_portal.serializers.dataset import DatasetSerializer
 from scpca_portal.serializers.external_accession import ExternalAccessionSerializer
 from scpca_portal.serializers.project_summary import ProjectSummarySerializer
 from scpca_portal.serializers.publication import PublicationSerializer
