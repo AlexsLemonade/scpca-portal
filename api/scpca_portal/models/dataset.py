@@ -241,6 +241,8 @@ class Dataset(TimestampedModel):
             "files_summary": self.files_summary,
             "project_diagnoses": self.project_diagnoses,
             "project_modality_counts": self.project_modality_counts,
+            "project_modality_sample_difference": self.project_modality_sample_difference,
+            "project_downloadable_sample_counts": self.project_downloadable_sample_counts,
             "project_titles": self.project_titles,
         }
 
@@ -387,6 +389,53 @@ class Dataset(TimestampedModel):
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
                 samples = self.get_project_modality_samples(project_id, modality)
                 counts[project_id][modality] = samples.count()
+
+        return counts
+
+    @property
+    def project_modality_sample_difference(self) -> Dict[str, int]:
+        """
+        Returns a dict where the key is a project id in the dataset and the value is
+        the number of samples that are unique to either the SINGLE_CELL or SPATIAL modality
+        (i.e., present in one modality but not the other) for that project.
+        If both modalities are not present, returns 0.
+        """
+        counts: dict[str, int] = defaultdict(dict)
+
+        for project_id in self.data.keys():
+            modalities_samples = []
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                sample_ids = self.get_project_modality_samples(project_id, modality).values_list(
+                    "scpca_id", flat=True
+                )
+                modalities_samples.append(set(sample_ids))
+
+            if all(modalities_samples):
+                single_cell_samples, spatial_samples = modalities_samples
+                counts[project_id] = len(single_cell_samples ^ spatial_samples)
+            else:
+                counts[project_id] = 0
+
+        return counts
+
+    @property
+    def project_downloadable_sample_counts(self) -> Dict:
+        """
+        Returns a dict where the key is a project id in the dataset and
+        the value is the total count of unique downloadable samples combined
+        across all modalities for that project.
+        """
+        counts: dict[str, dict] = defaultdict(dict)
+
+        for project_id in self.data.keys():
+            unique_samples = set()
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                sample_ids = self.get_project_modality_samples(project_id, modality).values_list(
+                    "scpca_id", flat=True
+                )
+                unique_samples.update(sample_ids)
+
+            counts[project_id] = len(unique_samples)
 
         return counts
 
