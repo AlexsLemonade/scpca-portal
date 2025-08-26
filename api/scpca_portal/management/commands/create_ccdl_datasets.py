@@ -4,6 +4,7 @@ from argparse import BooleanOptionalAction
 from django.core.management.base import BaseCommand
 
 from scpca_portal import ccdl_datasets
+from scpca_portal.exceptions import DatasetError, JobError
 from scpca_portal.models import Dataset, Job, Project
 
 logger = logging.getLogger()
@@ -17,33 +18,39 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("--ignore-hash", type=bool, default=False, action=BooleanOptionalAction)
+        ignore_hash_help_text = """
+        By default, datasets are only processed if they are new or their hash has changed.
+        Ignore hash forces reprocessing even when the hash has not changed.
+        """
+        parser.add_argument(
+            "--ignore-hash",
+            type=bool,
+            default=False,
+            action=BooleanOptionalAction,
+            help=ignore_hash_help_text,
+        )
 
     def handle(self, *args, **kwargs):
         self.create_ccdl_datasets(**kwargs)
 
-    def attempt_dataset(
-        self, ccdl_name, project_id: str | None = None, ignore_hash: bool = False
-    ) -> bool:
-        dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
-        if not found and not dataset.valid_ccdl_dataset:
-            return False
-        if found and dataset.is_hash_unchanged and not ignore_hash:
-            return False
-        dataset.save()
+    def create_ccdl_datasets(self, ignore_hash, **kwargs) -> None:
+        ccdl_project_ids = list(Project.objects.values_list("scpca_id", flat=True))
+        portal_wide_ccdl_project_id = None
+        dataset_ccdl_project_ids = [*ccdl_project_ids, portal_wide_ccdl_project_id]
 
-        job = Job.get_dataset_job(dataset)
-        if job.submit():
-            logger.info(f"{dataset} job submitted successfully.")
-
-        return True
-
-    def create_ccdl_datasets(self, **kwargs) -> None:
         for ccdl_name in ccdl_datasets.TYPES:
-            # Project Datasets
-            for project in Project.objects.all():
-                self.attempt_dataset(ccdl_name, project.scpca_id)
+            for ccdl_project_id in dataset_ccdl_project_ids:
+                dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, ccdl_project_id)
+                if not found and not dataset.is_valid_ccdl_dataset:
+                    continue
+                if found and dataset.is_hash_unchanged and not ignore_hash:
+                    continue
+                dataset.save()
 
-            # Portal Wide datasets
-            if ccdl_name in ccdl_datasets.PORTAL_TYPE_NAMES:
-                self.attempt_dataset(ccdl_name)
+                job = Job.get_dataset_job(dataset)
+                try:
+                    job.submit()
+                    logger.info(f"{dataset} job submitted successfully.")
+                except (DatasetError, JobError):
+                    logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
+                    job.increment_attempt_or_fail()

@@ -7,6 +7,7 @@ import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { useProjectMetadataOnly } from 'hooks/useProjectMetadataOnly'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
+import { getReadableModality } from 'helpers/getReadableModality'
 import { DownloadModal } from 'components/DownloadModal'
 import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
 import { Icon } from 'components/Icon'
@@ -168,14 +169,20 @@ export const ProjectSamplesTable = ({
       ),
       isVisible: hasMultiplexedData
     },
-    { Header: 'Sequencing Units', accessor: 'seq_units' },
-    { Header: 'Technology', accessor: 'technologies' },
+    {
+      Header: 'Sequencing Units',
+      accessor: 'seq_units',
+      Cell: ({ row }) => <Text>{row.original.seq_units.join(', ')}</Text>
+    },
+    {
+      Header: 'Technology',
+      accessor: 'technologies',
+      Cell: ({ row }) => <Text>{row.original.technologies.join(', ')}</Text>
+    },
     {
       Header: 'Modalities',
-      accessor: ({ has_single_cell_data: hasSingleCellData, modalities }) => {
-        const singleCell = hasSingleCellData ? ['Single-cell'] : []
-        return [...singleCell, ...modalities].join(', ')
-      }
+      accessor: ({ modalities }) =>
+        modalities.map(getReadableModality).join(', ')
     },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },

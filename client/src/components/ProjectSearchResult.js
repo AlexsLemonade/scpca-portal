@@ -10,6 +10,8 @@ import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
+import { formatCounts } from 'helpers/formatCounts'
+import { sortArrayString } from 'helpers/sortArrayString'
 
 export const ProjectSearchResult = ({ project }) => {
   const { responsive } = useResponsive()
@@ -19,7 +21,14 @@ export const ProjectSearchResult = ({ project }) => {
   const searchDetails = [
     {
       title: 'Diagnosis',
-      value: project.diagnoses_counts
+      value:
+        Object.keys(project.diagnoses_counts).length > 0 ? (
+          <Text>
+            {sortArrayString(formatCounts(project.diagnoses_counts)).join(', ')}
+          </Text>
+        ) : (
+          ''
+        )
     },
     {
       title: 'Abstract',
@@ -48,7 +57,12 @@ export const ProjectSearchResult = ({ project }) => {
     },
     {
       title: 'Additional Sample Metadata Fields',
-      value: project.additional_metadata_keys
+      value:
+        project.publications.length > 0 ? (
+          <Text>{project.additional_metadata_keys.join(', ')}</Text>
+        ) : (
+          ''
+        )
     }
   ]
   return (

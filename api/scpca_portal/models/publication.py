@@ -23,7 +23,7 @@ class Publication(TimestampedModel):
         return self.doi
 
     @property
-    def doi_url(self):
+    def doi_url(self) -> str:
         """Returns DOI URL."""
         return f"https://doi.org/{self.doi}"
 

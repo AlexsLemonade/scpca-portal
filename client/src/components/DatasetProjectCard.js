@@ -5,7 +5,9 @@ import { Badge } from 'components/Badge'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { WarningText } from 'components/WarningText'
+import { formatCounts } from 'helpers/formatCounts'
 import { getReadable } from 'helpers/getReadable'
+import { sortArrayString } from 'helpers/sortArrayString'
 
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
@@ -55,7 +57,9 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
       <Box>
         <Box margin={{ bottom: '24px' }}>
           <Label label="Diagnosis" />
-          <Text>{projectStats.diagnoses_counts}</Text>
+          {sortArrayString(formatCounts(projectStats.diagnoses_counts)).join(
+            ', '
+          )}
         </Box>
         <Box margin={{ bottom: 'xsmall' }}>
           <Label label="Download Options" />

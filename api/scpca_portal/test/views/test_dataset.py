@@ -6,57 +6,60 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from scpca_portal.models import APIToken, Dataset
+from scpca_portal.enums import DatasetFormats
+from scpca_portal.models import Dataset
 from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
-from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory
+from scpca_portal.test.factories import (
+    DatasetFactory,
+    LeafComputedFileFactory,
+    ProjectFactory,
+    SampleFactory,
+)
 
 
 class DatasetsTestCase(APITestCase):
     """Tests /datasets/ operations."""
 
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
-        self.token = APIToken(email="user@example.com", is_activated=True)
-        self.token.save()
-
-        self.auth_headers = {"HTTP_API_KEY": str(self.token.id)}
-
-        self.ccdl_dataset = DatasetFactory(is_ccdl=True, token=self.token)
-        self.custom_dataset = DatasetFactory(
+        cls.ccdl_dataset = DatasetFactory(is_ccdl=True)
+        cls.custom_dataset = DatasetFactory(
             is_ccdl=False,
-            token=self.token,
             computed_file=LeafComputedFileFactory(),
         )
 
-    def test_get_single(self):
-        url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json().get("id"), str(self.ccdl_dataset.id))
+        # create custom dataset project and samples objects
+        project = ProjectFactory(scpca_id="SCPCP999990", has_bulk_rna_seq=True)
+        SampleFactory(scpca_id="SCPCS999990", project=project, has_single_cell_data=True)
+        SampleFactory(scpca_id="SCPCS999997", project=project, has_single_cell_data=True)
+        SampleFactory(scpca_id="SCPCS999991", project=project, has_spatial_data=True)
 
+        project = ProjectFactory(
+            scpca_id="SCPCP999992", has_bulk_rna_seq=True, includes_merged_sce=True
+        )
+        SampleFactory(scpca_id="SCPCS999996", project=project, has_single_cell_data=True)
+        SampleFactory(scpca_id="SCPCS999998", project=project, has_single_cell_data=True)
+
+    def test_get_single(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json().get("id"), str(self.custom_dataset.id))
+
         # Assert that computed_file attribute is a dict an not just the pk
         self.assertIsInstance(response.json().get("computed_file"), dict)
+
+        # Assert that only custom datasets are retrievable
+        url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Assert non existing dataset adequately 404s
         dataset = Dataset(data={})
         url = reverse("datasets-detail", args=[dataset.id])
         response = self.client.get(url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_get_list(self):
-        url = reverse("datasets-list")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        response_json = response.json()
-        self.assertEqual(len(response.json()), 1)
-        # Assert that only CCDL datasets are listable
-        self.assertNotEqual(response_json[0].get("id"), str(self.custom_dataset.id))
-        self.assertEqual(response_json[0].get("id"), str(self.ccdl_dataset.id))
 
     def test_post(self):
         url = reverse("datasets-list", args=[])
@@ -65,13 +68,16 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
         }
-        # Assert failure when token is not passed
         response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        # Assert success when token is passed
-        response = self.client.post(url, data, **self.auth_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Assert that format must be present
+        data = {
+            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
+            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Assert that adding ccdl datasets doesn't work
         data = {
@@ -80,7 +86,7 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
         }
-        response = self.client.post(url, data, **self.auth_headers)
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         created_dataset = Dataset.objects.filter(id=response.json().get("id")).first()
@@ -88,25 +94,16 @@ class DatasetsTestCase(APITestCase):
 
     def test_put(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
-        data = {
-            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-        }
-        # Assert failure when token is not passed
-        response = self.client.put(url, data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Assert success when token is passed
-        response = self.client.put(url, data, **self.auth_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.custom_dataset.format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        self.custom_dataset.save()
 
         # Assert that read_only format field was not mutated
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": "format",
         }
-        response = self.client.put(url, data, **self.auth_headers)
+        response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(self.custom_dataset.format, data.get("format"))
 
@@ -118,34 +115,24 @@ class DatasetsTestCase(APITestCase):
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
             "format": "format",
         }
-        response = self.client.put(url, data, **self.auth_headers)
+        response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
         # Assert non existing dataset adequately 404s
         dataset = Dataset(data={})
         url = reverse("datasets-detail", args=[dataset.id])
-        response = self.client.put(url, {}, **self.auth_headers)
+        response = self.client.put(url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_is_not_allowed(self):
+        url = reverse("datasets-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_delete_is_not_allowed(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
         response = self.client.delete(url)
-
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def test_stats_property_keys(self):
-        url = reverse("datasets-detail", args=[self.ccdl_dataset.id])
-        response = self.client.get(url)
-        stats_property = response.json().get("stats")
-        stats_property_fields = {
-            "current_data_hash",
-            "current_readme_hash",
-            "current_metadata_hash",
-            "is_hash_changed",
-            "uncompressed_size",
-        }
-        for field in stats_property_fields:
-            self.assertIn(field, stats_property)
 
     @patch("scpca_portal.models.Job.submit")
     def test_create_submit_job(self, mock_submit_job):
@@ -158,7 +145,7 @@ class DatasetsTestCase(APITestCase):
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
             "start": False,
         }
-        response = self.client.post(url, data, **self.auth_headers)
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         mock_submit_job.assert_not_called()
 
@@ -169,7 +156,7 @@ class DatasetsTestCase(APITestCase):
             "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
             "start": True,
         }
-        response = self.client.post(url, data, **self.auth_headers)
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         mock_submit_job.assert_called_once()
 
@@ -187,7 +174,7 @@ class DatasetsTestCase(APITestCase):
         data = {
             "start": True,
         }
-        response = self.client.put(url, data, **self.auth_headers)
+        response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         mock_submit_job.assert_not_called()
 
@@ -203,6 +190,25 @@ class DatasetsTestCase(APITestCase):
         data = {
             "start": True,
         }
-        response = self.client.put(url, data, **self.auth_headers)
+        response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
+
+    def test_stats_property_keys(self):
+        url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
+        response = self.client.get(url)
+        stats_property = response.json().get("stats")
+        stats_property_fields = {
+            "current_data_hash",
+            "current_readme_hash",
+            "current_metadata_hash",
+            "is_hash_changed",
+            "uncompressed_size",
+            "diagnoses_summary",
+            "files_summary",
+            "project_diagnoses",
+            "project_modality_counts",
+            "project_titles",
+        }
+        for field in stats_property_fields:
+            self.assertIn(field, stats_property)

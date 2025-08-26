@@ -30,6 +30,7 @@ TF_ENV_VAR = {
     "SENTRY_ENV": "TF_VAR_sentry_env",
     "SSH_PUBLIC_KEY": "TF_VAR_ssh_public_key",
     "SLACK_CCDL_TEST_CHANNEL_EMAIL": "TF_VAR_slack_ccdl_test_channel_email",
+    "ENABLE_FEATURE_PREVIEW": "TF_VAR_enable_feature_preview",
 }
 
 
@@ -85,6 +86,24 @@ def parse_args():
     # DESTROY
     destroy_help_text = "Specify that you want to destroy existing stack."
     parser.add_argument("--destroy", help=destroy_help_text, action=argparse.BooleanOptionalAction)
+
+    # INIT
+    destroy_help_text = "Run terraform init. Skips docker builds."
+    parser.add_argument("--init", help=destroy_help_text, action=argparse.BooleanOptionalAction)
+
+    # PLAN
+    plan_help_text = "Run terraform plan. Skips docker builds."
+    parser.add_argument("--plan", help=plan_help_text, action=argparse.BooleanOptionalAction)
+
+    # SAVE PLAN
+    save_out_help_text = "Used with --plan. Saves output for next deploy."
+    parser.add_argument(
+        "--save-plan", help=save_out_help_text, action=argparse.BooleanOptionalAction
+    )
+
+    # CONSOLE
+    console_help_text = "Run terraform console. Skips docker builds."
+    parser.add_argument("--console", help=console_help_text, action=argparse.BooleanOptionalAction)
 
     # SKIP DOCKER
     skip_docker_text = "Specify that you want to skip building docker container."
@@ -198,7 +217,9 @@ if __name__ == "__main__":
     # get environ to inject into terraform commands
     env = get_env(vars(args))
 
-    if not args.skip_docker and not args.destroy:
+    skip_docker = any([args.skip_docker, args.destroy, args.init, args.plan, args.console])
+
+    if not skip_docker:
         docker_code = docker.build_and_push_docker_image(
             f"{args.dockerhub_account}/scpca_portal_api",
             f"--build-arg SYSTEM_VERSION={args.system_version}",
@@ -226,11 +247,19 @@ if __name__ == "__main__":
     # Always init first
     init_code = terraform.init(backend_configs)
 
-    if init_code != 0:
+    if init_code != 0 or args.init:
         exit(init_code)
 
     # Shared for destroy and apply
     var_file_arg = f"-var-file=tf_vars/{args.stage}.tfvars"
+
+    if args.plan:
+        terraform.plan(var_file_arg, args.save_plan)
+        exit(1)
+
+    if args.console:
+        terraform.console(var_file_arg)
+        exit(1)
 
     if args.destroy:
         terraform.destroy(var_file_arg)

@@ -1,4 +1,4 @@
-from scpca_portal.enums import JobStates
+from scpca_portal.enums import JobStates, Modalities
 
 CSV_MULTI_VALUE_DELIMITER = ";"
 
@@ -16,7 +16,6 @@ SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
 
 FORMAT_EXTENSIONS = {ANN_DATA: ".h5ad", SINGLE_CELL_EXPERIMENT: ".rds"}
 SUPPLEMENTARY_EXTENSIONS = {".html"}
-METADATA_EXTENSIONS = {".csv", ".json"}
 OUTPUT_METADATA_EXTENSION = ".tsv"
 CITE_SEQ_FILENAME_ENDING = f"_adt{FORMAT_EXTENSIONS[ANN_DATA]}"
 
@@ -42,6 +41,15 @@ SUBMITTER_WHITELIST = {
     "soragni",
     "pushel",
 }
+
+# Modalities default sort order
+MODALITIES_DEFAULT_SORT_ORDER = [
+    Modalities.SINGLE_CELL,
+    Modalities.BULK_RNA_SEQ,
+    Modalities.CITE_SEQ,
+    Modalities.MULTIPLEXED,
+    Modalities.SPATIAL,
+]
 
 # Global sort order for Metadata TSVs
 # Columns
@@ -195,3 +203,4 @@ PORTAL_METADATA_COMPUTED_FILE_NAME = "PORTAL_ALL_METADATA.zip"
 # Batch job
 FINAL_JOB_STATES = [JobStates.SUCCEEDED, JobStates.FAILED, JobStates.TERMINATED]
 SUBMITTED_JOB_STATES = [JobStates.PROCESSING, *FINAL_JOB_STATES]
+MAX_JOB_ATTEMPTS = 5

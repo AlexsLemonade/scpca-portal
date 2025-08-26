@@ -19,8 +19,8 @@ class Common(Configuration):
         # Third party apps
         "rest_framework",  # utilities for rest apis
         "django_filters",  # for filtering rest endpoints
-        "django_extensions",  # additional managment commands
-        "drf_yasg",
+        "django_extensions",  # additional management commands
+        "drf_spectacular",  # OpenAPI 3.0
         "corsheaders",
         # Your apps
         "scpca_portal",
@@ -112,6 +112,14 @@ class Common(Configuration):
     # Indicates running in prod environment.
     PRODUCTION = False
 
+    # Management commands should remove locally downloaded or created data.
+    CLEAN_UP_DATA = False
+
+    # Enable features before completed.
+    # Use this to prevent certain areas from going to production.
+    # By default this is enabled for local and tests.
+    ENABLE_FEATURE_PREVIEW = True
+
     # Logging.
     LOGGING = {
         "version": 1,
@@ -168,6 +176,8 @@ class Common(Configuration):
 
     # Django Rest Framework.
     REST_FRAMEWORK = {
+        # format is an attribute on some of our models, so it collides in the query param filtering
+        "URL_FORMAT_OVERRIDE": None,
         "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
         "PAGE_SIZE": int(os.getenv("DJANGO_PAGINATION_LIMIT", 10)),
         "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
@@ -176,6 +186,8 @@ class Common(Configuration):
             "rest_framework.renderers.JSONRenderer",
             "rest_framework.renderers.BrowsableAPIRenderer",
         ),
+        "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+        # 'SERVE_INCLUDE_SCHEMA': False,
     }
 
     # CORS - unrestricted.
@@ -192,3 +204,102 @@ class Common(Configuration):
     DOMAIN = os.getenv("AWS_SES_DOMAIN", "staging.scpca.alexslemonade.org")
     EMAIL_SENDER = f"no-reply@{DOMAIN}"
     TEST_EMAIL_RECIPIENT = os.getenv("SLACK_CCDL_TEST_CHANNEL_EMAIL")
+
+    # OpenAPI 3.0 - Swagger - Redoc
+    # https://drf-spectacular.readthedocs.io/en/latest/settings.html
+    SPECTACULAR_SETTINGS = {
+        "SCHEMA_PATH_PREFIX": "/v[0-9]",
+        "SERVE_INCLUDE_SCHEMA": False,
+        "TITLE": "ScPCA Portal API",
+        "DESCRIPTION": """
+## Description
+The Single-cell Pediatric Cancer Atlas is a collection of pediatric cancer projects
+that collected single-cell sequencing data and were processed using the workflows
+contained in https://github.com/AlexsLemonade/alsf-scpca.
+
+#### Active Development
+**NOTE**
+
+We are currently working towards replacing downloading computed-files directly with new endpoints for downloading datasets.
+
+There will be `ccdl-datasets` that closely match existing project computed files.
+
+As well as `datasets` that are created and processed by API request.
+
+
+#### Available Schema Views
+- Swagger - [https://api.scpca.alexslemonade.org/docs/swagger](https://api.scpca.alexslemonade.org/docs/swagger/)
+- ReDoc - [https://api.scpca.alexslemonade.org/docs/redoc](https://api.scpca.alexslemonade.org/docs/redoc/)
+
+#### Questions/Feedback?
+
+If you have a question or comment, please [file an issue on GitHub](https://github.com/AlexsLemonade/scpca-portal/issues) or send us an email at [requests@ccdatalab.org](mailto:requests@ccdatalab.org).
+""",
+        "TOS": "https://scpca.alexslemonade.org/terms-of-use",
+        "CONTACT": {"email": "requests@ccdatalab.org"},
+        "LICENSE": {"name": "BSD License"},
+        "VERSION": "v1",
+        "EXTERNAL_DOCS": {
+            "description": "Additional documentation can be found at scpca.readthedocs.io",
+            "url": "https://scpca.readthedocs.io/en/stable/",
+        },
+        "COMPONENT_NO_READ_ONLY_REQUIRED": True,
+        "TAGS": [
+            {
+                "name": "tokens",
+                "description": """Create and update API tokens.""",
+            },
+            {
+                "name": "projects",
+                "description": """List and view available projects.""",
+            },
+            {
+                "name": "samples",
+                "description": """List and view available samples.""",
+            },
+            {
+                "name": "computed-files",
+                "description": """List and view available downloadable computed-files.""",
+            },
+            {
+                "name": "project-options",
+                "description": """View a custom object that describes values for project list filtering.""",
+            },
+            {
+                "name": "stats",
+                "description": """Retrieve ScPCA Portal Stats.""",
+            },
+            # {
+            #     "name": "ccdl-datasets",
+            #     "description": """List, view, and get download_urls for pre-generated and managed datasets.""",
+            # },
+            # {
+            #     "name": "datasets",
+            #     "description": """Create, update, view, and get download_urls for pre-generated and managed datasets.""",
+            # },
+        ],
+        # TODO: Once computed file is removed revisit
+        "POSTPROCESSING_HOOKS": [],
+        # "ENUM_NAME_OVERRIDES": {
+        #     "CCDLDatasetFormatEnum": "scpca_portal.enums.DatasetFormats",
+        # },
+        # TODO: Update API header to be Authorization: Bearer <TokenID> and use built in support.
+        "AUTHENTICATION_WHITELIST": [],
+        "SECURITY": [
+            {
+                "APIKeyHeaderAuth": [],
+            },
+        ],
+        "APPEND_COMPONENTS": {
+            "securitySchemes": {
+                "APIKeyHeaderAuth": {
+                    "type": "apiKey",
+                    "in": "header",
+                    "name": "API-KEY",
+                    "description": """Create an API Token below by adding your email address
+                    and entering the Token ID in the form below to attach the api-key header to requests.
+                    **Only activated tokens will work when passed.**""",
+                }
+            }
+        },
+    }

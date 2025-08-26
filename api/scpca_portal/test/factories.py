@@ -59,14 +59,20 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     immediately accessible to the research community, with the aim of
     accelerating our efforts to find new ways to cure all children
     with AML"""
+    additional_metadata_keys = [
+        "development_stage_ontology_term_id",
+        "disease_ontology_term_id",
+        "organism",
+        "organism_ontology_id",
+    ]
     additional_restrictions = "Research or academic purposes only"
-    disease_timings = "Diagnosis, Relapse/Diagnosis at LPCH, Relapsed, Healthy control"
-    diagnoses = "AML, Normal"
-    diagnoses_counts = "AML (20), Normal (40)"
-    seq_units = "cell"
-    technologies = "10Xv2_5prime, CITE-seq"
+    disease_timings = ["Diagnosis", "Relapse/Diagnosis at LPCH", "Relapsed, Healthy control"]
+    diagnoses = ["AML", "Normal"]
+    diagnoses_counts = {"AML": 20, "Normal": 40}
+    seq_units = ["cell"]
+    technologies = ["10Xv2_5prime", "CITE-seq"]
     has_bulk_rna_seq = True
-    modalities = ["CITE-seq"]
+    modalities = ["CITE_SEQ"]
     organisms = ["Homo sapiens"]
     sample_count = 60
 
@@ -119,10 +125,10 @@ class SampleFactory(factory.django.DjangoModelFactory):
     project = factory.SubFactory(LeafProjectFactory)
     sample_cell_count_estimate = 42
     scpca_id = factory.Sequence(lambda n: f"SCPCS{str(n).zfill(6)}")
-    seq_units = "cell"
+    seq_units = ["cell"]
     sex = "M"
     subdiagnosis = "NA"
-    technologies = "10Xv3"
+    technologies = ["10Xv3"]
     tissue_location = "posterior fossa"
 
 
@@ -188,6 +194,9 @@ class ProjectFactory(LeafProjectFactory):
 
         sample = self.samples.first()
         library = self.libraries.first()
+
+        if not sample or not library:
+            return
 
         sample.libraries.add(library)
 

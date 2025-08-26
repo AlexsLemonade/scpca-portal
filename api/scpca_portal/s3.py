@@ -32,12 +32,26 @@ S3_OBJECT_VALUES = {
 }
 
 
-def remove_listed_directories(listed_objects):
+def _exclude_objects_with_key_substrings(
+    bucket_objects: List[Dict], substrings: List[str]
+) -> List[Dict]:
+    """
+    Return filtered version of passed bucket objects,
+    removing all objects whose s3 keys include any of the passed substrings.
+    """
+    return [
+        bucket_object
+        for bucket_object in bucket_objects
+        if not any(sub in bucket_object["s3_key"] for sub in substrings)
+    ]
+
+
+def _remove_listed_directories(listed_objects):
     """Returns cleaned list of object files without directories objects."""
     return [obj for obj in listed_objects if not obj["s3_key"].endswith("/")]
 
 
-def list_bucket_objects(bucket: str) -> List[Dict]:
+def list_bucket_objects(bucket: str, *, excluded_key_substrings: List[str] = []) -> List[Dict]:
     """
     Queries the aws s3api for all of a bucket's objects
     and returns a list of dictionaries with properties of contained objects.
@@ -65,12 +79,17 @@ def list_bucket_objects(bucket: str) -> List[Dict]:
         logger.info(f"Queried s3 bucket ({bucket}) is empty.")
         return []
 
-    all_listed_objects = json_output.get("Contents")
-    for listed_object in all_listed_objects:
-        utils.transform_keys(listed_object, S3_OBJECT_KEYS)
-        utils.transform_values(listed_object, S3_OBJECT_VALUES, prefix)
+    bucket_objects = json_output.get("Contents")
+    for bucket_object in bucket_objects:
+        utils.transform_keys(bucket_object, S3_OBJECT_KEYS)
+        utils.transform_values(bucket_object, S3_OBJECT_VALUES, prefix)
 
-    return remove_listed_directories(all_listed_objects)
+    if excluded_key_substrings:
+        bucket_objects = _exclude_objects_with_key_substrings(
+            bucket_objects, excluded_key_substrings
+        )
+
+    return _remove_listed_directories(bucket_objects)
 
 
 def download_files(original_files) -> bool:
@@ -133,6 +152,32 @@ def upload_output_file(key: str, bucket_name: str) -> bool:
         return False
 
     return True
+
+
+def check_file_empty(key: str, bucket: str) -> bool:
+    """
+    Checks to see if the passed bucket and key correspond to an empty file.
+    """
+    command_parts = ["aws", "s3api", "head-object"]
+
+    if "/" in bucket:
+        bucket, prefix = bucket.split("/", 1)
+        key = f"{prefix}/{key}"
+    command_parts.extend(["--bucket", bucket])
+    command_parts.extend(["--key", key])
+
+    if "public" in bucket:
+        command_parts.append("--no-sign-request")
+
+    try:
+        result = subprocess.run(command_parts, capture_output=True, text=True, check=True)
+        raw_json_output = result.stdout
+        json_output = json.loads(raw_json_output)
+    except subprocess.CalledProcessError:
+        logger.error("Either the request was malformed or there was a network error.")
+        raise
+
+    return json_output["ContentLength"] == 0
 
 
 def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:

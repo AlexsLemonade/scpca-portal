@@ -1,13 +1,15 @@
 import csv
 from collections import Counter
-from pathlib import Path
 from typing import Dict, Iterable, List
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import Count, Q
 
-from scpca_portal import common, metadata_file, utils
+from typing_extensions import Self
+
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
@@ -30,11 +32,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         ordering = ["updated_at"]
 
     abstract = models.TextField()
-    additional_metadata_keys = models.TextField(blank=True, null=True)
+    additional_metadata_keys = ArrayField(models.TextField(), default=list)
     additional_restrictions = models.TextField(blank=True, null=True)
-    diagnoses = models.TextField(blank=True, null=True)
-    diagnoses_counts = models.TextField(blank=True, null=True)
-    disease_timings = models.TextField()
+    diagnoses = ArrayField(models.TextField(), default=list)
+    diagnoses_counts = models.JSONField(default=dict)
+    disease_timings = ArrayField(models.TextField(), default=list)
     downloadable_sample_count = models.IntegerField(default=0)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
@@ -44,6 +46,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     includes_merged_anndata = models.BooleanField(default=False)
     includes_merged_sce = models.BooleanField(default=False)
     includes_xenografts = models.BooleanField(default=False)
+    is_locked = models.BooleanField(default=False)
     modalities = ArrayField(models.TextField(), default=list)
     multiplexed_sample_count = models.IntegerField(default=0)
     organisms = ArrayField(models.TextField(), default=list)
@@ -51,8 +54,8 @@ class Project(CommonDataAttributes, TimestampedModel):
     s3_input_bucket = models.TextField(default=settings.AWS_S3_INPUT_BUCKET_NAME)
     sample_count = models.IntegerField(default=0)
     scpca_id = models.TextField(unique=True)
-    seq_units = models.TextField(blank=True, null=True)
-    technologies = models.TextField(blank=True, null=True)
+    seq_units = ArrayField(models.TextField(), default=list)
+    technologies = ArrayField(models.TextField(), default=list)
     title = models.TextField()
     unavailable_samples_count = models.PositiveIntegerField(default=0)
 
@@ -76,6 +79,16 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return project
 
+    @classmethod
+    def lock_projects(cls, locked_project_ids: List[str]) -> List[Self]:
+        locked_projects = []
+        for project in cls.objects.filter(scpca_id__in=locked_project_ids):
+            project.is_locked = True
+            locked_projects.append(project)
+        cls.objects.bulk_update(locked_projects, ["is_locked"])
+
+        return locked_projects
+
     @property
     def samples_to_generate(self):
         """Return all non multiplexed samples and only one sample from multiplexed libraries."""
@@ -98,7 +111,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         ]
 
     @property
-    def original_files(self):
+    def original_files(self) -> Iterable[OriginalFile]:
         return OriginalFile.downloadable_objects.filter(
             project_id=self.scpca_id, is_project_file=True
         )
@@ -110,30 +123,6 @@ class Project(CommonDataAttributes, TimestampedModel):
     @property
     def computed_files(self) -> Iterable[ComputedFile]:
         return self.project_computed_files.order_by("created_at")
-
-    @property
-    def input_data_path(self):
-        return settings.INPUT_DATA_PATH / self.scpca_id
-
-    @property
-    def input_merged_data_path(self):
-        return self.input_data_path / "merged"
-
-    @property
-    def input_bulk_metadata_file_path(self):
-        return self.input_data_path / "bulk" / f"{self.scpca_id}_bulk_metadata.tsv"
-
-    @property
-    def input_bulk_quant_file_path(self):
-        return self.input_data_path / "bulk" / f"{self.scpca_id}_bulk_quant.tsv"
-
-    @property
-    def input_merged_summary_report_file_path(self):
-        return self.input_merged_data_path / f"{self.scpca_id}_merged-summary-report.html"
-
-    @property
-    def input_samples_metadata_file_path(self):
-        return self.input_data_path / "samples_metadata.csv"
 
     @property
     def url(self):
@@ -223,7 +212,8 @@ class Project(CommonDataAttributes, TimestampedModel):
         """Returns set of bulk RNA sequencing sample IDs."""
         bulk_rna_seq_sample_ids = set()
         if self.has_bulk_rna_seq:
-            with open(self.input_bulk_metadata_file_path, "r") as bulk_metadata_file:
+            bulk_metadata_file = OriginalFile.get_input_project_bulk_metadata_file(self.scpca_id)
+            with open(bulk_metadata_file.local_file_path, "r") as bulk_metadata_file:
                 bulk_rna_seq_sample_ids.update(
                     (
                         line["sample_id"]
@@ -254,59 +244,15 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def load_metadata(self) -> None:
         """
-        Loads sample and library metadata files, creates Sample and Library objects,
-        and archives Project and Sample computed files.
+        Loads sample metadata and updates project aggregate values.
         """
-        self.load_samples()
-        self.load_libraries()
-        if self.has_bulk_rna_seq:
-            self.load_bulk_libraries()
+        Sample.load_metadata(self)
 
-        self.update_sample_derived_properties()
-        self.update_project_derived_properties()
-
-    def load_samples(self) -> None:
-        """
-        Parses sample metadata csv and creates Sample objects
-        """
-        samples_metadata = metadata_file.load_samples_metadata(
-            self.input_samples_metadata_file_path
-        )
-
-        Sample.bulk_create_from_dicts(samples_metadata, self)
-
-    def load_libraries(self) -> None:
-        """
-        Parses library metadata json files and creates Library objects
-        """
-        library_metadata_paths = set(Path(self.input_data_path).rglob("*_metadata.json"))
-        all_libraries_metadata = [
-            metadata_file.load_library_metadata(lib_path) for lib_path in library_metadata_paths
-        ]
-        for library_metadata in all_libraries_metadata:
-            # Multiplexed samples are represented in scpca_sample_id as comma separated lists
-            # This ensures that all samples with be related to the correct library
-            for sample_id in library_metadata["scpca_sample_id"].split(","):
-                # We create samples based on what is in samples_metadata.csv
-                # If the sample folder is in the input bucket, but not listed
-                # we should skip creating that library as the sample won't exist.
-                if sample := self.samples.filter(scpca_id=sample_id).first():
-                    Library.bulk_create_from_dicts([library_metadata], sample)
-
-    def load_bulk_libraries(self) -> None:
-        """
-        Parses bulk metadata tsv files and create Library objets for bulk-only samples
-        """
-        if not self.has_bulk_rna_seq:
-            raise Exception("Trying to load bulk libraries for project with no bulk data")
-
-        all_bulk_libraries_metadata = metadata_file.load_bulk_metadata(
-            self.input_bulk_metadata_file_path
-        )
-        for library_metadata in all_bulk_libraries_metadata:
-            sample_id = library_metadata["scpca_sample_id"]
-            if sample := self.samples.filter(scpca_id=sample_id).first():
-                Library.bulk_create_from_dicts([library_metadata], sample)
+        # Update project properties based on sample queries after processing all samples
+        self.update_project_modality_properties()
+        self.update_project_aggregate_properties()
+        self.update_project_sample_aggregate_counts()
+        self.update_project_summaries_aggregate_properties()
 
     def purge(self, delete_from_s3: bool = False) -> None:
         """Purges project and its related data."""
@@ -325,88 +271,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         # Delete project's project computed files
         for computed_file in self.project_computed_files.all():
             computed_file.purge(delete_from_s3)
-
-    def update_sample_derived_properties(self):
-        """
-        Updates sample properties that are derived from the querying of library data
-        after all samples have been processed.
-        """
-        self.update_sample_modality_properties()
-        self.update_sample_aggregate_properties()
-
-    def update_sample_modality_properties(self):
-        """
-        Updates sample modality properties,
-        derived from the existence of a certain attribute within a collection of Libraries.
-        """
-        # Set modality flags based on a real data availability.
-        for sample in self.samples.all():
-            sample.has_bulk_rna_seq = sample.scpca_id in self.get_bulk_rna_seq_sample_ids()
-            sample.has_cite_seq_data = sample.libraries.filter(has_cite_seq_data=True).exists()
-            sample.has_multiplexed_data = sample.libraries.filter(is_multiplexed=True).exists()
-            sample.has_single_cell_data = sample.libraries.filter(
-                modality=Modalities.SINGLE_CELL
-            ).exists()
-            sample.has_spatial_data = sample.libraries.filter(modality=Modalities.SPATIAL).exists()
-            sample.includes_anndata = sample.libraries.filter(
-                formats__contains=[FileFormats.ANN_DATA]
-            ).exists()
-            sample.save(
-                update_fields=(
-                    "has_bulk_rna_seq",
-                    "has_cite_seq_data",
-                    "has_multiplexed_data",
-                    "has_single_cell_data",
-                    "has_spatial_data",
-                    "includes_anndata",
-                )
-            )
-
-    def update_sample_aggregate_properties(self):
-        """
-        The Sample model caches aggregated library metadata.
-        We need to update these after libraries are added/deleted.
-        """
-        for sample in self.samples.all():
-            sample_cell_count_estimate = 0
-            sample_seq_units = set()
-            sample_technologies = set()
-
-            for library in sample.libraries.all():
-                if library.modality == Modalities.SINGLE_CELL:
-                    if not library.is_multiplexed:
-                        sample_cell_count_estimate += library.metadata.get("filtered_cell_count")
-
-                sample_seq_units.add(library.metadata["seq_unit"].strip())
-                sample_technologies.add(library.metadata["technology"].strip())
-
-            sample.seq_units = ", ".join(sorted(sample_seq_units, key=str.lower))
-            sample.technologies = ", ".join(sorted(sample_technologies, key=str.lower))
-
-            if multiplexed_libraries := sample.libraries.filter(is_multiplexed=True):
-                # Cache all sample ID's related through the multiplexed libraries.
-                sample.multiplexed_with = list(
-                    sample.multiplexed_with_samples.order_by("scpca_id").values_list(
-                        "scpca_id", flat=True
-                    )
-                )
-                # Sum of all related libraries' sample_cell_estimates for that sample.
-                sample.demux_cell_count_estimate_sum = sum(
-                    library.metadata["sample_cell_estimates"].get(sample.scpca_id, 0)
-                    for library in multiplexed_libraries
-                )
-            else:
-                sample.sample_cell_count_estimate = sample_cell_count_estimate
-
-            sample.save()
-
-    def update_project_derived_properties(self):
-        """
-        Updates project properties that are derived from the querying of Sample data
-        after all Samples have been processed.
-        """
-        self.update_project_modality_properties()
-        self.update_project_aggregate_properties()
 
     def update_project_modality_properties(self):
         """
@@ -438,66 +302,102 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     def update_project_aggregate_properties(self):
         """
-        The Project and ProjectSummary models cache aggregated sample metadata.
+        The Project model cache aggregated sample metadata.
         We need to update these after any project's sample gets added/deleted.
         """
-        additional_metadata_keys = set()
-        diagnoses_counts = Counter()
-        disease_timings = set()
-        modalities = set()
-        organisms = set()
-        seq_units = set()
+        samples = self.samples.all()
+
+        # Additional Metadata Keys
+        additional_metadata_keys = {
+            key
+            for sample in samples
+            for key in sample.additional_metadata.keys()
+            # Include keys except multiplexed_with
+            if not (self.has_multiplexed_data and key == "multiplexed_with")
+        }
+        self.additional_metadata_keys = sorted(additional_metadata_keys, key=str.lower)
+
+        # Diagnoses Counts
+        self.diagnoses_counts = dict(Counter(samples.values_list("diagnosis", flat=True)))
+
+        # Disease Timings excluding "NA"
+        self.disease_timings = list(
+            set(samples.values_list("disease_timing", flat=True)) - {common.NA}
+        )
+
+        # Modalities
+        self.modalities = utils.get_sorted_modalities(
+            {modality for sample in samples for modality in sample.modalities}
+        )
+
+        # Organisms
+        organisms = {
+            sample.additional_metadata["organism"]
+            for sample in samples
+            if "organism" in sample.additional_metadata
+        }
+        self.organisms = sorted(organisms)
+
+        bulk_libraries = Library.objects.filter(samples__in=samples).exclude(
+            modality=Modalities.BULK_RNA_SEQ
+        )
+
+        # Sequencing Units
+        seq_units = {
+            seq_unit
+            for library in bulk_libraries
+            if (seq_unit := library.metadata.get("seq_unit", "").strip())
+        }
+        self.seq_units = sorted(seq_units)
+
+        # Technologies
+        technologies = {
+            technology
+            for library in bulk_libraries
+            if (technology := library.metadata.get("technology", "").strip())
+        }
+        self.technologies = sorted(technologies)
+
+        self.save()
+
+    def update_project_sample_aggregate_counts(self):
+        """
+        The Project model cache aggregated sample counts.
+        We need to update these after any project's sample gets added/deleted.
+        """
+        counts = self.samples.aggregate(
+            sample_count=Count("scpca_id"),
+            multiplexed_sample_count=Count("scpca_id", filter=Q(has_multiplexed_data=True)),
+            unavailable_samples_count=Count(
+                "scpca_id", filter=Q(has_single_cell_data=False, has_spatial_data=False)
+            ),
+        )
+        self.sample_count = counts["sample_count"]
+        self.multiplexed_sample_count = counts["multiplexed_sample_count"]
+        self.unavailable_samples_count = counts["unavailable_samples_count"]
+
+        self.save()
+
+    def update_project_summaries_aggregate_properties(self):
+        """
+        The ProjectSummary model cache aggregated sample metadata.
+        We need to update these after any project's sample gets added/deleted.
+        """
         summaries_counts = Counter()
-        technologies = set()
 
         for sample in self.samples.all():
-            additional_metadata_keys.update(sample.additional_metadata.keys())
-            diagnoses_counts.update({sample.diagnosis: 1})
-            disease_timings.add(sample.disease_timing)
-            modalities.update(sample.modalities)
-
-            if "organism" in sample.additional_metadata:
-                organisms.add(sample.additional_metadata["organism"])
-
             # We currently exlude bulk data in the project summary and aggregate values
             for library in sample.libraries.exclude(modality=Modalities.BULK_RNA_SEQ):
                 seq_unit = library.metadata.get("seq_unit", "").strip()
                 technology = library.metadata.get("technology", "").strip()
                 summaries_counts.update({(sample.diagnosis, seq_unit, technology): 1})
 
-                seq_units.add(seq_unit)
-                technologies.add(technology)
-
-        diagnoses_strings = sorted(
-            (f"{diagnosis} ({count})" for diagnosis, count in diagnoses_counts.items())
-        )
-        multiplexed_sample_count = self.samples.filter(has_multiplexed_data=True).count()
-        sample_count = self.samples.count()
-        seq_units = sorted((seq_unit for seq_unit in seq_units if seq_unit))
-        technologies = sorted((technology for technology in technologies if technology))
-
-        if self.has_multiplexed_data and "multiplexed_with" in additional_metadata_keys:
-            additional_metadata_keys.remove("multiplexed_with")
-
-        self.additional_metadata_keys = ", ".join(sorted(additional_metadata_keys, key=str.lower))
-        self.diagnoses_counts = ", ".join(diagnoses_strings)
-        self.disease_timings = ", ".join(disease_timings)
-        self.modalities = sorted(modalities)
-        self.multiplexed_sample_count = multiplexed_sample_count
-        self.organisms = sorted(organisms)
-        self.sample_count = sample_count
-        self.seq_units = ", ".join(seq_units)
-        self.technologies = ", ".join(technologies)
-        self.unavailable_samples_count = self.samples.filter(
-            has_single_cell_data=False, has_spatial_data=False
-        ).count()
-        self.save()
-
         for (diagnosis, seq_unit, technology), count in summaries_counts.items():
             project_summary, _ = ProjectSummary.objects.get_or_create(
                 diagnosis=diagnosis, project=self, seq_unit=seq_unit, technology=technology
             )
             project_summary.sample_count = count
+
             project_summary.save(update_fields=("sample_count",))
 
     def update_downloadable_sample_count(self):

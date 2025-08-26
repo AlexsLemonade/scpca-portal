@@ -1,6 +1,6 @@
 from datetime import datetime
 from functools import partial
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 from django.core.management import call_command
 from django.test import TestCase
@@ -51,14 +51,20 @@ class TestSubmitBatchJobs(TestCase):
             self.assertIsInstance(dataset.terminated_at, datetime)
         self.assertEqual(dataset.terminated_reason, terminated_reason)
 
+    @patch(
+        "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
+        new_callable=PropertyMock,
+        return_value=[],
+    )
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_batch_jobs(self, mock_batch_submit_job):
+    def test_submit_batch_jobs(self, mock_batch_submit_job, _):
         # Set up 3 PENDING jobs
         for _ in range(3):
             JobFactory(
                 state=JobStates.PENDING,
                 dataset=DatasetFactory(is_processing=False),
             )
+        mock_batch_submit_job.return_value = "MOCK_JOB_ID"
 
         # Should call submit_job 3 times
         self.submit_batch_jobs()

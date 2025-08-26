@@ -5,6 +5,10 @@ data "local_file" "api_nginx_config" {
   filename = "api-configuration/nginx_config.conf"
 }
 
+data "local_file" "api_crontab_file" {
+  filename = "api-configuration/crontab.txt"
+}
+
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners = ["099720109477"]
@@ -42,6 +46,7 @@ resource "aws_instance" "api_server_1" {
     "api-configuration/api-server-instance-user-data.tpl.sh",
     {
       nginx_config = data.local_file.api_nginx_config.content
+      crontab_file = data.local_file.api_crontab_file.content
       scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
       api_environment = templatefile(
         "api-configuration/environment.tpl",
@@ -62,6 +67,7 @@ resource "aws_instance" "api_server_1" {
           sentry_dsn = var.sentry_dsn
           sentry_env = var.sentry_env
           slack_ccdl_test_channel_email = var.slack_ccdl_test_channel_email
+          enable_feature_preview = var.enable_feature_preview
         })
       start_api_with_migrations = templatefile(
         "api-configuration/start_api_with_migrations.tpl.sh",
@@ -79,7 +85,11 @@ resource "aws_instance" "api_server_1" {
       user = var.user
       stage = var.stage
       region = var.region
+
       log_group = aws_cloudwatch_log_group.scpca_portal_log_group.name
+      nginx_access_log_stream = aws_cloudwatch_log_stream.log_stream_api_nginx_access.name
+      nginx_error_log_stream = aws_cloudwatch_log_stream.log_stream_api_nginx_error.name
+      sync_batch_jobs_log_stream = aws_cloudwatch_log_stream.log_stream_api_sync_batch_jobs.name
     })
 
   tags =  merge(

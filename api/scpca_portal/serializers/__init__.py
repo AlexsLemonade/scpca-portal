@@ -18,7 +18,11 @@ from scpca_portal.serializers.dataset import (
     DatasetUpdateSerializer,
 )
 from scpca_portal.serializers.external_accession import ExternalAccessionSerializer
-from scpca_portal.serializers.project import ProjectLeafSerializer, ProjectSerializer
+from scpca_portal.serializers.project import (
+    ProjectDetailSerializer,
+    ProjectLeafSerializer,
+    ProjectSerializer,
+)
 from scpca_portal.serializers.project_summary import ProjectSummarySerializer
 from scpca_portal.serializers.publication import PublicationSerializer
 from scpca_portal.serializers.sample import SampleSerializer

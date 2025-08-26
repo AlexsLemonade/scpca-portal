@@ -4,9 +4,9 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from scpca_portal import common, utils
+from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import Modalities
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 
@@ -34,10 +34,10 @@ class Sample(CommonDataAttributes, TimestampedModel):
     multiplexed_with = ArrayField(models.TextField(), default=list)
     sample_cell_count_estimate = models.IntegerField(null=True)
     scpca_id = models.TextField(unique=True)
-    seq_units = models.TextField(blank=True, null=True)
+    seq_units = ArrayField(models.TextField(), default=list)
     sex = models.TextField(blank=True, null=True)
     subdiagnosis = models.TextField(blank=True, null=True)
-    technologies = models.TextField()
+    technologies = ArrayField(models.TextField(), default=list)
     tissue_location = models.TextField(blank=True, null=True)
     treatment = models.TextField(blank=True, null=True)
 
@@ -62,10 +62,10 @@ class Sample(CommonDataAttributes, TimestampedModel):
             sample_cell_count_estimate=(data.get("sample_cell_count_estimate", None)),
             project=project,
             scpca_id=data["scpca_sample_id"],
-            seq_units=data.get("seq_units", ""),
+            seq_units=data.get("seq_units", []),
             sex=data["sex"],
             subdiagnosis=data["subdiagnosis"],
-            technologies=data.get("technologies", ""),
+            technologies=data.get("technologies", []),
             tissue_location=data["tissue_location"],
             treatment=data.get("treatment", ""),
         )
@@ -81,8 +81,114 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         Sample.objects.bulk_create(samples)
 
+    @classmethod
+    def load_metadata(cls, project) -> None:
+        """
+        Parses sample metadata csv, creates Sample objects,
+        loads library metadata for the given project, and
+        updates sample aggregate values.
+        """
+        samples_metadata = metadata_parser.load_samples_metadata(project.scpca_id)
+
+        Sample.bulk_create_from_dicts(samples_metadata, project)
+
+        Library.load_metadata(project)
+
+        # Update sample properties based on library queries after processing all samples
+        Sample.update_modality_properties(project)
+        Sample.update_aggregate_properties(project)
+
+    @classmethod
+    def update_aggregate_properties(cls, project) -> None:
+        """
+        The Sample model caches aggregated library metadata.
+        We need to update these after libraries are added/deleted.
+        """
+        updated_samples = []
+        updated_attrs = [
+            "seq_units",
+            "technologies",
+            "multiplexed_with",
+            "demux_cell_count_estimate_sum",
+            "sample_cell_count_estimate",
+        ]
+
+        for sample in project.samples.all():
+            libraries = sample.libraries.all()
+
+            # Sequencing Units
+            seq_units = {
+                seq_unit
+                for library in libraries
+                if (seq_unit := library.metadata.get("seq_unit", "").strip())
+            }
+            sample.seq_units = sorted(seq_units, key=str.lower)
+
+            # Technologies
+            technologies = {
+                technology
+                for library in libraries
+                if (technology := library.metadata.get("technology", "").strip())
+            }
+            sample.technologies = sorted(technologies, key=str.lower)
+
+            if multiplexed_libraries := sample.libraries.filter(is_multiplexed=True):
+                # Cache all sample ID's related through the multiplexed libraries.
+                sample.multiplexed_with = list(
+                    sample.multiplexed_with_samples.order_by("scpca_id").values_list(
+                        "scpca_id", flat=True
+                    )
+                )
+                # Sum of all related libraries' sample_cell_estimates for that sample.
+                sample.demux_cell_count_estimate_sum = sum(
+                    library.metadata["sample_cell_estimates"].get(sample.scpca_id, 0)
+                    for library in multiplexed_libraries
+                )
+            else:
+                # Sum of filtered_cell_count from non-multiplexed Single-cell libraries.
+                sample.sample_cell_count_estimate = sum(
+                    library.metadata.get("filtered_cell_count", 0)
+                    for library in libraries.filter(
+                        modality=Modalities.SINGLE_CELL, is_multiplexed=False
+                    )
+                )
+            updated_samples.append(sample)
+
+        Sample.objects.bulk_update(updated_samples, updated_attrs)
+
+    @classmethod
+    def update_modality_properties(cls, project) -> None:
+        """
+        Updates sample modality properties,
+        derived from the existence of a certain attribute within a collection of Libraries.
+        """
+        updated_samples = []
+        updated_attrs = [
+            "has_bulk_rna_seq",
+            "has_cite_seq_data",
+            "has_multiplexed_data",
+            "has_single_cell_data",
+            "has_spatial_data",
+            "includes_anndata",
+        ]
+        # Set modality flags based on a real data availability.
+        for sample in project.samples.all():
+            sample.has_bulk_rna_seq = sample.scpca_id in project.get_bulk_rna_seq_sample_ids()
+            sample.has_cite_seq_data = sample.libraries.filter(has_cite_seq_data=True).exists()
+            sample.has_multiplexed_data = sample.libraries.filter(is_multiplexed=True).exists()
+            sample.has_single_cell_data = sample.libraries.filter(
+                modality=Modalities.SINGLE_CELL
+            ).exists()
+            sample.has_spatial_data = sample.libraries.filter(modality=Modalities.SPATIAL).exists()
+            sample.includes_anndata = sample.libraries.filter(
+                formats__contains=[FileFormats.ANN_DATA]
+            ).exists()
+            updated_samples.append(sample)
+
+        Sample.objects.bulk_update(updated_samples, updated_attrs)
+
     @property
-    def additional_metadata(self):
+    def additional_metadata(self) -> dict[str, str]:
         return {
             key: value
             for key, value in self.metadata.items()
@@ -164,17 +270,18 @@ class Sample(CommonDataAttributes, TimestampedModel):
         }.get(modality)
 
     @property
-    def modalities(self):
+    def modalities(self) -> list[Modalities]:
         attr_name_modality_mapping = {
             "has_bulk_rna_seq": Modalities.BULK_RNA_SEQ,
             "has_cite_seq_data": Modalities.CITE_SEQ,
             "has_multiplexed_data": Modalities.MULTIPLEXED,
+            "has_single_cell_data": Modalities.SINGLE_CELL,
             "has_spatial_data": Modalities.SPATIAL,
         }
 
-        return sorted(
+        return utils.get_sorted_modalities(
             [
-                modality_name.label
+                modality_name
                 for attr_name, modality_name in attr_name_modality_mapping.items()
                 if getattr(self, attr_name)
             ]

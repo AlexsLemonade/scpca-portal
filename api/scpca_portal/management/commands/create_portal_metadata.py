@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--clean-up-output-data", action=BooleanOptionalAction, default=settings.PRODUCTION
+            "--clean-up-output-data", action=BooleanOptionalAction, default=settings.CLEAN_UP_DATA
         )
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA

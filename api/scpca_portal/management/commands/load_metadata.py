@@ -5,8 +5,8 @@ from typing import Set
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from scpca_portal import common, loader
-from scpca_portal.models import OriginalFile
+from scpca_portal import common, loader, lockfile, metadata_parser, utils
+from scpca_portal.models import OriginalFile, Project
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -33,10 +33,8 @@ class Command(BaseCommand):
             "--clean-up-input-data",
             action=BooleanOptionalAction,
             type=bool,
-            default=settings.PRODUCTION,
+            default=settings.CLEAN_UP_DATA,
         )
-        parser.add_argument("--reload-existing", action="store_true", default=False)
-        parser.add_argument("--scpca-project-id", type=str)
         parser.add_argument(
             "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
         )
@@ -45,6 +43,24 @@ class Command(BaseCommand):
             type=self.comma_separated_set,
             default=common.SUBMITTER_WHITELIST,
         )
+
+        reload_existing_help_text = """
+        Reload projects that have previously been loaded into the db.
+        Without --reload-existing, only new projects will be processed.
+        """
+        parser.add_argument(
+            "--reload-existing", action="store_true", default=False, help=reload_existing_help_text
+        )
+
+        reload_locked_help_text = """
+        Only reload projects that were previously in the lockfile but have since been removed.
+        """
+        parser.add_argument(
+            "--reload-locked", action="store_true", default=False, help=reload_locked_help_text
+        )
+
+        scpca_portal_id_help_text = "Reload an individual project."
+        parser.add_argument("--scpca-project-id", type=str, help=scpca_portal_id_help_text)
 
     def handle(self, *args, **kwargs):
         self.load_metadata(**kwargs)
@@ -57,6 +73,7 @@ class Command(BaseCommand):
         input_bucket_name: str,
         clean_up_input_data: bool,
         reload_existing: bool,
+        reload_locked: bool,
         scpca_project_id: str,
         update_s3: bool,
         submitter_whitelist: Set[str],
@@ -68,9 +85,30 @@ class Command(BaseCommand):
                 "OriginalFile table is empty. Run 'sync_original_files' first to populate it."
             )
 
-        loader.prep_data_dirs()
+        utils.create_data_dirs()
+        loader.download_projects_metadata()
 
-        for project_metadata in loader.get_projects_metadata(scpca_project_id):
+        projects_metadata_ids = set(metadata_parser.get_projects_metadata_ids())
+        lockfile_project_ids = set(lockfile.get_lockfile_project_ids())
+        safe_project_ids = projects_metadata_ids - lockfile_project_ids
+
+        filter_on_project_ids = list(safe_project_ids)
+        if reload_locked:
+            filter_on_project_ids = list(
+                Project.objects.filter(scpca_id__in=safe_project_ids, is_locked=True).values_list(
+                    "scpca_id", flat=True
+                )
+            )
+
+        if scpca_project_id:
+            if scpca_project_id in safe_project_ids:
+                filter_on_project_ids = [scpca_project_id]
+            else:
+                logger.info(f"{scpca_project_id} is not available to reload.")
+                return
+
+        loader.download_projects_related_metadata(filter_on_project_ids)
+        for project_metadata in metadata_parser.load_projects_metadata(filter_on_project_ids):
             # validate that a project can be added to the db,
             # then creates it, all its samples and libraries, and all other relations
             if project := loader.create_project(
@@ -78,4 +116,4 @@ class Command(BaseCommand):
             ):
                 if clean_up_input_data:
                     logger.info(f"Cleaning up '{project}' input files")
-                    loader.remove_project_input_files(project.scpca_id)
+                    utils.remove_nested_data_dirs(project.scpca_id)
