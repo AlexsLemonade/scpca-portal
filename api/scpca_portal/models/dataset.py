@@ -10,9 +10,10 @@ from django.conf import settings
 from django.db import models
 from django.utils.timezone import make_aware
 
+import utils
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, lockfile, metadata_file, readme_file
+from scpca_portal import ccdl_datasets, common, lockfile, metadata_file, readme_file, s3
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -681,3 +682,17 @@ class Dataset(TimestampedModel):
     @property
     def computed_file_local_path(self) -> Path:
         return settings.OUTPUT_DATA_PATH / self.computed_file_name
+
+    @property
+    def download_url(self) -> str:
+        """A temporary URL from which the file can be downloaded."""
+        if not self.computed_file or not self.computed_file.s3_absolute_path:
+            raise ValueError("Invalid download url request: No Computed File")
+
+        # Append the download date to the filename on download.
+        date = utils.get_today_string()
+        filename = f"{self.computed_file_name.stem}_{date}{self.computed_file_name.suffix}"
+
+        return s3.generate_pre_signed_link(
+            filename, self.computed_file.s3_key, self.computed_file.s3_bucket
+        )

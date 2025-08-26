@@ -68,6 +68,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             f"computed file ({self.size_in_bytes}B)"
         )
 
+    @property
+    def s3_absolute_path(self):
+        if not self.s3_bucket or not self.s3_key:
+            return None
+        return Path(f"{self.s3_bucket}/{self.s3_key}")
+
     @staticmethod
     def get_local_project_metadata_path(project, download_config: Dict) -> Path:
         file_name_parts = [project.scpca_id]
