@@ -222,7 +222,9 @@ class Job(TimestampedModel):
         if hasattr(self, f"{state_str}_reason"):
             setattr(self, f"{state_str}_reason", reason)
 
-        self.dataset.apply_job_state(self)  # Sync the dataset state
+        if self.dataset:
+            self.dataset.apply_job_state(self)  # Sync the dataset state
+
         return True
 
     @classmethod
