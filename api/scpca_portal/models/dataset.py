@@ -10,10 +10,9 @@ from django.conf import settings
 from django.db import models
 from django.utils.timezone import make_aware
 
-import utils
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, lockfile, metadata_file, readme_file, s3
+from scpca_portal import ccdl_datasets, common, lockfile, metadata_file, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -672,12 +671,12 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     @property
-    def computed_file_name(self) -> Path:
+    def computed_file_name(self) -> str:
         if self.is_ccdl:
             file_name = ccdl_datasets.COMPUTED_FILE_NAMES[self.ccdl_name]
-            return Path(f"{file_name}.zip")
+            return f"{file_name}.zip"
 
-        return Path(f"{self.pk}.zip")
+        return f"{self.pk}.zip"
 
     @property
     def computed_file_local_path(self) -> Path:
@@ -691,7 +690,8 @@ class Dataset(TimestampedModel):
 
         # Append the download date to the filename on download.
         date = utils.get_today_string()
-        filename = f"{self.computed_file_name.stem}_{date}{self.computed_file_name.suffix}"
+        computed_file_name_path = Path(self.computed_file_name)
+        filename = f"{computed_file_name_path.stem}_{date}{computed_file_name_path.suffix}"
 
         return s3.generate_pre_signed_link(
             filename, self.computed_file.s3_key, self.computed_file.s3_bucket

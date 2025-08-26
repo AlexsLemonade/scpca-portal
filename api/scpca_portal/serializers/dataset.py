@@ -42,7 +42,7 @@ class DatasetSerializer(serializers.ModelSerializer):
 
 
 class DatasetDetailSerializer(DatasetSerializer):
-    class Meta:
+    class Meta(DatasetSerializer.Meta):
         fields = (*DatasetSerializer.Meta.fields, "download_url")
         extra_kwargs = {
             "download_url": {
