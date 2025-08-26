@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
 from django.core.management import call_command
@@ -41,7 +41,12 @@ class DatasetsTestCase(APITestCase):
         SampleFactory(scpca_id="SCPCS999996", project=project, has_single_cell_data=True)
         SampleFactory(scpca_id="SCPCS999998", project=project, has_single_cell_data=True)
 
-    def test_get_single(self):
+    @patch(
+        "scpca_portal.models.dataset.Dataset.download_url",
+        new_callable=PropertyMock,
+        return_value="file.zip",
+    )
+    def test_get_single(self, _):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -194,7 +199,12 @@ class DatasetsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
 
-    def test_stats_property_keys(self):
+    @patch(
+        "scpca_portal.models.dataset.Dataset.download_url",
+        new_callable=PropertyMock,
+        return_value="file.zip",
+    )
+    def test_stats_property_keys(self, _):
         url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
         response = self.client.get(url)
         stats_property = response.json().get("stats")

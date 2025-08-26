@@ -721,3 +721,9 @@ class TestDataset(TestCase):
             },
             ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
         )
+
+        # no computed file
+        dataset = DatasetFactory()
+        with self.assertRaises(ValueError) as e:
+            dataset.download_url
+        self.assertEqual("Invalid download url request: No Computed File", str(e.exception))
