@@ -40,3 +40,4 @@ jobs:
         run: cd infrastructure && python3 deploy.py -s prod -u deployer -a ccdl -v $(git rev-parse HEAD) --project
         env:
           SENTRY_ENV: staging-api
+          ENABLE_FEATURE_PREVIEW: "false"
