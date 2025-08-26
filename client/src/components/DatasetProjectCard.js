@@ -22,12 +22,10 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   const diagnoses = stats.project_diagnoses[projectId]
   const modalityCount = stats.project_modality_counts[projectId]
   const title = stats.project_titles[projectId]
-  // TODO: Remove this comment once project_modality_sample_difference is available (PR #1440)
   const downloadableSamples =
     stats.project_downloadable_sample_counts[projectId]
-  // TODO: Remove this comment once project_downloadable_sample_counts is available (PR #1440)
-  const modalitySampleDifference =
-    stats.project_modality_sample_difference[projectId]
+  const hasMismatchSamples =
+    stats.modality_count_mismatch_projects.includes(projectId)
 
   const options = [
     projectData.includes_bulk,
@@ -110,13 +108,9 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
           href="#demo"
           alignSelf={responsive('stretch', 'start')}
         />
-        {modalitySampleDifference > 0 && (
+        {hasMismatchSamples && (
           <WarningText iconMargin="0" iconSize="24px" margin="0">
-            <Text>
-              Selected modalities may not be available for{' '}
-              {modalitySampleDifference} sample
-              {modalitySampleDifference > 1 ? 's' : ''}.
-            </Text>
+            <Text>Selected modalities may not be available.</Text>
           </WarningText>
         )}
       </Box>
