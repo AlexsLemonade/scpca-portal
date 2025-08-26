@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterable, List, Set
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Count, Q
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
@@ -241,7 +242,7 @@ class Dataset(TimestampedModel):
             "files_summary": self.files_summary,
             "project_diagnoses": self.project_diagnoses,
             "project_modality_counts": self.project_modality_counts,
-            "project_modality_sample_difference": self.project_modality_sample_difference,
+            "modality_count_mismatch_projects": self.modality_count_mismatch_projects,
             "project_downloadable_sample_counts": self.project_downloadable_sample_counts,
             "project_titles": self.project_titles,
         }
@@ -271,8 +272,8 @@ class Dataset(TimestampedModel):
         """
         # all diagnoses in the dataset
         if diagnoses := self.samples.values("diagnosis").annotate(
-            samples=models.Count("scpca_id", distinct=True),
-            projects=models.Count("project_id", distinct=True),
+            samples=Count("scpca_id", distinct=True),
+            projects=Count("project_id", distinct=True),
         ):
             return {d.pop("diagnosis"): d for d in diagnoses}
 
@@ -393,16 +394,23 @@ class Dataset(TimestampedModel):
         return counts
 
     @property
-    def project_modality_sample_difference(self) -> Dict[str, int]:
+    def modality_count_mismatch_projects(self) -> List[str]:
         """
-        Returns a dict where the key is a project id in the dataset and the value is
-        the number of samples that are unique to either the SINGLE_CELL or SPATIAL modality
-        (i.e., present in one modality but not the other) for that project.
-        If both modalities are not present, returns 0.
+        Returns a list of project ids where the samples differ between the SINGLE_CELL
+        and SPATIAL modalities (i.e., samples are present in one modality but not the other).
         """
-        counts: dict[str, int] = defaultdict(dict)
+        mismatch_project_ids = []
 
         for project_id in self.data.keys():
+            project_modalities = self.data[project_id]
+
+            # Early exsit if both modalities contain no samples
+            if (
+                not project_modalities[Modalities.SINGLE_CELL]
+                and not project_modalities[Modalities.SPATIAL]
+            ):
+                continue
+
             modalities_samples = []
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
                 sample_ids = self.get_project_modality_samples(project_id, modality).values_list(
@@ -412,32 +420,29 @@ class Dataset(TimestampedModel):
 
             if all(modalities_samples):
                 single_cell_samples, spatial_samples = modalities_samples
-                counts[project_id] = len(single_cell_samples ^ spatial_samples)
-            else:
-                counts[project_id] = 0
+                if single_cell_samples ^ spatial_samples:
+                    mismatch_project_ids.append(project_id)
 
-        return counts
+        return mismatch_project_ids
 
     @property
-    def project_downloadable_sample_counts(self) -> Dict:
+    def project_downloadable_sample_counts(self) -> Dict[str, int]:
         """
         Returns a dict where the key is a project id in the dataset and
-        the value is the total count of unique downloadable samples combined
-        across all modalities for that project.
+        the value is the total count of unique samples combined
+        across SINGLE_CELL and SPATIAL modalities for that project.
         """
-        counts: dict[str, dict] = defaultdict(dict)
+        dataset_samples = self.samples.filter(
+            Q(has_single_cell_data=True) | Q(has_spatial_data=True)
+        )
 
-        for project_id in self.data.keys():
-            unique_samples = set()
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                sample_ids = self.get_project_modality_samples(project_id, modality).values_list(
-                    "scpca_id", flat=True
-                )
-                unique_samples.update(sample_ids)
+        project_counts = (
+            dataset_samples.values("project__scpca_id")
+            .annotate(num_samples=Count("scpca_id", distinct=True))
+            .order_by("project__scpca_id")
+        )
 
-            counts[project_id] = len(unique_samples)
-
-        return counts
+        return {project["project__scpca_id"]: project["num_samples"] for project in project_counts}
 
     @property
     def project_titles(self) -> Dict:
