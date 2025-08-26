@@ -672,6 +672,10 @@ class Dataset(TimestampedModel):
 
     @property
     def computed_file_name(self) -> Path:
+        if self.is_ccdl:
+            file_name = ccdl_datasets.COMPUTED_FILE_NAMES[self.ccdl_name]
+            return Path(f"{file_name}.zip")
+
         return Path(f"{self.pk}.zip")
 
     @property
