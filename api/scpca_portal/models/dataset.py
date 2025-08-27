@@ -399,29 +399,41 @@ class Dataset(TimestampedModel):
         Returns a list of project ids where the samples differ between the SINGLE_CELL
         and SPATIAL modalities (i.e., samples are present in one modality but not the other).
         """
+        project_ids = self.data.keys()
+
+        single_cell_samples = self.samples.filter(
+            has_single_cell_data=True, project__scpca_id__in=project_ids
+        ).values_list("scpca_id", "project__scpca_id")
+
+        spatial_samples = self.samples.filter(
+            has_spatial_data=True, project__scpca_id__in=project_ids
+        ).values_list("scpca_id", "project__scpca_id")
+
+        modality_samples_by_project = {
+            project_id: (
+                set(
+                    scpca_id
+                    for scpca_id, project__scpca_id in single_cell_samples
+                    if project__scpca_id == project_id
+                ),
+                set(
+                    scpca_id
+                    for scpca_id, project__scpca_id in spatial_samples
+                    if project__scpca_id == project_id
+                ),
+            )
+            for project_id in project_ids
+        }
+
         mismatch_project_ids = []
-
-        for project_id in self.data.keys():
-            project_modalities = self.data[project_id]
-
-            # Early exsit if both modalities contain no samples
-            if (
-                not project_modalities[Modalities.SINGLE_CELL]
-                and not project_modalities[Modalities.SPATIAL]
-            ):
+        for project_id, modalities in self.data.items():
+            # Early exsit if either modality has no samples
+            if not modalities[Modalities.SINGLE_CELL] or not modalities[Modalities.SPATIAL]:
                 continue
 
-            modalities_samples = []
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                sample_ids = self.get_project_modality_samples(project_id, modality).values_list(
-                    "scpca_id", flat=True
-                )
-                modalities_samples.append(set(sample_ids))
-
-            if all(modalities_samples):
-                single_cell_samples, spatial_samples = modalities_samples
-                if single_cell_samples ^ spatial_samples:
-                    mismatch_project_ids.append(project_id)
+            single_cell_samples, spatial_samples = modality_samples_by_project[project_id]
+            if single_cell_samples ^ spatial_samples:
+                mismatch_project_ids.append(project_id)
 
         return mismatch_project_ids
 
