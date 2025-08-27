@@ -724,6 +724,4 @@ class TestDataset(TestCase):
 
         # no computed file
         dataset = DatasetFactory()
-        with self.assertRaises(ValueError) as e:
-            dataset.download_url
-        self.assertEqual("Invalid download url request: No Computed File", str(e.exception))
+        self.assertIsNone(dataset.download_url)

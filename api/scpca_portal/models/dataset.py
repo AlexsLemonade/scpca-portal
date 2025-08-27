@@ -683,10 +683,10 @@ class Dataset(TimestampedModel):
         return settings.OUTPUT_DATA_PATH / self.computed_file_name
 
     @property
-    def download_url(self) -> str:
+    def download_url(self) -> str | None:
         """A temporary URL from which the file can be downloaded."""
         if not self.computed_file or not self.computed_file.s3_absolute_path:
-            raise ValueError("Invalid download url request: No Computed File")
+            return None
 
         # Append the download date to the filename on download.
         date = utils.get_today_string()
