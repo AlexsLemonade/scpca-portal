@@ -672,10 +672,18 @@ class Dataset(TimestampedModel):
 
     @property
     def computed_file_s3_key(self) -> str:
-        if self.is_ccdl:
-            return f"{self.ccdl_type['computed_file_name']}.zip"
+        output_format = "-".join(self.format.split("_")).lower()
+        no_resource_s3_key = f"{output_format}.zip"
+        if self.ccdl_modality == Modalities.SPATIAL:
+            no_resource_s3_key = "spatial.zip"
 
-        return f"{self.pk}.zip"
+        if self.ccdl_project_id:
+            return f"{self.ccdl_project_id}_{no_resource_s3_key}"
+
+        if self.is_ccdl:
+            return f"portal-wide_{no_resource_s3_key}"
+
+        return f"{self.id}_{no_resource_s3_key}"
 
     @property
     def computed_file_local_path(self) -> Path:

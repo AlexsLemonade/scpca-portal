@@ -687,36 +687,54 @@ class TestDataset(TestCase):
     @patch("scpca_portal.models.computed_file.utils.get_today_string", return_value="2025-08-26")
     @patch("scpca_portal.s3.aws_s3.generate_presigned_url")
     def test_download_url_property(self, mock_generate_presigned_url, _):
-        # ccdl dataset
+        # ccdl project dataset
         ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
-        dataset = DatasetFactory(is_ccdl=True, ccdl_name=ccdl_name)
+        dataset = DatasetFactory(is_ccdl=True, ccdl_project_id="SCPCP999990", ccdl_name=ccdl_name)
         dataset.computed_file = LeafComputedFileFactory(s3_key=dataset.computed_file_s3_key)
         dataset.save()
 
         dataset.download_url
-        expected_filename = "SINGLE-CELL_SINGLE-CELL-EXPERIMENT_2025-08-26.zip"
+        expected_filename = "SCPCP999990_single-cell-experiment_2025-08-26.zip"
         mock_generate_presigned_url.assert_called_with(
             ClientMethod="get_object",
             Params={
                 "Bucket": "scpca-portal-local",
-                "Key": "SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
+                "Key": "SCPCP999990_single-cell-experiment.zip",
+                "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
+            },
+            ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
+        )
+
+        # ccdl portal wide dataset
+        ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
+        dataset = DatasetFactory(is_ccdl=True, ccdl_project_id=None, ccdl_name=ccdl_name)
+        dataset.computed_file = LeafComputedFileFactory(s3_key=dataset.computed_file_s3_key)
+        dataset.save()
+
+        dataset.download_url
+        expected_filename = "portal-wide_single-cell-experiment_2025-08-26.zip"
+        mock_generate_presigned_url.assert_called_with(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": "scpca-portal-local",
+                "Key": "portal-wide_single-cell-experiment.zip",
                 "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
             },
             ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
         )
 
         # user dataset
-        dataset = DatasetFactory(is_ccdl=False)
+        dataset = DatasetFactory(is_ccdl=False, format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.computed_file = LeafComputedFileFactory(s3_key=dataset.computed_file_s3_key)
         dataset.save()
 
         dataset.download_url
-        expected_filename = f"{dataset.id}_2025-08-26.zip"
+        expected_filename = f"{dataset.id}_single-cell-experiment_2025-08-26.zip"
         mock_generate_presigned_url.assert_called_with(
             ClientMethod="get_object",
             Params={
                 "Bucket": "scpca-portal-local",
-                "Key": f"{dataset.id}.zip",
+                "Key": f"{dataset.id}_single-cell-experiment.zip",
                 "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
             },
             ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
