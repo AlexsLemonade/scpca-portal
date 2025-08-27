@@ -105,7 +105,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         <Button
           label="View/Edit Samples"
           aria-label="View/Edit Samples"
-          href="#demo"
+          href={`/download/${projectId}`}
           alignSelf={responsive('stretch', 'start')}
         />
         {hasMismatchSamples && (
