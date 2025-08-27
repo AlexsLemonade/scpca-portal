@@ -401,13 +401,13 @@ class Dataset(TimestampedModel):
         """
         project_ids = self.data.keys()
 
-        single_cell_samples = self.samples.filter(
-            has_single_cell_data=True, project__scpca_id__in=project_ids
-        ).values_list("scpca_id", "project__scpca_id")
+        single_cell_samples = self.samples.filter(has_single_cell_data=True).values_list(
+            "scpca_id", "project__scpca_id"
+        )
 
-        spatial_samples = self.samples.filter(
-            has_spatial_data=True, project__scpca_id__in=project_ids
-        ).values_list("scpca_id", "project__scpca_id")
+        spatial_samples = self.samples.filter(has_spatial_data=True).values_list(
+            "scpca_id", "project__scpca_id"
+        )
 
         modality_samples_by_project = {
             project_id: (
@@ -444,14 +444,10 @@ class Dataset(TimestampedModel):
         the value is the total count of unique samples combined
         across SINGLE_CELL and SPATIAL modalities for that project.
         """
-        dataset_samples = self.samples.filter(
-            Q(has_single_cell_data=True) | Q(has_spatial_data=True)
-        )
-
         project_counts = (
-            dataset_samples.values("project__scpca_id")
+            self.samples.filter(Q(has_single_cell_data=True) | Q(has_spatial_data=True))
+            .values("project__scpca_id")
             .annotate(num_samples=Count("scpca_id", distinct=True))
-            .order_by("project__scpca_id")
         )
 
         return {project["project__scpca_id"]: project["num_samples"] for project in project_counts}
