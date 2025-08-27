@@ -224,7 +224,7 @@ class DatasetsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
 
-    def test_stats_property_keys(self, _):
+    def test_stats_property_keys(self):
         url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
         response = self.client.get(url)
         stats_property = response.json().get("stats")
