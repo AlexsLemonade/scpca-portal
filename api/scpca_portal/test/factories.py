@@ -28,7 +28,7 @@ class APITokenFactory(factory.django.DjangoModelFactory):
         model = "scpca_portal.APIToken"
 
     email = "test-user@ccdatalab.org"
-    is_activate = True
+    is_activated = True
 
 
 class LeafComputedFileFactory(factory.django.DjangoModelFactory):
