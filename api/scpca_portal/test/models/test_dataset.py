@@ -690,7 +690,7 @@ class TestDataset(TestCase):
         # ccdl dataset
         ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
         dataset = DatasetFactory(is_ccdl=True, ccdl_name=ccdl_name)
-        dataset.computed_file = LeafComputedFileFactory(s3_key=dataset.computed_file_name)
+        dataset.computed_file = LeafComputedFileFactory(s3_key=dataset.computed_file_s3_key)
         dataset.save()
 
         dataset.download_url
@@ -707,7 +707,7 @@ class TestDataset(TestCase):
 
         # user dataset
         dataset = DatasetFactory(is_ccdl=False)
-        dataset.computed_file = LeafComputedFileFactory(s3_key=dataset.computed_file_name)
+        dataset.computed_file = LeafComputedFileFactory(s3_key=dataset.computed_file_s3_key)
         dataset.save()
 
         dataset.download_url
