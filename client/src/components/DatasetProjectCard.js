@@ -22,8 +22,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   const diagnoses = stats.project_diagnoses[projectId]
   const modalityCount = stats.project_modality_counts[projectId]
   const title = stats.project_titles[projectId]
-  const downloadableSamples =
-    stats.project_downloadable_sample_counts[projectId]
+  const downloadableSamples = stats.project_sample_counts[projectId]
   const hasMismatchSamples =
     stats.modality_count_mismatch_projects.includes(projectId)
 
