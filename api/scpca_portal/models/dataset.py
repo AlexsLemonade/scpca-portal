@@ -448,6 +448,7 @@ class Dataset(TimestampedModel):
             self.samples.filter(Q(has_single_cell_data=True) | Q(has_spatial_data=True))
             .values("project__scpca_id")
             .annotate(num_samples=Count("scpca_id", distinct=True))
+            .order_by("project__scpca_id")
         )
 
         return {project["project__scpca_id"]: project["num_samples"] for project in project_counts}
