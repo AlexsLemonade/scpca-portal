@@ -678,7 +678,7 @@ class TestDataset(TestCase):
 
         self.assertCountEqual(actual_mismatch_projects, expected_mismatch_projects)
 
-    def test_project_downloadable_sample_counts(self):
+    def test_project_sample_counts(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999990": {
@@ -704,7 +704,7 @@ class TestDataset(TestCase):
 
         expected_counts = {"SCPCP999990": 3, "SCPCP999991": 3, "SCPCP999992": 2}
 
-        actual_counts = dataset.project_downloadable_sample_counts
+        actual_counts = dataset.project_sample_counts
 
         self.assertEqual(actual_counts, expected_counts)
 
