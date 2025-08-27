@@ -48,7 +48,8 @@ class DatasetDetailSerializer(DatasetSerializer):
             "download_url": {
                 "help_text": (
                     "This will contain a url to download the file. "
-                    "You must send a valid [token](#tag/token) in order to receive this."
+                    "You must send a valid [token](#tag/token) "
+                    "for this attribute to be present in the response."
                 )
             }
         }

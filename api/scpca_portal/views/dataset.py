@@ -77,7 +77,7 @@ class DatasetViewSet(
         if token_id := self.request.META.get("HTTP_API_KEY"):
             token = APIToken.verify(token_id)
             if not token:
-                message = "Token error: the passed token is either invalid or inactive."
+                message = "Token header value is either invalid or inactive."
                 raise PermissionDenied({"message": message, "token_id": token_id})
 
             serializer_context.update({"token": token})

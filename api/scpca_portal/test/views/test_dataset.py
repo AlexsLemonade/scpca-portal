@@ -224,11 +224,6 @@ class DatasetsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
 
-    @patch(
-        "scpca_portal.models.dataset.Dataset.download_url",
-        new_callable=PropertyMock,
-        return_value="file.zip",
-    )
     def test_stats_property_keys(self, _):
         url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
         response = self.client.get(url)
