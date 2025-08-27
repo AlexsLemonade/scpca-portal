@@ -1,3 +1,5 @@
+from unittest.mock import PropertyMock, patch
+
 from django.conf import settings
 from django.core.management import call_command
 from django.urls import reverse
@@ -71,7 +73,12 @@ class CCDLDatasetsTestCase(APITestCase):
         self.assertEqual(response_json["count"], 1)
         self.assertNotEqual(response_json["results"][0].get("id"), str(dataset_project_sce))
 
-    def test_get_single(self):
+    @patch(
+        "scpca_portal.models.dataset.Dataset.download_url",
+        new_callable=PropertyMock,
+        return_value="file.zip",
+    )
+    def test_get_single(self, _):
         url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
