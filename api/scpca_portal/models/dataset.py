@@ -673,10 +673,9 @@ class Dataset(TimestampedModel):
     @property
     def computed_file_name(self) -> str:
         if self.is_ccdl:
-            file_name = ccdl_datasets.COMPUTED_FILE_NAMES[self.ccdl_name]
-            return f"{file_name}.zip"
+            return self.ccdl_type["computed_file_name"]
 
-        return f"{self.pk}.zip"
+        return str(self.pk)
 
     @property
     def computed_file_local_path(self) -> Path:
@@ -690,8 +689,7 @@ class Dataset(TimestampedModel):
 
         # Append the download date to the filename on download.
         date = utils.get_today_string()
-        computed_file_name_path = Path(self.computed_file_name)
-        filename = f"{computed_file_name_path.stem}_{date}{computed_file_name_path.suffix}"
+        filename = f"{self.computed_file_name}_{date}.zip"
 
         return s3.generate_pre_signed_link(
             filename, self.computed_file.s3_key, self.computed_file.s3_bucket

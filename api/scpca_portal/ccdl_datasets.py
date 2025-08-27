@@ -10,6 +10,7 @@ TYPES = {
         "excludes_multiplexed": False,
         "includes_merged": False,
         "constraints": {},
+        "computed_file_name": "ALL_METADATA",
     },
     CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value: {
         "modality": Modalities.SINGLE_CELL.value,
@@ -17,6 +18,7 @@ TYPES = {
         "excludes_multiplexed": False,
         "includes_merged": False,
         "constraints": {"has_single_cell_data": True},
+        "computed_file_name": "SINGLE-CELL_SINGLE-CELL-EXPERIMENT",
     },
     CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED.value: {
         "modality": Modalities.SINGLE_CELL.value,
@@ -27,6 +29,7 @@ TYPES = {
             "has_single_cell_data": True,
             "has_multiplexed_data": True,
         },
+        "computed_file_name": "SINGLE-CELL_SINGLE-CELL-EXPERIMENT_NO_MULTIPLEXED",
     },
     # Notes about merged objects (accoring to scpca portal documentation):
     #   Only Single-cell (not spatial) for sce and anndata
@@ -41,6 +44,7 @@ TYPES = {
             "has_single_cell_data": True,
             "includes_merged_sce": True,
         },
+        "computed_file_name": "SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MERGED",
     },
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA.value: {
         "modality": Modalities.SINGLE_CELL.value,
@@ -51,6 +55,7 @@ TYPES = {
             "has_single_cell_data": True,
             "includes_anndata": True,
         },
+        "computed_file_name": "SINGLE-CELL_ANNDATA",
     },
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED.value: {
         "modality": Modalities.SINGLE_CELL.value,
@@ -61,6 +66,7 @@ TYPES = {
             "has_single_cell_data": True,
             "includes_merged_anndata": True,
         },
+        "computed_file_name": "SINGLE-CELL_ANNDATA_MERGED",
     },
     CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.value: {
         "modality": Modalities.SPATIAL.value,
@@ -70,6 +76,7 @@ TYPES = {
         "constraints": {
             "has_spatial_data": True,
         },
+        "computed_file_name": "SPATIAL_SINGLE-CELL-EXPERIMENT",
     },
 }
 
@@ -82,13 +89,3 @@ PORTAL_TYPE_NAMES = [
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED.value,
     CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.value,
 ]
-
-COMPUTED_FILE_NAMES = {
-    CCDLDatasetNames.ALL_METADATA.value: "ALL_METADATA",
-    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value: "SINGLE-CELL_SINGLE-CELL-EXPERIMENT",
-    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED.value: "SINGLE-CELL_SINGLE-CELL-EXPERIMENT_NO_MULTIPLEXED",  # noqa
-    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED.value: "SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MERGED",  # noqa
-    CCDLDatasetNames.SINGLE_CELL_ANN_DATA.value: "SINGLE-CELL_ANNDATA",
-    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED.value: "SINGLE-CELL_ANNDATA_MERGED",
-    CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.value: "SPATIAL_SINGLE-CELL-EXPERIMENT",
-}
