@@ -671,9 +671,27 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     @property
-    def computed_file_name(self) -> Path:
-        return Path(f"{self.pk}.zip")
+    def computed_file_local_path(self) -> Path:
+        return settings.OUTPUT_DATA_PATH / ComputedFile.get_dataset_file_s3_key(self)
 
     @property
-    def computed_file_local_path(self) -> Path:
-        return settings.OUTPUT_DATA_PATH / self.computed_file_name
+    def download_file_name(self) -> str:
+        output_format = "-".join(self.format.split("_")).lower()
+        if self.ccdl_modality == Modalities.SPATIAL:
+            output_format = "spatial"
+
+        if self.ccdl_project_id:
+            return f"{self.ccdl_project_id}_{output_format}"
+
+        if self.is_ccdl:
+            return f"portal-wide_{output_format}"
+
+        return f"{self.id}_{output_format}"
+
+    @property
+    def download_url(self) -> str | None:
+        """A temporary URL from which the file can be downloaded."""
+        if not self.computed_file:
+            return None
+
+        return self.computed_file.get_dataset_download_url(self.download_file_name)

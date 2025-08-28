@@ -1,8 +1,9 @@
 from rest_framework import viewsets
+from rest_framework.exceptions import PermissionDenied
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from scpca_portal.models import Dataset
+from scpca_portal.models import APIToken, Dataset
 from scpca_portal.serializers import DatasetDetailSerializer, DatasetSerializer
 
 
@@ -36,3 +37,19 @@ class CCDLDatasetViewSet(viewsets.ReadOnlyModelViewSet):
             return DatasetSerializer
 
         return DatasetDetailSerializer
+
+    def get_serializer_context(self):
+        """
+        Additional context is added to provide the serializer classes with the API token.
+        """
+        serializer_context = super(CCDLDatasetViewSet, self).get_serializer_context()
+
+        if token_id := self.request.META.get("HTTP_API_KEY"):
+            token = APIToken.verify(token_id)
+            if not token:
+                message = f"Token header value {token_id} is either invalid or inactive."
+                raise PermissionDenied({"message": message, "token_id": token_id})
+
+            serializer_context.update({"token": token})
+
+        return serializer_context
