@@ -506,6 +506,10 @@ class Dataset(TimestampedModel):
             Q(includes_merged_anndata=True) | Q(includes_merged_sce=True)
         ).exists()
 
+    @property
+    def includes_files_multiplexed(self) -> bool:
+        return self.projects.filter(has_multiplexed_data=True).exists()
+
     # ASSOCIATIONS WITH OTHER MODELS
     @property
     def projects(self) -> Iterable[Project]:
