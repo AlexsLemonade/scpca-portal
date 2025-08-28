@@ -493,11 +493,11 @@ class Dataset(TimestampedModel):
 
     @property
     def includes_files_bulk(self) -> bool:
-        return self.bulk_single_cell_projects.exist()
+        return self.bulk_single_cell_projects.exists()
 
     @property
     def includes_files_cite_seq(self) -> bool:
-        return self.cite_seq_projects.exist()
+        return self.cite_seq_projects.exists()
 
     @property
     def includes_files_merged(self) -> bool:
@@ -547,7 +547,7 @@ class Dataset(TimestampedModel):
             for project_id, project_options in self.data.items()
             if project_options.get(DatasetDataProjectConfig.INCLUDES_BULK)
         ]:
-            return Project.objects.filter(scpca_id__in=project_ids)
+            return Project.objects.filter(has_bulk_rna_seq=True, scpca_id__in=project_ids)
 
         return Project.objects.none()
 

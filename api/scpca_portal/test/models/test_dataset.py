@@ -683,3 +683,39 @@ class TestDataset(TestCase):
 
         for project_id in actual_titles.keys():
             self.assertEqual(actual_titles[project_id], expected_titles[project_id])
+
+    def test_includes_files_bulk_property(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with bulk, bulk requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.includes_files_bulk)
+
+        # project with bulk, bulk not requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.includes_files_bulk)
+
+        # project without bulk
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertFalse(dataset.includes_files_bulk)
