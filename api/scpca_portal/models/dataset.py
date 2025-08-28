@@ -495,6 +495,10 @@ class Dataset(TimestampedModel):
     def includes_files_bulk(self) -> bool:
         return self.bulk_single_cell_projects.exists()
 
+    @property
+    def includes_files_cite_seq(self) -> bool:
+        return self.cite_seq_projects.exists()
+
     # ASSOCIATIONS WITH OTHER MODELS
     @property
     def projects(self) -> Iterable[Project]:
