@@ -719,3 +719,28 @@ class TestDataset(TestCase):
         }
         dataset.save()
         self.assertFalse(dataset.includes_files_bulk)
+
+    def test_includes_files_cite_seq_property(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with cite-seq data
+        dataset.data = {
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.includes_files_cite_seq)
+
+        # project without cite-seq data
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.includes_files_cite_seq)
