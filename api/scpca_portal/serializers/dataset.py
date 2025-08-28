@@ -19,7 +19,6 @@ class DatasetSerializer(serializers.ModelSerializer):
             "includes_files_bulk",
             "includes_files_cite_seq",
             "includes_files_merged",
-            "includes_files_multiplexed",
             "data_hash",
             "metadata_hash",
             "readme_hash",
