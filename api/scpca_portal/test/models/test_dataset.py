@@ -9,7 +9,7 @@ from django.test import TestCase
 
 from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
-from scpca_portal.models import Dataset, OriginalFile, Project
+from scpca_portal.models import ComputedFile, Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory, OriginalFileFactory
 
@@ -688,9 +688,14 @@ class TestDataset(TestCase):
     @patch("scpca_portal.s3.aws_s3.generate_presigned_url")
     def test_download_url_property(self, mock_generate_presigned_url, _):
         # ccdl project dataset
-        ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
-        dataset = DatasetFactory(is_ccdl=True, ccdl_project_id="SCPCP999990", ccdl_name=ccdl_name)
-        dataset.computed_file = LeafComputedFileFactory(s3_key=dataset.computed_file_s3_key)
+        dataset = DatasetFactory(
+            is_ccdl=True,
+            ccdl_project_id="SCPCP999990",
+            format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
+        )
+        dataset.computed_file = LeafComputedFileFactory(
+            s3_key=ComputedFile.get_dataset_file_s3_key(dataset)
+        )
         dataset.save()
 
         dataset.download_url
@@ -699,16 +704,19 @@ class TestDataset(TestCase):
             ClientMethod="get_object",
             Params={
                 "Bucket": "scpca-portal-local",
-                "Key": "SCPCP999990_single-cell-experiment.zip",
+                "Key": f"{dataset.id}.zip",
                 "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
             },
             ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
         )
 
         # ccdl portal wide dataset
-        ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
-        dataset = DatasetFactory(is_ccdl=True, ccdl_project_id=None, ccdl_name=ccdl_name)
-        dataset.computed_file = LeafComputedFileFactory(s3_key=dataset.computed_file_s3_key)
+        dataset = DatasetFactory(
+            is_ccdl=True, ccdl_project_id=None, format=DatasetFormats.SINGLE_CELL_EXPERIMENT
+        )
+        dataset.computed_file = LeafComputedFileFactory(
+            s3_key=ComputedFile.get_dataset_file_s3_key(dataset)
+        )
         dataset.save()
 
         dataset.download_url
@@ -717,7 +725,7 @@ class TestDataset(TestCase):
             ClientMethod="get_object",
             Params={
                 "Bucket": "scpca-portal-local",
-                "Key": "portal-wide_single-cell-experiment.zip",
+                "Key": f"{dataset.id}.zip",
                 "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
             },
             ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
@@ -725,7 +733,9 @@ class TestDataset(TestCase):
 
         # user dataset
         dataset = DatasetFactory(is_ccdl=False, format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
-        dataset.computed_file = LeafComputedFileFactory(s3_key=dataset.computed_file_s3_key)
+        dataset.computed_file = LeafComputedFileFactory(
+            s3_key=ComputedFile.get_dataset_file_s3_key(dataset)
+        )
         dataset.save()
 
         dataset.download_url
@@ -734,7 +744,7 @@ class TestDataset(TestCase):
             ClientMethod="get_object",
             Params={
                 "Bucket": "scpca-portal-local",
-                "Key": f"{dataset.id}_single-cell-experiment.zip",
+                "Key": f"{dataset.id}.zip",
                 "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
             },
             ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
