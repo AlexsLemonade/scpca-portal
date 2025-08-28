@@ -503,10 +503,6 @@ class Dataset(TimestampedModel):
     def includes_files_merged(self) -> bool:
         return self.merged_projects.exists()
 
-    @property
-    def includes_files_multiplexed(self) -> bool:
-        return self.multiplexed_projects.exists()
-
     # ASSOCIATIONS WITH OTHER MODELS
     @property
     def projects(self) -> Iterable[Project]:
@@ -571,10 +567,6 @@ class Dataset(TimestampedModel):
                 return requested_merged_projects.filter(includes_merged_anndata=True)
 
         return Project.objects.none()
-
-    @property
-    def multiplexed_projects(self) -> Iterable[Project]:
-        return self.projects.filter(has_multiplexed_data=True)
 
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""
