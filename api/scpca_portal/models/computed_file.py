@@ -68,12 +68,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             f"computed file ({self.size_in_bytes}B)"
         )
 
-    @property
-    def s3_absolute_path(self):
-        if not self.s3_bucket or not self.s3_key:
-            return None
-        return Path(f"{self.s3_bucket}/{self.s3_key}")
-
     @staticmethod
     def get_local_project_metadata_path(project, download_config: Dict) -> Path:
         file_name_parts = [project.scpca_id]
@@ -391,6 +385,15 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
 
         return computed_file
+
+    def get_dataset_download_url(self, file_name: str) -> str | None:
+        """Return the presigned url on the associated dataset according to the passed file name."""
+        if not (self.s3_bucket and self.s3_key):
+            return None
+
+        date = utils.get_today_string()
+        complete_file_name = f"{file_name}_{date}.zip"
+        return s3.generate_pre_signed_link(complete_file_name, self.s3_key, self.s3_bucket)
 
     @property
     def download_url(self) -> str:

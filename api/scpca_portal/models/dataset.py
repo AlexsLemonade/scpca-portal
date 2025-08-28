@@ -12,7 +12,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, lockfile, metadata_file, readme_file, s3, utils
+from scpca_portal import ccdl_datasets, common, lockfile, metadata_file, readme_file
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -671,35 +671,27 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     @property
-    def computed_file_s3_key(self) -> str:
-        output_format = "-".join(self.format.split("_")).lower()
-        no_resource_s3_key = f"{output_format}.zip"
-        if self.ccdl_modality == Modalities.SPATIAL:
-            no_resource_s3_key = "spatial.zip"
-
-        if self.ccdl_project_id:
-            return f"{self.ccdl_project_id}_{no_resource_s3_key}"
-
-        if self.is_ccdl:
-            return f"portal-wide_{no_resource_s3_key}"
-
-        return f"{self.id}_{no_resource_s3_key}"
-
-    @property
     def computed_file_local_path(self) -> Path:
         return settings.OUTPUT_DATA_PATH / self.computed_file_s3_key
 
     @property
+    def download_file_name(self) -> str:
+        output_format = "-".join(self.format.split("_")).lower()
+        if self.ccdl_modality == Modalities.SPATIAL:
+            output_format = "spatial"
+
+        if self.ccdl_project_id:
+            return f"{self.ccdl_project_id}_{output_format}"
+
+        if self.is_ccdl:
+            return f"portal-wide_{output_format}"
+
+        return f"{self.id}_{output_format}"
+
+    @property
     def download_url(self) -> str | None:
         """A temporary URL from which the file can be downloaded."""
-        if not self.computed_file or not self.computed_file.s3_absolute_path:
+        if not self.computed_file:
             return None
 
-        # Append the download date to the filename on download.
-        date = utils.get_today_string()
-        s3_key_path = Path(self.computed_file_s3_key)
-        filename = f"{s3_key_path.stem}_{date}{s3_key_path.suffix}"
-
-        return s3.generate_pre_signed_link(
-            filename, self.computed_file.s3_key, self.computed_file.s3_bucket
-        )
+        return self.computed_file.get_dataset_download_url(self.download_file_name)
