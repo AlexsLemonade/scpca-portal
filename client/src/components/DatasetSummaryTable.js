@@ -48,6 +48,7 @@ export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
         <TableRow>
           {columns.map((c) => (
             <TableCell
+              key={c}
               align={columnAlign[c]}
               pad={columnAlign[c] === 'end' ? { right: '100px' } : ''}
             >
@@ -61,6 +62,7 @@ export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
           <TableRow>
             {columns.map((c) => (
               <TableCell
+                key={c}
                 align={columnAlign[c]}
                 pad={columnAlign[c] === 'end' ? { right: '100px' } : ''}
               >
