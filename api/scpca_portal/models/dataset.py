@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterable, List, Set
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
@@ -493,11 +494,17 @@ class Dataset(TimestampedModel):
 
     @property
     def includes_files_bulk(self) -> bool:
-        return self.bulk_single_cell_projects.exists()
+        return self.projects.filter(has_bulk_rna_seq=True).exists()
 
     @property
     def includes_files_cite_seq(self) -> bool:
-        return self.cite_seq_projects.exists()
+        return self.projects.filter(has_cite_seq_data=True).exists()
+
+    @property
+    def includes_files_merged(self) -> bool:
+        return self.projects.filter(
+            Q(includes_merged_anndata=True) | Q(includes_merged_sce=True)
+        ).exists()
 
     # ASSOCIATIONS WITH OTHER MODELS
     @property
