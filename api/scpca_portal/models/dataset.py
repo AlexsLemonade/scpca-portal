@@ -8,7 +8,6 @@ from typing import Any, Dict, Iterable, List, Set
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Q
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
@@ -494,21 +493,19 @@ class Dataset(TimestampedModel):
 
     @property
     def includes_files_bulk(self) -> bool:
-        return self.projects.filter(has_bulk_rna_seq=True).exists()
+        return self.bulk_single_cell_projects.exist()
 
     @property
     def includes_files_cite_seq(self) -> bool:
-        return self.projects.filter(has_cite_seq_data=True).exists()
+        return self.cite_seq_projects.exist()
 
     @property
     def includes_files_merged(self) -> bool:
-        return self.projects.filter(
-            Q(includes_merged_anndata=True) | Q(includes_merged_sce=True)
-        ).exists()
+        return self.merged_projects.exists()
 
     @property
     def includes_files_multiplexed(self) -> bool:
-        return self.projects.filter(has_multiplexed_data=True).exists()
+        return self.multiplexed_projects.exists()
 
     # ASSOCIATIONS WITH OTHER MODELS
     @property
@@ -557,6 +554,20 @@ class Dataset(TimestampedModel):
     @property
     def cite_seq_projects(self) -> Iterable[Project]:
         return self.projects.filter(has_cite_seq_data=True)
+
+    @property
+    def merged_projects(self) -> Iterable[Project]:
+        if self.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
+            return self.projects.filter(includes_merged_sce=True)
+
+        if self.format == DatasetFormats.ANN_DATA:
+            return self.projects.filter(includes_merged_anndata=True)
+
+        return Project.objects.none()
+
+    @property
+    def multiplexed_projects(self) -> Iterable[Project]:
+        return self.projects.filter(has_multiplexed_data=True)
 
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""
