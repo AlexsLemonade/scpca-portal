@@ -744,3 +744,39 @@ class TestDataset(TestCase):
         }
         dataset.save()
         self.assertFalse(dataset.includes_files_cite_seq)
+
+    def test_includes_files_merged_property(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with merged file, merged requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.includes_files_merged)
+
+        # project with merged file, merged not requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.includes_files_merged)
+
+        # project without merged
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertFalse(dataset.includes_files_merged)

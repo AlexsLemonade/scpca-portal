@@ -525,7 +525,7 @@ class Dataset(TimestampedModel):
             for project_id, project_options in self.data.items()
             if project_options.get(Modalities.SPATIAL, [])
         ]:
-            return self.projects.filter(scpca_id__in=project_ids)
+            return self.projects.filter(has_spatial_data=True, scpca_id__in=project_ids)
 
         return Project.objects.none()
 
@@ -536,7 +536,7 @@ class Dataset(TimestampedModel):
             for project_id, project_options in self.data.items()
             if project_options.get(Modalities.SINGLE_CELL)
         ]:
-            return Project.objects.filter(scpca_id__in=project_ids)
+            return self.projects.filter(has_single_cell_data=True, scpca_id__in=project_ids)
 
         return Project.objects.none()
 
@@ -547,7 +547,7 @@ class Dataset(TimestampedModel):
             for project_id, project_options in self.data.items()
             if project_options.get(DatasetDataProjectConfig.INCLUDES_BULK)
         ]:
-            return Project.objects.filter(has_bulk_rna_seq=True, scpca_id__in=project_ids)
+            return self.projects.filter(has_bulk_rna_seq=True, scpca_id__in=project_ids)
 
         return Project.objects.none()
 
@@ -557,11 +557,18 @@ class Dataset(TimestampedModel):
 
     @property
     def merged_projects(self) -> Iterable[Project]:
-        if self.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
-            return self.projects.filter(includes_merged_sce=True)
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(Modalities.SINGLE_CELL) == "MERGED"
+        ]:
+            requested_merged_projects = self.projects.filter(scpca_id__in=project_ids)
 
-        if self.format == DatasetFormats.ANN_DATA:
-            return self.projects.filter(includes_merged_anndata=True)
+            if self.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
+                return requested_merged_projects.filter(includes_merged_sce=True)
+
+            if self.format == DatasetFormats.ANN_DATA:
+                return requested_merged_projects.filter(includes_merged_anndata=True)
 
         return Project.objects.none()
 
