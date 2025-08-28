@@ -672,7 +672,7 @@ class Dataset(TimestampedModel):
 
     @property
     def computed_file_local_path(self) -> Path:
-        return settings.OUTPUT_DATA_PATH / self.computed_file_s3_key
+        return settings.OUTPUT_DATA_PATH / ComputedFile.get_dataset_file_s3_key(self)
 
     @property
     def download_file_name(self) -> str:
