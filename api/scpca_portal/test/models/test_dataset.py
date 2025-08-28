@@ -9,9 +9,9 @@ from django.test import TestCase
 
 from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
-from scpca_portal.models import Dataset, OriginalFile, Project
+from scpca_portal.models import ComputedFile, Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
+from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory, OriginalFileFactory
 
 
 class TestDataset(TestCase):
@@ -609,3 +609,147 @@ class TestDataset(TestCase):
                 self.assertEqual(
                     actual_counts[project_id][diagnosis], expected_counts[project_id][diagnosis]
                 )
+
+    def test_project_modality_counts(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        expected_counts = {
+            "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 1},
+            "SCPCP999991": {Modalities.SINGLE_CELL: 3, Modalities.SPATIAL: 0},
+            "SCPCP999992": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 0},
+        }
+
+        actual_counts = dataset.project_modality_counts
+
+        for project_id in actual_counts.keys():
+            for modality in actual_counts[project_id].keys():
+                self.assertEqual(
+                    actual_counts[project_id][modality], expected_counts[project_id][modality]
+                )
+
+    def test_project_titles(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        # TODO: Update so that fake project titles are unique.
+        expected_titles = {
+            "SCPCP999990": "TBD",
+            "SCPCP999991": "TBD",
+            "SCPCP999992": "TBD",
+        }
+
+        actual_titles = dataset.project_titles
+
+        for project_id in actual_titles.keys():
+            self.assertEqual(actual_titles[project_id], expected_titles[project_id])
+
+    @patch("scpca_portal.models.computed_file.utils.get_today_string", return_value="2025-08-26")
+    @patch("scpca_portal.s3.aws_s3.generate_presigned_url")
+    def test_download_url_property(self, mock_generate_presigned_url, _):
+        # ccdl project dataset
+        dataset = DatasetFactory(
+            is_ccdl=True,
+            ccdl_project_id="SCPCP999990",
+            format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
+        )
+        dataset.computed_file = LeafComputedFileFactory(
+            s3_key=ComputedFile.get_dataset_file_s3_key(dataset)
+        )
+        dataset.save()
+
+        dataset.download_url
+        expected_filename = "SCPCP999990_single-cell-experiment_2025-08-26.zip"
+        mock_generate_presigned_url.assert_called_with(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": "scpca-portal-local",
+                "Key": f"{dataset.id}.zip",
+                "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
+            },
+            ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
+        )
+
+        # ccdl portal wide dataset
+        dataset = DatasetFactory(
+            is_ccdl=True, ccdl_project_id=None, format=DatasetFormats.SINGLE_CELL_EXPERIMENT
+        )
+        dataset.computed_file = LeafComputedFileFactory(
+            s3_key=ComputedFile.get_dataset_file_s3_key(dataset)
+        )
+        dataset.save()
+
+        dataset.download_url
+        expected_filename = "portal-wide_single-cell-experiment_2025-08-26.zip"
+        mock_generate_presigned_url.assert_called_with(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": "scpca-portal-local",
+                "Key": f"{dataset.id}.zip",
+                "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
+            },
+            ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
+        )
+
+        # user dataset
+        dataset = DatasetFactory(is_ccdl=False, format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.computed_file = LeafComputedFileFactory(
+            s3_key=ComputedFile.get_dataset_file_s3_key(dataset)
+        )
+        dataset.save()
+
+        dataset.download_url
+        expected_filename = f"{dataset.id}_single-cell-experiment_2025-08-26.zip"
+        mock_generate_presigned_url.assert_called_with(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": "scpca-portal-local",
+                "Key": f"{dataset.id}.zip",
+                "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
+            },
+            ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
+        )
+
+        # no computed file
+        dataset = DatasetFactory()
+        self.assertIsNone(dataset.download_url)

@@ -1,7 +1,7 @@
 import hashlib
 import sys
 import uuid
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -103,6 +103,146 @@ class Dataset(TimestampedModel):
 
     def __str__(self):
         return f"Dataset {self.id}"
+
+    # INSTANCE CREATION AND MODIFICATION
+    @classmethod
+    def get_or_find_ccdl_dataset(
+        cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
+    ) -> tuple[Self, bool]:
+        if dataset := cls.objects.filter(
+            is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
+        ).first():
+            return dataset, True
+
+        dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
+        dataset.ccdl_modality = dataset.ccdl_type["modality"]
+        dataset.format = dataset.ccdl_type["format"]
+        dataset.data = dataset.get_ccdl_data()
+        dataset.data_hash = dataset.current_data_hash
+        dataset.metadata_hash = dataset.current_metadata_hash
+        dataset.readme_hash = dataset.current_readme_hash
+        return dataset, False
+
+    def get_ccdl_data(self) -> Dict:
+        if not self.is_ccdl:
+            raise ValueError("Invalid Dataset: Dataset must be CCDL.")
+
+        projects = Project.objects.all()
+        if self.ccdl_project_id:
+            projects = projects.filter(scpca_id=self.ccdl_project_id)
+
+        data = {}
+        for project in projects:
+            samples = project.samples.all()
+            if self.ccdl_type.get("excludes_multiplexed"):
+                samples = samples.filter(has_multiplexed_data=False)
+
+            if modality := self.ccdl_type.get("modality"):
+                samples = samples.filter(libraries__modality=modality)
+
+            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
+            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
+
+            data[project.scpca_id] = {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: (
+                    list(single_cell_samples.values_list("scpca_id", flat=True))
+                    if not self.ccdl_type.get("includes_merged")
+                    else "MERGED"
+                ),
+                Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
+            }
+
+        return data
+
+    @staticmethod
+    def validate_data(data: Dict[str, Any], format: DatasetFormats) -> Dict:
+        structured_data = DatasetDataModel.model_validate(
+            data, context={"format": format}
+        ).model_dump()
+        validated_data = DatasetDataModelRelations.validate(structured_data)
+
+        return validated_data
+
+    @property
+    def ccdl_type(self) -> Dict:
+        return ccdl_datasets.TYPES.get(self.ccdl_name, {})
+
+    @property
+    def is_valid_ccdl_dataset(self) -> bool:
+        if not self.ccdl_project_id and self.ccdl_name not in ccdl_datasets.PORTAL_TYPE_NAMES:
+            return False
+
+        if not self.libraries.exists():
+            return False
+
+        return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
+
+    def apply_job_state(self, job) -> None:
+        """
+        Sets the dataset state (flag, reason, timestamps) based on the given job.
+        Resets states before applying changes.
+        """
+        # Resets all state flags and reasons
+        for state in JobStates:
+            state_str = state.lower()
+
+            setattr(self, f"is_{state_str}", False)
+            reason_attr = f"{state_str}_reason"
+
+            if hasattr(self, reason_attr):
+                setattr(self, reason_attr, None)
+
+        # Resets timestamps (reset all for PENDING, otherwise FINAL_JOB_STATES)
+        reset_states = JobStates if state == JobStates.PENDING else common.FINAL_JOB_STATES
+        for state in reset_states:
+            setattr(self, f"{state.lower()}_at", None)
+
+        # Sets new state based on the given job
+        state_str = job.state.lower()
+        reason_attr = f"{state_str}_reason"
+
+        setattr(self, f"is_{state_str}", True)
+        setattr(self, f"{state_str}_at", make_aware(datetime.now()))
+        if hasattr(self, f"{state_str}_reason"):
+            setattr(self, f"{state_str}_reason", getattr(job, reason_attr))
+
+    @classmethod
+    def bulk_update_state(cls, datasets: List[Self]) -> None:
+        """
+        Updates state attributes of the given datasets in bulk.
+        """
+        STATE_UPDATE_ATTRS = [
+            "is_pending",
+            "pending_at",
+            "is_processing",
+            "processing_at",
+            "is_succeeded",
+            "succeeded_at",
+            "is_failed",
+            "failed_at",
+            "failed_reason",
+            "is_terminated",
+            "terminated_at",
+            "terminated_reason",
+        ]
+        cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
+
+    # STATS PROPERTY ATTRIBUTES
+    @property
+    def stats(self) -> Dict:
+        return {
+            "current_data_hash": self.current_data_hash,
+            "current_readme_hash": self.current_readme_hash,
+            "current_metadata_hash": self.current_metadata_hash,
+            "is_hash_changed": self.combined_hash != self.current_combined_hash,
+            "uncompressed_size": self.estimated_size_in_bytes,
+            "diagnoses_summary": self.diagnoses_summary,
+            "files_summary": self.files_summary,
+            "project_diagnoses": self.project_diagnoses,
+            "project_modality_counts": self.project_modality_counts,
+            "project_titles": self.project_titles,
+        }
 
     @property
     def estimated_size_in_bytes(self) -> int:
@@ -221,6 +361,10 @@ class Dataset(TimestampedModel):
 
     @property
     def project_diagnoses(self) -> Dict:
+        """
+        Returns dict where key is a project id in the dataset and value
+        is the number of samples with that diagnosis in the dataset for that project.
+        """
 
         diagnoses_counts = {key: Counter() for key in self.data.keys()}
 
@@ -230,137 +374,29 @@ class Dataset(TimestampedModel):
         return diagnoses_counts
 
     @property
-    def stats(self) -> Dict:
+    def project_modality_counts(self) -> Dict:
+        """
+        Returns a dict where the key is a project id in the dataset and
+        the value is an object of SINGLE_CELL and SPATIAL samples
+        that are present in the dataset for that project.
+        """
+        counts: dict[str, dict] = defaultdict(dict)
+
+        for project_id in self.data.keys():
+
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
+                samples = self.get_project_modality_samples(project_id, modality)
+                counts[project_id][modality] = samples.count()
+
+        return counts
+
+    @property
+    def project_titles(self) -> Dict:
         return {
-            "current_data_hash": self.current_data_hash,
-            "current_readme_hash": self.current_readme_hash,
-            "current_metadata_hash": self.current_metadata_hash,
-            "is_hash_changed": self.combined_hash != self.current_combined_hash,
-            "uncompressed_size": self.estimated_size_in_bytes,
-            "diagnoses_summary": self.diagnoses_summary,
-            "files_summary": self.files_summary,
-            "project_diagnoses": self.project_diagnoses,
+            scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
         }
 
-    @classmethod
-    def get_or_find_ccdl_dataset(
-        cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
-    ) -> tuple[Self, bool]:
-        if dataset := cls.objects.filter(
-            is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
-        ).first():
-            return dataset, True
-
-        dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
-        dataset.ccdl_modality = dataset.ccdl_type["modality"]
-        dataset.format = dataset.ccdl_type["format"]
-        dataset.data = dataset.get_ccdl_data()
-        dataset.data_hash = dataset.current_data_hash
-        dataset.metadata_hash = dataset.current_metadata_hash
-        dataset.readme_hash = dataset.current_readme_hash
-        return dataset, False
-
-    @classmethod
-    def bulk_update_state(cls, datasets: List[Self]) -> None:
-        """
-        Updates state attributes of the given datasets in bulk.
-        """
-        STATE_UPDATE_ATTRS = [
-            "is_pending",
-            "pending_at",
-            "is_processing",
-            "processing_at",
-            "is_succeeded",
-            "succeeded_at",
-            "is_failed",
-            "failed_at",
-            "failed_reason",
-            "is_terminated",
-            "terminated_at",
-            "terminated_reason",
-        ]
-        cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
-
-    def get_ccdl_data(self) -> Dict:
-        if not self.is_ccdl:
-            raise ValueError("Invalid Dataset: Dataset must be CCDL.")
-
-        projects = Project.objects.all()
-        if self.ccdl_project_id:
-            projects = projects.filter(scpca_id=self.ccdl_project_id)
-
-        data = {}
-        for project in projects:
-            samples = project.samples.all()
-            if self.ccdl_type.get("excludes_multiplexed"):
-                samples = samples.filter(has_multiplexed_data=False)
-
-            if modality := self.ccdl_type.get("modality"):
-                samples = samples.filter(libraries__modality=modality)
-
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
-            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
-
-            data[project.scpca_id] = {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL: (
-                    list(single_cell_samples.values_list("scpca_id", flat=True))
-                    if not self.ccdl_type.get("includes_merged")
-                    else "MERGED"
-                ),
-                Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
-            }
-
-        return data
-
-    def contains_project_ids(self, project_ids: Set[str]) -> bool:
-        """Returns whether or not the dataset contains samples in any of the passed projects."""
-        return any(dataset_project_id in project_ids for dataset_project_id in self.data.keys())
-
-    @property
-    def has_lockfile_projects(self) -> bool:
-        """Returns whether or not the dataset contains any project ids in the lockfile."""
-        return self.contains_project_ids(set(lockfile.get_lockfile_project_ids()))
-
-    @property
-    def locked_projects(self) -> Iterable[Project]:
-        """Returns a queryset of all of the dataset's locked project."""
-        return self.projects.filter(is_locked=True)
-
-    @property
-    def has_locked_projects(self) -> bool:
-        """Returns whether or not the dataset contains locked projects."""
-        return self.locked_projects.exists()
-
-    def apply_job_state(self, job) -> None:
-        """
-        Sets the dataset state (flag, reason, timestamps) based on the given job.
-        Resets states before applying changes.
-        """
-        # Resets all state flags and reasons
-        for state in JobStates:
-            state_str = state.lower()
-
-            setattr(self, f"is_{state_str}", False)
-            reason_attr = f"{state_str}_reason"
-
-            if hasattr(self, reason_attr):
-                setattr(self, reason_attr, None)
-
-        # Resets timestamps (reset all for PENDING, otherwise FINAL_JOB_STATES)
-        reset_states = JobStates if state == JobStates.PENDING else common.FINAL_JOB_STATES
-        for state in reset_states:
-            setattr(self, f"{state.lower()}_at", None)
-
-        # Sets new state based on the given job
-        state_str = job.state.lower()
-        reason_attr = f"{state_str}_reason"
-
-        setattr(self, f"is_{state_str}", True)
-        setattr(self, f"{state_str}_at", make_aware(datetime.now()))
-        if hasattr(self, f"{state_str}_reason"):
-            setattr(self, f"{state_str}_reason", getattr(job, reason_attr))
-
+    # HASHING LOGIC
     @property
     def is_hash_changed(self) -> bool:
         """
@@ -374,142 +410,10 @@ class Dataset(TimestampedModel):
     def is_hash_unchanged(self) -> bool:
         return not self.is_hash_changed
 
-    @property
-    def projects(self) -> Iterable[Project]:
-        """Returns all Project instances associated with the Dataset."""
-        if project_ids := self.data.keys():
-            return Project.objects.filter(scpca_id__in=project_ids).order_by("scpca_id")
-        return Project.objects.none()
-
-    @property
-    def samples(self) -> Iterable[Sample]:
-        dataset_samples = Sample.objects.none()
-        for project_id in self.data.keys():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
-                dataset_samples |= self.get_project_modality_samples(project_id, modality)
-
-        return dataset_samples
-
-    @property
-    def libraries(self) -> Iterable[Library]:
-        """Returns all of a Dataset's library, based on Data and Format attrs."""
-        dataset_libraries = Library.objects.none()
-
-        for project_id in self.data.keys():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
-                dataset_libraries |= self.get_project_modality_libraries(project_id, modality)
-
-        return dataset_libraries
-
-    @property
-    def ccdl_type(self) -> Dict:
-        return ccdl_datasets.TYPES.get(self.ccdl_name, {})
-
-    @staticmethod
-    def validate_data(data: Dict[str, Any], format: DatasetFormats) -> Dict:
-        structured_data = DatasetDataModel.model_validate(
-            data, context={"format": format}
-        ).model_dump()
-        validated_data = DatasetDataModelRelations.validate(structured_data)
-
-        return validated_data
-
-    def get_is_merged_project(self, project_id) -> bool:
-        return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
-
-    @property
-    def original_files(self) -> Iterable[OriginalFile]:
-        """Returns all of a Dataset's associated OriginalFiles."""
-        files = OriginalFile.objects.none()
-
-        if self.format == DatasetFormats.METADATA:
-            return files
-
-        for project_id, project_config in self.data.items():
-            # add spatial files
-            files |= OriginalFile.downloadable_objects.filter(
-                project_id=project_id,
-                is_spatial=True,
-                sample_ids__overlap=project_config[DatasetDataProjectConfig.SPATIAL],
-            )
-
-            # add single-cell supplementary
-            single_cell_sample_ids = [
-                sample.scpca_id
-                for sample in self.get_project_modality_samples(project_id, Modalities.SINGLE_CELL)
-            ]
-            files |= OriginalFile.downloadable_objects.filter(
-                project_id=project_id,
-                is_single_cell=True,
-                is_supplementary=True,
-                sample_ids__overlap=single_cell_sample_ids,
-            )
-
-            if self.get_is_merged_project(project_id):
-                merged_files = OriginalFile.downloadable_objects.filter(
-                    project_id=project_id, is_merged=True
-                )
-                files |= merged_files.filter(formats__contains=[self.format])
-                files |= merged_files.filter(is_supplementary=True)
-            else:
-                files |= OriginalFile.downloadable_objects.filter(
-                    project_id=project_id,
-                    is_single_cell=True,
-                    formats__contains=[self.format],
-                    sample_ids__overlap=single_cell_sample_ids,
-                )
-            if project_config[DatasetDataProjectConfig.INCLUDES_BULK]:
-                files |= OriginalFile.downloadable_objects.filter(
-                    project_id=project_id, is_bulk=True
-                )
-
-        return files
-
-    @property
-    def original_file_paths(self) -> Set[Path]:
-        return {Path(of.s3_key) for of in self.original_files}
-
     def get_metadata_file_content(self, libraries: Iterable[Library]) -> str:
         """Return a string of the metadata file content of a collection of libraries."""
         libraries_metadata = Library.get_libraries_metadata(libraries)
         return metadata_file.get_file_contents(libraries_metadata)
-
-    def get_project_modality_samples(
-        self, project_id: str, modality: Modalities
-    ) -> Iterable[Library]:
-        """
-        Takes project's scpca_id and a modality.
-        Returns Sample instances defined in data attribute.
-        """
-        project_data = self.data.get(project_id, {})
-
-        project_samples = Sample.objects.filter(project__scpca_id=project_id)
-
-        if modality is Modalities.SINGLE_CELL and self.get_is_merged_project(project_id):
-            return project_samples.filter(has_single_cell_data=True)
-
-        if modality is Modalities.BULK_RNA_SEQ and project_data.get(
-            DatasetDataProjectConfig.INCLUDES_BULK
-        ):
-            return project_samples.filter(has_bulk_rna_seq=True)
-
-        return project_samples.filter(scpca_id__in=project_data.get(modality, []))
-
-    def get_project_modality_libraries(
-        self, project_id: str, modality: Modalities
-    ) -> Iterable[Library]:
-        """
-        Takes project's scpca_id and a modality.
-        Returns Library instances associated with Samples defined in data attribute.
-        """
-        libraries = Library.objects.filter(
-            samples__in=self.get_project_modality_samples(project_id, modality), modality=modality
-        ).distinct()
-
-        if self.format != DatasetFormats.METADATA and modality != Modalities.BULK_RNA_SEQ:
-            libraries = libraries.filter(formats__contains=[self.format])
-
-        return libraries
 
     def get_project_modality_metadata_file_content(
         self, project_id: str, modality: Modalities
@@ -587,20 +491,13 @@ class Dataset(TimestampedModel):
         concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
+    # ASSOCIATIONS WITH OTHER MODELS
     @property
-    def valid_ccdl_dataset(self) -> bool:
-        if not self.libraries.exists():
-            return False
-
-        return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
-
-    @property
-    def computed_file_name(self) -> Path:
-        return Path(f"{self.pk}.zip")
-
-    @property
-    def computed_file_local_path(self) -> Path:
-        return settings.OUTPUT_DATA_PATH / self.computed_file_name
+    def projects(self) -> Iterable[Project]:
+        """Returns all Project instances associated with the Dataset."""
+        if project_ids := self.data.keys():
+            return Project.objects.filter(scpca_id__in=project_ids).order_by("scpca_id")
+        return Project.objects.none()
 
     @property
     def spatial_projects(self) -> Iterable[Project]:
@@ -641,3 +538,160 @@ class Dataset(TimestampedModel):
     @property
     def cite_seq_projects(self) -> Iterable[Project]:
         return self.projects.filter(has_cite_seq_data=True)
+
+    def contains_project_ids(self, project_ids: Set[str]) -> bool:
+        """Returns whether or not the dataset contains samples in any of the passed projects."""
+        return any(dataset_project_id in project_ids for dataset_project_id in self.data.keys())
+
+    @property
+    def has_lockfile_projects(self) -> bool:
+        """Returns whether or not the dataset contains any project ids in the lockfile."""
+        return self.contains_project_ids(set(lockfile.get_lockfile_project_ids()))
+
+    @property
+    def locked_projects(self) -> Iterable[Project]:
+        """Returns a queryset of all of the dataset's locked project."""
+        return self.projects.filter(is_locked=True)
+
+    @property
+    def has_locked_projects(self) -> bool:
+        """Returns whether or not the dataset contains locked projects."""
+        return self.locked_projects.exists()
+
+    @property
+    def samples(self) -> Iterable[Sample]:
+        dataset_samples = Sample.objects.none()
+        for project_id in self.data.keys():
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
+                dataset_samples |= self.get_project_modality_samples(project_id, modality)
+
+        return dataset_samples
+
+    def get_project_modality_samples(
+        self, project_id: str, modality: Modalities
+    ) -> Iterable[Library]:
+        """
+        Takes project's scpca_id and a modality.
+        Returns Sample instances defined in data attribute.
+        """
+        project_data = self.data.get(project_id, {})
+
+        project_samples = Sample.objects.filter(project__scpca_id=project_id)
+
+        if modality is Modalities.SINGLE_CELL and self.get_is_merged_project(project_id):
+            return project_samples.filter(has_single_cell_data=True)
+
+        if modality is Modalities.BULK_RNA_SEQ and project_data.get(
+            DatasetDataProjectConfig.INCLUDES_BULK
+        ):
+            return project_samples.filter(has_bulk_rna_seq=True)
+
+        return project_samples.filter(scpca_id__in=project_data.get(modality, []))
+
+    @property
+    def libraries(self) -> Iterable[Library]:
+        """Returns all of a Dataset's library, based on Data and Format attrs."""
+        dataset_libraries = Library.objects.none()
+
+        for project_id in self.data.keys():
+            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
+                dataset_libraries |= self.get_project_modality_libraries(project_id, modality)
+
+        return dataset_libraries
+
+    def get_project_modality_libraries(
+        self, project_id: str, modality: Modalities
+    ) -> Iterable[Library]:
+        """
+        Takes project's scpca_id and a modality.
+        Returns Library instances associated with Samples defined in data attribute.
+        """
+        libraries = Library.objects.filter(
+            samples__in=self.get_project_modality_samples(project_id, modality), modality=modality
+        ).distinct()
+
+        if self.format != DatasetFormats.METADATA and modality != Modalities.BULK_RNA_SEQ:
+            libraries = libraries.filter(formats__contains=[self.format])
+
+        return libraries
+
+    def get_is_merged_project(self, project_id) -> bool:
+        return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
+
+    @property
+    def original_files(self) -> Iterable[OriginalFile]:
+        """Returns all of a Dataset's associated OriginalFiles."""
+        files = OriginalFile.objects.none()
+
+        if self.format == DatasetFormats.METADATA:
+            return files
+
+        for project_id, project_config in self.data.items():
+            # add spatial files
+            files |= OriginalFile.downloadable_objects.filter(
+                project_id=project_id,
+                is_spatial=True,
+                sample_ids__overlap=project_config[DatasetDataProjectConfig.SPATIAL],
+            )
+
+            # add single-cell supplementary
+            single_cell_sample_ids = [
+                sample.scpca_id
+                for sample in self.get_project_modality_samples(project_id, Modalities.SINGLE_CELL)
+            ]
+            files |= OriginalFile.downloadable_objects.filter(
+                project_id=project_id,
+                is_single_cell=True,
+                is_supplementary=True,
+                sample_ids__overlap=single_cell_sample_ids,
+            )
+
+            if self.get_is_merged_project(project_id):
+                merged_files = OriginalFile.downloadable_objects.filter(
+                    project_id=project_id, is_merged=True
+                )
+                files |= merged_files.filter(formats__contains=[self.format])
+                files |= merged_files.filter(is_supplementary=True)
+            else:
+                files |= OriginalFile.downloadable_objects.filter(
+                    project_id=project_id,
+                    is_single_cell=True,
+                    formats__contains=[self.format],
+                    sample_ids__overlap=single_cell_sample_ids,
+                )
+            if project_config[DatasetDataProjectConfig.INCLUDES_BULK]:
+                files |= OriginalFile.downloadable_objects.filter(
+                    project_id=project_id, is_bulk=True
+                )
+
+        return files
+
+    @property
+    def original_file_paths(self) -> Set[Path]:
+        return {Path(of.s3_key) for of in self.original_files}
+
+    @property
+    def computed_file_local_path(self) -> Path:
+        return settings.OUTPUT_DATA_PATH / ComputedFile.get_dataset_file_s3_key(self)
+
+    @property
+    def download_file_name(self) -> str:
+        output_format = "-".join(self.format.split("_")).lower()
+        if self.ccdl_modality == Modalities.SPATIAL:
+            output_format = "spatial"
+
+        if self.ccdl_project_id:
+            return f"{self.ccdl_project_id}_{output_format}"
+
+        if self.is_ccdl:
+            return f"portal-wide_{output_format}"
+
+        return f"{self.id}_{output_format}"
+
+    @property
+    def download_url(self) -> str | None:
+        """A temporary URL from which the file can be downloaded."""
+        if not self.computed_file:
+            return None
+
+        return self.computed_file.get_dataset_download_url(self.download_file_name)

@@ -4,7 +4,6 @@ from scpca_portal.enums.dataset_formats import DatasetFormats
 from scpca_portal.models import Dataset, Project
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 from scpca_portal.serializers.contact import ContactSerializer
-from scpca_portal.serializers.dataset import DatasetSerializer
 from scpca_portal.serializers.external_accession import ExternalAccessionSerializer
 from scpca_portal.serializers.project_summary import ProjectSummarySerializer
 from scpca_portal.serializers.publication import PublicationSerializer
@@ -37,7 +36,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "includes_merged_anndata",
             "includes_merged_sce",
             "includes_xenografts",
-            "metadata_dataset",
+            "metadata_dataset_id",
             "modalities",
             "multiplexed_sample_count",
             "organisms",
@@ -58,17 +57,20 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     # but we want these to always be included.
     computed_files = ComputedFileSerializer(read_only=True, many=True)
     contacts = ContactSerializer(read_only=True, many=True)
-    metadata_dataset = serializers.SerializerMethodField()
+    metadata_dataset_id = serializers.SerializerMethodField(read_only=True, default=None)
     external_accessions = ExternalAccessionSerializer(read_only=True, many=True)
     publications = PublicationSerializer(read_only=True, many=True)
     samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
-    def get_metadata_dataset(self, obj):
-        dataset = Dataset.objects.filter(
+    # @extend_schema_field(DatasetSerializer)
+    def get_metadata_dataset_id(self, obj):
+        if dataset := Dataset.objects.filter(
             is_ccdl=True, ccdl_project_id=obj.scpca_id, format=DatasetFormats.METADATA
-        ).first()
-        return DatasetSerializer(dataset).data
+        ).first():
+            return dataset.id
+
+        return None
 
 
 class ProjectSerializer(ProjectLeafSerializer):

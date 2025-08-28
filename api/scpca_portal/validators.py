@@ -4,6 +4,18 @@ from typing import Any, Dict, List
 from pydantic import BaseModel, Field, RootModel, ValidationInfo, field_validator, model_validator
 
 from scpca_portal.enums import DatasetFormats, Modalities
+from scpca_portal.exceptions import (
+    DatasetDataInvalidAnndataSpatialCombinationError,
+    DatasetDataInvalidModalityStringError,
+    DatasetDataInvalidProjectIDError,
+    DatasetDataInvalidSampleIDError,
+    DatasetDataInvalidSampleIDLocationError,
+    DatasetDataProjectsDontExistError,
+    DatasetDataProjectsNoBulkDataError,
+    DatasetDataProjectsNoMergedFilesError,
+    DatasetDataSampleAssociationsError,
+    DatasetDataSamplesDontExistError,
+)
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
 
@@ -24,24 +36,16 @@ class ProjectDataModel(BaseModel):
         # The check is included here for extra clarity.
         if info.field_name == Modalities.SINGLE_CELL.value and isinstance(modality_value, str):
             if re.match(SAMPLE_ID_REGEX, modality_value):
-                raise ValueError("Sample IDs must be inside an Array.")
+                raise DatasetDataInvalidSampleIDLocationError
 
             if modality_value == "MERGED":
                 return modality_value
 
-            # TODO: add custom exception
-            raise ValueError(
-                f"""
-                Invalid string value for 'single-cell' modality: {modality_value}.
-                Only valid value is 'MERGED'.
-                """
-            )
+            raise DatasetDataInvalidModalityStringError(modality_value)
 
         for sample_id in modality_value:
             if not re.match(SAMPLE_ID_REGEX, sample_id):
-                # TODO: add custom exception
-                raise ValueError(f"Invalid sample ID format: {sample_id}.")
-
+                raise DatasetDataInvalidSampleIDError(sample_id)
         return modality_value
 
 
@@ -52,8 +56,7 @@ class DatasetDataModel(RootModel):
     def validate_project_ids(self):
         for project_id in self.root:
             if not re.match(PROJECT_ID_REGEX, project_id):
-                # TODO: add custom exception
-                raise ValueError(f"Invalid project ID format: {project_id}")
+                raise DatasetDataInvalidProjectIDError(project_id)
         return self
 
     @model_validator(mode="after")
@@ -62,11 +65,7 @@ class DatasetDataModel(RootModel):
             if invalid_project_ids := [
                 project_id for project_id, project_data in self.root.items() if project_data.SPATIAL
             ]:
-                raise ValueError(
-                    "Datasets with format ANN_DATA "
-                    "do not support projects with SPATIAL samples. "
-                    f"Invalid projects: {', '.join(sorted(invalid_project_ids))}"
-                )
+                raise DatasetDataInvalidAnndataSpatialCombinationError(invalid_project_ids)
 
         return self
 
@@ -90,10 +89,7 @@ class DatasetDataModelRelations:
         existing_projects = Project.objects.filter(scpca_id__in=data.keys())
         existing_project_ids = existing_projects.values_list("scpca_id", flat=True)
         if invalid_project_ids := set(data.keys()) - set(existing_project_ids):
-            # TODO: add custom exception
-            raise Exception(
-                f"The following projects do not exist: {', '.join(sorted(invalid_project_ids ))}"
-            )
+            raise DatasetDataProjectsDontExistError(invalid_project_ids)
 
         # validate that requested merged projects have merged data
         invalid_merged_ids = []
@@ -102,11 +98,7 @@ class DatasetDataModelRelations:
                 if not (project.includes_merged_anndata or project.includes_merged_sce):
                     invalid_merged_ids.append(project.scpca_id)
         if invalid_merged_ids:
-            # TODO: add custom exception
-            raise Exception(
-                "The following projects do not have merged files: "
-                f"{', '.join(sorted(invalid_merged_ids))}"
-            )
+            raise DatasetDataProjectsNoMergedFilesError(invalid_merged_ids)
 
         # validate that projects have requested bulk data
         invalid_merged_ids = []
@@ -115,11 +107,7 @@ class DatasetDataModelRelations:
             for project in existing_projects
             if data.get(project.scpca_id, {}).get("includes_bulk") and not project.has_bulk_rna_seq
         ]:
-            # TODO: add custom exception
-            raise Exception(
-                "The following projects do not have bulk data: "
-                f"{', '.join(sorted(invalid_bulk_ids))}"
-            )
+            raise DatasetDataProjectsNoBulkDataError(invalid_bulk_ids)
 
     @staticmethod
     def validate_samples(data: Dict[str, Any]):
@@ -146,10 +134,7 @@ class DatasetDataModelRelations:
         )
         existing_sample_ids = [sample["scpca_id"] for sample in existing_samples]
         if invalid_sample_ids := set(data_sample_ids) - set(existing_sample_ids):
-            # TODO: add custom exception
-            raise Exception(
-                f"The following samples do not exist: {', '.join(sorted(invalid_sample_ids))}"
-            )
+            raise DatasetDataSamplesDontExistError(invalid_sample_ids)
 
         # validate that existing samples were put with their associated projects and modalities
         existing_project_modality_sample_ids = {
@@ -184,9 +169,6 @@ class DatasetDataModelRelations:
                 if invalid_sample_ids := set(data_modality_sample_ids) - set(
                     existing_project_modality_sample_ids[project_id][modality]
                 ):
-                    # TODO: add custom exception
-                    raise Exception(
-                        "The following samples are not associated "
-                        f"with {project_id} and {modality}: "
-                        f"{', '.join(sorted(invalid_sample_ids))}"
+                    raise DatasetDataSampleAssociationsError(
+                        project_id, modality, invalid_sample_ids
                     )

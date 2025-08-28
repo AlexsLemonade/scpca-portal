@@ -58,7 +58,7 @@ class ProjectsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
-        self.assertEqual(response_json["metadata_dataset"]["id"], str(metadata_dataset.id))
+        self.assertEqual(response_json["metadata_dataset_id"], str(metadata_dataset.id))
 
         # list view
         url = reverse("projects-list", args=[])
@@ -67,5 +67,5 @@ class ProjectsTestCase(APITestCase):
 
         response_json = response.json()
         self.assertEqual(
-            response_json["results"][0]["metadata_dataset"]["id"], str(metadata_dataset.id)
+            response_json["results"][0]["metadata_dataset_id"], str(metadata_dataset.id)
         )

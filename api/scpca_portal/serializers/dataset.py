@@ -42,7 +42,27 @@ class DatasetSerializer(serializers.ModelSerializer):
 
 
 class DatasetDetailSerializer(DatasetSerializer):
+    class Meta(DatasetSerializer.Meta):
+        fields = (*DatasetSerializer.Meta.fields, "download_url")
+        extra_kwargs = {
+            "download_url": {
+                "help_text": (
+                    "This will contain a url to download the file. "
+                    "You must send a valid [token](#tag/token) "
+                    "for this attribute to be present in the response."
+                )
+            }
+        }
+
     computed_file = ComputedFileSerializer(read_only=True, many=False)
+
+    def __init__(self, *args, **kwargs):
+        super(DatasetDetailSerializer, self).__init__(*args, **kwargs)
+        if "context" in kwargs:
+            # Only include the field `download_url` if a valid token is
+            # specified. The token lookup happens in the view.
+            if "token" not in kwargs["context"]:
+                self.fields.pop("download_url")
 
 
 class DatasetCreateSerializer(DatasetSerializer):

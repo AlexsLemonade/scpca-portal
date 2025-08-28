@@ -2,6 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from rest_framework import viewsets
 
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal.models import Sample
@@ -51,6 +52,7 @@ class SampleFilterSet(filters.FilterSet):
         }
 
 
+@extend_schema(auth=False)
 class SampleViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Sample.objects.all().order_by("-created_at")
     ordering_fields = "__all__"
