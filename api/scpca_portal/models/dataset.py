@@ -491,6 +491,10 @@ class Dataset(TimestampedModel):
         concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
+    @property
+    def includes_files_bulk(self) -> bool:
+        return self.bulk_single_cell_projects.exists()
+
     # ASSOCIATIONS WITH OTHER MODELS
     @property
     def projects(self) -> Iterable[Project]:
