@@ -1,32 +1,6 @@
 from typing import Iterable
 
-from django.template.defaultfilters import pluralize
-
 from scpca_portal.enums import Modalities
-
-
-# scpca_portal.batch
-class BatchError(Exception):
-    def __init__(self, message: str | None = None, job=None, job_ids=None):
-        default_message = "An error occurred while communicating with AWS Batch API."
-        message = message or default_message
-        super().__init__(message)
-        # For logging
-        self.job = job
-        self.job_ids = job_ids
-
-
-class BatchGetJobsFailedError(BatchError):
-    def __init__(self, job_ids=None):
-        job_ids = job_ids or []
-        if job_ids:
-            message = (
-                f"Failed to fetch AWS Batch job{pluralize(len(job_ids))} "
-                f"for job ID{pluralize(len(job_ids))}: {', '.join(job_ids)}"
-            )
-        else:
-            message = "Failed to fetch AWS Batch jobs: no job IDs."
-        super().__init__(message, job_ids=job_ids)
 
 
 class DatasetError(Exception):

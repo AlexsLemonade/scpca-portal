@@ -8,7 +8,6 @@ from django.utils.timezone import make_aware
 from scpca_portal import common
 from scpca_portal.enums import JobStates
 from scpca_portal.exceptions import (
-    BatchGetJobsFailedError,
     DatasetLockedProjectError,
     JobInvalidRetryStateError,
     JobInvalidTerminateStateError,
@@ -379,8 +378,8 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, pending_job.state)
         self.assertDatasetState(saved_job.dataset, is_pending=True)
 
-        # Set up mock side effect for BatchGetJobsFailedError
-        mock_batch_get_jobs.side_effect = BatchGetJobsFailedError()
+        # Set up mock side effect for Exception
+        mock_batch_get_jobs.side_effect = Exception()
 
         processing_job = JobFactory(
             state=JobStates.PROCESSING,
