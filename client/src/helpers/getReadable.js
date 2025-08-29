@@ -25,7 +25,9 @@ export const readableNames = {
   SPATIAL: 'Spatial',
   MULTIPLEXED: 'Multiplexed',
   ANN_DATA: 'AnnData (Python)',
-  SINGLE_CELL_EXPERIMENT: 'SingleCellExperiment (R)'
+  SINGLE_CELL_EXPERIMENT: 'SingleCellExperiment (R)',
+  '.rds': 'SingleCellExperiment (.rds)',
+  '.h5ad': 'AnnData (.h5ad)'
 }
 
 // Alternate presentation
