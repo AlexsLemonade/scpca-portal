@@ -37,7 +37,7 @@ def submit_job(job) -> str | None:
         )
         return None
 
-    logger.info(
+    logger.debug(
         "Job submission complete.",
         job_id=job.pk,
         batch_job_id=job.batch_job_id,
@@ -63,7 +63,7 @@ def terminate_job(job) -> bool:
         )
         return False
 
-    logger.info(
+    logger.debug(
         "Job termination complete.",
         job_id=job.pk,
         batch_job_id=job.batch_job_id,
@@ -92,6 +92,6 @@ def get_jobs(batch_jobs: Iterable["Job"]) -> List[Dict] | None:  # noqa: F821
                 )
                 raise BatchGetJobsFailedError(job_ids=batch_job_ids) from error
 
-    logger.info("AWS Job fetch complete.", batch_job_ids=batch_job_ids)
+    logger.debug("AWS Job fetch complete.", batch_job_ids=batch_job_ids)
 
     return jobs
