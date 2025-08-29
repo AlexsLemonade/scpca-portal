@@ -109,7 +109,9 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         />
         {hasMismatchSamples && (
           <WarningText iconMargin="0" iconSize="24px" margin="0">
-            <Text>Selected modalities may not be available.</Text>
+            <Text>
+              Selected modalities may not be available for some samples.
+            </Text>
           </WarningText>
         )}
       </Box>
