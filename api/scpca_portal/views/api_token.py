@@ -1,9 +1,13 @@
 from rest_framework import mixins, serializers, viewsets
 
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+
 from scpca_portal.models import APIToken
 
 
 class APITokenSerializer(serializers.ModelSerializer):
+    # email = serializers.EmailField(write_only=True)
+
     class Meta:
         model = APIToken
         fields = ("id", "is_activated", "terms_and_conditions", "email")
@@ -15,6 +19,22 @@ class APITokenSerializer(serializers.ModelSerializer):
         }
 
 
+@extend_schema(
+    request=APITokenSerializer,
+    auth=False,
+    examples=[
+        OpenApiExample("Example Token Response"),
+    ],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description="""Create an API token to confirm that Terms of Service are agreed.
+        Used for adding a HTTP header to requests for any endpoint that requires token
+        authentication. **Do not share your Token ID**"""
+    ),
+    retrieve=extend_schema(description="Retrieve token status by Token ID."),
+    update=extend_schema(description="Update the token's activation status."),
+)
 class APITokenViewSet(
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
@@ -22,7 +42,7 @@ class APITokenViewSet(
     viewsets.GenericViewSet,
 ):
     """
-    Create, read, and modify Api Tokens.
+    Tokens for accessing restricted data from the portal.
     """
 
     model = APIToken

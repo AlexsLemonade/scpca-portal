@@ -32,12 +32,6 @@ export const useDatasetManager = () => {
 
   /* Dataset-level */
   const createDataset = async (dataset) => {
-    // TODO: Token check will be removed once the BE is updated
-    // Token is only required for processing and downloading
-    if (!token) {
-      return addError('A valid token is required to create a dataset')
-    }
-
     if (!dataset.format) {
       return addError('A format is required to create a dataset.')
     }
@@ -84,12 +78,6 @@ export const useDatasetManager = () => {
     !myDataset.data || Object.keys(myDataset.data || {}).length === 0
 
   const updateDataset = async (dataset) => {
-    // TODO: Token check will be removed once the BE is updated
-    // Token is only required for processing and downloading
-    if (!token) {
-      return addError('A valid token is required to update the dataset')
-    }
-
     const datasetRequest = await api.datasets.update(dataset.id, dataset, token)
 
     if (!datasetRequest.isOk) {
@@ -111,8 +99,10 @@ export const useDatasetManager = () => {
     updateDataset({ ...dataset, data: {} })
 
   const processDataset = async (dataset) => {
-    // TODO: Token check will be added once the BE is updated
     // Token is required for dataset processing
+    if (!token) {
+      return addError('A valid token is required to update the dataset')
+    }
 
     if (!dataset.email) {
       return addError('An email is required to process the dataset')

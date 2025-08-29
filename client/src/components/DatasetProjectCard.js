@@ -22,8 +22,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   const diagnoses = stats.project_diagnoses[projectId]
   const modalityCount = stats.project_modality_counts[projectId]
   const title = stats.project_titles[projectId]
-  const downloadableSamples =
-    stats.project_downloadable_sample_counts[projectId]
+  const downloadableSamples = stats.project_sample_counts[projectId]
   const hasMismatchSamples =
     stats.modality_count_mismatch_projects.includes(projectId)
 
@@ -110,7 +109,9 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         />
         {hasMismatchSamples && (
           <WarningText iconMargin="0" iconSize="24px" margin="0">
-            <Text>Selected modalities may not be available.</Text>
+            <Text>
+              Selected modalities may not be available for some samples.
+            </Text>
           </WarningText>
         )}
       </Box>

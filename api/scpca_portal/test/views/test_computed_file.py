@@ -50,7 +50,7 @@ class ComputedFilesTestCase(APITestCase):
         # create token
         response = self.client.post(
             reverse("tokens-list"),
-            json.dumps({"is_activated": True, "email": "hi@example.com"}),
+            json.dumps({"is_activated": True, "email": "test-user@ccdatalab.org"}),
             content_type="application/json",
         )
         token_id = response.json()["id"]

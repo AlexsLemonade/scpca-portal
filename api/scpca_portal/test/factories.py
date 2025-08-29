@@ -23,6 +23,14 @@ class ProjectSummaryFactory(factory.django.DjangoModelFactory):
     sample_count = 28
 
 
+class APITokenFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.APIToken"
+
+    email = "test-user@ccdatalab.org"
+    is_activated = True
+
+
 class LeafComputedFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.ComputedFile"
