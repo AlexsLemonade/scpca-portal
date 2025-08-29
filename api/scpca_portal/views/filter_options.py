@@ -1,11 +1,33 @@
 from django.http import JsonResponse
-from rest_framework import viewsets
+from rest_framework import serializers, viewsets
+
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 
 from scpca_portal.models import Project
 
 
+class FilterOptionsResponseSerializer(serializers.Serializer):
+    diagnoses = serializers.ListField(child=serializers.CharField())
+    modalities = serializers.ListField(child=serializers.CharField())
+    seq_units = serializers.ListField(child=serializers.CharField())
+    technologies = serializers.ListField(child=serializers.CharField())
+    organisms = serializers.ListField(child=serializers.CharField())
+    models = serializers.ListField(child=serializers.CharField())
+
+
 class FilterOptionsViewSet(viewsets.ViewSet):
+    @extend_schema(
+        auth=False,
+        responses={
+            200: OpenApiResponse(response=FilterOptionsResponseSerializer),
+        },
+    )
     def list(self, request):
+        """
+        Provides a list of all options for project filters.
+        This includes diagnoses, modalities, seq_units,
+        technologies, organisms, and models.
+        """
         diagnoses_options = set()
         modalities = set()
         seq_units_options = set()

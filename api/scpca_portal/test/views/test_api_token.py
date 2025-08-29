@@ -12,7 +12,7 @@ class APITestCases(APITestCase):
     def test_create_token_one_request(self):
         response = self.client.post(
             reverse("tokens-list"),
-            json.dumps({"is_activated": True, "email": "hi@example.com"}),
+            json.dumps({"is_activated": True, "email": "test-user@ccdatalab.org"}),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 201)
@@ -23,7 +23,7 @@ class APITestCases(APITestCase):
     def test_create_token_two_requests(self):
         response = self.client.post(
             reverse("tokens-list"),
-            json.dumps({"email": "hi@example.com"}),
+            json.dumps({"email": "test-user@ccdatalab.org"}),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 201)
@@ -48,3 +48,19 @@ class APITestCases(APITestCase):
 
         get_response = self.client.get(token_url)
         self.assertNotIn("email", get_response.json())
+
+    def test_create_token_example_email_fail(self):
+        response = self.client.post(
+            reverse("tokens-list"),
+            json.dumps({"is_activated": True, "email": "user@example.com"}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_token_bad_email_fail(self):
+        response = self.client.post(
+            reverse("tokens-list"),
+            json.dumps({"is_activated": True, "email": "not_an_email_address"}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
