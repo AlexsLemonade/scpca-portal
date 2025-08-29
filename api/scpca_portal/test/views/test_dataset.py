@@ -238,6 +238,8 @@ class DatasetsTestCase(APITestCase):
             "files_summary",
             "project_diagnoses",
             "project_modality_counts",
+            "modality_count_mismatch_projects",
+            "project_sample_counts",
             "project_titles",
         }
         for field in stats_property_fields:
