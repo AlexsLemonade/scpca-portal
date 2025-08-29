@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Set
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
@@ -385,22 +385,25 @@ class Dataset(TimestampedModel):
         """
         counts: dict[str, dict] = defaultdict(dict)
 
-        project_modality_sample_counts = (
-            self.get_selected_samples(
-                [Modalities.SINGLE_CELL, Modalities.SPATIAL],
-            )
+        single_cell_count = dict(
+            self.get_selected_samples([Modalities.SINGLE_CELL])
             .values("project__scpca_id")
-            .annotate(
-                single_cell_count=Count("scpca_id", filter=Q(has_single_cell_data=True)),
-                spatial_count=Count("scpca_id", filter=Q(has_spatial_data=True)),
-            )
+            .annotate(num_samples=Count("project__scpca_id"))
             .order_by("project__scpca_id")
+            .values_list("project__scpca_id", "num_samples")
         )
 
-        for count in project_modality_sample_counts:
-            project_id = count["project__scpca_id"]
-            counts[project_id][Modalities.SINGLE_CELL] = count.get("single_cell_count", 0)
-            counts[project_id][Modalities.SPATIAL] = count.get("spatial_count", 0)
+        spatial_count = dict(
+            self.get_selected_samples([Modalities.SPATIAL])
+            .values("project__scpca_id")
+            .annotate(num_samples=Count("project__scpca_id"))
+            .order_by("project__scpca_id")
+            .values_list("project__scpca_id", "num_samples")
+        )
+
+        for project_id in self.data.keys():
+            counts[project_id][Modalities.SINGLE_CELL] = single_cell_count.get(project_id, 0)
+            counts[project_id][Modalities.SPATIAL] = spatial_count.get(project_id, 0)
 
         return counts
 
