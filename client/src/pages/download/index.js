@@ -12,7 +12,7 @@ const Download = () => {
   const { myDataset, errors, getDataset, hasDatasetData } = useDatasetManager()
   const { responsive } = useResponsive()
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!!myDataset)
 
   useEffect(() => {
     const fetchDataset = async () => {
@@ -20,8 +20,8 @@ const Download = () => {
       setLoading(false)
     }
 
-    fetchDataset()
-  }, [])
+    if (loading) fetchDataset()
+  }, [myDataset, loading])
 
   if (loading) return <Loader />
 
@@ -48,8 +48,8 @@ const Download = () => {
           </Box>
           <Box margin={{ bottom: 'large' }}>
             {Object.keys(myDataset.data).map((p) => (
-              <Box margin={{ bottom: 'large' }}>
-                <DatasetProjectCard key={p} dataset={myDataset} projectId={p} />
+              <Box margin={{ bottom: 'large' }} key={p}>
+                <DatasetProjectCard dataset={myDataset} projectId={p} />
               </Box>
             ))}
           </Box>
