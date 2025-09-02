@@ -1,7 +1,6 @@
 import React from 'react'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
-import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
@@ -12,7 +11,6 @@ import { Loader } from 'components/Loader'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
 import { TriStateModalityCheckBoxHeader } from 'components/TriStateModalityCheckBoxHeader'
-import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const DatasetSamplesTable = ({
   project,
@@ -20,13 +18,10 @@ export const DatasetSamplesTable = ({
   stickies = 3,
   editable = false
 }) => {
-  const { myDataset, userFormat } = useDatasetManager()
   const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
     useDatasetSamplesTable()
 
   const hasMultiplexedData = project.has_multiplexed_data
-  const showWarningMultiplexed =
-    hasMultiplexedData && (myDataset.forat || userFormat) === 'ANN_DATA'
 
   const text = 'Uncheck to change or remove modality'
 
@@ -187,8 +182,6 @@ export const DatasetSamplesTable = ({
       selectedRows={selectedSamples}
       onAllRowsChange={setAllSamples}
       onFilteredRowsChange={setFilteredSamples}
-    >
-      {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
-    </Table>
+    />
   )
 }

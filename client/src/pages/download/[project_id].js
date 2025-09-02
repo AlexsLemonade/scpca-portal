@@ -16,7 +16,7 @@ export const ViewEditSamples = ({ project }) => {
 
   const [loading, setLoading] = useState(true)
   const [samplesInMyDataset, setSamplesInMyDataset] = useState([])
-  // For dataset options
+  // For dataset download options
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 

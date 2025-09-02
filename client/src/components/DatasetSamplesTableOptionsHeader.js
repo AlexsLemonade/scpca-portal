@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
+import { config } from 'config'
 import { useRouter } from 'next/router'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { getReadable } from 'helpers/getReadable'
 import { Button } from 'components/Button'
+import { FormField } from 'components/FormField'
+import { HelpLink } from 'components/HelpLink'
 
 export const DatasetSamplesTableOptionsHeader = ({
   project,
@@ -43,7 +46,7 @@ export const DatasetSamplesTableOptionsHeader = ({
     }
   }
 
-  // Preselect options based on the values in myDataset
+  // Preselect download options based on the values in myDataset
   useEffect(() => {
     onIncludeBulkChange(isProjectIncludeBulk(project))
     onIncludeMergeChange(isProjectMerged(project))
@@ -66,12 +69,18 @@ export const DatasetSamplesTableOptionsHeader = ({
         direction={responsive('column', 'row')}
         gap={responsive('large', 'xlarge')}
       >
-        <Box direction="row">
-          <Text weight="bold" margin={{ right: 'small' }}>
-            Data Format:
-          </Text>
+        <FormField
+          label={
+            <HelpLink
+              label={<Text weight="bold">Data Format:</Text>}
+              link={config.links.what_downloading}
+            />
+          }
+          direction={responsive('column', 'row')}
+          align={responsive('start', 'center')}
+        >
           <Text>{getReadable(myDataset.format)}</Text>
-        </Box>
+        </FormField>
         {hasBulkRnaSeq && (
           <CheckBox
             label="Include all bulk RNA-seq data in the project"
