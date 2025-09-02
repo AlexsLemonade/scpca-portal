@@ -237,7 +237,8 @@ export const Table = ({
   pageSize: initialPageSize = 0,
   pageSizeOptions = [],
   selectedRows, // For highlighting selected samples rows
-  infoText,
+  infoText = '',
+  text = '',
   children,
   onAllRowsChange = () => {},
   onFilteredRowsChange = () => {}
@@ -309,10 +310,13 @@ export const Table = ({
     )
   }, [setHiddenColumns, columns])
 
-  const justify = filter && infoText ? 'between' : 'end'
+  const hasText = text || (filter && infoText)
+  const justify = hasText ? 'between' : 'end'
   const pad = filter ? { vertical: 'medium' } : {}
   const { responsive } = useResponsive()
 
+  const showPageSize =
+    pageSizeOptions.length > 0 && data?.length > pageSizeOptions[0]
   const showPagination = pageOptions && pageOptions.length > 1
 
   return (
@@ -325,7 +329,8 @@ export const Table = ({
         justify={justify}
       >
         {infoText && <InfoText label={infoText} />}
-        {pageSizeOptions.length > 0 && (
+        {text && text}
+        {showPageSize && (
           <TablePageSize
             pageSize={state.pageSize}
             setPageSize={setPageSize}
