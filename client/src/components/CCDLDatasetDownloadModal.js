@@ -2,8 +2,8 @@
 import React, { useState } from 'react'
 import { Button } from 'components/Button'
 import { CCDLDatasetDownloadOptions } from 'components/CCDLDatasetDownloadOptions'
+import { CCDLDatasetDownloadToken } from 'components/CCDLDatasetDownloadToken'
 import { DatasetDownloadStarted } from 'components/DatasetDownloadStarted'
-import { DatasetDownloadToken } from 'components/DatasetDownloadToken'
 import { Modal, ModalLoader, ModalBody } from 'components/Modal'
 import { useCCDLDatasetDownloadModal } from 'hooks/useCCDLDatasetDownloadModal'
 
@@ -44,7 +44,7 @@ export const CCDLDatasetDownloadModal = ({
       <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
         <ModalBody>
           {isTokenReady ? (
-            <DatasetDownloadToken />
+            <CCDLDatasetDownloadToken />
           ) : isOptionsReady ? (
             <CCDLDatasetDownloadOptions
               datasets={datasets}
