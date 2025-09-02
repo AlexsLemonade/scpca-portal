@@ -21,7 +21,7 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
     setDownloadDataset(null)
 
     if (datasets.length === 1) {
-      setSelectedDataset()
+      setSelectedDataset(datasets[0])
     }
   }, [datasets])
 
