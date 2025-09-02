@@ -3,7 +3,7 @@ import { useLocalStorage } from 'hooks/useLocalStorage'
 // - key: a key to store in localStorage
 // - initialValue: an initial value for the scroll position
 // It uses localStorage to store and restore the scroll position,
-// and defaults back to initialValue after the position is restored.
+// and clean up the key from localStorage after the position is restored.
 
 export const useScrollToPosition = (
   key = 'scrollPosition',
@@ -18,7 +18,7 @@ export const useScrollToPosition = (
   const restoreScrollPosition = () => {
     if (scrollPosition !== null) {
       window.scrollTo(0, parseInt(scrollPosition, 10))
-      setScrollPosition(initialValue)
+      localStorage.removeItem(key)
     }
   }
 
