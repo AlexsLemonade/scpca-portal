@@ -1,7 +1,9 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
-import { useResponsive } from 'hooks/useResponsive'
+import { useRouter } from 'next/router'
+import { useScrollToPosition } from 'hooks/useScrollToPosition'
 import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useResponsive } from 'hooks/useResponsive'
 import { Badge } from 'components/Badge'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
@@ -13,11 +15,12 @@ import { sortArrayString } from 'helpers/sortArrayString'
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
 export const DatasetProjectCard = ({ dataset, projectId }) => {
+  const { push } = useRouter()
+  const { saveScrollPosition } = useScrollToPosition()
   const { removeProjectById } = useDatasetManager()
   const { responsive } = useResponsive()
 
   const { data, stats } = dataset
-
   const projectData = data[projectId]
   const diagnoses = stats.project_diagnoses[projectId]
   const modalityCount = stats.project_modality_counts[projectId]
@@ -31,6 +34,12 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     projectData.SINGLE_CELL === 'MERGED'
   ]
   const hasNoOptions = options.filter((o) => o).length === 0
+
+  const handleViewEditSamples = () => {
+    // Save the scroll position before navigating
+    saveScrollPosition(window.scrollY)
+    push(`/download/${projectId}`)
+  }
 
   return (
     <Box elevation="medium" pad="24px" width="full">
@@ -104,8 +113,8 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         <Button
           label="View/Edit Samples"
           aria-label="View/Edit Samples"
-          href={`/download/${projectId}`}
           alignSelf={responsive('stretch', 'start')}
+          onClick={handleViewEditSamples}
         />
         {hasMismatchSamples && (
           <WarningText iconMargin="0" iconSize="24px" margin="0">
