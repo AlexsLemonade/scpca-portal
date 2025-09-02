@@ -7,14 +7,13 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
   const [datasets, setDatasets] = useState(initialDatasets)
   const [selectedDataset, setSelectedDataset] = useState(null)
   const [downloadDataset, setDownloadDataset] = useState(null)
+  const [modalTitle, setModalTitle] = useState(
+    isDownloadReady ? 'Downloading Dataset' : 'Download Dataset'
+  )
 
   const isTokenReady = !token
   const isOptionsReady = !datasets && token
   const isDownloadReady = downloadDataset && token
-
-  const modalTitle = isDownloadReady
-    ? 'Downloading Dataset'
-    : 'Download Dataset'
 
   useEffect(() => {
     setSelectedDataset(null)
@@ -61,6 +60,7 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
   return {
     token,
     modalTitle,
+    setModalTitle,
     tryDownload,
     datasets,
     setDatasets,

@@ -15,6 +15,7 @@ export const CCDLDatasetDownloadModal = ({
   const [showing, setShowing] = useState(false)
   const {
     modalTitle,
+    setModalTitle,
     tryDownload,
     datasets,
     setSelectedDataset,
@@ -51,7 +52,10 @@ export const CCDLDatasetDownloadModal = ({
               handleSelectedDataset={setSelectedDataset}
             />
           ) : isDownloadReady ? (
-            <DatasetDownloadStarted dataset={downloadDataset} />
+            <DatasetDownloadStarted
+              dataset={downloadDataset}
+              setModalTitle={setModalTitle}
+            />
           ) : (
             <ModalLoader />
           )}
