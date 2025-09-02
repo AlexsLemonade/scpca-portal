@@ -152,7 +152,7 @@ export const useDatasetManager = () => {
       (s) => s.has_spatial_data && spatial.includes(s.scpca_id)
     )
 
-    return [...singleCellSamples, ...spatialSamples]
+    return uniqueArray([...singleCellSamples, ...spatialSamples])
   }
 
   const getProjectDataSamples = (

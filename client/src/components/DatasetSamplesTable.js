@@ -11,7 +11,7 @@ import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
-import { TriStateModalityCheckBox } from 'components/TriStateModalityCheckBox'
+import { TriStateModalityCheckBoxHeader } from 'components/TriStateModalityCheckBoxHeader'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const DatasetSamplesTable = ({
@@ -30,34 +30,23 @@ export const DatasetSamplesTable = ({
 
   const text = 'Uncheck to change or remove modality'
 
-  const allModalities = ['SINGLE_CELL', 'SPATIAL'] // List of all modalities available on the portal
-  const checkBoxCellWidth = '200px'
+  const availableModalities = [
+    { key: 'SINGLE_CELL', value: project.has_single_cell_data },
+    { key: 'SPATIAL', value: project.has_spatial_data }
+  ]
+    .filter((m) => m.value)
+    .map((m) => m.key)
+  const checkBoxCellWidth = availableModalities.length > 1 ? '200px' : '50px'
 
   const columns = [
     {
       Header: (
         <Box width={checkBoxCellWidth}>
-          <Box align="center" margin={{ bottom: 'small' }} pad="small">
-            Select Modality
-          </Box>
-          <Box
-            border={{ side: 'bottom' }}
-            width="100%"
-            style={{ position: 'absolute', top: '45px', left: 0 }}
+          <TriStateModalityCheckBoxHeader
+            project={project}
+            modalities={availableModalities}
+            editable={editable}
           />
-          <Box direction="row" justify="around">
-            {allModalities.map((m) => (
-              <Box key={m} align="center" pad={{ horizontal: 'small' }}>
-                <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
-                <TriStateModalityCheckBox
-                  project={project}
-                  modality={m}
-                  disabled={!project[`has_${m.toLowerCase()}_data`]}
-                  editable={editable}
-                />
-              </Box>
-            ))}
-          </Box>
         </Box>
       ),
       disableSortBy: true,
@@ -69,7 +58,7 @@ export const DatasetSamplesTable = ({
           justify="around"
           width={checkBoxCellWidth}
         >
-          {allModalities.map((m) => (
+          {availableModalities.map((m) => (
             <ModalityCheckBox
               key={`${row.original.scpca_id}_${m}`}
               project={project}
