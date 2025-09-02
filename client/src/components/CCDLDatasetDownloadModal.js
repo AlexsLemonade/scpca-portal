@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 import React, { useState } from 'react'
 import { Button } from 'components/Button'
-import { DownloadOptions } from 'components/DownloadOptions'
+import { CCDLDatasetDownloadOptions } from 'components/CCDLDatasetDownloadOptions'
 import { DatasetDownloadStarted } from 'components/DatasetDownloadStarted'
 import { DatasetDownloadToken } from 'components/DatasetDownloadToken'
 import { Modal, ModalLoader, ModalBody } from 'components/Modal'
@@ -46,9 +46,7 @@ export const CCDLDatasetDownloadModal = ({
           {isTokenReady ? (
             <DatasetDownloadToken />
           ) : isOptionsReady ? (
-            // this component is a placeholderwill
-            // it will be replaced with CCDLDatasetDownloadOptions
-            <DownloadOptions
+            <CCDLDatasetDownloadOptions
               datasets={datasets}
               handleSelectedDataset={setSelectedDataset}
             />
