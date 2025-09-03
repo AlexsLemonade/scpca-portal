@@ -31,6 +31,9 @@ export const useDatasetManager = () => {
   }
 
   /* Dataset-level */
+  const isDatasetDataEmpty =
+    !myDataset.data || Object.keys(myDataset.data || {}).length === 0
+
   const createDataset = async (dataset) => {
     if (!dataset.format) {
       return addError('A format is required to create a dataset.')
@@ -73,9 +76,6 @@ export const useDatasetManager = () => {
 
     return datasetRequest.response
   }
-
-  const hasDatasetData = () =>
-    !myDataset.data || Object.keys(myDataset.data || {}).length === 0
 
   const updateDataset = async (dataset) => {
     const datasetRequest = await api.datasets.update(dataset.id, dataset, token)
@@ -248,9 +248,9 @@ export const useDatasetManager = () => {
     userFormat,
     setUserFormat,
     removeError,
+    isDatasetDataEmpty,
     clearDataset,
     getDataset,
-    hasDatasetData,
     processDataset,
     addProject,
     removeProject,

@@ -9,7 +9,8 @@ import { Loader } from 'components/Loader'
 import Error from 'pages/_error'
 
 const Download = () => {
-  const { myDataset, errors, getDataset, hasDatasetData } = useDatasetManager()
+  const { myDataset, errors, getDataset, isDatasetDataEmpty } =
+    useDatasetManager()
   const { responsive } = useResponsive()
 
   const [loading, setLoading] = useState(true)
@@ -31,7 +32,7 @@ const Download = () => {
 
   return (
     <Box width="full" pad={responsive({ horizontal: 'medium' })}>
-      {hasDatasetData() ? (
+      {isDatasetDataEmpty ? (
         <Box>Dataset is empty</Box> // TODO: Replace the temporary JSX with Deepa's mockup
       ) : (
         <>
