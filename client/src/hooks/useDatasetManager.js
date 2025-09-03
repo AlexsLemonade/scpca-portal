@@ -182,18 +182,8 @@ export const useDatasetManager = () => {
   const getProjectSpatialSamples = (samples) =>
     samples.filter((s) => s.has_spatial_data).map((s) => s.scpca_id)
 
-  const getProjectIDs = (dataset) => Object.keys(dataset.data)
-
   const isProjectAddedToDataset = (project) =>
     Object.keys(myDataset?.data || []).includes(project.scpca_id)
-
-  const removeProject = async (project) => {
-    const datasetCopy = structuredClone(myDataset)
-    delete datasetCopy.data[project.scpca_id]
-
-    const updatedDataset = await updateDataset(datasetCopy)
-    return updatedDataset
-  }
 
   const removeProjectById = (projectId) => {
     const datasetCopy = structuredClone(myDataset)
@@ -253,13 +243,11 @@ export const useDatasetManager = () => {
     getDataset,
     processDataset,
     addProject,
-    removeProject,
     removeProjectById,
     getDatasetProjectData,
     getProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
-    getProjectIDs,
     isProjectAddedToDataset,
     setSamples,
     getMissingModaliesSamples
