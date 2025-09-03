@@ -12,7 +12,13 @@ import { Loader } from 'components/Loader'
 
 export const ViewEditSamples = ({ project }) => {
   const { back } = useRouter()
-  const { myDataset, getAddedProjectDataSamples } = useDatasetManager()
+
+  const {
+    myDataset,
+    getAddedProjectDataSamples,
+    isProjectIncludeBulk,
+    isProjectMerged
+  } = useDatasetManager()
 
   const [loading, setLoading] = useState(true)
   const [samplesInMyDataset, setSamplesInMyDataset] = useState([])
@@ -20,11 +26,14 @@ export const ViewEditSamples = ({ project }) => {
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
-  // Filter to display only samples from My Dataset in the table
+  // Configure the dataset table and options after component mounts
   useEffect(() => {
     if (!myDataset) return
-
+    // Filter to display only samples from My Dataset
     setSamplesInMyDataset(getAddedProjectDataSamples(project))
+    // Preselect download options based on the values in myDataset
+    setIncludeBulk(isProjectIncludeBulk(project))
+    setIncludeMerge(isProjectMerged(project))
     setLoading(false)
   }, [myDataset])
 

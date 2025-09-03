@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
 import { useRouter } from 'next/router'
@@ -18,8 +18,7 @@ export const DatasetSamplesTableOptionsHeader = ({
   onIncludeMergeChange = () => {}
 }) => {
   const { back } = useRouter()
-  const { myDataset, isProjectIncludeBulk, isProjectMerged, setSamples } =
-    useDatasetManager()
+  const { myDataset, setSamples } = useDatasetManager()
   const { selectedSamples } = useDatasetSamplesTable()
   const { responsive } = useResponsive()
 
@@ -46,12 +45,6 @@ export const DatasetSamplesTableOptionsHeader = ({
       // TODO: Error handling
     }
   }
-
-  // Preselect download options based on the values in myDataset
-  useEffect(() => {
-    onIncludeBulkChange(isProjectIncludeBulk(project))
-    onIncludeMergeChange(isProjectMerged(project))
-  }, [])
 
   return (
     <>
