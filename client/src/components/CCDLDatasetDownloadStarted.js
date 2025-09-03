@@ -61,7 +61,7 @@ export const CCDLDatasetDownloadStarted = ({ dataset, setModalTitle }) => {
               }}
             >
               {dataset.format !== 'METADATA' && (
-                <li>{getReadableFiles(dataset.format)}</li>
+                <li>{getReadableFiles(dataset.ccdl_modality)}</li>
               )}
               {dataset.includes_files_cite_seq && <li>CITE-seq data</li>}
               {dataset.includes_files_bulk && <li>Bulk RNA-Seq data</li>}
