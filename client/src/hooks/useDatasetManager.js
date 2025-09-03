@@ -31,6 +31,9 @@ export const useDatasetManager = () => {
   }
 
   /* Dataset-level */
+  const isDatasetDataEmpty =
+    !myDataset.data || Object.keys(myDataset.data || {}).length === 0
+
   const createDataset = async (dataset) => {
     if (!dataset.format) {
       return addError('A format is required to create a dataset.')
@@ -73,9 +76,6 @@ export const useDatasetManager = () => {
 
     return datasetRequest.response
   }
-
-  const hasDatasetData = () =>
-    !myDataset.data || Object.keys(myDataset.data || {}).length === 0
 
   const updateDataset = async (dataset) => {
     const datasetRequest = await api.datasets.update(dataset.id, dataset, token)
@@ -199,8 +199,6 @@ export const useDatasetManager = () => {
     // Populate SPATIAL value for the project data for addProject
     samples.filter((s) => s.has_spatial_data).map((s) => s.scpca_id)
 
-  const getProjectIDs = (dataset) => Object.keys(dataset.data)
-
   const isProjectAddedToDataset = (project) =>
     Object.keys(myDataset?.data || []).includes(project.scpca_id)
 
@@ -209,14 +207,6 @@ export const useDatasetManager = () => {
 
   const isProjectMerged = (project) =>
     myDataset.data[project.scpca_id].SINGLE_CELL === 'MERGED'
-
-  const removeProject = async (project) => {
-    const datasetCopy = structuredClone(myDataset)
-    delete datasetCopy.data[project.scpca_id]
-
-    const updatedDataset = await updateDataset(datasetCopy)
-    return updatedDataset
-  }
 
   const removeProjectById = (projectId) => {
     const datasetCopy = structuredClone(myDataset)
@@ -274,19 +264,17 @@ export const useDatasetManager = () => {
     userFormat,
     setUserFormat,
     removeError,
+    isDatasetDataEmpty,
     clearDataset,
     getDataset,
-    hasDatasetData,
     processDataset,
     addProject,
-    removeProject,
     removeProjectById,
     getDatasetProjectData,
     getAddedProjectDataSamples,
     getProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
-    getProjectIDs,
     isProjectAddedToDataset,
     isProjectIncludeBulk,
     isProjectMerged,

@@ -8,9 +8,11 @@ import { Badge } from 'components/Badge'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { WarningText } from 'components/WarningText'
-import { formatCounts } from 'helpers/formatCounts'
+import {
+  formatModalityCounts,
+  formatDiagnosisCounts
+} from 'helpers/formatCounts'
 import { getReadable } from 'helpers/getReadable'
-import { sortArrayString } from 'helpers/sortArrayString'
 
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
@@ -29,11 +31,18 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   const hasMismatchSamples =
     stats.modality_count_mismatch_projects.includes(projectId)
 
-  const options = [
-    projectData.includes_bulk,
-    projectData.SINGLE_CELL === 'MERGED'
+  const specifiedOptions = [
+    {
+      label: 'Include all bulk RNA-seq data in the project',
+      value: projectData.includes_bulk
+    },
+    {
+      label: 'Merge single-cell samples into 1 object',
+      value: projectData.SINGLE_CELL === 'MERGED'
+    }
   ]
-  const hasNoOptions = options.filter((o) => o).length === 0
+    .filter((o) => o.value)
+    .map((o) => o.label)
 
   const handleViewEditSamples = () => {
     // Save the scroll position before navigating
@@ -72,7 +81,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
       <Box>
         <Box margin={{ bottom: '24px' }}>
           <Label label="Diagnosis" />
-          {sortArrayString(formatCounts(diagnoses)).join(', ')}
+          {formatDiagnosisCounts(diagnoses).join(', ')}
         </Box>
         <Box margin={{ bottom: 'xsmall' }}>
           <Label label="Download Options" />
@@ -87,20 +96,17 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
           </Box>
           <Box flex={{ grow: 1 }}>
             <Label label="Modality" />
-            {sortArrayString(formatCounts(modalityCount, true)).map((fc) => (
+            {formatModalityCounts(modalityCount).map((fc) => (
               <Text key={fc}>{fc}</Text>
             ))}
           </Box>
           <Box flex={{ grow: 1 }}>
             <Label label="Other Options" />
             <Box>
-              {projectData.includes_bulk && (
-                <Text>Include all bulk RNA-seq data in the project</Text>
-              )}
-              {projectData.SINGLE_CELL === 'MERGED' && (
-                <Text>Merge single-cell samples into 1 object</Text>
-              )}
-              {hasNoOptions && <Text>Not Specified</Text>}
+              {specifiedOptions.map((so) => (
+                <Text>{so}</Text>
+              ))}
+              {specifiedOptions.length === 0 && <Text>Not Specified</Text>}
             </Box>
           </Box>
         </Box>
