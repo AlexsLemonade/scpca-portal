@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Box, Text } from 'grommet'
 import { useScrollToPosition } from 'hooks/useScrollToPosition'
 import { useDatasetManager } from 'hooks/useDatasetManager'
@@ -37,7 +37,7 @@ const Download = () => {
     } else {
       setLoading(false)
     }
-  }, [myDataset, loading, getDataset])
+  }, [myDataset, loading])
 
   if (loading) return <Loader />
 

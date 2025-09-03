@@ -33,7 +33,7 @@ export const TriStateModalityCheckBox = ({
     if (disabled) return
 
     if (!editable) {
-      // Exclude the toggling of samples that are in myDataset if the table is not editable
+      // Exclude toggling samples in myDataset if the table is non-editable
       const samplesToExclude = getDatasetProjectData(project)[modality] || []
       toggleSamples(modality, samplesToExclude)
     } else {

@@ -28,6 +28,7 @@ export const DatasetSamplesTableOptionsHeader = ({
     includes_merged_sce: includesMergedSce,
     includes_merged_anndata: includesMergedAnnData
   } = project
+
   const isMergedObjectsAvailable =
     myDataset.format === 'SINGLE_CELL_EXPERIMENT'
       ? includesMergedSce

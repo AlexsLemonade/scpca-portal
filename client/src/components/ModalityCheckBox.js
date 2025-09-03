@@ -58,7 +58,7 @@ export const ModalityCheckBox = ({
     }
   }, [myDataset, allSamples])
 
-  // Disable samples that are already in myDataset if the table is not editable
+  // Disable existing samples in myDataset if the table is non-editable
   useEffect(() => {
     if (editable) return
 
