@@ -35,10 +35,14 @@ export const DatasetSamplesTableOptionsHeader = ({
       : includesMergedAnnData
 
   const handleSaveAndGoBack = async () => {
-    const datasetRequest = await setSamples(project, {
-      ...selectedSamples,
-      includes_bulk: includeBulk
-    })
+    const datasetRequest = await setSamples(
+      project,
+      {
+        ...selectedSamples,
+        includes_bulk: includeBulk
+      },
+      includeMerge
+    )
 
     if (datasetRequest) {
       back()

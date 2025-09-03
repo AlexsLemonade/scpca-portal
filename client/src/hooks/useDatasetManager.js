@@ -226,10 +226,13 @@ export const useDatasetManager = () => {
   }
 
   /* Sample-level */
-  const setSamples = async (project, newProjectData) => {
+  const setSamples = async (project, newProjectData, merged = false) => {
     const datasetDataCopy = structuredClone(myDataset.data) || {}
 
-    datasetDataCopy[project.scpca_id] = newProjectData
+    datasetDataCopy[project.scpca_id] = {
+      ...newProjectData,
+      ...(merged && { SINGLE_CELL: 'MERGED' })
+    }
 
     const updatedDataset = {
       ...myDataset,
