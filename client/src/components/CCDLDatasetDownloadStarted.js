@@ -1,31 +1,16 @@
-import React, { Fragment, useState, useEffect } from 'react'
+import React from 'react'
 import { useResponsive } from 'hooks/useResponsive'
 import { Box, Grid, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
-import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
-import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
-import { WarningText } from 'components/WarningText'
-import { WarningMergedObjects } from 'components/WarningMergedObjects'
 import { formatBytes } from 'helpers/formatBytes'
-import { getDefaultComputedFile } from 'helpers/getDefaultComputedFile'
-import { getDownloadOptionDetails } from 'helpers/getDownloadOptionDetails'
-import { api } from 'api'
+import { getReadable, getReadableFiles } from 'helpers/getReadable'
 import DownloadSVG from '../images/download-folder.svg'
 
 // View when the donwload should have been initiated
-export const DownloadStarted = ({ dataset, setModalTitle }) => {
+export const CCDLDatasetDownloadStarted = ({ dataset, setModalTitle }) => {
   // open the file in a new tab
-  const { items, info, type, resourceType, isProject } =
-    getDownloadOptionDetails(computedFile)
-  const additionalRestrictions = resource?.additional_restrictions
-  const isIncludesMerged = computedFile.includes_merged
-  const isPortalMetadataOnly = resourceType === 'All'
-
   const { size: responsiveSize } = useResponsive()
-  const { size_in_bytes: size, download_url: href } = computedFile
-  const startedText = `Your download for the ${type.toLowerCase()} should have started.`
-  const idText = `${resourceType} ID: ${resource?.scpca_id}`
 
   const getModalTitle = (ccdlName) => {
     switch (ccdlName) {
@@ -52,35 +37,22 @@ export const DownloadStarted = ({ dataset, setModalTitle }) => {
         pad={{ bottom: 'medium' }}
       >
         <Box>
-          <Paragraph>{startedText}</Paragraph>
-          {!isPortalMetadataOnly && (
-            <Box
-              direction="row"
-              justify="between"
-              margin={{ vertical: 'medium' }}
-            >
-              <Text weight="bold">{idText}</Text>
-              <Text weight="bold">Size: {formatBytes(size)}</Text>
-            </Box>
-          )}
-          {isPortalMetadataOnly && (
+          <Paragraph>Your download should have started.</Paragraph>
+          {dataset.format === 'METADATA' ? (
             <Box margin={{ top: 'small', bottom: 'small' }}>
-              <Text>{info.texts.text_only}</Text>
+              <Text>
+                This download contains all of the sample metadata from every
+                project in ScPCA Portal.
+              </Text>
+            </Box>
+          ) : (
+            <Box margin={{ top: 'small', bottom: 'small' }}>
+              <Text weight="bold">
+                Data Format: {getReadable(dataset.format)}
+              </Text>
             </Box>
           )}
-          {isProject && info?.warning_text && (
-            <WarningText
-              iconSize="24px"
-              link={info.warning_text.link.url}
-              linkLabel={info.warning_text.link.label}
-              text={info.warning_text.text}
-            />
-          )}
-          {isIncludesMerged && <WarningMergedObjects />}
-          <Paragraph>
-            {info?.text_only && <span>{info.text_only}</span>} The download
-            consists of the following items:
-          </Paragraph>
+          <Paragraph>The download consists of the following items:</Paragraph>
           <Box pad="medium">
             <ul
               style={{
@@ -88,60 +60,28 @@ export const DownloadStarted = ({ dataset, setModalTitle }) => {
                 listStyleType: 'square'
               }}
             >
-              {items.map((item) => (
-                <Fragment key={item}>
-                  <li>{item}</li>
-                </Fragment>
-              ))}
+              {dataset.format !== 'METADATA' && (
+                <li>{getReadableFiles(dataset.format)}</li>
+              )}
+              {dataset.includes_files_cite_seq && <li>CITE-seq data</li>}
+              {dataset.includes_files_bulk && <li>Bulk RNA-Seq data</li>}
+              <li>Project and Sample Metadata</li>
             </ul>
           </Box>
-          {info?.texts.multiplexed_with && (
+          {dataset.includes_files_merged && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
-              <Text>{info.texts.multiplexed_with.text}</Text>
-              {resource.multiplexed_with && (
-                <ul style={{ margin: '8px 0 4px 16px' }}>
-                  {resource.multiplexed_with.map((item) => (
-                    <li key={item} style={{ listStyle: 'inside square' }}>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <Text>Samples are merged into 1 object per project</Text>
             </Box>
           )}
-          {info?.learn_more && (
-            <Paragraph margin={{ bottom: 'small' }}>
-              {info.learn_more.text}{' '}
-              <Link label={info.learn_more.label} href={info.learn_more.url} />.
-            </Paragraph>
-          )}
-          {recommendedResource && handleSelectFile && (
-            <WarningText iconSize="24px" text={info.warning_text.text}>
-              <Box
-                onClick={() =>
-                  handleSelectFile(recommendedFile, recommendedResource)
-                }
-                align='="center'
-                direction="row"
-              >
-                <Icon name="Download" />
-                &nbsp;&nbsp;
-                <Text color="brand">Download Project</Text>
-                <Text style={{ fontStyle: 'italic' }}>
-                  &nbsp;&nbsp;(Size:{' '}
-                  {formatBytes(recommendedFile.size_in_bytes)})
-                </Text>
-              </Box>
-            </WarningText>
-          )}
-          {additionalRestrictions && (
-            <Box margin={{ vertical: 'medium' }}>
-              <ProjectAdditionalRestrictions
-                text={additionalRestrictions}
-                isModal
-              />
-            </Box>
-          )}
+          <Box margin={{ top: 'small', bottom: 'small' }}>
+            <Text weight="bold">
+              Size: {formatBytes(dataset.size_in_bytes)}
+            </Text>
+          </Box>
+          <Paragraph margin={{ bottom: 'small' }}>
+            Learn more about what you can expect in your download file{' '}
+            <Link label="here" href=" " />.
+          </Paragraph>
           <Box>
             {responsiveSize !== 'small' && (
               <Paragraph style={{ fontStyle: 'italic' }} color="black-tint-40">
@@ -155,7 +95,7 @@ export const DownloadStarted = ({ dataset, setModalTitle }) => {
               alignSelf="start"
               aria-label="Try Again"
               label="Try Again"
-              href={href}
+              href={dataset.download_url}
               target="_blank"
             />
           </Box>
@@ -168,4 +108,4 @@ export const DownloadStarted = ({ dataset, setModalTitle }) => {
   )
 }
 
-export default DownloadStarted
+export default CCDLDatasetDownloadStarted
