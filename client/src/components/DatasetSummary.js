@@ -26,7 +26,7 @@ export const DatasetSummary = ({ dataset }) => {
           Dataset Summary
         </Text>
       </Box>
-      <DatasetSummaryTable data={data} columns={columns} />
+      <DatasetSummaryTable data={data} columns={columns} keyValue="Diagnosis" />
     </Box>
   )
 }

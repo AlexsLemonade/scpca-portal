@@ -33,7 +33,11 @@ const TableCell = styled(GrommentTableCell)`
   padding-left: 33px;
 `
 
-export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
+export const DatasetSummaryTable = ({
+  data = [],
+  columns = [],
+  keyValue // Data row property name with unique value across rows
+}) => {
   // check the first row to which columns are ints
   const columnAlign = Object.fromEntries(
     columns.map((c) => [
@@ -41,9 +45,6 @@ export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
       Number.isInteger((data[0] || {})[c]) ? 'end' : 'start'
     ])
   )
-
-  // TODO: This is temporary solution. Should we install a package (e.g., nanoid)?
-  const generateRandomKey = () => Math.random().toString(36)
 
   return (
     <Table width="100%">
@@ -61,12 +62,11 @@ export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data.map((row, i) => (
-          // eslint-disable-next-line react/no-array-index-key
-          <TableRow key={`${generateRandomKey()}-${i}`}>
+        {data.map((row) => (
+          <TableRow key={row[keyValue]}>
             {columns.map((c) => (
               <TableCell
-                key={c}
+                key={`${row[keyValue]}-${c}`}
                 align={columnAlign[c]}
                 pad={columnAlign[c] === 'end' ? { right: '100px' } : ''}
               >
