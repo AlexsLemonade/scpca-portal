@@ -42,6 +42,9 @@ export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
     ])
   )
 
+  // TODO: This is temporary solution. Should we install a package (e.g., nanoid)?
+  const generateRandomKey = () => Math.random().toString(36)
+
   return (
     <Table width="100%">
       <TableHeader>
@@ -58,8 +61,9 @@ export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data.map((row) => (
-          <TableRow>
+        {data.map((row, i) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <TableRow key={`${generateRandomKey()}-${i}`}>
             {columns.map((c) => (
               <TableCell
                 key={c}
