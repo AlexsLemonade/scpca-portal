@@ -48,9 +48,13 @@ const Download = () => {
             <DatasetDownloadFileSummary dataset={myDataset} />
           </Box>
           <Box margin={{ bottom: 'large' }}>
-            {Object.keys(myDataset.data).map((p) => (
+            {Object.keys(myDataset.data).map((pId) => (
               <Box margin={{ bottom: 'large' }}>
-                <DatasetProjectCard key={p} dataset={myDataset} projectId={p} />
+                <DatasetProjectCard
+                  key={pId}
+                  dataset={myDataset}
+                  projectId={pId}
+                />
               </Box>
             ))}
           </Box>
