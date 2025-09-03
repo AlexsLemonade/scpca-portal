@@ -12,15 +12,16 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
   )
 
   const isTokenReady = !token
-  const isOptionsReady = !datasets && token
-  const isDownloadReady = downloadDataset && token
+  const isOptionsReady = datasets?.length > 1 && !!token
+  const isDownloadReady = true
 
   useEffect(() => {
-    setSelectedDataset(null)
     setDownloadDataset(null)
 
-    if (datasets.length === 1) {
+    if (datasets?.length === 1) {
       setSelectedDataset(datasets[0])
+    } else {
+      setSelectedDataset(null)
     }
   }, [datasets])
 
