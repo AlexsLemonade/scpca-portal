@@ -506,13 +506,17 @@ class Dataset(TimestampedModel):
     # ASSOCIATIONS WITH OTHER MODELS
     @property
     def projects(self) -> Iterable[Project]:
-        """Returns all Project instances associated with the Dataset."""
+        """Returns all project instances associated with the dataset."""
         if project_ids := self.data.keys():
             return Project.objects.filter(scpca_id__in=project_ids).order_by("scpca_id")
         return Project.objects.none()
 
     @property
     def spatial_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have spatial data
+        with spatial samples requested in the data attribute.
+        """
         if self.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
             return Project.objects.none()
 
@@ -527,6 +531,10 @@ class Dataset(TimestampedModel):
 
     @property
     def single_cell_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have single cell data
+        with single cell samples requested in the data attribute.
+        """
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
@@ -538,6 +546,10 @@ class Dataset(TimestampedModel):
 
     @property
     def bulk_single_cell_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have bulk data
+        where bulk was requested in the data attribute.
+        """
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
@@ -549,10 +561,18 @@ class Dataset(TimestampedModel):
 
     @property
     def cite_seq_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances associated with the dataset
+        which have cite seq data.
+        """
         return self.projects.filter(has_cite_seq_data=True)
 
     @property
     def merged_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have merged data
+        where merged was requested in the data attribute single cell field.
+        """
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
