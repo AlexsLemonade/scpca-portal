@@ -67,7 +67,7 @@ class Dataset(TimestampedModel):
     includes_files_merged = models.BooleanField(default=False)
 
     # Cached Stats Attrs
-    estimated_size_in_bytes = models.IntegerField(default=0)
+    estimated_size_in_bytes = models.BigIntegerField(default=0)
     diagnoses_summary = models.JSONField(default=dict)
     files_summary = models.JSONField(default=list)  # expects a list of dicts
     project_diagnoses = models.JSONField(default=dict)
