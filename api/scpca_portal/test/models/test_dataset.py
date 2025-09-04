@@ -648,6 +648,66 @@ class TestDataset(TestCase):
                     actual_counts[project_id][modality], expected_counts[project_id][modality]
                 )
 
+    def test_modality_count_mismatch_projects(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        expected_mismatch_projects = ["SCPCP999990"]
+
+        actual_mismatch_projects = dataset.modality_count_mismatch_projects
+
+        self.assertCountEqual(actual_mismatch_projects, expected_mismatch_projects)
+
+    def test_project_sample_counts(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        expected_counts = {"SCPCP999990": 3, "SCPCP999991": 3, "SCPCP999992": 2}
+
+        actual_counts = dataset.project_sample_counts
+
+        self.assertEqual(actual_counts, expected_counts)
+
     def test_get_project_titles(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {

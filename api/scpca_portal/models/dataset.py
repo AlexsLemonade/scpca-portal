@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterable, List, Set
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Count
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
@@ -279,6 +280,8 @@ class Dataset(TimestampedModel):
             "files_summary": self.files_summary,
             "project_diagnoses": self.project_diagnoses,
             "project_modality_counts": self.project_modality_counts,
+            "modality_count_mismatch_projects": self.modality_count_mismatch_projects,
+            "project_sample_counts": self.project_sample_counts,
             "project_titles": self.project_titles,
         }
 
@@ -305,8 +308,8 @@ class Dataset(TimestampedModel):
         """
         # all diagnoses in the dataset
         if diagnoses := self.samples.values("diagnosis").annotate(
-            samples=models.Count("scpca_id", distinct=True),
-            projects=models.Count("project_id", distinct=True),
+            samples=Count("scpca_id", distinct=True),
+            projects=Count("project_id", distinct=True),
         ):
             return {d.pop("diagnosis"): d for d in diagnoses}
 
@@ -407,7 +410,7 @@ class Dataset(TimestampedModel):
 
         return diagnoses_counts
 
-    def get_project_modality_counts(self) -> Dict:
+    def get_project_modality_counts(self) -> Dict[str, Dict[Modalities, int]]:
         """
         Returns a dict where the key is a project id in the dataset and
         the value is an object of SINGLE_CELL and SPATIAL samples
@@ -415,11 +418,25 @@ class Dataset(TimestampedModel):
         """
         counts: dict[str, dict] = defaultdict(dict)
 
-        for project_id in self.data.keys():
+        single_cell_count = dict(
+            self.get_selected_samples([Modalities.SINGLE_CELL])
+            .values("project__scpca_id")
+            .annotate(num_samples=Count("project__scpca_id"))
+            .order_by("project__scpca_id")
+            .values_list("project__scpca_id", "num_samples")
+        )
 
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                samples = self.get_project_modality_samples(project_id, modality)
-                counts[project_id][modality] = samples.count()
+        spatial_count = dict(
+            self.get_selected_samples([Modalities.SPATIAL])
+            .values("project__scpca_id")
+            .annotate(num_samples=Count("project__scpca_id"))
+            .order_by("project__scpca_id")
+            .values_list("project__scpca_id", "num_samples")
+        )
+
+        for project_id in self.data.keys():
+            counts[project_id][Modalities.SINGLE_CELL] = single_cell_count.get(project_id, 0)
+            counts[project_id][Modalities.SPATIAL] = spatial_count.get(project_id, 0)
 
         return counts
 
@@ -427,6 +444,58 @@ class Dataset(TimestampedModel):
         return {
             scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
         }
+
+    @property
+    def modality_count_mismatch_projects(self) -> List[str]:
+        """
+        Returns a list of project ids where the samples differ between the SINGLE_CELL
+        and SPATIAL modalities (i.e., samples are present in one modality but not the other).
+        """
+        dataset_samples = self.get_selected_samples(
+            [Modalities.SINGLE_CELL, Modalities.SPATIAL]
+        ).values_list("scpca_id", "project__scpca_id", "has_single_cell_data", "has_spatial_data")
+
+        project_modality_samples = defaultdict(lambda: defaultdict(set))
+        for (
+            scpca_id,
+            project__scpca_id,
+            has_single_cell_data,
+            has_spatial_data,
+        ) in dataset_samples:
+            if has_single_cell_data:
+                project_modality_samples[project__scpca_id][Modalities.SINGLE_CELL].add(scpca_id)
+            if has_spatial_data:
+                project_modality_samples[project__scpca_id][Modalities.SPATIAL].add(scpca_id)
+
+        mismatch_project_ids = []
+        for project_id, modalities in self.data.items():
+            # Early exit if either modality has no samples
+            if not modalities[Modalities.SINGLE_CELL] or not modalities[Modalities.SPATIAL]:
+                continue
+
+            single_cell_samples = project_modality_samples[project_id][Modalities.SINGLE_CELL]
+            spatial_samples = project_modality_samples[project_id][Modalities.SPATIAL]
+
+            if single_cell_samples ^ spatial_samples:
+                mismatch_project_ids.append(project_id)
+
+        return mismatch_project_ids
+
+    @property
+    def project_sample_counts(self) -> Dict[str, int]:
+        """
+        Returns a dict where the key is a project id in the dataset and
+        the value is the total count of unique samples combined across
+        SINGLE_CELL and SPATIAL modalities (excluding BULK_RNA_SEQ) for that project.
+        """
+        return dict(
+            self.get_selected_samples([Modalities.SINGLE_CELL, Modalities.SPATIAL])
+            .distinct()
+            .values("project__scpca_id")
+            .annotate(num_samples=Count("project__scpca_id"))
+            .order_by("project__scpca_id")
+            .values_list("project__scpca_id", "num_samples")
+        )
 
     # HASHING LOGIC
     @property
@@ -627,9 +696,23 @@ class Dataset(TimestampedModel):
 
     @property
     def samples(self) -> Iterable[Sample]:
+        """
+        Returns a queryset of all samples contained in data attribute.
+        If a sample is present in more than one modality, it will be
+        duplicated in the resulting queryset.
+        """
+        return self.get_selected_samples(
+            [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]
+        )
+
+    def get_selected_samples(self, modalities: Iterable[Modalities] = []) -> Iterable[Sample]:
+        """
+        Returns a queryset of samples for the specified modalities
+        contained in data attribute.
+        """
         dataset_samples = Sample.objects.none()
         for project_id in self.data.keys():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
+            for modality in modalities:
                 dataset_samples |= self.get_project_modality_samples(project_id, modality)
 
         return dataset_samples
