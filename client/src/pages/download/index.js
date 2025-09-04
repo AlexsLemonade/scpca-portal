@@ -3,9 +3,11 @@ import { Box, Text } from 'grommet'
 import { useScrollPosition } from 'hooks/useScrollPosition'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useResponsive } from 'hooks/useResponsive'
+import { formatBytes } from 'helpers/formatBytes'
 import { DatasetSummary } from 'components/DatasetSummary'
 import { DatasetDownloadFileSummary } from 'components/DatasetDownloadFileSummary'
 import { DatasetProjectCard } from 'components/DatasetProjectCard'
+import { DatasetProcessModal } from 'components/DatasetProcessModal'
 import { Loader } from 'components/Loader'
 import Error from 'pages/_error'
 
@@ -56,6 +58,13 @@ const Download = () => {
             <Text serif size="xlarge">
               My Dataset
             </Text>
+            <Box>
+              <DatasetProcessModal />
+              <Text weight="bold">
+                Uncompressed size:{' '}
+                {formatBytes(myDataset.stats.uncompressed_size)}
+              </Text>
+            </Box>
           </Box>
           <Box margin={{ bottom: 'large' }}>
             <DatasetSummary dataset={myDataset} />
