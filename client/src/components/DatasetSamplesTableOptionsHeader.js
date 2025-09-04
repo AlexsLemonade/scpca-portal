@@ -107,6 +107,7 @@ export const DatasetSamplesTableOptionsHeader = ({
     <>
       <DatasetChangingMergedProjectModal
         hideButton
+        nondismissable
         openModal={changeMergedProjectModalOpen}
         onCancel={handleChangeMergedModalCancel}
         onContinue={handleChangeMergedModalContinue}

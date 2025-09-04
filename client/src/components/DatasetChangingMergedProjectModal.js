@@ -12,15 +12,12 @@ export const DatasetChangingMergedProjectModal = ({
   title = 'Changing a Merged Project',
   disabled = false,
   hideButton = false,
+  nondismissable = false,
   openModal = false,
   onCancel = () => {},
   onContinue = () => {}
 }) => {
   const [showing, setShowing] = useState(false)
-
-  const handleClick = () => {
-    setShowing(true)
-  }
 
   const handleCancel = () => {
     onCancel()
@@ -47,10 +44,14 @@ export const DatasetChangingMergedProjectModal = ({
           primary
           label={label}
           disabled={disabled}
-          onClick={handleClick}
+          onClick={() => setShowing(true)}
         />
       )}
-      <Modal showing={showing} setShowing={setShowing}>
+      <Modal
+        nondismissable={nondismissable}
+        showing={showing}
+        setShowing={setShowing}
+      >
         <Box
           border={{
             side: 'bottom',
