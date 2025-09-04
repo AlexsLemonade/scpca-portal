@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
 import { config } from 'config'
 import { Button } from 'components/Button'
@@ -10,7 +10,11 @@ import { Link } from 'components/Link'
 export const DatasetChangingMergedProjectModal = ({
   label = 'Save Changes',
   title = 'Changing a Merged Project',
-  disabled = false
+  disabled = false,
+  hideButton = false,
+  openModal = false,
+  onCancel = () => {},
+  onContinue = () => {}
 }) => {
   const [showing, setShowing] = useState(false)
 
@@ -18,16 +22,34 @@ export const DatasetChangingMergedProjectModal = ({
     setShowing(true)
   }
 
+  const handleCancel = () => {
+    onCancel()
+    setShowing(false)
+  }
+
+  const handleContinue = () => {
+    onContinue()
+    setShowing(false)
+  }
+
+  useEffect(() => {
+    if (openModal) {
+      setShowing(true)
+    }
+  }, [openModal])
+
   return (
     <>
-      <Button
-        aria-label={label}
-        flex="grow"
-        primary
-        label={label}
-        disabled={disabled}
-        onClick={handleClick}
-      />
+      {!hideButton && (
+        <Button
+          aria-label={label}
+          flex="grow"
+          primary
+          label={label}
+          disabled={disabled}
+          onClick={handleClick}
+        />
+      )}
       <Modal showing={showing} setShowing={setShowing}>
         <Box
           border={{
@@ -73,12 +95,13 @@ export const DatasetChangingMergedProjectModal = ({
             justify="end"
             margin={{ top: 'large' }}
           >
+            <Button aria-label="Cancel" label="Cancel" onClick={handleCancel} />
             <Button
-              aria-label="Cancel"
-              label="Cancel"
-              onClick={() => setShowing(false)}
+              primary
+              aria-label="Continue"
+              label="Continue"
+              onClick={handleContinue}
             />
-            <Button primary aria-label="Continue" label="Continue" />
           </Box>
         </ModalBody>
       </Modal>

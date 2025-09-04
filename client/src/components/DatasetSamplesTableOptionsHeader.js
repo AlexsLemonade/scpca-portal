@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
 import { useRouter } from 'next/router'
@@ -7,6 +7,7 @@ import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { getReadable } from 'helpers/getReadable'
 import { Button } from 'components/Button'
+import { DatasetChangingMergedProjectModal } from 'components/DatasetChangingMergedProjectModal'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
@@ -18,9 +19,20 @@ export const DatasetSamplesTableOptionsHeader = ({
   onIncludeMergeChange = () => {}
 }) => {
   const { back } = useRouter()
-  const { myDataset, setSamples } = useDatasetManager()
-  const { selectedSamples } = useDatasetSamplesTable()
+  const {
+    myDataset,
+    isProjectMerged,
+    getProjectSingleCellSamples,
+    setSamples
+  } = useDatasetManager()
+  const { selectAllModalitySamples, selectedSamples } = useDatasetSamplesTable()
   const { responsive } = useResponsive()
+
+  // For the changing merged project modal
+  const [changeMergedProjectModalOpen, setChangeMergedProjectModalOpen] =
+    useState(false)
+  const prevSelectedCount = useRef(null) // Previously selected samples count to detect sample deselection
+  const newSelectedCount = selectedSamples.SINGLE_CELL.length // Currently selected samples count for comparison
 
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
@@ -32,6 +44,20 @@ export const DatasetSamplesTableOptionsHeader = ({
     myDataset.format === 'SINGLE_CELL_EXPERIMENT'
       ? includesMergedSce
       : includesMergedAnnData
+
+  const handleChangeMergedModalCancel = async () => {
+    // Reselect any samples that were deselected in the table
+    selectAllModalitySamples(
+      'SINGLE_CELL',
+      getProjectSingleCellSamples(project.samples)
+    )
+    setChangeMergedProjectModalOpen(false)
+  }
+
+  const handleChangeMergedModalContinue = () => {
+    onIncludeMergeChange(false)
+    setChangeMergedProjectModalOpen(false)
+  }
 
   const handleSaveAndGoBack = async () => {
     const datasetRequest = await setSamples(
@@ -50,8 +76,41 @@ export const DatasetSamplesTableOptionsHeader = ({
     }
   }
 
+  // Set prevSelectedCount on initial load
+  useEffect(() => {
+    if (prevSelectedCount.current === null) {
+      prevSelectedCount.current = newSelectedCount
+    }
+  }, [newSelectedCount])
+
+  // Show the changing merged project modal on sample deselection when:
+  // - The project samples are merged
+  // - The include merged checkbox is selected
+  // - The user has not confirmed continuing with unmerge
+  useEffect(() => {
+    if (
+      !isProjectMerged(project) ||
+      !includeMerge ||
+      prevSelectedCount.current === null
+    ) {
+      return
+    }
+
+    if (newSelectedCount < prevSelectedCount.current) {
+      setChangeMergedProjectModalOpen(true)
+    }
+
+    prevSelectedCount.current = newSelectedCount
+  }, [newSelectedCount])
+
   return (
     <>
+      <DatasetChangingMergedProjectModal
+        hideButton
+        openModal={changeMergedProjectModalOpen}
+        onCancel={handleChangeMergedModalCancel}
+        onContinue={handleChangeMergedModalContinue}
+      />
       <Box
         align="center"
         direction="row"

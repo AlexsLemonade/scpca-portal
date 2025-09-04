@@ -13,6 +13,13 @@ export const useDatasetSamplesTable = () => {
     setFilteredSamples
   } = useContext(DatasetSamplesTableContext)
 
+  const selectAllModalitySamples = (modality, allModalitySamples) => {
+    setSelectedSamples((prevSelectedSamples) => ({
+      ...prevSelectedSamples,
+      [modality]: allModalitySamples
+    }))
+  }
+
   const selectModalitySamplesByIds = (modality, sampleIds) => {
     const samplesToBeSelected = allSamples
       .filter((s) => sampleIds.includes(s.scpca_id))
@@ -98,6 +105,7 @@ export const useDatasetSamplesTable = () => {
     selectedSamples,
     filteredSamples,
     setFilteredSamples,
+    selectAllModalitySamples,
     selectModalitySamplesByIds,
     toggleSample,
     toggleSamples
