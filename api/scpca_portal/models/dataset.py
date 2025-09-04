@@ -560,16 +560,32 @@ class Dataset(TimestampedModel):
         concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
+    @property
+    def includes_files_bulk(self) -> bool:
+        return self.bulk_single_cell_projects.exists()
+
+    @property
+    def includes_files_cite_seq(self) -> bool:
+        return self.cite_seq_projects.exists()
+
+    @property
+    def includes_files_merged(self) -> bool:
+        return self.merged_projects.exists()
+
     # ASSOCIATIONS WITH OTHER MODELS
     @property
     def projects(self) -> Iterable[Project]:
-        """Returns all Project instances associated with the Dataset."""
+        """Returns all project instances associated with the dataset."""
         if project_ids := self.data.keys():
             return Project.objects.filter(scpca_id__in=project_ids).order_by("scpca_id")
         return Project.objects.none()
 
     @property
     def spatial_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have spatial data
+        with spatial samples requested in the data attribute.
+        """
         if self.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
             return Project.objects.none()
 
@@ -578,35 +594,68 @@ class Dataset(TimestampedModel):
             for project_id, project_options in self.data.items()
             if project_options.get(Modalities.SPATIAL, [])
         ]:
-            return self.projects.filter(scpca_id__in=project_ids)
+            return self.projects.filter(has_spatial_data=True, scpca_id__in=project_ids)
 
         return Project.objects.none()
 
     @property
     def single_cell_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have single cell data
+        with single cell samples requested in the data attribute.
+        """
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
             if project_options.get(Modalities.SINGLE_CELL)
         ]:
-            return Project.objects.filter(scpca_id__in=project_ids)
+            return self.projects.filter(has_single_cell_data=True, scpca_id__in=project_ids)
 
         return Project.objects.none()
 
     @property
     def bulk_single_cell_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have bulk data
+        where bulk was requested in the data attribute.
+        """
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
             if project_options.get(DatasetDataProjectConfig.INCLUDES_BULK)
         ]:
-            return Project.objects.filter(scpca_id__in=project_ids)
+            return self.projects.filter(has_bulk_rna_seq=True, scpca_id__in=project_ids)
 
         return Project.objects.none()
 
     @property
     def cite_seq_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances associated with the dataset
+        which have cite seq data.
+        """
         return self.projects.filter(has_cite_seq_data=True)
+
+    @property
+    def merged_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have merged data
+        where merged was requested in the data attribute single cell field.
+        """
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(Modalities.SINGLE_CELL) == "MERGED"
+        ]:
+            requested_merged_projects = self.projects.filter(scpca_id__in=project_ids)
+
+            if self.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
+                return requested_merged_projects.filter(includes_merged_sce=True)
+
+            if self.format == DatasetFormats.ANN_DATA:
+                return requested_merged_projects.filter(includes_merged_anndata=True)
+
+        return Project.objects.none()
 
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""
