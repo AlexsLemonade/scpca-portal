@@ -60,6 +60,11 @@ class Dataset(TimestampedModel):
     metadata_hash = models.CharField(max_length=32, null=True)
     readme_hash = models.CharField(max_length=32, null=True)
 
+    # File Items
+    includes_files_bulk = models.BooleanField(default=False)
+    includes_files_cite_seq = models.BooleanField(default=False)
+    includes_files_merged = models.BooleanField(default=False)
+
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
     ccdl_name = models.TextField(choices=CCDLDatasetNames.choices, null=True)
@@ -115,6 +120,11 @@ class Dataset(TimestampedModel):
         self.data_hash = self.current_data_hash
         self.metadata_hash = self.current_metadata_hash
         self.readme_hash = self.current_readme_hash
+
+        # file items
+        self.includes_files_bulk = self.get_includes_files_bulk()
+        self.includes_files_cite_seq = self.get_includes_files_cite_seq()
+        self.includes_files_merged = self.get_includes_files_merged()
 
         super().save(*args, **kwargs)
 
@@ -501,16 +511,13 @@ class Dataset(TimestampedModel):
         concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
-    @property
-    def includes_files_bulk(self) -> bool:
+    def get_includes_files_bulk(self) -> bool:
         return self.bulk_single_cell_projects.exists()
 
-    @property
-    def includes_files_cite_seq(self) -> bool:
+    def get_includes_files_cite_seq(self) -> bool:
         return self.cite_seq_projects.exists()
 
-    @property
-    def includes_files_merged(self) -> bool:
+    def get_includes_files_merged(self) -> bool:
         return self.merged_projects.exists()
 
     # ASSOCIATIONS WITH OTHER MODELS
