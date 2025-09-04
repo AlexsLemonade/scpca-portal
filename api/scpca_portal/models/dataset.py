@@ -59,6 +59,7 @@ class Dataset(TimestampedModel):
     data_hash = models.CharField(max_length=32, null=True)
     metadata_hash = models.CharField(max_length=32, null=True)
     readme_hash = models.CharField(max_length=32, null=True)
+    combined_hash = models.CharField(max_length=32, null=True)
 
     # File Items
     includes_files_bulk = models.BooleanField(default=False)
@@ -128,6 +129,7 @@ class Dataset(TimestampedModel):
         self.data_hash = self.current_data_hash
         self.metadata_hash = self.current_metadata_hash
         self.readme_hash = self.current_readme_hash
+        self.combined_hash = self.current_combined_hash
 
         # file items
         self.includes_files_bulk = self.get_includes_files_bulk()
@@ -501,17 +503,6 @@ class Dataset(TimestampedModel):
         readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
         readme_file_contents_bytes = readme_file_contents.encode("utf-8")
         return hashlib.md5(readme_file_contents_bytes).hexdigest()
-
-    @property
-    def combined_hash(self) -> str | None:
-        """
-        Combines, computes and returns the combined cached data, metadata and readme hashes.
-        """
-        # Return None if hashes have not been calculated yet
-        if not (self.data_hash and self.metadata_hash and self.readme_hash):
-            return None
-        concat_hash = self.data_hash + self.metadata_hash + self.readme_hash
-        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
     @property
     def current_combined_hash(self) -> str | None:
