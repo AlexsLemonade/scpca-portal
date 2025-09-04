@@ -339,7 +339,7 @@ class TestDataset(TestCase):
         expected_readme_hash = "93ce0b3571f15cd41db81d9e25dcb873"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
 
-    def test_estimated_size_in_bytes(self):
+    def test_get_estimated_size_in_bytes(self):
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,
@@ -377,7 +377,7 @@ class TestDataset(TestCase):
         readme_file_size = sys.getsizeof(dataset.readme_file_contents)
         expected_file_size += metadata_file_size + readme_file_size
 
-        self.assertEqual(dataset.estimated_size_in_bytes, expected_file_size)
+        self.assertEqual(dataset.get_estimated_size_in_bytes(), expected_file_size)
 
     def test_contains_project_ids(self):
         dataset = Dataset(
@@ -445,7 +445,7 @@ class TestDataset(TestCase):
         locked_project.save()
         self.assertTrue(dataset.has_locked_projects)
 
-    def test_diagnoses_summary(self):
+    def test_get_diagnoses_summary(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999990": {
@@ -479,7 +479,7 @@ class TestDataset(TestCase):
             "diagnosis7": {"samples": 1, "projects": 1},
         }
 
-        summary = dataset.diagnoses_summary
+        summary = dataset.get_diagnoses_summary()
 
         # assert that that all diagnoses match exactly
         self.assertEqual(summary.keys(), expected_counts.keys())
@@ -488,7 +488,7 @@ class TestDataset(TestCase):
             self.assertEqual(summary[key]["projects"], expected_counts[key]["projects"])
             self.assertEqual(summary[key]["samples"], expected_counts[key]["samples"])
 
-    def test_files_summary(self):
+    def test_get_files_summary(self):
 
         single_cell_dataset = Dataset(
             format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
@@ -523,7 +523,7 @@ class TestDataset(TestCase):
             {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
         ]
 
-        single_cell_files_summary = single_cell_dataset.files_summary
+        single_cell_files_summary = single_cell_dataset.get_files_summary()
 
         self.assertEqual(len(single_cell_files_summary), len(expected_single_cell))
 
@@ -563,7 +563,7 @@ class TestDataset(TestCase):
             {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
         ]
 
-        ann_data_files_summary = ann_data_dataset.files_summary
+        ann_data_files_summary = ann_data_dataset.get_files_summary()
 
         for actual, expected in zip(ann_data_files_summary, expected_ann_data):
             self.assertEqual(actual["name"], expected["name"])
@@ -572,7 +572,7 @@ class TestDataset(TestCase):
             )
             self.assertEqual(actual["format"], expected["format"], f" in {actual['name']}")
 
-    def test_project_diagnoses(self):
+    def test_get_project_diagnoses(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999990": {
@@ -602,7 +602,7 @@ class TestDataset(TestCase):
             "SCPCP999992": {"diagnosis7": 2},
         }
 
-        actual_counts = dataset.project_diagnoses
+        actual_counts = dataset.get_project_diagnoses()
 
         for project_id in actual_counts.keys():
             for diagnosis in actual_counts[project_id].keys():
@@ -610,7 +610,7 @@ class TestDataset(TestCase):
                     actual_counts[project_id][diagnosis], expected_counts[project_id][diagnosis]
                 )
 
-    def test_project_modality_counts(self):
+    def test_get_project_modality_counts(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999990": {
@@ -640,7 +640,7 @@ class TestDataset(TestCase):
             "SCPCP999992": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 0},
         }
 
-        actual_counts = dataset.project_modality_counts
+        actual_counts = dataset.get_project_modality_counts()
 
         for project_id in actual_counts.keys():
             for modality in actual_counts[project_id].keys():
@@ -648,7 +648,7 @@ class TestDataset(TestCase):
                     actual_counts[project_id][modality], expected_counts[project_id][modality]
                 )
 
-    def test_project_titles(self):
+    def test_get_project_titles(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999990": {
@@ -679,7 +679,7 @@ class TestDataset(TestCase):
             "SCPCP999992": "TBD",
         }
 
-        actual_titles = dataset.project_titles
+        actual_titles = dataset.get_project_titles()
 
         for project_id in actual_titles.keys():
             self.assertEqual(actual_titles[project_id], expected_titles[project_id])
@@ -754,7 +754,7 @@ class TestDataset(TestCase):
         dataset = DatasetFactory()
         self.assertIsNone(dataset.download_url)
 
-    def test_includes_files_bulk_property(self):
+    def test_get_includes_files_bulk(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
 
         # project with bulk, bulk requested
@@ -766,7 +766,7 @@ class TestDataset(TestCase):
             },
         }
         dataset.save()
-        self.assertTrue(dataset.includes_files_bulk)
+        self.assertTrue(dataset.get_includes_files_bulk())
 
         # project with bulk, bulk not requested
         dataset.data = {
@@ -777,7 +777,7 @@ class TestDataset(TestCase):
             }
         }
         dataset.save()
-        self.assertFalse(dataset.includes_files_bulk)
+        self.assertFalse(dataset.get_includes_files_bulk())
 
         # project without bulk
         dataset.data = {
@@ -788,9 +788,9 @@ class TestDataset(TestCase):
             },
         }
         dataset.save()
-        self.assertFalse(dataset.includes_files_bulk)
+        self.assertFalse(dataset.get_includes_files_bulk())
 
-    def test_includes_files_cite_seq_property(self):
+    def test_get_includes_files_cite_seq(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
 
         # project with cite-seq data
@@ -802,7 +802,7 @@ class TestDataset(TestCase):
             },
         }
         dataset.save()
-        self.assertTrue(dataset.includes_files_cite_seq)
+        self.assertTrue(dataset.get_includes_files_cite_seq())
 
         # project without cite-seq data
         dataset.data = {
@@ -813,9 +813,9 @@ class TestDataset(TestCase):
             }
         }
         dataset.save()
-        self.assertFalse(dataset.includes_files_cite_seq)
+        self.assertFalse(dataset.get_includes_files_cite_seq())
 
-    def test_includes_files_merged_property(self):
+    def test_get_includes_files_merged(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
 
         # project with merged file, merged requested
@@ -827,7 +827,7 @@ class TestDataset(TestCase):
             },
         }
         dataset.save()
-        self.assertTrue(dataset.includes_files_merged)
+        self.assertTrue(dataset.get_includes_files_merged())
 
         # project with merged file, merged not requested
         dataset.data = {
@@ -838,7 +838,7 @@ class TestDataset(TestCase):
             }
         }
         dataset.save()
-        self.assertFalse(dataset.includes_files_merged)
+        self.assertFalse(dataset.get_includes_files_merged())
 
         # project without merged
         dataset.data = {
@@ -849,4 +849,4 @@ class TestDataset(TestCase):
             },
         }
         dataset.save()
-        self.assertFalse(dataset.includes_files_merged)
+        self.assertFalse(dataset.get_includes_files_merged())

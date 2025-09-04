@@ -138,11 +138,11 @@ class Dataset(TimestampedModel):
 
         # stats property attributes
         self.estimated_size_in_bytes = self.get_estimated_size_in_bytes()
-        self.diagnoses_summary = self.get_diagnoses_summary
-        self.files_summary = self.get_files_summary
-        self.project_diagnoses = self.get_project_diagnoses
-        self.project_modality_counts = self.get_project_modality_counts
-        self.project_titles = self.get_project_titles
+        self.diagnoses_summary = self.get_diagnoses_summary()
+        self.files_summary = self.get_files_summary()
+        self.project_diagnoses = self.get_project_diagnoses()
+        self.project_modality_counts = self.get_project_modality_counts()
+        self.project_titles = self.get_project_titles()
 
         super().save(*args, **kwargs)
 
