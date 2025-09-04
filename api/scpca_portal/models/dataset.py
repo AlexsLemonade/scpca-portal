@@ -65,6 +65,14 @@ class Dataset(TimestampedModel):
     includes_files_cite_seq = models.BooleanField(default=False)
     includes_files_merged = models.BooleanField(default=False)
 
+    # Cached Stats Attrs
+    estimated_size_in_bytes = models.IntegerField(default=0)
+    diagnoses_summary = models.JSONField(default=dict)
+    files_summary = models.JSONField(default=list)  # expects a list of dicts
+    project_diagnoses = models.JSONField(default=dict)
+    project_modality_counts = models.JSONField(default=dict)
+    project_titles = models.JSONField(default=dict)
+
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
     ccdl_name = models.TextField(choices=CCDLDatasetNames.choices, null=True)
@@ -125,6 +133,14 @@ class Dataset(TimestampedModel):
         self.includes_files_bulk = self.get_includes_files_bulk()
         self.includes_files_cite_seq = self.get_includes_files_cite_seq()
         self.includes_files_merged = self.get_includes_files_merged()
+
+        # stats property attributes
+        self.estimated_size_in_bytes = self.get_estimated_size_in_bytes()
+        self.diagnoses_summary = self.get_diagnoses_summary
+        self.files_summary = self.get_files_summary
+        self.project_diagnoses = self.get_project_diagnoses
+        self.project_modality_counts = self.get_project_modality_counts
+        self.project_titles = self.get_project_titles
 
         super().save(*args, **kwargs)
 
@@ -264,8 +280,7 @@ class Dataset(TimestampedModel):
             "project_titles": self.project_titles,
         }
 
-    @property
-    def estimated_size_in_bytes(self) -> int:
+    def get_estimated_size_in_bytes(self) -> int:
         original_files_size = (
             self.original_files.aggregate(models.Sum("size_in_bytes")).get("size_in_bytes__sum")
             or 0
@@ -280,8 +295,7 @@ class Dataset(TimestampedModel):
 
         return original_files_size + metadata_file_size + readme_file_size
 
-    @property
-    def diagnoses_summary(self) -> dict:
+    def get_diagnoses_summary(self) -> dict:
         """
         Counts present all diagnoses for samples in datasets.
         Returns dict where key is the diagnosis and value is a dict
@@ -296,8 +310,7 @@ class Dataset(TimestampedModel):
 
         return {}
 
-    @property
-    def files_summary(self) -> list[dict]:
+    def get_files_summary(self) -> list[dict]:
         """
         Iterates over pre-defined file types that will be present in the dataset download.
         This break down looks at the type of information present in the individual files as well.
@@ -379,8 +392,7 @@ class Dataset(TimestampedModel):
 
         return summaries
 
-    @property
-    def project_diagnoses(self) -> Dict:
+    def get_project_diagnoses(self) -> Dict:
         """
         Returns dict where key is a project id in the dataset and value
         is the number of samples with that diagnosis in the dataset for that project.
@@ -393,8 +405,7 @@ class Dataset(TimestampedModel):
 
         return diagnoses_counts
 
-    @property
-    def project_modality_counts(self) -> Dict:
+    def get_project_modality_counts(self) -> Dict:
         """
         Returns a dict where the key is a project id in the dataset and
         the value is an object of SINGLE_CELL and SPATIAL samples
@@ -410,8 +421,7 @@ class Dataset(TimestampedModel):
 
         return counts
 
-    @property
-    def project_titles(self) -> Dict:
+    def get_project_titles(self) -> Dict:
         return {
             scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
         }
