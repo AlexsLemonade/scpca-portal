@@ -4,7 +4,7 @@ import { api } from 'api'
 
 export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
   const { token, createToken } = useScPCAPortal()
-  const [datasets, setDatasets] = useState(initialDatasets)
+  const [datasets, setDatasets] = useState(initialDatasets || [])
   const [selectedDataset, setSelectedDataset] = useState(null)
   const [downloadDataset, setDownloadDataset] = useState(null)
   const [modalTitle, setModalTitle] = useState(
@@ -13,7 +13,13 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
 
   const isTokenReady = !token
   const isOptionsReady = datasets?.length > 1 && !!token
-  const isDownloadReady = true
+  const isDownloadReady = !!downloadDataset && !!token
+
+  useEffect(() => {
+    setDatasets(initialDatasets || [])
+    setSelectedDataset(null)
+    setDownloadDataset(null)
+  }, [initialDatasets])
 
   useEffect(() => {
     setDownloadDataset(null)
@@ -27,7 +33,6 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
 
   useEffect(() => {
     if (!isActive) {
-      setSelectedDataset(null)
       setDownloadDataset(null)
     }
 
