@@ -105,6 +105,19 @@ class Dataset(TimestampedModel):
         return f"Dataset {self.id}"
 
     # INSTANCE CREATION AND MODIFICATION
+    def save(self, *args, **kwargs):
+        """
+        In addition to the built-in object saving functionality,
+        cached attributes should be re-computed and re-assigned on each save.
+        """
+
+        # file hashes
+        self.data_hash = self.current_data_hash
+        self.metadata_hash = self.current_metadata_hash
+        self.readme_hash = self.current_readme_hash
+
+        super().save(*args, **kwargs)
+
     @classmethod
     def get_or_find_ccdl_dataset(
         cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
@@ -118,9 +131,6 @@ class Dataset(TimestampedModel):
         dataset.ccdl_modality = dataset.ccdl_type["modality"]
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
-        dataset.data_hash = dataset.current_data_hash
-        dataset.metadata_hash = dataset.current_metadata_hash
-        dataset.readme_hash = dataset.current_readme_hash
         return dataset, False
 
     def get_ccdl_data(self) -> Dict:
