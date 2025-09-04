@@ -76,17 +76,17 @@ export const DatasetSamplesTableOptionsHeader = ({
     }
   }
 
-  // Set prevSelectedCount on initial load
+  // Set up prevSelectedCount on initial load
   useEffect(() => {
     if (prevSelectedCount.current === null) {
       prevSelectedCount.current = newSelectedCount
     }
-  }, [newSelectedCount])
+  }, [])
 
-  // Show the changing merged project modal on sample deselection when:
-  // - The project samples are merged
-  // - The include merged checkbox is selected
-  // - The user has not confirmed continuing with unmerge
+  // Open the modal on sample deselect when:
+  // - The user has not confirmed continuing with the unmerge, and
+  //   - The project samples are merged, and
+  //   - The include merged checkbox is selected
   useEffect(() => {
     if (
       !isProjectMerged(project) ||
