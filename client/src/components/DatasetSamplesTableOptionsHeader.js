@@ -33,6 +33,7 @@ export const DatasetSamplesTableOptionsHeader = ({
   // For the changing merged project modal
   const [changeMergedProjectModalOpen, setChangeMergedProjectModalOpen] =
     useState(false)
+  const confirmUnmerge = useRef(null)
   const prevSelectedCount = useRef(null) // Previously selected samples count to detect sample deselection
   const newSelectedCount = selectedSamples.SINGLE_CELL.length // Currently selected samples count for comparison
 
@@ -57,6 +58,7 @@ export const DatasetSamplesTableOptionsHeader = ({
   }
 
   const handleChangeMergedModalContinue = () => {
+    confirmUnmerge.current = true
     onIncludeMergeChange(false)
     setChangeMergedProjectModalOpen(false)
   }
@@ -94,7 +96,8 @@ export const DatasetSamplesTableOptionsHeader = ({
     if (
       !isProjectMerged(project) ||
       !includeMerge ||
-      prevSelectedCount.current === null
+      prevSelectedCount.current === null ||
+      confirmUnmerge.current
     ) {
       return
     }
