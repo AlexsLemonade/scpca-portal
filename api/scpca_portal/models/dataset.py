@@ -385,7 +385,7 @@ class Dataset(TimestampedModel):
                         "samples_count": len(samples_ids),
                         "name": file_summary_query["name"],
                         "format": file_summary_query.get(
-                            "format", common.FORMAT_EXTENSIONS[self.format]
+                            "format", common.FORMAT_EXTENSIONS.get(self.format)
                         ),
                     }
                 )
