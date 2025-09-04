@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Box, Text } from 'grommet'
-import { useScrollToPosition } from 'hooks/useScrollToPosition'
+import { useScrollPosition } from 'hooks/useScrollPosition'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useResponsive } from 'hooks/useResponsive'
 import { DatasetSummary } from 'components/DatasetSummary'
@@ -10,7 +10,7 @@ import { Loader } from 'components/Loader'
 import Error from 'pages/_error'
 
 const Download = () => {
-  const { restoreScrollPosition } = useScrollToPosition()
+  const { restoreScrollPosition } = useScrollPosition()
   const { myDataset, errors, getDataset, isDatasetDataEmpty } =
     useDatasetManager()
   const { responsive } = useResponsive()

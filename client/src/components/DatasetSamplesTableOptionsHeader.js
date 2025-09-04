@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
 import { useRouter } from 'next/router'
+import { useScrollPosition } from 'hooks/useScrollPosition'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
@@ -17,7 +18,8 @@ export const DatasetSamplesTableOptionsHeader = ({
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { back } = useRouter()
+  const { back, asPath } = useRouter()
+  const { setRestoreScrollPosition } = useScrollPosition()
   const { myDataset, setSamples } = useDatasetManager()
   const { selectedSamples } = useDatasetSamplesTable()
   const { responsive } = useResponsive()
@@ -40,6 +42,7 @@ export const DatasetSamplesTableOptionsHeader = ({
     })
 
     if (datasetRequest) {
+      setRestoreScrollPosition(asPath)
       back()
     } else {
       // TODO: Error handling

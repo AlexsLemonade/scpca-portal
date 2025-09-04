@@ -3,6 +3,7 @@ import { Box, Text } from 'grommet'
 import { api } from 'api'
 import { DatasetSamplesTableContextProvider } from 'contexts/DatasetSamplesTableContext'
 import { useRouter } from 'next/router'
+import { useScrollPosition } from 'hooks/useScrollPosition'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { DatasetSamplesTable } from 'components/DatasetSamplesTable'
 import { DatasetSamplesTableOptionsHeader } from 'components/DatasetSamplesTableOptionsHeader'
@@ -11,8 +12,8 @@ import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 
 export const ViewEditSamples = ({ project }) => {
-  const { back } = useRouter()
-
+  const { back, asPath } = useRouter()
+  const { setRestoreScrollPosition } = useScrollPosition()
   const {
     myDataset,
     getAddedProjectDataSamples,
@@ -37,12 +38,17 @@ export const ViewEditSamples = ({ project }) => {
     setLoading(false)
   }, [myDataset])
 
+  const handleBackToMyDataset = () => {
+    setRestoreScrollPosition(asPath)
+    back()
+  }
+
   if (loading) return <Loader />
 
   return (
     <Box gap="large" fill margin={{ bottom: 'large' }}>
       <Box align="start" gap="large">
-        <Button label="Back to My Dataset" onClick={back} />
+        <Button label="Back to My Dataset" onClick={handleBackToMyDataset} />
         <Link href={`/projects/${project.scpca_id}`} newTab>
           <Text weight="bold" color="brand" size="large">
             {project.title}

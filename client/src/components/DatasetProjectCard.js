@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { useRouter } from 'next/router'
-import { useScrollToPosition } from 'hooks/useScrollToPosition'
+import { useScrollPosition } from 'hooks/useScrollPosition'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useResponsive } from 'hooks/useResponsive'
 import { Badge } from 'components/Badge'
@@ -18,7 +18,7 @@ const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
 export const DatasetProjectCard = ({ dataset, projectId }) => {
   const { push } = useRouter()
-  const { saveScrollPosition } = useScrollToPosition()
+  const { addScrollPosition } = useScrollPosition()
   const { removeProjectById } = useDatasetManager()
   const { responsive } = useResponsive()
 
@@ -45,9 +45,10 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     .map((o) => o.label)
 
   const handleViewEditSamples = () => {
-    // Save the scroll position before navigating
-    saveScrollPosition(window.scrollY)
-    push(`/download/${projectId}`)
+    const destination = `/download/${projectId}`
+    // Save the scroll position before navigating away
+    addScrollPosition(destination)
+    push(destination)
   }
 
   return (
