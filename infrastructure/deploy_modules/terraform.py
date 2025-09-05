@@ -76,7 +76,9 @@ def console(var_file_arg, env=os.environ.copy()):
     """
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
-        terraform_process = subprocess.Popen(["terraform", "console", var_file_arg, "-plan"], env=env)
+        terraform_process = subprocess.Popen(
+            ["terraform", "console", var_file_arg, "-plan"], env=env
+        )
         terraform_process.wait()
         exit(terraform_process.returncode)
     except KeyboardInterrupt:
@@ -123,8 +125,7 @@ def destroy(var_file_arg, env=os.environ.copy()):
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
         terraform_process = subprocess.Popen(
-            ["terraform", "destroy", var_file_arg, "-auto-approve"],
-            env=env
+            ["terraform", "destroy", var_file_arg, "-auto-approve"], env=env
         )
         terraform_process.wait()
         exit(terraform_process.returncode)
