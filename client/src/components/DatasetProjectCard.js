@@ -45,9 +45,10 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     .map((o) => o.label)
 
   const handleViewEditSamples = () => {
+    const source = '/download' // the current route
     const destination = `/download/${projectId}`
     // Save the scroll position before navigating away
-    addScrollPosition(destination)
+    addScrollPosition(source, destination)
     push(destination)
   }
 
