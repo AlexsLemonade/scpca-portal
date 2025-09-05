@@ -86,7 +86,7 @@ resource "aws_s3_bucket" "scpca_portal_cellbrowser_bucket" {
 }
 
 resource "aws_s3_bucket_acl" "scpca_portal_cellbrowser_bucket" {
-  bucket = aws_s3_bucket.scpca_portal_bucket.id
+  bucket = aws_s3_bucket.scpca_portal_cellbrowser_bucket.id
   acl = "public-read"
 }
 
