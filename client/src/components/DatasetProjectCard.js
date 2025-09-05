@@ -108,7 +108,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
               {specifiedOptions.map((so) => (
                 <Text>{so}</Text>
               ))}
-              {specifiedOptions.length === 0 && <Text>Not Specified</Text>}
+              {specifiedOptions.length === 0 && <Text italic>None</Text>}
             </Box>
           </Box>
         </Box>
