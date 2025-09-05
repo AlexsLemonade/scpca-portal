@@ -12,7 +12,7 @@ import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 
 export const ViewEditSamples = ({ project }) => {
-  const { back, asPath } = useRouter()
+  const { back } = useRouter()
   const { setRestoreScrollPosition } = useScrollPosition()
   const {
     myDataset,
@@ -39,7 +39,8 @@ export const ViewEditSamples = ({ project }) => {
   }, [myDataset])
 
   const handleBackToMyDataset = () => {
-    setRestoreScrollPosition(asPath)
+    const source = '/download' // The page to navigating back to
+    setRestoreScrollPosition(source)
     back()
   }
 
