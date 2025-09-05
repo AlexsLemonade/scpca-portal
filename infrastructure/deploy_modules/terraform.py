@@ -16,7 +16,7 @@ import signal
 import subprocess
 
 
-def init(backend_configs=[], init_args=["-upgrade"], log_trace=False):
+def init(backend_configs=[], init_args=["-upgrade"], env=os.environ.copy(), log_trace=False):
     """Initializes terraform's backend.
 
     Should be called before calling other terraform commands.
@@ -48,7 +48,7 @@ def init(backend_configs=[], init_args=["-upgrade"], log_trace=False):
     return terraform_process.returncode
 
 
-def plan(var_file_arg, out=False):
+def plan(var_file_arg, out=False, env=os.environ.copy()):
     """Plan changes that will be made to infrastructure.
 
     Should be called after init.
@@ -62,21 +62,21 @@ def plan(var_file_arg, out=False):
         command += ["-out=PLAN"]
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
-        terraform_process = subprocess.Popen(command)
+        terraform_process = subprocess.Popen(command, env=env)
         terraform_process.wait()
         exit(terraform_process.returncode)
     except KeyboardInterrupt:
         terraform_process.send_signal(signal.SIGINT)
 
 
-def console(var_file_arg):
+def console(var_file_arg, env=os.environ.copy()):
     """Enter a terraform REPL.
 
     Should be called after init.
     """
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
-        terraform_process = subprocess.Popen(["terraform", "console", var_file_arg, "-plan"])
+        terraform_process = subprocess.Popen(["terraform", "console", var_file_arg, "-plan"], env=env)
         terraform_process.wait()
         exit(terraform_process.returncode)
     except KeyboardInterrupt:
@@ -119,11 +119,12 @@ def apply(var_file_arg, taints=[], env=os.environ.copy(), print_output=True):
     return process.returncode, merged_output
 
 
-def destroy(var_file_arg):
+def destroy(var_file_arg, env=os.environ.copy()):
     # Make sure that Terraform is allowed to shut down gracefully.
     try:
         terraform_process = subprocess.Popen(
-            ["terraform", "destroy", var_file_arg, "-auto-approve"]
+            ["terraform", "destroy", var_file_arg, "-auto-approve"],
+            env=env
         )
         terraform_process.wait()
         exit(terraform_process.returncode)
