@@ -47,6 +47,7 @@ export const DatasetProcessModal = ({
               </Paragraph>
               <DatasetProcessForm
                 buttonLabel="Continue"
+                onCancel={() => setShowing(false)}
                 onContinue={handleProcessDataset}
               />
             </Box>
