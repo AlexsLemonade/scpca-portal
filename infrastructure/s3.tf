@@ -86,7 +86,7 @@ resource "aws_s3_bucket" "scpca_portal_cellbrowser_bucket" {
 }
 
 resource "aws_s3_bucket_acl" "scpca_portal_cellbrowser_bucket" {
-  bucket = aws_s3_bucket.scpca_portal_bucket.id
+  bucket = aws_s3_bucket.scpca_portal_cellbrowser_bucket.id
   acl = "public-read"
 }
 
@@ -126,10 +126,8 @@ resource "aws_s3_bucket_policy" "scpca_portal_cellbrowser_access_policy" {
         Action = "s3:GetObject"
         Resource = "${aws_s3_bucket.scpca_portal_cellbrowser_bucket.arn}/*"
         Condition = {
-          StringLike = {
-              "s3:x-amz-meta-security-token" = [
-                var.cellbrowser_security_token
-              ]
+          StringEquals = {
+              "aws:Referer" = var.cellbrowser_security_token
           }
         }
       }
