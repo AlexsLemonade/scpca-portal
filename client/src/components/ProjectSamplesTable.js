@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api } from 'api'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
 import { getReadable } from 'helpers/getReadable'
@@ -28,7 +28,7 @@ export const ProjectSamplesTable = ({
     getDatasetProjectData,
     getProjectSingleCellSamples,
     getProjectSpatialSamples
-  } = useDatasetManager()
+  } = useMyDataset()
   const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
     useDatasetSamplesTable()
 

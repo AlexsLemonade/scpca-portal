@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { CheckBoxGroup } from 'grommet'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { getReadable } from 'helpers/getReadable'
 import { FormField } from 'components/FormField'
 
@@ -9,7 +9,7 @@ export const DatasetProjectModalityOptions = ({
   modalities,
   onModalitiesChange
 }) => {
-  const { myDataset } = useDatasetManager()
+  const { myDataset } = useMyDataset()
 
   const isAnnData = myDataset.format === 'ANN_DATA'
   const modalityOptions = [

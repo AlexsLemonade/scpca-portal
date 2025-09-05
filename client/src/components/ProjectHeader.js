@@ -2,7 +2,7 @@ import React from 'react'
 import { useResponsive } from 'hooks/useResponsive'
 import { config } from 'config'
 import { Box, Grid, Text } from 'grommet'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { Badge } from 'components/Badge'
 import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
 import { Link } from 'components/Link'
@@ -17,7 +17,7 @@ import { getReadableModality } from 'helpers/getReadableModality'
 import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
 
 export const ProjectHeader = ({ project, linked = false }) => {
-  const { isProjectAddedToDataset } = useDatasetManager()
+  const { isProjectAddedToDataset } = useMyDataset()
   const { responsive } = useResponsive()
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
   const unavailableSampleCountText =

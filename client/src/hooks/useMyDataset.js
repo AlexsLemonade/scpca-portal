@@ -1,10 +1,10 @@
 import { useContext } from 'react'
-import { DatasetManagerContext } from 'contexts/DatasetManagerContext'
+import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
 import { uniqueArray } from 'helpers/uniqueArray'
 
-export const useDatasetManager = () => {
+export const useMyDataset = () => {
   const {
     myDataset,
     setMyDataset,
@@ -13,7 +13,7 @@ export const useDatasetManager = () => {
     setEmail,
     errors,
     setErrors
-  } = useContext(DatasetManagerContext)
+  } = useContext(MyDatasetContext)
   const { token, email, userFormat, setUserFormat } = useScPCAPortal()
 
   /* Helper */

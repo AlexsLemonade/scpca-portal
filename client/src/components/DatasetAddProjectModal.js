@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading } from 'grommet'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
 import { Button } from 'components/Button'
@@ -24,7 +24,7 @@ export const DatasetAddProjectModal = ({
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
     getMissingModaliesSamples
-  } = useDatasetManager()
+  } = useMyDataset()
   const { responsive } = useResponsive()
 
   // Modal toggle

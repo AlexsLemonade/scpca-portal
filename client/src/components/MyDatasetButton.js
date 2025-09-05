@@ -15,7 +15,7 @@ const YellowButton = styled(Button)`
       }
     `}
 `
-// TODO: Add getTotalSampleCount helper to useDatasetManager when building the download page
+// TODO: Add getTotalSampleCount helper to useMyDataset when building the download page
 export const MyDatasetButton = () => {
   const count = 0
   return (

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box } from 'grommet'
 import { FormCheckmark } from 'grommet-icons'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 
 // NOTE: Ask Deepa for a checkmark SVG Icon
@@ -11,7 +11,7 @@ export const TriStateModalityCheckBox = ({
   disabled,
   editable
 }) => {
-  const { getDatasetProjectData } = useDatasetManager()
+  const { getDatasetProjectData } = useMyDataset()
   const { filteredSamples, selectedSamples, toggleSamples } =
     useDatasetSamplesTable()
 

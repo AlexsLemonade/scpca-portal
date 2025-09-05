@@ -4,7 +4,7 @@ import { api } from 'api'
 import { DatasetSamplesTableContextProvider } from 'contexts/DatasetSamplesTableContext'
 import { useRouter } from 'next/router'
 import { useScrollPosition } from 'hooks/useScrollPosition'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { DatasetSamplesTable } from 'components/DatasetSamplesTable'
 import { DatasetSamplesTableOptionsHeader } from 'components/DatasetSamplesTableOptionsHeader'
 import { Button } from 'components/Button'
@@ -19,7 +19,7 @@ export const ViewEditSamples = ({ project }) => {
     getAddedProjectDataSamples,
     isProjectIncludeBulk,
     isProjectMerged
-  } = useDatasetManager()
+  } = useMyDataset()
 
   const [loading, setLoading] = useState(true)
   const [samplesInMyDataset, setSamplesInMyDataset] = useState([])

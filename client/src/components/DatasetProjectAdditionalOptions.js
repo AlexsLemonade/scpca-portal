@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box, CheckBox, Text } from 'grommet'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { config } from 'config'
 import { HelpLink } from 'components/HelpLink'
 import { InfoText } from 'components/InfoText'
@@ -18,7 +18,7 @@ export const DatasetProjectAdditionalOptions = ({
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { myDataset, userFormat } = useDatasetManager()
+  const { myDataset, userFormat } = useMyDataset()
 
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
