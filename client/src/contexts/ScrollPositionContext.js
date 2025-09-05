@@ -5,7 +5,7 @@ import { useSessionStorage } from 'hooks/useSessionStorage'
 export const ScrollPositionContext = createContext({})
 
 export const ScrollPositionContextProvider = ({ children }) => {
-  const { asPath: source } = useRouter()
+  const { asPath: currentPath } = useRouter()
   const [positions, setPositions] = useSessionStorage('scroll-positions', [])
   const [restorePosition, setRestorePosition] = useSessionStorage(
     'restore-position',
@@ -15,7 +15,7 @@ export const ScrollPositionContextProvider = ({ children }) => {
   return (
     <ScrollPositionContext.Provider
       value={{
-        source,
+        currentPath,
         positions,
         setPositions,
         restorePosition,
