@@ -8,25 +8,9 @@ import { getReadable, getReadableFiles } from 'helpers/getReadable'
 import DownloadSVG from '../images/download-folder.svg'
 
 // View when the donwload should have been initiated
-export const CCDLDatasetDownloadStarted = ({ dataset, setModalTitle }) => {
+export const CCDLDatasetDownloadStarted = ({ dataset }) => {
   // open the file in a new tab
   const { size: responsiveSize } = useResponsive()
-
-  const getModalTitle = (ccdlName) => {
-    switch (ccdlName) {
-      case 'ALL_METADATA':
-        return 'Downloading Portal-wide Sample Metadata'
-      case 'SINGLE_CELL_SINGLE_CELL_EXPERIMENT':
-        return 'Downloading Portal-wide Data as SingleCellExperiment (R)'
-      case 'SINGLE_CELL_ANN_DATA':
-        return 'Downloading Portal-wide Data as AnnData (Python)'
-      case 'SPATIAL_SINGLE_CELL_EXPERIMENT':
-        return 'Downloading Portal-wide Spatial Data'
-      default:
-        return 'Downloading Dataset'
-    }
-  }
-  setModalTitle(getModalTitle(dataset.ccdl_name))
 
   return (
     <>
