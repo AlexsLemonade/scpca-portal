@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
 import { useScrollPosition } from 'hooks/useScrollPosition'
 import { useDatasetManager } from 'hooks/useDatasetManager'
@@ -17,8 +17,6 @@ const Download = () => {
 
   const [loading, setLoading] = useState(true)
 
-  const isMyDatasetFetched = useRef(false) // Prevent re-fetching
-
   // Restore scroll position after component mounts
   useEffect(() => {
     if (!loading) {
@@ -29,16 +27,11 @@ const Download = () => {
   useEffect(() => {
     const fetchDataset = async () => {
       await getDataset()
-      isMyDatasetFetched.current = true
       setLoading(false)
     }
 
-    if (!isMyDatasetFetched && loading) {
-      fetchDataset()
-    } else {
-      setLoading(false)
-    }
-  }, [myDataset, loading])
+    if (loading) fetchDataset()
+  }, [loading, myDataset])
 
   if (loading) return <Loader />
 
