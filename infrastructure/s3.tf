@@ -108,30 +108,9 @@ resource "aws_s3_bucket_website_configuration" "scpca_portal_cellbrowser_bucket"
   # }
 }
 
-resource "aws_s3_bucket_policy" "scpca_portal_cellbrowser_access_policy" {
+resource "aws_s3_bucket_policy" "scpca_portal_cellbrowser_bucket_policy" {
   bucket = aws_s3_bucket.scpca_portal_cellbrowser_bucket.id
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "PublicReadGetObjectWithCustomHeader"
-        Effect = "Allow"
-        Principal = "*"
-        Action = "s3:GetObject"
-        Resource = "${aws_s3_bucket.scpca_portal_cellbrowser_bucket.arn}/*"
-        Condition = {
-          StringEquals = {
-              "aws:Referer" = var.cellbrowser_security_token
-          }
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_s3_bucket_policy" "scpca_portal_cellbrowser_upload_policy" {
-  bucket = aws_s3_bucket.scpca_portal_cellbrowser_bucket.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -141,8 +120,29 @@ resource "aws_s3_bucket_policy" "scpca_portal_cellbrowser_upload_policy" {
         Principal = {
           "AWS": var.cellbrowser_uploaders
         }
-        Action = "s3:PutObject"
+        Action = [
+          "s3:DeleteObject",
+          "s3:GetBucketLocation",
+          "s3:GetObject",
+          "s3:ListBucket",
+          "s3:PutObject"
+        ]
+        Resource = [
+          "${aws_s3_bucket.scpca_portal_cellbrowser_bucket.arn}",
+          "${aws_s3_bucket.scpca_portal_cellbrowser_bucket.arn}/*"
+        ]
+      },
+      {
+        Sid    = "PublicReadGetObjectWithSecretHeader"
+        Effect = "Allow"
+        Principal = "*"
+        Action = "s3:GetObject"
         Resource = "${aws_s3_bucket.scpca_portal_cellbrowser_bucket.arn}/*"
+        Condition = {
+          StringEquals = {
+              "aws:Referer" = var.cellbrowser_security_token
+          }
+        }
       }
     ]
   })
