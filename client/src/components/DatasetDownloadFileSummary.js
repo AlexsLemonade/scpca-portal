@@ -32,7 +32,11 @@ export const DatasetDownloadFileSummary = ({ dataset }) => {
         </Text>
       </Box>
       <Box margin={{ bottom: 'medium' }}>
-        <DatasetSummaryTable data={data} columns={columns} />
+        <DatasetSummaryTable
+          data={data}
+          columns={columns}
+          keyValue="Samples Modality"
+        />
       </Box>
       <Link
         href={config.links.what_downloading}

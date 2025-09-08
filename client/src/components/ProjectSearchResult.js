@@ -10,8 +10,7 @@ import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
-import { formatCounts } from 'helpers/formatCounts'
-import { sortArrayString } from 'helpers/sortArrayString'
+import { formatDiagnosisCounts } from 'helpers/formatCounts'
 
 export const ProjectSearchResult = ({ project }) => {
   const { responsive } = useResponsive()
@@ -24,7 +23,7 @@ export const ProjectSearchResult = ({ project }) => {
       value:
         Object.keys(project.diagnoses_counts).length > 0 ? (
           <Text>
-            {sortArrayString(formatCounts(project.diagnoses_counts)).join(', ')}
+            {formatDiagnosisCounts(project.diagnoses_counts).join(', ')}
           </Text>
         ) : (
           ''
