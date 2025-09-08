@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterable, List, Set
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Count
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
@@ -241,6 +242,8 @@ class Dataset(TimestampedModel):
             "files_summary": self.files_summary,
             "project_diagnoses": self.project_diagnoses,
             "project_modality_counts": self.project_modality_counts,
+            "modality_count_mismatch_projects": self.modality_count_mismatch_projects,
+            "project_sample_counts": self.project_sample_counts,
             "project_titles": self.project_titles,
         }
 
@@ -269,8 +272,8 @@ class Dataset(TimestampedModel):
         """
         # all diagnoses in the dataset
         if diagnoses := self.samples.values("diagnosis").annotate(
-            samples=models.Count("scpca_id", distinct=True),
-            projects=models.Count("project_id", distinct=True),
+            samples=Count("scpca_id", distinct=True),
+            projects=Count("project_id", distinct=True),
         ):
             return {d.pop("diagnosis"): d for d in diagnoses}
 
@@ -374,7 +377,7 @@ class Dataset(TimestampedModel):
         return diagnoses_counts
 
     @property
-    def project_modality_counts(self) -> Dict:
+    def project_modality_counts(self) -> Dict[str, Dict[Modalities, int]]:
         """
         Returns a dict where the key is a project id in the dataset and
         the value is an object of SINGLE_CELL and SPATIAL samples
@@ -382,13 +385,79 @@ class Dataset(TimestampedModel):
         """
         counts: dict[str, dict] = defaultdict(dict)
 
-        for project_id in self.data.keys():
+        single_cell_count = dict(
+            self.get_selected_samples([Modalities.SINGLE_CELL])
+            .values("project__scpca_id")
+            .annotate(num_samples=Count("project__scpca_id"))
+            .order_by("project__scpca_id")
+            .values_list("project__scpca_id", "num_samples")
+        )
 
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
-                samples = self.get_project_modality_samples(project_id, modality)
-                counts[project_id][modality] = samples.count()
+        spatial_count = dict(
+            self.get_selected_samples([Modalities.SPATIAL])
+            .values("project__scpca_id")
+            .annotate(num_samples=Count("project__scpca_id"))
+            .order_by("project__scpca_id")
+            .values_list("project__scpca_id", "num_samples")
+        )
+
+        for project_id in self.data.keys():
+            counts[project_id][Modalities.SINGLE_CELL] = single_cell_count.get(project_id, 0)
+            counts[project_id][Modalities.SPATIAL] = spatial_count.get(project_id, 0)
 
         return counts
+
+    @property
+    def modality_count_mismatch_projects(self) -> List[str]:
+        """
+        Returns a list of project ids where the samples differ between the SINGLE_CELL
+        and SPATIAL modalities (i.e., samples are present in one modality but not the other).
+        """
+        dataset_samples = self.get_selected_samples(
+            [Modalities.SINGLE_CELL, Modalities.SPATIAL]
+        ).values_list("scpca_id", "project__scpca_id", "has_single_cell_data", "has_spatial_data")
+
+        project_modality_samples = defaultdict(lambda: defaultdict(set))
+        for (
+            scpca_id,
+            project__scpca_id,
+            has_single_cell_data,
+            has_spatial_data,
+        ) in dataset_samples:
+            if has_single_cell_data:
+                project_modality_samples[project__scpca_id][Modalities.SINGLE_CELL].add(scpca_id)
+            if has_spatial_data:
+                project_modality_samples[project__scpca_id][Modalities.SPATIAL].add(scpca_id)
+
+        mismatch_project_ids = []
+        for project_id, modalities in self.data.items():
+            # Early exit if either modality has no samples
+            if not modalities[Modalities.SINGLE_CELL] or not modalities[Modalities.SPATIAL]:
+                continue
+
+            single_cell_samples = project_modality_samples[project_id][Modalities.SINGLE_CELL]
+            spatial_samples = project_modality_samples[project_id][Modalities.SPATIAL]
+
+            if single_cell_samples ^ spatial_samples:
+                mismatch_project_ids.append(project_id)
+
+        return mismatch_project_ids
+
+    @property
+    def project_sample_counts(self) -> Dict[str, int]:
+        """
+        Returns a dict where the key is a project id in the dataset and
+        the value is the total count of unique samples combined across
+        SINGLE_CELL and SPATIAL modalities (excluding BULK_RNA_SEQ) for that project.
+        """
+        return dict(
+            self.get_selected_samples([Modalities.SINGLE_CELL, Modalities.SPATIAL])
+            .distinct()
+            .values("project__scpca_id")
+            .annotate(num_samples=Count("project__scpca_id"))
+            .order_by("project__scpca_id")
+            .values_list("project__scpca_id", "num_samples")
+        )
 
     @property
     def project_titles(self) -> Dict:
@@ -491,16 +560,32 @@ class Dataset(TimestampedModel):
         concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
         return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
+    @property
+    def includes_files_bulk(self) -> bool:
+        return self.bulk_single_cell_projects.exists()
+
+    @property
+    def includes_files_cite_seq(self) -> bool:
+        return self.cite_seq_projects.exists()
+
+    @property
+    def includes_files_merged(self) -> bool:
+        return self.merged_projects.exists()
+
     # ASSOCIATIONS WITH OTHER MODELS
     @property
     def projects(self) -> Iterable[Project]:
-        """Returns all Project instances associated with the Dataset."""
+        """Returns all project instances associated with the dataset."""
         if project_ids := self.data.keys():
             return Project.objects.filter(scpca_id__in=project_ids).order_by("scpca_id")
         return Project.objects.none()
 
     @property
     def spatial_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have spatial data
+        with spatial samples requested in the data attribute.
+        """
         if self.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
             return Project.objects.none()
 
@@ -509,35 +594,68 @@ class Dataset(TimestampedModel):
             for project_id, project_options in self.data.items()
             if project_options.get(Modalities.SPATIAL, [])
         ]:
-            return self.projects.filter(scpca_id__in=project_ids)
+            return self.projects.filter(has_spatial_data=True, scpca_id__in=project_ids)
 
         return Project.objects.none()
 
     @property
     def single_cell_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have single cell data
+        with single cell samples requested in the data attribute.
+        """
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
             if project_options.get(Modalities.SINGLE_CELL)
         ]:
-            return Project.objects.filter(scpca_id__in=project_ids)
+            return self.projects.filter(has_single_cell_data=True, scpca_id__in=project_ids)
 
         return Project.objects.none()
 
     @property
     def bulk_single_cell_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have bulk data
+        where bulk was requested in the data attribute.
+        """
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
             if project_options.get(DatasetDataProjectConfig.INCLUDES_BULK)
         ]:
-            return Project.objects.filter(scpca_id__in=project_ids)
+            return self.projects.filter(has_bulk_rna_seq=True, scpca_id__in=project_ids)
 
         return Project.objects.none()
 
     @property
     def cite_seq_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances associated with the dataset
+        which have cite seq data.
+        """
         return self.projects.filter(has_cite_seq_data=True)
+
+    @property
+    def merged_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have merged data
+        where merged was requested in the data attribute single cell field.
+        """
+        if project_ids := [
+            project_id
+            for project_id, project_options in self.data.items()
+            if project_options.get(Modalities.SINGLE_CELL) == "MERGED"
+        ]:
+            requested_merged_projects = self.projects.filter(scpca_id__in=project_ids)
+
+            if self.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
+                return requested_merged_projects.filter(includes_merged_sce=True)
+
+            if self.format == DatasetFormats.ANN_DATA:
+                return requested_merged_projects.filter(includes_merged_anndata=True)
+
+        return Project.objects.none()
 
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""
@@ -560,9 +678,23 @@ class Dataset(TimestampedModel):
 
     @property
     def samples(self) -> Iterable[Sample]:
+        """
+        Returns a queryset of all samples contained in data attribute.
+        If a sample is present in more than one modality, it will be
+        duplicated in the resulting queryset.
+        """
+        return self.get_selected_samples(
+            [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]
+        )
+
+    def get_selected_samples(self, modalities: Iterable[Modalities] = []) -> Iterable[Sample]:
+        """
+        Returns a queryset of samples for the specified modalities
+        contained in data attribute.
+        """
         dataset_samples = Sample.objects.none()
         for project_id in self.data.keys():
-            for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]:
+            for modality in modalities:
                 dataset_samples |= self.get_project_modality_samples(project_id, modality)
 
         return dataset_samples
@@ -671,9 +803,27 @@ class Dataset(TimestampedModel):
         return {Path(of.s3_key) for of in self.original_files}
 
     @property
-    def computed_file_name(self) -> Path:
-        return Path(f"{self.pk}.zip")
+    def computed_file_local_path(self) -> Path:
+        return settings.OUTPUT_DATA_PATH / ComputedFile.get_dataset_file_s3_key(self)
 
     @property
-    def computed_file_local_path(self) -> Path:
-        return settings.OUTPUT_DATA_PATH / self.computed_file_name
+    def download_file_name(self) -> str:
+        output_format = "-".join(self.format.split("_")).lower()
+        if self.ccdl_modality == Modalities.SPATIAL:
+            output_format = "spatial"
+
+        if self.ccdl_project_id:
+            return f"{self.ccdl_project_id}_{output_format}"
+
+        if self.is_ccdl:
+            return f"portal-wide_{output_format}"
+
+        return f"{self.id}_{output_format}"
+
+    @property
+    def download_url(self) -> str | None:
+        """A temporary URL from which the file can be downloaded."""
+        if not self.computed_file:
+            return None
+
+        return self.computed_file.get_dataset_download_url(self.download_file_name)

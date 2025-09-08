@@ -1,12 +1,12 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, PermissionDenied
 
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.exceptions import DatasetError, JobError
-from scpca_portal.models import Dataset, Job
+from scpca_portal.models import APIToken, Dataset, Job
 from scpca_portal.serializers import (
     DatasetCreateSerializer,
     DatasetDetailSerializer,
@@ -67,6 +67,22 @@ class DatasetViewSet(
         dataset = get_object_or_404(queryset, pk=self.kwargs[self.lookup_field])
 
         return dataset
+
+    def get_serializer_context(self):
+        """
+        Additional context is added to provide the serializer classes with the API token.
+        """
+        serializer_context = super(DatasetViewSet, self).get_serializer_context()
+
+        if token_id := self.request.META.get("HTTP_API_KEY"):
+            token = APIToken.verify(token_id)
+            if not token:
+                message = f"Token header value {token_id} is either invalid or inactive."
+                raise PermissionDenied({"message": message, "token_id": token_id})
+
+            serializer_context.update({"token": token})
+
+        return serializer_context
 
     def perform_create(self, serializer):
         serializer.is_valid(raise_exception=True)

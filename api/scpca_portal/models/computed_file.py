@@ -162,6 +162,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return Path(metadata_dir) / Path(metadata_file_name_path)
 
     @classmethod
+    def get_dataset_file_s3_key(cls, dataset) -> str:
+        return f"{dataset.id}.zip"
+
+    @classmethod
     def get_dataset_file(cls, dataset) -> Self:
         """
         Computes a given dataset's zip archive and returns a corresponding ComputedFile object.
@@ -215,7 +219,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             modality=dataset.ccdl_type.get("modality"),
             metadata_only=dataset.ccdl_name == DatasetFormats.METADATA,
             s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            s3_key=dataset.computed_file_name,
+            s3_key=cls.get_dataset_file_s3_key(dataset),
             size_in_bytes=dataset.computed_file_local_path.stat().st_size,
             workflow_version=utils.join_workflow_versions(
                 library.workflow_version for library in dataset.libraries
@@ -385,6 +389,15 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
 
         return computed_file
+
+    def get_dataset_download_url(self, file_name: str) -> str | None:
+        """Return the presigned url on the associated dataset according to the passed file name."""
+        if not (self.s3_bucket and self.s3_key):
+            return None
+
+        date = utils.get_today_string()
+        complete_file_name = f"{file_name}_{date}.zip"
+        return s3.generate_pre_signed_link(complete_file_name, self.s3_key, self.s3_bucket)
 
     @property
     def download_url(self) -> str:

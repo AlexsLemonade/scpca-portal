@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
 from django.core.management import call_command
@@ -10,6 +10,7 @@ from scpca_portal.enums import DatasetFormats
 from scpca_portal.models import Dataset
 from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
 from scpca_portal.test.factories import (
+    APITokenFactory,
     DatasetFactory,
     LeafComputedFileFactory,
     ProjectFactory,
@@ -41,11 +42,14 @@ class DatasetsTestCase(APITestCase):
         SampleFactory(scpca_id="SCPCS999996", project=project, has_single_cell_data=True)
         SampleFactory(scpca_id="SCPCS999998", project=project, has_single_cell_data=True)
 
-    def test_get_single(self):
+    def test_get_single_no_token(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json().get("id"), str(self.custom_dataset.id))
+
+        # download_url is only made available when a valid token is passed
+        self.assertNotIn("download_url", response.json())
 
         # Assert that computed_file attribute is a dict an not just the pk
         self.assertIsInstance(response.json().get("computed_file"), dict)
@@ -60,6 +64,32 @@ class DatasetsTestCase(APITestCase):
         url = reverse("datasets-detail", args=[dataset.id])
         response = self.client.get(url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @patch(
+        "scpca_portal.models.dataset.Dataset.download_url",
+        new_callable=PropertyMock,
+        return_value="file.zip",
+    )
+    def test_get_single_with_valid_token(self, _):
+        url = reverse("datasets-detail", args=[self.custom_dataset.id])
+
+        token = APITokenFactory()
+        response = self.client.get(url, HTTP_API_KEY=token.id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertIsNotNone("download_url", response.json())
+
+    def test_get_single_with_bad_token(self):
+        url = reverse("datasets-detail", args=[self.custom_dataset.id])
+
+        # invalid token
+        response = self.client.get(url, HTTP_API_KEY="invalid token")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # inactive token
+        token = APITokenFactory(is_activated=False)
+        response = self.client.get(url, HTTP_API_KEY=token.id)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_post(self):
         url = reverse("datasets-list", args=[])
@@ -208,6 +238,8 @@ class DatasetsTestCase(APITestCase):
             "files_summary",
             "project_diagnoses",
             "project_modality_counts",
+            "modality_count_mismatch_projects",
+            "project_sample_counts",
             "project_titles",
         }
         for field in stats_property_fields:

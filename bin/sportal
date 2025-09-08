@@ -35,6 +35,9 @@ DEPLOY_ENVS = {
     "SLACK_CCDL_TEST_CHANNEL_EMAIL": "used for testing email",
     "AWS_ACCESS_KEY_ID": "AWS credential accessing input bucket or any project resources.",
     "AWS_SECRET_ACCESS_KEY": "AWS credential accessing input bucket or any project resources.",
+    "ENABLE_FEATURE_PREVIEW": "Turn on in-progress features. You probably want this set to True",
+    "CELLBROWSER_SECURITY_TOKEN": "Cellbrowser security token for requests.",
+    "CELLBROWSER_UPLOADERS": "List of IAM User ARNS allowed to upload to cellbrowser bucket.",
 }
 
 # Everything needs access to the system env.

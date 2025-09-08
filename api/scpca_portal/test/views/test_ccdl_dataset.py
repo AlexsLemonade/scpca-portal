@@ -1,3 +1,5 @@
+from unittest.mock import PropertyMock, patch
+
 from django.conf import settings
 from django.core.management import call_command
 from django.urls import reverse
@@ -6,7 +8,7 @@ from rest_framework.test import APITestCase
 
 from scpca_portal.enums import DatasetFormats
 from scpca_portal.models import Dataset
-from scpca_portal.test.factories import DatasetFactory
+from scpca_portal.test.factories import APITokenFactory, DatasetFactory
 
 
 class CCDLDatasetsTestCase(APITestCase):
@@ -71,11 +73,14 @@ class CCDLDatasetsTestCase(APITestCase):
         self.assertEqual(response_json["count"], 1)
         self.assertNotEqual(response_json["results"][0].get("id"), str(dataset_project_sce))
 
-    def test_get_single(self):
+    def test_get_single_no_token(self):
         url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json().get("id"), str(self.ccdl_dataset.id))
+
+        # download_url is only made available when a valid token is passed
+        self.assertNotIn("download_url", response.json())
 
         # Assert non existing dataset adequately 404s
         dataset = Dataset(data={})
@@ -87,6 +92,32 @@ class CCDLDatasetsTestCase(APITestCase):
         url = reverse("ccdl-datasets-detail", args=[self.custom_dataset.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @patch(
+        "scpca_portal.models.dataset.Dataset.download_url",
+        new_callable=PropertyMock,
+        return_value="file.zip",
+    )
+    def test_get_single_with_valid_token(self, _):
+        url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
+
+        token = APITokenFactory()
+        response = self.client.get(url, HTTP_API_KEY=token.id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertIsNotNone("download_url", response.json())
+
+    def test_get_single_with_bad_token(self):
+        url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
+
+        # invalid token
+        response = self.client.get(url, HTTP_API_KEY="invalid token")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # inactive token
+        token = APITokenFactory(is_activated=False)
+        response = self.client.get(url, HTTP_API_KEY=token.id)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_post_is_not_allowed(self):
         url = reverse("ccdl-datasets-list", args=[])

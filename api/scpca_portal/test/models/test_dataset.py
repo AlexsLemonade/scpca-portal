@@ -9,9 +9,9 @@ from django.test import TestCase
 
 from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
-from scpca_portal.models import Dataset, OriginalFile, Project
+from scpca_portal.models import ComputedFile, Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import DatasetFactory, OriginalFileFactory
+from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory, OriginalFileFactory
 
 
 class TestDataset(TestCase):
@@ -648,6 +648,66 @@ class TestDataset(TestCase):
                     actual_counts[project_id][modality], expected_counts[project_id][modality]
                 )
 
+    def test_modality_count_mismatch_projects(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        expected_mismatch_projects = ["SCPCP999990"]
+
+        actual_mismatch_projects = dataset.modality_count_mismatch_projects
+
+        self.assertCountEqual(actual_mismatch_projects, expected_mismatch_projects)
+
+    def test_project_sample_counts(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        expected_counts = {"SCPCP999990": 3, "SCPCP999991": 3, "SCPCP999992": 2}
+
+        actual_counts = dataset.project_sample_counts
+
+        self.assertEqual(actual_counts, expected_counts)
+
     def test_project_titles(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
@@ -683,3 +743,170 @@ class TestDataset(TestCase):
 
         for project_id in actual_titles.keys():
             self.assertEqual(actual_titles[project_id], expected_titles[project_id])
+
+    @patch("scpca_portal.models.computed_file.utils.get_today_string", return_value="2025-08-26")
+    @patch("scpca_portal.s3.aws_s3.generate_presigned_url")
+    def test_download_url_property(self, mock_generate_presigned_url, _):
+        # ccdl project dataset
+        dataset = DatasetFactory(
+            is_ccdl=True,
+            ccdl_project_id="SCPCP999990",
+            format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
+        )
+        dataset.computed_file = LeafComputedFileFactory(
+            s3_key=ComputedFile.get_dataset_file_s3_key(dataset)
+        )
+        dataset.save()
+
+        dataset.download_url
+        expected_filename = "SCPCP999990_single-cell-experiment_2025-08-26.zip"
+        mock_generate_presigned_url.assert_called_with(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": "scpca-portal-local",
+                "Key": f"{dataset.id}.zip",
+                "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
+            },
+            ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
+        )
+
+        # ccdl portal wide dataset
+        dataset = DatasetFactory(
+            is_ccdl=True, ccdl_project_id=None, format=DatasetFormats.SINGLE_CELL_EXPERIMENT
+        )
+        dataset.computed_file = LeafComputedFileFactory(
+            s3_key=ComputedFile.get_dataset_file_s3_key(dataset)
+        )
+        dataset.save()
+
+        dataset.download_url
+        expected_filename = "portal-wide_single-cell-experiment_2025-08-26.zip"
+        mock_generate_presigned_url.assert_called_with(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": "scpca-portal-local",
+                "Key": f"{dataset.id}.zip",
+                "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
+            },
+            ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
+        )
+
+        # user dataset
+        dataset = DatasetFactory(is_ccdl=False, format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.computed_file = LeafComputedFileFactory(
+            s3_key=ComputedFile.get_dataset_file_s3_key(dataset)
+        )
+        dataset.save()
+
+        dataset.download_url
+        expected_filename = f"{dataset.id}_single-cell-experiment_2025-08-26.zip"
+        mock_generate_presigned_url.assert_called_with(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": "scpca-portal-local",
+                "Key": f"{dataset.id}.zip",
+                "ResponseContentDisposition": f"attachment; filename = {expected_filename}",
+            },
+            ExpiresIn=60 * 60 * 24 * 7,  # 7 days in seconds
+        )
+
+        # no computed file
+        dataset = DatasetFactory()
+        self.assertIsNone(dataset.download_url)
+
+    def test_includes_files_bulk_property(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with bulk, bulk requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.includes_files_bulk)
+
+        # project with bulk, bulk not requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.includes_files_bulk)
+
+        # project without bulk
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertFalse(dataset.includes_files_bulk)
+
+    def test_includes_files_cite_seq_property(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with cite-seq data
+        dataset.data = {
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.includes_files_cite_seq)
+
+        # project without cite-seq data
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.includes_files_cite_seq)
+
+    def test_includes_files_merged_property(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with merged file, merged requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.includes_files_merged)
+
+        # project with merged file, merged not requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.includes_files_merged)
+
+        # project without merged
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertFalse(dataset.includes_files_merged)
