@@ -45,7 +45,7 @@ const PortalWideDownloads = ({ datasets }) => {
           </Text>
         </Box>
       </HeroBandPortalWide>
-      <Box width={{ max: 'xlarge' }} pad={{ top: 'xlarge' }} fill>
+      <Box width={{ max: 'xlarge' }} fill>
         <Box
           alignSelf="start"
           pad={{ left: 'medium' }}
