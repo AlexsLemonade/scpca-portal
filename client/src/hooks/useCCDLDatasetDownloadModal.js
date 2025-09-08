@@ -14,8 +14,7 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
   const isDownloadReady = !!downloadDataset && !!token
 
   const modalTitleAction = isDownloadReady ? 'Downloading' : 'Download'
-  const modalTitleDataset =
-    portalWideDatasets[selectedDataset.ccdl_name][modalTitleDataset]
+  const { modalTitleDataset } = portalWideDatasets[selectedDataset.ccdl_name]
   const modalTitleResource = datasets[0].ccdl_project_id
     ? 'Project'
     : modalTitleDataset
