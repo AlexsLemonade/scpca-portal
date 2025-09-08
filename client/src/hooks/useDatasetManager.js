@@ -31,13 +31,10 @@ export const useDatasetManager = () => {
   }
 
   /* Dataset-level */
-  const createDataset = async (dataset) => {
-    // TODO: Token check will be removed once the BE is updated
-    // Token is only required for processing and downloading
-    if (!token) {
-      return addError('A valid token is required to create a dataset')
-    }
+  const isDatasetDataEmpty =
+    !myDataset.data || Object.keys(myDataset.data || {}).length === 0
 
+  const createDataset = async (dataset) => {
     if (!dataset.format) {
       return addError('A format is required to create a dataset.')
     }
@@ -81,12 +78,6 @@ export const useDatasetManager = () => {
   }
 
   const updateDataset = async (dataset) => {
-    // TODO: Token check will be removed once the BE is updated
-    // Token is only required for processing and downloading
-    if (!token) {
-      return addError('A valid token is required to update the dataset')
-    }
-
     const datasetRequest = await api.datasets.update(dataset.id, dataset, token)
 
     if (!datasetRequest.isOk) {
@@ -108,8 +99,10 @@ export const useDatasetManager = () => {
     updateDataset({ ...dataset, data: {} })
 
   const processDataset = async (dataset) => {
-    // TODO: Token check will be added once the BE is updated
     // Token is required for dataset processing
+    if (!token) {
+      return addError('A valid token is required to update the dataset')
+    }
 
     if (!dataset.email) {
       return addError('An email is required to process the dataset')
@@ -189,17 +182,14 @@ export const useDatasetManager = () => {
   const getProjectSpatialSamples = (samples) =>
     samples.filter((s) => s.has_spatial_data).map((s) => s.scpca_id)
 
-  const getProjectIDs = (dataset) => Object.keys(dataset.data)
-
   const isProjectAddedToDataset = (project) =>
     Object.keys(myDataset?.data || []).includes(project.scpca_id)
 
-  const removeProject = async (project) => {
+  const removeProjectById = (projectId) => {
     const datasetCopy = structuredClone(myDataset)
-    delete datasetCopy.data[project.scpca_id]
+    delete datasetCopy.data[projectId]
 
-    const updatedDataset = await updateDataset(datasetCopy)
-    return updatedDataset
+    return updateDataset(datasetCopy)
   }
 
   /* Sample-level */
@@ -248,17 +238,17 @@ export const useDatasetManager = () => {
     userFormat,
     setUserFormat,
     removeError,
+    isDatasetDataEmpty,
     clearDataset,
     getDataset,
     processDataset,
     addProject,
+    removeProjectById,
     getDatasetProjectData,
     getProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
-    getProjectIDs,
     isProjectAddedToDataset,
-    removeProject,
     setSamples,
     getMissingModaliesSamples
   }

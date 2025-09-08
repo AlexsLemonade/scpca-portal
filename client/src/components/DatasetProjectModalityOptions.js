@@ -9,9 +9,9 @@ export const DatasetProjectModalityOptions = ({
   modalities,
   onModalitiesChange
 }) => {
-  const { myDataset, userFormat } = useDatasetManager()
+  const { myDataset } = useDatasetManager()
 
-  const isAnnData = myDataset.format === 'ANN_DATA' || userFormat === 'ANN_DATA'
+  const isAnnData = myDataset.format === 'ANN_DATA'
   const modalityOptions = [
     { key: 'SINGLE_CELL', value: project.has_single_cell_data },
     { key: 'SPATIAL', value: project.has_spatial_data }
@@ -27,6 +27,7 @@ export const DatasetProjectModalityOptions = ({
   // TODO: Use localStorage to store user selected additional options
   // Preselect modalities if already added to myDataset
 
+  // TODO: Remove this block once BE API is updated
   // Deselect and disable the SPATIAL checkbox if ANN_DATA is selected
   useEffect(() => {
     if (isAnnData && modalities.includes('SPATIAL')) {
