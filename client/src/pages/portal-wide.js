@@ -1,7 +1,9 @@
 import React from 'react'
 import { Anchor, Box, Text } from 'grommet'
 import { api } from 'api'
+import { HeroBandPortalWide } from 'components/Band'
 import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownloadCard'
+import { useResponsive } from 'hooks/useResponsive'
 
 const PortalWideDownloads = ({ datasets }) => {
   const metadataDatasets = datasets.filter(
@@ -23,19 +25,32 @@ const PortalWideDownloads = ({ datasets }) => {
     (dataset) => dataset.ccdl_modality === 'SPATIAL'
   )
 
+  const { responsive } = useResponsive()
+
   return (
     <>
-      <Box width={{ max: 'xlarge' }} pad={{ top: 'xlarge' }} fill>
+      <HeroBandPortalWide
+        background="white"
+        align="center"
+        pad={{ top: '240px' }}
+        fill
+      >
+        <Box
+          width={{ max: 'xlarge' }}
+          margin={{ top: responsive('-148px', '-132px') }}
+          fill
+        >
+          <Text color="white" size="xxlarge">
+            Portal-wide Downloads
+          </Text>
+        </Box>
+      </HeroBandPortalWide>
+      <Box width={{ max: 'xlarge' }} fill>
         <Box
           alignSelf="start"
           pad={{ left: 'medium' }}
           margin={{ top: 'none' }}
         >
-          <Box pad={{ bottom: 'medium' }}>
-            <Text size="xlarge" weight="bold">
-              Portal-wide Downloads
-            </Text>
-          </Box>
           <Box pad={{ top: 'large' }}>
             <Text size="medium" margin={{ top: 'small' }}>
               Data from the projects in the ScPCA portal is packaged together
