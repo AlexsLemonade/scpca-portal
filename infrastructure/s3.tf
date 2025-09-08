@@ -85,11 +85,6 @@ resource "aws_s3_bucket" "scpca_portal_cellbrowser_bucket" {
   bucket = "scpca-portal-cellbrowser-${var.user}-${var.stage}"
 }
 
-resource "aws_s3_bucket_acl" "scpca_portal_cellbrowser_bucket" {
-  bucket = aws_s3_bucket.scpca_portal_cellbrowser_bucket.id
-  acl = "public-read"
-}
-
 resource "aws_s3_bucket_website_configuration" "scpca_portal_cellbrowser_bucket" {
   bucket = aws_s3_bucket.scpca_portal_cellbrowser_bucket.id
 
@@ -156,8 +151,8 @@ resource "aws_s3_bucket_policy" "scpca_portal_cellbrowser_upload_policy" {
 resource "aws_s3_bucket_public_access_block" "scpca_portal_cellbrowser_bucket" {
   bucket = aws_s3_bucket.scpca_portal_cellbrowser_bucket.id
 
-  block_public_acls       = false
+  block_public_acls       = true
   block_public_policy     = false
-  ignore_public_acls      = false
+  ignore_public_acls      = true
   restrict_public_buckets = false
 }
