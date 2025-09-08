@@ -3,7 +3,7 @@ import { Box, Text } from 'grommet'
 import { api } from 'api'
 import { DatasetSamplesTableContextProvider } from 'contexts/DatasetSamplesTableContext'
 import { useRouter } from 'next/router'
-import { useScrollPosition } from 'hooks/useScrollPosition'
+import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { DatasetSamplesTable } from 'components/DatasetSamplesTable'
 import { DatasetSamplesTableOptionsHeader } from 'components/DatasetSamplesTableOptionsHeader'
@@ -13,7 +13,7 @@ import { Loader } from 'components/Loader'
 
 export const ViewEditSamples = ({ project }) => {
   const { back } = useRouter()
-  const { setRestoreScrollPosition } = useScrollPosition()
+  const { setRestoreFromDestination } = useScrollRestore()
   const {
     myDataset,
     getAddedProjectDataSamples,
@@ -40,7 +40,7 @@ export const ViewEditSamples = ({ project }) => {
 
   const handleBackToMyDataset = () => {
     const source = '/download' // The page to navigating back to
-    setRestoreScrollPosition(source)
+    setRestoreFromDestination(source)
     back()
   }
 

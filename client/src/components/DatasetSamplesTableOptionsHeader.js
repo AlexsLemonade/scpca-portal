@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
 import { useRouter } from 'next/router'
-import { useScrollPosition } from 'hooks/useScrollPosition'
+import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
@@ -20,7 +20,7 @@ export const DatasetSamplesTableOptionsHeader = ({
   onIncludeMergeChange = () => {}
 }) => {
   const { back } = useRouter()
-  const { setRestoreScrollPosition } = useScrollPosition()
+  const { setRestoreFromDestination } = useScrollRestore()
   const {
     myDataset,
     isProjectMerged,
@@ -75,7 +75,7 @@ export const DatasetSamplesTableOptionsHeader = ({
 
     if (datasetRequest) {
       const source = '/download' // The page to navigating back to
-      setRestoreScrollPosition(source)
+      setRestoreFromDestination(source)
       back()
     } else {
       // TODO: Error handling
