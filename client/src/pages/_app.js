@@ -8,7 +8,7 @@ import { Reset } from 'styles/Reset'
 import { BannerContextProvider } from 'contexts/BannerContext'
 import { DatasetManagerContextProvider } from 'contexts/DatasetManagerContext'
 import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
-import { ScrollPositionContextProvider } from 'contexts/ScrollPositionContext'
+import { ScrollRestoreContextProvider } from 'contexts/ScrollRestoreContext'
 import { AnalyticsContextProvider } from 'contexts/AnalyticsContext'
 import { PageTitle } from 'components/PageTitle'
 import Error from './_error'
@@ -30,7 +30,7 @@ const Portal = ({ Component, pageProps }) => {
       <Grommet theme={theme}>
         <Sentry.ErrorBoundary fallback={Fallback} showDialog>
           <ScPCAPortalContextProvider>
-            <ScrollPositionContextProvider>
+            <ScrollRestoreContextProvider>
               <AnalyticsContextProvider>
                 <PageTitle />
                 <BannerContextProvider>
@@ -42,7 +42,7 @@ const Portal = ({ Component, pageProps }) => {
                   </DatasetManagerContextProvider>
                 </BannerContextProvider>
               </AnalyticsContextProvider>
-            </ScrollPositionContextProvider>
+            </ScrollRestoreContextProvider>
           </ScPCAPortalContextProvider>
         </Sentry.ErrorBoundary>
       </Grommet>
