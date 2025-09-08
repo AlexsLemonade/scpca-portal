@@ -17,8 +17,8 @@ import { getReadable } from 'helpers/getReadable'
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
 export const DatasetProjectCard = ({ dataset, projectId }) => {
-  const { push } = useRouter()
-  const { saveRestoreOrigin } = useScrollRestore()
+  const { push, asPath } = useRouter()
+  const { saveOriginScrollPosition } = useScrollRestore()
   const { removeProjectById } = useDatasetManager()
   const { responsive } = useResponsive()
 
@@ -45,10 +45,8 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     .map((o) => o.label)
 
   const handleViewEditSamples = () => {
-    const source = '/download' // the current route
     const destination = `/download/${projectId}`
-    // Save the scroll position before navigating away
-    saveRestoreOrigin(source, destination)
+    saveOriginScrollPosition(asPath, destination)
     push(destination)
   }
 
