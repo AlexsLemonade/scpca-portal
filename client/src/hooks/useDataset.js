@@ -9,6 +9,7 @@ export const useDataset = () => {
 
   const getErrorMessage = (statusCode) => {
     const defaultMessage = 'An unexpected error occurred.'
+    // TODO: Revise once error handling is finalized (for recoverable errors)
     const exceptions = {
       400: 'Bad Request: Invalid or missing required fields.',
       403: 'Forbidden: API token is missing or invalid.',
@@ -17,16 +18,11 @@ export const useDataset = () => {
       409: 'Conflict: Processing datasets cannot be modified.'
     }
 
-    switch (statusCode) {
-      case 400:
-      case 403:
-      case 404:
-      case 405:
-      case 409:
-        return exceptions[statusCode]
-      default:
-        return defaultMessage
+    if (statusCode in exceptions) {
+      return exceptions[statusCode]
     }
+
+    return defaultMessage
   }
 
   const create = async (dataset) => {
@@ -61,7 +57,7 @@ export const useDataset = () => {
 
   const process = async (dataset) => {
     if (!token) {
-      addError('A valid token is required to update the dataset')
+      addError('A valid token is required to process the dataset')
       return null
     }
 
