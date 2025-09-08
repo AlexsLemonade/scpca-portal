@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { useRouter } from 'next/router'
-import { useScrollPosition } from 'hooks/useScrollPosition'
+import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useResponsive } from 'hooks/useResponsive'
 import { Badge } from 'components/Badge'
@@ -18,7 +18,7 @@ const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
 export const DatasetProjectCard = ({ dataset, projectId }) => {
   const { push } = useRouter()
-  const { addScrollPosition } = useScrollPosition()
+  const { saveRestoreOrigin } = useScrollRestore()
   const { removeProjectById } = useDatasetManager()
   const { responsive } = useResponsive()
 
@@ -48,7 +48,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     const source = '/download' // the current route
     const destination = `/download/${projectId}`
     // Save the scroll position before navigating away
-    addScrollPosition(source, destination)
+    saveRestoreOrigin(source, destination)
     push(destination)
   }
 
@@ -106,9 +106,9 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
             <Label label="Other Options" />
             <Box>
               {specifiedOptions.map((so) => (
-                <Text>{so}</Text>
+                <Text key={so}>{so}</Text>
               ))}
-              {specifiedOptions.length === 0 && <Text>Not Specified</Text>}
+              {specifiedOptions.length === 0 && <Text italic>None</Text>}
             </Box>
           </Box>
         </Box>

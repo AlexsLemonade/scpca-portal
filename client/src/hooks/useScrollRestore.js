@@ -1,20 +1,20 @@
 import { useContext } from 'react'
-import { ScrollPositionContext } from 'contexts/ScrollPositionContext'
+import { ScrollRestoreContext } from 'contexts/ScrollRestoreContext'
 
 // Tracks and restores scroll position when navigating between pages
 // source: a page whose scroll position is tracked for restoration when navigating between pages
 // destination: a page that navigates back to the source page
-export const useScrollPosition = () => {
+export const useScrollRestore = () => {
   const {
     currentPath,
     positions,
     setPositions,
     restorePosition,
     setRestorePosition
-  } = useContext(ScrollPositionContext)
+  } = useContext(ScrollRestoreContext)
 
   // Call when navigating away from the current page (source) to track scrollY
-  const addScrollPosition = (source, destination) => {
+  const saveRestoreOrigin = (source, destination) => {
     // Overwrite existing matching value
     setPositions((prev) => {
       const updatedPositions = prev.filter(
@@ -25,7 +25,7 @@ export const useScrollPosition = () => {
   }
 
   /// Call when navigating back to the source page
-  const setRestoreScrollPosition = (source) => {
+  const setRestoreFromDestination = (source) => {
     const match = positions.find(
       (p) => p.source === source && p.destination === currentPath
     )
@@ -47,8 +47,8 @@ export const useScrollPosition = () => {
   }
 
   return {
-    addScrollPosition,
-    setRestoreScrollPosition,
+    saveRestoreOrigin,
+    setRestoreFromDestination,
     restoreScrollPosition
   }
 }
