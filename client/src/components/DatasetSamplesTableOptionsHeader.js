@@ -33,11 +33,11 @@ export const DatasetSamplesTableOptionsHeader = ({
   // For the changing merged project modal visibility and conditions
   const [confirmUnmerge, setConfirmUnmerge] = useState(false)
   const [prevSelectedCount, setPrevSelectedCount] = useState(null) // Count for previously selected samples to detect sample deselection
-  const newSelectedCount = selectedSamples.SINGLE_CELL.length // Count for currently selected samples for comparison
   const noPrevSelectedSamples = prevSelectedCount === null
+  const newSelectedCount = selectedSamples.SINGLE_CELL.length // Count for currently selected samples for comparison
   const [showChangeMergedProjectModal, setShowChangeMergedProjectModal] =
     useState(false)
-  // THe modal should be hidden when:
+  // The modal should be hidden when:
   // - Project is not merged
   // - Include merged option is deselected
   // - User has already confirmed unmerge action
