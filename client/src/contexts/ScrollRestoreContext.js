@@ -2,9 +2,9 @@ import React, { createContext } from 'react'
 import { useRouter } from 'next/router'
 import { useSessionStorage } from 'hooks/useSessionStorage'
 
-export const ScrollPositionContext = createContext({})
+export const ScrollRestoreContext = createContext({})
 
-export const ScrollPositionContextProvider = ({ children }) => {
+export const ScrollRestoreContextProvider = ({ children }) => {
   const { asPath: currentPath } = useRouter()
   const [positions, setPositions] = useSessionStorage('scroll-positions', [])
   const [restorePosition, setRestorePosition] = useSessionStorage(
@@ -13,7 +13,7 @@ export const ScrollPositionContextProvider = ({ children }) => {
   )
 
   return (
-    <ScrollPositionContext.Provider
+    <ScrollRestoreContext.Provider
       value={{
         currentPath,
         positions,
@@ -23,6 +23,6 @@ export const ScrollPositionContextProvider = ({ children }) => {
       }}
     >
       {children}
-    </ScrollPositionContext.Provider>
+    </ScrollRestoreContext.Provider>
   )
 }
