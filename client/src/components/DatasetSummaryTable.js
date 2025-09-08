@@ -33,7 +33,11 @@ const TableCell = styled(GrommentTableCell)`
   padding-left: 33px;
 `
 
-export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
+export const DatasetSummaryTable = ({
+  data = [],
+  columns = [],
+  keyValue // Data row property name with unique value across rows
+}) => {
   // check the first row to which columns are ints
   const columnAlign = Object.fromEntries(
     columns.map((c) => [
@@ -48,6 +52,7 @@ export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
         <TableRow>
           {columns.map((c) => (
             <TableCell
+              key={c}
               align={columnAlign[c]}
               pad={columnAlign[c] === 'end' ? { right: '100px' } : ''}
             >
@@ -58,9 +63,10 @@ export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
       </TableHeader>
       <TableBody>
         {data.map((row) => (
-          <TableRow>
+          <TableRow key={row[keyValue]}>
             {columns.map((c) => (
               <TableCell
+                key={`${row[keyValue]}-${c}`}
                 align={columnAlign[c]}
                 pad={columnAlign[c] === 'end' ? { right: '100px' } : ''}
               >

@@ -1,7 +1,9 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
-import { useResponsive } from 'hooks/useResponsive'
+import { useRouter } from 'next/router'
+import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useResponsive } from 'hooks/useResponsive'
 import { Badge } from 'components/Badge'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
@@ -15,11 +17,12 @@ import { getReadable } from 'helpers/getReadable'
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
 export const DatasetProjectCard = ({ dataset, projectId }) => {
+  const { push, asPath } = useRouter()
+  const { saveOriginScrollPosition } = useScrollRestore()
   const { removeProjectById } = useDatasetManager()
   const { responsive } = useResponsive()
 
   const { data, stats } = dataset
-
   const projectData = data[projectId]
   const diagnoses = stats.project_diagnoses[projectId]
   const modalityCount = stats.project_modality_counts[projectId]
@@ -40,6 +43,12 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   ]
     .filter((o) => o.value)
     .map((o) => o.label)
+
+  const handleViewEditSamples = () => {
+    const destination = `/download/${projectId}`
+    saveOriginScrollPosition(asPath, destination)
+    push(destination)
+  }
 
   return (
     <Box elevation="medium" pad="24px" width="full">
@@ -97,7 +106,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
               {specifiedOptions.map((so) => (
                 <Text key={so}>{so}</Text>
               ))}
-              {specifiedOptions.length === 0 && <Text>Not Specified</Text>}
+              {specifiedOptions.length === 0 && <Text italic>None</Text>}
             </Box>
           </Box>
         </Box>
@@ -110,8 +119,8 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         <Button
           label="View/Edit Samples"
           aria-label="View/Edit Samples"
-          href="#demo"
           alignSelf={responsive('stretch', 'start')}
+          onClick={handleViewEditSamples}
         />
         {hasMismatchSamples && (
           <WarningText iconMargin="0" iconSize="24px" margin="0">

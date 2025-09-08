@@ -24,6 +24,7 @@ export const ModalityCheckBox = ({
   samples,
   sampleId,
   disabled,
+  editable,
   onClick
 }) => {
   const { myDataset, getDatasetProjectData, getProjectSingleCellSamples } =
@@ -39,6 +40,7 @@ export const ModalityCheckBox = ({
   useEffect(() => {
     const { SINGLE_CELL: singleCellSamples, SPATIAL: spatialSamples } =
       datasetData
+
     if (singleCellSamples) {
       // If the project is a merged object, add all SINGLE_CELL samples
       const samplesToSelect =
@@ -56,8 +58,10 @@ export const ModalityCheckBox = ({
     }
   }, [myDataset, allSamples])
 
-  // Disable samples that are already in myDataset
+  // Disable existing samples in myDataset if the table is non-editable
   useEffect(() => {
+    if (editable) return
+
     if (samples) {
       const datasetSamplesByModality = {
         SINGLE_CELL:
@@ -77,7 +81,7 @@ export const ModalityCheckBox = ({
     <CheckBox
       name={modality}
       checked={!disabled ? selectedSamples[modality].includes(sampleId) : false}
-      disabled={disabled || isAlreadyInMyDataset}
+      disabled={disabled || (!editable && isAlreadyInMyDataset)}
       onClick={onClick}
     />
   )

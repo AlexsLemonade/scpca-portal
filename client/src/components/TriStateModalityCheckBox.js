@@ -5,7 +5,12 @@ import { useDatasetManager } from 'hooks/useDatasetManager'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 
 // NOTE: Ask Deepa for a checkmark SVG Icon
-export const TriStateModalityCheckBox = ({ project, modality, disabled }) => {
+export const TriStateModalityCheckBox = ({
+  project,
+  modality,
+  disabled,
+  editable
+}) => {
   const { getDatasetProjectData } = useDatasetManager()
   const { filteredSamples, selectedSamples, toggleSamples } =
     useDatasetSamplesTable()
@@ -26,9 +31,14 @@ export const TriStateModalityCheckBox = ({ project, modality, disabled }) => {
 
   const handleToggleAllSamples = () => {
     if (disabled) return
-    // Exclude the toggling of samples that are already in myDataset
-    const samplesToExclude = getDatasetProjectData(project)[modality] || []
-    toggleSamples(modality, samplesToExclude)
+
+    if (!editable) {
+      // Exclude toggling samples in myDataset if the table is non-editable
+      const samplesToExclude = getDatasetProjectData(project)[modality] || []
+      toggleSamples(modality, samplesToExclude)
+    } else {
+      toggleSamples(modality)
+    }
   }
 
   return (
