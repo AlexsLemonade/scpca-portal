@@ -106,7 +106,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
             <Label label="Other Options" />
             <Box>
               {specifiedOptions.map((so) => (
-                <Text>{so}</Text>
+                <Text key={so}>{so}</Text>
               ))}
               {specifiedOptions.length === 0 && <Text italic>None</Text>}
             </Box>
