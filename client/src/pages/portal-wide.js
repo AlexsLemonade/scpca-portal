@@ -1,7 +1,9 @@
 import React from 'react'
 import { Anchor, Box, Text } from 'grommet'
 import { api } from 'api'
+import { HeroBand } from 'components/Band'
 import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownloadCard'
+import { useResponsive } from 'hooks/useResponsive'
 
 const PortalWideDownloads = ({ datasets }) => {
   const metadataDatasets = datasets.filter(
@@ -23,8 +25,24 @@ const PortalWideDownloads = ({ datasets }) => {
     (dataset) => dataset.ccdl_modality === 'SPATIAL'
   )
 
+  const { responsive } = useResponsive()
+
   return (
     <>
+      <HeroBand
+        background="dawn"
+        width="full"
+        align="center"
+        pad={{ top: '92px' }}
+      >
+        <Box
+          width={{ max: 'xlarge' }}
+          fill
+          pad={responsive({ horizontal: 'medium' }, { top: 'large' })}
+        >
+          <Text size="xxlarge">Portal-wide Downloads</Text>
+        </Box>
+      </HeroBand>
       <Box width={{ max: 'xlarge' }} pad={{ top: 'xlarge' }} fill>
         <Box
           alignSelf="start"
