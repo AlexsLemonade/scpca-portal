@@ -400,15 +400,17 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return s3.generate_pre_signed_link(complete_file_name, self.s3_key, self.s3_bucket)
 
     @property
+    def download_file_name(self) -> str:
+        # Append the download date to the filename on download.
+        date = utils.get_today_string()
+        key_path = Path(self.s3_key)
+        return f"{key_path.stem}_{date}{key_path.suffix}"
+
+    @property
     def download_url(self) -> str:
         """A temporary URL from which the file can be downloaded."""
         if self.s3_bucket and self.s3_key:
-            # Append the download date to the filename on download.
-            date = utils.get_today_string()
-            key_path = Path(self.s3_key)
-            filename = f"{key_path.stem}_{date}{key_path.suffix}"
-
-            return s3.generate_pre_signed_link(filename, self.s3_key, self.s3_bucket)
+            return s3.generate_pre_signed_link(self.download_file_name, self.s3_key, self.s3_bucket)
 
     @property
     def is_project_multiplexed_zip(self):
