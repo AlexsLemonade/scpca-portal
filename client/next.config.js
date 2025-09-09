@@ -37,7 +37,7 @@ module.exports = () => {
     TOS_RELEASE: process.env.STAGE_TOS_RELEASE,
     BANNER_STATE: process.env.STAGE_BANNER_STATE,
     BANNER_CONTENT: process.env.STAGE_BANNER_CONTENT,
-    CONTRIBUTIONS_OPEN: process.env.STAGE_CONTRIBUTIONS_OPEN
+    CONTRIBUTIONS_OPEN: process.env.STAGE_CONTRIBUTIONS_OPEN,
   }
 
   const env = isProduction ? productionEnv : stageEnv
@@ -53,6 +53,7 @@ module.exports = () => {
         use: ['raw-loader', 'template-literal-loader']
       })
       return config
-    }
+    },
+    skipTrailingSlashRedirect: true,
   }
 }
