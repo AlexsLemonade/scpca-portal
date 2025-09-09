@@ -674,7 +674,7 @@ class TestDataset(TestCase):
 
         expected_mismatch_projects = ["SCPCP999990"]
 
-        actual_mismatch_projects = dataset.modality_count_mismatch_projects
+        actual_mismatch_projects = dataset.get_modality_count_mismatch_projects()
 
         self.assertCountEqual(actual_mismatch_projects, expected_mismatch_projects)
 

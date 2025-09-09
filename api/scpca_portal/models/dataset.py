@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
 
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
 from django.utils.timezone import make_aware
@@ -73,6 +74,7 @@ class Dataset(TimestampedModel):
     files_summary = models.JSONField(default=list)  # expects a list of dicts
     project_diagnoses = models.JSONField(default=dict)
     project_modality_counts = models.JSONField(default=dict)
+    modality_count_mismatch_projects = ArrayField(models.TextField(), default=list)
     project_titles = models.JSONField(default=dict)
 
     # Internally generated datasets
@@ -143,6 +145,7 @@ class Dataset(TimestampedModel):
         self.files_summary = self.get_files_summary()
         self.project_diagnoses = self.get_project_diagnoses()
         self.project_modality_counts = self.get_project_modality_counts()
+        self.modality_count_mismatch_projects = self.get_modality_count_mismatch_projects()
         self.project_titles = self.get_project_titles()
 
         super().save(*args, **kwargs)
@@ -445,8 +448,7 @@ class Dataset(TimestampedModel):
             scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
         }
 
-    @property
-    def modality_count_mismatch_projects(self) -> List[str]:
+    def get_modality_count_mismatch_projects(self) -> List[str]:
         """
         Returns a list of project ids where the samples differ between the SINGLE_CELL
         and SPATIAL modalities (i.e., samples are present in one modality but not the other).
