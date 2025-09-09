@@ -75,6 +75,7 @@ class Dataset(TimestampedModel):
     project_diagnoses = models.JSONField(default=dict)
     project_modality_counts = models.JSONField(default=dict)
     modality_count_mismatch_projects = ArrayField(models.TextField(), default=list)
+    project_sample_counts = models.JSONField(default=dict)
     project_titles = models.JSONField(default=dict)
 
     # Internally generated datasets
@@ -146,6 +147,7 @@ class Dataset(TimestampedModel):
         self.project_diagnoses = self.get_project_diagnoses()
         self.project_modality_counts = self.get_project_modality_counts()
         self.modality_count_mismatch_projects = self.get_modality_count_mismatch_projects()
+        self.project_sample_counts = self.get_project_sample_counts()
         self.project_titles = self.get_project_titles()
 
         super().save(*args, **kwargs)
@@ -483,8 +485,7 @@ class Dataset(TimestampedModel):
 
         return mismatch_project_ids
 
-    @property
-    def project_sample_counts(self) -> Dict[str, int]:
+    def get_project_sample_counts(self) -> Dict[str, int]:
         """
         Returns a dict where the key is a project id in the dataset and
         the value is the total count of unique samples combined across

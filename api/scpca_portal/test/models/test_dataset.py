@@ -704,7 +704,7 @@ class TestDataset(TestCase):
 
         expected_counts = {"SCPCP999990": 3, "SCPCP999991": 3, "SCPCP999992": 2}
 
-        actual_counts = dataset.project_sample_counts
+        actual_counts = dataset.get_project_sample_counts()
 
         self.assertEqual(actual_counts, expected_counts)
 
