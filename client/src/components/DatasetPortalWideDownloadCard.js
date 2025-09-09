@@ -14,8 +14,6 @@ const Li = ({ children }) => (
   </Box>
 )
 
-// NOTE: This component temporaily accepts 'dataset' but it's subject to change
-// Currently mock data is used via Storybook for development
 export const DatasetPortalWideDownloadCard = ({
   title,
   datasets = [],
