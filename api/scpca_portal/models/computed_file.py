@@ -390,14 +390,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         return computed_file
 
-    def get_dataset_download_url(self, file_name: str) -> str | None:
+    def get_dataset_download_url(self, download_file_name: str) -> str | None:
         """Return the presigned url on the associated dataset according to the passed file name."""
         if not (self.s3_bucket and self.s3_key):
             return None
 
-        date = utils.get_today_string()
-        complete_file_name = f"{file_name}_{date}.zip"
-        return s3.generate_pre_signed_link(complete_file_name, self.s3_key, self.s3_bucket)
+        return s3.generate_pre_signed_link(download_file_name, self.s3_key, self.s3_bucket)
 
     @property
     def download_file_name(self) -> str:
