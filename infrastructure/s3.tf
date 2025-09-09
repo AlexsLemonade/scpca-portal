@@ -139,11 +139,18 @@ resource "aws_s3_bucket_policy" "scpca_portal_cellbrowser_bucket_policy" {
         ]
       },
       {
-        Sid    = "PublicReadGetObjectWithSecretHeader"
+        Sid    = "PublicReadGetObject"
         Effect = "Allow"
         Principal = "*"
         Action = "s3:GetObject"
         Resource = "${aws_s3_bucket.scpca_portal_cellbrowser_bucket.arn}/*"
+      },
+      {
+        Sid    = "PublicReadGetObjectWithSecretHeader"
+        Effect = "Allow"
+        Principal = "*"
+        Action = "s3:GetObject"
+        Resource = "${aws_s3_bucket.scpca_portal_cellbrowser_bucket.arn}/SCPCP*"
         Condition = {
           StringEquals = {
               "aws:Referer" = var.cellbrowser_security_token
