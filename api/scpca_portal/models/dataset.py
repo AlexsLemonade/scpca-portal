@@ -689,11 +689,11 @@ class Dataset(TimestampedModel):
         Returns all project instances which have multiplexed data.
         """
         # Multiplexed samples are not available with anndata
-        if self.format != DatasetFormats.ANN_DATA:
+        if self.format == DatasetFormats.ANN_DATA:
             return Project.objects.none()
 
         if self.is_ccdl:
-            return self.projects.filter(has_multiplexed_data=True, scpca_id__in=self.data.keys())
+            return self.projects.filter(has_multiplexed_data=True)
 
         return Project.objects.filter(
             samples__has_multiplexed_data=True,
