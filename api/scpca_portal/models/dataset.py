@@ -63,13 +63,11 @@ class Dataset(TimestampedModel):
     readme_hash = models.CharField(max_length=32, null=True)
     combined_hash = models.CharField(max_length=32, null=True)
 
-    # File Items
+    # Cached File Attrs
     includes_files_bulk = models.BooleanField(default=False)
     includes_files_cite_seq = models.BooleanField(default=False)
     includes_files_merged = models.BooleanField(default=False)
     includes_files_multiplexed = models.BooleanField(default=False)
-
-    # Cached Stats Attrs
     estimated_size_in_bytes = models.BigIntegerField(default=0)
     diagnoses_summary = models.JSONField(default=dict)
     files_summary = models.JSONField(default=list)  # expects a list of dicts
@@ -131,10 +129,7 @@ class Dataset(TimestampedModel):
         """
 
         # file hashes
-        self.data_hash = self.current_data_hash
-        self.metadata_hash = self.current_metadata_hash
-        self.readme_hash = self.current_readme_hash
-        self.combined_hash = self.current_combined_hash
+        self.data_hash, self.metadata_hash, self.readme_hash, self.combined_hash = self.get_hashes()
 
         # file items
         self.includes_files_bulk = self.get_includes_files_bulk()
@@ -274,24 +269,7 @@ class Dataset(TimestampedModel):
         ]
         cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
 
-    # STATS PROPERTY ATTRIBUTES
-    @property
-    def stats(self) -> Dict:
-        return {
-            "current_data_hash": self.current_data_hash,
-            "current_readme_hash": self.current_readme_hash,
-            "current_metadata_hash": self.current_metadata_hash,
-            "is_hash_changed": self.combined_hash != self.current_combined_hash,
-            "uncompressed_size": self.estimated_size_in_bytes,
-            "diagnoses_summary": self.diagnoses_summary,
-            "files_summary": self.files_summary,
-            "project_diagnoses": self.project_diagnoses,
-            "project_modality_counts": self.project_modality_counts,
-            "modality_count_mismatch_projects": self.modality_count_mismatch_projects,
-            "project_sample_counts": self.project_sample_counts,
-            "project_titles": self.project_titles,
-        }
-
+    # CACHED ATTRIBUTES LOGIC
     def get_estimated_size_in_bytes(self) -> int:
         original_files_size = (
             self.original_files.aggregate(models.Sum("size_in_bytes")).get("size_in_bytes__sum")
@@ -503,6 +481,52 @@ class Dataset(TimestampedModel):
         )
 
     # HASHING LOGIC
+    def get_hashes(self) -> tuple[str, str, str, str]:
+        """Computes and returns data, metadata, readme, and combined hashes."""
+        data_hash = self.current_data_hash
+        metadata_hash = self.current_metadata_hash
+        readme_hash = self.current_readme_hash
+        combined_hash = self.get_current_combined_hash(data_hash, metadata_hash, readme_hash)
+
+        return (data_hash, metadata_hash, readme_hash, combined_hash)
+
+    @property
+    def current_data_hash(self) -> str:
+        """Computes and returns the current data hash."""
+        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
+            "hash", flat=True
+        )
+        concat_hash = "".join(sorted_original_file_hashes)
+        concat_hash_bytes = concat_hash.encode("utf-8")
+        return hashlib.md5(concat_hash_bytes).hexdigest()
+
+    @property
+    def current_metadata_hash(self) -> str:
+        """Computes and returns the current metadata hash."""
+        all_metadata_file_contents = [
+            file_content for _, _, file_content in self.get_metadata_file_contents()
+        ]
+        concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
+        metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
+        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
+
+    @property
+    def current_readme_hash(self) -> str:
+        """Computes and returns the current readme hash."""
+        # the first line in the readme file contains the current date
+        # we must remove this before hashing
+        readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
+        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
+        return hashlib.md5(readme_file_contents_bytes).hexdigest()
+
+    @staticmethod
+    def get_current_combined_hash(data_hash: str, metadata_hash: str, readme_hash: str) -> str:
+        """
+        Combines, computes and returns the combined current data, metadata and readme hashes.
+        """
+        concat_hash = data_hash + metadata_hash + readme_hash
+        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
+
     @property
     def is_hash_changed(self) -> bool:
         """
@@ -510,7 +534,10 @@ class Dataset(TimestampedModel):
         Files should be processed for new datasets,
         or for datasets where at least one hash attribute has changed.
         """
-        return self.combined_hash != self.current_combined_hash
+        current_combined_hash = Dataset.get_current_combined_hash(
+            self.current_data_hash, self.current_metadata_hash, self.current_readme_hash
+        )
+        return current_combined_hash != self.combined_hash
 
     @property
     def is_hash_unchanged(self) -> bool:
@@ -548,43 +575,6 @@ class Dataset(TimestampedModel):
     @property
     def readme_file_contents(self) -> str:
         return readme_file.get_file_contents_dataset(self)
-
-    @property
-    def current_data_hash(self) -> str:
-        """Computes and returns the current data hash."""
-        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
-            "hash", flat=True
-        )
-        concat_hash = "".join(sorted_original_file_hashes)
-        concat_hash_bytes = concat_hash.encode("utf-8")
-        return hashlib.md5(concat_hash_bytes).hexdigest()
-
-    @property
-    def current_metadata_hash(self) -> str:
-        """Computes and returns the current metadata hash."""
-        all_metadata_file_contents = [
-            file_content for _, _, file_content in self.get_metadata_file_contents()
-        ]
-        concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
-        metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
-        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
-
-    @property
-    def current_readme_hash(self) -> str:
-        """Computes and returns the current readme hash."""
-        # the first line in the readme file contains the current date
-        # we must remove this before hashing
-        readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
-        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
-        return hashlib.md5(readme_file_contents_bytes).hexdigest()
-
-    @property
-    def current_combined_hash(self) -> str | None:
-        """
-        Combines, computes and returns the combined current data, metadata and readme hashes.
-        """
-        concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
-        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
     def get_includes_files_bulk(self) -> bool:
         return self.bulk_single_cell_projects.exists()
