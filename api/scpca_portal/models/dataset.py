@@ -67,6 +67,7 @@ class Dataset(TimestampedModel):
     includes_files_bulk = models.BooleanField(default=False)
     includes_files_cite_seq = models.BooleanField(default=False)
     includes_files_merged = models.BooleanField(default=False)
+    includes_files_multiplexed = models.BooleanField(default=False)
 
     # Cached Stats Attrs
     estimated_size_in_bytes = models.BigIntegerField(default=0)
@@ -139,6 +140,7 @@ class Dataset(TimestampedModel):
         self.includes_files_bulk = self.get_includes_files_bulk()
         self.includes_files_cite_seq = self.get_includes_files_cite_seq()
         self.includes_files_merged = self.get_includes_files_merged()
+        self.includes_files_multiplexed = self.get_includes_files_multiplexed()
 
         # stats property attributes
         self.estimated_size_in_bytes = self.get_estimated_size_in_bytes()
@@ -592,6 +594,9 @@ class Dataset(TimestampedModel):
 
     def get_includes_files_merged(self) -> bool:
         return self.merged_projects.exists()
+
+    def get_includes_files_multiplexed(self) -> bool:
+        pass
 
     # ASSOCIATIONS WITH OTHER MODELS
     @property
