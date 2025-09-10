@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
 import { useRouter } from 'next/router'
@@ -30,12 +30,24 @@ export const DatasetSamplesTableOptionsHeader = ({
   const { selectAllModalitySamples, selectedSamples } = useDatasetSamplesTable()
   const { responsive } = useResponsive()
 
-  // For the changing merged project modal
-  const [changeMergedProjectModalOpen, setChangeMergedProjectModalOpen] =
+  // For the changing merged project modal visibility and conditions
+  const [confirmUnmerge, setConfirmUnmerge] = useState(false)
+  const [prevSelectedCount, setPrevSelectedCount] = useState(null) // Count for previously selected samples to detect sample deselection
+  const noPrevSelectedSamples = prevSelectedCount === null
+  const newSelectedCount = selectedSamples.SINGLE_CELL.length // Count for currently selected samples for comparison
+  const [showChangeMergedProjectModal, setShowChangeMergedProjectModal] =
     useState(false)
-  const confirmUnmerge = useRef(null)
-  const prevSelectedCount = useRef(null) // Previously selected samples count to detect sample deselection
-  const newSelectedCount = selectedSamples.SINGLE_CELL.length // Currently selected samples count for comparison
+  // The modal should be hidden when:
+  // - Project is not merged
+  // - Include merged option is deselected
+  // - User has already confirmed unmerge action
+  // - Previously selected samples count is not initialized yet
+  const hideChangeMergedProjectModal = [
+    !isProjectMerged(project),
+    !includeMerge,
+    confirmUnmerge,
+    noPrevSelectedSamples
+  ].some(Boolean)
 
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
@@ -54,24 +66,25 @@ export const DatasetSamplesTableOptionsHeader = ({
       'SINGLE_CELL',
       getProjectSingleCellSamples(project.samples)
     )
-    setChangeMergedProjectModalOpen(false)
+    setShowChangeMergedProjectModal(false)
   }
 
   const handleChangeMergedModalContinue = () => {
-    confirmUnmerge.current = true
+    setConfirmUnmerge(true)
     onIncludeMergeChange(false)
-    setChangeMergedProjectModalOpen(false)
+    setShowChangeMergedProjectModal(false)
   }
 
   const handleSaveAndGoBack = async () => {
-    const datasetRequest = await setSamples(
-      project,
-      {
-        ...selectedSamples,
-        includes_bulk: includeBulk
-      },
-      includeMerge
-    )
+    const newSamplesToAdd = {
+      ...selectedSamples,
+      ...(includeMerge && { SINGLE_CELL: 'MERGED' })
+    }
+
+    const datasetRequest = await setSamples(project, {
+      ...newSamplesToAdd,
+      includes_bulk: includeBulk
+    })
 
     if (datasetRequest) {
       const source = '/download' // The page to navigating back to
@@ -84,30 +97,22 @@ export const DatasetSamplesTableOptionsHeader = ({
 
   // Set up prevSelectedCount on initial load
   useEffect(() => {
-    if (prevSelectedCount.current === null) {
-      prevSelectedCount.current = newSelectedCount
+    if (noPrevSelectedSamples) {
+      setPrevSelectedCount(newSelectedCount)
     }
   }, [])
 
-  // Open the modal on sample deselect when:
-  // - The user has not confirmed continuing with the unmerge, and
-  //   - The project samples are merged, and
-  //   - The include merged checkbox is selected
+  // Open the changing merged project modal on sample deselect
   useEffect(() => {
-    if (
-      !isProjectMerged(project) ||
-      !includeMerge ||
-      prevSelectedCount.current === null ||
-      confirmUnmerge.current
-    ) {
+    if (hideChangeMergedProjectModal) {
       return
     }
 
-    if (newSelectedCount < prevSelectedCount.current) {
-      setChangeMergedProjectModalOpen(true)
+    if (newSelectedCount < prevSelectedCount) {
+      setShowChangeMergedProjectModal(true)
     }
 
-    prevSelectedCount.current = newSelectedCount
+    setPrevSelectedCount(newSelectedCount)
   }, [newSelectedCount])
 
   return (
@@ -115,7 +120,7 @@ export const DatasetSamplesTableOptionsHeader = ({
       <DatasetChangingMergedProjectModal
         hideButton
         nondismissable
-        openModal={changeMergedProjectModalOpen}
+        openModal={showChangeMergedProjectModal}
         onCancel={handleChangeMergedModalCancel}
         onContinue={handleChangeMergedModalContinue}
       />

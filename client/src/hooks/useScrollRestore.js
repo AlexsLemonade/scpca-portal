@@ -14,7 +14,7 @@ export const useScrollRestore = () => {
   } = useContext(ScrollRestoreContext)
 
   // Call when navigating away from the current page (source) to track scrollY
-  const saveRestoreOrigin = (source, destination) => {
+  const saveOriginScrollPosition = (source, destination) => {
     // Overwrite existing matching value
     setPositions((prev) => {
       const updatedPositions = prev.filter(
@@ -47,7 +47,7 @@ export const useScrollRestore = () => {
   }
 
   return {
-    saveRestoreOrigin,
+    saveOriginScrollPosition,
     setRestoreFromDestination,
     restoreScrollPosition
   }
