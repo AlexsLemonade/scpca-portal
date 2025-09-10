@@ -202,7 +202,7 @@ export const useMyDataset = () => {
     Object.keys(myDataset?.data || []).includes(project.scpca_id)
 
   const isProjectIncludeBulk = (project) =>
-    myDataset.data[project.scpca_id].includes_bulk
+    myDataset.data?.[project.scpca_id]?.includes_bulk
 
   const isProjectMerged = (project) =>
     myDataset.data[project.scpca_id].SINGLE_CELL === 'MERGED'
