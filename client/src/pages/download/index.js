@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
 import { useScrollRestore } from 'hooks/useScrollRestore'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
 import { DatasetSummary } from 'components/DatasetSummary'
@@ -13,8 +13,7 @@ import Error from 'pages/_error'
 
 const Download = () => {
   const { restoreScrollPosition } = useScrollRestore()
-  const { myDataset, errors, getDataset, isDatasetDataEmpty } =
-    useDatasetManager()
+  const { myDataset, errors, getDataset, isDatasetDataEmpty } = useMyDataset()
   const { responsive } = useResponsive()
 
   const [loading, setLoading] = useState(true)

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading, Paragraph } from 'grommet'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { differenceArray } from 'helpers/differenceArray'
@@ -17,7 +17,7 @@ export const DatasetAddSamplesModal = ({
   disabled = false
 }) => {
   const { getDatasetProjectData, getProjectSingleCellSamples, setSamples } =
-    useDatasetManager()
+    useMyDataset()
   const { selectedSamples } = useDatasetSamplesTable()
   const { responsive } = useResponsive()
 

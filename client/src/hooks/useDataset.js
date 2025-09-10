@@ -1,11 +1,11 @@
 import { useContext } from 'react'
-import { DatasetManagerContext } from 'contexts/DatasetManagerContext'
+import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
 
 export const useDataset = () => {
   const { token, setEmail } = useScPCAPortal()
-  const { addError } = useContext(DatasetManagerContext) // TODO: Removed once error handling is finalized
+  const { addError } = useContext(MyDatasetContext) // TODO: Removed once error handling is finalized
 
   const getErrorMessage = (statusCode) => {
     const defaultMessage = 'An unexpected error occurred.'

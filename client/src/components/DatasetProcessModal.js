@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Grid, Paragraph } from 'grommet'
 import { useRouter } from 'next/router'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { Button } from 'components/Button'
 import { DatasetProcessForm } from 'components/DatasetProcessForm'
 import { Modal, ModalBody } from 'components/Modal'
@@ -13,7 +13,7 @@ export const DatasetProcessModal = ({
   disabled = false
 }) => {
   const { push } = useRouter()
-  const { processDataset } = useDatasetManager()
+  const { processDataset } = useMyDataset()
 
   const [showing, setShowing] = useState(false)
 

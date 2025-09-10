@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Text } from 'grommet'
 import { useRouter } from 'next/router'
 import { useScrollRestore } from 'hooks/useScrollRestore'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { Badge } from 'components/Badge'
 import { Button } from 'components/Button'
@@ -19,7 +19,7 @@ const Label = ({ label }) => <Text weight="bold">{label}</Text>
 export const DatasetProjectCard = ({ dataset, projectId }) => {
   const { push, asPath } = useRouter()
   const { saveOriginScrollPosition } = useScrollRestore()
-  const { removeProjectById } = useDatasetManager()
+  const { removeProjectById } = useMyDataset()
   const { responsive } = useResponsive()
 
   const { data, stats } = dataset

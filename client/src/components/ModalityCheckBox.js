@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { CheckBox as GrommetCheckBox } from 'grommet'
 import styled, { css } from 'styled-components'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 
 const CheckBox = styled(GrommetCheckBox)`
@@ -28,7 +28,7 @@ export const ModalityCheckBox = ({
   onClick
 }) => {
   const { myDataset, getDatasetProjectData, getProjectSingleCellSamples } =
-    useDatasetManager()
+    useMyDataset()
   const { allSamples, selectedSamples, selectModalitySamplesByIds } =
     useDatasetSamplesTable()
 

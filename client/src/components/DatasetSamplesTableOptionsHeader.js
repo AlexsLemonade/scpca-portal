@@ -3,7 +3,7 @@ import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
 import { useRouter } from 'next/router'
 import { useScrollRestore } from 'hooks/useScrollRestore'
-import { useDatasetManager } from 'hooks/useDatasetManager'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { getReadable } from 'helpers/getReadable'
@@ -26,7 +26,7 @@ export const DatasetSamplesTableOptionsHeader = ({
     isProjectMerged,
     getProjectSingleCellSamples,
     setSamples
-  } = useDatasetManager()
+  } = useMyDataset()
   const { selectAllModalitySamples, selectedSamples } = useDatasetSamplesTable()
   const { responsive } = useResponsive()
 
