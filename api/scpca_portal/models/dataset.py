@@ -596,7 +596,7 @@ class Dataset(TimestampedModel):
         return self.merged_projects.exists()
 
     def get_includes_files_multiplexed(self) -> bool:
-        pass
+        return self.multiplexed_projects.exists()
 
     # ASSOCIATIONS WITH OTHER MODELS
     @property
@@ -682,6 +682,23 @@ class Dataset(TimestampedModel):
                 return requested_merged_projects.filter(includes_merged_anndata=True)
 
         return Project.objects.none()
+
+    @property
+    def multiplexed_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have multiplexed data.
+        """
+        # Multiplexed samples are not available with anndata
+        if self.format != DatasetFormats.ANN_DATA:
+            return Project.objects.none()
+
+        if self.is_ccdl:
+            return self.projects.filter(has_multiplexed_data=True, scpca_id__in=self.data.keys())
+
+        return Project.objects.filter(
+            samples__has_multiplexed_data=True,
+            samples__in=self.get_selected_samples([Modalities.SINGLE_CELL]),
+        ).distinct()
 
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""
