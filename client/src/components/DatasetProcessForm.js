@@ -29,7 +29,7 @@ export const DatasetProcessForm = ({
   const [submitting, setSubmitting] = useState(false) // Disable the button while making request
   const [errors, setErrors] = useState([])
 
-  const isTokenReady = token && !requesting
+  const isToken = token && !requesting
 
   const handleRequestToken = () => {
     setSubmitting(true)
@@ -72,7 +72,7 @@ export const DatasetProcessForm = ({
 
   return (
     <Box>
-      {isTokenReady ? (
+      {isToken ? (
         <Paragraph>
           We’ll send a email to <Text weight="bold">{email}</Text> once the
           dataset is ready to be downloaded.
