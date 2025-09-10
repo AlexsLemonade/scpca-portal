@@ -692,13 +692,10 @@ class Dataset(TimestampedModel):
         if self.format == DatasetFormats.ANN_DATA:
             return Project.objects.none()
 
-        if self.is_ccdl:
-            return self.projects.filter(has_multiplexed_data=True)
-
-        return Project.objects.filter(
-            samples__has_multiplexed_data=True,
-            samples__in=self.get_selected_samples([Modalities.SINGLE_CELL]),
-        ).distinct()
+        multiplexed_samples = self.get_selected_samples([Modalities.SINGLE_CELL]).filter(
+            has_multiplexed_data=True
+        )
+        return Project.objects.filter(samples__in=multiplexed_samples).distinct()
 
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""

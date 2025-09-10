@@ -912,7 +912,7 @@ class TestDataset(TestCase):
         self.assertFalse(dataset.get_includes_files_merged())
 
     def test_get_includes_files_multiplexed(self):
-        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT, is_ccdl=True)
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
 
         # project with multiplexed
         dataset.data = {
@@ -948,7 +948,8 @@ class TestDataset(TestCase):
         dataset.save()
         self.assertFalse(dataset.get_includes_files_multiplexed())
 
-        # user dataset with project with multiplexed data, multiplexed samples selected
+        # dataset with subset of samples from project with multiplexed data
+        # with multiplexed samples selected
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT, is_ccdl=False)
         dataset.data = {
             "SCPCP999991": {
@@ -960,7 +961,8 @@ class TestDataset(TestCase):
         dataset.save()
         self.assertTrue(dataset.get_includes_files_multiplexed())
 
-        # user dataset with project with multiplexed data, non multiplexed samples selected
+        # dataset with subset of samples from project with multiplexed dataset
+        # with no multiplexed samples selected
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT, is_ccdl=False)
         dataset.data = {
             "SCPCP999991": {
