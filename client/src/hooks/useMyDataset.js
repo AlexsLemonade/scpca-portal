@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
@@ -10,11 +10,61 @@ export const useMyDataset = () => {
     setMyDataset,
     datasets,
     setDatasets,
+    datasetProjectOptions,
+    setDatasetProjectOptions,
     setEmail,
     errors,
     setErrors
   } = useContext(MyDatasetContext)
   const { token, email, userFormat, setUserFormat } = useScPCAPortal()
+
+  // Reset datasetProjectOptions when all projects are removed
+  useEffect(() => {
+    if (isDatasetDataEmpty) {
+      resetDatasetProjectOptions()
+    }
+  }, [myDataset.data])
+
+  const saveDatasetProjectOptions = (project, newProjectData) => {
+    const hasBulk = project.has_bulk_rna_seq
+    const isMergedObjectsAvailable =
+      myDataset.format === 'SINGLE_CELL_EXPERIMENT'
+        ? project.includes_merged_sce
+        : project.includes_merged_anndata
+
+    const modalities = Object.entries({
+      SINGLE_CELL:
+        project.has_single_cell_data &&
+        (newProjectData.SINGLE_CELL === 'MERGED' ||
+          newProjectData.SINGLE_CELL.length > 0),
+      SPATIAL: project.has_spatial_data && newProjectData.SPATIAL.length > 0
+    })
+      .filter(([, v]) => v)
+      .map(([k]) => k)
+
+    setDatasetProjectOptions((prev) => {
+      const updatedOptions = { ...prev }
+
+      if (hasBulk) {
+        updatedOptions.includeBulk = newProjectData.includes_bulk
+      }
+      if (isMergedObjectsAvailable) {
+        updatedOptions.includeMerge = newProjectData.SINGLE_CELL === 'MERGED'
+      }
+
+      updatedOptions.modalities = modalities
+
+      return updatedOptions
+    })
+  }
+
+  const resetDatasetProjectOptions = () => {
+    setDatasetProjectOptions({
+      includeBulk: false,
+      includeMerge: false,
+      modalities: []
+    })
+  }
 
   /* Helper */
   const addError = (message, returnValue = null) => {
@@ -125,6 +175,9 @@ export const useMyDataset = () => {
       ...myDataset,
       data: datasetDataCopy
     }
+
+    // Save the user's selected project download options
+    saveDatasetProjectOptions(project, newProjectData)
 
     return !myDataset.id
       ? createDataset(updatedDataset)
@@ -259,6 +312,7 @@ export const useMyDataset = () => {
     errors,
     userFormat,
     setUserFormat,
+    datasetProjectOptions,
     removeError,
     isDatasetDataEmpty,
     clearDataset,
