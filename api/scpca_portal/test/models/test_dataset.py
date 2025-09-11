@@ -910,3 +910,65 @@ class TestDataset(TestCase):
         }
         dataset.save()
         self.assertFalse(dataset.get_includes_files_merged())
+
+    def test_get_includes_files_multiplexed(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with multiplexed
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.get_includes_files_multiplexed())
+
+        # project without multiplexed
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_multiplexed())
+
+        # project with multiplexed data but with ann data format
+        dataset = Dataset(format=DatasetFormats.ANN_DATA)
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_multiplexed())
+
+        # dataset with subset of samples from project with multiplexed data
+        # with multiplexed samples selected
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999992", "SCPCS999993"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.get_includes_files_multiplexed())
+
+        # dataset with subset of samples from project with multiplexed dataset
+        # with no multiplexed samples selected
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_multiplexed())

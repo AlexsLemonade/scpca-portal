@@ -67,6 +67,7 @@ class Dataset(TimestampedModel):
     includes_files_bulk = models.BooleanField(default=False)
     includes_files_cite_seq = models.BooleanField(default=False)
     includes_files_merged = models.BooleanField(default=False)
+    includes_files_multiplexed = models.BooleanField(default=False)
     estimated_size_in_bytes = models.BigIntegerField(default=0)
     diagnoses_summary = models.JSONField(default=dict)
     files_summary = models.JSONField(default=list)  # expects a list of dicts
@@ -134,6 +135,7 @@ class Dataset(TimestampedModel):
         self.includes_files_bulk = self.get_includes_files_bulk()
         self.includes_files_cite_seq = self.get_includes_files_cite_seq()
         self.includes_files_merged = self.get_includes_files_merged()
+        self.includes_files_multiplexed = self.get_includes_files_multiplexed()
 
         # stats property attributes
         self.estimated_size_in_bytes = self.get_estimated_size_in_bytes()
@@ -583,6 +585,9 @@ class Dataset(TimestampedModel):
     def get_includes_files_merged(self) -> bool:
         return self.merged_projects.exists()
 
+    def get_includes_files_multiplexed(self) -> bool:
+        return self.multiplexed_projects.exists()
+
     # ASSOCIATIONS WITH OTHER MODELS
     @property
     def projects(self) -> Iterable[Project]:
@@ -667,6 +672,20 @@ class Dataset(TimestampedModel):
                 return requested_merged_projects.filter(includes_merged_anndata=True)
 
         return Project.objects.none()
+
+    @property
+    def multiplexed_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances which have multiplexed data.
+        """
+        # Multiplexed samples are not available with anndata
+        if self.format == DatasetFormats.ANN_DATA:
+            return Project.objects.none()
+
+        multiplexed_samples = self.get_selected_samples([Modalities.SINGLE_CELL]).filter(
+            has_multiplexed_data=True
+        )
+        return Project.objects.filter(samples__in=multiplexed_samples).distinct()
 
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""
