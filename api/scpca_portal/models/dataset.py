@@ -807,7 +807,7 @@ class Dataset(TimestampedModel):
         return settings.OUTPUT_DATA_PATH / ComputedFile.get_dataset_file_s3_key(self)
 
     @property
-    def download_file_name(self) -> str:
+    def download_filename(self) -> str:
         output_format = "-".join(self.format.split("_")).lower()
         if self.ccdl_modality == Modalities.SPATIAL:
             output_format = "spatial"
@@ -828,4 +828,4 @@ class Dataset(TimestampedModel):
         if not self.computed_file:
             return None
 
-        return self.computed_file.get_dataset_download_url(self.download_file_name)
+        return self.computed_file.get_dataset_download_url(self.download_filename)
