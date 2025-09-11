@@ -65,18 +65,11 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
     if (selectedDataset && !downloadDataset && token && isActive) asyncFetch()
   }, [selectedDataset, downloadDataset, token, isActive])
 
-  const tryDownload = () => {
-    if (downloadDataset && downloadDataset.download_url) {
-      window.open(downloadDataset.download_url)
-    }
-  }
-
   return {
     showing,
     setShowing,
     token,
     modalTitle,
-    tryDownload,
     datasets,
     setDatasets,
     setSelectedDataset,

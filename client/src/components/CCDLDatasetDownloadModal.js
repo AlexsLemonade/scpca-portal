@@ -16,7 +16,6 @@ export const CCDLDatasetDownloadModal = ({
     showing,
     setShowing,
     modalTitle,
-    tryDownload,
     datasets,
     setSelectedDataset,
     downloadDataset,
@@ -28,8 +27,6 @@ export const CCDLDatasetDownloadModal = ({
 
   const handleClick = () => {
     setShowing(true)
-    // try directly downloading from here
-    tryDownload()
   }
 
   return (
