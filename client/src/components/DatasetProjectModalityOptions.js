@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { CheckBoxGroup } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { getReadable } from 'helpers/getReadable'
@@ -9,7 +9,9 @@ export const DatasetProjectModalityOptions = ({
   modalities,
   onModalitiesChange
 }) => {
-  const { myDataset } = useMyDataset()
+  const { myDataset, datasetProjectOptions } = useMyDataset()
+
+  const [isTouched, setIsTouched] = useState(false)
 
   const isAnnData = myDataset.format === 'ANN_DATA'
   const modalityOptions = [
@@ -24,8 +26,20 @@ export const DatasetProjectModalityOptions = ({
       disabled: key === 'SPATIAL' && isAnnData
     }))
 
-  // TODO: Use localStorage to store user selected additional options
-  // Preselect modalities if already added to myDataset
+  // Preselect modalities based on the most recently added project
+  useEffect(() => {
+    if (!isTouched) {
+      const savedModalities = datasetProjectOptions.modalities
+
+      if (savedModalities.length > 0) {
+        const updatedModalities = savedModalities.filter((m) =>
+          modalityOptions.some((mo) => mo.value === m)
+        )
+        onModalitiesChange(updatedModalities)
+      }
+      setIsTouched(true)
+    }
+  }, [isTouched, datasetProjectOptions, modalityOptions])
 
   // TODO: Remove this block once BE API is updated
   // Deselect and disable the SPATIAL checkbox if ANN_DATA is selected

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { config } from 'config'
@@ -18,7 +18,7 @@ export const DatasetProjectAdditionalOptions = ({
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { myDataset, userFormat } = useMyDataset()
+  const { myDataset, userFormat, datasetProjectOptions } = useMyDataset()
 
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
@@ -45,8 +45,15 @@ export const DatasetProjectAdditionalOptions = ({
     ? myDataset.format !== 'ANN_DATA'
     : userFormat !== 'ANN_DATA'
 
-  // TODO: Use localStorage to store user selected additional options
-  // Preselect options based on the most recently added project in myDataset
+  // Preselect options based on the most recently added project
+  useEffect(() => {
+    if (hasBulkRnaSeq) {
+      onIncludeBulkChange(datasetProjectOptions.includeBulk)
+    }
+    if (isMergedObjectsAvailable) {
+      onIncludeMergeChange(datasetProjectOptions.includeMerge)
+    }
+  }, [datasetProjectOptions])
 
   return (
     <FormField label="Additional Options" gap="medium" labelWeight="bold">
