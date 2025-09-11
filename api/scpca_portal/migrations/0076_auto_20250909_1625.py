@@ -48,6 +48,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="dataset",
+            name="includes_files_multiplexed",
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name="dataset",
             name="modality_count_mismatch_projects",
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.TextField(), default=list, size=None
