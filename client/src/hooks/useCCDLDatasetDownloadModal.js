@@ -40,10 +40,6 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
   }, [datasets])
 
   useEffect(() => {
-    if (!isActive) {
-      setDownloadDataset(null)
-    }
-
     const asyncFetch = async () => {
       const downloadRequest = await api.ccdlDatasets.get(
         selectedDataset.id,
@@ -62,6 +58,11 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
         )
       }
     }
+
+    if (!isActive) {
+      setDownloadDataset(null)
+    }
+
     if (selectedDataset && !downloadDataset && token && isActive) asyncFetch()
   }, [selectedDataset, downloadDataset, token, isActive])
 
