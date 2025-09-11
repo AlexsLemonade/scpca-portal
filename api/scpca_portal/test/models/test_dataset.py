@@ -937,7 +937,7 @@ class TestDataset(TestCase):
         self.assertFalse(dataset.get_includes_files_multiplexed())
 
         # project with multiplexed data but with ann data format
-        dataset = Dataset(format=DatasetFormats.ANN_DATA, is_ccdl=True)
+        dataset = Dataset(format=DatasetFormats.ANN_DATA)
         dataset.data = {
             "SCPCP999991": {
                 "includes_bulk": False,
@@ -950,7 +950,7 @@ class TestDataset(TestCase):
 
         # dataset with subset of samples from project with multiplexed data
         # with multiplexed samples selected
-        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT, is_ccdl=False)
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999991": {
                 "includes_bulk": False,
@@ -963,7 +963,6 @@ class TestDataset(TestCase):
 
         # dataset with subset of samples from project with multiplexed dataset
         # with no multiplexed samples selected
-        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT, is_ccdl=False)
         dataset.data = {
             "SCPCP999991": {
                 "includes_bulk": False,
