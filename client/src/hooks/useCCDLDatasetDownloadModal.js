@@ -4,6 +4,8 @@ import { api } from 'api'
 import { portalWideDatasets } from 'config/ccdlDatasetDownloadModal'
 
 export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
+  const [showing, setShowing] = useState(false)
+
   const { token, createToken } = useScPCAPortal()
   const [datasets, setDatasets] = useState(initialDatasets || [])
   const [selectedDataset, setSelectedDataset] = useState(null)
@@ -70,6 +72,8 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
   }
 
   return {
+    showing,
+    setShowing,
     token,
     modalTitle,
     tryDownload,

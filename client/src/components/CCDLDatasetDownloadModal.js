@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import React, { useState } from 'react'
+import React from 'react'
 import { Button } from 'components/Button'
 import { CCDLDatasetDownloadOptions } from 'components/CCDLDatasetDownloadOptions'
 import { CCDLDatasetDownloadStarted } from 'components/CCDLDatasetDownloadStarted'
@@ -12,8 +12,9 @@ export const CCDLDatasetDownloadModal = ({
   initialDatasets,
   disabled = false
 }) => {
-  const [showing, setShowing] = useState(false)
   const {
+    showing,
+    setShowing,
     modalTitle,
     tryDownload,
     datasets,
