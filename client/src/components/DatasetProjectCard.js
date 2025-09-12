@@ -22,14 +22,14 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
   const { removeProjectById } = useMyDataset()
   const { responsive } = useResponsive()
 
-  const { data, stats } = dataset
+  const { data } = dataset
   const projectData = data[projectId]
-  const diagnoses = stats.project_diagnoses[projectId]
-  const modalityCount = stats.project_modality_counts[projectId]
-  const title = stats.project_titles[projectId]
-  const downloadableSamples = stats.project_sample_counts[projectId]
+  const diagnoses = dataset.project_diagnoses[projectId]
+  const modalityCount = dataset.project_modality_counts[projectId]
+  const title = dataset.project_titles[projectId]
+  const downloadableSamples = dataset.project_sample_counts[projectId]
   const hasMismatchSamples =
-    stats.modality_count_mismatch_projects.includes(projectId)
+    dataset.modality_count_mismatch_projects.includes(projectId)
 
   const specifiedOptions = [
     {
@@ -44,8 +44,10 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     .filter((o) => o.value)
     .map((o) => o.label)
 
+  const canEditDataset = asPath === '/download'
+
   const handleViewEditSamples = () => {
-    const destination = `/download/${projectId}`
+    const destination = `${asPath}/${projectId}`
     saveOriginScrollPosition(asPath, destination)
     push(destination)
   }
@@ -65,11 +67,13 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
             {title}
           </Text>
         </Link>
-        <Button
-          label="Remove"
-          alignSelf={responsive('stretch', 'start')}
-          onClick={() => removeProjectById(projectId)}
-        />
+        {canEditDataset && (
+          <Button
+            label="Remove"
+            alignSelf={responsive('stretch', 'start')}
+            onClick={() => removeProjectById(projectId)}
+          />
+        )}
       </Box>
       <Box margin={{ bottom: '24px' }}>
         <Badge badge="Samples">
@@ -117,7 +121,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         gap="large"
       >
         <Button
-          label="View/Edit Samples"
+          label={canEditDataset ? 'View/Edit Samples' : 'View Samples'}
           aria-label="View/Edit Samples"
           alignSelf={responsive('stretch', 'start')}
           onClick={handleViewEditSamples}
