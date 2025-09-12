@@ -80,7 +80,6 @@
   let ready = false
   window.addEventListener('message', ({ data }) => {
     // The call is coming from inside the house.
-    console.log("received from:", event.origin)
     if (event.origin !== window.location.origin) return
 
     if (data.type === "token" && !ready) {
