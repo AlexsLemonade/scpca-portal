@@ -54,7 +54,7 @@ const Download = () => {
               <DatasetProcessModal />
               <Text weight="bold">
                 Uncompressed size:{' '}
-                {formatBytes(myDataset.stats.uncompressed_size)}
+                {formatBytes(myDataset.estimated_size_in_bytes)}
               </Text>
             </Box>
           </Box>

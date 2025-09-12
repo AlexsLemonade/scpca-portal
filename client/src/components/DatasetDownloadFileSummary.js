@@ -7,7 +7,7 @@ import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 import { Link } from 'components/Link'
 
 export const DatasetDownloadFileSummary = ({ dataset }) => {
-  const filesSummary = dataset.stats.files_summary
+  const filesSummary = dataset.files_summary
 
   const columns = ['Number of Samples', 'Samples Modality', 'File Format']
 
