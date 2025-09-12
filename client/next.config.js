@@ -22,7 +22,10 @@ module.exports = () => {
     TOS_RELEASE: process.env.TOS_RELEASE,
     BANNER_STATE: process.env.BANNER_STATE,
     BANNER_CONTENT: process.env.BANNER_CONTENT,
-    CONTRIBUTIONS_OPEN: process.env.CONTRIBUTIONS_OPEN
+    CONTRIBUTIONS_OPEN: process.env.CONTRIBUTIONS_OPEN,
+    CLIENT_SECRET: process.env.CLIENT_SECRET,
+    CELLBROWSER_SECRET: process.env.CELLBROWSER_SECRET,
+    CELLBROWSER_STATIC_HOST: process.env.CELLBROWSER_STATIC_HOST,
   }
 
   const stageEnv = {
@@ -38,6 +41,9 @@ module.exports = () => {
     BANNER_STATE: process.env.STAGE_BANNER_STATE,
     BANNER_CONTENT: process.env.STAGE_BANNER_CONTENT,
     CONTRIBUTIONS_OPEN: process.env.STAGE_CONTRIBUTIONS_OPEN,
+    CLIENT_SECRET: process.env.STAGE_CLIENT_SECRET,
+    CELLBROWSER_SECRET: process.env.STAGE_CELLBROWSER_SECRET,
+    CELLBROWSER_STATIC_HOST: process.env.STAGE_CELLBROWSER_STATIC_HOST,
   }
 
   const env = isProduction ? productionEnv : stageEnv
