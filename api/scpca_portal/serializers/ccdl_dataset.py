@@ -8,12 +8,11 @@ from scpca_portal.serializers.computed_file import ComputedFileSerializer
 
 class CCDLDatasetSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
-    # It's necessary to rename the data attr as serializer.Serializer needs it own data attr.
-    # The Dataset _data attr is renamed to data on output in to_representation below.
+    # It's necessary to rename the data attr as serializer.Serializer needs its own data attr.
+    # The "_data" attr is renamed to "data" for output purposes in to_representation below.
     _data = serializers.JSONField(source="data", read_only=True)
     email = serializers.EmailField(read_only=True, allow_null=True)
     start = serializers.BooleanField(read_only=True)
-
     format = serializers.CharField(read_only=True)
     regenerated_from = serializers.UUIDField(read_only=True, allow_null=True)
 
@@ -61,7 +60,7 @@ class CCDLDatasetSerializer(serializers.Serializer):
             obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
         )
 
-    # Rename the _data attr to data for output json
+    # Rename the "_data attr" to "data" for output json
     def to_representation(self, instance):
         instance_rep = super().to_representation(instance)
         corrected_instance_rep = {
