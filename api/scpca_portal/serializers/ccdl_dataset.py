@@ -3,12 +3,13 @@ from collections import OrderedDict
 from rest_framework import serializers
 
 from scpca_portal.models import Dataset
+from scpca_portal.serializers.computed_file import ComputedFileSerializer
 
 
 class CCDLDatasetSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
-    # it's necessary to rename data attr because serializer.Serializer needs it own data attr.
-    # this attr is renamed to data on output in to_representation method
+    # It's necessary to rename the data attr as serializer.Serializer needs it own data attr.
+    # The Dataset _data attr is renamed to data on output in to_representation below.
     _data = serializers.JSONField(source="data", read_only=True)
     email = serializers.EmailField(read_only=True, allow_null=True)
     start = serializers.BooleanField(read_only=True)
@@ -60,10 +61,28 @@ class CCDLDatasetSerializer(serializers.Serializer):
             obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
         )
 
-    # rename the _data attr to data for output json
+    # Rename the _data attr to data for output json
     def to_representation(self, instance):
         instance_rep = super().to_representation(instance)
         corrected_instance_rep = {
             (k if k != "_data" else "data"): v for k, v in instance_rep.items()
         }
         return OrderedDict(corrected_instance_rep)
+
+
+class CCDLDatasetDetailSerializer(CCDLDatasetSerializer):
+    download_url = serializers.SerializerMethodField(read_only=True)
+
+    computed_file = ComputedFileSerializer(read_only=True, many=False)
+
+    def get_download_url(self, obj):
+        dataset = Dataset.objects.filter(pk=obj.pk).first()
+        return dataset.download_url
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "context" in kwargs:
+            # Only include the field `download_url` if a valid token is specified.
+            # The token lookup happens in the view.
+            if "token" not in kwargs["context"]:
+                self.fields.pop("download_url")
