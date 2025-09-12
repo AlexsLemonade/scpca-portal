@@ -34,7 +34,7 @@ export const useCellbrowserIframe = () => {
         },
       })
 
-      if (!clientTokenResponse.ok || clientTokenResponse.status !== 201) {
+      if (!clientTokenResponse.ok || clientTokenResponse.status !== 200) {
         // user should have a token but show recoverable state here
         setHasError(true)
         return
