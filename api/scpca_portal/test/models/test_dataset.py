@@ -339,7 +339,7 @@ class TestDataset(TestCase):
         expected_readme_hash = "93ce0b3571f15cd41db81d9e25dcb873"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
 
-    def test_estimated_size_in_bytes(self):
+    def test_get_estimated_size_in_bytes(self):
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,
@@ -377,7 +377,7 @@ class TestDataset(TestCase):
         readme_file_size = sys.getsizeof(dataset.readme_file_contents)
         expected_file_size += metadata_file_size + readme_file_size
 
-        self.assertEqual(dataset.estimated_size_in_bytes, expected_file_size)
+        self.assertEqual(dataset.get_estimated_size_in_bytes(), expected_file_size)
 
     def test_contains_project_ids(self):
         dataset = Dataset(
@@ -445,7 +445,7 @@ class TestDataset(TestCase):
         locked_project.save()
         self.assertTrue(dataset.has_locked_projects)
 
-    def test_diagnoses_summary(self):
+    def test_get_diagnoses_summary(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999990": {
@@ -479,7 +479,7 @@ class TestDataset(TestCase):
             "diagnosis7": {"samples": 1, "projects": 1},
         }
 
-        summary = dataset.diagnoses_summary
+        summary = dataset.get_diagnoses_summary()
 
         # assert that that all diagnoses match exactly
         self.assertEqual(summary.keys(), expected_counts.keys())
@@ -488,7 +488,7 @@ class TestDataset(TestCase):
             self.assertEqual(summary[key]["projects"], expected_counts[key]["projects"])
             self.assertEqual(summary[key]["samples"], expected_counts[key]["samples"])
 
-    def test_files_summary(self):
+    def test_get_files_summary(self):
 
         single_cell_dataset = Dataset(
             format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
@@ -523,7 +523,7 @@ class TestDataset(TestCase):
             {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
         ]
 
-        single_cell_files_summary = single_cell_dataset.files_summary
+        single_cell_files_summary = single_cell_dataset.get_files_summary()
 
         self.assertEqual(len(single_cell_files_summary), len(expected_single_cell))
 
@@ -563,7 +563,7 @@ class TestDataset(TestCase):
             {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
         ]
 
-        ann_data_files_summary = ann_data_dataset.files_summary
+        ann_data_files_summary = ann_data_dataset.get_files_summary()
 
         for actual, expected in zip(ann_data_files_summary, expected_ann_data):
             self.assertEqual(actual["name"], expected["name"])
@@ -572,7 +572,7 @@ class TestDataset(TestCase):
             )
             self.assertEqual(actual["format"], expected["format"], f" in {actual['name']}")
 
-    def test_project_diagnoses(self):
+    def test_get_project_diagnoses(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999990": {
@@ -602,7 +602,7 @@ class TestDataset(TestCase):
             "SCPCP999992": {"diagnosis7": 2},
         }
 
-        actual_counts = dataset.project_diagnoses
+        actual_counts = dataset.get_project_diagnoses()
 
         for project_id in actual_counts.keys():
             for diagnosis in actual_counts[project_id].keys():
@@ -610,7 +610,7 @@ class TestDataset(TestCase):
                     actual_counts[project_id][diagnosis], expected_counts[project_id][diagnosis]
                 )
 
-    def test_project_modality_counts(self):
+    def test_get_project_modality_counts(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999990": {
@@ -640,7 +640,7 @@ class TestDataset(TestCase):
             "SCPCP999992": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 0},
         }
 
-        actual_counts = dataset.project_modality_counts
+        actual_counts = dataset.get_project_modality_counts()
 
         for project_id in actual_counts.keys():
             for modality in actual_counts[project_id].keys():
@@ -674,7 +674,7 @@ class TestDataset(TestCase):
 
         expected_mismatch_projects = ["SCPCP999990"]
 
-        actual_mismatch_projects = dataset.modality_count_mismatch_projects
+        actual_mismatch_projects = dataset.get_modality_count_mismatch_projects()
 
         self.assertCountEqual(actual_mismatch_projects, expected_mismatch_projects)
 
@@ -704,11 +704,11 @@ class TestDataset(TestCase):
 
         expected_counts = {"SCPCP999990": 3, "SCPCP999991": 3, "SCPCP999992": 2}
 
-        actual_counts = dataset.project_sample_counts
+        actual_counts = dataset.get_project_sample_counts()
 
         self.assertEqual(actual_counts, expected_counts)
 
-    def test_project_titles(self):
+    def test_get_project_titles(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999990": {
@@ -739,7 +739,7 @@ class TestDataset(TestCase):
             "SCPCP999992": "TBD",
         }
 
-        actual_titles = dataset.project_titles
+        actual_titles = dataset.get_project_titles()
 
         for project_id in actual_titles.keys():
             self.assertEqual(actual_titles[project_id], expected_titles[project_id])
@@ -813,3 +813,162 @@ class TestDataset(TestCase):
         # no computed file
         dataset = DatasetFactory()
         self.assertIsNone(dataset.download_url)
+
+    def test_get_includes_files_bulk(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with bulk, bulk requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.get_includes_files_bulk())
+
+        # project with bulk, bulk not requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_bulk())
+
+        # project without bulk
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_bulk())
+
+    def test_get_includes_files_cite_seq(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with cite-seq data
+        dataset.data = {
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.get_includes_files_cite_seq())
+
+        # project without cite-seq data
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_cite_seq())
+
+    def test_get_includes_files_merged(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with merged file, merged requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.get_includes_files_merged())
+
+        # project with merged file, merged not requested
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_merged())
+
+        # project without merged
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_merged())
+
+    def test_get_includes_files_multiplexed(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+
+        # project with multiplexed
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.get_includes_files_multiplexed())
+
+        # project without multiplexed
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            }
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_multiplexed())
+
+        # project with multiplexed data but with ann data format
+        dataset = Dataset(format=DatasetFormats.ANN_DATA)
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_multiplexed())
+
+        # dataset with subset of samples from project with multiplexed data
+        # with multiplexed samples selected
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999992", "SCPCS999993"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertTrue(dataset.get_includes_files_multiplexed())
+
+        # dataset with subset of samples from project with multiplexed dataset
+        # with no multiplexed samples selected
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        dataset.save()
+        self.assertFalse(dataset.get_includes_files_multiplexed())

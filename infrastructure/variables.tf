@@ -80,6 +80,15 @@ variable "enable_feature_preview" {
   default = "false"
 }
 
+variable "cellbrowser_security_token" {
+  default = "MISSING_VALUE"
+}
+
+variable "cellbrowser_uploaders" {
+  default = []
+  type = list(string)
+}
+
 output "environment_variables" {
   value = [
     {name = "DATABASE_NAME"
