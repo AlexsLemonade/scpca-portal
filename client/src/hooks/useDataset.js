@@ -5,7 +5,7 @@ import { api } from 'api'
 
 export const useDataset = () => {
   const { token, setEmail } = useScPCAPortal()
-  const { addError } = useContext(MyDatasetContext) // TODO: Removed once error handling is finalized
+  const { errors, addError } = useContext(MyDatasetContext) // TODO: Removed once error handling is finalized
 
   const getErrorMessage = (statusCode) => {
     const defaultMessage = 'An unexpected error occurred.'
@@ -92,6 +92,7 @@ export const useDataset = () => {
   }
 
   return {
+    errors,
     create,
     get,
     process,
