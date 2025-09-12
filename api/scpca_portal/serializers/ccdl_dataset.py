@@ -16,16 +16,6 @@ class CCDLDatasetSerializer(serializers.Serializer):
     format = serializers.CharField(read_only=True)
     regenerated_from = serializers.UUIDField(read_only=True, allow_null=True)
 
-    data_hash = serializers.CharField(read_only=True, allow_null=True)
-    metadata_hash = serializers.CharField(read_only=True, allow_null=True)
-    readme_hash = serializers.CharField(read_only=True, allow_null=True)
-    combined_hash = serializers.CharField(read_only=True, allow_null=True)
-    current_data_hash = serializers.ReadOnlyField()
-    current_metadata_hash = serializers.ReadOnlyField()
-    current_readme_hash = serializers.ReadOnlyField()
-    current_combined_hash = serializers.SerializerMethodField(read_only=True)
-    is_hash_changed = serializers.ReadOnlyField()
-
     includes_files_bulk = serializers.BooleanField(read_only=True)
     includes_files_cite_seq = serializers.BooleanField(read_only=True)
     includes_files_merged = serializers.BooleanField(read_only=True)
@@ -54,11 +44,6 @@ class CCDLDatasetSerializer(serializers.Serializer):
     terminated_reason = serializers.CharField(read_only=True, allow_null=True)
 
     computed_file = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    def get_current_combined_hash(self, obj):
-        return Dataset.get_current_combined_hash(
-            obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
-        )
 
     # Rename the "_data attr" to "data" for output json
     def to_representation(self, instance):
