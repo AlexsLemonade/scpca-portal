@@ -89,8 +89,7 @@ export const DatasetPortalWideDownloadCard = ({
           <Box direction="column">
             {!metadataOnly && (
               <Text margin={{ bottom: 'small' }} weight="bold">
-                {/* TODO: when computed files are available update to dataset.computedFile.size_in_bytes */}
-                Size: {formatBytes(dataset?.stats.uncompressed_size)}
+                Size: {formatBytes(dataset?.computed_file?.size_in_bytes)}
               </Text>
             )}
             <Box
