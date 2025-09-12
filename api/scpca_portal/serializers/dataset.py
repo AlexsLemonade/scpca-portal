@@ -15,10 +15,26 @@ class DatasetSerializer(serializers.ModelSerializer):
             "email",
             "start",
             "format",
-            "stats",
             "data_hash",
             "metadata_hash",
             "readme_hash",
+            "combined_hash",
+            "current_data_hash",
+            "current_metadata_hash",
+            "current_readme_hash",
+            "current_combined_hash",
+            "is_hash_changed",
+            "includes_files_bulk",
+            "includes_files_cite_seq",
+            "includes_files_merged",
+            "estimated_size_in_bytes",
+            "diagnoses_summary",
+            "files_summary",
+            "project_diagnoses",
+            "project_modality_counts",
+            "modality_count_mismatch_projects",
+            "project_sample_counts",
+            "project_titles",
             "is_ccdl",
             "ccdl_name",
             "ccdl_project_id",
@@ -39,6 +55,13 @@ class DatasetSerializer(serializers.ModelSerializer):
             "computed_file",
         )
         read_only_fields = fields
+
+    current_combined_hash = serializers.SerializerMethodField(read_only=True, default=None)
+
+    def get_current_combined_hash(self, obj):
+        return Dataset.get_current_combined_hash(
+            obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
+        )
 
 
 class DatasetDetailSerializer(DatasetSerializer):
