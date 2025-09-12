@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from rest_framework import serializers
 
 from scpca_portal.models import Dataset
@@ -6,6 +8,7 @@ from scpca_portal.models import Dataset
 class CCDLDatasetSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     # it's necessary to rename data attr because serializer.Serializer needs it own data attr.
+    # this attr is renamed to data on output in to_representation method
     _data = serializers.JSONField(source="data", read_only=True)
     email = serializers.EmailField(read_only=True, allow_null=True)
     start = serializers.BooleanField(read_only=True)
@@ -56,3 +59,11 @@ class CCDLDatasetSerializer(serializers.Serializer):
         return Dataset.get_current_combined_hash(
             obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
         )
+
+    # rename the _data attr to data for output json
+    def to_representation(self, instance):
+        instance_rep = super().to_representation(instance)
+        corrected_instance_rep = {
+            (k if k != "_data" else "data"): v for k, v in instance_rep.items()
+        }
+        return OrderedDict(corrected_instance_rep)
