@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
-import { Button } from 'components/Button'
 import { CopyLinkButton } from 'components/CopyLinkButton'
 import { HelpLink } from 'components/HelpLink'
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { config } from 'config'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadableFiles } from 'helpers/getReadable'
@@ -14,11 +14,8 @@ const Li = ({ children }) => (
   </Box>
 )
 
-// NOTE: This component temporaily accepts 'dataset' but it's subject to change
-// Currently mock data is used via Storybook for development
 export const DatasetPortalWideDownloadCard = ({
   title,
-  modality,
   datasets = [],
   metadataOnly = false
 }) => {
@@ -29,12 +26,6 @@ export const DatasetPortalWideDownloadCard = ({
     // TODO: improve merged check when file items is added to the backend (see below comment)
     datasets.find((d) => !d.ccdl_name.endsWith('MERGED'))
   )
-
-  // TODO: add cite seq, bulk and merged as file items to the backend
-  const fileItems = [
-    modality,
-    ...['has_cite_seq_data', 'has_bulk_rna_seq'].filter((key) => dataset?.[key])
-  ].map((key) => getReadableFiles(key))
 
   useEffect(() => {
     setDataset(
@@ -66,13 +57,13 @@ export const DatasetPortalWideDownloadCard = ({
             pad={{ left: 'large' }}
             style={{ listStyle: 'disc' }}
           >
-            {metadataOnly ? (
+            {dataset.format === 'METADATA' ? (
               <Li>Sample metadata from all projects</Li>
             ) : (
               <>
-                {fileItems.map((item) => (
-                  <Li key={item}>{item}</Li>
-                ))}
+                <Li>{getReadableFiles(dataset.ccdl_modality)}</Li>
+                {dataset.includes_files_cite_seq && <Li>CITE-seq data</Li>}
+                {dataset.includes_files_bulk && <Li>Bulk RNA-Seq data</Li>}
                 <Li>Project and Sample Metadata</Li>
               </>
             )}
@@ -107,7 +98,10 @@ export const DatasetPortalWideDownloadCard = ({
               gap="24px"
               margin={{ bottom: 'small' }}
             >
-              <Button label="Download" aria-label="Download" primary />
+              <CCDLDatasetDownloadModal
+                label="Download"
+                initialDatasets={[dataset]}
+              />
               {!metadataOnly && <CopyLinkButton computedFile={{}} />}
             </Box>
           </Box>
