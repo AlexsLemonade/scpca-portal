@@ -9,6 +9,7 @@ SlugRelatedFields.
 The one exception is the ProjectSerializer because it will always include its summaries.
 """
 
+from scpca_portal.serializers.ccdl_dataset import CCDLDatasetDetailSerializer, CCDLDatasetSerializer
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 from scpca_portal.serializers.contact import ContactSerializer
 from scpca_portal.serializers.dataset import (
