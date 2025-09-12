@@ -11,6 +11,7 @@ from scpca_portal import batch, common, s3
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.exceptions import (
+    BatchGetJobsFailedError,
     DatasetError,
     DatasetLockedProjectError,
     JobError,
@@ -261,8 +262,8 @@ class Job(TimestampedModel):
         fetched_jobs = []
         try:
             fetched_jobs = batch.get_jobs(processing_jobs)
-        except Exception:
-            failed_job_ids.extend(processing_jobs)
+        except BatchGetJobsFailedError as error:
+            failed_job_ids.extend(error.job_ids)
 
         # Map the fetched AWS jobs for easy lookup by batch_job_id
         aws_jobs = {job["jobId"]: job for job in fetched_jobs}
@@ -325,7 +326,7 @@ class Job(TimestampedModel):
 
         try:
             aws_jobs = batch.get_jobs([self])
-        except Exception as error:
+        except BatchGetJobsFailedError as error:
             raise JobSyncStateFailedError(self) from error
 
         new_state, reason = self.get_job_state(aws_jobs[0])

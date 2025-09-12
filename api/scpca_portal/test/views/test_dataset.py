@@ -223,3 +223,24 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
+
+    def test_stats_property_keys(self):
+        url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
+        response = self.client.get(url)
+        stats_property = response.json().get("stats")
+        stats_property_fields = {
+            "current_data_hash",
+            "current_readme_hash",
+            "current_metadata_hash",
+            "is_hash_changed",
+            "uncompressed_size",
+            "diagnoses_summary",
+            "files_summary",
+            "project_diagnoses",
+            "project_modality_counts",
+            "modality_count_mismatch_projects",
+            "project_sample_counts",
+            "project_titles",
+        }
+        for field in stats_property_fields:
+            self.assertIn(field, stats_property)

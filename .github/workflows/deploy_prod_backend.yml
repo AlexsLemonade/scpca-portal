@@ -30,8 +30,6 @@ jobs:
           SSH_PUBLIC_KEY: "${{ secrets.OP_SSH_PUBLIC_KEY }}"
           SENTRY_DSN: "${{ secrets.OP_SENTRY_DSN }}"
           SLACK_CCDL_TEST_CHANNEL_EMAIL: "${{ secrets.OP_SLACK_CCDL_TEST_CHANNEL_EMAIL }}"
-          CELLBROWSER_SECURITY_TOKEN: "${{ secrets.OP_CELLBROWSER_SECURITY_TOKEN }}"
-          CELLBROWSER_UPLOADERS: "${{ secrets.OP_CELLBROWSER_UPLOADERS }}"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3

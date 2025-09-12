@@ -44,10 +44,8 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     .filter((o) => o.value)
     .map((o) => o.label)
 
-  const canEditDataset = asPath === '/download'
-
   const handleViewEditSamples = () => {
-    const destination = `${asPath}/${projectId}`
+    const destination = `/download/${projectId}`
     saveOriginScrollPosition(asPath, destination)
     push(destination)
   }
@@ -67,13 +65,11 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
             {title}
           </Text>
         </Link>
-        {canEditDataset && (
-          <Button
-            label="Remove"
-            alignSelf={responsive('stretch', 'start')}
-            onClick={() => removeProjectById(projectId)}
-          />
-        )}
+        <Button
+          label="Remove"
+          alignSelf={responsive('stretch', 'start')}
+          onClick={() => removeProjectById(projectId)}
+        />
       </Box>
       <Box margin={{ bottom: '24px' }}>
         <Badge badge="Samples">
@@ -121,7 +117,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         gap="large"
       >
         <Button
-          label={canEditDataset ? 'View/Edit Samples' : 'View Samples'}
+          label="View/Edit Samples"
           aria-label="View/Edit Samples"
           alignSelf={responsive('stretch', 'start')}
           onClick={handleViewEditSamples}

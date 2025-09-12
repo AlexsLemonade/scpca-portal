@@ -31,8 +31,6 @@ TF_ENV_VAR = {
     "SSH_PUBLIC_KEY": "TF_VAR_ssh_public_key",
     "SLACK_CCDL_TEST_CHANNEL_EMAIL": "TF_VAR_slack_ccdl_test_channel_email",
     "ENABLE_FEATURE_PREVIEW": "TF_VAR_enable_feature_preview",
-    "CELLBROWSER_SECURITY_TOKEN": "TF_VAR_cellbrowser_security_token",
-    "CELLBROWSER_UPLOADERS": "TF_VAR_cellbrowser_uploaders",
 }
 
 
@@ -247,7 +245,7 @@ if __name__ == "__main__":
         ]
 
     # Always init first
-    init_code = terraform.init(backend_configs, env=env)
+    init_code = terraform.init(backend_configs)
 
     if init_code != 0 or args.init:
         exit(init_code)
@@ -256,15 +254,15 @@ if __name__ == "__main__":
     var_file_arg = f"-var-file=tf_vars/{args.stage}.tfvars"
 
     if args.plan:
-        terraform.plan(var_file_arg, args.save_plan, env=env)
+        terraform.plan(var_file_arg, args.save_plan)
         exit(1)
 
     if args.console:
-        terraform.console(var_file_arg, env=env)
+        terraform.console(var_file_arg)
         exit(1)
 
     if args.destroy:
-        terraform.destroy(var_file_arg, env=env)
+        terraform.destroy(var_file_arg)
         exit(1)
 
     terraform_code, terraform_output = terraform.apply(var_file_arg, taints=TAINT_ON_APPLY, env=env)

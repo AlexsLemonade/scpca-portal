@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
 
 from django.conf import settings
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
 from django.utils.timezone import make_aware
@@ -61,21 +60,6 @@ class Dataset(TimestampedModel):
     data_hash = models.CharField(max_length=32, null=True)
     metadata_hash = models.CharField(max_length=32, null=True)
     readme_hash = models.CharField(max_length=32, null=True)
-    combined_hash = models.CharField(max_length=32, null=True)
-
-    # Cached File Attrs
-    includes_files_bulk = models.BooleanField(default=False)
-    includes_files_cite_seq = models.BooleanField(default=False)
-    includes_files_merged = models.BooleanField(default=False)
-    includes_files_multiplexed = models.BooleanField(default=False)
-    estimated_size_in_bytes = models.BigIntegerField(default=0)
-    diagnoses_summary = models.JSONField(default=dict)
-    files_summary = models.JSONField(default=list)  # expects a list of dicts
-    project_diagnoses = models.JSONField(default=dict)
-    project_modality_counts = models.JSONField(default=dict)
-    modality_count_mismatch_projects = ArrayField(models.TextField(), default=list)
-    project_sample_counts = models.JSONField(default=dict)
-    project_titles = models.JSONField(default=dict)
 
     # Internally generated datasets
     is_ccdl = models.BooleanField(default=False)
@@ -122,33 +106,6 @@ class Dataset(TimestampedModel):
         return f"Dataset {self.id}"
 
     # INSTANCE CREATION AND MODIFICATION
-    def save(self, *args, **kwargs):
-        """
-        In addition to the built-in object saving functionality,
-        cached attributes should be re-computed and re-assigned on each save.
-        """
-
-        # file hashes
-        self.data_hash, self.metadata_hash, self.readme_hash, self.combined_hash = self.get_hashes()
-
-        # file items
-        self.includes_files_bulk = self.get_includes_files_bulk()
-        self.includes_files_cite_seq = self.get_includes_files_cite_seq()
-        self.includes_files_merged = self.get_includes_files_merged()
-        self.includes_files_multiplexed = self.get_includes_files_multiplexed()
-
-        # stats property attributes
-        self.estimated_size_in_bytes = self.get_estimated_size_in_bytes()
-        self.diagnoses_summary = self.get_diagnoses_summary()
-        self.files_summary = self.get_files_summary()
-        self.project_diagnoses = self.get_project_diagnoses()
-        self.project_modality_counts = self.get_project_modality_counts()
-        self.modality_count_mismatch_projects = self.get_modality_count_mismatch_projects()
-        self.project_sample_counts = self.get_project_sample_counts()
-        self.project_titles = self.get_project_titles()
-
-        super().save(*args, **kwargs)
-
     @classmethod
     def get_or_find_ccdl_dataset(
         cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
@@ -162,6 +119,9 @@ class Dataset(TimestampedModel):
         dataset.ccdl_modality = dataset.ccdl_type["modality"]
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.get_ccdl_data()
+        dataset.data_hash = dataset.current_data_hash
+        dataset.metadata_hash = dataset.current_metadata_hash
+        dataset.readme_hash = dataset.current_readme_hash
         return dataset, False
 
     def get_ccdl_data(self) -> Dict:
@@ -269,8 +229,26 @@ class Dataset(TimestampedModel):
         ]
         cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
 
-    # CACHED ATTRIBUTES LOGIC
-    def get_estimated_size_in_bytes(self) -> int:
+    # STATS PROPERTY ATTRIBUTES
+    @property
+    def stats(self) -> Dict:
+        return {
+            "current_data_hash": self.current_data_hash,
+            "current_readme_hash": self.current_readme_hash,
+            "current_metadata_hash": self.current_metadata_hash,
+            "is_hash_changed": self.combined_hash != self.current_combined_hash,
+            "uncompressed_size": self.estimated_size_in_bytes,
+            "diagnoses_summary": self.diagnoses_summary,
+            "files_summary": self.files_summary,
+            "project_diagnoses": self.project_diagnoses,
+            "project_modality_counts": self.project_modality_counts,
+            "modality_count_mismatch_projects": self.modality_count_mismatch_projects,
+            "project_sample_counts": self.project_sample_counts,
+            "project_titles": self.project_titles,
+        }
+
+    @property
+    def estimated_size_in_bytes(self) -> int:
         original_files_size = (
             self.original_files.aggregate(models.Sum("size_in_bytes")).get("size_in_bytes__sum")
             or 0
@@ -285,7 +263,8 @@ class Dataset(TimestampedModel):
 
         return original_files_size + metadata_file_size + readme_file_size
 
-    def get_diagnoses_summary(self) -> dict:
+    @property
+    def diagnoses_summary(self) -> dict:
         """
         Counts present all diagnoses for samples in datasets.
         Returns dict where key is the diagnosis and value is a dict
@@ -300,7 +279,8 @@ class Dataset(TimestampedModel):
 
         return {}
 
-    def get_files_summary(self) -> list[dict]:
+    @property
+    def files_summary(self) -> list[dict]:
         """
         Iterates over pre-defined file types that will be present in the dataset download.
         This break down looks at the type of information present in the individual files as well.
@@ -373,7 +353,7 @@ class Dataset(TimestampedModel):
                         "samples_count": len(samples_ids),
                         "name": file_summary_query["name"],
                         "format": file_summary_query.get(
-                            "format", common.FORMAT_EXTENSIONS.get(self.format)
+                            "format", common.FORMAT_EXTENSIONS[self.format]
                         ),
                     }
                 )
@@ -382,7 +362,8 @@ class Dataset(TimestampedModel):
 
         return summaries
 
-    def get_project_diagnoses(self) -> Dict:
+    @property
+    def project_diagnoses(self) -> Dict:
         """
         Returns dict where key is a project id in the dataset and value
         is the number of samples with that diagnosis in the dataset for that project.
@@ -395,7 +376,8 @@ class Dataset(TimestampedModel):
 
         return diagnoses_counts
 
-    def get_project_modality_counts(self) -> Dict[str, Dict[Modalities, int]]:
+    @property
+    def project_modality_counts(self) -> Dict[str, Dict[Modalities, int]]:
         """
         Returns a dict where the key is a project id in the dataset and
         the value is an object of SINGLE_CELL and SPATIAL samples
@@ -425,12 +407,8 @@ class Dataset(TimestampedModel):
 
         return counts
 
-    def get_project_titles(self) -> Dict:
-        return {
-            scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
-        }
-
-    def get_modality_count_mismatch_projects(self) -> List[str]:
+    @property
+    def modality_count_mismatch_projects(self) -> List[str]:
         """
         Returns a list of project ids where the samples differ between the SINGLE_CELL
         and SPATIAL modalities (i.e., samples are present in one modality but not the other).
@@ -465,7 +443,8 @@ class Dataset(TimestampedModel):
 
         return mismatch_project_ids
 
-    def get_project_sample_counts(self) -> Dict[str, int]:
+    @property
+    def project_sample_counts(self) -> Dict[str, int]:
         """
         Returns a dict where the key is a project id in the dataset and
         the value is the total count of unique samples combined across
@@ -480,53 +459,13 @@ class Dataset(TimestampedModel):
             .values_list("project__scpca_id", "num_samples")
         )
 
+    @property
+    def project_titles(self) -> Dict:
+        return {
+            scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
+        }
+
     # HASHING LOGIC
-    def get_hashes(self) -> tuple[str, str, str, str]:
-        """Computes and returns data, metadata, readme, and combined hashes."""
-        data_hash = self.current_data_hash
-        metadata_hash = self.current_metadata_hash
-        readme_hash = self.current_readme_hash
-        combined_hash = self.get_current_combined_hash(data_hash, metadata_hash, readme_hash)
-
-        return (data_hash, metadata_hash, readme_hash, combined_hash)
-
-    @property
-    def current_data_hash(self) -> str:
-        """Computes and returns the current data hash."""
-        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
-            "hash", flat=True
-        )
-        concat_hash = "".join(sorted_original_file_hashes)
-        concat_hash_bytes = concat_hash.encode("utf-8")
-        return hashlib.md5(concat_hash_bytes).hexdigest()
-
-    @property
-    def current_metadata_hash(self) -> str:
-        """Computes and returns the current metadata hash."""
-        all_metadata_file_contents = [
-            file_content for _, _, file_content in self.get_metadata_file_contents()
-        ]
-        concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
-        metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
-        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
-
-    @property
-    def current_readme_hash(self) -> str:
-        """Computes and returns the current readme hash."""
-        # the first line in the readme file contains the current date
-        # we must remove this before hashing
-        readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
-        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
-        return hashlib.md5(readme_file_contents_bytes).hexdigest()
-
-    @staticmethod
-    def get_current_combined_hash(data_hash: str, metadata_hash: str, readme_hash: str) -> str:
-        """
-        Combines, computes and returns the combined current data, metadata and readme hashes.
-        """
-        concat_hash = data_hash + metadata_hash + readme_hash
-        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
-
     @property
     def is_hash_changed(self) -> bool:
         """
@@ -534,10 +473,7 @@ class Dataset(TimestampedModel):
         Files should be processed for new datasets,
         or for datasets where at least one hash attribute has changed.
         """
-        current_combined_hash = Dataset.get_current_combined_hash(
-            self.current_data_hash, self.current_metadata_hash, self.current_readme_hash
-        )
-        return current_combined_hash != self.combined_hash
+        return self.combined_hash != self.current_combined_hash
 
     @property
     def is_hash_unchanged(self) -> bool:
@@ -576,32 +512,64 @@ class Dataset(TimestampedModel):
     def readme_file_contents(self) -> str:
         return readme_file.get_file_contents_dataset(self)
 
-    def get_includes_files_bulk(self) -> bool:
-        return self.bulk_single_cell_projects.exists()
+    @property
+    def current_data_hash(self) -> str:
+        """Computes and returns the current data hash."""
+        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
+            "hash", flat=True
+        )
+        concat_hash = "".join(sorted_original_file_hashes)
+        concat_hash_bytes = concat_hash.encode("utf-8")
+        return hashlib.md5(concat_hash_bytes).hexdigest()
 
-    def get_includes_files_cite_seq(self) -> bool:
-        return self.cite_seq_projects.exists()
+    @property
+    def current_metadata_hash(self) -> str:
+        """Computes and returns the current metadata hash."""
+        all_metadata_file_contents = [
+            file_content for _, _, file_content in self.get_metadata_file_contents()
+        ]
+        concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
+        metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
+        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
 
-    def get_includes_files_merged(self) -> bool:
-        return self.merged_projects.exists()
+    @property
+    def current_readme_hash(self) -> str:
+        """Computes and returns the current readme hash."""
+        # the first line in the readme file contains the current date
+        # we must remove this before hashing
+        readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
+        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
+        return hashlib.md5(readme_file_contents_bytes).hexdigest()
 
-    def get_includes_files_multiplexed(self) -> bool:
-        return self.multiplexed_projects.exists()
+    @property
+    def combined_hash(self) -> str | None:
+        """
+        Combines, computes and returns the combined cached data, metadata and readme hashes.
+        """
+        # Return None if hashes have not been calculated yet
+        if not (self.data_hash and self.metadata_hash and self.readme_hash):
+            return None
+        concat_hash = self.data_hash + self.metadata_hash + self.readme_hash
+        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
+
+    @property
+    def current_combined_hash(self) -> str | None:
+        """
+        Combines, computes and returns the combined current data, metadata and readme hashes.
+        """
+        concat_hash = self.current_data_hash + self.current_metadata_hash + self.current_readme_hash
+        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
 
     # ASSOCIATIONS WITH OTHER MODELS
     @property
     def projects(self) -> Iterable[Project]:
-        """Returns all project instances associated with the dataset."""
+        """Returns all Project instances associated with the Dataset."""
         if project_ids := self.data.keys():
             return Project.objects.filter(scpca_id__in=project_ids).order_by("scpca_id")
         return Project.objects.none()
 
     @property
     def spatial_projects(self) -> Iterable[Project]:
-        """
-        Returns all project instances which have spatial data
-        with spatial samples requested in the data attribute.
-        """
         if self.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
             return Project.objects.none()
 
@@ -610,82 +578,35 @@ class Dataset(TimestampedModel):
             for project_id, project_options in self.data.items()
             if project_options.get(Modalities.SPATIAL, [])
         ]:
-            return self.projects.filter(has_spatial_data=True, scpca_id__in=project_ids)
+            return self.projects.filter(scpca_id__in=project_ids)
 
         return Project.objects.none()
 
     @property
     def single_cell_projects(self) -> Iterable[Project]:
-        """
-        Returns all project instances which have single cell data
-        with single cell samples requested in the data attribute.
-        """
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
             if project_options.get(Modalities.SINGLE_CELL)
         ]:
-            return self.projects.filter(has_single_cell_data=True, scpca_id__in=project_ids)
+            return Project.objects.filter(scpca_id__in=project_ids)
 
         return Project.objects.none()
 
     @property
     def bulk_single_cell_projects(self) -> Iterable[Project]:
-        """
-        Returns all project instances which have bulk data
-        where bulk was requested in the data attribute.
-        """
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
             if project_options.get(DatasetDataProjectConfig.INCLUDES_BULK)
         ]:
-            return self.projects.filter(has_bulk_rna_seq=True, scpca_id__in=project_ids)
+            return Project.objects.filter(scpca_id__in=project_ids)
 
         return Project.objects.none()
 
     @property
     def cite_seq_projects(self) -> Iterable[Project]:
-        """
-        Returns all project instances associated with the dataset
-        which have cite seq data.
-        """
         return self.projects.filter(has_cite_seq_data=True)
-
-    @property
-    def merged_projects(self) -> Iterable[Project]:
-        """
-        Returns all project instances which have merged data
-        where merged was requested in the data attribute single cell field.
-        """
-        if project_ids := [
-            project_id
-            for project_id, project_options in self.data.items()
-            if project_options.get(Modalities.SINGLE_CELL) == "MERGED"
-        ]:
-            requested_merged_projects = self.projects.filter(scpca_id__in=project_ids)
-
-            if self.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
-                return requested_merged_projects.filter(includes_merged_sce=True)
-
-            if self.format == DatasetFormats.ANN_DATA:
-                return requested_merged_projects.filter(includes_merged_anndata=True)
-
-        return Project.objects.none()
-
-    @property
-    def multiplexed_projects(self) -> Iterable[Project]:
-        """
-        Returns all project instances which have multiplexed data.
-        """
-        # Multiplexed samples are not available with anndata
-        if self.format == DatasetFormats.ANN_DATA:
-            return Project.objects.none()
-
-        multiplexed_samples = self.get_selected_samples([Modalities.SINGLE_CELL]).filter(
-            has_multiplexed_data=True
-        )
-        return Project.objects.filter(samples__in=multiplexed_samples).distinct()
 
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""

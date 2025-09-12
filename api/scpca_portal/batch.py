@@ -8,6 +8,7 @@ from botocore.client import Config
 
 from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.exceptions import BatchGetJobsFailedError
 
 logger = get_and_configure_logger(__name__)
 aws_batch = boto3.client(
@@ -36,7 +37,7 @@ def submit_job(job) -> str | None:
         )
         return None
 
-    logger.debug(
+    logger.info(
         "Job submission complete.",
         job_id=job.pk,
         batch_job_id=job.batch_job_id,
@@ -62,7 +63,7 @@ def terminate_job(job) -> bool:
         )
         return False
 
-    logger.debug(
+    logger.info(
         "Job termination complete.",
         job_id=job.pk,
         batch_job_id=job.batch_job_id,
@@ -73,7 +74,7 @@ def terminate_job(job) -> bool:
 def get_jobs(batch_jobs: Iterable["Job"]) -> List[Dict] | None:  # noqa: F821
     """
     Fetch AWS Batch job(s) for the given one or more job(s) in bulk.
-    Raises Exception on failure.
+    Raises BatchGetJobsFailedError on failure.
     Return a list of fetched jobs on success.
     """
     max_limit = 100  # Limit of job IDs to send per request
@@ -89,8 +90,8 @@ def get_jobs(batch_jobs: Iterable["Job"]) -> List[Dict] | None:  # noqa: F821
                     f"Failed to bulk fetch AWS Batch job{pluralize(len(chunk))} "
                     f"for job IDs: {', '.join(chunk)} due to: \n\t{error}"
                 )
-                raise
+                raise BatchGetJobsFailedError(job_ids=batch_job_ids) from error
 
-    logger.debug("AWS Job fetch complete.", batch_job_ids=batch_job_ids)
+    logger.info("AWS Job fetch complete.", batch_job_ids=batch_job_ids)
 
     return jobs
