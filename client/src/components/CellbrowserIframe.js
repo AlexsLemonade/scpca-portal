@@ -8,6 +8,7 @@ const Iframe = styled.iframe`
   padding: 35px 0 0 0;
   height: calc(100vh - 147px);
   width: 100vw;
+  max-width: 100%;
   visibility: ${({ isVisible }) => (isVisible ? 'visible' : 'hidden')};
   opacity: ${({ isVisible }) => (isVisible ? '100%' : '0%')};
   transition: opacity 0.25s ease-in-out;
