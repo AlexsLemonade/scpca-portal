@@ -3,8 +3,9 @@ import { useResponsive } from 'hooks/useResponsive'
 import { Box, Grid, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
+import { DatasetFileItems } from 'components/DatasetFileItems'
 import { formatBytes } from 'helpers/formatBytes'
-import { getReadable, getReadableFiles } from 'helpers/getReadable'
+import { getReadable } from 'helpers/getReadable'
 import DownloadSVG from '../images/download-folder.svg'
 
 // View when the donwload should have been initiated
@@ -37,31 +38,19 @@ export const CCDLDatasetDownloadStarted = ({ dataset }) => {
             </Box>
           )}
           <Paragraph>The download consists of the following items:</Paragraph>
-          <Box pad="medium">
-            <ul
-              style={{
-                listStylePosition: 'inside',
-                listStyleType: 'square'
-              }}
-            >
-              {dataset.format !== 'METADATA' && (
-                <li>{getReadableFiles(dataset.ccdl_modality)}</li>
-              )}
-              {dataset.includes_files_cite_seq && <li>CITE-seq data</li>}
-              {dataset.includes_files_bulk && <li>Bulk RNA-Seq data</li>}
-              <li>Project and Sample Metadata</li>
-            </ul>
-          </Box>
+          <DatasetFileItems dataset={dataset} />
           {dataset.includes_files_merged && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
               <Text>Samples are merged into 1 object per project</Text>
             </Box>
           )}
-          <Box margin={{ top: 'small', bottom: 'small' }}>
-            <Text weight="bold">
-              Size: {formatBytes(dataset?.computed_file?.size_in_bytes)}
-            </Text>
-          </Box>
+          {dataset.format !== 'METADATA' && (
+            <Box margin={{ top: 'small', bottom: 'small' }}>
+              <Text weight="bold">
+                Size: {formatBytes(dataset?.computed_file?.size_in_bytes)}
+              </Text>
+            </Box>
+          )}
           <Paragraph margin={{ bottom: 'small' }}>
             Learn more about what you can expect in your download file{' '}
             <Link label="here" href=" " />.
