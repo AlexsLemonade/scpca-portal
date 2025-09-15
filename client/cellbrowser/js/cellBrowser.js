@@ -6975,7 +6975,6 @@ var cellbrowser = function() {
     buildMetaFieldCombo(htmls, "tpGeneExprMetaComboBox", "tpGeneExprMetaCombo", 0, metaName, "noNums");
     htmlAddInfoIcon(htmls, "Expression data can only be split by categorical fields. Numerical fields are not shown here.");
 
-
     htmls.push('<button id="tpGeneExprAddMulti" style="padding-left: 15px; padding-right: 15px; padding-bottom: 5px; padding-top: 5px; margin-left: 15px">Add multiple genes</button>');
 
     //htmls.push('<input style="margin-left:4em" type="checkbox" id="tpGeneExprYLimitCheck"></input>');
