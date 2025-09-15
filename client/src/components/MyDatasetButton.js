@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { Button } from 'components/Button'
 import styled, { css } from 'styled-components'
 
@@ -15,9 +16,22 @@ const YellowButton = styled(Button)`
       }
     `}
 `
-// TODO: Add getTotalSampleCount helper to useMyDataset when building the download page
+
 export const MyDatasetButton = () => {
-  const count = 0
+  const { myDataset, getDataset } = useMyDataset()
+  const count = myDataset.total_sample_count || 0
+
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchDataset = async () => {
+      await getDataset()
+      setLoading(false)
+    }
+
+    if (loading) fetchDataset()
+  }, [loading, myDataset])
+
   return (
     <Box direction="row">
       <YellowButton
@@ -26,13 +40,17 @@ export const MyDatasetButton = () => {
         primary
         badge={
           <Box
+            width={{ min: '32px' }}
+            height="32px"
+            align="center"
+            justify="center"
             background="alexs-lemonade"
-            round
-            pad="xsmall"
             border={{
               color: 'alexs-deep-blue',
               size: '4px'
             }}
+            pad="xsmall"
+            round
           >
             <Text size="small-flat">{count}</Text>
           </Box>
