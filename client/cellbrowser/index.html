@@ -78,9 +78,9 @@
 <script>
 
   let ready = false
-  window.addEventListener('message', ({ data }) => {
+  window.addEventListener('message', ({ origin, data }) => {
     // The call is coming from inside the house.
-    if (event.origin !== window.location.origin) return
+    if (origin !== window.location.origin) return
 
     if (data.type === "token" && !ready) {
       ready = true
