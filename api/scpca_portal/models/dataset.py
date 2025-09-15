@@ -687,6 +687,19 @@ class Dataset(TimestampedModel):
         )
         return Project.objects.filter(samples__in=multiplexed_samples).distinct()
 
+    @property
+    def total_sample_count(self) -> int:
+        """
+        Returns the total number of unique samples in data attribute across all project modalities.
+        """
+        all_samples = (
+            self.get_selected_samples([Modalities.SINGLE_CELL, Modalities.SPATIAL])
+            .distinct()
+            .values_list("scpca_id", flat=True)
+        )
+
+        return all_samples.count()
+
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""
         return any(dataset_project_id in project_ids for dataset_project_id in self.data.keys())
