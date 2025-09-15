@@ -3,7 +3,7 @@ import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
 import { portalWideDatasets } from 'config/ccdlDatasetDownloadModal'
 
-export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
+export const useCCDLDatasetDownloadModal = (initialDatasets) => {
   const [showing, setShowing] = useState(false)
 
   const { token, createToken } = useScPCAPortal()
@@ -59,12 +59,12 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
       }
     }
 
-    if (!isActive) {
+    if (!showing) {
       setDownloadDataset(null)
     }
 
-    if (selectedDataset && !downloadDataset && token && isActive) asyncFetch()
-  }, [selectedDataset, downloadDataset, token, isActive])
+    if (selectedDataset && !downloadDataset && token && showing) asyncFetch()
+  }, [selectedDataset, downloadDataset, token, showing])
 
   return {
     showing,

@@ -22,7 +22,7 @@ export const CCDLDatasetDownloadModal = ({
     isDownloadReady,
     isTokenReady,
     isOptionsReady
-  } = useCCDLDatasetDownloadModal(initialDatasets, showing)
+  } = useCCDLDatasetDownloadModal(initialDatasets)
   const isDisabled = disabled || !initialDatasets
 
   const handleClick = () => {
