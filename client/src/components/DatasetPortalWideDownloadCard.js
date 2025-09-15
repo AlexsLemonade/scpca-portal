@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
-import { CopyLinkButton } from 'components/CopyLinkButton'
 import { HelpLink } from 'components/HelpLink'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
+import { CCDLDatasetCopyLinkButton } from 'components/CCDLDatasetCopyLinkButton'
 import { config } from 'config'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadableFiles } from 'helpers/getReadable'
@@ -100,7 +100,7 @@ export const DatasetPortalWideDownloadCard = ({
                 label="Download"
                 initialDatasets={[dataset]}
               />
-              {!metadataOnly && <CopyLinkButton computedFile={{}} />}
+              {!metadataOnly && <CCDLDatasetCopyLinkButton dataset={dataset} />}
             </Box>
           </Box>
         </Box>
