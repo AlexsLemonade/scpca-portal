@@ -62,7 +62,7 @@ export const CellbrowserToken = () => {
         {(errors || errors.length) &&
           Object.values(errors).map((keyErrors) =>
             keyErrors.map((keyError) => (
-              <Text color="error" key="keyError">
+              <Text color="error" key={keyError}>
                 {keyError}
               </Text>
             ))
