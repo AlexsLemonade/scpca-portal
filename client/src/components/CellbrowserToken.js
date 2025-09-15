@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'components/Link'
+import { Box, Grid, Text } from 'grommet'
+import { useScPCAPortal } from 'hooks/useScPCAPortal'
+import { useResponsive }  from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { DownloadTokenInputs } from 'components/DownloadTokenInputs'
-import { useScPCAPortal } from 'hooks/useScPCAPortal'
-import { Box, Grid, Text } from 'grommet'
-import { useResponsive } from 'hooks/useResponsive'
+import { Link } from 'components/Link'
 import VisualizeSvg from '../images/visualize.svg'
 
 export const CellbrowserToken = () => {
