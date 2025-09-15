@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Grid, Text } from 'grommet'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
-import { useResponsive }  from 'hooks/useResponsive'
+import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { DownloadTokenInputs } from 'components/DownloadTokenInputs'
 import { Link } from 'components/Link'
