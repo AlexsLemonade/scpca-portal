@@ -1,20 +1,21 @@
 import React from 'react'
 import { useCellbrowserIframe } from 'hooks/useCellbrowserIframe'
 import styled from 'styled-components'
-import { Loader } from './Loader'
 import { Box, Text, Stack } from 'grommet'
+import { Loader } from './Loader'
 
 const Iframe = styled.iframe`
   padding: 35px 0 0 0;
   height: calc(100vh - 147px);
   width: 100vw;
-  visibility: ${({ isVisible }) => isVisible ? 'visible' : 'hidden'};
-  opacity: ${({ isVisible }) => isVisible ? '100%' : '0%'};
-  transition: opacity .25s ease-in-out;
+  visibility: ${({ isVisible }) => (isVisible ? 'visible' : 'hidden')};
+  opacity: ${({ isVisible }) => (isVisible ? '100%' : '0%')};
+  transition: opacity 0.25s ease-in-out;
 `
 
 export const CellbrowserIframe = () => {
-  const { isIframeReady, setIsIframeLoaded, iframeRef, status } = useCellbrowserIframe()
+  const { isIframeReady, setIsIframeLoaded, iframeRef, status } =
+    useCellbrowserIframe()
 
   return (
     <Stack anchor="center">

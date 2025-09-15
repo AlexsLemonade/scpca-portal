@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from "react"
-import { Link } from "components/Link"
-import { Button } from "components/Button"
-import { DownloadTokenInputs } from "components/DownloadTokenInputs"
-import { useScPCAPortal } from "hooks/useScPCAPortal"
-import { Box, Grid, Text } from "grommet"
+import React, { useEffect, useState } from 'react'
+import { Link } from 'components/Link'
+import { Button } from 'components/Button'
+import { DownloadTokenInputs } from 'components/DownloadTokenInputs'
+import { useScPCAPortal } from 'hooks/useScPCAPortal'
+import { Box, Grid, Text } from 'grommet'
+import { useResponsive } from 'hooks/useResponsive'
 import VisualizeSvg from '../images/visualize.svg'
-import useResponsive from "hooks/useResponsive"
 
 export const CellbrowserToken = () => {
-
   const {
     token,
     email,
@@ -47,23 +46,27 @@ export const CellbrowserToken = () => {
   }, [requesting, token])
 
   return (
-    <Grid
-      columns={responsive('1', ['medium', 'small'])}
-      gap="large"
-    >
+    <Grid columns={responsive('1', ['medium', 'small'])} gap="large">
       <Box>
-        <Box margin={{ bottom: "small" }}>
-          <Text size={responsive("", "xlarge")}>Accept our terms of use to visualize data</Text>
+        <Box margin={{ bottom: 'small' }}>
+          <Text size={responsive('', 'xlarge')}>
+            Accept our terms of use to visualize data
+          </Text>
         </Box>
         <Text>
           Please read and accept our{' '}
           <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
-          <Link label="Privacy Policy" href="/privacy-policy" /> before visualizing
-          the data.
+          <Link label="Privacy Policy" href="/privacy-policy" /> before
+          visualizing the data.
         </Text>
-        {(errors || errors.length) && Object.values(errors).map(keyErrors => keyErrors.map(keyError => (
-          <Text color="error" key="keyError">{keyError}</Text>
-        )))}
+        {(errors || errors.length) &&
+          Object.values(errors).map((keyErrors) =>
+            keyErrors.map((keyError) => (
+              <Text color="error" key="keyError">
+                {keyError}
+              </Text>
+            ))
+          )}
         <DownloadTokenInputs
           acceptsTerms={acceptsTerms}
           email={email}
@@ -81,16 +84,16 @@ export const CellbrowserToken = () => {
           />
         </Box>
       </Box>
-      {size === "large" && (
+      {size === 'large' && (
         <Box>
           <VisualizeSvg
-            style={{ maxWidth: '100%', height: "100%" }}
+            style={{ maxWidth: '100%', height: '100%' }}
             role="img"
             title="A diagram image for How it works"
           />
         </Box>
       )}
-    </Grid >
+    </Grid>
   )
 }
 

@@ -3,7 +3,6 @@ import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useLocalStorage } from 'hooks/useLocalStorage'
 
 export const useCellbrowserIframe = () => {
-
   const { token } = useScPCAPortal()
 
   const [requesting, setRequesting] = useState(false)
@@ -13,25 +12,27 @@ export const useCellbrowserIframe = () => {
   const [isIframeLoaded, setIsIframeLoaded] = useState(false)
   const [isIframeReady, setIsIframeReady] = useState(true)
   // the token to send to the iframe
-  const [clientToken, setClientToken] = useLocalStorage('cellbrowser-client-token')
+  const [clientToken, setClientToken] = useLocalStorage(
+    'cellbrowser-client-token'
+  )
 
   const [hasError, setHasError] = useState(false)
 
   const tokenPayload = {
     token,
-    clientToken,
+    clientToken
   }
 
   // 1. Fetch clientToken
   useEffect(() => {
     // fetch client token
     const fetchClientToken = async () => {
-      const clientTokenResponse = await fetch("/api/cellbrowser/token/", {
-        method: "POST",
+      const clientTokenResponse = await fetch('/api/cellbrowser/token/', {
+        method: 'POST',
         headers: {
           'Content-type': 'application/json',
           'api-key': token
-        },
+        }
       })
 
       if (!clientTokenResponse.ok || clientTokenResponse.status !== 200) {
@@ -46,7 +47,7 @@ export const useCellbrowserIframe = () => {
     }
 
     if (token && !clientToken) {
-      setStatus("Authenticating...")
+      setStatus('Authenticating...')
       fetchClientToken()
     }
     if (!token && clientToken) {
@@ -56,28 +57,28 @@ export const useCellbrowserIframe = () => {
 
   // 2. Listen for iframe ack
   useEffect(() => {
-
     const handleIframeMessage = ({ origin, data }) => {
-
       if (origin !== window.location.origin) return
 
-      if (data.type === "isReady") {
+      if (data.type === 'isReady') {
         setIsIframeReady(true)
       }
     }
 
-    setStatus("Configuring Cellbrowser...")
-    window.addEventListener("message", handleIframeMessage)
-    return () => window.removeEventListener("message", handleIframeMessage)
+    setStatus('Configuring Cellbrowser...')
+    window.addEventListener('message', handleIframeMessage)
+    return () => window.removeEventListener('message', handleIframeMessage)
   }, [])
 
   // 3. Send auth information on load.
   useEffect(() => {
     if (!token || !clientToken || !isIframeLoaded) return
 
-    setStatus("Sending Credentials...")
-    iframeRef.current.contentWindow.postMessage({ type: "token", ...tokenPayload })
-
+    setStatus('Sending Credentials...')
+    iframeRef.current.contentWindow.postMessage({
+      type: 'token',
+      ...tokenPayload
+    })
   }, [token, clientToken, isIframeLoaded])
 
   return {
