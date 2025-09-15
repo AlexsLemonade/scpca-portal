@@ -3467,7 +3467,7 @@ var cellbrowser = function() {
   }
 
   function colorByLocus(locusStr, onDone, locusLabel) {
-    /* colorByGene: color by a gene or peak, load the array into the renderer and call onDone or just redraw 
+    /* colorByGene: color by a gene or peak, load the array into the renderer and call onDone or just redraw
      * peak can be in format: +chr1:1-1000
      * gene can be in format: geneSym or geneSym=geneId
      * */
@@ -3640,7 +3640,7 @@ var cellbrowser = function() {
   }
 
   function setLabelDropdown(fieldName) {
-    /* set the meta 'label by' dropdown to a given value. The value is the meta field name, or its short label, or its index 
+    /* set the meta 'label by' dropdown to a given value. The value is the meta field name, or its short label, or its index
        The special value null means "No Label" */
     var fieldIdx = "none";
     if (fieldName !== null)
@@ -4728,8 +4728,8 @@ var cellbrowser = function() {
   }
 
   function buildGeneTable(htmls, divId, title, subtitle, geneInfos, noteStr, helpText) {
-    /* create gene expression info table. if htmls is null, update DIV with divId in-place. 
-     * geneInfos is array of [gene, mouseover]. gene can be geneId+"|"+symbol. 
+    /* create gene expression info table. if htmls is null, update DIV with divId in-place.
+     * geneInfos is array of [gene, mouseover]. gene can be geneId+"|"+symbol.
      * You must run activateTooltip(".hasTooltip") after adding the htmls.
      * */
     var doUpdate = false;
@@ -6543,7 +6543,7 @@ var cellbrowser = function() {
     yLine.setAttribute("y2", maxY)
     yLine.setAttribute("stroke", "#AAAAAA");
 
-    //let lineEl = document.createElement('line'); 
+    //let lineEl = document.createElement('line');
     //<line x1="0" y1="80" x2="100" y2="20" stroke="black" />
     //lineEl.setAttribute("x1", cx);
     //lineEl.setAttribute("y1", 0);
@@ -6575,7 +6575,7 @@ var cellbrowser = function() {
 
     let colCount = syms.length;
 
-    //                              topPad 
+    //                              topPad
     //
     //                              col label
     //                              height
@@ -6779,7 +6779,7 @@ var cellbrowser = function() {
 
     let rows = exprData.rows;
 
-    // reformat input gene expression "geneData" to an array of gene symbols, an array of meta values, 
+    // reformat input gene expression "geneData" to an array of gene symbols, an array of meta values,
     // an array of cell counts (one per meta value) and
     // an array of [ [zeroPerc0, avg0], [zeroPerc1, avg1], ... ]
     Promise.all(promises).then(function(resArr) {
@@ -7005,11 +7005,11 @@ var cellbrowser = function() {
     $('#tpGeneExprAddMulti').click(onGeneExprAddGenesClick);
 
     /*
-    $('#tpGeneExprFlipType').click( function() { 
+    $('#tpGeneExprFlipType').click( function() {
         let button = $('#tpGeneExprFlipType');
         let chartType = button.attr("data-type");
         window.setTimeout(function() {
-            buildGeneExprPlotsAddGenes(geneSym, metaName, chartType); 
+            buildGeneExprPlotsAddGenes(geneSym, metaName, chartType);
         }, 5);
 
         if (chartType==="violin") {
@@ -7024,7 +7024,7 @@ var cellbrowser = function() {
 
     //getById("tpGeneExprLimitApply").addEventListener("click", function(ev) {
     //changeUrl({"exprMax": getById("tpGeneExprYLimit").value});
-    //buildGeneExprPlotsAddGenes([geneSym], metaName, $("tpGeneExprFlipType").attr("data-type")); 
+    //buildGeneExprPlotsAddGenes([geneSym], metaName, $("tpGeneExprFlipType").attr("data-type"));
     //});
 
     //getById("tpGeneExprYLimitCheck").addEventListener("change", function(ev) {
@@ -9519,7 +9519,7 @@ var cellbrowser = function() {
   }
 
   function changeUrl(vars, doReset) {
-    /* push the variables (object) into the history as the current URL. key=null deletes a variable. 
+    /* push the variables (object) into the history as the current URL. key=null deletes a variable.
      * To remove all current URL vars, call with doReset = True
      * */
 

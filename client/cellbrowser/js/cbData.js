@@ -219,7 +219,7 @@ var cbUtil = (function() {
       if (!dataLen)
         dataLen = new Blob([binData]).size;;
 
-      if (dataLen < expLength - 1) // Yes, the -1 does not make sense. 
+      if (dataLen < expLength - 1) // Yes, the -1 does not make sense.
         // This happens only with https://cells-beta.gi.ucsc.edu/?ds=engraftable-hsc+adt
         // and I have no idea why.
         alert("internal error cbData.js: data received from web server is too short. Expected data size was " + exprLength +
@@ -423,11 +423,11 @@ function CbDbFile(url) {
   self.geneSyns = null; // array of [geneSynonymLowercase, geneId]
 
   // for normal gene mode
-  self.geneOffsets = null; // object with geneId -> [offset in file, data size in bytes] 
+  self.geneOffsets = null; // object with geneId -> [offset in file, data size in bytes]
 
   // for ATAC mode
   self.peakOffsets = null; // object with chrom -> list of [chromStart, chromEnd, offset in file, data size in bytes]
-  self.geneLocs = null // gene locations as chrom -> list of [start, end, strand, geneId|sym (string) ] 
+  self.geneLocs = null // gene locations as chrom -> list of [start, end, strand, geneId|sym (string) ]
   self.geneToTss = null; // object with geneId -> [chrom, chromStart, index into geneLocs[chrom]
 
   self.exprCache = {}; // cached compressed expression arrays
@@ -1451,8 +1451,8 @@ function CbDbFile(url) {
   }
 
   this.indexGenes = function() {
-    /* for the case of normal gene mode, not ATAC-mode: split geneId from symbol to allow fast lookups of the symbols 
-     * changes self.geneOffsets from geneId|symbol -> [start, end] to geneId -> [start, end, symbol] 
+    /* for the case of normal gene mode, not ATAC-mode: split geneId from symbol to allow fast lookups of the symbols
+     * changes self.geneOffsets from geneId|symbol -> [start, end] to geneId -> [start, end, symbol]
      * (allows us to use the geneId everywhere instead of a new geneNumber)
      * Creates self.geneSyns as array of [synonym, geneId]  - for searching, allows 1:many relationships */
     var newIdx = {};
@@ -1492,7 +1492,7 @@ function CbDbFile(url) {
   }
 
   this.findGenes = function(searchStr) {
-    /* searches self.geneSyns. 
+    /* searches self.geneSyns.
      * for which the name start with searchStr (case-ins.) or end with searchStr .
      * returns an array of objects with .id and .sym.
      * There is a version using this for ATAC mode, see findGenesAtac()
@@ -1506,7 +1506,7 @@ function CbDbFile(url) {
   };
 
   this.findGenesExact = function(geneSym) {
-    /* search the geneSyns (arr of [syn, geneId]) for matches. Return arr of geneIds 
+    /* search the geneSyns (arr of [syn, geneId]) for matches. Return arr of geneIds
      * Used to resolve symbol to geneId (symToGene)*/
     geneSym = geneSym.toLowerCase();
     var geneSyns = self.geneSyns;
@@ -1555,7 +1555,7 @@ function CbDbFile(url) {
 
   this.indexGenesAtac = function() {
     /* like indexGenes(), but for ATAC mode.
-     * db.geneLocs has the genes as chrom -> list of [start, end, strand, geneId|sym ( as string ) ] 
+     * db.geneLocs has the genes as chrom -> list of [start, end, strand, geneId|sym ( as string ) ]
      * where geneName can be geneId|sym or just sym.
      * create self.geneToTss geneId -> [chrom, tssStart, geneIdx] for TSS lookups
      * and self.geneSyns = [ [geneSyn, geneId], ... ] for quick search (syn is a symbol or id)
