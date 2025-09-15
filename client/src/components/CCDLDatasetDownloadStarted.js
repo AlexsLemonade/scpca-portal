@@ -59,7 +59,7 @@ export const CCDLDatasetDownloadStarted = ({ dataset }) => {
           )}
           <Box margin={{ top: 'small', bottom: 'small' }}>
             <Text weight="bold">
-              Size: {formatBytes(dataset.size_in_bytes)}
+              Size: {formatBytes(dataset?.computed_file?.size_in_bytes)}
             </Text>
           </Box>
           <Paragraph margin={{ bottom: 'small' }}>

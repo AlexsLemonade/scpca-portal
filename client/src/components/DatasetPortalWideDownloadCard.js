@@ -23,17 +23,16 @@ export const DatasetPortalWideDownloadCard = ({
 
   const [includesMerged, setIncludesMerged] = useState(false)
   const [dataset, setDataset] = useState(
-    // TODO: improve merged check when file items is added to the backend (see below comment)
-    datasets.find((d) => !d.ccdl_name.endsWith('MERGED'))
+    datasets.find((d) => !d.includes_files_merged)
   )
 
   useEffect(() => {
     setDataset(
       datasets.find((d) => {
         if (includesMerged) {
-          return d.ccdl_name.endsWith('MERGED')
+          return d.includes_files_merged
         }
-        return !d.ccdl_name.endsWith('MERGED')
+        return !d.includes_files_merged
       })
     )
   }, [datasets, includesMerged])
