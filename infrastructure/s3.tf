@@ -172,4 +172,5 @@ resource "aws_s3_bucket_cors_configuration" "scpca_portal_cellbrowser_cors_confi
     allowed_origins = ["*"]
     expose_headers = []
     max_age_seconds = 3000
+  }
 }
