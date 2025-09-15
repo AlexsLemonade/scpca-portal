@@ -1,8 +1,8 @@
 import React from 'react'
+import { Box, Text, Stack } from 'grommet'
 import { useCellbrowserIframe } from 'hooks/useCellbrowserIframe'
 import styled from 'styled-components'
-import { Box, Text, Stack } from 'grommet'
-import { Loader } from './Loader'
+import { Loader } from 'components/Loader'
 
 const Iframe = styled.iframe`
   padding: 35px 0 0 0;
