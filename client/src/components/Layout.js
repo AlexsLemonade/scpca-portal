@@ -42,7 +42,7 @@ export const Layout = ({ children }) => {
   const showDonate = donatePaths.includes(router.pathname)
 
   // homepage is full width
-  const widePaths = ['/', '/about']
+  const widePaths = ['/', '/about', '/visualize']
   const showWide = widePaths.includes(router.pathname)
 
   // exclude the contribue banner on the following pages
