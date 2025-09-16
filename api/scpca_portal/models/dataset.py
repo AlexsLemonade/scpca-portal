@@ -69,6 +69,7 @@ class Dataset(TimestampedModel):
     includes_files_merged = models.BooleanField(default=False)
     includes_files_multiplexed = models.BooleanField(default=False)
     estimated_size_in_bytes = models.BigIntegerField(default=0)
+    total_sample_count = models.BigIntegerField(default=0)
     diagnoses_summary = models.JSONField(default=dict)
     files_summary = models.JSONField(default=list)  # expects a list of dicts
     project_diagnoses = models.JSONField(default=dict)
@@ -139,6 +140,7 @@ class Dataset(TimestampedModel):
 
         # stats property attributes
         self.estimated_size_in_bytes = self.get_estimated_size_in_bytes()
+        self.total_sample_count = self.get_total_sample_count()
         self.diagnoses_summary = self.get_diagnoses_summary()
         self.files_summary = self.get_files_summary()
         self.project_diagnoses = self.get_project_diagnoses()
@@ -284,6 +286,18 @@ class Dataset(TimestampedModel):
         readme_file_size = sys.getsizeof(self.readme_file_contents)
 
         return original_files_size + metadata_file_size + readme_file_size
+
+    def get_total_sample_count(self) -> int:
+        """
+        Returns the total number of unique samples in data attribute across all project modalities.
+        """
+        all_samples = (
+            self.get_selected_samples([Modalities.SINGLE_CELL, Modalities.SPATIAL])
+            .distinct()
+            .values_list("scpca_id", flat=True)
+        )
+
+        return all_samples.count()
 
     def get_diagnoses_summary(self) -> dict:
         """
@@ -686,19 +700,6 @@ class Dataset(TimestampedModel):
             has_multiplexed_data=True
         )
         return Project.objects.filter(samples__in=multiplexed_samples).distinct()
-
-    @property
-    def total_sample_count(self) -> int:
-        """
-        Returns the total number of unique samples in data attribute across all project modalities.
-        """
-        all_samples = (
-            self.get_selected_samples([Modalities.SINGLE_CELL, Modalities.SPATIAL])
-            .distinct()
-            .values_list("scpca_id", flat=True)
-        )
-
-        return all_samples.count()
 
     def contains_project_ids(self, project_ids: Set[str]) -> bool:
         """Returns whether or not the dataset contains samples in any of the passed projects."""
