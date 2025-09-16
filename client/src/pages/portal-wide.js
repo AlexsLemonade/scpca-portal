@@ -69,7 +69,7 @@ const PortalWideDownloads = ({ datasets }) => {
             <Box>
               <DatasetPortalWideDownloadCard
                 title="Sample Metadata Download"
-                modality={null}
+                ccdlModality={null}
                 datasets={metadataDatasets}
                 metadataOnly
               />
@@ -99,21 +99,21 @@ const PortalWideDownloads = ({ datasets }) => {
             <Box pad={{ bottom: 'xlarge' }}>
               <DatasetPortalWideDownloadCard
                 title="SingleCellExperiment (R) Download"
-                modality="SINGLE_CELL"
+                ccdlModality="SINGLE_CELL"
                 datasets={singleCellExperimentDatasets}
               />
             </Box>
             <Box pad={{ bottom: 'xlarge' }}>
               <DatasetPortalWideDownloadCard
                 title="AnnData (Python) Download"
-                modality="SINGLE_CELL"
+                ccdlModality="SINGLE_CELL"
                 datasets={anndataDatasets}
               />
             </Box>
             <Box pad={{ bottom: 'xlarge' }}>
               <DatasetPortalWideDownloadCard
                 title="Spatial Download"
-                modality="SPATIAL"
+                ccdlModality="SPATIAL"
                 datasets={spatialDatasets}
               />
             </Box>

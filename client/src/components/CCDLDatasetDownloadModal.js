@@ -9,7 +9,7 @@ import { useCCDLDatasetDownloadModal } from 'hooks/useCCDLDatasetDownloadModal'
 
 export const CCDLDatasetDownloadModal = ({
   label,
-  initialDatasets,
+  initialDatasets = [],
   disabled = false
 }) => {
   const {
@@ -23,7 +23,7 @@ export const CCDLDatasetDownloadModal = ({
     isTokenReady,
     isOptionsReady
   } = useCCDLDatasetDownloadModal(initialDatasets)
-  const isDisabled = disabled || !initialDatasets
+  const isDisabled = disabled || initialDatasets.length === 0
 
   const handleClick = () => {
     setShowing(true)

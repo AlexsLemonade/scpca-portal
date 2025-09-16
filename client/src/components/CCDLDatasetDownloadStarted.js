@@ -38,7 +38,12 @@ export const CCDLDatasetDownloadStarted = ({ dataset }) => {
             </Box>
           )}
           <Paragraph>The download consists of the following items:</Paragraph>
-          <DatasetFileItems dataset={dataset} />
+          <DatasetFileItems
+            isMetadataDownload={dataset?.format === 'METADATA'}
+            ccdlModality={dataset?.ccdl_modality}
+            includesFilesCiteSeq={dataset?.includes_files_cite_seq}
+            includesFilesBulk={dataset?.includes_files_bulk}
+          />
           {dataset.includes_files_merged && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
               <Text>Samples are merged into 1 object per project</Text>

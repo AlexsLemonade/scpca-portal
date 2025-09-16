@@ -19,6 +19,7 @@ const CCDLDatasetCopyLinkButton = dynamic(
 
 export const DatasetPortalWideDownloadCard = ({
   title,
+  ccdlModality,
   datasets = [],
   metadataOnly = false
 }) => {
@@ -26,12 +27,17 @@ export const DatasetPortalWideDownloadCard = ({
 
   const [includesMerged, setIncludesMerged] = useState(false)
   const [dataset, setDataset] = useState(
-    datasets.find((d) => !d.includes_files_merged)
+    datasets?.find((d) => !d.includes_files_merged)
   )
+
+  const modalityIncludesFilesBulk = ['SINGLE_CELL', 'SPATIAL'].includes(
+    ccdlModality
+  )
+  const modalityIncludesFilesCiteSeq = ccdlModality === 'SINGLE_CELL'
 
   useEffect(() => {
     setDataset(
-      datasets.find((d) => {
+      datasets?.find((d) => {
         if (includesMerged) {
           return d.includes_files_merged
         }
@@ -53,8 +59,13 @@ export const DatasetPortalWideDownloadCard = ({
       </Box>
       <Box justify="between" height="100%">
         <>
-          <DatasetFileItems dataset={dataset} />
-          {datasets.length > 1 && (
+          <DatasetFileItems
+            ccdlModality={ccdlModality}
+            isMetadataDownload={metadataOnly}
+            includesFilesBulk={modalityIncludesFilesBulk}
+            includesFilesCiteSeq={modalityIncludesFilesCiteSeq}
+          />
+          {datasets?.length > 1 && (
             <Box direction="row" margin={{ bottom: '24px' }}>
               <CheckBox
                 label="Merge samples into one object per project"
@@ -75,7 +86,10 @@ export const DatasetPortalWideDownloadCard = ({
           <Box direction="column">
             {!metadataOnly && (
               <Text margin={{ bottom: 'small' }} weight="bold">
-                Size: {formatBytes(dataset?.computed_file?.size_in_bytes)}
+                Size:{' '}
+                {dataset
+                  ? formatBytes(dataset?.computed_file?.size_in_bytes)
+                  : 'N/A'}
               </Text>
             )}
             <Box
@@ -85,7 +99,7 @@ export const DatasetPortalWideDownloadCard = ({
             >
               <CCDLDatasetDownloadModal
                 label="Download"
-                initialDatasets={[dataset]}
+                initialDatasets={dataset ? [dataset] : []}
               />
               {!metadataOnly && <CCDLDatasetCopyLinkButton dataset={dataset} />}
             </Box>
