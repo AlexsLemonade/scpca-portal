@@ -45,8 +45,10 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
 
   const [tokenModalShowing, setTokenModalShowing] = useState(false)
 
+  const isDisabled = !dataset
+
   const onClick = () => {
-    setWantsLink(true)
+    if (!isDisabled) setWantsLink(true)
   }
 
   useEffect(() => {
