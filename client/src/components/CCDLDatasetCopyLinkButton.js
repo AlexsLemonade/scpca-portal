@@ -43,37 +43,46 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
   const [, copyText] = useCopyToClipboard()
   const { token } = useScPCAPortal()
 
-  const [showing, setShowing] = useState(false)
+  const [tokenModalShowing, setTokenModalShowing] = useState(false)
 
-  const onClick = async () => {
+  const onClick = () => {
     setWantsLink(true)
-    if (!token) setShowing(true)
   }
 
   useEffect(() => {
     setState(states.unclicked)
     setDownloadLink(null)
+    setWantsLink(false)
   }, [dataset])
 
   useEffect(() => {
-    const asyncFetchAndCopy = async () => {
-      let link = downloadLink
-      if (!downloadLink) {
-        const downloadRequest = await api.ccdlDatasets.get(dataset.id, token)
-        if (downloadRequest.isOk) {
-          link = downloadRequest.response.download_url
-          setDownloadLink(link)
-        }
+    if (wantsLink && !token) setTokenModalShowing(true)
+  }, [wantsLink, token])
+
+  useEffect(() => {
+    const asyncFetch = async () => {
+      const downloadRequest = await api.ccdlDatasets.get(dataset.id, token)
+      if (downloadRequest.isOk) {
+        setDownloadLink(downloadRequest.response.download_url)
       }
-      await copyText(link)
+    }
+
+    if (!downloadLink && wantsLink && token) {
+      asyncFetch()
+    }
+  }, [downloadLink, wantsLink, token])
+
+  useEffect(() => {
+    const asyncCopy = async () => {
+      await copyText(downloadLink)
       setState(states.clicked)
     }
 
-    if (wantsLink && token) {
-      asyncFetchAndCopy()
+    if (downloadLink && wantsLink) {
+      asyncCopy()
       setWantsLink(false)
     }
-  }, [wantsLink, token])
+  }, [downloadLink, wantsLink])
 
   return (
     <>
@@ -84,8 +93,8 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
       {!token && (
         <TokenModal
           dataset={dataset}
-          showing={showing}
-          setShowing={setShowing}
+          showing={tokenModalShowing}
+          setShowing={setTokenModalShowing}
         />
       )}
     </>
