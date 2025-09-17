@@ -1,11 +1,18 @@
 import { config } from 'config'
 
 export const portalWideDatasets = {
+  GENERIC: {
+    learnMore: {
+      label: 'here',
+      text: 'Please learn more about the portal-wide downloads here.',
+      url: config.links.whatPortalWide
+    }
+  },
   ALL_METADATA: {
     modalTitle: 'Portal-wide Sample Metadata',
     learnMore: {
       label: 'here',
-      text: 'Learn more about what you can expect in your download file',
+      text: 'Learn more about what you can expect in your download file.',
       url: config.links.whatDownloadingPortalWideMetadata
     }
   },
@@ -13,7 +20,7 @@ export const portalWideDatasets = {
     modalTitle: 'Portal-wide Data as SingleCellExperiment (R)',
     learnMore: {
       label: 'here',
-      text: 'Learn more about what you can expect in your download file',
+      text: 'Learn more about what you can expect in your download file.',
       url: config.links.whatDownloadingPortalWide
     }
   },
@@ -21,7 +28,7 @@ export const portalWideDatasets = {
     modalTitle: 'Portal-wide Data as SingleCellExperiment (R)',
     learnMore: {
       label: 'here',
-      text: 'Learn more about what you can expect in your download file',
+      text: 'Learn more about what you can expect in your download file.',
       url: config.links.whatDownloadingPortalWide
     }
   },
@@ -29,7 +36,7 @@ export const portalWideDatasets = {
     modalTitle: 'Portal-wide Data as AnnData (Python)',
     learnMore: {
       label: 'here',
-      text: 'Learn more about what you can expect in your download file',
+      text: 'Learn more about what you can expect in your download file.',
       url: config.links.whatDownloadingPortalWide
     }
   },
@@ -37,7 +44,7 @@ export const portalWideDatasets = {
     modalTitle: 'Portal-wide Data as AnnData (Python)',
     learnMore: {
       label: 'here',
-      text: 'Learn more about what you can expect in your download file',
+      text: 'Learn more about what you can expect in your download file.',
       url: config.links.whatDownloadingPortalWide
     }
   },
@@ -45,7 +52,7 @@ export const portalWideDatasets = {
     modalTitle: 'Portal-wide Spatial Data',
     learnMore: {
       label: 'here',
-      text: 'Learn more about what you can expect in your download file',
+      text: 'Learn more about what you can expect in your download file.',
       url: config.links.whatDownloadingPortalWideSpatial
     }
   }

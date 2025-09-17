@@ -18,6 +18,7 @@ export const config = {
       'https://scpca.readthedocs.io/en/stable/download_files.html#spatial-transcriptomics-libraries',
     what_downloading_multiplexed:
       'https://scpca.readthedocs.io/en/stable/download_files.html#multiplexed-sample-libraries',
+    whatPortalWide: '',
     whatDownloadingPortalWide: '',
     whatDownloadingPortalWideSpatial: '',
     whatDownloadingPortalWideMetadata: '',

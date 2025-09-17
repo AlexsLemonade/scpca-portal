@@ -27,8 +27,6 @@ const PortalWideDownloads = ({ datasets }) => {
   )
 
   const { responsive } = useResponsive()
-  const portalWideDataset =
-    portalWideDatasets.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
 
   return (
     <>
@@ -59,8 +57,8 @@ const PortalWideDownloads = ({ datasets }) => {
               Data from the projects in the ScPCA portal is packaged together
               for your convenience.{' '}
               <Anchor
-                label={portalWideDataset.learnMore.text}
-                href={portalWideDataset.learnMore.link}
+                label={portalWideDatasets.GENERIC.learnMore.text}
+                href={portalWideDatasets.GENERIC.learnMore.link}
               />
             </Text>
           </Box>
