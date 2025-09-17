@@ -1,4 +1,6 @@
 import React from 'react'
+import { config } from 'config'
+import { portalWideDatasets } from 'config/ccdlDatasets'
 import { useResponsive } from 'hooks/useResponsive'
 import { Box, Grid, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
@@ -12,6 +14,7 @@ import DownloadSVG from '../images/download-folder.svg'
 export const CCDLDatasetDownloadStarted = ({ dataset }) => {
   // open the file in a new tab
   const { size: responsiveSize } = useResponsive()
+  const portalWideDataset = portalWideDatasets[dataset?.ccdl_name]
 
   return (
     <>
@@ -52,8 +55,12 @@ export const CCDLDatasetDownloadStarted = ({ dataset }) => {
             </Box>
           )}
           <Paragraph margin={{ bottom: 'small' }}>
-            Learn more about what you can expect in your download file{' '}
-            <Link label="here" href=" " />.
+            {portalWideDataset.learnMore.text}{' '}
+            <Link
+              label={portalWideDataset.learnMore.label}
+              href={portalWideDataset.learnMore.url}
+            />
+            .
           </Paragraph>
           <Box>
             {responsiveSize !== 'small' && (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
-import { portalWideDatasets } from 'config/ccdlDatasetDownloadModal'
+import { portalWideDatasets } from 'config/ccdlDatasets'
 
 export const useCCDLDatasetDownloadModal = (initialDatasets) => {
   const [showing, setShowing] = useState(false)
@@ -17,7 +17,7 @@ export const useCCDLDatasetDownloadModal = (initialDatasets) => {
 
   const modalTitleAction = isDownloadReady ? 'Downloading' : 'Download'
   const modalTitleDataset =
-    portalWideDatasets[selectedDataset?.ccdl_name]?.title
+    portalWideDatasets[selectedDataset?.ccdl_name]?.modalTitle
   const modalTitleResource = datasets[0]?.ccdl_project_id
     ? 'Project'
     : modalTitleDataset

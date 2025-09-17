@@ -9,11 +9,11 @@ import { HelpLink } from 'components/HelpLink'
 import { Modal, ModalBody } from 'components/Modal'
 import { Icon } from 'components/Icon'
 import { CCDLDatasetDownloadToken } from 'components/CCDLDatasetDownloadToken'
-import { portalWideDatasets } from 'config/ccdlDatasetDownloadModal'
+import { portalWideDatasets } from 'config/ccdlDatasets'
 
 const TokenModal = ({ dataset, showing, setShowing }) => {
   const modalTitle = `Copy Download Link for ${
-    portalWideDatasets[dataset.ccdl_name]?.title
+    portalWideDatasets[dataset.ccdl_name]?.modalTitle
   }`
   return (
     <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
