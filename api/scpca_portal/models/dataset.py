@@ -664,6 +664,10 @@ class Dataset(TimestampedModel):
         Returns all project instances associated with the dataset
         which have cite seq data.
         """
+        # Spatial CCDL Datasets don't have cite seq data
+        if self.is_ccdl and self.ccdl_modality == Modalities.SPATIAL:
+            return Project.objects.none()
+
         return self.projects.filter(has_cite_seq_data=True)
 
     @property

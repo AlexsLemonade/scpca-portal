@@ -43,7 +43,7 @@ class CCDLDatasetSerializer(serializers.Serializer):
     is_terminated = serializers.BooleanField(read_only=True)
     terminated_reason = serializers.CharField(read_only=True, allow_null=True)
 
-    computed_file = serializers.PrimaryKeyRelatedField(read_only=True)
+    computed_file = ComputedFileSerializer(read_only=True, many=False)
 
     # Rename the "_data attr" to "data" for output json
     def to_representation(self, instance):
@@ -56,8 +56,6 @@ class CCDLDatasetSerializer(serializers.Serializer):
 
 class CCDLDatasetDetailSerializer(CCDLDatasetSerializer):
     download_url = serializers.SerializerMethodField(read_only=True)
-
-    computed_file = ComputedFileSerializer(read_only=True, many=False)
 
     def get_download_url(self, obj):
         dataset = Dataset.objects.filter(pk=obj.pk).first()
