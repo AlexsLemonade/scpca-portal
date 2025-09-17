@@ -1,5 +1,4 @@
 import React from 'react'
-import { config } from 'config'
 import { portalWideDatasets } from 'config/ccdlDatasets'
 import { useResponsive } from 'hooks/useResponsive'
 import { Box, Grid, Paragraph, Text } from 'grommet'
