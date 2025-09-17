@@ -42,6 +42,7 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
 
   const [, copyText] = useCopyToClipboard()
   const { token } = useScPCAPortal()
+  const needsToken = !token
 
   const [tokenModalShowing, setTokenModalShowing] = useState(false)
 
@@ -96,7 +97,7 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
         <Button plain label={state.label} icon={state.icon} onClick={onClick} />
         <HelpLink link={config.links.what_copy_link} />
       </Box>
-      {!token && (
+      {needsToken && (
         <TokenModal
           dataset={dataset}
           showing={tokenModalShowing}

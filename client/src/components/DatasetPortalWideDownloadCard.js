@@ -76,7 +76,7 @@ export const DatasetPortalWideDownloadCard = ({
             {!metadataOnly && (
               <Text margin={{ bottom: 'small' }} weight="bold">
                 Size:{' '}
-                {dataset
+                {dataset?.computed_file
                   ? formatBytes(dataset?.computed_file?.size_in_bytes)
                   : 'N/A'}
               </Text>
