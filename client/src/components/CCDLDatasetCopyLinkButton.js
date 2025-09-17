@@ -45,7 +45,7 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
 
   const [tokenModalShowing, setTokenModalShowing] = useState(false)
 
-  const isDisabled = !dataset
+  const isDisabled = !dataset?.computed_file
 
   const onClick = () => {
     if (!isDisabled) setWantsLink(true)

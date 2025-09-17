@@ -19,7 +19,6 @@ const CCDLDatasetCopyLinkButton = dynamic(
 
 export const DatasetPortalWideDownloadCard = ({
   title,
-  ccdlModality,
   datasets = [],
   metadataOnly = false
 }) => {
@@ -29,11 +28,6 @@ export const DatasetPortalWideDownloadCard = ({
   const [dataset, setDataset] = useState(
     datasets?.find((d) => !d.includes_files_merged)
   )
-
-  const modalityIncludesFilesBulk = ['SINGLE_CELL', 'SPATIAL'].includes(
-    ccdlModality
-  )
-  const modalityIncludesFilesCiteSeq = ccdlModality === 'SINGLE_CELL'
 
   useEffect(() => {
     setDataset(
@@ -59,12 +53,7 @@ export const DatasetPortalWideDownloadCard = ({
       </Box>
       <Box justify="between" height="100%">
         <>
-          <DatasetFileItems
-            ccdlModality={ccdlModality}
-            isMetadataDownload={metadataOnly}
-            includesFilesBulk={modalityIncludesFilesBulk}
-            includesFilesCiteSeq={modalityIncludesFilesCiteSeq}
-          />
+          <DatasetFileItems dataset={dataset} />
           {datasets?.length > 1 && (
             <Box direction="row" margin={{ bottom: '24px' }}>
               <CheckBox

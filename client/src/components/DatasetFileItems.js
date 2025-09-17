@@ -8,12 +8,7 @@ const Li = ({ children }) => (
   </Box>
 )
 
-export const DatasetFileItems = ({
-  ccdlModality,
-  isMetadataDownload,
-  includesFilesBulk,
-  includesFilesCiteSeq
-}) => {
+export const DatasetFileItems = ({ dataset }) => {
   return (
     <Box
       as="ul"
@@ -21,13 +16,13 @@ export const DatasetFileItems = ({
       pad={{ left: 'large' }}
       style={{ listStyle: 'disc' }}
     >
-      {isMetadataDownload ? (
+      {dataset?.format === 'METADATA' ? (
         <Li>Sample metadata from all projects</Li>
       ) : (
         <>
-          <Li>{getReadableFiles(ccdlModality)}</Li>
-          {includesFilesCiteSeq && <Li>CITE-seq data</Li>}
-          {includesFilesBulk && <Li>Bulk RNA-Seq data</Li>}
+          <Li>{getReadableFiles(dataset?.ccdl_modality)}</Li>
+          {dataset?.includes_files_cite_seq && <Li>CITE-seq data</Li>}
+          {dataset?.includes_files_bulk && <Li>Bulk RNA-Seq data</Li>}
           <Li>Project and Sample Metadata</Li>
         </>
       )}
