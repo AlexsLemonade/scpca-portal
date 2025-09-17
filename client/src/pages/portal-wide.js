@@ -1,4 +1,5 @@
 import React from 'react'
+import { portalWideDatasets } from 'config/ccdlDatasets'
 import { Anchor, Box, Text } from 'grommet'
 import { api } from 'api'
 import { HeroBandPortalWide } from 'components/Band'
@@ -26,6 +27,8 @@ const PortalWideDownloads = ({ datasets }) => {
   )
 
   const { responsive } = useResponsive()
+  const portalWideDataset =
+    portalWideDatasets.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
 
   return (
     <>
@@ -54,10 +57,10 @@ const PortalWideDownloads = ({ datasets }) => {
           <Box pad={{ top: 'large' }}>
             <Text size="medium" margin={{ top: 'small' }}>
               Data from the projects in the ScPCA portal is packaged together
-              for your convenience.
+              for your convenience.{' '}
               <Anchor
-                label=" Please learn more about the portal-wide downloads here."
-                href="#"
+                label={portalWideDataset.learnMore.text}
+                href={portalWideDataset.learnMore.link}
               />
             </Text>
           </Box>
