@@ -52,7 +52,7 @@ const PortalWideDownloads = ({ datasets }) => {
           pad={{ left: 'medium' }}
           margin={{ top: 'none' }}
         >
-          <Box pad={{ top: 'large' }}>
+          <Box>
             <Text size="medium" margin={{ top: 'small' }}>
               Data from the projects in the ScPCA portal is packaged together
               for your convenience.{' '}
