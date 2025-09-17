@@ -17,7 +17,23 @@ export const portalWideDatasets = {
       url: config.links.whatDownloadingPortalWide
     }
   },
+  SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: {
+    modalTitle: 'Portal-wide Data as SingleCellExperiment (R)',
+    learnMore: {
+      label: 'here',
+      text: 'Learn more about what you can expect in your download file',
+      url: config.links.whatDownloadingPortalWide
+    }
+  },
   SINGLE_CELL_ANN_DATA: {
+    modalTitle: 'Portal-wide Data as AnnData (Python)',
+    learnMore: {
+      label: 'here',
+      text: 'Learn more about what you can expect in your download file',
+      url: config.links.whatDownloadingPortalWide
+    }
+  },
+  SINGLE_CELL_ANN_DATA_MERGED: {
     modalTitle: 'Portal-wide Data as AnnData (Python)',
     learnMore: {
       label: 'here',
