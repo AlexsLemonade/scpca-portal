@@ -18,6 +18,9 @@ export const config = {
       'https://scpca.readthedocs.io/en/stable/download_files.html#spatial-transcriptomics-libraries',
     what_downloading_multiplexed:
       'https://scpca.readthedocs.io/en/stable/download_files.html#multiplexed-sample-libraries',
+    whatDownloadingPortalWide: '',
+    whatDownloadingPortalWideSpatial: '',
+    whatDownloadingPortalWideMetadata: '',
     what_est_demux_cell:
       'https://scpca.readthedocs.io/en/stable/faq.html#what-are-estimated-demux-cell-counts',
     what_review_dataset: 'https://example.com',
