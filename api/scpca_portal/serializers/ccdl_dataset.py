@@ -55,7 +55,12 @@ class CCDLDatasetSerializer(serializers.Serializer):
 
 
 class CCDLDatasetDetailSerializer(CCDLDatasetSerializer):
+    download_filename = serializers.SerializerMethodField(read_only=True)
     download_url = serializers.SerializerMethodField(read_only=True)
+
+    def get_download_filename(self, obj):
+        dataset = Dataset.objects.filter(pk=obj.pk).first()
+        return dataset.download_filename
 
     def get_download_url(self, obj):
         dataset = Dataset.objects.filter(pk=obj.pk).first()
@@ -67,4 +72,5 @@ class CCDLDatasetDetailSerializer(CCDLDatasetSerializer):
             # Only include the field `download_url` if a valid token is specified.
             # The token lookup happens in the view.
             if "token" not in kwargs["context"]:
+                self.fields.pop("download_filename")
                 self.fields.pop("download_url")
