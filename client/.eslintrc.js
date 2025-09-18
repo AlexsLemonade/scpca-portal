@@ -1,6 +1,7 @@
 const path = require('path')
 
 module.exports = {
+  ignorePatterns: ["cellbrowser/"],
   parser: '@babel/eslint-parser',
   parserOptions: {
     ecmaVersion: 6,
