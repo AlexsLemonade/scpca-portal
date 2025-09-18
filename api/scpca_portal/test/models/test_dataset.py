@@ -379,6 +379,40 @@ class TestDataset(TestCase):
 
         self.assertEqual(dataset.get_estimated_size_in_bytes(), expected_file_size)
 
+    def test_get_total_sample_count(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999990",
+                    "SCPCS999991",
+                    "SCPCS999994",
+                    "SCPCS999997",
+                ],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        expected_count = 9
+        actual_count = dataset.get_total_sample_count()
+
+        self.assertEqual(actual_count, expected_count)
+
     def test_contains_project_ids(self):
         dataset = Dataset(
             data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
