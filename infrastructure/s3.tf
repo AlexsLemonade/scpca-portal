@@ -156,3 +156,15 @@ resource "aws_s3_bucket_public_access_block" "scpca_portal_cellbrowser_bucket" {
   ignore_public_acls      = true
   restrict_public_buckets = false
 }
+
+resource "aws_s3_bucket_cors_configuration" "scpca_portal_cellbrowser_cors_configuration" {
+  bucket = aws_s3_bucket.scpca_portal_cellbrowser_bucket.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "HEAD"]
+    allowed_origins = ["*"]
+    expose_headers = []
+    max_age_seconds = 3000
+  }
+}

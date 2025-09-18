@@ -4,7 +4,7 @@ from rest_framework.exceptions import PermissionDenied
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from scpca_portal.models import APIToken, Dataset
-from scpca_portal.serializers import DatasetDetailSerializer, DatasetSerializer
+from scpca_portal.serializers import CCDLDatasetDetailSerializer, CCDLDatasetSerializer
 
 
 @extend_schema_view(
@@ -34,9 +34,9 @@ class CCDLDatasetViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         if self.action == "list":
-            return DatasetSerializer
+            return CCDLDatasetSerializer
 
-        return DatasetDetailSerializer
+        return CCDLDatasetDetailSerializer
 
     def get_serializer_context(self):
         """
