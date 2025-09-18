@@ -25,20 +25,13 @@ export const CCDLDatasetDownloadStarted = ({ dataset }) => {
       >
         <Box>
           <Paragraph>Your download should have started.</Paragraph>
-          {dataset.format === 'METADATA' ? (
-            <Box margin={{ top: 'small', bottom: 'small' }}>
-              <Text>
-                This download contains all of the sample metadata from every
-                project in ScPCA Portal.
-              </Text>
-            </Box>
-          ) : (
-            <Box margin={{ top: 'small', bottom: 'small' }}>
+          <Box margin={{ top: 'small', bottom: 'small' }}>
+            {dataset.format !== 'METADATA' && (
               <Text weight="bold">
                 Data Format: {getReadable(dataset.format)}
               </Text>
-            </Box>
-          )}
+            )}
+          </Box>
           <Paragraph>The download consists of the following items:</Paragraph>
           <DatasetFileItems dataset={dataset} />
           {dataset.includes_files_merged && (
