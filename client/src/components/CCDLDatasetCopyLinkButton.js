@@ -9,12 +9,10 @@ import { HelpLink } from 'components/HelpLink'
 import { Modal, ModalBody } from 'components/Modal'
 import { Icon } from 'components/Icon'
 import { CCDLDatasetDownloadToken } from 'components/CCDLDatasetDownloadToken'
-import { portalWideDatasets } from 'config/ccdlDatasets'
 
-const TokenModal = ({ dataset, showing, setShowing }) => {
-  const modalTitle = `Copy Download Link for ${
-    portalWideDatasets[dataset.ccdl_name]?.modalTitle
-  }`
+const TokenModal = ({ showing, setShowing }) => {
+  const modalTitle = 'Accept terms of service'
+
   return (
     <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
       <ModalBody>
@@ -99,7 +97,6 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
       </Box>
       {needsToken && (
         <TokenModal
-          dataset={dataset}
           showing={tokenModalShowing}
           setShowing={setTokenModalShowing}
         />
