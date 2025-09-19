@@ -39,7 +39,7 @@ const Dataset = ({ dataset }) => {
           .sort()
           .map((pId) => (
             <Box margin={{ bottom: 'large' }} key={pId}>
-              <DatasetProjectCard dataset={dataset} projectId={pId} />
+              <DatasetProjectCard dataset={dataset} projectId={pId} readOnly />
             </Box>
           ))}
       </Box>

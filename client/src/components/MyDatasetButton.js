@@ -19,7 +19,7 @@ const YellowButton = styled(Button)`
 
 export const MyDatasetButton = () => {
   const { myDataset, getDataset } = useMyDataset()
-  const count = myDataset.total_sample_count || 0
+  const { total_sample_count: count = 0 } = myDataset
 
   const [loading, setLoading] = useState(true)
 

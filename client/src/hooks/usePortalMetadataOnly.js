@@ -12,8 +12,11 @@ export const usePortalMetadataOnly = () => {
       const resourceRequest = await api.computedFiles.list({
         portal_metadata_only: true
       })
-      const { results } = resourceRequest.response
-      setPortalMetadataComputedFiles(results)
+
+      if (resourceRequest.isOk) {
+        const { results } = resourceRequest.response
+        setPortalMetadataComputedFiles(results)
+      }
     }
 
     getPortalMetadata()
