@@ -9,7 +9,7 @@ export const DatasetProjectModalityOptions = ({
   modalities,
   onModalitiesChange
 }) => {
-  const { myDataset, datasetProjectOptions } = useMyDataset()
+  const { myDataset, getUserProjectDownloadOptions } = useMyDataset()
 
   const [isTouched, setIsTouched] = useState(false)
 
@@ -22,6 +22,7 @@ export const DatasetProjectModalityOptions = ({
     .map(({ key }) => ({
       label: getReadable([key]),
       value: key,
+      // TODO: Remove this once BE API is updated
       // Disable the SPATIAL checkbox for ANN_DATA
       disabled: key === 'SPATIAL' && isAnnData
     }))
@@ -29,7 +30,7 @@ export const DatasetProjectModalityOptions = ({
   // Preselect modalities based on the most recently added project
   useEffect(() => {
     if (!isTouched) {
-      const savedModalities = datasetProjectOptions.modalities
+      const savedModalities = getUserProjectDownloadOptions().modalities
 
       if (savedModalities.length > 0) {
         const updatedModalities = savedModalities.filter((m) =>
@@ -39,7 +40,7 @@ export const DatasetProjectModalityOptions = ({
       }
       setIsTouched(true)
     }
-  }, [isTouched, datasetProjectOptions, modalityOptions])
+  }, [isTouched, modalityOptions])
 
   // TODO: Remove this block once BE API is updated
   // Deselect and disable the SPATIAL checkbox if ANN_DATA is selected
