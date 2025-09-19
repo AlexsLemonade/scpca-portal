@@ -35,7 +35,7 @@ export const useMyDataset = () => {
     let includeMerge = false
     const modalities = new Set()
 
-    if (!myDataset.data || Object.keys(myDataset.data) === 0) {
+    if (isDatasetDataEmpty) {
       return {
         includeBulk,
         includeMerge,
