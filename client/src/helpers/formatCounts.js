@@ -8,7 +8,14 @@ import { getReadable } from 'helpers/getReadable'
 
 // Convert modality keys to human-readable before formatting
 export const formatModalityCounts = (obj) =>
-  Object.entries(obj).map(([k, v]) => `${getReadable(k)} (${v})`)
+  Object.entries(obj)
+    .sort(([aKey, aVal], [bKey, bVal]) => {
+      if (aVal !== bVal) {
+        return bVal - aVal
+      }
+      return aKey.localeCompare(bKey, undefined, { sensitivity: 'base' })
+    })
+    .map(([k, v]) => `${getReadable(k)} (${v})`)
 
 // Sort values in descending order, then sort keys in alphabetical order (case-insensitive)
 export const formatDiagnosisCounts = (obj) =>

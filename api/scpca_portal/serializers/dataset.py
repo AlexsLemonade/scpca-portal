@@ -28,6 +28,7 @@ class DatasetSerializer(serializers.ModelSerializer):
             "includes_files_cite_seq",
             "includes_files_merged",
             "estimated_size_in_bytes",
+            "total_sample_count",
             "diagnoses_summary",
             "files_summary",
             "project_diagnoses",

@@ -16,7 +16,11 @@ import { getReadable } from 'helpers/getReadable'
 
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
-export const DatasetProjectCard = ({ dataset, projectId }) => {
+export const DatasetProjectCard = ({
+  dataset,
+  projectId,
+  readOnly = false
+}) => {
   const { push, asPath } = useRouter()
   const { saveOriginScrollPosition } = useScrollRestore()
   const { removeProjectById } = useMyDataset()
@@ -44,8 +48,6 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     .filter((o) => o.value)
     .map((o) => o.label)
 
-  const canEditDataset = asPath === '/download'
-
   const handleViewEditSamples = () => {
     const destination = `${asPath}/${projectId}`
     saveOriginScrollPosition(asPath, destination)
@@ -67,7 +69,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
             {title}
           </Text>
         </Link>
-        {canEditDataset && (
+        {!readOnly && (
           <Button
             label="Remove"
             alignSelf={responsive('stretch', 'start')}
@@ -121,8 +123,8 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         gap="large"
       >
         <Button
-          label={canEditDataset ? 'View/Edit Samples' : 'View Samples'}
-          aria-label="View/Edit Samples"
+          label={!readOnly ? 'View/Edit Samples' : 'View Samples'}
+          aria-label={!readOnly ? 'View/Edit Samples' : 'View Samples'}
           alignSelf={responsive('stretch', 'start')}
           onClick={handleViewEditSamples}
         />
