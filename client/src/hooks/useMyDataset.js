@@ -35,12 +35,23 @@ export const useMyDataset = () => {
     let includeMerge = false
     const modalities = new Set()
 
+    if (!myDataset.data || Object.keys(myDataset.data) === 0) {
+      return {
+        includeBulk,
+        includeMerge,
+        modalities: []
+      }
+    }
+
     Object.values(myDataset.data).forEach((p) => {
       if (p.SINGLE_CELL === 'MERGED') includeMerge = true
 
       if (p.includes_bulk) includeBulk = true
 
-      if (Array.isArray(p.SINGLE_CELL) && p.SINGLE_CELL.length > 0) {
+      if (
+        (Array.isArray(p.SINGLE_CELL) && p.SINGLE_CELL.length > 0) ||
+        p.SINGLE_CELL === 'MERGED'
+      ) {
         modalities.add('SINGLE_CELL')
       }
 
