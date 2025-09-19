@@ -18,7 +18,8 @@ export const DatasetProjectAdditionalOptions = ({
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { myDataset, userFormat, datasetProjectOptions } = useMyDataset()
+  const { myDataset, userFormat, getUserProjectDownloadOptions } =
+    useMyDataset()
 
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
@@ -48,12 +49,12 @@ export const DatasetProjectAdditionalOptions = ({
   // Preselect options based on the most recently added project
   useEffect(() => {
     if (hasBulkRnaSeq) {
-      onIncludeBulkChange(datasetProjectOptions.includeBulk)
+      onIncludeBulkChange(getUserProjectDownloadOptions().includeBulk)
     }
     if (isMergedObjectsAvailable) {
-      onIncludeMergeChange(datasetProjectOptions.includeMerge)
+      onIncludeMergeChange(getUserProjectDownloadOptions().includeMerge)
     }
-  }, [datasetProjectOptions])
+  }, [])
 
   return (
     <FormField label="Additional Options" gap="medium" labelWeight="bold">
