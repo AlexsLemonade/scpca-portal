@@ -1,42 +1,33 @@
 import React, { useEffect } from 'react'
 import { CheckBoxGroup } from 'grommet'
-import { useMyDataset } from 'hooks/useMyDataset'
-import { getReadable } from 'helpers/getReadable'
+import { getReadableOptions } from 'helpers/getReadableOptions'
+import { getProjectModalities } from 'helpers/getProjectModalities'
 import { FormField } from 'components/FormField'
 
 export const DatasetProjectModalityOptions = ({
   project,
+  format, // TODO: Remove this once Spatial && ANN_DATA allowed
   modalities,
   onModalitiesChange
 }) => {
-  const { myDataset } = useMyDataset()
+  // TODO: Remove this once Spatial && ANN_DATA allowed
+  const modalityOptions = getReadableOptions(getProjectModalities(project)).map(
+    (mo) =>
+      mo.value === 'SPATIAL' && format === 'ANN_DATA'
+        ? {
+            ...mo,
+            disabled: true
+          }
+        : mo
+  )
 
-  const isAnnData = myDataset.format === 'ANN_DATA'
-  const modalityOptions = [
-    { key: 'SINGLE_CELL', value: project.has_single_cell_data },
-    { key: 'SPATIAL', value: project.has_spatial_data }
-  ]
-    .filter((m) => m.value)
-    .map(({ key }) => ({
-      label: getReadable([key]),
-      value: key,
-      // Disable the SPATIAL checkbox for ANN_DATA
-      disabled: key === 'SPATIAL' && isAnnData
-    }))
-
-  // TODO: Use localStorage to store user selected additional options
-  // Preselect modalities if already added to myDataset
-
-  // TODO: Remove this block once BE API is updated
+  // TODO: Remove this once Spatial && ANN_DATA allowed
   // Deselect and disable the SPATIAL checkbox if ANN_DATA is selected
   useEffect(() => {
-    if (isAnnData && modalities.includes('SPATIAL')) {
-      const updated = modalities.filter((m) => m !== 'SPATIAL')
-      if (updated.length !== modalities.length) {
-        onModalitiesChange(updated)
-      }
+    if (format === 'ANN_DATA' && modalities.includes('SPATIAL')) {
+      onModalitiesChange(modalities.filter((m) => m !== 'SPATIAL'))
     }
-  }, [isAnnData, modalities])
+  }, [modalities, format])
 
   return (
     <FormField label="Modality" labelWeight="bold">

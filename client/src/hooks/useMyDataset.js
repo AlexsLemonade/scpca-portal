@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
@@ -15,6 +15,36 @@ export const useMyDataset = () => {
     setErrors
   } = useContext(MyDatasetContext)
   const { token, email, userFormat, setUserFormat } = useScPCAPortal()
+
+  const emptyDatasetProjectOptions = {
+    includeBulk: false,
+    includeMerge: false,
+    modalities: []
+  }
+
+  const [defaultProjectOptions, setDefaultProjectOptions] = useState(
+    emptyDatasetProjectOptions
+  )
+
+  // Update the default options for adding additional projects on myDataset changes
+  useEffect(() => {
+    if (isDatasetDataEmpty) {
+      setDefaultProjectOptions({ ...emptyDatasetProjectOptions })
+      return
+    }
+
+    setDefaultProjectOptions({
+      includeBulk: Object.values(myDataset.data).some((p) => p.includes_bulk),
+      includeMerge: Object.values(myDataset.data).some(
+        (p) => p.SINGLE_CELL === 'MERGED'
+      ),
+      modalities: ['SINGLE_CELL', 'SPATIAL'].filter((m) =>
+        Object.values(myDataset.data).some(
+          (p) => (Array.isArray(p[m]) && p[m].length > 0) || p[m] === 'MERGED'
+        )
+      )
+    })
+  }, [myDataset, isDatasetDataEmpty])
 
   /* Helper */
   const addError = (message, returnValue = null) => {
@@ -260,6 +290,7 @@ export const useMyDataset = () => {
     userFormat,
     setUserFormat,
     removeError,
+    defaultProjectOptions,
     isDatasetDataEmpty,
     clearDataset,
     getDataset,

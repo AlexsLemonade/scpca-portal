@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
+import { getProjectModalities } from 'helpers/getProjectModalities'
+import { getProjectFormats } from 'helpers/getProjectFormats'
 import { api } from 'api'
 import { Button } from 'components/Button'
 import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditionalOptions'
@@ -10,8 +12,6 @@ import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
 import { DatasetWarningMissingSamples } from 'components/DatasetWarningMissingSamples'
 import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 
-// Button and Modal to show when adding a project to My Dataset
-// NOTE: All components accept a 'project' prop (for mock data) but it's subject to change
 export const DatasetAddProjectModal = ({
   project,
   label = 'Add to Dataset',
@@ -19,6 +19,9 @@ export const DatasetAddProjectModal = ({
   disabled = false
 }) => {
   const {
+    myDataset,
+    defaultProjectOptions,
+    userFormat,
     addProject,
     getProjectDataSamples,
     getProjectSingleCellSamples,
@@ -31,6 +34,9 @@ export const DatasetAddProjectModal = ({
   const [showing, setShowing] = useState(false)
 
   const [modalities, setModalities] = useState([])
+  const [format, setFormat] = useState(
+    myDataset.format || userFormat || getProjectFormats(project)[0]
+  )
   // For additional options
   const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
   const [includeBulk, setIncludeBulk] = useState(false)
@@ -53,6 +59,16 @@ export const DatasetAddProjectModal = ({
     addProject(project, projectData)
     setShowing(false)
   }
+
+  useEffect(() => {
+    setIncludeBulk(defaultProjectOptions.includeBulk)
+    setIncludeMerge(defaultProjectOptions.includeMerge)
+    setModalities(
+      getProjectModalities(project).filter((m) =>
+        defaultProjectOptions.modalities.includes(m)
+      )
+    )
+  }, [defaultProjectOptions])
 
   // Fetch samples list when modal opens via Browse page
   useEffect(() => {
@@ -132,9 +148,14 @@ export const DatasetAddProjectModal = ({
               </Heading>
               <Box pad={{ top: 'small' }}>
                 <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
-                  <DatasetDataFormatOptions project={project} />
+                  <DatasetDataFormatOptions
+                    project={project}
+                    format={format}
+                    onFormatChange={setFormat}
+                  />
                   <DatasetProjectModalityOptions
                     project={project}
+                    format={format}
                     modalities={modalities}
                     onModalitiesChange={setModalities}
                   />

@@ -45,15 +45,12 @@ export const DatasetProjectAdditionalOptions = ({
     ? myDataset.format !== 'ANN_DATA'
     : userFormat !== 'ANN_DATA'
 
-  // TODO: Use localStorage to store user selected additional options
-  // Preselect options based on the most recently added project in myDataset
-
   return (
     <FormField label="Additional Options" gap="medium" labelWeight="bold">
       <Box direction="row">
         <CheckBox
           label="Merge single-cell samples into 1 object"
-          checked={includeMerge}
+          checked={isMergedObjectsAvailable && includeMerge}
           disabled={disableMergedObjects}
           onChange={({ target: { checked } }) => onIncludeMergeChange(checked)}
         />
@@ -75,7 +72,7 @@ export const DatasetProjectAdditionalOptions = ({
         <Box direction="row">
           <CheckBox
             label="Include all bulk RNA-seq data in the project"
-            checked={includeBulk}
+            checked={hasBulkRnaSeq && includeBulk}
             onChange={({ target: { checked } }) => onIncludeBulkChange(checked)}
           />
         </Box>

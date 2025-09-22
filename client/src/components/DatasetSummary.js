@@ -4,7 +4,7 @@ import { mapRowsWithColumns } from 'helpers/mapRowsWithColumns'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 
 export const DatasetSummary = ({ dataset }) => {
-  const diagnosesSummary = dataset.stats.diagnoses_summary
+  const diagnosesSummary = dataset.diagnoses_summary
 
   const columns = ['Diagnosis', 'Samples', 'Projects']
 
