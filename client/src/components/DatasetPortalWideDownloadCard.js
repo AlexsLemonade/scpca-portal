@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
-import { CopyLinkButton } from 'components/CopyLinkButton'
 import { HelpLink } from 'components/HelpLink'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
+// import { CCDLDatasetCopyLinkButton } from 'components/CCDLDatasetCopyLinkButton'
+import { DatasetFileItems } from 'components/DatasetFileItems'
 import { config } from 'config'
 import { formatBytes } from 'helpers/formatBytes'
-import { getReadableFiles } from 'helpers/getReadable'
+import dynamic from 'next/dynamic'
 
-const Li = ({ children }) => (
-  <Box as="li" style={{ display: 'list-item' }}>
-    {children}
-  </Box>
+const CCDLDatasetCopyLinkButton = dynamic(
+  () =>
+    import('./CCDLDatasetCopyLinkButton').then(
+      (m) => m.CCDLDatasetCopyLinkButton
+    ),
+  { ssr: false }
 )
 
 export const DatasetPortalWideDownloadCard = ({
@@ -21,19 +24,21 @@ export const DatasetPortalWideDownloadCard = ({
 }) => {
   const { responsive } = useResponsive()
 
+  const showDownloadSize = !metadataOnly
+  const showCopyLinkButton = !metadataOnly
+
   const [includesMerged, setIncludesMerged] = useState(false)
   const [dataset, setDataset] = useState(
-    // TODO: improve merged check when file items is added to the backend (see below comment)
-    datasets.find((d) => !d.ccdl_name.endsWith('MERGED'))
+    datasets?.find((d) => !d.includes_files_merged)
   )
 
   useEffect(() => {
     setDataset(
-      datasets.find((d) => {
+      datasets?.find((d) => {
         if (includesMerged) {
-          return d.ccdl_name.endsWith('MERGED')
+          return d.includes_files_merged
         }
-        return !d.ccdl_name.endsWith('MERGED')
+        return !d.includes_files_merged
       })
     )
   }, [datasets, includesMerged])
@@ -51,24 +56,8 @@ export const DatasetPortalWideDownloadCard = ({
       </Box>
       <Box justify="between" height="100%">
         <>
-          <Box
-            as="ul"
-            margin={{ top: '0', bottom: 'large' }}
-            pad={{ left: 'large' }}
-            style={{ listStyle: 'disc' }}
-          >
-            {dataset.format === 'METADATA' ? (
-              <Li>Sample metadata from all projects</Li>
-            ) : (
-              <>
-                <Li>{getReadableFiles(dataset.ccdl_modality)}</Li>
-                {dataset.includes_files_cite_seq && <Li>CITE-seq data</Li>}
-                {dataset.includes_files_bulk && <Li>Bulk RNA-Seq data</Li>}
-                <Li>Project and Sample Metadata</Li>
-              </>
-            )}
-          </Box>
-          {datasets.length > 1 && (
+          <DatasetFileItems dataset={dataset} />
+          {datasets?.length > 1 && (
             <Box direction="row" margin={{ bottom: '24px' }}>
               <CheckBox
                 label="Merge samples into one object per project"
@@ -87,10 +76,12 @@ export const DatasetPortalWideDownloadCard = ({
           gap="large"
         >
           <Box direction="column">
-            {!metadataOnly && (
+            {showDownloadSize && (
               <Text margin={{ bottom: 'small' }} weight="bold">
-                {/* TODO: when computed files are available update to dataset.computedFile.size_in_bytes */}
-                Size: {formatBytes(dataset?.stats.uncompressed_size)}
+                Size:{' '}
+                {dataset?.computed_file
+                  ? formatBytes(dataset?.computed_file?.size_in_bytes)
+                  : 'N/A'}
               </Text>
             )}
             <Box
@@ -100,9 +91,11 @@ export const DatasetPortalWideDownloadCard = ({
             >
               <CCDLDatasetDownloadModal
                 label="Download"
-                initialDatasets={[dataset]}
+                initialDatasets={dataset ? [dataset] : []}
               />
-              {!metadataOnly && <CopyLinkButton computedFile={{}} />}
+              {showCopyLinkButton && (
+                <CCDLDatasetCopyLinkButton dataset={dataset} />
+              )}
             </Box>
           </Box>
         </Box>

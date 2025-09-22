@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
-import { portalWideDatasets } from 'config/ccdlDatasetDownloadModal'
+import { portalWideDatasets } from 'config/ccdlDatasets'
 
-export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
+export const useCCDLDatasetDownloadModal = (initialDatasets) => {
   const [showing, setShowing] = useState(false)
 
   const { token, createToken } = useScPCAPortal()
@@ -17,8 +17,8 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
 
   const modalTitleAction = isDownloadReady ? 'Downloading' : 'Download'
   const modalTitleDataset =
-    portalWideDatasets[selectedDataset?.ccdl_name]?.title
-  const modalTitleResource = datasets[0].ccdl_project_id
+    portalWideDatasets[selectedDataset?.ccdl_name]?.modalTitle
+  const modalTitleResource = datasets[0]?.ccdl_project_id
     ? 'Project'
     : modalTitleDataset
   const modalTitle = `${modalTitleAction} ${modalTitleResource}`
@@ -59,12 +59,12 @@ export const useCCDLDatasetDownloadModal = (initialDatasets, isActive) => {
       }
     }
 
-    if (!isActive) {
+    if (!showing) {
       setDownloadDataset(null)
     }
 
-    if (selectedDataset && !downloadDataset && token && isActive) asyncFetch()
-  }, [selectedDataset, downloadDataset, token, isActive])
+    if (selectedDataset && !downloadDataset && token && showing) asyncFetch()
+  }, [selectedDataset, downloadDataset, token, showing])
 
   return {
     showing,
