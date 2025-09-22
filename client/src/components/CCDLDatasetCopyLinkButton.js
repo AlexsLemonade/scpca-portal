@@ -77,10 +77,6 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
     const asyncCopy = async () => {
       await copyText(downloadLink)
       setState(states.clicked)
-
-      setTimeout(() => {
-        setState(states.unclicked)
-      }, 5000)
     }
 
     if (downloadLink && wantsLink) {
