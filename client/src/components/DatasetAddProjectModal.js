@@ -56,7 +56,7 @@ export const DatasetAddProjectModal = ({
   const canClickAddProject = modalities.length > 0
 
   const handleAddProject = () => {
-    addProject(project, projectData)
+    addProject(project, { format, projectData })
     setShowing(false)
   }
 

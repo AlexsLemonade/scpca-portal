@@ -9,7 +9,7 @@ export const TriStateModalityCheckBox = ({
   project,
   modality,
   disabled,
-  editable
+  editable = false
 }) => {
   const { getDatasetProjectData } = useMyDataset()
   const { filteredSamples, selectedSamples, toggleSamples } =
@@ -30,7 +30,7 @@ export const TriStateModalityCheckBox = ({
   const isSomeSelected = !isNoneSelected && !isAllSelected
 
   const handleToggleAllSamples = () => {
-    if (disabled) return
+    if (disabled || (!editable && isAllSelected)) return
 
     if (!editable) {
       // Exclude toggling samples in myDataset if the table is non-editable
