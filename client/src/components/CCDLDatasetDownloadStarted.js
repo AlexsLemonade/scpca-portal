@@ -1,16 +1,19 @@
 import React from 'react'
+import { portalWideDatasets } from 'config/ccdlDatasets'
 import { useResponsive } from 'hooks/useResponsive'
 import { Box, Grid, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
+import { DatasetFileItems } from 'components/DatasetFileItems'
 import { formatBytes } from 'helpers/formatBytes'
-import { getReadable, getReadableFiles } from 'helpers/getReadable'
+import { getReadable } from 'helpers/getReadable'
 import DownloadSVG from '../images/download-folder.svg'
 
 // View when the donwload should have been initiated
 export const CCDLDatasetDownloadStarted = ({ dataset }) => {
   // open the file in a new tab
   const { size: responsiveSize } = useResponsive()
+  const portalWideDataset = portalWideDatasets[dataset?.ccdl_name]
 
   return (
     <>
@@ -22,49 +25,34 @@ export const CCDLDatasetDownloadStarted = ({ dataset }) => {
       >
         <Box>
           <Paragraph>Your download should have started.</Paragraph>
-          {dataset.format === 'METADATA' ? (
-            <Box margin={{ top: 'small', bottom: 'small' }}>
-              <Text>
-                This download contains all of the sample metadata from every
-                project in ScPCA Portal.
-              </Text>
-            </Box>
-          ) : (
-            <Box margin={{ top: 'small', bottom: 'small' }}>
+          <Box margin={{ top: 'small', bottom: 'small' }}>
+            {dataset.format !== 'METADATA' && (
               <Text weight="bold">
                 Data Format: {getReadable(dataset.format)}
               </Text>
-            </Box>
-          )}
-          <Paragraph>The download consists of the following items:</Paragraph>
-          <Box pad="medium">
-            <ul
-              style={{
-                listStylePosition: 'inside',
-                listStyleType: 'square'
-              }}
-            >
-              {dataset.format !== 'METADATA' && (
-                <li>{getReadableFiles(dataset.ccdl_modality)}</li>
-              )}
-              {dataset.includes_files_cite_seq && <li>CITE-seq data</li>}
-              {dataset.includes_files_bulk && <li>Bulk RNA-Seq data</li>}
-              <li>Project and Sample Metadata</li>
-            </ul>
+            )}
           </Box>
+          <Paragraph>The download consists of the following items:</Paragraph>
+          <DatasetFileItems dataset={dataset} />
           {dataset.includes_files_merged && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
               <Text>Samples are merged into 1 object per project</Text>
             </Box>
           )}
-          <Box margin={{ top: 'small', bottom: 'small' }}>
-            <Text weight="bold">
-              Size: {formatBytes(dataset.size_in_bytes)}
-            </Text>
-          </Box>
+          {dataset.format !== 'METADATA' && (
+            <Box margin={{ top: 'small', bottom: 'small' }}>
+              <Text weight="bold">
+                Size: {formatBytes(dataset?.computed_file?.size_in_bytes)}
+              </Text>
+            </Box>
+          )}
           <Paragraph margin={{ bottom: 'small' }}>
-            Learn more about what you can expect in your download file{' '}
-            <Link label="here" href=" " />.
+            {portalWideDataset.learnMore.text}{' '}
+            <Link
+              label={portalWideDataset.learnMore.label}
+              href={portalWideDataset.learnMore.url}
+            />
+            .
           </Paragraph>
           <Box>
             {responsiveSize !== 'small' && (

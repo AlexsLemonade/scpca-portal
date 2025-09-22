@@ -1,4 +1,5 @@
 import React from 'react'
+import { portalWideDatasets } from 'config/ccdlDatasets'
 import { Anchor, Box, Text } from 'grommet'
 import { api } from 'api'
 import { HeroBandPortalWide } from 'components/Band'
@@ -46,30 +47,25 @@ const PortalWideDownloads = ({ datasets }) => {
         </Box>
       </HeroBandPortalWide>
       <Box width={{ max: 'xlarge' }} fill>
-        <Box
-          alignSelf="start"
-          pad={{ left: 'medium' }}
-          margin={{ top: 'none' }}
-        >
-          <Box pad={{ top: 'large' }}>
+        <Box alignSelf="center" margin={{ top: 'none' }} fill>
+          <Box>
             <Text size="medium" margin={{ top: 'small' }}>
               Data from the projects in the ScPCA portal is packaged together
-              for your convenience.
+              for your convenience.{' '}
               <Anchor
-                label=" Please learn more about the portal-wide downloads here."
-                href="#"
+                label={portalWideDatasets.GENERIC.learnMore.text}
+                href={portalWideDatasets.GENERIC.learnMore.link}
               />
             </Text>
           </Box>
 
           <Box pad={{ top: 'large', bottom: 'xlarge' }}>
-            <Text size="large" margin={{ bottom: 'medium' }}>
+            <Text size="large" margin={{ left: 'medium', bottom: 'medium' }}>
               Metadata Downloads
             </Text>
             <Box>
               <DatasetPortalWideDownloadCard
                 title="Sample Metadata Download"
-                modality={null}
                 datasets={metadataDatasets}
                 metadataOnly
               />
@@ -99,21 +95,18 @@ const PortalWideDownloads = ({ datasets }) => {
             <Box pad={{ bottom: 'xlarge' }}>
               <DatasetPortalWideDownloadCard
                 title="SingleCellExperiment (R) Download"
-                modality="SINGLE_CELL"
                 datasets={singleCellExperimentDatasets}
               />
             </Box>
             <Box pad={{ bottom: 'xlarge' }}>
               <DatasetPortalWideDownloadCard
                 title="AnnData (Python) Download"
-                modality="SINGLE_CELL"
                 datasets={anndataDatasets}
               />
             </Box>
             <Box pad={{ bottom: 'xlarge' }}>
               <DatasetPortalWideDownloadCard
                 title="Spatial Download"
-                modality="SPATIAL"
                 datasets={spatialDatasets}
               />
             </Box>

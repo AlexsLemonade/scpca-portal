@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
@@ -16,6 +16,36 @@ export const useMyDataset = () => {
   } = useContext(MyDatasetContext)
   const { token, email, userFormat, setUserFormat } = useScPCAPortal()
 
+  const emptyDatasetProjectOptions = {
+    includeBulk: false,
+    includeMerge: false,
+    modalities: []
+  }
+
+  const [defaultProjectOptions, setDefaultProjectOptions] = useState(
+    emptyDatasetProjectOptions
+  )
+
+  // Update the default options for adding additional projects on myDataset changes
+  useEffect(() => {
+    if (isDatasetDataEmpty) {
+      setDefaultProjectOptions({ ...emptyDatasetProjectOptions })
+      return
+    }
+
+    setDefaultProjectOptions({
+      includeBulk: Object.values(myDataset.data).some((p) => p.includes_bulk),
+      includeMerge: Object.values(myDataset.data).some(
+        (p) => p.SINGLE_CELL === 'MERGED'
+      ),
+      modalities: ['SINGLE_CELL', 'SPATIAL'].filter((m) =>
+        Object.values(myDataset.data).some(
+          (p) => (Array.isArray(p[m]) && p[m].length > 0) || p[m] === 'MERGED'
+        )
+      )
+    })
+  }, [myDataset, isDatasetDataEmpty])
+
   /* Helper */
   const addError = (message, returnValue = null) => {
     // Appends an error message to the errors state for UI components
@@ -27,44 +57,6 @@ export const useMyDataset = () => {
   const removeError = () => {
     // Removes error message (e..g, by ID)
     // TODO: This method is used by UI components or other hooks (e.g., popups)
-  }
-
-  // Prepopulate user's project download options in the modal
-  const getUserProjectDownloadOptions = () => {
-    let includeBulk = false
-    let includeMerge = false
-    const modalities = new Set()
-
-    if (isDatasetDataEmpty) {
-      return {
-        includeBulk,
-        includeMerge,
-        modalities: []
-      }
-    }
-
-    Object.values(myDataset.data).forEach((p) => {
-      if (p.SINGLE_CELL === 'MERGED') includeMerge = true
-
-      if (p.includes_bulk) includeBulk = true
-
-      if (
-        (Array.isArray(p.SINGLE_CELL) && p.SINGLE_CELL.length > 0) ||
-        p.SINGLE_CELL === 'MERGED'
-      ) {
-        modalities.add('SINGLE_CELL')
-      }
-
-      if (Array.isArray(p.SPATIAL) && p.SPATIAL.length > 0) {
-        modalities.add('SPATIAL')
-      }
-    })
-
-    return {
-      includeBulk,
-      includeMerge,
-      modalities: Array.from(modalities)
-    }
   }
 
   /* Dataset-level */
@@ -298,7 +290,7 @@ export const useMyDataset = () => {
     userFormat,
     setUserFormat,
     removeError,
-    getUserProjectDownloadOptions,
+    defaultProjectOptions,
     isDatasetDataEmpty,
     clearDataset,
     getDataset,

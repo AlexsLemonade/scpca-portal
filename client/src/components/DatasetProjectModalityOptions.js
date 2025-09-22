@@ -1,57 +1,33 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { CheckBoxGroup } from 'grommet'
-import { useMyDataset } from 'hooks/useMyDataset'
-import { getReadable } from 'helpers/getReadable'
+import { getReadableOptions } from 'helpers/getReadableOptions'
+import { getProjectModalities } from 'helpers/getProjectModalities'
 import { FormField } from 'components/FormField'
 
 export const DatasetProjectModalityOptions = ({
   project,
+  format, // TODO: Remove this once Spatial && ANN_DATA allowed
   modalities,
   onModalitiesChange
 }) => {
-  const { myDataset, getUserProjectDownloadOptions } = useMyDataset()
+  // TODO: Remove this once Spatial && ANN_DATA allowed
+  const modalityOptions = getReadableOptions(getProjectModalities(project)).map(
+    (mo) =>
+      mo.value === 'SPATIAL' && format === 'ANN_DATA'
+        ? {
+            ...mo,
+            disabled: true
+          }
+        : mo
+  )
 
-  const [isTouched, setIsTouched] = useState(false)
-
-  const isAnnData = myDataset.format === 'ANN_DATA'
-  const modalityOptions = [
-    { key: 'SINGLE_CELL', value: project.has_single_cell_data },
-    { key: 'SPATIAL', value: project.has_spatial_data }
-  ]
-    .filter((m) => m.value)
-    .map(({ key }) => ({
-      label: getReadable([key]),
-      value: key,
-      // TODO: Remove this once BE API is updated
-      // Disable the SPATIAL checkbox for ANN_DATA
-      disabled: key === 'SPATIAL' && isAnnData
-    }))
-
-  // Preselect modalities based on the most recently added project
-  useEffect(() => {
-    if (!isTouched) {
-      const savedModalities = getUserProjectDownloadOptions().modalities
-
-      if (savedModalities.length > 0) {
-        const updatedModalities = savedModalities.filter((m) =>
-          modalityOptions.some((mo) => mo.value === m)
-        )
-        onModalitiesChange(updatedModalities)
-      }
-      setIsTouched(true)
-    }
-  }, [isTouched, modalityOptions])
-
-  // TODO: Remove this block once BE API is updated
+  // TODO: Remove this once Spatial && ANN_DATA allowed
   // Deselect and disable the SPATIAL checkbox if ANN_DATA is selected
   useEffect(() => {
-    if (isAnnData && modalities.includes('SPATIAL')) {
-      const updated = modalities.filter((m) => m !== 'SPATIAL')
-      if (updated.length !== modalities.length) {
-        onModalitiesChange(updated)
-      }
+    if (format === 'ANN_DATA' && modalities.includes('SPATIAL')) {
+      onModalitiesChange(modalities.filter((m) => m !== 'SPATIAL'))
     }
-  }, [isAnnData, modalities])
+  }, [modalities, format])
 
   return (
     <FormField label="Modality" labelWeight="bold">
