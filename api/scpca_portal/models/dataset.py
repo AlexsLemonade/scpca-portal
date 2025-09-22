@@ -320,7 +320,6 @@ class Dataset(TimestampedModel):
         This break down looks at the type of information present in the individual files as well.
         Returns a list of dicts with name, samples_count, and format as keys.
         """
-
         # Name describes the type of files being summarized.
         # Filter describes how to match libraries in the dataset.
         # Format defaults to dataset format but can be overridden here.
@@ -351,11 +350,6 @@ class Dataset(TimestampedModel):
                 "filter": {"modality": Modalities.SPATIAL},
                 "format": "Spatial format",
             },
-            {
-                "name": "Bulk-RNA seq samples",
-                "filter": {"modality": Modalities.BULK_RNA_SEQ},
-                "format": ".tsv",
-            },
         ]
 
         # cache
@@ -375,7 +369,7 @@ class Dataset(TimestampedModel):
             if not library_ids:
                 continue
 
-            if samples_ids := (
+            if sample_ids := (
                 dataset_samples.filter(libraries__scpca_id__in=library_ids)
                 .exclude(scpca_id__in=seen_samples)
                 .distinct()
@@ -384,7 +378,7 @@ class Dataset(TimestampedModel):
 
                 summaries.append(
                     {
-                        "samples_count": len(samples_ids),
+                        "samples_count": len(sample_ids),
                         "name": file_summary_query["name"],
                         "format": file_summary_query.get(
                             "format", common.FORMAT_EXTENSIONS.get(self.format)
@@ -392,9 +386,28 @@ class Dataset(TimestampedModel):
                     }
                 )
 
-                seen_samples.update(samples_ids)
+                seen_samples.update(sample_ids)
 
-        return summaries
+        # Handle bulk samples separately to prevent them from being excluded
+        if bulk_library_ids := (
+            dataset_libraries.filter(modality=Modalities.BULK_RNA_SEQ)
+            .distinct()
+            .values_list("scpca_id", flat=True)
+        ):
+            bulk_sample_ids = (
+                dataset_samples.filter(libraries__scpca_id__in=bulk_library_ids)
+                .distinct()
+                .values_list("scpca_id", flat=True)
+            )
+            summaries.append(
+                {
+                    "samples_count": len(bulk_sample_ids),
+                    "name": "Bulk-RNA seq samples",
+                    "format": ".tsv",
+                }
+            )
+
+        return utils.get_sorted_files_summary(summaries)
 
     def get_project_diagnoses(self) -> Dict:
         """
