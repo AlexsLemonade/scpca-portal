@@ -24,6 +24,9 @@ export const DatasetPortalWideDownloadCard = ({
 }) => {
   const { responsive } = useResponsive()
 
+  const showDownloadSize = !metadataOnly
+  const showCopyLinkButton = !metadataOnly
+
   const [includesMerged, setIncludesMerged] = useState(false)
   const [dataset, setDataset] = useState(
     datasets?.find((d) => !d.includes_files_merged)
@@ -73,7 +76,7 @@ export const DatasetPortalWideDownloadCard = ({
           gap="large"
         >
           <Box direction="column">
-            {!metadataOnly && (
+            {showDownloadSize && (
               <Text margin={{ bottom: 'small' }} weight="bold">
                 Size:{' '}
                 {dataset?.computed_file
@@ -90,7 +93,9 @@ export const DatasetPortalWideDownloadCard = ({
                 label="Download"
                 initialDatasets={dataset ? [dataset] : []}
               />
-              {!metadataOnly && <CCDLDatasetCopyLinkButton dataset={dataset} />}
+              {showCopyLinkButton && (
+                <CCDLDatasetCopyLinkButton dataset={dataset} />
+              )}
             </Box>
           </Box>
         </Box>
