@@ -47,11 +47,7 @@ const PortalWideDownloads = ({ datasets }) => {
         </Box>
       </HeroBandPortalWide>
       <Box width={{ max: 'xlarge' }} fill>
-        <Box
-          alignSelf="start"
-          pad={{ left: 'medium' }}
-          margin={{ top: 'none' }}
-        >
+        <Box alignSelf="center" margin={{ top: 'none' }} fill>
           <Box>
             <Text size="medium" margin={{ top: 'small' }}>
               Data from the projects in the ScPCA portal is packaged together
@@ -64,7 +60,7 @@ const PortalWideDownloads = ({ datasets }) => {
           </Box>
 
           <Box pad={{ top: 'large', bottom: 'xlarge' }}>
-            <Text size="large" margin={{ bottom: 'medium' }}>
+            <Text size="large" margin={{ left: 'medium', bottom: 'medium' }}>
               Metadata Downloads
             </Text>
             <Box>
