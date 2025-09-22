@@ -26,7 +26,7 @@ export const useMyDataset = () => {
     emptyDatasetProjectOptions
   )
 
-  // Prepopulate user's project download options in the modal
+  // Update the default options for adding additional projects on myDataset changes
   useEffect(() => {
     if (isDatasetDataEmpty) {
       setDefaultProjectOptions({ ...emptyDatasetProjectOptions })
