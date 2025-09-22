@@ -14,7 +14,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import ccdl_datasets, common, lockfile, metadata_file, readme_file
+from scpca_portal import ccdl_datasets, common, lockfile, metadata_file, readme_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     CCDLDatasetNames,
@@ -855,18 +855,20 @@ class Dataset(TimestampedModel):
         return settings.OUTPUT_DATA_PATH / ComputedFile.get_dataset_file_s3_key(self)
 
     @property
-    def download_file_name(self) -> str:
+    def download_filename(self) -> str:
         output_format = "-".join(self.format.split("_")).lower()
         if self.ccdl_modality == Modalities.SPATIAL:
             output_format = "spatial"
 
+        date = utils.get_today_string()
+
         if self.ccdl_project_id:
-            return f"{self.ccdl_project_id}_{output_format}"
+            return f"{self.ccdl_project_id}_{output_format}_{date}.zip"
 
         if self.is_ccdl:
-            return f"portal-wide_{output_format}"
+            return f"portal-wide_{output_format}_{date}.zip"
 
-        return f"{self.id}_{output_format}"
+        return f"{self.id}_{output_format}_{date}.zip"
 
     @property
     def download_url(self) -> str | None:
@@ -874,4 +876,4 @@ class Dataset(TimestampedModel):
         if not self.computed_file:
             return None
 
-        return self.computed_file.get_dataset_download_url(self.download_file_name)
+        return self.computed_file.get_dataset_download_url(self.download_filename)
