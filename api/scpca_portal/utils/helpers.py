@@ -175,9 +175,9 @@ def get_sorted_files_summary(files_summary: List[Dict], *, key="name") -> List[D
         "Single-cell samples",
         "Single-nuclei samples",
         "Single-cell samples with CITE-seq",
-        "Spatial samples",
         "Single-cell multiplexed samples",
         "Single-nuclei multiplexed samples",
+        "Spatial samples",
         "Bulk-RNA seq samples",
     ]
 
