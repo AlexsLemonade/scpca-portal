@@ -151,27 +151,6 @@ def get_keys_from_dicts(dicts: List[Dict]) -> Set:
     return set(k for d in dicts for k in d.keys())
 
 
-def get_sorted_files_summary(files_summary: List[Dict]) -> list[dict]:
-    """
-    Returns a list of files_summary sorted by key_order.
-    Includes only entries with key values in key_order.
-    """
-    key = "name"
-    key_order = [
-        "Single-cell samples",
-        "Single-nuclei samples",
-        "Single-cell samples with CITE-seq",
-        "Spatial samples",
-        "Single-cell multiplexed samples",
-        "Single-nuclei multiplexed samples",
-        "Bulk-RNA seq samples",
-    ]
-
-    filtered_files_summaries = [s for s in files_summary if s[key] in key_order]
-
-    return sorted(filtered_files_summaries, key=lambda s: key_order.index(s[key]))
-
-
 def get_sorted_field_names(fieldnames: List | Set) -> List:
     """
     Returns a list of field names based on the METADATA_COLUMN_SORT_ORDER list, and append names
@@ -185,6 +164,26 @@ def get_sorted_field_names(fieldnames: List | Set) -> List:
             else common.METADATA_COLUMN_SORT_ORDER.index("*")  # Insert additional metadata
         ),
     )
+
+
+def get_sorted_files_summary(files_summary: List[Dict], *, key="name") -> List[Dict]:
+    """
+    Returns a list of files_summary sorted by key_order of the specified key.
+    Includes only entries with key values in key_order.
+    """
+    key_order = [
+        "Single-cell samples",
+        "Single-nuclei samples",
+        "Single-cell samples with CITE-seq",
+        "Spatial samples",
+        "Single-cell multiplexed samples",
+        "Single-nuclei multiplexed samples",
+        "Bulk-RNA seq samples",
+    ]
+
+    filtered_files_summaries = [s for s in files_summary if s[key] in key_order]
+
+    return sorted(filtered_files_summaries, key=lambda s: key_order.index(s[key]))
 
 
 def get_sorted_modalities(modalities: List | Set) -> List:
