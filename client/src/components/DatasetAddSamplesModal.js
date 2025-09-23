@@ -46,8 +46,8 @@ export const DatasetAddSamplesModal = ({
 
   const handleAddSamples = () => {
     setSamples(project, {
-      ...selectedSamples,
-      includes_bulk: includeBulk
+      projectData: { ...selectedSamples, includes_bulk: includeBulk },
+      format
     })
     setShowing(false)
   }
