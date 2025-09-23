@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { config } from 'config'
@@ -18,8 +18,7 @@ export const DatasetProjectAdditionalOptions = ({
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { myDataset, userFormat, getUserProjectDownloadOptions } =
-    useMyDataset()
+  const { myDataset, userFormat } = useMyDataset()
 
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
@@ -46,22 +45,12 @@ export const DatasetProjectAdditionalOptions = ({
     ? myDataset.format !== 'ANN_DATA'
     : userFormat !== 'ANN_DATA'
 
-  // Preselect options based on the most recently added project
-  useEffect(() => {
-    if (hasBulkRnaSeq) {
-      onIncludeBulkChange(getUserProjectDownloadOptions().includeBulk)
-    }
-    if (isMergedObjectsAvailable) {
-      onIncludeMergeChange(getUserProjectDownloadOptions().includeMerge)
-    }
-  }, [])
-
   return (
     <FormField label="Additional Options" gap="medium" labelWeight="bold">
       <Box direction="row">
         <CheckBox
           label="Merge single-cell samples into 1 object"
-          checked={includeMerge}
+          checked={isMergedObjectsAvailable && includeMerge}
           disabled={disableMergedObjects}
           onChange={({ target: { checked } }) => onIncludeMergeChange(checked)}
         />
@@ -83,7 +72,7 @@ export const DatasetProjectAdditionalOptions = ({
         <Box direction="row">
           <CheckBox
             label="Include all bulk RNA-seq data in the project"
-            checked={includeBulk}
+            checked={hasBulkRnaSeq && includeBulk}
             onChange={({ target: { checked } }) => onIncludeBulkChange(checked)}
           />
         </Box>
