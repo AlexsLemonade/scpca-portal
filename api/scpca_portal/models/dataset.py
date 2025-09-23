@@ -326,12 +326,8 @@ class Dataset(TimestampedModel):
         # Order is important, more specific should precede less specific.
         summary_queries = [
             {
-                "name": "Single-nuclei multiplexed samples",
-                "filter": {"is_multiplexed": True, "metadata__seq_unit": "nucleus"},
-            },
-            {
-                "name": "Single-cell multiplexed samples",
-                "filter": {"is_multiplexed": True},
+                "name": "Single-cell samples",
+                "filter": {"modality": Modalities.SINGLE_CELL},
             },
             {
                 "name": "Single-nuclei samples",
@@ -342,40 +338,41 @@ class Dataset(TimestampedModel):
                 "filter": {"has_cite_seq_data": True},
             },
             {
-                "name": "Single-cell samples",
-                "filter": {"modality": Modalities.SINGLE_CELL},
+                "name": "Single-cell multiplexed samples",
+                "filter": {"is_multiplexed": True},
+            },
+            {
+                "name": "Single-nuclei multiplexed samples",
+                "filter": {"is_multiplexed": True, "metadata__seq_unit": "nucleus"},
             },
             {
                 "name": "Spatial samples",
                 "filter": {"modality": Modalities.SPATIAL},
                 "format": "Spatial format",
             },
+            {
+                "name": "Bulk-RNA seq samples",
+                "filter": {"modality": Modalities.BULK_RNA_SEQ},
+                "format": ".tsv",
+            },
         ]
-
         # cache
         dataset_samples = self.samples
         dataset_libraries = self.libraries
 
-        seen_samples = set()
         summaries = []
 
         for file_summary_query in summary_queries:
-            library_ids = (
-                dataset_libraries.filter(**file_summary_query["filter"])
-                .distinct()
-                .values_list("scpca_id", flat=True)
-            )
+            libraries = dataset_libraries.filter(**file_summary_query["filter"]).distinct()
 
-            if not library_ids:
+            if not libraries.exists():
                 continue
 
             if sample_ids := (
-                dataset_samples.filter(libraries__scpca_id__in=library_ids)
-                .exclude(scpca_id__in=seen_samples)
+                dataset_samples.filter(libraries__in=libraries)
                 .distinct()
                 .values_list("scpca_id", flat=True)
             ):
-
                 summaries.append(
                     {
                         "samples_count": len(sample_ids),
@@ -386,28 +383,7 @@ class Dataset(TimestampedModel):
                     }
                 )
 
-                seen_samples.update(sample_ids)
-
-        # Handle bulk samples separately to prevent them from being excluded
-        if bulk_library_ids := (
-            dataset_libraries.filter(modality=Modalities.BULK_RNA_SEQ)
-            .distinct()
-            .values_list("scpca_id", flat=True)
-        ):
-            bulk_sample_ids = (
-                dataset_samples.filter(libraries__scpca_id__in=bulk_library_ids)
-                .distinct()
-                .values_list("scpca_id", flat=True)
-            )
-            summaries.append(
-                {
-                    "samples_count": len(bulk_sample_ids),
-                    "name": "Bulk-RNA seq samples",
-                    "format": ".tsv",
-                }
-            )
-
-        return utils.get_sorted_files_summary(summaries)
+        return summaries
 
     def get_project_diagnoses(self) -> Dict:
         """
