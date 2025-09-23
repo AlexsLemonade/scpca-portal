@@ -29,7 +29,7 @@ export const DatasetDataFormatOptions = ({
         labelKey="label"
         disabled={!!myDataset.id}
         valueKey={{ key: 'value', reduce: true }}
-        value={format || myDataset.format || formatOptions[0]}
+        value={format}
         onChange={({ value }) => onFormatChange(value)}
       />
     </FormField>
