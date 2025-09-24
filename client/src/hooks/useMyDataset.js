@@ -145,7 +145,7 @@ export const useMyDataset = () => {
       if (isEmptyArray(baseData) || isEmptyArray(newData)) {
         return 'MERGED'
       }
-      // If either data structure is an array, unmerge the project
+      // If either array contains samples, unmerge the project
       if (isNonEmptyArray(baseData) || isNonEmptyArray(newData)) {
         return fetchProjectModalitySamples(projectId, modality)
       }
