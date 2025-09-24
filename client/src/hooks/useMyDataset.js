@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react'
 import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
+import { fetchProjectModalitySamples } from 'helpers/fetchProjectModalitySamples'
 import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useMyDataset = () => {
@@ -123,6 +124,72 @@ export const useMyDataset = () => {
 
   const clearDataset = async (dataset) =>
     updateDataset({ ...dataset, data: {} })
+
+  // Merge project modality samples based on certain conditions
+  const mergeModalitySamples = (
+    projectId,
+    modality,
+    baseData = [],
+    newData = []
+  ) => {
+    const isMerged = (v) => v === 'MERGED'
+    const isNonEmptyArray = (v) => Array.isArray(v) && v.length > 0
+    const isEmptyArray = (v) => Array.isArray(v) && v.length === 0
+
+    // If both data structures are merged, retain the merged state
+    if (isMerged(baseData) && isMerged(newData)) {
+      return 'MERGED'
+    }
+
+    if (isMerged(baseData) || isMerged(newData)) {
+      if (isEmptyArray(baseData) || isEmptyArray(newData)) {
+        return 'MERGED'
+      }
+      // If either data structure is an array, unmerge the project
+      if (isNonEmptyArray(baseData) || isNonEmptyArray(newData)) {
+        return fetchProjectModalitySamples(projectId, modality)
+      }
+    }
+
+    return uniqueArray(baseData, newData)
+  }
+
+  const mergeDatasetData = async (dataset) => {
+    const datasetDataCopy = structuredClone(myDataset.data) || {}
+    const projectIds = uniqueArray(
+      Object.keys(datasetDataCopy),
+      Object.keys(dataset.data)
+    )
+
+    const mergePromises = projectIds.map(async (pId) => {
+      const baseProject = datasetDataCopy[pId] || {}
+      const newProject = dataset.data[pId] || {}
+
+      const mergedSingleCell = await mergeModalitySamples(
+        pId,
+        'SINGLE_CELL',
+        baseProject.SINGLE_CELL,
+        newProject.SINGLE_CELL
+      )
+
+      const mergedSpatial = await mergeModalitySamples(
+        pId,
+        'SPATIAL',
+        baseProject.SPATIAL,
+        newProject.SPATIAL
+      )
+
+      datasetDataCopy[pId] = {
+        SINGLE_CELL: mergedSingleCell,
+        SPATIAL: mergedSpatial,
+        includes_bulk: baseProject.includes_bulk || newProject.includes_bulk
+      }
+    })
+
+    await Promise.all(mergePromises)
+
+    return mergePromises.includes(null) ? null : datasetDataCopy
+  }
 
   const processDataset = async () => {
     // Token is required for dataset processing
@@ -295,7 +362,10 @@ export const useMyDataset = () => {
     defaultProjectOptions,
     isDatasetDataEmpty,
     clearDataset,
+    createDataset,
     getDataset,
+    updateDataset,
+    mergeDatasetData,
     processDataset,
     addProject,
     removeProjectById,
