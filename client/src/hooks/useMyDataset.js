@@ -141,7 +141,7 @@ export const useMyDataset = () => {
   }
 
   /* Project-level */
-  const addProject = async (project, newData) => {
+  const addProject = async (project, newProjectData, format) => {
     const datasetDataCopy = structuredClone(myDataset.data) || {}
 
     if (datasetDataCopy[project.scpca_id]) {
@@ -149,12 +149,12 @@ export const useMyDataset = () => {
     }
 
     // Make sure data is defined for a new dataset
-    datasetDataCopy[project.scpca_id] = newData.projectData
+    datasetDataCopy[project.scpca_id] = newProjectData
 
     const updatedDataset = {
       ...myDataset,
       data: datasetDataCopy,
-      format: newData.format // Requires for a new dataset
+      format // Required for a new dataset
     }
 
     return !myDataset.id
@@ -246,15 +246,15 @@ export const useMyDataset = () => {
   }
 
   /* Sample-level */
-  const setSamples = async (project, newData) => {
+  const setSamples = async (project, newProjectData, format) => {
     const datasetDataCopy = structuredClone(myDataset.data) || {}
 
-    datasetDataCopy[project.scpca_id] = newData.projectData
+    datasetDataCopy[project.scpca_id] = newProjectData
 
     const updatedDataset = {
       ...myDataset,
       data: datasetDataCopy,
-      format: newData.format // Requires for a new dataset
+      format // Required for a new dataset
     }
 
     return !myDataset.id
