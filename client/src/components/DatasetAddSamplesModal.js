@@ -45,10 +45,11 @@ export const DatasetAddSamplesModal = ({
   const canClickAddSamples = totalSamples > 0
 
   const handleAddSamples = () => {
-    setSamples(project, {
-      projectData: { ...selectedSamples, includes_bulk: includeBulk },
+    setSamples(
+      project,
+      { ...selectedSamples, includes_bulk: includeBulk },
       format
-    })
+    )
     setShowing(false)
   }
 
