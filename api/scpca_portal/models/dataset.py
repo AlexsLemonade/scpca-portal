@@ -320,79 +320,92 @@ class Dataset(TimestampedModel):
         This break down looks at the type of information present in the individual files as well.
         Returns a list of dicts with name, samples_count, and format as keys.
         """
+        single_cell_samples = self.get_selected_samples([Modalities.SINGLE_CELL])
+        single_cell_libraries = self.libraries.filter(modality=Modalities.SINGLE_CELL)
+        spatial_samples = self.get_selected_samples([Modalities.SPATIAL])
+        spatial_libraries = self.libraries.filter(modality=Modalities.SPATIAL)
+        bulk_samples = self.get_selected_samples([Modalities.BULK_RNA_SEQ])
+        bulk_libraries = self.libraries.filter(modality=Modalities.BULK_RNA_SEQ)
 
-        # Name describes the type of files being summarized.
-        # Filter describes how to match libraries in the dataset.
-        # Format defaults to dataset format but can be overridden here.
-        # Order is important, more specific should precede less specific.
         summary_queries = [
             {
-                "name": "Single-nuclei multiplexed samples",
-                "filter": {"is_multiplexed": True, "metadata__seq_unit": "nucleus"},
-            },
-            {
-                "name": "Single-cell multiplexed samples",
-                "filter": {"is_multiplexed": True},
+                "name": "Single-cell samples",
+                "exclude": [
+                    {"is_multiplexed": True},
+                    {"metadata__seq_unit": "nucleus"},
+                    {"has_cite_seq_data": True},
+                ],
+                "samples": single_cell_samples,
+                "libraries": single_cell_libraries,
             },
             {
                 "name": "Single-nuclei samples",
                 "filter": {"metadata__seq_unit": "nucleus"},
+                "exclude": [{"is_multiplexed": True}, {"has_cite_seq_data": True}],
+                "samples": single_cell_samples,
+                "libraries": single_cell_libraries,
             },
             {
                 "name": "Single-cell samples with CITE-seq",
                 "filter": {"has_cite_seq_data": True},
+                "exclude": [{"is_multiplexed": True}, {"metadata__seq_unit": "nucleus"}],
+                "samples": single_cell_samples,
+                "libraries": single_cell_libraries,
             },
             {
-                "name": "Single-cell samples",
-                "filter": {"modality": Modalities.SINGLE_CELL},
+                "name": "Single-cell multiplexed samples",
+                "filter": {"is_multiplexed": True},
+                "exclude": [{"metadata__seq_unit": "nucleus"}, {"has_cite_seq_data": True}],
+                "samples": single_cell_samples,
+                "libraries": single_cell_libraries,
+            },
+            {
+                "name": "Single-nuclei multiplexed samples",
+                "filter": {"is_multiplexed": True, "metadata__seq_unit": "nucleus"},
+                "exclude": [{"has_cite_seq_data": True}],
+                "samples": single_cell_samples,
+                "libraries": single_cell_libraries,
             },
             {
                 "name": "Spatial samples",
-                "filter": {"modality": Modalities.SPATIAL},
                 "format": "Spatial format",
+                "samples": spatial_samples,
+                "libraries": spatial_libraries,
             },
             {
                 "name": "Bulk-RNA seq samples",
-                "filter": {"modality": Modalities.BULK_RNA_SEQ},
                 "format": ".tsv",
+                "samples": bulk_samples,
+                "libraries": bulk_libraries,
             },
         ]
 
-        # cache
-        dataset_samples = self.samples
-        dataset_libraries = self.libraries
-
-        seen_samples = set()
         summaries = []
 
-        for file_summary_query in summary_queries:
-            library_ids = (
-                dataset_libraries.filter(**file_summary_query["filter"])
-                .distinct()
-                .values_list("scpca_id", flat=True)
-            )
+        for query in summary_queries:
+            libraries = query["libraries"].filter(**query.get("filter", {}))
+
+            for exclude in query.get("exclude", []):
+                libraries = libraries.exclude(**exclude)
+
+            library_ids = libraries.distinct().values_list("scpca_id", flat=True)
 
             if not library_ids:
                 continue
 
-            if samples_ids := (
-                dataset_samples.filter(libraries__scpca_id__in=library_ids)
-                .exclude(scpca_id__in=seen_samples)
+            if sample_ids := (
+                query["samples"]
+                .filter(libraries__scpca_id__in=library_ids)
                 .distinct()
                 .values_list("scpca_id", flat=True)
             ):
-
                 summaries.append(
                     {
-                        "samples_count": len(samples_ids),
-                        "name": file_summary_query["name"],
-                        "format": file_summary_query.get(
-                            "format", common.FORMAT_EXTENSIONS.get(self.format)
-                        ),
+                        "samples_count": len(sample_ids),
+                        "name": query["name"],
+                        "format": query.get("format", common.FORMAT_EXTENSIONS.get(self.format)),
                     }
                 )
-
-                seen_samples.update(samples_ids)
 
         return summaries
 

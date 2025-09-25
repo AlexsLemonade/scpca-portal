@@ -549,10 +549,13 @@ class TestDataset(TestCase):
             },
         )
 
+        # TODO: This test should cover all potential counts
         expected_single_cell = [
-            {"samples_count": 2, "name": "Single-nuclei multiplexed samples", "format": ".rds"},
-            {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".rds"},
             {"samples_count": 4, "name": "Single-cell samples", "format": ".rds"},
+            # Single-nuclei should be included here
+            {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".rds"},
+            # Single-cell multiplexed should be included here
+            {"samples_count": 2, "name": "Single-nuclei multiplexed samples", "format": ".rds"},
             {"samples_count": 1, "name": "Spatial samples", "format": "Spatial format"},
             {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
         ]
@@ -592,8 +595,8 @@ class TestDataset(TestCase):
         )
 
         expected_ann_data = [
-            {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".h5ad"},
             {"samples_count": 4, "name": "Single-cell samples", "format": ".h5ad"},
+            {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".h5ad"},
             {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
         ]
 
