@@ -63,12 +63,7 @@ export const ViewSamples = ({ dataset, project }) => {
             readOnly
           />
         </Box>
-        <DatasetSamplesTable
-          project={project}
-          samples={samples}
-          stickies={2}
-          readOnly
-        />
+        <DatasetSamplesTable project={project} samples={samples} readOnly />
       </DatasetSamplesTableContextProvider>
     </Box>
   )

@@ -41,7 +41,7 @@ export const DatasetSamplesTable = ({
           <TriStateModalityCheckBoxHeader
             project={project}
             modalities={availableModalities}
-            editable={editable}
+            editable={editable || !readOnly}
           />
         </Box>
       ),
@@ -62,13 +62,12 @@ export const DatasetSamplesTable = ({
               samples={samples}
               sampleId={row.original.scpca_id}
               disabled={!row.original[`has_${m.toLowerCase()}_data`]}
-              editable={editable}
+              editable={editable || !readOnly}
               onClick={() => toggleSample(m, row.original)}
             />
           ))}
         </Box>
-      ),
-      isVisible: !readOnly
+      )
     },
     {
       Header: 'Sample ID',
