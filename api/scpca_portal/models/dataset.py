@@ -320,14 +320,6 @@ class Dataset(TimestampedModel):
         This break down looks at the type of information present in the individual files as well.
         Returns a list of dicts with name, samples_count, and format as keys.
         """
-        # The more specific filters should precede less specific ones:
-        # - Single-nuclei multiplexed samples
-        # - Single-cell multiplexed samples
-        # - Single-nuclei samples
-        # - Single-cell samples with CITE-seq
-        # - Single-cell samples
-        # - Spatial samples
-        # - Bulk-RNA seq samples
         single_cell_samples = self.get_selected_samples([Modalities.SINGLE_CELL])
         single_cell_libraries = self.libraries.filter(modality=Modalities.SINGLE_CELL)
         spatial_samples = self.get_selected_samples([Modalities.SPATIAL])
@@ -338,7 +330,6 @@ class Dataset(TimestampedModel):
         summary_queries = [
             {
                 "name": "Single-cell samples",
-                "filter": {},
                 "exclude": [
                     {"is_multiplexed": True},
                     {"metadata__seq_unit": "nucleus"},
