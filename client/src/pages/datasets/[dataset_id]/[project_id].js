@@ -32,9 +32,10 @@ export const ViewSamples = ({ dataset, project }) => {
     setIncludeBulk(isProjectIncludeBulk(dataset, project))
     setIncludeMerge(isProjectMerged(dataset, project))
     setLoading(false)
-  }, [project])
+  }, [])
 
   const handleBackToDataset = () => {
+    setLoading(true)
     const source = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
     setRestoreFromDestination(source)
     back()
