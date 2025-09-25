@@ -4,39 +4,35 @@ import { api } from 'api'
 import { DatasetSamplesTableContextProvider } from 'contexts/DatasetSamplesTableContext'
 import { useRouter } from 'next/router'
 import { useScrollRestore } from 'hooks/useScrollRestore'
-import { useMyDataset } from 'hooks/useMyDataset'
+import { useDataset } from 'hooks/useDataset'
 import { DatasetSamplesTable } from 'components/DatasetSamplesTable'
 import { DatasetSamplesTableOptionsHeader } from 'components/DatasetSamplesTableOptionsHeader'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 
-export const ViewEditSamples = ({ project }) => {
+export const ViewSamples = ({ dataset, project }) => {
   const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
-  const {
-    myDataset,
-    getAddedProjectDataSamples,
-    isProjectIncludeBulk,
-    isProjectMerged
-  } = useMyDataset()
+  const { isProjectIncludeBulk, isProjectMerged, getDatasetProjectSamples } =
+    useDataset()
 
   const [loading, setLoading] = useState(true)
-  const [samplesInMyDataset, setSamplesInMyDataset] = useState([])
+  const [samples, setSamples] = useState([])
+
   // For dataset download options
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
-  // Configure the dataset table and options after component mounts
+  // Set up the dataset table on component mounts
   useEffect(() => {
-    if (!myDataset) return
-    // Filter to display only samples from My Dataset
-    setSamplesInMyDataset(getAddedProjectDataSamples(project))
-    // Preselect download options based on the values in myDataset
-    setIncludeBulk(isProjectIncludeBulk(project))
-    setIncludeMerge(isProjectMerged(project))
+    // Filter to display only samples from dataset
+    setSamples(getDatasetProjectSamples(dataset, project))
+    // Preselect download options based on the values in dataset
+    setIncludeBulk(isProjectIncludeBulk(dataset, project))
+    setIncludeMerge(isProjectMerged(dataset, project))
     setLoading(false)
-  }, [myDataset])
+  }, [project])
 
   const handleBackToMyDataset = () => {
     const source = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
@@ -64,12 +60,14 @@ export const ViewEditSamples = ({ project }) => {
             includeMerge={includeMerge}
             onIncludeBulkChange={setIncludeBulk}
             onIncludeMergeChange={setIncludeMerge}
+            readOnly
           />
         </Box>
         <DatasetSamplesTable
           project={project}
-          samples={samplesInMyDataset}
-          editable
+          samples={samples}
+          stickies={2}
+          readOnly
         />
       </DatasetSamplesTableContextProvider>
     </Box>
@@ -77,12 +75,15 @@ export const ViewEditSamples = ({ project }) => {
 }
 
 export const getServerSideProps = async ({ query }) => {
-  const projectId = query.project_id
-  const projectRequest = await api.projects.get(projectId)
+  const [datasetRequest, projectRequest] = await Promise.all([
+    api.datasets.get(query.dataset_id),
+    api.projects.get(query.project_id)
+  ])
 
-  if (projectRequest.isOk) {
+  if (projectRequest.isOk && datasetRequest.isOk) {
     return {
       props: {
+        dataset: datasetRequest.response,
         project: projectRequest.response
       }
     }
@@ -91,4 +92,4 @@ export const getServerSideProps = async ({ query }) => {
   return { notFound: true }
 }
 
-export default ViewEditSamples
+export default ViewSamples

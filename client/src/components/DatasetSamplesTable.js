@@ -16,7 +16,8 @@ export const DatasetSamplesTable = ({
   project,
   samples,
   stickies = 3,
-  editable = false
+  editable = false,
+  readOnly = false
 }) => {
   const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
     useDatasetSamplesTable()
@@ -66,7 +67,8 @@ export const DatasetSamplesTable = ({
             />
           ))}
         </Box>
-      )
+      ),
+      isVisible: !readOnly
     },
     {
       Header: 'Sample ID',
@@ -177,7 +179,7 @@ export const DatasetSamplesTable = ({
       stickies={stickies}
       pageSize={5}
       pageSizeOptions={[5, 10, 20, 50]}
-      text={<Text italic>{text}</Text>}
+      text={!readOnly ? <Text italic>{text}</Text> : null}
       defaultSort={[{ id: 'scpca_id', asc: true }]}
       selectedRows={selectedSamples}
       onAllRowsChange={setAllSamples}
