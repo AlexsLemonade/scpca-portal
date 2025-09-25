@@ -10,6 +10,7 @@ import { Icon } from 'components/Icon'
 import { InfoText } from 'components/InfoText'
 import { Pill } from 'components/Pill'
 import { WarningText } from 'components/WarningText'
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { capitalize } from 'helpers/capitalize'
 import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
@@ -66,6 +67,11 @@ export const ProjectHeader = ({ project, linked = false }) => {
               ) : (
                 <DatasetAddProjectModal project={project} />
               )}
+              <CCDLDatasetDownloadModal
+                label="Download Now"
+                initialDatasets={project.datasets ? project.datasets : []}
+                white
+              />
               {project.has_bulk_rna_seq && (
                 <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
               )}

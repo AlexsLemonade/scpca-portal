@@ -10,7 +10,8 @@ import { useCCDLDatasetDownloadModal } from 'hooks/useCCDLDatasetDownloadModal'
 export const CCDLDatasetDownloadModal = ({
   label,
   initialDatasets = [],
-  disabled = false
+  disabled = false,
+  white = false
 }) => {
   const {
     showing,
@@ -35,7 +36,7 @@ export const CCDLDatasetDownloadModal = ({
       <Button
         aria-label={label}
         flex="grow"
-        primary
+        primary={!white}
         label={label}
         disabled={isDisabled}
         onClick={handleClick}
