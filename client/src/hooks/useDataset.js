@@ -2,6 +2,7 @@ import { useContext } from 'react'
 import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
+import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useDataset = () => {
   const { token, setEmail } = useScPCAPortal()
@@ -91,11 +92,39 @@ export const useDataset = () => {
     return datasetRequest.response
   }
 
+  const isProjectIncludeBulk = (dataset, project) =>
+    dataset.data?.[project.scpca_id]?.includes_bulk || false
+
+  const isProjectMerged = (dataset, project) =>
+    dataset.data[project.scpca_id].SINGLE_CELL === 'MERGED'
+
+  // Return an array of all samples in the project data
+  const getDatasetProjectSamples = (dataset, project) => {
+    const { samples } = project
+    const { SINGLE_CELL: singleCell, SPATIAL: spatial } =
+      dataset.data[project.scpca_id]
+
+    const singleCellSamples =
+      singleCell === 'MERGED'
+        ? samples.filter((s) => s.has_single_cell_data)
+        : samples.filter(
+            (s) => s.has_single_cell_data && singleCell.includes(s.scpca_id)
+          )
+    const spatialSamples = samples.filter(
+      (s) => s.has_spatial_data && spatial.includes(s.scpca_id)
+    )
+
+    return uniqueArray(singleCellSamples, spatialSamples)
+  }
+
   return {
     errors,
     create,
     get,
     process,
-    update
+    update,
+    isProjectIncludeBulk,
+    isProjectMerged,
+    getDatasetProjectSamples
   }
 }
