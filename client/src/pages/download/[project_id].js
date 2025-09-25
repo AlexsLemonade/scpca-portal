@@ -22,16 +22,16 @@ export const ViewEditSamples = ({ project }) => {
   } = useMyDataset()
 
   const [loading, setLoading] = useState(true)
-  const [samplesInMyDataset, setSamplesInMyDataset] = useState([])
+  const [samples, setSamples] = useState([])
   // For dataset download options
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
-  // Configure the dataset table and options after component mounts
+  //  Set up the dataset table and options after component mounts
   useEffect(() => {
     if (!myDataset) return
     // Filter to display only samples from My Dataset
-    setSamplesInMyDataset(getAddedProjectDataSamples(project))
+    setSamples(getAddedProjectDataSamples(project))
     // Preselect download options based on the values in myDataset
     setIncludeBulk(isProjectIncludeBulk(project))
     setIncludeMerge(isProjectMerged(project))
@@ -66,11 +66,7 @@ export const ViewEditSamples = ({ project }) => {
             onIncludeMergeChange={setIncludeMerge}
           />
         </Box>
-        <DatasetSamplesTable
-          project={project}
-          samples={samplesInMyDataset}
-          editable
-        />
+        <DatasetSamplesTable project={project} samples={samples} editable />
       </DatasetSamplesTableContextProvider>
     </Box>
   )

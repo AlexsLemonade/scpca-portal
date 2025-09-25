@@ -24,7 +24,7 @@ export const ViewSamples = ({ dataset, project }) => {
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
-  // Set up the dataset table on component mounts
+  // Set up the dataset table on component mount
   useEffect(() => {
     // Filter to display only samples from dataset
     setSamples(getDatasetProjectSamples(dataset, project))
@@ -34,7 +34,7 @@ export const ViewSamples = ({ dataset, project }) => {
     setLoading(false)
   }, [project])
 
-  const handleBackToMyDataset = () => {
+  const handleBackToDataset = () => {
     const source = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
     setRestoreFromDestination(source)
     back()
@@ -45,7 +45,7 @@ export const ViewSamples = ({ dataset, project }) => {
   return (
     <Box gap="large" fill margin={{ bottom: 'large' }}>
       <Box align="start" gap="large">
-        <Button label="Back to My Dataset" onClick={handleBackToMyDataset} />
+        <Button label="Back to Dataset" onClick={handleBackToDataset} />
         <Link href={`/projects/${project.scpca_id}`} newTab>
           <Text weight="bold" color="brand" size="large">
             {project.title}
