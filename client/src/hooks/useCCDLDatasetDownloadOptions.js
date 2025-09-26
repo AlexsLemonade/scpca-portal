@@ -16,15 +16,27 @@ export const useCCDLDatasetDownloadOptions = (datasets) => {
 
   const [modality, setModality] = useState(datasets[0].ccdl_modality)
   const [format, setFormat] = useState(datasets[0].format)
-  const [hasMerged, setHasMerged] = useState(datasets[0].includes_files_merged)
-  const [hasMultiplexed, setHasMultiplexed] = useState(
-    datasets[0].includes_files_multiplexed
+  const [includesMerged, setIncludesMerged] = useState(false)
+  const [isMergedObjectsAvailable, setIsMergedObjectsAvailable] = useState(
+    datasets.some((dataset) => dataset.includes_files_merged)
   )
+  const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
+  const [isExcludeMultiplexedAvailable, setIsExcludeMultiplexedAvailable] =
+    useState(datasets.some((dataset) => dataset.includes_files_multiplexed))
 
   const [showingDataset, setShowingDataset] = useState(datasets[0])
 
   useEffect(() => {
     setModalityOptions(getModalityOptions(datasets))
+    setIsMergedObjectsAvailable(
+      datasets.some((dataset) => dataset.includes_files_merged)
+    )
+    setIsExcludeMultiplexedAvailable(
+      datasets.some((dataset) => dataset.includes_files_multiplexed)
+    )
+  }, [datasets])
+
+  useEffect(() => {
     setFormatOptions(getFormatOptions(datasets, modality))
   }, [datasets, modality])
 
@@ -34,11 +46,12 @@ export const useCCDLDatasetDownloadOptions = (datasets) => {
         (d) =>
           d.ccdl_modality === modality &&
           d.format === format &&
-          d.includes_files_merged === hasMerged &&
-          d.includes_files_multiplexed === hasMultiplexed
+          d.includes_files_merged === includesMerged &&
+          d.includes_files_multiplexed ===
+            (isExcludeMultiplexedAvailable && !excludeMultiplexed)
       )
     )
-  }, [modality, format, hasMerged, hasMultiplexed])
+  }, [modality, format, includesMerged, excludeMultiplexed])
 
   return {
     modalityOptions,
@@ -47,10 +60,12 @@ export const useCCDLDatasetDownloadOptions = (datasets) => {
     setModality,
     format,
     setFormat,
-    hasMerged,
-    setHasMerged,
-    hasMultiplexed,
-    setHasMultiplexed,
+    includesMerged,
+    setIncludesMerged,
+    isMergedObjectsAvailable,
+    excludeMultiplexed,
+    setExcludeMultiplexed,
+    isExcludeMultiplexedAvailable,
     showingDataset
   }
 }

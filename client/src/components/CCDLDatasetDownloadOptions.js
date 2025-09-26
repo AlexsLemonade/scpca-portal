@@ -3,8 +3,8 @@ import { Heading, Grid, Box, Select } from 'grommet'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
 import { useCCDLDatasetDownloadOptions } from 'hooks/useCCDLDatasetDownloadOptions'
-import { CheckBoxMergedObjects } from 'components/CheckBoxMergedObjects'
-import { CheckBoxExcludeMultiplexed } from 'components/CheckBoxExcludeMultiplexed'
+import { CCDLDatasetCheckBoxMergedObjects } from 'components/CCDLDatasetCheckBoxMergedObjects'
+import { CCDLDatasetCheckBoxExcludeMultiplexed } from 'components/CCDLDatasetCheckBoxExcludeMultiplexed'
 import { CCDLDatasetDownloadOption } from 'components/CCDLDatasetDownloadOption'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
@@ -13,9 +13,6 @@ export const CCDLDatasetDownloadOptions = ({
   datasets,
   handleSelectedDataset
 }) => {
-  const { responsive } = useResponsive()
-  const showMultiplexedOption = false
-
   const {
     modalityOptions,
     formatOptions,
@@ -23,8 +20,17 @@ export const CCDLDatasetDownloadOptions = ({
     setModality,
     format,
     setFormat,
+    includesMerged,
+    setIncludesMerged,
+    isMergedObjectsAvailable,
+    excludeMultiplexed,
+    setExcludeMultiplexed,
+    isExcludeMultiplexedAvailable,
     showingDataset
   } = useCCDLDatasetDownloadOptions(datasets)
+
+  const { responsive } = useResponsive()
+  const showMultiplexedOption = isExcludeMultiplexedAvailable
 
   return (
     <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
@@ -73,8 +79,18 @@ export const CCDLDatasetDownloadOptions = ({
           </FormField>
         </Box>
         <Box gap="medium">
-          <CheckBoxMergedObjects />
-          {showMultiplexedOption && <CheckBoxExcludeMultiplexed />}
+          <CCDLDatasetCheckBoxMergedObjects
+            includesMerged={includesMerged}
+            setIncludesMerged={setIncludesMerged}
+            isMergedObjectsAvailable={isMergedObjectsAvailable}
+          />
+          {showMultiplexedOption && (
+            <CCDLDatasetCheckBoxExcludeMultiplexed
+              excludeMultiplexed={excludeMultiplexed}
+              setExcludeMultiplexed={setExcludeMultiplexed}
+              isExcludeMultiplexedAvailable={isExcludeMultiplexedAvailable}
+            />
+          )}
         </Box>
       </Box>
       <Box>
