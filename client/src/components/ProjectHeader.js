@@ -69,7 +69,9 @@ export const ProjectHeader = ({ project, linked = false }) => {
               )}
               <CCDLDatasetDownloadModal
                 label="Download Now"
-                initialDatasets={project.datasets ? project.datasets : []}
+                initialDatasets={project?.datasets?.filter(
+                  (d) => d.format !== 'METADATA'
+                )}
                 white
               />
               {project.has_bulk_rna_seq && (
