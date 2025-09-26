@@ -1,14 +1,17 @@
 import React from 'react'
-import { Box, Grid, Heading, Text } from 'grommet'
+import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
-import { CopyLinkButton } from 'components/CopyLinkButton'
-import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import { DatasetFileItems } from 'components/DatasetFileItems'
+import { CCDLDatasetCopyLinkButton } from 'components/CCDLDatasetCopyLinkButton'
 import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
 
-export const CCDLDatasetDownloadOption = ({ dataset, handleSelectFile }) => {
-  const { saveUserPreferences } = useDownloadOptionsContext()
-  const downloadLabel = 'Download CCDL Dataset'
+export const CCDLDatasetDownloadOption = ({
+  dataset,
+  handleSelectedDataset
+}) => {
+  // const { saveUserPreferences } = useDownloadOptionsContext()
+  const downloadLabel = 'Download Project'
 
   const { responsive } = useResponsive()
 
@@ -40,21 +43,8 @@ export const CCDLDatasetDownloadOption = ({ dataset, handleSelectFile }) => {
         </Box>
       </Box>
       <Box gridArea="body" margin={{ bottom: 'small' }}>
-        <Box pad="small">
-          <Text margin={{ bottom: 'small' }}>
-            The download consists of the following items:
-          </Text>
-          <ul
-            style={{
-              listStylePosition: 'inside',
-              listStyleType: 'square'
-            }}
-          >
-            {dataset.file_items.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </Box>
+        <Paragraph>The download consists of the following items:</Paragraph>
+        <DatasetFileItems dataset={dataset} />
       </Box>
       <Box gridArea="footer" margin={{ top: 'medium' }}>
         <Grid columns={responsive('1', '1/2')} gap="large">
@@ -63,13 +53,13 @@ export const CCDLDatasetDownloadOption = ({ dataset, handleSelectFile }) => {
             alignSelf="start"
             aria-label={downloadLabel}
             label={downloadLabel}
-            target="_blank"
             onClick={() => {
-              saveUserPreferences()
-              handleSelectFile(dataset)
+              // TODO: add new saveUserPreferences for ccdl datasets
+              // saveUserPreferences()
+              handleSelectedDataset(dataset)
             }}
           />
-          <CopyLinkButton computedFile={dataset.computed_file} />
+          <CCDLDatasetCopyLinkButton dataset={dataset} />
         </Grid>
       </Box>
     </Grid>
