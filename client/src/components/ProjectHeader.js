@@ -15,7 +15,7 @@ import { capitalize } from 'helpers/capitalize'
 import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
-import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
+import { CCDLDatasetDownloadOptionsContextProvider } from 'contexts/CCDLDatasetDownloadOptionsContext'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { isProjectAddedToDataset } = useMyDataset()
@@ -24,8 +24,10 @@ export const ProjectHeader = ({ project, linked = false }) => {
   const unavailableSampleCountText =
     Number(project.unavailable_samples_count) > 1 ? 'samples' : 'sample'
 
+  const datasets = project?.datasets?.filter(d => d.format !== 'METADATA')
+
   return (
-    <DownloadOptionsContextProvider resource={project}>
+    <CCDLDatasetDownloadOptionsContextProvider  datasets={datasets}>
       <Box pad={responsive({ horizontal: 'medium' })}>
         <Box
           direction={responsive('column', 'row')}
@@ -69,9 +71,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               )}
               <CCDLDatasetDownloadModal
                 label="Download Now"
-                initialDatasets={project?.datasets?.filter(
-                  (d) => d.format !== 'METADATA'
-                )}
+                initialDatasets={datasets}
                 white
               />
               {project.has_bulk_rna_seq && (
@@ -130,7 +130,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           </Box>
         )}
       </Box>
-    </DownloadOptionsContextProvider>
+    </CCDLDatasetDownloadOptionsContextProvider>
   )
 }
 
