@@ -7,22 +7,27 @@ import { Link } from 'components/Link'
 import { useCCDLDatasetDownloadOptionsContext } from 'hooks/useCCDLDatasetDownloadOptionsContext'
 
 export const CCDLDatasetCheckBoxMergedObjects = () => {
-  const { includesMerged, setIncludesMerged, isMergedObjectsAvailable } =
-    useCCDLDatasetDownloadOptionsContext()
+  const {
+    includesMerged,
+    setIncludesMerged,
+    isMergedObjectsAvailable,
+    modality
+  } = useCCDLDatasetDownloadOptionsContext()
   const handleChange = () => setIncludesMerged(!includesMerged)
+  const isDisabled = !isMergedObjectsAvailable || modality === 'SPATIAL'
 
   return (
     <>
       <Box direction="row">
         <CheckBox
           checked={includesMerged}
-          disabled={!isMergedObjectsAvailable}
+          disabled={isDisabled}
           label="Merge samples into 1 object"
           onChange={handleChange}
         />
         <HelpLink link={config.links.when_downloading_merged_objects} />
       </Box>
-      {!isMergedObjectsAvailable && (
+      {isDisabled && (
         <InfoText>
           <Text>
             Merged objects are not available for every project.{' '}

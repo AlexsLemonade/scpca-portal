@@ -1,4 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react'
+import { uniqueArray } from 'helpers/uniqueArray'
 
 export const CCDLDatasetDownloadOptionsContext = createContext({})
 
@@ -7,12 +8,12 @@ export const CCDLDatasetDownloadOptionsContextProvider = ({
   children
 }) => {
   const getModalityOptions = (ds) => {
-    return [...new Set(ds.map((d) => d.ccdl_modality))]
+    return uniqueArray(ds.map((d) => d.ccdl_modality))
   }
   const getFormatOptions = (ds, modality = 'SINGLE_CELL') => {
     if (modality === 'SPATIAL') return ['SINGLE_CELL_EXPERIMENT']
 
-    return [...new Set(ds.map((d) => d.format))]
+    return uniqueArray(ds.map((d) => d.format))
   }
   const [modalityOptions, setModalityOptions] = useState(
     getModalityOptions(datasets)
@@ -45,6 +46,12 @@ export const CCDLDatasetDownloadOptionsContextProvider = ({
     setFormatOptions(getFormatOptions(datasets, modality))
   }, [datasets, modality])
 
+  const includesMultiplexed =
+    isExcludeMultiplexedAvailable &&
+    !excludeMultiplexed &&
+    modality === 'SINGLE_CELL' &&
+    format === 'SINGLE_CELL_EXPERIMENT'
+
   useEffect(() => {
     setShowingDataset(
       datasets.find(
@@ -52,8 +59,7 @@ export const CCDLDatasetDownloadOptionsContextProvider = ({
           d.ccdl_modality === modality &&
           d.format === format &&
           d.includes_files_merged === includesMerged &&
-          d.includes_files_multiplexed ===
-            (isExcludeMultiplexedAvailable && !excludeMultiplexed)
+          d.includes_files_multiplexed === includesMultiplexed
       )
     )
   }, [modality, format, includesMerged, excludeMultiplexed])

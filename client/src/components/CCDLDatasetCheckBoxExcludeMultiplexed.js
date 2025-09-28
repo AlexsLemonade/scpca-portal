@@ -7,21 +7,23 @@ export const CCDLDatasetCheckBoxExcludeMultiplexed = () => {
   const {
     excludeMultiplexed,
     setExcludeMultiplexed,
-    isExcludeMultiplexedAvailable
+    isExcludeMultiplexedAvailable,
+    format
   } = useCCDLDatasetDownloadOptionsContext()
   const handleChange = () => setExcludeMultiplexed(!excludeMultiplexed)
+  const isDisabled = !isExcludeMultiplexedAvailable || format === 'ANN_DATA'
 
   return (
     <>
       <Box direction="row">
         <CheckBox
-          checked={excludeMultiplexed}
-          disabled={!isExcludeMultiplexedAvailable}
+          checked={excludeMultiplexed || isDisabled}
+          disabled={isDisabled}
           label="Exclude multiplexed samples"
           onChange={handleChange}
         />
       </Box>
-      {!isExcludeMultiplexedAvailable && <WarningAnnDataMultiplexed />}
+      {isDisabled && <WarningAnnDataMultiplexed />}
     </>
   )
 }
