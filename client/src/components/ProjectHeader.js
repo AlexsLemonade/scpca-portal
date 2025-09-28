@@ -24,10 +24,10 @@ export const ProjectHeader = ({ project, linked = false }) => {
   const unavailableSampleCountText =
     Number(project.unavailable_samples_count) > 1 ? 'samples' : 'sample'
 
-  const datasets = project?.datasets?.filter(d => d.format !== 'METADATA')
+  const datasets = project?.datasets?.filter((d) => d.format !== 'METADATA')
 
   return (
-    <CCDLDatasetDownloadOptionsContextProvider  datasets={datasets}>
+    <CCDLDatasetDownloadOptionsContextProvider datasets={datasets}>
       <Box pad={responsive({ horizontal: 'medium' })}>
         <Box
           direction={responsive('column', 'row')}
@@ -72,7 +72,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               <CCDLDatasetDownloadModal
                 label="Download Now"
                 initialDatasets={datasets}
-                white
+                secondary
               />
               {project.has_bulk_rna_seq && (
                 <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
