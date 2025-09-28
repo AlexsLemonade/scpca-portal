@@ -4,12 +4,11 @@ import { config } from 'config'
 import { HelpLink } from 'components/HelpLink'
 import { InfoText } from 'components/InfoText'
 import { Link } from 'components/Link'
+import { useCCDLDatasetDownloadOptionsContext } from 'hooks/useCCDLDatasetDownloadOptionsContext'
 
-export const CCDLDatasetCheckBoxMergedObjects = ({
-  includesMerged,
-  setIncludesMerged,
-  isMergedObjectsAvailable
-}) => {
+export const CCDLDatasetCheckBoxMergedObjects = () => {
+  const { includesMerged, setIncludesMerged, isMergedObjectsAvailable } =
+    useCCDLDatasetDownloadOptionsContext()
   const handleChange = () => setIncludesMerged(!includesMerged)
 
   return (

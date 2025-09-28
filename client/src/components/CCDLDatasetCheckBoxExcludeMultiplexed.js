@@ -1,12 +1,14 @@
 import React from 'react'
 import { Box, CheckBox } from 'grommet'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
+import { useCCDLDatasetDownloadOptionsContext } from 'hooks/useCCDLDatasetDownloadOptionsContext'
 
-export const CCDLDatasetCheckBoxExcludeMultiplexed = ({
-  excludeMultiplexed,
-  setExcludeMultiplexed,
-  isExcludeMultiplexedAvailable
-}) => {
+export const CCDLDatasetCheckBoxExcludeMultiplexed = () => {
+  const {
+    excludeMultiplexed,
+    setExcludeMultiplexed,
+    isExcludeMultiplexedAvailable
+  } = useCCDLDatasetDownloadOptionsContext()
   const handleChange = () => setExcludeMultiplexed(!excludeMultiplexed)
 
   return (

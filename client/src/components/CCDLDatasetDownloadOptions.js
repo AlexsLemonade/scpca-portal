@@ -2,17 +2,14 @@ import React from 'react'
 import { Heading, Grid, Box, Select } from 'grommet'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
-import { useCCDLDatasetDownloadOptions } from 'hooks/useCCDLDatasetDownloadOptions'
+import { useCCDLDatasetDownloadOptionsContext } from 'hooks/useCCDLDatasetDownloadOptionsContext'
 import { CCDLDatasetCheckBoxMergedObjects } from 'components/CCDLDatasetCheckBoxMergedObjects'
 import { CCDLDatasetCheckBoxExcludeMultiplexed } from 'components/CCDLDatasetCheckBoxExcludeMultiplexed'
 import { CCDLDatasetDownloadOption } from 'components/CCDLDatasetDownloadOption'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
-export const CCDLDatasetDownloadOptions = ({
-  datasets,
-  handleSelectedDataset
-}) => {
+export const CCDLDatasetDownloadOptions = ({ handleSelectedDataset }) => {
   const {
     modalityOptions,
     formatOptions,
@@ -27,7 +24,7 @@ export const CCDLDatasetDownloadOptions = ({
     setExcludeMultiplexed,
     isExcludeMultiplexedAvailable,
     showingDataset
-  } = useCCDLDatasetDownloadOptions(datasets)
+  } = useCCDLDatasetDownloadOptionsContext()
 
   const { responsive } = useResponsive()
   const showMultiplexedOption = isExcludeMultiplexedAvailable
