@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from scpca_portal.enums.dataset_formats import DatasetFormats
 from scpca_portal.models import Dataset, Project
+from scpca_portal.serializers.ccdl_dataset import CCDLDatasetSerializer
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 from scpca_portal.serializers.contact import ContactSerializer
 from scpca_portal.serializers.external_accession import ExternalAccessionSerializer
@@ -20,6 +21,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "computed_files",
             "contacts",
             "created_at",
+            "datasets",
             "diagnoses_counts",
             "diagnoses",
             "disease_timings",
@@ -57,6 +59,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     # but we want these to always be included.
     computed_files = ComputedFileSerializer(read_only=True, many=True)
     contacts = ContactSerializer(read_only=True, many=True)
+    datasets = serializers.SerializerMethodField(read_only=True, default=None)
     metadata_dataset_id = serializers.SerializerMethodField(read_only=True, default=None)
     external_accessions = ExternalAccessionSerializer(read_only=True, many=True)
     publications = PublicationSerializer(read_only=True, many=True)
@@ -71,6 +74,11 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             return dataset.id
 
         return None
+
+    def get_datasets(self, obj):
+        datasets = Dataset.objects.filter(is_ccdl=True, ccdl_project_id=obj.scpca_id)
+        serializer = CCDLDatasetSerializer(datasets, many=True, context=self.context)
+        return serializer.data
 
 
 class ProjectSerializer(ProjectLeafSerializer):
