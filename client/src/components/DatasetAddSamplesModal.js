@@ -3,6 +3,7 @@ import { Box, Grid, Heading, Paragraph } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
+import { getProjectFormats } from 'helpers/getProjectFormats'
 import { differenceArray } from 'helpers/differenceArray'
 import { Button } from 'components/Button'
 import { Modal, ModalBody } from 'components/Modal'
@@ -16,8 +17,13 @@ export const DatasetAddSamplesModal = ({
   title = 'Add Samples to Dataset',
   disabled = false
 }) => {
-  const { getDatasetProjectData, getProjectSingleCellSamples, setSamples } =
-    useMyDataset()
+  const {
+    myDataset,
+    userFormat,
+    getDatasetProjectData,
+    getProjectSingleCellSamples,
+    setSamples
+  } = useMyDataset()
   const { selectedSamples } = useDatasetSamplesTable()
   const { responsive } = useResponsive()
 
@@ -25,6 +31,9 @@ export const DatasetAddSamplesModal = ({
   const [showing, setShowing] = useState(false)
 
   // For project options
+  const [format, setFormat] = useState(
+    myDataset.format || userFormat || getProjectFormats(project)[0]
+  )
   const [includeBulk, setIncludeBulk] = useState(false)
 
   // For counts of to-be-added samples in the modal
@@ -36,10 +45,11 @@ export const DatasetAddSamplesModal = ({
   const canClickAddSamples = totalSamples > 0
 
   const handleAddSamples = () => {
-    setSamples(project, {
-      ...selectedSamples,
-      includes_bulk: includeBulk
-    })
+    setSamples(
+      project,
+      { ...selectedSamples, includes_bulk: includeBulk },
+      format
+    )
     setShowing(false)
   }
 
@@ -105,7 +115,11 @@ export const DatasetAddSamplesModal = ({
             </Heading>
             <Box pad={{ top: 'small' }}>
               <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
-                <DatasetDataFormatOptions project={project} />
+                <DatasetDataFormatOptions
+                  project={project}
+                  format={format}
+                  onFormatChange={setFormat}
+                />
                 <DatasetSamplesProjectOptions
                   project={project}
                   includeBulk={includeBulk}

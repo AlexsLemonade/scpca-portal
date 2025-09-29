@@ -16,7 +16,11 @@ import { getReadable } from 'helpers/getReadable'
 
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
-export const DatasetProjectCard = ({ dataset, projectId }) => {
+export const DatasetProjectCard = ({
+  dataset,
+  projectId,
+  readOnly = false
+}) => {
   const { push, asPath } = useRouter()
   const { saveOriginScrollPosition } = useScrollRestore()
   const { removeProjectById } = useMyDataset()
@@ -45,7 +49,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
     .map((o) => o.label)
 
   const handleViewEditSamples = () => {
-    const destination = `/download/${projectId}`
+    const destination = `${asPath}/${projectId}`
     saveOriginScrollPosition(asPath, destination)
     push(destination)
   }
@@ -65,11 +69,13 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
             {title}
           </Text>
         </Link>
-        <Button
-          label="Remove"
-          alignSelf={responsive('stretch', 'start')}
-          onClick={() => removeProjectById(projectId)}
-        />
+        {!readOnly && (
+          <Button
+            label="Remove"
+            alignSelf={responsive('stretch', 'start')}
+            onClick={() => removeProjectById(projectId)}
+          />
+        )}
       </Box>
       <Box margin={{ bottom: '24px' }}>
         <Badge badge="Samples">
@@ -117,8 +123,8 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         gap="large"
       >
         <Button
-          label="View/Edit Samples"
-          aria-label="View/Edit Samples"
+          label={!readOnly ? 'View/Edit Samples' : 'View Samples'}
+          aria-label={!readOnly ? 'View/Edit Samples' : 'View Samples'}
           alignSelf={responsive('stretch', 'start')}
           onClick={handleViewEditSamples}
         />

@@ -56,13 +56,23 @@ export const DatasetAddProjectModal = ({
   const canClickAddProject = modalities.length > 0
 
   const handleAddProject = () => {
-    addProject(project, projectData)
+    addProject(project, projectData, format)
     setShowing(false)
   }
 
+  // Set additional options based on the project and defaultProjectOptions
+  const {
+    has_bulk_rna_seq: hasBulkRnaSeq,
+    includes_merged_sce: includesMergedSce,
+    includes_merged_anndata: includesMergedAnnData
+  } = project
   useEffect(() => {
-    setIncludeBulk(defaultProjectOptions.includeBulk)
-    setIncludeMerge(defaultProjectOptions.includeMerge)
+    setIncludeBulk(hasBulkRnaSeq ? defaultProjectOptions.includeBulk : false)
+    setIncludeMerge(
+      includesMergedSce || includesMergedAnnData
+        ? defaultProjectOptions.includeMerge
+        : false
+    )
     setModalities(
       getProjectModalities(project).filter((m) =>
         defaultProjectOptions.modalities.includes(m)
