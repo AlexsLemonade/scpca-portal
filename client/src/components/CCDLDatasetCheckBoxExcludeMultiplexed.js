@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, CheckBox } from 'grommet'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
-import { useCCDLDatasetDownloadOptions } from 'hooks/useCCDLDatasetDownloadOptions'
+import { useCCDLDatasetDownload } from 'hooks/useCCDLDatasetDownload'
 
 export const CCDLDatasetCheckBoxExcludeMultiplexed = () => {
   const {
@@ -9,7 +9,7 @@ export const CCDLDatasetCheckBoxExcludeMultiplexed = () => {
     setExcludeMultiplexed,
     isExcludeMultiplexedAvailable,
     format
-  } = useCCDLDatasetDownloadOptions()
+  } = useCCDLDatasetDownload()
   const handleChange = () => setExcludeMultiplexed(!excludeMultiplexed)
   const isDisabled = !isExcludeMultiplexedAvailable || format === 'ANN_DATA'
 

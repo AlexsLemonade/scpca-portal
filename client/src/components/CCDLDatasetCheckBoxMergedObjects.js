@@ -4,7 +4,7 @@ import { config } from 'config'
 import { HelpLink } from 'components/HelpLink'
 import { InfoText } from 'components/InfoText'
 import { Link } from 'components/Link'
-import { useCCDLDatasetDownloadOptions } from 'hooks/useCCDLDatasetDownloadOptions'
+import { useCCDLDatasetDownload } from 'hooks/useCCDLDatasetDownload'
 
 export const CCDLDatasetCheckBoxMergedObjects = () => {
   const {
@@ -12,7 +12,7 @@ export const CCDLDatasetCheckBoxMergedObjects = () => {
     setIncludesMerged,
     isMergedObjectsAvailable,
     modality
-  } = useCCDLDatasetDownloadOptions()
+  } = useCCDLDatasetDownload()
   const handleChange = () => setIncludesMerged(!includesMerged)
   const isDisabled = !isMergedObjectsAvailable || modality === 'SPATIAL'
 

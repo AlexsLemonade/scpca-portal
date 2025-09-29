@@ -15,7 +15,7 @@ import { capitalize } from 'helpers/capitalize'
 import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
-import { CCDLDatasetDownloadOptionsContextProvider } from 'contexts/CCDLDatasetDownloadOptionsContext'
+import { CCDLDatasetDownloadContextProvider } from 'contexts/CCDLDatasetDownloadContext'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { isProjectAddedToDataset } = useMyDataset()
@@ -27,110 +27,113 @@ export const ProjectHeader = ({ project, linked = false }) => {
   const datasets = project?.datasets?.filter((d) => d.format !== 'METADATA')
 
   return (
-    <CCDLDatasetDownloadOptionsContextProvider datasets={datasets}>
-      <Box pad={responsive({ horizontal: 'medium' })}>
-        <Box
-          direction={responsive('column', 'row')}
-          align="start"
-          justifyContents="between"
-          margin={{ bottom: responsive('medium', 'large') }}
-        >
-          <Box flex="shrink" pad={{ right: 'medium' }}>
-            {linked ? (
-              <Link href={`/projects/${project.scpca_id}`}>
-                <Text weight="bold" color="brand" size="large">
-                  {project.title}
-                </Text>
-              </Link>
-            ) : (
+    <Box pad={responsive({ horizontal: 'medium' })}>
+      <Box
+        direction={responsive('column', 'row')}
+        align="start"
+        justifyContents="between"
+        margin={{ bottom: responsive('medium', 'large') }}
+      >
+        <Box flex="shrink" pad={{ right: 'medium' }}>
+          {linked ? (
+            <Link href={`/projects/${project.scpca_id}`}>
               <Text weight="bold" color="brand" size="large">
                 {project.title}
               </Text>
+            </Link>
+          ) : (
+            <Text weight="bold" color="brand" size="large">
+              {project.title}
+            </Text>
+          )}
+        </Box>
+        <Box
+          gap="small"
+          align="end"
+          width={{ min: '0px' }}
+          flex="grow"
+          pad={{ top: responsive('medium', 'none') }}
+        >
+          <Box align="center" gap="small">
+            {isProjectAddedToDataset(project) ? (
+              <Box
+                direction="row"
+                align="center"
+                gap="small"
+                margin={{ vertical: 'small' }}
+              >
+                <Icon color="success" name="Check" />
+                <Text color="success">Added to Dataset</Text>
+              </Box>
+            ) : (
+              <DatasetAddProjectModal project={project} />
             )}
-          </Box>
-          <Box
-            gap="small"
-            align="end"
-            width={{ min: '0px' }}
-            flex="grow"
-            pad={{ top: responsive('medium', 'none') }}
-          >
-            <Box align="center" gap="small">
-              {isProjectAddedToDataset(project) ? (
-                <Box
-                  direction="row"
-                  align="center"
-                  gap="small"
-                  margin={{ vertical: 'small' }}
-                >
-                  <Icon color="success" name="Check" />
-                  <Text color="success">Added to Dataset</Text>
-                </Box>
-              ) : (
-                <DatasetAddProjectModal project={project} />
-              )}
+            <CCDLDatasetDownloadContextProvider
+              project={project}
+              datasets={datasets}
+            >
               <CCDLDatasetDownloadModal
                 label="Download Now"
                 initialDatasets={datasets}
                 secondary
               />
-              {project.has_bulk_rna_seq && (
-                <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
-              )}
-            </Box>
+            </CCDLDatasetDownloadContextProvider>
+            {project.has_bulk_rna_seq && (
+              <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
+            )}
           </Box>
         </Box>
-        <Grid columns={responsive('1', '1/4')} gap={responsive('medium')}>
-          <Badge
-            badge="Samples"
-            label={`${project.downloadable_sample_count} Downloadable Samples`}
-          />
-          <Badge
-            badge="SeqUnit"
-            label={project.seq_units.map((su) => capitalize(su || ''))}
-          />
-          <Badge badge="Kit" label={project.technologies.join(', ')} />
-          {project.modalities.length > 0 && (
-            <Badge
-              badge="Modality"
-              label={filterOut(project.modalities, 'SINGLE_CELL')
-                .map(getReadableModality)
-                .join(', ')}
-            />
-          )}
-        </Grid>
-
-        {hasUnavailableSample && (
-          <Box
-            border={{ side: 'top' }}
-            margin={{ top: 'medium' }}
-            pad={{ top: 'medium', bottom: 'small' }}
-          >
-            <InfoText
-              label={`${project.unavailable_samples_count} more ${unavailableSampleCountText} will be made available soon`}
-            />
-          </Box>
-        )}
-
-        {project.has_multiplexed_data && (
-          <Box
-            border={!hasUnavailableSample ? { side: 'top' } : ''}
-            margin={{ top: 'medium' }}
-            pad={!hasUnavailableSample ? { top: 'medium' } : ''}
-          >
-            <WarningText
-              lineBreak={false}
-              text={`${
-                project.multiplexed_sample_count || 'N/A'
-              } samples are multiplexed.`}
-              link={config.links.how_processed_multiplexed}
-              linkLabel="Learn more"
-              iconMargin="0"
-            />
-          </Box>
-        )}
       </Box>
-    </CCDLDatasetDownloadOptionsContextProvider>
+      <Grid columns={responsive('1', '1/4')} gap={responsive('medium')}>
+        <Badge
+          badge="Samples"
+          label={`${project.downloadable_sample_count} Downloadable Samples`}
+        />
+        <Badge
+          badge="SeqUnit"
+          label={project.seq_units.map((su) => capitalize(su || ''))}
+        />
+        <Badge badge="Kit" label={project.technologies.join(', ')} />
+        {project.modalities.length > 0 && (
+          <Badge
+            badge="Modality"
+            label={filterOut(project.modalities, 'SINGLE_CELL')
+              .map(getReadableModality)
+              .join(', ')}
+          />
+        )}
+      </Grid>
+
+      {hasUnavailableSample && (
+        <Box
+          border={{ side: 'top' }}
+          margin={{ top: 'medium' }}
+          pad={{ top: 'medium', bottom: 'small' }}
+        >
+          <InfoText
+            label={`${project.unavailable_samples_count} more ${unavailableSampleCountText} will be made available soon`}
+          />
+        </Box>
+      )}
+
+      {project.has_multiplexed_data && (
+        <Box
+          border={!hasUnavailableSample ? { side: 'top' } : ''}
+          margin={{ top: 'medium' }}
+          pad={!hasUnavailableSample ? { top: 'medium' } : ''}
+        >
+          <WarningText
+            lineBreak={false}
+            text={`${
+              project.multiplexed_sample_count || 'N/A'
+            } samples are multiplexed.`}
+            link={config.links.how_processed_multiplexed}
+            linkLabel="Learn more"
+            iconMargin="0"
+          />
+        </Box>
+      )}
+    </Box>
   )
 }
 
