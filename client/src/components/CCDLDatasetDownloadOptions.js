@@ -8,6 +8,8 @@ import { CCDLDatasetCheckBoxExcludeMultiplexed } from 'components/CCDLDatasetChe
 import { CCDLDatasetDownloadOption } from 'components/CCDLDatasetDownloadOption'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
+import { getReadableOptions } from 'helpers/getReadableOptions'
+import { getReadable, getStorable } from 'helpers/getReadable'
 
 export const CCDLDatasetDownloadOptions = ({ handleSelectedDataset }) => {
   const {
@@ -52,9 +54,9 @@ export const CCDLDatasetDownloadOptions = ({ handleSelectedDataset }) => {
             fieldWidth="116px"
           >
             <Select
-              options={modalityOptions}
-              value={modality}
-              onChange={({ value }) => setModality(value)}
+              options={getReadableOptions(modalityOptions)}
+              value={getReadable(modality)}
+              onChange={({ value }) => setModality(getStorable(value.label))}
             />
           </FormField>
           <FormField
@@ -69,9 +71,9 @@ export const CCDLDatasetDownloadOptions = ({ handleSelectedDataset }) => {
             fieldWidth="200px"
           >
             <Select
-              options={formatOptions}
-              value={format}
-              onChange={({ value }) => setFormat(value)}
+              options={getReadableOptions(formatOptions)}
+              value={getReadable(format)}
+              onChange={({ value }) => setFormat(getStorable(value.label))}
             />
           </FormField>
         </Box>
