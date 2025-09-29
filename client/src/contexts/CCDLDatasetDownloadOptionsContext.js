@@ -1,59 +1,29 @@
 import React, { createContext, useEffect, useState } from 'react'
-import { uniqueArray } from 'helpers/uniqueArray'
 
 export const CCDLDatasetDownloadOptionsContext = createContext({})
 
 export const CCDLDatasetDownloadOptionsContextProvider = ({
+  project,
   datasets,
   children
 }) => {
-  const getModalityOptions = (ds) => {
-    return uniqueArray(ds.map((d) => d.ccdl_modality))
-  }
-  const getFormatOptions = (ds, modality = 'SINGLE_CELL') => {
-    if (modality === 'SPATIAL') return ['SINGLE_CELL_EXPERIMENT']
+  const defaultDataset = datasets[0]
 
-    return uniqueArray(ds.map((d) => d.format))
-  }
-  const [modalityOptions, setModalityOptions] = useState(
-    getModalityOptions(datasets)
-  )
-  const [formatOptions, setFormatOptions] = useState(getFormatOptions(datasets))
+  const [selectedDataset, setSelectedDataset] = useState(defaultDataset)
+  const [modality, setModality] = useState()
+  const [format, setFormat] = useState()
+  const [includesMerged, setIncludesMerged] = useState()
+  const [excludeMultiplexed, setExcludeMultiplexed] = useState()
 
-  const [modality, setModality] = useState(datasets[0].ccdl_modality)
-  const [format, setFormat] = useState(datasets[0].format)
-  const [includesMerged, setIncludesMerged] = useState(false)
-  const [isMergedObjectsAvailable, setIsMergedObjectsAvailable] = useState(
-    datasets.some((dataset) => dataset.includes_files_merged)
-  )
-  const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
-  const [isExcludeMultiplexedAvailable, setIsExcludeMultiplexedAvailable] =
-    useState(datasets.some((dataset) => dataset.includes_files_multiplexed))
-
-  const [showingDataset, setShowingDataset] = useState(datasets[0])
-
+  // TODO: add a helper that allows passing in an object and have it match on that object
   useEffect(() => {
-    setModalityOptions(getModalityOptions(datasets))
-    setIsMergedObjectsAvailable(
-      datasets.some((dataset) => dataset.includes_files_merged)
-    )
-    setIsExcludeMultiplexedAvailable(
-      datasets.some((dataset) => dataset.includes_files_multiplexed)
-    )
-  }, [datasets])
+    const includesMultiplexed =
+      project.has_multiplexed_data &&
+      !excludeMultiplexed &&
+      modality === 'SINGLE_CELL' &&
+      format === 'SINGLE_CELL_EXPERIMENT'
 
-  useEffect(() => {
-    setFormatOptions(getFormatOptions(datasets, modality))
-  }, [datasets, modality])
-
-  const includesMultiplexed =
-    isExcludeMultiplexedAvailable &&
-    !excludeMultiplexed &&
-    modality === 'SINGLE_CELL' &&
-    format === 'SINGLE_CELL_EXPERIMENT'
-
-  useEffect(() => {
-    setShowingDataset(
+    setSelectedDataset(
       datasets.find(
         (d) =>
           d.ccdl_modality === modality &&
@@ -67,19 +37,17 @@ export const CCDLDatasetDownloadOptionsContextProvider = ({
   return (
     <CCDLDatasetDownloadOptionsContext.Provider
       value={{
-        modalityOptions,
-        formatOptions,
         modality,
         setModality,
         format,
         setFormat,
         includesMerged,
         setIncludesMerged,
-        isMergedObjectsAvailable,
         excludeMultiplexed,
         setExcludeMultiplexed,
-        isExcludeMultiplexedAvailable,
-        showingDataset
+        selectedDataset,
+        project,
+        datasets
       }}
     >
       {children}
