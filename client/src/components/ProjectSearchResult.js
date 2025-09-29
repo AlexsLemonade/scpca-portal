@@ -1,11 +1,10 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
-import { useProjectMetadataOnly } from 'hooks/useProjectMetadataOnly'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
-import { DownloadModal } from 'components/DownloadModal'
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
@@ -14,8 +13,6 @@ import { formatDiagnosisCounts } from 'helpers/formatCounts'
 
 export const ProjectSearchResult = ({ project }) => {
   const { responsive } = useResponsive()
-  const { isMetadataOnlyAvailable, metadataComputedFile } =
-    useProjectMetadataOnly(project)
 
   const searchDetails = [
     {
@@ -90,12 +87,12 @@ export const ProjectSearchResult = ({ project }) => {
         <Link href={`/projects/${project.scpca_id}#samples`}>
           <Button label="View Samples" aria-label="View Samples" />
         </Link>
-        <DownloadModal
+        <CCDLDatasetDownloadModal
           label="Download Sample Metadata"
+          initialDatasets={project?.datasets?.filter(
+            (d) => d.format === 'METADATA'
+          )}
           icon={<DownloadIcon color="brand" />}
-          resource={project}
-          publicComputedFile={metadataComputedFile}
-          disabled={!isMetadataOnlyAvailable}
         />
       </Box>
     </Box>

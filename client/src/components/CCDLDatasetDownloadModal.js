@@ -1,5 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import React from 'react'
+import { Anchor } from 'grommet'
 import { Button } from 'components/Button'
 import { CCDLDatasetDownloadOptions } from 'components/CCDLDatasetDownloadOptions'
 import { CCDLDatasetDownloadStarted } from 'components/CCDLDatasetDownloadStarted'
@@ -10,6 +11,7 @@ import { useCCDLDatasetDownloadModal } from 'hooks/useCCDLDatasetDownloadModal'
 export const CCDLDatasetDownloadModal = ({
   label,
   initialDatasets = [],
+  icon = null,
   disabled = false,
   secondary = false
 }) => {
@@ -33,14 +35,23 @@ export const CCDLDatasetDownloadModal = ({
 
   return (
     <>
-      <Button
-        aria-label={label}
-        flex="grow"
-        primary={!secondary}
-        label={label}
-        disabled={isDisabled}
-        onClick={handleClick}
-      />
+      {icon ? (
+        <Anchor
+          icon={icon}
+          onClick={handleClick}
+          disabled={isDisabled}
+          label={label}
+        />
+      ) : (
+        <Button
+          aria-label={label}
+          flex="grow"
+          primary={!secondary}
+          label={label}
+          disabled={isDisabled}
+          onClick={handleClick}
+        />
+      )}
       <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
         <ModalBody>
           {isTokenReady ? (
