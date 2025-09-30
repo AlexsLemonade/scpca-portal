@@ -8,7 +8,7 @@ import { formatBytes } from 'helpers/formatBytes'
 
 export const CCDLDatasetDownloadOption = ({
   dataset,
-  handleSelectedDataset
+  handleDownloadDataset
 }) => {
   // const { saveUserPreferences } = useDownloadOptionsContext()
   const downloadLabel = 'Download Project'
@@ -56,7 +56,7 @@ export const CCDLDatasetDownloadOption = ({
             onClick={() => {
               // TODO: add new saveUserPreferences for ccdl datasets
               // saveUserPreferences()
-              handleSelectedDataset(dataset)
+              handleDownloadDataset(dataset)
             }}
           />
           <CCDLDatasetCopyLinkButton dataset={dataset} />

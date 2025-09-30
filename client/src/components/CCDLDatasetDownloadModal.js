@@ -7,27 +7,30 @@ import { CCDLDatasetDownloadStarted } from 'components/CCDLDatasetDownloadStarte
 import { CCDLDatasetDownloadToken } from 'components/CCDLDatasetDownloadToken'
 import { Modal, ModalLoader, ModalBody } from 'components/Modal'
 import { useCCDLDatasetDownloadModal } from 'hooks/useCCDLDatasetDownloadModal'
+import { useCCDLDatasetDownloadContext } from 'hooks/useCCDLDatasetDownloadContext'
 
 export const CCDLDatasetDownloadModal = ({
   label,
-  initialDatasets = [],
   icon = null,
   disabled = false,
   secondary = false
 }) => {
+  const { datasets } = useCCDLDatasetDownloadContext()
+
   const {
     showing,
     setShowing,
     modalTitle,
-    datasets,
-    setSelectedDataset,
-    downloadDataset,
     isDownloadReady,
     isTokenReady,
-    isOptionsReady
-  } = useCCDLDatasetDownloadModal(initialDatasets)
+    isOptionsReady,
+    downloadDataset,
+    setDownloadDataset,
+    downloadLink
+  } = useCCDLDatasetDownloadModal()
+
   const isDisabled =
-    disabled || !initialDatasets.some((dataset) => dataset.computed_file)
+    disabled || !datasets.some((dataset) => dataset.computed_file)
 
   const handleClick = () => {
     setShowing(true)
@@ -58,11 +61,13 @@ export const CCDLDatasetDownloadModal = ({
             <CCDLDatasetDownloadToken />
           ) : isOptionsReady ? (
             <CCDLDatasetDownloadOptions
-              datasets={datasets}
-              handleSelectedDataset={setSelectedDataset}
+              handleDownloadDataset={setDownloadDataset}
             />
           ) : isDownloadReady ? (
-            <CCDLDatasetDownloadStarted dataset={downloadDataset} />
+            <CCDLDatasetDownloadStarted
+              dataset={downloadDataset}
+              downloadLink={downloadLink}
+            />
           ) : (
             <ModalLoader />
           )}

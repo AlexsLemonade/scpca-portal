@@ -10,7 +10,7 @@ import { getReadable } from 'helpers/getReadable'
 import DownloadSVG from '../images/download-folder.svg'
 
 // View when the donwload should have been initiated
-export const CCDLDatasetDownloadStarted = ({ dataset }) => {
+export const CCDLDatasetDownloadStarted = ({ dataset, downloadLink }) => {
   // open the file in a new tab
   const { size: responsiveSize } = useResponsive()
   const portalWideDataset = portalWideDatasets[dataset?.ccdl_name]
@@ -67,7 +67,7 @@ export const CCDLDatasetDownloadStarted = ({ dataset }) => {
               alignSelf="start"
               aria-label="Try Again"
               label="Try Again"
-              href={dataset.download_url}
+              href={downloadLink}
               target="_blank"
             />
           </Box>

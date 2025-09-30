@@ -2,7 +2,7 @@ import React from 'react'
 import { Heading, Grid, Box, Select } from 'grommet'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
-import { useCCDLDatasetDownload } from 'hooks/useCCDLDatasetDownload'
+import { useCCDLDatasetDownloadContext } from 'hooks/useCCDLDatasetDownloadContext'
 import { CCDLDatasetCheckBoxMergedObjects } from 'components/CCDLDatasetCheckBoxMergedObjects'
 import { CCDLDatasetCheckBoxExcludeMultiplexed } from 'components/CCDLDatasetCheckBoxExcludeMultiplexed'
 import { CCDLDatasetDownloadOption } from 'components/CCDLDatasetDownloadOption'
@@ -11,25 +11,20 @@ import { HelpLink } from 'components/HelpLink'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { getReadable, getStorable } from 'helpers/getReadable'
 
-export const CCDLDatasetDownloadOptions = ({ handleSelectedDataset }) => {
+export const CCDLDatasetDownloadOptions = ({ handleDownloadDataset }) => {
   const {
-    modalityOptions,
-    formatOptions,
     modality,
     setModality,
     format,
     setFormat,
-    includesMerged,
-    setIncludesMerged,
-    isMergedObjectsAvailable,
-    excludeMultiplexed,
-    setExcludeMultiplexed,
-    isExcludeMultiplexedAvailable,
-    showingDataset
-  } = useCCDLDatasetDownload()
+    selectedDataset,
+    isMultiplexedAvailable,
+    modalityOptions,
+    formatOptions
+  } = useCCDLDatasetDownloadContext()
 
   const { responsive } = useResponsive()
-  const showMultiplexedOption = isExcludeMultiplexedAvailable
+  const showMultiplexedOption = isMultiplexedAvailable
 
   return (
     <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
@@ -78,25 +73,15 @@ export const CCDLDatasetDownloadOptions = ({ handleSelectedDataset }) => {
           </FormField>
         </Box>
         <Box gap="medium">
-          <CCDLDatasetCheckBoxMergedObjects
-            includesMerged={includesMerged}
-            setIncludesMerged={setIncludesMerged}
-            isMergedObjectsAvailable={isMergedObjectsAvailable}
-          />
-          {showMultiplexedOption && (
-            <CCDLDatasetCheckBoxExcludeMultiplexed
-              excludeMultiplexed={excludeMultiplexed}
-              setExcludeMultiplexed={setExcludeMultiplexed}
-              isExcludeMultiplexedAvailable={isExcludeMultiplexedAvailable}
-            />
-          )}
+          <CCDLDatasetCheckBoxMergedObjects />
+          {showMultiplexedOption && <CCDLDatasetCheckBoxExcludeMultiplexed />}
         </Box>
       </Box>
       <Box>
-        {showingDataset.computed_file && (
+        {selectedDataset.computed_file && (
           <CCDLDatasetDownloadOption
-            dataset={showingDataset}
-            handleSelectedDataset={handleSelectedDataset}
+            dataset={selectedDataset}
+            handleDownloadDataset={handleDownloadDataset}
           />
         )}
       </Box>
