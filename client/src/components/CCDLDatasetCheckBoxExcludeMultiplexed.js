@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Box, CheckBox } from 'grommet'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 import { useCCDLDatasetDownloadContext } from 'hooks/useCCDLDatasetDownloadContext'
@@ -7,11 +7,21 @@ export const CCDLDatasetCheckBoxExcludeMultiplexed = () => {
   const {
     excludeMultiplexed,
     setExcludeMultiplexed,
-    isExcludeMultiplexedAvailable,
+    isMultiplexedAvailable,
     format
   } = useCCDLDatasetDownloadContext()
   const handleChange = () => setExcludeMultiplexed(!excludeMultiplexed)
-  const isDisabled = !isExcludeMultiplexedAvailable || format === 'ANN_DATA'
+  const isDisabled =
+    !isMultiplexedAvailable || format !== 'SINGLE_CELL_EXPERIMENT'
+
+  // sce should default to multiplexed inclusion, with the reverse for anndata
+  useEffect(() => {
+    if (format === 'SINGLE_CELL_EXPERIMENT') {
+      setExcludeMultiplexed(false)
+    } else if (format === 'ANN_DATA') {
+      setExcludeMultiplexed(true)
+    }
+  }, [format])
 
   return (
     <>
