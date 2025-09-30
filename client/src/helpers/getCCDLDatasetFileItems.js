@@ -1,4 +1,5 @@
 // takes a dataset and returns an array of readable file items
+import { modalityNames, formatNames } from 'config/ccdlDatasets'
 
 export const getCCDLDatasetFileItems = (dataset) => {
   const items = []
@@ -11,15 +12,6 @@ export const getCCDLDatasetFileItems = (dataset) => {
     includes_files_cite_seq: hasCiteSeq,
     includes_files_multiplexed: hasMultiplexed
   } = dataset
-
-  const modalityNames = {
-    SINGLE_CELL: 'Single-cell data',
-    SPATIAL: 'Spatial data'
-  }
-  const formatNames = {
-    SINGLE_CELL_EXPERIMENT: 'SingleCellExperiment (R)',
-    ANN_DATA: 'AnnData (Python)'
-  }
 
   const portalWideMetadataOnly = format === 'METADATA' && !projectId
   const combinedCiteSeqFile = hasCiteSeq && format === 'SINGLE_CELL_EXPERIMENT'

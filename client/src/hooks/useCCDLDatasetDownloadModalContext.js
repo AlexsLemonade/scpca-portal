@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
-import { portalWideDatasets } from 'config/ccdlDatasets'
 import { CCDLDatasetDownloadModalContext } from 'contexts/CCDLDatasetDownloadModalContext'
+import { formatNames } from 'config/ccdlDatasets'
 
 export const useCCDLDatasetDownloadModalContext = () => {
   const {
@@ -35,13 +35,27 @@ export const useCCDLDatasetDownloadModalContext = () => {
   const isOptionsReady = datasets?.length > 1 && !!token && !downloadDataset
   const isDownloadReady = !!downloadDataset && !!token
 
-  const modalTitleAction = isDownloadReady ? 'Downloading' : 'Download'
-  const modalTitleDataset =
-    portalWideDatasets[selectedDataset?.ccdl_name]?.modalTitle
-  const modalTitleResource = selectedDataset.ccdl_project_id
-    ? 'Project'
-    : modalTitleDataset
-  const modalTitle = `${modalTitleAction} ${modalTitleResource}`
+  const modalModalityNames = {
+    SINGLE_CELL: 'Data',
+    SPATIAL: 'Spatial Data'
+  }
+
+  const getModalTitle = (dataset) => {
+    const modalTitleAction = isDownloadReady ? 'Downloading' : 'Download'
+    const modalityName =
+      dataset.format === 'METADATA'
+        ? 'Sample Metadata'
+        : modalModalityNames[dataset.ccdl_modality]
+    const modalTitleResource = dataset.ccdl_project_id
+      ? 'Project'
+      : `Portal-wide ${modalityName}`
+    const asFormat =
+      dataset.ccdl_modality === 'SINGLE_CELL'
+        ? `as ${formatNames[dataset.format]}`
+        : ''
+    return `${modalTitleAction} ${modalTitleResource} ${asFormat}`.trim()
+  }
+  const modalTitle = getModalTitle(selectedDataset)
 
   // downloadDataset should be set immediately for ccdl portal wide and project metadata downloads
   useEffect(() => {
