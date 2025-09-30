@@ -1,14 +1,31 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
 import { portalWideDatasets } from 'config/ccdlDatasets'
-import { useCCDLDatasetDownloadContext } from 'hooks/useCCDLDatasetDownloadContext'
+import { CCDLDatasetDownloadModalContext } from 'contexts/CCDLDatasetDownloadModalContext'
 
-export const useCCDLDatasetDownloadModal = () => {
+export const useCCDLDatasetDownloadModalContext = () => {
+  const {
+    modality,
+    setModality,
+    format,
+    setFormat,
+    includesMerged,
+    setIncludesMerged,
+    excludeMultiplexed,
+    setExcludeMultiplexed,
+    selectedDataset,
+    isMergedObjectsAvailable,
+    isMultiplexedAvailable,
+    modalityOptions,
+    formatOptions,
+    project,
+    datasets
+  } = useContext(CCDLDatasetDownloadModalContext)
+
   const [showing, setShowing] = useState(false)
 
   const { token, createToken } = useScPCAPortal()
-  const { datasets, selectedDataset } = useCCDLDatasetDownloadContext()
   const [downloadDataset, setDownloadDataset] = useState(
     datasets.length === 1 ? datasets[0] : null
   )
@@ -73,6 +90,21 @@ export const useCCDLDatasetDownloadModal = () => {
     isOptionsReady,
     downloadDataset,
     setDownloadDataset,
-    downloadLink
+    downloadLink,
+    modality,
+    setModality,
+    format,
+    setFormat,
+    includesMerged,
+    setIncludesMerged,
+    excludeMultiplexed,
+    setExcludeMultiplexed,
+    selectedDataset,
+    isMergedObjectsAvailable,
+    isMultiplexedAvailable,
+    modalityOptions,
+    formatOptions,
+    project,
+    datasets
   }
 }

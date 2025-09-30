@@ -15,7 +15,7 @@ import { capitalize } from 'helpers/capitalize'
 import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
-import { CCDLDatasetDownloadContextProvider } from 'contexts/CCDLDatasetDownloadContext'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { isProjectAddedToDataset } = useMyDataset()
@@ -68,12 +68,12 @@ export const ProjectHeader = ({ project, linked = false }) => {
             ) : (
               <DatasetAddProjectModal project={project} />
             )}
-            <CCDLDatasetDownloadContextProvider
+            <CCDLDatasetDownloadModalContextProvider
               project={project}
               datasets={datasets}
             >
               <CCDLDatasetDownloadModal label="Download Now" secondary />
-            </CCDLDatasetDownloadContextProvider>
+            </CCDLDatasetDownloadModalContextProvider>
             {project.has_bulk_rna_seq && (
               <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
             )}

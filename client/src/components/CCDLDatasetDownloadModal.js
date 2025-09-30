@@ -6,8 +6,7 @@ import { CCDLDatasetDownloadOptions } from 'components/CCDLDatasetDownloadOption
 import { CCDLDatasetDownloadStarted } from 'components/CCDLDatasetDownloadStarted'
 import { CCDLDatasetDownloadToken } from 'components/CCDLDatasetDownloadToken'
 import { Modal, ModalLoader, ModalBody } from 'components/Modal'
-import { useCCDLDatasetDownloadModal } from 'hooks/useCCDLDatasetDownloadModal'
-import { useCCDLDatasetDownloadContext } from 'hooks/useCCDLDatasetDownloadContext'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 
 export const CCDLDatasetDownloadModal = ({
   label,
@@ -15,8 +14,6 @@ export const CCDLDatasetDownloadModal = ({
   disabled = false,
   secondary = false
 }) => {
-  const { datasets } = useCCDLDatasetDownloadContext()
-
   const {
     showing,
     setShowing,
@@ -26,8 +23,9 @@ export const CCDLDatasetDownloadModal = ({
     isOptionsReady,
     downloadDataset,
     setDownloadDataset,
-    downloadLink
-  } = useCCDLDatasetDownloadModal()
+    downloadLink,
+    datasets
+  } = useCCDLDatasetDownloadModalContext()
 
   const isDisabled =
     disabled || !datasets.some((dataset) => dataset.computed_file)

@@ -2,7 +2,7 @@ import React from 'react'
 import { Heading, Grid, Box, Select } from 'grommet'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
-import { useCCDLDatasetDownloadContext } from 'hooks/useCCDLDatasetDownloadContext'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 import { CCDLDatasetCheckBoxMergedObjects } from 'components/CCDLDatasetCheckBoxMergedObjects'
 import { CCDLDatasetCheckBoxExcludeMultiplexed } from 'components/CCDLDatasetCheckBoxExcludeMultiplexed'
 import { CCDLDatasetDownloadOption } from 'components/CCDLDatasetDownloadOption'
@@ -21,7 +21,7 @@ export const CCDLDatasetDownloadOptions = ({ handleDownloadDataset }) => {
     isMultiplexedAvailable,
     modalityOptions,
     formatOptions
-  } = useCCDLDatasetDownloadContext()
+  } = useCCDLDatasetDownloadModalContext()
 
   const { responsive } = useResponsive()
   const showMultiplexedOption = isMultiplexedAvailable

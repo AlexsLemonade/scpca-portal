@@ -6,7 +6,7 @@ import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 // import { CCDLDatasetCopyLinkButton } from 'components/CCDLDatasetCopyLinkButton'
 import { DatasetFileItems } from 'components/DatasetFileItems'
 import { config } from 'config'
-import { CCDLDatasetDownloadContextProvider } from 'contexts/CCDLDatasetDownloadContext'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 import { formatBytes } from 'helpers/formatBytes'
 import dynamic from 'next/dynamic'
 
@@ -90,9 +90,9 @@ export const DatasetPortalWideDownloadCard = ({
               gap="24px"
               margin={{ bottom: 'small' }}
             >
-              <CCDLDatasetDownloadContextProvider datasets={[dataset]}>
+              <CCDLDatasetDownloadModalContextProvider datasets={[dataset]}>
                 <CCDLDatasetDownloadModal label="Download" />
-              </CCDLDatasetDownloadContextProvider>
+              </CCDLDatasetDownloadModalContextProvider>
               {showCopyLinkButton && (
                 <CCDLDatasetCopyLinkButton dataset={dataset} />
               )}

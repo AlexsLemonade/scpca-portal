@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { Box, CheckBox } from 'grommet'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
-import { useCCDLDatasetDownloadContext } from 'hooks/useCCDLDatasetDownloadContext'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 
 export const CCDLDatasetCheckBoxExcludeMultiplexed = () => {
   const {
@@ -9,7 +9,7 @@ export const CCDLDatasetCheckBoxExcludeMultiplexed = () => {
     setExcludeMultiplexed,
     isMultiplexedAvailable,
     format
-  } = useCCDLDatasetDownloadContext()
+  } = useCCDLDatasetDownloadModalContext()
   const handleChange = () => setExcludeMultiplexed(!excludeMultiplexed)
   const isDisabled =
     !isMultiplexedAvailable || format !== 'SINGLE_CELL_EXPERIMENT'

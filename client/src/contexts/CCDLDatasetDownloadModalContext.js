@@ -2,9 +2,9 @@ import React, { createContext, useEffect, useState } from 'react'
 import { filterPartialObject } from 'helpers/filterPartialObject'
 import { uniqueArray } from 'helpers/uniqueArray'
 
-export const CCDLDatasetDownloadContext = createContext({})
+export const CCDLDatasetDownloadModalContext = createContext({})
 
-export const CCDLDatasetDownloadContextProvider = ({
+export const CCDLDatasetDownloadModalContextProvider = ({
   project,
   datasets,
   children
@@ -48,7 +48,7 @@ export const CCDLDatasetDownloadContextProvider = ({
   }, [modality, format, includesMerged, excludeMultiplexed])
 
   return (
-    <CCDLDatasetDownloadContext.Provider
+    <CCDLDatasetDownloadModalContext.Provider
       value={{
         modality,
         setModality,
@@ -68,6 +68,6 @@ export const CCDLDatasetDownloadContextProvider = ({
       }}
     >
       {children}
-    </CCDLDatasetDownloadContext.Provider>
+    </CCDLDatasetDownloadModalContext.Provider>
   )
 }

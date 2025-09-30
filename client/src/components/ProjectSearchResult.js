@@ -10,7 +10,7 @@ import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
 import { formatDiagnosisCounts } from 'helpers/formatCounts'
-import { CCDLDatasetDownloadContextProvider } from 'contexts/CCDLDatasetDownloadContext'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 
 export const ProjectSearchResult = ({ project }) => {
   const { responsive } = useResponsive()
@@ -88,7 +88,7 @@ export const ProjectSearchResult = ({ project }) => {
         <Link href={`/projects/${project.scpca_id}#samples`}>
           <Button label="View Samples" aria-label="View Samples" />
         </Link>
-        <CCDLDatasetDownloadContextProvider
+        <CCDLDatasetDownloadModalContextProvider
           project={project}
           datasets={project.datasets.filter((d) => d.format === 'METADATA')}
         >
@@ -96,7 +96,7 @@ export const ProjectSearchResult = ({ project }) => {
             label="Download Sample Metadata"
             icon={<DownloadIcon color="brand" />}
           />
-        </CCDLDatasetDownloadContextProvider>
+        </CCDLDatasetDownloadModalContextProvider>
       </Box>
     </Box>
   )
