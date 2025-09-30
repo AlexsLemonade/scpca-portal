@@ -117,7 +117,7 @@ export const DatasetAddProjectModal = ({
     } else {
       setSingleCellSamples([])
     }
-  }, [excludeMultiplexed, includeMerge, modalities])
+  }, [excludeMultiplexed, includeMerge, modalities, samples])
 
   // Update spatialSamples based on user selections
   useEffect(() => {
@@ -126,7 +126,7 @@ export const DatasetAddProjectModal = ({
     } else {
       setSpatialSamples([])
     }
-  }, [modalities])
+  }, [modalities, samples])
 
   // Calculate missing modality samples
   useEffect(() => {
