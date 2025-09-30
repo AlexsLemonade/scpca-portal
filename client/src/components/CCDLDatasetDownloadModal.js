@@ -22,7 +22,6 @@ export const CCDLDatasetDownloadModal = ({
     isTokenReady,
     isOptionsReady,
     downloadDataset,
-    setDownloadDataset,
     downloadLink,
     datasets
   } = useCCDLDatasetDownloadModalContext()
@@ -58,9 +57,7 @@ export const CCDLDatasetDownloadModal = ({
           {isTokenReady ? (
             <CCDLDatasetDownloadToken />
           ) : isOptionsReady ? (
-            <CCDLDatasetDownloadOptions
-              handleDownloadDataset={setDownloadDataset}
-            />
+            <CCDLDatasetDownloadOptions />
           ) : isDownloadReady ? (
             <CCDLDatasetDownloadStarted
               dataset={downloadDataset}

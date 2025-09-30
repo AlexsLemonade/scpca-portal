@@ -5,12 +5,12 @@ import { DatasetFileItems } from 'components/DatasetFileItems'
 import { CCDLDatasetCopyLinkButton } from 'components/CCDLDatasetCopyLinkButton'
 import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 
-export const CCDLDatasetDownloadOption = ({
-  dataset,
-  handleDownloadDataset
-}) => {
+export const CCDLDatasetDownloadOption = ({ dataset }) => {
   // const { saveUserPreferences } = useDownloadOptionsContext()
+  const { setDownloadDataset } = useCCDLDatasetDownloadModalContext()
+
   const downloadLabel = 'Download Project'
 
   const { responsive } = useResponsive()
@@ -56,7 +56,7 @@ export const CCDLDatasetDownloadOption = ({
             onClick={() => {
               // TODO: add new saveUserPreferences for ccdl datasets
               // saveUserPreferences()
-              handleDownloadDataset(dataset)
+              setDownloadDataset(dataset)
             }}
           />
           <CCDLDatasetCopyLinkButton dataset={dataset} />

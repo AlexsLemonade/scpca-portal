@@ -11,7 +11,7 @@ import { HelpLink } from 'components/HelpLink'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { getReadable, getStorable } from 'helpers/getReadable'
 
-export const CCDLDatasetDownloadOptions = ({ handleDownloadDataset }) => {
+export const CCDLDatasetDownloadOptions = () => {
   const {
     modality,
     setModality,
@@ -79,10 +79,7 @@ export const CCDLDatasetDownloadOptions = ({ handleDownloadDataset }) => {
       </Box>
       <Box>
         {selectedDataset.computed_file && (
-          <CCDLDatasetDownloadOption
-            dataset={selectedDataset}
-            handleDownloadDataset={handleDownloadDataset}
-          />
+          <CCDLDatasetDownloadOption dataset={selectedDataset} />
         )}
       </Box>
     </Grid>
