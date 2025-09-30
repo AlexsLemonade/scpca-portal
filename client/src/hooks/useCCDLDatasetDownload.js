@@ -1,7 +1,7 @@
 import { useContext } from 'react'
 import { CCDLDatasetDownloadContext } from 'contexts/CCDLDatasetDownloadContext'
 
-export const useCCDLDatasetDownload = () => {
+export const useCCDLDatasetDownloadContext = () => {
   const {
     modality,
     setModality,

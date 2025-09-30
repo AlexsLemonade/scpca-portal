@@ -91,10 +91,7 @@ export const DatasetPortalWideDownloadCard = ({
               margin={{ bottom: 'small' }}
             >
               <CCDLDatasetDownloadContextProvider datasets={[dataset]}>
-                <CCDLDatasetDownloadModal
-                  label="Download"
-                  initialDatasets={dataset ? [dataset] : []}
-                />
+                <CCDLDatasetDownloadModal label="Download" />
               </CCDLDatasetDownloadContextProvider>
               {showCopyLinkButton && (
                 <CCDLDatasetCopyLinkButton dataset={dataset} />

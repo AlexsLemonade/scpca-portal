@@ -94,9 +94,6 @@ export const ProjectSearchResult = ({ project }) => {
         >
           <CCDLDatasetDownloadModal
             label="Download Sample Metadata"
-            initialDatasets={project?.datasets?.filter(
-              (d) => d.format === 'METADATA'
-            )}
             icon={<DownloadIcon color="brand" />}
           />
         </CCDLDatasetDownloadContextProvider>

@@ -72,11 +72,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               project={project}
               datasets={datasets}
             >
-              <CCDLDatasetDownloadModal
-                label="Download Now"
-                initialDatasets={datasets}
-                secondary
-              />
+              <CCDLDatasetDownloadModal label="Download Now" secondary />
             </CCDLDatasetDownloadContextProvider>
             {project.has_bulk_rna_seq && (
               <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />

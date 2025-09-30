@@ -12,10 +12,10 @@ export const CCDLDatasetDownloadContextProvider = ({
   const defaultDataset = datasets[0]
 
   const [selectedDataset, setSelectedDataset] = useState(defaultDataset)
-  const [modality, setModality] = useState()
-  const [format, setFormat] = useState()
-  const [includesMerged, setIncludesMerged] = useState()
-  const [excludeMultiplexed, setExcludeMultiplexed] = useState()
+  const [modality, setModality] = useState(defaultDataset.ccdl_modality)
+  const [format, setFormat] = useState(defaultDataset.format)
+  const [includesMerged, setIncludesMerged] = useState(false)
+  const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
 
   const isMergedObjectsAvailable = datasets.some(
     (dataset) => dataset.includes_files_merged
@@ -25,7 +25,6 @@ export const CCDLDatasetDownloadContextProvider = ({
   )
 
   const modalityOptions = uniqueArray(datasets.map((d) => d.ccdl_modality))
-
   const formatOptions = uniqueArray(
     datasets
       .filter((d) => d.ccdl_modality === selectedDataset.ccdl_modality)
@@ -64,7 +63,8 @@ export const CCDLDatasetDownloadContextProvider = ({
         isMultiplexedAvailable,
         modalityOptions,
         formatOptions,
-        project
+        project,
+        datasets
       }}
     >
       {children}
