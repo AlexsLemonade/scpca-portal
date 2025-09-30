@@ -2,81 +2,77 @@ import { useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
 import { portalWideDatasets } from 'config/ccdlDatasets'
+import { useCCDLDatasetDownloadContext } from 'hooks/useCCDLDatasetDownloadContext'
 
-export const useCCDLDatasetDownloadModal = (initialDatasets) => {
+export const useCCDLDatasetDownloadModal = () => {
   const [showing, setShowing] = useState(false)
 
   const { token, createToken } = useScPCAPortal()
-  const [datasets, setDatasets] = useState(initialDatasets || [])
-  const [selectedDataset, setSelectedDataset] = useState(null)
-  const [downloadDataset, setDownloadDataset] = useState(null)
+  const { datasets, selectedDataset } = useCCDLDatasetDownloadContext()
+  const [downloadDataset, setDownloadDataset] = useState(
+    datasets.length === 1 ? datasets[0] : null
+  )
+  const [downloadLink, setDownloadLink] = useState(null)
 
   const isTokenReady = !token
-  const isOptionsReady = datasets?.length > 1 && !!token
+  const isOptionsReady = datasets?.length > 1 && !!token && !downloadDataset
   const isDownloadReady = !!downloadDataset && !!token
 
   const modalTitleAction = isDownloadReady ? 'Downloading' : 'Download'
   const modalTitleDataset =
     portalWideDatasets[selectedDataset?.ccdl_name]?.modalTitle
-  const modalTitleResource = datasets[0]?.ccdl_project_id
+  const modalTitleResource = selectedDataset.ccdl_project_id
     ? 'Project'
     : modalTitleDataset
   const modalTitle = `${modalTitleAction} ${modalTitleResource}`
 
+  // downloadDataset should be set immediately for ccdl portal wide and project metadata downloads
   useEffect(() => {
-    setDatasets(initialDatasets || [])
-    setSelectedDataset(null)
-    setDownloadDataset(null)
-  }, [initialDatasets])
-
-  useEffect(() => {
-    setDownloadDataset(null)
-
-    if (datasets?.length === 1) {
-      setSelectedDataset(datasets[0])
-    } else {
-      setSelectedDataset(null)
+    if (selectedDataset && datasets.length === 1) {
+      setDownloadDataset(selectedDataset)
     }
-  }, [datasets])
+  }, [datasets, selectedDataset])
 
   useEffect(() => {
     const asyncFetch = async () => {
       const downloadRequest = await api.ccdlDatasets.get(
-        selectedDataset.id,
+        downloadDataset.id,
         token
       )
       if (downloadRequest.isOk) {
         window.open(downloadRequest.response.download_url)
-        setDownloadDataset(downloadRequest.response)
+        setDownloadLink(downloadRequest.response.download_url)
       } else if (downloadRequest.status === 403) {
         await createToken()
       } else {
         // NOTE: there isnt much we can do here to recover.
         console.error(
           'An error occurred while trying to get the download url for:',
-          selectedDataset.id
+          downloadDataset.id
         )
       }
     }
 
-    if (!showing) {
-      setDownloadDataset(null)
-    }
+    if (downloadDataset && !downloadLink && token && showing) asyncFetch()
+  }, [downloadDataset, downloadLink, token, showing])
 
-    if (selectedDataset && !downloadDataset && token && showing) asyncFetch()
-  }, [selectedDataset, downloadDataset, token, showing])
+  useEffect(() => {
+    if (!showing) {
+      setDownloadLink(null)
+      // downloadDataset needs to be unset each time the modal is closed for ccdl project datasets
+      if (datasets.length > 1) setDownloadDataset(null)
+    }
+  }, [showing])
 
   return {
     showing,
     setShowing,
-    token,
     modalTitle,
-    datasets,
-    setDatasets,
-    setSelectedDataset,
-    downloadDataset,
     isDownloadReady,
     isTokenReady,
-    isOptionsReady
+    isOptionsReady,
+    downloadDataset,
+    setDownloadDataset,
+    downloadLink
   }
 }
