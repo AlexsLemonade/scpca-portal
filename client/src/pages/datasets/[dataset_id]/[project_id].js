@@ -12,7 +12,7 @@ import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 
 export const ViewSamples = ({ dataset, project }) => {
-  const { asPath, back } = useRouter()
+  const { back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
   const { isProjectIncludeBulk, isProjectMerged, getDatasetProjectSamples } =
     useDataset()
@@ -24,7 +24,7 @@ export const ViewSamples = ({ dataset, project }) => {
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
-  const referrer = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
+  const referrer = `/datasets/${dataset.id}` // The page to navigating back to
 
   // Set up the dataset table on component mount
   useEffect(() => {

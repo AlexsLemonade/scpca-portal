@@ -12,7 +12,7 @@ import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 
 export const ViewEditSamples = ({ project }) => {
-  const { asPath, back } = useRouter()
+  const { back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
   const {
     myDataset,
@@ -27,7 +27,7 @@ export const ViewEditSamples = ({ project }) => {
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
-  const referrer = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
+  const referrer = '/download' // The page to navigating back to
 
   //  Set up the dataset table and options after component mounts
   useEffect(() => {
