@@ -27,6 +27,8 @@ export const ViewEditSamples = ({ project }) => {
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
+  const referrer = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
+
   //  Set up the dataset table and options after component mounts
   useEffect(() => {
     if (!myDataset) return
@@ -39,8 +41,7 @@ export const ViewEditSamples = ({ project }) => {
   }, [myDataset])
 
   const handleBackToMyDataset = () => {
-    const source = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
-    setRestoreFromDestination(source)
+    setRestoreFromDestination(referrer)
     back()
   }
 
@@ -64,6 +65,7 @@ export const ViewEditSamples = ({ project }) => {
             includeMerge={includeMerge}
             onIncludeBulkChange={setIncludeBulk}
             onIncludeMergeChange={setIncludeMerge}
+            referrer={referrer}
           />
         </Box>
         <DatasetSamplesTable project={project} samples={samples} editable />

@@ -16,11 +16,12 @@ export const DatasetSamplesTableOptionsHeader = ({
   project,
   includeBulk,
   includeMerge,
+  referrer = '', // The page to navigating back to
   readOnly = false,
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { asPath, back } = useRouter()
+  const { back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
   const {
     myDataset,
@@ -91,8 +92,7 @@ export const DatasetSamplesTableOptionsHeader = ({
     })
 
     if (datasetRequest) {
-      const source = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
-      setRestoreFromDestination(source)
+      setRestoreFromDestination(referrer)
       back()
     } else {
       // TODO: Error handling

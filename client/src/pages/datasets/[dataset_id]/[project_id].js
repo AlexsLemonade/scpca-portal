@@ -24,6 +24,8 @@ export const ViewSamples = ({ dataset, project }) => {
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
+  const referrer = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
+
   // Set up the dataset table on component mount
   useEffect(() => {
     // Filter to display only samples from dataset
@@ -36,8 +38,7 @@ export const ViewSamples = ({ dataset, project }) => {
 
   const handleBackToDataset = () => {
     setLoading(true)
-    const source = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
-    setRestoreFromDestination(source)
+    setRestoreFromDestination(referrer)
     back()
   }
 
@@ -61,6 +62,7 @@ export const ViewSamples = ({ dataset, project }) => {
             includeMerge={includeMerge}
             onIncludeBulkChange={setIncludeBulk}
             onIncludeMergeChange={setIncludeMerge}
+            referrer={referrer}
             readOnly
           />
         </Box>
