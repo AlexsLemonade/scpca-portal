@@ -131,7 +131,7 @@ export const useMyDataset = () => {
     isEmptyArray: Array.isArray(value) && value.length === 0
   })
 
-  // Fetch samples for a given project ID, format, and modality
+  // Fetch samples for a given project ID and modality
   const getProjectModalitySamples = async (projectId, modality) => {
     const samplesRequest = await api.samples.list({
       project__scpca_id: projectId,
