@@ -21,7 +21,7 @@ export const DatasetProjectCard = ({
   projectId,
   readOnly = false
 }) => {
-  const { push, asPath } = useRouter()
+  const { asPath, push } = useRouter()
   const { saveOriginScrollPosition } = useScrollRestore()
   const { removeProjectById } = useMyDataset()
   const { responsive } = useResponsive()
@@ -51,7 +51,7 @@ export const DatasetProjectCard = ({
   const handleViewEditSamples = () => {
     const destination = `${asPath}/${projectId}`
     saveOriginScrollPosition(asPath, destination)
-    push({ pathname: destination, query: { referrer: asPath } })
+    push(destination)
   }
 
   return (

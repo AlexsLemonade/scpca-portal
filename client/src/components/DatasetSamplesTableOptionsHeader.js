@@ -16,12 +16,11 @@ export const DatasetSamplesTableOptionsHeader = ({
   project,
   includeBulk,
   includeMerge,
-  referrer = '', // The page to navigating back to
   readOnly = false,
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { back } = useRouter()
+  const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
   const {
     myDataset,
@@ -92,7 +91,7 @@ export const DatasetSamplesTableOptionsHeader = ({
     })
 
     if (datasetRequest) {
-      setRestoreFromDestination(referrer)
+      setRestoreFromDestination(asPath)
       back()
     } else {
       // TODO: Error handling

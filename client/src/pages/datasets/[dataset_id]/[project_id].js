@@ -11,8 +11,8 @@ import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 
-export const ViewSamples = ({ dataset, project, referrer }) => {
-  const { back } = useRouter()
+export const ViewSamples = ({ dataset, project }) => {
+  const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
   const { isProjectIncludeBulk, isProjectMerged, getDatasetProjectSamples } =
     useDataset()
@@ -36,7 +36,7 @@ export const ViewSamples = ({ dataset, project, referrer }) => {
 
   const handleBackToDataset = () => {
     setLoading(true)
-    setRestoreFromDestination(referrer)
+    setRestoreFromDestination(asPath)
     back()
   }
 
@@ -60,7 +60,6 @@ export const ViewSamples = ({ dataset, project, referrer }) => {
             includeMerge={includeMerge}
             onIncludeBulkChange={setIncludeBulk}
             onIncludeMergeChange={setIncludeMerge}
-            referrer={referrer}
             readOnly
           />
         </Box>
@@ -80,8 +79,7 @@ export const getServerSideProps = async ({ query }) => {
     return {
       props: {
         dataset: datasetRequest.response,
-        project: projectRequest.response,
-        referrer: query.referrer
+        project: projectRequest.response
       }
     }
   }
