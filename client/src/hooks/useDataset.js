@@ -120,7 +120,7 @@ export const useDataset = () => {
   // TODO: Implementation might change
   const getDatasetState = (dataset) => {
     const {
-      is_pending: isPending = true, // TEMP for UI demo
+      is_pending: isPending,
       is_processing: isProcessing,
       is_succeeded: isSucceeded,
       is_failed: isFailed,
@@ -133,7 +133,7 @@ export const useDataset = () => {
 
     return {
       isUnprocessed: isPending && !processingStarted,
-      isProcessing: isProcessing && !isFailed,
+      isProcessing: (isProcessing && !isFailed) || true, // TEMP for UI demo
       isFailed,
       isTerminated,
       isReady: isSucceeded && !isExpired,
