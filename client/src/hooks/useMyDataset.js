@@ -2,7 +2,6 @@ import { useContext, useEffect, useState } from 'react'
 import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
-import { fetchProjectModalitySamples } from 'helpers/fetchProjectModalitySamples'
 import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useMyDataset = () => {
@@ -125,70 +124,100 @@ export const useMyDataset = () => {
   const clearDataset = async (dataset) =>
     updateDataset({ ...dataset, data: {} })
 
-  // Merge project modality samples based on certain conditions
-  const mergeModalitySamples = (
-    projectId,
-    modality,
-    baseData = [],
-    newData = []
-  ) => {
-    const isMerged = (v) => v === 'MERGED'
-    const isNonEmptyArray = (v) => Array.isArray(v) && v.length > 0
-    const isEmptyArray = (v) => Array.isArray(v) && v.length === 0
+  // Return the flags based on a project modality samples' value (SINGLE_CELL, SPATIAL)
+  const getModalityState = (value = []) => ({
+    isMerged: value === 'MERGED',
+    isNonEmptyArray: Array.isArray(value) && value.length > 0,
+    isEmptyArray: Array.isArray(value) && value.length === 0
+  })
 
-    // If both data structures are merged, retain the merged state
-    if (isMerged(baseData) && isMerged(newData)) {
+  // Fetch samples for a given project ID, format, and modality
+  const getProjectModalitySamples = async (projectId, modality) => {
+    const samplesRequest = await api.samples.list({
+      project__scpca_id: projectId,
+      [`has_${modality.toLowerCase()}_data`]: true,
+      limit: 1000 // TODO:: 'all' option
+    })
+
+    if (!samplesRequest.isOk) return null
+
+    return samplesRequest.response.results.map((s) => s.scpca_id)
+  }
+
+  // Merge project modality samples based on their state (e.g., merged, empty)
+  const mergeProjectDataModality = async (projectId, dataset, modality) => {
+    const original = myDataset.data?.[projectId]?.[modality] || []
+    const incoming = dataset.data?.[projectId]?.[modality] || []
+
+    const originalState = getModalityState(original)
+    const incomingState = getModalityState(incoming)
+
+    const bothMerged = originalState.isMerged && incomingState.isMerged
+    const eitherMerged = originalState.isMerged || incomingState.isMerged
+    const eitherEmpty = originalState.isEmptyArray || incomingState.isEmptyArray
+    const eitherHasSamples =
+      originalState.isNonEmptyArray || incomingState.isNonEmptyArray
+
+    if (bothMerged || (eitherMerged && eitherEmpty)) {
       return 'MERGED'
     }
 
-    if (isMerged(baseData) || isMerged(newData)) {
-      if (isEmptyArray(baseData) || isEmptyArray(newData)) {
-        return 'MERGED'
-      }
-      // If either array contains samples, unmerge the project
-      if (isNonEmptyArray(baseData) || isNonEmptyArray(newData)) {
-        return fetchProjectModalitySamples(projectId, modality)
-      }
+    // Add all project samples, if one is merged and the other has samples
+    if (eitherMerged && eitherHasSamples) {
+      return getProjectModalitySamples(projectId, modality)
     }
 
-    return uniqueArray(baseData, newData)
+    return uniqueArray(original, incoming)
+  }
+
+  // Handle merging samples for all modalities including additional options
+  const getMergedProjectData = async (projectId, dataset) => {
+    const modalities = ['SINGLE_CELL', 'SPATIAL']
+    const mergedData = {}
+
+    await Promise.all(
+      modalities.map(async (modality) => {
+        mergedData[modality] = await mergeProjectDataModality(
+          projectId,
+          dataset,
+          modality
+        )
+      })
+    )
+
+    mergedData.includes_bulk =
+      myDataset.data[projectId]?.includes_bulk ||
+      dataset.data[projectId]?.includes_bulk
+
+    return mergedData
   }
 
   const mergeDatasetData = async (dataset) => {
-    const datasetDataCopy = structuredClone(myDataset.data) || {}
-    const projectIds = uniqueArray(
-      Object.keys(datasetDataCopy),
+    // Skip merging if myDataset has not beeen created yet
+    if (!myDataset.data) {
+      return dataset.data
+    }
+
+    const mergeDataPromiseEntries = uniqueArray(
+      Object.keys(myDataset.data),
       Object.keys(dataset.data)
-    )
-
-    const mergePromises = projectIds.map(async (pId) => {
-      const baseProject = datasetDataCopy[pId] || {}
-      const newProject = dataset.data[pId] || {}
-
-      const mergedSingleCell = await mergeModalitySamples(
-        pId,
-        'SINGLE_CELL',
-        baseProject.SINGLE_CELL,
-        newProject.SINGLE_CELL
-      )
-
-      const mergedSpatial = await mergeModalitySamples(
-        pId,
-        'SPATIAL',
-        baseProject.SPATIAL,
-        newProject.SPATIAL
-      )
-
-      datasetDataCopy[pId] = {
-        SINGLE_CELL: mergedSingleCell,
-        SPATIAL: mergedSpatial,
-        includes_bulk: baseProject.includes_bulk || newProject.includes_bulk
-      }
+    ).map(async (pId) => {
+      const mergedProjectData = await getMergedProjectData(pId, dataset)
+      return [pId, mergedProjectData]
     })
 
-    await Promise.all(mergePromises)
+    const mergeDataEntries = await Promise.all(mergeDataPromiseEntries)
 
-    return mergePromises.includes(null) ? null : datasetDataCopy
+    const isFailedMerge = mergeDataEntries.some(
+      ([, projectData]) =>
+        projectData.SINGLE_CELL === null || projectData.SPATIAL === null
+    )
+
+    if (isFailedMerge) {
+      return null
+    }
+
+    return Object.fromEntries(mergeDataEntries)
   }
 
   const processDataset = async () => {
