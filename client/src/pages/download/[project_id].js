@@ -11,7 +11,7 @@ import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 
-export const ViewEditSamples = ({ project }) => {
+export const ViewEditSamples = ({ project, referrer }) => {
   const { back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
   const {
@@ -26,8 +26,6 @@ export const ViewEditSamples = ({ project }) => {
   // For dataset download options
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
-
-  const referrer = '/download' // The page to navigating back to
 
   //  Set up the dataset table and options after component mounts
   useEffect(() => {
@@ -81,7 +79,8 @@ export const getServerSideProps = async ({ query }) => {
   if (projectRequest.isOk) {
     return {
       props: {
-        project: projectRequest.response
+        project: projectRequest.response,
+        referrer: query.referrer
       }
     }
   }

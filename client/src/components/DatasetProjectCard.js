@@ -51,7 +51,7 @@ export const DatasetProjectCard = ({
   const handleViewEditSamples = () => {
     const destination = `${asPath}/${projectId}`
     saveOriginScrollPosition(asPath, destination)
-    push(destination)
+    push({ pathname: destination, query: { referrer: asPath } })
   }
 
   return (
