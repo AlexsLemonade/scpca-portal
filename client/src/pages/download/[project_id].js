@@ -39,8 +39,7 @@ export const ViewEditSamples = ({ project }) => {
   }, [myDataset])
 
   const handleBackToMyDataset = () => {
-    const source = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
-    setRestoreFromDestination(source)
+    setRestoreFromDestination(asPath)
     back()
   }
 

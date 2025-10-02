@@ -36,8 +36,7 @@ export const ViewSamples = ({ dataset, project }) => {
 
   const handleBackToDataset = () => {
     setLoading(true)
-    const source = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
-    setRestoreFromDestination(source)
+    setRestoreFromDestination(asPath)
     back()
   }
 

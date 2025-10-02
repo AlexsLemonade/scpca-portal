@@ -7,7 +7,7 @@ import { useResponsive } from 'hooks/useResponsive'
 import { DatasetMoveSamplesModal } from 'components/DatasetMoveSamplesModal'
 import { DatasetSummary } from 'components/DatasetSummary'
 import { DatasetDownloadFileSummary } from 'components/DatasetDownloadFileSummary'
-import { DatasetProjectCard } from 'components/DatasetProjectCard'
+import { DatasetProjectSummary } from 'components/DatasetProjectSummary'
 
 const Dataset = ({ dataset }) => {
   const { restoreScrollPosition } = useScrollRestore()
@@ -46,13 +46,7 @@ const Dataset = ({ dataset }) => {
         <DatasetDownloadFileSummary dataset={dataset} />
       </Box>
       <Box margin={{ bottom: 'large' }}>
-        {Object.keys(dataset.data)
-          .sort()
-          .map((pId) => (
-            <Box margin={{ bottom: 'large' }} key={pId}>
-              <DatasetProjectCard dataset={dataset} projectId={pId} readOnly />
-            </Box>
-          ))}
+        <DatasetProjectSummary dataset={dataset} readOnly />
       </Box>
     </Box>
   )

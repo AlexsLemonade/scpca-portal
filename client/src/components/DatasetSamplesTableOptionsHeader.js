@@ -91,8 +91,7 @@ export const DatasetSamplesTableOptionsHeader = ({
     })
 
     if (datasetRequest) {
-      const source = asPath.replace(/\/SCPCP\d{6}/, '') // The page to navigating back to
-      setRestoreFromDestination(source)
+      setRestoreFromDestination(asPath)
       back()
     } else {
       // TODO: Error handling
