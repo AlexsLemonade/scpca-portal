@@ -133,10 +133,10 @@ export const useDataset = () => {
 
     return {
       isUnprocessed: isPending && !processingStarted,
-      isProcessing: (isProcessing && !isFailed) || true, // TEMP for UI demo
+      isProcessing: isProcessing && !isFailed,
       isFailed,
       isTerminated,
-      isReady: isSucceeded && !isExpired,
+      isReady: (isSucceeded && !isExpired) || true, // TEMP for UI demo
       isExpired: isSucceeded && isExpired
     }
   }
