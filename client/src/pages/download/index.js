@@ -6,7 +6,7 @@ import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
 import { DatasetSummary } from 'components/DatasetSummary'
 import { DatasetDownloadFileSummary } from 'components/DatasetDownloadFileSummary'
-import { DatasetProjectCard } from 'components/DatasetProjectCard'
+import { DatasetProjectSummary } from 'components/DatasetProjectSummary'
 import { DatasetProcessModal } from 'components/DatasetProcessModal'
 import { Loader } from 'components/Loader'
 import Error from 'pages/_error'
@@ -65,13 +65,7 @@ const Download = () => {
             <DatasetDownloadFileSummary dataset={myDataset} />
           </Box>
           <Box margin={{ bottom: 'large' }}>
-            {Object.keys(myDataset.data)
-              .sort()
-              .map((pId) => (
-                <Box margin={{ bottom: 'large' }} key={pId}>
-                  <DatasetProjectCard dataset={myDataset} projectId={pId} />
-                </Box>
-              ))}
+            <DatasetProjectSummary dataset={myDataset} />
           </Box>
         </>
       )}
