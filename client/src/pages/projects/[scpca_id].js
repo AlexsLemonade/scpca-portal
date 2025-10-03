@@ -153,17 +153,22 @@ const Project = ({ project, ccdlDatasets }) => {
                 width={{ max: 'full' }}
                 overflow="auto"
               >
-                <DownloadOptionsContextProvider
-                  resource={project}
-                  attribute="samples"
+                <CCDLDatasetDownloadModalContextProvider
+                  project={project}
+                  datasets={ccdlMetadataDatasets}
                 >
-                  <DatasetSamplesTableContextProvider>
-                    <ProjectSamplesTable
-                      project={project}
-                      stickies={responsive(0, 3)}
-                    />
-                  </DatasetSamplesTableContextProvider>
-                </DownloadOptionsContextProvider>
+                  <DownloadOptionsContextProvider
+                    resource={project}
+                    attribute="samples"
+                  >
+                    <DatasetSamplesTableContextProvider>
+                      <ProjectSamplesTable
+                        project={project}
+                        stickies={responsive(0, 3)}
+                      />
+                    </DatasetSamplesTableContextProvider>
+                  </DownloadOptionsContextProvider>
+                </CCDLDatasetDownloadModalContextProvider>
               </Box>
             </Tab>
           </Tabs>
