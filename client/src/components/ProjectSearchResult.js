@@ -12,8 +12,13 @@ import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAcces
 import { formatDiagnosisCounts } from 'helpers/formatCounts'
 import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 
-export const ProjectSearchResult = ({ project }) => {
+export const ProjectSearchResult = ({ project, ccdlDatasets }) => {
   const { responsive } = useResponsive()
+
+  const ccdlDataDatasets = ccdlDatasets.filter((d) => d.format !== 'METADATA')
+  const ccdlMetadataDatasets = ccdlDatasets.filter(
+    (d) => d.format === 'METADATA'
+  )
 
   const searchDetails = [
     {
@@ -64,7 +69,13 @@ export const ProjectSearchResult = ({ project }) => {
   ]
   return (
     <Box elevation="medium" pad="medium" width="full">
-      <ProjectHeader linked project={project} />
+      <CCDLDatasetDownloadModalContextProvider
+        project={project}
+        datasets={ccdlDataDatasets}
+      >
+        <ProjectHeader linked project={project} />
+      </CCDLDatasetDownloadModalContextProvider>
+
       <Box border={{ side: 'top' }} margin={{ top: 'medium' }}>
         {searchDetails.map((d) => (
           <Box key={d.title} pad={{ top: 'medium' }}>
@@ -90,7 +101,7 @@ export const ProjectSearchResult = ({ project }) => {
         </Link>
         <CCDLDatasetDownloadModalContextProvider
           project={project}
-          datasets={project.datasets.filter((d) => d.format === 'METADATA')}
+          datasets={ccdlMetadataDatasets}
         >
           <CCDLDatasetDownloadModal
             label="Download Sample Metadata"

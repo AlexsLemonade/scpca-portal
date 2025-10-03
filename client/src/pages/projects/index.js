@@ -11,7 +11,7 @@ import { delay } from 'helpers/delay'
 import { api } from 'api'
 import Error from 'pages/_error'
 
-const Project = ({ projects, count, filters, filterOptions }) => {
+const Project = ({ projects, count, filters, filterOptions, ccdlDatasets }) => {
   const { browseFilters, setBrowseFilters } = useScPCAPortal()
   const { responsive } = useResponsive()
   const [showFilters, setShowFilters] = useState(false)
@@ -108,7 +108,12 @@ const Project = ({ projects, count, filters, filterOptions }) => {
             </Box>
             {projects.map((p) => (
               <Box key={p.scpca_id} margin={{ top: 'medium', bottom: 'small' }}>
-                <ProjectSearchResult project={p} />
+                <ProjectSearchResult
+                  project={p}
+                  ccdlDatasets={ccdlDatasets.filter(
+                    (d) => d.ccdl_project_id === p.scpca_id
+                  )}
+                />
               </Box>
             ))}
           </Box>
@@ -118,25 +123,38 @@ const Project = ({ projects, count, filters, filterOptions }) => {
   )
 }
 
-export const getServerSideProps = async ({ query }) => {
+export const getServerSideProps = async ({ query: projectQuery }) => {
   // default limit is 10, so here we will set it to 100 unless specified
-  const queryWithDefaultLimit = { ...query, limit: query.limit || 100 }
+  const projectQueryWithDefaultLimit = {
+    ...projectQuery,
+    limit: projectQuery.limit || 100
+  }
+  const ccdlDatasetQuery = { ccdl_project_id___isnull: false, limit: 500 }
 
-  const [projectRequest, optionsRequest] = await Promise.all([
-    api.projects.list(queryWithDefaultLimit),
-    api.options.projects.get()
-  ])
+  const [projectRequest, optionsRequest, ccdlDatasetRequest] =
+    await Promise.all([
+      api.projects.list(projectQueryWithDefaultLimit),
+      api.options.projects.get(),
+      api.ccdlDatasets.list(ccdlDatasetQuery)
+    ])
 
-  if (projectRequest.isOk && optionsRequest.isOk) {
+  if (projectRequest.isOk && optionsRequest.isOk && ccdlDatasetRequest.isOk) {
     const { results: projects, count } = projectRequest.response
     const filterOptions = optionsRequest.response
+    const { results: ccdlDatasets } = ccdlDatasetRequest.response
 
     return {
-      props: { projects, count, filters: query, filterOptions }
+      props: {
+        projects,
+        count,
+        filters: projectQuery,
+        filterOptions,
+        ccdlDatasets
+      }
     }
   }
 
-  return { props: { project: null } }
+  return { props: { projects: null, ccdlDatasets: null } }
 }
 
 export default Project

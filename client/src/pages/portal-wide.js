@@ -124,8 +124,9 @@ export const getServerSideProps = async () => {
   })
 
   if (datasetRequest.isOk) {
+    const { results: datasets } = datasetRequest.response
     return {
-      props: { datasets: datasetRequest.response.results }
+      props: { datasets }
     }
   }
 

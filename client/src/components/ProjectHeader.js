@@ -15,7 +15,6 @@ import { capitalize } from 'helpers/capitalize'
 import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
-import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { isProjectAddedToDataset } = useMyDataset()
@@ -23,8 +22,6 @@ export const ProjectHeader = ({ project, linked = false }) => {
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
   const unavailableSampleCountText =
     Number(project.unavailable_samples_count) > 1 ? 'samples' : 'sample'
-
-  const datasets = project?.datasets?.filter((d) => d.format !== 'METADATA')
 
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
@@ -68,12 +65,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
             ) : (
               <DatasetAddProjectModal project={project} />
             )}
-            <CCDLDatasetDownloadModalContextProvider
-              project={project}
-              datasets={datasets}
-            >
-              <CCDLDatasetDownloadModal label="Download Now" secondary />
-            </CCDLDatasetDownloadModalContextProvider>
+            <CCDLDatasetDownloadModal label="Download Now" secondary />
             {project.has_bulk_rna_seq && (
               <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
             )}
