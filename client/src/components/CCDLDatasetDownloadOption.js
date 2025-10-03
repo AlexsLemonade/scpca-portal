@@ -7,9 +7,10 @@ import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 
-export const CCDLDatasetDownloadOption = ({ dataset }) => {
+export const CCDLDatasetDownloadOption = () => {
   // const { saveUserPreferences } = useDownloadOptionsContext()
-  const { setDownloadDataset } = useCCDLDatasetDownloadModalContext()
+  const { selectedDataset, setDownloadDataset } =
+    useCCDLDatasetDownloadModalContext()
 
   const downloadLabel = 'Download Project'
 
@@ -36,15 +37,17 @@ export const CCDLDatasetDownloadOption = ({ dataset }) => {
           gap="xlarge"
           margin={{ top: 'medium', bottom: 'small' }}
         >
-          <Text weight="bold">CCDL Project ID: {dataset.ccdl_project_id}</Text>
           <Text weight="bold">
-            Size: {formatBytes(dataset.computed_file.size_in_bytes)}
+            CCDL Project ID: {selectedDataset.ccdl_project_id}
+          </Text>
+          <Text weight="bold">
+            Size: {formatBytes(selectedDataset.computed_file.size_in_bytes)}
           </Text>
         </Box>
       </Box>
       <Box gridArea="body" margin={{ bottom: 'small' }}>
         <Paragraph>The download consists of the following items:</Paragraph>
-        <DatasetFileItems dataset={dataset} />
+        <DatasetFileItems dataset={selectedDataset} />
       </Box>
       <Box gridArea="footer" margin={{ top: 'medium' }}>
         <Grid columns={responsive('1', '1/2')} gap="large">
@@ -56,10 +59,10 @@ export const CCDLDatasetDownloadOption = ({ dataset }) => {
             onClick={() => {
               // TODO: add new saveUserPreferences for ccdl datasets
               // saveUserPreferences()
-              setDownloadDataset(dataset)
+              setDownloadDataset(selectedDataset)
             }}
           />
-          <CCDLDatasetCopyLinkButton dataset={dataset} />
+          <CCDLDatasetCopyLinkButton dataset={selectedDataset} />
         </Grid>
       </Box>
     </Grid>

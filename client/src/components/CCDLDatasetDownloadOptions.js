@@ -78,9 +78,7 @@ export const CCDLDatasetDownloadOptions = () => {
         </Box>
       </Box>
       <Box>
-        {selectedDataset.computed_file && (
-          <CCDLDatasetDownloadOption dataset={selectedDataset} />
-        )}
+        {selectedDataset.computed_file && <CCDLDatasetDownloadOption />}
       </Box>
     </Grid>
   )
