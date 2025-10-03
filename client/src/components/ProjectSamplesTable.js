@@ -267,7 +267,7 @@ export const ProjectSamplesTable = ({
         onAllRowsChange={setAllSamples}
         onFilteredRowsChange={setFilteredSamples}
       >
-        <Box direction="row" justify="end" pad={{bottom: 'medium'}}>
+        <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
           <CCDLDatasetDownloadModal
             label="Download Sample Metadata"
             icon={<DownloadIcon color="brand" />}
