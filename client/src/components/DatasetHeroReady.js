@@ -30,7 +30,7 @@ export const DatasetHeroReady = ({ dataset }) => {
         </Heading>
       </Box>
 
-      <Box gridArea="content" pad={{ right: 'small' }}>
+      <Box gridArea="content" pad={{ right: 'xlarge' }}>
         {token ? (
           <Box direction="column">
             <Paragraph size="21px">
