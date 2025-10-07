@@ -1,16 +1,37 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useResponsive } from 'hooks/useResponsive'
+import { api } from 'api'
 import { formatBytes } from 'helpers/formatBytes'
 import { Button } from 'components/Button'
-import { CopyLinkButton } from 'components/CopyLinkButton'
+import { DatasetCopyLinkButton } from 'components/DatasetCopyLinkButton'
 import { DatasetDownloadForm } from 'components/DatasetDownloadForm'
 import DownloadReady from '../images/download-folder.svg'
 
 export const DatasetHeroReady = ({ dataset }) => {
   const { responsive } = useResponsive()
   const { token } = useScPCAPortal()
+
+  const [downloadLink, setDownloadLink] = useState(null)
+
+  // Fetch the dataset's download link on component mount
+  useEffect(() => {
+    const asyncFetch = async () => {
+      const downloadRequest = await api.datasets.get(dataset.id, token)
+      if (downloadRequest.isOk) {
+        setDownloadLink(downloadRequest.response.download_url)
+      }
+    }
+
+    if (token) asyncFetch()
+  }, [token])
+
+  const isDisabled = !dataset.computed_file
+
+  const handleDownload = () => {
+    window.location.href = downloadLink
+  }
 
   return (
     <Grid
@@ -48,8 +69,14 @@ export const DatasetHeroReady = ({ dataset }) => {
               gap="24px"
               margin={{ bottom: 'small' }}
             >
-              <Button primary aria-label="Download" label="Download" />
-              <CopyLinkButton computedFile={{}} />
+              <Button
+                primary
+                aria-label="Download"
+                label="Download"
+                disabled={isDisabled}
+                onClick={handleDownload}
+              />
+              <DatasetCopyLinkButton dataset={dataset} disabled={isDisabled} />
             </Box>
           </Box>
         ) : (
