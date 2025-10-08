@@ -8,6 +8,12 @@ class DatasetError(Exception):
         super().__init__(message)
 
 
+class DatasetFormatChangeError(DatasetError):
+    def __init__(self):
+        message = "Dataset with data cannot change format."
+        super().__init__(message)
+
+
 class DatasetLockedProjectError(DatasetError):
     def __init__(self, dataset=None):
         message = "Dataset has a locked project."
