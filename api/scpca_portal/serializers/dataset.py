@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from pydantic import ValidationError as PydanticValidationError
 
+from scpca_portal.exceptions import DatasetFormatChangeError
 from scpca_portal.models import Dataset
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 
@@ -123,14 +124,35 @@ class DatasetCreateSerializer(DatasetSerializer):
 
 class DatasetUpdateSerializer(DatasetSerializer):
     class Meta(DatasetSerializer.Meta):
-        modifiable_fields = ("data", "email", "start")
+        modifiable_fields = ("format", "data", "email", "start")
         read_only_fields = tuple(
             set(DatasetSerializer.Meta.read_only_fields) - set(modifiable_fields)
         )
 
-    def validate_data(self, value):
+    def validate(self, attrs):
+        validated_attrs = super().validate(attrs)
+
         try:
-            return Dataset.validate_data(value, self.instance.format)
+            original_format = self.instance.format
+            incoming_format = validated_attrs.get("format", original_format)
+
+            is_format_changed = incoming_format != original_format
+            is_original_data_empty = not self.instance.data
+
+            # Format change is only allowed if dataset.data is empty
+            if is_format_changed and not is_original_data_empty:
+                raise DatasetFormatChangeError()
+
+            return validated_attrs
+        # serializer exceptions return a 400 response to the client
+        except DatasetFormatChangeError as e:
+            raise serializers.ValidationError({"detail": f"{e}"})
+
+    def validate_data(self, value):
+        # Either the incoming or original format
+        new_format = self.initial_data.get("format", self.instance.format)
+        try:
+            return Dataset.validate_data(value, new_format)
         # serializer exceptions return a 400 response to the client
         except PydanticValidationError as e:
             raise serializers.ValidationError({"detail": f"Invalid data structure: {e}"})
