@@ -19,18 +19,32 @@ export const DatasetMoveSamplesModal = ({
   disabled = false
 }) => {
   const { push } = useRouter()
-  const { myDataset, mergeDatasetData, createDataset, updateDataset } =
-    useMyDataset()
+  const {
+    myDataset,
+    clearDataset,
+    createDataset,
+    mergeDatasetData,
+    updateDataset
+  } = useMyDataset()
   const { showNotification } = useNotification()
   const { responsive } = useResponsive()
 
   const [showing, setShowing] = useState(false)
 
+  // Show only the replace action if the formats are different
+  const isFormatChanged = myDataset.id && myDataset.format !== dataset.format
+
   const radioOptions = [
-    { label: 'Append samples to My Dataset', value: 'append' },
-    { label: 'Replace samples in My Dataset', value: 'replace' }
+    {
+      label: 'Append samples to My Dataset',
+      value: 'append',
+      disabled: isFormatChanged
+    },
+    { label: 'Replace My Dataset', value: 'replace' }
   ]
-  const defaultAction = radioOptions[0].value
+  const defaultAction = isFormatChanged
+    ? radioOptions[1].value
+    : radioOptions[0].value
   const [action, setAction] = useState(defaultAction)
 
   const { total_sample_count: initialSampleCount } = myDataset
@@ -43,14 +57,7 @@ export const DatasetMoveSamplesModal = ({
     setShowing(false)
   }
 
-  const handleMoveSamples = async () => {
-    if (myDataset.id && myDataset.format !== dataset.format) {
-      showErrorNotification(
-        'Unable to move the dataset due to mismatched formats.'
-      )
-      return
-    }
-
+  const handleMoveToMyDataset = async () => {
     const updatedData =
       action === 'append'
         ? await mergeDatasetData(dataset)
@@ -61,9 +68,17 @@ export const DatasetMoveSamplesModal = ({
       showErrorNotification()
       return
     }
+
+    // Clear the data in My Dataset if the format has changed
+    if (isFormatChanged) await clearDataset()
+
     const updatedDataset = !myDataset.id
       ? await createDataset({ format: dataset.format, data: updatedData })
-      : await updateDataset({ ...myDataset, data: updatedData })
+      : await updateDataset({
+          ...myDataset,
+          format: dataset.format,
+          data: updatedData
+        })
 
     // API failure while updating the dataset
     if (!updatedDataset) {
@@ -106,16 +121,18 @@ export const DatasetMoveSamplesModal = ({
             />
           </FormField>
           <Box margin={{ top: 'medium' }} width={{ max: '440px' }}>
-            <InfoText iconSize="24px">
-              <Text margin={{ left: 'small' }}>
-                Some download options may have changed. Please review the
-                dataset before you download.{' '}
-                <Link
-                  href={config.links.what_review_dataset}
-                  label="Learn more"
-                />
-              </Text>
-            </InfoText>
+            {!isFormatChanged && (
+              <InfoText iconSize="24px">
+                <Text margin={{ left: 'small' }}>
+                  Some download options may have changed. Please review the
+                  dataset before you download.{' '}
+                  <Link
+                    href={config.links.what_review_dataset}
+                    label="Learn more"
+                  />
+                </Text>
+              </InfoText>
+            )}
           </Box>
           <Box
             align="center"
@@ -128,7 +145,7 @@ export const DatasetMoveSamplesModal = ({
               primary
               aria-label="Move Samples"
               label="Move Samples"
-              onClick={handleMoveSamples}
+              onClick={handleMoveToMyDataset}
             />
           </Box>
         </ModalBody>
