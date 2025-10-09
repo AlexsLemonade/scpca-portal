@@ -22,7 +22,7 @@ class TestDatasetSerializer(TestCase):
 
     def test_change_format_with_empty_data(self):
         serializer = DatasetUpdateSerializer(instance=self.dataset_empty, data=self.incoming_data)
-        # Changing format passes when dataset.data is empty
+        # Format change is only allowed if data is empty
         self.assertTrue(serializer.is_valid())
         modified_dataset = serializer.save()
         self.assertEqual(modified_dataset.format, DatasetFormats.ANN_DATA)
@@ -31,7 +31,7 @@ class TestDatasetSerializer(TestCase):
         serializer = DatasetUpdateSerializer(
             instance=self.dataset_with_data, data=self.incoming_data
         )
-        # Changing format fails when dataset.data is not empty
+        # Format change is not allowed if dataset has data
         self.assertFalse(serializer.is_valid())
 
         expected_error = "Dataset with data cannot change format."

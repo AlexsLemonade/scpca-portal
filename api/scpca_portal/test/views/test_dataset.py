@@ -128,12 +128,14 @@ class DatasetsTestCase(APITestCase):
         self.custom_dataset.format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         self.custom_dataset.save()
 
+        # Assert that format remains unchanged when not present
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
         }
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(self.custom_dataset.format, data.get("format"))
 
         # Assert that processing dataset cannot be modified
         self.custom_dataset.start = True
