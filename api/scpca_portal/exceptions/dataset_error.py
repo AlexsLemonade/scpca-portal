@@ -1,3 +1,7 @@
+from rest_framework import status
+from rest_framework.exceptions import APIException
+
+
 class DatasetError(Exception):
     def __init__(self, message: str | None = None, dataset=None):
         default_message = "A dataset error occurred."
@@ -24,3 +28,9 @@ class DatasetMissingLibrariesError(DatasetError):
     def __init__(self, dataset=None):
         message = "Unable to find libraries for Dataset."
         super().__init__(message, dataset)
+
+
+class UpdateProcessingDatasetError(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = "Invalid request: Processing datasets cannot be modified."
+    default_code = "conflict"

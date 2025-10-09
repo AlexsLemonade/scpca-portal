@@ -1,11 +1,11 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, status, viewsets
-from rest_framework.exceptions import APIException, PermissionDenied
+from rest_framework import mixins, viewsets
+from rest_framework.exceptions import PermissionDenied
 
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.exceptions import DatasetError, JobError
+from scpca_portal.exceptions import DatasetError, JobError, UpdateProcessingDatasetError
 from scpca_portal.models import APIToken, Dataset, Job
 from scpca_portal.serializers import (
     DatasetCreateSerializer,
@@ -14,12 +14,6 @@ from scpca_portal.serializers import (
 )
 
 logger = get_and_configure_logger(__name__)
-
-
-class UpdateProcessingDatasetError(APIException):
-    status_code = status.HTTP_409_CONFLICT
-    default_detail = "Invalid request: Processing datasets cannot be modified."
-    default_code = "conflict"
 
 
 @extend_schema(
