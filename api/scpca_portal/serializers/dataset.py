@@ -132,12 +132,12 @@ class DatasetUpdateSerializer(DatasetSerializer):
 
     def validate_format(self, value):
         original_format = self.instance.format
+        is_format_changed = value != original_format
 
-        if value is None:
+        if value is None or not is_format_changed:
             return original_format
 
         try:
-            is_format_changed = value != original_format
             is_original_data_empty = not self.instance.data
 
             # Format change is only allowed if data is empty
