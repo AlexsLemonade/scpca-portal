@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from pydantic import ValidationError as PydanticValidationError
 
-from scpca_portal.exceptions import DatasetFormatChangeError, UpdateProcessingDatasetError
 from scpca_portal.models import Dataset
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 
@@ -117,39 +116,14 @@ class DatasetCreateSerializer(DatasetSerializer):
 
 class DatasetUpdateSerializer(DatasetSerializer):
     class Meta(DatasetSerializer.Meta):
-        modifiable_fields = ("format", "data", "email", "start")
+        modifiable_fields = ("data", "email", "start")
         read_only_fields = tuple(
             set(DatasetSerializer.Meta.read_only_fields) - set(modifiable_fields)
         )
-        extra_kwargs = {"format": {"required": False}}
-
-    def validate_format(self, value):
-        original_format = self.instance.format
-        is_format_changed = value != original_format
-
-        # No format change allowed for processing datasets and returns 409
-        if self.instance.start and (value and is_format_changed):
-            raise UpdateProcessingDatasetError
-
-        if value is None or not is_format_changed:
-            return original_format
-
-        try:
-            is_original_data_empty = not self.instance.data
-
-            # Format change allowed only if data is empty
-            if is_format_changed and not is_original_data_empty:
-                raise DatasetFormatChangeError
-
-            return value
-        # serializer exceptions return a 400 response to the client
-        except DatasetFormatChangeError as e:
-            raise serializers.ValidationError({"detail": f"{e}"})
 
     def validate_data(self, value):
-        new_format = self.initial_data.get("format", self.instance.format)
         try:
-            return Dataset.validate_data(value, new_format)
+            return Dataset.validate_data(value, self.instance.format)
         # serializer exceptions return a 400 response to the client
         except PydanticValidationError as e:
             raise serializers.ValidationError({"detail": f"Invalid data structure: {e}"})
