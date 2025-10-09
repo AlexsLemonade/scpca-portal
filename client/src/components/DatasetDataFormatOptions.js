@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Select } from 'grommet'
 import { config } from 'config'
 import { useMyDataset } from 'hooks/useMyDataset'
@@ -12,9 +12,14 @@ export const DatasetDataFormatOptions = ({
   format,
   onFormatChange
 }) => {
-  const { myDataset } = useMyDataset()
+  const { myDataset, isDatasetDataEmpty } = useMyDataset()
 
   const formatOptions = getReadableOptions(getProjectFormats(project))
+
+  // Update the format value on myDataset.format changes
+  useEffect(() => {
+    onFormatChange(myDataset.format)
+  }, [myDataset.format])
 
   return (
     <FormField
@@ -27,7 +32,7 @@ export const DatasetDataFormatOptions = ({
       <Select
         options={formatOptions}
         labelKey="label"
-        disabled={!!myDataset.id}
+        disabled={!!myDataset.id && !isDatasetDataEmpty}
         valueKey={{ key: 'value', reduce: true }}
         value={format}
         onChange={({ value }) => onFormatChange(value)}
