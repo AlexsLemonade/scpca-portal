@@ -33,5 +33,6 @@ class TestDatasetSerializer(TestCase):
         )
         # Changing format fails when dataset.data is not empty
         self.assertFalse(serializer.is_valid())
+
         expected_error = "Dataset with data cannot change format."
-        self.assertIn(expected_error, [str(e) for e in serializer.errors["detail"]])
+        self.assertIn(expected_error, serializer.errors["format"]["detail"])

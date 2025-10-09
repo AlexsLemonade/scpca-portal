@@ -128,22 +128,23 @@ class DatasetUpdateSerializer(DatasetSerializer):
         read_only_fields = tuple(
             set(DatasetSerializer.Meta.read_only_fields) - set(modifiable_fields)
         )
+        extra_kwargs = {"format": {"required": False}}
 
-    def validate(self, attrs):
-        validated_attrs = super().validate(attrs)
+    def validate_format(self, value):
+        original_format = self.instance.format
+        # Fall back to the instance value if not provided in the input
+        if value is None:
+            value = original_format
 
         try:
-            original_format = self.instance.format
-            incoming_format = validated_attrs.get("format", original_format)
-
-            is_format_changed = incoming_format != original_format
+            is_format_changed = value != original_format
             is_original_data_empty = not self.instance.data
 
             # Format change is only allowed if dataset.data is empty
             if is_format_changed and not is_original_data_empty:
-                raise DatasetFormatChangeError()
+                raise DatasetFormatChangeError
 
-            return validated_attrs
+            return value
         # serializer exceptions return a 400 response to the client
         except DatasetFormatChangeError as e:
             raise serializers.ValidationError({"detail": f"{e}"})

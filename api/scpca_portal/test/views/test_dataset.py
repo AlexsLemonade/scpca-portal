@@ -131,7 +131,6 @@ class DatasetsTestCase(APITestCase):
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": DatasetFormats.SINGLE_CELL_EXPERIMENT,
         }
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -142,7 +141,6 @@ class DatasetsTestCase(APITestCase):
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
         }
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
