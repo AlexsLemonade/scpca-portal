@@ -122,7 +122,6 @@ class DatasetUpdateSerializer(DatasetSerializer):
         )
 
     def validate_data(self, value):
-        # Either the incoming or original format
         try:
             return Dataset.validate_data(value, self.instance.format)
         # serializer exceptions return a 400 response to the client

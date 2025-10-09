@@ -128,13 +128,14 @@ class DatasetsTestCase(APITestCase):
         self.custom_dataset.format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         self.custom_dataset.save()
 
+        # Assert that read_only format field was not mutated
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": DatasetFormats.SINGLE_CELL_EXPERIMENT,
         }
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(self.custom_dataset.format, data.get("format"))
 
         # Assert that processing dataset cannot be modified
         self.custom_dataset.start = True
@@ -142,7 +143,6 @@ class DatasetsTestCase(APITestCase):
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
         }
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
@@ -202,7 +202,6 @@ class DatasetsTestCase(APITestCase):
         dataset.save()
         url = reverse("datasets-detail", args=[dataset.id])
         data = {
-            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
             "start": True,
         }
         response = self.client.put(url, data)
@@ -220,7 +219,6 @@ class DatasetsTestCase(APITestCase):
         dataset.save()
         url = reverse("datasets-detail", args=[dataset.id])
         data = {
-            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
             "start": True,
         }
         response = self.client.put(url, data)
