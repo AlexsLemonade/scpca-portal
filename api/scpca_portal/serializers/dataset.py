@@ -147,8 +147,9 @@ class DatasetUpdateSerializer(DatasetSerializer):
             raise serializers.ValidationError({"detail": f"{e}"})
 
     def validate_data(self, value):
+        new_format = self.initial_data.get("format", self.instance.format)
         try:
-            return Dataset.validate_data(value, self.instance.format)
+            return Dataset.validate_data(value, new_format)
         # serializer exceptions return a 400 response to the client
         except PydanticValidationError as e:
             raise serializers.ValidationError({"detail": f"Invalid data structure: {e}"})
