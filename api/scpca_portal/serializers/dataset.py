@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from pydantic import ValidationError as PydanticValidationError
 
-from scpca_portal.exceptions import DatasetFormatChangeError
 from scpca_portal.models import Dataset
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 
@@ -117,36 +116,15 @@ class DatasetCreateSerializer(DatasetSerializer):
 
 class DatasetUpdateSerializer(DatasetSerializer):
     class Meta(DatasetSerializer.Meta):
-        modifiable_fields = ("format", "data", "email", "start")
+        modifiable_fields = ("data", "email", "start")
         read_only_fields = tuple(
             set(DatasetSerializer.Meta.read_only_fields) - set(modifiable_fields)
         )
-        extra_kwargs = {"format": {"required": False}}
-
-    def validate_format(self, value):
-        original_format = self.instance.format
-        # Fall back to the instance value if not provided in the input
-        if value is None:
-            value = original_format
-
-        try:
-            is_format_changed = value != original_format
-            is_original_data_empty = not self.instance.data
-
-            # Format change is only allowed if dataset.data is empty
-            if is_format_changed and not is_original_data_empty:
-                raise DatasetFormatChangeError
-
-            return value
-        # serializer exceptions return a 400 response to the client
-        except DatasetFormatChangeError as e:
-            raise serializers.ValidationError({"detail": f"{e}"})
 
     def validate_data(self, value):
         # Either the incoming or original format
-        new_format = self.initial_data.get("format", self.instance.format)
         try:
-            return Dataset.validate_data(value, new_format)
+            return Dataset.validate_data(value, self.instance.format)
         # serializer exceptions return a 400 response to the client
         except PydanticValidationError as e:
             raise serializers.ValidationError({"detail": f"Invalid data structure: {e}"})
