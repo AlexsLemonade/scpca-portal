@@ -205,7 +205,6 @@ class DatasetsTestCase(APITestCase):
             "start": True,
         }
         response = self.client.put(url, data)
-
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         mock_submit_job.assert_not_called()
 
