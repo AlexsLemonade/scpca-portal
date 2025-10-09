@@ -143,6 +143,7 @@ class DatasetsTestCase(APITestCase):
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "format": "format",
         }
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
@@ -198,7 +199,6 @@ class DatasetsTestCase(APITestCase):
             format=DatasetCustomSingleCellExperiment.VALUES.get("format"),
             start=True,
         )
-
         dataset.save()
         url = reverse("datasets-detail", args=[dataset.id])
         data = {
