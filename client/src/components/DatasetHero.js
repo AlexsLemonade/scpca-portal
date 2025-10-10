@@ -32,14 +32,17 @@ export const DatasetHero = ({ dataset }) => {
         {isProcessing && <DatasetHeroProcessing />}
         {isReady && <DatasetHeroReady dataset={dataset} />}
       </Box>
-      <Box
-        justify="center"
-        border={{ side: 'bottom', color: 'border-black', size: 'small' }}
-        margin={{ bottom: 'xlarge' }}
-        pad={{ bottom: 'xlarge' }}
-      >
-        {!isExpired && <DatasetResourceLinks />}
-      </Box>
+
+      {!isExpired && (
+        <Box
+          justify="center"
+          border={{ side: 'bottom', color: 'border-black', size: 'small' }}
+          margin={{ bottom: 'xlarge' }}
+          pad={{ bottom: 'xlarge' }}
+        >
+          <DatasetResourceLinks />{' '}
+        </Box>
+      )}
     </>
   )
 }
