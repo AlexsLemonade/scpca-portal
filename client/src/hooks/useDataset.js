@@ -5,7 +5,7 @@ import { api } from 'api'
 import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useDataset = () => {
-  const { token, setEmail } = useScPCAPortal()
+  const { token, email, setEmail } = useScPCAPortal()
   const { errors, addError } = useContext(MyDatasetContext) // TODO: Removed once error handling is finalized
 
   const getErrorMessage = (statusCode) => {
@@ -62,12 +62,12 @@ export const useDataset = () => {
       return null
     }
 
-    if (!dataset.email) {
+    if (!email) {
       addError('An email is required to process the dataset')
       return null
     }
 
-    const datasetRequest = await update({ ...dataset, start: true })
+    const datasetRequest = await update({ ...dataset, email, start: true })
 
     if (!datasetRequest.isOk) {
       addError(getErrorMessage(datasetRequest.status))
@@ -76,6 +76,32 @@ export const useDataset = () => {
     }
 
     setEmail(dataset.email)
+
+    return datasetRequest.response
+  }
+
+  const regenerate = async (dataset) => {
+    if (!token) {
+      addError('A valid token is required to process the dataset')
+      return null
+    }
+
+    if (!email) {
+      addError('An email is required to process the dataset')
+      return null
+    }
+
+    const datasetRequest = await api.datasets.create({
+      ...dataset,
+      email,
+      start: true
+    })
+
+    if (!datasetRequest.isOk) {
+      addError(getErrorMessage(datasetRequest.status))
+      // TODO: Revise once error handling is finalized
+      return null
+    }
 
     return datasetRequest.response
   }
@@ -136,8 +162,8 @@ export const useDataset = () => {
       isProcessing: isProcessing && !isFailed,
       isFailed,
       isTerminated,
-      isReady: (isSucceeded && !isExpired) || true, // TEMP for UI demo
-      isExpired: isSucceeded && isExpired
+      isReady: isSucceeded && !isExpired,
+      isExpired: (isSucceeded && isExpired) || true // TEMP for UI demo
     }
   }
 
@@ -146,6 +172,7 @@ export const useDataset = () => {
     create,
     get,
     process,
+    regenerate,
     update,
     isProjectIncludeBulk,
     isProjectMerged,
