@@ -19,18 +19,30 @@ export const DatasetMoveSamplesModal = ({
   disabled = false
 }) => {
   const { push } = useRouter()
-  const { myDataset, getMergeDatasetData, createDataset, updateDataset } =
-    useMyDataset()
+  const {
+    myDataset,
+    isDatasetDataEmpty,
+    getMergeDatasetData,
+    createDataset,
+    updateDataset
+  } = useMyDataset()
   const { showNotification } = useNotification()
   const { responsive } = useResponsive()
 
   const [showing, setShowing] = useState(false)
 
+  // Disable the append action if no myDataset data
   const radioOptions = [
-    { label: 'Append samples to My Dataset', value: 'append' },
+    {
+      label: 'Append samples to My Dataset',
+      value: 'append',
+      disabled: isDatasetDataEmpty
+    },
     { label: 'Replace samples in My Dataset', value: 'replace' }
   ]
-  const defaultAction = radioOptions[0].value
+  const defaultAction = isDatasetDataEmpty
+    ? radioOptions[1].value
+    : radioOptions[0].value
   const [action, setAction] = useState(defaultAction)
 
   const { total_sample_count: initialSampleCount } = myDataset
@@ -53,15 +65,10 @@ export const DatasetMoveSamplesModal = ({
       return
     }
 
-    let updatedData
-
-    if (!isMyDatasetId) {
-      // Skip merging if myDataset doesn't exist yet
-      updatedData = dataset.data
-    } else {
-      updatedData =
-        action === 'append' ? await getMergeDatasetData(dataset) : dataset.data
-    }
+    const updatedData =
+      action === 'append'
+        ? await getMergeDatasetData(dataset)
+        : structuredClone(dataset.data)
 
     // API failure while merging data
     if (!updatedData) {
@@ -112,18 +119,20 @@ export const DatasetMoveSamplesModal = ({
               onChange={({ target: { value } }) => setAction(value)}
             />
           </FormField>
-          <Box margin={{ top: 'medium' }} width={{ max: '440px' }}>
-            <InfoText iconSize="24px">
-              <Text margin={{ left: 'small' }}>
-                Some download options may have changed. Please review the
-                dataset before you download.{' '}
-                <Link
-                  href={config.links.what_review_dataset}
-                  label="Learn more"
-                />
-              </Text>
-            </InfoText>
-          </Box>
+          {!isDatasetDataEmpty && (
+            <Box margin={{ top: 'medium' }} width={{ max: '440px' }}>
+              <InfoText iconSize="24px">
+                <Text margin={{ left: 'small' }}>
+                  Some download options may have changed. Please review the
+                  dataset before you download.{' '}
+                  <Link
+                    href={config.links.what_review_dataset}
+                    label="Learn more"
+                  />
+                </Text>
+              </InfoText>
+            </Box>
+          )}
           <Box
             align="center"
             direction={responsive('column', 'row')}
