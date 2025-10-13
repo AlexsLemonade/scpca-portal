@@ -193,11 +193,6 @@ export const useMyDataset = () => {
   }
 
   const mergeDatasetData = async (dataset) => {
-    // Skip merging if myDataset has not beeen created yet
-    if (!myDataset.data) {
-      return dataset.data
-    }
-
     const mergeDataPromiseEntries = uniqueArray(
       Object.keys(myDataset.data),
       Object.keys(dataset.data)

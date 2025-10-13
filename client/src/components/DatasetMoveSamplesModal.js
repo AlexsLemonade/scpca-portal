@@ -36,6 +36,8 @@ export const DatasetMoveSamplesModal = ({
   const { total_sample_count: initialSampleCount } = myDataset
   const { total_sample_count: sharedSampleCount } = dataset
 
+  const isMyDatasetId = myDataset.id
+
   const showErrorNotification = (
     message = "We're having trouble moving samples to My Dataset. Please try again later."
   ) => {
@@ -44,24 +46,29 @@ export const DatasetMoveSamplesModal = ({
   }
 
   const handleMoveSamples = async () => {
-    if (myDataset.id && myDataset.format !== dataset.format) {
+    if (isMyDatasetId && myDataset.format !== dataset.format) {
       showErrorNotification(
         'Unable to move the dataset due to mismatched formats.'
       )
       return
     }
 
-    const updatedData =
-      action === 'append'
-        ? await mergeDatasetData(dataset)
-        : structuredClone(dataset.data)
+    let updatedData
+
+    if (!isMyDatasetId) {
+      // Skip merging if myDataset doesn't exist yet
+      updatedData = dataset.data
+    } else {
+      updatedData =
+        action === 'append' ? await mergeDatasetData(dataset) : dataset.data
+    }
 
     // API failure while merging data
     if (!updatedData) {
       showErrorNotification()
       return
     }
-    const updatedDataset = !myDataset.id
+    const updatedDataset = !isMyDatasetId
       ? await createDataset({ format: dataset.format, data: updatedData })
       : await updateDataset({ ...myDataset, data: updatedData })
 
