@@ -131,6 +131,10 @@ export const useMyDataset = () => {
     isEmptyArray: Array.isArray(value) && value.length === 0
   })
 
+  const getIncludesBulk = (projectId, dataset) =>
+    myDataset.data[projectId]?.includes_bulk ||
+    dataset.data[projectId]?.includes_bulk
+
   // Fetch samples for a given project ID and modality
   const getProjectModalitySamples = async (projectId, modality) => {
     const samplesRequest = await api.samples.list({
@@ -139,13 +143,13 @@ export const useMyDataset = () => {
       limit: 1000 // TODO:: 'all' option
     })
 
-    if (!samplesRequest.isOk) return null
-
-    return samplesRequest.response.results.map((s) => s.scpca_id)
+    return samplesRequest.isOk
+      ? samplesRequest.response.results.map((s) => s.scpca_id)
+      : null
   }
 
   // Merge project modality samples based on their state (e.g., merged, empty)
-  const mergeProjectDataModality = async (projectId, dataset, modality) => {
+  const mergeProjectModalities = async (projectId, modality, dataset) => {
     const original = myDataset.data?.[projectId]?.[modality] || []
     const incoming = dataset.data?.[projectId]?.[modality] || []
 
@@ -170,49 +174,42 @@ export const useMyDataset = () => {
     return uniqueArray(original, incoming)
   }
 
-  // Handle merging samples for all modalities including additional options
-  const getMergedProjectData = async (projectId, dataset) => {
+  // Handle merging the dataset data into myDataset for the UI
+  const getMergeDatasetData = async (dataset) => {
     const modalities = ['SINGLE_CELL', 'SPATIAL']
-    const mergedData = {}
+    const projectIds = uniqueArray(
+      Object.keys(myDataset.data),
+      Object.keys(dataset.data)
+    )
 
-    await Promise.all(
-      modalities.map(async (modality) => {
-        mergedData[modality] = await mergeProjectDataModality(
-          projectId,
-          dataset,
-          modality
+    const mergedProjectModaliies = await Promise.all(
+      projectIds.map(async (pId) => {
+        const modalityData = await Promise.all(
+          modalities.map(async (m) => [
+            m,
+            await mergeProjectModalities(pId, m, dataset)
+          ])
         )
+        return [pId, Object.fromEntries(modalityData)]
       })
     )
 
-    mergedData.includes_bulk =
-      myDataset.data[projectId]?.includes_bulk ||
-      dataset.data[projectId]?.includes_bulk
-
-    return mergedData
-  }
-
-  const mergeDatasetData = async (dataset) => {
-    const mergeDataPromiseEntries = uniqueArray(
-      Object.keys(myDataset.data),
-      Object.keys(dataset.data)
-    ).map(async (pId) => {
-      const mergedProjectData = await getMergedProjectData(pId, dataset)
-      return [pId, mergedProjectData]
-    })
-
-    const mergeDataEntries = await Promise.all(mergeDataPromiseEntries)
-
-    const isFailedMerge = mergeDataEntries.some(
-      ([, projectData]) =>
-        projectData.SINGLE_CELL === null || projectData.SPATIAL === null
-    )
-
-    if (isFailedMerge) {
+    // Return null for any merge failure (null samples)
+    if (
+      mergedProjectModaliies.some(
+        ([, data]) => data.SINGLE_CELL === null || data.SPATIAL === null
+      )
+    ) {
       return null
     }
 
-    return Object.fromEntries(mergeDataEntries)
+    return mergedProjectModaliies.reduce((acc, [pId, modalitiesData]) => {
+      acc[pId] = {
+        ...modalitiesData,
+        includes_bulk: getIncludesBulk(pId, dataset)
+      }
+      return acc
+    }, {})
   }
 
   const processDataset = async () => {
@@ -389,7 +386,7 @@ export const useMyDataset = () => {
     createDataset,
     getDataset,
     updateDataset,
-    mergeDatasetData,
+    getMergeDatasetData,
     processDataset,
     addProject,
     removeProjectById,

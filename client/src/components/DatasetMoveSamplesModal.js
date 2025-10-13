@@ -19,7 +19,7 @@ export const DatasetMoveSamplesModal = ({
   disabled = false
 }) => {
   const { push } = useRouter()
-  const { myDataset, mergeDatasetData, createDataset, updateDataset } =
+  const { myDataset, getMergeDatasetData, createDataset, updateDataset } =
     useMyDataset()
   const { showNotification } = useNotification()
   const { responsive } = useResponsive()
@@ -60,7 +60,7 @@ export const DatasetMoveSamplesModal = ({
       updatedData = dataset.data
     } else {
       updatedData =
-        action === 'append' ? await mergeDatasetData(dataset) : dataset.data
+        action === 'append' ? await getMergeDatasetData(dataset) : dataset.data
     }
 
     // API failure while merging data
