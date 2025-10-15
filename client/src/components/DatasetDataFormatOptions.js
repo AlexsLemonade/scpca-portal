@@ -18,6 +18,7 @@ export const DatasetDataFormatOptions = ({
 
   // Update the format value on myDataset.format changes
   useEffect(() => {
+    if (!myDataset.format) return
     onFormatChange(myDataset.format)
   }, [myDataset.format])
 
