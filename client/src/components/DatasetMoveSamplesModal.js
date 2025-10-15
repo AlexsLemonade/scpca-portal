@@ -23,7 +23,8 @@ export const DatasetMoveSamplesModal = ({
     myDataset,
     clearDataset,
     createDataset,
-    mergeDatasetData,
+    isDatasetDataEmpty,
+    getMergeDatasetData,
     updateDataset
   } = useMyDataset()
   const { showNotification } = useNotification()
@@ -31,18 +32,21 @@ export const DatasetMoveSamplesModal = ({
 
   const [showing, setShowing] = useState(false)
 
-  // Show only the replace action if the formats are different
-  const isFormatChanged = myDataset.id && myDataset.format !== dataset.format
+  const isMyDataset = myDataset.id
+  const isFormatChanged = isMyDataset && myDataset.format !== dataset.format
+  const disableAppend = isDatasetDataEmpty || isFormatChanged
 
+  // Disable the append action if no data in myDataset or the format will change
   const radioOptions = [
     {
       label: 'Append samples to My Dataset',
       value: 'append',
-      disabled: isFormatChanged
+      disabled: disableAppend
     },
     { label: 'Replace My Dataset', value: 'replace' }
   ]
-  const defaultAction = isFormatChanged
+
+  const defaultAction = disableAppend
     ? radioOptions[1].value
     : radioOptions[0].value
   const [action, setAction] = useState(defaultAction)
@@ -60,7 +64,7 @@ export const DatasetMoveSamplesModal = ({
   const handleMoveToMyDataset = async () => {
     const updatedData =
       action === 'append'
-        ? await mergeDatasetData(dataset)
+        ? await getMergeDatasetData(dataset)
         : structuredClone(dataset.data)
 
     // API failure while merging data
@@ -72,7 +76,7 @@ export const DatasetMoveSamplesModal = ({
     // Clear the data in My Dataset if the format has changed
     if (isFormatChanged) await clearDataset()
 
-    const updatedDataset = !myDataset.id
+    const updatedDataset = !isMyDataset
       ? await createDataset({ format: dataset.format, data: updatedData })
       : await updateDataset({
           ...myDataset,
@@ -120,8 +124,8 @@ export const DatasetMoveSamplesModal = ({
               onChange={({ target: { value } }) => setAction(value)}
             />
           </FormField>
-          <Box margin={{ top: 'medium' }} width={{ max: '440px' }}>
-            {!isFormatChanged && (
+          {!disableAppend && (
+            <Box margin={{ top: 'medium' }} width={{ max: '440px' }}>
               <InfoText iconSize="24px">
                 <Text margin={{ left: 'small' }}>
                   Some download options may have changed. Please review the
@@ -132,8 +136,8 @@ export const DatasetMoveSamplesModal = ({
                   />
                 </Text>
               </InfoText>
-            )}
-          </Box>
+            </Box>
+          )}
           <Box
             align="center"
             direction={responsive('column', 'row')}
