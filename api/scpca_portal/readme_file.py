@@ -37,7 +37,7 @@ PORTAL_CCDL_DATASET_LINKS = {
     ),
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA: "PORTAL_SINGLE_CELL_ANN_DATA_LINK",
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: "PORTAL_SINGLE_CELL_ANN_DATA_MERGED_LINK",
-    CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT: "PORTAL_SPATIAL_SINGLE_CELL_EXPERIMENT_LINK",
+    CCDLDatasetNames.SPATIAL: "PORTAL_SPATIAL_LINK",
 }
 
 # used in get_content_table_rows and in 2_contents.md
@@ -190,7 +190,11 @@ def merge_partials(partials: list[str]):
 
 def get_file_contents(download_config: Dict, projects: Iterable) -> str:
     """Return newly generated readme file as a string for immediate writing to a zip archive."""
-    readme_template_key_parts = [download_config["modality"], download_config["format"]]
+    # TODO: when computed file is removed update template name to match ccdl dataset name
+    readme_template_key_parts = [download_config["modality"]]
+    # spatial ccdl name doesn't reference spatial format
+    if download_config["modality"] == Modalities.SINGLE_CELL:
+        readme_template_key_parts.append(download_config["format"])
 
     if download_config is common.PORTAL_METADATA_DOWNLOAD_CONFIG:
         readme_template_key_parts = ["METADATA_ONLY"]
