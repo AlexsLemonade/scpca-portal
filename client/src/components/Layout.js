@@ -1,12 +1,14 @@
 import React, { useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/router'
 // import { useBanner } from 'hooks/useBanner'
+import { useNotification } from 'hooks/useNotification'
 import { useResizeObserver } from 'hooks/useResizeObserver'
 import { Box, Main } from 'grommet'
 import { ContributeBanner } from 'components/ContributeBanner'
 import { EnvarBanner } from 'components/EnvarBanner'
 import { Footer } from 'components/Footer'
 import { Header } from 'components/Header'
+import { Notifications } from 'components/Notifications'
 import { PageLoader } from 'components/PageLoader'
 import styled from 'styled-components'
 
@@ -27,6 +29,8 @@ const ProgressBar = styled(PageLoader)`
 
 export const Layout = ({ children }) => {
   const router = useRouter()
+  const { notifications } = useNotification()
+
   // get the height of FixedBox for to preserve the margin
   const [fixedBoxHeight, setFixedBoxHeight] = useState('0px')
   const fixedBoxRef = useRef(null)
@@ -66,6 +70,7 @@ export const Layout = ({ children }) => {
     <Box height={{ min: '100vh' }}>
       <Box height={fixedBoxHeight}>
         <FixedBox background="white" ref={fixedBoxRef}>
+          {notifications.length > 0 && <Notifications />}
           {showEnvarBanner && <EnvarBanner width={width} />}
           <Header margin={{ bottom: 'small' }} donate={showDonate} />
           <ProgressBar />

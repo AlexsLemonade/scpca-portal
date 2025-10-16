@@ -5,13 +5,13 @@ export const NotificationContext = createContext({})
 export const NotificationContextProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([])
 
-  const showNotification = (message, id = Date.now(), type = 'success') =>
+  const showNotification = (message, type = 'success', id = Date.now()) =>
     setNotifications((prev) => [
       ...prev,
       {
         message,
-        id,
-        type
+        type,
+        id
       }
     ])
 

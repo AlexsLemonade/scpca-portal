@@ -91,11 +91,36 @@ export const useDataset = () => {
     return datasetRequest.response
   }
 
+  // TODO: Implementation might change
+  const getDatasetState = (dataset) => {
+    const {
+      is_pending: isPending = true, // TEMP for UI demo
+      is_processing: isProcessing,
+      is_succeeded: isSucceeded,
+      is_failed: isFailed,
+      is_terminated: isTerminated,
+      is_expired: isExpired
+    } = dataset
+
+    const processingStarted =
+      isProcessing || isSucceeded || isFailed || isTerminated
+
+    return {
+      isUnprocessed: isPending && !processingStarted,
+      isProcessing: isProcessing && !isFailed,
+      isFailed,
+      isTerminated,
+      isReady: isSucceeded && !isExpired,
+      isExpired: isSucceeded && isExpired
+    }
+  }
+
   return {
     errors,
     create,
     get,
     process,
-    update
+    update,
+    getDatasetState
   }
 }

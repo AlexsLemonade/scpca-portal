@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
 import { Box, RadioButtonGroup, Text } from 'grommet'
-import { config } from 'config'
+import { useRouter } from 'next/router'
+import { useMyDataset } from 'hooks/useMyDataset'
+import { useNotification } from 'hooks/useNotification'
 import { useResponsive } from 'hooks/useResponsive'
+import { config } from 'config'
 import { Button } from 'components/Button'
 import { Modal, ModalBody } from 'components/Modal'
 import { WarningText } from 'components/WarningText'
@@ -10,22 +13,81 @@ import { Link } from 'components/Link'
 import { FormField } from 'components/FormField'
 
 export const DatasetMoveSamplesModal = ({
-  label = 'Move Samples',
+  dataset,
+  label = 'Move to My Dataset',
   title = 'Move Samples to My Dataset',
   disabled = false
 }) => {
+  const { push } = useRouter()
+  const {
+    myDataset,
+    isDatasetDataEmpty,
+    getMergeDatasetData,
+    createDataset,
+    updateDataset
+  } = useMyDataset()
+  const { showNotification } = useNotification()
+  const { responsive } = useResponsive()
+
   const [showing, setShowing] = useState(false)
+
+  // Disable the append action if no myDataset data
   const radioOptions = [
-    { label: 'Append samples to My Dataset', value: 'append' },
+    {
+      label: 'Append samples to My Dataset',
+      value: 'append',
+      disabled: isDatasetDataEmpty
+    },
     { label: 'Replace samples in My Dataset', value: 'replace' }
   ]
-  const [action, setAction] = useState(radioOptions[0].value)
+  const defaultAction = isDatasetDataEmpty
+    ? radioOptions[1].value
+    : radioOptions[0].value
+  const [action, setAction] = useState(defaultAction)
 
-  const { responsive } = useResponsive()
-  const totalSamples = 34
+  const { total_sample_count: initialSampleCount } = myDataset
+  const { total_sample_count: sharedSampleCount } = dataset
 
-  const handleClick = () => {
-    setShowing(true)
+  const isMyDatasetId = myDataset.id
+
+  const showErrorNotification = (
+    message = "We're having trouble moving samples to My Dataset. Please try again later."
+  ) => {
+    showNotification(message, 'error')
+    setShowing(false)
+  }
+
+  const handleMoveSamples = async () => {
+    if (isMyDatasetId && myDataset.format !== dataset.format) {
+      showErrorNotification(
+        'Unable to move the dataset due to mismatched formats.'
+      )
+      return
+    }
+
+    const updatedData =
+      action === 'append'
+        ? await getMergeDatasetData(dataset)
+        : structuredClone(dataset.data)
+
+    // API failure while merging data
+    if (!updatedData) {
+      showErrorNotification()
+      return
+    }
+    const updatedDataset = !isMyDatasetId
+      ? await createDataset({ format: dataset.format, data: updatedData })
+      : await updateDataset({ ...myDataset, data: updatedData })
+
+    // API failure while updating the dataset
+    if (!updatedDataset) {
+      showErrorNotification()
+      return
+    }
+
+    push(`/download`)
+    showNotification(`Moved ${sharedSampleCount} Samples to My Dataset`)
+    setShowing(false)
   }
 
   return (
@@ -33,10 +95,9 @@ export const DatasetMoveSamplesModal = ({
       <Button
         aria-label={label}
         flex="grow"
-        primary
         label={label}
         disabled={disabled}
-        onClick={handleClick}
+        onClick={() => setShowing(true)}
       />
       <Modal title={title} showing={showing} setShowing={setShowing}>
         <ModalBody>
@@ -44,10 +105,10 @@ export const DatasetMoveSamplesModal = ({
             lineBreak={false}
             iconMargin="0"
             iconSize="24px"
-            margin={false}
+            margin={{ bottom: 'medium' }}
           >
             <Text size="21px" margin={{ left: 'xsmall' }}>
-              There are {totalSamples} samples in My Dataset
+              There are {initialSampleCount} samples in My Dataset
             </Text>
           </WarningText>
           <FormField>
@@ -58,18 +119,20 @@ export const DatasetMoveSamplesModal = ({
               onChange={({ target: { value } }) => setAction(value)}
             />
           </FormField>
-          <Box margin={{ top: 'medium' }}>
-            <InfoText iconSize="24px">
-              <Text margin={{ left: 'small' }}>
-                Some download options may have changed. Please review the
-                dataset before you download.{' '}
-                <Link
-                  href={config.links.what_review_dataset}
-                  label="Learn more"
-                />
-              </Text>
-            </InfoText>
-          </Box>
+          {!isDatasetDataEmpty && (
+            <Box margin={{ top: 'medium' }} width={{ max: '440px' }}>
+              <InfoText iconSize="24px">
+                <Text margin={{ left: 'small' }}>
+                  Some download options may have changed. Please review the
+                  dataset before you download.{' '}
+                  <Link
+                    href={config.links.what_review_dataset}
+                    label="Learn more"
+                  />
+                </Text>
+              </InfoText>
+            </Box>
+          )}
           <Box
             align="center"
             direction={responsive('column', 'row')}
@@ -77,7 +140,12 @@ export const DatasetMoveSamplesModal = ({
             justify="end"
             margin={{ top: 'large' }}
           >
-            <Button primary aria-label={label} label={label} />
+            <Button
+              primary
+              aria-label="Move Samples"
+              label="Move Samples"
+              onClick={handleMoveSamples}
+            />
           </Box>
         </ModalBody>
       </Modal>

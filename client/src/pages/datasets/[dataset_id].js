@@ -1,33 +1,44 @@
 import React, { useEffect } from 'react'
-import { Box } from 'grommet'
+import { Box, Text } from 'grommet'
 import { api } from 'api'
 import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useDataset } from 'hooks/useDataset'
 import { useResponsive } from 'hooks/useResponsive'
+import { DatasetMoveSamplesModal } from 'components/DatasetMoveSamplesModal'
 import { DatasetSummary } from 'components/DatasetSummary'
 import { DatasetDownloadFileSummary } from 'components/DatasetDownloadFileSummary'
 import { DatasetProjectCard } from 'components/DatasetProjectCard'
-import Error from 'pages/_error'
 
 const Dataset = ({ dataset }) => {
   const { restoreScrollPosition } = useScrollRestore()
-  const { errors } = useDataset()
   const { responsive } = useResponsive()
+  const { getDatasetState } = useDataset()
+
+  const { isUnprocessed } = getDatasetState(dataset)
 
   // Restore scroll position after component mounts
   useEffect(() => {
     restoreScrollPosition()
   }, [])
 
-  // TODO: Replace this once error handling is finalized
-  // Show error page if there are any API errors
-  if (errors.length > 0) return <Error />
-
   return (
-    <Box width="full" pad={responsive({ horizontal: 'medium' })}>
-      <Box alignSelf="end">
-        {/* // TODO: Move to Dataset button will be added in issue #1410 */}
+    <Box pad={responsive({ horizontal: 'medium' })} fill>
+      <Box
+        direction="row"
+        justify={isUnprocessed ? 'between' : 'end'}
+        pad={{ bottom: 'large' }}
+        fill
+      >
+        {isUnprocessed && (
+          <Text serif size="xlarge">
+            Shared Dataset
+          </Text>
+        )}
+        <Box>
+          <DatasetMoveSamplesModal dataset={dataset} />
+        </Box>
       </Box>
+
       <Box margin={{ bottom: 'large' }}>
         <DatasetSummary dataset={dataset} />
       </Box>

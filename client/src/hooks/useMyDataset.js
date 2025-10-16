@@ -124,6 +124,94 @@ export const useMyDataset = () => {
   const clearDataset = async (dataset) =>
     updateDataset({ ...dataset, data: {} })
 
+  // Return the flags based on a project modality samples' value (SINGLE_CELL, SPATIAL)
+  const getModalityState = (value = []) => ({
+    isMerged: value === 'MERGED',
+    isNonEmptyArray: Array.isArray(value) && value.length > 0,
+    isEmptyArray: Array.isArray(value) && value.length === 0
+  })
+
+  const getMergedIncludesBulk = (projectId, dataset) =>
+    myDataset.data[projectId]?.includes_bulk ||
+    dataset.data[projectId]?.includes_bulk
+
+  // Fetch samples for a given project ID and modality
+  const getProjectModalitySamples = async (projectId, modality) => {
+    const samplesRequest = await api.samples.list({
+      project__scpca_id: projectId,
+      [`has_${modality.toLowerCase()}_data`]: true,
+      limit: 1000 // TODO:: 'all' option
+    })
+
+    return samplesRequest.isOk
+      ? samplesRequest.response.results.map((s) => s.scpca_id)
+      : null
+  }
+
+  // Merge project modality samples based on their state (e.g., merged, empty)
+  const mergeProjectModalities = async (projectId, modality, dataset) => {
+    const original = myDataset.data?.[projectId]?.[modality] || []
+    const incoming = dataset.data?.[projectId]?.[modality] || []
+
+    const originalState = getModalityState(original)
+    const incomingState = getModalityState(incoming)
+
+    const bothMerged = originalState.isMerged && incomingState.isMerged
+    const eitherMerged = originalState.isMerged || incomingState.isMerged
+    const eitherEmpty = originalState.isEmptyArray || incomingState.isEmptyArray
+    const eitherHasSamples =
+      originalState.isNonEmptyArray || incomingState.isNonEmptyArray
+
+    if (bothMerged || (eitherMerged && eitherEmpty)) {
+      return 'MERGED'
+    }
+
+    // Add all project samples, if one is merged and the other has samples
+    if (eitherMerged && eitherHasSamples) {
+      return getProjectModalitySamples(projectId, modality)
+    }
+
+    return uniqueArray(original, incoming)
+  }
+
+  // Handle merging the dataset data into myDataset for the UI
+  const getMergeDatasetData = async (dataset) => {
+    const modalities = ['SINGLE_CELL', 'SPATIAL']
+    const projectIds = uniqueArray(
+      Object.keys(myDataset.data),
+      Object.keys(dataset.data)
+    )
+
+    const mergedProjectModaliies = await Promise.all(
+      projectIds.map(async (pId) => {
+        const modalityData = await Promise.all(
+          modalities.map(async (m) => [
+            m,
+            await mergeProjectModalities(pId, m, dataset)
+          ])
+        )
+        return [pId, Object.fromEntries(modalityData)]
+      })
+    )
+
+    // Return null for any merge failure (null samples)
+    if (
+      mergedProjectModaliies.some(
+        ([, data]) => data.SINGLE_CELL === null || data.SPATIAL === null
+      )
+    ) {
+      return null
+    }
+
+    return mergedProjectModaliies.reduce((acc, [pId, modalitiesData]) => {
+      acc[pId] = {
+        ...modalitiesData,
+        includes_bulk: getMergedIncludesBulk(pId, dataset)
+      }
+      return acc
+    }, {})
+  }
+
   const processDataset = async () => {
     // Token is required for dataset processing
     if (!token) {
@@ -295,7 +383,10 @@ export const useMyDataset = () => {
     defaultProjectOptions,
     isDatasetDataEmpty,
     clearDataset,
+    createDataset,
     getDataset,
+    updateDataset,
+    getMergeDatasetData,
     processDataset,
     addProject,
     removeProjectById,
