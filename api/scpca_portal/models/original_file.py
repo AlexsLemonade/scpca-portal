@@ -50,8 +50,9 @@ class OriginalFile(TimestampedModel):
     formats = ArrayField(models.TextField(choices=FileFormats.choices), default=list)
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
-    is_supplementary = models.BooleanField(default=False)
+    is_spatial_spaceranger = models.BooleanField(default=False)
     is_metadata = models.BooleanField(default=False)
+    is_supplementary = models.BooleanField(default=False)
     # other
     is_merged = models.BooleanField(default=False)
     is_project_file = models.BooleanField(default=False)
