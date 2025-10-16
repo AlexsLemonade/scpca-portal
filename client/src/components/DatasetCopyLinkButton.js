@@ -55,7 +55,7 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
     : {}
 
   const handleCopy = () => {
-    if (isDisabled) setWantsLink(true)
+    if (!isDisabled) setWantsLink(true)
   }
 
   useEffect(() => {
@@ -117,3 +117,5 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
     </>
   )
 }
+
+export default DatasetCopyLinkButton

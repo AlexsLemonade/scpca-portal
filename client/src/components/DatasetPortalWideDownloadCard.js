@@ -3,14 +3,10 @@ import { Box, CheckBox, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { HelpLink } from 'components/HelpLink'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
+import { DatasetCopyLinkButton } from 'components/DatasetCopyLinkButton'
 import { DatasetFileItems } from 'components/DatasetFileItems'
 import { config } from 'config'
 import { formatBytes } from 'helpers/formatBytes'
-import dynamic from 'next/dynamic'
-
-const DatasetCopyLinkButton = dynamic(() => import('./DatasetCopyLinkButton'), {
-  ssr: false
-})
 
 export const DatasetPortalWideDownloadCard = ({
   title,
