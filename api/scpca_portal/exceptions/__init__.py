@@ -13,10 +13,8 @@ from scpca_portal.exceptions.dataset_data_validation_error import (
 )
 from scpca_portal.exceptions.dataset_error import (
     DatasetError,
-    DatasetFormatChangeError,
     DatasetLockedProjectError,
     DatasetMissingLibrariesError,
-    UpdateProcessingDatasetError,
 )
 from scpca_portal.exceptions.job_error import (
     JobError,
