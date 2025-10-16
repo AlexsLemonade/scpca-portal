@@ -68,6 +68,7 @@ export const ProjectSamplesTable = ({
                   project={project}
                   modality={m}
                   disabled={!project[`has_${m.toLowerCase()}_data`]}
+                  partialToggle
                 />
               </Box>
             ))}
@@ -91,6 +92,7 @@ export const ProjectSamplesTable = ({
               samples={samples}
               sampleId={row.original.scpca_id}
               disabled={!row.original[`has_${m.toLowerCase()}_data`]}
+              partialToggle
               onClick={() => toggleSample(m, row.original)}
             />
           ))}
@@ -260,7 +262,7 @@ export const ProjectSamplesTable = ({
         pageSize={5}
         pageSizeOptions={[5, 10, 20, 50]}
         infoText={infoText}
-        defaultSort={[{ id: 'scpca_id', asc: true }]} // TODO: Ask about new defaultSort
+        defaultSort={[{ id: 'scpca_id', asc: true }]}
         selectedRows={selectedSamples}
         onAllRowsChange={setAllSamples}
         onFilteredRowsChange={setFilteredSamples}

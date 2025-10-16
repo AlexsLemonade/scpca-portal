@@ -65,7 +65,7 @@ export const ViewEditSamples = ({ project }) => {
             onIncludeMergeChange={setIncludeMerge}
           />
         </Box>
-        <DatasetSamplesTable project={project} samples={samples} editable />
+        <DatasetSamplesTable project={project} samples={samples} />
       </DatasetSamplesTableContextProvider>
     </Box>
   )
