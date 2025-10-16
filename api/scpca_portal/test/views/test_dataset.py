@@ -154,6 +154,25 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_update_format(self):
+        url = reverse("datasets-detail", args=[self.custom_dataset.id])
+        self.custom_dataset.data = DatasetCustomSingleCellExperiment.VALUES.get("data")
+        self.custom_dataset.format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        self.custom_dataset.save()
+
+        # Assert that format cannot be modified if dataset already contains data
+        data = {"format": DatasetFormats.ANN_DATA}
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Assert that format can be modified if dataset is empty
+        self.custom_dataset.data = {}
+        self.custom_dataset.save()
+
+        data = {"format": DatasetFormats.ANN_DATA}
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_list_is_not_allowed(self):
         url = reverse("datasets-list")
         response = self.client.get(url)
