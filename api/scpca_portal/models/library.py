@@ -42,14 +42,14 @@ class Library(TimestampedModel):
             modality = Modalities.BULK_RNA_SEQ
 
         formats = []
-        if modality == Modalities.SINGLE_CELL:
+        if modality == Modalities.SPATIAL:
+            if original_files.filter(is_spatial_spaceranger=True).exists():
+                formats.append(FileFormats.SPATIAL_SPACERANGER)
+        else:
             if original_files.filter(is_single_cell_experiment=True).exists():
                 formats.append(FileFormats.SINGLE_CELL_EXPERIMENT)
             if original_files.filter(is_anndata=True).exists():
                 formats.append(FileFormats.ANN_DATA)
-        elif modality == Modalities.SPATIAL:
-            if original_files.filter(is_spatial_spaceranger=True).exists():
-                formats.append(FileFormats.SPATIAL_SPACERANGER)
 
         library = cls(
             formats=sorted(formats),
