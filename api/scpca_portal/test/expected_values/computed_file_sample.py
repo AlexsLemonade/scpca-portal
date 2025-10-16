@@ -65,10 +65,10 @@ class Computed_File_Sample:
             "includes_celltype_report": True,
         }
 
-    class SPATIAL_SCE:
+    class SPATIAL:
         PROJECT_ID = "SCPCP999990"
         SAMPLE_ID = "SCPCS999991"
-        DOWNLOAD_CONFIG_NAME = "SPATIAL_SINGLE_CELL_EXPERIMENT"
+        DOWNLOAD_CONFIG_NAME = "SPATIAL"
         DOWNLOAD_CONFIG = common.SAMPLE_DOWNLOAD_CONFIGS[DOWNLOAD_CONFIG_NAME]
         LIBRARIES = {"SCPCL999991"}
         FILE_LIST = [

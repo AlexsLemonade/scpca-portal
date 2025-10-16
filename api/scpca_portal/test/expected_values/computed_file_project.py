@@ -175,9 +175,9 @@ class Computed_File_Project:
             "includes_celltype_report": True,
         }
 
-    class SPATIAL_SINGLE_CELL_EXPERIMENT:
+    class SPATIAL:
         PROJECT_ID = "SCPCP999990"
-        DOWNLOAD_CONFIG_NAME = "SPATIAL_SINGLE_CELL_EXPERIMENT"
+        DOWNLOAD_CONFIG_NAME = "SPATIAL"
         DOWNLOAD_CONFIG = common.PROJECT_DOWNLOAD_CONFIGS[DOWNLOAD_CONFIG_NAME]
         LIBRARIES = {"SCPCL999991"}
         FILE_LIST = [
