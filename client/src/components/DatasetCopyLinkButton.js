@@ -35,7 +35,7 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
   }
 
   const [state, setState] = useState(states.unclicked)
-  const [downloadLink, setDownloadLink] = useState(null)
+  const [downloadLink, setDownloadLink] = useState(dataset.download_url)
   const [wantsLink, setWantsLink] = useState(false)
 
   const [, copyText] = useCopyToClipboard()
@@ -44,6 +44,7 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
 
   const [tokenModalShowing, setTokenModalShowing] = useState(false)
 
+  const isCCDL = dataset.is_ccdl
   const isDisabled = !dataset?.computed_file
 
   const buttonStyle = isDisabled
@@ -54,7 +55,7 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
     : {}
 
   const handleCopy = () => {
-    if (!isDisabled) setWantsLink(true)
+    if (isDisabled) setWantsLink(true)
   }
 
   useEffect(() => {
@@ -69,7 +70,9 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
 
   useEffect(() => {
     const asyncFetch = async () => {
-      const downloadRequest = await api.ccdlDatasets.get(dataset.id, token)
+      const downloadRequest = isCCDL
+        ? await api.ccdlDatasets.get(dataset.id, token)
+        : await api.datasets.get(dataset.id, token)
       if (downloadRequest.isOk) {
         setDownloadLink(downloadRequest.response.download_url)
       }
