@@ -2,6 +2,10 @@ import { termsOfUse } from './markdownLinks'
 
 export const config = {
   links: {
+    getting_started:
+      'https://scpca.readthedocs.io/en/stable/getting_started.html',
+    frequently_asked_questions:
+      'https://scpca.readthedocs.io/en/stable/faq.html',
     what_are_merged_objects:
       'https://scpca.readthedocs.io/en/stable/merged_objects.html',
     what_copy_link:

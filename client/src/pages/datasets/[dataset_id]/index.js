@@ -5,6 +5,7 @@ import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useDataset } from 'hooks/useDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { DatasetMoveSamplesModal } from 'components/DatasetMoveSamplesModal'
+import { DatasetHero } from 'components/DatasetHero'
 import { DatasetSummary } from 'components/DatasetSummary'
 import { DatasetDownloadFileSummary } from 'components/DatasetDownloadFileSummary'
 import { DatasetProjectSummary } from 'components/DatasetProjectSummary'
@@ -22,33 +23,37 @@ const Dataset = ({ dataset }) => {
   }, [])
 
   return (
-    <Box pad={responsive({ horizontal: 'medium' })} fill>
-      <Box
-        direction="row"
-        justify={isUnprocessed ? 'between' : 'end'}
-        pad={{ bottom: 'large' }}
-        fill
-      >
-        {isUnprocessed && (
-          <Text serif size="xlarge">
-            Shared Dataset
-          </Text>
-        )}
-        <Box>
-          <DatasetMoveSamplesModal dataset={dataset} />
+    <>
+      <Box pad={{ top: responsive('medium', 'xlarge') }} fill>
+        <DatasetHero dataset={dataset} />
+      </Box>
+      <Box pad={responsive({ horizontal: 'medium' })} fill>
+        <Box
+          direction="row"
+          justify={isUnprocessed ? 'between' : 'end'}
+          pad={{ bottom: 'large' }}
+          fill
+        >
+          {isUnprocessed && (
+            <Text serif size="xlarge">
+              Shared Dataset
+            </Text>
+          )}
+          <Box>
+            <DatasetMoveSamplesModal dataset={dataset} />
+          </Box>
+        </Box>
+        <Box margin={{ bottom: 'large' }}>
+          <DatasetSummary dataset={dataset} />
+        </Box>
+        <Box margin={{ bottom: 'large' }}>
+          <DatasetDownloadFileSummary dataset={dataset} />
+        </Box>
+        <Box margin={{ bottom: 'large' }}>
+          <DatasetProjectSummary dataset={dataset} readOnly />
         </Box>
       </Box>
-
-      <Box margin={{ bottom: 'large' }}>
-        <DatasetSummary dataset={dataset} />
-      </Box>
-      <Box margin={{ bottom: 'large' }}>
-        <DatasetDownloadFileSummary dataset={dataset} />
-      </Box>
-      <Box margin={{ bottom: 'large' }}>
-        <DatasetProjectSummary dataset={dataset} readOnly />
-      </Box>
-    </Box>
+    </>
   )
 }
 
