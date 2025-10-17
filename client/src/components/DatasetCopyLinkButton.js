@@ -47,13 +47,6 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
   const isCCDL = dataset.is_ccdl
   const isDisabled = !dataset?.computed_file
 
-  const buttonStyle = isDisabled
-    ? {
-        opacity: 0.6,
-        cursor: 'not-allowed'
-      }
-    : {}
-
   const handleCopy = () => {
     if (!isDisabled) setWantsLink(true)
   }
@@ -103,7 +96,6 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
           label={state.label}
           icon={state.icon}
           disabled={isDisabled}
-          style={buttonStyle}
           onClick={handleCopy}
         />
         <HelpLink link={config.links.what_copy_link} />
