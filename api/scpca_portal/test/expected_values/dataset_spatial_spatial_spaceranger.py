@@ -1,16 +1,25 @@
 from scpca_portal.enums import CCDLDatasetNames, FileFormats, Modalities
 
 
-class DatasetSpatialSCPCP999990:
-    PROJECT_ID = "SCPCP999990"
-    CCDL_NAME = CCDLDatasetNames.SPATIAL.value
+class DatasetSpatialSpatialSpaceranger:
+    CCDL_NAME = CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER.value
     VALUES = {
         "data": {
-            PROJECT_ID: {
+            "SCPCP999990": {
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: [],
                 Modalities.SPATIAL.value: ["SCPCS999991"],
-            }
+            },
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: [],
+                Modalities.SPATIAL.value: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL.value: [],
+                Modalities.SPATIAL.value: [],
+            },
         },
         "email": None,
         "start": False,
@@ -18,7 +27,7 @@ class DatasetSpatialSCPCP999990:
         "regenerated_from": None,
         "is_ccdl": True,
         "ccdl_name": CCDL_NAME,
-        "ccdl_project_id": PROJECT_ID,
+        "ccdl_project_id": None,
         "started_at": None,
         "is_started": False,
         "is_processing": False,

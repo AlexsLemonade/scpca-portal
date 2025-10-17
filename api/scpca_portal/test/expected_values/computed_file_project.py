@@ -175,7 +175,7 @@ class Computed_File_Project:
             "includes_celltype_report": True,
         }
 
-    class SPATIAL:
+    class SPATIAL_SPATIAL_SPACERANGER:
         PROJECT_ID = "SCPCP999990"
         DOWNLOAD_CONFIG_NAME = "SPATIAL"
         DOWNLOAD_CONFIG = common.PROJECT_DOWNLOAD_CONFIGS[DOWNLOAD_CONFIG_NAME]

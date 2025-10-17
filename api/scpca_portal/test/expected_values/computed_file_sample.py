@@ -65,7 +65,7 @@ class Computed_File_Sample:
             "includes_celltype_report": True,
         }
 
-    class SPATIAL:
+    class SPATIAL_SPATIAL_SPACERANGER:
         PROJECT_ID = "SCPCP999990"
         SAMPLE_ID = "SCPCS999991"
         DOWNLOAD_CONFIG_NAME = "SPATIAL"

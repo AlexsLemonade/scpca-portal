@@ -62,7 +62,7 @@ TYPES = {
             "includes_merged_anndata": True,
         },
     },
-    CCDLDatasetNames.SPATIAL.value: {
+    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER.value: {
         "modality": Modalities.SPATIAL.value,
         "format": FileFormats.SPATIAL_SPACERANGER.value,
         "excludes_multiplexed": True,
@@ -80,5 +80,5 @@ PORTAL_TYPE_NAMES = [
     CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED.value,
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA.value,
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED.value,
-    CCDLDatasetNames.SPATIAL.value,
+    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER.value,
 ]

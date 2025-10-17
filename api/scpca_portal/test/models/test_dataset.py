@@ -52,7 +52,7 @@ class TestDataset(TestCase):
             test_data.DatasetSingleCellSingleCellExperimentMerged,
             test_data.DatasetSingleCellAnndata,
             test_data.DatasetSingleCellAnndataMerged,
-            test_data.DatasetSpatial,
+            test_data.DatasetSpatialSpatialSpaceranger,
         ]
 
         for ccdl_portal_dataset in ccdl_portal_datasets_expected_values:

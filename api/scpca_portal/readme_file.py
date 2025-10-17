@@ -24,7 +24,7 @@ ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = "ANN_DATA_MERGED_WITH_CITE_SEQ_LINK"
 SINGLE_CELL_EXPERIMENT_LINK = "SINGLE_CELL_EXPERIMENT_LINK"
 SINGLE_CELL_EXPERIMENT_MERGED_LINK = "SINGLE_CELL_EXPERIMENT_MERGED_LINK"
 SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = "SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK"
-SPATIAL_LINK = "SPATIAL_LINK"
+SPATIAL_SPATIAL_SPACERANGER_LINK = "SPATIAL_SPATIAL_SPACERANGER_LINK"
 BULK_LINK = "BULK_LINK"
 
 PORTAL_CCDL_DATASET_LINKS = {
@@ -37,7 +37,7 @@ PORTAL_CCDL_DATASET_LINKS = {
     ),
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA: "PORTAL_SINGLE_CELL_ANN_DATA_LINK",
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: "PORTAL_SINGLE_CELL_ANN_DATA_MERGED_LINK",
-    CCDLDatasetNames.SPATIAL: "PORTAL_SPATIAL_LINK",
+    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: "PORTAL_SPATIAL_SPATIAL_SPACERANGER_LINK",
 }
 
 # used in get_content_table_rows and in 2_contents.md
@@ -119,7 +119,11 @@ def get_content_table_rows(dataset) -> list[ContentRow]:
     # SPATIAL get their own row
     if dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
         for project in dataset.spatial_projects:
-            content_rows.add(ContentRow(project, Modalities.SPATIAL, dataset.format, SPATIAL_LINK))
+            content_rows.add(
+                ContentRow(
+                    project, Modalities.SPATIAL, dataset.format, SPATIAL_SPATIAL_SPACERANGER_LINK
+                )
+            )
 
     # BULK get their own row when data is present
     if dataset.format != DatasetFormats.METADATA:
@@ -191,10 +195,7 @@ def merge_partials(partials: list[str]):
 def get_file_contents(download_config: Dict, projects: Iterable) -> str:
     """Return newly generated readme file as a string for immediate writing to a zip archive."""
     # TODO: when computed file is removed update template name to match ccdl dataset name
-    readme_template_key_parts = [download_config["modality"]]
-    # spatial ccdl name doesn't reference spatial format
-    if download_config["modality"] == Modalities.SINGLE_CELL:
-        readme_template_key_parts.append(download_config["format"])
+    readme_template_key_parts = [download_config["modality"], download_config["format"]]
 
     if download_config is common.PORTAL_METADATA_DOWNLOAD_CONFIG:
         readme_template_key_parts = ["METADATA_ONLY"]
