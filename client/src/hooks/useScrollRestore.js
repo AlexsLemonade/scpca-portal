@@ -24,11 +24,10 @@ export const useScrollRestore = () => {
     })
   }
 
-  /// Call when navigating back to the source page
-  const setRestoreFromDestination = (source) => {
-    const match = positions.find(
-      (p) => p.source === source && p.destination === currentPath
-    )
+  // Call when navigating back to the source page
+  const setRestoreFromDestination = (currentDestination) => {
+    // Ensure the current page (currentDestination) matches the stored destination
+    const match = positions.find((p) => p.destination === currentDestination)
 
     if (match) {
       setRestorePosition(match.y)

@@ -16,7 +16,7 @@ export const DatasetSamplesTable = ({
   project,
   samples,
   stickies = 3,
-  editable = false
+  readOnly = false
 }) => {
   const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
     useDatasetSamplesTable()
@@ -40,7 +40,7 @@ export const DatasetSamplesTable = ({
           <TriStateModalityCheckBoxHeader
             project={project}
             modalities={availableModalities}
-            editable={editable}
+            readOnly={readOnly}
           />
         </Box>
       ),
@@ -61,7 +61,7 @@ export const DatasetSamplesTable = ({
               samples={samples}
               sampleId={row.original.scpca_id}
               disabled={!row.original[`has_${m.toLowerCase()}_data`]}
-              editable={editable}
+              readOnly={readOnly}
               onClick={() => toggleSample(m, row.original)}
             />
           ))}
@@ -177,7 +177,7 @@ export const DatasetSamplesTable = ({
       stickies={stickies}
       pageSize={5}
       pageSizeOptions={[5, 10, 20, 50]}
-      text={<Text italic>{text}</Text>}
+      text={!readOnly ? <Text italic>{text}</Text> : null}
       defaultSort={[{ id: 'scpca_id', asc: true }]}
       selectedRows={selectedSamples}
       onAllRowsChange={setAllSamples}
