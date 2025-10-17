@@ -199,7 +199,7 @@ class Computed_File_Project:
             "spatial_metadata.tsv",
         ]
         VALUES = {
-            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+            "format": ComputedFile.OutputFileFormats.SPATIAL_SPACERANGER,
             "has_bulk_rna_seq": False,
             "has_cite_seq_data": False,
             "has_multiplexed_data": False,
@@ -207,7 +207,7 @@ class Computed_File_Project:
             "modality": ComputedFile.OutputFileModalities.SPATIAL,
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": "SCPCP999990_SPATIAL_SINGLE-CELL-EXPERIMENT.zip",
+            "s3_key": "SCPCP999990_SPATIAL_SPATIAL-SPACERANGER.zip",
             "size_in_bytes": 8978,
             "workflow_version": "v0.8.7",
             "includes_celltype_report": True,
