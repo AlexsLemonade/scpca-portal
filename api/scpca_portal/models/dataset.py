@@ -804,8 +804,8 @@ class Dataset(TimestampedModel):
         ).distinct()
 
         # Both spatial and bulk modalities, as well as metadata dataset format,
-        # Don't need to be queried on format
-        if modality == Modalities.SINGLE_CELL:
+        # don't need to be queried on format
+        if modality == Modalities.SINGLE_CELL and self.format != DatasetFormats.METADATA:
             libraries = libraries.filter(formats__contains=[self.format])
 
         return libraries
