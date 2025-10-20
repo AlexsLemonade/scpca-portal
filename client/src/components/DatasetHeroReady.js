@@ -15,7 +15,7 @@ export const DatasetHeroReady = ({ dataset }) => {
 
   const [downloadLink, setDownloadLink] = useState(null)
 
-  // Fetch the dataset's download link on component mount
+  // Set download link if token is available on component mount
   useEffect(() => {
     const asyncFetch = async () => {
       const downloadRequest = await api.datasets.get(dataset.id, token)
@@ -27,7 +27,7 @@ export const DatasetHeroReady = ({ dataset }) => {
     if (token) asyncFetch()
   }, [token])
 
-  const isDisabled = !dataset.computed_file
+  const isDownloadDisabled = !token || !dataset.computed_file
 
   const handleDownload = () => {
     window.location.href = downloadLink
@@ -50,7 +50,6 @@ export const DatasetHeroReady = ({ dataset }) => {
           Your dataset is ready!
         </Heading>
       </Box>
-
       <Box gridArea="content" pad={{ right: 'xlarge' }}>
         {token ? (
           <Box direction="column">
@@ -73,10 +72,10 @@ export const DatasetHeroReady = ({ dataset }) => {
                 primary
                 aria-label="Download"
                 label="Download"
-                disabled={isDisabled}
+                disabled={isDownloadDisabled}
                 onClick={handleDownload}
               />
-              <DatasetCopyLinkButton dataset={dataset} disabled={isDisabled} />
+              <DatasetCopyLinkButton dataset={dataset} />
             </Box>
           </Box>
         ) : (
