@@ -133,7 +133,7 @@ export const useMyDataset = () => {
     isEmptyArray: Array.isArray(value) && value.length === 0
   })
 
-  const getIncludesBulk = (projectId, dataset) =>
+  const getMergedIncludesBulk = (projectId, dataset) =>
     myDataset.data[projectId]?.includes_bulk ||
     dataset.data[projectId]?.includes_bulk
 
@@ -208,7 +208,7 @@ export const useMyDataset = () => {
     return mergedProjectModaliies.reduce((acc, [pId, modalitiesData]) => {
       acc[pId] = {
         ...modalitiesData,
-        includes_bulk: getIncludesBulk(pId, dataset)
+        includes_bulk: getMergedIncludesBulk(pId, dataset)
       }
       return acc
     }, {})

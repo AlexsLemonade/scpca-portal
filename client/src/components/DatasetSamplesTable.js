@@ -16,7 +16,6 @@ export const DatasetSamplesTable = ({
   project,
   samples,
   stickies = 3,
-  editable = false,
   readOnly = false
 }) => {
   const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
@@ -41,7 +40,7 @@ export const DatasetSamplesTable = ({
           <TriStateModalityCheckBoxHeader
             project={project}
             modalities={availableModalities}
-            editable={editable || !readOnly}
+            readOnly={readOnly}
           />
         </Box>
       ),
@@ -62,7 +61,7 @@ export const DatasetSamplesTable = ({
               samples={samples}
               sampleId={row.original.scpca_id}
               disabled={!row.original[`has_${m.toLowerCase()}_data`]}
-              editable={editable || !readOnly}
+              readOnly={readOnly}
               onClick={() => toggleSample(m, row.original)}
             />
           ))}
