@@ -53,6 +53,12 @@ export const DatasetAddSamplesModal = ({
     setShowing(false)
   }
 
+  // Reset the format value on format changes (once empty data)
+  useEffect(() => {
+    if (!myDataset.format) return
+    setFormat(myDataset.format)
+  }, [myDataset.format])
+
   // Calculate to-be-added samples for each modality
   useEffect(() => {
     if (samples) {

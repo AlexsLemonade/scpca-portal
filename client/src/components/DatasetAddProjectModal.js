@@ -80,6 +80,12 @@ export const DatasetAddProjectModal = ({
     )
   }, [defaultProjectOptions])
 
+  // Reset the format value on format changes (once empty data)
+  useEffect(() => {
+    if (!myDataset.format) return
+    setFormat(myDataset.format)
+  }, [myDataset.format])
+
   // Fetch samples list when modal opens via Browse page
   useEffect(() => {
     const asyncFetch = async () => {
