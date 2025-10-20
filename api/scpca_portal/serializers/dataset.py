@@ -123,14 +123,17 @@ class DatasetCreateSerializer(DatasetSerializer):
 
 class DatasetUpdateSerializer(DatasetSerializer):
     class Meta(DatasetSerializer.Meta):
-        modifiable_fields = ("data", "email", "start")
+        modifiable_fields = ("format", "data", "email", "start")
         read_only_fields = tuple(
             set(DatasetSerializer.Meta.read_only_fields) - set(modifiable_fields)
         )
+        extra_kwargs = {"format": {"required": False}}
 
     def validate_data(self, value):
+        # Either the incoming or original format
+        new_format = self.initial_data.get("format", self.instance.format)
         try:
-            return Dataset.validate_data(value, self.instance.format)
+            return Dataset.validate_data(value, new_format)
         # serializer exceptions return a 400 response to the client
         except PydanticValidationError as e:
             raise serializers.ValidationError({"detail": f"Invalid data structure: {e}"})

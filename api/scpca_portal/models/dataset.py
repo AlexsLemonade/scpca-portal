@@ -44,12 +44,12 @@ class Dataset(TimestampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     # User-editable
+    format = models.TextField(choices=DatasetFormats.choices)  # Required upon creation
     data = models.JSONField(default=dict)
     email = models.EmailField(null=True)
     start = models.BooleanField(default=False)
 
-    # Format or regenerated_from is required at the time of creation
-    format = models.TextField(choices=DatasetFormats.choices)
+    # Required upon regeneration
     regenerated_from = models.ForeignKey(
         "self",
         null=True,
