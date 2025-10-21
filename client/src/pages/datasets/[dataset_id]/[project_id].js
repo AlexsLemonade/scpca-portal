@@ -52,7 +52,7 @@ export const ViewSamples = ({ dataset, project }) => {
           </Text>
         </Link>
       </Box>
-      <ProjectSamplesTableContextProvider>
+      <ProjectSamplesTableContextProvider project={project} samples={samples}>
         <Box pad={{ bottom: 'medium' }}>
           <ProjectSamplesTableOptionsHeader
             project={project}
@@ -63,12 +63,7 @@ export const ViewSamples = ({ dataset, project }) => {
             readOnly
           />
         </Box>
-        <ProjectSamplesTable
-          project={project}
-          samples={samples}
-          dataset
-          readOnly
-        />
+        <ProjectSamplesTable />
       </ProjectSamplesTableContextProvider>
     </Box>
   )

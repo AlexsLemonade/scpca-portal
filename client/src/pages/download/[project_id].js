@@ -55,7 +55,11 @@ export const ViewEditSamples = ({ project }) => {
           </Text>
         </Link>
       </Box>
-      <ProjectSamplesTableContextProvider>
+      <ProjectSamplesTableContextProvider
+        project={project}
+        samples={samples}
+        canRemove
+      >
         <Box pad={{ bottom: 'medium' }}>
           <ProjectSamplesTableOptionsHeader
             project={project}
@@ -65,7 +69,7 @@ export const ViewEditSamples = ({ project }) => {
             onIncludeMergeChange={setIncludeMerge}
           />
         </Box>
-        <ProjectSamplesTable project={project} samples={samples} dataset />
+        <ProjectSamplesTable />
       </ProjectSamplesTableContextProvider>
     </Box>
   )

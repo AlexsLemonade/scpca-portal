@@ -5,6 +5,11 @@ import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useProjectSamplesTable = () => {
   const {
+    project,
+    samples,
+    canAdd,
+    canRemove,
+    readOnly,
     allSamples,
     setAllSamples,
     selectedSamples,
@@ -100,6 +105,11 @@ export const useProjectSamplesTable = () => {
   }
 
   return {
+    project,
+    samples,
+    canAdd,
+    canRemove,
+    readOnly,
     allSamples,
     setAllSamples,
     selectedSamples,

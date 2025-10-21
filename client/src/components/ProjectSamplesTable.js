@@ -17,13 +17,7 @@ import { Table } from 'components/Table'
 import { TriStateModalityCheckBoxHeader } from 'components/TriStateModalityCheckBoxHeader'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
-export const ProjectSamplesTable = ({
-  project,
-  samples: defaultSamples,
-  stickies = 3,
-  dataset = false,
-  readOnly = false
-}) => {
+export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const {
     myDataset,
     userFormat,
@@ -31,25 +25,32 @@ export const ProjectSamplesTable = ({
     getProjectSingleCellSamples,
     getProjectSpatialSamples
   } = useMyDataset()
-  const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
-    useProjectSamplesTable()
+  const {
+    project,
+    samples: defaultSamples,
+    canAdd,
+    canRemove,
+    readOnly,
+    selectedSamples,
+    setAllSamples,
+    setFilteredSamples,
+    toggleSample
+  } = useProjectSamplesTable()
 
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
   const [disableAddToDataset, setDisableAddToDataset] = useState(false)
 
   const hasMultiplexedData = project.has_multiplexed_data
-
   const showWarningMultiplexed =
     hasMultiplexedData && (myDataset.forat || userFormat) === 'ANN_DATA'
 
   const infoText =
-    !dataset && project && project.has_bulk_rna_seq
+    canAdd && project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
       : null
 
-  const text =
-    dataset && !readOnly ? 'Uncheck to change or remove modality' : null
+  const text = canRemove ? 'Uncheck to change or remove modality' : null
 
   const allModalities = ['SINGLE_CELL', 'SPATIAL'] // List of all modalities available on the portal
   const availableModalities = [
@@ -69,7 +70,7 @@ export const ProjectSamplesTable = ({
             project={project}
             modalities={availableModalities}
             readOnly={readOnly}
-            partialToggle={!dataset}
+            partialToggle={canAdd}
           />
         </Box>
       ),
@@ -90,7 +91,7 @@ export const ProjectSamplesTable = ({
               samples={samples}
               sample={row.original}
               readOnly={readOnly}
-              partialToggle={!dataset}
+              partialToggle={canAdd}
               onClick={() => toggleSample(m, row.original)}
             />
           ))}
@@ -245,7 +246,7 @@ export const ProjectSamplesTable = ({
 
   return (
     <>
-      {!dataset && (
+      {canAdd && (
         <Box direction="row" justify="end">
           <DatasetAddSamplesModal
             project={project}
@@ -268,7 +269,7 @@ export const ProjectSamplesTable = ({
         onAllRowsChange={setAllSamples}
         onFilteredRowsChange={setFilteredSamples}
       >
-        {!dataset && showWarningMultiplexed && <WarningAnnDataMultiplexed />}
+        {canAdd && showWarningMultiplexed && <WarningAnnDataMultiplexed />}
       </Table>
     </>
   )
