@@ -23,14 +23,17 @@ export const ModalityCheckBox = ({
   modality,
   samples,
   sample,
-  readOnly = false,
-  partialToggle = false, // Exclude toggling already added samples
   onClick
 }) => {
   const { myDataset, getDatasetProjectData, getProjectSingleCellSamples } =
     useMyDataset()
-  const { allSamples, selectedSamples, selectModalitySamplesByIds } =
-    useProjectSamplesTable()
+  const {
+    canAdd,
+    readOnly,
+    allSamples,
+    selectedSamples,
+    selectModalitySamplesByIds
+  } = useProjectSamplesTable()
 
   const [isAlreadyInMyDataset, setIsAlreadyInMyDataset] = useState(false)
 
@@ -62,7 +65,7 @@ export const ModalityCheckBox = ({
 
   // Exclude toggling already added samples in the project samples table
   useEffect(() => {
-    if (!readOnly && partialToggle) {
+    if (!readOnly && canAdd) {
       const datasetSamplesByModality = {
         SINGLE_CELL:
           datasetData.SINGLE_CELL === 'MERGED'

@@ -31,7 +31,6 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     samples: defaultSamples,
     canAdd,
     canRemove,
-    readOnly,
     selectedSamples,
     setAllSamples,
     setFilteredSamples,
@@ -71,8 +70,6 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           <TriStateModalityCheckBoxHeader
             project={project}
             modalities={availableModalities}
-            readOnly={readOnly}
-            partialToggle={canAdd}
           />
         </Box>
       ),
@@ -92,8 +89,6 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
               modality={m}
               samples={samples}
               sample={row.original}
-              readOnly={readOnly}
-              partialToggle={canAdd}
               onClick={() => toggleSample(m, row.original)}
             />
           ))}

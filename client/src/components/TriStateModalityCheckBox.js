@@ -4,14 +4,9 @@ import { FormCheckmark } from 'grommet-icons'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 
-export const TriStateModalityCheckBox = ({
-  project,
-  modality,
-  partialToggle = false, // Exclude toggling already added samples
-  readOnly = false
-}) => {
+export const TriStateModalityCheckBox = ({ project, modality }) => {
   const { getDatasetProjectData } = useMyDataset()
-  const { filteredSamples, selectedSamples, toggleSamples } =
+  const { canAdd, readOnly, filteredSamples, selectedSamples, toggleSamples } =
     useProjectSamplesTable()
 
   const sampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
@@ -29,7 +24,7 @@ export const TriStateModalityCheckBox = ({
     if (readOnly) return
 
     // Exclude toggling already added samples in the project samples table
-    if (partialToggle) {
+    if (canAdd) {
       const samplesAlreadyAdded = getDatasetProjectData(project)[modality] || []
       toggleSamples(modality, samplesAlreadyAdded)
     } else {

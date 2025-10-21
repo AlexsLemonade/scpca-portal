@@ -3,7 +3,7 @@ import { Box, Text } from 'grommet'
 import { getReadable } from 'helpers/getReadable'
 import { TriStateModalityCheckBox } from 'components/TriStateModalityCheckBox'
 
-const SingleModalityCheckBox = ({ project, modalities, readOnly }) => {
+const SingleModalityCheckBox = ({ project, modalities }) => {
   return (
     <>
       {modalities.map((m) => (
@@ -16,7 +16,6 @@ const SingleModalityCheckBox = ({ project, modalities, readOnly }) => {
             project={project}
             modality={m}
             disabled={!project[`has_${m.toLowerCase()}_data`]}
-            readOnly={readOnly}
           />
         </Box>
       ))}
@@ -24,21 +23,13 @@ const SingleModalityCheckBox = ({ project, modalities, readOnly }) => {
   )
 }
 
-export const TriStateModalityCheckBoxHeader = ({
-  project,
-  modalities,
-  readOnly
-}) => {
+export const TriStateModalityCheckBoxHeader = ({ project, modalities }) => {
   const isSingleModality = modalities.length === 1
 
   return (
     <>
       {isSingleModality ? (
-        <SingleModalityCheckBox
-          project={project}
-          modalities={modalities}
-          readOnly={readOnly}
-        />
+        <SingleModalityCheckBox project={project} modalities={modalities} />
       ) : (
         <>
           <Box align="center" margin={{ bottom: 'small' }} pad="small">
@@ -57,7 +48,6 @@ export const TriStateModalityCheckBoxHeader = ({
                   project={project}
                   modality={m}
                   disabled={!project[`has_${m.toLowerCase()}_data`]}
-                  readOnly={readOnly}
                 />
               </Box>
             ))}

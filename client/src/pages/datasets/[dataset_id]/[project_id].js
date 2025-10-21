@@ -60,7 +60,6 @@ export const ViewSamples = ({ dataset, project }) => {
             includeMerge={includeMerge}
             onIncludeBulkChange={setIncludeBulk}
             onIncludeMergeChange={setIncludeMerge}
-            readOnly
           />
         </Box>
         <ProjectSamplesTable />

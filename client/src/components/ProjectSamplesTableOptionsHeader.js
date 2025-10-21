@@ -16,7 +16,6 @@ export const ProjectSamplesTableOptionsHeader = ({
   project,
   includeBulk,
   includeMerge,
-  readOnly = false,
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
@@ -28,7 +27,8 @@ export const ProjectSamplesTableOptionsHeader = ({
     getProjectSingleCellSamples,
     setSamples
   } = useMyDataset()
-  const { selectAllModalitySamples, selectedSamples } = useProjectSamplesTable()
+  const { readOnly, selectAllModalitySamples, selectedSamples } =
+    useProjectSamplesTable()
   const { responsive } = useResponsive()
 
   // For the changing merged project modal visibility and conditions
