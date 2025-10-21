@@ -1,23 +1,9 @@
 import React from 'react'
-import { Box, CheckBox as GrommetCheckBox, Text } from 'grommet'
+import { Box, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { getReadable } from 'helpers/getReadable'
-import styled, { css } from 'styled-components'
-
-const CheckBox = styled(GrommetCheckBox)`
-  + div {
-    width: 24px;
-    height: 24px;
-  }
-  ${({ theme }) => css`
-    &:not(:checked) {
-      + div {
-        background: ${theme.global.colors.white};
-      }
-    }
-  `}
-`
+import { CheckBox } from 'components/CheckBox'
 
 const TriStateCheckBox = ({ project, modality }) => {
   const { getDatasetProjectData } = useMyDataset()
@@ -57,34 +43,12 @@ const TriStateCheckBox = ({ project, modality }) => {
   )
 }
 
-const SingleModalityCheckBox = ({ project, modalities }) => {
-  return (
-    <>
-      {modalities.map((m) => (
-        <Box
-          key={m}
-          align="center"
-          margin={{ left: 'medium', vertical: 'medium' }}
-        >
-          <TriStateCheckBox
-            project={project}
-            modality={m}
-            disabled={!project[`has_${m.toLowerCase()}_data`]}
-          />
-        </Box>
-      ))}
-    </>
-  )
-}
-
 export const SamplesTableModalityHeaderCell = ({ project, modalities }) => {
   const isSingleModality = modalities.length === 1
 
   return (
     <>
-      {isSingleModality ? (
-        <SingleModalityCheckBox project={project} modalities={modalities} />
-      ) : (
+      {!isSingleModality && (
         <>
           <Box align="center" margin={{ bottom: 'small' }} pad="small">
             Select Modality
@@ -94,20 +58,29 @@ export const SamplesTableModalityHeaderCell = ({ project, modalities }) => {
             width="100%"
             style={{ position: 'absolute', top: '45px', left: 0 }}
           />
-          <Box direction="row" justify="around">
-            {modalities.map((m) => (
-              <Box key={m} align="center" pad={{ horizontal: 'small' }}>
-                <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
-                <TriStateCheckBox
-                  project={project}
-                  modality={m}
-                  disabled={!project[`has_${m.toLowerCase()}_data`]}
-                />
-              </Box>
-            ))}
-          </Box>
         </>
       )}
+      <Box direction="row" justify="around">
+        {modalities.map((m) => (
+          <Box
+            key={m}
+            align="center"
+            margin={
+              isSingleModality ? { left: 'medium', vertical: 'medium' } : '0'
+            }
+            pad={!isSingleModality ? { horizontal: 'small' } : '0'}
+          >
+            {!isSingleModality && (
+              <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
+            )}
+            <TriStateCheckBox
+              project={project}
+              modality={m}
+              disabled={!project[`has_${m.toLowerCase()}_data`]}
+            />
+          </Box>
+        ))}
+      </Box>
     </>
   )
 }

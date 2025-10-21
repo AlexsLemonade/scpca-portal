@@ -1,22 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { CheckBox as GrommetCheckBox } from 'grommet'
-import styled, { css } from 'styled-components'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
-
-const CheckBox = styled(GrommetCheckBox)`
-  + div {
-    width: 24px;
-    height: 24px;
-  }
-  ${({ theme }) => css`
-    &:not(:checked) {
-      + div {
-        background: ${theme.global.colors.white};
-      }
-    }
-  `}
-`
+import { CheckBox } from 'components/CheckBox'
 
 export const SamplesTableModalityCell = ({
   project,
