@@ -1,9 +1,9 @@
 import { useContext } from 'react'
-import { DatasetSamplesTableContext } from 'contexts/DatasetSamplesTableContext'
+import { ProjectSamplesTableContext } from 'contexts/ProjectSamplesTableContext'
 import { differenceArray } from 'helpers/differenceArray'
 import { uniqueArray } from 'helpers/uniqueArray'
 
-export const useDatasetSamplesTable = () => {
+export const useProjectSamplesTable = () => {
   const {
     allSamples,
     setAllSamples,
@@ -11,7 +11,7 @@ export const useDatasetSamplesTable = () => {
     setSelectedSamples,
     filteredSamples,
     setFilteredSamples
-  } = useContext(DatasetSamplesTableContext)
+  } = useContext(ProjectSamplesTableContext)
 
   const selectAllModalitySamples = (modality, allModalitySamples) => {
     setSelectedSamples((prevSelectedSamples) => ({

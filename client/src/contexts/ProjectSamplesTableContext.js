@@ -1,6 +1,6 @@
 import React, { createContext, useState } from 'react'
 
-export const DatasetSamplesTableContext = createContext({})
+export const ProjectSamplesTableContext = createContext({})
 
 /**
  * NOTE: This context supports two states (per modality) in react-table (there is no built-in support for two checkbox states).
@@ -8,11 +8,11 @@ export const DatasetSamplesTableContext = createContext({})
  * Temporarily using the sample endpoint's response and replacing 'computed_files' with the 'data' object to mimic the dataset.
  *
  * e.g., The provider may be used as follows:
- * <DatasetSamplesTableContextProvider>
+ * <ProjectSamplesTableContextProvider>
  *   <DatasetSamplesTable />  // Wrap a table component
- * </DatasetSamplesTableContextProvider>
+ * </ProjectSamplesTableContextProvider>
  */
-export const DatasetSamplesTableContextProvider = ({ children }) => {
+export const ProjectSamplesTableContextProvider = ({ children }) => {
   const [allSamples, setAllSamples] = useState([]) // Stores all samples available in the table
   const [filteredSamples, setFilteredSamples] = useState([]) // Stores only visible and filtered samples on the selected page
   const [selectedSamples, setSelectedSamples] = useState({
@@ -22,7 +22,7 @@ export const DatasetSamplesTableContextProvider = ({ children }) => {
   })
 
   return (
-    <DatasetSamplesTableContext.Provider
+    <ProjectSamplesTableContext.Provider
       value={{
         allSamples,
         setAllSamples,
@@ -33,6 +33,6 @@ export const DatasetSamplesTableContextProvider = ({ children }) => {
       }}
     >
       {children}
-    </DatasetSamplesTableContext.Provider>
+    </ProjectSamplesTableContext.Provider>
   )
 }

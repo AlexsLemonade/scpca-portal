@@ -2,22 +2,17 @@ import React from 'react'
 import { Box } from 'grommet'
 import { FormCheckmark } from 'grommet-icons'
 import { useMyDataset } from 'hooks/useMyDataset'
-import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
+import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 
-// NOTE: Ask Deepa for a checkmark SVG Icon
 export const TriStateModalityCheckBox = ({
   project,
   modality,
-  disabled,
   partialToggle = false, // Exclude toggling already added samples
   readOnly = false
 }) => {
   const { getDatasetProjectData } = useMyDataset()
   const { filteredSamples, selectedSamples, toggleSamples } =
-    useDatasetSamplesTable()
-
-  const borderRegular = !isNoneSelected && !disabled ? 'brand' : 'black-tint-60'
-  const borderColor = disabled ? 'black-tint-80' : borderRegular
+    useProjectSamplesTable()
 
   const sampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
   const currentSelectedSamples = selectedSamples[modality]
@@ -31,7 +26,7 @@ export const TriStateModalityCheckBox = ({
   const isSomeSelected = !isNoneSelected && !isAllSelected
 
   const handleToggleAllSamples = () => {
-    if (disabled || readOnly) return
+    if (readOnly) return
 
     // Exclude toggling already added samples in the project samples table
     if (partialToggle) {
@@ -47,13 +42,12 @@ export const TriStateModalityCheckBox = ({
       align="center"
       border={{
         side: 'all',
-        color: borderColor
+        color: 'brand'
       }}
       justify="center"
       round="4px"
       width="24px"
       height="24px"
-      style={{ pointerEvents: disabled ? 'none' : 'auto' }}
       onClick={handleToggleAllSamples}
     >
       {isSomeSelected && (

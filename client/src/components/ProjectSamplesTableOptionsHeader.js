@@ -4,7 +4,7 @@ import { config } from 'config'
 import { useRouter } from 'next/router'
 import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useMyDataset } from 'hooks/useMyDataset'
-import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
+import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { getReadable } from 'helpers/getReadable'
 import { Button } from 'components/Button'
@@ -12,7 +12,7 @@ import { DatasetChangingMergedProjectModal } from 'components/DatasetChangingMer
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
-export const DatasetSamplesTableOptionsHeader = ({
+export const ProjectSamplesTableOptionsHeader = ({
   project,
   includeBulk,
   includeMerge,
@@ -28,7 +28,7 @@ export const DatasetSamplesTableOptionsHeader = ({
     getProjectSingleCellSamples,
     setSamples
   } = useMyDataset()
-  const { selectAllModalitySamples, selectedSamples } = useDatasetSamplesTable()
+  const { selectAllModalitySamples, selectedSamples } = useProjectSamplesTable()
   const { responsive } = useResponsive()
 
   // For the changing merged project modal visibility and conditions
@@ -183,4 +183,4 @@ export const DatasetSamplesTableOptionsHeader = ({
   )
 }
 
-export default DatasetSamplesTableOptionsHeader
+export default ProjectSamplesTableOptionsHeader

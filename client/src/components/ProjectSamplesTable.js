@@ -3,7 +3,7 @@ import { api } from 'api'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
-import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
+import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
@@ -14,13 +14,15 @@ import { Loader } from 'components/Loader'
 import { ModalityCheckBox } from 'components/ModalityCheckBox'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
-import { TriStateModalityCheckBox } from 'components/TriStateModalityCheckBox'
+import { TriStateModalityCheckBoxHeader } from 'components/TriStateModalityCheckBoxHeader'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({
   project,
   samples: defaultSamples,
-  stickies = 3
+  stickies = 3,
+  dataset = false,
+  readOnly = false
 }) => {
   const {
     myDataset,
@@ -30,49 +32,45 @@ export const ProjectSamplesTable = ({
     getProjectSpatialSamples
   } = useMyDataset()
   const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
-    useDatasetSamplesTable()
+    useProjectSamplesTable()
 
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
   const [disableAddToDataset, setDisableAddToDataset] = useState(false)
 
   const hasMultiplexedData = project.has_multiplexed_data
+
   const showWarningMultiplexed =
     hasMultiplexedData && (myDataset.forat || userFormat) === 'ANN_DATA'
 
   const infoText =
-    project && project.has_bulk_rna_seq
+    !dataset && project && project.has_bulk_rna_seq
       ? 'Bulk RNA-seq data available only when you download the entire project'
-      : false
+      : null
+
+  const text =
+    dataset && !readOnly ? 'Uncheck to change or remove modality' : null
 
   const allModalities = ['SINGLE_CELL', 'SPATIAL'] // List of all modalities available on the portal
-  const checkBoxCellWidth = '200px'
+  const availableModalities = [
+    { key: 'SINGLE_CELL', value: project.has_single_cell_data },
+    { key: 'SPATIAL', value: project.has_spatial_data }
+  ]
+    .filter((m) => m.value)
+    .map((m) => m.key)
+
+  const checkBoxCellWidth = availableModalities.length > 1 ? '200px' : '50px'
 
   const columns = [
     {
       Header: (
         <Box width={checkBoxCellWidth}>
-          <Box align="center" margin={{ bottom: 'small' }} pad="small">
-            Select Modality
-          </Box>
-          <Box
-            border={{ side: 'bottom' }}
-            width="100%"
-            style={{ position: 'absolute', top: '45px', left: 0 }}
+          <TriStateModalityCheckBoxHeader
+            project={project}
+            modalities={availableModalities}
+            readOnly={readOnly}
+            partialToggle={!dataset}
           />
-          <Box direction="row" justify="around">
-            {allModalities.map((m) => (
-              <Box key={m} align="center" pad={{ horizontal: 'small' }}>
-                <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
-                <TriStateModalityCheckBox
-                  project={project}
-                  modality={m}
-                  disabled={!project[`has_${m.toLowerCase()}_data`]}
-                  partialToggle
-                />
-              </Box>
-            ))}
-          </Box>
         </Box>
       ),
       disableSortBy: true,
@@ -84,15 +82,15 @@ export const ProjectSamplesTable = ({
           justify="around"
           width={checkBoxCellWidth}
         >
-          {allModalities.map((m) => (
+          {availableModalities.map((m) => (
             <ModalityCheckBox
               key={`${row.original.scpca_id}_${m}`}
               project={project}
               modality={m}
               samples={samples}
-              sampleId={row.original.scpca_id}
-              disabled={!row.original[`has_${m.toLowerCase()}_data`]}
-              partialToggle
+              sample={row.original}
+              readOnly={readOnly}
+              partialToggle={!dataset}
               onClick={() => toggleSample(m, row.original)}
             />
           ))}
@@ -247,13 +245,15 @@ export const ProjectSamplesTable = ({
 
   return (
     <>
-      <Box direction="row" justify="end">
-        <DatasetAddSamplesModal
-          project={project}
-          samples={samples}
-          disabled={disableAddToDataset}
-        />
-      </Box>
+      {!dataset && (
+        <Box direction="row" justify="end">
+          <DatasetAddSamplesModal
+            project={project}
+            samples={samples}
+            disabled={disableAddToDataset}
+          />
+        </Box>
+      )}
       <Table
         columns={columns}
         data={samples}
@@ -262,12 +262,13 @@ export const ProjectSamplesTable = ({
         pageSize={5}
         pageSizeOptions={[5, 10, 20, 50]}
         infoText={infoText}
+        text={text}
         defaultSort={[{ id: 'scpca_id', asc: true }]}
         selectedRows={selectedSamples}
         onAllRowsChange={setAllSamples}
         onFilteredRowsChange={setFilteredSamples}
       >
-        {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
+        {!dataset && showWarningMultiplexed && <WarningAnnDataMultiplexed />}
       </Table>
     </>
   )

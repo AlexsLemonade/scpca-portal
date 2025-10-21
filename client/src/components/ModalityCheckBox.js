@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { CheckBox as GrommetCheckBox } from 'grommet'
 import styled, { css } from 'styled-components'
 import { useMyDataset } from 'hooks/useMyDataset'
-import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
+import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 
 const CheckBox = styled(GrommetCheckBox)`
   + div {
@@ -22,8 +22,7 @@ export const ModalityCheckBox = ({
   project,
   modality,
   samples,
-  sampleId,
-  disabled,
+  sample,
   readOnly = false,
   partialToggle = false, // Exclude toggling already added samples
   onClick
@@ -31,9 +30,11 @@ export const ModalityCheckBox = ({
   const { myDataset, getDatasetProjectData, getProjectSingleCellSamples } =
     useMyDataset()
   const { allSamples, selectedSamples, selectModalitySamplesByIds } =
-    useDatasetSamplesTable()
+    useProjectSamplesTable()
 
   const [isAlreadyInMyDataset, setIsAlreadyInMyDataset] = useState(false)
+
+  const isDisabled = !sample[`has_${modality.toLowerCase()}_data`]
 
   const datasetData = getDatasetProjectData(project)
 
@@ -71,7 +72,7 @@ export const ModalityCheckBox = ({
       }
 
       setIsAlreadyInMyDataset(
-        datasetSamplesByModality[modality].includes(sampleId)
+        datasetSamplesByModality[modality].includes(sample.scpca_id)
       )
     }
   }, [myDataset, samples])
@@ -79,8 +80,12 @@ export const ModalityCheckBox = ({
   return (
     <CheckBox
       name={modality}
-      checked={!disabled ? selectedSamples[modality].includes(sampleId) : false}
-      disabled={disabled || readOnly || isAlreadyInMyDataset}
+      checked={
+        !isDisabled
+          ? selectedSamples[modality].includes(sample.scpca_id)
+          : false
+      }
+      disabled={isDisabled || readOnly || isAlreadyInMyDataset}
       onClick={onClick}
     />
   )

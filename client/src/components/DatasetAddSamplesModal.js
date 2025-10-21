@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading, Paragraph } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
-import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
+import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { getProjectFormats } from 'helpers/getProjectFormats'
 import { differenceArray } from 'helpers/differenceArray'
@@ -24,7 +24,7 @@ export const DatasetAddSamplesModal = ({
     getProjectSingleCellSamples,
     setSamples
   } = useMyDataset()
-  const { selectedSamples } = useDatasetSamplesTable()
+  const { selectedSamples } = useProjectSamplesTable()
   const { responsive } = useResponsive()
 
   // Modal toggle
