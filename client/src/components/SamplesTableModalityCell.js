@@ -18,7 +18,7 @@ const CheckBox = styled(GrommetCheckBox)`
   `}
 `
 
-export const ModalityCheckBox = ({
+export const SamplesTableModalityCell = ({
   project,
   modality,
   samples,
@@ -94,4 +94,4 @@ export const ModalityCheckBox = ({
   )
 }
 
-export default ModalityCheckBox
+export default SamplesTableModalityCell

@@ -12,10 +12,10 @@ import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
-import { ModalityCheckBox } from 'components/ModalityCheckBox'
+import { SamplesTableModalityCell } from 'components/SamplesTableModalityCell'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
-import { TriStateModalityCheckBoxHeader } from 'components/TriStateModalityCheckBoxHeader'
+import { SamplesTableModalityHeaderCell } from 'components/SamplesTableModalityHeaderCell'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({ stickies = 3 }) => {
@@ -67,7 +67,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     {
       Header: (
         <Box width={checkBoxCellWidth}>
-          <TriStateModalityCheckBoxHeader
+          <SamplesTableModalityHeaderCell
             project={project}
             modalities={availableModalities}
           />
@@ -83,7 +83,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           width={checkBoxCellWidth}
         >
           {availableModalities.map((m) => (
-            <ModalityCheckBox
+            <SamplesTableModalityCell
               key={`${row.original.scpca_id}_${m}`}
               project={project}
               modality={m}
