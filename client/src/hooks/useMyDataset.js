@@ -319,7 +319,7 @@ export const useMyDataset = () => {
     // Populate SPATIAL value for the project data for addProject
     samples.filter((s) => s.has_spatial_data).map((s) => s.scpca_id)
 
-  const isProjectAddedToDataset = (project) =>
+  const getHasProject = (project) =>
     Object.keys(myDataset?.data || []).includes(project.scpca_id)
 
   const isProjectIncludeBulk = (project) =>
@@ -399,7 +399,7 @@ export const useMyDataset = () => {
     getProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
-    isProjectAddedToDataset,
+    getHasProject,
     isProjectIncludeBulk,
     isProjectMerged,
     setSamples,
