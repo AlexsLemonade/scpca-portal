@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { api } from 'api'
 import { config } from 'config'
+import { allModalities } from 'config/datasets'
 import { Box, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
@@ -52,11 +53,12 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
 
   const text = canRemove ? 'Uncheck to change or remove modality' : null
 
-  const allModalities = ['SINGLE_CELL', 'SPATIAL'] // List of all modalities available on the portal
-  const availableModalities = [
-    { key: 'SINGLE_CELL', value: project.has_single_cell_data },
-    { key: 'SPATIAL', value: project.has_spatial_data }
-  ]
+  const availableModalities = allModalities
+    .map((m) => ({
+      key: m,
+      value: project[`has_${m.toLowerCase()}_data`]
+    }))
+
     .filter((m) => m.value)
     .map((m) => m.key)
 

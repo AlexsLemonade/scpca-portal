@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
+import { allModalities } from 'config/datasets'
 import { api } from 'api'
 import { uniqueArray } from 'helpers/uniqueArray'
 
@@ -40,7 +41,7 @@ export const useMyDataset = () => {
       includeMerge: Object.values(myDataset.data).some(
         (p) => p.SINGLE_CELL === 'MERGED'
       ),
-      modalities: ['SINGLE_CELL', 'SPATIAL'].filter((m) =>
+      modalities: allModalities.filter((m) =>
         Object.values(myDataset.data).some(
           (p) => (Array.isArray(p[m]) && p[m].length > 0) || p[m] === 'MERGED'
         )
@@ -178,7 +179,6 @@ export const useMyDataset = () => {
 
   // Handle merging the dataset data into myDataset for the UI
   const getMergeDatasetData = async (dataset) => {
-    const modalities = ['SINGLE_CELL', 'SPATIAL']
     const projectIds = uniqueArray(
       Object.keys(myDataset.data),
       Object.keys(dataset.data)
@@ -187,7 +187,7 @@ export const useMyDataset = () => {
     const mergedProjectModaliies = await Promise.all(
       projectIds.map(async (pId) => {
         const modalityData = await Promise.all(
-          modalities.map(async (m) => [
+          allModalities.map(async (m) => [
             m,
             await mergeProjectModalities(pId, m, dataset)
           ])
