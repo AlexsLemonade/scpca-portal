@@ -1,36 +1,17 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
-import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { getReadable } from 'helpers/getReadable'
 import { CheckBox } from 'components/CheckBox'
 
-const TriStateCheckBox = ({ project, modality }) => {
-  const { getDatasetProjectData } = useMyDataset()
-  const { canAdd, readOnly, filteredSamples, selectedSamples, toggleSamples } =
-    useProjectSamplesTable()
+const TriStateCheckBox = ({ modality }) => {
+  const { readOnly, getTriState, toggleSamples } = useProjectSamplesTable()
 
-  const sampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
-  const currentSelectedSamples = selectedSamples[modality]
-
-  const selectedCountOnPage = sampleIdsOnPage.filter((id) =>
-    currentSelectedSamples.includes(id)
-  ).length
-
-  const isNoneSelected = selectedCountOnPage === 0
-  const isAllSelected = selectedCountOnPage === sampleIdsOnPage.length
-  const isSomeSelected = !isNoneSelected && !isAllSelected
+  const { isAllSelected, isSomeSelected } = getTriState(modality)
 
   const handleToggleAllSamples = () => {
     if (readOnly) return
-
-    // Exclude toggling already added samples in the project samples table
-    if (canAdd) {
-      const samplesAlreadyAdded = getDatasetProjectData(project)[modality] || []
-      toggleSamples(modality, samplesAlreadyAdded)
-    } else {
-      toggleSamples(modality)
-    }
+    toggleSamples(modality)
   }
 
   return (
@@ -74,7 +55,6 @@ export const SamplesTableModalityHeaderCell = ({ project, modalities }) => {
               <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
             )}
             <TriStateCheckBox
-              project={project}
               modality={m}
               disabled={!project[`has_${m.toLowerCase()}_data`]}
             />

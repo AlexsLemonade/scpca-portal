@@ -1,5 +1,6 @@
 import { useContext } from 'react'
 import { ProjectSamplesTableContext } from 'contexts/ProjectSamplesTableContext'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { differenceArray } from 'helpers/differenceArray'
 import { uniqueArray } from 'helpers/uniqueArray'
 
@@ -17,6 +18,7 @@ export const useProjectSamplesTable = () => {
     filteredSamples,
     setFilteredSamples
   } = useContext(ProjectSamplesTableContext)
+  const { getDatasetProjectData } = useMyDataset()
 
   const selectAllModalitySamples = (modality, allModalitySamples) => {
     setSelectedSamples((prevSelectedSamples) => ({
@@ -40,24 +42,25 @@ export const useProjectSamplesTable = () => {
     })
   }
 
-  // Bulk-add/remove only samples visible on the currently selected page
-  // Exclude the toggling of samplesToExclude
-  const toggleSamples = (modality, samplesToExclude = []) => {
+  // Add or remove samples visible on the currently selected page
+  const toggleSamples = (modality) => {
+    if (readOnly) return
+
     setSelectedSamples((prevSelectedSamples) => {
       const currentSelectedSamples = prevSelectedSamples[modality]
 
-      const modalityFlags = {
-        SINGLE_CELL: 'has_single_cell_data',
-        SPATIAL: 'has_spatial_data'
-      }
-
       const modalitySampleIds = filteredSamples
-        .filter((s) => s[modalityFlags[modality]])
+        .filter((s) => s[`has_${modality.toLowerCase()}_data`])
         .map((s) => s.scpca_id)
+
+      // Exclude toggling of already-added samples on the Browse page
+      const alreadyAddedSampleIds = canAdd
+        ? getDatasetProjectData(project)[modality]
+        : []
 
       const sampleIdsToToggle = differenceArray(
         modalitySampleIds,
-        samplesToExclude
+        alreadyAddedSampleIds
       )
 
       const isAllOrSomeSelected = sampleIdsToToggle.some((id) =>
@@ -104,6 +107,25 @@ export const useProjectSamplesTable = () => {
     })
   }
 
+  // Get the current state of the tri-state checkbox
+  const getTriState = (modality) => {
+    const sampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
+    const currentSelectedSamples = selectedSamples[modality]
+
+    const selectedCountOnPage = sampleIdsOnPage.filter((id) =>
+      currentSelectedSamples.includes(id)
+    ).length
+
+    const isNoneSelected = selectedCountOnPage === 0
+    const isAllSelected = selectedCountOnPage === sampleIdsOnPage.length
+    const isSomeSelected = !isNoneSelected && !isAllSelected
+
+    return {
+      isAllSelected,
+      isSomeSelected
+    }
+  }
+
   return {
     project,
     samples,
@@ -118,6 +140,7 @@ export const useProjectSamplesTable = () => {
     selectAllModalitySamples,
     selectModalitySamplesByIds,
     toggleSample,
-    toggleSamples
+    toggleSamples,
+    getTriState
   }
 }
