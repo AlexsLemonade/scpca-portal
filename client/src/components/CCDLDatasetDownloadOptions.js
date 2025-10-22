@@ -1,20 +1,30 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Heading, Grid, Box, Select } from 'grommet'
 import { config } from 'config'
 import { useResponsive } from 'hooks/useResponsive'
-import { CheckBoxMergedObjects } from 'components/CheckBoxMergedObjects'
-import { CheckBoxExcludeMultiplexed } from 'components/CheckBoxExcludeMultiplexed'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
+import { CCDLDatasetCheckBoxMergedObjects } from 'components/CCDLDatasetCheckBoxMergedObjects'
+import { CCDLDatasetCheckBoxExcludeMultiplexed } from 'components/CCDLDatasetCheckBoxExcludeMultiplexed'
 import { CCDLDatasetDownloadOption } from 'components/CCDLDatasetDownloadOption'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
+import { getReadableOptions } from 'helpers/getReadableOptions'
+import { getReadable, getStorable } from 'helpers/getReadable'
 
-export const CCDLDatasetDownloadOptions = ({ datasets, handleSelectFile }) => {
-  const hasMultiplexed = false
+export const CCDLDatasetDownloadOptions = () => {
+  const {
+    modality,
+    setModality,
+    format,
+    setFormat,
+    selectedDataset,
+    isMultiplexedAvailable,
+    modalityOptions,
+    formatOptions
+  } = useCCDLDatasetDownloadModalContext()
+
   const { responsive } = useResponsive()
-  const [selectedDataset, setSelectedDataset] = useState([])
-
-  // TODO: apply dataset selection logic through a hook or context
-  setSelectedDataset(datasets[0])
+  const showMultiplexedOption = isMultiplexedAvailable
 
   return (
     <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
@@ -38,7 +48,11 @@ export const CCDLDatasetDownloadOptions = ({ datasets, handleSelectFile }) => {
             align={responsive('start', 'center')}
             fieldWidth="116px"
           >
-            <Select options={[]} value="" onChange={() => {}} />
+            <Select
+              options={getReadableOptions(modalityOptions)}
+              value={getReadable(modality)}
+              onChange={({ value }) => setModality(getStorable(value.label))}
+            />
           </FormField>
           <FormField
             label={
@@ -51,21 +65,20 @@ export const CCDLDatasetDownloadOptions = ({ datasets, handleSelectFile }) => {
             align={responsive('start', 'center')}
             fieldWidth="200px"
           >
-            <Select options={[]} value="" onChange={() => {}} />
+            <Select
+              options={getReadableOptions(formatOptions)}
+              value={getReadable(format)}
+              onChange={({ value }) => setFormat(getStorable(value.label))}
+            />
           </FormField>
         </Box>
         <Box gap="medium">
-          <CheckBoxMergedObjects />
-          {hasMultiplexed && <CheckBoxExcludeMultiplexed />}
+          <CCDLDatasetCheckBoxMergedObjects />
+          {showMultiplexedOption && <CCDLDatasetCheckBoxExcludeMultiplexed />}
         </Box>
       </Box>
       <Box>
-        {selectedDataset.computed_file && (
-          <CCDLDatasetDownloadOption
-            dataset={selectedDataset}
-            handleSelectFile={handleSelectFile}
-          />
-        )}
+        {selectedDataset.computed_file && <CCDLDatasetDownloadOption />}
       </Box>
     </Grid>
   )

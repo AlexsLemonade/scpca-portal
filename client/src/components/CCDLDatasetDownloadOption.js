@@ -1,14 +1,17 @@
 import React from 'react'
-import { Box, Grid, Heading, Text } from 'grommet'
+import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
-import { CopyLinkButton } from 'components/CopyLinkButton'
-import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
+import { DatasetFileItems } from 'components/DatasetFileItems'
+import { CCDLDatasetCopyLinkButton } from 'components/CCDLDatasetCopyLinkButton'
 import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 
-export const CCDLDatasetDownloadOption = ({ dataset, handleSelectFile }) => {
-  const { saveUserPreferences } = useDownloadOptionsContext()
-  const downloadLabel = 'Download CCDL Dataset'
+export const CCDLDatasetDownloadOption = () => {
+  const { selectedDataset, setDownloadDataset } =
+    useCCDLDatasetDownloadModalContext()
+
+  const downloadLabel = 'Download Project'
 
   const { responsive } = useResponsive()
 
@@ -33,28 +36,17 @@ export const CCDLDatasetDownloadOption = ({ dataset, handleSelectFile }) => {
           gap="xlarge"
           margin={{ top: 'medium', bottom: 'small' }}
         >
-          <Text weight="bold">CCDL Project ID: {dataset.ccdl_project_id}</Text>
           <Text weight="bold">
-            Size: {formatBytes(dataset.computed_file.size_in_bytes)}
+            CCDL Project ID: {selectedDataset.ccdl_project_id}
+          </Text>
+          <Text weight="bold">
+            Size: {formatBytes(selectedDataset.computed_file.size_in_bytes)}
           </Text>
         </Box>
       </Box>
       <Box gridArea="body" margin={{ bottom: 'small' }}>
-        <Box pad="small">
-          <Text margin={{ bottom: 'small' }}>
-            The download consists of the following items:
-          </Text>
-          <ul
-            style={{
-              listStylePosition: 'inside',
-              listStyleType: 'square'
-            }}
-          >
-            {dataset.file_items.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </Box>
+        <Paragraph>The download consists of the following items:</Paragraph>
+        <DatasetFileItems dataset={selectedDataset} />
       </Box>
       <Box gridArea="footer" margin={{ top: 'medium' }}>
         <Grid columns={responsive('1', '1/2')} gap="large">
@@ -63,13 +55,11 @@ export const CCDLDatasetDownloadOption = ({ dataset, handleSelectFile }) => {
             alignSelf="start"
             aria-label={downloadLabel}
             label={downloadLabel}
-            target="_blank"
             onClick={() => {
-              saveUserPreferences()
-              handleSelectFile(dataset)
+              setDownloadDataset(selectedDataset)
             }}
           />
-          <CopyLinkButton computedFile={dataset.computed_file} />
+          <CCDLDatasetCopyLinkButton dataset={selectedDataset} />
         </Grid>
       </Box>
     </Grid>
