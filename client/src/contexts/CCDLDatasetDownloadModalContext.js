@@ -55,6 +55,10 @@ export const CCDLDatasetDownloadModalContextProvider = ({
     const matches = filterPartialObject(datasets, query)
     if (matches.length === 1) {
       setSelectedDataset(matches[0])
+    } else {
+      console.error(
+        `There was an error selecting the correct dataset. ${matches.length} datasets were matched on the previous query.`
+      )
     }
   }, [modality, format, includesMerged, excludeMultiplexed])
 
