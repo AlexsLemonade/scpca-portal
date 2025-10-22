@@ -12,16 +12,15 @@ import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
-import { SamplesTableModalityCell } from 'components/SamplesTableModalityCell'
 import { Pill } from 'components/Pill'
-import { Table } from 'components/Table'
+import { SamplesTableModalityCell } from 'components/SamplesTableModalityCell'
 import { SamplesTableModalityHeaderCell } from 'components/SamplesTableModalityHeaderCell'
+import { Table } from 'components/Table'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const {
     myDataset,
-    userFormat,
     getDatasetProjectData,
     getProjectSingleCellSamples,
     getProjectSpatialSamples
@@ -31,6 +30,8 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     samples: defaultSamples,
     canAdd,
     canRemove,
+    showBulkInfoText,
+    showWarningMultiplexed,
     selectedSamples,
     setAllSamples,
     setFilteredSamples,
@@ -42,13 +43,10 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const [disableAddToDataset, setDisableAddToDataset] = useState(false)
 
   const hasMultiplexedData = project.has_multiplexed_data
-  const showWarningMultiplexed =
-    hasMultiplexedData && (myDataset.forat || userFormat) === 'ANN_DATA'
 
-  const infoText =
-    canAdd && project && project.has_bulk_rna_seq
-      ? 'Bulk RNA-seq data available only when you download the entire project'
-      : null
+  const infoText = showBulkInfoText
+    ? 'Bulk RNA-seq data available only when you download the entire project'
+    : null
 
   const text = canRemove ? 'Uncheck to change or remove modality' : null
 
@@ -266,7 +264,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         onAllRowsChange={setAllSamples}
         onFilteredRowsChange={setFilteredSamples}
       >
-        {canAdd && showWarningMultiplexed && <WarningAnnDataMultiplexed />}
+        {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
       </Table>
     </>
   )

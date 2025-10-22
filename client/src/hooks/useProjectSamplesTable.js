@@ -18,7 +18,33 @@ export const useProjectSamplesTable = () => {
     filteredSamples,
     setFilteredSamples
   } = useContext(ProjectSamplesTableContext)
-  const { getDatasetProjectData } = useMyDataset()
+  const { myDataset, userFormat, getDatasetProjectData } = useMyDataset()
+
+  const showBulkInfoText = canAdd && project && project.has_bulk_rna_seq
+
+  const showWarningMultiplexed =
+    canAdd &&
+    project.has_multiplexed_data &&
+    (myDataset.format || userFormat) === 'ANN_DATA'
+
+  // Get the current state of the tri-state checkbox
+  const getTriState = (modality) => {
+    const sampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
+    const currentSelectedSamples = selectedSamples[modality]
+
+    const selectedCountOnPage = sampleIdsOnPage.filter((id) =>
+      currentSelectedSamples.includes(id)
+    ).length
+
+    const isNoneSelected = selectedCountOnPage === 0
+    const isAllSelected = selectedCountOnPage === sampleIdsOnPage.length
+    const isSomeSelected = !isNoneSelected && !isAllSelected
+
+    return {
+      isAllSelected,
+      isSomeSelected
+    }
+  }
 
   const selectAllModalitySamples = (modality, allModalitySamples) => {
     setSelectedSamples((prevSelectedSamples) => ({
@@ -107,25 +133,6 @@ export const useProjectSamplesTable = () => {
     })
   }
 
-  // Get the current state of the tri-state checkbox
-  const getTriState = (modality) => {
-    const sampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
-    const currentSelectedSamples = selectedSamples[modality]
-
-    const selectedCountOnPage = sampleIdsOnPage.filter((id) =>
-      currentSelectedSamples.includes(id)
-    ).length
-
-    const isNoneSelected = selectedCountOnPage === 0
-    const isAllSelected = selectedCountOnPage === sampleIdsOnPage.length
-    const isSomeSelected = !isNoneSelected && !isAllSelected
-
-    return {
-      isAllSelected,
-      isSomeSelected
-    }
-  }
-
   return {
     project,
     samples,
@@ -137,6 +144,8 @@ export const useProjectSamplesTable = () => {
     selectedSamples,
     filteredSamples,
     setFilteredSamples,
+    showBulkInfoText,
+    showWarningMultiplexed,
     selectAllModalitySamples,
     selectModalitySamplesByIds,
     toggleSample,
