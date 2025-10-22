@@ -3,7 +3,7 @@ import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { CheckBox } from 'components/CheckBox'
 
-export const SamplesTableModalityCell = ({
+export const ProjectSamplesTableModalityCell = ({
   project,
   modality,
   samples,
@@ -79,4 +79,4 @@ export const SamplesTableModalityCell = ({
   )
 }
 
-export default SamplesTableModalityCell
+export default ProjectSamplesTableModalityCell

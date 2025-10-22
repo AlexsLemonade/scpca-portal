@@ -24,7 +24,10 @@ const TriStateCheckBox = ({ modality }) => {
   )
 }
 
-export const SamplesTableModalityHeaderCell = ({ project, modalities }) => {
+export const ProjectSamplesTableModalityHeaderCell = ({
+  project,
+  modalities
+}) => {
   const isSingleModality = modalities.length === 1
 
   return (

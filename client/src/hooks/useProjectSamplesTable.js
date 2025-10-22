@@ -29,15 +29,16 @@ export const useProjectSamplesTable = () => {
 
   // Get the current state of the tri-state checkbox
   const getTriState = (modality) => {
-    const sampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
-    const currentSelectedSamples = selectedSamples[modality]
+    const allSampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
+    const selectedModalitySampleIds = selectedSamples[modality]
 
-    const selectedCountOnPage = sampleIdsOnPage.filter((id) =>
-      currentSelectedSamples.includes(id)
-    ).length
+    const selectedSampleIdsOnPage = allSampleIdsOnPage.filter((id) =>
+      selectedModalitySampleIds.includes(id)
+    )
 
-    const isNoneSelected = selectedCountOnPage === 0
-    const isAllSelected = selectedCountOnPage === sampleIdsOnPage.length
+    const isNoneSelected = selectedSampleIdsOnPage.length === 0
+    const isAllSelected =
+      selectedSampleIdsOnPage.length === allSampleIdsOnPage.length
     const isSomeSelected = !isNoneSelected && !isAllSelected
 
     return {

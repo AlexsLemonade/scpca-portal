@@ -13,8 +13,8 @@ import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 import { Pill } from 'components/Pill'
-import { SamplesTableModalityCell } from 'components/SamplesTableModalityCell'
-import { SamplesTableModalityHeaderCell } from 'components/SamplesTableModalityHeaderCell'
+import { ProjectSamplesTableModalityCell } from 'components/ProjectSamplesTableModalityCell'
+import { ProjectSamplesTableModalityHeaderCell } from 'components/ProjectSamplesTableModalityHeaderCell'
 import { Table } from 'components/Table'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
@@ -65,7 +65,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     {
       Header: (
         <Box width={checkBoxCellWidth}>
-          <SamplesTableModalityHeaderCell
+          <ProjectSamplesTableModalityHeaderCell
             project={project}
             modalities={availableModalities}
           />
@@ -81,7 +81,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           width={checkBoxCellWidth}
         >
           {availableModalities.map((m) => (
-            <SamplesTableModalityCell
+            <ProjectSamplesTableModalityCell
               key={`${row.original.scpca_id}_${m}`}
               project={project}
               modality={m}
