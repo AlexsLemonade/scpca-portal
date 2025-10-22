@@ -13,7 +13,8 @@ export const getCCDLDatasetFileItems = (dataset) => {
     includes_files_multiplexed: hasMultiplexed
   } = dataset
 
-  const portalWideMetadataOnly = format === 'METADATA' && !projectId
+  const isMetadataDataset = format === 'METADATA'
+  const portalWideMetadataOnly = isMetadataDataset && !projectId
   const combinedCiteSeqFile = hasCiteSeq && format === 'SINGLE_CELL_EXPERIMENT'
   const seperateCiteSeqFile = hasCiteSeq && format === 'ANN_DATA'
 
@@ -28,11 +29,11 @@ export const getCCDLDatasetFileItems = (dataset) => {
     items.push(modalityNames[modality])
   }
 
-  if (hasMultiplexed) {
+  if (hasMultiplexed && !isMetadataDataset) {
     items.push(`Multiplexed single-cell data as ${formatNames[format]}`)
   }
 
-  if (hasBulk) {
+  if (hasBulk && !isMetadataDataset) {
     items.push('Bulk RNA-Seq data')
   }
 
