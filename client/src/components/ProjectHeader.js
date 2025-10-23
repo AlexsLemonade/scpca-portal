@@ -17,7 +17,7 @@ import { getReadableModality } from 'helpers/getReadableModality'
 import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
 
 export const ProjectHeader = ({ project, linked = false }) => {
-  const { getHasProject } = useMyDataset()
+  const { myDataset, getHasProject } = useMyDataset()
   const { responsive } = useResponsive()
 
   const [isProjectInMyDataset, setIsProjectInMyDataset] = useState()
@@ -28,7 +28,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
 
   useEffect(() => {
     setIsProjectInMyDataset(getHasProject(project))
-  }, [])
+  }, [myDataset])
 
   return (
     <DownloadOptionsContextProvider resource={project}>
