@@ -21,13 +21,8 @@ export const ProjectSamplesTableOptionsHeader = ({
 }) => {
   const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
-  const {
-    myDataset,
-    isProjectMerged,
-    getProjectSingleCellSamples,
-    setSamples
-  } = useMyDataset()
-  const { readOnly, selectAllModalitySamples, selectedSamples } =
+  const { myDataset, isProjectMerged, setSamples } = useMyDataset()
+  const { readOnly, selectAllSingleCellSamples, selectedSamples } =
     useProjectSamplesTable()
   const { responsive } = useResponsive()
 
@@ -65,11 +60,8 @@ export const ProjectSamplesTableOptionsHeader = ({
       : includesMergedAnnData
 
   const handleChangeMergedModalCancel = async () => {
-    // Reselect any samples that were deselected in the table
-    selectAllModalitySamples(
-      'SINGLE_CELL',
-      getProjectSingleCellSamples(project.samples)
-    )
+    // Reselect any single-cell samples that were deselected
+    selectAllSingleCellSamples()
     setShowChangeMergedProjectModal(false)
   }
 

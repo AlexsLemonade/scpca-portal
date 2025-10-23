@@ -34,8 +34,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     showWarningMultiplexed,
     selectedSamples,
     setAllSamples,
-    setFilteredSamples,
-    toggleSample
+    setFilteredSamples
   } = useProjectSamplesTable()
 
   const [loaded, setLoaded] = useState(false)
@@ -47,7 +46,6 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const infoText = showBulkInfoText
     ? 'Bulk RNA-seq data available only when you download the entire project'
     : null
-
   const text = canRemove ? 'Uncheck to change or remove modality' : null
 
   const availableModalities = allModalities
@@ -66,7 +64,6 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
       Header: (
         <Box width={checkBoxCellWidth}>
           <ProjectSamplesTableModalityHeaderCell
-            project={project}
             modalities={availableModalities}
           />
         </Box>
@@ -83,11 +80,8 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           {availableModalities.map((m) => (
             <ProjectSamplesTableModalityCell
               key={`${row.original.scpca_id}_${m}`}
-              project={project}
               modality={m}
-              samples={samples}
               sample={row.original}
-              onClick={() => toggleSample(m, row.original)}
             />
           ))}
         </Box>

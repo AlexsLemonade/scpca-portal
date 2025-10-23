@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { ProjectSamplesTableContext } from 'contexts/ProjectSamplesTableContext'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { differenceArray } from 'helpers/differenceArray'
@@ -18,7 +18,34 @@ export const useProjectSamplesTable = () => {
     filteredSamples,
     setFilteredSamples
   } = useContext(ProjectSamplesTableContext)
-  const { myDataset, userFormat, getDatasetProjectData } = useMyDataset()
+  const {
+    myDataset,
+    userFormat,
+    getDatasetProjectData,
+    getProjectSingleCellSamples
+  } = useMyDataset()
+
+  // Preselect samples in the table that are already added in myDataset
+  useEffect(() => {
+    const { SINGLE_CELL: singleCellSamples, SPATIAL: spatialSamples } =
+      getDatasetProjectData(project)
+
+    if (singleCellSamples) {
+      // Select all SINGLE_CELL samples if the project is merged
+      const samplesToSelect =
+        singleCellSamples === 'MERGED'
+          ? allSamples
+              .filter((s) => s.has_single_cell_data)
+              .map((s) => s.scpca_id)
+          : singleCellSamples
+
+      selectModalitySamplesByIds('SINGLE_CELL', samplesToSelect)
+    }
+
+    if (spatialSamples) {
+      selectModalitySamplesByIds('SPATIAL', spatialSamples)
+    }
+  }, [myDataset, allSamples])
 
   const showBulkInfoText = canAdd && project && project.has_bulk_rna_seq
 
@@ -26,6 +53,41 @@ export const useProjectSamplesTable = () => {
     canAdd &&
     project.has_multiplexed_data &&
     (myDataset.format || userFormat) === 'ANN_DATA'
+
+  const getIsSampleInMyDataset = (sample, modality) => {
+    const datasetData = getDatasetProjectData(project)
+
+    const datasetModalitiesSamples = {
+      SINGLE_CELL:
+        datasetData.SINGLE_CELL === 'MERGED'
+          ? getProjectSingleCellSamples(samples)
+          : datasetData.SINGLE_CELL || [],
+      SPATIAL: datasetData.SPATIAL || []
+    }
+
+    return datasetModalitiesSamples[modality].includes(sample.scpca_id)
+  }
+
+  const getHasModality = (sample, modality) =>
+    sample[`has_${modality.toLowerCase()}_data`]
+
+  const getCheckBoxIsChecked = (sample, modality) =>
+    selectedSamples[modality].includes(sample.scpca_id)
+
+  const getCheckBoxIsDisabled = (sample, modality) => {
+    if (canAdd) {
+      return (
+        !getHasModality(sample, modality) ||
+        getIsSampleInMyDataset(sample, modality)
+      )
+    }
+
+    if (canRemove) {
+      return !getHasModality(sample, modality)
+    }
+
+    return true
+  }
 
   // Get the current state of the tri-state checkbox
   const getTriState = (modality) => {
@@ -47,10 +109,10 @@ export const useProjectSamplesTable = () => {
     }
   }
 
-  const selectAllModalitySamples = (modality, allModalitySamples) => {
+  const selectAllSingleCellSamples = () => {
     setSelectedSamples((prevSelectedSamples) => ({
       ...prevSelectedSamples,
-      [modality]: allModalitySamples
+      SINGLE_CELL: getProjectSingleCellSamples(project.samples)
     }))
   }
 
@@ -82,7 +144,7 @@ export const useProjectSamplesTable = () => {
 
       // Exclude toggling of already-added samples on the Browse page
       const alreadyAddedSampleIds = canAdd
-        ? getDatasetProjectData(project)[modality]
+        ? getDatasetProjectData(project)[modality] || []
         : []
 
       const sampleIdsToToggle = differenceArray(
@@ -113,6 +175,7 @@ export const useProjectSamplesTable = () => {
     })
   }
 
+  // Add or remove a sample visible on the currently selected page
   const toggleSample = (modality, sample) => {
     setSelectedSamples((prevSelectedSamples) => {
       const currentSelectedSample = prevSelectedSamples[modality]
@@ -147,10 +210,11 @@ export const useProjectSamplesTable = () => {
     setFilteredSamples,
     showBulkInfoText,
     showWarningMultiplexed,
-    selectAllModalitySamples,
-    selectModalitySamplesByIds,
+    getTriState,
+    getCheckBoxIsChecked,
+    getCheckBoxIsDisabled,
+    selectAllSingleCellSamples,
     toggleSample,
-    toggleSamples,
-    getTriState
+    toggleSamples
   }
 }

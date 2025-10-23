@@ -6,7 +6,6 @@ import { CheckBox } from 'components/CheckBox'
 
 const TriStateCheckBox = ({ modality }) => {
   const { readOnly, getTriState, toggleSamples } = useProjectSamplesTable()
-
   const { isAllSelected, isSomeSelected } = getTriState(modality)
 
   const handleToggleAllSamples = () => {
@@ -24,10 +23,7 @@ const TriStateCheckBox = ({ modality }) => {
   )
 }
 
-export const ProjectSamplesTableModalityHeaderCell = ({
-  project,
-  modalities
-}) => {
+export const ProjectSamplesTableModalityHeaderCell = ({ modalities }) => {
   const isSingleModality = modalities.length === 1
 
   return (
@@ -57,10 +53,7 @@ export const ProjectSamplesTableModalityHeaderCell = ({
             {!isSingleModality && (
               <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
             )}
-            <TriStateCheckBox
-              modality={m}
-              disabled={!project[`has_${m.toLowerCase()}_data`]}
-            />
+            <TriStateCheckBox modality={m} />
           </Box>
         ))}
       </Box>
