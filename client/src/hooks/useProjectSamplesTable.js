@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react'
+import { useContext } from 'react'
 import { ProjectSamplesTableContext } from 'contexts/ProjectSamplesTableContext'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { differenceArray } from 'helpers/differenceArray'
@@ -24,28 +24,6 @@ export const useProjectSamplesTable = () => {
     getDatasetProjectData,
     getProjectSingleCellSamples
   } = useMyDataset()
-
-  // Preselect samples in the table that are already added in myDataset
-  useEffect(() => {
-    const { SINGLE_CELL: singleCellSamples, SPATIAL: spatialSamples } =
-      getDatasetProjectData(project)
-
-    if (singleCellSamples) {
-      // Select all SINGLE_CELL samples if the project is merged
-      const samplesToSelect =
-        singleCellSamples === 'MERGED'
-          ? allSamples
-              .filter((s) => s.has_single_cell_data)
-              .map((s) => s.scpca_id)
-          : singleCellSamples
-
-      selectModalitySamplesByIds('SINGLE_CELL', samplesToSelect)
-    }
-
-    if (spatialSamples) {
-      selectModalitySamplesByIds('SPATIAL', spatialSamples)
-    }
-  }, [myDataset, allSamples])
 
   const showBulkInfoText = canAdd && project && project.has_bulk_rna_seq
 
@@ -104,8 +82,9 @@ export const useProjectSamplesTable = () => {
     const isSomeSelected = !isNoneSelected && !isAllSelected
 
     return {
-      isAllSelected,
-      isSomeSelected
+      checked: isAllSelected,
+      disabled: readOnly,
+      indeterminate: isSomeSelected
     }
   }
 
@@ -214,6 +193,7 @@ export const useProjectSamplesTable = () => {
     getCheckBoxIsChecked,
     getCheckBoxIsDisabled,
     selectAllSingleCellSamples,
+    selectModalitySamplesByIds,
     toggleSample,
     toggleSamples
   }

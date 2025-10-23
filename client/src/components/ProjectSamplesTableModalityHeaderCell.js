@@ -6,7 +6,7 @@ import { CheckBox } from 'components/CheckBox'
 
 const TriStateCheckBox = ({ modality }) => {
   const { readOnly, getTriState, toggleSamples } = useProjectSamplesTable()
-  const { isAllSelected, isSomeSelected } = getTriState(modality)
+  const { checked, disabled, indeterminate } = getTriState(modality)
 
   const handleToggleAllSamples = () => {
     if (readOnly) return
@@ -15,9 +15,9 @@ const TriStateCheckBox = ({ modality }) => {
 
   return (
     <CheckBox
-      checked={isAllSelected}
-      indeterminate={isSomeSelected}
-      disabled={readOnly}
+      checked={checked}
+      disabled={disabled}
+      indeterminate={indeterminate}
       onChange={handleToggleAllSamples}
     />
   )

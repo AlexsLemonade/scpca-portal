@@ -146,7 +146,11 @@ const Project = ({ project }) => {
                   resource={project}
                   attribute="samples"
                 >
-                  <ProjectSamplesTableContextProvider project={project} canAdd>
+                  <ProjectSamplesTableContextProvider
+                    project={project}
+                    samples={project.samples}
+                    canAdd
+                  >
                     <ProjectSamplesTable stickies={responsive(0, 3)} />
                   </ProjectSamplesTableContextProvider>
                 </DownloadOptionsContextProvider>

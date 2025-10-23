@@ -30,17 +30,21 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     samples: defaultSamples,
     canAdd,
     canRemove,
+    allSamples,
     showBulkInfoText,
     showWarningMultiplexed,
     selectedSamples,
     setAllSamples,
-    setFilteredSamples
+    setFilteredSamples,
+    selectModalitySamplesByIds
   } = useProjectSamplesTable()
 
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
-  const [disableAddToDataset, setDisableAddToDataset] = useState(false)
+  const [disableAddToDatasetModal, setDisableAddToDatasetModal] =
+    useState(false)
 
+  const datasetData = getDatasetProjectData(project)
   const hasMultiplexedData = project.has_multiplexed_data
 
   const infoText = showBulkInfoText
@@ -53,7 +57,6 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
       key: m,
       value: project[`has_${m.toLowerCase()}_data`]
     }))
-
     .filter((m) => m.value)
     .map((m) => m.key)
 
@@ -196,10 +199,9 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     if (samples && !loaded) setLoaded(true)
   }, [samples, loaded])
 
+  // Disable DatasetAddSamplesModal if all samples are added
   useEffect(() => {
     if (samples && loaded) {
-      const datasetData = getDatasetProjectData(project)
-
       const projectSamplesByModality = {
         SINGLE_CELL: getProjectSingleCellSamples(samples),
         SPATIAL: getProjectSpatialSamples(samples)
@@ -217,14 +219,38 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         .map((m) =>
           differenceArray(
             projectSamplesByModality[m],
-            datasetSamplesByModality[m] || []
+            datasetSamplesByModality[m]
           )
         )
         .flat()
 
-      setDisableAddToDataset(samplesLeft.length === 0)
+      setDisableAddToDatasetModal(samplesLeft.length === 0)
     }
   }, [myDataset, samples, loaded])
+
+  // Preselect samples that are already in myDataset
+  useEffect(() => {
+    if (!allSamples.length || !myDataset.data) return
+
+    const { SINGLE_CELL: singleCellSamples, SPATIAL: spatialSamples } =
+      datasetData
+
+    if (singleCellSamples) {
+      // If the project is a merged object, add all SINGLE_CELL samples
+      const samplesToSelect =
+        singleCellSamples === 'MERGED'
+          ? allSamples
+              .filter((s) => s.has_single_cell_data)
+              .map((s) => s.scpca_id)
+          : singleCellSamples
+
+      selectModalitySamplesByIds('SINGLE_CELL', samplesToSelect)
+    }
+
+    if (spatialSamples) {
+      selectModalitySamplesByIds('SPATIAL', spatialSamples)
+    }
+  }, [myDataset, allSamples])
 
   if (!loaded)
     return (
@@ -240,7 +266,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           <DatasetAddSamplesModal
             project={project}
             samples={samples}
-            disabled={disableAddToDataset}
+            disabled={disableAddToDatasetModal}
           />
         </Box>
       )}
