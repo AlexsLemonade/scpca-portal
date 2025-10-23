@@ -205,17 +205,12 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         SINGLE_CELL: getProjectSingleCellSamples(samples),
         SPATIAL: getProjectSpatialSamples(samples)
       }
-      const datasetSamplesByModality = getDatasetProjectDataSamples(
-        project,
-        samples
-      )
+
+      const datasetProjectData = getDatasetProjectDataSamples(project, samples)
 
       const samplesLeft = allModalities
         .map((m) =>
-          differenceArray(
-            projectSamplesByModality[m],
-            datasetSamplesByModality[m]
-          )
+          differenceArray(projectSamplesByModality[m], datasetProjectData[m])
         )
         .flat()
 
