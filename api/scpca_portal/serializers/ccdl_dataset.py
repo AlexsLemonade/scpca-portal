@@ -22,6 +22,15 @@ class CCDLDatasetSerializer(serializers.ModelSerializer):
             "ccdl_name",
             "ccdl_project_id",
             "ccdl_modality",
+            "data_hash",
+            "metadata_hash",
+            "readme_hash",
+            "combined_hash",
+            "current_data_hash",
+            "current_metadata_hash",
+            "current_readme_hash",
+            "current_combined_hash",
+            "is_hash_changed",
             "estimated_size_in_bytes",
             "total_sample_count",
             "diagnoses_summary",
@@ -49,6 +58,13 @@ class CCDLDatasetSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     computed_file = ComputedFileSerializer(read_only=True, many=False)
+
+    current_combined_hash = serializers.SerializerMethodField(read_only=True, default=None)
+
+    def get_current_combined_hash(self, obj):
+        return Dataset.get_current_combined_hash(
+            obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
+        )
 
 
 class CCDLDatasetDetailSerializer(CCDLDatasetSerializer):
