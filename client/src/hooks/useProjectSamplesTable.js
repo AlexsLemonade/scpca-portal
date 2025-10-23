@@ -21,7 +21,7 @@ export const useProjectSamplesTable = () => {
   const {
     myDataset,
     userFormat,
-    getDatasetProjectData,
+    getDatasetProjectDataSamples,
     getProjectSingleCellSamples
   } = useMyDataset()
 
@@ -33,17 +33,8 @@ export const useProjectSamplesTable = () => {
     (myDataset.format || userFormat) === 'ANN_DATA'
 
   const getIsSampleInMyDataset = (sample, modality) => {
-    const datasetData = getDatasetProjectData(project)
-
-    const datasetModalitiesSamples = {
-      SINGLE_CELL:
-        datasetData.SINGLE_CELL === 'MERGED'
-          ? getProjectSingleCellSamples(samples)
-          : datasetData.SINGLE_CELL || [],
-      SPATIAL: datasetData.SPATIAL || []
-    }
-
-    return datasetModalitiesSamples[modality].includes(sample.scpca_id)
+    const datasetProjectData = getDatasetProjectDataSamples(project, samples)
+    return datasetProjectData[modality].includes(sample.scpca_id)
   }
 
   const getHasModality = (sample, modality) =>
@@ -123,7 +114,7 @@ export const useProjectSamplesTable = () => {
 
       // Exclude toggling of already-added samples on the Browse page
       const alreadyAddedSampleIds = canAdd
-        ? getDatasetProjectData(project)[modality] || []
+        ? getDatasetProjectDataSamples(project, samples)[modality] || []
         : []
 
       const sampleIdsToToggle = differenceArray(

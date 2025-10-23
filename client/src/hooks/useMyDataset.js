@@ -257,6 +257,19 @@ export const useMyDataset = () => {
     return myDataset?.data?.[project.scpca_id] || {}
   }
 
+  const getDatasetProjectDataSamples = (project, samples) => {
+    const { SINGLE_CELL: singleCell = [], SPATIAL: spatial = [] } =
+      getDatasetProjectData(project)
+
+    return {
+      SINGLE_CELL:
+        singleCell === 'MERGED'
+          ? getProjectSingleCellSamples(samples)
+          : singleCell,
+      SPATIAL: spatial
+    }
+  }
+
   const getAddedProjectDataSamples = (project) => {
     // Return an array of all modality samples added to the project data
     const { samples } = project
@@ -395,6 +408,7 @@ export const useMyDataset = () => {
     addProject,
     removeProjectById,
     getDatasetProjectData,
+    getDatasetProjectDataSamples,
     getAddedProjectDataSamples,
     getProjectDataSamples,
     getProjectSingleCellSamples,

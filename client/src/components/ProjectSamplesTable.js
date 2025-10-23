@@ -21,7 +21,7 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const {
     myDataset,
-    getDatasetProjectData,
+    getDatasetProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples
   } = useMyDataset()
@@ -44,7 +44,6 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const [disableAddToDatasetModal, setDisableAddToDatasetModal] =
     useState(false)
 
-  const datasetData = getDatasetProjectData(project)
   const hasMultiplexedData = project.has_multiplexed_data
 
   const infoText = showBulkInfoText
@@ -206,14 +205,10 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         SINGLE_CELL: getProjectSingleCellSamples(samples),
         SPATIAL: getProjectSpatialSamples(samples)
       }
-
-      const datasetSamplesByModality = {
-        SINGLE_CELL:
-          datasetData.SINGLE_CELL === 'MERGED'
-            ? projectSamplesByModality.SINGLE_CELL
-            : datasetData.SINGLE_CELL || [],
-        SPATIAL: datasetData.SPATIAL || []
-      }
+      const datasetSamplesByModality = getDatasetProjectDataSamples(
+        project,
+        samples
+      )
 
       const samplesLeft = allModalities
         .map((m) =>
@@ -230,27 +225,14 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
 
   // Preselect samples that are already in myDataset
   useEffect(() => {
-    if (!allSamples.length || !myDataset.data) return
+    if (!myDataset.data || !allSamples.length || !samples) return
 
-    const { SINGLE_CELL: singleCellSamples, SPATIAL: spatialSamples } =
-      datasetData
+    const { SINGLE_CELL: singleCell, SPATIAL: spatial } =
+      getDatasetProjectDataSamples(project, samples)
 
-    if (singleCellSamples) {
-      // If the project is a merged object, add all SINGLE_CELL samples
-      const samplesToSelect =
-        singleCellSamples === 'MERGED'
-          ? allSamples
-              .filter((s) => s.has_single_cell_data)
-              .map((s) => s.scpca_id)
-          : singleCellSamples
-
-      selectModalitySamplesByIds('SINGLE_CELL', samplesToSelect)
-    }
-
-    if (spatialSamples) {
-      selectModalitySamplesByIds('SPATIAL', spatialSamples)
-    }
-  }, [myDataset, allSamples])
+    selectModalitySamplesByIds('SINGLE_CELL', singleCell)
+    selectModalitySamplesByIds('SPATIAL', spatial)
+  }, [myDataset, allSamples, samples])
 
   if (!loaded)
     return (
