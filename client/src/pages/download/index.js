@@ -4,19 +4,29 @@ import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
+import { getReadable } from 'helpers/getReadable'
 import { DatasetSummary } from 'components/DatasetSummary'
 import { DatasetDownloadFileSummary } from 'components/DatasetDownloadFileSummary'
 import { DatasetProjectSummary } from 'components/DatasetProjectSummary'
 import { DatasetProcessModal } from 'components/DatasetProcessModal'
+import { InfoText } from 'components/InfoText'
 import { Loader } from 'components/Loader'
 import Error from 'pages/_error'
 
 const Download = () => {
   const { restoreScrollPosition } = useScrollRestore()
-  const { myDataset, errors, getDataset, isDatasetDataEmpty } = useMyDataset()
+  const {
+    myDataset,
+    myDatasetFormat,
+    setMyDatasetFormat,
+    errors,
+    getDataset,
+    isDatasetDataEmpty
+  } = useMyDataset()
   const { responsive } = useResponsive()
 
   const [loading, setLoading] = useState(true)
+  const [isFormatChanged, setIsFormatChanged] = useState(false)
 
   // Restore scroll position after component mounts
   useEffect(() => {
@@ -34,6 +44,14 @@ const Download = () => {
     if (loading) fetchDataset()
   }, [loading, myDataset])
 
+  // Display a message if the format has changed
+  useEffect(() => {
+    if (myDataset.format !== myDatasetFormat) {
+      setIsFormatChanged(true)
+      setMyDatasetFormat(myDataset.format)
+    }
+  }, [loading])
+
   if (loading) return <Loader />
 
   // TODO: Replace this once error handling is finalized
@@ -47,9 +65,19 @@ const Download = () => {
       ) : (
         <>
           <Box direction="row" justify="between" pad={{ bottom: 'large' }}>
-            <Text serif size="xlarge">
-              My Dataset
-            </Text>
+            <Box>
+              <Text serif size="xlarge">
+                My Dataset
+              </Text>
+              {isFormatChanged && (
+                <InfoText>
+                  <Text>
+                    The data format has changed to{' '}
+                    {getReadable(myDataset.format)}
+                  </Text>
+                </InfoText>
+              )}
+            </Box>
             <Box>
               <DatasetProcessModal />
               <Text weight="bold">

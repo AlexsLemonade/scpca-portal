@@ -8,6 +8,8 @@ export const useMyDataset = () => {
   const {
     myDataset,
     setMyDataset,
+    myDatasetFormat,
+    setMyDatasetFormat,
     datasets,
     setDatasets,
     setEmail,
@@ -77,7 +79,8 @@ export const useMyDataset = () => {
     const newDataset = datasetRequest.response
 
     setMyDataset(newDataset)
-    setUserFormat(myDataset.format) // Update user preference to match dataset format
+    setMyDatasetFormat(newDataset.format) // Use to compare format changes on myDataset replace
+    setUserFormat(newDataset.format) // Update user preference to match dataset format
     // Add the newly generated dataset ID for historical record
     setDatasets((prev) =>
       prev.includes(newDataset.id) ? prev : [...prev, newDataset.id]
@@ -121,8 +124,7 @@ export const useMyDataset = () => {
     return datasetRequest.response
   }
 
-  const clearDataset = async (dataset) =>
-    updateDataset({ ...dataset, data: {} })
+  const clearDataset = async () => updateDataset({ ...myDataset, data: {} })
 
   // Return the flags based on a project modality samples' value (SINGLE_CELL, SPATIAL)
   const getModalityState = (value = []) => ({
@@ -374,6 +376,8 @@ export const useMyDataset = () => {
   return {
     myDataset,
     setMyDataset,
+    myDatasetFormat,
+    setMyDatasetFormat,
     datasets,
     email,
     errors,
