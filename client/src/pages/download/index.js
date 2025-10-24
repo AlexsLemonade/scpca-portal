@@ -5,6 +5,7 @@ import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
+import { DatasetEmpty } from 'components/DatasetEmpty'
 import { DatasetSummary } from 'components/DatasetSummary'
 import { DatasetDownloadFileSummary } from 'components/DatasetDownloadFileSummary'
 import { DatasetProjectSummary } from 'components/DatasetProjectSummary'
@@ -61,7 +62,7 @@ const Download = () => {
   return (
     <Box width="full" pad={responsive({ horizontal: 'medium' })}>
       {isDatasetDataEmpty ? (
-        <Box>Dataset is empty</Box> // TODO: Replace the temporary JSX with Deepa's mockup
+        <DatasetEmpty />
       ) : (
         <>
           <Box direction="row" justify="between" pad={{ bottom: 'large' }}>
