@@ -1,14 +1,11 @@
 import React from 'react'
 import { Box } from 'grommet'
-import { getReadableFiles } from 'helpers/getReadable'
+import { getCCDLDatasetFileItems } from 'helpers/getCCDLDatasetFileItems'
 
-const Li = ({ children }) => (
-  <Box as="li" style={{ display: 'list-item' }}>
-    {children}
-  </Box>
-)
-
+// TODO: rename to CCDLDatasetFileItems as well as file name
 export const DatasetFileItems = ({ dataset }) => {
+  const items = getCCDLDatasetFileItems(dataset)
+
   return (
     <Box
       as="ul"
@@ -16,16 +13,11 @@ export const DatasetFileItems = ({ dataset }) => {
       pad={{ left: 'large' }}
       style={{ listStyle: 'disc' }}
     >
-      {dataset?.format === 'METADATA' ? (
-        <Li>Sample metadata from all projects</Li>
-      ) : (
-        <>
-          <Li>{getReadableFiles(dataset?.ccdl_modality)}</Li>
-          {dataset?.includes_files_cite_seq && <Li>CITE-seq data</Li>}
-          {dataset?.includes_files_bulk && <Li>Bulk RNA-Seq data</Li>}
-          <Li>Project and Sample Metadata</Li>
-        </>
-      )}
+      {items.map((item) => (
+        <Box key={item} as="li" style={{ display: 'list-item' }}>
+          {item}
+        </Box>
+      ))}
     </Box>
   )
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api } from 'api'
 import { config } from 'config'
 import { Box, Text } from 'grommet'
+import { Download as DownloadIcon } from 'grommet-icons'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
@@ -15,6 +16,7 @@ import { ModalityCheckBox } from 'components/ModalityCheckBox'
 import { Pill } from 'components/Pill'
 import { Table } from 'components/Table'
 import { TriStateModalityCheckBox } from 'components/TriStateModalityCheckBox'
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({
@@ -267,6 +269,12 @@ export const ProjectSamplesTable = ({
         onAllRowsChange={setAllSamples}
         onFilteredRowsChange={setFilteredSamples}
       >
+        <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
+          <CCDLDatasetDownloadModal
+            label="Download Sample Metadata"
+            icon={<DownloadIcon color="brand" />}
+          />
+        </Box>
         {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
       </Table>
     </>
