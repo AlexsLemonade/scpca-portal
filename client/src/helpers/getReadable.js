@@ -30,6 +30,13 @@ export const readableNames = {
   '.h5ad': 'AnnData (.h5ad)'
 }
 
+export const storableNames = {
+  'Single-cell': 'SINGLE_CELL',
+  Spatial: 'SPATIAL',
+  'AnnData (Python)': 'ANN_DATA',
+  'SingleCellExperiment (R)': 'SINGLE_CELL_EXPERIMENT'
+}
+
 // Alternate presentation
 const readableFiles = {
   SINGLE_CELL: 'Single-cell data',
@@ -43,6 +50,8 @@ const readableFiles = {
 }
 
 export const getReadable = (key) => readableNames[key] || key
+
+export const getStorable = (key) => storableNames[key] || key
 
 export const getReadableFiles = (key) => readableFiles[key] || getReadable(key)
 
