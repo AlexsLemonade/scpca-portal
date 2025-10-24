@@ -1,12 +1,12 @@
 import React from 'react'
 import { Box, Grid, Heading, Paragraph } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
-import { Button } from 'components/Button'
+import { DatasetRegenerateModal } from 'components/DatasetRegenerateModal'
 import { Link } from 'components/Link'
 import { InfoText } from 'components/InfoText'
 import DownloadExpired from '../images/download-expired.svg'
 
-export const DatasetHeroExpired = () => {
+export const DatasetHeroExpired = ({ dataset }) => {
   const { responsive } = useResponsive()
 
   return (
@@ -27,7 +27,7 @@ export const DatasetHeroExpired = () => {
         </Heading>
       </Box>
 
-      <Box gridArea="content" direction="column" pad={{ right: 'small' }}>
+      <Box gridArea="content" direction="column" pad={{ right: 'xlarge' }}>
         <Paragraph margin={{ bottom: '44px' }} size="21px">
           The dataset isn’t available for download anymore. Please regenerate
           the files to download them again.
@@ -36,11 +36,7 @@ export const DatasetHeroExpired = () => {
           direction={responsive('column', 'row')}
           margin={{ bottom: 'small' }}
         >
-          <Button
-            primary
-            aria-label="Regenerate Dataset"
-            label="Regenerate Dataset"
-          />
+          <DatasetRegenerateModal dataset={dataset} />
         </Box>
         <InfoText
           label={
