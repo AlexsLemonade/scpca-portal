@@ -1,30 +1,33 @@
 /* eslint-disable no-nested-ternary */
 import React from 'react'
+import { Anchor } from 'grommet'
 import { Button } from 'components/Button'
 import { CCDLDatasetDownloadOptions } from 'components/CCDLDatasetDownloadOptions'
 import { CCDLDatasetDownloadStarted } from 'components/CCDLDatasetDownloadStarted'
 import { CCDLDatasetDownloadToken } from 'components/CCDLDatasetDownloadToken'
 import { Modal, ModalLoader, ModalBody } from 'components/Modal'
-import { useCCDLDatasetDownloadModal } from 'hooks/useCCDLDatasetDownloadModal'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 
 export const CCDLDatasetDownloadModal = ({
   label,
-  initialDatasets = [],
-  disabled = false
+  icon = null,
+  disabled = false,
+  secondary = false
 }) => {
   const {
     showing,
     setShowing,
     modalTitle,
-    datasets,
-    setSelectedDataset,
-    downloadDataset,
     isDownloadReady,
     isTokenReady,
-    isOptionsReady
-  } = useCCDLDatasetDownloadModal(initialDatasets)
+    isOptionsReady,
+    downloadDataset,
+    downloadLink,
+    datasets
+  } = useCCDLDatasetDownloadModalContext()
+
   const isDisabled =
-    disabled || !initialDatasets.some((dataset) => dataset.computed_file)
+    disabled || !datasets.some((dataset) => dataset.computed_file)
 
   const handleClick = () => {
     setShowing(true)
@@ -32,25 +35,34 @@ export const CCDLDatasetDownloadModal = ({
 
   return (
     <>
-      <Button
-        aria-label={label}
-        flex="grow"
-        primary
-        label={label}
-        disabled={isDisabled}
-        onClick={handleClick}
-      />
+      {icon ? (
+        <Anchor
+          icon={icon}
+          onClick={handleClick}
+          disabled={isDisabled}
+          label={label}
+        />
+      ) : (
+        <Button
+          aria-label={label}
+          flex="grow"
+          primary={!secondary}
+          label={label}
+          disabled={isDisabled}
+          onClick={handleClick}
+        />
+      )}
       <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
         <ModalBody>
           {isTokenReady ? (
             <CCDLDatasetDownloadToken />
           ) : isOptionsReady ? (
-            <CCDLDatasetDownloadOptions
-              datasets={datasets}
-              handleSelectedDataset={setSelectedDataset}
-            />
+            <CCDLDatasetDownloadOptions />
           ) : isDownloadReady ? (
-            <CCDLDatasetDownloadStarted dataset={downloadDataset} />
+            <CCDLDatasetDownloadStarted
+              dataset={downloadDataset}
+              downloadLink={downloadLink}
+            />
           ) : (
             <ModalLoader />
           )}

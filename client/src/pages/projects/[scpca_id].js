@@ -15,8 +15,9 @@ import { api } from 'api'
 import { useResponsive } from 'hooks/useResponsive'
 import { PageTitle } from 'components/PageTitle'
 import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 
-const Project = ({ project }) => {
+const Project = ({ project, ccdlDatasets }) => {
   if (!project) return '404'
   const router = useRouter()
   const showSamples = router.asPath.indexOf('samples') !== -1
@@ -24,11 +25,21 @@ const Project = ({ project }) => {
   const onActive = (nextIndex) => setActiveIndex(nextIndex)
   const { responsive } = useResponsive()
 
+  const ccdlDataDatasets = ccdlDatasets.filter((d) => d.format !== 'METADATA')
+  const ccdlMetadataDatasets = ccdlDatasets.filter(
+    (d) => d.format === 'METADATA'
+  )
+
   return (
     <>
       <PageTitle title={project.title} />
       <Box width="xlarge">
-        <ProjectHeader project={project} />
+        <CCDLDatasetDownloadModalContextProvider
+          project={project}
+          datasets={ccdlDataDatasets}
+        >
+          <ProjectHeader project={project} />
+        </CCDLDatasetDownloadModalContextProvider>
         <Box pad={{ vertical: 'large' }}>
           <Tabs activeIndex={activeIndex} onActive={onActive}>
             <Tab title="Project Details">
@@ -142,17 +153,22 @@ const Project = ({ project }) => {
                 width={{ max: 'full' }}
                 overflow="auto"
               >
-                <DownloadOptionsContextProvider
-                  resource={project}
-                  attribute="samples"
+                <CCDLDatasetDownloadModalContextProvider
+                  project={project}
+                  datasets={ccdlMetadataDatasets}
                 >
-                  <DatasetSamplesTableContextProvider>
-                    <ProjectSamplesTable
-                      project={project}
-                      stickies={responsive(0, 3)}
-                    />
-                  </DatasetSamplesTableContextProvider>
-                </DownloadOptionsContextProvider>
+                  <DownloadOptionsContextProvider
+                    resource={project}
+                    attribute="samples"
+                  >
+                    <DatasetSamplesTableContextProvider>
+                      <ProjectSamplesTable
+                        project={project}
+                        stickies={responsive(0, 3)}
+                      />
+                    </DatasetSamplesTableContextProvider>
+                  </DownloadOptionsContextProvider>
+                </CCDLDatasetDownloadModalContextProvider>
               </Box>
             </Tab>
           </Tabs>
@@ -162,13 +178,22 @@ const Project = ({ project }) => {
   )
 }
 
-export const getServerSideProps = async ({ query }) => {
-  const projectRequest = await api.projects.get(query.scpca_id)
+export const getServerSideProps = async ({ query: projectQuery }) => {
+  const ccdlDatasetQuery = {
+    ccdl_project_id: projectQuery.scpca_id,
+    limit: 100
+  }
 
-  if (projectRequest.isOk) {
+  const [projectRequest, ccdlDatasetRequest] = await Promise.all([
+    api.projects.get(projectQuery.scpca_id),
+    api.ccdlDatasets.list(ccdlDatasetQuery)
+  ])
+
+  if (projectRequest.isOk && ccdlDatasetRequest.isOk) {
     const project = projectRequest.response
+    const { results: ccdlDatasets } = ccdlDatasetRequest.response
     return {
-      props: { project }
+      props: { project, ccdlDatasets }
     }
   }
 
@@ -176,7 +201,7 @@ export const getServerSideProps = async ({ query }) => {
     return { notFound: true }
   }
 
-  return { props: { project: null } }
+  return { props: { project: null, ccdlDatasets: null } }
 }
 
 export default Project
