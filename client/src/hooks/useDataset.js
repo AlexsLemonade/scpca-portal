@@ -163,7 +163,7 @@ export const useDataset = () => {
       isFailed,
       isTerminated,
       isReady: isSucceeded && !isExpired,
-      isExpired: (isSucceeded && isExpired) || true // TEMP for UI demo
+      isExpired: isSucceeded && isExpired
     }
   }
 

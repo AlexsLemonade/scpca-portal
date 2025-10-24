@@ -3,6 +3,7 @@ import { api } from 'api'
 import { config } from 'config'
 import { allModalities } from 'config/datasets'
 import { Box, Text } from 'grommet'
+import { Download as DownloadIcon } from 'grommet-icons'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
@@ -16,6 +17,7 @@ import { Pill } from 'components/Pill'
 import { ProjectSamplesTableModalityCell } from 'components/ProjectSamplesTableModalityCell'
 import { ProjectSamplesTableModalityHeaderCell } from 'components/ProjectSamplesTableModalityHeaderCell'
 import { Table } from 'components/Table'
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({ stickies = 3 }) => {
@@ -261,6 +263,12 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         onAllRowsChange={setAllSamples}
         onFilteredRowsChange={setFilteredSamples}
       >
+        <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
+          <CCDLDatasetDownloadModal
+            label="Download Sample Metadata"
+            icon={<DownloadIcon color="brand" />}
+          />
+        </Box>
         {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
       </Table>
     </>
