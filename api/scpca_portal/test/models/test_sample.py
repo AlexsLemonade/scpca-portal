@@ -20,7 +20,7 @@ class TestGetLibraries(TestCase):
         library3 = LibraryFactory(modality=Modalities.SINGLE_CELL, formats=[FileFormats.ANN_DATA])
         library4 = LibraryFactory(
             modality=Modalities.SPATIAL,
-            formats=[FileFormats.SINGLE_CELL_EXPERIMENT],
+            formats=[FileFormats.SPATIAL_SPACERANGER],
         )
         self.sample.libraries.add(library1, library2, library3, library4)
 
@@ -29,7 +29,7 @@ class TestGetLibraries(TestCase):
                 "SINGLE_CELL_EXPERIMENT": [library1, library2],
                 "ANN_DATA": [library1, library3],
             },
-            "SPATIAL": {"SINGLE_CELL_EXPERIMENT": [library4]},
+            "SPATIAL": {"SPATIAL_SPACERANGER": [library4]},
         }
 
         self.library_list = [library1, library2, library3, library4]

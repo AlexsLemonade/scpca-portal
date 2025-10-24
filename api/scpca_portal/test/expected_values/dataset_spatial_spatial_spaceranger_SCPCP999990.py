@@ -1,9 +1,9 @@
-from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, FileFormats, Modalities
 
 
-class DatasetSpatialSingleCellExperimentSCPCP999990:
+class DatasetSpatialSpatialSpacerangerSCPCP999990:
     PROJECT_ID = "SCPCP999990"
-    CCDL_NAME = CCDLDatasetNames.SPATIAL_SINGLE_CELL_EXPERIMENT.value
+    CCDL_NAME = CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER.value
     VALUES = {
         "data": {
             PROJECT_ID: {
@@ -14,7 +14,7 @@ class DatasetSpatialSingleCellExperimentSCPCP999990:
         },
         "email": None,
         "start": False,
-        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,
+        "format": FileFormats.SPATIAL_SPACERANGER.value,
         "regenerated_from": None,
         "is_ccdl": True,
         "ccdl_name": CCDL_NAME,

@@ -50,8 +50,9 @@ class OriginalFile(TimestampedModel):
     formats = ArrayField(models.TextField(choices=FileFormats.choices), default=list)
     is_single_cell_experiment = models.BooleanField(default=False)
     is_anndata = models.BooleanField(default=False)
-    is_supplementary = models.BooleanField(default=False)
+    is_spatial_spaceranger = models.BooleanField(default=False)
     is_metadata = models.BooleanField(default=False)
+    is_supplementary = models.BooleanField(default=False)
     # other
     is_merged = models.BooleanField(default=False)
     is_project_file = models.BooleanField(default=False)
@@ -87,8 +88,9 @@ class OriginalFile(TimestampedModel):
             formats=formats,
             is_single_cell_experiment=(FileFormats.SINGLE_CELL_EXPERIMENT in formats),
             is_anndata=(FileFormats.ANN_DATA in formats),
-            is_supplementary=(FileFormats.SUPPLEMENTARY in formats),
+            is_spatial_spaceranger=(FileFormats.SPATIAL_SPACERANGER in formats),
             is_metadata=(FileFormats.METADATA in formats),
+            is_supplementary=(FileFormats.SUPPLEMENTARY in formats),
             is_merged=s3_key_info.is_merged,
             is_project_file=s3_key_info.is_project_file,
             is_downloadable=OriginalFile._is_downloadable(s3_key_info),

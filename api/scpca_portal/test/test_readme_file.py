@@ -93,8 +93,8 @@ class TestReadmeFileContents(TestCase):
         expected_file_path = settings.RENDERED_README_PATH / f"{DOWNLOAD_CONFIG_NAME}.md"
         self.assertReadmeContents(expected_file_path, result)
 
-    def test_readme_file_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
-        DOWNLOAD_CONFIG_NAME = "SPATIAL_SINGLE_CELL_EXPERIMENT"
+    def test_readme_file_SPATIAL(self):
+        DOWNLOAD_CONFIG_NAME = "SPATIAL"
         DOWNLOAD_CONFIG = common.PROJECT_DOWNLOAD_CONFIGS[DOWNLOAD_CONFIG_NAME]
         PROJECT_ID = "PROJECT_ID_0"
 
