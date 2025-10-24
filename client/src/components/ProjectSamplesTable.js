@@ -4,6 +4,7 @@ import { config } from 'config'
 import { allModalities } from 'config/datasets'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
@@ -21,6 +22,7 @@ import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({ stickies = 3 }) => {
+  const { datasets } = useCCDLDatasetDownloadModalContext()
   const {
     myDataset,
     getDatasetProjectDataSamples,
@@ -263,12 +265,14 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         onAllRowsChange={setAllSamples}
         onFilteredRowsChange={setFilteredSamples}
       >
-        <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
-          <CCDLDatasetDownloadModal
-            label="Download Sample Metadata"
-            icon={<DownloadIcon color="brand" />}
-          />
-        </Box>
+        {datasets && (
+          <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
+            <CCDLDatasetDownloadModal
+              label="Download Sample Metadata"
+              icon={<DownloadIcon color="brand" />}
+            />
+          </Box>
+        )}
         {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
       </Table>
     </>
