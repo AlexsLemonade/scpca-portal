@@ -1,59 +1,63 @@
 import { config } from 'config'
 
-export const portalWideDatasets = {
-  GENERIC: {
-    learnMore: {
-      label: 'here',
-      text: 'Please learn more about the portal-wide downloads here.',
-      url: config.links.whatPortalWide
-    }
-  },
+export const genericPortalWideDocsLink = {
+  learnMore: {
+    label: 'here',
+    text: 'Please learn more about the portal-wide downloads here.',
+    url: config.links.whatPortalWide
+  }
+}
+
+export const modalityNames = {
+  SINGLE_CELL: 'Single-cell data',
+  SPATIAL: 'Spatial data'
+}
+export const formatNames = {
+  SINGLE_CELL_EXPERIMENT: 'SingleCellExperiment (R)',
+  ANN_DATA: 'AnnData (Python)'
+}
+
+export const portalWideLinks = {
   ALL_METADATA: {
-    modalTitle: 'Portal-wide Sample Metadata',
-    learnMore: {
-      label: 'here',
-      text: 'Learn more about what you can expect in your download file.',
-      url: config.links.whatDownloadingPortalWideMetadata
-    }
+    learnMore: config.links.whatDownloadingPortalWideMetadata
   },
   SINGLE_CELL_SINGLE_CELL_EXPERIMENT: {
-    modalTitle: 'Portal-wide Data as SingleCellExperiment (R)',
-    learnMore: {
-      label: 'here',
-      text: 'Learn more about what you can expect in your download file.',
-      url: config.links.whatDownloadingPortalWide
-    }
+    learnMore: config.links.whatDownloadingPortalWide
   },
   SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: {
-    modalTitle: 'Portal-wide Data as SingleCellExperiment (R)',
-    learnMore: {
-      label: 'here',
-      text: 'Learn more about what you can expect in your download file.',
-      url: config.links.whatDownloadingPortalWide
-    }
+    learnMore: config.links.whatDownloadingPortalWide
   },
   SINGLE_CELL_ANN_DATA: {
-    modalTitle: 'Portal-wide Data as AnnData (Python)',
-    learnMore: {
-      label: 'here',
-      text: 'Learn more about what you can expect in your download file.',
-      url: config.links.whatDownloadingPortalWide
-    }
+    learnMore: config.links.whatDownloadingPortalWide
   },
   SINGLE_CELL_ANN_DATA_MERGED: {
-    modalTitle: 'Portal-wide Data as AnnData (Python)',
-    learnMore: {
-      label: 'here',
-      text: 'Learn more about what you can expect in your download file.',
-      url: config.links.whatDownloadingPortalWide
-    }
+    learnMore: config.links.whatDownloadingPortalWide
   },
   SPATIAL_SINGLE_CELL_EXPERIMENT: {
-    modalTitle: 'Portal-wide Spatial Data',
-    learnMore: {
-      label: 'here',
-      text: 'Learn more about what you can expect in your download file.',
-      url: config.links.whatDownloadingPortalWideSpatial
-    }
+    learnMore: config.links.whatDownloadingPortalWideSpatial
+  }
+}
+
+export const projectLinks = {
+  ALL_METADATA: {
+    learnMore: '#tbd'
+  },
+  SINGLE_CELL_SINGLE_CELL_EXPERIMENT: {
+    learnMore: '#tbd'
+  },
+  SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED: {
+    learnMore: '#tbd'
+  },
+  SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: {
+    learnMore: '#tbd'
+  },
+  SINGLE_CELL_ANN_DATA: {
+    learnMore: '#tbd'
+  },
+  SINGLE_CELL_ANN_DATA_MERGED: {
+    learnMore: '#tbd'
+  },
+  SPATIAL_SINGLE_CELL_EXPERIMENT: {
+    learnMore: '#tbd'
   }
 }

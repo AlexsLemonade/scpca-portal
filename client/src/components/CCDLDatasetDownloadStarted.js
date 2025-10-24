@@ -1,5 +1,5 @@
 import React from 'react'
-import { portalWideDatasets } from 'config/ccdlDatasets'
+import { portalWideLinks, projectLinks } from 'config/ccdlDatasets'
 import { useResponsive } from 'hooks/useResponsive'
 import { Box, Grid, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
@@ -7,13 +7,16 @@ import { Link } from 'components/Link'
 import { DatasetFileItems } from 'components/DatasetFileItems'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 import DownloadSVG from '../images/download-folder.svg'
 
 // View when the donwload should have been initiated
-export const CCDLDatasetDownloadStarted = ({ dataset }) => {
+export const CCDLDatasetDownloadStarted = () => {
   // open the file in a new tab
+  const { downloadDataset, downloadLink } = useCCDLDatasetDownloadModalContext()
   const { size: responsiveSize } = useResponsive()
-  const portalWideDataset = portalWideDatasets[dataset?.ccdl_name]
+  const links = downloadDataset.ccdl_project_id ? projectLinks : portalWideLinks
+  const { learnMore } = links[downloadDataset.ccdl_name]
 
   return (
     <>
@@ -26,33 +29,30 @@ export const CCDLDatasetDownloadStarted = ({ dataset }) => {
         <Box>
           <Paragraph>Your download should have started.</Paragraph>
           <Box margin={{ top: 'small', bottom: 'small' }}>
-            {dataset.format !== 'METADATA' && (
+            {downloadDataset.format !== 'METADATA' && (
               <Text weight="bold">
-                Data Format: {getReadable(dataset.format)}
+                Data Format: {getReadable(downloadDataset.format)}
               </Text>
             )}
           </Box>
           <Paragraph>The download consists of the following items:</Paragraph>
-          <DatasetFileItems dataset={dataset} />
-          {dataset.includes_files_merged && (
+          <DatasetFileItems dataset={downloadDataset} />
+          {downloadDataset.includes_files_merged && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
               <Text>Samples are merged into 1 object per project</Text>
             </Box>
-          )}
-          {dataset.format !== 'METADATA' && (
+          )}{' '}
+          {downloadDataset.format !== 'METADATA' && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
               <Text weight="bold">
-                Size: {formatBytes(dataset?.computed_file?.size_in_bytes)}
+                Size:{' '}
+                {formatBytes(downloadDataset?.computed_file?.size_in_bytes)}
               </Text>
             </Box>
           )}
           <Paragraph margin={{ bottom: 'small' }}>
-            {portalWideDataset.learnMore.text}{' '}
-            <Link
-              label={portalWideDataset.learnMore.label}
-              href={portalWideDataset.learnMore.url}
-            />
-            .
+            Learn more about what you can expect in your download file{' '}
+            <Link label="here" href={learnMore} />.
           </Paragraph>
           <Box>
             {responsiveSize !== 'small' && (
@@ -67,7 +67,7 @@ export const CCDLDatasetDownloadStarted = ({ dataset }) => {
               alignSelf="start"
               aria-label="Try Again"
               label="Try Again"
-              href={dataset.download_url}
+              href={downloadLink}
               target="_blank"
             />
           </Box>

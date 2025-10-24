@@ -1,5 +1,5 @@
 import React from 'react'
-import { portalWideDatasets } from 'config/ccdlDatasets'
+import { genericPortalWideDocsLink } from 'config/ccdlDatasets'
 import { Anchor, Box, Text } from 'grommet'
 import { api } from 'api'
 import { HeroBandPortalWide } from 'components/Band'
@@ -53,8 +53,8 @@ const PortalWideDownloads = ({ datasets }) => {
               Data from the projects in the ScPCA portal is packaged together
               for your convenience.{' '}
               <Anchor
-                label={portalWideDatasets.GENERIC.learnMore.text}
-                href={portalWideDatasets.GENERIC.learnMore.link}
+                label={genericPortalWideDocsLink.learnMore.text}
+                href={genericPortalWideDocsLink.learnMore.link}
               />
             </Text>
           </Box>
@@ -124,8 +124,9 @@ export const getServerSideProps = async () => {
   })
 
   if (datasetRequest.isOk) {
+    const { results: datasets } = datasetRequest.response
     return {
-      props: { datasets: datasetRequest.response.results }
+      props: { datasets }
     }
   }
 
