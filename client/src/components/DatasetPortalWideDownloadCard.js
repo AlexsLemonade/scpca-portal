@@ -1,12 +1,17 @@
+import dynamic from 'next/dynamic'
 import React, { useEffect, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
 import { HelpLink } from 'components/HelpLink'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
-import { DatasetCopyLinkButton } from 'components/DatasetCopyLinkButton'
 import { DatasetFileItems } from 'components/DatasetFileItems'
 import { config } from 'config'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 import { formatBytes } from 'helpers/formatBytes'
+
+const DatasetCopyLinkButton = dynamic(() => import('./DatasetCopyLinkButton'), {
+  ssr: false
+})
 
 export const DatasetPortalWideDownloadCard = ({
   title,
@@ -80,10 +85,9 @@ export const DatasetPortalWideDownloadCard = ({
               gap="24px"
               margin={{ bottom: 'small' }}
             >
-              <CCDLDatasetDownloadModal
-                label="Download"
-                initialDatasets={dataset ? [dataset] : []}
-              />
+              <CCDLDatasetDownloadModalContextProvider datasets={[dataset]}>
+                <CCDLDatasetDownloadModal label="Download" />
+              </CCDLDatasetDownloadModalContextProvider>
               {showCopyLinkButton && (
                 <DatasetCopyLinkButton dataset={dataset} />
               )}
