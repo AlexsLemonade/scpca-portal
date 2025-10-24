@@ -12,7 +12,7 @@ export const DatasetDataFormatOptions = ({
   format,
   onFormatChange
 }) => {
-  const { myDataset } = useMyDataset()
+  const { myDataset, isDatasetDataEmpty } = useMyDataset()
 
   const formatOptions = getReadableOptions(getProjectFormats(project))
 
@@ -27,7 +27,7 @@ export const DatasetDataFormatOptions = ({
       <Select
         options={formatOptions}
         labelKey="label"
-        disabled={!!myDataset.id}
+        disabled={!!myDataset.id && !isDatasetDataEmpty}
         valueKey={{ key: 'value', reduce: true }}
         value={format}
         onChange={({ value }) => onFormatChange(value)}
