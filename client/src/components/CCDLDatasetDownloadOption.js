@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { DatasetFileItems } from 'components/DatasetFileItems'
-import { CCDLDatasetCopyLinkButton } from 'components/CCDLDatasetCopyLinkButton'
+import { DatasetCopyLinkButton } from 'components/DatasetCopyLinkButton'
 import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
@@ -59,7 +59,7 @@ export const CCDLDatasetDownloadOption = () => {
               setDownloadDataset(selectedDataset)
             }}
           />
-          <CCDLDatasetCopyLinkButton dataset={selectedDataset} />
+          <DatasetCopyLinkButton dataset={selectedDataset} />
         </Grid>
       </Box>
     </Grid>

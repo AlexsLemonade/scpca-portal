@@ -22,7 +22,7 @@ const TokenModal = ({ showing, setShowing }) => {
   )
 }
 
-export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
+export const DatasetCopyLinkButton = ({ dataset }) => {
   const states = {
     unclicked: {
       label: <Text color="brand">Copy Download Link</Text>,
@@ -35,7 +35,7 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
   }
 
   const [state, setState] = useState(states.unclicked)
-  const [downloadLink, setDownloadLink] = useState(null)
+  const [downloadLink, setDownloadLink] = useState(dataset.download_url)
   const [wantsLink, setWantsLink] = useState(false)
 
   const [, copyText] = useCopyToClipboard()
@@ -44,9 +44,10 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
 
   const [tokenModalShowing, setTokenModalShowing] = useState(false)
 
+  const isCCDL = dataset.is_ccdl
   const isDisabled = !dataset?.computed_file
 
-  const onClick = () => {
+  const handleCopy = () => {
     if (!isDisabled) setWantsLink(true)
   }
 
@@ -62,7 +63,9 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
 
   useEffect(() => {
     const asyncFetch = async () => {
-      const downloadRequest = await api.ccdlDatasets.get(dataset.id, token)
+      const downloadRequest = isCCDL
+        ? await api.ccdlDatasets.get(dataset.id, token)
+        : await api.datasets.get(dataset.id, token)
       if (downloadRequest.isOk) {
         setDownloadLink(downloadRequest.response.download_url)
       }
@@ -88,7 +91,13 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
   return (
     <>
       <Box direction="row">
-        <Button plain label={state.label} icon={state.icon} onClick={onClick} />
+        <Button
+          plain
+          label={state.label}
+          icon={state.icon}
+          disabled={isDisabled}
+          onClick={handleCopy}
+        />
         <HelpLink link={config.links.what_copy_link} />
       </Box>
       {needsToken && (
@@ -100,3 +109,5 @@ export const CCDLDatasetCopyLinkButton = ({ dataset }) => {
     </>
   )
 }
+
+export default DatasetCopyLinkButton
