@@ -59,7 +59,7 @@ export const useProjectSamplesTable = () => {
   }
 
   // Get the current state of the tri-state checkbox
-  const getTriState = (modality) => {
+  const getHeaderState = (modality) => {
     const allSampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
     const selectedModalitySampleIds = selectedSamples[modality]
 
@@ -102,9 +102,7 @@ export const useProjectSamplesTable = () => {
   }
 
   // Add or remove samples visible on the currently selected page
-  const toggleSamples = (modality) => {
-    if (readOnly) return
-
+  const toggleModalitySamples = (modality) => {
     setSelectedSamples((prevSelectedSamples) => {
       const currentSelectedSamples = prevSelectedSamples[modality]
 
@@ -146,7 +144,7 @@ export const useProjectSamplesTable = () => {
   }
 
   // Add or remove a sample visible on the currently selected page
-  const toggleSample = (modality, sample) => {
+  const toggleSampleModality = (sample, modality) => {
     setSelectedSamples((prevSelectedSamples) => {
       const currentSelectedSample = prevSelectedSamples[modality]
       const sampleId = sample.scpca_id
@@ -180,12 +178,12 @@ export const useProjectSamplesTable = () => {
     setFilteredSamples,
     showBulkInfoText,
     showWarningMultiplexed,
-    getTriState,
+    getHeaderState,
     getCheckBoxIsChecked,
     getCheckBoxIsDisabled,
     selectAllSingleCellSamples,
     selectModalitySamplesByIds,
-    toggleSample,
-    toggleSamples
+    toggleSampleModality,
+    toggleModalitySamples
   }
 }

@@ -5,12 +5,13 @@ import { getReadable } from 'helpers/getReadable'
 import { CheckBox } from 'components/CheckBox'
 
 const TriStateCheckBox = ({ modality }) => {
-  const { readOnly, getTriState, toggleSamples } = useProjectSamplesTable()
-  const { checked, disabled, indeterminate } = getTriState(modality)
+  const { readOnly, getHeaderState, toggleModalitySamples } =
+    useProjectSamplesTable()
+  const { checked, disabled, indeterminate } = getHeaderState(modality)
 
   const handleToggleAllSamples = () => {
     if (readOnly) return
-    toggleSamples(modality)
+    toggleModalitySamples(modality)
   }
 
   return (
@@ -23,11 +24,12 @@ const TriStateCheckBox = ({ modality }) => {
   )
 }
 
-export const ProjectSamplesTableModalityHeaderCell = ({ modalities }) => {
+export const ProjectSamplesTableModalityHeader = ({ modalities }) => {
   const isSingleModality = modalities.length === 1
+  const checkBoxCellWidth = isSingleModality ? '50px' : '200px'
 
   return (
-    <>
+    <Box width={checkBoxCellWidth}>
       {!isSingleModality && (
         <>
           <Box align="center" margin={{ bottom: 'small' }} pad="small">
@@ -57,6 +59,6 @@ export const ProjectSamplesTableModalityHeaderCell = ({ modalities }) => {
           </Box>
         ))}
       </Box>
-    </>
+    </Box>
   )
 }

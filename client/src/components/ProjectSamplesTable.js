@@ -16,7 +16,7 @@ import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 import { Pill } from 'components/Pill'
 import { ProjectSamplesTableModalityCell } from 'components/ProjectSamplesTableModalityCell'
-import { ProjectSamplesTableModalityHeaderCell } from 'components/ProjectSamplesTableModalityHeaderCell'
+import { ProjectSamplesTableModalityHeader } from 'components/ProjectSamplesTableModalityHeader'
 import { Table } from 'components/Table'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
@@ -63,34 +63,18 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     .filter((m) => m.value)
     .map((m) => m.key)
 
-  const checkBoxCellWidth = availableModalities.length > 1 ? '200px' : '50px'
-
   const columns = [
     {
       Header: (
-        <Box width={checkBoxCellWidth}>
-          <ProjectSamplesTableModalityHeaderCell
-            modalities={availableModalities}
-          />
-        </Box>
+        <ProjectSamplesTableModalityHeader modalities={availableModalities} />
       ),
       disableSortBy: true,
       accessor: 'data',
       Cell: ({ row }) => (
-        <Box
-          align="center"
-          direction="row"
-          justify="around"
-          width={checkBoxCellWidth}
-        >
-          {availableModalities.map((m) => (
-            <ProjectSamplesTableModalityCell
-              key={`${row.original.scpca_id}_${m}`}
-              modality={m}
-              sample={row.original}
-            />
-          ))}
-        </Box>
+        <ProjectSamplesTableModalityCell
+          sample={row.original}
+          modalities={availableModalities}
+        />
       )
     },
     {
