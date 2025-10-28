@@ -17,7 +17,6 @@ import {
   usePagination
 } from 'react-table'
 import { matchSorter } from 'match-sorter'
-import { allModalities } from 'config/datasets'
 import { Icon } from 'components/Icon'
 import { TableFilter } from 'components/TableFilter'
 import { TablePageSize } from 'components/TablePageSize'
@@ -168,13 +167,39 @@ export const TBody = ({
     state: { globalFilter }
   },
   stickies = 0,
+  prevSelectedRows,
   selectedRows
 }) => {
   const [offsets, setOffsets] = useState([])
   const ref = createRef(null)
-  // Get selected sample rows for highlighting
-  const getSelectedRow = (id) =>
-    allModalities.some((modality) => selectedRows?.[modality]?.includes(id))
+  // Get previously selected modalities for the sample row
+  const getPrevSelectedModalities = (id) =>
+    Object.keys(prevSelectedRows).filter((m) =>
+      prevSelectedRows[m].includes(id)
+    )
+
+  // Get currently selected modalities for the sample row
+  const getSelectedModalities = (id) =>
+    Object.keys(selectedRows).filter((m) => selectedRows[m].includes(id))
+
+  const getClassName = (id) => {
+    const prevModalities = getPrevSelectedModalities(id)
+    const currModalities = getSelectedModalities(id)
+
+    const isNoneSelected = currModalities.length === 0
+    const hasSameModalities =
+      prevModalities.length === currModalities.length &&
+      prevModalities.every((m) => currModalities.includes(m))
+
+    // No highlight if none selected or all were previously selected
+    if (isNoneSelected || hasSameModalities) return ''
+
+    const isNewSelected = currModalities.some(
+      (m) => !prevModalities.includes(m)
+    )
+
+    return isNewSelected ? 'selected' : ''
+  }
 
   useEffect(() => {
     if (ref.current) {
@@ -195,7 +220,7 @@ export const TBody = ({
         return (
           <TableRow
             ref={ref}
-            className={getSelectedRow(row.original.scpca_id) ? 'selected' : ''}
+            className={getClassName(row.original.scpca_id)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...row.getRowProps()}
           >
@@ -235,7 +260,8 @@ export const Table = ({
   defaultSort = [],
   pageSize: initialPageSize = 0,
   pageSizeOptions = [],
-  selectedRows, // For highlighting selected samples rows
+  prevSelectedRows = {}, // For unhighlithing previously selected sample rows
+  selectedRows = {}, // For highlighting currently selected samples rows
   infoText = '',
   text = '',
   children,
@@ -356,6 +382,7 @@ export const Table = ({
           <Body
             instance={instance}
             stickies={stickies}
+            prevSelectedRows={prevSelectedRows}
             selectedRows={selectedRows}
           />
         </StickyTable>
