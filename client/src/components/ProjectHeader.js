@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useResponsive } from 'hooks/useResponsive'
 import { config } from 'config'
 import { Box, Grid, Text } from 'grommet'
@@ -17,11 +17,18 @@ import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 
 export const ProjectHeader = ({ project, linked = false }) => {
-  const { isProjectAddedToDataset } = useMyDataset()
+  const { myDataset, getHasProject } = useMyDataset()
   const { responsive } = useResponsive()
+
+  const [isProjectInMyDataset, setIsProjectInMyDataset] = useState()
+
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
   const unavailableSampleCountText =
     Number(project.unavailable_samples_count) > 1 ? 'samples' : 'sample'
+
+  useEffect(() => {
+    setIsProjectInMyDataset(getHasProject(project))
+  }, [myDataset])
 
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
@@ -52,7 +59,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none') }}
         >
           <Box align="center" gap="small">
-            {isProjectAddedToDataset(project) ? (
+            {isProjectInMyDataset ? (
               <Box
                 direction="row"
                 align="center"
