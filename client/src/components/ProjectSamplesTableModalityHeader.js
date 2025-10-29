@@ -9,16 +9,12 @@ const TriStateCheckBox = ({ modality }) => {
   const { getHeaderState, toggleModalitySamples } = useProjectSamplesTable()
   const { checked, disabled, indeterminate } = getHeaderState(modality)
 
-  const handleToggleAllSamples = () => {
-    toggleModalitySamples(modality)
-  }
-
   return (
     <CheckBox
       checked={checked}
       disabled={disabled}
       indeterminate={indeterminate}
-      onChange={handleToggleAllSamples}
+      onChange={() => toggleModalitySamples(modality)}
     />
   )
 }
@@ -27,10 +23,9 @@ export const ProjectSamplesTableModalityHeader = () => {
   const { project } = useProjectSamplesTable()
   const availableModalities = getProjectModalities(project)
   const isSingleModality = availableModalities.length === 1
-  const checkBoxCellWidth = isSingleModality ? '50px' : '200px'
 
   return (
-    <Box width={checkBoxCellWidth}>
+    <>
       {!isSingleModality && (
         <>
           <Box align="center" margin={{ bottom: 'small' }} pad="small">
@@ -60,6 +55,6 @@ export const ProjectSamplesTableModalityHeader = () => {
           </Box>
         ))}
       </Box>
-    </Box>
+    </>
   )
 }
