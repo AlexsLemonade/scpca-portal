@@ -1,5 +1,6 @@
 import json
 import subprocess
+from pathlib import Path
 from typing import Dict, List
 
 from django.conf import settings
@@ -178,6 +179,32 @@ def check_file_empty(key: str, bucket: str) -> bool:
         raise
 
     return json_output["ContentLength"] == 0
+
+
+def list_files_by_suffix(
+    suffix: str, dir_path: str = "/", bucket_name: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Path]:
+    """
+    Lists all objects in the passed bucket at the location of the passed directory path,
+    then returns a sorted list of all paths matching the passed suffix.
+    """
+    command_inputs = ["aws", "s3", "ls", f"{bucket_name}{dir_path}"]
+
+    if "public" in bucket_name:
+        command_inputs.append("--no-sign-request")
+
+    try:
+        result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
+        output = result.stdout
+    except subprocess.CalledProcessError:
+        logger.error(
+            "Either the dir path at the requested bucket is empty, "
+            "the request was malformed, or there was a network error."
+        )
+        raise
+
+    bucket_paths = [Path(entry.split(" ")[-1]) for entry in output.splitlines()]
+    return sorted(path for path in bucket_paths if path.suffix == f".{suffix}")
 
 
 def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
