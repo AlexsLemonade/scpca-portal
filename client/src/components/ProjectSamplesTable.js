@@ -70,7 +70,6 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
       accessor: 'data',
       Cell: ({ row }) => (
         <Box width={checkBoxCellWidth}>
-          {' '}
           <ProjectSamplesTableModalityCell sample={row.original} />
         </Box>
       )
