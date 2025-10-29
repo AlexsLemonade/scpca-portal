@@ -71,6 +71,7 @@ export const DatasetProjectCard = ({
         </Link>
         {!readOnly && (
           <Button
+            danger
             label="Remove"
             alignSelf={responsive('stretch', 'start')}
             onClick={() => removeProjectById(projectId)}
