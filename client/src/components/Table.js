@@ -172,33 +172,18 @@ export const TBody = ({
 }) => {
   const [offsets, setOffsets] = useState([])
   const ref = createRef(null)
-  // Get previously selected modalities for the sample row
-  const getPrevSelectedModalities = (id) =>
-    Object.keys(prevSelectedRows).filter((m) =>
-      prevSelectedRows[m].includes(id)
-    )
-
-  // Get currently selected modalities for the sample row
-  const getSelectedModalities = (id) =>
-    Object.keys(selectedRows).filter((m) => selectedRows[m].includes(id))
 
   const getIsHighlighted = (id) => {
-    const prevModalities = getPrevSelectedModalities(id)
-    const currModalities = getSelectedModalities(id)
-
-    const isNoneSelected = currModalities.length === 0
-    const hasSameModalities =
-      prevModalities.length === currModalities.length &&
-      prevModalities.every((m) => currModalities.includes(m))
-
-    // No highlight if none selected or all were previously selected
-    if (isNoneSelected || hasSameModalities) return ''
-
-    const isNewSelected = currModalities.some(
-      (m) => !prevModalities.includes(m)
+    // Previously selected modalities for the sample row
+    const prevModalities = Object.keys(prevSelectedRows).filter((m) =>
+      prevSelectedRows[m].includes(id)
+    )
+    // Currently selected modalities for the sample row
+    const currModalities = Object.keys(selectedRows).filter((m) =>
+      selectedRows[m].includes(id)
     )
 
-    return isNewSelected
+    return currModalities.some((m) => !prevModalities.includes(m))
   }
 
   useEffect(() => {
