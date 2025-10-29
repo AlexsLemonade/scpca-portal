@@ -1,16 +1,15 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
+import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getReadable } from 'helpers/getReadable'
 import { CheckBox } from 'components/CheckBox'
 
 const TriStateCheckBox = ({ modality }) => {
-  const { readOnly, getHeaderState, toggleModalitySamples } =
-    useProjectSamplesTable()
+  const { getHeaderState, toggleModalitySamples } = useProjectSamplesTable()
   const { checked, disabled, indeterminate } = getHeaderState(modality)
 
   const handleToggleAllSamples = () => {
-    if (readOnly) return
     toggleModalitySamples(modality)
   }
 
@@ -24,8 +23,10 @@ const TriStateCheckBox = ({ modality }) => {
   )
 }
 
-export const ProjectSamplesTableModalityHeader = ({ modalities }) => {
-  const isSingleModality = modalities.length === 1
+export const ProjectSamplesTableModalityHeader = () => {
+  const { project } = useProjectSamplesTable()
+  const availableModalities = getProjectModalities(project)
+  const isSingleModality = availableModalities.length === 1
   const checkBoxCellWidth = isSingleModality ? '50px' : '200px'
 
   return (
@@ -43,7 +44,7 @@ export const ProjectSamplesTableModalityHeader = ({ modalities }) => {
         </>
       )}
       <Box direction="row" justify="around">
-        {modalities.map((m) => (
+        {availableModalities.map((m) => (
           <Box
             key={m}
             align="center"
