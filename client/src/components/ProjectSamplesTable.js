@@ -55,26 +55,13 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     : null
   const text = canRemove ? 'Uncheck to change or remove modality' : null
 
-  const availableModalities = allModalities
-    .map((m) => ({
-      key: m,
-      value: project[`has_${m.toLowerCase()}_data`]
-    }))
-    .filter((m) => m.value)
-    .map((m) => m.key)
-
   const columns = [
     {
-      Header: (
-        <ProjectSamplesTableModalityHeader modalities={availableModalities} />
-      ),
+      Header: <ProjectSamplesTableModalityHeader />,
       disableSortBy: true,
       accessor: 'data',
       Cell: ({ row }) => (
-        <ProjectSamplesTableModalityCell
-          sample={row.original}
-          modalities={availableModalities}
-        />
+        <ProjectSamplesTableModalityCell sample={row.original} />
       )
     },
     {

@@ -1,13 +1,19 @@
 import React from 'react'
 import { Box } from 'grommet'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
+import { getProjectModalities } from 'helpers/getProjectModalities'
 import { CheckBox } from 'components/CheckBox'
 
-export const ProjectSamplesTableModalityCell = ({ sample, modalities }) => {
-  const { getCheckBoxIsChecked, getCheckBoxIsDisabled, toggleSampleModality } =
-    useProjectSamplesTable()
+export const ProjectSamplesTableModalityCell = ({ sample }) => {
+  const {
+    project,
+    getCheckBoxIsChecked,
+    getCheckBoxIsDisabled,
+    toggleSampleModality
+  } = useProjectSamplesTable()
 
-  const checkBoxCellWidth = modalities.length > 1 ? '200px' : '50px'
+  const availableModalities = getProjectModalities(project)
+  const checkBoxCellWidth = availableModalities.length > 1 ? '200px' : '50px'
 
   return (
     <Box
@@ -16,7 +22,7 @@ export const ProjectSamplesTableModalityCell = ({ sample, modalities }) => {
       justify="around"
       width={checkBoxCellWidth}
     >
-      {modalities.map((m) => (
+      {availableModalities.map((m) => (
         <CheckBox
           key={`${sample.scpca_id}_${m}`}
           name={m}
