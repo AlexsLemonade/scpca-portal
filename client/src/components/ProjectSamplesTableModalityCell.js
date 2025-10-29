@@ -1,20 +1,37 @@
 import React from 'react'
+import { Box } from 'grommet'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
+import { getProjectModalities } from 'helpers/getProjectModalities'
 import { CheckBox } from 'components/CheckBox'
 
-export const ProjectSamplesTableModalityCell = ({ modality, sample }) => {
-  const { getCheckBoxIsChecked, getCheckBoxIsDisabled, toggleSample } =
-    useProjectSamplesTable()
+export const ProjectSamplesTableModalityCell = ({ sample }) => {
+  const {
+    project,
+    getCheckBoxIsChecked,
+    getCheckBoxIsDisabled,
+    toggleSampleModality
+  } = useProjectSamplesTable()
 
-  const handleToggleSample = () => toggleSample(modality, sample)
+  const availableModalities = getProjectModalities(project)
+  const checkBoxCellWidth = availableModalities.length > 1 ? '200px' : '50px'
 
   return (
-    <CheckBox
-      name={modality}
-      checked={getCheckBoxIsChecked(sample, modality)}
-      disabled={getCheckBoxIsDisabled(sample, modality)}
-      onClick={handleToggleSample}
-    />
+    <Box
+      align="center"
+      direction="row"
+      justify="around"
+      width={checkBoxCellWidth}
+    >
+      {availableModalities.map((m) => (
+        <CheckBox
+          key={`${sample.scpca_id}_${m}`}
+          name={m}
+          checked={getCheckBoxIsChecked(sample, m)}
+          disabled={getCheckBoxIsDisabled(sample, m)}
+          onClick={() => toggleSampleModality(sample, m)}
+        />
+      ))}
+    </Box>
   )
 }
 
