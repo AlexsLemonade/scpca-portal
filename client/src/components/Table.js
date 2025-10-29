@@ -26,17 +26,17 @@ import { useResponsive } from 'hooks/useResponsive'
 
 // Styles for highlighting rows when their checkbox is selected
 const TableRow = styled(GrommetTableRow)`
- ${({ theme }) => css`
-   cursor: pointer;
-   td {
-     vertical-align: middle;
-   }
-   &.selected {
+  cursor: pointer;
+  td {
+    vertical-align: middle;
+  }
+ ${({ highlighted, theme }) =>
+   highlighted &&
+   css`
      > td {
        background: ${theme.global.colors['powder-blue']} !important;
      }
-   }
- `}}
+   `}}
 `
 
 // Styles to allow for dynamic "sticky" columns
@@ -182,7 +182,7 @@ export const TBody = ({
   const getSelectedModalities = (id) =>
     Object.keys(selectedRows).filter((m) => selectedRows[m].includes(id))
 
-  const getClassName = (id) => {
+  const getIsHighlighted = (id) => {
     const prevModalities = getPrevSelectedModalities(id)
     const currModalities = getSelectedModalities(id)
 
@@ -198,7 +198,7 @@ export const TBody = ({
       (m) => !prevModalities.includes(m)
     )
 
-    return isNewSelected ? 'selected' : ''
+    return isNewSelected
   }
 
   useEffect(() => {
@@ -220,7 +220,7 @@ export const TBody = ({
         return (
           <TableRow
             ref={ref}
-            className={getClassName(row.original.scpca_id)}
+            highlighted={getIsHighlighted(row.original.scpca_id)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...row.getRowProps()}
           >
