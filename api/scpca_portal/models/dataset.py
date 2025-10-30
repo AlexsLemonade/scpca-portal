@@ -1,4 +1,3 @@
-import hashlib
 import sys
 import uuid
 from collections import Counter, defaultdict
@@ -520,12 +519,8 @@ class Dataset(TimestampedModel):
     @property
     def current_data_hash(self) -> str:
         """Computes and returns the current data hash."""
-        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
-            "hash", flat=True
-        )
-        concat_hash = "".join(sorted_original_file_hashes)
-        concat_hash_bytes = concat_hash.encode("utf-8")
-        return hashlib.md5(concat_hash_bytes).hexdigest()
+        original_file_hashes = self.original_files.values_list("hash", flat=True)
+        return utils.hash_values(original_file_hashes)
 
     @property
     def current_metadata_hash(self) -> str:
@@ -533,9 +528,7 @@ class Dataset(TimestampedModel):
         all_metadata_file_contents = [
             file_content for _, _, file_content in self.get_metadata_file_contents()
         ]
-        concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
-        metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
-        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
+        return utils.hash_values(all_metadata_file_contents)
 
     @property
     def current_readme_hash(self) -> str:
@@ -543,16 +536,14 @@ class Dataset(TimestampedModel):
         # the first line in the readme file contains the current date
         # we must remove this before hashing
         readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
-        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
-        return hashlib.md5(readme_file_contents_bytes).hexdigest()
+        return utils.hash_values([readme_file_contents])
 
     @staticmethod
     def get_current_combined_hash(data_hash: str, metadata_hash: str, readme_hash: str) -> str:
         """
         Combines, computes and returns the combined current data, metadata and readme hashes.
         """
-        concat_hash = data_hash + metadata_hash + readme_hash
-        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
+        return utils.hash_values([data_hash, metadata_hash, readme_hash])
 
     @property
     def is_hash_changed(self) -> bool:
