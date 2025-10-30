@@ -182,15 +182,15 @@ def check_file_empty(key: str, bucket: str) -> bool:
 
 
 def list_files_by_suffix(
-    suffix: str, dir_path: str = "/", bucket_name: str = settings.AWS_S3_INPUT_BUCKET_NAME
+    suffix: str, dir_path: str = "/", bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
 ) -> List[Path]:
     """
     Lists all objects in the passed bucket at the location of the passed directory path,
     then returns a sorted list of all paths matching the passed suffix.
     """
-    command_inputs = ["aws", "s3", "ls", f"{bucket_name}{dir_path}"]
+    command_inputs = ["aws", "s3", "ls", f"{bucket}{dir_path}"]
 
-    if "public" in bucket_name:
+    if "public" in bucket:
         command_inputs.append("--no-sign-request")
 
     try:
@@ -205,6 +205,25 @@ def list_files_by_suffix(
 
     bucket_paths = [Path(entry.split(" ")[-1]) for entry in output.splitlines()]
     return sorted(path for path in bucket_paths if path.suffix == f".{suffix}")
+
+
+def check_file_exists(key: str, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME) -> bool:
+    command_parts = ["aws", "s3api", "head-object"]
+
+    if "/" in bucket:
+        bucket, prefix = bucket.split("/", 1)
+        key = f"{prefix}/{key}"
+    command_parts.extend(["--bucket", bucket])
+    command_parts.extend(["--key", key])
+
+    # If object exists, aws returns a JSON object.
+    # If object doesn't exist, aws throws an object non found error.
+    try:
+        subprocess.run(command_parts, capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError:
+        return False
+
+    return True
 
 
 def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
