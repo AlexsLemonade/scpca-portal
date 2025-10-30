@@ -38,6 +38,8 @@ export const useCCDLDatasetDownloadModalContext = () => {
   }
 
   useEffect(() => {
+    if (!selectedDataset) return
+
     const modalTitleAction = isDownloadReady ? 'Downloading' : 'Download'
     const modalityName =
       selectedDataset.format === 'METADATA'

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
-import { DatasetSamplesTableContextProvider } from 'contexts/DatasetSamplesTableContext'
+import { ProjectSamplesTableContextProvider } from 'contexts/ProjectSamplesTableContext'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { DetailsTable } from 'components/DetailsTable'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
@@ -161,12 +161,13 @@ const Project = ({ project, ccdlDatasets }) => {
                     resource={project}
                     attribute="samples"
                   >
-                    <DatasetSamplesTableContextProvider>
-                      <ProjectSamplesTable
-                        project={project}
-                        stickies={responsive(0, 3)}
-                      />
-                    </DatasetSamplesTableContextProvider>
+                    <ProjectSamplesTableContextProvider
+                      project={project}
+                      samples={project.samples}
+                      canAdd
+                    >
+                      <ProjectSamplesTable stickies={responsive(0, 3)} />
+                    </ProjectSamplesTableContextProvider>
                   </DownloadOptionsContextProvider>
                 </CCDLDatasetDownloadModalContextProvider>
               </Box>

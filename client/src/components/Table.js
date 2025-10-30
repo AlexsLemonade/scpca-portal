@@ -17,6 +17,7 @@ import {
   usePagination
 } from 'react-table'
 import { matchSorter } from 'match-sorter'
+import { allModalities } from 'config/datasets'
 import { Icon } from 'components/Icon'
 import { TableFilter } from 'components/TableFilter'
 import { TablePageSize } from 'components/TablePageSize'
@@ -173,9 +174,7 @@ export const TBody = ({
   const ref = createRef(null)
   // Get selected sample rows for highlighting
   const getSelectedRow = (id) =>
-    ['SINGLE_CELL', 'SPATIAL'].some((modality) =>
-      selectedRows?.[modality]?.includes(id)
-    )
+    allModalities.some((modality) => selectedRows?.[modality]?.includes(id))
 
   useEffect(() => {
     if (ref.current) {

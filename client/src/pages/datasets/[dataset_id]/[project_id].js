@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
 import { api } from 'api'
-import { DatasetSamplesTableContextProvider } from 'contexts/DatasetSamplesTableContext'
+import { ProjectSamplesTableContextProvider } from 'contexts/ProjectSamplesTableContext'
 import { useRouter } from 'next/router'
 import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useDataset } from 'hooks/useDataset'
-import { DatasetSamplesTable } from 'components/DatasetSamplesTable'
-import { DatasetSamplesTableOptionsHeader } from 'components/DatasetSamplesTableOptionsHeader'
+import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
+import { ProjectSamplesTableOptionsHeader } from 'components/ProjectSamplesTableOptionsHeader'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
@@ -52,19 +52,18 @@ export const ViewSamples = ({ dataset, project }) => {
           </Text>
         </Link>
       </Box>
-      <DatasetSamplesTableContextProvider>
+      <ProjectSamplesTableContextProvider project={project} samples={samples}>
         <Box pad={{ bottom: 'medium' }}>
-          <DatasetSamplesTableOptionsHeader
+          <ProjectSamplesTableOptionsHeader
             project={project}
             includeBulk={includeBulk}
             includeMerge={includeMerge}
             onIncludeBulkChange={setIncludeBulk}
             onIncludeMergeChange={setIncludeMerge}
-            readOnly
           />
         </Box>
-        <DatasetSamplesTable project={project} samples={samples} readOnly />
-      </DatasetSamplesTableContextProvider>
+        <ProjectSamplesTable />
+      </ProjectSamplesTableContextProvider>
     </Box>
   )
 }

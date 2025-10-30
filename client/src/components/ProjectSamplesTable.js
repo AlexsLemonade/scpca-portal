@@ -1,103 +1,76 @@
 import React, { useEffect, useState } from 'react'
 import { api } from 'api'
 import { config } from 'config'
+import { allModalities } from 'config/datasets'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 import { useMyDataset } from 'hooks/useMyDataset'
-import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
+import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
+import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
-import { ModalityCheckBox } from 'components/ModalityCheckBox'
 import { Pill } from 'components/Pill'
+import { ProjectSamplesTableModalityCell } from 'components/ProjectSamplesTableModalityCell'
+import { ProjectSamplesTableModalityHeader } from 'components/ProjectSamplesTableModalityHeader'
 import { Table } from 'components/Table'
-import { TriStateModalityCheckBox } from 'components/TriStateModalityCheckBox'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
-export const ProjectSamplesTable = ({
-  project,
-  samples: defaultSamples,
-  stickies = 3
-}) => {
+export const ProjectSamplesTable = ({ stickies = 3 }) => {
+  const { datasets } = useCCDLDatasetDownloadModalContext()
   const {
     myDataset,
-    userFormat,
-    getDatasetProjectData,
+    getDatasetProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples
   } = useMyDataset()
-  const { selectedSamples, setAllSamples, setFilteredSamples, toggleSample } =
-    useDatasetSamplesTable()
+  const {
+    project,
+    samples: defaultSamples,
+    canAdd,
+    canRemove,
+    allSamples,
+    showBulkInfoText,
+    showWarningMultiplexed,
+    selectedSamples,
+    setAllSamples,
+    setFilteredSamples,
+    selectModalitySamplesByIds
+  } = useProjectSamplesTable()
 
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples)
-  const [disableAddToDataset, setDisableAddToDataset] = useState(false)
+  const [disableAddToDatasetModal, setDisableAddToDatasetModal] =
+    useState(false)
 
   const hasMultiplexedData = project.has_multiplexed_data
-  const showWarningMultiplexed =
-    hasMultiplexedData && (myDataset.forat || userFormat) === 'ANN_DATA'
 
-  const infoText =
-    project && project.has_bulk_rna_seq
-      ? 'Bulk RNA-seq data available only when you download the entire project'
-      : false
+  const infoText = showBulkInfoText
+    ? 'Bulk RNA-seq data available only when you download the entire project'
+    : null
+  const text = canRemove ? 'Uncheck to change or remove modality' : null
 
-  const allModalities = ['SINGLE_CELL', 'SPATIAL'] // List of all modalities available on the portal
-  const checkBoxCellWidth = '200px'
+  const checkBoxCellWidth =
+    getProjectModalities(project).length > 1 ? '200px' : '50px'
 
   const columns = [
     {
       Header: (
         <Box width={checkBoxCellWidth}>
-          <Box align="center" margin={{ bottom: 'small' }} pad="small">
-            Select Modality
-          </Box>
-          <Box
-            border={{ side: 'bottom' }}
-            width="100%"
-            style={{ position: 'absolute', top: '45px', left: 0 }}
-          />
-          <Box direction="row" justify="around">
-            {allModalities.map((m) => (
-              <Box key={m} align="center" pad={{ horizontal: 'small' }}>
-                <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
-                <TriStateModalityCheckBox
-                  project={project}
-                  modality={m}
-                  disabled={!project[`has_${m.toLowerCase()}_data`]}
-                  partialToggle
-                />
-              </Box>
-            ))}
-          </Box>
+          <ProjectSamplesTableModalityHeader />
         </Box>
       ),
       disableSortBy: true,
       accessor: 'data',
       Cell: ({ row }) => (
-        <Box
-          align="center"
-          direction="row"
-          justify="around"
-          width={checkBoxCellWidth}
-        >
-          {allModalities.map((m) => (
-            <ModalityCheckBox
-              key={`${row.original.scpca_id}_${m}`}
-              project={project}
-              modality={m}
-              samples={samples}
-              sampleId={row.original.scpca_id}
-              disabled={!row.original[`has_${m.toLowerCase()}_data`]}
-              partialToggle
-              onClick={() => toggleSample(m, row.original)}
-            />
-          ))}
+        <Box width={checkBoxCellWidth}>
+          <ProjectSamplesTableModalityCell sample={row.original} />
         </Box>
       )
     },
@@ -210,35 +183,36 @@ export const ProjectSamplesTable = ({
     if (samples && !loaded) setLoaded(true)
   }, [samples, loaded])
 
+  // Disable DatasetAddSamplesModal if all samples are added
   useEffect(() => {
     if (samples && loaded) {
-      const datasetData = getDatasetProjectData(project)
-
       const projectSamplesByModality = {
         SINGLE_CELL: getProjectSingleCellSamples(samples),
         SPATIAL: getProjectSpatialSamples(samples)
       }
 
-      const datasetSamplesByModality = {
-        SINGLE_CELL:
-          datasetData.SINGLE_CELL === 'MERGED'
-            ? projectSamplesByModality.SINGLE_CELL
-            : datasetData.SINGLE_CELL || [],
-        SPATIAL: datasetData.SPATIAL || []
-      }
+      const datasetProjectData = getDatasetProjectDataSamples(project, samples)
 
       const samplesLeft = allModalities
         .map((m) =>
-          differenceArray(
-            projectSamplesByModality[m],
-            datasetSamplesByModality[m] || []
-          )
+          differenceArray(projectSamplesByModality[m], datasetProjectData[m])
         )
         .flat()
 
-      setDisableAddToDataset(samplesLeft.length === 0)
+      setDisableAddToDatasetModal(samplesLeft.length === 0)
     }
   }, [myDataset, samples, loaded])
+
+  // Preselect samples that are already in myDataset
+  useEffect(() => {
+    if (!myDataset.data || !allSamples.length || !samples) return
+
+    const { SINGLE_CELL: singleCell, SPATIAL: spatial } =
+      getDatasetProjectDataSamples(project, samples)
+
+    selectModalitySamplesByIds('SINGLE_CELL', singleCell)
+    selectModalitySamplesByIds('SPATIAL', spatial)
+  }, [myDataset, allSamples, samples])
 
   if (!loaded)
     return (
@@ -249,13 +223,15 @@ export const ProjectSamplesTable = ({
 
   return (
     <>
-      <Box direction="row" justify="end">
-        <DatasetAddSamplesModal
-          project={project}
-          samples={samples}
-          disabled={disableAddToDataset}
-        />
-      </Box>
+      {canAdd && (
+        <Box direction="row" justify="end">
+          <DatasetAddSamplesModal
+            project={project}
+            samples={samples}
+            disabled={disableAddToDatasetModal}
+          />
+        </Box>
+      )}
       <Table
         columns={columns}
         data={samples}
@@ -264,17 +240,20 @@ export const ProjectSamplesTable = ({
         pageSize={5}
         pageSizeOptions={[5, 10, 20, 50]}
         infoText={infoText}
+        text={text}
         defaultSort={[{ id: 'scpca_id', asc: true }]}
         selectedRows={selectedSamples}
         onAllRowsChange={setAllSamples}
         onFilteredRowsChange={setFilteredSamples}
       >
-        <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
-          <CCDLDatasetDownloadModal
-            label="Download Sample Metadata"
-            icon={<DownloadIcon color="brand" />}
-          />
-        </Box>
+        {datasets && (
+          <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
+            <CCDLDatasetDownloadModal
+              label="Download Sample Metadata"
+              icon={<DownloadIcon color="brand" />}
+            />
+          </Box>
+        )}
         {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
       </Table>
     </>

@@ -4,7 +4,7 @@ import { config } from 'config'
 import { useRouter } from 'next/router'
 import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useMyDataset } from 'hooks/useMyDataset'
-import { useDatasetSamplesTable } from 'hooks/useDatasetSamplesTable'
+import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { getReadable } from 'helpers/getReadable'
 import { Button } from 'components/Button'
@@ -12,23 +12,18 @@ import { DatasetChangingMergedProjectModal } from 'components/DatasetChangingMer
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
-export const DatasetSamplesTableOptionsHeader = ({
+export const ProjectSamplesTableOptionsHeader = ({
   project,
   includeBulk,
   includeMerge,
-  readOnly = false,
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
   const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
-  const {
-    myDataset,
-    isProjectMerged,
-    getProjectSingleCellSamples,
-    setSamples
-  } = useMyDataset()
-  const { selectAllModalitySamples, selectedSamples } = useDatasetSamplesTable()
+  const { myDataset, isProjectMerged, setSamples } = useMyDataset()
+  const { readOnly, selectAllSingleCellSamples, selectedSamples } =
+    useProjectSamplesTable()
   const { responsive } = useResponsive()
 
   // For the changing merged project modal visibility and conditions
@@ -65,11 +60,8 @@ export const DatasetSamplesTableOptionsHeader = ({
       : includesMergedAnnData
 
   const handleChangeMergedModalCancel = async () => {
-    // Reselect any samples that were deselected in the table
-    selectAllModalitySamples(
-      'SINGLE_CELL',
-      getProjectSingleCellSamples(project.samples)
-    )
+    // Reselect any single-cell samples that were deselected
+    selectAllSingleCellSamples()
     setShowChangeMergedProjectModal(false)
   }
 
@@ -183,4 +175,4 @@ export const DatasetSamplesTableOptionsHeader = ({
   )
 }
 
-export default DatasetSamplesTableOptionsHeader
+export default ProjectSamplesTableOptionsHeader
