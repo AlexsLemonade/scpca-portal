@@ -47,16 +47,16 @@ export default {
     background: { color: 'brand' },
     disabled: undefined
   },
-  extend: ({ danger, plain, disabled }) => `
+  extend: ({ danger, plain, disabled, theme }) => `
     white-space: nowrap;
     ${
       danger &&
       `
-      border: #DB3B28 1px solid;
-      color: #DB3B28;
+      border: ${theme.global.colors.error} 1px solid;
+      color: ${theme.global.colors.error};
       &:hover {
-        background: #DB3B28;
-        color: #fff;
+        background: ${theme.global.colors.error};
+        color: ${theme.global.colors.white};
       }
     `
     }
