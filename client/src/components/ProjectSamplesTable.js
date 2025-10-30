@@ -8,6 +8,7 @@ import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownload
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
+import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
@@ -56,13 +57,22 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     : null
   const text = canRemove ? 'Uncheck to change or remove modality' : null
 
+  const checkBoxCellWidth =
+    getProjectModalities(project).length > 1 ? '200px' : '50px'
+
   const columns = [
     {
-      Header: <ProjectSamplesTableModalityHeader />,
+      Header: (
+        <Box width={checkBoxCellWidth}>
+          <ProjectSamplesTableModalityHeader />
+        </Box>
+      ),
       disableSortBy: true,
       accessor: 'data',
       Cell: ({ row }) => (
-        <ProjectSamplesTableModalityCell sample={row.original} />
+        <Box width={checkBoxCellWidth}>
+          <ProjectSamplesTableModalityCell sample={row.original} />
+        </Box>
       )
     },
     {
