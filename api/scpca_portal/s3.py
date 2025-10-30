@@ -155,32 +155,6 @@ def upload_output_file(key: str, bucket_name: str) -> bool:
     return True
 
 
-def check_file_empty(key: str, bucket: str) -> bool:
-    """
-    Checks to see if the passed bucket and key correspond to an empty file.
-    """
-    command_parts = ["aws", "s3api", "head-object"]
-
-    if "/" in bucket:
-        bucket, prefix = bucket.split("/", 1)
-        key = f"{prefix}/{key}"
-    command_parts.extend(["--bucket", bucket])
-    command_parts.extend(["--key", key])
-
-    if "public" in bucket:
-        command_parts.append("--no-sign-request")
-
-    try:
-        result = subprocess.run(command_parts, capture_output=True, text=True, check=True)
-        raw_json_output = result.stdout
-        json_output = json.loads(raw_json_output)
-    except subprocess.CalledProcessError:
-        logger.error("Either the request was malformed or there was a network error.")
-        raise
-
-    return json_output["ContentLength"] == 0
-
-
 def list_files_by_suffix(
     suffix: str, dir_path: str = "/", bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
 ) -> List[Path]:
