@@ -13,15 +13,9 @@ export const ProjectSamplesTableModalityCell = ({ sample }) => {
   } = useProjectSamplesTable()
 
   const availableModalities = getProjectModalities(project)
-  const checkBoxCellWidth = availableModalities.length > 1 ? '200px' : '50px'
 
   return (
-    <Box
-      align="center"
-      direction="row"
-      justify="around"
-      width={checkBoxCellWidth}
-    >
+    <Box align="center" direction="row" justify="around">
       {availableModalities.map((m) => (
         <CheckBox
           key={`${sample.scpca_id}_${m}`}
