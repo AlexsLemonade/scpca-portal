@@ -725,7 +725,7 @@ class Dataset(TimestampedModel):
     @property
     def has_lockfile_projects(self) -> bool:
         """Returns whether or not the dataset contains any project ids in the lockfile."""
-        return self.contains_project_ids(set(lockfile.get_lockfile_project_ids()))
+        return self.contains_project_ids(set(lockfile.get_locked_project_ids()))
 
     @property
     def locked_projects(self) -> Iterable[Project]:

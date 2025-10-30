@@ -89,8 +89,8 @@ class Command(BaseCommand):
         loader.download_projects_metadata()
 
         projects_metadata_ids = set(metadata_parser.get_projects_metadata_ids())
-        lockfile_project_ids = set(lockfile.get_lockfile_project_ids())
-        safe_project_ids = projects_metadata_ids - lockfile_project_ids
+        locked_project_ids = set(lockfile.get_locked_project_ids())
+        safe_project_ids = projects_metadata_ids - locked_project_ids
 
         filter_on_project_ids = list(safe_project_ids)
         if reload_locked:

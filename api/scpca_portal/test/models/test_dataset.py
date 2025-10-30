@@ -432,7 +432,7 @@ class TestDataset(TestCase):
         # lockfile in test bucket is empty by default
         self.assertFalse(dataset.has_lockfile_projects)
 
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=["SCPCP999990"]):
+        with patch("scpca_portal.lockfile.get_locked_project_ids", return_value=["SCPCP999990"]):
             self.assertTrue(dataset.has_lockfile_projects)
 
     def test_projects_property(self):
