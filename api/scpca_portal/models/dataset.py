@@ -738,6 +738,14 @@ class Dataset(TimestampedModel):
         return self.locked_projects.exists()
 
     @property
+    def is_locked(self) -> bool:
+        """
+        Returns whether a dataset contains projects which are locked
+        or which have project ids in the lockfile.
+        """
+        return self.has_locked_projects or self.has_lockfile_projects
+
+    @property
     def samples(self) -> Iterable[Sample]:
         """
         Returns a queryset of all samples contained in data attribute.

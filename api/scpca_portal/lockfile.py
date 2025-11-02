@@ -7,7 +7,6 @@ from scpca_portal.config.logging import get_and_configure_logger
 
 logger = get_and_configure_logger(__name__)
 
-LOCKFILE_S3_KEY = "projects.lock"
 LOCKFILE_FILE_SUFFIX = "lock"
 
 

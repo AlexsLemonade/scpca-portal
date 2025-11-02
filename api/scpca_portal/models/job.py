@@ -357,7 +357,7 @@ class Job(TimestampedModel):
 
         # if job has dataset, dynamically configure job for submission
         if self.dataset:
-            if self.dataset.has_lockfile_projects or self.dataset.has_locked_projects:
+            if self.dataset.is_locked:
                 raise DatasetLockedProjectError(self.dataset)
 
             # dynamically choose queue based on dataset size
