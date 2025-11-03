@@ -26,11 +26,13 @@ class CCDLDatasetSerializer(serializers.ModelSerializer):
             "metadata_hash",
             "readme_hash",
             "combined_hash",
-            "current_data_hash",
-            "current_metadata_hash",
-            "current_readme_hash",
-            "current_combined_hash",
-            "is_hash_changed",
+            # TODO: Uncomment re-computed current hashes if hashing can be optimized for large
+            # datasets (specifically portal wide) to avert a timeout upon list request.
+            # "current_data_hash",
+            # "current_metadata_hash",
+            # "current_readme_hash",
+            # "current_combined_hash",
+            # "is_hash_changed",
             "estimated_size_in_bytes",
             "total_sample_count",
             "diagnoses_summary",
