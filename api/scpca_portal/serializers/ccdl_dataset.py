@@ -61,12 +61,12 @@ class CCDLDatasetSerializer(serializers.ModelSerializer):
 
     computed_file = ComputedFileSerializer(read_only=True, many=False)
 
-    current_combined_hash = serializers.SerializerMethodField(read_only=True, default=None)
-
-    def get_current_combined_hash(self, obj):
-        return Dataset.get_current_combined_hash(
-            obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
-        )
+    # TODO: see above TODO about attrs being added back in when hashing is optimized
+    # current_combined_hash = serializers.SerializerMethodField(read_only=True, default=None)
+    # def get_current_combined_hash(self, obj):
+    #     return Dataset.get_current_combined_hash(
+    #         obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
+    #    )
 
 
 class CCDLDatasetDetailSerializer(CCDLDatasetSerializer):
