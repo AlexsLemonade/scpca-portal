@@ -52,6 +52,9 @@ def _remove_listed_directories(listed_objects):
     return [obj for obj in listed_objects if not obj["s3_key"].endswith("/")]
 
 
+# TODO: list_bucket_objects and list_files_by_suffix should be combined.
+# See linked comment below for details on how to accomplish this:
+# https://github.com/AlexsLemonade/scpca-portal/pull/1554#issuecomment-3482924420
 def list_bucket_objects(bucket: str, *, excluded_key_substrings: List[str] = []) -> List[Dict]:
     """
     Queries the aws s3api for all of a bucket's objects
