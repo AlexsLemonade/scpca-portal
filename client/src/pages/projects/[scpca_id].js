@@ -1,21 +1,20 @@
 import React, { useState } from 'react'
 import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
+import { useResponsive } from 'hooks/useResponsive'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 import { ProjectSamplesTableContextProvider } from 'contexts/ProjectSamplesTableContext'
-import { ProjectHeader } from 'components/ProjectHeader'
+import { api } from 'api'
 import { DetailsTable } from 'components/DetailsTable'
+import { Link } from 'components/Link'
+import { PageTitle } from 'components/PageTitle'
+import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
-import { Link } from 'components/Link'
-import { api } from 'api'
-import { useResponsive } from 'hooks/useResponsive'
-import { PageTitle } from 'components/PageTitle'
-import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
-import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 
 const Project = ({ project, ccdlDatasets }) => {
   if (!project) return '404'
@@ -157,18 +156,13 @@ const Project = ({ project, ccdlDatasets }) => {
                   project={project}
                   datasets={ccdlMetadataDatasets}
                 >
-                  <DownloadOptionsContextProvider
-                    resource={project}
-                    attribute="samples"
+                  <ProjectSamplesTableContextProvider
+                    project={project}
+                    samples={project.samples}
+                    canAdd
                   >
-                    <ProjectSamplesTableContextProvider
-                      project={project}
-                      samples={project.samples}
-                      canAdd
-                    >
-                      <ProjectSamplesTable stickies={responsive(0, 3)} />
-                    </ProjectSamplesTableContextProvider>
-                  </DownloadOptionsContextProvider>
+                    <ProjectSamplesTable stickies={responsive(0, 3)} />
+                  </ProjectSamplesTableContextProvider>
                 </CCDLDatasetDownloadModalContextProvider>
               </Box>
             </Tab>
