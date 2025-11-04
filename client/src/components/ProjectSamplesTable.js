@@ -101,35 +101,6 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         </Box>
       )
     },
-    {
-      Header: 'Multiplexed with',
-      accessor: 'multiplexed_with',
-      Cell: ({
-        row: {
-          original: { multiplexed_with: multiplexedWith }
-        }
-      }) => (
-        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
-          {multiplexedWith.length ? multiplexedWith.join(', ') : 'N/A'}
-        </Box>
-      ),
-      isVisible: hasMultiplexedData
-    },
-    {
-      Header: 'Sequencing Units',
-      accessor: 'seq_units',
-      Cell: ({ row }) => <Text>{row.original.seq_units.join(', ')}</Text>
-    },
-    {
-      Header: 'Technology',
-      accessor: 'technologies',
-      Cell: ({ row }) => <Text>{row.original.technologies.join(', ')}</Text>
-    },
-    {
-      Header: 'Modalities',
-      accessor: ({ modalities }) =>
-        modalities.map(getReadableModality).join(', ')
-    },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
     {
@@ -145,6 +116,35 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
       accessor: 'age_timing'
     },
     { Header: 'Sex', accessor: 'sex' },
+    {
+      Header: 'Modalities',
+      accessor: ({ modalities }) =>
+        modalities.map(getReadableModality).join(', ')
+    },
+    {
+      Header: 'Sequencing Units',
+      accessor: 'seq_units',
+      Cell: ({ row }) => <Text>{row.original.seq_units.join(', ')}</Text>
+    },
+    {
+      Header: 'Technology',
+      accessor: 'technologies',
+      Cell: ({ row }) => <Text>{row.original.technologies.join(', ')}</Text>
+    },
+    {
+      Header: 'Multiplexed with',
+      accessor: 'multiplexed_with',
+      Cell: ({
+        row: {
+          original: { multiplexed_with: multiplexedWith }
+        }
+      }) => (
+        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
+          {multiplexedWith.length ? multiplexedWith.join(', ') : 'N/A'}
+        </Box>
+      ),
+      isVisible: hasMultiplexedData
+    },
     {
       Header: 'Sample Count Estimates',
       accessor: ({ sample_cell_count_estimate: count }) => count || 'N/A'
