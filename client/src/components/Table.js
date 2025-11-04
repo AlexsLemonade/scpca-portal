@@ -17,7 +17,6 @@ import {
   usePagination
 } from 'react-table'
 import { matchSorter } from 'match-sorter'
-import { allModalities } from 'config/datasets'
 import { Icon } from 'components/Icon'
 import { TableFilter } from 'components/TableFilter'
 import { TablePageSize } from 'components/TablePageSize'
@@ -27,17 +26,17 @@ import { useResponsive } from 'hooks/useResponsive'
 
 // Styles for highlighting rows when their checkbox is selected
 const TableRow = styled(GrommetTableRow)`
- ${({ theme }) => css`
-   cursor: pointer;
-   td {
-     vertical-align: middle;
-   }
-   &.selected {
+  cursor: pointer;
+  td {
+    vertical-align: middle;
+  }
+ ${({ highlighted, theme }) =>
+   highlighted &&
+   css`
      > td {
        background: ${theme.global.colors['powder-blue']} !important;
      }
-   }
- `}}
+   `}}
 `
 
 // Styles to allow for dynamic "sticky" columns
@@ -168,13 +167,24 @@ export const TBody = ({
     state: { globalFilter }
   },
   stickies = 0,
+  prevSelectedRows,
   selectedRows
 }) => {
   const [offsets, setOffsets] = useState([])
   const ref = createRef(null)
-  // Get selected sample rows for highlighting
-  const getSelectedRow = (id) =>
-    allModalities.some((modality) => selectedRows?.[modality]?.includes(id))
+
+  const getIsHighlighted = (id) => {
+    // Previously selected modalities for the sample row
+    const prevModalities = Object.keys(prevSelectedRows).filter((m) =>
+      prevSelectedRows[m].includes(id)
+    )
+    // Currently selected modalities for the sample row
+    const currModalities = Object.keys(selectedRows).filter((m) =>
+      selectedRows[m].includes(id)
+    )
+
+    return currModalities.some((m) => !prevModalities.includes(m))
+  }
 
   useEffect(() => {
     if (ref.current) {
@@ -195,7 +205,7 @@ export const TBody = ({
         return (
           <TableRow
             ref={ref}
-            className={getSelectedRow(row.original.scpca_id) ? 'selected' : ''}
+            highlighted={getIsHighlighted(row.original.scpca_id)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...row.getRowProps()}
           >
@@ -235,7 +245,8 @@ export const Table = ({
   defaultSort = [],
   pageSize: initialPageSize = 0,
   pageSizeOptions = [],
-  selectedRows, // For highlighting selected samples rows
+  prevSelectedRows = {}, // For unhighlithing previously selected sample rows
+  selectedRows = {}, // For highlighting currently selected samples rows
   infoText = '',
   text = '',
   children,
@@ -356,6 +367,7 @@ export const Table = ({
           <Body
             instance={instance}
             stickies={stickies}
+            prevSelectedRows={prevSelectedRows}
             selectedRows={selectedRows}
           />
         </StickyTable>

@@ -45,7 +45,8 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   } = useProjectSamplesTable()
 
   const [loaded, setLoaded] = useState(false)
-  const [samples, setSamples] = useState(defaultSamples)
+  const [samples, setSamples] = useState(defaultSamples) // For all project samples
+  const [addedSamples, setAddedSamples] = useState([]) // For samples already added to myDataset
   const [disableAddToDatasetModal, setDisableAddToDatasetModal] =
     useState(false)
 
@@ -207,11 +208,11 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   useEffect(() => {
     if (!myDataset.data || !allSamples.length || !samples) return
 
-    const { SINGLE_CELL: singleCell, SPATIAL: spatial } =
-      getDatasetProjectDataSamples(project, samples)
+    const datasetProjectData = getDatasetProjectDataSamples(project, samples)
 
-    selectModalitySamplesByIds('SINGLE_CELL', singleCell)
-    selectModalitySamplesByIds('SPATIAL', spatial)
+    setAddedSamples(datasetProjectData)
+    selectModalitySamplesByIds('SINGLE_CELL', datasetProjectData.SINGLE_CELL)
+    selectModalitySamplesByIds('SPATIAL', datasetProjectData.SPATIAL)
   }, [myDataset, allSamples, samples])
 
   if (!loaded)
@@ -242,6 +243,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         infoText={infoText}
         text={text}
         defaultSort={[{ id: 'scpca_id', asc: true }]}
+        prevSelectedRows={addedSamples}
         selectedRows={selectedSamples}
         onAllRowsChange={setAllSamples}
         onFilteredRowsChange={setFilteredSamples}
