@@ -26,11 +26,13 @@ class CCDLDatasetSerializer(serializers.ModelSerializer):
             "metadata_hash",
             "readme_hash",
             "combined_hash",
-            "current_data_hash",
-            "current_metadata_hash",
-            "current_readme_hash",
-            "current_combined_hash",
-            "is_hash_changed",
+            # TODO: Uncomment re-computed current hashes if hashing can be optimized for large
+            # datasets (specifically portal wide) to avert a timeout upon list request.
+            # "current_data_hash",
+            # "current_metadata_hash",
+            # "current_readme_hash",
+            # "current_combined_hash",
+            # "is_hash_changed",
             "estimated_size_in_bytes",
             "total_sample_count",
             "diagnoses_summary",
@@ -59,12 +61,12 @@ class CCDLDatasetSerializer(serializers.ModelSerializer):
 
     computed_file = ComputedFileSerializer(read_only=True, many=False)
 
-    current_combined_hash = serializers.SerializerMethodField(read_only=True, default=None)
-
-    def get_current_combined_hash(self, obj):
-        return Dataset.get_current_combined_hash(
-            obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
-        )
+    # TODO: see above TODO about attrs being added back in when hashing is optimized
+    # current_combined_hash = serializers.SerializerMethodField(read_only=True, default=None)
+    # def get_current_combined_hash(self, obj):
+    #     return Dataset.get_current_combined_hash(
+    #         obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
+    #    )
 
 
 class CCDLDatasetDetailSerializer(CCDLDatasetSerializer):
