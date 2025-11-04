@@ -870,7 +870,7 @@ class Dataset(TimestampedModel):
     def download_filename(self) -> str:
         output_format = "-".join(self.format.split("_")).lower()
         if self.ccdl_modality == Modalities.SPATIAL:
-            output_format = "spatial"
+            output_format = "spaceranger"
 
         date = utils.get_today_string()
 
