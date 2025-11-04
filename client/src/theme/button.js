@@ -47,8 +47,19 @@ export default {
     background: { color: 'brand' },
     disabled: undefined
   },
-  extend: ({ plain, disabled }) => `
+  extend: ({ danger, plain, disabled, theme }) => `
     white-space: nowrap;
+    ${
+      danger &&
+      `
+      border: ${theme.global.colors.error} 1px solid;
+      color: ${theme.global.colors.error};
+      &:hover {
+        background: ${theme.global.colors.error};
+        color: ${theme.global.colors.white};
+      }
+    `
+    }
     ${disabled ? 'cursor: not-allowed;' : ''}
     ${plain && disabled ? 'opacity: 0.7;' : ''}
     &:active:not([disabled]) {
