@@ -1,11 +1,17 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, status, viewsets
-from rest_framework.exceptions import APIException, PermissionDenied
+from rest_framework import mixins, viewsets
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.response import Response
 
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.exceptions import DatasetError, JobError
+from scpca_portal.exceptions import (
+    DatasetError,
+    DatasetFormatChangeError,
+    JobError,
+    UpdateProcessingDatasetError,
+)
 from scpca_portal.models import APIToken, Dataset, Job
 from scpca_portal.serializers import (
     DatasetCreateSerializer,
@@ -14,12 +20,6 @@ from scpca_portal.serializers import (
 )
 
 logger = get_and_configure_logger(__name__)
-
-
-class UpdateProcessingDatasetError(APIException):
-    status_code = status.HTTP_409_CONFLICT
-    default_detail = "Invalid request: Processing datasets cannot be modified."
-    default_code = "conflict"
 
 
 @extend_schema(
@@ -96,14 +96,24 @@ class DatasetViewSet(
                 logger.info(f"{dataset} job (attempt {dataset_job.attempt}) is being requeued.")
                 dataset_job.increment_attempt_or_fail()
 
-    def perform_update(self, serializer):
-
+    def update(self, request, *args, **kwargs):
         found_dataset = self.get_object()
 
         if found_dataset.start:
             raise UpdateProcessingDatasetError
 
+        partial = kwargs.pop("partial", False)
+        serializer = self.get_serializer(found_dataset, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
+
+        original_format = found_dataset.format
+        new_format = serializer.validated_data.get("format", original_format)
+
+        is_format_changed = new_format != original_format
+
+        # Format change is not allowed if dataset already contains data
+        if is_format_changed and found_dataset.data:
+            raise DatasetFormatChangeError
 
         modified_dataset = serializer.save()
 
@@ -116,3 +126,5 @@ class DatasetViewSet(
                     f"{modified_dataset} job (attempt {dataset_job.attempt}) is being requeued."
                 )
                 dataset_job.increment_attempt_or_fail()
+
+        return Response(serializer.data)

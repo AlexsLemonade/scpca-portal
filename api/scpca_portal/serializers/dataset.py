@@ -15,6 +15,12 @@ class DatasetSerializer(serializers.ModelSerializer):
             "email",
             "start",
             "format",
+            "regenerated_from",
+            "includes_files_bulk",
+            "includes_files_cite_seq",
+            "includes_files_merged",
+            "includes_files_multiplexed",
+            "is_ccdl",
             "data_hash",
             "metadata_hash",
             "readme_hash",
@@ -24,9 +30,6 @@ class DatasetSerializer(serializers.ModelSerializer):
             "current_readme_hash",
             "current_combined_hash",
             "is_hash_changed",
-            "includes_files_bulk",
-            "includes_files_cite_seq",
-            "includes_files_merged",
             "estimated_size_in_bytes",
             "total_sample_count",
             "diagnoses_summary",
@@ -36,10 +39,6 @@ class DatasetSerializer(serializers.ModelSerializer):
             "modality_count_mismatch_projects",
             "project_sample_counts",
             "project_titles",
-            "is_ccdl",
-            "ccdl_name",
-            "ccdl_project_id",
-            "ccdl_modality",
             "started_at",
             "is_started",
             "is_processing",
@@ -123,14 +122,17 @@ class DatasetCreateSerializer(DatasetSerializer):
 
 class DatasetUpdateSerializer(DatasetSerializer):
     class Meta(DatasetSerializer.Meta):
-        modifiable_fields = ("data", "email", "start")
+        modifiable_fields = ("format", "data", "email", "start")
         read_only_fields = tuple(
             set(DatasetSerializer.Meta.read_only_fields) - set(modifiable_fields)
         )
+        extra_kwargs = {"format": {"required": False}}
 
     def validate_data(self, value):
+        # Either the incoming or original format
+        new_format = self.initial_data.get("format", self.instance.format)
         try:
-            return Dataset.validate_data(value, self.instance.format)
+            return Dataset.validate_data(value, new_format)
         # serializer exceptions return a 400 response to the client
         except PydanticValidationError as e:
             raise serializers.ValidationError({"detail": f"Invalid data structure: {e}"})

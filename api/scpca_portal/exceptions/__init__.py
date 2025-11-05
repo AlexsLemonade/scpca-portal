@@ -15,6 +15,11 @@ from scpca_portal.exceptions.dataset_error import (
     DatasetLockedProjectError,
     DatasetMissingLibrariesError,
 )
+from scpca_portal.exceptions.dataset_view_error import (
+    DatasetFormatChangeError,
+    DatasetViewError,
+    UpdateProcessingDatasetError,
+)
 from scpca_portal.exceptions.job_error import (
     JobError,
     JobInvalidRetryStateError,

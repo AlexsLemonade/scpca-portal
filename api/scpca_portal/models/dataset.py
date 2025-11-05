@@ -1,4 +1,3 @@
-import hashlib
 import sys
 import uuid
 from collections import Counter, defaultdict
@@ -44,12 +43,12 @@ class Dataset(TimestampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     # User-editable
+    format = models.TextField(choices=DatasetFormats.choices)  # Required upon creation
     data = models.JSONField(default=dict)
     email = models.EmailField(null=True)
     start = models.BooleanField(default=False)
 
-    # Format or regenerated_from is required at the time of creation
-    format = models.TextField(choices=DatasetFormats.choices)
+    # Required upon regeneration
     regenerated_from = models.ForeignKey(
         "self",
         null=True,
@@ -520,12 +519,8 @@ class Dataset(TimestampedModel):
     @property
     def current_data_hash(self) -> str:
         """Computes and returns the current data hash."""
-        sorted_original_file_hashes = self.original_files.order_by("s3_key").values_list(
-            "hash", flat=True
-        )
-        concat_hash = "".join(sorted_original_file_hashes)
-        concat_hash_bytes = concat_hash.encode("utf-8")
-        return hashlib.md5(concat_hash_bytes).hexdigest()
+        original_file_hashes = self.original_files.values_list("hash", flat=True)
+        return utils.hash_values(original_file_hashes)
 
     @property
     def current_metadata_hash(self) -> str:
@@ -533,9 +528,7 @@ class Dataset(TimestampedModel):
         all_metadata_file_contents = [
             file_content for _, _, file_content in self.get_metadata_file_contents()
         ]
-        concat_all_metadata_file_contents = "".join(sorted(all_metadata_file_contents))
-        metadata_file_contents_bytes = concat_all_metadata_file_contents.encode("utf-8")
-        return hashlib.md5(metadata_file_contents_bytes).hexdigest()
+        return utils.hash_values(all_metadata_file_contents)
 
     @property
     def current_readme_hash(self) -> str:
@@ -543,16 +536,14 @@ class Dataset(TimestampedModel):
         # the first line in the readme file contains the current date
         # we must remove this before hashing
         readme_file_contents = self.readme_file_contents.split("\n", 1)[1].strip()
-        readme_file_contents_bytes = readme_file_contents.encode("utf-8")
-        return hashlib.md5(readme_file_contents_bytes).hexdigest()
+        return utils.hash_values([readme_file_contents])
 
     @staticmethod
     def get_current_combined_hash(data_hash: str, metadata_hash: str, readme_hash: str) -> str:
         """
         Combines, computes and returns the combined current data, metadata and readme hashes.
         """
-        concat_hash = data_hash + metadata_hash + readme_hash
-        return hashlib.md5(concat_hash.encode("utf-8")).hexdigest()
+        return utils.hash_values([data_hash, metadata_hash, readme_hash])
 
     @property
     def is_hash_changed(self) -> bool:
@@ -725,7 +716,7 @@ class Dataset(TimestampedModel):
     @property
     def has_lockfile_projects(self) -> bool:
         """Returns whether or not the dataset contains any project ids in the lockfile."""
-        return self.contains_project_ids(set(lockfile.get_lockfile_project_ids()))
+        return self.contains_project_ids(set(lockfile.get_locked_project_ids()))
 
     @property
     def locked_projects(self) -> Iterable[Project]:
@@ -736,6 +727,14 @@ class Dataset(TimestampedModel):
     def has_locked_projects(self) -> bool:
         """Returns whether or not the dataset contains locked projects."""
         return self.locked_projects.exists()
+
+    @property
+    def is_locked(self) -> bool:
+        """
+        Returns whether a dataset contains projects which are locked
+        or which have project ids in the lockfile.
+        """
+        return self.has_locked_projects or self.has_lockfile_projects
 
     @property
     def samples(self) -> Iterable[Sample]:

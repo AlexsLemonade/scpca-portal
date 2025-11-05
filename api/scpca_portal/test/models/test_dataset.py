@@ -305,7 +305,7 @@ class TestDataset(TestCase):
             return_value=mock_original_files,
         ):
             dataset = Dataset()
-            expected_data_hash = "c60e50797610f0063688a0830b0a727e"
+            expected_data_hash = "2827e1b0bb8116cfd7f15e787d0d0dbc"
             self.assertEqual(dataset.current_data_hash, expected_data_hash)
 
     def test_current_metadata_hash(self):
@@ -432,7 +432,7 @@ class TestDataset(TestCase):
         # lockfile in test bucket is empty by default
         self.assertFalse(dataset.has_lockfile_projects)
 
-        with patch("scpca_portal.lockfile.get_lockfile_project_ids", return_value=["SCPCP999990"]):
+        with patch("scpca_portal.lockfile.get_locked_project_ids", return_value=["SCPCP999990"]):
             self.assertTrue(dataset.has_lockfile_projects)
 
     def test_projects_property(self):
