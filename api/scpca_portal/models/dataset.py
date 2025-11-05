@@ -19,7 +19,6 @@ from scpca_portal.enums import (
     CCDLDatasetNames,
     DatasetDataProjectConfig,
     DatasetFormats,
-    FileFormats,
     JobStates,
     Modalities,
 )
@@ -871,13 +870,14 @@ class Dataset(TimestampedModel):
 
     @property
     def download_filename(self) -> str:
-        # NOTE: user datasets with spatial data default to a format of SINGLE_CELL_EXPERIMENT
+        # Both User and CCDL Datasets have a default DatasetFormat of SINGLE_CELL_EXERPIMENT,
+        # though most of their files are of FileFormat SPATIAL_SPACERANGER.
+        # CCDL Spatial Datasets should have an output_format of "spaceranger".
+        # With user datasets, it depends on the format requested
+        # for the rest of the data included in the dataset.
         output_format = "-".join(self.format.split("_")).lower()
-
-        # ccdl spatial datasets have a format of SPATIAL_SPACERANGER,
-        # which should be should be shortened to just "spaceranger" for the filename
-        if self.format == FileFormats.SPATIAL_SPACERANGER:
-            output_format = output_format.split("-")[1]
+        if self.ccdl_modality == Modalities.SPATIAL:
+            output_format = "spaceranger"
 
         date = utils.get_today_string()
 
