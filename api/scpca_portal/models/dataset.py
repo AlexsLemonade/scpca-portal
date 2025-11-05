@@ -870,9 +870,14 @@ class Dataset(TimestampedModel):
 
     @property
     def download_filename(self) -> str:
+        # Both User and CCDL Datasets have a default DatasetFormat of SINGLE_CELL_EXERPIMENT,
+        # though most of their files are of FileFormat SPATIAL_SPACERANGER.
+        # CCDL Spatial Datasets should have an output_format of "spaceranger".
+        # With user datasets, it depends on the format requested
+        # for the rest of the data included in the dataset.
         output_format = "-".join(self.format.split("_")).lower()
         if self.ccdl_modality == Modalities.SPATIAL:
-            output_format = "spatial"
+            output_format = "spaceranger"
 
         date = utils.get_today_string()
 
