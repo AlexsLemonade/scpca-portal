@@ -802,7 +802,9 @@ class Dataset(TimestampedModel):
             samples__in=self.get_project_modality_samples(project_id, modality), modality=modality
         ).distinct()
 
-        if self.format != DatasetFormats.METADATA and modality != Modalities.BULK_RNA_SEQ:
+        # Both spatial and bulk modalities, as well as metadata dataset format,
+        # don't need to be queried on format
+        if modality == Modalities.SINGLE_CELL and self.format != DatasetFormats.METADATA:
             libraries = libraries.filter(formats__contains=[self.format])
 
         return libraries

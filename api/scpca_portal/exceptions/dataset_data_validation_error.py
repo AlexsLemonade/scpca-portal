@@ -38,16 +38,6 @@ class DatasetDataInvalidProjectIDError(DatasetDataValidationError):
         super().__init__(message)
 
 
-class DatasetDataInvalidAnndataSpatialCombinationError(DatasetDataValidationError):
-    def __init__(self, invalid_project_ids: Iterable[str]):
-        message = (
-            "Datasets with format ANN_DATA "
-            "do not support projects with SPATIAL samples. "
-            f"Invalid projects: {', '.join(sorted(invalid_project_ids))}"
-        )
-        super().__init__(message)
-
-
 class DatasetDataProjectsDontExistError(DatasetDataValidationError):
     def __init__(self, invalid_project_ids: Iterable[str]):
         message = f"The following projects do not exist: {', '.join(sorted(invalid_project_ids))}"

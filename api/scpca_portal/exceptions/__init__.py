@@ -1,5 +1,4 @@
 from scpca_portal.exceptions.dataset_data_validation_error import (
-    DatasetDataInvalidAnndataSpatialCombinationError,
     DatasetDataInvalidModalityStringError,
     DatasetDataInvalidProjectIDError,
     DatasetDataInvalidSampleIDError,
