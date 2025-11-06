@@ -183,7 +183,7 @@ class Dataset(TimestampedModel):
                 samples = samples.filter(libraries__modality=modality)
 
             # don't add projects to data attribute that don't have data
-            if not samples.exist():
+            if not samples.exists():
                 continue
 
             single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
