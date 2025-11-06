@@ -10,16 +10,6 @@ class DatasetSpatialSpatialSpaceranger:
                 Modalities.SINGLE_CELL.value: [],
                 Modalities.SPATIAL.value: ["SCPCS999991"],
             },
-            "SCPCP999991": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: [],
-                Modalities.SPATIAL.value: [],
-            },
-            "SCPCP999992": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: [],
-                Modalities.SPATIAL.value: [],
-            },
         },
         "email": None,
         "start": False,
