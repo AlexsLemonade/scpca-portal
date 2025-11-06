@@ -182,6 +182,10 @@ class Dataset(TimestampedModel):
             if modality := self.ccdl_type.get("modality"):
                 samples = samples.filter(libraries__modality=modality)
 
+            # don't add projects to data attribute that don't have data
+            if not samples.exist():
+                continue
+
             single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
             spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
 
@@ -873,7 +877,7 @@ class Dataset(TimestampedModel):
         # Both User and CCDL Datasets have a default DatasetFormat of SINGLE_CELL_EXERPIMENT,
         # though most of their files are of FileFormat SPATIAL_SPACERANGER.
         # CCDL Spatial Datasets should have an output_format of "spaceranger".
-        # With user datasets, it depends on the format requested
+        # With User Datasets, it depends on the format requested
         # for the rest of the data included in the dataset.
         output_format = "-".join(self.format.split("_")).lower()
         if self.ccdl_modality == Modalities.SPATIAL:
