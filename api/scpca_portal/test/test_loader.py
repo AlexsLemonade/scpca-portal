@@ -770,27 +770,27 @@ class TestLoader(TransactionTestCase):
             computed_file, test_data.Computed_File_Project.SINGLE_CELL_ANN_DATA_MERGED.VALUES
         )
 
-    def test_project_generate_computed_files_SPATIAL_SPATIAL_SPACERANGER(self):
+    def test_project_generate_computed_files_SPATIAL_SINGLE_CELL_EXPERIMENT(self):
         utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
         project = self.create_project(
             self.load_project_metadata(
-                test_data.Computed_File_Project.SPATIAL_SPATIAL_SPACERANGER.PROJECT_ID
+                test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.PROJECT_ID
             )
         )
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_project_generate_computed_file_"
-            f"{test_data.Computed_File_Project.SPATIAL_SPATIAL_SPACERANGER.DOWNLOAD_CONFIG_NAME}",  # noqa
+            f"{test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG_NAME}",  # noqa
         )
 
         download_config_name = (
-            test_data.Computed_File_Project.SPATIAL_SPATIAL_SPACERANGER.DOWNLOAD_CONFIG_NAME
+            test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG_NAME
         )
         download_config = (
-            test_data.Computed_File_Project.SPATIAL_SPATIAL_SPACERANGER.DOWNLOAD_CONFIG
+            test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
         )
         with patch(
             "scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {download_config_name: download_config}
@@ -804,22 +804,22 @@ class TestLoader(TransactionTestCase):
         with ZipFile(project_zip_path) as project_zip:
             # Check if correct libraries were added in
             expected_libraries = (
-                test_data.Computed_File_Project.SPATIAL_SPATIAL_SPACERANGER.LIBRARIES
+                test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.LIBRARIES
             )
             self.assertLibraries(project_zip, expected_libraries)
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.Computed_File_Project.SPATIAL_SPATIAL_SPACERANGER.FILE_LIST,
+                test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = project.get_computed_file(
-            test_data.Computed_File_Project.SPATIAL_SPATIAL_SPACERANGER.DOWNLOAD_CONFIG
+            test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
         )
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Project.SPATIAL_SPATIAL_SPACERANGER.VALUES
+            computed_file, test_data.Computed_File_Project.SPATIAL_SINGLE_CELL_EXPERIMENT.VALUES
         )
 
     def test_project_generate_computed_files_ALL_METADATA(self):

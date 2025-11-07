@@ -164,7 +164,7 @@ PROJECT_DOWNLOAD_CONFIGS = {
         "includes_merged": True,
         "metadata_only": False,
     },
-    "SPATIAL": {
+    "SPATIAL_SINGLE_CELL_EXPERIMENT": {
         "modality": "SPATIAL",
         "format": "SPATIAL_SPACERANGER",
         "excludes_multiplexed": True,
