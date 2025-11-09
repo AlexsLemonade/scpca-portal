@@ -6,7 +6,7 @@ class DatasetSpatialSpatialSpaceranger:
     VALUES = {
         "data": {
             "SCPCP999990": {
-                "includes_bulk": True,
+                "includes_bulk": False,
                 Modalities.SINGLE_CELL.value: [],
                 Modalities.SPATIAL.value: ["SCPCS999991"],
             },
