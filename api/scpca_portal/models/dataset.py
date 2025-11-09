@@ -179,25 +179,39 @@ class Dataset(TimestampedModel):
             if self.ccdl_type.get("excludes_multiplexed"):
                 samples = samples.filter(has_multiplexed_data=False)
 
-            if modality := self.ccdl_type.get("modality"):
-                samples = samples.filter(libraries__modality=modality)
-
+            modality = self.ccdl_type.get("modality")
             # don't add projects to data attribute that don't have data
-            if not samples.exists():
+            if modality and not samples.filter(libraries__modality=modality).exists():
                 continue
 
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
-            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
-
-            data[project.scpca_id] = {
-                "includes_bulk": True,
+            modality_sample_ids = {
                 Modalities.SINGLE_CELL: (
-                    list(single_cell_samples.values_list("scpca_id", flat=True))
+                    list(
+                        samples.filter(libraries__modality=Modalities.SINGLE_CELL).values_list(
+                            "scpca_id", flat=True
+                        )
+                    )
                     if not self.ccdl_type.get("includes_merged")
                     else "MERGED"
                 ),
-                Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
+                Modalities.SPATIAL: list(
+                    samples.filter(libraries__modality=Modalities.SPATIAL).values_list(
+                        "scpca_id", flat=True
+                    )
+                ),
             }
+
+            data[project.scpca_id] = {
+                # single cell modality files get bulk, but not spatial and all metadata files
+                "includes_bulk": modality == Modalities.SINGLE_CELL,
+                Modalities.SINGLE_CELL: [],
+                Modalities.SPATIAL: [],
+            }
+
+            if modality:
+                data[project.scpca_id][modality] = modality_sample_ids[modality]
+            else:
+                data[project.scpca_id].update(modality_sample_ids)
 
         return data
 
