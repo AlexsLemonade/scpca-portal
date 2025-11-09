@@ -65,10 +65,10 @@ class Computed_File_Sample:
             "includes_celltype_report": True,
         }
 
-    class SPATIAL_SPATIAL_SPACERANGER:
+    class SPATIAL_SINGLE_CELL_EXPERIMENT:
         PROJECT_ID = "SCPCP999990"
         SAMPLE_ID = "SCPCS999991"
-        DOWNLOAD_CONFIG_NAME = "SPATIAL"
+        DOWNLOAD_CONFIG_NAME = "SPATIAL_SINGLE_CELL_EXPERIMENT"
         DOWNLOAD_CONFIG = common.SAMPLE_DOWNLOAD_CONFIGS[DOWNLOAD_CONFIG_NAME]
         LIBRARIES = {"SCPCL999991"}
         FILE_LIST = [
@@ -98,7 +98,7 @@ class Computed_File_Sample:
             "modality": ComputedFile.OutputFileModalities.SPATIAL,
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            "s3_key": "SCPCS999991_SPATIAL_SPATIAL-SPACERANGER.zip",
+            "s3_key": "SCPCS999991_SPATIAL_SINGLE-CELL-EXPERIMENT.zip",
             "size_in_bytes": 8642,
             "workflow_version": "v0.8.7",
             "includes_celltype_report": True,

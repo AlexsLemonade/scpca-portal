@@ -319,8 +319,14 @@ class Sample(CommonDataAttributes, TimestampedModel):
         name_segments = [
             "_".join(self.multiplexed_ids),
             download_config["modality"],
-            download_config["format"],
         ]
+
+        # following the old computed file paradigm, spatial should be paired with sce
+        if download_config["modality"] == "SPATIAL":
+            name_segments.append("SINGLE_CELL_EXPERIMENT")
+        else:
+            name_segments.append(download_config["format"])
+
         if self.has_multiplexed_data:
             name_segments.append("MULTIPLEXED")
 
