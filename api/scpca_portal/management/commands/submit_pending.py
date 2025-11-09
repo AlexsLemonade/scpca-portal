@@ -14,9 +14,9 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **kwargs):
-        self.submit_batch_jobs()
+        self.submit_pending()
 
-    def submit_batch_jobs(self):
+    def submit_pending(self):
         logger.info("Submitting pending jobs to AWS Batch...")
         submitted_jobs = Job.submit_pending()
 
