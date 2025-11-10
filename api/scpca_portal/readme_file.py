@@ -16,16 +16,22 @@ TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "readme.md"
 # Dataset Readme Templates
 README_ROOT = settings.TEMPLATE_PATH / "dataset_readme"
 
-METADATA_LINK = "METADATA_LINK"
-ANN_DATA_LINK = "ANN_DATA_LINK"
-ANN_DATA_WITH_CITE_SEQ_LINK = "ANN_DATA_WITH_CITE_SEQ_LINK"
-ANN_DATA_MERGED_LINK = "ANN_DATA_MERGED_LINK"
-ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = "ANN_DATA_MERGED_WITH_CITE_SEQ_LINK"
-SINGLE_CELL_EXPERIMENT_LINK = "SINGLE_CELL_EXPERIMENT_LINK"
-SINGLE_CELL_EXPERIMENT_MERGED_LINK = "SINGLE_CELL_EXPERIMENT_MERGED_LINK"
-SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = "SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK"
+DOCS_URL = "https://scpca.readthedocs.io/en/stable"
+
+METADATA_LINK = f"{DOCS_URL}/download_files.html#metadata"
+ANN_DATA_LINK = f"{DOCS_URL}/sce_file_contents.html#components-of-an-anndata-object"
+ANN_DATA_WITH_CITE_SEQ_LINK = f"{DOCS_URL}/sce_file_contents.html#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+ANN_DATA_MERGED_LINK = f"{DOCS_URL}/merged_objects.html#components-of-an-anndata-merged-object"
+ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = f"{DOCS_URL}/merged_objects.html#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+SINGLE_CELL_EXPERIMENT_LINK = (
+    f"{DOCS_URL}/sce_file_contents.html#components-of-a-singlecellexperiment-object"
+)
+SINGLE_CELL_EXPERIMENT_MERGED_LINK = (
+    f"{DOCS_URL}/merged_objects.html#components-of-a-singlecellexperiment-merged-object"
+)
+SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = f"{DOCS_URL}/sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries"
 SPATIAL_SPATIAL_SPACERANGER_LINK = "SPATIAL_SPATIAL_SPACERANGER_LINK"
-BULK_LINK = "BULK_LINK"
+BULK_LINK = f"{DOCS_URL}/processing_information.html#bulk-rna-samples"
 
 PORTAL_CCDL_DATASET_LINKS = {
     CCDLDatasetNames.ALL_METADATA: "PORTAL_METADATA_LINK",
@@ -64,6 +70,7 @@ def add_ann_data_content_rows(content_rows: set, dataset) -> set:
 
         # ANN_DATA_MERGED
         if dataset.get_is_merged_project(project.scpca_id):
+            docs_link = ANN_DATA_MERGED_LINK
             # ANN_DATA_MERGED_WITH_CITE
             if project.has_cite_seq_data:
                 docs_link = ANN_DATA_MERGED_WITH_CITE_SEQ_LINK
