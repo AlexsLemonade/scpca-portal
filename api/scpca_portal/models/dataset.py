@@ -179,26 +179,37 @@ class Dataset(TimestampedModel):
             if self.ccdl_type.get("excludes_multiplexed"):
                 samples = samples.filter(has_multiplexed_data=False)
 
-            if modality := self.ccdl_type.get("modality"):
-                samples = samples.filter(libraries__modality=modality)
-
+            modality = self.ccdl_type.get("modality")
             # don't add projects to data attribute that don't have data
-            if not samples.exists():
+            if modality and not samples.filter(libraries__modality=modality).exists():
                 continue
 
-            single_cell_samples = samples.filter(libraries__modality=Modalities.SINGLE_CELL)
-            spatial_samples = samples.filter(libraries__modality=Modalities.SPATIAL)
-
             data[project.scpca_id] = {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL: (
-                    list(single_cell_samples.values_list("scpca_id", flat=True))
-                    if not self.ccdl_type.get("includes_merged")
-                    else "MERGED"
-                ),
-                Modalities.SPATIAL: list(spatial_samples.values_list("scpca_id", flat=True)),
+                # single cell modality files get bulk, but not spatial and all metadata files
+                "includes_bulk": modality == Modalities.SINGLE_CELL,
+                Modalities.SINGLE_CELL: [],
+                Modalities.SPATIAL: [],
             }
 
+            single_cell_sample_ids = samples.filter(
+                libraries__modality=Modalities.SINGLE_CELL
+            ).values_list("scpca_id", flat=True)
+            spatial_sample_ids = samples.filter(libraries__modality=Modalities.SPATIAL).values_list(
+                "scpca_id", flat=True
+            )
+
+            match modality:
+                case Modalities.SINGLE_CELL:
+                    data[project.scpca_id][modality] = (
+                        list(single_cell_sample_ids)
+                        if not self.ccdl_type.get("includes_merged")
+                        else "MERGED"
+                    )
+                case Modalities.SPATIAL:
+                    data[project.scpca_id][modality] = list(spatial_sample_ids)
+                case _:  # All metadata case
+                    data[project.scpca_id][Modalities.SINGLE_CELL] = list(single_cell_sample_ids)
+                    data[project.scpca_id][Modalities.SPATIAL] = list(spatial_sample_ids)
         return data
 
     @staticmethod
