@@ -65,7 +65,7 @@ class Computed_File_Sample:
             "includes_celltype_report": True,
         }
 
-    class SPATIAL_SCE:
+    class SPATIAL_SINGLE_CELL_EXPERIMENT:
         PROJECT_ID = "SCPCP999990"
         SAMPLE_ID = "SCPCS999991"
         DOWNLOAD_CONFIG_NAME = "SPATIAL_SINGLE_CELL_EXPERIMENT"
@@ -90,7 +90,7 @@ class Computed_File_Sample:
             "spatial_metadata.tsv",
         ]
         VALUES = {
-            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+            "format": ComputedFile.OutputFileFormats.SPATIAL_SPACERANGER,
             "has_bulk_rna_seq": False,
             "has_cite_seq_data": False,
             "has_multiplexed_data": False,

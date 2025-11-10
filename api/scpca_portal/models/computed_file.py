@@ -36,6 +36,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     class OutputFileFormats:
         ANN_DATA = "ANN_DATA"
         SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
+        SPATIAL_SPACERANGER = "SPATIAL_SPACERANGER"
 
         CHOICES = (
             (ANN_DATA, "AnnData"),

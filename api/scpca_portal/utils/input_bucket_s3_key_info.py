@@ -66,10 +66,12 @@ class InputBucketS3KeyInfo:
             formats.append(FileFormats.SINGLE_CELL_EXPERIMENT)
         if self._is_anndata:
             formats.append(FileFormats.ANN_DATA)
-        if self._is_supplementary:
-            formats.append(FileFormats.SUPPLEMENTARY)
+        if self._is_spatial_spaceranger:
+            formats.append(FileFormats.SPATIAL_SPACERANGER)
         if self._is_metadata:
             formats.append(FileFormats.METADATA)
+        if self._is_supplementary:
+            formats.append(FileFormats.SUPPLEMENTARY)
 
         return formats
 
@@ -93,19 +95,20 @@ class InputBucketS3KeyInfo:
 
     @property
     def _is_single_cell_experiment(self):
-        return (
-            self.s3_key_path.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]
-            or self._is_spatial  # we consider all spatial files SCE
-        )
+        return self.s3_key_path.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]
 
     @property
     def _is_anndata(self):
         return self.s3_key_path.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]
 
     @property
-    def _is_supplementary(self):
-        return self.s3_key_path.suffix in common.SUPPLEMENTARY_EXTENSIONS
+    def _is_spatial_spaceranger(self):
+        return self._is_spatial
 
     @property
     def _is_metadata(self):
         return self.s3_key_path.stem.endswith("metadata")
+
+    @property
+    def _is_supplementary(self):
+        return self.s3_key_path.suffix in common.SUPPLEMENTARY_EXTENSIONS

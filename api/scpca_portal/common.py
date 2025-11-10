@@ -166,7 +166,7 @@ PROJECT_DOWNLOAD_CONFIGS = {
     },
     "SPATIAL_SINGLE_CELL_EXPERIMENT": {
         "modality": "SPATIAL",
-        "format": "SINGLE_CELL_EXPERIMENT",
+        "format": "SPATIAL_SPACERANGER",
         "excludes_multiplexed": True,
         "includes_merged": False,
         "metadata_only": False,
@@ -186,7 +186,7 @@ SAMPLE_DOWNLOAD_CONFIGS = {
         "format": "SINGLE_CELL_EXPERIMENT",
     },
     "SINGLE_CELL_ANN_DATA": {"modality": "SINGLE_CELL", "format": "ANN_DATA"},
-    "SPATIAL_SINGLE_CELL_EXPERIMENT": {"modality": "SPATIAL", "format": "SINGLE_CELL_EXPERIMENT"},
+    "SPATIAL_SINGLE_CELL_EXPERIMENT": {"modality": "SPATIAL", "format": "SPATIAL_SPACERANGER"},
 }
 
 PORTAL_METADATA_DOWNLOAD_CONFIG = {

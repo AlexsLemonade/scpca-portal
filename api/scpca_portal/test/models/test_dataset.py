@@ -8,7 +8,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from scpca_portal import loader, metadata_parser
-from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 from scpca_portal.models import ComputedFile, Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory, OriginalFileFactory
@@ -52,7 +52,7 @@ class TestDataset(TestCase):
             test_data.DatasetSingleCellSingleCellExperimentMerged,
             test_data.DatasetSingleCellAnndata,
             test_data.DatasetSingleCellAnndataMerged,
-            test_data.DatasetSpatialSingleCellExperiment,
+            test_data.DatasetSpatialSpatialSpaceranger,
         ]
 
         for ccdl_portal_dataset in ccdl_portal_datasets_expected_values:
@@ -183,7 +183,7 @@ class TestDataset(TestCase):
             Path("SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html"),
         }
         self.assertEqual(dataset.original_file_paths, expected_files)
-        # SPATIAL SCE
+        # SPATIAL SPATIAL_SPACERANGER
         data = {
             "SCPCP999990": {
                 "includes_bulk": False,
@@ -191,7 +191,7 @@ class TestDataset(TestCase):
                 Modalities.SPATIAL: ["SCPCS999991"],
             },
         }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        format = FileFormats.SPATIAL_SPACERANGER
         dataset = Dataset(data=data, format=format)
         expected_files = {
             Path(

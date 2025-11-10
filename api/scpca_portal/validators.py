@@ -3,9 +3,8 @@ from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field, RootModel, ValidationInfo, field_validator, model_validator
 
-from scpca_portal.enums import DatasetFormats, Modalities
+from scpca_portal.enums import Modalities
 from scpca_portal.exceptions import (
-    DatasetDataInvalidAnndataSpatialCombinationError,
     DatasetDataInvalidModalityStringError,
     DatasetDataInvalidProjectIDError,
     DatasetDataInvalidSampleIDError,
@@ -57,16 +56,6 @@ class DatasetDataModel(RootModel):
         for project_id in self.root:
             if not re.match(PROJECT_ID_REGEX, project_id):
                 raise DatasetDataInvalidProjectIDError(project_id)
-        return self
-
-    @model_validator(mode="after")
-    def validate_anndata_has_no_spatial_data(self, info: ValidationInfo):
-        if info.context and info.context.get("format") == DatasetFormats.ANN_DATA.value:
-            if invalid_project_ids := [
-                project_id for project_id, project_data in self.root.items() if project_data.SPATIAL
-            ]:
-                raise DatasetDataInvalidAnndataSpatialCombinationError(invalid_project_ids)
-
         return self
 
 

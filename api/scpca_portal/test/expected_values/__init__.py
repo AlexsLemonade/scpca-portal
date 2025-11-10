@@ -32,11 +32,11 @@ from scpca_portal.test.expected_values.dataset_single_cell_single_cell_experimen
 from scpca_portal.test.expected_values.dataset_single_cell_single_cell_experiment_SCPCP999990 import (
     DatasetSingleCellSingleCellExperimentSCPCP999990,
 )
-from scpca_portal.test.expected_values.dataset_spatial_single_cell_experiment import (
-    DatasetSpatialSingleCellExperiment,
+from scpca_portal.test.expected_values.dataset_spatial_spatial_spaceranger import (
+    DatasetSpatialSpatialSpaceranger,
 )
-from scpca_portal.test.expected_values.dataset_spatial_single_cell_experiment_SCPCP999990 import (
-    DatasetSpatialSingleCellExperimentSCPCP999990,
+from scpca_portal.test.expected_values.dataset_spatial_spatial_spaceranger_SCPCP999990 import (
+    DatasetSpatialSpatialSpacerangerSCPCP999990,
 )
 from scpca_portal.test.expected_values.project_SCPCP999990 import Project_SCPCP999990
 from scpca_portal.test.expected_values.project_SCPCP999991 import Project_SCPCP999991
