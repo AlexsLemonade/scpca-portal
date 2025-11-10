@@ -20,16 +20,25 @@ DOCS_URL = "https://scpca.readthedocs.io/en/stable"
 
 METADATA_LINK = f"{DOCS_URL}/download_files.html#metadata"
 ANN_DATA_LINK = f"{DOCS_URL}/sce_file_contents.html#components-of-an-anndata-object"
-ANN_DATA_WITH_CITE_SEQ_LINK = f"{DOCS_URL}/sce_file_contents.html#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+ANN_DATA_WITH_CITE_SEQ_LINK = (
+    f"{DOCS_URL}/sce_file_contents.html"
+    "#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+)
 ANN_DATA_MERGED_LINK = f"{DOCS_URL}/merged_objects.html#components-of-an-anndata-merged-object"
-ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = f"{DOCS_URL}/merged_objects.html#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = (
+    f"{DOCS_URL}/merged_objects.html"
+    "#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+)
 SINGLE_CELL_EXPERIMENT_LINK = (
     f"{DOCS_URL}/sce_file_contents.html#components-of-a-singlecellexperiment-object"
 )
 SINGLE_CELL_EXPERIMENT_MERGED_LINK = (
     f"{DOCS_URL}/merged_objects.html#components-of-a-singlecellexperiment-merged-object"
 )
-SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = f"{DOCS_URL}/sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries"
+SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = (
+    f"{DOCS_URL}/sce_file_contents.html"
+    "#additional-singlecellexperiment-components-for-multiplexed-libraries"
+)
 SPATIAL_SPATIAL_SPACERANGER_LINK = f"{DOCS_URL}/processing_information.html#spatial-transcriptomics"
 BULK_LINK = f"{DOCS_URL}/processing_information.html#bulk-rna-samples"
 
@@ -39,11 +48,19 @@ PORTAL_CCDL_DATASET_LINKS = {
         f"{DOCS_URL}/download_files.html#singlecellexperiment-portal-wide-download-structure"
     ),
     CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: (
-        f"{DOCS_URL}/download_files.html#portal-wide-download-structure-for-merged-singlecellexperiment-objects"
+        f"{DOCS_URL}/download_files.html"
+        "#portal-wide-download-structure-for-merged-singlecellexperiment-objects"
     ),
-    CCDLDatasetNames.SINGLE_CELL_ANN_DATA: f"{DOCS_URL}/download_files.html#anndata-portal-wide-download-structure",
-    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: f"{DOCS_URL}/download_files.html#portal-wide-download-structure-for-merged-anndata-objects",
-    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: f"{DOCS_URL}/download_files.html#spatial-portal-wide-download-structure",
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA: (
+        f"{DOCS_URL}/download_files.html" "#anndata-portal-wide-download-structure"
+    ),
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: (
+        f"{DOCS_URL}/download_files.html"
+        "#portal-wide-download-structure-for-merged-anndata-objects"
+    ),
+    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: (
+        f"{DOCS_URL}/download_files.html" "#spatial-portal-wide-download-structure"
+    ),
 }
 
 # used in get_content_table_rows and in 2_contents.md
