@@ -30,20 +30,20 @@ SINGLE_CELL_EXPERIMENT_MERGED_LINK = (
     f"{DOCS_URL}/merged_objects.html#components-of-a-singlecellexperiment-merged-object"
 )
 SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = f"{DOCS_URL}/sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries"
-SPATIAL_SPATIAL_SPACERANGER_LINK = "SPATIAL_SPATIAL_SPACERANGER_LINK"
+SPATIAL_SPATIAL_SPACERANGER_LINK = f"{DOCS_URL}/processing_information.html#spatial-transcriptomics"
 BULK_LINK = f"{DOCS_URL}/processing_information.html#bulk-rna-samples"
 
 PORTAL_CCDL_DATASET_LINKS = {
-    CCDLDatasetNames.ALL_METADATA: "PORTAL_METADATA_LINK",
+    CCDLDatasetNames.ALL_METADATA: f"{DOCS_URL}/download_files.html#portal-wide-downloads",
     CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT: (
-        "PORTAL_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_LINK"
+        f"{DOCS_URL}/download_files.html#singlecellexperiment-portal-wide-download-structure"
     ),
     CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: (
-        "PORTAL_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED_LINK"
+        f"{DOCS_URL}/download_files.html#portal-wide-download-structure-for-merged-singlecellexperiment-objects"
     ),
-    CCDLDatasetNames.SINGLE_CELL_ANN_DATA: "PORTAL_SINGLE_CELL_ANN_DATA_LINK",
-    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: "PORTAL_SINGLE_CELL_ANN_DATA_MERGED_LINK",
-    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: "PORTAL_SPATIAL_SPATIAL_SPACERANGER_LINK",
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA: f"{DOCS_URL}/download_files.html#anndata-portal-wide-download-structure",
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: f"{DOCS_URL}/download_files.html#portal-wide-download-structure-for-merged-anndata-objects",
+    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: f"{DOCS_URL}/download_files.html#spatial-portal-wide-download-structure",
 }
 
 # used in get_content_table_rows and in 2_contents.md
