@@ -11,7 +11,7 @@ from scpca_portal.models import Job
 from scpca_portal.test.factories import DatasetFactory, JobFactory
 
 
-class TestSubmitBatchJobs(TestCase):
+class TestSubmitPending(TestCase):
     def setUp(self):
         self.submit_pending = partial(call_command, "submit_pending")
 

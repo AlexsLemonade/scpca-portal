@@ -17,10 +17,14 @@ class Command(BaseCommand):
         self.submit_pending()
 
     def submit_pending(self):
-        logger.info("Submitting pending jobs to AWS Batch...")
-        submitted_jobs = Job.submit_pending()
+        submitted_jobs, pending_jobs, failed_jobs = Job.submit_pending()
 
         if submitted_jobs:
-            logger.info("Successfully submitted jobs to AWS Batch!")
+            logger.info(f"{len(submitted_jobs)} jobs were submitted to AWS Batch.")
         else:
             logger.info("No jobs were submitted to AWS Batch")
+
+        if pending_jobs:
+            logger.info(f"{len(pending_jobs)} jobs were not submitted but are still pending.")
+        if failed_jobs:
+            logger.info(f"{len(failed_jobs)} jobs failed to submit.")
