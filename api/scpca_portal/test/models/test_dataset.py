@@ -336,7 +336,7 @@ class TestDataset(TestCase):
             format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
             ccdl_name=CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT,
         )
-        expected_readme_hash = "93ce0b3571f15cd41db81d9e25dcb873"
+        expected_readme_hash = "e8d48663706cc782dfdb9023c78e90f4"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
 
     def test_get_estimated_size_in_bytes(self):
