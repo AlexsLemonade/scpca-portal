@@ -6,7 +6,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils  # ccdl_datasets,
-from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 
 OUTPUT_NAME = "README.md"
 
@@ -141,7 +141,7 @@ def get_content_table_rows(dataset) -> list[ContentRow]:
         content_rows = add_single_cell_experiment_content_rows(content_rows, dataset)
 
     # SPATIAL get their own row
-    if dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
+    if dataset.format == FileFormats.SPATIAL_SPACERANGER:
         for project in dataset.spatial_projects:
             content_rows.add(
                 ContentRow(
@@ -174,7 +174,7 @@ def get_content_metadata_link(dataset):
     Returns the link to the documentation if dataset is for metadata.
     Portal wide metadata is handled by `content_portal_wide_link`.
     """
-    if dataset.format == DatasetFormats.METADATA and not dataset.ccdl_project_id:
+    if dataset.format == DatasetFormats.METADATA and dataset.ccdl_project_id:
         return METADATA_LINK
     return None
 
