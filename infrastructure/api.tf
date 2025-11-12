@@ -90,6 +90,7 @@ resource "aws_instance" "api_server_1" {
       nginx_access_log_stream = aws_cloudwatch_log_stream.log_stream_api_nginx_access.name
       nginx_error_log_stream = aws_cloudwatch_log_stream.log_stream_api_nginx_error.name
       sync_batch_jobs_log_stream = aws_cloudwatch_log_stream.log_stream_api_sync_batch_jobs.name
+      submit_pending_log_stream = aws_cloudwatch_log_stream.log_stream_api_submit_pending.name
     })
 
   tags =  merge(

@@ -110,7 +110,14 @@ cat <<EOF >awslogs.json
                         "log_group_name": "${log_group}",
                         "log_stream_name": "${sync_batch_jobs_log_stream}",
                         "retention_in_days": 30
+                    },
+                    {
+                        "file_path": "/var/log/cron/submit_pending.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${submit_pending_log_stream}",
+                        "retention_in_days": 30
                     }
+
                 ]
             }
         }
