@@ -519,8 +519,16 @@ class TestDataset(TestCase):
         self.assertEqual(summary.keys(), expected_counts.keys())
 
         for key in expected_counts.keys():
-            self.assertEqual(summary[key]["projects"], expected_counts[key]["projects"], f"Mismatch in {key} projects")
-            self.assertEqual(summary[key]["samples"], expected_counts[key]["samples"], f"Mismatch in {key} samples")
+            self.assertEqual(
+                summary[key]["projects"],
+                expected_counts[key]["projects"],
+                f"Mismatch in {key} projects",
+            )
+            self.assertEqual(
+                summary[key]["samples"],
+                expected_counts[key]["samples"],
+                f"Mismatch in {key} samples",
+            )
 
     def test_get_files_summary(self):
 

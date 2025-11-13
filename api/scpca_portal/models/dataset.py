@@ -320,10 +320,14 @@ class Dataset(TimestampedModel):
         of project and sample counts.
         """
         # all diagnoses in the dataset
-        if diagnoses := self.samples.values("diagnosis").annotate(
-            samples=Count("scpca_id"),
-            projects=Count("project_id", distinct=True),
-        ).order_by("diagnosis"):
+        if (
+            diagnoses := self.samples.values("diagnosis")
+            .annotate(
+                samples=Count("scpca_id"),
+                projects=Count("project_id", distinct=True),
+            )
+            .order_by("diagnosis")
+        ):
             return {d.pop("diagnosis"): d for d in diagnoses}
 
         return {}
