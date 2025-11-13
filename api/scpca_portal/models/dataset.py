@@ -321,9 +321,9 @@ class Dataset(TimestampedModel):
         """
         # all diagnoses in the dataset
         if diagnoses := self.samples.values("diagnosis").annotate(
-            samples=Count("scpca_id", distinct=True),
+            samples=Count("scpca_id"),
             projects=Count("project_id", distinct=True),
-        ):
+        ).order_by("diagnosis"):
             return {d.pop("diagnosis"): d for d in diagnoses}
 
         return {}

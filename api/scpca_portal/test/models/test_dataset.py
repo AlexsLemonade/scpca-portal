@@ -508,9 +508,9 @@ class TestDataset(TestCase):
             "diagnosis2": {"samples": 1, "projects": 1},
             "diagnosis3": {"samples": 1, "projects": 1},
             "diagnosis4": {"samples": 1, "projects": 1},
-            "diagnosis5": {"samples": 1, "projects": 1},
+            "diagnosis5": {"samples": 2, "projects": 1},
             "diagnosis6": {"samples": 1, "projects": 1},
-            "diagnosis7": {"samples": 1, "projects": 1},
+            "diagnosis7": {"samples": 2, "projects": 1},
         }
 
         summary = dataset.get_diagnoses_summary()
@@ -519,8 +519,8 @@ class TestDataset(TestCase):
         self.assertEqual(summary.keys(), expected_counts.keys())
 
         for key in expected_counts.keys():
-            self.assertEqual(summary[key]["projects"], expected_counts[key]["projects"])
-            self.assertEqual(summary[key]["samples"], expected_counts[key]["samples"])
+            self.assertEqual(summary[key]["projects"], expected_counts[key]["projects"], f"Mismatch in {key} projects")
+            self.assertEqual(summary[key]["samples"], expected_counts[key]["samples"], f"Mismatch in {key} samples")
 
     def test_get_files_summary(self):
 
