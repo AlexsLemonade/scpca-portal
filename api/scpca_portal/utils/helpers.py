@@ -13,6 +13,7 @@ from django.conf import settings
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import CCDLDatasetNames
 
 logger = get_and_configure_logger(__name__)
 
@@ -119,6 +120,65 @@ def get_chunk_list(list: List[Any], size: int) -> Generator[List[Any], None, Non
     """
     for i in range(0, len(list), size):
         yield list[i : i + size]
+
+
+def get_scpca_docs_url(name: str | CCDLDatasetNames) -> str:
+    """
+    Returns the corresponding ScPCA Docs URL for the given name.
+    """
+    DOCS_VERSION = "stable"
+    if settings.ENABLE_FEATURE_PREVIEW:
+        DOCS_VERSION = "development"
+
+    DOCS_BASE = f"https://scpca.readthedocs.io/en/{DOCS_VERSION}"
+
+    urls = {
+        "METADATA_LINK": f"{DOCS_BASE}/download_files.html#metadata",
+        "ANN_DATA_LINK": f"{DOCS_BASE}/sce_file_contents.html#components-of-an-anndata-object",
+        "ANN_DATA_WITH_CITE_SEQ_LINK": (
+            f"{DOCS_BASE}/sce_file_contents.html"
+            "#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+        ),
+        "ANN_DATA_MERGED_LINK": f"{DOCS_BASE}/merged_objects.html"
+        "#components-of-an-anndata-merged-object",
+        "ANN_DATA_MERGED_WITH_CITE_SEQ_LINK": (
+            f"{DOCS_BASE}/merged_objects.html"
+            "#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+        ),
+        "SINGLE_CELL_EXPERIMENT_LINK": (
+            f"{DOCS_BASE}/sce_file_contents.html#components-of-a-singlecellexperiment-object"
+        ),
+        "SINGLE_CELL_EXPERIMENT_MERGED_LINK": (
+            f"{DOCS_BASE}/merged_objects.html#components-of-a-singlecellexperiment-merged-object"
+        ),
+        "SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK": (
+            f"{DOCS_BASE}/sce_file_contents.html"
+            "#additional-singlecellexperiment-components-for-multiplexed-libraries"
+        ),
+        "SPATIAL_SPATIAL_SPACERANGER_LINK": f"{DOCS_BASE}/processing_information.html"
+        "#spatial-transcriptomics",
+        "BULK_LINK": f"{DOCS_BASE}/processing_information.html#bulk-rna-samples",
+        CCDLDatasetNames.ALL_METADATA: f"{DOCS_BASE}/download_files.html#portal-wide-downloads",
+        CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT: (
+            f"{DOCS_BASE}/download_files.html#singlecellexperiment-portal-wide-download-structure"
+        ),
+        CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: (
+            f"{DOCS_BASE}/download_files.html"
+            "#portal-wide-download-structure-for-merged-singlecellexperiment-objects"
+        ),
+        CCDLDatasetNames.SINGLE_CELL_ANN_DATA: (
+            f"{DOCS_BASE}/download_files.html" "#anndata-portal-wide-download-structure"
+        ),
+        CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: (
+            f"{DOCS_BASE}/download_files.html"
+            "#portal-wide-download-structure-for-merged-anndata-objects"
+        ),
+        CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: (
+            f"{DOCS_BASE}/download_files.html" "#spatial-portal-wide-download-structure"
+        ),
+    }
+
+    return urls[name]
 
 
 def get_today_string(format: str = "%Y-%m-%d") -> str:
