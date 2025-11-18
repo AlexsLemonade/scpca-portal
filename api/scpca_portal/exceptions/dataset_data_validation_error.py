@@ -3,80 +3,6 @@ from typing import Iterable
 from scpca_portal.enums import Modalities
 
 
-class DatasetError(Exception):
-    def __init__(self, message: str | None = None, dataset=None):
-        default_message = "A dataset error occurred."
-
-        message = message or default_message
-        if dataset:
-            message = f"Dataset {dataset.id}: {message}"
-        super().__init__(message)
-
-
-class DatasetLockedProjectError(DatasetError):
-    def __init__(self, dataset=None):
-        message = "Dataset has a locked project."
-        super().__init__(message, dataset)
-
-
-class DatasetMissingLibrariesError(DatasetError):
-    def __init__(self, dataset=None):
-        message = "Unable to find libraries for Dataset."
-        super().__init__(message, dataset)
-
-
-class JobError(Exception):
-    def __init__(self, message: str | None = None, job=None):
-        default_message = "A job error occurred."
-
-        message = message or default_message
-        if job:
-            message = f"Job {job.id}: {message}"
-        super().__init__(message)
-
-
-class JobSubmitNotPendingError(JobError):
-    def __init__(self, job=None):
-        message = "Job is not in a pending state."
-        super().__init__(message, job)
-
-
-class JobSyncNotProcessingError(JobError):
-    def __init__(self, job=None):
-        message = "Job is not in a processing state."
-        super().__init__(message, job)
-
-
-class JobSubmissionFailedError(JobError):
-    def __init__(self, job=None):
-        message = "Error submitting job to Batch."
-        super().__init__(message, job)
-
-
-class JobInvalidRetryStateError(JobError):
-    def __init__(self, job=None):
-        message = "Jobs in final states cannot be retried."
-        super().__init__(message, job)
-
-
-class JobInvalidTerminateStateError(JobError):
-    def __init__(self, job=None):
-        message = "Jobs in final states cannot be terminated."
-        super().__init__(message, job)
-
-
-class JobSyncStateFailedError(JobError):
-    def __init__(self, job=None):
-        message = "Error syncing job state with Batch."
-        super().__init__(message, job)
-
-
-class JobTerminationFailedError(JobError):
-    def __init__(self, job=None):
-        message = "Error terminating job in Batch."
-        super().__init__(message, job)
-
-
 class DatasetDataValidationError(ValueError):
     def __init__(self, message: str | None = None):
         default_message = "A validation error occurred with the dataset data attribute."
@@ -109,16 +35,6 @@ class DatasetDataInvalidSampleIDError(DatasetDataValidationError):
 class DatasetDataInvalidProjectIDError(DatasetDataValidationError):
     def __init__(self, project_id_str: str):
         message = f"Invalid project ID format: {project_id_str}."
-        super().__init__(message)
-
-
-class DatasetDataInvalidAnndataSpatialCombinationError(DatasetDataValidationError):
-    def __init__(self, invalid_project_ids: Iterable[str]):
-        message = (
-            "Datasets with format ANN_DATA "
-            "do not support projects with SPATIAL samples. "
-            f"Invalid projects: {', '.join(sorted(invalid_project_ids))}"
-        )
         super().__init__(message)
 
 
