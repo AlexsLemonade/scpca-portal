@@ -339,7 +339,7 @@ export const useMyDataset = () => {
     myDataset.data?.[project.scpca_id]?.includes_bulk || false
 
   const isProjectMerged = (project) =>
-    myDataset.data[project.scpca_id].SINGLE_CELL === 'MERGED'
+    myDataset.data?.[project.scpca_id]?.SINGLE_CELL === 'MERGED'
 
   const removeProjectById = (projectId) => {
     const datasetCopy = structuredClone(myDataset)
