@@ -11,9 +11,9 @@ from scpca_portal.models import Job
 from scpca_portal.test.factories import DatasetFactory, JobFactory
 
 
-class TestSubmitBatchJobs(TestCase):
+class TestSubmitPending(TestCase):
     def setUp(self):
-        self.submit_batch_jobs = partial(call_command, "submit_batch_jobs")
+        self.submit_pending = partial(call_command, "submit_pending")
 
     def assertDatasetState(
         self,
@@ -57,7 +57,7 @@ class TestSubmitBatchJobs(TestCase):
         return_value=[],
     )
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_batch_jobs(self, mock_batch_submit_job, _):
+    def test_submit_pending(self, mock_batch_submit_job, _):
         # Set up 3 PENDING jobs
         for _ in range(3):
             JobFactory(
@@ -67,7 +67,7 @@ class TestSubmitBatchJobs(TestCase):
         mock_batch_submit_job.return_value = "MOCK_JOB_ID"
 
         # Should call submit_job 3 times
-        self.submit_batch_jobs()
+        self.submit_pending()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
 
         # PENDING jobs should be updated to PROCESSING and datasets marked as processing
@@ -78,11 +78,11 @@ class TestSubmitBatchJobs(TestCase):
             self.assertDatasetState(saved_job.dataset, is_processing=True)
 
     @patch("scpca_portal.batch.submit_job")
-    def test_submit_batch_jobs_not_called(self, mock_batch_submit_job):
+    def test_submit_pending_not_called(self, mock_batch_submit_job):
         # Set up 4 jobs that are either in processing or in the final states
         for state in common.SUBMITTED_JOB_STATES:
             JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
 
         # Should not call submit_job
-        self.submit_batch_jobs()
+        self.submit_pending()
         mock_batch_submit_job.assert_not_called()

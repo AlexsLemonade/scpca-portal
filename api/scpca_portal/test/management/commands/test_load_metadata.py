@@ -14,14 +14,14 @@ class TestLoadMetadata(TestCase):
     @classmethod
     def setUpTestData(cls):
         with patch(
-            "scpca_portal.lockfile.get_lockfile_project_ids",
+            "scpca_portal.lockfile.get_locked_project_ids",
             return_value=[],
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
     def setUp(self):
         with patch(
-            "scpca_portal.lockfile.get_lockfile_project_ids",
+            "scpca_portal.lockfile.get_locked_project_ids",
             return_value=[],
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)

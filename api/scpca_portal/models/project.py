@@ -182,7 +182,13 @@ class Project(CommonDataAttributes, TimestampedModel):
         if download_config.get("metadata_only", False):
             return f"{self.scpca_id}_ALL_METADATA.zip"
 
-        name_segments = [self.scpca_id, download_config["modality"], download_config["format"]]
+        name_segments = [self.scpca_id, download_config["modality"]]
+        # following the old computed file paradigm, spatial should be paired with sce
+        if download_config["modality"] == "SPATIAL":
+            name_segments.append("SINGLE_CELL_EXPERIMENT")
+        else:
+            name_segments.append(download_config["format"])
+
         if download_config.get("includes_merged", False):
             name_segments.append("MERGED")
 

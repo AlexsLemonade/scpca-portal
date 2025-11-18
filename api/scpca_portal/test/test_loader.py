@@ -983,27 +983,31 @@ class TestLoader(TransactionTestCase):
         utils.create_data_dirs()
 
         # GENERATE COMPUTED FILES
-        project_id = test_data.Computed_File_Sample.SPATIAL_SCE.PROJECT_ID
+        project_id = test_data.Computed_File_Sample.SPATIAL_SINGLE_CELL_EXPERIMENT.PROJECT_ID
         project = self.create_project(self.load_project_metadata(project_id))
         # Make sure that create_project didn't fail and return a None value
         self.assertIsNotNone(
             project,
             "Problem creating project, unable to test "
             "test_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME}",
+            f"{test_data.Computed_File_Sample.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG_NAME}",
         )
 
-        sample_id = test_data.Computed_File_Sample.SPATIAL_SCE.SAMPLE_ID
+        sample_id = test_data.Computed_File_Sample.SPATIAL_SINGLE_CELL_EXPERIMENT.SAMPLE_ID
         sample = project.samples.filter(scpca_id=sample_id).first()
         self.assertIsNotNone(
             sample,
             "Problem retrieving sample, unable to test "
             "test_sample_generate_computed_file_"
-            f"{test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME}",
+            f"{test_data.Computed_File_Sample.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG_NAME}",
         )
 
-        download_config_name = test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG_NAME
-        download_config = test_data.Computed_File_Sample.SPATIAL_SCE.DOWNLOAD_CONFIG
+        download_config_name = (
+            test_data.Computed_File_Sample.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG_NAME
+        )
+        download_config = (
+            test_data.Computed_File_Sample.SPATIAL_SINGLE_CELL_EXPERIMENT.DOWNLOAD_CONFIG
+        )
         with patch("scpca_portal.common.PROJECT_DOWNLOAD_CONFIGS", {}):
             # Mocking project.samples.all() in loader module is restricted due to the Django ORM
             # Instead, we purge all samples that are not of interest to desired computed file
@@ -1019,17 +1023,19 @@ class TestLoader(TransactionTestCase):
         sample_zip_path = settings.OUTPUT_DATA_PATH / output_file_name
         with ZipFile(sample_zip_path) as sample_zip:
             # Check if correct libraries were added in
-            self.assertLibraries(sample_zip, test_data.Computed_File_Sample.SPATIAL_SCE.LIBRARIES)
+            self.assertLibraries(
+                sample_zip, test_data.Computed_File_Sample.SPATIAL_SINGLE_CELL_EXPERIMENT.LIBRARIES
+            )
             self.assertListEqual(
                 sorted(sample_zip.namelist()),
-                test_data.Computed_File_Sample.SPATIAL_SCE.FILE_LIST,
+                test_data.Computed_File_Sample.SPATIAL_SINGLE_CELL_EXPERIMENT.FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
         computed_file = sample.get_computed_file(download_config)
         self.assertIsNotNone(computed_file)
         self.assertObjectProperties(
-            computed_file, test_data.Computed_File_Sample.SPATIAL_SCE.VALUES
+            computed_file, test_data.Computed_File_Sample.SPATIAL_SINGLE_CELL_EXPERIMENT.VALUES
         )
 
     def test_multiplexed_sample_generate_computed_files_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):

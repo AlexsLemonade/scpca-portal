@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from pydantic import ValidationError
 
-from scpca_portal.enums import DatasetFormats, Modalities
+from scpca_portal.enums import Modalities
 from scpca_portal.test.factories import ProjectFactory, SampleFactory
 from scpca_portal.validators import DatasetDataModel, DatasetDataModelRelations, ProjectDataModel
 
@@ -101,35 +101,6 @@ class TestDatasetDataModel(TestCase):
             DatasetDataModel.model_validate(data)
 
         self.assertIn("Invalid sample ID format", str(context.exception))
-
-    def test_validate_anndata_has_no_spatial_data(self):
-        data = {
-            "SCPCP000001": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
-                Modalities.SPATIAL.value: [],
-            },
-        }
-        format = DatasetFormats.ANN_DATA
-        # no exception raised
-        DatasetDataModel.model_validate(data, context={"format": format})
-
-        data = {
-            "SCPCP000001": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS000001", "SCPCS000002"],
-                Modalities.SPATIAL.value: ["SCPCS000003"],
-            },
-        }
-        format = DatasetFormats.ANN_DATA
-
-        with self.assertRaises(Exception) as e:
-            DatasetDataModel.model_validate(data, context={"format": format})
-        self.assertIn(
-            "Datasets with format ANN_DATA do not support projects with SPATIAL samples. "
-            "Invalid projects: SCPCP000001",
-            str(e.exception),
-        )
 
 
 class TestDatasetDataModelRelations(TestCase):
