@@ -4,13 +4,13 @@ import { useDataset } from 'hooks/useDataset'
 import { DatasetHeroExpired } from 'components/DatasetHeroExpired'
 import { DatasetHeroProcessing } from 'components/DatasetHeroProcessing'
 import { DatasetHeroReady } from 'components/DatasetHeroReady'
-
 import { DatasetResourceLinks } from 'components/DatasetResourceLinks'
 import { Loader } from 'components/Loader'
 
 export const DatasetHero = ({ dataset }) => {
   const { getDatasetState } = useDataset()
-  const { isProcessing, isReady, isExpired } = getDatasetState(dataset)
+  const { isUnprocessed, isProcessing, isReady, isExpired } =
+    getDatasetState(dataset)
 
   const [loading, setLoading] = useState(true)
 
@@ -22,25 +22,26 @@ export const DatasetHero = ({ dataset }) => {
 
   return (
     <>
-      <Box
-        justify="center"
-        border={{ side: 'bottom', color: 'border-black', size: 'small' }}
-        margin={{ bottom: 'xlarge' }}
-        pad={{ bottom: 'xlarge' }}
-      >
-        {isExpired && <DatasetHeroExpired dataset={dataset} />}
-        {isProcessing && <DatasetHeroProcessing />}
-        {isReady && <DatasetHeroReady dataset={dataset} />}
-      </Box>
-
-      {!isExpired && (
+      {!isUnprocessed && (
         <Box
           justify="center"
           border={{ side: 'bottom', color: 'border-black', size: 'small' }}
           margin={{ bottom: 'xlarge' }}
           pad={{ bottom: 'xlarge' }}
         >
-          <DatasetResourceLinks />{' '}
+          {isExpired && <DatasetHeroExpired dataset={dataset} />}
+          {isProcessing && <DatasetHeroProcessing />}
+          {isReady && <DatasetHeroReady dataset={dataset} />}
+        </Box>
+      )}
+      {(isProcessing || isReady) && (
+        <Box
+          justify="center"
+          border={{ side: 'bottom', color: 'border-black', size: 'small' }}
+          margin={{ bottom: 'xlarge' }}
+          pad={{ bottom: 'xlarge' }}
+        >
+          <DatasetResourceLinks />
         </Box>
       )}
     </>
