@@ -125,14 +125,13 @@ def get_docs_url(path: str) -> str:
     """
     Returns the full ScPCA docs URL for the given path.
     """
+    DOCS_BASE = "https://scpca.readthedocs.io/en"
     DOCS_VERSION = "stable"
 
     if settings.ENABLE_FEATURE_PREVIEW:
         DOCS_VERSION = "development"
 
-    DOCS_BASE = f"https://scpca.readthedocs.io/en/{DOCS_VERSION}"
-
-    return f"{DOCS_BASE}{path}"
+    return f"{DOCS_BASE}/{DOCS_VERSION}/{path}"
 
 
 def get_today_string(format: str = "%Y-%m-%d") -> str:

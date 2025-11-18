@@ -17,48 +17,48 @@ TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "readme.md"
 README_ROOT = settings.TEMPLATE_PATH / "dataset_readme"
 
 
-METADATA_LINK = utils.get_docs_url("/download_files.html#metadata")
+METADATA_LINK = utils.get_docs_url("download_files.html#metadata")
 ANN_DATA_LINK = utils.get_docs_url("sce_file_contents.html#components-of-an-anndata-object")
 ANN_DATA_WITH_CITE_SEQ_LINK = utils.get_docs_url(
-    "/sce_file_contents.htm#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+    "sce_file_contents.htm#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
 )
 ANN_DATA_MERGED_LINK = utils.get_docs_url(
-    "/merged_objects.html#components-of-an-anndata-merged-object"
+    "merged_objects.html#components-of-an-anndata-merged-object"
 )
 ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = utils.get_docs_url(
-    "/merged_objects.html#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+    "merged_objects.html#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
 )
 SINGLE_CELL_EXPERIMENT_LINK = utils.get_docs_url(
-    "/sce_file_contents.html#components-of-a-singlecellexperiment-object"
+    "sce_file_contents.html#components-of-a-singlecellexperiment-object"
 )
 SINGLE_CELL_EXPERIMENT_MERGED_LINK = utils.get_docs_url(
-    "/merged_objects.html#components-of-a-singlecellexperiment-merged-object"
+    "merged_objects.html#components-of-a-singlecellexperiment-merged-object"
 )
 SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = utils.get_docs_url(
-    "/sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries"
+    "sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries"
 )
 SPATIAL_SPATIAL_SPACERANGER_LINK = utils.get_docs_url(
-    "}/processing_information.html#spatial-transcriptomics"
+    "processing_information.html#spatial-transcriptomics"
 )
-BULK_LINK = utils.get_docs_url("/processing_information.html#bulk-rna-samples")
+BULK_LINK = utils.get_docs_url("processing_information.html#bulk-rna-samples")
 
 PORTAL_CCDL_DATASET_LINKS = {
-    CCDLDatasetNames.ALL_METADATA: utils.get_docs_url("/download_files.html#portal-wide-downloads"),
+    CCDLDatasetNames.ALL_METADATA: utils.get_docs_url("download_files.html#portal-wide-downloads"),
     CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT: utils.get_docs_url(
-        "/download_files.html#singlecellexperiment-portal-wide-download-structure"
+        "download_files.html#singlecellexperiment-portal-wide-download-structure"
     ),
     CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: utils.get_docs_url(
-        "/download_files.html"
+        "download_files.html"
         "#portal-wide-download-structure-for-merged-singlecellexperiment-objects"
     ),
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA: utils.get_docs_url(
-        "/download_files.html" "#anndata-portal-wide-download-structure"
+        "download_files.html#anndata-portal-wide-download-structure"
     ),
     CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: utils.get_docs_url(
-        "/download_files.html#portal-wide-download-structure-for-merged-anndata-objects"
+        "download_files.html#portal-wide-download-structure-for-merged-anndata-objects"
     ),
     CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: utils.get_docs_url(
-        "/download_files.html" "#spatial-portal-wide-download-structure"
+        "download_files.html#spatial-portal-wide-download-structure"
     ),
 }
 
