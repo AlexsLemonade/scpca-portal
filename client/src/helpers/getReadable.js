@@ -26,6 +26,7 @@ export const readableNames = {
   MULTIPLEXED: 'Multiplexed',
   ANN_DATA: 'AnnData (Python)',
   SINGLE_CELL_EXPERIMENT: 'SingleCellExperiment (R)',
+  SPATIAL_SPACERANGER: 'Spaceranger',
   '.rds': 'SingleCellExperiment (.rds)',
   '.h5ad': 'AnnData (.h5ad)'
 }

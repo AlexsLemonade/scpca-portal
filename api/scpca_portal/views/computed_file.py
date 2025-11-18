@@ -13,6 +13,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
         model = ComputedFile
         fields = (
             "created_at",
+            "download_filename",
             "download_url",
             "format",
             "has_bulk_rna_seq",
@@ -33,12 +34,18 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             "includes_merged",
         )
         extra_kwargs = {
+            "download_filename": {
+                "help_text": (
+                    "This will contain the download file's name. "
+                    "You must send a valid [token](#tag/token) in order to receive this."
+                )
+            },
             "download_url": {
                 "help_text": (
                     "This will contain an url to download the file. "
                     "You must send a valid [token](#tag/token) in order to receive this."
                 )
-            }
+            },
         }
 
     project = ProjectLeafSerializer(read_only=True)
@@ -50,6 +57,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
             # Only include the field `download_url` if a valid token is
             # specified. The token lookup happens in the view.
             if "token" not in kwargs["context"]:
+                self.fields.pop("download_filename")
                 self.fields.pop("download_url")
 
 

@@ -180,28 +180,28 @@ class TestJob(TestCase):
     @patch("scpca_portal.batch.submit_job")
     def test_submit_pending(self, mock_batch_submit_job):
         # Set up 3 saved PENDING jobs + 4 jobs that are either processing or in the final states
-        for _ in range(3):
+        expected_submitted_jobs = [
             JobFactory(
                 state=JobStates.PENDING,
                 dataset=DatasetFactory(is_pending=True, is_processing=False),
             )
+            for _ in range(3)
+        ]
+
         for state in common.SUBMITTED_JOB_STATES:
             JobFactory(state=state, dataset=DatasetFactory(is_pending=False, is_processing=False))
 
-        # Before submission, there are 1 job in PROCESSING state
+        # Before submission, there is 1 job in a PROCESSING state
         self.assertEqual(Job.objects.filter(state=JobStates.PROCESSING).count(), 1)
         mock_batch_submit_job.return_value = "MOCK_JOB_ID"
 
         # Should call submit_job 3 times to submit PENDING jobs
-        with patch(
-            "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
-            new_callable=PropertyMock,
-            return_value=[],
-        ):
-            response = Job.submit_pending()
+        submitted_jobs, pending_jobs, failed_jobs = Job.submit_pending()
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
-        self.assertNotEqual(response, [])
+        self.assertListEqual(submitted_jobs, expected_submitted_jobs)
+        self.assertListEqual(pending_jobs, [])
+        self.assertListEqual(failed_jobs, [])
 
         # After submission, each PENDING job state should be updated to PROCESSING
         self.assertEqual(Job.objects.filter(state=JobStates.PROCESSING).count(), 4)
@@ -209,20 +209,20 @@ class TestJob(TestCase):
     @patch("scpca_portal.batch.submit_job")
     def test_submit_pending_failure(self, mock_batch_submit_job):
         # Set up 3 saved PENDING jobs
-        for _ in range(3):
+        expected_pending_jobs = [
             JobFactory(state=JobStates.PENDING, dataset=DatasetFactory(is_pending=False))
+            for _ in range(3)
+        ]
+
         mock_batch_submit_job.return_value = []
 
         # Should call submit_job 3 times, each time with an exception
-        with patch(
-            "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
-            new_callable=PropertyMock,
-            return_value=[],
-        ):
-            response = Job.submit_pending()
+        submitted_jobs, pending_jobs, failed_jobs = Job.submit_pending()
         mock_batch_submit_job.assert_called()
         self.assertEqual(mock_batch_submit_job.call_count, 3)
-        self.assertEqual(response, [])
+        self.assertListEqual(submitted_jobs, [])
+        self.assertListEqual(pending_jobs, expected_pending_jobs)
+        self.assertListEqual(failed_jobs, [])
 
         # After submission, the jobs should remain unchanged
         self.assertEqual(Job.objects.filter(state=JobStates.PENDING).count(), 3)
@@ -235,9 +235,11 @@ class TestJob(TestCase):
         mock_batch_submit_job.return_value = []
 
         # Should return an empty list without calling submit_job
-        response = Job.submit_pending()
+        submitted_jobs, pending_jobs, failed_jobs = Job.submit_pending()
         mock_batch_submit_job.assert_not_called()
-        self.assertEqual(response, [])  # No submission with no error
+        self.assertListEqual(submitted_jobs, [])
+        self.assertListEqual(pending_jobs, [])
+        self.assertListEqual(failed_jobs, [])
 
     @patch("scpca_portal.batch.get_jobs")
     def test_sync_state(self, mock_batch_get_jobs):

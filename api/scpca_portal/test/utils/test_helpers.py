@@ -259,3 +259,12 @@ class TestByteConversion(TestCase):
         size_in_bytes = -10
         with self.assertRaises(ValueError):
             utils.format_bytes(size_in_bytes)
+
+
+class TestHashValues(TestCase):
+    def test_hash_values(self):
+        values = ["apple", "orange", "banana"]
+        self.assertEqual(utils.hash_values(values), "efbcafb6aa8af004895ba045078f2fa2")
+
+        values = ["banana", "apple", "orange"]
+        self.assertEqual(utils.hash_values(values), "efbcafb6aa8af004895ba045078f2fa2")

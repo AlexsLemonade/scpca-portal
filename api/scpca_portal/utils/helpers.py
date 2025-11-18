@@ -1,5 +1,6 @@
 """Misc utils."""
 
+import hashlib
 import inspect
 import math
 import shutil
@@ -249,3 +250,15 @@ def format_bytes(size_in_bytes: int) -> str:
     sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
     i = math.floor(math.log(size_in_bytes) / math.log(k))
     return f"{size_in_bytes / k**i:.2f} {sizes[i]}"
+
+
+def hash_values(values: List[str]) -> str:
+    """
+    Return the hash value of a passed list of strings.
+    """
+    md5_hasher = hashlib.md5()
+
+    for value in sorted(values):
+        md5_hasher.update(value.encode("utf-8"))
+
+    return md5_hasher.hexdigest()

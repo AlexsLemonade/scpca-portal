@@ -199,7 +199,7 @@ class Computed_File_Project:
             "spatial_metadata.tsv",
         ]
         VALUES = {
-            "format": ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT,
+            "format": ComputedFile.OutputFileFormats.SPATIAL_SPACERANGER,
             "has_bulk_rna_seq": False,
             "has_cite_seq_data": False,
             "has_multiplexed_data": False,
