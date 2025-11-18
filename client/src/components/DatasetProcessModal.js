@@ -16,10 +16,12 @@ export const DatasetProcessModal = ({
   const { processDataset } = useMyDataset()
 
   const [showing, setShowing] = useState(false)
+  const [submitting, setSubmitting] = useState(false) // Disable the button while making request
 
   const handleProcessDataset = async () => {
+    setSubmitting(true)
     const datasetRequest = await processDataset()
-
+    setSubmitting(false)
     if (datasetRequest) {
       push(`/datasets/${datasetRequest.id}`)
     } else {
@@ -34,7 +36,7 @@ export const DatasetProcessModal = ({
         flex="grow"
         primary
         label={label}
-        disabled={disabled}
+        disabled={disabled || submitting}
         onClick={() => setShowing(true)}
       />
       <Modal title={title} showing={showing} setShowing={setShowing}>
