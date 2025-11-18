@@ -121,6 +121,19 @@ def get_chunk_list(list: List[Any], size: int) -> Generator[List[Any], None, Non
         yield list[i : i + size]
 
 
+def get_docs_url(path: str) -> str:
+    """
+    Returns the full ScPCA docs URL for the given path.
+    """
+    DOCS_BASE = "https://scpca.readthedocs.io/en"
+    DOCS_VERSION = "stable"
+
+    if settings.ENABLE_FEATURE_PREVIEW:
+        DOCS_VERSION = "development"
+
+    return f"{DOCS_BASE}/{DOCS_VERSION}/{path}"
+
+
 def get_today_string(format: str = "%Y-%m-%d") -> str:
     """Returns today's date formatted. Defaults to ISO 8601."""
     return datetime.today().strftime(format)

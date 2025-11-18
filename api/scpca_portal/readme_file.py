@@ -6,7 +6,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils  # ccdl_datasets,
-from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 
 OUTPUT_NAME = "README.md"
 
@@ -16,28 +16,50 @@ TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "readme.md"
 # Dataset Readme Templates
 README_ROOT = settings.TEMPLATE_PATH / "dataset_readme"
 
-METADATA_LINK = "METADATA_LINK"
-ANN_DATA_LINK = "ANN_DATA_LINK"
-ANN_DATA_WITH_CITE_SEQ_LINK = "ANN_DATA_WITH_CITE_SEQ_LINK"
-ANN_DATA_MERGED_LINK = "ANN_DATA_MERGED_LINK"
-ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = "ANN_DATA_MERGED_WITH_CITE_SEQ_LINK"
-SINGLE_CELL_EXPERIMENT_LINK = "SINGLE_CELL_EXPERIMENT_LINK"
-SINGLE_CELL_EXPERIMENT_MERGED_LINK = "SINGLE_CELL_EXPERIMENT_MERGED_LINK"
-SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = "SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK"
-SPATIAL_SPATIAL_SPACERANGER_LINK = "SPATIAL_SPATIAL_SPACERANGER_LINK"
-BULK_LINK = "BULK_LINK"
+
+METADATA_LINK = utils.get_docs_url("download_files.html#metadata")
+ANN_DATA_LINK = utils.get_docs_url("sce_file_contents.html#components-of-an-anndata-object")
+ANN_DATA_WITH_CITE_SEQ_LINK = utils.get_docs_url(
+    "sce_file_contents.htm#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+)
+ANN_DATA_MERGED_LINK = utils.get_docs_url(
+    "merged_objects.html#components-of-an-anndata-merged-object"
+)
+ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = utils.get_docs_url(
+    "merged_objects.html#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+)
+SINGLE_CELL_EXPERIMENT_LINK = utils.get_docs_url(
+    "sce_file_contents.html#components-of-a-singlecellexperiment-object"
+)
+SINGLE_CELL_EXPERIMENT_MERGED_LINK = utils.get_docs_url(
+    "merged_objects.html#components-of-a-singlecellexperiment-merged-object"
+)
+SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = utils.get_docs_url(
+    "sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries"
+)
+SPATIAL_SPATIAL_SPACERANGER_LINK = utils.get_docs_url(
+    "processing_information.html#spatial-transcriptomics"
+)
+BULK_LINK = utils.get_docs_url("processing_information.html#bulk-rna-samples")
 
 PORTAL_CCDL_DATASET_LINKS = {
-    CCDLDatasetNames.ALL_METADATA: "PORTAL_METADATA_LINK",
-    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT: (
-        "PORTAL_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_LINK"
+    CCDLDatasetNames.ALL_METADATA: utils.get_docs_url("download_files.html#portal-wide-downloads"),
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT: utils.get_docs_url(
+        "download_files.html#singlecellexperiment-portal-wide-download-structure"
     ),
-    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: (
-        "PORTAL_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED_LINK"
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: utils.get_docs_url(
+        "download_files.html"
+        "#portal-wide-download-structure-for-merged-singlecellexperiment-objects"
     ),
-    CCDLDatasetNames.SINGLE_CELL_ANN_DATA: "PORTAL_SINGLE_CELL_ANN_DATA_LINK",
-    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: "PORTAL_SINGLE_CELL_ANN_DATA_MERGED_LINK",
-    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: "PORTAL_SPATIAL_SPATIAL_SPACERANGER_LINK",
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA: utils.get_docs_url(
+        "download_files.html#anndata-portal-wide-download-structure"
+    ),
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: utils.get_docs_url(
+        "download_files.html#portal-wide-download-structure-for-merged-anndata-objects"
+    ),
+    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: utils.get_docs_url(
+        "download_files.html#spatial-portal-wide-download-structure"
+    ),
 }
 
 # used in get_content_table_rows and in 2_contents.md
@@ -64,6 +86,7 @@ def add_ann_data_content_rows(content_rows: set, dataset) -> set:
 
         # ANN_DATA_MERGED
         if dataset.get_is_merged_project(project.scpca_id):
+            docs_link = ANN_DATA_MERGED_LINK
             # ANN_DATA_MERGED_WITH_CITE
             if project.has_cite_seq_data:
                 docs_link = ANN_DATA_MERGED_WITH_CITE_SEQ_LINK
@@ -117,7 +140,7 @@ def get_content_table_rows(dataset) -> list[ContentRow]:
         content_rows = add_single_cell_experiment_content_rows(content_rows, dataset)
 
     # SPATIAL get their own row
-    if dataset.format == DatasetFormats.SINGLE_CELL_EXPERIMENT:
+    if dataset.format == FileFormats.SPATIAL_SPACERANGER:
         for project in dataset.spatial_projects:
             content_rows.add(
                 ContentRow(
@@ -150,7 +173,7 @@ def get_content_metadata_link(dataset):
     Returns the link to the documentation if dataset is for metadata.
     Portal wide metadata is handled by `content_portal_wide_link`.
     """
-    if dataset.format == DatasetFormats.METADATA and not dataset.ccdl_project_id:
+    if dataset.format == DatasetFormats.METADATA and dataset.ccdl_project_id:
         return METADATA_LINK
     return None
 
