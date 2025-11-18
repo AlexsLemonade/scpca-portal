@@ -3,6 +3,7 @@ import { Box, Text } from 'grommet'
 import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
+import { useNotification } from 'hooks/useNotification'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
 import { DatasetEmpty } from 'components/DatasetEmpty'
@@ -28,6 +29,15 @@ const Download = () => {
 
   const [loading, setLoading] = useState(true)
   const [isFormatChanged, setIsFormatChanged] = useState(false)
+
+  const { hideNotification } = useNotification()
+  // Clean up the moved samples banner on component unmounts
+  useEffect(() => {
+    const bannerName = 'Move to My Dataset' // A moved samples banner ID
+    return () => {
+      hideNotification(bannerName)
+    }
+  }, [])
 
   // Restore scroll position after component mounts
   useEffect(() => {

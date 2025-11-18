@@ -57,7 +57,7 @@ export const DatasetMoveSamplesModal = ({
   const showErrorNotification = (
     message = "We're having trouble moving samples to My Dataset. Please try again later."
   ) => {
-    showNotification(message, 'error')
+    showNotification(message, 'error', label)
     setShowing(false)
   }
 
@@ -91,7 +91,11 @@ export const DatasetMoveSamplesModal = ({
     }
 
     push(`/download`)
-    showNotification(`Moved ${sharedSampleCount} Samples to My Dataset`)
+    showNotification(
+      `Moved ${sharedSampleCount} Samples to My Dataset`,
+      'success',
+      label
+    )
     setShowing(false)
   }
 
