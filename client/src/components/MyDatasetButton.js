@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
+import { useRouter } from 'next/router'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { Button } from 'components/Button'
 import styled, { css } from 'styled-components'
@@ -18,6 +19,7 @@ const YellowButton = styled(Button)`
 `
 
 export const MyDatasetButton = () => {
+  const { push } = useRouter()
   const { myDataset, getDataset } = useMyDataset()
   const { total_sample_count: count = 0 } = myDataset
 
@@ -35,7 +37,6 @@ export const MyDatasetButton = () => {
   return (
     <Box direction="row">
       <YellowButton
-        href="/download"
         label="My Dataset"
         primary
         badge={
@@ -55,6 +56,7 @@ export const MyDatasetButton = () => {
             <Text size="small-flat">{count}</Text>
           </Box>
         }
+        onClick={() => push('/download')}
       />
     </Box>
   )
