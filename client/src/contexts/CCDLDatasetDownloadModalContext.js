@@ -62,13 +62,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
     }
   }, [modality, format, includesMerged, excludeMultiplexed])
 
-  // downloadDataset should be set immediately for ccdl portal wide and project metadata downloads
-  useEffect(() => {
-    if (selectedDataset && datasets.length === 1) {
-      setDownloadDataset(selectedDataset)
-    }
-  }, [datasets, selectedDataset])
-
   // download file
   useEffect(() => {
     const asyncFetch = async () => {
@@ -101,6 +94,17 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       if (datasets.length > 1) setDownloadDataset(null)
     }
   }, [showing])
+
+  useEffect(() => {
+    const initialDataset = datasets[0]
+    setSelectedDataset(initialDataset)
+    setModality(initialDataset.ccdl_modality)
+    setFormat(initialDataset.format)
+
+    // upon change to datasets, either null out downloadDatasetor
+    // or set it in the case of portal wide or project metadata downloads
+    setDownloadDataset(datasets.length === 1 ? initialDataset : null)
+  }, [datasets])
 
   return (
     <CCDLDatasetDownloadModalContext.Provider
