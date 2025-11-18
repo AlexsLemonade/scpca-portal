@@ -565,7 +565,7 @@ class TestDataset(TestCase):
             # Single-cell multiplexed should be included here
             {"samples_count": 2, "name": "Single-nuclei multiplexed samples", "format": ".rds"},
             {"samples_count": 1, "name": "Spatial samples", "format": "Spatial format"},
-            {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
+            {"samples_count": 1, "name": "Bulk RNA-seq samples", "format": ".tsv"},
         ]
 
         single_cell_files_summary = single_cell_dataset.get_files_summary()
@@ -605,7 +605,7 @@ class TestDataset(TestCase):
         expected_ann_data = [
             {"samples_count": 4, "name": "Single-cell samples", "format": ".h5ad"},
             {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".h5ad"},
-            {"samples_count": 1, "name": "Bulk-RNA seq samples", "format": ".tsv"},
+            {"samples_count": 1, "name": "Bulk RNA-seq samples", "format": ".tsv"},
         ]
 
         ann_data_files_summary = ann_data_dataset.get_files_summary()
