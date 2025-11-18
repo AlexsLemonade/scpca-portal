@@ -1,10 +1,11 @@
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, List, Tuple
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models.query import QuerySet
 
 from typing_extensions import Self
 
@@ -164,7 +165,7 @@ class OriginalFile(TimestampedModel):
     @staticmethod
     def purge_deleted_files(
         bucket: str, sync_timestamp, allow_bucket_wipe: bool = False
-    ) -> List[Self]:
+    ) -> QuerySet["OriginalFile"]:
         """Purge all files that no longer exist on s3."""
         # if the last_bucket_sync timestamp wasn't updated,
         # then the file has been deleted from s3, which must be reflected in the db.
@@ -297,7 +298,7 @@ class OriginalFile(TimestampedModel):
     @classmethod
     def get_input_library_metadata_files(
         cls, project_id: str, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
-    ) -> Iterable[Self]:
+    ) -> QuerySet[Self]:
         return OriginalFile.objects.filter(
             is_metadata=True,
             project_id=project_id,
