@@ -171,7 +171,6 @@ export const DatasetAddProjectModal = ({
                   />
                   <DatasetProjectModalityOptions
                     project={project}
-                    format={format}
                     modalities={modalities}
                     onModalitiesChange={setModalities}
                   />
