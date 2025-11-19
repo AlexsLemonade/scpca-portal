@@ -60,13 +60,15 @@ export const DatasetAddProjectModal = ({
     setShowing(false)
   }
 
-  // Set additional options based on the project and defaultProjectOptions
+  // Set additional option values based on defaultProjectOptions and format
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
     includes_merged_sce: includesMergedSce,
     includes_merged_anndata: includesMergedAnnData
   } = project
   useEffect(() => {
+    // Multiplexed samples are not available for ANN_DATA
+    setExcludeMultiplexed(format === 'ANN_DATA')
     setIncludeBulk(hasBulkRnaSeq ? defaultProjectOptions.includeBulk : false)
     setIncludeMerge(
       includesMergedSce || includesMergedAnnData
@@ -78,7 +80,7 @@ export const DatasetAddProjectModal = ({
         defaultProjectOptions.modalities.includes(m)
       )
     )
-  }, [defaultProjectOptions])
+  }, [defaultProjectOptions, format])
 
   // Reset the format value on format changes (once empty data)
   useEffect(() => {
@@ -176,6 +178,7 @@ export const DatasetAddProjectModal = ({
                   />
                   <DatasetProjectAdditionalOptions
                     project={project}
+                    selectedFormat={format}
                     selectedModalities={modalities}
                     excludeMultiplexed={excludeMultiplexed}
                     includeBulk={includeBulk}

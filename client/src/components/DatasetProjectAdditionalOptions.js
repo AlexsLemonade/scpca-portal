@@ -10,6 +10,7 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const DatasetProjectAdditionalOptions = ({
   project,
+  selectedFormat,
   selectedModalities,
   excludeMultiplexed,
   includeBulk,
@@ -18,7 +19,7 @@ export const DatasetProjectAdditionalOptions = ({
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { myDataset, userFormat } = useMyDataset()
+  const { myDataset } = useMyDataset()
 
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
@@ -41,9 +42,7 @@ export const DatasetProjectAdditionalOptions = ({
   const showMergedMultiplexedWarning = disableMergedObjects && hasMultiplexed
 
   // Multiplexed samples are not available for ANN_DATA
-  const canExcludeMultiplexed = myDataset.format
-    ? myDataset.format !== 'ANN_DATA'
-    : userFormat !== 'ANN_DATA'
+  const canExcludeMultiplexed = selectedFormat !== 'ANN_DATA'
 
   return (
     <FormField label="Additional Options" gap="medium" labelWeight="bold">
@@ -82,7 +81,7 @@ export const DatasetProjectAdditionalOptions = ({
           <Box direction="row">
             <CheckBox
               label="Exclude multiplexed samples"
-              checked={excludeMultiplexed}
+              checked={excludeMultiplexed || !canExcludeMultiplexed}
               disabled={!canExcludeMultiplexed}
               onChange={({ target: { checked } }) =>
                 onExcludeMultiplexedChange(checked)
