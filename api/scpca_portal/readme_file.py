@@ -6,7 +6,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils  # ccdl_datasets,
-from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 OUTPUT_NAME = "README.md"
 
@@ -140,7 +140,7 @@ def get_content_table_rows(dataset) -> list[ContentRow]:
         content_rows = add_single_cell_experiment_content_rows(content_rows, dataset)
 
     # SPATIAL get their own row
-    if dataset.format == FileFormats.SPATIAL_SPACERANGER:
+    if dataset.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
         for project in dataset.spatial_projects:
             content_rows.add(
                 ContentRow(

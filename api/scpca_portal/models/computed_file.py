@@ -41,6 +41,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         CHOICES = (
             (ANN_DATA, "AnnData"),
             (SINGLE_CELL_EXPERIMENT, "Single cell experiment"),
+            (SPATIAL_SPACERANGER, "Spatial Spaceranger"),
         )
 
     format = models.TextField(choices=OutputFileFormats.CHOICES, null=True)
@@ -166,6 +167,32 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def get_dataset_file_s3_key(cls, dataset) -> str:
         return f"{dataset.id}.zip"
 
+    # # TODO: TEMP translation for dataset -> computed file enums
+    @classmethod
+    def get_output_file_format(cls, dataset) -> str | None:
+        match dataset.format:
+            case DatasetFormats.SINGLE_CELL_EXPERIMENT:
+                if dataset.ccdl_modality == Modalities.SPATIAL:
+                    return cls.OutputFileFormats.SPATIAL_SPACERANGER
+                else:
+                    return cls.OutputFileFormats.SINGLE_CELL_EXPERIMENT
+            case DatasetFormats.ANN_DATA:
+                return cls.OutputFileFormats.ANN_DATA
+            case DatasetFormats.METADATA:
+                return None
+            case _:
+                return None
+
+    @classmethod
+    def get_output_file_modality(cls, dataset) -> str | None:
+        match dataset.ccdl_type.get("modality"):
+            case Modalities.SINGLE_CELL:
+                return cls.OutputFileModalities.SINGLE_CELL
+            case Modalities.SPATIAL:
+                return cls.OutputFileModalities.SPATIAL
+            case _:
+                return None
+
     @classmethod
     def get_dataset_file(cls, dataset) -> Self:
         """
@@ -214,16 +241,16 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             ),
             has_cite_seq_data=dataset.libraries.filter(has_cite_seq_data=True).exists(),
             has_multiplexed_data=dataset.libraries.filter(is_multiplexed=True).exists(),
-            format=dataset.ccdl_type.get("format"),
+            format=cls.get_output_file_format(dataset),
             includes_celltype_report=dataset.projects.filter(samples__is_cell_line=False).exists(),
-            includes_merged=dataset.ccdl_type.get("includes_merged"),
-            modality=dataset.ccdl_type.get("modality"),
-            metadata_only=dataset.ccdl_name == DatasetFormats.METADATA,
+            includes_merged=dataset.includes_files_merged,
+            modality=cls.get_output_file_modality(dataset),
+            metadata_only=dataset.format == DatasetFormats.METADATA,
             s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
             s3_key=cls.get_dataset_file_s3_key(dataset),
             size_in_bytes=dataset.computed_file_local_path.stat().st_size,
             workflow_version=utils.join_workflow_versions(
-                library.workflow_version for library in dataset.libraries
+                set(library.workflow_version for library in dataset.libraries)
             ),
         )
 

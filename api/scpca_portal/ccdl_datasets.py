@@ -1,4 +1,4 @@
-from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 # These types provide instructions for generating CCDL datasets
 # Modality, format, excludes_multiplexed and includes_anndata for correct population of libraries
@@ -64,7 +64,7 @@ TYPES = {
     },
     CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER.value: {
         "modality": Modalities.SPATIAL.value,
-        "format": FileFormats.SPATIAL_SPACERANGER.value,
+        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,  # dataset format
         "excludes_multiplexed": True,
         "includes_merged": False,
         "constraints": {
