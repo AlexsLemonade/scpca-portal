@@ -33,7 +33,7 @@ export const portalWideLinks = {
   SINGLE_CELL_ANN_DATA_MERGED: {
     learnMore: config.links.whatDownloadingPortalWide
   },
-  SPATIAL_SINGLE_CELL_EXPERIMENT: {
+  SPATIAL_SPATIAL_SPACERANGER: {
     learnMore: config.links.whatDownloadingPortalWideSpatial
   }
 }
@@ -54,10 +54,8 @@ export const projectLinks = {
   SINGLE_CELL_ANN_DATA: {
     learnMore: '#tbd'
   },
-  SINGLE_CELL_ANN_DATA_MERGED: {
-    learnMore: '#tbd'
-  },
-  SPATIAL_SINGLE_CELL_EXPERIMENT: {
+  SINGLE_CELL_ANN_DATA_MERGED: { learnMore: '#tbd' },
+  SPATIAL_SPATIAL_SPACERANGER: {
     learnMore: '#tbd'
   }
 }
