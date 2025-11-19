@@ -101,7 +101,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
     setModality(initialDataset.ccdl_modality)
     setFormat(initialDataset.format)
 
-    // upon change to datasets, either null out downloadDatasetor
+    // upon change to datasets, either null out downloadDataset
     // or set it in the case of portal wide or project metadata downloads
     setDownloadDataset(datasets.length === 1 ? initialDataset : null)
   }, [datasets])
