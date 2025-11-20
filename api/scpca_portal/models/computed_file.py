@@ -250,7 +250,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             s3_key=cls.get_dataset_file_s3_key(dataset),
             size_in_bytes=dataset.computed_file_local_path.stat().st_size,
             workflow_version=utils.join_workflow_versions(
-                set(library.workflow_version for library in dataset.libraries)
+                library.workflow_version for library in dataset.libraries
             ),
         )
 

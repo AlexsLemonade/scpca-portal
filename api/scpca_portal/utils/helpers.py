@@ -107,7 +107,7 @@ def string_from_list(value: Any, delimiter=";") -> Any:
     return delimiter.join(value) if isinstance(value, list) else value
 
 
-def join_workflow_versions(workflow_versions: Set) -> str:
+def join_workflow_versions(workflow_versions: Iterable) -> str:
     """Returns list of sorted unique workflow versions."""
 
     return ", ".join(sorted(set(workflow_versions)))
