@@ -1,4 +1,4 @@
-from scpca_portal.enums import CCDLDatasetNames, FileFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 
 class DatasetSpatialSpatialSpacerangerSCPCP999990:
@@ -14,7 +14,7 @@ class DatasetSpatialSpatialSpacerangerSCPCP999990:
         },
         "email": None,
         "start": False,
-        "format": FileFormats.SPATIAL_SPACERANGER.value,
+        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,
         "regenerated_from": None,
         "is_ccdl": True,
         "ccdl_name": CCDL_NAME,

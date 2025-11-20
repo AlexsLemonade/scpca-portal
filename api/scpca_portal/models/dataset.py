@@ -19,7 +19,6 @@ from scpca_portal.enums import (
     CCDLDatasetNames,
     DatasetDataProjectConfig,
     DatasetFormats,
-    FileFormats,
     JobStates,
     Modalities,
 )
@@ -640,9 +639,6 @@ class Dataset(TimestampedModel):
         Returns all project instances which have spatial data
         with spatial samples requested in the data attribute.
         """
-        if self.format != FileFormats.SPATIAL_SPACERANGER:
-            return Project.objects.none()
-
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
