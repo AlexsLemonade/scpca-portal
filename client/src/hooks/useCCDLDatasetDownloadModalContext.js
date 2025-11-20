@@ -19,9 +19,12 @@ export const useCCDLDatasetDownloadModalContext = () => {
     isMultiplexedAvailable,
     modalityOptions,
     formatOptions,
+    // downloadDataset,
+    // setDownloadDataset,
+    // downloadLink,
     downloadDataset,
     setDownloadDataset,
-    downloadLink,
+    downloadableDataset,
     project,
     datasets,
     token
@@ -29,7 +32,7 @@ export const useCCDLDatasetDownloadModalContext = () => {
 
   const isTokenReady = !token
   const isOptionsReady = datasets?.length > 1 && !!token && !downloadDataset
-  const isDownloadReady = !!downloadDataset && !!token
+  const isDownloadReady = !!downloadableDataset && !!token
   const [modalTitle, setModalTitle] = useState('Downloading')
 
   const modalModalityNames = {
@@ -65,9 +68,12 @@ export const useCCDLDatasetDownloadModalContext = () => {
     isDownloadReady,
     isTokenReady,
     isOptionsReady,
+    // downloadDataset,
+    // setDownloadDataset,
+    // downloadLink,
     downloadDataset,
     setDownloadDataset,
-    downloadLink,
+    downloadableDataset,
     modality,
     setModality,
     format,

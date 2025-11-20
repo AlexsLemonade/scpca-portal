@@ -23,8 +23,11 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const [includesMerged, setIncludesMerged] = useState(null)
   const [excludeMultiplexed, setExcludeMultiplexed] = useState(null)
 
-  const [downloadDataset, setDownloadDataset] = useState(null)
-  const [downloadLink, setDownloadLink] = useState(null)
+  // const [downloadDataset, setDownloadDataset] = useState(null)
+  // const [downloadLink, setDownloadLink] = useState(null)
+  // TODO: use this state var to get rid of downloadLink, where downloadDataset should be the authenticated dataset with the link, propogate changes
+  const [downloadDataset, setDownloadDataset] = useState(false)
+  const [downloadableDataset, setDownloadableDataset] = useState(null)
 
   const [isMergedObjectsAvailable, setIsMergedObjectsAvailable] = useState(null)
   const [isMultiplexedAvailable, setIsMultiplexedAvailable] = useState(null)
@@ -42,8 +45,10 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setIncludesMerged(null)
       setExcludeMultiplexed(null)
 
-      setDownloadDataset(null) // depends on selectedDataset change
-      setDownloadLink(null) // depends on downloadDataset change
+      // setDownloadDataset(null) // depends on selectedDataset change
+      // setDownloadLink(null) // depends on downloadDataset change
+      setDownloadDataset(false)
+      setDownloadableDataset(null)
 
       setIsMergedObjectsAvailable(null)
       setIsMultiplexedAvailable(null)
@@ -64,8 +69,9 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setIncludesMerged(defaultDataset.includes_files_merged)
       setExcludeMultiplexed(defaultDataset.includes_files_multiplexed)
 
-      setDownloadDataset(datasets.length === 1 ? defaultDataset : null)
-      setDownloadLink(null) // depends on downloadDataset change
+      // setDownloadDataset(datasets.length === 1 ? defaultDataset : null)
+      // setDownloadLink(null) // depends on downloadDataset change
+      setDownloadDataset(datasets.length === 1)
 
       setIsMergedObjectsAvailable(
         datasets.some((dataset) => dataset.includes_files_merged)
@@ -118,32 +124,37 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   useEffect(() => {
     const asyncFetch = async () => {
       const downloadRequest = await api.ccdlDatasets.get(
-        downloadDataset.id,
+        selectedDataset.id,
         token
       )
       if (downloadRequest.isOk) {
         window.open(downloadRequest.response.download_url)
-        setDownloadLink(downloadRequest.response.download_url)
+        setDownloadableDataset(downloadRequest.response)
       } else if (downloadRequest.status === 403) {
         await createToken()
       } else {
         // NOTE: there isnt much we can do here to recover.
         console.error(
           'An error occurred while trying to get the download url for:',
-          downloadDataset.id
+          selectedDataset.id
         )
       }
     }
 
-    if (downloadDataset && !downloadLink && token && showing) asyncFetch()
-  }, [downloadDataset, downloadLink, token, showing])
+    // if (downloadDataset && !downloadLink && token && showing) asyncFetch()
+    // }, [downloadDataset, downloadLink, token, showing])
+    if (downloadDataset && !downloadableDataset && token && showing)
+      asyncFetch()
+  }, [downloadDataset, downloadableDataset, token, showing])
 
   // reset to selection on close
   useEffect(() => {
     if (!showing) {
-      setDownloadLink(null)
+      // setDownloadLink(null)
+      setDownloadDataset(false)
+      setDownloadableDataset(null)
       // downloadDataset needs to be unset each time the modal is closed for ccdl project datasets
-      if (datasets.length > 1) setDownloadDataset(null)
+      // if (datasets.length > 1) setDownloadDataset(null)
     }
   }, [showing])
 
@@ -165,9 +176,12 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         isMultiplexedAvailable,
         modalityOptions,
         formatOptions,
+        // downloadDataset,
+        // setDownloadDataset,
+        // downloadLink,
         downloadDataset,
         setDownloadDataset,
-        downloadLink,
+        downloadableDataset,
         project,
         datasets,
         token
