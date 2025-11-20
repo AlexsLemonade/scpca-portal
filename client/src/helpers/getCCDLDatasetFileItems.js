@@ -24,7 +24,7 @@ export const getCCDLDatasetFileItems = (dataset) => {
           'CITE_SEQ_DATA'
         )}`
       : getReadableFileItems('SINGLE_CELL_DATA')
-    items.push(`${modalityItem} as ${getReadable[format]}`)
+    items.push(`${modalityItem} as ${getReadable(format)}`)
   }
 
   if (modality === 'SPATIAL') {
@@ -33,7 +33,7 @@ export const getCCDLDatasetFileItems = (dataset) => {
 
   if (hasMultiplexed && !isMetadataDataset) {
     items.push(
-      `${getReadableFileItems('MULTIPLEXED_DATA')} as ${getReadable[format]}`
+      `${getReadableFileItems('MULTIPLEXED_DATA')} as ${getReadable(format)}`
     )
   }
 
@@ -43,7 +43,7 @@ export const getCCDLDatasetFileItems = (dataset) => {
 
   if (seperateCiteSeqFile) {
     items.push(
-      `${getReadableFileItems('CITE_SEQ_DATA')} as ${getReadable[format]}`
+      `${getReadableFileItems('CITE_SEQ_DATA')} as ${getReadable(format)}`
     )
   }
 
