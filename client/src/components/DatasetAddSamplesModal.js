@@ -27,28 +27,22 @@ export const DatasetAddSamplesModal = ({
   } = useMyDataset()
   const {
     canAddMultiplexed,
-    noMultiplexedSupport,
+    showWarningMultiplexed,
     selectedSamples,
     setSelectedSamples
   } = useProjectSamplesTable()
   const { responsive } = useResponsive()
 
-  // Selected samples excluding multiplexed
-  const [
-    selectedSingleCellSamplesExcludeMultiplexed,
-    setFilteredSelectedSingleCellSamplesExcludeMultiplexed
-  ] = useState([])
+  const [selectedSingleCellSamples, setSelectedSingleCellSamples] = useState([])
 
   // Exclude multiplexed samples from selectedSamples for ANN_DATA
-  // NOTE: Make sure users do not lose their selected samples when toggling formats before API request
+  // NOTE: Make sure not to lose the user's selection when toggling formats before API request
   useEffect(() => {
     if (!samples) return
     if (!project.has_multiplexed_data) {
-      setFilteredSelectedSingleCellSamplesExcludeMultiplexed(
-        selectedSamples.SINGLE_CELL
-      )
+      setSelectedSingleCellSamples(selectedSamples.SINGLE_CELL)
     } else {
-      setFilteredSelectedSingleCellSamplesExcludeMultiplexed(
+      setSelectedSingleCellSamples(
         canAddMultiplexed
           ? selectedSamples.SINGLE_CELL
           : samples
@@ -81,7 +75,7 @@ export const DatasetAddSamplesModal = ({
       project,
       {
         ...selectedSamples,
-        SINGLE_CELL: selectedSingleCellSamplesExcludeMultiplexed,
+        SINGLE_CELL: selectedSingleCellSamples,
         includes_bulk: includeBulk
       },
       userFormat
@@ -90,7 +84,7 @@ export const DatasetAddSamplesModal = ({
     // Refresh the table data
     setSelectedSamples((prev) => ({
       ...prev,
-      SINGLE_CELL: selectedSingleCellSamplesExcludeMultiplexed
+      SINGLE_CELL: selectedSingleCellSamples
     }))
   }
 
@@ -110,10 +104,8 @@ export const DatasetAddSamplesModal = ({
         getDatasetProjectDataSamples(project, samples)
 
       setSingleCellSamplesToAdd(
-        differenceArray(
-          selectedSingleCellSamplesExcludeMultiplexed,
-          singleCellSamples
-        ).length || 0
+        differenceArray(selectedSingleCellSamples, singleCellSamples).length ||
+          0
       )
       setSpatialSamplesToAdd(
         differenceArray(selectedSamples.SPATIAL, spatialSamples).length || 0
@@ -122,7 +114,7 @@ export const DatasetAddSamplesModal = ({
   }, [
     userFormat,
     canAddMultiplexed,
-    selectedSingleCellSamplesExcludeMultiplexed,
+    selectedSingleCellSamples,
     samples,
     selectedSamples
   ])
@@ -162,7 +154,7 @@ export const DatasetAddSamplesModal = ({
                   {`${spatialSamplesToAdd} samples with spatial modality`}
                 </Box>
               </Box>
-              {noMultiplexedSupport && (
+              {showWarningMultiplexed && !myDataset.format && (
                 <Text margin={{ top: 'small' }}>
                   (*Multiplexed samples are excluded.)
                 </Text>
@@ -175,7 +167,7 @@ export const DatasetAddSamplesModal = ({
               <Box pad={{ bottom: 'medium' }} width="680px">
                 <Box margin={{ bottom: 'medium' }}>
                   <DatasetDataFormatOptions project={project} />
-                  {noMultiplexedSupport && <WarningAnnDataMultiplexed />}
+                  {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
                 </Box>
                 <DatasetSamplesProjectOptions
                   project={project}

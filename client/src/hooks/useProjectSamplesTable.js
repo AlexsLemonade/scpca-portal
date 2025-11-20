@@ -1,7 +1,8 @@
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { ProjectSamplesTableContext } from 'contexts/ProjectSamplesTableContext'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { differenceArray } from 'helpers/differenceArray'
+import { getProjectFormats } from 'helpers/getProjectFormats'
 import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useProjectSamplesTable = () => {
@@ -21,16 +22,22 @@ export const useProjectSamplesTable = () => {
   const {
     myDataset,
     userFormat,
+    setUserFormat,
     getDatasetProjectDataSamples,
     getProjectSingleCellSamples
   } = useMyDataset()
 
-  const showBulkInfoText = canAdd && project && project.has_bulk_rna_seq
+  // Set default userFormat value
+  useEffect(() => {
+    setUserFormat(myDataset.format || getProjectFormats(project)[0])
+  }, [myDataset.format])
+
+  const showBulkInfoText = canAdd && project.has_bulk_rna_seq
 
   const canAddMultiplexed = userFormat === 'SINGLE_CELL_EXPERIMENT'
-  const noMultiplexedSupport =
+  const showWarningMultiplexed =
+    canAdd &&
     project.has_multiplexed_data &&
-    (canAdd || !canAddMultiplexed) &&
     (myDataset.format || userFormat) === 'ANN_DATA'
 
   const getIsSampleInMyDataset = (sample, modality) => {
@@ -43,8 +50,7 @@ export const useProjectSamplesTable = () => {
 
   const getMultiplexedDisabled = (sample) =>
     // Multiplexed samples are not available for ANN_DATA
-    (myDataset.format || (!myDataset.format && userFormat)) === 'ANN_DATA' &&
-    sample.has_multiplexed_data
+    myDataset.format === 'ANN_DATA' && sample.has_multiplexed_data
 
   const getCheckBoxIsChecked = (sample, modality) =>
     selectedSamples[modality].includes(sample.scpca_id)
@@ -113,8 +119,8 @@ export const useProjectSamplesTable = () => {
     setSelectedSamples((prevSelectedSamples) => {
       const currentSelectedSamples = prevSelectedSamples[modality]
 
-      // Exclude multiplexed samples if ANN_DATA is selected
-      const updatedFilteredSamples = noMultiplexedSupport
+      // Exclude multiplexed samples unless SINGLE_CELLEXPERIMENT
+      const updatedFilteredSamples = !canAddMultiplexed
         ? filteredSamples.filter((s) => !s.has_multiplexed_data)
         : filteredSamples
 
@@ -191,7 +197,7 @@ export const useProjectSamplesTable = () => {
     filteredSamples,
     setFilteredSamples,
     showBulkInfoText,
-    noMultiplexedSupport,
+    showWarningMultiplexed,
     getHeaderState,
     getCheckBoxIsChecked,
     getCheckBoxIsDisabled,

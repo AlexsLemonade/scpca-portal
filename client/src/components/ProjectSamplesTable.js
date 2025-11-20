@@ -37,7 +37,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     canRemove,
     allSamples,
     showBulkInfoText,
-    noMultiplexedSupport,
+    showWarningMultiplexed,
     selectedSamples,
     setAllSamples,
     setFilteredSamples,
@@ -256,7 +256,10 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
             />
           </Box>
         )}
-        {noMultiplexedSupport && <WarningAnnDataMultiplexed />}
+        {/* Only display this warning when myDataset format has already been defined */}
+        {showWarningMultiplexed && myDataset.format && (
+          <WarningAnnDataMultiplexed />
+        )}
       </Table>
     </>
   )

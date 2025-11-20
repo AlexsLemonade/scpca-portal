@@ -59,11 +59,6 @@ export const DatasetAddProjectModal = ({
     setShowing(false)
   }
 
-  // Set default userFormat value
-  useEffect(() => {
-    setUserFormat(myDataset.format || getProjectFormats(project)[0])
-  }, [myDataset.format])
-
   // Set excludeMultiplexed based on userFormat
   useEffect(() => {
     // Multiplexed samples are not available for ANN_DATA
