@@ -21,7 +21,6 @@ export const DatasetAddProjectModal = ({
   const {
     myDataset,
     defaultProjectOptions,
-    userFormat,
     addProject,
     getProjectDataSamples,
     getProjectSingleCellSamples,
@@ -35,7 +34,7 @@ export const DatasetAddProjectModal = ({
 
   const [modalities, setModalities] = useState([])
   const [format, setFormat] = useState(
-    myDataset.format || userFormat || getProjectFormats(project)[0]
+    myDataset.format || getProjectFormats(project)[0]
   )
   // For additional options
   const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)

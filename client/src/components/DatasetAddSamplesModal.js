@@ -17,8 +17,7 @@ export const DatasetAddSamplesModal = ({
   title = 'Add Samples to Dataset',
   disabled = false
 }) => {
-  const { myDataset, userFormat, getDatasetProjectDataSamples, setSamples } =
-    useMyDataset()
+  const { myDataset, getDatasetProjectDataSamples, setSamples } = useMyDataset()
   const { selectedSamples } = useProjectSamplesTable()
   const { responsive } = useResponsive()
 
@@ -27,7 +26,7 @@ export const DatasetAddSamplesModal = ({
 
   // For project options
   const [format, setFormat] = useState(
-    myDataset.format || userFormat || getProjectFormats(project)[0]
+    myDataset.format || getProjectFormats(project)[0]
   )
   const [includeBulk, setIncludeBulk] = useState(false)
 

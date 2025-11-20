@@ -18,8 +18,8 @@ const Download = () => {
   const { restoreScrollPosition } = useScrollRestore()
   const {
     myDataset,
-    myDatasetFormat,
-    setMyDatasetFormat,
+    prevMyDatasetFormat,
+    setPrevMyDatasetFormat,
     errors,
     getDataset,
     isDatasetDataEmpty
@@ -47,9 +47,9 @@ const Download = () => {
 
   // Display a message if the format has changed
   useEffect(() => {
-    if (myDataset.format !== myDatasetFormat) {
+    if (myDataset.format !== prevMyDatasetFormat) {
       setIsFormatChanged(true)
-      setMyDatasetFormat(myDataset.format)
+      setPrevMyDatasetFormat(myDataset.format)
     }
   }, [loading])
 
