@@ -65,6 +65,7 @@ PORTAL_CCDL_DATASET_LINKS = {
 # used in get_content_table_rows and in 2_contents.md
 ContentRow = namedtuple("ContentRow", ["project", "modality", "format", "docs"])
 
+
 def add_ann_data_content_rows(content_rows: set, dataset) -> set:
     """
     Takes a dataset and returns the set of ContentRows
@@ -138,7 +139,10 @@ def get_content_table_rows(dataset) -> list[ContentRow]:
     for project in dataset.spatial_projects:
         content_rows.add(
             ContentRow(
-                project, Modalities.SPATIAL, FileFormats.SPATIAL_SPACERANGER, SPATIAL_SPATIAL_SPACERANGER_LINK
+                project,
+                Modalities.SPATIAL,
+                FileFormats.SPATIAL_SPACERANGER,
+                SPATIAL_SPATIAL_SPACERANGER_LINK,
             )
         )
 
