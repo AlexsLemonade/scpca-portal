@@ -13,15 +13,15 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 }) => {
   const { token, createToken } = useScPCAPortal()
 
-  const defaultDataset = datasets[0]
-
   const [showing, setShowing] = useState(false)
 
-  const [selectedDataset, setSelectedDataset] = useState(defaultDataset)
-  const [modality, setModality] = useState(defaultDataset.ccdl_modality)
-  const [format, setFormat] = useState(defaultDataset.format)
-  const [includesMerged, setIncludesMerged] = useState(false)
-  const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
+  const [selectedDataset, setSelectedDataset] = useState(null)
+
+  // set when `datasets` changes
+  const [modality, setModality] = useState(null)
+  const [format, setFormat] = useState(null)
+  const [includesMerged, setIncludesMerged] = useState(null)
+  const [excludeMultiplexed, setExcludeMultiplexed] = useState(null)
 
   const [downloadDataset, setDownloadDataset] = useState(
     datasets.length === 1 ? datasets[0] : null
@@ -42,6 +42,33 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       .map((d) => d.format)
   )
 
+  // on datasets change
+  useEffect(() => {
+    if (!datasets || datasets.length === 0) {
+      setSelectedDataset(null)
+
+      setModality(null)
+      setFormat(null)
+      setIncludesMerged(null)
+      setExcludeMultiplexed(null)
+
+      setDownloadDataset(null) // depends on selectedDataset change
+      setDownloadLink(null) // depends on downloadDataset change
+    } else {
+      const [defaultDataset] = datasets
+      setSelectedDataset(defaultDataset)
+
+      setModality(defaultDataset.ccdl_modality)
+      setFormat(defaultDataset.format)
+      setIncludesMerged(defaultDataset.includes_files_merged)
+      setExcludeMultiplexed(defaultDataset.includes_files_multiplexed)
+
+      setDownloadDataset(datasets.length === 1 ? defaultDataset : null)
+      setDownloadLink(null) // depends on downloadDataset change
+    }
+  }, [datasets])
+
+  // on selected options change
   useEffect(() => {
     const query = {
       ccdl_modality: modality,
@@ -94,17 +121,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       if (datasets.length > 1) setDownloadDataset(null)
     }
   }, [showing])
-
-  useEffect(() => {
-    const initialDataset = datasets[0]
-    setSelectedDataset(initialDataset)
-    setModality(initialDataset.ccdl_modality)
-    setFormat(initialDataset.format)
-
-    // upon change to datasets, either null out downloadDataset
-    // or set it in the case of portal wide or project metadata downloads
-    setDownloadDataset(datasets.length === 1 ? initialDataset : null)
-  }, [datasets])
 
   return (
     <CCDLDatasetDownloadModalContext.Provider
