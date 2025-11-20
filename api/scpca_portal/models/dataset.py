@@ -639,9 +639,6 @@ class Dataset(TimestampedModel):
         Returns all project instances which have spatial data
         with spatial samples requested in the data attribute.
         """
-        if self.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
-            return Project.objects.none()
-
         if project_ids := [
             project_id
             for project_id, project_options in self.data.items()
