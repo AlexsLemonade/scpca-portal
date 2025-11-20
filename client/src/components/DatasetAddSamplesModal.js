@@ -104,8 +104,8 @@ export const DatasetAddSamplesModal = ({
         getDatasetProjectDataSamples(project, samples)
 
       setSingleCellSamplesToAdd(
-        differenceArray(selectedSingleCellSamples, singleCellSamples).length ||
-          0
+        differenceArray(selectedSamples.SINGLE_CELL, singleCellSamples)
+          .length || 0
       )
       setSpatialSamplesToAdd(
         differenceArray(selectedSamples.SPATIAL, spatialSamples).length || 0
@@ -138,7 +138,7 @@ export const DatasetAddSamplesModal = ({
           >
             <Box margin={{ bottom: 'medium' }}>
               <Paragraph margin={{ bottom: 'xsmall' }}>
-                Adding the following to Dataset:
+                You have selected the following to add to My Dataset:
               </Paragraph>
               <Paragraph>{`${totalSamples} samples`}</Paragraph>
               <Box
@@ -167,7 +167,11 @@ export const DatasetAddSamplesModal = ({
               <Box pad={{ bottom: 'medium' }} width="680px">
                 <Box margin={{ bottom: 'medium' }}>
                   <DatasetDataFormatOptions project={project} />
-                  {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
+                  {showWarningMultiplexed && (
+                    <WarningAnnDataMultiplexed
+                      count={selectedSingleCellSamples.length}
+                    />
+                  )}
                 </Box>
                 <DatasetSamplesProjectOptions
                   project={project}
