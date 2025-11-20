@@ -43,14 +43,14 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   const formatOptions = uniqueArrayByKey(
     datasets
-      .filter((d) => d.ccdl_modality === modality || !modality)
+      .filter((d) => d.ccdl_modality === defaultDataset.ccdl_modality)
       .map((d) => ({
-        value: d.format,
-        // We override this to present the spatial format
         label:
+          // We override this to present the spatial format
           d.ccdl_modality === 'SPATIAL'
             ? getReadable('SPATIAL_SPACERANGER')
-            : getReadable(d.format)
+            : getReadable(d.format),
+        value: d.format
       })),
     'value'
   )
