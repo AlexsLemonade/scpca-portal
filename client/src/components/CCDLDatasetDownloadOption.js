@@ -8,11 +8,8 @@ import { formatBytes } from 'helpers/formatBytes'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 
 export const CCDLDatasetDownloadOption = () => {
-  const {
-    selectedDataset,
-    setDownloadDataset
-    // setDownloadDataset
-  } = useCCDLDatasetDownloadModalContext()
+  const { selectedDataset, setDownloadDataset } =
+    useCCDLDatasetDownloadModalContext()
 
   const downloadLabel = 'Download Project'
 
@@ -59,7 +56,6 @@ export const CCDLDatasetDownloadOption = () => {
             aria-label={downloadLabel}
             label={downloadLabel}
             onClick={() => {
-              // setDownloadDataset(selectedDataset)
               setDownloadDataset(true)
             }}
           />

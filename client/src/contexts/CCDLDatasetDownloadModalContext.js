@@ -23,9 +23,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const [includesMerged, setIncludesMerged] = useState(null)
   const [excludeMultiplexed, setExcludeMultiplexed] = useState(null)
 
-  // const [downloadDataset, setDownloadDataset] = useState(null)
-  // const [downloadLink, setDownloadLink] = useState(null)
-  // TODO: use this state var to get rid of downloadLink, where downloadDataset should be the authenticated dataset with the link, propogate changes
   const [downloadDataset, setDownloadDataset] = useState(false)
   const [downloadableDataset, setDownloadableDataset] = useState(null)
 
@@ -45,8 +42,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setIncludesMerged(null)
       setExcludeMultiplexed(null)
 
-      // setDownloadDataset(null) // depends on selectedDataset change
-      // setDownloadLink(null) // depends on downloadDataset change
       setDownloadDataset(false)
       setDownloadableDataset(null)
 
@@ -69,8 +64,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setIncludesMerged(defaultDataset.includes_files_merged)
       setExcludeMultiplexed(defaultDataset.includes_files_multiplexed)
 
-      // setDownloadDataset(datasets.length === 1 ? defaultDataset : null)
-      // setDownloadLink(null) // depends on downloadDataset change
       setDownloadDataset(datasets.length === 1)
 
       setIsMergedObjectsAvailable(
@@ -141,8 +134,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       }
     }
 
-    // if (downloadDataset && !downloadLink && token && showing) asyncFetch()
-    // }, [downloadDataset, downloadLink, token, showing])
     if (downloadDataset && !downloadableDataset && token && showing)
       asyncFetch()
   }, [downloadDataset, downloadableDataset, token, showing])
@@ -150,11 +141,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   // reset to selection on close
   useEffect(() => {
     if (!showing) {
-      // setDownloadLink(null)
       setDownloadDataset(false)
       setDownloadableDataset(null)
-      // downloadDataset needs to be unset each time the modal is closed for ccdl project datasets
-      // if (datasets.length > 1) setDownloadDataset(null)
     }
   }, [showing])
 
@@ -176,9 +164,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         isMultiplexedAvailable,
         modalityOptions,
         formatOptions,
-        // downloadDataset,
-        // setDownloadDataset,
-        // downloadLink,
         downloadDataset,
         setDownloadDataset,
         downloadableDataset,
