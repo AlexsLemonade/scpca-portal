@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
+import { Box, Grid, Heading, Paragraph } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
@@ -34,7 +34,9 @@ export const DatasetAddSamplesModal = ({
   const { responsive } = useResponsive()
 
   const [selectedSingleCellSamples, setSelectedSingleCellSamples] = useState([])
-
+  const [selectedMulstiplexedSamples, setSelectedMultiplexedSamples] = useState(
+    []
+  )
   // Exclude multiplexed samples from selectedSamples for ANN_DATA
   // NOTE: Make sure not to lose the user's selection when toggling formats before API request
   useEffect(() => {
@@ -56,6 +58,22 @@ export const DatasetAddSamplesModal = ({
     }
   }, [userFormat, canAddMultiplexed, selectedSamples])
 
+  // Get multiplexed samples in selectedSamples
+  useEffect(() => {
+    if (!samples) return
+    if (project.has_multiplexed_data) {
+      setSelectedMultiplexedSamples(
+        samples
+          .filter(
+            (s) =>
+              s.has_multiplexed_data &&
+              selectedSamples.SINGLE_CELL.includes(s.scpca_id)
+          )
+          .map((s) => s.scpca_id)
+      )
+    }
+  }, [userFormat, canAddMultiplexed, selectedSamples])
+
   // Modal toggle
   const [showing, setShowing] = useState(false)
 
@@ -68,7 +86,10 @@ export const DatasetAddSamplesModal = ({
 
   // For the modal UI
   const totalSamples = singleCellSamplesToAdd + spatialSamplesToAdd
-  const canClickAddSamples = totalSamples > 0
+  const canClickAddSamples =
+    userFormat === 'ANN_DATA'
+      ? totalSamples - selectedMulstiplexedSamples.length > 0
+      : totalSamples > 0
 
   const handleAddSamples = async () => {
     await setSamples(
@@ -164,7 +185,7 @@ export const DatasetAddSamplesModal = ({
                   <DatasetDataFormatOptions project={project} />
                   {showWarningMultiplexed && (
                     <WarningAnnDataMultiplexed
-                      count={selectedSingleCellSamples.length}
+                      count={selectedMulstiplexedSamples.length}
                     />
                   )}
                 </Box>
