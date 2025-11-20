@@ -23,9 +23,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const [includesMerged, setIncludesMerged] = useState(null)
   const [excludeMultiplexed, setExcludeMultiplexed] = useState(null)
 
-  const [downloadDataset, setDownloadDataset] = useState(
-    datasets.length === 1 ? datasets[0] : null
-  )
+  const [downloadDataset, setDownloadDataset] = useState(null)
   const [downloadLink, setDownloadLink] = useState(null)
 
   const [isMergedObjectsAvailable, setIsMergedObjectsAvailable] = useState(null)
@@ -53,7 +51,12 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setModalityOptions(null)
       setFormatOptions(null)
     } else {
-      const [defaultDataset] = datasets
+      const defaultDataset =
+        datasets.length > 1
+          ? datasets.find(
+              (d) => d.ccdl_name === 'SINGLE_CELL_SINGLE_CELL_EXPERIMENT'
+            )
+          : datasets[0]
       setSelectedDataset(defaultDataset)
 
       setModality(defaultDataset.ccdl_modality)
@@ -72,15 +75,23 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       )
 
       setModalityOptions(uniqueArray(datasets.map((d) => d.ccdl_modality)))
+    }
+  }, [datasets])
+
+  // on selectedDataset change (displayed formatOptions are dependent on selectedDataset)
+  useEffect(() => {
+    if (selectedDataset) {
       setFormatOptions(
         uniqueArray(
           datasets
-            .filter((d) => d.ccdl_modality === defaultDataset.ccdl_modality)
+            .filter((d) => d.ccdl_modality === selectedDataset.ccdl_modality)
             .map((d) => d.format)
         )
       )
+    } else {
+      setFormatOptions(null)
     }
-  }, [datasets])
+  }, [selectedDataset])
 
   // on selected options change
   useEffect(() => {
