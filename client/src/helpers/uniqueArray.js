@@ -9,4 +9,18 @@
  */
 export const uniqueArray = (...arrs) => [...new Set(arrs.flat())]
 
+export const uniqueArrayByKey = (arr, key) => {
+  if (!key) return []
+
+  const hash = arr.reduce((acc, current) => {
+    const value = current[key]
+    if (value && !acc[value]) {
+      acc[value] = current
+    }
+    return acc
+  }, {})
+
+  return Object.values(hash)
+}
+
 export default uniqueArray
