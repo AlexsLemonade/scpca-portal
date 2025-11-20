@@ -31,6 +31,12 @@ export const useMyDataset = () => {
     emptyDatasetProjectOptions
   )
 
+  // Clear dataset format once data is emptied
+  useEffect(() => {
+    if (!isDatasetDataEmpty) return
+    setMyDataset((prev) => ({ ...prev, format: '' }))
+  }, [isDatasetDataEmpty])
+
   // Update the default options for adding additional projects on myDataset changes
   useEffect(() => {
     if (isDatasetDataEmpty) {
