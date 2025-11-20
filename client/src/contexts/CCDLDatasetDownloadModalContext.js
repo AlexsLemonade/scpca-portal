@@ -28,19 +28,11 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   )
   const [downloadLink, setDownloadLink] = useState(null)
 
-  const isMergedObjectsAvailable = datasets.some(
-    (dataset) => dataset.includes_files_merged
-  )
-  const isMultiplexedAvailable = datasets.some(
-    (dataset) => dataset.includes_files_multiplexed
-  )
+  const [isMergedObjectsAvailable, setIsMergedObjectsAvailable] = useState(null)
+  const [isMultiplexedAvailable, setIsMultiplexedAvailable] = useState(null)
 
-  const modalityOptions = uniqueArray(datasets.map((d) => d.ccdl_modality))
-  const formatOptions = uniqueArray(
-    datasets
-      .filter((d) => d.ccdl_modality === selectedDataset.ccdl_modality)
-      .map((d) => d.format)
-  )
+  const [modalityOptions, setModalityOptions] = useState(null)
+  const [formatOptions, setFormatOptions] = useState(null)
 
   // on datasets change
   useEffect(() => {
@@ -54,6 +46,12 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
       setDownloadDataset(null) // depends on selectedDataset change
       setDownloadLink(null) // depends on downloadDataset change
+
+      setIsMergedObjectsAvailable(null)
+      setIsMultiplexedAvailable(null)
+
+      setModalityOptions(null)
+      setFormatOptions(null)
     } else {
       const [defaultDataset] = datasets
       setSelectedDataset(defaultDataset)
@@ -65,6 +63,22 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
       setDownloadDataset(datasets.length === 1 ? defaultDataset : null)
       setDownloadLink(null) // depends on downloadDataset change
+
+      setIsMergedObjectsAvailable(
+        datasets.some((dataset) => dataset.includes_files_merged)
+      )
+      setIsMultiplexedAvailable(
+        datasets.some((dataset) => dataset.includes_files_multiplexed)
+      )
+
+      setModalityOptions(uniqueArray(datasets.map((d) => d.ccdl_modality)))
+      setFormatOptions(
+        uniqueArray(
+          datasets
+            .filter((d) => d.ccdl_modality === defaultDataset.ccdl_modality)
+            .map((d) => d.format)
+        )
+      )
     }
   }, [datasets])
 
