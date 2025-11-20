@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react'
 import { CCDLDatasetDownloadModalContext } from 'contexts/CCDLDatasetDownloadModalContext'
-import { formatNames } from 'config/ccdlDatasets'
+import { getReadable } from 'helpers/getReadable'
 
 export const useCCDLDatasetDownloadModalContext = () => {
   const {
@@ -50,7 +50,7 @@ export const useCCDLDatasetDownloadModalContext = () => {
       : `Portal-wide ${modalityName}`
     const asFormat =
       selectedDataset.ccdl_modality === 'SINGLE_CELL'
-        ? `as ${formatNames[selectedDataset.format]}`
+        ? `as ${getReadable(selectedDataset.format)}`
         : ''
 
     setModalTitle(
