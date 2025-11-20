@@ -8,10 +8,7 @@ export const genericPortalWideDocsLink = {
   }
 }
 
-export const modalityNames = {
-  SINGLE_CELL: 'Single-cell data',
-  SPATIAL: 'Spatial data'
-}
+// TODO: Replace these will calls to getReadable
 export const formatNames = {
   SINGLE_CELL_EXPERIMENT: 'SingleCellExperiment (R)',
   ANN_DATA: 'AnnData (Python)'

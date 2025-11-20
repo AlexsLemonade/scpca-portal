@@ -1,5 +1,6 @@
 // takes a dataset and returns an array of readable file items
-import { modalityNames, formatNames } from 'config/ccdlDatasets'
+import { formatNames } from 'config/ccdlDatasets'
+import { getReadableFileItems } from 'helpers/getReadable'
 
 export const getCCDLDatasetFileItems = (dataset) => {
   const items = []
@@ -20,30 +21,36 @@ export const getCCDLDatasetFileItems = (dataset) => {
 
   if (modality === 'SINGLE_CELL') {
     const modalityItem = combinedCiteSeqFile
-      ? `${modalityNames[modality]}, CITE-seq data`
-      : modalityNames[modality]
+      ? `${getReadableFileItems('SINGLE_CELL_DATA')}, ${getReadableFileItems(
+          'CITE_SEQ_DATA'
+        )}`
+      : getReadableFileItems('SINGLE_CELL_DATA')
     items.push(`${modalityItem} as ${formatNames[format]}`)
   }
 
   if (modality === 'SPATIAL') {
-    items.push(modalityNames[modality])
+    items.push(getReadableFileItems('SPATIAL_DATA'))
   }
 
   if (hasMultiplexed && !isMetadataDataset) {
-    items.push(`Multiplexed single-cell data as ${formatNames[format]}`)
+    items.push(
+      `${getReadableFileItems('MULTIPLEXED_DATA')} as ${formatNames[format]}`
+    )
   }
 
   if (hasBulk && !isMetadataDataset) {
-    items.push('Bulk RNA-Seq data')
+    items.push(getReadableFileItems('BULK_DATA'))
   }
 
   if (seperateCiteSeqFile) {
-    items.push(`CITE-seq data as ${formatNames[format]}`)
+    items.push(
+      `${getReadableFileItems('CITE_SEQ_DATA')} as ${formatNames[format]}`
+    )
   }
 
   const metadataItem = portalWideMetadataOnly
-    ? 'Sample metadata from all projects'
-    : 'Project and Sample Metadata'
+    ? getReadableFileItems('PORTAL_WIDE_METADATA')
+    : getReadableFileItems('PROJECT_METADATA')
 
   items.push(metadataItem)
 
