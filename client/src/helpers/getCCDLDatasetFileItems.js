@@ -1,7 +1,6 @@
-// takes a dataset and returns an array of readable file items
-import { formatNames } from 'config/ccdlDatasets'
-import { getReadableFileItems } from 'helpers/getReadable'
+import { getReadable, getReadableFileItems } from 'helpers/getReadable'
 
+// takes a dataset and returns an array of readable file items
 export const getCCDLDatasetFileItems = (dataset) => {
   const items = []
 
@@ -25,7 +24,7 @@ export const getCCDLDatasetFileItems = (dataset) => {
           'CITE_SEQ_DATA'
         )}`
       : getReadableFileItems('SINGLE_CELL_DATA')
-    items.push(`${modalityItem} as ${formatNames[format]}`)
+    items.push(`${modalityItem} as ${getReadable[format]}`)
   }
 
   if (modality === 'SPATIAL') {
@@ -34,7 +33,7 @@ export const getCCDLDatasetFileItems = (dataset) => {
 
   if (hasMultiplexed && !isMetadataDataset) {
     items.push(
-      `${getReadableFileItems('MULTIPLEXED_DATA')} as ${formatNames[format]}`
+      `${getReadableFileItems('MULTIPLEXED_DATA')} as ${getReadable[format]}`
     )
   }
 
@@ -44,7 +43,7 @@ export const getCCDLDatasetFileItems = (dataset) => {
 
   if (seperateCiteSeqFile) {
     items.push(
-      `${getReadableFileItems('CITE_SEQ_DATA')} as ${formatNames[format]}`
+      `${getReadableFileItems('CITE_SEQ_DATA')} as ${getReadable[format]}`
     )
   }
 

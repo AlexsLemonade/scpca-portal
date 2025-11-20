@@ -8,12 +8,6 @@ export const genericPortalWideDocsLink = {
   }
 }
 
-// TODO: Replace these will calls to getReadable
-export const formatNames = {
-  SINGLE_CELL_EXPERIMENT: 'SingleCellExperiment (R)',
-  ANN_DATA: 'AnnData (Python)'
-}
-
 export const portalWideLinks = {
   ALL_METADATA: {
     learnMore: config.links.whatDownloadingPortalWideMetadata
