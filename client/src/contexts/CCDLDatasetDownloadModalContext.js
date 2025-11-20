@@ -2,7 +2,9 @@ import React, { createContext, useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
 import { filterPartialObject } from 'helpers/filterPartialObject'
-import { uniqueArray } from 'helpers/uniqueArray'
+import { uniqueArrayByKey } from 'helpers/uniqueArray'
+import { getReadable } from 'helpers/getReadable'
+import { getReadableOptions } from 'helpers/getReadableOptions'
 
 export const CCDLDatasetDownloadModalContext = createContext({})
 
@@ -35,11 +37,22 @@ export const CCDLDatasetDownloadModalContextProvider = ({
     (dataset) => dataset.includes_files_multiplexed
   )
 
-  const modalityOptions = uniqueArray(datasets.map((d) => d.ccdl_modality))
-  const formatOptions = uniqueArray(
+  const modalityOptions = getReadableOptions(
+    datasets.map((d) => d.ccdl_modality)
+  )
+
+  const formatOptions = uniqueArrayByKey(
     datasets
-      .filter((d) => d.ccdl_modality === selectedDataset.ccdl_modality)
-      .map((d) => d.format)
+      .filter((d) => d.ccdl_modality === modality || !modality)
+      .map((d) => ({
+        value: d.format,
+        // We override this to present the spatial format
+        label:
+          d.ccdl_modality === 'SPATIAL'
+            ? getReadable('SPATIAL_SPACERANGER')
+            : getReadable(d.format)
+      })),
+    'value'
   )
 
   useEffect(() => {
