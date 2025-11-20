@@ -154,11 +154,6 @@ export const DatasetAddSamplesModal = ({
                   {`${spatialSamplesToAdd} samples with spatial modality`}
                 </Box>
               </Box>
-              {showWarningMultiplexed && !myDataset.format && (
-                <Text margin={{ top: 'small' }}>
-                  (*Multiplexed samples are excluded.)
-                </Text>
-              )}
             </Box>
             <Heading level="3" size="small" margin={{ bottom: 'medium' }}>
               Additional Download Options
