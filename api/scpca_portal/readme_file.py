@@ -6,7 +6,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils  # ccdl_datasets,
-from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 
 OUTPUT_NAME = "README.md"
 
@@ -64,11 +64,6 @@ PORTAL_CCDL_DATASET_LINKS = {
 
 # used in get_content_table_rows and in 2_contents.md
 ContentRow = namedtuple("ContentRow", ["project", "modality", "format", "docs"])
-
-
-def add_ccdl_dataset_content_rows(content_rows: set, dataset) -> set:
-    return content_rows
-
 
 def add_ann_data_content_rows(content_rows: set, dataset) -> set:
     """
@@ -140,13 +135,12 @@ def get_content_table_rows(dataset) -> list[ContentRow]:
         content_rows = add_single_cell_experiment_content_rows(content_rows, dataset)
 
     # SPATIAL get their own row
-    if dataset.format != DatasetFormats.SINGLE_CELL_EXPERIMENT:
-        for project in dataset.spatial_projects:
-            content_rows.add(
-                ContentRow(
-                    project, Modalities.SPATIAL, dataset.format, SPATIAL_SPATIAL_SPACERANGER_LINK
-                )
+    for project in dataset.spatial_projects:
+        content_rows.add(
+            ContentRow(
+                project, Modalities.SPATIAL, FileFormats.SPATIAL_SPACERANGER, SPATIAL_SPATIAL_SPACERANGER_LINK
             )
+        )
 
     # BULK get their own row when data is present
     if dataset.format != DatasetFormats.METADATA:
