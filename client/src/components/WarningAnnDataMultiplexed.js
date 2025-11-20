@@ -3,7 +3,7 @@ import { config } from 'config'
 import { WarningText } from 'components/WarningText'
 import { getReadable } from 'helpers/getReadable'
 
-export const WarningAnnDataMultiplexed = ({ count }) => {
+export const WarningAnnDataMultiplexed = ({ count = 0 }) => {
   const multiplexed = count ? ` ${count} multiplexed` : 'Multiplexed'
 
   return (
