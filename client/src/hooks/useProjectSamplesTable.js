@@ -27,9 +27,10 @@ export const useProjectSamplesTable = () => {
 
   const showBulkInfoText = canAdd && project && project.has_bulk_rna_seq
 
-  const showWarningMultiplexed =
-    canAdd &&
+  const canAddMultiplexed = userFormat === 'SINGLE_CELL_EXPERIMENT'
+  const noMultiplexedSupport =
     project.has_multiplexed_data &&
+    (canAdd || !canAddMultiplexed) &&
     (myDataset.format || userFormat) === 'ANN_DATA'
 
   const getIsSampleInMyDataset = (sample, modality) => {
@@ -40,6 +41,11 @@ export const useProjectSamplesTable = () => {
   const getHasModality = (sample, modality) =>
     sample[`has_${modality.toLowerCase()}_data`]
 
+  const getMultiplexedDisabled = (sample) =>
+    // Multiplexed samples are not available for ANN_DATA
+    (myDataset.format || (!myDataset.format && userFormat)) === 'ANN_DATA' &&
+    sample.has_multiplexed_data
+
   const getCheckBoxIsChecked = (sample, modality) =>
     selectedSamples[modality].includes(sample.scpca_id)
 
@@ -47,6 +53,7 @@ export const useProjectSamplesTable = () => {
     if (canAdd) {
       return (
         !getHasModality(sample, modality) ||
+        getMultiplexedDisabled(sample) ||
         getIsSampleInMyDataset(sample, modality)
       )
     }
@@ -106,7 +113,12 @@ export const useProjectSamplesTable = () => {
     setSelectedSamples((prevSelectedSamples) => {
       const currentSelectedSamples = prevSelectedSamples[modality]
 
-      const modalitySampleIds = filteredSamples
+      // Exclude multiplexed samples if ANN_DATA is selected
+      const updatedFilteredSamples = noMultiplexedSupport
+        ? filteredSamples.filter((s) => !s.has_multiplexed_data)
+        : filteredSamples
+
+      const modalitySampleIds = updatedFilteredSamples
         .filter((s) => s[`has_${modality.toLowerCase()}_data`])
         .map((s) => s.scpca_id)
 
@@ -168,16 +180,18 @@ export const useProjectSamplesTable = () => {
   return {
     project,
     samples,
+    canAddMultiplexed,
     canAdd,
     canRemove,
     readOnly,
     allSamples,
     setAllSamples,
     selectedSamples,
+    setSelectedSamples,
     filteredSamples,
     setFilteredSamples,
     showBulkInfoText,
-    showWarningMultiplexed,
+    noMultiplexedSupport,
     getHeaderState,
     getCheckBoxIsChecked,
     getCheckBoxIsDisabled,

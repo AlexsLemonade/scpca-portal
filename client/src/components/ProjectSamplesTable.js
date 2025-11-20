@@ -37,7 +37,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     canRemove,
     allSamples,
     showBulkInfoText,
-    showWarningMultiplexed,
+    noMultiplexedSupport,
     selectedSamples,
     setAllSamples,
     setFilteredSamples,
@@ -256,7 +256,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
             />
           </Box>
         )}
-        {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
+        {noMultiplexedSupport && <WarningAnnDataMultiplexed />}
       </Table>
     </>
   )

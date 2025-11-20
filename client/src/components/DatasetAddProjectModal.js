@@ -21,6 +21,8 @@ export const DatasetAddProjectModal = ({
   const {
     myDataset,
     defaultProjectOptions,
+    userFormat,
+    setUserFormat,
     addProject,
     getProjectDataSamples,
     getProjectSingleCellSamples,
@@ -33,9 +35,7 @@ export const DatasetAddProjectModal = ({
   const [showing, setShowing] = useState(false)
 
   const [modalities, setModalities] = useState([])
-  const [format, setFormat] = useState(
-    myDataset.format || getProjectFormats(project)[0]
-  )
+
   // For additional options
   const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
   const [includeBulk, setIncludeBulk] = useState(false)
@@ -55,11 +55,22 @@ export const DatasetAddProjectModal = ({
   const canClickAddProject = modalities.length > 0
 
   const handleAddProject = () => {
-    addProject(project, projectData, format)
+    addProject(project, projectData, userFormat)
     setShowing(false)
   }
 
-  // Set default additional option values based on project
+  // Set default userFormat value
+  useEffect(() => {
+    setUserFormat(myDataset.format || getProjectFormats(project)[0])
+  }, [myDataset.format])
+
+  // Set excludeMultiplexed based on userFormat
+  useEffect(() => {
+    // Multiplexed samples are not available for ANN_DATA
+    setExcludeMultiplexed(userFormat === 'ANN_DATA')
+  }, [userFormat])
+
+  // Set default additional options based on project
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
     includes_merged_sce: includesMergedSce,
@@ -79,17 +90,14 @@ export const DatasetAddProjectModal = ({
     )
   }, [defaultProjectOptions])
 
-  // Set excludeMultiplexed based on selected format
+  // Reset Data Fromat dropdown value on modal closes
   useEffect(() => {
-    // Multiplexed samples are not available for ANN_DATA
-    setExcludeMultiplexed(format === 'ANN_DATA')
-  }, [format])
-
-  // Reset the format value on format changes (once empty data)
-  useEffect(() => {
-    if (!myDataset.format) return
-    setFormat(myDataset.format)
-  }, [myDataset.format])
+    if (!myDataset.format) {
+      setUserFormat(getProjectFormats(project)[0])
+    } else {
+      setUserFormat(myDataset.format)
+    }
+  }, [myDataset.format, showing])
 
   // Fetch samples list when modal opens via Browse page
   useEffect(() => {
@@ -169,11 +177,7 @@ export const DatasetAddProjectModal = ({
               </Heading>
               <Box pad={{ top: 'small' }}>
                 <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
-                  <DatasetDataFormatOptions
-                    project={project}
-                    format={format}
-                    onFormatChange={setFormat}
-                  />
+                  <DatasetDataFormatOptions project={project} />
                   <DatasetProjectModalityOptions
                     project={project}
                     modalities={modalities}
@@ -181,7 +185,7 @@ export const DatasetAddProjectModal = ({
                   />
                   <DatasetProjectAdditionalOptions
                     project={project}
-                    selectedFormat={format}
+                    selectedFormat={userFormat}
                     selectedModalities={modalities}
                     excludeMultiplexed={excludeMultiplexed}
                     includeBulk={includeBulk}
