@@ -56,7 +56,7 @@ export const CCDLDatasetDownloadOption = () => {
             aria-label={downloadLabel}
             label={downloadLabel}
             onClick={() => {
-              setDownloadDataset(selectedDataset)
+              setDownloadDataset(true)
             }}
           />
           <DatasetCopyLinkButton dataset={selectedDataset} />
