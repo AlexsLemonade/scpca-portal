@@ -8,15 +8,6 @@ export const genericPortalWideDocsLink = {
   }
 }
 
-export const modalityNames = {
-  SINGLE_CELL: 'Single-cell data',
-  SPATIAL: 'Spatial data'
-}
-export const formatNames = {
-  SINGLE_CELL_EXPERIMENT: 'SingleCellExperiment (R)',
-  ANN_DATA: 'AnnData (Python)'
-}
-
 export const portalWideLinks = {
   ALL_METADATA: {
     learnMore: config.links.whatDownloadingPortalWideMetadata
@@ -33,7 +24,7 @@ export const portalWideLinks = {
   SINGLE_CELL_ANN_DATA_MERGED: {
     learnMore: config.links.whatDownloadingPortalWide
   },
-  SPATIAL_SINGLE_CELL_EXPERIMENT: {
+  SPATIAL_SPATIAL_SPACERANGER: {
     learnMore: config.links.whatDownloadingPortalWideSpatial
   }
 }
@@ -54,10 +45,8 @@ export const projectLinks = {
   SINGLE_CELL_ANN_DATA: {
     learnMore: '#tbd'
   },
-  SINGLE_CELL_ANN_DATA_MERGED: {
-    learnMore: '#tbd'
-  },
-  SPATIAL_SINGLE_CELL_EXPERIMENT: {
+  SINGLE_CELL_ANN_DATA_MERGED: { learnMore: '#tbd' },
+  SPATIAL_SPATIAL_SPACERANGER: {
     learnMore: '#tbd'
   }
 }

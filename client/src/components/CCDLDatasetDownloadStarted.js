@@ -20,6 +20,12 @@ export const CCDLDatasetDownloadStarted = () => {
     : portalWideLinks
   const { learnMore } = links[downloadableDataset.ccdl_name]
 
+  const getReadableDataFormat = () => {
+    if (downloadableDataset.ccdl_modality === 'SPATIAL')
+      return getReadable('SPATIAL_SPACERANGER')
+    return getReadable(downloadableDataset.format)
+  }
+
   return (
     <>
       <Grid
@@ -32,9 +38,7 @@ export const CCDLDatasetDownloadStarted = () => {
           <Paragraph>Your download should have started.</Paragraph>
           <Box margin={{ top: 'small', bottom: 'small' }}>
             {downloadableDataset.format !== 'METADATA' && (
-              <Text weight="bold">
-                Data Format: {getReadable(downloadableDataset.format)}
-              </Text>
+              <Text weight="bold">Data Format: {getReadableDataFormat()}</Text>
             )}
           </Box>
           <Paragraph>The download consists of the following items:</Paragraph>

@@ -2,7 +2,9 @@ import React, { createContext, useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
 import { filterPartialObject } from 'helpers/filterPartialObject'
-import { uniqueArray } from 'helpers/uniqueArray'
+import { uniqueArrayByKey } from 'helpers/uniqueArray'
+import { getReadable } from 'helpers/getReadable'
+import { getReadableOptions } from 'helpers/getReadableOptions'
 
 export const CCDLDatasetDownloadModalContext = createContext({})
 
@@ -51,12 +53,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setModalityOptions([])
       setFormatOptions([])
     } else {
-      const defaultDataset =
-        datasets.length > 1
-          ? datasets.find(
-              (d) => d.ccdl_name === 'SINGLE_CELL_SINGLE_CELL_EXPERIMENT'
-            )
-          : datasets[0]
+      const defaultDataset = datasets[0]
       setSelectedDataset(defaultDataset)
 
       setModality(defaultDataset.ccdl_modality)
@@ -73,7 +70,9 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         datasets.some((dataset) => dataset.includes_files_multiplexed)
       )
 
-      setModalityOptions(uniqueArray(datasets.map((d) => d.ccdl_modality)))
+      setModalityOptions(
+        getReadableOptions(datasets.map((d) => d.ccdl_modality))
+      )
     }
   }, [datasets])
 
@@ -81,16 +80,29 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   useEffect(() => {
     if (selectedDataset) {
       setFormatOptions(
-        uniqueArray(
+        uniqueArrayByKey(
           datasets
             .filter((d) => d.ccdl_modality === selectedDataset.ccdl_modality)
-            .map((d) => d.format)
+            .map((d) => ({
+              label:
+                // We override this to present the spatial format
+                d.ccdl_modality === 'SPATIAL'
+                  ? getReadable('SPATIAL_SPACERANGER')
+                  : getReadable(d.format),
+              value: d.format
+            })),
+          'value'
         )
       )
     } else {
       setFormatOptions([])
     }
   }, [selectedDataset])
+
+  // reset format to default upon modality change
+  useEffect(() => {
+    setFormat('SINGLE_CELL_EXPERIMENT')
+  }, [modality])
 
   // on selected options change
   useEffect(() => {
