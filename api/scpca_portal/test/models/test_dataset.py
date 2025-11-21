@@ -379,17 +379,58 @@ class TestDataset(TestCase):
 
         self.assertEqual(dataset.get_estimated_size_in_bytes(), expected_file_size)
 
-    def test_get_total_sample_count(self):
+    def test_get_metadata_file_contents(self):
+        # one project, one modality
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
         dataset.data = {
             "SCPCP999990": {
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL: [
                     "SCPCS999990",
-                    "SCPCS999991",
-                    "SCPCS999994",
                     "SCPCS999997",
                 ],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        transformed_content_values = [
+            (project_id, modality, len(content))
+            for (project_id, modality, content) in dataset.get_metadata_file_contents()
+        ]
+        expected_values = [("SCPCP999990", Modalities.SINGLE_CELL, 1723)]
+        for actual_values, expected_values in zip(transformed_content_values, expected_values):
+            self.assertEqual(actual_values, expected_values)
+
+        # one project, two modalities
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999990",
+                    "SCPCS999997",
+                ],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+        }
+
+        transformed_content_values = [
+            (project_id, modality, len(content))
+            for (project_id, modality, content) in dataset.get_metadata_file_contents()
+        ]
+        expected_values = [
+            ("SCPCP999990", Modalities.SINGLE_CELL, 1723),
+            ("SCPCP999990", Modalities.SPATIAL, 1000),
+        ]
+        for actual_values, expected_values in zip(transformed_content_values, expected_values):
+            self.assertEqual(actual_values, expected_values)
+
+        # two projects, multiple modalities
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
                 Modalities.SPATIAL: ["SCPCS999991"],
             },
             "SCPCP999991": {
@@ -403,15 +444,77 @@ class TestDataset(TestCase):
             },
             "SCPCP999992": {
                 "includes_bulk": False,
-                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
                 Modalities.SPATIAL: [],
             },
         }
 
-        expected_count = 9
-        actual_count = dataset.get_total_sample_count()
+        transformed_content_values = [
+            (project_id, modality, len(content))
+            for (project_id, modality, content) in dataset.get_metadata_file_contents()
+        ]
+        expected_values = [
+            ("SCPCP999990", Modalities.SINGLE_CELL, 1723),
+            ("SCPCP999990", Modalities.SPATIAL, 1000),
+            ("SCPCP999991", Modalities.SINGLE_CELL, 2342),
+            ("SCPCP999992", Modalities.SINGLE_CELL, 1833),
+        ]
+        for actual_values, expected_values in zip(transformed_content_values, expected_values):
+            self.assertEqual(actual_values, expected_values)
 
-        self.assertEqual(actual_count, expected_count)
+        # all metadata, single project dataset (project metadata)
+        dataset = Dataset(format=DatasetFormats.METADATA)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+        }
+
+        transformed_content_values = [
+            (project_id, modality, len(content))
+            for (project_id, modality, content) in dataset.get_metadata_file_contents()
+        ]
+        expected_values = [
+            (None, None, 2680),
+        ]
+        for actual_values, expected_values in zip(transformed_content_values, expected_values):
+            self.assertEqual(actual_values, expected_values)
+
+        # all metadata, multi project dataset (portal wide metadata)
+        dataset = Dataset(format=DatasetFormats.METADATA)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999996", "SCPCS999998"],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        transformed_content_values = [
+            (project_id, modality, len(content))
+            for (project_id, modality, content) in dataset.get_metadata_file_contents()
+        ]
+        expected_values = [
+            (None, None, 5463),
+        ]
+        for actual_values, expected_values in zip(transformed_content_values, expected_values):
+            self.assertEqual(actual_values, expected_values)
 
     def test_contains_project_ids(self):
         dataset = Dataset(
