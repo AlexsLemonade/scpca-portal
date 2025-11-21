@@ -391,7 +391,7 @@ class Dataset(TimestampedModel):
                 "libraries": spatial_libraries,
             },
             {
-                "name": "Bulk-RNA seq samples",
+                "name": "Bulk RNA-seq samples",
                 "format": ".tsv",
                 "samples": bulk_samples,
                 "libraries": bulk_libraries,
