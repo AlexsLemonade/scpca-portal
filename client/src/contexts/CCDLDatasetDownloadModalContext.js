@@ -29,8 +29,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const [isMergedObjectsAvailable, setIsMergedObjectsAvailable] = useState(null)
   const [isMultiplexedAvailable, setIsMultiplexedAvailable] = useState(null)
 
-  const [modalityOptions, setModalityOptions] = useState(null)
-  const [formatOptions, setFormatOptions] = useState(null)
+  const [modalityOptions, setModalityOptions] = useState([])
+  const [formatOptions, setFormatOptions] = useState([])
 
   // on datasets change
   useEffect(() => {
@@ -48,8 +48,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setIsMergedObjectsAvailable(null)
       setIsMultiplexedAvailable(null)
 
-      setModalityOptions(null)
-      setFormatOptions(null)
+      setModalityOptions([])
+      setFormatOptions([])
     } else {
       const defaultDataset =
         datasets.length > 1
@@ -88,7 +88,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         )
       )
     } else {
-      setFormatOptions(null)
+      setFormatOptions([])
     }
   }, [selectedDataset])
 
