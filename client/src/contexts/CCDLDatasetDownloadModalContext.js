@@ -53,12 +53,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setModalityOptions(null)
       setFormatOptions(null)
     } else {
-      const defaultDataset =
-        datasets.length > 1
-          ? datasets.find(
-              (d) => d.ccdl_name === 'SINGLE_CELL_SINGLE_CELL_EXPERIMENT'
-            )
-          : datasets[0]
+      const defaultDataset = datasets[0]
       setSelectedDataset(defaultDataset)
 
       setModality(defaultDataset.ccdl_modality)
