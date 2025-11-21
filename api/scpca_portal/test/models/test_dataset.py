@@ -339,46 +339,6 @@ class TestDataset(TestCase):
         expected_readme_hash = "30945e57ac2478eb6a1c7704344b3c76"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
 
-    def test_get_estimated_size_in_bytes(self):
-        data = {
-            "SCPCP999990": {
-                "includes_bulk": False,
-                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
-                Modalities.SPATIAL: [],
-            },
-        }
-        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
-        dataset = Dataset(data=data, format=format)
-        expected_files = {
-            Path("SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html"),
-            Path("SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds"),
-            Path("SCPCP999990/SCPCS999990/SCPCL999990_qc.html"),
-            Path("SCPCP999990/SCPCS999990/SCPCL999990_processed.rds"),
-            Path("SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds"),
-            Path("SCPCP999990/SCPCS999997/SCPCL999997_celltype-report.html"),
-            Path("SCPCP999990/SCPCS999997/SCPCL999997_qc.html"),
-            Path("SCPCP999990/SCPCS999997/SCPCL999997_unfiltered.rds"),
-            Path("SCPCP999990/SCPCS999997/SCPCL999997_filtered.rds"),
-            Path("SCPCP999990/SCPCS999997/SCPCL999997_processed.rds"),
-        }
-        expected_file_size = 0
-        for file in expected_files:
-            original_file = OriginalFile.objects.filter(s3_key=str(file)).first()
-            random_file_size = random.randint(1, 1000000000)
-            original_file.size_in_bytes = random_file_size
-            original_file.save()
-
-            expected_file_size += original_file.size_in_bytes
-
-        metadata_file_string = "".join(
-            [file_content for _, _, file_content in dataset.get_metadata_file_contents()]
-        )
-        metadata_file_size = sys.getsizeof(metadata_file_string)
-        readme_file_size = sys.getsizeof(dataset.readme_file_contents)
-        expected_file_size += metadata_file_size + readme_file_size
-
-        self.assertEqual(dataset.get_estimated_size_in_bytes(), expected_file_size)
-
     def test_get_metadata_file_contents(self):
         # one project, one modality
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
@@ -515,6 +475,80 @@ class TestDataset(TestCase):
         ]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
+
+    def test_get_estimated_size_in_bytes(self):
+        data = {
+            "SCPCP999990": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        dataset = Dataset(data=data, format=format)
+        expected_files = {
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_celltype-report.html"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_filtered.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_qc.html"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_processed.rds"),
+            Path("SCPCP999990/SCPCS999990/SCPCL999990_unfiltered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_celltype-report.html"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_qc.html"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_unfiltered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_filtered.rds"),
+            Path("SCPCP999990/SCPCS999997/SCPCL999997_processed.rds"),
+        }
+        expected_file_size = 0
+        for file in expected_files:
+            original_file = OriginalFile.objects.filter(s3_key=str(file)).first()
+            random_file_size = random.randint(1, 1000000000)
+            original_file.size_in_bytes = random_file_size
+            original_file.save()
+
+            expected_file_size += original_file.size_in_bytes
+
+        metadata_file_string = "".join(
+            [file_content for _, _, file_content in dataset.get_metadata_file_contents()]
+        )
+        metadata_file_size = sys.getsizeof(metadata_file_string)
+        readme_file_size = sys.getsizeof(dataset.readme_file_contents)
+        expected_file_size += metadata_file_size + readme_file_size
+
+        self.assertEqual(dataset.get_estimated_size_in_bytes(), expected_file_size)
+
+    def test_get_total_sample_count(self):
+        dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999990",
+                    "SCPCS999991",
+                    "SCPCS999994",
+                    "SCPCS999997",
+                ],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+            "SCPCP999991": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+            "SCPCP999992": {
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        expected_count = 9
+        actual_count = dataset.get_total_sample_count()
+
+        self.assertEqual(actual_count, expected_count)
 
     def test_contains_project_ids(self):
         dataset = Dataset(
