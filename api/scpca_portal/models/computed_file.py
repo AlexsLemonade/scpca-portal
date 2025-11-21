@@ -148,10 +148,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
 
     @staticmethod
-    def get_metadata_file_zip_path(project_id: str, modality: Modalities, dataset) -> Path:
+    def get_metadata_file_zip_path(
+        dataset, project_id: str | None = None, modality: Modalities | None = None
+    ) -> Path:
         """Return metadata file path, modality name inside of project_modality directory."""
         # Metadata only downloads are not associated with a specific project_id or modality
-        if dataset.format == DatasetFormats.METADATA:
+        if not project_id:
             return Path("metadata.tsv")
 
         modality_formatted = modality.value.lower().replace("_", "-")
@@ -218,7 +220,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             # Metadata files
             for project_id, modality, metadata_file_content in dataset.get_metadata_file_contents():
                 zip_file.writestr(
-                    str(ComputedFile.get_metadata_file_zip_path(project_id, modality, dataset)),
+                    str(ComputedFile.get_metadata_file_zip_path(dataset, project_id, modality)),
                     metadata_file_content,
                 )
 
