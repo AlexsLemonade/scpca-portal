@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Grid, Paragraph } from 'grommet'
 import { useRouter } from 'next/router'
 import { useMyDataset } from 'hooks/useMyDataset'
@@ -16,16 +16,21 @@ export const DatasetProcessModal = ({
   const { processDataset } = useMyDataset()
 
   const [showing, setShowing] = useState(false)
+  const [submitting, setSubmitting] = useState(false) // Disable the button while making request
 
-  const handleProcessDataset = async () => {
-    const datasetRequest = await processDataset()
-
-    if (datasetRequest) {
-      push(`/datasets/${datasetRequest.id}`)
-    } else {
-      // TODO: Error handling
+  useEffect(() => {
+    const submit = async () => {
+      const datasetRequest = await processDataset()
+      if (datasetRequest) {
+        push(`/datasets/${datasetRequest.id}`)
+      } else {
+        // TODO: Error handling
+        setSubmitting(false)
+      }
     }
-  }
+
+    if (submitting) submit()
+  }, [submitting])
 
   return (
     <>
@@ -35,6 +40,7 @@ export const DatasetProcessModal = ({
         primary
         label={label}
         disabled={disabled}
+        loading={submitting}
         onClick={() => setShowing(true)}
       />
       <Modal title={title} showing={showing} setShowing={setShowing}>
@@ -48,7 +54,7 @@ export const DatasetProcessModal = ({
               <DatasetProcessForm
                 buttonLabel="Continue"
                 onCancel={() => setShowing(false)}
-                onContinue={handleProcessDataset}
+                onContinue={() => setSubmitting(true)}
               />
             </Box>
           </Grid>
