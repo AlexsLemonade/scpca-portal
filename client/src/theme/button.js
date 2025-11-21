@@ -61,7 +61,7 @@ export default {
     `
     }
     ${disabled ? 'cursor: not-allowed;' : ''}
-   ${plain && disabled ? 'opacity: 0.7;' : ''}
+    ${plain && disabled ? 'opacity: 0.7;' : ''}
     &:active:not([disabled]) {
       box-shadow: 0 3px 4px 0 rgba(0,0,0,0.5);
     }
