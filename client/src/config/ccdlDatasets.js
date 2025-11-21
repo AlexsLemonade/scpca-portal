@@ -13,16 +13,16 @@ export const portalWideLinks = {
     learnMore: config.links.whatDownloadingPortalWideMetadata
   },
   SINGLE_CELL_SINGLE_CELL_EXPERIMENT: {
-    learnMore: config.links.whatDownloadingPortalWide
+    learnMore: config.links.whatDownloadingPortalWideSCE
   },
   SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: {
-    learnMore: config.links.whatDownloadingPortalWide
+    learnMore: config.links.whatDownloadingPortalWideSCEMerged
   },
   SINGLE_CELL_ANN_DATA: {
-    learnMore: config.links.whatDownloadingPortalWide
+    learnMore: config.links.whatDownloadingPortalWideAnndata
   },
   SINGLE_CELL_ANN_DATA_MERGED: {
-    learnMore: config.links.whatDownloadingPortalWide
+    learnMore: config.links.whatDownloadingPortalWideAnndataMerged
   },
   SPATIAL_SPATIAL_SPACERANGER: {
     learnMore: config.links.whatDownloadingPortalWideSpatial
