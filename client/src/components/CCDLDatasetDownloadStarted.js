@@ -10,13 +10,15 @@ import { getReadable } from 'helpers/getReadable'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 import DownloadSVG from '../images/download-folder.svg'
 
-// View when the donwload should have been initiated
+// View when the download should have been initiated
 export const CCDLDatasetDownloadStarted = () => {
   // open the file in a new tab
-  const { downloadDataset, downloadLink } = useCCDLDatasetDownloadModalContext()
+  const { downloadableDataset } = useCCDLDatasetDownloadModalContext()
   const { size: responsiveSize } = useResponsive()
-  const links = downloadDataset.ccdl_project_id ? projectLinks : portalWideLinks
-  const { learnMore } = links[downloadDataset.ccdl_name]
+  const links = downloadableDataset.ccdl_project_id
+    ? projectLinks
+    : portalWideLinks
+  const { learnMore } = links[downloadableDataset.ccdl_name]
 
   return (
     <>
@@ -29,24 +31,24 @@ export const CCDLDatasetDownloadStarted = () => {
         <Box>
           <Paragraph>Your download should have started.</Paragraph>
           <Box margin={{ top: 'small', bottom: 'small' }}>
-            {downloadDataset.format !== 'METADATA' && (
+            {downloadableDataset.format !== 'METADATA' && (
               <Text weight="bold">
-                Data Format: {getReadable(downloadDataset.format)}
+                Data Format: {getReadable(downloadableDataset.format)}
               </Text>
             )}
           </Box>
           <Paragraph>The download consists of the following items:</Paragraph>
-          <DatasetFileItems dataset={downloadDataset} />
-          {downloadDataset.includes_files_merged && (
+          <DatasetFileItems dataset={downloadableDataset} />
+          {downloadableDataset.includes_files_merged && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
               <Text>Samples are merged into 1 object per project</Text>
             </Box>
           )}{' '}
-          {downloadDataset.format !== 'METADATA' && (
+          {downloadableDataset.format !== 'METADATA' && (
             <Box margin={{ top: 'small', bottom: 'small' }}>
               <Text weight="bold">
                 Size:{' '}
-                {formatBytes(downloadDataset?.computed_file?.size_in_bytes)}
+                {formatBytes(downloadableDataset?.computed_file?.size_in_bytes)}
               </Text>
             </Box>
           )}
@@ -67,7 +69,7 @@ export const CCDLDatasetDownloadStarted = () => {
               alignSelf="start"
               aria-label="Try Again"
               label="Try Again"
-              href={downloadLink}
+              href={downloadableDataset.download_url}
               target="_blank"
             />
           </Box>
