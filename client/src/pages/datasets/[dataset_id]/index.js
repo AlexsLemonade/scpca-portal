@@ -15,6 +15,8 @@ const Dataset = ({ dataset }) => {
   const { responsive } = useResponsive()
   const { getDatasetState } = useDataset()
 
+  // TODO: Add refirect if isMyDataset and check dataset ID history
+  // to display the Shared Dataset page header
   const { isUnprocessed } = getDatasetState(dataset)
 
   // Restore scroll position after component mounts
