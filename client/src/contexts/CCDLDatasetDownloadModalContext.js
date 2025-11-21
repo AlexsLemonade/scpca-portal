@@ -104,6 +104,11 @@ export const CCDLDatasetDownloadModalContextProvider = ({
     }
   }, [selectedDataset])
 
+  // reset format to default upon modality change
+  useEffect(() => {
+    setFormat('SINGLE_CELL_EXPERIMENT')
+  }, [modality])
+
   // on selected options change
   useEffect(() => {
     const query = {
