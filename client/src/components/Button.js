@@ -7,13 +7,18 @@ const LoadingSpinner = () => {
     <Spinner
       border={[
         { side: 'all', color: 'white', size: 'small' },
-        { side: 'right', color: 'transparent', size: 'small' },
+        { side: 'right', color: 'transparent', size: 'small' }
       ]}
     />
   )
 }
 
-export const Button = ({ label, loading = false, onClick = () => { }, ...props }) => {
+export const Button = ({
+  label,
+  loading = false,
+  onClick = () => {},
+  ...props
+}) => {
   const [waiting, asyncOnClick] = useWaitForAsync(onClick)
   const disabled = waiting || props.disabled
 
@@ -21,7 +26,7 @@ export const Button = ({ label, loading = false, onClick = () => { }, ...props }
     <GrommetButton
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
-      icon={loading ? <LoadingSpinner />: undefined}
+      icon={loading ? <LoadingSpinner /> : undefined}
       label={loading ? undefined : label}
       onClick={asyncOnClick}
       disabled={disabled}
