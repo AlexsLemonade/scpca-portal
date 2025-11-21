@@ -50,7 +50,7 @@ class Command(BaseCommand):
     def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs):
         logger.info("Initiating listing of bucket objects...")
 
-        locked_project_ids = lockfile.get_lockfile_project_ids_with_file_check()
+        locked_project_ids = lockfile.get_locked_project_ids()
         Project.lock_projects(locked_project_ids)
 
         bucket_objects = s3.list_bucket_objects(bucket, excluded_key_substrings=locked_project_ids)

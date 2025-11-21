@@ -36,6 +36,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     class OutputFileFormats:
         ANN_DATA = "ANN_DATA"
         SINGLE_CELL_EXPERIMENT = "SINGLE_CELL_EXPERIMENT"
+        SPATIAL_SPACERANGER = "SPATIAL_SPACERANGER"
 
         CHOICES = (
             (ANN_DATA, "AnnData"),
@@ -170,7 +171,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         """
         Computes a given dataset's zip archive and returns a corresponding ComputedFile object.
         """
-        if dataset.has_lockfile_projects or dataset.has_locked_projects:
+        if dataset.is_locked:
             raise DatasetLockedProjectError(dataset)
 
         # If the query returns empty, then throw an error occurred.
@@ -180,7 +181,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         dataset_original_files = dataset.original_files
         for project in dataset.projects:
             s3.download_files(dataset_original_files.filter(project_id=project.scpca_id))
-            if dataset.has_lockfile_projects or dataset.has_locked_projects:
+            if dataset.is_locked:
                 raise DatasetLockedProjectError(dataset)
 
         with ZipFile(dataset.computed_file_local_path, "w") as zip_file:
@@ -390,25 +391,25 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         return computed_file
 
-    def get_dataset_download_url(self, file_name: str) -> str | None:
-        """Return the presigned url on the associated dataset according to the passed file name."""
+    def get_dataset_download_url(self, download_filename: str) -> str | None:
+        """Return the presigned url on the associated dataset according to the passed filename."""
         if not (self.s3_bucket and self.s3_key):
             return None
 
+        return s3.generate_pre_signed_link(download_filename, self.s3_key, self.s3_bucket)
+
+    @property
+    def download_filename(self) -> str:
+        # Append the download date to the filename on download.
         date = utils.get_today_string()
-        complete_file_name = f"{file_name}_{date}.zip"
-        return s3.generate_pre_signed_link(complete_file_name, self.s3_key, self.s3_bucket)
+        key_path = Path(self.s3_key)
+        return f"{key_path.stem}_{date}{key_path.suffix}"
 
     @property
     def download_url(self) -> str:
         """A temporary URL from which the file can be downloaded."""
         if self.s3_bucket and self.s3_key:
-            # Append the download date to the filename on download.
-            date = utils.get_today_string()
-            key_path = Path(self.s3_key)
-            filename = f"{key_path.stem}_{date}{key_path.suffix}"
-
-            return s3.generate_pre_signed_link(filename, self.s3_key, self.s3_bucket)
+            return s3.generate_pre_signed_link(self.download_filename, self.s3_key, self.s3_bucket)
 
     @property
     def is_project_multiplexed_zip(self):

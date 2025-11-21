@@ -4,8 +4,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, tag
 
-from scpca_portal import lockfile, s3
-from scpca_portal.models import OriginalFile
+from scpca_portal import s3
 
 
 class TestS3(TestCase):
@@ -157,54 +156,3 @@ class TestS3(TestCase):
 
         # assert no dirs
         self.assertFalse(any(True for obj in actual_objects if obj["s3_key"].endswith("/")))
-
-    @tag("check_file_empty")
-    @patch("json.loads")
-    @patch("subprocess.run")
-    def test_check_mocked_output(self, mock_run, mock_json_loads):
-        """
-        Test key and value transformations as well as removed directories on mocked output.
-        """
-        mock_key = "s3_key.txt"
-        non_empty_file_mocked_output = {
-            "AcceptRanges": "bytes",
-            "LastModified": "2025-05-28T15:44:26+00:00",
-            "ContentLength": 1,
-            "ETag": '"d41d8cd98f00b204e9800998ecf8427e"',
-            "VersionId": "eo9cAaBEeUSNAOuGH7V5_hTJt6NdSjGD",
-            "ContentType": "binary/octet-stream",
-            "ServerSideEncryption": "AES256",
-            "Metadata": {},
-        }
-
-        mock_json_loads.return_value = non_empty_file_mocked_output
-        self.assertFalse(s3.check_file_empty(mock_key, self.default_bucket))
-        mock_run.assert_called_once()
-
-        mock_key = "s3_key.txt"
-        empty_file_mocked_output = {
-            "AcceptRanges": "bytes",
-            "LastModified": "2025-05-28T15:44:26+00:00",
-            "ContentLength": 0,
-            "ETag": '"d41d8cd98f00b204e9800998ecf8427e"',
-            "VersionId": "eo9cAaBEeUSNAOuGH7V5_hTJt6NdSjGD",
-            "ContentType": "binary/octet-stream",
-            "ServerSideEncryption": "AES256",
-            "Metadata": {},
-        }
-
-        mock_json_loads.return_value = empty_file_mocked_output
-        self.assertTrue(s3.check_file_empty(mock_key, self.default_bucket))
-
-    @tag("check_file_empty")
-    def test_check_test_inputs(self):
-        bucket = settings.AWS_S3_INPUT_BUCKET_NAME
-
-        # test bucket lockfile is empty by default
-        empty_file = OriginalFile.objects.filter(
-            s3_key=lockfile.LOCKFILE_S3_KEY, s3_bucket=bucket
-        ).first()
-        self.assertTrue(s3.check_file_empty(empty_file.s3_key, empty_file.s3_bucket))
-
-        non_empty_file = OriginalFile.get_input_projects_metadata_file(bucket=bucket)
-        self.assertFalse(s3.check_file_empty(non_empty_file.s3_key, non_empty_file.s3_bucket))

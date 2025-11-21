@@ -1,5 +1,6 @@
 import json
 import subprocess
+from pathlib import Path
 from typing import Dict, List
 
 from django.conf import settings
@@ -51,6 +52,9 @@ def _remove_listed_directories(listed_objects):
     return [obj for obj in listed_objects if not obj["s3_key"].endswith("/")]
 
 
+# TODO: list_bucket_objects and list_files_by_suffix should be combined.
+# See linked comment below for details on how to accomplish this:
+# https://github.com/AlexsLemonade/scpca-portal/pull/1554#issuecomment-3482924420
 def list_bucket_objects(bucket: str, *, excluded_key_substrings: List[str] = []) -> List[Dict]:
     """
     Queries the aws s3api for all of a bucket's objects
@@ -90,6 +94,67 @@ def list_bucket_objects(bucket: str, *, excluded_key_substrings: List[str] = [])
         )
 
     return _remove_listed_directories(bucket_objects)
+
+
+def list_files_by_suffix(
+    suffix: str, dir_path: str = "", bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Path]:
+    """
+    Lists all objects in the passed bucket at the location of the passed directory path,
+    then returns a sorted list of all paths matching the passed suffix.
+    """
+    command_inputs = ["aws", "s3api", "list-objects", "--output", "json", "--delimiter", "/"]
+
+    prefix = ""
+    if "/" in bucket:
+        bucket, prefix = bucket.split("/", 1)
+    command_inputs.extend(["--bucket", bucket])
+
+    prefix += dir_path
+    command_inputs.extend(["--prefix", prefix])
+
+    query = f"Contents[?ends_with(Key, '.{suffix}')]"
+    command_inputs.extend(["--query", f"{query}"])
+
+    if "public" in bucket:
+        command_inputs.append("--no-sign-request")
+
+    try:
+        result = subprocess.run(command_inputs, capture_output=True, text=True, check=True)
+        raw_json_output = result.stdout
+        bucket_objects = json.loads(raw_json_output)
+    except subprocess.CalledProcessError:
+        logger.error("Either the request was malformed or there was a network error.")
+        raise
+
+    if not bucket_objects:
+        logger.info("Query returned no s3 bucket objects.")
+        return []
+
+    for bucket_object in bucket_objects:
+        utils.transform_keys(bucket_object, S3_OBJECT_KEYS)
+        utils.transform_values(bucket_object, S3_OBJECT_VALUES, prefix)
+
+    return sorted(Path(bucket_object["s3_key"]) for bucket_object in bucket_objects)
+
+
+def check_file_exists(key: str, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME) -> bool:
+    command_parts = ["aws", "s3api", "head-object"]
+
+    if "/" in bucket:
+        bucket, prefix = bucket.split("/", 1)
+        key = f"{prefix}/{key}"
+    command_parts.extend(["--bucket", bucket])
+    command_parts.extend(["--key", key])
+
+    # If object exists, aws returns a JSON object.
+    # If object doesn't exist, aws throws an object non found error.
+    try:
+        subprocess.run(command_parts, capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError:
+        return False
+
+    return True
 
 
 def download_files(original_files) -> bool:
@@ -152,32 +217,6 @@ def upload_output_file(key: str, bucket_name: str) -> bool:
         return False
 
     return True
-
-
-def check_file_empty(key: str, bucket: str) -> bool:
-    """
-    Checks to see if the passed bucket and key correspond to an empty file.
-    """
-    command_parts = ["aws", "s3api", "head-object"]
-
-    if "/" in bucket:
-        bucket, prefix = bucket.split("/", 1)
-        key = f"{prefix}/{key}"
-    command_parts.extend(["--bucket", bucket])
-    command_parts.extend(["--key", key])
-
-    if "public" in bucket:
-        command_parts.append("--no-sign-request")
-
-    try:
-        result = subprocess.run(command_parts, capture_output=True, text=True, check=True)
-        raw_json_output = result.stdout
-        json_output = json.loads(raw_json_output)
-    except subprocess.CalledProcessError:
-        logger.error("Either the request was malformed or there was a network error.")
-        raise
-
-    return json_output["ContentLength"] == 0
 
 
 def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
