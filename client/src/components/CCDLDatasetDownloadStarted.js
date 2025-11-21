@@ -13,7 +13,7 @@ import DownloadSVG from '../images/download-folder.svg'
 // View when the download should have been initiated
 export const CCDLDatasetDownloadStarted = () => {
   // open the file in a new tab
-  const { downloadableDataset, modality } = useCCDLDatasetDownloadModalContext()
+  const { downloadableDataset } = useCCDLDatasetDownloadModalContext()
   const { size: responsiveSize } = useResponsive()
   const links = downloadableDataset.ccdl_project_id
     ? projectLinks
@@ -21,7 +21,8 @@ export const CCDLDatasetDownloadStarted = () => {
   const { learnMore } = links[downloadableDataset.ccdl_name]
 
   const getReadableDataFormat = () => {
-    if (modality === 'SPATIAL') return getReadable('SPATIAL_SPACERANGER')
+    if (downloadableDataset.ccdl_modality === 'SPATIAL')
+      return getReadable('SPATIAL_SPACERANGER')
     return getReadable(downloadableDataset.format)
   }
 
