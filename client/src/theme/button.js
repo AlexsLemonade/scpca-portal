@@ -68,6 +68,9 @@ export default {
     ${
       loading &&
       `
+      > div {
+        margin: 0 auto;
+      }
       background: ${theme.global.colors['alexs-deep-blue-tint-40']};
       border: ${theme.global.colors['alexs-deep-blue-tint-40']} 1px solid;
       &:hover {
