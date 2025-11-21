@@ -597,6 +597,12 @@ class Dataset(TimestampedModel):
         Return a list of three element tuples which includes the project_id, modality,
         and their associatied metadata file contents as a string.
         """
+        # We only return one metadata file for all metadata datasets
+        # TODO: if we need to put project metadata files in a project folder,
+        # add a condition "not ccdl_project_id" to this line
+        if self.format == DatasetFormats.METADATA:
+            return [(None, None, self.get_metadata_file_content(self.libraries))]
+
         metadata_file_contents = []
         for project_id, project_config in self.data.items():
             for modality in [Modalities.SINGLE_CELL, Modalities.SPATIAL]:
