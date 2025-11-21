@@ -31,22 +31,24 @@ export const portalWideLinks = {
 
 export const projectLinks = {
   ALL_METADATA: {
-    learnMore: '#tbd'
+    learnMore: config.links.whatDownloadingProjectMetadata
   },
   SINGLE_CELL_SINGLE_CELL_EXPERIMENT: {
-    learnMore: '#tbd'
+    learnMore: config.links.whatDownloadingProjectSCE
   },
   SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED: {
     learnMore: '#tbd'
   },
   SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: {
-    learnMore: '#tbd'
+    learnMore: config.links.whatDownloadingProjectSCEMerged
   },
   SINGLE_CELL_ANN_DATA: {
-    learnMore: '#tbd'
+    learnMore: config.links.whatDownloadingProjectAnndata
   },
-  SINGLE_CELL_ANN_DATA_MERGED: { learnMore: '#tbd' },
+  SINGLE_CELL_ANN_DATA_MERGED: {
+    learnMore: config.links.whatDownloadingProjectAnndataMerged
+  },
   SPATIAL_SPATIAL_SPACERANGER: {
-    learnMore: '#tbd'
+    learnMore: config.links.whatDownloadingProjectSpatial
   }
 }

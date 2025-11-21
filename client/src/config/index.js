@@ -36,6 +36,12 @@ export const config = {
       'https://scpca.readthedocs.io/en/development/download_files.html#portal-wide-download-structure-for-merged-anndata-objects',
     whatDownloadingPortalWideSpatial:
       'https://scpca.readthedocs.io/en/development/download_files.html#spatial-portal-wide-download-structure',
+    whatDownloadingProjectMetadata: '',
+    whatDownloadingProjectSCE: '',
+    whatDownloadingProjectSCEMerged: '',
+    whatDownloadingProjectAnndata: '',
+    whatDownloadingProjectAnndataMerged: '',
+    whatDownloadingProjectSpatial: '',
     what_est_demux_cell:
       'https://scpca.readthedocs.io/en/stable/faq.html#what-are-estimated-demux-cell-counts',
     what_review_dataset: 'https://example.com',
