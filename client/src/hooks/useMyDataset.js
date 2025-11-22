@@ -9,15 +9,17 @@ export const useMyDataset = () => {
   const {
     myDataset,
     setMyDataset,
-    myDatasetFormat,
-    setMyDatasetFormat,
+    prevMyDatasetFormat,
+    setPrevMyDatasetFormat,
     datasets,
     setDatasets,
     setEmail,
     errors,
-    setErrors
+    setErrors,
+    userFormat,
+    setUserFormat
   } = useContext(MyDatasetContext)
-  const { token, email, userFormat, setUserFormat } = useScPCAPortal()
+  const { token, email } = useScPCAPortal()
 
   const emptyDatasetProjectOptions = {
     includeBulk: false,
@@ -28,6 +30,12 @@ export const useMyDataset = () => {
   const [defaultProjectOptions, setDefaultProjectOptions] = useState(
     emptyDatasetProjectOptions
   )
+
+  // Clear dataset format once data is emptied
+  useEffect(() => {
+    if (!isDatasetDataEmpty) return
+    setMyDataset((prev) => ({ ...prev, format: '' }))
+  }, [isDatasetDataEmpty])
 
   // Update the default options for adding additional projects on myDataset changes
   useEffect(() => {
@@ -80,8 +88,7 @@ export const useMyDataset = () => {
     const newDataset = datasetRequest.response
 
     setMyDataset(newDataset)
-    setMyDatasetFormat(newDataset.format) // Use to compare format changes on myDataset replace
-    setUserFormat(newDataset.format) // Update user preference to match dataset format
+    setPrevMyDatasetFormat(newDataset.format) // Use to compare format changes on myDataset replace
     // Add the newly generated dataset ID for historical record
     setDatasets((prev) =>
       prev.includes(newDataset.id) ? prev : [...prev, newDataset.id]
@@ -389,8 +396,8 @@ export const useMyDataset = () => {
   return {
     myDataset,
     setMyDataset,
-    myDatasetFormat,
-    setMyDatasetFormat,
+    prevMyDatasetFormat,
+    setPrevMyDatasetFormat,
     datasets,
     email,
     errors,

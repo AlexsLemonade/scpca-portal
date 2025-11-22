@@ -5,10 +5,13 @@ export const MyDatasetContext = createContext({})
 
 export const MyDatasetContextProvider = ({ children }) => {
   const [myDataset, setMyDataset] = useLocalStorage('dataset', {})
-  const [myDatasetFormat, setMyDatasetFormat] = useLocalStorage(
-    'dataset-format',
-    {}
+  const [prevMyDatasetFormat, setPrevMyDatasetFormat] = useLocalStorage(
+    // Previously selected format for comparing format changes
+    'dataset-prev-format',
+    ''
   )
+  // Current format selected via the dropwdown in modals, used to disable multiplexed samples for AnnData
+  const [userFormat, setUserFormat] = useLocalStorage('user-format')
   const [datasets, setDatasets] = useLocalStorage('datasets', []) // List of user-created dataset IDs for historical references
   const [email, setEmail] = useLocalStorage('dataset-email', null) // Email associated with myDataset
   const [errors, setErrors] = useState([]) //  TODO: Stores runtime error messages as strings (data structure TBD)
@@ -18,14 +21,16 @@ export const MyDatasetContextProvider = ({ children }) => {
       value={{
         myDataset,
         setMyDataset,
-        myDatasetFormat,
-        setMyDatasetFormat,
+        prevMyDatasetFormat,
+        setPrevMyDatasetFormat,
         datasets,
         setDatasets,
         email,
         setEmail,
         errors,
-        setErrors
+        setErrors,
+        userFormat,
+        setUserFormat
       }}
     >
       {children}

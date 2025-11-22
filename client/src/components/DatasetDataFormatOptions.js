@@ -7,12 +7,9 @@ import { getProjectFormats } from 'helpers/getProjectFormats'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
-export const DatasetDataFormatOptions = ({
-  project,
-  format,
-  onFormatChange
-}) => {
-  const { myDataset, isDatasetDataEmpty } = useMyDataset()
+export const DatasetDataFormatOptions = ({ project }) => {
+  const { myDataset, isDatasetDataEmpty, userFormat, setUserFormat } =
+    useMyDataset()
 
   const formatOptions = getReadableOptions(getProjectFormats(project))
 
@@ -29,8 +26,8 @@ export const DatasetDataFormatOptions = ({
         labelKey="label"
         disabled={!!myDataset.id && !isDatasetDataEmpty}
         valueKey={{ key: 'value', reduce: true }}
-        value={format}
-        onChange={({ value }) => onFormatChange(value)}
+        value={userFormat}
+        onChange={({ value }) => setUserFormat(value)}
       />
     </FormField>
   )

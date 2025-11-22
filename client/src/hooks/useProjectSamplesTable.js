@@ -1,7 +1,8 @@
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { ProjectSamplesTableContext } from 'contexts/ProjectSamplesTableContext'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { differenceArray } from 'helpers/differenceArray'
+import { getProjectFormats } from 'helpers/getProjectFormats'
 import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useProjectSamplesTable = () => {
@@ -21,12 +22,19 @@ export const useProjectSamplesTable = () => {
   const {
     myDataset,
     userFormat,
+    setUserFormat,
     getDatasetProjectDataSamples,
     getProjectSingleCellSamples
   } = useMyDataset()
 
-  const showBulkInfoText = canAdd && project && project.has_bulk_rna_seq
+  // Set default userFormat value
+  useEffect(() => {
+    setUserFormat(myDataset.format || getProjectFormats(project)[0])
+  }, [myDataset.format])
 
+  const showBulkInfoText = canAdd && project.has_bulk_rna_seq
+
+  const canAddMultiplexed = userFormat === 'SINGLE_CELL_EXPERIMENT'
   const showWarningMultiplexed =
     canAdd &&
     project.has_multiplexed_data &&
@@ -40,6 +48,10 @@ export const useProjectSamplesTable = () => {
   const getHasModality = (sample, modality) =>
     sample[`has_${modality.toLowerCase()}_data`]
 
+  const getMultiplexedDisabled = (sample) =>
+    // Multiplexed samples are not available for ANN_DATA
+    myDataset.format === 'ANN_DATA' && sample.has_multiplexed_data
+
   const getCheckBoxIsChecked = (sample, modality) =>
     selectedSamples[modality].includes(sample.scpca_id)
 
@@ -47,6 +59,7 @@ export const useProjectSamplesTable = () => {
     if (canAdd) {
       return (
         !getHasModality(sample, modality) ||
+        getMultiplexedDisabled(sample) ||
         getIsSampleInMyDataset(sample, modality)
       )
     }
@@ -106,7 +119,12 @@ export const useProjectSamplesTable = () => {
     setSelectedSamples((prevSelectedSamples) => {
       const currentSelectedSamples = prevSelectedSamples[modality]
 
-      const modalitySampleIds = filteredSamples
+      // Exclude multiplexed samples unless SINGLE_CELLEXPERIMENT
+      const updatedFilteredSamples = !canAddMultiplexed
+        ? filteredSamples.filter((s) => !s.has_multiplexed_data)
+        : filteredSamples
+
+      const modalitySampleIds = updatedFilteredSamples
         .filter((s) => s[`has_${modality.toLowerCase()}_data`])
         .map((s) => s.scpca_id)
 
@@ -168,12 +186,14 @@ export const useProjectSamplesTable = () => {
   return {
     project,
     samples,
+    canAddMultiplexed,
     canAdd,
     canRemove,
     readOnly,
     allSamples,
     setAllSamples,
     selectedSamples,
+    setSelectedSamples,
     filteredSamples,
     setFilteredSamples,
     showBulkInfoText,

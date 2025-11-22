@@ -9,6 +9,7 @@ import { Button } from 'components/Button'
 import { Modal, ModalBody } from 'components/Modal'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
 import { DatasetSamplesProjectOptions } from 'components/DatasetSamplesProjectOptions'
+import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const DatasetAddSamplesModal = ({
   project,
@@ -17,42 +18,105 @@ export const DatasetAddSamplesModal = ({
   title = 'Add Samples to Dataset',
   disabled = false
 }) => {
-  const { myDataset, userFormat, getDatasetProjectDataSamples, setSamples } =
-    useMyDataset()
-  const { selectedSamples } = useProjectSamplesTable()
+  const {
+    myDataset,
+    getDatasetProjectDataSamples,
+    setSamples,
+    userFormat,
+    setUserFormat
+  } = useMyDataset()
+  const {
+    canAddMultiplexed,
+    showWarningMultiplexed,
+    selectedSamples,
+    setSelectedSamples
+  } = useProjectSamplesTable()
   const { responsive } = useResponsive()
+
+  const [selectedSingleCellSamples, setSelectedSingleCellSamples] = useState([])
+  const [selectedMulstiplexedSamples, setSelectedMultiplexedSamples] = useState(
+    []
+  )
+  // Exclude multiplexed samples from selectedSamples for ANN_DATA
+  // NOTE: Make sure not to lose the user's selection when toggling formats before API request
+  useEffect(() => {
+    if (!samples) return
+    if (!project.has_multiplexed_data) {
+      setSelectedSingleCellSamples(selectedSamples.SINGLE_CELL)
+    } else {
+      setSelectedSingleCellSamples(
+        canAddMultiplexed
+          ? selectedSamples.SINGLE_CELL
+          : samples
+              .filter(
+                (s) =>
+                  !s.has_multiplexed_data &&
+                  selectedSamples.SINGLE_CELL.includes(s.scpca_id)
+              )
+              .map((s) => s.scpca_id)
+      )
+    }
+  }, [userFormat, canAddMultiplexed, selectedSamples])
+
+  // Get multiplexed samples in selectedSamples
+  useEffect(() => {
+    if (!samples) return
+    if (project.has_multiplexed_data) {
+      setSelectedMultiplexedSamples(
+        samples
+          .filter(
+            (s) =>
+              s.has_multiplexed_data &&
+              selectedSamples.SINGLE_CELL.includes(s.scpca_id)
+          )
+          .map((s) => s.scpca_id)
+      )
+    }
+  }, [userFormat, canAddMultiplexed, selectedSamples])
 
   // Modal toggle
   const [showing, setShowing] = useState(false)
 
   // For project options
-  const [format, setFormat] = useState(
-    myDataset.format || userFormat || getProjectFormats(project)[0]
-  )
   const [includeBulk, setIncludeBulk] = useState(false)
 
   // For counts of to-be-added samples in the modal
   const [singleCellSamplesToAdd, setSingleCellSamplesToAdd] = useState([])
   const [spatialSamplesToAdd, setSpatialSamplesToAdd] = useState([])
 
+  // For the modal UI
   const totalSamples = singleCellSamplesToAdd + spatialSamplesToAdd
+  const canClickAddSamples =
+    userFormat === 'ANN_DATA'
+      ? totalSamples - selectedMulstiplexedSamples.length > 0
+      : totalSamples > 0
 
-  const canClickAddSamples = totalSamples > 0
-
-  const handleAddSamples = () => {
-    setSamples(
+  const handleAddSamples = async () => {
+    await setSamples(
       project,
-      { ...selectedSamples, includes_bulk: includeBulk },
-      format
+      {
+        ...selectedSamples,
+        SINGLE_CELL: selectedSingleCellSamples,
+        includes_bulk: includeBulk
+      },
+      userFormat
     )
     setShowing(false)
+    // Refresh the table data
+    setSelectedSamples((prev) => ({
+      ...prev,
+      SINGLE_CELL: selectedSingleCellSamples
+    }))
   }
 
-  // Reset the format value on format changes (once empty data)
+  // Reset Data Fromat dropdown value on modal closes
   useEffect(() => {
-    if (!myDataset.format) return
-    setFormat(myDataset.format)
-  }, [myDataset.format])
+    if (!myDataset.format) {
+      setUserFormat(getProjectFormats(project)[0])
+    } else {
+      setUserFormat(myDataset.format)
+    }
+  }, [myDataset.format, showing])
 
   // Calculate to-be-added samples for each modality
   useEffect(() => {
@@ -61,14 +125,20 @@ export const DatasetAddSamplesModal = ({
         getDatasetProjectDataSamples(project, samples)
 
       setSingleCellSamplesToAdd(
-        differenceArray(selectedSamples?.SINGLE_CELL, singleCellSamples)
+        differenceArray(selectedSamples.SINGLE_CELL, singleCellSamples)
           .length || 0
       )
       setSpatialSamplesToAdd(
-        differenceArray(selectedSamples?.SPATIAL, spatialSamples).length || 0
+        differenceArray(selectedSamples.SPATIAL, spatialSamples).length || 0
       )
     }
-  }, [samples, selectedSamples])
+  }, [
+    userFormat,
+    canAddMultiplexed,
+    selectedSingleCellSamples,
+    samples,
+    selectedSamples
+  ])
 
   return (
     <>
@@ -89,7 +159,7 @@ export const DatasetAddSamplesModal = ({
           >
             <Box margin={{ bottom: 'medium' }}>
               <Paragraph margin={{ bottom: 'xsmall' }}>
-                Adding the following to Dataset:
+                You have selected the following to add to My Dataset:
               </Paragraph>
               <Paragraph>{`${totalSamples} samples`}</Paragraph>
               <Box
@@ -110,12 +180,15 @@ export const DatasetAddSamplesModal = ({
               Additional Download Options
             </Heading>
             <Box pad={{ top: 'small' }}>
-              <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
-                <DatasetDataFormatOptions
-                  project={project}
-                  format={format}
-                  onFormatChange={setFormat}
-                />
+              <Box pad={{ bottom: 'medium' }} width="680px">
+                <Box margin={{ bottom: 'medium' }}>
+                  <DatasetDataFormatOptions project={project} />
+                  {showWarningMultiplexed && (
+                    <WarningAnnDataMultiplexed
+                      count={selectedMulstiplexedSamples.length}
+                    />
+                  )}
+                </Box>
                 <DatasetSamplesProjectOptions
                   project={project}
                   includeBulk={includeBulk}

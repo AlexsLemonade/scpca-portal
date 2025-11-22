@@ -256,7 +256,10 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
             />
           </Box>
         )}
-        {showWarningMultiplexed && <WarningAnnDataMultiplexed />}
+        {/* Only display this warning when myDataset format has already been defined */}
+        {showWarningMultiplexed && myDataset.format && (
+          <WarningAnnDataMultiplexed />
+        )}
       </Table>
     </>
   )
