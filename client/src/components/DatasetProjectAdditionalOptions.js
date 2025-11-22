@@ -81,7 +81,7 @@ export const DatasetProjectAdditionalOptions = ({
           <Box direction="row">
             <CheckBox
               label="Exclude multiplexed samples"
-              checked={excludeMultiplexed || !canExcludeMultiplexed}
+              checked={excludeMultiplexed}
               disabled={!canExcludeMultiplexed}
               onChange={({ target: { checked } }) =>
                 onExcludeMultiplexedChange(checked)
