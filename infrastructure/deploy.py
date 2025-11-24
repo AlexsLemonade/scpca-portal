@@ -138,7 +138,18 @@ def get_env(script_args: dict):
     return env
 
 
+def create_ssh_private_key_file():
+    # Create a key file from env var
+    with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
+        private_key_file.write(os.environ["SSH_PRIVATE_KEY"])
+
+    os.chmod(PRIVATE_KEY_FILE_PATH, 0o600)
+
+
 def run_remote_command(ip_address, command):
+    if not os.path.exists(PRIVATE_KEY_FILE_PATH):
+        create_ssh_private_key_file()
+
     print(f"Remote Command on {ip_address}: '{command}'")
     completed_command = subprocess.check_output(
         [
@@ -169,12 +180,6 @@ def get_api_ip_address_from_output(terraform_output: dict):
 
 def pre_deploy_hook(terraform_output: dict):
     api_ip_address = get_api_ip_address_from_output(terraform_output)
-
-    # Create a key file from env var
-    with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
-        private_key_file.write(os.environ["SSH_PRIVATE_KEY"])
-
-    os.chmod(PRIVATE_KEY_FILE_PATH, 0o600)
 
     # stop cron now so no new batch jobs are submitted after processing is paused
     try:
@@ -234,12 +239,6 @@ def restart_api_if_still_running(args, api_ip_address):
 
 def post_deploy_hook(terraform_output: dict):
     api_ip_address = get_api_ip_address_from_output(terraform_output)
-
-    # Create a key file from env var
-    with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
-        private_key_file.write(os.environ["SSH_PRIVATE_KEY"])
-
-    os.chmod(PRIVATE_KEY_FILE_PATH, 0o600)
 
     # This is the last command, so the script's return code should
     # match it.
