@@ -155,7 +155,7 @@ def run_remote_command(ip_address, command):
     return completed_command
 
 
-def pre_deploy_hook(terraform_output: dict):
+def get_api_ip_address_from_output(terraform_output: dict):
     api_ip_key = "api_server_1_ip"
     api_ip_address = terraform_output.get(api_ip_key, {}).get("value", None)
 
@@ -163,6 +163,12 @@ def pre_deploy_hook(terraform_output: dict):
         print("Could not find the API's IP address. Something has gone wrong or changed.")
         print(f"{api_ip_key} not defined in outputs")
         exit(1)
+
+    return api_ip_address
+
+
+def pre_deploy_hook(terraform_output: dict):
+    api_ip_address = get_api_ip_address_from_output(terraform_output)
 
     # Create a key file from env var
     with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
@@ -227,13 +233,7 @@ def restart_api_if_still_running(args, api_ip_address):
 
 
 def post_deploy_hook(terraform_output: dict):
-    api_ip_key = "api_server_1_ip"
-    api_ip_address = terraform_output.get(api_ip_key, {}).get("value", None)
-
-    if not api_ip_address:
-        print("Could not find the API's IP address. Something has gone wrong or changed.")
-        print(f"{api_ip_key} not defined in outputs")
-        exit(1)
+    api_ip_address = get_api_ip_address_from_output(terraform_output)
 
     # Create a key file from env var
     with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
