@@ -286,6 +286,12 @@ if __name__ == "__main__":
     if init_code != 0 or args.init:
         exit(init_code)
 
+    terraform_output = terraform.output()
+    return_code = pre_deploy_hook(terraform_output)
+
+    if return_code != 0:
+        exit(return_code)
+
     # Shared for destroy and apply
     var_file_arg = f"-var-file=tf_vars/{args.stage}.tfvars"
 
