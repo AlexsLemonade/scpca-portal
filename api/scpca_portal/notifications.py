@@ -7,9 +7,8 @@ from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import Job
 
 logger = get_and_configure_logger(__name__)
-ses = boto3.client("ses", region_name=settings.AWS_REGION)
 
-TEMPLATE_ROOT = settings.TEMPLATE_PATH / "email_templates"
+TEMPLATE_ROOT = settings.TEMPLATE_PATH / "emails"
 TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "default.html"
 
 
@@ -30,6 +29,7 @@ def send_project_files_completed_email(
     )
     BODY_HTML = render_to_string(TEMPLATE_FILE_PATH, context={"project_id": project_id})
 
+    ses = boto3.client("ses", region_name=settings.AWS_REGION)
     ses.send_email(
         Source=SENDER,
         Destination={"ToAddresses": [RECIPIENT]},
@@ -56,6 +56,7 @@ def send_dataset_file_completed_email(job: Job) -> None:
     )
     BODY_HTML = render_to_string(TEMPLATE_FILE_PATH, context={"dataset_id": job.dataset.id})
 
+    ses = boto3.client("ses", region_name=settings.AWS_REGION)
     ses.send_email(
         Source=SENDER,
         Destination={"ToAddresses": [RECIPIENT]},
