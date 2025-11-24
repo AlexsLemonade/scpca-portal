@@ -200,7 +200,10 @@ def pre_deploy_hook(terraform_output: dict):
     return 0
 
 
-def restart_api_if_still_running(args, api_ip_address):
+def post_deploy_hook(terraform_output: dict):
+    """Restarts the API if it's still running."""
+    api_ip_address = get_api_ip_address_from_output(terraform_output)
+
     try:
         if not run_remote_command(api_ip_address, "sudo docker ps -q -a"):
             print(
@@ -235,14 +238,6 @@ def restart_api_if_still_running(args, api_ip_address):
         return 1
 
     return 0
-
-
-def post_deploy_hook(terraform_output: dict):
-    api_ip_address = get_api_ip_address_from_output(terraform_output)
-
-    # This is the last command, so the script's return code should
-    # match it.
-    return restart_api_if_still_running(args, api_ip_address)
 
 
 # This is the deploy process.
