@@ -155,6 +155,40 @@ def run_remote_command(ip_address, command):
     return completed_command
 
 
+def pre_deploy_hook(terraform_output: dict):
+    api_ip_key = "api_server_1_ip"
+    api_ip_address = terraform_output.get(api_ip_key, {}).get("value", None)
+
+    if not api_ip_address:
+        print("Could not find the API's IP address. Something has gone wrong or changed.")
+        print(f"{api_ip_key} not defined in outputs")
+        exit(1)
+
+    # Create a key file from env var
+    with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
+        private_key_file.write(os.environ["SSH_PRIVATE_KEY"])
+
+    os.chmod(PRIVATE_KEY_FILE_PATH, 0o600)
+
+    # stop cron now so no new batch jobs are submitted after processing is paused
+    try:
+        run_remote_command(api_ip_address, "sudo systemctl stop cron")
+    except subprocess.CalledProcessError:
+        print("There was an error disabling the cron service.")
+        return 1
+
+    try:
+        run_remote_command(api_ip_address, "sudo ./run_command.sh pause_processing")
+    except subprocess.CalledProcessError:
+        print("There was an error terminating currently processing jobs.")
+        return 1
+
+    print("Waiting for processing Batch jobs to terminate.")
+    time.sleep(10)
+
+    return 0
+
+
 def restart_api_if_still_running(args, api_ip_address):
     try:
         if not run_remote_command(api_ip_address, "sudo docker ps -q -a"):
