@@ -240,6 +240,14 @@ def post_deploy_hook(terraform_output: dict):
     except subprocess.CalledProcessError:
         return 1
 
+    # Explicitly start the cron service to handle the case where the same API,
+    # which had its cron service stopped during the pre deploy hook, is still running here
+    try:
+        run_remote_command(api_ip_address, "sudo systemctl start cron")
+    except subprocess.CalledProcessError:
+        print("There was an error starting the cron service.")
+        return 1
+
     return 0
 
 
