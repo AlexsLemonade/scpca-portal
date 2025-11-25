@@ -36,17 +36,18 @@ export const config = {
       'https://scpca.readthedocs.io/en/development/download_files.html#portal-wide-download-structure-for-merged-anndata-objects',
     whatDownloadingPortalWideSpatial:
       'https://scpca.readthedocs.io/en/development/download_files.html#spatial-portal-wide-download-structure',
-    whatDownloadingProjectMetadata: '',
+    whatDownloadingProjectMetadata:
+      'https://scpca.readthedocs.io/en/development/download_files.html#metadata',
     whatDownloadingProjectSCE:
       'https://scpca.readthedocs.io/en/development/download_files.html#download-folder-structure-for-singlecellexperiment-project-downloads',
-    whatDownloadingProjectSCENoMultiplexed: '',
     whatDownloadingProjectSCEMerged:
       'https://scpca.readthedocs.io/en/development/download_files.html#download-folder-structure-for-singlecellexperiment-merged-downloads',
     whatDownloadingProjectAnndata:
       'https://scpca.readthedocs.io/en/development/download_files.html#download-folder-structure-for-anndata-project-downloads',
     whatDownloadingProjectAnndataMerged:
       'https://scpca.readthedocs.io/en/development/download_files.html#download-folder-structure-for-anndata-merged-downloads',
-    whatDownloadingProjectSpatial: '',
+    whatDownloadingProjectSpatial:
+      'https://scpca.readthedocs.io/en/development/download_files.html#spatial-transcriptomics-libraries',
     what_est_demux_cell:
       'https://scpca.readthedocs.io/en/stable/faq.html#what-are-estimated-demux-cell-counts',
     what_review_dataset: 'https://example.com',

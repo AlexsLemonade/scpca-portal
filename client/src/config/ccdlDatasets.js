@@ -37,7 +37,7 @@ export const projectLinks = {
     learnMore: config.links.whatDownloadingProjectSCE
   },
   SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED: {
-    learnMore: '#tbd'
+    learnMore: config.links.whatDownloadingProjectSCE
   },
   SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: {
     learnMore: config.links.whatDownloadingProjectSCEMerged
