@@ -173,15 +173,12 @@ def get_api_ip_address_from_output(terraform_output: dict):
     if not api_ip_address:
         print("Could not find the API's IP address. Something has gone wrong or changed.")
         print(f"{api_ip_key} not defined in outputs")
-        exit(1)
 
     return api_ip_address
 
 
-def pre_deploy_hook(terraform_output: dict):
-    api_ip_address = get_api_ip_address_from_output(terraform_output)
-
-    # stop cron now so no new batch jobs are submitted after processing is paused
+def pre_deploy_hook(api_ip_address: str):
+    # Stop cron now so no new batch jobs are submitted after processing is paused
     try:
         run_remote_command(api_ip_address, "sudo systemctl stop cron")
     except subprocess.CalledProcessError:
@@ -200,10 +197,8 @@ def pre_deploy_hook(terraform_output: dict):
     return 0
 
 
-def post_deploy_hook(terraform_output: dict):
+def post_deploy_hook(api_ip_address: str):
     """Restarts the API if it's still running."""
-    api_ip_address = get_api_ip_address_from_output(terraform_output)
-
     try:
         if not run_remote_command(api_ip_address, "sudo docker ps -q -a"):
             print(
@@ -281,8 +276,8 @@ if __name__ == "__main__":
         exit(init_code)
 
     # Only call pre_deploy_hook on a running stack
-    if terraform_output := terraform.output():
-        return_code = pre_deploy_hook(terraform_output)
+    if api_ip_address := get_api_ip_address_from_output(terraform.output()):
+        return_code = pre_deploy_hook(api_ip_address)
 
         if return_code != 0:
             exit(return_code)
@@ -307,7 +302,7 @@ if __name__ == "__main__":
     if terraform_code != 0:
         exit(terraform_code)
 
-    return_code = post_deploy_hook(terraform_output)
+    return_code = post_deploy_hook(get_api_ip_address_from_output(terraform_output))
 
     if return_code == 0:
         print("\nDeploy completed successfully!!")
