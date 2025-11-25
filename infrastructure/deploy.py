@@ -195,9 +195,6 @@ def pre_deploy_hook(terraform_output: dict):
         print("There was an error terminating currently processing jobs.")
         return 1
 
-    print("Waiting for processing Batch jobs to terminate.")
-    time.sleep(10)
-
     return 0
 
 
