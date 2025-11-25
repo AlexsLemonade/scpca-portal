@@ -177,6 +177,7 @@ def get_api_ip_address_from_output(terraform_output: dict):
 
 
 def pre_deploy_hook(terraform_output: dict):
+    """Terminates all processing jobs and queues them for submission upon API re-cycling."""
     api_ip_address = get_api_ip_address_from_output(terraform_output)
     if not api_ip_address:
         return 0
