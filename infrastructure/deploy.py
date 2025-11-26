@@ -314,7 +314,7 @@ if __name__ == "__main__":
     if terraform_code != 0:
         exit(terraform_code)
 
-    return_code = post_deploy_hook(get_api_ip_address_from_output(terraform_output))
+    return_code = post_deploy_hook(terraform_output)
 
     if return_code == 0:
         print("\nDeploy completed successfully!!")
