@@ -423,7 +423,7 @@ class Job(TimestampedModel):
 
         for job in Job.objects.filter(state=JobStates.PENDING):
             try:
-                job.submit(save=False)
+                job.submit()
                 submitted_jobs.append(job)
                 if job.dataset:  # TODO: Remove after the dataset release
                     submitted_datasets.append(job.dataset)
