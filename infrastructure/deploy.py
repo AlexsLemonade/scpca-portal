@@ -3,9 +3,13 @@
 import argparse
 import os
 import subprocess
+import sys
 import time
 
 from deploy_modules import docker, terraform
+
+# Force line buffering for logs so that print statements and cli output print sequentially
+sys.stdout.reconfigure(line_buffering=True)
 
 # CONFIGS
 PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
