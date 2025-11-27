@@ -155,7 +155,7 @@ def run_remote_command(ip_address, command):
         create_ssh_private_key_file()
 
     print(f"Remote Command on {ip_address}: '{command}'")
-    completed_command = subprocess.check_output(
+    completed_command_logs = subprocess.check_output(
         [
             "ssh",
             "-i",
@@ -167,7 +167,7 @@ def run_remote_command(ip_address, command):
         ],
     )
 
-    return completed_command
+    return completed_command_logs
 
 
 def get_api_ip_address_from_output(terraform_output: dict):
@@ -194,7 +194,10 @@ def pre_deploy_hook(terraform_output: dict):
         return 1
 
     try:
-        run_remote_command(api_ip_address, "sudo ./run_command.sh pause_processing")
+        completed_command_logs = run_remote_command(
+            api_ip_address, "sudo ./run_command.sh pause_processing"
+        )
+        print(completed_command_logs.decode("utf-8"), end="")
     except subprocess.CalledProcessError:
         print("There was an error terminating currently processing jobs.")
         return 1
