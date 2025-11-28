@@ -11,7 +11,13 @@ from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 from scpca_portal.models import ComputedFile, Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory, OriginalFileFactory
+from scpca_portal.test.factories import (
+    DatasetFactory,
+    LeafComputedFileFactory,
+    LibraryFactory,
+    OriginalFileFactory,
+    SampleFactory,
+)
 
 
 class TestDataset(TestCase):
@@ -94,6 +100,42 @@ class TestDataset(TestCase):
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
         )
         self.assertTrue(found)
+
+        # Assert that data attr updates when new samples and libraries are added
+        actual_old_data_attr = dataset.get_ccdl_data()
+        expected_old_data_attr = {
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999995"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        expected_new_data_attr = {
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999995", "SCPCS999999"],
+                Modalities.SPATIAL: [],
+            },
+        }
+
+        project = Project.objects.filter(scpca_id="SCPCP999991").first()
+        sample = SampleFactory(scpca_id="SCPCS999999", has_single_cell_data=True, project=project)
+        sample.save()
+
+        library = LibraryFactory(
+            scpca_id="SCPCL999999", modality=Modalities.SINGLE_CELL, project=project
+        )
+        library.samples.add(sample)
+        library.save()
+
+        dataset, _ = Dataset.get_or_find_ccdl_dataset(
+            ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
+        )
+        actual_new_data_attr = dataset.data
+
+        self.assertEqual(actual_old_data_attr, expected_old_data_attr)
+        self.assertEqual(actual_new_data_attr, expected_new_data_attr)
+        self.assertNotEqual(actual_old_data_attr, actual_new_data_attr)
 
     def test_original_files_property(self):
         # SINGLE_CELL SCE
