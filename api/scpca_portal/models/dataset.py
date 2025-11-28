@@ -157,6 +157,7 @@ class Dataset(TimestampedModel):
         if dataset := cls.objects.filter(
             is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
         ).first():
+            dataset.data = dataset.get_ccdl_data()
             return dataset, True
 
         dataset = cls(is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id)
