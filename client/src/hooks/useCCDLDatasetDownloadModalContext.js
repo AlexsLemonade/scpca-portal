@@ -48,10 +48,11 @@ export const useCCDLDatasetDownloadModalContext = () => {
     const modalTitleResource = selectedDataset.ccdl_project_id
       ? 'Project'
       : `Portal-wide ${modalityName}`
-    const asFormat =
+    const modalFormat =
       selectedDataset.ccdl_modality === 'SINGLE_CELL'
-        ? `as ${getReadable(selectedDataset.format)}`
-        : ''
+        ? getReadable(selectedDataset.format)
+        : getReadable('SPATIAL_SPACERANGER')
+    const asFormat = selectedDataset.ccdl_modality ? `as ${modalFormat}` : ''
 
     setModalTitle(
       `${modalTitleAction} ${modalTitleResource} ${asFormat}`.trim()
