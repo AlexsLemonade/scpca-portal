@@ -25,8 +25,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   // set when `datasets` changes
   const [modality, setModality] = useState(null)
   const [format, setFormat] = useState(null)
-  const [includesMerged, setIncludesMerged] = useState(null)
-  const [excludeMultiplexed, setExcludeMultiplexed] = useState(null)
+  const [includesMerged, setIncludesMerged] = useState(false)
+  const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
 
   const [downloadDataset, setDownloadDataset] = useState(false)
   const [downloadableDataset, setDownloadableDataset] = useState(null)
