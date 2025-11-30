@@ -19,9 +19,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   const [selectedDataset, setSelectedDataset] = useState(null)
 
-  const modalityOrder = ['SINGLE_CELL', 'SPATIAL']
-  const formatOrder = ['SINGLE_CELL_EXPERIMENT', 'ANN_DATA']
-
   // set when `datasets` changes
   const [modality, setModality] = useState(null)
   const [format, setFormat] = useState(null)
@@ -36,6 +33,24 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   const [modalityOptions, setModalityOptions] = useState([])
   const [formatOptions, setFormatOptions] = useState([])
+
+  const modalityOrder = ['SINGLE_CELL', 'SPATIAL']
+  const formatOrder = ['SINGLE_CELL_EXPERIMENT', 'ANN_DATA']
+
+  const sortByModalityOrder = (items) => {
+    items.sort((a, b) => {
+      return modalityOrder.indexOf(a.value) - modalityOrder.indexOf(b.value)
+    })
+
+    return items
+  }
+  const sortByFormatOrder = (items) => {
+    items.sort((a, b) => {
+      return formatOrder.indexOf(a.value) - formatOrder.indexOf(b.value)
+    })
+
+    return items
+  }
 
   // on datasets change either reset values or set modality defaults
   useEffect(() => {
@@ -59,7 +74,9 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       const [defaultModality] = modalityOrder
       setModality(defaultModality)
       setModalityOptions(
-        getReadableOptions(datasets.map((d) => d.ccdl_modality))
+        sortByModalityOrder(
+          getReadableOptions(datasets.map((d) => d.ccdl_modality))
+        )
       )
 
       setDownloadDataset(datasets.length === 1)
@@ -72,18 +89,20 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       const [defaultFormat] = formatOrder
       setFormat(defaultFormat)
       setFormatOptions(
-        uniqueArrayByKey(
-          datasets
-            .filter((d) => d.ccdl_modality === modality)
-            .map((d) => ({
-              label:
-                // We override this to present the spatial format
-                d.ccdl_modality === 'SPATIAL'
-                  ? getReadable('SPATIAL_SPACERANGER')
-                  : getReadable(d.format),
-              value: d.format
-            })),
-          'value'
+        sortByFormatOrder(
+          uniqueArrayByKey(
+            datasets
+              .filter((d) => d.ccdl_modality === modality)
+              .map((d) => ({
+                label:
+                  // We override this to present the spatial format
+                  d.ccdl_modality === 'SPATIAL'
+                    ? getReadable('SPATIAL_SPACERANGER')
+                    : getReadable(d.format),
+                value: d.format
+              })),
+            'value'
+          )
         )
       )
 
