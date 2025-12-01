@@ -79,6 +79,10 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         )
       )
 
+      setIsMergedObjectsAvailable(
+        datasets.some((dataset) => dataset.includes_files_merged)
+      )
+
       setDownloadDataset(datasets.length === 1)
     }
   }, [datasets])
@@ -105,12 +109,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
           )
         )
       )
-
-      setIsMergedObjectsAvailable(
-        modality === 'SINGLE_CELL' &&
-          datasets.some((dataset) => dataset.includes_files_merged)
-      )
-      if (modality === 'SPATIAL') setIsMergedObjectsAvailable(false)
     }
   }, [modality])
 
