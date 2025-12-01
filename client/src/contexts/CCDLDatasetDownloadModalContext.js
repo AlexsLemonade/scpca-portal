@@ -82,6 +82,9 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setIsMergedObjectsAvailable(
         datasets.some((dataset) => dataset.includes_files_merged)
       )
+      setIsMultiplexedAvailable(
+        datasets.some((dataset) => dataset.includes_files_multiplexed)
+      )
 
       setDownloadDataset(datasets.length === 1)
     }
@@ -112,26 +115,20 @@ export const CCDLDatasetDownloadModalContextProvider = ({
     }
   }, [modality])
 
-  // on modality and format changes, set multiplexed available default
+  // on modality change, make sure includes value is valid
   useEffect(() => {
-    if (modality && format) {
-      setIsMultiplexedAvailable(
-        modality === 'SINGLE_CELL' &&
-          format === 'SINGLE_CELL_EXPERIMENT' &&
-          datasets.some((dataset) => dataset.includes_files_multiplexed)
-      )
-    }
-  }, [modality, format])
+    if (modality !== 'SINGLE_CELL') setIncludesMerged(false)
+  }, [modality])
 
-  // on merged availability change, set merged default
+  // on format change, set exclude multiplexed defaults
   useEffect(() => {
-    setIncludesMerged(includesMerged && isMergedObjectsAvailable)
-  }, [isMergedObjectsAvailable])
-
-  // on multiplexed availability change, set exclude multiplexed default
-  useEffect(() => {
-    setExcludeMultiplexed(excludeMultiplexed && isMultiplexedAvailable)
-  }, [isMultiplexedAvailable])
+    if (isMultiplexedAvailable)
+      if (format === 'SINGLE_CELL_EXPERIMENT') {
+        setExcludeMultiplexed(false)
+      } else if (format === 'ANN_DATA') {
+        setExcludeMultiplexed(true)
+      }
+  }, [format, isMultiplexedAvailable])
 
   // on selected options change, select dataset
   useEffect(() => {
