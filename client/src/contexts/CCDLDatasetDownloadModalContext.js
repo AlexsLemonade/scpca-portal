@@ -6,6 +6,7 @@ import { uniqueArrayByKey } from 'helpers/uniqueArray'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { sortOnKeyByOrder } from 'helpers/sortOnKeyByOrder'
+import { formatOrder, modalityOrder } from 'config/ccdlDatasets'
 
 export const CCDLDatasetDownloadModalContext = createContext({})
 
@@ -34,9 +35,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   const [modalityOptions, setModalityOptions] = useState([])
   const [formatOptions, setFormatOptions] = useState([])
-
-  const modalityOrder = ['SINGLE_CELL', 'SPATIAL']
-  const formatOrder = ['SINGLE_CELL_EXPERIMENT', 'ANN_DATA']
 
   // on datasets change either reset values or set modality defaults
   useEffect(() => {
