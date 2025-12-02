@@ -5,6 +5,7 @@ import { filterPartialObject } from 'helpers/filterPartialObject'
 import { uniqueArrayByKey } from 'helpers/uniqueArray'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableOptions } from 'helpers/getReadableOptions'
+import { sortOnKeyByOrder } from 'helpers/sortOnKeyByOrder'
 
 export const CCDLDatasetDownloadModalContext = createContext({})
 
@@ -37,21 +38,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const modalityOrder = ['SINGLE_CELL', 'SPATIAL']
   const formatOrder = ['SINGLE_CELL_EXPERIMENT', 'ANN_DATA']
 
-  const sortByModalityOrder = (items) => {
-    items.sort((a, b) => {
-      return modalityOrder.indexOf(a.value) - modalityOrder.indexOf(b.value)
-    })
-
-    return items
-  }
-  const sortByFormatOrder = (items) => {
-    items.sort((a, b) => {
-      return formatOrder.indexOf(a.value) - formatOrder.indexOf(b.value)
-    })
-
-    return items
-  }
-
   // on datasets change either reset values or set modality defaults
   useEffect(() => {
     if (!datasets || datasets.length === 0) {
@@ -74,8 +60,10 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       const [defaultModality] = modalityOrder
       setModality(defaultModality)
       setModalityOptions(
-        sortByModalityOrder(
-          getReadableOptions(datasets.map((d) => d.ccdl_modality))
+        sortOnKeyByOrder(
+          getReadableOptions(datasets.map((d) => d.ccdl_modality)),
+          'value',
+          modalityOrder
         )
       )
 
@@ -96,7 +84,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       const [defaultFormat] = formatOrder
       setFormat(defaultFormat)
       setFormatOptions(
-        sortByFormatOrder(
+        sortOnKeyByOrder(
           uniqueArrayByKey(
             datasets
               .filter((d) => d.ccdl_modality === modality)
@@ -109,7 +97,9 @@ export const CCDLDatasetDownloadModalContextProvider = ({
                 value: d.format
               })),
             'value'
-          )
+          ),
+          'value',
+          formatOrder
         )
       )
     }
