@@ -20,7 +20,7 @@ export const Button = ({
   ...props
 }) => {
   const [waiting, asyncOnClick] = useWaitForAsync(onClick)
-  const disabled = waiting || props.disabled
+  const disabled = waiting || loading || props.disabled
 
   return (
     <GrommetButton
