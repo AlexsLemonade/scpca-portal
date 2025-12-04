@@ -41,6 +41,9 @@ class Command(BaseCommand):
         for ccdl_name in ccdl_datasets.TYPES:
             for ccdl_project_id in dataset_ccdl_project_ids:
                 dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, ccdl_project_id)
+                if found:
+                    dataset.data = dataset.get_ccdl_data()
+
                 if not found and not dataset.is_valid_ccdl_dataset:
                     continue
                 if found and dataset.is_hash_unchanged and not ignore_hash:

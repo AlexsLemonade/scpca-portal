@@ -1,5 +1,6 @@
 """Misc utils."""
 
+import hashlib
 import inspect
 import math
 import shutil
@@ -106,7 +107,7 @@ def string_from_list(value: Any, delimiter=";") -> Any:
     return delimiter.join(value) if isinstance(value, list) else value
 
 
-def join_workflow_versions(workflow_versions: Set) -> str:
+def join_workflow_versions(workflow_versions: Iterable) -> str:
     """Returns list of sorted unique workflow versions."""
 
     return ", ".join(sorted(set(workflow_versions)))
@@ -118,6 +119,19 @@ def get_chunk_list(list: List[Any], size: int) -> Generator[List[Any], None, Non
     """
     for i in range(0, len(list), size):
         yield list[i : i + size]
+
+
+def get_docs_url(path: str) -> str:
+    """
+    Returns the full ScPCA docs URL for the given path.
+    """
+    DOCS_BASE = "https://scpca.readthedocs.io/en"
+    DOCS_VERSION = "stable"
+
+    if settings.ENABLE_FEATURE_PREVIEW:
+        DOCS_VERSION = "development"
+
+    return f"{DOCS_BASE}/{DOCS_VERSION}/{path}"
 
 
 def get_today_string(format: str = "%Y-%m-%d") -> str:
@@ -249,3 +263,15 @@ def format_bytes(size_in_bytes: int) -> str:
     sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
     i = math.floor(math.log(size_in_bytes) / math.log(k))
     return f"{size_in_bytes / k**i:.2f} {sizes[i]}"
+
+
+def hash_values(values: List[str]) -> str:
+    """
+    Return the hash value of a passed list of strings.
+    """
+    md5_hasher = hashlib.md5()
+
+    for value in sorted(values):
+        md5_hasher.update(value.encode("utf-8"))
+
+    return md5_hasher.hexdigest()

@@ -9,7 +9,6 @@ import { InfoText } from 'components/InfoText'
 import { Pill } from 'components/Pill'
 import { WarningText } from 'components/WarningText'
 import { capitalize } from 'helpers/capitalize'
-import { filterOut } from 'helpers/filterOut'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 import { DownloadOptionsContextProvider } from 'contexts/DownloadOptionsContext'
@@ -19,6 +18,10 @@ export const ProjectHeader = ({ project, linked = false }) => {
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
   const unavailableSampleCountText =
     Number(project.unavailable_samples_count) > 1 ? 'samples' : 'sample'
+
+  const modalitiesExcludingSingleCell = project.modalities.filter(
+    (m) => m !== 'SINGLE_CELL'
+  )
 
   return (
     <DownloadOptionsContextProvider resource={project}>
@@ -66,13 +69,15 @@ export const ProjectHeader = ({ project, linked = false }) => {
           />
           <Badge
             badge="SeqUnit"
-            label={project.seq_units.map((su) => capitalize(su || ''))}
+            label={project.seq_units
+              .map((su) => capitalize(su || ''))
+              .join(', ')}
           />
           <Badge badge="Kit" label={project.technologies.join(', ')} />
-          {project.modalities.length > 0 && (
+          {modalitiesExcludingSingleCell.length > 0 && (
             <Badge
               badge="Modality"
-              label={filterOut(project.modalities, 'SINGLE_CELL')
+              label={modalitiesExcludingSingleCell
                 .map(getReadableModality)
                 .join(', ')}
             />

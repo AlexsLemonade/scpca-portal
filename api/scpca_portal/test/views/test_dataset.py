@@ -128,7 +128,7 @@ class DatasetsTestCase(APITestCase):
         self.custom_dataset.format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         self.custom_dataset.save()
 
-        # Assert that read_only format field was not mutated
+        # Assert that format remains unchanged when not present
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
@@ -143,7 +143,7 @@ class DatasetsTestCase(APITestCase):
         data = {
             "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
             "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": "format",
+            "format": DatasetFormats.ANN_DATA,
         }
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
@@ -153,6 +153,25 @@ class DatasetsTestCase(APITestCase):
         url = reverse("datasets-detail", args=[dataset.id])
         response = self.client.put(url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_format(self):
+        url = reverse("datasets-detail", args=[self.custom_dataset.id])
+        self.custom_dataset.data = DatasetCustomSingleCellExperiment.VALUES.get("data")
+        self.custom_dataset.format = DatasetFormats.SINGLE_CELL_EXPERIMENT
+        self.custom_dataset.save()
+
+        # Assert that format cannot be modified if dataset already contains data
+        data = {"format": DatasetFormats.ANN_DATA}
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Assert that format can be modified if dataset is empty
+        self.custom_dataset.data = {}
+        self.custom_dataset.save()
+
+        data = {"format": DatasetFormats.ANN_DATA}
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_is_not_allowed(self):
         url = reverse("datasets-list")

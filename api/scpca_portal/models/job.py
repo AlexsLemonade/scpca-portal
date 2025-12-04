@@ -357,7 +357,7 @@ class Job(TimestampedModel):
 
         # if job has dataset, dynamically configure job for submission
         if self.dataset:
-            if self.dataset.has_lockfile_projects or self.dataset.has_locked_projects:
+            if self.dataset.is_locked:
                 raise DatasetLockedProjectError(self.dataset)
 
             # dynamically choose queue based on dataset size
@@ -409,7 +409,7 @@ class Job(TimestampedModel):
         return True
 
     @classmethod
-    def submit_pending(cls) -> List[Self]:
+    def submit_pending(cls) -> tuple[List[Self], List[Self], List[Self]]:
         """
         Submits all PENDING jobs to AWS Batch.
         Updates the jobs' batch_job_id and saves them as PROCESSING (state, timestamp).
@@ -434,17 +434,11 @@ class Job(TimestampedModel):
                     failed_jobs.append(job)
 
         if submitted_jobs:
-            logger.info(f"Submitted {len(submitted_jobs)} jobs to AWS.")
             cls.bulk_update_state(submitted_jobs)
             if submitted_datasets:  # TODO: Remove after the dataset release
                 Dataset.bulk_update_state(submitted_datasets)
 
-        if pending_jobs:
-            logger.info(f"{len(pending_jobs)} jobs were not submitted but are still pending.")
-        if failed_jobs:
-            logger.info(f"{len(failed_jobs)} jobs failed to submit.")
-
-        return submitted_jobs
+        return submitted_jobs, pending_jobs, failed_jobs
 
     def terminate(self, reason: str | None = "Terminated processing job", *, save=True):
         """

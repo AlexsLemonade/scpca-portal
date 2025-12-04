@@ -184,7 +184,7 @@ class Project_SCPCP999990:
         SCPCA_ID = "SCPCL999991"
         VALUES = {
             "formats": [
-                FileFormats.SINGLE_CELL_EXPERIMENT,
+                FileFormats.SPATIAL_SPACERANGER,
             ],
             "has_cite_seq_data": False,
             "is_multiplexed": False,
