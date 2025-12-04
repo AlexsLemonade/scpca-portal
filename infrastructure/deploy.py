@@ -200,6 +200,7 @@ def pre_deploy_hook(terraform_output: dict):
         print(completed_command_logs.decode("utf-8"), end="")
     except subprocess.CalledProcessError:
         print("There was an error terminating currently processing jobs.")
+        print("WARNING: If this was an existing deploy cron is now disabled.")
         return 1
 
     print("Processing jobs requeued successfully.")
