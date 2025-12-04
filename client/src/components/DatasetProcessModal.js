@@ -40,7 +40,6 @@ export const DatasetProcessModal = ({
         primary
         label={label}
         disabled={disabled}
-        loading={submitting}
         onClick={() => setShowing(true)}
       />
       <Modal title={title} showing={showing} setShowing={setShowing}>
