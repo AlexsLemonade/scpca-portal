@@ -80,26 +80,6 @@ class JobProcessorABC(ABC):
     def exception_handlers(self) -> Dict[Tuple[str, type], str]:
         pass
 
-    @property
-    def job(self) -> Job:
-        """Job should be readonly"""
-        return self._job
-
-    def on_run(self):
-        pass
-
-    def on_step_start(self, step: str):
-        pass
-
-    def on_step_exception(self, step: str, e: Exception):
-        pass
-
-    def on_uncaught_exception(self, step, e: Exception):
-        pass
-
-    def on_run_done(self):
-        pass
-
     def __init__(self, job: Job):
         self._job = job
 
@@ -111,7 +91,7 @@ class JobProcessorABC(ABC):
         self._init_exception_handlers_functions()
 
     def _init_step_functions(self):
-        """Init all"""
+        """Create mapping of steps to callable step functions"""
         self._steps_functions = [getattr(self, step, step) for step in self.steps]
 
         if not_implemented_steps := [step for step in self._steps_functions if not callable(step)]:
@@ -120,7 +100,7 @@ class JobProcessorABC(ABC):
             )
 
     def _init_exception_handlers_functions(self):
-        """Job should be readonly"""
+        """Create mapping of exception handlers to callable exception handler functions"""
         self._exception_handlers_functions = {
             key: getattr(self, handler, handler) for key, handler in self.exception_handlers.items()
         }
@@ -141,10 +121,31 @@ class JobProcessorABC(ABC):
                 self.__class__.__name__, *not_implemented_handler_steps
             )
 
+    @property
+    def job(self) -> Job:
+        return self._job
+
+    # JobProcessorABC.run lIfecycle hooks
+    def on_run(self) -> None:
+        pass
+
+    def on_step_start(self, step: str) -> None:
+        pass
+
+    def on_step_exception(self, step: str, e: Exception) -> None:
+        pass
+
+    def on_uncaught_exception(self, step, e: Exception) -> None:
+        pass
+
+    def on_run_done(self) -> None:
+        pass
+
     def run(self) -> None:
         """
-        Execute each step in order. If a step raises, look for a matching
-        handler. The handler decides whether processing continues.
+        Execute each step in order.
+        If a step raises an exception look for a matching handler.
+        By default mark the job failed when exception raised.
         """
         # mark job as processing
         self.on_run()
