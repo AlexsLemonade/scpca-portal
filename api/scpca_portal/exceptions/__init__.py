@@ -32,7 +32,7 @@ from scpca_portal.exceptions.job_error import (
 )
 from scpca_portal.exceptions.job_processor_error import (
     JobProcessorError,
-    JobProcessorStepNotImplementedError,
     JobProcessorHandlerNotImplementedError,
     JobProcessorHandlerStepNotImplementedError,
+    JobProcessorStepNotImplementedError,
 )
