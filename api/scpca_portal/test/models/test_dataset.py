@@ -701,7 +701,7 @@ class TestDataset(TestCase):
             {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".rds"},
             # Single-cell multiplexed should be included here
             {"samples_count": 2, "name": "Single-nuclei multiplexed samples", "format": ".rds"},
-            {"samples_count": 1, "name": "Spatial samples", "format": "Spatial format"},
+            {"samples_count": 1, "name": "Spatial samples", "format": "Spaceranger"},
             {"samples_count": 1, "name": "Bulk RNA-seq samples", "format": ".tsv"},
         ]
 

@@ -386,7 +386,7 @@ class Dataset(TimestampedModel):
             },
             {
                 "name": "Spatial samples",
-                "format": "Spatial format",
+                "format": "Spaceranger",
                 "samples": spatial_samples,
                 "libraries": spatial_libraries,
             },
