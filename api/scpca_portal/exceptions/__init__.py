@@ -30,3 +30,9 @@ from scpca_portal.exceptions.job_error import (
     JobSyncStateFailedError,
     JobTerminationFailedError,
 )
+from scpca_portal.exceptions.job_processor_error import (
+    JobProcessorError,
+    JobProcessorStepNotImplementedError,
+    JobProcessorHandlerNotImplementedError,
+    JobProcessorHandlerStepNotImplementedError,
+)
