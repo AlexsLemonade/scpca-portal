@@ -3,14 +3,12 @@ from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.exceptions import DatasetLockedProjectError, DatasetMissingLibrariesError
 from scpca_portal.job_processors import JobProcessorABC
-from scpca_portal.models import ComputedFile, Job
+from scpca_portal.models import ComputedFile
 
 logger = get_and_configure_logger(__name__)
 
 
 class DatasetJobProcessor(JobProcessorABC):
-    update_s3 = True
-    clean_up_output_data = False
 
     steps = [
         "setup_work_dir",
@@ -25,11 +23,6 @@ class DatasetJobProcessor(JobProcessorABC):
         ("process_dataset", DatasetLockedProjectError): "handle_locked_project",
         ("process_dataset", DatasetMissingLibrariesError): "handle_missing_libraries",
     }
-
-    def __init__(self, job: Job, update_s3: bool = True, clean_up_output_data=False):
-        super().__init__(job)
-        self.update_s3 = update_s3
-        self.clean_up_output_data = clean_up_output_data
 
     # Logging
     def on_run(self):
@@ -72,12 +65,10 @@ class DatasetJobProcessor(JobProcessorABC):
         # TODO: Add failure notification
 
     def upload_dataset(self):
-        if self.update_s3:
-            s3.upload_output_file(self.computed_file.s3_key, self.computed_file.s3_bucket)
+        s3.upload_output_file(self.computed_file.s3_key, self.computed_file.s3_bucket)
 
     def clean_up_local(self):
-        if self.clean_up_output_data:
-            self.computed_file.clean_up_local_computed_file()
+        self.computed_file.clean_up_local_computed_file()
 
     def send_notification(self):
         if self.job.dataset.email:
