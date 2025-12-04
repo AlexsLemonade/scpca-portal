@@ -34,7 +34,17 @@ export const DatasetMoveSamplesModal = ({
 
   const isMyDataset = myDataset.id
   const isFormatChanged = isMyDataset && myDataset.format !== dataset.format
-  const disableAppend = isDatasetDataEmpty || isFormatChanged
+
+  const hasSpatialSamples = Object.values(dataset.data).some(
+    (d) => d.SPATIAL.length > 0
+  )
+  const hasNoSingleCellSamples = Object.values(dataset.data).every(
+    (d) => d.SINGLE_CELL.length === 0
+  )
+  const onlyHasSpatialSamples = hasSpatialSamples && hasNoSingleCellSamples
+
+  const disableAppend =
+    isDatasetDataEmpty || (isFormatChanged && !onlyHasSpatialSamples)
 
   // Disable the append action if no data in myDataset or the format will change
   const radioOptions = [
