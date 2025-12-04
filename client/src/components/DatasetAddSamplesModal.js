@@ -171,9 +171,11 @@ export const DatasetAddSamplesModal = ({
                 <Box as="li" style={{ display: 'list-item' }}>
                   {`${singleCellSamplesToAdd} samples with single-cell modality`}
                 </Box>
-                <Box as="li" style={{ display: 'list-item' }}>
-                  {`${spatialSamplesToAdd} samples with spatial modality`}
-                </Box>
+                {project.has_spatial_data && (
+                  <Box as="li" style={{ display: 'list-item' }}>
+                    {`${spatialSamplesToAdd} samples with spatial modality`}
+                  </Box>
+                )}
               </Box>
             </Box>
             <Heading level="3" size="small" margin={{ bottom: 'medium' }}>
