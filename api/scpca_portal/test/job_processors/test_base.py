@@ -77,7 +77,6 @@ class TestJobProcessorABC(TestCase):
         with self.assertRaises(JobProcessorHandlerStepNotImplementedError):
             TestProcessor(job)
 
-
     def test_job_processor_uncaught_error(self):
         # Assert that an uncaught error will bubble out of the processor
         # And the job is correctly marked as failed

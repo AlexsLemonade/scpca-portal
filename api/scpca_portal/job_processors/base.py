@@ -159,7 +159,6 @@ class JobProcessorABC(ABC):
                 if exception_handler := self._lookup_handler(step, e):
                     exception_handler(e)
                 else:
-                    # Consider marking job as failed here since it is important to keep state correct
                     self.on_uncaught_exception(step, e)
 
                 if self.job.state is JobStates.PROCESSING:
