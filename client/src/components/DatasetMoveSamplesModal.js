@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, RadioButtonGroup, Text } from 'grommet'
 import { useRouter } from 'next/router'
 import { useMyDataset } from 'hooks/useMyDataset'
@@ -31,6 +31,7 @@ export const DatasetMoveSamplesModal = ({
   const { responsive } = useResponsive()
 
   const [showing, setShowing] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const isMyDataset = myDataset.id
   const isFormatChanged = isMyDataset && myDataset.format !== dataset.format
@@ -72,10 +73,12 @@ export const DatasetMoveSamplesModal = ({
   }
 
   const handleMoveToMyDataset = async () => {
+    setLoading(true)
     const updatedData =
       action === 'append'
         ? await getMergeDatasetData(dataset)
         : structuredClone(dataset.data)
+    setLoading(false)
 
     // API failure while merging data
     if (!updatedData) {
@@ -86,6 +89,7 @@ export const DatasetMoveSamplesModal = ({
     // Clear the data in My Dataset if the format has changed
     if (isFormatChanged) await clearDataset()
 
+    setLoading(true)
     const updatedDataset = !isMyDataset
       ? await createDataset({ format: dataset.format, data: updatedData })
       : await updateDataset({
@@ -93,6 +97,7 @@ export const DatasetMoveSamplesModal = ({
           format: dataset.format,
           data: updatedData
         })
+    setLoading(false)
 
     // API failure while updating the dataset
     if (!updatedDataset) {
@@ -108,6 +113,10 @@ export const DatasetMoveSamplesModal = ({
     )
     setShowing(false)
   }
+
+  useEffect(() => {
+    setLoading(false)
+  }, [showing])
 
   return (
     <>
@@ -164,6 +173,7 @@ export const DatasetMoveSamplesModal = ({
               aria-label="Move Samples"
               label="Move Samples"
               onClick={handleMoveToMyDataset}
+              loading={loading}
             />
           </Box>
         </ModalBody>
