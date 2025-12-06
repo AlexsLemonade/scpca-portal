@@ -169,7 +169,7 @@ resource "aws_iam_role_policy_attachment" "batch_ses_send_policy" {
 }
 
 resource "aws_iam_role" "batch_instance" {
-  name = "scpca-portal-batch-instance-${var.user}-${var.stage}"
+  name               = "scpca-portal-batch-instance-${var.user}-${var.stage}"
   assume_role_policy = <<EOF
 {
   "Version": "2008-10-17",
@@ -193,6 +193,6 @@ resource "aws_iam_instance_profile" "batch_instance_profile" {
 }
 
 resource "aws_iam_role_policy_attachment" "batch_instance_ecs" {
-  role = aws_iam_role.batch_instance.name
+  role       = aws_iam_role.batch_instance.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
