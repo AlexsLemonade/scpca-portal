@@ -47,4 +47,3 @@ removed {
     destroy = false
   }
 }
-
