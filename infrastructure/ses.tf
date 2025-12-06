@@ -6,7 +6,7 @@ resource "aws_ses_domain_identity" "scpca_portal" {
   domain = local.ses_domain
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = var.stage != "dev"
   }
 }
 
@@ -14,7 +14,7 @@ resource "aws_ses_domain_dkim" "scpca_portal" {
   domain = aws_ses_domain_identity.scpca_portal.domain
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = var.stage != "dev"
   }
 }
 
@@ -24,6 +24,6 @@ resource "aws_ses_domain_mail_from" "scpca_portal" {
   behavior_on_mx_failure = "UseDefaultValue"
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = var.stage != "dev"
   }
 }
