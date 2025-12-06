@@ -5,11 +5,11 @@ data "aws_caller_identity" "current" {}
 
 variable "default_tags" {
   default = {
-    team = "engineering"
+    team    = "engineering"
     project = "ScPCA Portal"
   }
   description = "Default resource tags"
-  type = map(string)
+  type        = map(string)
 }
 
 variable "region" {
@@ -22,6 +22,11 @@ variable "user" {
 
 variable "stage" {
   default = "dev"
+
+  validation {
+    condition     = contains(["prod", "staging", "dev"], var.stage)
+    error_message = "The environment must be 'prod', 'staging', or 'dev'."
+  }
 }
 
 variable "dockerhub_account" {
@@ -68,10 +73,6 @@ variable "ssh_public_key" {
   default = "MISSING_VALUE"
 }
 
-variable "ses_domain" {
-  default = "staging.scpca.alexslemonade.org"
-}
-
 variable "slack_ccdl_test_channel_email" {
   default = "testing@example.com"
 }
@@ -86,18 +87,30 @@ variable "cellbrowser_security_token" {
 
 variable "cellbrowser_uploaders" {
   default = []
-  type = list(string)
+  type    = list(string)
+}
+
+locals {
+
+  stage_domains = {
+    prod    = "scpca.alexslemonade.org"
+    staging = "staging.scpca.alexslemonade.org"
+    dev     = "dev.scpca.alexslemonade.org"
+  }
+
+  ses_domain = local.stage_domains[var.stage]
+
 }
 
 output "environment_variables" {
   value = [
-    {name = "DATABASE_NAME"
-      value = aws_db_instance.postgres_db.db_name},
-    {name = "DATABASE_HOST"
-      value = aws_db_instance.postgres_db.address},
-    {name = "DATABASE_USER"
-      value = aws_db_instance.postgres_db.username},
-    {name = "DATABASE_PORT"
-      value = aws_db_instance.postgres_db.port}
+    { name = "DATABASE_NAME"
+    value = aws_db_instance.postgres_db.db_name },
+    { name = "DATABASE_HOST"
+    value = aws_db_instance.postgres_db.address },
+    { name = "DATABASE_USER"
+    value = aws_db_instance.postgres_db.username },
+    { name = "DATABASE_PORT"
+    value = aws_db_instance.postgres_db.port }
   ]
 }
