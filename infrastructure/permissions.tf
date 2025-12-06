@@ -171,6 +171,7 @@ resource "aws_iam_policy" "batch" {
       "Effect": "Allow",
       "Action": [
         "batch:SubmitJob",
+        "batch:TerminateJob",
         "batch:DescribeJobs"
       ],
       "Resource": "*"

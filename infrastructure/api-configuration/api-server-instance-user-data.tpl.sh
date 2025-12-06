@@ -22,7 +22,7 @@ cp nginx.conf /etc/nginx/nginx.conf
 service nginx restart
 
 # Initialize crontab
-mkdir /var/log/cron
+sudo mkdir /var/log/cron
 cat <<"EOF" >crontab.txt
 ${crontab_file}
 EOF
