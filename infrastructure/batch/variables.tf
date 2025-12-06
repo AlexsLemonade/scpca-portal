@@ -15,7 +15,7 @@ variable "postgres_db" { default = "" }
 variable "scpca_portal_db_security_group" { default = "" }
 
 # ses
-variable "ses_domain" { default = "" }
+variable "aws_ses_domain_identity_scpca_portal" { default = "" }
 
 # general configuration
 variable "aws_caller_identity_current" { default = "" }
