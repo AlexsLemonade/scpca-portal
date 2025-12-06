@@ -156,7 +156,7 @@ resource "aws_iam_policy" "batch_ses_send_email" {
         "ses:SendEmail",
         "ses:SendRawEmail"
       ],
-      "Resource": "arn:aws:ses:${var.region}:${var.aws_caller_identity_current.account_id}:identity/${var.ses_domain}"
+      "Resource": "${var.aws_ses_domain_identity_scpca_portal.arn}"
     }
   ]
 }
