@@ -1,81 +1,66 @@
-import React, { useState } from 'react'
+import dynamic from 'next/dynamic'
+import React, { useEffect, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { useResponsive } from 'hooks/useResponsive'
-import { Button } from 'components/Button'
-import { CopyLinkButton } from 'components/CopyLinkButton'
 import { HelpLink } from 'components/HelpLink'
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
+import { DatasetFileItems } from 'components/DatasetFileItems'
 import { config } from 'config'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 import { formatBytes } from 'helpers/formatBytes'
-import { getReadable, getReadableFiles } from 'helpers/getReadable'
 
-const Li = ({ children }) => (
-  <Box as="li" style={{ display: 'list-item' }}>
-    {children}
-  </Box>
-)
+const DatasetCopyLinkButton = dynamic(() => import('./DatasetCopyLinkButton'), {
+  ssr: false
+})
 
-// NOTE: This component temporaily accepts 'dataset' but it's subject to change
-// Currently mock data is used via Storybook for development
-export const DatasetPortalWideDownloadCard = ({ dataset }) => {
+export const DatasetPortalWideDownloadCard = ({
+  title,
+  datasets = [],
+  metadataOnly = false
+}) => {
   const { responsive } = useResponsive()
 
-  const {
-    format,
-    modality,
-    includes_merged: includeMerged,
-    metadata_only: metadataOnly
-  } = dataset
+  const showDownloadSize = !metadataOnly
+  const showCopyLinkButton = !metadataOnly
 
-  const fileItems = [
-    modality,
-    ...['has_cite_seq_data', 'has_bulk_rna_seq'].filter((key) => dataset[key])
-  ].map((key) => getReadableFiles(key))
+  const [includesMerged, setIncludesMerged] = useState(false)
+  const [dataset, setDataset] = useState(
+    datasets?.find((d) => !d.includes_files_merged)
+  )
 
-  const projectsTitlePrefix =
-    modality === 'SPATIAL' ? getReadable(modality) : getReadable(format)
-  const cardTitle = `${
-    metadataOnly ? 'Sample Metadata' : projectsTitlePrefix
-  } Download`
-
-  const [mergeObject, setMergeObject] = useState(false)
-  const handleChangeMergedObject = () => setMergeObject(!mergeObject)
+  useEffect(() => {
+    setDataset(
+      datasets?.find((d) => {
+        if (includesMerged) {
+          return d.includes_files_merged
+        }
+        return !d.includes_files_merged
+      })
+    )
+  }, [datasets, includesMerged])
 
   return (
-    <Box elevation="medium" pad="24px" width="full">
+    <Box elevation="medium" background="white" pad="24px" width="full">
       <Box
         border={{ side: 'bottom' }}
         margin={{ bottom: '24px' }}
         pad={{ bottom: 'medium' }}
       >
         <Text color="brand" size="large" weight="bold">
-          {cardTitle}
+          {title}
         </Text>
       </Box>
       <Box justify="between" height="100%">
         <>
-          <Box
-            as="ul"
-            margin={{ top: '0', bottom: 'large' }}
-            pad={{ left: 'large' }}
-            style={{ listStyle: 'disc' }}
-          >
-            {metadataOnly ? (
-              <Li>Sample metadata from all projects</Li>
-            ) : (
-              <>
-                {fileItems.map((item) => (
-                  <Li key={item}>{item}</Li>
-                ))}
-                <Li>Project and Sample Metadata</Li>
-              </>
-            )}
-          </Box>
-          {includeMerged && (
+          <DatasetFileItems dataset={dataset} />
+          {datasets?.length > 1 && (
             <Box direction="row" margin={{ bottom: '24px' }}>
               <CheckBox
                 label="Merge samples into one object per project"
-                checked={mergeObject}
-                onChange={handleChangeMergedObject}
+                checked={includesMerged}
+                onChange={({ target: { checked } }) =>
+                  setIncludesMerged(checked)
+                }
               />
               <HelpLink link={config.links.when_downloading_merged_objects} />
             </Box>
@@ -87,9 +72,12 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
           gap="large"
         >
           <Box direction="column">
-            {!metadataOnly && (
+            {showDownloadSize && (
               <Text margin={{ bottom: 'small' }} weight="bold">
-                Size: {formatBytes(dataset.size_in_bytes)}
+                Size:{' '}
+                {dataset?.computed_file
+                  ? formatBytes(dataset?.computed_file?.size_in_bytes)
+                  : 'N/A'}
               </Text>
             )}
             <Box
@@ -97,8 +85,12 @@ export const DatasetPortalWideDownloadCard = ({ dataset }) => {
               gap="24px"
               margin={{ bottom: 'small' }}
             >
-              <Button label="Download" aria-label="Download" primary />
-              {!metadataOnly && <CopyLinkButton computedFile={{}} />}
+              <CCDLDatasetDownloadModalContextProvider datasets={[dataset]}>
+                <CCDLDatasetDownloadModal label="Download" />
+              </CCDLDatasetDownloadModalContextProvider>
+              {showCopyLinkButton && (
+                <DatasetCopyLinkButton dataset={dataset} />
+              )}
             </Box>
           </Box>
         </Box>

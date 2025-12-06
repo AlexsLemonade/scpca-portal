@@ -11,14 +11,6 @@ export const ScPCAPortalContextProvider = ({ children }) => {
   const [browseFilters, setBrowseFilters] = useState({})
   const [email, setEmail] = useLocalStorage('scpca-user-email')
   const [token, setToken] = useLocalStorage('scpca-api-token', false)
-  const [userModality, setUserModality] = useLocalStorage(
-    'scpca-user-modality',
-    'SINGLE_CELL'
-  )
-  const [userFormat, setUserFormat] = useLocalStorage(
-    'scpca-user-format',
-    'SINGLE_CELL_EXPERIMENT'
-  )
   const [acceptsTerms, setAcceptsTerms] = useLocalStorage(
     'scpca-api-terms',
     false
@@ -83,11 +75,7 @@ export const ScPCAPortalContextProvider = ({ children }) => {
         browseFilters,
         setBrowseFilters,
         emailListForm,
-        surveyListForm,
-        userModality,
-        setUserModality,
-        userFormat,
-        setUserFormat
+        surveyListForm
       }}
     >
       {children}

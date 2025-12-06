@@ -4,7 +4,7 @@ import { useResponsive } from 'hooks/useResponsive'
 import { DonateButton } from 'components/DonateButton'
 import { Link } from 'components/Link'
 import Logo from 'components/Logo'
-import { PortalMetadataDownload } from 'components/PortalMetadataDownload'
+import { MyDatasetButton } from 'components/MyDatasetButton'
 import { ResponsiveSheet } from 'components/ResponsiveSheet'
 import { Menu } from 'grommet-icons'
 import { config } from 'config'
@@ -53,7 +53,12 @@ export const Header = ({ className, margin, donate = false }) => {
               <Link color={linksColor} href="/visualize" label="Visualize" />
               <Link color={linksColor} href={config.links.help} label="Docs" />
               <Link color={linksColor} href="/contribute" label="Contribute" />
-              <PortalMetadataDownload />
+              <Link
+                color={linksColor}
+                href="/portal-wide"
+                label="Portal-wide Downloads"
+              />
+              <MyDatasetButton />
             </Nav>
           </ResponsiveSheet>
           {size !== 'small' && <Nav>{donate && <DonateButton yellow />}</Nav>}

@@ -24,14 +24,14 @@ const Notification = ({ notification }) => {
     <Box
       background={stateMap[type].background}
       direction="row"
-      pad={{ vertical: 'medium' }}
+      pad={{ vertical: 'small' }}
       width="full"
     >
       <Box align="center" justify="center" width="inherit">
         <Box direction="row" align="center" justify="center">
           <Icon color="white" name={stateMap[type].iconName} size="24px" />
           <Box margin={{ left: 'medium' }}>
-            <Text color="white" size="24px">
+            <Text color="white" size="21px">
               {message}
             </Text>
           </Box>

@@ -1,11 +1,12 @@
 import React from 'react'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
+import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useResponsive } from 'hooks/useResponsive'
 import DownloadProcessing from '../images/download-processing.svg'
 
 export const DatasetHeroProcessing = () => {
+  const { email } = useScPCAPortal()
   const { responsive } = useResponsive()
-  const email = 'john.doe@example.com'
 
   return (
     <Grid
@@ -33,7 +34,7 @@ export const DatasetHeroProcessing = () => {
         <Paragraph size="21px">
           We’ll email you at{' '}
           <Text weight="bold" size="inherit">
-            {email}
+            {email || 'john.doe@example.com'}
           </Text>{' '}
           when it’s ready for download.
         </Paragraph>

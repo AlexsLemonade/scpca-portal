@@ -1,28 +1,33 @@
 import React from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
-import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
 import { HelpLink } from 'components/HelpLink'
 import { InfoText } from 'components/InfoText'
 import { Link } from 'components/Link'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 
-export const CheckBoxMergedObjects = () => {
-  const { includesMerged, setIncludesMerged, isMergedObjectsAvailable } =
-    useDownloadOptionsContext()
+export const CCDLDatasetCheckBoxMergedObjects = () => {
+  const {
+    includesMerged,
+    setIncludesMerged,
+    isMergedObjectsAvailable,
+    modality
+  } = useCCDLDatasetDownloadModalContext()
   const handleChange = () => setIncludesMerged(!includesMerged)
+  const isDisabled = !isMergedObjectsAvailable || modality === 'SPATIAL'
 
   return (
     <>
       <Box direction="row">
         <CheckBox
           checked={includesMerged}
-          disabled={!isMergedObjectsAvailable}
+          disabled={isDisabled}
           label="Merge samples into 1 object"
           onChange={handleChange}
         />
         <HelpLink link={config.links.when_downloading_merged_objects} />
       </Box>
-      {!isMergedObjectsAvailable && (
+      {isDisabled && (
         <InfoText>
           <Text>
             Merged objects are not available for every project.{' '}
@@ -37,4 +42,4 @@ export const CheckBoxMergedObjects = () => {
   )
 }
 
-export default CheckBoxMergedObjects
+export default CCDLDatasetCheckBoxMergedObjects

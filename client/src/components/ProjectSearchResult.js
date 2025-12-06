@@ -1,22 +1,24 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
-import { useProjectMetadataOnly } from 'hooks/useProjectMetadataOnly'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
-import { DownloadModal } from 'components/DownloadModal'
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
-import { formatCounts } from 'helpers/formatCounts'
-import { sortArrayString } from 'helpers/sortArrayString'
+import { formatDiagnosisCounts } from 'helpers/formatCounts'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 
-export const ProjectSearchResult = ({ project }) => {
+export const ProjectSearchResult = ({ project, ccdlDatasets }) => {
   const { responsive } = useResponsive()
-  const { isMetadataOnlyAvailable, metadataComputedFile } =
-    useProjectMetadataOnly(project)
+
+  const ccdlDataDatasets = ccdlDatasets.filter((d) => d.format !== 'METADATA')
+  const ccdlMetadataDatasets = ccdlDatasets.filter(
+    (d) => d.format === 'METADATA'
+  )
 
   const searchDetails = [
     {
@@ -24,7 +26,7 @@ export const ProjectSearchResult = ({ project }) => {
       value:
         Object.keys(project.diagnoses_counts).length > 0 ? (
           <Text>
-            {sortArrayString(formatCounts(project.diagnoses_counts)).join(', ')}
+            {formatDiagnosisCounts(project.diagnoses_counts).join(', ')}
           </Text>
         ) : (
           ''
@@ -67,7 +69,13 @@ export const ProjectSearchResult = ({ project }) => {
   ]
   return (
     <Box elevation="medium" pad="medium" width="full">
-      <ProjectHeader linked project={project} />
+      <CCDLDatasetDownloadModalContextProvider
+        project={project}
+        datasets={ccdlDataDatasets}
+      >
+        <ProjectHeader linked project={project} />
+      </CCDLDatasetDownloadModalContextProvider>
+
       <Box border={{ side: 'top' }} margin={{ top: 'medium' }}>
         {searchDetails.map((d) => (
           <Box key={d.title} pad={{ top: 'medium' }}>
@@ -91,13 +99,15 @@ export const ProjectSearchResult = ({ project }) => {
         <Link href={`/projects/${project.scpca_id}#samples`}>
           <Button label="View Samples" aria-label="View Samples" />
         </Link>
-        <DownloadModal
-          label="Download Sample Metadata"
-          icon={<DownloadIcon color="brand" />}
-          resource={project}
-          publicComputedFile={metadataComputedFile}
-          disabled={!isMetadataOnlyAvailable}
-        />
+        <CCDLDatasetDownloadModalContextProvider
+          project={project}
+          datasets={ccdlMetadataDatasets}
+        >
+          <CCDLDatasetDownloadModal
+            label="Download Sample Metadata"
+            icon={<DownloadIcon color="brand" />}
+          />
+        </CCDLDatasetDownloadModalContextProvider>
       </Box>
     </Box>
   )

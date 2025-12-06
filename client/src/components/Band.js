@@ -92,3 +92,22 @@ export const FooterBand = styled(Box)`
       linear-gradient(0deg, #fdfdfd 0%, #edf7fd 100%);
   `}
 `
+
+export const HeroBandPortalWide = styled(Box)`
+  ${({ theme }) => css`
+    background-image: linear-gradient(
+        -3deg,
+        transparent 42%,
+        ${theme.global.colors['alexs-light-blue']} 42.5%,
+        ${theme.global.colors['alexs-light-blue']} 72%,
+        transparent 72.5%
+      ),
+      linear-gradient(
+        3deg,
+        transparent 42%,
+        ${theme.global.colors['alexs-lemonade-tint-75']} 42.5%,
+        ${theme.global.colors['alexs-lemonade-tint-75']} 72%,
+        transparent 72.5%
+      );
+  `}
+`
