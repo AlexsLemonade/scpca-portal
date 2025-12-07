@@ -701,7 +701,7 @@ class TestDataset(TestCase):
             {"samples_count": 1, "name": "Single-cell samples with CITE-seq", "format": ".rds"},
             # Single-cell multiplexed should be included here
             {"samples_count": 2, "name": "Single-nuclei multiplexed samples", "format": ".rds"},
-            {"samples_count": 1, "name": "Spatial samples", "format": "Spatial format"},
+            {"samples_count": 1, "name": "Spatial samples", "format": "Spaceranger"},
             {"samples_count": 1, "name": "Bulk RNA-seq samples", "format": ".tsv"},
         ]
 
@@ -794,10 +794,53 @@ class TestDataset(TestCase):
 
     def test_get_project_modality_counts(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)
+        # Dataset requesting single cell and spatial data containing a project with both
         dataset.data = {
             "SCPCP999990": {
                 "includes_bulk": True,
-                Modalities.SINGLE_CELL: "MERGED",
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: ["SCPCS999991"],
+            },
+        }
+        expected_counts = {
+            "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 1},
+        }
+        self.assertEqual(dataset.get_project_modality_counts(), expected_counts)
+
+        # Dataset requesting only single cell data containing a project that also has spatial
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            },
+        }
+        expected_counts = {
+            "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 0},
+        }
+        self.assertEqual(dataset.get_project_modality_counts(), expected_counts)
+
+        # Dataset requesting only single cell data containing a project without spatial
+        dataset.data = {
+            "SCPCP999991": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: [
+                    "SCPCS999992",
+                    "SCPCS999993",
+                    "SCPCS999995",
+                ],
+                Modalities.SPATIAL: [],
+            },
+        }
+        expected_counts = {"SCPCP999991": {Modalities.SINGLE_CELL: 3}}  # No spatial kv pair
+        self.assertEqual(dataset.get_project_modality_counts(), expected_counts)
+
+        # Dataset requesting single cell and spatial data containing some projects that
+        # have both single cell and spatial and others that just have single cell
+        dataset.data = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
                 Modalities.SPATIAL: ["SCPCS999991"],
             },
             "SCPCP999991": {
@@ -818,17 +861,14 @@ class TestDataset(TestCase):
 
         expected_counts = {
             "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 1},
-            "SCPCP999991": {Modalities.SINGLE_CELL: 3, Modalities.SPATIAL: 0},
-            "SCPCP999992": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 0},
+            "SCPCP999991": {
+                Modalities.SINGLE_CELL: 3,
+            },
+            "SCPCP999992": {
+                Modalities.SINGLE_CELL: 2,
+            },
         }
-
-        actual_counts = dataset.get_project_modality_counts()
-
-        for project_id in actual_counts.keys():
-            for modality in actual_counts[project_id].keys():
-                self.assertEqual(
-                    actual_counts[project_id][modality], expected_counts[project_id][modality]
-                )
+        self.assertEqual(dataset.get_project_modality_counts(), expected_counts)
 
     def test_modality_count_mismatch_projects(self):
         dataset = Dataset(format=DatasetFormats.SINGLE_CELL_EXPERIMENT)

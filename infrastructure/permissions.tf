@@ -198,7 +198,7 @@ resource "aws_iam_policy" "api_ses_send_email" {
         "ses:SendEmail",
         "ses:SendRawEmail"
       ],
-      "Resource": "arn:aws:ses:${var.region}:${data.aws_caller_identity.current.account_id}:identity/${var.ses_domain}"
+      "Resource": "${data.aws_ses_domain_identity.scpca_portal.arn}"
     }
   ]
 }
