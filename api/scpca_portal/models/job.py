@@ -442,6 +442,7 @@ class Job(TimestampedModel):
 
     @classmethod
     def submit_ccdl_datasets(cls, ccdl_datasets) -> tuple[List[Self], List[Self]]:
+        """Gets and submits jobs for all passed ccdl datasets."""
         submitted_jobs = []
         failed_jobs = []
 
@@ -451,10 +452,9 @@ class Job(TimestampedModel):
                 job.submit()
                 submitted_jobs.append(job)
             except (DatasetError, JobError):
-                failed_jobs.append(dataset)
-
                 logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
                 job.increment_attempt_or_fail()
+                failed_jobs.append(dataset)
 
         return submitted_jobs, failed_jobs
 
