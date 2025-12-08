@@ -4,7 +4,6 @@ from argparse import BooleanOptionalAction
 from django.core.management.base import BaseCommand
 from django.template.defaultfilters import pluralize
 
-from scpca_portal.exceptions import DatasetError, JobError
 from scpca_portal.models import Dataset, Job
 
 logger = logging.getLogger()
@@ -44,17 +43,7 @@ class Command(BaseCommand):
             updated_count = len(updated_datasets)
             logger.info(f"{updated_count} existing dataset{pluralize(updated_count)} updated.")
 
-        submitted_jobs = []
-        dispatchable_datasets = created_datasets + updated_datasets
-        for dataset in dispatchable_datasets:
-            job = Job.get_dataset_job(dataset)
-            try:
-                job.submit()
-                submitted_jobs.append(job)
-            except (DatasetError, JobError):
-                logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
-                job.increment_attempt_or_fail()
-
+        submitted_jobs, _ = Job.submit_ccdl_datasets(created_datasets + updated_datasets)
         if submitted_jobs:
             submitted_count = len(submitted_jobs)
             logger.info(
