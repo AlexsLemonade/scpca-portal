@@ -66,7 +66,7 @@ resource "aws_instance" "api_server_1" {
           aws_ses_domain                        = local.ses_domain
           sentry_dsn                            = var.sentry_dsn
           sentry_env                            = var.sentry_env
-          slack_ccdl_test_channel_email         = var.slack_ccdl_test_channel_email
+          slack_notifications_email             = var.slack_notifications_email
           enable_feature_preview                = var.enable_feature_preview
       })
       start_api_with_migrations = templatefile(
