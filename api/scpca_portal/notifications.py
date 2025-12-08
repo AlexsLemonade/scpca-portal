@@ -9,62 +9,75 @@ from scpca_portal.models import Job
 logger = get_and_configure_logger(__name__)
 
 TEMPLATE_ROOT = settings.TEMPLATE_PATH / "emails"
-TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "default.html"
+
+SHARED_TEMPLATE_CONTEXT = {
+    "domain": settings.DOMAIN,
+    "contact_email": settings.EMAIL_CONTACT_ADDRESS,
+}
 
 
-def send_project_files_completed_email(
-    project_id: str,
+def send_email(
+    recipient: str,
+    subject: str,
+    body_text: str,
+    body_html: str,
     sender: str = settings.EMAIL_SENDER,
-    recipient: str = settings.TEST_EMAIL_RECIPIENT,
-) -> None:
-    SENDER = sender
-    RECIPIENT = recipient
-    CHARSET = "UTF-8"
-
-    SUBJECT = f"All files generated for {project_id}"
-    BODY_TEXT = (
-        "Hot off the presses:\n\n"
-        f"All files have been generated for project {project_id}"
-        + "\n\nLove!,\nThe ScPCA Portal Team"
-    )
-    BODY_HTML = render_to_string(TEMPLATE_FILE_PATH, context={"project_id": project_id})
-
+):
     ses = boto3.client("ses", region_name=settings.AWS_REGION)
+
+    bcc_addressses = [settings.SLACK_NOTIFICATIONS_EMAIL]
+    # dont double send emails to slack
+    if settings.SLACK_NOTIFICATIONS_EMAIL is recipient:
+        bcc_addressses = []
+
     ses.send_email(
-        Source=SENDER,
-        Destination={"ToAddresses": [RECIPIENT]},
+        Source=sender,
+        Destination={"ToAddresses": [recipient], "BccAddresses": bcc_addressses},
         Message={
-            "Subject": {"Data": SUBJECT, "Charset": CHARSET},
+            "Subject": {"Data": subject, "Charset": settings.EMAIL_CHARSET},
             "Body": {
-                "Text": {"Data": BODY_TEXT, "Charset": CHARSET},
-                "Html": {"Data": BODY_HTML, "Charset": CHARSET},
+                "Text": {"Data": body_text, "Charset": settings.EMAIL_CHARSET},
+                "Html": {"Data": body_html, "Charset": settings.EMAIL_CHARSET},
             },
         },
     )
 
 
-def send_dataset_file_completed_email(job: Job) -> None:
-    SENDER = settings.EMAIL_SENDER
-    RECIPIENT = job.dataset.email
-    CHARSET = "UTF-8"
+def send_dataset_job_success_email(job: Job) -> None:
+    subject = "Your ScPCA dataset is ready!"
 
-    SUBJECT = f"All files generated for {job.dataset.id}"
-    BODY_TEXT = (
-        "Hot off the presses:\n\n"
-        f"All files have been generated for project {job.dataset.id}"
-        + "\n\nLove!,\nThe ScPCA Portal Team"
+    text_template = TEMPLATE_ROOT / "dataset_job_success.txt"
+    body_text = render_to_string(
+        text_template, context={"dataset": job.dataset, **SHARED_TEMPLATE_CONTEXT}
     )
-    BODY_HTML = render_to_string(TEMPLATE_FILE_PATH, context={"dataset_id": job.dataset.id})
 
-    ses = boto3.client("ses", region_name=settings.AWS_REGION)
-    ses.send_email(
-        Source=SENDER,
-        Destination={"ToAddresses": [RECIPIENT]},
-        Message={
-            "Subject": {"Data": SUBJECT, "Charset": CHARSET},
-            "Body": {
-                "Text": {"Data": BODY_TEXT, "Charset": CHARSET},
-                "Html": {"Data": BODY_HTML, "Charset": CHARSET},
-            },
-        },
+    html_template = TEMPLATE_ROOT / "dataset_job_success.html"
+    body_html = render_to_string(
+        html_template, context={"dataset": job.dataset, **SHARED_TEMPLATE_CONTEXT}
     )
+
+    return send_email(job.dataset.email, subject, body_text, body_html)
+
+
+def send_dataset_job_error_email(job: Job) -> None:
+    subject = "We were unable to process your dataset"
+
+    text_template = TEMPLATE_ROOT / "dataset_job_error.txt"
+    body_text = render_to_string(
+        text_template, context={"dataset": job.dataset, **SHARED_TEMPLATE_CONTEXT}
+    )
+
+    html_template = TEMPLATE_ROOT / "dataset_job_error.html"
+    body_html = render_to_string(
+        html_template, context={"dataset": job.dataset, **SHARED_TEMPLATE_CONTEXT}
+    )
+
+    return send_email(job.dataset.email, subject, body_text, body_html)
+
+
+# TODO: Remove this is just for computed files
+def send_project_files_completed_email(project_id: str) -> None:
+    subject = f"All files generated for {project_id}"
+    body_text = f"All files have been generated for project {project_id}"
+
+    return send_email(settings.SLACK_NOTIFICATIONS_EMAIL, subject, body_text, body_text)
