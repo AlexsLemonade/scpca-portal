@@ -62,7 +62,8 @@ class DatasetJobProcessor(JobProcessorABC):
     def handle_missing_libraries(self, step: str, e: Exception):
         self.job.apply_state(JobStates.FAILED, reason="Dataset contains missing libraries.")
         self.job.save()
-        # TODO: Add failure notification
+        if self.job.dataset.email:
+            notifications.send_dataset_job_error_email(self.job)
 
     def upload_dataset(self):
         s3.upload_output_file(self.computed_file.s3_key, self.computed_file.s3_bucket)
@@ -73,5 +74,3 @@ class DatasetJobProcessor(JobProcessorABC):
     def send_notification(self):
         if self.job.dataset.email:
             notifications.send_dataset_file_completed_email(self.job)
-
-    # End Steps
