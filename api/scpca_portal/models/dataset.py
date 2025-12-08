@@ -235,6 +235,32 @@ class Dataset(TimestampedModel):
 
         return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
 
+    @classmethod
+    def create_or_update_ccdl_datasets(cls, *, ignore_hash: bool = False) -> List[Self]:
+        """
+        Iterates over all possible project and portal wide ccdl datasets,
+        and creates or updates and susequently returns the valid ones.
+        """
+        ccdl_project_ids = list(Project.objects.values_list("scpca_id", flat=True))
+        portal_wide_ccdl_project_id = None
+        dataset_ccdl_project_ids = [*ccdl_project_ids, portal_wide_ccdl_project_id]
+
+        datasets = []
+        for ccdl_name in ccdl_datasets.TYPES:
+            for ccdl_project_id in dataset_ccdl_project_ids:
+                dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, ccdl_project_id)
+                if found:
+                    dataset.data = dataset.get_ccdl_data()
+
+                if not found and not dataset.is_valid_ccdl_dataset:
+                    continue
+                if found and dataset.is_hash_unchanged and not ignore_hash:
+                    continue
+                dataset.save()
+                datasets.append(dataset)
+
+        return datasets
+
     def apply_job_state(self, job) -> None:
         """
         Sets the dataset state (flag, reason, timestamps) based on the given job.
