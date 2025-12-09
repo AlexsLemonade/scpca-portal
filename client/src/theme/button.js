@@ -20,8 +20,9 @@ export default {
     }
   },
   secondary: {
+    background: { color: 'white' },
     border: { color: 'brand', ...defaultBorder },
-    color: 'text',
+    color: 'brand',
     padding: {
       horizontal: '24px',
       vertical: '7px' // 8px - 1px for border

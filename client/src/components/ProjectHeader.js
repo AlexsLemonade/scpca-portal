@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useResponsive } from 'hooks/useResponsive'
+import { api } from 'api'
 import { config } from 'config'
 import { Box, Grid, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
@@ -16,10 +17,13 @@ import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 
 export const ProjectHeader = ({ project, linked = false }) => {
-  const { myDataset, getHasProject } = useMyDataset()
+  const { myDataset, getHasProject, getProjectState } = useMyDataset()
   const { responsive } = useResponsive()
 
-  const [isProjectInMyDataset, setIsProjectInMyDataset] = useState()
+  // For the Add to Dataset button condition
+  const [samples, setSamples] = useState(project.samples)
+  const [isProjectInMyDataset, setIsProjectInMyDataset] = useState(false)
+  const [projectState, setProjectState] = useState({})
 
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
   const unavailableSampleCountText =
@@ -32,6 +36,29 @@ export const ProjectHeader = ({ project, linked = false }) => {
   useEffect(() => {
     setIsProjectInMyDataset(getHasProject(project))
   }, [myDataset])
+
+  // Fetch sample objects on the Browse page only if the project is in My Dataset
+  useEffect(() => {
+    if (!isProjectInMyDataset) return
+    // We get either sample IDs (on Browse) or sample objects (on View Project)
+    const isBrowse = typeof project.samples?.[0] !== 'object'
+    const asyncFetch = async () => {
+      const samplesRequest = await api.samples.list({
+        project__scpca_id: project.scpca_id,
+        limit: 1000
+      })
+      if (samplesRequest.isOk) {
+        setSamples(samplesRequest.response.results)
+      }
+    }
+
+    if (isBrowse) asyncFetch()
+  }, [isProjectInMyDataset])
+
+  useEffect(() => {
+    if (!isProjectInMyDataset || !samples) return
+    setProjectState(getProjectState(project, samples))
+  }, [myDataset, isProjectInMyDataset, samples])
 
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
@@ -62,7 +89,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none') }}
         >
           <Box align="center" gap="small">
-            {isProjectInMyDataset ? (
+            {projectState.all ? (
               <Box
                 direction="row"
                 align="center"
@@ -73,8 +100,12 @@ export const ProjectHeader = ({ project, linked = false }) => {
                 <Text color="success">Added to Dataset</Text>
               </Box>
             ) : (
-              <DatasetAddProjectModal project={project} />
+              <DatasetAddProjectModal
+                project={project}
+                projectState={projectState}
+              />
             )}
+
             <CCDLDatasetDownloadModal label="Download Now" secondary />
             {project.has_bulk_rna_seq && (
               <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />

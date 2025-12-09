@@ -14,7 +14,7 @@ import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 
 export const DatasetAddProjectModal = ({
   project,
-  label = 'Add to Dataset',
+  projectState,
   title = 'Add Project to Dataset',
   disabled = false
 }) => {
@@ -52,6 +52,7 @@ export const DatasetAddProjectModal = ({
 
   const [sampleDifference, setSampleDifference] = useState([])
 
+  const btnLabel = projectState.some ? 'Add Remaning' : 'Add to Dataset'
   const canClickAddProject = modalities.length > 0
 
   const handleAddProject = () => {
@@ -150,10 +151,11 @@ export const DatasetAddProjectModal = ({
   return (
     <>
       <Button
-        aria-label={label}
+        aria-label={btnLabel}
         flex="grow"
-        primary
-        label={label}
+        primary={!projectState.some}
+        secondary={projectState.some}
+        label={btnLabel}
         disabled={disabled}
         onClick={() => setShowing(true)}
       />
@@ -197,8 +199,8 @@ export const DatasetAddProjectModal = ({
                 >
                   <Button
                     primary
-                    aria-label={label}
-                    label={label}
+                    aria-label={btnLabel}
+                    label={btnLabel}
                     disabled={!canClickAddProject}
                     onClick={handleAddProject}
                   />
