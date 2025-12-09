@@ -43,6 +43,8 @@ class DatasetJobProcessor(JobProcessorABC):
             notifications.send_dataset_job_error_email(self.job)
 
     def on_run_done(self):
+        self.job.save()
+        self.job.dataset.save()
         logger.info("Job completed.")
 
     # Steps
