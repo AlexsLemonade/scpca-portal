@@ -10,6 +10,7 @@ variable "region" { default = "" }
 variable "sentry_dsn" { default = "" }
 variable "scpca_portal_bucket" { default = "" }
 variable "postgres_db" { default = "" }
+variable "slack_notifications_email" { default = "" }
 
 # security
 variable "scpca_portal_db_security_group" { default = "" }
