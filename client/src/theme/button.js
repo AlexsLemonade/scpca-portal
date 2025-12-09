@@ -71,10 +71,10 @@ export default {
       > div {
         margin: 0 auto;
       }
-      background: ${theme.global.colors['alexs-deep-blue-tint-40']};
-      border: ${theme.global.colors['alexs-deep-blue-tint-40']} 1px solid;
+      background: ${theme.global.colors['black-tint-90']};
+      border: ${theme.global.colors['black-tint-90']} 1px solid;
       &:hover {
-        background: ${theme.global.colors['alexs-deep-blue-tint-40']};
+        background: ${theme.global.colors['black-tint-90']};
       }
       `
     }
