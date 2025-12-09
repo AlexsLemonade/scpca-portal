@@ -120,6 +120,11 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   // on selected options change, select dataset
   useEffect(() => {
+    if (datasets.length === 1) {
+      setSelectedDataset(datasets[0])
+      return
+    }
+
     const query = {
       ccdl_modality: modality,
       format,
