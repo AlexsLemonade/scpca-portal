@@ -24,7 +24,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.process_dataset(**kwargs)
 
-    def process_dataset(self, job_id: str, update_s3: bool, **kwargs) -> None:
+    def process_dataset(self, job_id: str, **kwargs) -> None:
         job = Job.objects.get(id=job_id)
         processor = DatasetJobProcessor(job)
         processor.run()

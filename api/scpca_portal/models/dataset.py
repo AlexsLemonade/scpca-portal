@@ -222,6 +222,10 @@ class Dataset(TimestampedModel):
         return validated_data
 
     @property
+    def pretty_estimated_size_in_bytes(self):
+        return utils.format_bytes(self.estimated_size_in_bytes)
+
+    @property
     def ccdl_type(self) -> Dict:
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 

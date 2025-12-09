@@ -262,7 +262,15 @@ def format_bytes(size_in_bytes: int) -> str:
 
     sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
     i = math.floor(math.log(size_in_bytes) / math.log(k))
-    return f"{size_in_bytes / k**i:.2f} {sizes[i]}"
+    scaled_size = size_in_bytes / k**i
+
+    float_format = f"{scaled_size:.2f}"
+    int_format = str(int(scaled_size))
+
+    if float_format == f"{int_format}.00":
+        return f"{int_format} {sizes[i]}"
+
+    return f"{float_format} {sizes[i]}"
 
 
 def hash_values(values: List[str]) -> str:

@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--sender", type=str, default=settings.EMAIL_SENDER)
-        parser.add_argument("--recipient", type=str, default=settings.TEST_EMAIL_RECIPIENT)
+        parser.add_argument("--recipient", type=str, default=settings.SLACK_NOTIFICATIONS_EMAIL)
 
     def handle(self, *args, **kwargs):
         self.send_test_email(**kwargs)
