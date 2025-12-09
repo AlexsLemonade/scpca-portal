@@ -38,6 +38,8 @@ class DatasetJobProcessor(JobProcessorABC):
     def on_uncaught_exception(self, step, e: Exception):
         logger.info("Encountered uncaught exception.")
         logger.exception(e)
+        self.job.save()
+        self.job.dataset.save()
         if self.job.dataset.email:
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
@@ -63,11 +65,13 @@ class DatasetJobProcessor(JobProcessorABC):
     def handle_locked_project(self, step: str, e: Exception):
         self.job.apply_state(JobStates.FAILED, reason="Dataset contains locked project.")
         self.job.save()
+        self.job.dataset.save()
         self.job.create_retry_job()
 
     def handle_missing_libraries(self, step: str, e: Exception):
         self.job.apply_state(JobStates.FAILED, reason="Dataset contains missing libraries.")
         self.job.save()
+        self.job.dataset.save()
         if self.job.dataset.email:
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
