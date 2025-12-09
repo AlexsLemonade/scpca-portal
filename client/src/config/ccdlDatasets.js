@@ -52,3 +52,6 @@ export const projectLinks = {
     learnMore: config.links.whatDownloadingProjectSpatial
   }
 }
+
+export const modalityOrder = ['SINGLE_CELL', 'SPATIAL']
+export const formatOrder = ['SINGLE_CELL_EXPERIMENT', 'ANN_DATA']

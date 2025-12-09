@@ -1,6 +1,6 @@
 import React from 'react'
 import { genericPortalWideDocsLink } from 'config/ccdlDatasets'
-import { Anchor, Box, Text } from 'grommet'
+import { Anchor, Box, Grid, Text } from 'grommet'
 import { api } from 'api'
 import { HeroBandPortalWide } from 'components/Band'
 import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownloadCard'
@@ -85,32 +85,26 @@ const PortalWideDownloads = ({ datasets }) => {
             into 1 object.
             <br />A separate spatial only download is also available.
           </Text>
-          <Box
-            direction="row"
-            wrap
-            gap="xlarge"
-            justify="between"
+          <Grid
+            columns={responsive(['auto'], ['1/2', '1/2'])}
+            rows={['auto', 'auto']}
+            gap="xxlarge"
             pad={{ vertical: 'medium' }}
+            width={responsive('100%', '80%')}
           >
-            <Box pad={{ bottom: 'xlarge' }}>
-              <DatasetPortalWideDownloadCard
-                title="SingleCellExperiment (R) Download"
-                datasets={singleCellExperimentDatasets}
-              />
-            </Box>
-            <Box pad={{ bottom: 'xlarge' }}>
-              <DatasetPortalWideDownloadCard
-                title="AnnData (Python) Download"
-                datasets={anndataDatasets}
-              />
-            </Box>
-            <Box pad={{ bottom: 'xlarge' }}>
-              <DatasetPortalWideDownloadCard
-                title="Spatial Download"
-                datasets={spatialDatasets}
-              />
-            </Box>
-          </Box>
+            <DatasetPortalWideDownloadCard
+              title="SingleCellExperiment (R) Download"
+              datasets={singleCellExperimentDatasets}
+            />
+            <DatasetPortalWideDownloadCard
+              title="AnnData (Python) Download"
+              datasets={anndataDatasets}
+            />
+            <DatasetPortalWideDownloadCard
+              title="Spatial Download"
+              datasets={spatialDatasets}
+            />
+          </Grid>
         </Box>
       </Box>
     </>
