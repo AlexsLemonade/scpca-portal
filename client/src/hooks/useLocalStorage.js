@@ -23,11 +23,8 @@ export const useLocalStorage = (key, initialValue) => {
     const handleStorageChange = (event) => {
       // ignore no key
       if (event.key !== key) return
-
       // TODO: Evaluate consequences of not updating state after removal.
       // if (!event.newValue) return
-
-      console.log("on change value", event.key, key)
 
       try {
         setStoredValue(event.newValue ? JSON.parse(event.newValue) : initialValue);
