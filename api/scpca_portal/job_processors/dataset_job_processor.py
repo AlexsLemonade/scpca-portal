@@ -71,7 +71,9 @@ class DatasetJobProcessor(JobProcessorABC):
             notifications.send_dataset_job_error_email(self.job)
 
     def upload_new_computed_file(self):
-        s3.upload_output_file(self.job.dataset.computed_file.s3_key, self.job.dataset.computed_file.s3_bucket)
+        s3.upload_output_file(
+            self.job.dataset.computed_file.s3_key, self.job.dataset.computed_file.s3_bucket
+        )
 
     def clean_up_local_computed_file(self):
         self.job.dataset.computed_file.clean_up_local_computed_file()

@@ -205,7 +205,7 @@ class Common(Configuration):
     # EMAILS
     DOMAIN = os.getenv("AWS_SES_DOMAIN", "scpca.alexslemonade.org")
     EMAIL_SENDER = f"no-reply@{DOMAIN}"
-    EMAIL_CONTACT_ADDRESS = "scpca@ccdatalab.org" # Always here
+    EMAIL_CONTACT_ADDRESS = "scpca@ccdatalab.org"  # Always here
     EMAIL_CHARSET = "UTF-8"
 
     # OpenAPI 3.0 - Swagger - Redoc
