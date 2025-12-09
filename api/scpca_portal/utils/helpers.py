@@ -9,7 +9,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Iterable, List, Set, Tuple
 
-
 from django.conf import settings
 
 from scpca_portal import common
@@ -272,8 +271,6 @@ def format_bytes(size_in_bytes: int) -> str:
         return f"{int_format} {sizes[i]}"
 
     return f"{float_format} {sizes[i]}"
-
-
 
 
 def hash_values(values: List[str]) -> str:
