@@ -339,29 +339,7 @@ export const useMyDataset = () => {
     // Populate SPATIAL value for the project data for addProject
     samples.filter((s) => s.has_spatial_data).map((s) => s.scpca_id)
 
-  // Return the project data state, whether 'all' or 'some' samples have been added
-  const getProjectState = (project, projectSamples) => {
-    let totalProjectSamples = 0 // All samples in the project
-    let totalAddedSamples = 0 // Samples currently in myDataset
-
-    // Calculate the total sample ID count with all modalities combined
-    allModalities.forEach((m) => {
-      const allSampleIds = projectSamples
-        .filter((s) => s[`has_${m.toLowerCase()}_data`])
-        .map((s) => s.scpca_id)
-      const addedSamplesId = getProjectDataSampleIds(project, projectSamples)[m]
-
-      totalProjectSamples += allSampleIds.length
-      totalAddedSamples += addedSamplesId.length
-    })
-
-    const all =
-      totalProjectSamples > 0 && totalProjectSamples === totalAddedSamples
-    const some = totalAddedSamples > 0 && !all
-
-    return { all, some }
-  }
-
+  // Return remaining project sample IDs of the given project
   const getRemainingProjectSampleIds = (project, projectSamples) => {
     const projectData = getDatasetProjectData(project)
 
@@ -376,24 +354,6 @@ export const useMyDataset = () => {
           .map((s) => s.scpca_id)
 
         acc[m] = allSampleIds.filter((id) => !addedSampleId.includes(id))
-      }
-
-      return acc
-    }, {})
-  }
-
-  // Return the project data sample IDs (if merged, unmerge them)
-  const getProjectDataSampleIds = (project, projectSamples) => {
-    const projectData = getDatasetProjectData(project)
-    return allModalities.reduce((acc, m) => {
-      const modalitySamples = projectData[m]
-
-      if (modalitySamples === 'MERGED') {
-        acc[m] = projectSamples
-          .filter((s) => s[`has_${m.toLowerCase()}_data`])
-          .map((s) => s.scpca_id)
-      } else {
-        acc[m] = modalitySamples
       }
 
       return acc
@@ -478,7 +438,6 @@ export const useMyDataset = () => {
     getDatasetProjectData,
     getDatasetProjectDataSamples,
     getAddedProjectDataSamples,
-    getProjectState,
     getProjectDataSamples,
     getRemainingProjectSampleIds,
     getProjectSingleCellSamples,

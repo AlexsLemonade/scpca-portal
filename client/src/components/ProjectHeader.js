@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, { useEffect, useState } from 'react'
 import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
@@ -7,6 +8,7 @@ import { useMyDataset } from 'hooks/useMyDataset'
 import { Badge } from 'components/Badge'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
+import { DatasetAddRemainingModal } from 'components/DatasetAddRemainingModal'
 import { Icon } from 'components/Icon'
 import { InfoText } from 'components/InfoText'
 import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
@@ -18,23 +20,17 @@ import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 
 export const ProjectHeader = ({ project, linked = false }) => {
-  const {
-    myDataset,
-    getHasProject,
-    getProjectState,
-    getRemainingProjectSampleIds
-  } = useMyDataset()
+  const { myDataset, getHasProject, getRemainingProjectSampleIds } =
+    useMyDataset()
   const { responsive } = useResponsive()
 
-  // For the Add to Dataset button condition
+  // For the dataset action button condition
   const [samples, setSamples] = useState(project.samples)
   const [isProjectInMyDataset, setIsProjectInMyDataset] = useState(false)
-  const [projectState, setProjectState] = useState({})
-
-  const [allAdded, setAllAdded] = useState(false)
-
-  // eslint-disable-next-line no-unused-vars
-  const [remamingSamples, setRemaningSamples] = useState({})
+  const [projectState, setProjectState] = useState({
+    all: false,
+    some: false
+  })
 
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
   const unavailableSampleCountText =
@@ -48,11 +44,18 @@ export const ProjectHeader = ({ project, linked = false }) => {
     setIsProjectInMyDataset(getHasProject(project))
   }, [myDataset])
 
+  // Set the condition of the dataset action
   useEffect(() => {
     if (!isProjectInMyDataset || !samples) return
-    const remaining = getRemainingProjectSampleIds(project, samples)
-    setRemaningSamples(remaining)
-    setAllAdded(!remaining.SINGLE_CELL.length && !remaining.SPATIAL.length)
+    // Check if any remaining project samples have yet to be added
+    const remainingSamples = getRemainingProjectSampleIds(project, samples)
+    setProjectState({
+      all:
+        !remainingSamples.SINGLE_CELL.length &&
+        !remainingSamples.SPATIAL.length,
+      some:
+        remainingSamples.SINGLE_CELL.length || remainingSamples.SPATIAL.length
+    })
   }, [isProjectInMyDataset, samples])
 
   // Fetch sample objects on the Browse page only if the project is in My Dataset
@@ -72,11 +75,6 @@ export const ProjectHeader = ({ project, linked = false }) => {
 
     if (isBrowse) asyncFetch()
   }, [isProjectInMyDataset])
-
-  useEffect(() => {
-    if (!isProjectInMyDataset || !samples) return
-    setProjectState(getProjectState(project, samples))
-  }, [myDataset, isProjectInMyDataset, samples])
 
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
@@ -112,7 +110,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none') }}
         >
           <Box align="center" gap="small">
-            {allAdded ? (
+            {projectState.all ? (
               <Box
                 direction="row"
                 align="center"
@@ -122,13 +120,11 @@ export const ProjectHeader = ({ project, linked = false }) => {
                 <Icon color="success" name="Check" />
                 <Text color="success">Added to Dataset</Text>
               </Box>
+            ) : projectState.some ? (
+              <DatasetAddRemainingModal />
             ) : (
-              <DatasetAddProjectModal
-                project={project}
-                projectState={projectState}
-              />
+              <DatasetAddProjectModal project={project} />
             )}
-
             <CCDLDatasetDownloadModal label="Download Now" secondary />
             {project.has_bulk_rna_seq && (
               <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
@@ -155,7 +151,6 @@ export const ProjectHeader = ({ project, linked = false }) => {
           />
         )}
       </Grid>
-
       {hasUnavailableSample && (
         <Box
           border={{ side: 'top' }}
@@ -167,7 +162,6 @@ export const ProjectHeader = ({ project, linked = false }) => {
           />
         </Box>
       )}
-
       {project.has_multiplexed_data && (
         <Box
           border={!hasUnavailableSample ? { side: 'top' } : ''}
