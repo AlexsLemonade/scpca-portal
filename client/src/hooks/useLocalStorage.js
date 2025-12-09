@@ -27,16 +27,18 @@ export const useLocalStorage = (key, initialValue) => {
       // if (!event.newValue) return
 
       try {
-        setStoredValue(event.newValue ? JSON.parse(event.newValue) : initialValue);
+        setStoredValue(
+          event.newValue ? JSON.parse(event.newValue) : initialValue
+        )
       } catch (error) {
-        console.error(error);
+        console.error(error)
       }
     }
 
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('storage', handleStorageChange)
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('storage', handleStorageChange)
     }
   }, [key, initialValue])
 
