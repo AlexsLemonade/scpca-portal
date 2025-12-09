@@ -95,6 +95,34 @@ class TestDataset(TestCase):
         )
         self.assertTrue(found)
 
+    def test_create_or_update_ccdl_datasets(self):
+        # There are 21 total datasets created
+        #     CCDL DATASET TYPE              Total   Projects   Portal Wide
+        #   - ALL_METADATA                   4       3          Yes
+        #   - SINGLE_CELL_SCE                4       3          Yes
+        #   - SINGLE_CELL_SCE_NO_MULTIPLEXED 1       1          No
+        #   - SINGLE_CELL_SCE_MERGED         3       2          Yes
+        #   - SINGLE_CELL_ANN_DATA           4       3          Yes
+        #   - SINGLE_CELL_ANN_DATA_MERGED    3       2          Yes
+        #   - SPATIAL_SCE                    2       1          Yes
+
+        # Initial call
+        created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets()
+        self.assertEqual(len(created_datasets), 21)
+        self.assertEqual(len(updated_datasets), 0)
+
+        # Call again
+        created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets()
+        self.assertEqual(len(created_datasets), 0)
+        self.assertEqual(len(updated_datasets), 0)
+
+        # Call with ignore_hash
+        created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets(
+            ignore_hash=True
+        )
+        self.assertEqual(len(created_datasets), 0)
+        self.assertEqual(len(updated_datasets), 21)
+
     def test_original_files_property(self):
         # SINGLE_CELL SCE
         data = {

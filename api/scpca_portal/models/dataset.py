@@ -263,8 +263,10 @@ class Dataset(TimestampedModel):
                         continue
                     created_datasets.append(dataset)
 
-        cls.objects.bulk_create(created_datasets)
-        cls.objects.bulk_update(updated_datasets, ["data"])
+                # TODO: This should be optimized with bulk create and bulk update.
+                # This can be accomplished by adding a custom manager which implements custom
+                # bulk_create and bulk_update methods that preserve the cached attrs saving logic.
+                dataset.save()
 
         return created_datasets, updated_datasets
 
