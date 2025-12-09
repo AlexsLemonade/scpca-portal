@@ -29,7 +29,7 @@ export const useCCDLDatasetDownloadModalContext = () => {
 
   const isTokenReady = !token
   const isOptionsReady = datasets?.length > 1 && !!token && !downloadDataset
-  const isDownloadReady = !!downloadDataset && !!token
+  const isDownloadReady = !!downloadableDataset && !!token
 
   const modalTitleAction =
     isTokenReady || isOptionsReady ? 'Download' : 'Downloading'
