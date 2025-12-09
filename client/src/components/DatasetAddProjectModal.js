@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Grid, Heading } from 'grommet'
+import { Box, Grid, Heading, Paragraph } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getProjectFormats } from 'helpers/getProjectFormats'
 import { api } from 'api'
 import { Button } from 'components/Button'
+import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
 import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditionalOptions'
 import { DatasetProjectModalityOptions } from 'components/DatasetProjectModalityOptions'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
@@ -23,6 +24,7 @@ export const DatasetAddProjectModal = ({
     defaultProjectOptions,
     userFormat,
     setUserFormat,
+    getDatasetProjectData,
     addProject,
     getProjectDataSamples,
     getProjectSingleCellSamples,
@@ -41,6 +43,9 @@ export const DatasetAddProjectModal = ({
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
+  // For displaying the count of already added sample in the modal
+  const [projectDataInMyDataset, setProjectDataInMyDataset] = useState({})
+
   // For building the project data for the dataset
   const [projectData, setProjectData] = useState({})
   const [samples, setSamples] = useState(
@@ -55,8 +60,8 @@ export const DatasetAddProjectModal = ({
   const btnLabel = projectState.some ? 'Add Remaning' : 'Add to Dataset'
   const canClickAddProject = modalities.length > 0
 
-  const handleAddProject = () => {
-    addProject(project, projectData, userFormat)
+  const handleAddProject = async () => {
+    await addProject(project, projectData, userFormat)
     setShowing(false)
   }
 
@@ -109,6 +114,11 @@ export const DatasetAddProjectModal = ({
     }
     if (!samples.length && showing) asyncFetch()
   }, [showing])
+
+  // Get the project data in myDataset
+  useEffect(() => {
+    setProjectDataInMyDataset(getDatasetProjectData(project))
+  }, [myDataset])
 
   // Populate the project data for addProject
   useEffect(() => {
@@ -165,14 +175,41 @@ export const DatasetAddProjectModal = ({
             <ModalLoader />
           ) : (
             <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
-              <Heading
-                level="3"
-                size="small"
-                margin={{ top: '0', bottom: 'medium' }}
-              >
+              <Heading level="3" size="small" margin={{ top: '0' }}>
                 Download Options
               </Heading>
-              <Box pad={{ top: 'small' }}>
+              {projectState.some && (
+                <>
+                  <Box margin={{ vertical: 'medium' }}>
+                    <InfoViewMyDataset newTab />
+                  </Box>
+                  <Paragraph>
+                    You've already added the following samples to My Dataset:
+                  </Paragraph>
+                  <Box
+                    as="ul"
+                    margin={{ top: '0' }}
+                    pad={{ left: '26px' }}
+                    style={{ listStyle: 'disc' }}
+                  >
+                    <Box as="li" style={{ display: 'list-item' }}>
+                      {projectDataInMyDataset?.SINGLE_CELL === 'MERGED' ? (
+                        'All single-cell samples as a merged object'
+                      ) : (
+                        <>{`${
+                          myDataset.data?.[project.scpca_id]?.SINGLE_CELL.length
+                        } samples with single-cell modality`}</>
+                      )}
+                    </Box>
+                    {project.has_spatial_data && (
+                      <Box as="li" style={{ display: 'list-item' }}>
+                        {`${projectDataInMyDataset?.SPATIAL.length} samples with spatial modality`}
+                      </Box>
+                    )}
+                  </Box>
+                </>
+              )}
+              <Box pad={{ top: 'large' }}>
                 <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
                   <DatasetDataFormatOptions project={project} />
                   <DatasetProjectModalityOptions

@@ -362,6 +362,26 @@ export const useMyDataset = () => {
     return { all, some }
   }
 
+  const getRemainingProjectSampleIds = (project, projectSamples) => {
+    const projectData = getDatasetProjectData(project)
+
+    return allModalities.reduce((acc, m) => {
+      const addedSampleId = projectData[m]
+
+      if (addedSampleId === 'MERGED') {
+        acc[m] = []
+      } else {
+        const allSampleIds = projectSamples
+          .filter((s) => s[`has_${m.toLowerCase()}_data`])
+          .map((s) => s.scpca_id)
+
+        acc[m] = allSampleIds.filter((id) => !addedSampleId.includes(id))
+      }
+
+      return acc
+    }, {})
+  }
+
   // Return the project data sample IDs (if merged, unmerge them)
   const getProjectDataSampleIds = (project, projectSamples) => {
     const projectData = getDatasetProjectData(project)
@@ -460,6 +480,7 @@ export const useMyDataset = () => {
     getAddedProjectDataSamples,
     getProjectState,
     getProjectDataSamples,
+    getRemainingProjectSampleIds,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
     getHasProject,

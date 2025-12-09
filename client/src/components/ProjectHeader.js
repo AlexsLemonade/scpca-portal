@@ -5,25 +5,36 @@ import { config } from 'config'
 import { Box, Grid, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { Badge } from 'components/Badge'
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
-import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
 import { InfoText } from 'components/InfoText'
+import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
+import { Link } from 'components/Link'
 import { Pill } from 'components/Pill'
 import { WarningText } from 'components/WarningText'
-import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { capitalize } from 'helpers/capitalize'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 
 export const ProjectHeader = ({ project, linked = false }) => {
-  const { myDataset, getHasProject, getProjectState } = useMyDataset()
+  const {
+    myDataset,
+    getHasProject,
+    getProjectState,
+    getRemainingProjectSampleIds
+  } = useMyDataset()
   const { responsive } = useResponsive()
 
   // For the Add to Dataset button condition
   const [samples, setSamples] = useState(project.samples)
   const [isProjectInMyDataset, setIsProjectInMyDataset] = useState(false)
   const [projectState, setProjectState] = useState({})
+
+  const [allAdded, setAllAdded] = useState(false)
+
+  // eslint-disable-next-line no-unused-vars
+  const [remamingSamples, setRemaningSamples] = useState({})
 
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
   const unavailableSampleCountText =
@@ -36,6 +47,13 @@ export const ProjectHeader = ({ project, linked = false }) => {
   useEffect(() => {
     setIsProjectInMyDataset(getHasProject(project))
   }, [myDataset])
+
+  useEffect(() => {
+    if (!isProjectInMyDataset || !samples) return
+    const remaining = getRemainingProjectSampleIds(project, samples)
+    setRemaningSamples(remaining)
+    setAllAdded(!remaining.SINGLE_CELL.length && !remaining.SPATIAL.length)
+  }, [isProjectInMyDataset, samples])
 
   // Fetch sample objects on the Browse page only if the project is in My Dataset
   useEffect(() => {
@@ -80,6 +98,11 @@ export const ProjectHeader = ({ project, linked = false }) => {
               {project.title}
             </Text>
           )}
+          {projectState.some && (
+            <Box margin={{ top: 'medium' }}>
+              <InfoViewMyDataset />
+            </Box>
+          )}
         </Box>
         <Box
           gap="small"
@@ -89,7 +112,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none') }}
         >
           <Box align="center" gap="small">
-            {projectState.all ? (
+            {allAdded ? (
               <Box
                 direction="row"
                 align="center"
