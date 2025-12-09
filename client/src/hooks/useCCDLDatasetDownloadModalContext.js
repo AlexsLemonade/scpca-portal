@@ -29,8 +29,11 @@ export const useCCDLDatasetDownloadModalContext = () => {
 
   const isTokenReady = !token
   const isOptionsReady = datasets?.length > 1 && !!token && !downloadDataset
-  const isDownloadReady = !!downloadableDataset && !!token
-  const [modalTitle, setModalTitle] = useState('Downloading')
+  const isDownloadReady = !!downloadDataset && !!token
+
+  const modalTitleAction =
+    isTokenReady || isOptionsReady ? 'Download' : 'Downloading'
+  const [modalTitle, setModalTitle] = useState(modalTitleAction)
 
   const modalModalityNames = {
     SINGLE_CELL: 'Data',
@@ -40,7 +43,6 @@ export const useCCDLDatasetDownloadModalContext = () => {
   useEffect(() => {
     if (!selectedDataset) return
 
-    const modalTitleAction = isDownloadReady ? 'Downloading' : 'Download'
     const modalityName =
       selectedDataset.format === 'METADATA'
         ? 'Sample Metadata'
@@ -57,7 +59,7 @@ export const useCCDLDatasetDownloadModalContext = () => {
     setModalTitle(
       `${modalTitleAction} ${modalTitleResource} ${asFormat}`.trim()
     )
-  }, [selectedDataset])
+  }, [selectedDataset, modalTitleAction])
 
   return {
     showing,
