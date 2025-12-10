@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
+import { Box, Grid, Heading, Paragraph } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { getProjectModalities } from 'helpers/getProjectModalities'
