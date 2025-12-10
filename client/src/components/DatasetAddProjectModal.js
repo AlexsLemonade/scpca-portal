@@ -33,6 +33,7 @@ export const DatasetAddProjectModal = ({
 
   // Modal toggle
   const [showing, setShowing] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const [modalities, setModalities] = useState([])
 
@@ -55,7 +56,9 @@ export const DatasetAddProjectModal = ({
   const canClickAddProject = modalities.length > 0
 
   const handleAddProject = async () => {
+    setLoading(true)
     await addProject(project, projectData, userFormat)
+    setLoading(false)
     setShowing(false)
   }
 
@@ -147,6 +150,10 @@ export const DatasetAddProjectModal = ({
     setSampleDifference(getMissingModaliesSamples(samples, modalities))
   }, [modalities, samples])
 
+  useEffect(() => {
+    setLoading(false)
+  }, [showing])
+
   return (
     <>
       <Button
@@ -197,6 +204,7 @@ export const DatasetAddProjectModal = ({
                     label={label}
                     disabled={!canClickAddProject}
                     onClick={handleAddProject}
+                    loading={loading}
                   />
                   {sampleDifference.length > 0 && (
                     <DatasetWarningMissingSamples

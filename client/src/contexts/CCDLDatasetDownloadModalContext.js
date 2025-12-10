@@ -5,6 +5,8 @@ import { filterPartialObject } from 'helpers/filterPartialObject'
 import { uniqueArrayByKey } from 'helpers/uniqueArray'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableOptions } from 'helpers/getReadableOptions'
+import { sortOnKeyByOrder } from 'helpers/sortOnKeyByOrder'
+import { formatOrder, modalityOrder } from 'config/ccdlDatasets'
 
 export const CCDLDatasetDownloadModalContext = createContext({})
 
@@ -22,8 +24,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   // set when `datasets` changes
   const [modality, setModality] = useState(null)
   const [format, setFormat] = useState(null)
-  const [includesMerged, setIncludesMerged] = useState(null)
-  const [excludeMultiplexed, setExcludeMultiplexed] = useState(null)
+  const [includesMerged, setIncludesMerged] = useState(false)
+  const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
 
   const [downloadDataset, setDownloadDataset] = useState(false)
   const [downloadableDataset, setDownloadableDataset] = useState(null)
@@ -34,7 +36,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const [modalityOptions, setModalityOptions] = useState([])
   const [formatOptions, setFormatOptions] = useState([])
 
-  // on datasets change
+  // on datasets change either reset values or set modality defaults
   useEffect(() => {
     if (!datasets || datasets.length === 0) {
       setSelectedDataset(null)
@@ -53,15 +55,15 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setModalityOptions([])
       setFormatOptions([])
     } else {
-      const defaultDataset = datasets[0]
-      setSelectedDataset(defaultDataset)
-
-      setModality(defaultDataset.ccdl_modality)
-      setFormat(defaultDataset.format)
-      setIncludesMerged(defaultDataset.includes_files_merged)
-      setExcludeMultiplexed(defaultDataset.includes_files_multiplexed)
-
-      setDownloadDataset(datasets.length === 1)
+      const [defaultModality] = modalityOrder
+      setModality(defaultModality)
+      setModalityOptions(
+        sortOnKeyByOrder(
+          getReadableOptions(datasets.map((d) => d.ccdl_modality)),
+          'value',
+          modalityOrder
+        )
+      )
 
       setIsMergedObjectsAvailable(
         datasets.some((dataset) => dataset.includes_files_merged)
@@ -70,42 +72,59 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         datasets.some((dataset) => dataset.includes_files_multiplexed)
       )
 
-      setModalityOptions(
-        getReadableOptions(datasets.map((d) => d.ccdl_modality))
-      )
+      setDownloadDataset(datasets.length === 1)
     }
   }, [datasets])
 
-  // on selectedDataset change (displayed formatOptions are dependent on selectedDataset)
+  // on modality change, set format and merged available defaults
   useEffect(() => {
-    if (selectedDataset) {
+    if (modality) {
+      const [defaultFormat] = formatOrder
+      setFormat(defaultFormat)
       setFormatOptions(
-        uniqueArrayByKey(
-          datasets
-            .filter((d) => d.ccdl_modality === selectedDataset.ccdl_modality)
-            .map((d) => ({
-              label:
-                // We override this to present the spatial format
-                d.ccdl_modality === 'SPATIAL'
-                  ? getReadable('SPATIAL_SPACERANGER')
-                  : getReadable(d.format),
-              value: d.format
-            })),
-          'value'
+        sortOnKeyByOrder(
+          uniqueArrayByKey(
+            datasets
+              .filter((d) => d.ccdl_modality === modality)
+              .map((d) => ({
+                label:
+                  // We override this to present the spatial format
+                  d.ccdl_modality === 'SPATIAL'
+                    ? getReadable('SPATIAL_SPACERANGER')
+                    : getReadable(d.format),
+                value: d.format
+              })),
+            'value'
+          ),
+          'value',
+          formatOrder
         )
       )
-    } else {
-      setFormatOptions([])
     }
-  }, [selectedDataset])
-
-  // reset format to default upon modality change
-  useEffect(() => {
-    setFormat('SINGLE_CELL_EXPERIMENT')
   }, [modality])
 
-  // on selected options change
+  // on modality change, make sure includes value is valid
   useEffect(() => {
+    if (modality !== 'SINGLE_CELL') setIncludesMerged(false)
+  }, [modality])
+
+  // on format change, set exclude multiplexed defaults
+  useEffect(() => {
+    if (isMultiplexedAvailable)
+      if (format === 'SINGLE_CELL_EXPERIMENT') {
+        setExcludeMultiplexed(false)
+      } else if (format === 'ANN_DATA') {
+        setExcludeMultiplexed(true)
+      }
+  }, [format, isMultiplexedAvailable])
+
+  // on selected options change, select dataset
+  useEffect(() => {
+    if (datasets.length === 1) {
+      setSelectedDataset(datasets[0])
+      return
+    }
+
     const query = {
       ccdl_modality: modality,
       format,
