@@ -16,7 +16,7 @@ import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 export const DatasetAddRemainingModal = ({
   project,
   label = 'Add Remaining',
-  title = 'Add Project to Dataset',
+  title = 'Add Remaining Samples to Dataset',
   disabled = false
 }) => {
   const {
@@ -25,11 +25,12 @@ export const DatasetAddRemainingModal = ({
     userFormat,
     setUserFormat,
     getDatasetProjectData,
+    getMissingModaliesSamples,
     addProject,
     getProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
-    getMissingModaliesSamples
+    getRemainingProjectSampleIds
   } = useMyDataset()
   const { responsive } = useResponsive()
 
@@ -43,8 +44,14 @@ export const DatasetAddRemainingModal = ({
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
+  const [remainingSamples, setRemainingSamples] = useState(null)
+  useEffect(() => {
+    if (!samples.length) return
+    setRemainingSamples(getRemainingProjectSampleIds(project, samples))
+  }, [myDataset, samples])
+
   // For displaying the count of already added sample in the modal
-  const [projectDataInMyDataset, setProjectDataInMyDataset] = useState({})
+  const [projectDataInMyDataset, setProjectDataInMyDataset] = useState(null)
 
   // For building the project data for the dataset
   const [projectData, setProjectData] = useState({})
@@ -56,6 +63,17 @@ export const DatasetAddRemainingModal = ({
   const [spatialSamples, setSpatialSamples] = useState([])
 
   const [sampleDifference, setSampleDifference] = useState([])
+
+  const addedSingleCellText =
+    projectDataInMyDataset?.SINGLE_CELL === 'MERGED'
+      ? 'All single-cell samples as a merged object'
+      : `${remainingSamples?.SINGLE_CELL.length === 0 ? 'All' : ''} ${
+          projectDataInMyDataset?.SINGLE_CELL.length
+        } samples with single-cell modality`
+
+  const addedSpatialText = `${
+    remainingSamples?.SPATIAL.length === 0 ? 'All' : ''
+  } ${projectDataInMyDataset?.SPATIAL?.length} samples with spatial modality`
 
   const canClickAddProject = modalities.length > 0
 
@@ -134,21 +152,25 @@ export const DatasetAddRemainingModal = ({
 
   // Update singleCellSamples based on user selections
   useEffect(() => {
+    if (!projectDataInMyDataset) return
+
     if (modalities.includes('SINGLE_CELL')) {
       setSingleCellSamples(
         getProjectSingleCellSamples(samples, includeMerge, excludeMultiplexed)
       )
     } else {
-      setSingleCellSamples([])
+      setSingleCellSamples(projectDataInMyDataset.SINGLE_CELL)
     }
   }, [excludeMultiplexed, includeMerge, modalities, samples])
 
   // Update spatialSamples based on user selections
   useEffect(() => {
+    if (!projectDataInMyDataset) return
+
     if (modalities.includes('SPATIAL')) {
       setSpatialSamples(getProjectSpatialSamples(samples))
     } else {
-      setSpatialSamples([])
+      setSpatialSamples(projectDataInMyDataset.SPATIAL)
     }
   }, [modalities, samples])
 
@@ -189,17 +211,11 @@ export const DatasetAddRemainingModal = ({
                 style={{ listStyle: 'disc' }}
               >
                 <Box as="li" style={{ display: 'list-item' }}>
-                  {projectDataInMyDataset?.SINGLE_CELL === 'MERGED' ? (
-                    'All single-cell samples as a merged object'
-                  ) : (
-                    <>{`${
-                      myDataset.data?.[project.scpca_id]?.SINGLE_CELL.length
-                    } samples with single-cell modality`}</>
-                  )}
+                  {addedSingleCellText}
                 </Box>
                 {project.has_spatial_data && (
                   <Box as="li" style={{ display: 'list-item' }}>
-                    {`${projectDataInMyDataset?.SPATIAL.length} samples with spatial modality`}
+                    {addedSpatialText}
                   </Box>
                 )}
               </Box>
@@ -208,11 +224,13 @@ export const DatasetAddRemainingModal = ({
                   <DatasetDataFormatOptions project={project} />
                   <DatasetProjectModalityOptions
                     project={project}
+                    remainingSamples={remainingSamples}
                     modalities={modalities}
                     onModalitiesChange={setModalities}
                   />
                   <DatasetProjectAdditionalOptions
                     project={project}
+                    remainingSamples={remainingSamples}
                     selectedFormat={userFormat}
                     selectedModalities={modalities}
                     excludeMultiplexed={excludeMultiplexed}

@@ -42,27 +42,27 @@ export const ProjectHeader = ({ project, linked = false }) => {
 
   useEffect(() => {
     setIsProjectInMyDataset(getHasProject(project))
-  }, [myDataset])
+  }, [myDataset, projectState])
 
   // Set the condition of the dataset action
   useEffect(() => {
     if (!isProjectInMyDataset || !samples) return
     // Check if any remaining project samples have yet to be added
     const remainingSamples = getRemainingProjectSampleIds(project, samples)
+    const singleCellRemaining = remainingSamples.SINGLE_CELL.length
+    const spatialRemaining = remainingSamples.SPATIAL.length
     setProjectState({
-      all:
-        !remainingSamples.SINGLE_CELL.length &&
-        !remainingSamples.SPATIAL.length,
-      some:
-        remainingSamples.SINGLE_CELL.length || remainingSamples.SPATIAL.length
+      all: !singleCellRemaining && !spatialRemaining,
+      some: singleCellRemaining > 0 || spatialRemaining > 0
     })
-  }, [isProjectInMyDataset, samples])
+  }, [isProjectInMyDataset, samples, myDataset])
 
   // Fetch sample objects on the Browse page only if the project is in My Dataset
   useEffect(() => {
     if (!isProjectInMyDataset) return
     // We get either sample IDs (on Browse) or sample objects (on View Project)
     const isBrowse = typeof project.samples?.[0] !== 'object'
+
     const asyncFetch = async () => {
       const samplesRequest = await api.samples.list({
         project__scpca_id: project.scpca_id,
@@ -121,7 +121,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
                 <Text color="success">Added to Dataset</Text>
               </Box>
             ) : projectState.some ? (
-              <DatasetAddRemainingModal />
+              <DatasetAddRemainingModal project={project} />
             ) : (
               <DatasetAddProjectModal project={project} />
             )}
@@ -151,6 +151,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           />
         )}
       </Grid>
+
       {hasUnavailableSample && (
         <Box
           border={{ side: 'top' }}
@@ -162,6 +163,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           />
         </Box>
       )}
+
       {project.has_multiplexed_data && (
         <Box
           border={!hasUnavailableSample ? { side: 'top' } : ''}

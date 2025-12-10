@@ -340,7 +340,7 @@ export const useMyDataset = () => {
     samples.filter((s) => s.has_spatial_data).map((s) => s.scpca_id)
 
   // Return remaining project sample IDs of the given project
-  const getRemainingProjectSampleIds = (project, projectSamples) => {
+  const getRemainingProjectSampleIds = (project, samples) => {
     const projectData = getDatasetProjectData(project)
 
     return allModalities.reduce((acc, m) => {
@@ -349,7 +349,7 @@ export const useMyDataset = () => {
       if (addedSampleId === 'MERGED') {
         acc[m] = []
       } else {
-        const allSampleIds = projectSamples
+        const allSampleIds = samples
           .filter((s) => s[`has_${m.toLowerCase()}_data`])
           .map((s) => s.scpca_id)
 

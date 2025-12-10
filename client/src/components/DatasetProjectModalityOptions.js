@@ -1,44 +1,42 @@
 import React, { useEffect, useState } from 'react'
 import { CheckBoxGroup } from 'grommet'
-import { useMyDataset } from 'hooks/useMyDataset'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { getProjectModalities } from 'helpers/getProjectModalities'
-import { uniqueArray } from 'helpers/uniqueArray'
 import { FormField } from 'components/FormField'
 
 export const DatasetProjectModalityOptions = ({
   project,
+  remainingSamples = {},
   modalities,
   onModalitiesChange
 }) => {
-  const { myDataset, getDatasetProjectData } = useMyDataset()
-  const modalityOptions = getReadableOptions(getProjectModalities(project))
-  const [options, setOptions] = useState([])
-  const [addedModalities, setAddedModalities] = useState([])
+  const [options, setOptions] = useState(
+    getReadableOptions(getProjectModalities(project))
+  )
 
+  // Run only for the add remaining modal
   useEffect(() => {
-    const projectData = getDatasetProjectData(project)
-    // Check if any modality sample has been added to myDataset
-    const modalityStates = Object.keys(projectData).filter((key) => {
-      const v = projectData[key]
-      return (Array.isArray(v) && v.length > 0) || v === 'MERGED'
-    })
-    // Preselect and disable the modality checkbox if it has been added
-    // to restrict the user from removing added samples
-    const mergedOptions = modalityOptions.map((mo) => ({
-      ...mo,
-      disabled: modalityStates.includes(mo.value)
-    }))
+    if (!remainingSamples || Object.keys(remainingSamples).length === 0) return
 
-    setAddedModalities(modalityStates)
-    setOptions(mergedOptions)
-  }, [myDataset, project])
+    // Filter for any remaining samples of each modality
+    const remainingModalities = Object.keys(remainingSamples).filter(
+      (m) => remainingSamples[m].length > 0
+    )
+
+    // Preselect and disable modalities if no samples remain
+    setOptions((prev) =>
+      prev.map((mo) => ({
+        ...mo,
+        disabled: !remainingModalities.includes(mo.value)
+      }))
+    )
+  }, [remainingSamples])
 
   return (
     <FormField label="Modality" labelWeight="bold">
       <CheckBoxGroup
         options={options}
-        value={uniqueArray(modalities, addedModalities)}
+        value={modalities}
         onChange={({ value }) => onModalitiesChange(value)}
       />
     </FormField>
