@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 import React, { useEffect, useState } from 'react'
 import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
@@ -8,7 +7,6 @@ import { useMyDataset } from 'hooks/useMyDataset'
 import { Badge } from 'components/Badge'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
-import { DatasetAddRemainingModal } from 'components/DatasetAddRemainingModal'
 import { Icon } from 'components/Icon'
 import { InfoText } from 'components/InfoText'
 import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
@@ -39,6 +37,11 @@ export const ProjectHeader = ({ project, linked = false }) => {
   const modalitiesExcludingSingleCell = project.modalities.filter(
     (m) => m !== 'SINGLE_CELL'
   )
+
+  const modalLabel = projectState.some ? 'Add Remaining' : 'Add to Dataset'
+  const modalTitle = projectState.some
+    ? 'Add Remaining Samples to Dataset'
+    : 'Add Project to Dataset'
 
   useEffect(() => {
     setIsProjectInMyDataset(getHasProject(project))
@@ -110,7 +113,14 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none') }}
         >
           <Box align="center" gap="small">
-            {projectState.all ? (
+            {!projectState.all ? (
+              <DatasetAddProjectModal
+                project={project}
+                projectState={projectState}
+                label={modalLabel}
+                title={modalTitle}
+              />
+            ) : (
               <Box
                 direction="row"
                 align="center"
@@ -120,10 +130,6 @@ export const ProjectHeader = ({ project, linked = false }) => {
                 <Icon color="success" name="Check" />
                 <Text color="success">Added to Dataset</Text>
               </Box>
-            ) : projectState.some ? (
-              <DatasetAddRemainingModal project={project} />
-            ) : (
-              <DatasetAddProjectModal project={project} />
             )}
             <CCDLDatasetDownloadModal label="Download Now" secondary />
             {project.has_bulk_rna_seq && (

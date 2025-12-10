@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Grid, Heading } from 'grommet'
+import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { getProjectModalities } from 'helpers/getProjectModalities'
@@ -10,12 +10,14 @@ import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditi
 import { DatasetProjectModalityOptions } from 'components/DatasetProjectModalityOptions'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
 import { DatasetWarningMissingSamples } from 'components/DatasetWarningMissingSamples'
+import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
 import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 
 export const DatasetAddProjectModal = ({
   project,
-  label = ' Add to Dataset',
-  title = 'Add Project to Dataset',
+  projectState,
+  label,
+  title,
   disabled = false
 }) => {
   const {
@@ -24,10 +26,12 @@ export const DatasetAddProjectModal = ({
     userFormat,
     setUserFormat,
     addProject,
+    getMissingModaliesSamples,
+    getDatasetProjectData,
     getProjectDataSamples,
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
-    getMissingModaliesSamples
+    getRemainingProjectSampleIds
   } = useMyDataset()
   const { responsive } = useResponsive()
 
@@ -53,6 +57,23 @@ export const DatasetAddProjectModal = ({
 
   const [sampleDifference, setSampleDifference] = useState([])
 
+  // For the add remaining samples action
+  const [projectDataInMyDataset, setProjectDataInMyDataset] = useState(null)
+  const [remainingSamples, setRemainingSamples] = useState(null)
+  const { some: someAdded } = projectState
+  const addedSingleCellCount = projectDataInMyDataset?.SINGLE_CELL?.length
+  const addedSpatialCount = projectDataInMyDataset?.SPATIAL?.length
+  const addedSingleCellText =
+    projectDataInMyDataset?.SINGLE_CELL === 'MERGED'
+      ? 'All single-cell samples as a merged object'
+      : `${
+          remainingSamples?.SINGLE_CELL.length === 0 ? 'All' : ''
+        } ${addedSingleCellCount} samples with single-cell modality`
+
+  const addedSpatialText = `${
+    remainingSamples?.SPATIAL.length === 0 ? 'All' : ''
+  } ${addedSpatialCount} samples with spatial modality`
+
   const canClickAddProject = modalities.length > 0
 
   const handleAddProject = async () => {
@@ -75,11 +96,16 @@ export const DatasetAddProjectModal = ({
     includes_merged_anndata: includesMergedAnnData
   } = project
   useEffect(() => {
-    setIncludeBulk(hasBulkRnaSeq ? defaultProjectOptions.includeBulk : false)
+    const bulkValue = someAdded
+      ? projectDataInMyDataset?.includes_bulk
+      : defaultProjectOptions.includeBulk
+    setIncludeBulk(hasBulkRnaSeq ? bulkValue : false)
+
+    const mergedValue = someAdded
+      ? projectDataInMyDataset?.SINGLE_CELL === 'MERGED'
+      : defaultProjectOptions.includeMerge
     setIncludeMerge(
-      includesMergedSce || includesMergedAnnData
-        ? defaultProjectOptions.includeMerge
-        : false
+      includesMergedSce || includesMergedAnnData ? mergedValue : false
     )
     setModalities(
       getProjectModalities(project).filter((m) =>
@@ -112,6 +138,17 @@ export const DatasetAddProjectModal = ({
     if (!samples.length && showing) asyncFetch()
   }, [showing])
 
+  // Initialize states for the add remaining samples action
+  useEffect(() => {
+    if (!someAdded) return
+
+    if (samples.length) {
+      setRemainingSamples(getRemainingProjectSampleIds(project, samples))
+    }
+    // Get the project data in myDataset
+    setProjectDataInMyDataset(getDatasetProjectData(project))
+  }, [myDataset, samples])
+
   // Populate the project data for addProject
   useEffect(() => {
     setProjectData({
@@ -132,18 +169,24 @@ export const DatasetAddProjectModal = ({
         getProjectSingleCellSamples(samples, includeMerge, excludeMultiplexed)
       )
     } else {
-      setSingleCellSamples([])
+      setSingleCellSamples(projectDataInMyDataset?.SINGLE_CELL || [])
     }
-  }, [excludeMultiplexed, includeMerge, modalities, samples])
+  }, [
+    excludeMultiplexed,
+    includeMerge,
+    modalities,
+    samples,
+    projectDataInMyDataset
+  ])
 
   // Update spatialSamples based on user selections
   useEffect(() => {
     if (modalities.includes('SPATIAL')) {
       setSpatialSamples(getProjectSpatialSamples(samples))
     } else {
-      setSpatialSamples([])
+      setSpatialSamples(projectDataInMyDataset?.SPATIAL || [])
     }
-  }, [modalities, samples])
+  }, [modalities, samples, projectDataInMyDataset])
 
   // Calculate missing modality samples
   useEffect(() => {
@@ -159,7 +202,8 @@ export const DatasetAddProjectModal = ({
       <Button
         aria-label={label}
         flex="grow"
-        primary
+        primary={!someAdded}
+        secondary={someAdded}
         label={label}
         disabled={disabled}
         onClick={() => setShowing(true)}
@@ -173,16 +217,53 @@ export const DatasetAddProjectModal = ({
               <Heading level="3" size="small" margin={{ top: '0' }}>
                 Download Options
               </Heading>
+
+              {someAdded && (
+                <>
+                  <Box margin={{ vertical: 'medium' }}>
+                    <InfoViewMyDataset newTab />
+                  </Box>
+                  <Paragraph>
+                    You've already added the following to My Dataset:
+                  </Paragraph>
+                  <Box
+                    as="ul"
+                    margin={{ top: '0' }}
+                    pad={{ left: '26px' }}
+                    style={{ listStyle: 'disc' }}
+                  >
+                    {addedSingleCellCount > 0 && (
+                      <Box as="li" style={{ display: 'list-item' }}>
+                        {addedSingleCellText}
+                      </Box>
+                    )}
+
+                    {project.has_spatial_data && addedSpatialCount > 0 && (
+                      <Box as="li" style={{ display: 'list-item' }}>
+                        {addedSpatialText}
+                      </Box>
+                    )}
+
+                    {projectDataInMyDataset?.includes_bulk && (
+                      <Box as="li" style={{ display: 'list-item' }}>
+                        All bulk RNA-seq data in the project
+                      </Box>
+                    )}
+                  </Box>
+                </>
+              )}
               <Box pad={{ top: 'large' }}>
                 <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
                   <DatasetDataFormatOptions project={project} />
                   <DatasetProjectModalityOptions
                     project={project}
+                    remainingSamples={someAdded ? remainingSamples : null}
                     modalities={modalities}
                     onModalitiesChange={setModalities}
                   />
                   <DatasetProjectAdditionalOptions
                     project={project}
+                    remainingSamples={someAdded ? remainingSamples : null}
                     selectedFormat={userFormat}
                     selectedModalities={modalities}
                     excludeMultiplexed={excludeMultiplexed}
@@ -202,9 +283,9 @@ export const DatasetAddProjectModal = ({
                     primary
                     aria-label={label}
                     label={label}
+                    loading={loading}
                     disabled={!canClickAddProject}
                     onClick={handleAddProject}
-                    loading={loading}
                   />
                   {sampleDifference.length > 0 && (
                     <DatasetWarningMissingSamples

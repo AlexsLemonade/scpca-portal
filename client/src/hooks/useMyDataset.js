@@ -308,12 +308,12 @@ export const useMyDataset = () => {
 
     const hasModality = (m) => selectedModalities.includes(m)
 
-    datasetProjectDataCopy.SINGLE_CELL = hasModality('SINGLE_CELL')
-      ? singleCellSamples
-      : []
-    datasetProjectDataCopy.SPATIAL = hasModality('SPATIAL')
-      ? spatialSamples
-      : []
+    datasetProjectDataCopy.SINGLE_CELL =
+      hasModality('SINGLE_CELL') || singleCellSamples.length > 0
+        ? singleCellSamples
+        : []
+    datasetProjectDataCopy.SPATIAL =
+      hasModality('SPATIAL') || spatialSamples.length > 0 ? spatialSamples : []
 
     return datasetProjectDataCopy
   }
