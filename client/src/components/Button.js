@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button as GrommetButton, Spinner } from 'grommet'
+import { Box, Button as GrommetButton, Spinner, Text } from 'grommet'
 import { useWaitForAsync } from 'hooks/useWaitForAsync'
 
 const LoadingSpinner = () => {
@@ -26,8 +26,23 @@ export const Button = ({
     <GrommetButton
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
-      icon={loading ? <LoadingSpinner /> : undefined}
-      label={loading ? undefined : label}
+      label={
+        <Box style={{ position: 'relative' }}>
+          <Text color={loading ? 'transparent' : 'inherit'}>{label}</Text>
+          {loading && (
+            <Box
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
+            >
+              <LoadingSpinner />
+            </Box>
+          )}
+        </Box>
+      }
       onClick={asyncOnClick}
       disabled={disabled}
       loading={loading}
