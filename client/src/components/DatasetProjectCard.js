@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Text } from 'grommet'
 import { useRouter } from 'next/router'
 import { useScrollRestore } from 'hooks/useScrollRestore'
@@ -54,6 +54,13 @@ export const DatasetProjectCard = ({
     push(destination)
   }
 
+  const [removeProjectLoading, setRemoveProjectLoading] = useState(false)
+  const handleRemoveProject = async () => {
+    setRemoveProjectLoading(true)
+    await removeProjectById(projectId)
+    setRemoveProjectLoading(false)
+  }
+
   return (
     <Box elevation="medium" pad="24px" width="full">
       <Box
@@ -74,7 +81,8 @@ export const DatasetProjectCard = ({
             danger
             label="Remove"
             alignSelf={responsive('stretch', 'start')}
-            onClick={() => removeProjectById(projectId)}
+            onClick={handleRemoveProject}
+            loading={removeProjectLoading}
           />
         )}
       </Box>
