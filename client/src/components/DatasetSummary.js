@@ -11,7 +11,7 @@ export const DatasetSummary = ({ dataset }) => {
   const [totalProject, setTotalProject] = useState(0)
   const sampleTotalText = `${totalSample} Sample${totalSample > 1 ? 's' : ''}`
   const projectTotalText = `${totalProject} Project${
-    totalProject > 0 ? 's' : ''
+    totalProject > 1 ? 's' : ''
   }`
 
   const diagnosesSummary = dataset.diagnoses_summary
