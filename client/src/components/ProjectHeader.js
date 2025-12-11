@@ -24,6 +24,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
 
   // For the dataset action button condition
   const [samples, setSamples] = useState(project.samples)
+  const [remainingSamples, setRemainingSamples] = useState(null)
   const [isProjectInMyDataset, setIsProjectInMyDataset] = useState(false)
   const [projectState, setProjectState] = useState({
     all: false,
@@ -38,27 +39,9 @@ export const ProjectHeader = ({ project, linked = false }) => {
     (m) => m !== 'SINGLE_CELL'
   )
 
-  const modalLabel = projectState.some ? 'Add Remaining' : 'Add to Dataset'
-  const modalTitle = projectState.some
-    ? 'Add Remaining Samples to Dataset'
-    : 'Add Project to Dataset'
-
   useEffect(() => {
     setIsProjectInMyDataset(getHasProject(project))
-  }, [myDataset, projectState])
-
-  // Set the condition of the dataset action
-  useEffect(() => {
-    if (!isProjectInMyDataset || !samples) return
-    // Check if any remaining project samples have yet to be added
-    const remainingSamples = getRemainingProjectSampleIds(project, samples)
-    const singleCellRemaining = remainingSamples.SINGLE_CELL.length
-    const spatialRemaining = remainingSamples.SPATIAL.length
-    setProjectState({
-      all: !singleCellRemaining && !spatialRemaining,
-      some: singleCellRemaining > 0 || spatialRemaining > 0
-    })
-  }, [isProjectInMyDataset, samples, myDataset])
+  }, [myDataset])
 
   // Fetch sample objects on the Browse page only if the project is in My Dataset
   useEffect(() => {
@@ -78,6 +61,26 @@ export const ProjectHeader = ({ project, linked = false }) => {
 
     if (isBrowse) asyncFetch()
   }, [isProjectInMyDataset])
+
+  // Get remaining project samples that have not yet been not added
+  // if the project data is present in myDataset
+  useEffect(() => {
+    if (!isProjectInMyDataset || !samples) return
+    setRemainingSamples(getRemainingProjectSampleIds(project, samples))
+  }, [myDataset, samples])
+
+  // Determine the state of project based on their remaining samples
+  useEffect(() => {
+    if (!remainingSamples) return
+
+    const singleCellRemaining = remainingSamples.SINGLE_CELL.length
+    const spatialRemaining = remainingSamples.SPATIAL.length
+
+    setProjectState({
+      all: !singleCellRemaining && !spatialRemaining,
+      some: singleCellRemaining > 0 || spatialRemaining > 0
+    })
+  }, [remainingSamples])
 
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
@@ -113,14 +116,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none') }}
         >
           <Box align="center" gap="small">
-            {!projectState.all ? (
-              <DatasetAddProjectModal
-                project={project}
-                projectState={projectState}
-                label={modalLabel}
-                title={modalTitle}
-              />
-            ) : (
+            {remainingSamples && projectState.all ? (
               <Box
                 direction="row"
                 align="center"
@@ -130,6 +126,12 @@ export const ProjectHeader = ({ project, linked = false }) => {
                 <Icon color="success" name="Check" />
                 <Text color="success">Added to Dataset</Text>
               </Box>
+            ) : (
+              <DatasetAddProjectModal
+                project={project}
+                projectState={projectState}
+                remainingSamples={remainingSamples}
+              />
             )}
             <CCDLDatasetDownloadModal label="Download Now" secondary />
             {project.has_bulk_rna_seq && (

@@ -16,8 +16,7 @@ import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 export const DatasetAddProjectModal = ({
   project,
   projectState,
-  label,
-  title,
+  remainingSamples,
   disabled = false
 }) => {
   const {
@@ -30,37 +29,33 @@ export const DatasetAddProjectModal = ({
     getDatasetProjectData,
     getProjectDataSamples,
     getProjectSingleCellSamples,
-    getProjectSpatialSamples,
-    getRemainingProjectSampleIds
+    getProjectSpatialSamples
   } = useMyDataset()
   const { responsive } = useResponsive()
 
-  // Modal toggle
-  const [showing, setShowing] = useState(false)
+  const [showing, setShowing] = useState(false) // Modal toggle
   const [loading, setLoading] = useState(false)
 
+  // For project options
   const [modalities, setModalities] = useState([])
-
-  // For additional options
   const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
-  // For building the project data for the dataset
+  // For building the project data for adding to myDataset
   const [projectData, setProjectData] = useState({})
+  const [singleCellSamples, setSingleCellSamples] = useState([])
+  const [spatialSamples, setSpatialSamples] = useState([])
+
   const [samples, setSamples] = useState(
     // We get either sample IDs (on Browse) or sample objects (on View Project)
     project.samples.filter((s) => s.scpca_id)
   )
-  const [singleCellSamples, setSingleCellSamples] = useState([])
-  const [spatialSamples, setSpatialSamples] = useState([])
-
   const [sampleDifference, setSampleDifference] = useState([])
 
-  // For the add remaining samples action
+  // For the add remaining button
   const [projectDataInMyDataset, setProjectDataInMyDataset] = useState(null)
-  const [remainingSamples, setRemainingSamples] = useState(null)
-  const { some: someAdded } = projectState
+  const someAdded = projectState?.some
   const addedSingleCellCount = projectDataInMyDataset?.SINGLE_CELL?.length
   const addedSpatialCount = projectDataInMyDataset?.SPATIAL?.length
   const addedSingleCellText =
@@ -69,10 +64,14 @@ export const DatasetAddProjectModal = ({
       : `${
           remainingSamples?.SINGLE_CELL.length === 0 ? 'All' : ''
         } ${addedSingleCellCount} samples with single-cell modality`
-
   const addedSpatialText = `${
     remainingSamples?.SPATIAL.length === 0 ? 'All' : ''
   } ${addedSpatialCount} samples with spatial modality`
+
+  const btnLabel = projectState.some ? 'Add Remaining' : 'Add to Dataset'
+  const modalTitle = projectState.some
+    ? 'Add Remaining Samples to Dataset'
+    : 'Add Project to Dataset'
 
   const canClickAddProject = modalities.length > 0
 
@@ -138,14 +137,9 @@ export const DatasetAddProjectModal = ({
     if (!samples.length && showing) asyncFetch()
   }, [showing])
 
-  // Initialize states for the add remaining samples action
+  //  Get the project data in myDataset for the add remaining button
   useEffect(() => {
     if (!someAdded) return
-
-    if (samples.length) {
-      setRemainingSamples(getRemainingProjectSampleIds(project, samples))
-    }
-    // Get the project data in myDataset
     setProjectDataInMyDataset(getDatasetProjectData(project))
   }, [myDataset, samples])
 
@@ -200,15 +194,15 @@ export const DatasetAddProjectModal = ({
   return (
     <>
       <Button
-        aria-label={label}
+        aria-label={btnLabel}
         flex="grow"
         primary={!someAdded}
         secondary={someAdded}
-        label={label}
+        label={btnLabel}
         disabled={disabled}
         onClick={() => setShowing(true)}
       />
-      <Modal title={title} showing={showing} setShowing={setShowing}>
+      <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
         <ModalBody>
           {!samples.length ? (
             <ModalLoader />
@@ -217,7 +211,6 @@ export const DatasetAddProjectModal = ({
               <Heading level="3" size="small" margin={{ top: '0' }}>
                 Download Options
               </Heading>
-
               {someAdded && (
                 <>
                   <Box margin={{ vertical: 'medium' }}>
@@ -281,8 +274,8 @@ export const DatasetAddProjectModal = ({
                 >
                   <Button
                     primary
-                    aria-label={label}
-                    label={label}
+                    aria-label={btnLabel}
+                    label={btnLabel}
                     loading={loading}
                     disabled={!canClickAddProject}
                     onClick={handleAddProject}
