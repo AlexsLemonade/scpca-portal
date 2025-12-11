@@ -645,7 +645,7 @@ class TestDataset(TestCase):
             "diagnosis2": {"samples": 1, "projects": 1},
             "diagnosis3": {"samples": 1, "projects": 1},
             "diagnosis4": {"samples": 1, "projects": 1},
-            "diagnosis5": {"samples": 2, "projects": 1},
+            "diagnosis5": {"samples": 1, "projects": 1},
             "diagnosis6": {"samples": 1, "projects": 1},
             "diagnosis7": {"samples": 2, "projects": 1},
         }
@@ -779,7 +779,7 @@ class TestDataset(TestCase):
         }
 
         expected_counts = {
-            "SCPCP999990": {"diagnosis5": 2, "diagnosis1": 1, "diagnosis2": 1},
+            "SCPCP999990": {"diagnosis5": 1, "diagnosis1": 1, "diagnosis2": 1},
             "SCPCP999991": {"diagnosis4": 1, "diagnosis3": 1, "diagnosis6": 1},
             "SCPCP999992": {"diagnosis7": 2},
         }
@@ -803,7 +803,11 @@ class TestDataset(TestCase):
             },
         }
         expected_counts = {
-            "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 1},
+            "SCPCP999990": {
+                Modalities.SINGLE_CELL: 2,
+                Modalities.SPATIAL: 1,
+                Modalities.BULK_RNA_SEQ: 1,
+            },
         }
         self.assertEqual(dataset.get_project_modality_counts(), expected_counts)
 
@@ -816,7 +820,11 @@ class TestDataset(TestCase):
             },
         }
         expected_counts = {
-            "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 0},
+            "SCPCP999990": {
+                Modalities.SINGLE_CELL: 2,
+                Modalities.SPATIAL: 0,
+                Modalities.BULK_RNA_SEQ: 1,
+            },
         }
         self.assertEqual(dataset.get_project_modality_counts(), expected_counts)
 
@@ -860,7 +868,11 @@ class TestDataset(TestCase):
         }
 
         expected_counts = {
-            "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 1},
+            "SCPCP999990": {
+                Modalities.SINGLE_CELL: 2,
+                Modalities.SPATIAL: 1,
+                Modalities.BULK_RNA_SEQ: 1,
+            },
             "SCPCP999991": {
                 Modalities.SINGLE_CELL: 3,
             },
