@@ -11,7 +11,13 @@ from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 from scpca_portal.models import ComputedFile, Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory, OriginalFileFactory
+from scpca_portal.test.factories import (
+    DatasetFactory,
+    LeafComputedFileFactory,
+    LibraryFactory,
+    OriginalFileFactory,
+    SampleFactory,
+)
 
 
 class TestDataset(TestCase):
@@ -122,6 +128,65 @@ class TestDataset(TestCase):
         )
         self.assertEqual(len(created_datasets), 0)
         self.assertEqual(len(updated_datasets), 21)
+
+    def test_create_or_update_ccdl_datasets_update_data_attr(self):
+        """Assert that data attr updates when new samples and libraries are added."""
+        # Create dataset
+        dataset_expected_values = test_data.DatasetSingleCellSingleCellExperimentSCPCP999990
+        dataset, _ = Dataset.get_or_find_ccdl_dataset(
+            dataset_expected_values.CCDL_NAME, dataset_expected_values.PROJECT_ID
+        )
+        dataset.save()
+
+        # Define original and expected values
+        actual_old_data_attr = dataset.get_ccdl_data()
+        expected_old_data_attr = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            }
+        }
+        expected_new_data_attr = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997", "SCPCS999999"],
+                Modalities.SPATIAL: [],
+            }
+        }
+
+        # Simulate the work of sync_original_files and load_metadata commands
+        # with a new sample and library added to an existing project
+        project_id, sample_id, library_id = "SCPCP999990", "SCPCS999999", "SCPCL999999"
+        OriginalFileFactory(
+            s3_key="SCPCP999990/SCPCS999999/SCPCL999999.rds",
+            project_id=project_id,
+            sample_ids=[sample_id],
+            library_id=library_id,
+            is_single_cell=True,
+            is_single_cell_experiment=True,
+            formats=[FileFormats.SINGLE_CELL_EXPERIMENT],
+        )
+
+        project = Project.objects.filter(scpca_id=project_id).first()
+        sample = SampleFactory(scpca_id=sample_id, has_single_cell_data=True, project=project)
+        sample.save()
+
+        library = LibraryFactory(
+            scpca_id=library_id, modality=Modalities.SINGLE_CELL, project=project
+        )
+        library.samples.add(sample)
+        library.save()
+
+        # Rerun create update ccdl datasets method
+        _, updated_datasets = Dataset.create_or_update_ccdl_datasets()
+        updated_dataset = updated_datasets[0]
+        actual_new_data_attr = updated_dataset.data
+
+        # Make assertions
+        self.assertEqual(actual_old_data_attr, expected_old_data_attr)
+        self.assertEqual(actual_new_data_attr, expected_new_data_attr)
+        self.assertNotEqual(actual_old_data_attr, actual_new_data_attr)
 
     def test_original_files_property(self):
         # SINGLE_CELL SCE
