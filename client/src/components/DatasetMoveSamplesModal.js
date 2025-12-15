@@ -45,7 +45,7 @@ export const DatasetMoveSamplesModal = ({
   const onlyHasSpatialSamples = hasSpatialSamples && hasNoSingleCellSamples
 
   const disableAppend =
-    !!myDataset ||
+    !myDataset.data ||
     isDatasetDataEmpty ||
     (isFormatChanged && !onlyHasSpatialSamples)
 
