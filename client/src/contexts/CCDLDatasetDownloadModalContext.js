@@ -71,8 +71,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setIsMultiplexedAvailable(
         datasets.some((dataset) => dataset.includes_files_multiplexed)
       )
-
-      setDownloadDataset(datasets.length === 1)
     }
   }, [datasets])
 
@@ -122,6 +120,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   useEffect(() => {
     if (datasets.length === 1) {
       setSelectedDataset(datasets[0])
+      setDownloadDataset(true)
       return
     }
 
