@@ -45,7 +45,9 @@ export const DatasetMoveSamplesModal = ({
   const onlyHasSpatialSamples = hasSpatialSamples && hasNoSingleCellSamples
 
   const disableAppend =
-    isDatasetDataEmpty || (isFormatChanged && !onlyHasSpatialSamples)
+    !!myDataset ||
+    isDatasetDataEmpty ||
+    (isFormatChanged && !onlyHasSpatialSamples)
 
   // Disable the append action if no data in myDataset or the format will change
   const radioOptions = [
@@ -136,7 +138,7 @@ export const DatasetMoveSamplesModal = ({
             margin={{ bottom: 'medium' }}
           >
             <Text size="21px" margin={{ left: 'xsmall' }}>
-              There are {initialSampleCount} samples in My Dataset
+              There are {initialSampleCount || 0} samples in My Dataset
             </Text>
           </WarningText>
           <FormField>
