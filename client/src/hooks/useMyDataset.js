@@ -403,6 +403,7 @@ export const useMyDataset = () => {
     errors,
     userFormat,
     setUserFormat,
+    addError,
     removeError,
     defaultProjectOptions,
     isDatasetDataEmpty,

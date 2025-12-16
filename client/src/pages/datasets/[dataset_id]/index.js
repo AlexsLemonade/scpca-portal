@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
 import { api } from 'api'
 import { useScrollRestore } from 'hooks/useScrollRestore'
@@ -10,19 +10,38 @@ import { DatasetSummary } from 'components/DatasetSummary'
 import { DatasetDownloadFileSummary } from 'components/DatasetDownloadFileSummary'
 import { DatasetProjectSummary } from 'components/DatasetProjectSummary'
 
-const Dataset = ({ dataset }) => {
+const Dataset = ({ dataset: initialDataset }) => {
   const { restoreScrollPosition } = useScrollRestore()
   const { responsive } = useResponsive()
-  const { getDatasetState } = useDataset()
+  const { get, getDatasetState } = useDataset()
 
-  // TODO: Add refirect if isMyDataset and check dataset ID history
-  // to display the Shared Dataset page header
-  const { isUnprocessed } = getDatasetState(dataset)
+  const { isProcessing, isUnprocessed } = getDatasetState(initialDataset)
+
+  const [dataset, setDataset] = useState(initialDataset)
 
   // Restore scroll position after component mounts
   useEffect(() => {
     restoreScrollPosition()
   }, [])
+
+  // TODO: We're temporarily polling in this component
+  // Poll API when during dataset processing
+  useEffect(() => {
+    let pollRequest
+
+    if (isProcessing) {
+      pollRequest = setInterval(async () => {
+        const datasetRequest = await get(dataset)
+        setDataset(datasetRequest)
+      }, 1000 * 60)
+    }
+
+    return () => {
+      if (pollRequest) {
+        clearInterval(pollRequest)
+      }
+    }
+  }, [isProcessing, dataset])
 
   return (
     <>
