@@ -44,10 +44,7 @@ export const DatasetMoveSamplesModal = ({
   )
   const onlyHasSpatialSamples = hasSpatialSamples && hasNoSingleCellSamples
 
-  const disableAppend =
-    !myDataset.data ||
-    isDatasetDataEmpty ||
-    (isFormatChanged && !onlyHasSpatialSamples)
+  const disableAppend = isFormatChanged && !onlyHasSpatialSamples
 
   // Disable the append action if no data in myDataset or the format will change
   const radioOptions = [
@@ -67,11 +64,41 @@ export const DatasetMoveSamplesModal = ({
   const { total_sample_count: initialSampleCount } = myDataset
   const { total_sample_count: sharedSampleCount } = dataset
 
+  const redirect = () => {
+    push(`/download`)
+    showNotification(
+      `Moved ${sharedSampleCount} Samples to My Dataset`,
+      'success',
+      label
+    )
+  }
+
+  const request = async (newData) => {
+    const datasetRequest = !isMyDataset
+      ? await createDataset({ format: dataset.format, data: newData })
+      : await updateDataset({
+          ...myDataset,
+          format: dataset.format,
+          data: newData
+        })
+
+    return datasetRequest
+  }
+
   const showErrorNotification = (
     message = "We're having trouble moving samples to My Dataset. Please try again later."
   ) => {
     showNotification(message, 'error', label)
     setShowing(false)
+  }
+
+  const handleClick = async () => {
+    if (!myDataset.data || isDatasetDataEmpty) {
+      await request(structuredClone(dataset.data))
+      redirect()
+    } else {
+      setShowing(true)
+    }
   }
 
   const handleMoveToMyDataset = async () => {
@@ -92,13 +119,7 @@ export const DatasetMoveSamplesModal = ({
     if (isFormatChanged) await clearDataset()
 
     setLoading(true)
-    const updatedDataset = !isMyDataset
-      ? await createDataset({ format: dataset.format, data: updatedData })
-      : await updateDataset({
-          ...myDataset,
-          format: dataset.format,
-          data: updatedData
-        })
+    const updatedDataset = await request(updatedData)
     setLoading(false)
 
     // API failure while updating the dataset
@@ -107,12 +128,7 @@ export const DatasetMoveSamplesModal = ({
       return
     }
 
-    push(`/download`)
-    showNotification(
-      `Moved ${sharedSampleCount} Samples to My Dataset`,
-      'success',
-      label
-    )
+    redirect()
     setShowing(false)
   }
 
@@ -127,7 +143,7 @@ export const DatasetMoveSamplesModal = ({
         flex="grow"
         label={label}
         disabled={disabled}
-        onClick={() => setShowing(true)}
+        onClick={handleClick}
       />
       <Modal title={title} showing={showing} setShowing={setShowing}>
         <ModalBody>
