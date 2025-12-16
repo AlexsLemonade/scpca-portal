@@ -126,7 +126,7 @@ export const useMyDataset = () => {
 
     const { response } = datasetRequest
     // TODO: Determine which field should be used to clear localStorage (e.g., is_started, is_processing, start)
-    // Tmporarily using 'start' flag to clear or set the response to myDataset
+    // Temporarily using 'start' flag to clear or set the response to myDataset
     setMyDataset(response.start ? {} : response)
 
     return datasetRequest.response
@@ -360,6 +360,12 @@ export const useMyDataset = () => {
     const datasetDataCopy = structuredClone(myDataset.data) || {}
 
     datasetDataCopy[project.scpca_id] = newProjectData
+    if (
+      newProjectData.SINGLE_CELL?.length === 0 &&
+      newProjectData.SPATIAL?.length === 0
+    ) {
+      delete datasetDataCopy[project.scpca_id]
+    }
 
     const updatedDataset = {
       ...myDataset,
