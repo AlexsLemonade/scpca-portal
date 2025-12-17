@@ -173,7 +173,7 @@ export const DatasetMoveSamplesModal = ({
               aria-label="Move Samples"
               label="Move Samples"
               onClick={handleMoveToMyDataset}
-              loading={loading}
+              awaiting={loading}
             />
           </Box>
         </ModalBody>

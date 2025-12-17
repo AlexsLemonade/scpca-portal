@@ -54,11 +54,11 @@ export const DatasetProjectCard = ({
     push(destination)
   }
 
-  const [removeProjectLoading, setRemoveProjectLoading] = useState(false)
+  const [awaiting, setAwaiting] = useState(false)
   const handleRemoveProject = async () => {
-    setRemoveProjectLoading(true)
+    setAwaiting(true)
     await removeProjectById(projectId)
-    setRemoveProjectLoading(false)
+    setAwaiting(false)
   }
 
   return (
@@ -82,7 +82,7 @@ export const DatasetProjectCard = ({
             label="Remove"
             alignSelf={responsive('stretch', 'start')}
             onClick={handleRemoveProject}
-            loading={removeProjectLoading}
+            awaiting={awaiting}
           />
         )}
       </Box>

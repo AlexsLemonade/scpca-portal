@@ -76,7 +76,7 @@ export const DatasetAddSamplesModal = ({
 
   // Modal toggle
   const [showing, setShowing] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [awaiting, setAwaiting] = useState(false)
 
   // For project options
   const [includeBulk, setIncludeBulk] = useState(false)
@@ -93,7 +93,7 @@ export const DatasetAddSamplesModal = ({
       : totalSamples > 0
 
   const handleAddSamples = async () => {
-    setLoading(true)
+    setAwaiting(true)
     await setSamples(
       project,
       {
@@ -109,7 +109,7 @@ export const DatasetAddSamplesModal = ({
       ...prev,
       SINGLE_CELL: selectedSingleCellSamples
     }))
-    setLoading(false)
+    setAwaiting(false)
   }
 
   // Reset Data Fromat dropdown value on modal closes
@@ -144,7 +144,7 @@ export const DatasetAddSamplesModal = ({
   ])
 
   useEffect(() => {
-    setLoading(false)
+    setAwaiting(false)
   }, [showing])
 
   return (
@@ -215,7 +215,7 @@ export const DatasetAddSamplesModal = ({
                   label={label}
                   disabled={!canClickAddSamples}
                   onClick={handleAddSamples}
-                  loading={loading}
+                  awaiting={awaiting}
                 />
               </Box>
             </Box>

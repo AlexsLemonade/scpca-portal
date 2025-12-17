@@ -116,7 +116,7 @@ export const DatasetProcessForm = ({
           label={buttonLabel}
           disabled={!acceptsTerms || !email || submitting}
           onClick={handleRequestToken}
-          loading={submitting}
+          awaiting={submitting}
         />
       </Box>
     </Box>

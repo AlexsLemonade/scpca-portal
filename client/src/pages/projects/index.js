@@ -15,7 +15,7 @@ const Project = ({ projects, count, filters, filterOptions, ccdlDatasets }) => {
   const { browseFilters, setBrowseFilters } = useScPCAPortal()
   const { responsive } = useResponsive()
   const [showFilters, setShowFilters] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [awaiting, setAwaiting] = useState(false)
   const router = useRouter()
 
   // we don't want to 404 here we want to show that the api is down
@@ -26,7 +26,7 @@ const Project = ({ projects, count, filters, filterOptions, ccdlDatasets }) => {
   }, [])
 
   const onFilterChange = async (newFilters) => {
-    setLoading(true)
+    setAwaiting(true)
     setBrowseFilters(newFilters)
     await Promise.all([
       router.replace({
@@ -35,7 +35,7 @@ const Project = ({ projects, count, filters, filterOptions, ccdlDatasets }) => {
       }),
       delay(1200)
     ])
-    setLoading(false)
+    setAwaiting(false)
   }
 
   const hasFilters = Object.keys(browseFilters).length > 0
@@ -72,7 +72,7 @@ const Project = ({ projects, count, filters, filterOptions, ccdlDatasets }) => {
               show={showFilters}
               setShow={setShowFilters}
               label="Show Filters"
-              loading={loading}
+              awaiting={awaiting}
             >
               <Box width="small">
                 <Box direction="row" justify="between">
