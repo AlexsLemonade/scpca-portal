@@ -3,7 +3,9 @@ import { Box, Text } from 'grommet'
 import { api } from 'api'
 import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useDataset } from 'hooks/useDataset'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
+import { useRouter } from 'next/router'
 import { DatasetMoveSamplesModal } from 'components/DatasetMoveSamplesModal'
 import { DatasetHero } from 'components/DatasetHero'
 import { DatasetSummary } from 'components/DatasetSummary'
@@ -14,6 +16,8 @@ const Dataset = ({ dataset }) => {
   const { restoreScrollPosition } = useScrollRestore()
   const { responsive } = useResponsive()
   const { getDatasetState } = useDataset()
+  const { myDataset } = useMyDataset()
+  const { push } = useRouter()
 
   // TODO: Add refirect if isMyDataset and check dataset ID history
   // to display the Shared Dataset page header
@@ -22,6 +26,13 @@ const Dataset = ({ dataset }) => {
   // Restore scroll position after component mounts
   useEffect(() => {
     restoreScrollPosition()
+  }, [])
+
+  // Add safeguard to prevent users from accessing active dataset
+  useEffect(() => {
+    if (dataset.id === myDataset.id) {
+      push(`/download`)
+    }
   }, [])
 
   return (
