@@ -23,7 +23,10 @@ export const DatasetSamplesProjectOptions = ({
         <CheckBox
           label="Include all bulk RNA-seq data in the project"
           checked={includeBulk}
-          disabled={!project.has_bulk_rna_seq}
+          disabled={
+            !project.has_bulk_rna_seq ||
+            myDataset.data?.[project.scpca_id]?.includes_bulk
+          }
           onChange={({ target: { checked } }) => onIncludeBulkChange(checked)}
         />
       </Box>
