@@ -23,11 +23,7 @@ module.exports = {
             {
               name: 'cleanupIDs',
               params: {
-                prefix: {
-                  toString() {
-                    return `${Math.random().toString(36).substr(2, 9)}`
-                  }
-                }
+                prefix: 'badge-'
               }
             },
             {
