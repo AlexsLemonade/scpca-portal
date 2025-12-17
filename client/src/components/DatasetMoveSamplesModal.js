@@ -93,9 +93,12 @@ export const DatasetMoveSamplesModal = ({
   }
 
   const handleClick = async () => {
+    // When no data in My Dataset, move and redirect without opening modal
     if (!myDataset.data || isDatasetDataEmpty) {
+      setLoading(true)
       await request(structuredClone(dataset.data))
       redirect()
+      setLoading(false)
     } else {
       setShowing(true)
     }
@@ -103,28 +106,28 @@ export const DatasetMoveSamplesModal = ({
 
   const handleMoveToMyDataset = async () => {
     setLoading(true)
+    // Merge or replace dataset data
     const updatedData =
       action === 'append'
         ? await getMergeDatasetData(dataset)
         : structuredClone(dataset.data)
-    setLoading(false)
 
     // API failure while merging data
     if (!updatedData) {
       showErrorNotification()
+      setLoading(false)
       return
     }
 
     // Clear the data in My Dataset if the format has changed
     if (isFormatChanged) await clearDataset()
 
-    setLoading(true)
     const updatedDataset = await request(updatedData)
-    setLoading(false)
 
     // API failure while updating the dataset
     if (!updatedDataset) {
       showErrorNotification()
+      setLoading(false)
       return
     }
 
@@ -143,6 +146,7 @@ export const DatasetMoveSamplesModal = ({
         flex="grow"
         label={label}
         disabled={disabled}
+        loading={loading}
         onClick={handleClick}
       />
       <Modal title={title} showing={showing} setShowing={setShowing}>
@@ -190,8 +194,8 @@ export const DatasetMoveSamplesModal = ({
               primary
               aria-label="Move Samples"
               label="Move Samples"
-              onClick={handleMoveToMyDataset}
               loading={loading}
+              onClick={handleMoveToMyDataset}
             />
           </Box>
         </ModalBody>
