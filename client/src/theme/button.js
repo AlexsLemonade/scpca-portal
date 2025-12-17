@@ -47,8 +47,21 @@ export default {
     background: { color: 'brand' },
     disabled: undefined
   },
-  extend: ({ danger, plain, disabled, loading, theme }) => `
+  extend: ({ danger, plain, disabled, awaiting, theme }) => `
     white-space: nowrap;
+    ${
+      awaiting &&
+      `
+      > div {
+        margin: 0 auto;
+      }
+      background: ${theme.global.colors['black-tint-90']};
+      border: ${theme.global.colors['black-tint-90']} 1px solid;
+      &:hover {
+        background: ${theme.global.colors['black-tint-90']};
+      }
+      `
+    }
     ${
       danger &&
       `
@@ -64,19 +77,6 @@ export default {
     ${plain && disabled ? 'opacity: 0.7;' : ''}
     &:active:not([disabled]) {
       box-shadow: 0 3px 4px 0 rgba(0,0,0,0.5);
-    }
-    ${
-      loading &&
-      `
-      > div {
-        margin: 0 auto;
-      }
-      background: ${theme.global.colors['black-tint-90']};
-      border: ${theme.global.colors['black-tint-90']} 1px solid;
-      &:hover {
-        background: ${theme.global.colors['black-tint-90']};
-      }
-      `
     }
   `
 }
