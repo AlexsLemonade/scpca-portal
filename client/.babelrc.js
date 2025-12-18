@@ -21,12 +21,6 @@ module.exports = {
               params: { attrs: { keepDataAttrs: false } }
             },
             {
-              name: 'cleanupIDs',
-              params: {
-                prefix: 'badge-'
-              }
-            },
-            {
               name: 'removeAttrs',
               params: { attrs: '(data-name)' }
             }
