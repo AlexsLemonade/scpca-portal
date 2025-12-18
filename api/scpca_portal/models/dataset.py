@@ -486,12 +486,10 @@ class Dataset(TimestampedModel):
             counts[project_id][Modalities.SINGLE_CELL] = single_cell_count.get(project_id, 0)
             if Project.objects.filter(scpca_id=project_id, has_spatial_data=True).exists():
                 counts[project_id][Modalities.SPATIAL] = spatial_count.get(project_id, 0)
-            if self.data[project_id].get(DatasetDataProjectConfig.INCLUDES_BULK):
-                bulk_sample_count = bulk_count.get(project_id, 0)
-                if bulk_sample_count > 0:
-                    counts[project_id][Modalities.BULK_RNA_SEQ] = bulk_sample_count
+            if bulk_sample_count := bulk_count.get(project_id, 0):
+                counts[project_id][Modalities.BULK_RNA_SEQ] = bulk_sample_count
 
-        return dict(counts)
+        return counts
 
     def get_project_titles(self) -> Dict:
         return {
