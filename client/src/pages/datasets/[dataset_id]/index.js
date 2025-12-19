@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Box, Text } from 'grommet'
 import { api } from 'api'
 import { useScrollRestore } from 'hooks/useScrollRestore'
@@ -15,9 +15,11 @@ const Dataset = ({ dataset: initialDataset }) => {
   const { responsive } = useResponsive()
   const { get, getDatasetState } = useDataset()
 
-  const { isProcessing, isUnprocessed } = getDatasetState(initialDataset)
-
+  const pollTimer = useRef(null)
+  const pollInterval = 1000 * 60
   const [dataset, setDataset] = useState(initialDataset)
+
+  const { isProcessing, isUnprocessed } = getDatasetState(dataset)
 
   // Restore scroll position after component mounts
   useEffect(() => {
@@ -25,23 +27,36 @@ const Dataset = ({ dataset: initialDataset }) => {
   }, [])
 
   // TODO: We're temporarily polling in this component
-  // Poll API when during dataset processing
+  // Poll API during dataset processing
   useEffect(() => {
-    let pollRequest
+    let isPolling = true
 
-    if (isProcessing) {
-      pollRequest = setInterval(async () => {
-        const datasetRequest = await get(dataset)
-        setDataset(datasetRequest)
-      }, 1000 * 60)
-    }
-
-    return () => {
-      if (pollRequest) {
-        clearInterval(pollRequest)
+    const cleanUp = () => {
+      isPolling = false
+      if (pollTimer.current) {
+        clearTimeout(pollTimer.current)
+        pollTimer.current = null
       }
     }
-  }, [isProcessing, dataset])
+
+    if (!isProcessing) return cleanUp() // Clean up any existing timer if no processing
+
+    const pollDataset = async () => {
+      if (!isPolling) return
+
+      const datasetRequest = await get(dataset)
+      setDataset(datasetRequest)
+      // Schedule the next poll if still processing
+      if (datasetRequest.is_processing) {
+        pollTimer.current = setTimeout(pollDataset, pollInterval)
+      }
+    }
+
+    // Initiate polling the dataset status
+    pollDataset()
+
+    return () => cleanUp()
+  }, [isProcessing])
 
   return (
     <>
