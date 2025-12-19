@@ -22,7 +22,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
   const { responsive } = useResponsive()
 
   // For the dataset action button condition
-  const [samples, setSamples] = useState(project.samples)
+  const [samples, setSamples] = useState(project.samples) // TODOL: Remove this after API update
   const [remainingSamples, setRemainingSamples] = useState(null)
   const [isProjectInMyDataset, setIsProjectInMyDataset] = useState(false)
 
@@ -42,6 +42,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
     setIsProjectInMyDataset(getHasProject(project))
   }, [myDataset])
 
+  // TODOL: Remove fetching samples after API update
   // Fetch sample objects on the Browse page only if the project is in My Dataset
   useEffect(() => {
     if (!isProjectInMyDataset) return

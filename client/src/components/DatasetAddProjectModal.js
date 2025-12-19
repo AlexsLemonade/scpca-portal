@@ -1,25 +1,20 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
+import { Box, Grid, Heading } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getProjectFormats } from 'helpers/getProjectFormats'
 import { api } from 'api'
 import { Button } from 'components/Button'
+import { DatasetAddProjectModalRemainingContent } from 'components/DatasetAddProjectModalRemainingContent'
+import { DatasetAddProjectModalAddedContent } from 'components/DatasetAddProjectModalAddedContent'
 import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditionalOptions'
 import { DatasetProjectModalityOptions } from 'components/DatasetProjectModalityOptions'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
 import { DatasetWarningMissingSamples } from 'components/DatasetWarningMissingSamples'
-import { Icon } from 'components/Icon'
-import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
 import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 
-/*
-This component renders three states:
-- Add to Dataset (when no project samples have been added)
-- Add Remaining (when some project samples have been added)
-- Added to Dataset (when all project samples have been added)
-*/
+// Three states: Add to Dataset (no samples added), Add Remaining (some samples added), Added to Dataset (all samples added)
 
 export const DatasetAddProjectModal = ({
   project,
@@ -54,6 +49,7 @@ export const DatasetAddProjectModal = ({
   const [singleCellSamples, setSingleCellSamples] = useState([])
   const [spatialSamples, setSpatialSamples] = useState([])
 
+  // TODOL: Remove this after API update
   const [samples, setSamples] = useState(
     // We get either sample IDs (on Browse) or sample objects (on View Project)
     project.samples.filter((s) => s.scpca_id)
@@ -63,17 +59,6 @@ export const DatasetAddProjectModal = ({
   // For the button states
   const [projectDataInMyDataset, setProjectDataInMyDataset] = useState(null)
   const [hasRemainingSamples, setHasRemainingSamples] = useState(false)
-  const addedSingleCellCount = projectDataInMyDataset?.SINGLE_CELL?.length
-  const addedSpatialCount = projectDataInMyDataset?.SPATIAL?.length
-  const addedSingleCellText =
-    projectDataInMyDataset?.SINGLE_CELL === 'MERGED'
-      ? 'All single-cell samples as a merged object'
-      : `${
-          remainingSamples?.SINGLE_CELL.length === 0 ? 'All' : ''
-        } ${addedSingleCellCount} samples with single-cell modality`
-  const addedSpatialText = `${
-    remainingSamples?.SPATIAL.length === 0 ? 'All' : ''
-  } ${addedSpatialCount} samples with spatial modality`
 
   const btnLabel = hasRemainingSamples ? 'Add Remaining' : 'Add to Dataset'
   const modalTitle = hasRemainingSamples
@@ -96,22 +81,18 @@ export const DatasetAddProjectModal = ({
   }, [userFormat])
 
   // Set default additional options based on project
-  const {
-    has_bulk_rna_seq: hasBulkRnaSeq,
-    includes_merged_sce: includesMergedSce,
-    includes_merged_anndata: includesMergedAnnData
-  } = project
   useEffect(() => {
-    const bulkValue = hasRemainingSamples
-      ? projectDataInMyDataset?.includes_bulk
-      : defaultProjectOptions.includeBulk
-    setIncludeBulk(hasBulkRnaSeq ? bulkValue : false)
+    const bulkValue =
+      projectDataInMyDataset?.includes_bulk || defaultProjectOptions.includeBulk
+    setIncludeBulk(project.has_bulk_rna_seq ? bulkValue : false)
 
-    const mergedValue = hasRemainingSamples
-      ? projectDataInMyDataset?.SINGLE_CELL === 'MERGED'
-      : defaultProjectOptions.includeMerge
+    const mergedValue =
+      projectDataInMyDataset?.SINGLE_CELL === 'MERGED' ||
+      defaultProjectOptions.includeMerge
     setIncludeMerge(
-      includesMergedSce || includesMergedAnnData ? mergedValue : false
+      project.includes_merged_sce || project.includes_merged_anndata
+        ? mergedValue
+        : false
     )
     setModalities(
       getProjectModalities(project).filter((m) =>
@@ -129,6 +110,7 @@ export const DatasetAddProjectModal = ({
     }
   }, [myDataset.format, showing])
 
+  // TODOL: Remove fetching samples after API update
   // Fetch samples list when modal opens via Browse page
   useEffect(() => {
     const asyncFetch = async () => {
@@ -144,7 +126,6 @@ export const DatasetAddProjectModal = ({
     if (!samples.length && showing) asyncFetch()
   }, [showing])
 
-  //  Get the project data in myDataset for the Add Remaining state
   useEffect(() => {
     setProjectDataInMyDataset(getDatasetProjectData(project))
   }, [myDataset, samples])
@@ -201,23 +182,8 @@ export const DatasetAddProjectModal = ({
     setSampleDifference(getMissingModaliesSamples(samples, modalities))
   }, [modalities, samples])
 
-  useEffect(() => {
-    setLoading(false)
-  }, [showing])
-
-  const allSamplesAdded = remainingSamples && !hasRemainingSamples
-  if (allSamplesAdded) {
-    return (
-      <Box
-        direction="row"
-        align="center"
-        gap="small"
-        margin={{ vertical: 'small' }}
-      >
-        <Icon color="success" name="Check" />
-        <Text color="success">Added to Dataset</Text>
-      </Box>
-    )
+  if (remainingSamples && !hasRemainingSamples) {
+    return <DatasetAddProjectModalAddedContent />
   }
 
   return (
@@ -240,56 +206,24 @@ export const DatasetAddProjectModal = ({
               <Heading level="3" size="small" margin={{ top: '0' }}>
                 Download Options
               </Heading>
-              {hasRemainingSamples && (
-                <>
-                  <Box margin={{ vertical: 'medium' }}>
-                    <InfoViewMyDataset newTab />
-                  </Box>
-                  <Paragraph>
-                    You've already added the following to My Dataset:
-                  </Paragraph>
-                  <Box
-                    as="ul"
-                    margin={{ top: '0' }}
-                    pad={{ left: '26px' }}
-                    style={{ listStyle: 'disc' }}
-                  >
-                    {addedSingleCellCount > 0 && (
-                      <Box as="li" style={{ display: 'list-item' }}>
-                        {addedSingleCellText}
-                      </Box>
-                    )}
-
-                    {project.has_spatial_data && addedSpatialCount > 0 && (
-                      <Box as="li" style={{ display: 'list-item' }}>
-                        {addedSpatialText}
-                      </Box>
-                    )}
-
-                    {projectDataInMyDataset?.includes_bulk && (
-                      <Box as="li" style={{ display: 'list-item' }}>
-                        All bulk RNA-seq data in the project
-                      </Box>
-                    )}
-                  </Box>
-                </>
+              {projectDataInMyDataset && (
+                <DatasetAddProjectModalRemainingContent
+                  project={project}
+                  remainingSamples={remainingSamples}
+                />
               )}
               <Box pad={{ top: 'large' }}>
                 <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
                   <DatasetDataFormatOptions project={project} />
                   <DatasetProjectModalityOptions
                     project={project}
-                    remainingSamples={
-                      hasRemainingSamples ? remainingSamples : null
-                    }
+                    remainingSamples={remainingSamples}
                     modalities={modalities}
                     onModalitiesChange={setModalities}
                   />
                   <DatasetProjectAdditionalOptions
                     project={project}
-                    remainingSamples={
-                      hasRemainingSamples ? remainingSamples : null
-                    }
+                    remainingSamples={remainingSamples}
                     selectedFormat={userFormat}
                     selectedModalities={modalities}
                     excludeMultiplexed={excludeMultiplexed}
