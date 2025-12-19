@@ -25,7 +25,7 @@ export const DatasetSamplesProjectOptions = ({
           checked={includeBulk}
           disabled={
             !project.has_bulk_rna_seq ||
-            myDataset.data?.[project.scpca_id]?.includes_bulk
+            !!myDataset.data?.[project.scpca_id]?.includes_bulk
           }
           onChange={({ target: { checked } }) => onIncludeBulkChange(checked)}
         />
