@@ -7,7 +7,6 @@ import { useMyDataset } from 'hooks/useMyDataset'
 import { Badge } from 'components/Badge'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
-import { Icon } from 'components/Icon'
 import { InfoText } from 'components/InfoText'
 import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
 import { Link } from 'components/Link'
@@ -26,10 +25,6 @@ export const ProjectHeader = ({ project, linked = false }) => {
   const [samples, setSamples] = useState(project.samples)
   const [remainingSamples, setRemainingSamples] = useState(null)
   const [isProjectInMyDataset, setIsProjectInMyDataset] = useState(false)
-  const [projectState, setProjectState] = useState({
-    all: false,
-    some: false
-  })
 
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
   const unavailableSampleCountText =
@@ -38,6 +33,10 @@ export const ProjectHeader = ({ project, linked = false }) => {
   const modalitiesExcludingSingleCell = project.modalities.filter(
     (m) => m !== 'SINGLE_CELL'
   )
+
+  const hasRemainingSamples =
+    remainingSamples?.SINGLE_CELL?.length > 0 ||
+    remainingSamples?.SPATIAL?.length > 0
 
   useEffect(() => {
     setIsProjectInMyDataset(getHasProject(project))
@@ -67,20 +66,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
   useEffect(() => {
     if (!isProjectInMyDataset || !samples) return
     setRemainingSamples(getRemainingProjectSampleIds(project, samples))
-  }, [myDataset, samples])
-
-  // Determine the state of project based on their remaining samples
-  useEffect(() => {
-    if (!remainingSamples) return
-
-    const singleCellRemaining = remainingSamples.SINGLE_CELL.length
-    const spatialRemaining = remainingSamples.SPATIAL.length
-
-    setProjectState({
-      all: !singleCellRemaining && !spatialRemaining,
-      some: singleCellRemaining > 0 || spatialRemaining > 0
-    })
-  }, [remainingSamples])
+  }, [myDataset, samples, isProjectInMyDataset])
 
   return (
     <Box pad={responsive({ horizontal: 'medium' })}>
@@ -102,7 +88,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               {project.title}
             </Text>
           )}
-          {projectState.some && (
+          {hasRemainingSamples && (
             <Box margin={{ top: 'medium' }}>
               <InfoViewMyDataset />
             </Box>
@@ -116,23 +102,10 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none') }}
         >
           <Box align="center" gap="small">
-            {remainingSamples && projectState.all ? (
-              <Box
-                direction="row"
-                align="center"
-                gap="small"
-                margin={{ vertical: 'small' }}
-              >
-                <Icon color="success" name="Check" />
-                <Text color="success">Added to Dataset</Text>
-              </Box>
-            ) : (
-              <DatasetAddProjectModal
-                project={project}
-                projectState={projectState}
-                remainingSamples={remainingSamples}
-              />
-            )}
+            <DatasetAddProjectModal
+              project={project}
+              remainingSamples={remainingSamples}
+            />
             <CCDLDatasetDownloadModal label="Download Now" secondary />
             {project.has_bulk_rna_seq && (
               <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
