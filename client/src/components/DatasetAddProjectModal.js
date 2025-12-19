@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Grid, Heading, Paragraph } from 'grommet'
+import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { getProjectModalities } from 'helpers/getProjectModalities'
@@ -10,12 +10,19 @@ import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditi
 import { DatasetProjectModalityOptions } from 'components/DatasetProjectModalityOptions'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
 import { DatasetWarningMissingSamples } from 'components/DatasetWarningMissingSamples'
+import { Icon } from 'components/Icon'
 import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
 import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 
+/*
+This component renders three states:
+- Add to Dataset (when no project samples have been added)
+- Add Remaining (when some project samples have been added)
+- Added to Dataset (when all project samples have been added)
+*/
+
 export const DatasetAddProjectModal = ({
   project,
-  projectState,
   remainingSamples,
   disabled = false
 }) => {
@@ -53,9 +60,9 @@ export const DatasetAddProjectModal = ({
   )
   const [sampleDifference, setSampleDifference] = useState([])
 
-  // For the add remaining button
+  // For the button states
   const [projectDataInMyDataset, setProjectDataInMyDataset] = useState(null)
-  const someAdded = projectState?.some
+  const [hasRemainingSamples, setHasRemainingSamples] = useState(false)
   const addedSingleCellCount = projectDataInMyDataset?.SINGLE_CELL?.length
   const addedSpatialCount = projectDataInMyDataset?.SPATIAL?.length
   const addedSingleCellText =
@@ -68,8 +75,8 @@ export const DatasetAddProjectModal = ({
     remainingSamples?.SPATIAL.length === 0 ? 'All' : ''
   } ${addedSpatialCount} samples with spatial modality`
 
-  const btnLabel = projectState.some ? 'Add Remaining' : 'Add to Dataset'
-  const modalTitle = projectState.some
+  const btnLabel = hasRemainingSamples ? 'Add Remaining' : 'Add to Dataset'
+  const modalTitle = hasRemainingSamples
     ? 'Add Remaining Samples to Dataset'
     : 'Add Project to Dataset'
 
@@ -95,12 +102,12 @@ export const DatasetAddProjectModal = ({
     includes_merged_anndata: includesMergedAnnData
   } = project
   useEffect(() => {
-    const bulkValue = someAdded
+    const bulkValue = hasRemainingSamples
       ? projectDataInMyDataset?.includes_bulk
       : defaultProjectOptions.includeBulk
     setIncludeBulk(hasBulkRnaSeq ? bulkValue : false)
 
-    const mergedValue = someAdded
+    const mergedValue = hasRemainingSamples
       ? projectDataInMyDataset?.SINGLE_CELL === 'MERGED'
       : defaultProjectOptions.includeMerge
     setIncludeMerge(
@@ -137,11 +144,18 @@ export const DatasetAddProjectModal = ({
     if (!samples.length && showing) asyncFetch()
   }, [showing])
 
-  //  Get the project data in myDataset for the add remaining button
+  //  Get the project data in myDataset for the Add Remaining state
   useEffect(() => {
-    if (!someAdded) return
     setProjectDataInMyDataset(getDatasetProjectData(project))
   }, [myDataset, samples])
+
+  useEffect(() => {
+    if (!remainingSamples) return
+    setHasRemainingSamples(
+      remainingSamples.SINGLE_CELL.length > 0 ||
+        remainingSamples.SPATIAL.length > 0
+    )
+  }, [remainingSamples])
 
   // Populate the project data for addProject
   useEffect(() => {
@@ -193,105 +207,123 @@ export const DatasetAddProjectModal = ({
 
   return (
     <>
-      <Button
-        aria-label={btnLabel}
-        flex="grow"
-        primary={!someAdded}
-        secondary={someAdded}
-        label={btnLabel}
-        disabled={disabled}
-        onClick={() => setShowing(true)}
-      />
-      <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
-        <ModalBody>
-          {!samples.length ? (
-            <ModalLoader />
-          ) : (
-            <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
-              <Heading level="3" size="small" margin={{ top: '0' }}>
-                Download Options
-              </Heading>
-              {someAdded && (
-                <>
-                  <Box margin={{ vertical: 'medium' }}>
-                    <InfoViewMyDataset newTab />
-                  </Box>
-                  <Paragraph>
-                    You've already added the following to My Dataset:
-                  </Paragraph>
-                  <Box
-                    as="ul"
-                    margin={{ top: '0' }}
-                    pad={{ left: '26px' }}
-                    style={{ listStyle: 'disc' }}
-                  >
-                    {addedSingleCellCount > 0 && (
-                      <Box as="li" style={{ display: 'list-item' }}>
-                        {addedSingleCellText}
+      {remainingSamples && !hasRemainingSamples ? (
+        <Box
+          direction="row"
+          align="center"
+          gap="small"
+          margin={{ vertical: 'small' }}
+        >
+          <Icon color="success" name="Check" />
+          <Text color="success">Added to Dataset</Text>
+        </Box>
+      ) : (
+        <>
+          <Button
+            aria-label={btnLabel}
+            flex="grow"
+            primary={!hasRemainingSamples}
+            secondary={hasRemainingSamples}
+            label={btnLabel}
+            disabled={disabled}
+            onClick={() => setShowing(true)}
+          />
+          <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
+            <ModalBody>
+              {!samples.length ? (
+                <ModalLoader />
+              ) : (
+                <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
+                  <Heading level="3" size="small" margin={{ top: '0' }}>
+                    Download Options
+                  </Heading>
+                  {hasRemainingSamples && (
+                    <>
+                      <Box margin={{ vertical: 'medium' }}>
+                        <InfoViewMyDataset newTab />
                       </Box>
-                    )}
+                      <Paragraph>
+                        You've already added the following to My Dataset:
+                      </Paragraph>
+                      <Box
+                        as="ul"
+                        margin={{ top: '0' }}
+                        pad={{ left: '26px' }}
+                        style={{ listStyle: 'disc' }}
+                      >
+                        {addedSingleCellCount > 0 && (
+                          <Box as="li" style={{ display: 'list-item' }}>
+                            {addedSingleCellText}
+                          </Box>
+                        )}
 
-                    {project.has_spatial_data && addedSpatialCount > 0 && (
-                      <Box as="li" style={{ display: 'list-item' }}>
-                        {addedSpatialText}
-                      </Box>
-                    )}
+                        {project.has_spatial_data && addedSpatialCount > 0 && (
+                          <Box as="li" style={{ display: 'list-item' }}>
+                            {addedSpatialText}
+                          </Box>
+                        )}
 
-                    {projectDataInMyDataset?.includes_bulk && (
-                      <Box as="li" style={{ display: 'list-item' }}>
-                        All bulk RNA-seq data in the project
+                        {projectDataInMyDataset?.includes_bulk && (
+                          <Box as="li" style={{ display: 'list-item' }}>
+                            All bulk RNA-seq data in the project
+                          </Box>
+                        )}
                       </Box>
-                    )}
-                  </Box>
-                </>
-              )}
-              <Box pad={{ top: 'large' }}>
-                <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
-                  <DatasetDataFormatOptions project={project} />
-                  <DatasetProjectModalityOptions
-                    project={project}
-                    remainingSamples={someAdded ? remainingSamples : null}
-                    modalities={modalities}
-                    onModalitiesChange={setModalities}
-                  />
-                  <DatasetProjectAdditionalOptions
-                    project={project}
-                    remainingSamples={someAdded ? remainingSamples : null}
-                    selectedFormat={userFormat}
-                    selectedModalities={modalities}
-                    excludeMultiplexed={excludeMultiplexed}
-                    includeBulk={includeBulk}
-                    includeMerge={includeMerge}
-                    onExcludeMultiplexedChange={setExcludeMultiplexed}
-                    onIncludeBulkChange={setIncludeBulk}
-                    onIncludeMergeChange={setIncludeMerge}
-                  />
-                </Box>
-                <Box
-                  align="center"
-                  direction={responsive('column', 'row')}
-                  gap="xlarge"
-                >
-                  <Button
-                    primary
-                    aria-label={btnLabel}
-                    label={btnLabel}
-                    loading={loading}
-                    disabled={!canClickAddProject}
-                    onClick={handleAddProject}
-                  />
-                  {sampleDifference.length > 0 && (
-                    <DatasetWarningMissingSamples
-                      project={project}
-                      sampleCount={sampleDifference.length}
-                    />
+                    </>
                   )}
-                </Box>
-              </Box>
-            </Grid>
-          )}
-        </ModalBody>
-      </Modal>
+                  <Box pad={{ top: 'large' }}>
+                    <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
+                      <DatasetDataFormatOptions project={project} />
+                      <DatasetProjectModalityOptions
+                        project={project}
+                        remainingSamples={
+                          hasRemainingSamples ? remainingSamples : null
+                        }
+                        modalities={modalities}
+                        onModalitiesChange={setModalities}
+                      />
+                      <DatasetProjectAdditionalOptions
+                        project={project}
+                        remainingSamples={
+                          hasRemainingSamples ? remainingSamples : null
+                        }
+                        selectedFormat={userFormat}
+                        selectedModalities={modalities}
+                        excludeMultiplexed={excludeMultiplexed}
+                        includeBulk={includeBulk}
+                        includeMerge={includeMerge}
+                        onExcludeMultiplexedChange={setExcludeMultiplexed}
+                        onIncludeBulkChange={setIncludeBulk}
+                        onIncludeMergeChange={setIncludeMerge}
+                      />
+                    </Box>
+                    <Box
+                      align="center"
+                      direction={responsive('column', 'row')}
+                      gap="xlarge"
+                    >
+                      <Button
+                        primary
+                        aria-label={btnLabel}
+                        label={btnLabel}
+                        loading={loading}
+                        disabled={!canClickAddProject}
+                        onClick={handleAddProject}
+                      />
+                      {sampleDifference.length > 0 && (
+                        <DatasetWarningMissingSamples
+                          project={project}
+                          sampleCount={sampleDifference.length}
+                        />
+                      )}
+                    </Box>
+                  </Box>
+                </Grid>
+              )}
+            </ModalBody>
+          </Modal>
+        </>
+      )}
     </>
   )
 }
