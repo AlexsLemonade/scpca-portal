@@ -37,8 +37,7 @@ export const DatasetRemoveAllModal = ({
           gridArea="title"
           width="full"
           height={{ min: 'min-content' }}
-          pad={{ left: 'medium' }}
-          margin={{ bottom: '24px' }}
+          pad="medium"
         >
           <WarningText
             lineBreak={false}
@@ -46,7 +45,7 @@ export const DatasetRemoveAllModal = ({
             iconSize="24px"
             margin={false}
           >
-            <Text size="xlarge">{title}</Text>
+            <Text size="21px">{title}</Text>
           </WarningText>
         </Box>
         <ModalBody>
@@ -55,7 +54,7 @@ export const DatasetRemoveAllModal = ({
             direction="row"
             gap="xlarge"
             justify="end"
-            margin={{ top: 'large' }}
+            margin={{ top: 'small' }}
           >
             <Button
               aria-label="No, keep all projects"
