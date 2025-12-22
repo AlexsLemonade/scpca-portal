@@ -164,9 +164,15 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       }
     }
 
-    if (downloadDataset && !downloadableDataset && token && showing)
+    if (
+      downloadDataset &&
+      !downloadableDataset &&
+      selectedDataset &&
+      token &&
+      showing
+    )
       asyncFetch()
-  }, [downloadDataset, downloadableDataset, token, showing])
+  }, [downloadDataset, downloadableDataset, selectedDataset, token, showing])
 
   // reset to selection on close
   useEffect(() => {
