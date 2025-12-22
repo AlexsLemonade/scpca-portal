@@ -46,9 +46,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setIncludesMerged(null)
       setExcludeMultiplexed(null)
 
-      setDownloadDataset(false)
-      setDownloadableDataset(null)
-
       setIsMergedObjectsAvailable(null)
       setIsMultiplexedAvailable(null)
 
@@ -72,6 +69,10 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         datasets.some((dataset) => dataset.includes_files_multiplexed)
       )
     }
+
+    // reset download state vars on datasets change
+    setDownloadDataset(false)
+    setDownloadableDataset(null)
   }, [datasets])
 
   // on modality change, set format and merged available defaults
