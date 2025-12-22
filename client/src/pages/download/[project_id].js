@@ -30,7 +30,7 @@ export const ViewEditSamples = ({ project }) => {
   //  Set up the dataset table and options after component mounts
   useEffect(() => {
     // Check to see if myDataset exists or if project was removed from myDataset
-    if (!myDataset || !myDataset.data[project.scpca_id]) return
+    if (!myDataset?.data[project.scpca_id]) return
     // Filter to display only samples from My Dataset
     setSamples(getAddedProjectDataSamples(project))
     // Preselect download options based on the values in myDataset
