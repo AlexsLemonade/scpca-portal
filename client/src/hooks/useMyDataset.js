@@ -359,12 +359,13 @@ export const useMyDataset = () => {
   const setSamples = async (project, newProjectData, format) => {
     const datasetDataCopy = structuredClone(myDataset.data) || {}
 
-    datasetDataCopy[project.scpca_id] = newProjectData
+    delete datasetDataCopy[project.scpca_id]
+    // Only add projects with requested samples
     if (
-      newProjectData.SINGLE_CELL?.length === 0 &&
-      newProjectData.SPATIAL?.length === 0
+      newProjectData.SINGLE_CELL?.length > 0 ||
+      newProjectData.SPATIAL?.length > 0
     ) {
-      delete datasetDataCopy[project.scpca_id]
+      datasetDataCopy[project.scpca_id] = newProjectData
     }
 
     const updatedDataset = {
