@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Text } from 'grommet'
 import { Icon } from 'components/Icon'
 
+// This UI component is shown when all samples have been added to myDataset
 export const DatasetAddProjectModalAddedContent = () => (
   <Box
     direction="row"

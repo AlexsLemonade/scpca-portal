@@ -3,6 +3,9 @@ import { Box, Paragraph } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
 
+// This UI component is only shown for the 'Add Remaining' button
+// - Display the info message to view My Dataset
+// - Display the already added samples in My Dataset
 export const DatasetAddProjectModalRemainingContent = ({
   project,
   remainingSamples

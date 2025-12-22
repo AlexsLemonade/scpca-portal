@@ -23,7 +23,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
 
   // For the dataset action button condition
   const [samples, setSamples] = useState(project.samples) // TODOL: Remove this after API update
-  const [remainingSamples, setRemainingSamples] = useState(null)
+  const [remainingSamples, setRemainingSamples] = useState(null) // Populated only if the dataset data in myDataset
   const [isProjectInMyDataset, setIsProjectInMyDataset] = useState(false)
 
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
@@ -43,7 +43,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
   }, [myDataset])
 
   // TODOL: Remove fetching samples after API update
-  // Fetch sample objects on the Browse page only if the project is in My Dataset
+  // Fetch sample objects on the Browse page only if the project data is in myDataset
   useEffect(() => {
     if (!isProjectInMyDataset) return
     // We get either sample IDs (on Browse) or sample objects (on View Project)
@@ -62,8 +62,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
     if (isBrowse) asyncFetch()
   }, [isProjectInMyDataset])
 
-  // Get remaining project samples that have not yet been not added
-  // if the project data is present in myDataset
+  // Get remaining samples not added yet if project data is in myDataset
   useEffect(() => {
     if (!isProjectInMyDataset || !samples) return
     setRemainingSamples(getRemainingProjectSampleIds(project, samples))

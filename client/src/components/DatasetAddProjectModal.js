@@ -15,10 +15,9 @@ import { DatasetWarningMissingSamples } from 'components/DatasetWarningMissingSa
 import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 
 // Three states: Add to Dataset (no samples added), Add Remaining (some samples added), Added to Dataset (all samples added)
-
 export const DatasetAddProjectModal = ({
   project,
-  remainingSamples,
+  remainingSamples = null, // Populated only if the project data in myDataset
   disabled = false
 }) => {
   const {
@@ -57,7 +56,7 @@ export const DatasetAddProjectModal = ({
   const [sampleDifference, setSampleDifference] = useState([])
 
   // For the button states
-  const [projectDataInMyDataset, setProjectDataInMyDataset] = useState(null)
+  const [myDatasetProjectData, setMyDatasetProjectData] = useState(null)
   const [hasRemainingSamples, setHasRemainingSamples] = useState(false)
 
   const btnLabel = hasRemainingSamples ? 'Add Remaining' : 'Add to Dataset'
@@ -83,11 +82,11 @@ export const DatasetAddProjectModal = ({
   // Set default additional options based on project
   useEffect(() => {
     const bulkValue =
-      projectDataInMyDataset?.includes_bulk || defaultProjectOptions.includeBulk
+      myDatasetProjectData?.includes_bulk || defaultProjectOptions.includeBulk
     setIncludeBulk(project.has_bulk_rna_seq ? bulkValue : false)
 
     const mergedValue =
-      projectDataInMyDataset?.SINGLE_CELL === 'MERGED' ||
+      myDatasetProjectData?.SINGLE_CELL === 'MERGED' ||
       defaultProjectOptions.includeMerge
     setIncludeMerge(
       project.includes_merged_sce || project.includes_merged_anndata
@@ -127,7 +126,7 @@ export const DatasetAddProjectModal = ({
   }, [showing])
 
   useEffect(() => {
-    setProjectDataInMyDataset(getDatasetProjectData(project))
+    setMyDatasetProjectData(getDatasetProjectData(project))
   }, [myDataset, samples])
 
   useEffect(() => {
@@ -158,14 +157,14 @@ export const DatasetAddProjectModal = ({
         getProjectSingleCellSamples(samples, includeMerge, excludeMultiplexed)
       )
     } else {
-      setSingleCellSamples(projectDataInMyDataset?.SINGLE_CELL || [])
+      setSingleCellSamples(myDatasetProjectData?.SINGLE_CELL || [])
     }
   }, [
     excludeMultiplexed,
     includeMerge,
     modalities,
     samples,
-    projectDataInMyDataset
+    myDatasetProjectData
   ])
 
   // Update spatialSamples based on user selections
@@ -173,18 +172,14 @@ export const DatasetAddProjectModal = ({
     if (modalities.includes('SPATIAL')) {
       setSpatialSamples(getProjectSpatialSamples(samples))
     } else {
-      setSpatialSamples(projectDataInMyDataset?.SPATIAL || [])
+      setSpatialSamples(myDatasetProjectData?.SPATIAL || [])
     }
-  }, [modalities, samples, projectDataInMyDataset])
+  }, [modalities, samples, myDatasetProjectData])
 
   // Calculate missing modality samples
   useEffect(() => {
     setSampleDifference(getMissingModaliesSamples(samples, modalities))
   }, [modalities, samples])
-
-  if (remainingSamples && !hasRemainingSamples) {
-    return <DatasetAddProjectModalAddedContent />
-  }
 
   return (
     <>
@@ -202,60 +197,68 @@ export const DatasetAddProjectModal = ({
           {!samples.length ? (
             <ModalLoader />
           ) : (
-            <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
-              <Heading level="3" size="small" margin={{ top: '0' }}>
-                Download Options
-              </Heading>
-              {projectDataInMyDataset && (
-                <DatasetAddProjectModalRemainingContent
-                  project={project}
-                  remainingSamples={remainingSamples}
-                />
-              )}
-              <Box pad={{ top: 'large' }}>
-                <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
-                  <DatasetDataFormatOptions project={project} />
-                  <DatasetProjectModalityOptions
-                    project={project}
-                    remainingSamples={remainingSamples}
-                    modalities={modalities}
-                    onModalitiesChange={setModalities}
-                  />
-                  <DatasetProjectAdditionalOptions
-                    project={project}
-                    remainingSamples={remainingSamples}
-                    selectedFormat={userFormat}
-                    selectedModalities={modalities}
-                    excludeMultiplexed={excludeMultiplexed}
-                    includeBulk={includeBulk}
-                    includeMerge={includeMerge}
-                    onExcludeMultiplexedChange={setExcludeMultiplexed}
-                    onIncludeBulkChange={setIncludeBulk}
-                    onIncludeMergeChange={setIncludeMerge}
-                  />
-                </Box>
-                <Box
-                  align="center"
-                  direction={responsive('column', 'row')}
-                  gap="xlarge"
-                >
-                  <Button
-                    primary
-                    aria-label={btnLabel}
-                    label={btnLabel}
-                    loading={loading}
-                    disabled={!canClickAddProject}
-                    onClick={handleAddProject}
-                  />
-                  {sampleDifference.length > 0 && (
-                    <DatasetWarningMissingSamples
+            <>
+              {/* // TODO: Use early return after s after API update
+              // Temporarily using ternary to prevent UI flash */}
+              {remainingSamples && !hasRemainingSamples ? (
+                <DatasetAddProjectModalAddedContent />
+              ) : (
+                <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
+                  <Heading level="3" size="small" margin={{ top: '0' }}>
+                    Download Options
+                  </Heading>
+                  {myDatasetProjectData && (
+                    <DatasetAddProjectModalRemainingContent
                       project={project}
-                      sampleCount={sampleDifference.length}
+                      remainingSamples={remainingSamples}
                     />
                   )}
-                </Box>
-              </Box>
-            </Grid>
+                  <Box pad={{ top: 'large' }}>
+                    <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
+                      <DatasetDataFormatOptions project={project} />
+                      <DatasetProjectModalityOptions
+                        project={project}
+                        remainingSamples={remainingSamples}
+                        modalities={modalities}
+                        onModalitiesChange={setModalities}
+                      />
+                      <DatasetProjectAdditionalOptions
+                        project={project}
+                        remainingSamples={remainingSamples}
+                        selectedFormat={userFormat}
+                        selectedModalities={modalities}
+                        excludeMultiplexed={excludeMultiplexed}
+                        includeBulk={includeBulk}
+                        includeMerge={includeMerge}
+                        onExcludeMultiplexedChange={setExcludeMultiplexed}
+                        onIncludeBulkChange={setIncludeBulk}
+                        onIncludeMergeChange={setIncludeMerge}
+                      />
+                    </Box>
+                    <Box
+                      align="center"
+                      direction={responsive('column', 'row')}
+                      gap="xlarge"
+                    >
+                      <Button
+                        primary
+                        aria-label={btnLabel}
+                        label={btnLabel}
+                        loading={loading}
+                        disabled={!canClickAddProject}
+                        onClick={handleAddProject}
+                      />
+                      {sampleDifference.length > 0 && (
+                        <DatasetWarningMissingSamples
+                          project={project}
+                          sampleCount={sampleDifference.length}
+                        />
+                      )}
+                    </Box>
+                  </Box>
+                </Grid>
+              )}
+            </>
           )}
         </ModalBody>
       </Modal>
