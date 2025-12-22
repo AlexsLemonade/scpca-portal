@@ -28,11 +28,18 @@ class Command(BaseCommand):
             action=BooleanOptionalAction,
             help=ignore_hash_help_text,
         )
+        parser.add_argument(
+            "--retry-failed-jobs",
+            type=bool,
+            default=True,
+            action=BooleanOptionalAction,
+            help=ignore_hash_help_text,
+        )
 
     def handle(self, *args, **kwargs):
         self.create_ccdl_datasets(**kwargs)
 
-    def create_ccdl_datasets(self, ignore_hash, **kwargs) -> None:
+    def create_ccdl_datasets(self, ignore_hash, retry_failed_jobs, **kwargs) -> None:
         created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets(
             ignore_hash=ignore_hash
         )
@@ -55,3 +62,7 @@ class Command(BaseCommand):
                 f"{failed_count} job{pluralize(failed_count)} failed: "
                 ", ".join(failed_job.pk for failed_job in failed_jobs)
             )
+            if retry_failed_jobs:
+                logger.info("Failed jobs added to retry queue.")
+                for failed_job in failed_jobs:
+                    failed_job.increment_attempt_or_fail()
