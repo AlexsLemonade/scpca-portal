@@ -48,6 +48,7 @@ export default {
     disabled: undefined
   },
   extend: ({ danger, plain, disabled, loading, theme }) => `
+    position: relative;
     white-space: nowrap;
     ${
       danger &&
@@ -68,9 +69,6 @@ export default {
     ${
       loading &&
       `
-      > div {
-        margin: 0 auto;
-      }
       background: ${theme.global.colors['black-tint-90']};
       border: ${theme.global.colors['black-tint-90']} 1px solid;
       &:hover {

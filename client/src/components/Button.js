@@ -1,17 +1,39 @@
 import React from 'react'
-import { Button as GrommetButton, Spinner } from 'grommet'
+import {
+  Button as GrommetButton,
+  Spinner as GrommetSpinner,
+  Text
+} from 'grommet'
 import { useWaitForAsync } from 'hooks/useWaitForAsync'
+import styled, { css } from 'styled-components'
 
-const LoadingSpinner = () => {
-  return (
-    <Spinner
-      border={[
-        { side: 'all', color: 'white', size: 'small' },
-        { side: 'right', color: 'transparent', size: 'small' }
-      ]}
-    />
-  )
-}
+const ButtonText = styled(Text)`
+  ${({ loading }) =>
+    css`
+      visibility: ${loading ? 'hidden' : 'visible'};
+    `}
+`
+
+const ButtonSpinner = styled(GrommetSpinner)`
+  border-color: white;
+  border-width: 3px;
+  border-right-color: transparent;
+  position: absolute;
+  top: 10%;
+  left: 40%;
+  transform: translate(-10%, -40%);
+  ${({ loading }) =>
+    css`
+      visibility: ${loading ? 'visible' : 'hidden'};
+    `}
+`
+
+const ButtonLabel = ({ label, loading }) => (
+  <>
+    <ButtonText loading={loading}>{label}</ButtonText>
+    <ButtonSpinner loading={loading} />
+  </>
+)
 
 export const Button = ({
   label,
@@ -26,8 +48,7 @@ export const Button = ({
     <GrommetButton
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
-      icon={loading ? <LoadingSpinner /> : undefined}
-      label={loading ? undefined : label}
+      label={<ButtonLabel label={label} loading={loading} />}
       onClick={asyncOnClick}
       disabled={disabled}
       loading={loading}
