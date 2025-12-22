@@ -21,6 +21,12 @@ class Command(BaseCommand):
         By default, datasets are only processed if they are new or their hash has changed.
         Ignore hash forces reprocessing even when the hash has not changed.
         """
+        retry_failed_jobs_help_text = """
+        Retry failed jobs adds the failed jobs to the retry queue.
+        Queued jobs are picked up by the submit_pending command.
+        By default, failed jobs are queued.
+        """
+
         parser.add_argument(
             "--ignore-hash",
             type=bool,
@@ -33,7 +39,7 @@ class Command(BaseCommand):
             type=bool,
             default=True,
             action=BooleanOptionalAction,
-            help=ignore_hash_help_text,
+            help=retry_failed_jobs_help_text,
         )
 
     def handle(self, *args, **kwargs):
