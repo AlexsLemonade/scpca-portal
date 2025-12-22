@@ -33,7 +33,7 @@ const Dataset = ({ dataset }) => {
     if (dataset.id === myDataset.id) {
       push(`/download`)
     }
-  }, [])
+  }, [dataset, myDataset])
 
   return (
     <>
