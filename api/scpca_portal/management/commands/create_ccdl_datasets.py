@@ -43,9 +43,15 @@ class Command(BaseCommand):
             updated_count = len(updated_datasets)
             logger.info(f"{updated_count} existing dataset{pluralize(updated_count)} updated.")
 
-        submitted_jobs, _ = Job.submit_ccdl_datasets(created_datasets + updated_datasets)
+        submitted_jobs, failed_jobs = Job.submit_ccdl_datasets(created_datasets + updated_datasets)
         if submitted_jobs:
             submitted_count = len(submitted_jobs)
             logger.info(
                 f"{submitted_count} job{pluralize(submitted_count)} submitted successfully."
+            )
+        if failed_jobs:
+            failed_count = len(submitted_jobs)
+            logger.info(
+                f"{failed_count} job{pluralize(failed_count)} failed: "
+                ", ".join(failed_job.pk for failed_job in failed_jobs)
             )

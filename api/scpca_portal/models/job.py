@@ -452,7 +452,6 @@ class Job(TimestampedModel):
                 job.submit()
                 submitted_jobs.append(job)
             except (DatasetError, JobError):
-                logger.info(f"{job.dataset} job (attempt {job.attempt}) is being requeued.")
                 job.increment_attempt_or_fail()
                 failed_jobs.append(dataset)
 
