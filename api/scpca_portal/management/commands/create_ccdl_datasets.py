@@ -57,12 +57,12 @@ class Command(BaseCommand):
                 f"{submitted_count} job{pluralize(submitted_count)} submitted successfully."
             )
         if failed_jobs:
-            failed_count = len(submitted_jobs)
+            failed_count = len(failed_jobs)
             logger.info(
                 f"{failed_count} job{pluralize(failed_count)} failed: "
                 ", ".join(failed_job.pk for failed_job in failed_jobs)
             )
             if retry_failed_jobs:
-                logger.info("Failed jobs added to retry queue.")
                 for failed_job in failed_jobs:
                     failed_job.increment_attempt_or_fail()
+                logger.info("Failed jobs added to retry queue.")
