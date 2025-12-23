@@ -66,7 +66,7 @@ class Command(BaseCommand):
             failed_count = len(failed_jobs)
             logger.info(
                 f"{failed_count} job{pluralize(failed_count)} failed: "
-                ", ".join(failed_job.pk for failed_job in failed_jobs)
+                ", ".join([str(failed_job) for failed_job in failed_jobs])
             )
             if retry_failed_jobs:
                 for failed_job in failed_jobs:
