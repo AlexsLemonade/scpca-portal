@@ -49,9 +49,8 @@ export const Button = ({
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
       label={<ButtonLabel label={label} loading={loading} />}
-      onClick={asyncOnClick}
       disabled={disabled}
-      loading={loading}
+      onClick={asyncOnClick}
     />
   )
 }
