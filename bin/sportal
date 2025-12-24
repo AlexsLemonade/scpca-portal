@@ -32,7 +32,7 @@ DEPLOY_ENVS = {
     "DATABASE_PASSWORD": "used for api instance",
     "DJANGO_SECRET_KEY": "used for api instance",
     "SENTRY_DSN": "used for api sentry",
-    "SLACK_CCDL_TEST_CHANNEL_EMAIL": "used for testing email",
+    "SLACK_NOTIFICATIONS_EMAIL": "Adress to send messages to slack. Use testing channels.",
     "AWS_ACCESS_KEY_ID": "AWS credential accessing input bucket or any project resources.",
     "AWS_SECRET_ACCESS_KEY": "AWS credential accessing input bucket or any project resources.",
     "ENABLE_FEATURE_PREVIEW": "Turn on in-progress features. You probably want this set to True",

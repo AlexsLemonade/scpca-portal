@@ -107,7 +107,7 @@ def string_from_list(value: Any, delimiter=";") -> Any:
     return delimiter.join(value) if isinstance(value, list) else value
 
 
-def join_workflow_versions(workflow_versions: Set) -> str:
+def join_workflow_versions(workflow_versions: Iterable) -> str:
     """Returns list of sorted unique workflow versions."""
 
     return ", ".join(sorted(set(workflow_versions)))
@@ -119,6 +119,19 @@ def get_chunk_list(list: List[Any], size: int) -> Generator[List[Any], None, Non
     """
     for i in range(0, len(list), size):
         yield list[i : i + size]
+
+
+def get_docs_url(path: str) -> str:
+    """
+    Returns the full ScPCA docs URL for the given path.
+    """
+    DOCS_BASE = "https://scpca.readthedocs.io/en"
+    DOCS_VERSION = "stable"
+
+    if settings.ENABLE_FEATURE_PREVIEW:
+        DOCS_VERSION = "development"
+
+    return f"{DOCS_BASE}/{DOCS_VERSION}/{path}"
 
 
 def get_today_string(format: str = "%Y-%m-%d") -> str:
@@ -249,7 +262,15 @@ def format_bytes(size_in_bytes: int) -> str:
 
     sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
     i = math.floor(math.log(size_in_bytes) / math.log(k))
-    return f"{size_in_bytes / k**i:.2f} {sizes[i]}"
+    scaled_size = size_in_bytes / k**i
+
+    float_format = f"{scaled_size:.2f}"
+    int_format = str(int(scaled_size))
+
+    if float_format == f"{int_format}.00":
+        return f"{int_format} {sizes[i]}"
+
+    return f"{float_format} {sizes[i]}"
 
 
 def hash_values(values: List[str]) -> str:
