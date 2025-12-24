@@ -145,15 +145,12 @@ def get_env(script_args: dict):
 def create_ssh_private_key_file():
     # Create a key file from env var
     with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
-        private_key_file.write(os.environ["SSH_PRIVATE_KEY"])
+        # this is missing the newline at the end
+        private_key_string = os.environ["SSH_PRIVATE_KEY"]
+        if not private_key_string.endswith("\n"):
+            private_key_string += "\n"
 
-    with open(PRIVATE_KEY_FILE_PATH, "r") as file:
-        lines = file.readlines()
-        print(lines[0])
-        print(lines[-1])
-        print(len(lines))
-        for line in lines:
-            print(len(line))
+        private_key_file.write(private_key_string)
 
     os.chmod(PRIVATE_KEY_FILE_PATH, 0o600)
 
