@@ -1,21 +1,30 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { DatasetProjectCard } from 'components/DatasetProjectCard'
+import { DatasetRemoveAllModal } from 'components/DatasetRemoveAllModal'
 
-export const DatasetProjectSummary = ({ dataset, readOnly = false }) => (
-  <Box margin={{ bottom: 'large' }}>
-    <Box
-      border={{ side: 'bottom', color: 'border-black', size: 'small' }}
-      margin={{ bottom: 'medium' }}
-      pad={{ bottom: 'small' }}
-    >
-      <Text serif size="large">
-        Project Summary
-      </Text>
-    </Box>
-    {Object.keys(dataset.data)
-      .sort()
-      .map((pId) => (
+export const DatasetProjectSummary = ({ dataset, readOnly = false }) => {
+  const projectKeys = Object.keys(dataset.data) || []
+
+  return (
+    <Box margin={{ bottom: 'large' }}>
+      <Box
+        direction="row"
+        border={{ side: 'bottom', color: 'border-black', size: 'small' }}
+        margin={{ bottom: 'medium' }}
+        pad={{ bottom: 'small' }}
+        justify="between"
+      >
+        <Text serif size="large">
+          Project Summary
+        </Text>
+        {projectKeys.length > 1 && (
+          <Box>
+            <DatasetRemoveAllModal />
+          </Box>
+        )}
+      </Box>
+      {projectKeys.sort().map((pId) => (
         <Box margin={{ bottom: 'large' }} key={pId}>
           <DatasetProjectCard
             dataset={dataset}
@@ -24,7 +33,8 @@ export const DatasetProjectSummary = ({ dataset, readOnly = false }) => (
           />
         </Box>
       ))}
-  </Box>
-)
+    </Box>
+  )
+}
 
 export default DatasetProjectSummary

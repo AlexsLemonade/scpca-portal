@@ -22,7 +22,6 @@ const Download = () => {
     prevMyDatasetFormat,
     setPrevMyDatasetFormat,
     errors,
-    getDataset,
     isDatasetDataEmpty
   } = useMyDataset()
   const { responsive } = useResponsive()
@@ -43,17 +42,10 @@ const Download = () => {
   useEffect(() => {
     if (!loading) {
       restoreScrollPosition()
-    }
-  }, [loading])
-
-  useEffect(() => {
-    const fetchDataset = async () => {
-      await getDataset()
+    } else {
       setLoading(false)
     }
-
-    if (loading) fetchDataset()
-  }, [loading, myDataset])
+  }, [loading])
 
   // Display a message if the format has changed
   useEffect(() => {

@@ -46,9 +46,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setIncludesMerged(null)
       setExcludeMultiplexed(null)
 
-      setDownloadDataset(false)
-      setDownloadableDataset(null)
-
       setIsMergedObjectsAvailable(null)
       setIsMultiplexedAvailable(null)
 
@@ -71,9 +68,11 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setIsMultiplexedAvailable(
         datasets.some((dataset) => dataset.includes_files_multiplexed)
       )
-
-      setDownloadDataset(datasets.length === 1)
     }
+
+    // reset download state vars on datasets change
+    setDownloadDataset(false)
+    setDownloadableDataset(null)
   }, [datasets])
 
   // on modality change, set format and merged available defaults
@@ -122,6 +121,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   useEffect(() => {
     if (datasets.length === 1) {
       setSelectedDataset(datasets[0])
+      setDownloadDataset(true)
       return
     }
 
@@ -165,9 +165,15 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       }
     }
 
-    if (downloadDataset && !downloadableDataset && token && showing)
+    if (
+      downloadDataset &&
+      !downloadableDataset &&
+      selectedDataset &&
+      token &&
+      showing
+    )
       asyncFetch()
-  }, [downloadDataset, downloadableDataset, token, showing])
+  }, [downloadDataset, downloadableDataset, selectedDataset, token, showing])
 
   // reset to selection on close
   useEffect(() => {

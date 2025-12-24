@@ -3,7 +3,9 @@ import { Box, Text } from 'grommet'
 import { api } from 'api'
 import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useDataset } from 'hooks/useDataset'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
+import { useRouter } from 'next/router'
 import { DatasetMoveSamplesModal } from 'components/DatasetMoveSamplesModal'
 import { DatasetHero } from 'components/DatasetHero'
 import { DatasetSummary } from 'components/DatasetSummary'
@@ -14,6 +16,8 @@ const Dataset = ({ dataset: initialDataset }) => {
   const { restoreScrollPosition } = useScrollRestore()
   const { responsive } = useResponsive()
   const { get, getDatasetState } = useDataset()
+  const { myDataset } = useMyDataset()
+  const { push } = useRouter()
 
   const pollTimer = useRef(null)
   const pollInterval = 1000 * 60
@@ -25,6 +29,13 @@ const Dataset = ({ dataset: initialDataset }) => {
   useEffect(() => {
     restoreScrollPosition()
   }, [])
+
+  // Add safeguard to prevent users from accessing active dataset
+  useEffect(() => {
+    if (dataset.id === myDataset.id) {
+      push(`/download`)
+    }
+  }, [dataset, myDataset])
 
   // TODO: We're temporarily polling in this component
   // Poll API during dataset processing
