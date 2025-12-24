@@ -6,7 +6,7 @@ import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useDataset = () => {
   const { token, email, setEmail } = useScPCAPortal()
-  const { errors, addError } = useContext(MyDatasetContext) // TODO: Removed once error handling is finalized
+  const { errors, setErrors } = useContext(MyDatasetContext) // TODO: Removed once error handling is finalized
 
   const getErrorMessage = (statusCode) => {
     const defaultMessage = 'An unexpected error occurred.'
@@ -28,7 +28,7 @@ export const useDataset = () => {
 
   const create = async (dataset) => {
     if (!dataset.format) {
-      addError('A format is required to create a dataset.')
+      setErrors('A format is required to create a dataset.')
       // TODO: Revise once error handling is finalized
       return null
     }
@@ -36,7 +36,7 @@ export const useDataset = () => {
     const datasetRequest = await api.datasets.create(dataset)
 
     if (!datasetRequest.isOk) {
-      addError(getErrorMessage(datasetRequest.status))
+      setErrors(getErrorMessage(datasetRequest.status))
       // TODO: Revise once error handling is finalized
       return null
     }
@@ -48,7 +48,7 @@ export const useDataset = () => {
     const datasetRequest = await api.datasets.get(dataset.id, downloadToken)
 
     if (!datasetRequest.isOk) {
-      addError(getErrorMessage(datasetRequest.status))
+      setErrors(getErrorMessage(datasetRequest.status))
       // TODO: Revise once error handling is finalized
       return null
     }
@@ -58,19 +58,19 @@ export const useDataset = () => {
 
   const process = async (dataset) => {
     if (!token) {
-      addError('A valid token is required to process the dataset')
+      setErrors('A valid token is required to process the dataset')
       return null
     }
 
     if (!email) {
-      addError('An email is required to process the dataset')
+      setErrors('An email is required to process the dataset')
       return null
     }
 
     const datasetRequest = await update({ ...dataset, email, start: true })
 
     if (!datasetRequest.isOk) {
-      addError(getErrorMessage(datasetRequest.status))
+      setErrors(getErrorMessage(datasetRequest.status))
       // TODO: Revise once error handling is finalized
       return null
     }
@@ -82,12 +82,12 @@ export const useDataset = () => {
 
   const regenerate = async (dataset) => {
     if (!token) {
-      addError('A valid token is required to process the dataset')
+      setErrors('A valid token is required to process the dataset')
       return null
     }
 
     if (!email) {
-      addError('An email is required to process the dataset')
+      setErrors('An email is required to process the dataset')
       return null
     }
 
@@ -98,7 +98,7 @@ export const useDataset = () => {
     })
 
     if (!datasetRequest.isOk) {
-      addError(getErrorMessage(datasetRequest.status))
+      setErrors(getErrorMessage(datasetRequest.status))
       // TODO: Revise once error handling is finalized
       return null
     }
@@ -110,7 +110,7 @@ export const useDataset = () => {
     const datasetRequest = await api.datasets.update(dataset.id, dataset, token)
 
     if (!datasetRequest.isOk) {
-      addError(getErrorMessage(datasetRequest.status))
+      setErrors(getErrorMessage(datasetRequest.status))
       // TODO: Revise once error handling is finalized
       return null
     }
