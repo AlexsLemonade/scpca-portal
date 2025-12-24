@@ -1,0 +1,91 @@
+<!-- Dataset Summary Section -->
+<h2
+  style="margin: 0 0 20px 15px; font-size: 18px; font-weight: 500; font-family: Georgia, Times New Roman, Times, serif; color: #000000;">
+  Dataset Summary
+</h2>
+
+<p style="margin: 0 0 25px 15px; font-size: 14px; color:#333333; text-align: left;">
+  <span style="margin: 0 0 25px 0; font-size: 14px; font-weight: 600; color:#333333; text-align: left;">
+    {{ dataset.samples.count }} Samples
+  </span>
+  across
+  <span style="margin: 0 0 25px 0; font-size: 14px; font-weight: 600; color:#333333; text-align: left;">
+    {{ dataset.data|length }} Projects
+  </span>
+</p>
+
+{% for diagnosis, counts in dataset.diagnoses_summary.items %}
+<!-- Dataset Summary Table 1 -->
+{% if forloop.counter|divisibleby:2 %}
+<table role="presentation"
+  style="width: 100%; border-collapse: collapse; margin-bottom: 2px; background-color: #f5f5f5;">
+  {% else %}
+  <table role="presentation"
+    style="width: 100%; border-collapse: collapse; margin-bottom: 2px; background-color: #ffffff;">
+    {% endif %}
+    <tr>
+      <td colspan="4" style="padding: 12px 15px; font-size: 14px; font-weight: 600; color: #000000; border: none;">
+        {{ diagnosis }}
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 10px 15px; font-size: 13px; color: #333333; width: 20%; border: none;">
+        Samples
+      </td>
+      <td style="padding: 10px 15px; font-size: 13px; color: #333333; width: 30%; border: none;">
+        {{ counts.samples }}
+      </td>
+      <td style="padding: 10px 15px; font-size: 13px; color: #333333; width: 20%; border: none;">
+        Projects
+      </td>
+      <td style="padding: 10px 15px; font-size: 13px; color: #333333; width: 30%; border: none;">
+        {{ counts.projects }}
+      </td>
+    </tr>
+  </table>
+
+
+  {% endfor %}
+
+  <hr style="border: none; height: 2px; background-color: #f2f2f2; margin: 30px" />
+
+  <!-- Download File Summary Section -->
+  <h2
+    style="margin: 0 0 20px 15px; font-size: 18px; font-weight: 500; font-family: Georgia, Times New Roman, Times, serif; color: #000000;">
+    Download File Summary
+  </h2>
+
+
+  {% for file_summary in dataset.files_summary %}
+  {% if forloop.counter|divisibleby:2 %}
+  <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 2px;">
+    {% else %}
+    <table role="presentation"
+      style="width: 100%; border-collapse: collapse; margin-bottom: 2px; background-color: #f5f5f5">
+      {% endif %}
+
+      <!-- Single-cell samples -->
+      <tr>
+        <td colspan="3" style="padding: 12px 15px; font-size: 14px; font-weight: 600; color: #000000; border: none;">
+          {{ file_summary.name }}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 15px; font-size: 13px; color: #333333; width: 20%; border: none;">
+          File Format
+        </td>
+        <td style="padding: 10px 15px; font-size: 13px; color: #333333; width: 45%; border: none;">
+          {% if file_summary.format == '.rds' %}
+          Single-cell Experiment (.rds)
+          {% elif file_summary.format == '.h5ad' %}
+          AnnData (.h5ad)
+          {% else %}
+          {{ file_summary.format }}
+          {% endif %}
+        </td>
+        <td style="padding: 10px 15px; font-size: 13px; color: #333333; width: 40%; border: none;">
+          Number of Samples&nbsp;&nbsp;&nbsp; {{ file_summary.samples_count }}
+        </td>
+      </tr>
+    </table>
+    {% endfor %}

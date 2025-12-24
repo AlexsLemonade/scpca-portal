@@ -29,7 +29,7 @@ resource "aws_iam_instance_profile" "scpca_portal_instance_profile" {
 }
 
 resource "aws_iam_policy" "scpca_portal_cloudwatch" {
-  name = "scpca-portal-cloudwatch-policy-${var.user}-${var.stage}"
+  name        = "scpca-portal-cloudwatch-policy-${var.user}-${var.stage}"
   description = "Allows Cloudwatch Permissions."
 
 
@@ -64,12 +64,12 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "cloudwatch" {
-  role = aws_iam_role.scpca_portal_instance.name
+  role       = aws_iam_role.scpca_portal_instance.name
   policy_arn = aws_iam_policy.scpca_portal_cloudwatch.arn
 }
 
 resource "aws_iam_policy" "s3_access_policy" {
-  name = "scpca-portal-s3-access-policy-${var.user}-${var.stage}"
+  name        = "scpca-portal-s3-access-policy-${var.user}-${var.stage}"
   description = "Allows S3 Permissions."
 
   # Policy text based off of:
@@ -114,12 +114,12 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "s3" {
-  role = aws_iam_role.scpca_portal_instance.name
+  role       = aws_iam_role.scpca_portal_instance.name
   policy_arn = aws_iam_policy.s3_access_policy.arn
 }
 
 resource "aws_iam_policy" "input_bucket_access_policy" {
-  name = "scpca-portal-input-bucket-access-policy-${var.user}-${var.stage}"
+  name        = "scpca-portal-input-bucket-access-policy-${var.user}-${var.stage}"
   description = "Allows S3 Permissions to the input bucket."
 
   policy = <<EOF
@@ -156,11 +156,11 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "input_bucket" {
-  role = aws_iam_role.scpca_portal_instance.name
+  role       = aws_iam_role.scpca_portal_instance.name
   policy_arn = aws_iam_policy.input_bucket_access_policy.arn
 }
 
-resource "aws_iam_policy" "batch_submit_job" {
+resource "aws_iam_policy" "batch" {
   name = "scpca-portal-batch-submit-job-${var.user}-${var.stage}"
 
   policy = <<EOF
@@ -170,7 +170,9 @@ resource "aws_iam_policy" "batch_submit_job" {
     {
       "Effect": "Allow",
       "Action": [
-        "batch:SubmitJob"
+        "batch:SubmitJob",
+        "batch:TerminateJob",
+        "batch:DescribeJobs"
       ],
       "Resource": "*"
     }
@@ -179,13 +181,13 @@ resource "aws_iam_policy" "batch_submit_job" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "batch_submit_job" {
-  role = aws_iam_role.scpca_portal_instance.name
-  policy_arn = aws_iam_policy.batch_submit_job.arn
+resource "aws_iam_role_policy_attachment" "batch" {
+  role       = aws_iam_role.scpca_portal_instance.name
+  policy_arn = aws_iam_policy.batch.arn
 }
 
 resource "aws_iam_policy" "api_ses_send_email" {
-  name = "scpca-portal-api-ses-send-email-${var.user}-${var.stage}"
+  name   = "scpca-portal-api-ses-send-email-${var.user}-${var.stage}"
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -196,7 +198,7 @@ resource "aws_iam_policy" "api_ses_send_email" {
         "ses:SendEmail",
         "ses:SendRawEmail"
       ],
-      "Resource": "arn:aws:ses:${var.region}:${data.aws_caller_identity.current.account_id}:identity/${var.ses_domain}"
+      "Resource": "${data.aws_ses_domain_identity.scpca_portal.arn}"
     }
   ]
 }
@@ -204,6 +206,6 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "api_ses_send_policy" {
-  role = aws_iam_role.scpca_portal_instance.name
+  role       = aws_iam_role.scpca_portal_instance.name
   policy_arn = aws_iam_policy.api_ses_send_email.arn
 }

@@ -1,15 +1,13 @@
-import logging
 from argparse import BooleanOptionalAction
 
 from django.core.management.base import BaseCommand
 
 from scpca_portal import ccdl_datasets
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.exceptions import DatasetError, JobError
 from scpca_portal.models import Dataset, Job, Project
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
+logger = get_and_configure_logger(__name__)
 
 
 class Command(BaseCommand):
@@ -41,6 +39,9 @@ class Command(BaseCommand):
         for ccdl_name in ccdl_datasets.TYPES:
             for ccdl_project_id in dataset_ccdl_project_ids:
                 dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, ccdl_project_id)
+                if found:
+                    dataset.data = dataset.get_ccdl_data()
+
                 if not found and not dataset.is_valid_ccdl_dataset:
                     continue
                 if found and dataset.is_hash_unchanged and not ignore_hash:

@@ -1,4 +1,3 @@
-import logging
 from argparse import BooleanOptionalAction
 from typing import Set
 
@@ -6,11 +5,10 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from scpca_portal import common, loader, lockfile, metadata_parser, utils
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import OriginalFile, Project
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
+logger = get_and_configure_logger(__name__)
 
 
 class Command(BaseCommand):
