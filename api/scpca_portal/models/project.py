@@ -90,6 +90,18 @@ class Project(CommonDataAttributes, TimestampedModel):
         return locked_projects
 
     @property
+    def modality_samples(self):
+        """Return a dictionary of lists containing sample IDs, grouped by modality."""
+        return {
+            Modalities.SINGLE_CELL: list(
+                self.samples.filter(has_single_cell_data=True).values_list("scpca_id", flat=True)
+            ),
+            Modalities.SPATIAL: list(
+                self.samples.filter(has_spatial_data=True).values_list("scpca_id", flat=True)
+            ),
+        }
+
+    @property
     def samples_to_generate(self):
         """Return all non multiplexed samples and only one sample from multiplexed libraries."""
         return [sample for sample in self.samples.all() if sample.is_last_multiplexed_sample]
