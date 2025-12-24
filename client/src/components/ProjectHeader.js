@@ -116,7 +116,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
 
       {project.has_multiplexed_data && (
         <Box
-          border={!hasUnavailableSample ? { side: 'top' } : ''}
+          border={!hasUnavailableSample ? { side: 'top' } : false}
           margin={{ top: 'medium' }}
           pad={!hasUnavailableSample ? { top: 'medium' } : ''}
         >
