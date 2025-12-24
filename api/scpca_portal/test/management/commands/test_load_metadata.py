@@ -57,9 +57,9 @@ class TestLoadMetadata(TestCase):
 
         # Configure necessary output values
         self.projects_metadata = [{"key": "value"}]
+        self.mock_get_projects_metadata_ids_patch.return_value = {"SCPCP999990"}
         self.mock_load_projects_metadata.return_value = self.projects_metadata
         self.project = Project()
-        self.mock_create_project.return_value = self.project
 
         # Populate OriginalFile to prevent exception when calling load_metadata
         OriginalFileFactory()
