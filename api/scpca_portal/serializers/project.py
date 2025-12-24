@@ -44,6 +44,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "publications",
             "sample_count",
             "samples",
+            "modality_samples",
             "scpca_id",
             "seq_units",
             "summaries",
