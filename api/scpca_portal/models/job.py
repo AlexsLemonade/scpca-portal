@@ -441,6 +441,22 @@ class Job(TimestampedModel):
 
         return submitted_jobs, pending_jobs, failed_jobs
 
+    @classmethod
+    def submit_ccdl_datasets(cls, ccdl_datasets) -> tuple[List[Self], List[Self]]:
+        """Gets and submits jobs for all passed ccdl datasets."""
+        submitted_jobs = []
+        failed_jobs = []
+
+        for dataset in ccdl_datasets:
+            job = Job.get_dataset_job(dataset)
+            try:
+                job.submit()
+                submitted_jobs.append(job)
+            except (DatasetError, JobError):
+                failed_jobs.append(dataset)
+
+        return submitted_jobs, failed_jobs
+
     def terminate(self, reason: str | None = "Terminated processing job", *, save=True):
         """
         Terminates the PROCESSING job (incomplete) on AWS Batch.

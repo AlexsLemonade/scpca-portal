@@ -239,6 +239,41 @@ class Dataset(TimestampedModel):
 
         return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
 
+    @classmethod
+    def create_or_update_ccdl_datasets(
+        cls, *, ignore_hash: bool = False
+    ) -> tuple[List[Self], List[Self]]:
+        """
+        Iterates over all possible project and portal wide ccdl datasets,
+        and creates or updates and susequently returns the valid ones.
+        """
+        ccdl_project_ids = list(Project.objects.values_list("scpca_id", flat=True))
+        portal_wide_ccdl_project_id = None
+        dataset_ccdl_project_ids = [*ccdl_project_ids, portal_wide_ccdl_project_id]
+
+        created_datasets = []
+        updated_datasets = []
+        for ccdl_name in ccdl_datasets.TYPES:
+            for ccdl_project_id in dataset_ccdl_project_ids:
+                dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, ccdl_project_id)
+
+                if found:
+                    dataset.data = dataset.get_ccdl_data()
+                    if dataset.is_hash_unchanged and not ignore_hash:
+                        continue
+                    updated_datasets.append(dataset)
+                else:
+                    if not dataset.is_valid_ccdl_dataset:
+                        continue
+                    created_datasets.append(dataset)
+
+                # TODO: This should be optimized with bulk create and bulk update.
+                # This can be accomplished by adding a custom manager which implements custom
+                # bulk_create and bulk_update methods that preserve the cached attrs saving logic.
+                dataset.save()
+
+        return created_datasets, updated_datasets
+
     def apply_job_state(self, job) -> None:
         """
         Sets the dataset state (flag, reason, timestamps) based on the given job.

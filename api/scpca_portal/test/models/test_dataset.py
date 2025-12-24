@@ -11,7 +11,13 @@ from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 from scpca_portal.models import ComputedFile, Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory, OriginalFileFactory
+from scpca_portal.test.factories import (
+    DatasetFactory,
+    LeafComputedFileFactory,
+    LibraryFactory,
+    OriginalFileFactory,
+    SampleFactory,
+)
 
 
 class TestDataset(TestCase):
@@ -94,6 +100,93 @@ class TestDataset(TestCase):
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
         )
         self.assertTrue(found)
+
+    def test_create_or_update_ccdl_datasets(self):
+        # There are 21 total datasets created
+        #     CCDL DATASET TYPE              Total   Projects   Portal Wide
+        #   - ALL_METADATA                   4       3          Yes
+        #   - SINGLE_CELL_SCE                4       3          Yes
+        #   - SINGLE_CELL_SCE_NO_MULTIPLEXED 1       1          No
+        #   - SINGLE_CELL_SCE_MERGED         3       2          Yes
+        #   - SINGLE_CELL_ANN_DATA           4       3          Yes
+        #   - SINGLE_CELL_ANN_DATA_MERGED    3       2          Yes
+        #   - SPATIAL_SCE                    2       1          Yes
+
+        # Initial call
+        created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets()
+        self.assertEqual(len(created_datasets), 21)
+        self.assertEqual(len(updated_datasets), 0)
+
+        # Call again
+        created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets()
+        self.assertEqual(len(created_datasets), 0)
+        self.assertEqual(len(updated_datasets), 0)
+
+        # Call with ignore_hash
+        created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets(
+            ignore_hash=True
+        )
+        self.assertEqual(len(created_datasets), 0)
+        self.assertEqual(len(updated_datasets), 21)
+
+    def test_create_or_update_ccdl_datasets_update_data_attr(self):
+        """Assert that data attr updates when new samples and libraries are added."""
+        # Create dataset
+        dataset_expected_values = test_data.DatasetSingleCellSingleCellExperimentSCPCP999990
+        dataset, _ = Dataset.get_or_find_ccdl_dataset(
+            dataset_expected_values.CCDL_NAME, dataset_expected_values.PROJECT_ID
+        )
+        dataset.save()
+
+        # Define original and expected values
+        actual_old_data_attr = dataset.get_ccdl_data()
+        expected_old_data_attr = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            }
+        }
+        expected_new_data_attr = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997", "SCPCS999999"],
+                Modalities.SPATIAL: [],
+            }
+        }
+
+        # Simulate the work of sync_original_files and load_metadata commands
+        # with a new sample and library added to an existing project
+        project_id, sample_id, library_id = "SCPCP999990", "SCPCS999999", "SCPCL999999"
+        OriginalFileFactory(
+            s3_key="SCPCP999990/SCPCS999999/SCPCL999999.rds",
+            project_id=project_id,
+            sample_ids=[sample_id],
+            library_id=library_id,
+            is_single_cell=True,
+            is_single_cell_experiment=True,
+            formats=[FileFormats.SINGLE_CELL_EXPERIMENT],
+        )
+
+        project = Project.objects.filter(scpca_id=project_id).first()
+        sample = SampleFactory(scpca_id=sample_id, has_single_cell_data=True, project=project)
+        sample.save()
+
+        library = LibraryFactory(
+            scpca_id=library_id, modality=Modalities.SINGLE_CELL, project=project
+        )
+        library.samples.add(sample)
+        library.save()
+
+        # Rerun create update ccdl datasets method
+        _, updated_datasets = Dataset.create_or_update_ccdl_datasets()
+        updated_dataset = updated_datasets[0]
+        actual_new_data_attr = updated_dataset.data
+
+        # Make assertions
+        self.assertEqual(actual_old_data_attr, expected_old_data_attr)
+        self.assertEqual(actual_new_data_attr, expected_new_data_attr)
+        self.assertNotEqual(actual_old_data_attr, actual_new_data_attr)
 
     def test_original_files_property(self):
         # SINGLE_CELL SCE
