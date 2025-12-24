@@ -39,35 +39,24 @@ const Dataset = ({ dataset: initialDataset }) => {
 
   // TODO: We're temporarily polling in this component
   // Poll API during dataset processing
+  // TODO: Generalize this logic into a hook
   useEffect(() => {
-    let isPolling = true
-
-    const cleanUp = () => {
-      isPolling = false
-      if (pollTimer.current) {
-        clearTimeout(pollTimer.current)
-        pollTimer.current = null
-      }
-    }
-
-    if (!isProcessing) return cleanUp() // Clean up any existing timer if no processing
-
     const pollDataset = async () => {
-      if (!isPolling) return
-
       const datasetRequest = await get(dataset)
       setDataset(datasetRequest)
-      // Schedule the next poll if still processing
-      if (datasetRequest.is_processing) {
-        pollTimer.current = setTimeout(pollDataset, pollInterval)
+      // stop polling when done
+      if (!datasetRequest.is_processing) {
+        clearInterval(pollTimer.current)
       }
     }
 
     // Initiate polling the dataset status
-    pollDataset()
+    if (isProcessing) {
+      pollTimer.current = setInterval(pollDataset, pollInterval)
+    }
 
-    return () => cleanUp()
-  }, [isProcessing])
+    return () => clearInterval(pollTimer.current)
+  }, [])
 
   return (
     <>
