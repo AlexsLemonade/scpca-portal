@@ -11,14 +11,6 @@ from scpca_portal.test.factories import OriginalFileFactory
 
 
 class TestLoadMetadata(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        with patch(
-            "scpca_portal.lockfile.get_locked_project_ids",
-            return_value=[],
-        ):
-            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
-
     def setUp(self):
         with patch(
             "scpca_portal.lockfile.get_locked_project_ids",
@@ -38,6 +30,9 @@ class TestLoadMetadata(TestCase):
         # Handle patching in setUp function
         create_data_dirs_patch = patch("scpca_portal.utils.create_data_dirs")
         download_files_patch = patch("scpca_portal.s3.download_files")
+        get_projects_metadata_ids_patch = patch(
+            "scpca_portal.metadata_parser.get_projects_metadata_ids"
+        )
         load_projects_metadata_patch = patch("scpca_portal.metadata_parser.load_projects_metadata")
         create_project_patch = patch("scpca_portal.loader.create_project")
         remove_nested_data_dirs_patch = patch("scpca_portal.utils.remove_nested_data_dirs")
@@ -45,6 +40,7 @@ class TestLoadMetadata(TestCase):
         # Start patches
         self.mock_create_data_dirs = create_data_dirs_patch.start()
         self.mock_download_files_patch = download_files_patch.start()
+        self.mock_get_projects_metadata_ids_patch = get_projects_metadata_ids_patch.start()
         self.mock_load_projects_metadata = load_projects_metadata_patch.start()
         self.mock_create_project = create_project_patch.start()
         self.mock_remove_nested_data_dirs = remove_nested_data_dirs_patch.start()
@@ -53,6 +49,7 @@ class TestLoadMetadata(TestCase):
         self.patches = [
             create_data_dirs_patch,
             download_files_patch,
+            get_projects_metadata_ids_patch,
             load_projects_metadata_patch,
             create_project_patch,
             remove_nested_data_dirs_patch,
