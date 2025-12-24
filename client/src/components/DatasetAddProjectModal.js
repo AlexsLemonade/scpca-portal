@@ -6,52 +6,62 @@ import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getProjectFormats } from 'helpers/getProjectFormats'
 import { api } from 'api'
 import { Button } from 'components/Button'
+import { DatasetAddProjectModalRemainingContent } from 'components/DatasetAddProjectModalRemainingContent'
+import { DatasetAddProjectModalAddedContent } from 'components/DatasetAddProjectModalAddedContent'
 import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditionalOptions'
 import { DatasetProjectModalityOptions } from 'components/DatasetProjectModalityOptions'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
 import { DatasetWarningMissingSamples } from 'components/DatasetWarningMissingSamples'
 import { Modal, ModalBody, ModalLoader } from 'components/Modal'
 
-export const DatasetAddProjectModal = ({
-  project,
-  label = 'Add to Dataset',
-  title = 'Add Project to Dataset',
-  disabled = false
-}) => {
+// Three states: Add to Dataset (no samples added), Add Remaining (some samples added), Added to Dataset (all samples added)
+export const DatasetAddProjectModal = ({ project, disabled = false }) => {
   const {
     myDataset,
     defaultProjectOptions,
     userFormat,
     setUserFormat,
     addProject,
+    getAllSamplesForProjectAdded,
+    getHasRemainingProjectSamples,
+    getMissingModaliesSamples,
+    getDatasetProjectData,
     getProjectDataSamples,
     getProjectSingleCellSamples,
-    getProjectSpatialSamples,
-    getMissingModaliesSamples
+    getProjectSpatialSamples
   } = useMyDataset()
   const { responsive } = useResponsive()
 
-  // Modal toggle
-  const [showing, setShowing] = useState(false)
+  const [showing, setShowing] = useState(false) // Modal toggle
   const [loading, setLoading] = useState(false)
 
+  // For project options
   const [modalities, setModalities] = useState([])
-
-  // For additional options
   const [excludeMultiplexed, setExcludeMultiplexed] = useState(false)
   const [includeBulk, setIncludeBulk] = useState(false)
   const [includeMerge, setIncludeMerge] = useState(false)
 
-  // For building the project data for the dataset
+  // For building the project data for adding to myDataset
   const [projectData, setProjectData] = useState({})
+  const [singleCellSamples, setSingleCellSamples] = useState([])
+  const [spatialSamples, setSpatialSamples] = useState([])
+
+  // TODOL: Remove this after API update
   const [samples, setSamples] = useState(
     // We get either sample IDs (on Browse) or sample objects (on View Project)
     project.samples.filter((s) => s.scpca_id)
   )
-  const [singleCellSamples, setSingleCellSamples] = useState([])
-  const [spatialSamples, setSpatialSamples] = useState([])
-
   const [sampleDifference, setSampleDifference] = useState([])
+
+  // For the button states
+  const [myDatasetProjectData, setMyDatasetProjectData] = useState(null)
+  const [hasRemainingSamples, setHasRemainingSamples] = useState(false)
+  const [isAllSamplesAdded, setIsAllSamplesAdded] = useState(false)
+
+  const btnLabel = hasRemainingSamples ? 'Add Remaining' : 'Add to Dataset'
+  const modalTitle = hasRemainingSamples
+    ? 'Add Remaining Samples to Dataset'
+    : 'Add Project to Dataset'
 
   const canClickAddProject = modalities.length > 0
 
@@ -69,16 +79,17 @@ export const DatasetAddProjectModal = ({
   }, [userFormat])
 
   // Set default additional options based on project
-  const {
-    has_bulk_rna_seq: hasBulkRnaSeq,
-    includes_merged_sce: includesMergedSce,
-    includes_merged_anndata: includesMergedAnnData
-  } = project
   useEffect(() => {
-    setIncludeBulk(hasBulkRnaSeq ? defaultProjectOptions.includeBulk : false)
+    const bulkValue =
+      myDatasetProjectData?.includes_bulk || defaultProjectOptions.includeBulk
+    setIncludeBulk(project.has_bulk_rna_seq ? bulkValue : false)
+
+    const mergedValue =
+      myDatasetProjectData?.SINGLE_CELL === 'MERGED' ||
+      defaultProjectOptions.includeMerge
     setIncludeMerge(
-      includesMergedSce || includesMergedAnnData
-        ? defaultProjectOptions.includeMerge
+      project.includes_merged_sce || project.includes_merged_anndata
+        ? mergedValue
         : false
     )
     setModalities(
@@ -97,7 +108,7 @@ export const DatasetAddProjectModal = ({
     }
   }, [myDataset.format, showing])
 
-  // Fetch samples list when modal opens via Browse page
+  // TODOL: Remove fetching samples
   useEffect(() => {
     const asyncFetch = async () => {
       const samplesRequest = await api.samples.list({
@@ -111,6 +122,12 @@ export const DatasetAddProjectModal = ({
     }
     if (!samples.length && showing) asyncFetch()
   }, [showing])
+
+  useEffect(() => {
+    setMyDatasetProjectData(getDatasetProjectData(project))
+    setHasRemainingSamples(getHasRemainingProjectSamples(project))
+    setIsAllSamplesAdded(getAllSamplesForProjectAdded(project))
+  }, [myDataset])
 
   // Populate the project data for addProject
   useEffect(() => {
@@ -132,52 +149,58 @@ export const DatasetAddProjectModal = ({
         getProjectSingleCellSamples(samples, includeMerge, excludeMultiplexed)
       )
     } else {
-      setSingleCellSamples([])
+      setSingleCellSamples(myDatasetProjectData?.SINGLE_CELL || [])
     }
-  }, [excludeMultiplexed, includeMerge, modalities, samples])
+  }, [
+    excludeMultiplexed,
+    includeMerge,
+    modalities,
+    samples,
+    myDatasetProjectData
+  ])
 
   // Update spatialSamples based on user selections
   useEffect(() => {
     if (modalities.includes('SPATIAL')) {
       setSpatialSamples(getProjectSpatialSamples(samples))
     } else {
-      setSpatialSamples([])
+      setSpatialSamples(myDatasetProjectData?.SPATIAL || [])
     }
-  }, [modalities, samples])
+  }, [modalities, samples, myDatasetProjectData])
 
   // Calculate missing modality samples
   useEffect(() => {
     setSampleDifference(getMissingModaliesSamples(samples, modalities))
   }, [modalities, samples])
 
-  useEffect(() => {
-    setLoading(false)
-  }, [showing])
+  if (isAllSamplesAdded) {
+    return <DatasetAddProjectModalAddedContent />
+  }
 
   return (
     <>
       <Button
-        aria-label={label}
+        aria-label={btnLabel}
         flex="grow"
-        primary
-        label={label}
+        primary={!hasRemainingSamples}
+        secondary={hasRemainingSamples}
+        label={btnLabel}
         disabled={disabled}
         onClick={() => setShowing(true)}
       />
-      <Modal title={title} showing={showing} setShowing={setShowing}>
+      <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
         <ModalBody>
           {!samples.length ? (
             <ModalLoader />
           ) : (
             <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
-              <Heading
-                level="3"
-                size="small"
-                margin={{ top: '0', bottom: 'medium' }}
-              >
+              <Heading level="3" size="small" margin={{ top: '0' }}>
                 Download Options
               </Heading>
-              <Box pad={{ top: 'small' }}>
+              {myDatasetProjectData && (
+                <DatasetAddProjectModalRemainingContent project={project} />
+              )}
+              <Box pad={{ top: 'large' }}>
                 <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
                   <DatasetDataFormatOptions project={project} />
                   <DatasetProjectModalityOptions
@@ -204,11 +227,11 @@ export const DatasetAddProjectModal = ({
                 >
                   <Button
                     primary
-                    aria-label={label}
-                    label={label}
+                    aria-label={btnLabel}
+                    label={btnLabel}
+                    loading={loading}
                     disabled={!canClickAddProject}
                     onClick={handleAddProject}
-                    loading={loading}
                   />
                   {sampleDifference.length > 0 && (
                     <DatasetWarningMissingSamples

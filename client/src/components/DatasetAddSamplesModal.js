@@ -94,11 +94,17 @@ export const DatasetAddSamplesModal = ({
 
   const handleAddSamples = async () => {
     setLoading(true)
+    // Ensure that the merged object is retained if present in myDataset
+    const samplesToAdd =
+      myDataset.data?.[project.scpca_id]?.SINGLE_CELL === 'MERGED'
+        ? 'MERGED'
+        : selectedSingleCellSamples
+
     await setSamples(
       project,
       {
         ...selectedSamples,
-        SINGLE_CELL: selectedSingleCellSamples,
+        SINGLE_CELL: samplesToAdd,
         includes_bulk: includeBulk
       },
       userFormat
