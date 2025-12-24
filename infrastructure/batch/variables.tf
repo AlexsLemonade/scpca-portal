@@ -10,12 +10,13 @@ variable "region" { default = "" }
 variable "sentry_dsn" { default = "" }
 variable "scpca_portal_bucket" { default = "" }
 variable "postgres_db" { default = "" }
+variable "slack_notifications_email" { default = "" }
 
 # security
 variable "scpca_portal_db_security_group" { default = "" }
 
 # ses
-variable "ses_domain" { default = "" }
+variable "aws_ses_domain_identity_scpca_portal" { default = "" }
 
 # general configuration
 variable "aws_caller_identity_current" { default = "" }

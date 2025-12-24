@@ -4,7 +4,7 @@ This is a portal-wide download you can find more information about your download
 {% endif %}
 {% if content_metadata_link %}
 This download only contains metadata for your selected projects.
-More information can be found [in the ScPCA docs.]({{metadata_docs_link}}).
+More information can be found [in the ScPCA docs.]({{content_metadata_link}}).
 {% endif %}
 {% if content_table_rows %}
 |Project ID|Modality|Format|Link to Documentation|

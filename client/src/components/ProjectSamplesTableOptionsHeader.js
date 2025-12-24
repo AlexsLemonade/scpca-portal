@@ -71,7 +71,9 @@ export const ProjectSamplesTableOptionsHeader = ({
     setShowChangeMergedProjectModal(false)
   }
 
+  const [saving, setSaving] = useState(false)
   const handleSaveAndGoBack = async () => {
+    setSaving(true)
     const newSamplesToAdd = {
       ...selectedSamples,
       ...(includeMerge && { SINGLE_CELL: 'MERGED' })
@@ -88,6 +90,7 @@ export const ProjectSamplesTableOptionsHeader = ({
     } else {
       // TODO: Error handling
     }
+    setSaving(false)
   }
 
   // Set up prevSelectedCount on initial load
@@ -132,6 +135,7 @@ export const ProjectSamplesTableOptionsHeader = ({
           <Button
             primary
             label="Save & Go Back"
+            loading={saving}
             onClick={handleSaveAndGoBack}
           />
         )}

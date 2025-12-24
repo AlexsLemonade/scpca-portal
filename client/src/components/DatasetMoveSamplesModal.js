@@ -44,8 +44,7 @@ export const DatasetMoveSamplesModal = ({
   )
   const onlyHasSpatialSamples = hasSpatialSamples && hasNoSingleCellSamples
 
-  const disableAppend =
-    isDatasetDataEmpty || (isFormatChanged && !onlyHasSpatialSamples)
+  const disableAppend = isFormatChanged && !onlyHasSpatialSamples
 
   // Disable the append action if no data in myDataset or the format will change
   const radioOptions = [
@@ -65,6 +64,27 @@ export const DatasetMoveSamplesModal = ({
   const { total_sample_count: initialSampleCount } = myDataset
   const { total_sample_count: sharedSampleCount } = dataset
 
+  const redirect = () => {
+    push(`/download`)
+    showNotification(
+      `Moved ${sharedSampleCount} Samples to My Dataset`,
+      'success',
+      label
+    )
+  }
+
+  const request = async (newData) => {
+    const datasetRequest = !isMyDataset
+      ? await createDataset({ format: dataset.format, data: newData })
+      : await updateDataset({
+          ...myDataset,
+          format: dataset.format,
+          data: newData
+        })
+
+    return datasetRequest
+  }
+
   const showErrorNotification = (
     message = "We're having trouble moving samples to My Dataset. Please try again later."
   ) => {
@@ -72,45 +92,46 @@ export const DatasetMoveSamplesModal = ({
     setShowing(false)
   }
 
+  const handleClick = async () => {
+    // When no data in My Dataset, move and redirect without opening modal
+    if (!myDataset.data || isDatasetDataEmpty) {
+      setLoading(true)
+      await request(structuredClone(dataset.data))
+      redirect()
+      setLoading(false)
+    } else {
+      setShowing(true)
+    }
+  }
+
   const handleMoveToMyDataset = async () => {
     setLoading(true)
+    // Merge or replace dataset data
     const updatedData =
       action === 'append'
         ? await getMergeDatasetData(dataset)
         : structuredClone(dataset.data)
-    setLoading(false)
 
     // API failure while merging data
     if (!updatedData) {
       showErrorNotification()
+      setLoading(false)
       return
     }
 
     // Clear the data in My Dataset if the format has changed
     if (isFormatChanged) await clearDataset()
 
-    setLoading(true)
-    const updatedDataset = !isMyDataset
-      ? await createDataset({ format: dataset.format, data: updatedData })
-      : await updateDataset({
-          ...myDataset,
-          format: dataset.format,
-          data: updatedData
-        })
-    setLoading(false)
+    const updatedDataset = await request(updatedData)
 
     // API failure while updating the dataset
     if (!updatedDataset) {
       showErrorNotification()
+      setLoading(false)
       return
     }
 
-    push(`/download`)
-    showNotification(
-      `Moved ${sharedSampleCount} Samples to My Dataset`,
-      'success',
-      label
-    )
+    redirect()
     setShowing(false)
   }
 
@@ -125,7 +146,8 @@ export const DatasetMoveSamplesModal = ({
         flex="grow"
         label={label}
         disabled={disabled}
-        onClick={() => setShowing(true)}
+        loading={loading}
+        onClick={handleClick}
       />
       <Modal title={title} showing={showing} setShowing={setShowing}>
         <ModalBody>
@@ -136,7 +158,7 @@ export const DatasetMoveSamplesModal = ({
             margin={{ bottom: 'medium' }}
           >
             <Text size="21px" margin={{ left: 'xsmall' }}>
-              There are {initialSampleCount} samples in My Dataset
+              There are {initialSampleCount || 0} samples in My Dataset
             </Text>
           </WarningText>
           <FormField>
@@ -172,8 +194,8 @@ export const DatasetMoveSamplesModal = ({
               primary
               aria-label="Move Samples"
               label="Move Samples"
-              onClick={handleMoveToMyDataset}
               loading={loading}
+              onClick={handleMoveToMyDataset}
             />
           </Box>
         </ModalBody>
