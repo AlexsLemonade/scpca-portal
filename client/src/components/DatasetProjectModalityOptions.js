@@ -1,29 +1,51 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { CheckBoxGroup } from 'grommet'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { getReadableOptions } from 'helpers/getReadableOptions'
+import { getProjectModalities } from 'helpers/getProjectModalities'
 import { FormField } from 'components/FormField'
 
-export const DatasetProjectModalityOptions = ({ project }) => {
-  const handleChange = () => {}
-  // NOTE: All available modality options per project will be populated via a hook
-  const modalityOptions = [
-    {
-      key: 'SINGLE_CELL',
-      value: project.has_single_cell_data
-    },
-    {
-      key: 'SPATIAL',
-      value: project.has_spatial_data
-    }
-  ]
-    .filter((m) => m.value)
-    .map((m) => m.key)
+export const DatasetProjectModalityOptions = ({
+  project,
+  modalities,
+  onModalitiesChange
+}) => {
+  const { myDataset, getRemainingProjectSampleIds } = useMyDataset()
+
+  const [remainingSamples, setRemainingSamples] = useState(null)
+
+  const [options, setOptions] = useState(
+    getReadableOptions(getProjectModalities(project))
+  )
+
+  useEffect(() => {
+    setRemainingSamples(getRemainingProjectSampleIds(project))
+  }, [myDataset])
+
+  // Run only for the add remaining modal
+  useEffect(() => {
+    if (!remainingSamples || Object.keys(remainingSamples).length === 0) return
+
+    // Filter for any remaining samples of each modality
+    const remainingModalities = Object.keys(remainingSamples).filter(
+      (m) => remainingSamples[m].length > 0
+    )
+
+    // Preselect and disable modalities if no samples remain
+    setOptions((prev) =>
+      prev.map((mo) => ({
+        ...mo,
+        disabled: !remainingModalities.includes(mo.value)
+      }))
+    )
+  }, [remainingSamples])
 
   return (
     <FormField label="Modality" labelWeight="bold">
       <CheckBoxGroup
-        options={getReadableOptions(modalityOptions)}
-        onChange={(event) => handleChange(event.value)}
+        options={options}
+        value={modalities}
+        onChange={({ value }) => onModalitiesChange(value)}
       />
     </FormField>
   )

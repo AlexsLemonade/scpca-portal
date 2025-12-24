@@ -1,51 +1,90 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Text } from 'grommet'
+import { useRouter } from 'next/router'
+import { useScrollRestore } from 'hooks/useScrollRestore'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { Badge } from 'components/Badge'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { WarningText } from 'components/WarningText'
-import { formatCounts } from 'helpers/formatCounts'
+import {
+  formatModalityCounts,
+  formatDiagnosisCounts
+} from 'helpers/formatCounts'
 import { getReadable } from 'helpers/getReadable'
-import { sortArrayString } from 'helpers/sortArrayString'
 
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
-// NOTE: This component accepts 'dataset' and 'projectId' props but it's subject to change
-// Currently mock data is used via Storybook for development
-export const DatasetProjectCard = ({ dataset, projectId }) => {
+export const DatasetProjectCard = ({
+  dataset,
+  projectId,
+  readOnly = false
+}) => {
+  const { asPath, push } = useRouter()
+  const { saveOriginScrollPosition } = useScrollRestore()
+  const { removeProjectById } = useMyDataset()
   const { responsive } = useResponsive()
 
-  const {
-    data,
-    stats: { projects }
-  } = dataset
-
+  const { data } = dataset
   const projectData = data[projectId]
-  const { merge_single_cell: mergedSingleCell, includes_bulk: includesBulk } =
-    projectData
+  const diagnoses = dataset.project_diagnoses[projectId]
+  const modalityCount = dataset.project_modality_counts[projectId]
+  const title = dataset.project_titles[projectId]
+  const downloadableSamples = dataset.project_sample_counts[projectId]
+  const hasMismatchSamples =
+    dataset.modality_count_mismatch_projects.includes(projectId)
 
-  const projectStats = projects[projectId]
-  const downloadableSamples = projectStats.downloadable_sample_count
-  const samplesDifferenceCount = projectStats.samples_difference_count
-  const isSamplesDifference = samplesDifferenceCount > 0
+  const specifiedOptions = [
+    {
+      label: 'Include all bulk RNA-seq data in the project',
+      value: projectData.includes_bulk
+    },
+    {
+      label: 'Merge single-cell samples into 1 object',
+      value: projectData.SINGLE_CELL === 'MERGED'
+    }
+  ]
+    .filter((o) => o.value)
+    .map((o) => o.label)
 
-  const modalities = ['SINGLE_CELL', 'SPATIAL']
-  const options = ['merge_single_cell', 'includes_bulk']
-  const hasNoOptions = options.filter((o) => projectData[o]).length === 0
+  const handleViewEditSamples = () => {
+    const destination = `${asPath}/${projectId}`
+    saveOriginScrollPosition(asPath, destination)
+    push(destination)
+  }
+
+  const [removeProjectLoading, setRemoveProjectLoading] = useState(false)
+  const handleRemoveProject = async () => {
+    setRemoveProjectLoading(true)
+    await removeProjectById(projectId)
+    setRemoveProjectLoading(false)
+  }
 
   return (
     <Box elevation="medium" pad="24px" width="full">
       <Box
+        direction={responsive('column', 'row')}
+        justify={responsive('start', 'between')}
         border={{ side: 'bottom' }}
+        gap="large"
         margin={{ bottom: '24px' }}
         pad={{ bottom: '24px' }}
       >
-        <Link href="#demo">
+        <Link href={`/projects/${projectId}`} newTab>
           <Text weight="bold" color="brand" size="large">
-            {projectStats.title}
+            {title}
           </Text>
         </Link>
+        {!readOnly && (
+          <Button
+            danger
+            label="Remove"
+            alignSelf={responsive('stretch', 'start')}
+            onClick={handleRemoveProject}
+            loading={removeProjectLoading}
+          />
+        )}
       </Box>
       <Box margin={{ bottom: '24px' }}>
         <Badge badge="Samples">
@@ -57,9 +96,7 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
       <Box>
         <Box margin={{ bottom: '24px' }}>
           <Label label="Diagnosis" />
-          {sortArrayString(formatCounts(projectStats.diagnoses_counts)).join(
-            ', '
-          )}
+          {formatDiagnosisCounts(diagnoses).join(', ')}
         </Box>
         <Box margin={{ bottom: 'xsmall' }}>
           <Label label="Download Options" />
@@ -74,23 +111,17 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
           </Box>
           <Box flex={{ grow: 1 }}>
             <Label label="Modality" />
-            {modalities.map((modality) => (
-              <Text key={modality}>
-                {projectData[modality].length > 0 &&
-                  `${getReadable(modality)} (${projectData[modality].length})`}
-              </Text>
+            {formatModalityCounts(modalityCount).map((fc) => (
+              <Text key={fc}>{fc}</Text>
             ))}
           </Box>
           <Box flex={{ grow: 1 }}>
             <Label label="Other Options" />
             <Box>
-              {includesBulk && (
-                <Text>Include all bulk RNA-seq data in the project</Text>
-              )}
-              {mergedSingleCell && (
-                <Text>Merge single-cell samples into 1 object</Text>
-              )}
-              {hasNoOptions && <Text>Not Specified</Text>}
+              {specifiedOptions.map((so) => (
+                <Text key={so}>{so}</Text>
+              ))}
+              {specifiedOptions.length === 0 && <Text italic>None</Text>}
             </Box>
           </Box>
         </Box>
@@ -101,16 +132,15 @@ export const DatasetProjectCard = ({ dataset, projectId }) => {
         gap="large"
       >
         <Button
-          label="View/Edit Samples"
-          aria-label="View/Edit Samples"
-          href="#demo"
+          label={!readOnly ? 'View/Edit Samples' : 'View Samples'}
+          aria-label={!readOnly ? 'View/Edit Samples' : 'View Samples'}
+          alignSelf={responsive('stretch', 'start')}
+          onClick={handleViewEditSamples}
         />
-        {isSamplesDifference && (
+        {hasMismatchSamples && (
           <WarningText iconMargin="0" iconSize="24px" margin="0">
             <Text>
-              Selected modalities may not be available for{' '}
-              {samplesDifferenceCount} sample
-              {samplesDifferenceCount > 1 ? 's' : ''}.
+              Selected modalities may not be available for some samples.
             </Text>
           </WarningText>
         )}

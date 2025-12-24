@@ -1,133 +1,79 @@
 import React, { useEffect, useState } from 'react'
 import { api } from 'api'
 import { config } from 'config'
+import { allModalities } from 'config/datasets'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
-import { useDownloadOptionsContext } from 'hooks/useDownloadOptionsContext'
-import { useProjectMetadataOnly } from 'hooks/useProjectMetadataOnly'
-import { formatBytes } from 'helpers/formatBytes'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
+import { useMyDataset } from 'hooks/useMyDataset'
+import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
+import { differenceArray } from 'helpers/differenceArray'
+import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
-import { DownloadModal } from 'components/DownloadModal'
-import { DownloadOptionsModal } from 'components/DownloadOptionsModal'
+import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 import { Pill } from 'components/Pill'
+import { ProjectSamplesTableModalityCell } from 'components/ProjectSamplesTableModalityCell'
+import { ProjectSamplesTableModalityHeader } from 'components/ProjectSamplesTableModalityHeader'
 import { Table } from 'components/Table'
-
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
-export const ProjectSamplesTable = ({
-  project,
-  samples: defaultSamples,
-  stickies = 3
-}) => {
-  // We only want to show the applied donwload options.
-  // Also need some helpers for presentation.
-  const { modality, format, getFoundFile } = useDownloadOptionsContext()
-  const { metadataComputedFile, isMetadataOnlyAvailable } =
-    useProjectMetadataOnly(project)
+export const ProjectSamplesTable = ({ stickies = 3 }) => {
+  const { datasets } = useCCDLDatasetDownloadModalContext()
+  const {
+    myDataset,
+    getDatasetProjectDataSamples,
+    getProjectSingleCellSamples,
+    getProjectSpatialSamples
+  } = useMyDataset()
+  const {
+    project,
+    samples: defaultSamples,
+    canAdd,
+    canRemove,
+    allSamples,
+    showBulkInfoText,
+    showWarningMultiplexed,
+    selectedSamples,
+    setAllSamples,
+    setFilteredSamples,
+    selectModalitySamplesByIds
+  } = useProjectSamplesTable()
+
   const [loaded, setLoaded] = useState(false)
-  const [samples, setSamples] = useState(defaultSamples)
-  const [showDownloadOptions, setShowDownloadOptions] = useState(false)
-  const [hasFilter, setHasFilter] = useState(false) // For setting the metadata only download button state
+  const [samples, setSamples] = useState(defaultSamples) // For all project samples
+  const [addedSamples, setAddedSamples] = useState([]) // For samples already added to myDataset
+  const [disableAddToDatasetModal, setDisableAddToDatasetModal] =
+    useState(false)
+
   const hasMultiplexedData = project.has_multiplexed_data
-  const infoText =
-    project && project.has_bulk_rna_seq
-      ? 'Bulk RNA-seq data available only when you download the entire project'
-      : false
 
-  const onFilterChange = (value) => {
-    setHasFilter(!!value)
-  }
+  const infoText = showBulkInfoText
+    ? 'Bulk RNA-seq data available only when you download the entire project'
+    : null
+  const text = canRemove ? 'Uncheck to change or remove modality' : null
 
-  const onOptionsSave = () => {
-    setShowDownloadOptions(false)
-    setLoaded(false)
-  }
-
-  // Update after save
-  useEffect(() => {
-    if (samples) setLoaded(false)
-  }, [samples, modality, format])
-
-  useEffect(() => {
-    const asyncFetch = async () => {
-      const samplesRequest = await api.samples.list({
-        project__scpca_id: project.scpca_id,
-        limit: 1000 // TODO:: 'all' option
-      })
-      if (samplesRequest.isOk) {
-        setSamples(samplesRequest.response.results)
-        setLoaded(true)
-      }
-    }
-    if (!samples && !loaded) asyncFetch()
-    if (samples && !loaded) setLoaded(true)
-  }, [samples, loaded])
-
-  if (!loaded)
-    return (
-      <Box margin="64px">
-        <Loader />
-      </Box>
-    )
+  const checkBoxCellWidth =
+    getProjectModalities(project).length > 1 ? '200px' : '50px'
 
   const columns = [
     {
-      Header: 'Download',
-      id: 'download',
-      accessor: ({ computed_files: computedFiles }) => {
-        if (computedFiles.length === 0) return -1
-        const computedFile = getFoundFile(computedFiles)
-        return computedFile ? computedFile.size_in_bytes : 0
-      },
-      Cell: ({ row }) => {
-        // there is nothing available to download
-        if (row.original.computed_files.length === 0) {
-          return (
-            <Box direction="row" align="center" gap="small">
-              <DownloadIcon color="status-disabled" />
-              <Box width={{ min: '120px' }}>
-                <Text>Not Available</Text>
-                <Text>for download</Text>
-              </Box>
-            </Box>
-          )
-        }
-
-        const computedFile = getFoundFile(row.original.computed_files, true)
-
-        if (computedFile) {
-          return (
-            <Box
-              align="center"
-              direction="row"
-              gap="small"
-              margin={{ top: 'small' }}
-            >
-              <DownloadModal
-                icon={<DownloadIcon color="brand" />}
-                resource={row.original}
-                publicComputedFile={computedFile}
-              />
-              <Text>{formatBytes(computedFile.size_in_bytes)}</Text>
-            </Box>
-          )
-        }
-
-        // No Match for the modality/format
-        return (
-          <Box direction="row" align="center" gap="small">
-            <DownloadIcon color="status-disabled" />
-            <Box width={{ min: '120px' }}>
-              <Text>Not available in</Text>
-              <Text>specified format</Text>
-            </Box>
-          </Box>
-        )
-      }
+      Header: (
+        <Box width={checkBoxCellWidth}>
+          <ProjectSamplesTableModalityHeader />
+        </Box>
+      ),
+      disableSortBy: true,
+      accessor: 'data',
+      Cell: ({ row }) => (
+        <Box width={checkBoxCellWidth}>
+          <ProjectSamplesTableModalityCell sample={row.original} />
+        </Box>
+      )
     },
     {
       Header: 'Sample ID',
@@ -155,35 +101,6 @@ export const ProjectSamplesTable = ({
         </Box>
       )
     },
-    {
-      Header: 'Multiplexed with',
-      accessor: 'multiplexed_with',
-      Cell: ({
-        row: {
-          original: { multiplexed_with: multiplexedWith }
-        }
-      }) => (
-        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
-          {multiplexedWith.length ? multiplexedWith.join(', ') : 'N/A'}
-        </Box>
-      ),
-      isVisible: hasMultiplexedData
-    },
-    {
-      Header: 'Sequencing Units',
-      accessor: 'seq_units',
-      Cell: ({ row }) => <Text>{row.original.seq_units.join(', ')}</Text>
-    },
-    {
-      Header: 'Technology',
-      accessor: 'technologies',
-      Cell: ({ row }) => <Text>{row.original.technologies.join(', ')}</Text>
-    },
-    {
-      Header: 'Modalities',
-      accessor: ({ modalities }) =>
-        modalities.map(getReadableModality).join(', ')
-    },
     { Header: 'Disease Timing', accessor: 'disease_timing' },
     { Header: 'Tissue Location', accessor: 'tissue_location' },
     {
@@ -199,6 +116,35 @@ export const ProjectSamplesTable = ({
       accessor: 'age_timing'
     },
     { Header: 'Sex', accessor: 'sex' },
+    {
+      Header: 'Modalities',
+      accessor: ({ modalities }) =>
+        modalities.map(getReadableModality).join(', ')
+    },
+    {
+      Header: 'Sequencing Units',
+      accessor: 'seq_units',
+      Cell: ({ row }) => <Text>{row.original.seq_units.join(', ')}</Text>
+    },
+    {
+      Header: 'Technology',
+      accessor: 'technologies',
+      Cell: ({ row }) => <Text>{row.original.technologies.join(', ')}</Text>
+    },
+    {
+      Header: 'Multiplexed with',
+      accessor: 'multiplexed_with',
+      Cell: ({
+        row: {
+          original: { multiplexed_with: multiplexedWith }
+        }
+      }) => (
+        <Box width={{ max: '200px' }} style={{ whiteSpace: ' break-spaces' }}>
+          {multiplexedWith.length ? multiplexedWith.join(', ') : 'N/A'}
+        </Box>
+      ),
+      isVisible: hasMultiplexedData
+    },
     {
       Header: 'Sample Count Estimates',
       accessor: ({ sample_cell_count_estimate: count }) => count || 'N/A'
@@ -223,52 +169,98 @@ export const ProjectSamplesTable = ({
     }
   ]
 
-  return (
-    <Table
-      filter
-      columns={columns}
-      data={samples}
-      stickies={stickies}
-      pageSize={5}
-      pageSizeOptions={[5, 10, 20, 50]}
-      infoText={infoText}
-      defaultSort={[{ id: 'download', desc: true }]}
-      onFilterChange={onFilterChange}
-    >
-      <Box direction="row" justify="between" pad={{ bottom: 'medium' }}>
-        <Box direction="row" gap="xlarge" align="center">
-          <Box direction="row">
-            <Text weight="bold" margin={{ right: 'small' }}>
-              Modality:
-            </Text>
-            <Text>{getReadable(modality)}</Text>
-          </Box>
-          <Box direction="row">
-            <Text weight="bold" margin={{ right: 'small' }}>
-              Data Format:
-            </Text>
-            <Text>{getReadable(format)}</Text>
-          </Box>
-          <DownloadOptionsModal
-            label="Change"
-            showing={showDownloadOptions}
-            setShowing={setShowDownloadOptions}
-            onSave={onOptionsSave}
-          />
-        </Box>
-        <Box>
-          <DownloadModal
-            label="Download Sample Metadata"
-            icon={<DownloadIcon color="brand" />}
-            resource={project}
-            publicComputedFile={metadataComputedFile}
-            disabled={!isMetadataOnlyAvailable || hasFilter}
-          />
-        </Box>
+  useEffect(() => {
+    const asyncFetch = async () => {
+      const samplesRequest = await api.samples.list({
+        project__scpca_id: project.scpca_id,
+        limit: 1000 // TODO:: 'all' option
+      })
+      if (samplesRequest.isOk) {
+        setSamples(samplesRequest.response.results)
+        setLoaded(true)
+      }
+    }
+    if (!samples && !loaded) asyncFetch()
+    if (samples && !loaded) setLoaded(true)
+  }, [samples, loaded])
+
+  // Disable DatasetAddSamplesModal if all samples are added
+  useEffect(() => {
+    if (samples && loaded) {
+      const projectSamplesByModality = {
+        SINGLE_CELL: getProjectSingleCellSamples(samples),
+        SPATIAL: getProjectSpatialSamples(samples)
+      }
+
+      const datasetProjectData = getDatasetProjectDataSamples(project, samples)
+
+      const samplesLeft = allModalities
+        .map((m) =>
+          differenceArray(projectSamplesByModality[m], datasetProjectData[m])
+        )
+        .flat()
+
+      setDisableAddToDatasetModal(samplesLeft.length === 0)
+    }
+  }, [myDataset, samples, loaded])
+
+  // Preselect samples that are already in myDataset
+  useEffect(() => {
+    if (!myDataset.data || !allSamples.length || !samples) return
+
+    const datasetProjectData = getDatasetProjectDataSamples(project, samples)
+
+    setAddedSamples(datasetProjectData)
+    selectModalitySamplesByIds('SINGLE_CELL', datasetProjectData.SINGLE_CELL)
+    selectModalitySamplesByIds('SPATIAL', datasetProjectData.SPATIAL)
+  }, [myDataset, allSamples, samples])
+
+  if (!loaded)
+    return (
+      <Box margin="64px">
+        <Loader />
       </Box>
-      {project.has_multiplexed_data && format === 'ANN_DATA' && (
-        <WarningAnnDataMultiplexed />
+    )
+
+  return (
+    <>
+      {canAdd && (
+        <Box direction="row" justify="end">
+          <DatasetAddSamplesModal
+            project={project}
+            samples={samples}
+            disabled={disableAddToDatasetModal}
+          />
+        </Box>
       )}
-    </Table>
+      <Table
+        columns={columns}
+        data={samples}
+        filter
+        stickies={stickies}
+        pageSize={5}
+        pageSizeOptions={[5, 10, 20, 50]}
+        infoText={infoText}
+        text={text}
+        defaultSort={[{ id: 'scpca_id', asc: true }]}
+        prevSelectedRows={addedSamples}
+        selectedRows={selectedSamples}
+        onAllRowsChange={setAllSamples}
+        onFilteredRowsChange={setFilteredSamples}
+      >
+        {datasets && (
+          <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
+            <CCDLDatasetDownloadModal
+              label="Download Sample Metadata"
+              icon={<DownloadIcon color="brand" />}
+            />
+          </Box>
+        )}
+        {/* Only display this warning when myDataset format has already been defined */}
+        {showWarningMultiplexed && myDataset.format && (
+          <WarningAnnDataMultiplexed />
+        )}
+      </Table>
+    </>
   )
 }

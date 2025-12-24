@@ -26,7 +26,16 @@ export const readableNames = {
   MULTIPLEXED: 'Multiplexed',
   ANN_DATA: 'AnnData (Python)',
   SINGLE_CELL_EXPERIMENT: 'SingleCellExperiment (R)',
-  SPATIAL_SPACERANGER: 'Spaceranger'
+  SPATIAL_SPACERANGER: 'Spaceranger',
+  '.rds': 'SingleCellExperiment (.rds)',
+  '.h5ad': 'AnnData (.h5ad)'
+}
+
+export const storableNames = {
+  'Single-cell': 'SINGLE_CELL',
+  Spatial: 'SPATIAL',
+  'AnnData (Python)': 'ANN_DATA',
+  'SingleCellExperiment (R)': 'SINGLE_CELL_EXPERIMENT'
 }
 
 // Alternate presentation
@@ -41,8 +50,26 @@ const readableFiles = {
   has_multiplexed_data: 'Multiplexed single-cell data'
 }
 
+const readableFileItems = {
+  SINGLE_CELL_DATA: 'Single-cell data',
+  SPATIAL_DATA: 'Spatial data',
+  BULK_DATA: 'Bulk RNA-Seq data',
+  CITE_SEQ_DATA: 'CITE-seq data',
+  MULTIPLEXED_DATA: 'Multiplexed single-cell data',
+  PORTAL_WIDE_METADATA: 'Sample metadata from all projects',
+  PROJECT_METADATA: 'Project and Sample Metadata'
+}
+
 export const getReadable = (key) => readableNames[key] || key
 
+export const getStorable = (key) => storableNames[key] || key
+
 export const getReadableFiles = (key) => readableFiles[key] || getReadable(key)
+
+export const getReadableFileItems = (key) => {
+  const value = readableFileItems[key] || readableFiles[key]
+  if (!value) console.error(`Key ${key} is not present in readableFileItems`)
+  return value
+}
 
 export default getReadable

@@ -2,17 +2,17 @@ import React from 'react'
 
 import { WarningText } from 'components/WarningText'
 
-export const DatasetWarningSpatialSamples = ({ sampleCount }) => {
+export const DatasetWarningMissingSamples = ({ project, sampleCount }) => {
   return (
     <WarningText
       text={`Selected modalities may not be available for ${sampleCount} ${
         sampleCount > 1 ? 'samples' : 'sample'
       }.`}
-      link="/projects/SCPCP000006"
-      linkLabel=" Inspect"
+      link={`/projects/${project.scpca_id}`}
+      linkLabel="Inspect"
       newTab
     />
   )
 }
 
-export default DatasetWarningSpatialSamples
+export default DatasetWarningMissingSamples

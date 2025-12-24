@@ -1,27 +1,27 @@
 import React from 'react'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
+  Table as GrommetTable,
+  TableBody as GrommetTableBody,
+  TableCell as GrommentTableCell,
+  TableHeader as GrommentTableHeader,
   TableRow,
   Text
 } from 'grommet'
 import styled from 'styled-components'
 
-const StyledTable = styled(Table)`
+const Table = styled(GrommetTable)`
   border: none;
   width: 100%;
   display: table;
 `
-const StyledTableHeader = styled(TableHeader)`
+const TableHeader = styled(GrommentTableHeader)`
   tr td {
     border: none;
     background: #f2f2f2;
     box-shadow: none;
   }
 `
-const StyledTableBody = styled(TableBody)`
+const TableBody = styled(GrommetTableBody)`
   border: none;
   tr,
   tr td {
@@ -29,11 +29,15 @@ const StyledTableBody = styled(TableBody)`
   }
 `
 
-const StyledTableCell = styled(TableCell)`
+const TableCell = styled(GrommentTableCell)`
   padding-left: 33px;
 `
 
-export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
+export const DatasetSummaryTable = ({
+  data = [],
+  columns = [],
+  keyValue // Data row property name with unique value across rows
+}) => {
   // check the first row to which columns are ints
   const columnAlign = Object.fromEntries(
     columns.map((c) => [
@@ -43,33 +47,35 @@ export const DatasetSummaryTable = ({ data = [], columns = [] }) => {
   )
 
   return (
-    <StyledTable width="100%">
-      <StyledTableHeader>
+    <Table width="100%">
+      <TableHeader>
         <TableRow>
           {columns.map((c) => (
-            <StyledTableCell
+            <TableCell
+              key={c}
               align={columnAlign[c]}
               pad={columnAlign[c] === 'end' ? { right: '100px' } : ''}
             >
               <Text size="medium">{c}</Text>
-            </StyledTableCell>
+            </TableCell>
           ))}
         </TableRow>
-      </StyledTableHeader>
-      <StyledTableBody>
+      </TableHeader>
+      <TableBody>
         {data.map((row) => (
-          <TableRow>
+          <TableRow key={row[keyValue]}>
             {columns.map((c) => (
-              <StyledTableCell
+              <TableCell
+                key={`${row[keyValue]}-${c}`}
                 align={columnAlign[c]}
                 pad={columnAlign[c] === 'end' ? { right: '100px' } : ''}
               >
                 <Text>{row[c]}</Text>
-              </StyledTableCell>
+              </TableCell>
             ))}
           </TableRow>
         ))}
-      </StyledTableBody>
-    </StyledTable>
+      </TableBody>
+    </Table>
   )
 }

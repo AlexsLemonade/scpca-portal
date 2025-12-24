@@ -6,7 +6,10 @@ import { theme } from 'theme'
 import { Layout } from 'components/Layout'
 import { Reset } from 'styles/Reset'
 import { BannerContextProvider } from 'contexts/BannerContext'
+import { MyDatasetContextProvider } from 'contexts/MyDatasetContext'
+import { NotificationContextProvider } from 'contexts/NotificationContext'
 import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
+import { ScrollRestoreContextProvider } from 'contexts/ScrollRestoreContext'
 import { AnalyticsContextProvider } from 'contexts/AnalyticsContext'
 import { PageTitle } from 'components/PageTitle'
 import Error from './_error'
@@ -28,15 +31,21 @@ const Portal = ({ Component, pageProps }) => {
       <Grommet theme={theme}>
         <Sentry.ErrorBoundary fallback={Fallback} showDialog>
           <ScPCAPortalContextProvider>
-            <AnalyticsContextProvider>
-              <PageTitle />
-              <BannerContextProvider>
-                <Layout>
-                  {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                  <Component {...pageProps} />
-                </Layout>
-              </BannerContextProvider>
-            </AnalyticsContextProvider>
+            <ScrollRestoreContextProvider>
+              <AnalyticsContextProvider>
+                <PageTitle />
+                <NotificationContextProvider>
+                  <BannerContextProvider>
+                    <MyDatasetContextProvider>
+                      <Layout>
+                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                        <Component {...pageProps} />
+                      </Layout>
+                    </MyDatasetContextProvider>
+                  </BannerContextProvider>
+                </NotificationContextProvider>
+              </AnalyticsContextProvider>
+            </ScrollRestoreContextProvider>
           </ScPCAPortalContextProvider>
         </Sentry.ErrorBoundary>
       </Grommet>

@@ -12,7 +12,7 @@ export const FormField = ({
 }) => {
   return (
     <Box direction={direction} align={align} margin={{ bottom: 'small' }}>
-      <Box margin={{ bottom: 'small' }} pad={{ right: 'medium' }}>
+      <Box pad={{ right: 'medium' }}>
         <Text weight={labelWeight}>{label}</Text>
       </Box>
       <Box gap={gap} width={fieldWidth}>

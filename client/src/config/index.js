@@ -2,6 +2,10 @@ import { termsOfUse } from './markdownLinks'
 
 export const config = {
   links: {
+    getting_started:
+      'https://scpca.readthedocs.io/en/stable/getting_started.html',
+    frequently_asked_questions:
+      'https://scpca.readthedocs.io/en/stable/faq.html',
     what_are_merged_objects:
       'https://scpca.readthedocs.io/en/stable/merged_objects.html',
     what_copy_link:
@@ -18,16 +22,44 @@ export const config = {
       'https://scpca.readthedocs.io/en/stable/download_files.html#spatial-transcriptomics-libraries',
     what_downloading_multiplexed:
       'https://scpca.readthedocs.io/en/stable/download_files.html#multiplexed-sample-libraries',
+    whatPortalWide:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#portal-wide-downloads',
+    whatDownloadingPortalWideMetadata:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#metadata-only-downloads',
+    whatDownloadingPortalWideSCE:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#singlecellexperiment-portal-wide-download-structure',
+    whatDownloadingPortalWideSCEMerged:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#portal-wide-download-structure-for-merged-singlecellexperiment-objects',
+    whatDownloadingPortalWideAnndata:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#anndata-portal-wide-download-structure',
+    whatDownloadingPortalWideAnndataMerged:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#portal-wide-download-structure-for-merged-anndata-objects',
+    whatDownloadingPortalWideSpatial:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#spatial-portal-wide-download-structure',
+    whatDownloadingProjectMetadata:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#metadata',
+    whatDownloadingProjectSCE:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#download-folder-structure-for-singlecellexperiment-project-downloads',
+    whatDownloadingProjectSCEMerged:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#download-folder-structure-for-singlecellexperiment-merged-downloads',
+    whatDownloadingProjectAnndata:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#download-folder-structure-for-anndata-project-downloads',
+    whatDownloadingProjectAnndataMerged:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#download-folder-structure-for-anndata-merged-downloads',
+    whatDownloadingProjectSpatial:
+      'https://scpca.readthedocs.io/en/stable/download_files.html#spatial-transcriptomics-libraries',
     what_est_demux_cell:
       'https://scpca.readthedocs.io/en/stable/faq.html#what-are-estimated-demux-cell-counts',
-    what_review_dataset: 'https://example.com',
+    what_review_dataset:
+      'https://scpca.readthedocs.io/en/stable/faq.html#why-did-project-options-change-when-i-appended-samples-to-my-dataset',
     when_downloading_merged_objects:
       'https://scpca.readthedocs.io/en/stable/faq.html#when-should-i-download-a-project-as-a-merged-object',
     which_projects_are_merged_objects:
       'https://scpca.readthedocs.io/en/stable/faq.html#which-projects-can-i-download-as-merged-objects',
     which_samples_can_download_as_anndata:
       'https://scpca.readthedocs.io/en/stable/faq.html#which-samples-can-i-download-as-anndata-objects',
-    why_changing_merged_project: 'https://example.com',
+    why_changing_merged_project:
+      'https://scpca.readthedocs.io/en/stable/faq.html#why-can-t-i-merge-a-subset-of-samples-from-a-project',
     how_processed:
       'https://scpca.readthedocs.io/en/stable/processing_information.html',
     how_processed_multiplexed:
