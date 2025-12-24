@@ -1,15 +1,13 @@
-import logging
 from argparse import BooleanOptionalAction
 
 from django.core.management.base import BaseCommand
 
 from scpca_portal import ccdl_datasets
+from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.exceptions import DatasetError, JobError
 from scpca_portal.models import Dataset, Job, Project
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
+logger = get_and_configure_logger(__name__)
 
 
 class Command(BaseCommand):
