@@ -147,6 +147,11 @@ def create_ssh_private_key_file():
     with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
         private_key_file.write(os.environ["SSH_PRIVATE_KEY"])
 
+
+    with open(PRIVATE_KEY_FILE_PATH, 'r') as file:
+        line_count = sum(1 for line in file)
+        print(f"PRIVATE KEY HAS {line_count} lines.")
+
     os.chmod(PRIVATE_KEY_FILE_PATH, 0o600)
 
 
