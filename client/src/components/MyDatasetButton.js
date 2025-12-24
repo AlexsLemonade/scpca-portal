@@ -20,19 +20,12 @@ const YellowButton = styled(Button)`
 
 export const MyDatasetButton = () => {
   const { push } = useRouter()
-  const { myDataset, getDataset } = useMyDataset()
-  const { total_sample_count: count = 0 } = myDataset
-
-  const [loading, setLoading] = useState(true)
+  const { myDataset } = useMyDataset()
+  const [count, setCount] = useState(0)
 
   useEffect(() => {
-    const fetchDataset = async () => {
-      await getDataset()
-      setLoading(false)
-    }
-
-    if (loading) fetchDataset()
-  }, [loading, myDataset])
+    setCount(myDataset?.total_sample_count || 0)
+  }, [myDataset])
 
   return (
     <Box direction="row">
