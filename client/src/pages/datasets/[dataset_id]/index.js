@@ -37,7 +37,6 @@ const Dataset = ({ dataset: initialDataset }) => {
     }
   }, [dataset, myDataset])
 
-  // TODO: We're temporarily polling in this component
   // Poll API during dataset processing
   // TODO: Generalize this logic into a hook
   useEffect(() => {
