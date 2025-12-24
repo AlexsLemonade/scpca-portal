@@ -48,6 +48,14 @@ locals {
       {
         name  = "SENTRY_ENV"
         value = "${var.stage}-batch"
+      },
+      {
+        name  = "AWS_SES_DOMAIN",
+        value = var.aws_ses_domain_identity_scpca_portal.domain
+      },
+      {
+        name  = "SLACK_NOTIFICATIONS_EMAIL",
+        value = var.slack_notifications_email
       }
     ]
   }
@@ -92,7 +100,7 @@ locals {
 locals {
   job_role_arns = {
     executionRoleArn = aws_iam_role.ecs_task_role.arn
-    jobRoleArn = aws_iam_role.batch_job_role.arn
+    jobRoleArn       = aws_iam_role.batch_job_role.arn
   }
 }
 
@@ -128,7 +136,7 @@ resource "aws_batch_job_definition" "scpca_portal_fargate" {
   }
 
   propagate_tags = true
-  tags = var.batch_tags
+  tags           = var.batch_tags
 }
 
 resource "aws_batch_job_definition" "scpca_portal_ec2" {
@@ -152,5 +160,5 @@ resource "aws_batch_job_definition" "scpca_portal_ec2" {
   }
 
   propagate_tags = true
-  tags = var.batch_tags
+  tags           = var.batch_tags
 }

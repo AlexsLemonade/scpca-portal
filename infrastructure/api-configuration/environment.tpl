@@ -16,5 +16,5 @@ AWS_S3_BUCKET_NAME=${aws_s3_bucket_name}
 AWS_SES_DOMAIN=${aws_ses_domain}
 SENTRY_DSN=${sentry_dsn}
 SENTRY_ENV=${sentry_env}
-SLACK_CCDL_TEST_CHANNEL_EMAIL=${slack_ccdl_test_channel_email}
+SLACK_NOTIFICATIONS_EMAIL=${slack_notifications_email}
 ENABLE_FEATURE_PREVIEW=${enable_feature_preview}

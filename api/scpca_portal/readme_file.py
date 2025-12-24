@@ -65,6 +65,19 @@ PORTAL_CCDL_DATASET_LINKS = {
 # used in get_content_table_rows and in 2_contents.md
 ContentRow = namedtuple("ContentRow", ["project", "modality", "format", "docs"])
 
+# used to map the human-readable values to the corresponding format and modality tokens
+FORMAT_STRING = {
+    "SINGLE_CELL_EXPERIMENT": FileFormats.SINGLE_CELL_EXPERIMENT.label,
+    "ANN_DATA": FileFormats.ANN_DATA.label,
+    "BULK_FORMAT": "Bulk Format",
+    "SPATIAL_SPACERANGER": FileFormats.SPATIAL_SPACERANGER.label,
+}
+MODALITY_STRING = {
+    Modalities.BULK_RNA_SEQ: Modalities.BULK_RNA_SEQ.label,
+    Modalities.SINGLE_CELL: Modalities.SINGLE_CELL.label,
+    Modalities.SPATIAL: Modalities.SPATIAL.label,
+}
+
 
 def add_ann_data_content_rows(content_rows: set, dataset) -> set:
     """
@@ -87,7 +100,14 @@ def add_ann_data_content_rows(content_rows: set, dataset) -> set:
             if project.has_cite_seq_data:
                 docs_link = ANN_DATA_MERGED_WITH_CITE_SEQ_LINK
 
-        content_rows.add(ContentRow(project, Modalities.SINGLE_CELL, dataset.format, docs_link))
+        content_rows.add(
+            ContentRow(
+                project,
+                MODALITY_STRING[Modalities.SINGLE_CELL],
+                FORMAT_STRING[dataset.format],
+                docs_link,
+            )
+        )
 
     return content_rows
 
@@ -113,7 +133,14 @@ def add_single_cell_experiment_content_rows(content_rows: set, dataset) -> set:
         ):
             docs_link = SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK
 
-        content_rows.add(ContentRow(project, Modalities.SINGLE_CELL, dataset.format, docs_link))
+        content_rows.add(
+            ContentRow(
+                project,
+                MODALITY_STRING[Modalities.SINGLE_CELL],
+                FORMAT_STRING[dataset.format],
+                docs_link,
+            )
+        )
 
     return content_rows
 
@@ -140,8 +167,8 @@ def get_content_table_rows(dataset) -> list[ContentRow]:
         content_rows.add(
             ContentRow(
                 project,
-                Modalities.SPATIAL,
-                FileFormats.SPATIAL_SPACERANGER,
+                MODALITY_STRING[Modalities.SPATIAL],
+                FORMAT_STRING[FileFormats.SPATIAL_SPACERANGER],
                 SPATIAL_SPATIAL_SPACERANGER_LINK,
             )
         )
@@ -149,7 +176,14 @@ def get_content_table_rows(dataset) -> list[ContentRow]:
     # BULK get their own row when data is present
     if dataset.format != DatasetFormats.METADATA:
         for project in dataset.bulk_single_cell_projects:
-            content_rows.add(ContentRow(project, Modalities.BULK_RNA_SEQ, "BULK_FORMAT", BULK_LINK))
+            content_rows.add(
+                ContentRow(
+                    project,
+                    MODALITY_STRING[Modalities.BULK_RNA_SEQ],
+                    FORMAT_STRING["BULK_FORMAT"],
+                    BULK_LINK,
+                )
+            )
 
     return sorted(
         content_rows,
