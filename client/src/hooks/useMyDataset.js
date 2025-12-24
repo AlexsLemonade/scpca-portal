@@ -295,6 +295,16 @@ export const useMyDataset = () => {
     return uniqueArray([...singleCellSamples, ...spatialSamples])
   }
 
+  const getAllSamplesForProjectAdded = (project) => {
+    if (!myDataset.data?.[project.scpca_id]) {
+      return false
+    }
+
+    const remamingSamples = getRemainingProjectSampleIds(project)
+
+    return allModalities.every((m) => remamingSamples[m].length === 0)
+  }
+
   const getProjectDataSamples = (
     project,
     selectedModalities,
@@ -318,6 +328,7 @@ export const useMyDataset = () => {
     return datasetProjectDataCopy
   }
 
+  // TODO: Remove the samples parameter
   const getProjectSingleCellSamples = (
     samples,
     merged = false,
@@ -335,13 +346,21 @@ export const useMyDataset = () => {
     return projectSamples.map((s) => s.scpca_id)
   }
 
+  // TODO: Remove the samples parameter
   const getProjectSpatialSamples = (samples) =>
     // Populate SPATIAL value for the project data for addProject
     samples.filter((s) => s.has_spatial_data).map((s) => s.scpca_id)
 
   // Return remaining project sample IDs of the given project
-  const getRemainingProjectSampleIds = (project, samples) => {
+  const getRemainingProjectSampleIds = (project) => {
     const projectData = getDatasetProjectData(project)
+
+    if (Object.keys(projectData).length === 0) {
+      return allModalities.reduce((acc, m) => {
+        acc[m] = project.modality_samples[m]
+        return acc
+      }, {})
+    }
 
     return allModalities.reduce((acc, m) => {
       const addedSampleId = projectData[m]
@@ -349,19 +368,26 @@ export const useMyDataset = () => {
       if (addedSampleId === 'MERGED') {
         acc[m] = []
       } else {
-        const allSampleIds = samples
-          .filter((s) => s[`has_${m.toLowerCase()}_data`])
-          .map((s) => s.scpca_id)
-
-        acc[m] = allSampleIds.filter((id) => !addedSampleId.includes(id))
+        acc[m] = project.modality_samples[m].filter(
+          (id) => !addedSampleId.includes(id)
+        )
       }
-
       return acc
     }, {})
   }
 
   const getHasProject = (project) =>
     Object.keys(myDataset?.data || []).includes(project.scpca_id)
+
+  const getHasRemainingProjectSamples = (project) => {
+    if (!myDataset.data?.[project.scpca_id]) {
+      return false
+    }
+
+    const remamingSamples = getRemainingProjectSampleIds(project)
+
+    return allModalities.some((m) => remamingSamples[m].length > 0)
+  }
 
   const isProjectIncludeBulk = (project) =>
     myDataset.data?.[project.scpca_id]?.includes_bulk || false
@@ -400,6 +426,7 @@ export const useMyDataset = () => {
       : updateDataset(updatedDataset)
   }
 
+  // TODO: remove samples parameter
   const getMissingModaliesSamples = (samples, modalities) => {
     const modalityAttributes = {
       SINGLE_CELL: 'has_single_cell_data',
@@ -442,6 +469,7 @@ export const useMyDataset = () => {
     processDataset,
     addProject,
     removeProjectById,
+    getAllSamplesForProjectAdded,
     getDatasetProjectData,
     getDatasetProjectDataSamples,
     getAddedProjectDataSamples,
@@ -450,6 +478,7 @@ export const useMyDataset = () => {
     getProjectSingleCellSamples,
     getProjectSpatialSamples,
     getHasProject,
+    getHasRemainingProjectSamples,
     isProjectIncludeBulk,
     isProjectMerged,
     setSamples,
