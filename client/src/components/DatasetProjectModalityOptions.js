@@ -1,18 +1,26 @@
 import React, { useEffect, useState } from 'react'
 import { CheckBoxGroup } from 'grommet'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { getProjectModalities } from 'helpers/getProjectModalities'
 import { FormField } from 'components/FormField'
 
 export const DatasetProjectModalityOptions = ({
   project,
-  remainingSamples = {},
   modalities,
   onModalitiesChange
 }) => {
+  const { myDataset, getRemainingProjectSampleIds } = useMyDataset()
+
+  const [remainingSamples, setRemainingSamples] = useState(null)
+
   const [options, setOptions] = useState(
     getReadableOptions(getProjectModalities(project))
   )
+
+  useEffect(() => {
+    setRemainingSamples(getRemainingProjectSampleIds(project))
+  }, [myDataset])
 
   // Run only for the add remaining modal
   useEffect(() => {

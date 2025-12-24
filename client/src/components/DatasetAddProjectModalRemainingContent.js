@@ -6,13 +6,12 @@ import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
 // This UI component is only shown for the 'Add Remaining' button
 // - Display the info message to view My Dataset
 // - Display the already added samples in My Dataset
-export const DatasetAddProjectModalRemainingContent = ({
-  project,
-  remainingSamples
-}) => {
-  const { myDataset, getDatasetProjectData } = useMyDataset()
+export const DatasetAddProjectModalRemainingContent = ({ project }) => {
+  const { myDataset, getDatasetProjectData, getAllSamplesForProjectAdded } =
+    useMyDataset()
 
   const [projectDataInMyDataset, setProjectDataInMyDataset] = useState(null)
+  const [isAllSamplesAdded, setIsAllSamplesAdded] = useState(false)
 
   const addedSingleCellCount = projectDataInMyDataset?.SINGLE_CELL?.length
   const addedSpatialCount = projectDataInMyDataset?.SPATIAL?.length
@@ -20,15 +19,16 @@ export const DatasetAddProjectModalRemainingContent = ({
     projectDataInMyDataset?.SINGLE_CELL === 'MERGED'
       ? 'All single-cell samples as a merged object'
       : `${
-          remainingSamples?.SINGLE_CELL.length === 0 ? 'All' : ''
+          isAllSamplesAdded ? 'All' : ''
         } ${addedSingleCellCount} samples with single-cell modality`
   const addedSpatialText = `${
-    remainingSamples?.SPATIAL.length === 0 ? 'All' : ''
+    isAllSamplesAdded ? 'All' : ''
   } ${addedSpatialCount} samples with spatial modality`
 
   //  Get the project data in myDataset for the Add Remaining state
   useEffect(() => {
     setProjectDataInMyDataset(getDatasetProjectData(project))
+    setIsAllSamplesAdded(getAllSamplesForProjectAdded(project))
   }, [myDataset])
 
   return (
