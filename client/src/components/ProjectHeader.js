@@ -4,22 +4,20 @@ import { config } from 'config'
 import { Box, Grid, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { Badge } from 'components/Badge'
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
-import { Link } from 'components/Link'
-import { Icon } from 'components/Icon'
 import { InfoText } from 'components/InfoText'
+import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
+import { Link } from 'components/Link'
 import { Pill } from 'components/Pill'
 import { WarningText } from 'components/WarningText'
-import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { capitalize } from 'helpers/capitalize'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 
 export const ProjectHeader = ({ project, linked = false }) => {
-  const { myDataset, getHasProject } = useMyDataset()
+  const { myDataset, getHasRemainingProjectSamples } = useMyDataset()
   const { responsive } = useResponsive()
-
-  const [isProjectInMyDataset, setIsProjectInMyDataset] = useState()
 
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
   const unavailableSampleCountText =
@@ -29,8 +27,9 @@ export const ProjectHeader = ({ project, linked = false }) => {
     (m) => m !== 'SINGLE_CELL'
   )
 
+  const [hasRemainingSamples, setHasRemainingSamples] = useState(false)
   useEffect(() => {
-    setIsProjectInMyDataset(getHasProject(project))
+    setHasRemainingSamples(getHasRemainingProjectSamples(project))
   }, [myDataset])
 
   return (
@@ -53,6 +52,11 @@ export const ProjectHeader = ({ project, linked = false }) => {
               {project.title}
             </Text>
           )}
+          {myDataset.data?.[project.scpca_id] && hasRemainingSamples && (
+            <Box margin={{ top: 'medium' }}>
+              <InfoViewMyDataset />
+            </Box>
+          )}
         </Box>
         <Box
           gap="small"
@@ -62,19 +66,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
           pad={{ top: responsive('medium', 'none') }}
         >
           <Box align="center" gap="small">
-            {isProjectInMyDataset ? (
-              <Box
-                direction="row"
-                align="center"
-                gap="small"
-                margin={{ vertical: 'small' }}
-              >
-                <Icon color="success" name="Check" />
-                <Text color="success">Added to Dataset</Text>
-              </Box>
-            ) : (
-              <DatasetAddProjectModal project={project} />
-            )}
+            <DatasetAddProjectModal project={project} />
             <CCDLDatasetDownloadModal label="Download Now" secondary />
             {project.has_bulk_rna_seq && (
               <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
