@@ -111,6 +111,8 @@ def list_files_by_suffix(
     command_inputs.extend(["--bucket", bucket])
 
     prefix += dir_path
+    if not prefix.endswith("/"):
+        prefix += "/"
     command_inputs.extend(["--prefix", prefix])
 
     query = f"Contents[?ends_with(Key, '.{suffix}')]"
