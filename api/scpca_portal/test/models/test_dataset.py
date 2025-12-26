@@ -659,11 +659,11 @@ class TestDataset(TestCase):
             format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
         )
 
-        # lockfile in test bucket is empty by default
-        self.assertFalse(dataset.has_lockfile_projects)
-
         with patch("scpca_portal.lockfile.get_locked_project_ids", return_value=["SCPCP999990"]):
             self.assertTrue(dataset.has_lockfile_projects)
+
+        with patch("scpca_portal.lockfile.get_locked_project_ids", return_value=[]):
+            self.assertFalse(dataset.has_lockfile_projects)
 
     def test_projects_property(self):
         dataset = Dataset(
