@@ -6,7 +6,7 @@ from scpca_portal.enums import FileFormats, Modalities
 class Project_SCPCP999991:
     SCPCA_ID = "SCPCP999991"
     VALUES = {
-        "abstract": "TBD",
+        "abstract": "Abstract2",
         "additional_restrictions": "Research or academic purposes only",
         "diagnoses": ["diagnosis3", "diagnosis4", "diagnosis6"],
         "diagnoses_counts": {"diagnosis3": 1, "diagnosis4": 1, "diagnosis6": 1},
@@ -18,7 +18,7 @@ class Project_SCPCP999991:
         "has_multiplexed_data": True,
         "has_single_cell_data": True,
         "has_spatial_data": False,
-        "human_readable_pi_name": "TBD",
+        "human_readable_pi_name": "PI2",
         "includes_anndata": True,
         "includes_cell_lines": False,
         "includes_merged_sce": False,
@@ -37,7 +37,7 @@ class Project_SCPCP999991:
         "scpca_id": SCPCA_ID,
         "seq_units": ["cell", "nucleus"],
         "technologies": ["10Xv3", "10Xv3.1"],
-        "title": "TBD",
+        "title": "Title2",
         "unavailable_samples_count": 0,
     }
 
@@ -139,7 +139,7 @@ class Project_SCPCP999991:
                 "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_unfiltered.rds",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.7",
+            "workflow_version": "v0.8.8",
         }
 
     class Library_SCPCL999995:
@@ -162,7 +162,7 @@ class Project_SCPCP999991:
             "has_cite_seq_data": False,
             "is_multiplexed": False,
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.7",
+            "workflow_version": "v0.8.8",
         }
 
     class Summary1:

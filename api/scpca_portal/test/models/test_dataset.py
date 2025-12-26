@@ -413,7 +413,7 @@ class TestDataset(TestCase):
         dataset = Dataset(data=data, format=format)
 
         # TODO: add to expected_values dataset file (along with other hash values)
-        expected_metadata_hash = "bd32dc05b6dc4a20fdd510bd2d3f669b"
+        expected_metadata_hash = "f7cba8927949b0d9e7c284501ae42de4"
         self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
     def test_current_readme_hash(self):
@@ -450,7 +450,7 @@ class TestDataset(TestCase):
             (project_id, modality, len(content))
             for (project_id, modality, content) in dataset.get_metadata_file_contents()
         ]
-        expected_values = [("SCPCP999990", Modalities.SINGLE_CELL, 1723)]
+        expected_values = [("SCPCP999990", Modalities.SINGLE_CELL, 1729)]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
 
@@ -1061,7 +1061,7 @@ class TestDataset(TestCase):
 
         # TODO: Update so that fake project titles are unique.
         expected_titles = {
-            "SCPCP999990": "TBD",
+            "SCPCP999990": "Title1",
             "SCPCP999991": "TBD",
             "SCPCP999992": "TBD",
         }

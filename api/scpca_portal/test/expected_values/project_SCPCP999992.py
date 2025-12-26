@@ -6,7 +6,7 @@ from scpca_portal.enums import FileFormats, Modalities
 class Project_SCPCP999992:
     SCPCA_ID = "SCPCP999992"
     VALUES = {
-        "abstract": "TBD",
+        "abstract": "Abstract3",
         "additional_restrictions": "Research or academic purposes only",
         "diagnoses": ["diagnosis7"],
         "diagnoses_counts": {"diagnosis7": 2},
@@ -18,7 +18,7 @@ class Project_SCPCP999992:
         "has_multiplexed_data": False,
         "has_single_cell_data": True,
         "has_spatial_data": False,
-        "human_readable_pi_name": "TBD",
+        "human_readable_pi_name": "PI3",
         "includes_anndata": True,
         "includes_cell_lines": False,
         "includes_merged_sce": True,
@@ -42,7 +42,7 @@ class Project_SCPCP999992:
         "scpca_id": SCPCA_ID,
         "seq_units": ["cell"],
         "technologies": ["10Xv2_5prime", "10Xv3"],
-        "title": "TBD",
+        "title": "Title3",
         "unavailable_samples_count": 0,
     }
 
@@ -63,7 +63,7 @@ class Project_SCPCP999992:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 3427,
+            "sample_cell_count_estimate": 3423,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": ["cell"],
@@ -121,7 +121,7 @@ class Project_SCPCP999992:
                 "SCPCP999992/SCPCS999996/SCPCL999996_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.7",
+            "workflow_version": "v0.8.8",
         }
 
     class Library_SCPCL999998:
@@ -148,7 +148,7 @@ class Project_SCPCP999992:
                 "SCPCP999992/SCPCS999998/SCPCL999998_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.7",
+            "workflow_version": "v0.8.8",
         }
 
     class Summary1:

@@ -30,8 +30,8 @@ class Computed_File_Sample:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCS999990_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-            "size_in_bytes": 7052,
-            "workflow_version": "v0.8.7",
+            "size_in_bytes": 7055,
+            "workflow_version": "v0.8.8",
             "includes_celltype_report": True,
         }
 
@@ -60,8 +60,8 @@ class Computed_File_Sample:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCS999990_SINGLE-CELL_ANN-DATA.zip",
-            "size_in_bytes": 7364,
-            "workflow_version": "v0.8.7",
+            "size_in_bytes": 7367,
+            "workflow_version": "v0.8.8",
             "includes_celltype_report": True,
         }
 
@@ -99,8 +99,8 @@ class Computed_File_Sample:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCS999991_SPATIAL_SINGLE-CELL-EXPERIMENT.zip",
-            "size_in_bytes": 8642,
-            "workflow_version": "v0.8.7",
+            "size_in_bytes": 8645,
+            "workflow_version": "v0.8.8",
             "includes_celltype_report": True,
         }
 
@@ -129,7 +129,7 @@ class Computed_File_Sample:
             "metadata_only": False,
             "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
             "s3_key": "SCPCS999992-SCPCS999993_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MULTIPLEXED.zip",
-            "size_in_bytes": 7665,
-            "workflow_version": "v0.8.7",
+            "size_in_bytes": 7671,
+            "workflow_version": "v0.8.8",
             "includes_celltype_report": True,
         }
