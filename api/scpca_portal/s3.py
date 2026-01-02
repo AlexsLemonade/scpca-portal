@@ -149,6 +149,8 @@ def check_file_exists(key: str, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME)
     command_parts.extend(["--bucket", bucket])
     command_parts.extend(["--key", key])
 
+    print(command_parts)
+
     # If object exists, aws returns a JSON object.
     # If object doesn't exist, aws throws an object non found error.
     try:

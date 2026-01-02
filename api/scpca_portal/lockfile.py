@@ -14,6 +14,7 @@ def get_is_locked_project(
     project_id: str, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
 ) -> bool:
     project_lockfile = f"{project_id}.{LOCKFILE_FILE_SUFFIX}"
+    print(project_lockfile, bucket)
     return s3.check_file_exists(project_lockfile, bucket=bucket)
 
 
