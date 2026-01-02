@@ -472,8 +472,8 @@ class TestDataset(TestCase):
             for (project_id, modality, content) in dataset.get_metadata_file_contents()
         ]
         expected_values = [
-            ("SCPCP999990", Modalities.SINGLE_CELL, 1723),
-            ("SCPCP999990", Modalities.SPATIAL, 1000),
+            ("SCPCP999990", Modalities.SINGLE_CELL, 1729),
+            ("SCPCP999990", Modalities.SPATIAL, 1003),
         ]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
@@ -507,10 +507,10 @@ class TestDataset(TestCase):
             for (project_id, modality, content) in dataset.get_metadata_file_contents()
         ]
         expected_values = [
-            ("SCPCP999990", Modalities.SINGLE_CELL, 1723),
-            ("SCPCP999990", Modalities.SPATIAL, 1000),
-            ("SCPCP999991", Modalities.SINGLE_CELL, 2342),
-            ("SCPCP999992", Modalities.SINGLE_CELL, 1833),
+            ("SCPCP999990", Modalities.SINGLE_CELL, 1729),
+            ("SCPCP999990", Modalities.SPATIAL, 1003),
+            ("SCPCP999991", Modalities.SINGLE_CELL, 2351),
+            ("SCPCP999992", Modalities.SINGLE_CELL, 1839),
         ]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
@@ -530,7 +530,7 @@ class TestDataset(TestCase):
             for (project_id, modality, content) in dataset.get_metadata_file_contents()
         ]
         expected_values = [
-            (None, None, 2680),
+            (None, None, 2692),
         ]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
@@ -564,7 +564,7 @@ class TestDataset(TestCase):
             for (project_id, modality, content) in dataset.get_metadata_file_contents()
         ]
         expected_values = [
-            (None, None, 5463),
+            (None, None, 5490),
         ]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
@@ -1062,8 +1062,8 @@ class TestDataset(TestCase):
         # TODO: Update so that fake project titles are unique.
         expected_titles = {
             "SCPCP999990": "Title1",
-            "SCPCP999991": "TBD",
-            "SCPCP999992": "TBD",
+            "SCPCP999991": "Title2",
+            "SCPCP999992": "Title3",
         }
 
         actual_titles = dataset.get_project_titles()
