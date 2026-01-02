@@ -51,6 +51,8 @@ class Command(BaseCommand):
         locked_project_ids = lockfile.get_locked_project_ids()
         Project.lock_projects(locked_project_ids)
 
+        print(locked_project_ids)
+
         bucket_objects = s3.list_bucket_objects(bucket, excluded_key_substrings=locked_project_ids)
 
         logger.info("Syncing database...")
