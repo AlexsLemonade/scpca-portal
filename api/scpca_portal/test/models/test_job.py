@@ -100,13 +100,8 @@ class TestJob(TestCase):
             terminated_reason=terminated_reason,
         )
 
-    @patch(
-        "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
-        new_callable=PropertyMock,
-        return_value=[],
-    )
     @patch("scpca_portal.batch.submit_job")
-    def test_submit(self, mock_batch_submit_job, _):
+    def test_submit(self, mock_batch_submit_job):
         # Set up mock for submit_job
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
@@ -692,13 +687,8 @@ class TestJob(TestCase):
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
             self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
 
-    @patch(
-        "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
-        new_callable=PropertyMock,
-        return_value=[],
-    )
     @patch("scpca_portal.batch.submit_job")
-    def test_dynamically_set_dataset_job_pipeline(self, mock_batch_submit_job, _):
+    def test_dynamically_set_dataset_job_pipeline(self, mock_batch_submit_job):
         # Set up mock for submit_job
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id

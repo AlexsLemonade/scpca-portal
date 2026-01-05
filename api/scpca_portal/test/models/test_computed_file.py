@@ -1,4 +1,4 @@
-from unittest.mock import PropertyMock, patch
+from unittest.mock import patch
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -93,12 +93,7 @@ class TestGetFile(TestCase):
         dataset, _ = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
         dataset.save()
 
-        with patch(
-            "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
-            new_callable=PropertyMock,
-            return_value=[],
-        ):
-            computed_file = ComputedFile.get_dataset_file(dataset)
+        computed_file = ComputedFile.get_dataset_file(dataset)
 
         # CHECK ZIP FILE
         with ZipFile(dataset.computed_file_local_path) as project_zip:
@@ -128,12 +123,7 @@ class TestGetFile(TestCase):
         )
         dataset.save()
 
-        with patch(
-            "scpca_portal.models.dataset.Dataset.has_lockfile_projects",
-            new_callable=PropertyMock,
-            return_value=[],
-        ):
-            ComputedFile.get_dataset_file(dataset)
+        ComputedFile.get_dataset_file(dataset)
 
         with ZipFile(dataset.computed_file_local_path) as project_zip:
             # Check if file list is as expected

@@ -6,7 +6,7 @@ from scpca_portal.enums import FileFormats, Modalities
 class Project_SCPCP999990:
     SCPCA_ID = "SCPCP999990"
     VALUES = {
-        "abstract": "TBD",
+        "abstract": "Abstract1",
         "additional_restrictions": "Research or academic purposes only",
         "diagnoses": ["diagnosis1", "diagnosis2", "diagnosis5"],
         "diagnoses_counts": {"diagnosis1": 1, "diagnosis2": 1, "diagnosis5": 2},
@@ -18,7 +18,7 @@ class Project_SCPCP999990:
         "has_multiplexed_data": False,
         "has_single_cell_data": True,
         "has_spatial_data": True,
-        "human_readable_pi_name": "TBD",
+        "human_readable_pi_name": "PI1",
         "includes_anndata": True,
         "includes_cell_lines": False,
         "includes_merged_sce": True,
@@ -44,7 +44,7 @@ class Project_SCPCP999990:
         "scpca_id": SCPCA_ID,
         "seq_units": ["cell", "spot"],
         "technologies": ["10Xv3", "visium"],
-        "title": "TBD",
+        "title": "Title1",
         "unavailable_samples_count": 1,
     }
 
@@ -65,7 +65,7 @@ class Project_SCPCP999990:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 3422,
+            "sample_cell_count_estimate": 3424,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": ["cell"],
@@ -146,7 +146,7 @@ class Project_SCPCP999990:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 1571,
+            "sample_cell_count_estimate": 1570,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": ["cell"],
@@ -177,7 +177,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.7",
+            "workflow_version": "v0.8.8",
         }
 
     class Library_SCPCL999991:
@@ -206,7 +206,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.7",
+            "workflow_version": "v0.8.8",
         }
 
     class Library_SCPCL999994:
@@ -218,7 +218,7 @@ class Project_SCPCP999990:
             "modality": Modalities.BULK_RNA_SEQ,
             "original_file_paths": [],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.7",
+            "workflow_version": "v0.8.8",
         }
 
     class Library_SCPCL999997:
@@ -242,7 +242,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.7",
+            "workflow_version": "v0.8.8",
         }
 
     class Summary1:
