@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Paragraph, Text } from 'grommet'
-import { useMyDataset } from 'hooks/useMyDataset'
 import { mapRowsWithColumns } from 'helpers/mapRowsWithColumns'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 
 export const DatasetSummary = ({ dataset }) => {
-  const { myDataset } = useMyDataset()
-
   const [totalSample, setSampleTotal] = useState(0)
   const [totalProject, setTotalProject] = useState(0)
   const sampleTotalText = `${totalSample} Sample${totalSample > 1 ? 's' : ''}`
@@ -24,9 +21,9 @@ export const DatasetSummary = ({ dataset }) => {
   )
 
   useEffect(() => {
-    setSampleTotal(myDataset.total_sample_count || 0)
-    setTotalProject(Object.keys(myDataset.data).length || 0)
-  }, [myDataset])
+    setSampleTotal(dataset.total_sample_count || 0)
+    setTotalProject(Object.keys(dataset.data).length || 0)
+  }, [dataset])
 
   return (
     <Box>
