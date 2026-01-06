@@ -427,7 +427,7 @@ export const useMyDataset = () => {
   }
 
   // TODO: remove samples parameter
-  const getMissingModaliesSamples = (samples, modalities) => {
+  const getMissingModalitySamples = (samples, modalities) => {
     const modalityAttributes = {
       SINGLE_CELL: 'has_single_cell_data',
       SPATIAL: 'has_spatial_data'
@@ -483,6 +483,6 @@ export const useMyDataset = () => {
     isProjectIncludeBulk,
     isProjectMerged,
     setSamples,
-    getMissingModaliesSamples
+    getMissingModalitySamples
   }
 }

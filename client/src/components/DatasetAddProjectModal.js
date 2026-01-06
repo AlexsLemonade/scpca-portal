@@ -24,7 +24,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
     addProject,
     getAllSamplesForProjectAdded,
     getHasRemainingProjectSamples,
-    getMissingModaliesSamples,
+    getMissingModalitySamples,
     getDatasetProjectData,
     getProjectDataSamples,
     getProjectSingleCellSamples,
@@ -170,7 +170,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
 
   // Calculate missing modality samples
   useEffect(() => {
-    setSampleDifference(getMissingModaliesSamples(samples, modalities))
+    setSampleDifference(getMissingModalitySamples(samples, modalities))
   }, [modalities, samples])
 
   if (isAllSamplesAdded) {
