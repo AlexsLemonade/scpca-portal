@@ -119,6 +119,9 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   // on selected options change, select dataset
   useEffect(() => {
+    // handle case where modal is closed and reopened without refresh
+    if (!showing) return
+
     if (datasets.length === 1) {
       setSelectedDataset(datasets[0])
       setDownloadDataset(true)
@@ -142,7 +145,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         `There was an error selecting the correct dataset. ${matches.length} datasets were matched on the previous query.`
       )
     }
-  }, [modality, format, includesMerged, excludeMultiplexed])
+  }, [modality, format, includesMerged, excludeMultiplexed, showing])
 
   // download file
   useEffect(() => {
