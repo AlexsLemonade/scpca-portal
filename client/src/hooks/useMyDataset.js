@@ -145,21 +145,9 @@ export const useMyDataset = () => {
     myDataset.data[projectId]?.includes_bulk ||
     dataset.data[projectId]?.includes_bulk
 
-  // Fetch samples for a given project ID and modality
-  const getProjectModalitySamples = async (projectId, modality) => {
-    const samplesRequest = await api.samples.list({
-      project__scpca_id: projectId,
-      [`has_${modality.toLowerCase()}_data`]: true,
-      limit: 1000 // TODO:: 'all' option
-    })
-
-    return samplesRequest.isOk
-      ? samplesRequest.response.results.map((s) => s.scpca_id)
-      : null
-  }
-
   // Merge project modality samples based on their state (e.g., merged, empty)
-  const mergeProjectModalities = async (projectId, modality, dataset) => {
+  const mergeProjectModalities = (project, modality, dataset) => {
+    const projectId = project.scpca_id
     const original = myDataset.data?.[projectId]?.[modality] || []
     const incoming = dataset.data?.[projectId]?.[modality] || []
 
@@ -178,44 +166,43 @@ export const useMyDataset = () => {
 
     // Add all project samples, if one is merged and the other has samples
     if (eitherMerged && eitherHasSamples) {
-      return getProjectModalitySamples(projectId, modality)
+      return project.modality_samples[modality]
     }
 
     return uniqueArray(original, incoming)
   }
 
-  // Handle merging the dataset data into myDataset for the UI
+  // Handle merging the shared dataset data into myDataset for the UI
   const getMergeDatasetData = async (dataset) => {
     const projectIds = uniqueArray(
       Object.keys(myDataset.data),
       Object.keys(dataset.data)
     )
 
-    const mergedProjectModaliies = await Promise.all(
+    const projects = await Promise.all(
       projectIds.map(async (pId) => {
-        const modalityData = await Promise.all(
-          allModalities.map(async (m) => [
-            m,
-            await mergeProjectModalities(pId, m, dataset)
-          ])
-        )
-        return [pId, Object.fromEntries(modalityData)]
+        const { isOk, response } = await api.projects.get(pId)
+        return isOk ? response : null
       })
     )
 
-    // Return null for any merge failure (null samples)
-    if (
-      mergedProjectModaliies.some(
-        ([, data]) => data.SINGLE_CELL === null || data.SPATIAL === null
-      )
-    ) {
-      return null
-    }
+    // TODO: Error handling will be refactored
+    // Abort if failed to fetch any project
+    if (projects.some((p) => !p)) return null
 
-    return mergedProjectModaliies.reduce((acc, [pId, modalitiesData]) => {
-      acc[pId] = {
-        ...modalitiesData,
-        includes_bulk: getMergedIncludesBulk(pId, dataset)
+    const mergedProjects = projects.map((p) => {
+      const projectId = p.scpca_id
+      const modalityData = allModalities.map((m) => [
+        m,
+        mergeProjectModalities(p, m, dataset)
+      ])
+      return [projectId, Object.fromEntries(modalityData)]
+    })
+
+    return mergedProjects.reduce((acc, [projectId, modalityData]) => {
+      acc[projectId] = {
+        ...modalityData,
+        includes_bulk: getMergedIncludesBulk(projectId, dataset)
       }
       return acc
     }, {})
@@ -346,11 +333,6 @@ export const useMyDataset = () => {
     return projectSamples.map((s) => s.scpca_id)
   }
 
-  // TODO: Remove the samples parameter
-  const getProjectSpatialSamples = (samples) =>
-    // Populate SPATIAL value for the project data for addProject
-    samples.filter((s) => s.has_spatial_data).map((s) => s.scpca_id)
-
   // Return remaining project sample IDs of the given project
   const getRemainingProjectSampleIds = (project) => {
     const projectData = getDatasetProjectData(project)
@@ -426,26 +408,17 @@ export const useMyDataset = () => {
       : updateDataset(updatedDataset)
   }
 
-  // TODO: remove samples parameter
-  const getMissingModaliesSamples = (samples, modalities) => {
-    const modalityAttributes = {
-      SINGLE_CELL: 'has_single_cell_data',
-      SPATIAL: 'has_spatial_data'
-    }
+  const getMissingModalitySamples = (project, modalities) => {
+    if (modalities.length <= 1) return []
 
-    const filterdSamples = uniqueArray(
-      Object.keys(modalityAttributes)
-        .map((m) => samples.filter((s) => s[modalityAttributes[m]]))
-        .flat()
+    const { modality_samples: modalitySamples } = project
+
+    const selectedModalitySamples = modalities.map((m) => modalitySamples[m])
+    const allSamples = uniqueArray(...selectedModalitySamples)
+
+    return allSamples.filter(
+      (s) => !selectedModalitySamples.every((m) => m.includes(s))
     )
-
-    const missingSamples = uniqueArray(
-      modalities
-        .map((m) => filterdSamples.filter((s) => !s[modalityAttributes[m]]))
-        .flat()
-    )
-
-    return missingSamples
   }
 
   return {
@@ -477,12 +450,11 @@ export const useMyDataset = () => {
     getProjectDataSamples,
     getRemainingProjectSampleIds,
     getProjectSingleCellSamples,
-    getProjectSpatialSamples,
     getHasProject,
     getHasRemainingProjectSamples,
     isProjectIncludeBulk,
     isProjectMerged,
     setSamples,
-    getMissingModaliesSamples
+    getMissingModalitySamples
   }
 }
