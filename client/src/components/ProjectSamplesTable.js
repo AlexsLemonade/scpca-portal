@@ -27,8 +27,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const {
     myDataset,
     getDatasetProjectDataSamples,
-    getProjectSingleCellSamples,
-    getProjectSpatialSamples
+    getProjectSingleCellSamples
   } = useMyDataset()
   const {
     project,
@@ -189,7 +188,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     if (samples && loaded) {
       const projectSamplesByModality = {
         SINGLE_CELL: getProjectSingleCellSamples(samples),
-        SPATIAL: getProjectSpatialSamples(samples)
+        SPATIAL: project.modality_samples.SPATIAL
       }
 
       const datasetProjectData = getDatasetProjectDataSamples(project, samples)
