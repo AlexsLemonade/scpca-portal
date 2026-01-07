@@ -5,6 +5,7 @@ import { allModalities } from 'config/datasets'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
+import { useDataset } from 'hooks/useDataset'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
@@ -24,6 +25,7 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const { datasets } = useCCDLDatasetDownloadModalContext()
+  const { getDatasetProjectData } = useDataset()
   const {
     myDataset,
     getDatasetProjectDataSamples,
@@ -33,6 +35,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const {
     project,
     samples: defaultSamples,
+    dataset,
     canAdd,
     canRemove,
     allSamples,
@@ -204,16 +207,24 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     }
   }, [myDataset, samples, loaded])
 
-  // Preselect samples that are already in myDataset
+  // Preselect samples that are already in the dataset
   useEffect(() => {
-    if (!myDataset.data || !allSamples.length || !samples) return
+    if (!allSamples.length || !samples) return
 
-    const datasetProjectData = getDatasetProjectDataSamples(project, samples)
+    let projectData
 
-    setAddedSamples(datasetProjectData)
-    selectModalitySamplesByIds('SINGLE_CELL', datasetProjectData.SINGLE_CELL)
-    selectModalitySamplesByIds('SPATIAL', datasetProjectData.SPATIAL)
-  }, [myDataset, allSamples, samples])
+    if (dataset?.data) {
+      projectData = getDatasetProjectData(project, dataset)
+    } else if (!dataset && myDataset?.data) {
+      projectData = getDatasetProjectDataSamples(project, samples)
+    } else {
+      return
+    }
+
+    setAddedSamples(projectData)
+    selectModalitySamplesByIds('SINGLE_CELL', projectData.SINGLE_CELL)
+    selectModalitySamplesByIds('SPATIAL', projectData.SPATIAL)
+  }, [dataset, myDataset, allSamples, samples])
 
   if (!loaded)
     return (
