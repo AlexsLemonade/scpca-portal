@@ -24,11 +24,10 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
     addProject,
     getAllSamplesForProjectAdded,
     getHasRemainingProjectSamples,
-    getMissingModaliesSamples,
+    getMissingModalitySamples,
     getDatasetProjectData,
     getProjectDataSamples,
-    getProjectSingleCellSamples,
-    getProjectSpatialSamples
+    getProjectSingleCellSamples
   } = useMyDataset()
   const { responsive } = useResponsive()
 
@@ -162,7 +161,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
   // Update spatialSamples based on user selections
   useEffect(() => {
     if (modalities.includes('SPATIAL')) {
-      setSpatialSamples(getProjectSpatialSamples(samples))
+      setSpatialSamples(project.modality_samples.SPATIAL)
     } else {
       setSpatialSamples(myDatasetProjectData?.SPATIAL || [])
     }
@@ -170,7 +169,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
 
   // Calculate missing modality samples
   useEffect(() => {
-    setSampleDifference(getMissingModaliesSamples(samples, modalities))
+    setSampleDifference(getMissingModalitySamples(project, modalities))
   }, [modalities, samples])
 
   if (isAllSamplesAdded) {
@@ -197,7 +196,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
               <Heading level="3" size="small" margin={{ top: '0' }}>
                 Download Options
               </Heading>
-              {myDatasetProjectData && (
+              {myDataset.data?.[project.scpca_id] && (
                 <DatasetAddProjectModalRemainingContent project={project} />
               )}
               <Box pad={{ top: 'large' }}>
