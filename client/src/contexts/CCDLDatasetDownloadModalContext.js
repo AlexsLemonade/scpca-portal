@@ -180,6 +180,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   // reset to selection on close
   useEffect(() => {
+    // TODO: look into persisting downloadableDataset for portal wide between modal close-opens
     if (!showing) {
       setDownloadDataset(false)
       setDownloadableDataset(null)
