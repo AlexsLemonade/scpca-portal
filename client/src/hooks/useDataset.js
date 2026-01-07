@@ -124,7 +124,7 @@ export const useDataset = () => {
   const isProjectMerged = (dataset, project) =>
     dataset.data[project.scpca_id].SINGLE_CELL === 'MERGED'
 
-  const getDatasetProjectData = (project, dataset) => {
+  const getDatasetProjectData = (dataset, project) => {
     const projectData = dataset.data[project.scpca_id]
     // If merged, unmerge the single-cell samples
     return {

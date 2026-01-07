@@ -214,7 +214,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     let projectData
 
     if (dataset?.data) {
-      projectData = getDatasetProjectData(project, dataset)
+      projectData = getDatasetProjectData(dataset, project)
     } else if (!dataset && myDataset?.data) {
       projectData = getDatasetProjectDataSamples(project, samples)
     } else {
