@@ -192,7 +192,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         SPATIAL: getProjectSpatialSamples(samples)
       }
 
-      const datasetProjectData = getDatasetProjectDataSamples(project, samples)
+      const datasetProjectData = getDatasetProjectDataSamples(project)
 
       const samplesLeft = allModalities
         .map((m) =>
@@ -208,7 +208,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   useEffect(() => {
     if (!myDataset.data || !allSamples.length || !samples) return
 
-    const datasetProjectData = getDatasetProjectDataSamples(project, samples)
+    const datasetProjectData = getDatasetProjectDataSamples(project)
 
     setAddedSamples(datasetProjectData)
     selectModalitySamplesByIds('SINGLE_CELL', datasetProjectData.SINGLE_CELL)

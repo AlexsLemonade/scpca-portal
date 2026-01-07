@@ -146,6 +146,8 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
   useEffect(() => {
     if (modalities.includes('SINGLE_CELL')) {
       setSingleCellSamples(
+        // TODO: (TBD) If we update the projects endpoint to return multiplexed samples
+        // we can remove getProjectSingleCellSamples
         getProjectSingleCellSamples(samples, includeMerge, excludeMultiplexed)
       )
     } else {

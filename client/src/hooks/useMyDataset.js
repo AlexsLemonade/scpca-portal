@@ -264,14 +264,14 @@ export const useMyDataset = () => {
     return myDataset?.data?.[project.scpca_id] || {}
   }
 
-  const getDatasetProjectDataSamples = (project, samples) => {
+  const getDatasetProjectDataSamples = (project) => {
     const { SINGLE_CELL: singleCell = [], SPATIAL: spatial = [] } =
       getDatasetProjectData(project)
 
     return {
       SINGLE_CELL:
         singleCell === 'MERGED'
-          ? getProjectSingleCellSamples(samples)
+          ? project.modality_samples.SINGLE_CELL
           : singleCell,
       SPATIAL: spatial
     }
