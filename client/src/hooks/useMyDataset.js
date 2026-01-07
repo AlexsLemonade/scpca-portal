@@ -146,8 +146,7 @@ export const useMyDataset = () => {
     dataset.data[projectId]?.includes_bulk
 
   // Merge project modality samples based on their state (e.g., merged, empty)
-  const mergeProjectModalities = (project, modality, dataset) => {
-    const projectId = project.scpca_id
+  const mergeProjectModalities = async (projectId, modality, dataset) => {
     const original = myDataset.data?.[projectId]?.[modality] || []
     const incoming = dataset.data?.[projectId]?.[modality] || []
 
@@ -166,7 +165,8 @@ export const useMyDataset = () => {
 
     // Add all project samples, if one is merged and the other has samples
     if (eitherMerged && eitherHasSamples) {
-      return project.modality_samples[modality]
+      const { isOk, response } = await api.projects.get(projectId)
+      return isOk ? response.modality_samples[modality] : null
     }
 
     return uniqueArray(original, incoming)
@@ -179,30 +179,31 @@ export const useMyDataset = () => {
       Object.keys(dataset.data)
     )
 
-    const projects = await Promise.all(
+    const mergedProjectModaliies = await Promise.all(
       projectIds.map(async (pId) => {
-        const { isOk, response } = await api.projects.get(pId)
-        return isOk ? response : null
+        const modalityData = await Promise.all(
+          allModalities.map(async (m) => [
+            m,
+            await mergeProjectModalities(pId, m, dataset)
+          ])
+        )
+        return [pId, Object.fromEntries(modalityData)]
       })
     )
 
-    // TODO: Error handling will be refactored
-    // Abort if failed to fetch any project
-    if (projects.some((p) => !p)) return null
+    // Return null for any merge failure (null samples)
+    if (
+      mergedProjectModaliies.some(
+        ([, data]) => data.SINGLE_CELL === null || data.SPATIAL === null
+      )
+    ) {
+      return null
+    }
 
-    const mergedProjects = projects.map((p) => {
-      const projectId = p.scpca_id
-      const modalityData = allModalities.map((m) => [
-        m,
-        mergeProjectModalities(p, m, dataset)
-      ])
-      return [projectId, Object.fromEntries(modalityData)]
-    })
-
-    return mergedProjects.reduce((acc, [projectId, modalityData]) => {
-      acc[projectId] = {
+    return mergedProjectModaliies.reduce((acc, [pId, modalityData]) => {
+      acc[pId] = {
         ...modalityData,
-        includes_bulk: getMergedIncludesBulk(projectId, dataset)
+        includes_bulk: getMergedIncludesBulk(pId, dataset)
       }
       return acc
     }, {})
