@@ -145,19 +145,6 @@ export const useMyDataset = () => {
     myDataset.data[projectId]?.includes_bulk ||
     dataset.data[projectId]?.includes_bulk
 
-  // Fetch samples for a given project ID and modality
-  const getProjectModalitySamples = async (projectId, modality) => {
-    const samplesRequest = await api.samples.list({
-      project__scpca_id: projectId,
-      [`has_${modality.toLowerCase()}_data`]: true,
-      limit: 1000 // TODO:: 'all' option
-    })
-
-    return samplesRequest.isOk
-      ? samplesRequest.response.results.map((s) => s.scpca_id)
-      : null
-  }
-
   // Merge project modality samples based on their state (e.g., merged, empty)
   const mergeProjectModalities = async (projectId, modality, dataset) => {
     const original = myDataset.data?.[projectId]?.[modality] || []
@@ -178,13 +165,14 @@ export const useMyDataset = () => {
 
     // Add all project samples, if one is merged and the other has samples
     if (eitherMerged && eitherHasSamples) {
-      return getProjectModalitySamples(projectId, modality)
+      const { isOk, response } = await api.projects.get(projectId)
+      return isOk ? response.modality_samples[modality] : null
     }
 
     return uniqueArray(original, incoming)
   }
 
-  // Handle merging the dataset data into myDataset for the UI
+  // Handle merging the shared dataset data into myDataset for the UI
   const getMergeDatasetData = async (dataset) => {
     const projectIds = uniqueArray(
       Object.keys(myDataset.data),
@@ -212,9 +200,9 @@ export const useMyDataset = () => {
       return null
     }
 
-    return mergedProjectModaliies.reduce((acc, [pId, modalitiesData]) => {
+    return mergedProjectModaliies.reduce((acc, [pId, modalityData]) => {
       acc[pId] = {
-        ...modalitiesData,
+        ...modalityData,
         includes_bulk: getMergedIncludesBulk(pId, dataset)
       }
       return acc
