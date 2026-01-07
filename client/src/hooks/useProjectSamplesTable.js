@@ -9,6 +9,7 @@ export const useProjectSamplesTable = () => {
   const {
     project,
     samples,
+    dataset,
     canAdd,
     canRemove,
     readOnly,
@@ -186,6 +187,7 @@ export const useProjectSamplesTable = () => {
   return {
     project,
     samples,
+    dataset,
     canAddMultiplexed,
     canAdd,
     canRemove,

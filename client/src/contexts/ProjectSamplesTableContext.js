@@ -16,6 +16,7 @@ export const ProjectSamplesTableContext = createContext({})
 export const ProjectSamplesTableContextProvider = ({
   project,
   samples,
+  dataset,
   canAdd = false,
   canRemove = false,
   children
@@ -33,6 +34,7 @@ export const ProjectSamplesTableContextProvider = ({
       value={{
         project,
         samples,
+        dataset,
         canAdd,
         canRemove,
         readOnly: !canAdd && !canRemove,
