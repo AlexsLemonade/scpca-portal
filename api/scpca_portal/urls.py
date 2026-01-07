@@ -20,14 +20,14 @@ from scpca_portal.views import (
 router = ExtendedDefaultRouter()
 router.trailing_slash = "/?"
 
-router.register(r"ccdl-datasets", CCDLDatasetViewSet, basename="ccdl-datasets")
-router.register(r"datasets", DatasetViewSet, basename="datasets")
-router.register(r"computed-files", ComputedFileViewSet, basename="computed-files")
+router.register(r"tokens", APITokenViewSet, basename="tokens")
 router.register(r"projects", ProjectViewSet, basename="projects")
 router.register(r"samples", SampleViewSet, basename="samples")
-router.register(r"tokens", APITokenViewSet, basename="tokens")
+router.register(r"computed-files", ComputedFileViewSet, basename="computed-files")
 router.register(r"project-options", FilterOptionsViewSet, basename="project-options")
 router.register(r"stats", StatsViewSet, basename="stats")
+router.register(r"ccdl-datasets", CCDLDatasetViewSet, basename="ccdl-datasets")
+router.register(r"datasets", DatasetViewSet, basename="datasets")
 
 urlpatterns = [
     path(
