@@ -6,6 +6,7 @@ repos:
     rev: v2.4.0
     hooks:
       - id: end-of-file-fixer
+        exclude: ^(api/scpca_portal/templates/emails/*)
       - id: mixed-line-ending
         args:
           - --fix=lf
