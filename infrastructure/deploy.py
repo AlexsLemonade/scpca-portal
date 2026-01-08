@@ -3,9 +3,13 @@
 import argparse
 import os
 import subprocess
+import sys
 import time
 
 from deploy_modules import docker, terraform
+
+# Force line buffering for logs so that print statements and cli output print sequentially
+sys.stdout.reconfigure(line_buffering=True)
 
 # CONFIGS
 PRIVATE_KEY_FILE_PATH = "scpca-portal-key.pem"
@@ -29,7 +33,7 @@ TF_ENV_VAR = {
     "SENTRY_DSN": "TF_VAR_sentry_dsn",
     "SENTRY_ENV": "TF_VAR_sentry_env",
     "SSH_PUBLIC_KEY": "TF_VAR_ssh_public_key",
-    "SLACK_CCDL_TEST_CHANNEL_EMAIL": "TF_VAR_slack_ccdl_test_channel_email",
+    "SLACK_NOTIFICATIONS_EMAIL": "TF_VAR_slack_notifications_email",
     "ENABLE_FEATURE_PREVIEW": "TF_VAR_enable_feature_preview",
     "CELLBROWSER_SECURITY_TOKEN": "TF_VAR_cellbrowser_security_token",
     "CELLBROWSER_UPLOADERS": "TF_VAR_cellbrowser_uploaders",
@@ -138,9 +142,25 @@ def get_env(script_args: dict):
     return env
 
 
+def create_ssh_private_key_file():
+    # Create a key file from env var
+    with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
+        # this is missing the newline at the end
+        private_key_string = os.environ["SSH_PRIVATE_KEY"]
+        if not private_key_string.endswith("\n"):
+            private_key_string += "\n"
+
+        private_key_file.write(private_key_string)
+
+    os.chmod(PRIVATE_KEY_FILE_PATH, 0o600)
+
+
 def run_remote_command(ip_address, command):
+    if not os.path.exists(PRIVATE_KEY_FILE_PATH):
+        create_ssh_private_key_file()
+
     print(f"Remote Command on {ip_address}: '{command}'")
-    completed_command = subprocess.check_output(
+    completed_command_logs = subprocess.check_output(
         [
             "ssh",
             "-i",
@@ -152,10 +172,52 @@ def run_remote_command(ip_address, command):
         ],
     )
 
-    return completed_command
+    return completed_command_logs
 
 
-def restart_api_if_still_running(args, api_ip_address):
+def get_api_ip_address_from_output(terraform_output: dict):
+    api_ip_key = "api_server_1_ip"
+    api_ip_address = terraform_output.get(api_ip_key, {}).get("value", None)
+
+    if not api_ip_address:
+        print(f"Could not find the API's IP address. {api_ip_key} is not defined in outputs.")
+
+    return api_ip_address
+
+
+def pre_deploy_hook(terraform_output: dict):
+    """Terminates all processing jobs and queues them for submission upon API re-cycling."""
+    api_ip_address = get_api_ip_address_from_output(terraform_output)
+    if not api_ip_address:
+        return 0
+
+    # Stop cron now so no new batch jobs are submitted after processing is paused
+    try:
+        run_remote_command(api_ip_address, "sudo systemctl stop cron")
+    except subprocess.CalledProcessError:
+        print("There was an error disabling the cron service.")
+        return 1
+
+    try:
+        completed_command_logs = run_remote_command(
+            api_ip_address, "sudo ./run_command.sh pause_processing"
+        )
+        print(completed_command_logs.decode("utf-8"), end="")
+    except subprocess.CalledProcessError:
+        print("There was an error terminating currently processing jobs.")
+        print("WARNING: If this was an existing deploy cron is now disabled.")
+        return 1
+
+    print("Processing jobs requeued successfully.")
+    return 0
+
+
+def post_deploy_hook(terraform_output: dict):
+    """Restarts the API if it's still running."""
+    api_ip_address = get_api_ip_address_from_output(terraform_output)
+    if not api_ip_address:
+        return 0
+
     try:
         if not run_remote_command(api_ip_address, "sudo docker ps -q -a"):
             print(
@@ -189,27 +251,15 @@ def restart_api_if_still_running(args, api_ip_address):
     except subprocess.CalledProcessError:
         return 1
 
+    # Explicitly start the cron service to handle the case where the same API,
+    # which had its cron service stopped during the pre deploy hook, is still running here
+    try:
+        run_remote_command(api_ip_address, "sudo systemctl start cron")
+    except subprocess.CalledProcessError:
+        print("There was an error starting the cron service.")
+        return 1
+
     return 0
-
-
-def post_deploy_hook(terraform_output: dict):
-    api_ip_key = "api_server_1_ip"
-    api_ip_address = terraform_output.get(api_ip_key, {}).get("value", None)
-
-    if not api_ip_address:
-        print("Could not find the API's IP address. Something has gone wrong or changed.")
-        print(f"{api_ip_key} not defined in outputs")
-        exit(1)
-
-    # Create a key file from env var
-    with open(PRIVATE_KEY_FILE_PATH, "w") as private_key_file:
-        private_key_file.write(os.environ["SSH_PRIVATE_KEY"])
-
-    os.chmod(PRIVATE_KEY_FILE_PATH, 0o600)
-
-    # This is the last command, so the script's return code should
-    # match it.
-    return restart_api_if_still_running(args, api_ip_address)
 
 
 # This is the deploy process.
@@ -251,6 +301,12 @@ if __name__ == "__main__":
 
     if init_code != 0 or args.init:
         exit(init_code)
+
+    # Only call pre_deploy_hook on a running stack
+    return_code = pre_deploy_hook(terraform.output())
+
+    if return_code != 0:
+        exit(return_code)
 
     # Shared for destroy and apply
     var_file_arg = f"-var-file=tf_vars/{args.stage}.tfvars"

@@ -11,7 +11,13 @@ from scpca_portal import loader, metadata_parser
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 from scpca_portal.models import ComputedFile, Dataset, OriginalFile, Project
 from scpca_portal.test import expected_values as test_data
-from scpca_portal.test.factories import DatasetFactory, LeafComputedFileFactory, OriginalFileFactory
+from scpca_portal.test.factories import (
+    DatasetFactory,
+    LeafComputedFileFactory,
+    LibraryFactory,
+    OriginalFileFactory,
+    SampleFactory,
+)
 
 
 class TestDataset(TestCase):
@@ -94,6 +100,93 @@ class TestDataset(TestCase):
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
         )
         self.assertTrue(found)
+
+    def test_create_or_update_ccdl_datasets(self):
+        # There are 21 total datasets created
+        #     CCDL DATASET TYPE              Total   Projects   Portal Wide
+        #   - ALL_METADATA                   4       3          Yes
+        #   - SINGLE_CELL_SCE                4       3          Yes
+        #   - SINGLE_CELL_SCE_NO_MULTIPLEXED 1       1          No
+        #   - SINGLE_CELL_SCE_MERGED         3       2          Yes
+        #   - SINGLE_CELL_ANN_DATA           4       3          Yes
+        #   - SINGLE_CELL_ANN_DATA_MERGED    3       2          Yes
+        #   - SPATIAL_SCE                    2       1          Yes
+
+        # Initial call
+        created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets()
+        self.assertEqual(len(created_datasets), 21)
+        self.assertEqual(len(updated_datasets), 0)
+
+        # Call again
+        created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets()
+        self.assertEqual(len(created_datasets), 0)
+        self.assertEqual(len(updated_datasets), 0)
+
+        # Call with ignore_hash
+        created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets(
+            ignore_hash=True
+        )
+        self.assertEqual(len(created_datasets), 0)
+        self.assertEqual(len(updated_datasets), 21)
+
+    def test_create_or_update_ccdl_datasets_update_data_attr(self):
+        """Assert that data attr updates when new samples and libraries are added."""
+        # Create dataset
+        dataset_expected_values = test_data.DatasetSingleCellSingleCellExperimentSCPCP999990
+        dataset, _ = Dataset.get_or_find_ccdl_dataset(
+            dataset_expected_values.CCDL_NAME, dataset_expected_values.PROJECT_ID
+        )
+        dataset.save()
+
+        # Define original and expected values
+        actual_old_data_attr = dataset.get_ccdl_data()
+        expected_old_data_attr = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997"],
+                Modalities.SPATIAL: [],
+            }
+        }
+        expected_new_data_attr = {
+            "SCPCP999990": {
+                "includes_bulk": True,
+                Modalities.SINGLE_CELL: ["SCPCS999990", "SCPCS999997", "SCPCS999999"],
+                Modalities.SPATIAL: [],
+            }
+        }
+
+        # Simulate the work of sync_original_files and load_metadata commands
+        # with a new sample and library added to an existing project
+        project_id, sample_id, library_id = "SCPCP999990", "SCPCS999999", "SCPCL999999"
+        OriginalFileFactory(
+            s3_key="SCPCP999990/SCPCS999999/SCPCL999999.rds",
+            project_id=project_id,
+            sample_ids=[sample_id],
+            library_id=library_id,
+            is_single_cell=True,
+            is_single_cell_experiment=True,
+            formats=[FileFormats.SINGLE_CELL_EXPERIMENT],
+        )
+
+        project = Project.objects.filter(scpca_id=project_id).first()
+        sample = SampleFactory(scpca_id=sample_id, has_single_cell_data=True, project=project)
+        sample.save()
+
+        library = LibraryFactory(
+            scpca_id=library_id, modality=Modalities.SINGLE_CELL, project=project
+        )
+        library.samples.add(sample)
+        library.save()
+
+        # Rerun create update ccdl datasets method
+        _, updated_datasets = Dataset.create_or_update_ccdl_datasets()
+        updated_dataset = updated_datasets[0]
+        actual_new_data_attr = updated_dataset.data
+
+        # Make assertions
+        self.assertEqual(actual_old_data_attr, expected_old_data_attr)
+        self.assertEqual(actual_new_data_attr, expected_new_data_attr)
+        self.assertNotEqual(actual_old_data_attr, actual_new_data_attr)
 
     def test_original_files_property(self):
         # SINGLE_CELL SCE
@@ -320,7 +413,7 @@ class TestDataset(TestCase):
         dataset = Dataset(data=data, format=format)
 
         # TODO: add to expected_values dataset file (along with other hash values)
-        expected_metadata_hash = "bd32dc05b6dc4a20fdd510bd2d3f669b"
+        expected_metadata_hash = "f7cba8927949b0d9e7c284501ae42de4"
         self.assertEqual(dataset.current_metadata_hash, expected_metadata_hash)
 
     def test_current_readme_hash(self):
@@ -336,7 +429,7 @@ class TestDataset(TestCase):
             format=DatasetFormats.SINGLE_CELL_EXPERIMENT,
             ccdl_name=CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT,
         )
-        expected_readme_hash = "30945e57ac2478eb6a1c7704344b3c76"
+        expected_readme_hash = "cb0d4d6c2c8027276de69b78a5ac0629"
         self.assertEqual(dataset.current_readme_hash, expected_readme_hash)
 
     def test_get_metadata_file_contents(self):
@@ -357,7 +450,7 @@ class TestDataset(TestCase):
             (project_id, modality, len(content))
             for (project_id, modality, content) in dataset.get_metadata_file_contents()
         ]
-        expected_values = [("SCPCP999990", Modalities.SINGLE_CELL, 1723)]
+        expected_values = [("SCPCP999990", Modalities.SINGLE_CELL, 1729)]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
 
@@ -379,8 +472,8 @@ class TestDataset(TestCase):
             for (project_id, modality, content) in dataset.get_metadata_file_contents()
         ]
         expected_values = [
-            ("SCPCP999990", Modalities.SINGLE_CELL, 1723),
-            ("SCPCP999990", Modalities.SPATIAL, 1000),
+            ("SCPCP999990", Modalities.SINGLE_CELL, 1729),
+            ("SCPCP999990", Modalities.SPATIAL, 1003),
         ]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
@@ -414,10 +507,10 @@ class TestDataset(TestCase):
             for (project_id, modality, content) in dataset.get_metadata_file_contents()
         ]
         expected_values = [
-            ("SCPCP999990", Modalities.SINGLE_CELL, 1723),
-            ("SCPCP999990", Modalities.SPATIAL, 1000),
-            ("SCPCP999991", Modalities.SINGLE_CELL, 2342),
-            ("SCPCP999992", Modalities.SINGLE_CELL, 1833),
+            ("SCPCP999990", Modalities.SINGLE_CELL, 1729),
+            ("SCPCP999990", Modalities.SPATIAL, 1003),
+            ("SCPCP999991", Modalities.SINGLE_CELL, 2351),
+            ("SCPCP999992", Modalities.SINGLE_CELL, 1839),
         ]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
@@ -437,7 +530,7 @@ class TestDataset(TestCase):
             for (project_id, modality, content) in dataset.get_metadata_file_contents()
         ]
         expected_values = [
-            (None, None, 2680),
+            (None, None, 2692),
         ]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
@@ -471,7 +564,7 @@ class TestDataset(TestCase):
             for (project_id, modality, content) in dataset.get_metadata_file_contents()
         ]
         expected_values = [
-            (None, None, 5463),
+            (None, None, 5490),
         ]
         for actual_values, expected_values in zip(transformed_content_values, expected_values):
             self.assertEqual(actual_values, expected_values)
@@ -566,11 +659,11 @@ class TestDataset(TestCase):
             format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
         )
 
-        # lockfile in test bucket is empty by default
-        self.assertFalse(dataset.has_lockfile_projects)
-
         with patch("scpca_portal.lockfile.get_locked_project_ids", return_value=["SCPCP999990"]):
             self.assertTrue(dataset.has_lockfile_projects)
+
+        with patch("scpca_portal.lockfile.get_locked_project_ids", return_value=[]):
+            self.assertFalse(dataset.has_lockfile_projects)
 
     def test_projects_property(self):
         dataset = Dataset(
@@ -645,7 +738,7 @@ class TestDataset(TestCase):
             "diagnosis2": {"samples": 1, "projects": 1},
             "diagnosis3": {"samples": 1, "projects": 1},
             "diagnosis4": {"samples": 1, "projects": 1},
-            "diagnosis5": {"samples": 2, "projects": 1},
+            "diagnosis5": {"samples": 1, "projects": 1},
             "diagnosis6": {"samples": 1, "projects": 1},
             "diagnosis7": {"samples": 2, "projects": 1},
         }
@@ -779,7 +872,7 @@ class TestDataset(TestCase):
         }
 
         expected_counts = {
-            "SCPCP999990": {"diagnosis5": 2, "diagnosis1": 1, "diagnosis2": 1},
+            "SCPCP999990": {"diagnosis5": 1, "diagnosis1": 1, "diagnosis2": 1},
             "SCPCP999991": {"diagnosis4": 1, "diagnosis3": 1, "diagnosis6": 1},
             "SCPCP999992": {"diagnosis7": 2},
         }
@@ -803,7 +896,11 @@ class TestDataset(TestCase):
             },
         }
         expected_counts = {
-            "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 1},
+            "SCPCP999990": {
+                Modalities.SINGLE_CELL: 2,
+                Modalities.SPATIAL: 1,
+                Modalities.BULK_RNA_SEQ: 1,
+            },
         }
         self.assertEqual(dataset.get_project_modality_counts(), expected_counts)
 
@@ -816,7 +913,11 @@ class TestDataset(TestCase):
             },
         }
         expected_counts = {
-            "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 0},
+            "SCPCP999990": {
+                Modalities.SINGLE_CELL: 2,
+                Modalities.SPATIAL: 0,
+                Modalities.BULK_RNA_SEQ: 1,
+            },
         }
         self.assertEqual(dataset.get_project_modality_counts(), expected_counts)
 
@@ -860,7 +961,11 @@ class TestDataset(TestCase):
         }
 
         expected_counts = {
-            "SCPCP999990": {Modalities.SINGLE_CELL: 2, Modalities.SPATIAL: 1},
+            "SCPCP999990": {
+                Modalities.SINGLE_CELL: 2,
+                Modalities.SPATIAL: 1,
+                Modalities.BULK_RNA_SEQ: 1,
+            },
             "SCPCP999991": {
                 Modalities.SINGLE_CELL: 3,
             },
@@ -956,9 +1061,9 @@ class TestDataset(TestCase):
 
         # TODO: Update so that fake project titles are unique.
         expected_titles = {
-            "SCPCP999990": "TBD",
-            "SCPCP999991": "TBD",
-            "SCPCP999992": "TBD",
+            "SCPCP999990": "Title1",
+            "SCPCP999991": "Title2",
+            "SCPCP999992": "Title3",
         }
 
         actual_titles = dataset.get_project_titles()

@@ -73,7 +73,7 @@ variable "ssh_public_key" {
   default = "MISSING_VALUE"
 }
 
-variable "slack_ccdl_test_channel_email" {
+variable "slack_notifications_email" {
   default = "testing@example.com"
 }
 

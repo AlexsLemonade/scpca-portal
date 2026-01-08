@@ -1,0 +1,7 @@
+Your ScPCA dataset is ready!
+
+Uncompressed Size: {{ dataset.pretty_estimated_size_in_bytes }}
+
+View details and download your dataset here: https://{{ domain }}/datasets/{{ dataset.id }}
+
+If you were not expecting this email please reach out to us at {{ contact_email }} to let us know

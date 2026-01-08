@@ -222,6 +222,10 @@ class Dataset(TimestampedModel):
         return validated_data
 
     @property
+    def pretty_estimated_size_in_bytes(self):
+        return utils.format_bytes(self.estimated_size_in_bytes)
+
+    @property
     def ccdl_type(self) -> Dict:
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
@@ -234,6 +238,41 @@ class Dataset(TimestampedModel):
             return False
 
         return self.projects.filter(**self.ccdl_type.get("constraints", {})).exists()
+
+    @classmethod
+    def create_or_update_ccdl_datasets(
+        cls, *, ignore_hash: bool = False
+    ) -> tuple[List[Self], List[Self]]:
+        """
+        Iterates over all possible project and portal wide ccdl datasets,
+        and creates or updates and susequently returns the valid ones.
+        """
+        ccdl_project_ids = list(Project.objects.values_list("scpca_id", flat=True))
+        portal_wide_ccdl_project_id = None
+        dataset_ccdl_project_ids = [*ccdl_project_ids, portal_wide_ccdl_project_id]
+
+        created_datasets = []
+        updated_datasets = []
+        for ccdl_name in ccdl_datasets.TYPES:
+            for ccdl_project_id in dataset_ccdl_project_ids:
+                dataset, found = Dataset.get_or_find_ccdl_dataset(ccdl_name, ccdl_project_id)
+
+                if found:
+                    dataset.data = dataset.get_ccdl_data()
+                    if dataset.is_hash_unchanged and not ignore_hash:
+                        continue
+                    updated_datasets.append(dataset)
+                else:
+                    if not dataset.is_valid_ccdl_dataset:
+                        continue
+                    created_datasets.append(dataset)
+
+                # TODO: This should be optimized with bulk create and bulk update.
+                # This can be accomplished by adding a custom manager which implements custom
+                # bulk_create and bulk_update methods that preserve the cached attrs saving logic.
+                dataset.save()
+
+        return created_datasets, updated_datasets
 
     def apply_job_state(self, job) -> None:
         """
@@ -315,13 +354,15 @@ class Dataset(TimestampedModel):
 
     def get_diagnoses_summary(self) -> dict:
         """
-        Counts present all diagnoses for samples in datasets.
+        Counts present all diagnoses for samples (excluding bulk) in datasets.
         Returns dict where key is the diagnosis and value is a dict
         of project and sample counts.
         """
+        samples = self.get_selected_samples([Modalities.SINGLE_CELL, Modalities.SPATIAL])
+
         # all diagnoses in the dataset
         if (
-            diagnoses := self.samples.values("diagnosis")
+            diagnoses := samples.values("diagnosis")
             .annotate(
                 samples=Count("scpca_id"),
                 projects=Count("project_id", distinct=True),
@@ -429,13 +470,14 @@ class Dataset(TimestampedModel):
 
     def get_project_diagnoses(self) -> Dict:
         """
-        Returns dict where key is a project id in the dataset and value
-        is the number of samples with that diagnosis in the dataset for that project.
+        Returns dict where key is a project id in the dataset and value is the number of
+        samples (excluding bulk) with that diagnosis in the dataset for that project.
         """
+        samples = self.get_selected_samples([Modalities.SINGLE_CELL, Modalities.SPATIAL])
 
         diagnoses_counts = {key: Counter() for key in self.data.keys()}
 
-        for project_id, diagnosis in self.samples.values_list("project__scpca_id", "diagnosis"):
+        for project_id, diagnosis in samples.values_list("project__scpca_id", "diagnosis"):
             diagnoses_counts[project_id].update({diagnosis: 1})
 
         return diagnoses_counts
@@ -443,8 +485,11 @@ class Dataset(TimestampedModel):
     def get_project_modality_counts(self) -> Dict[str, Dict[Modalities, int]]:
         """
         Returns a dict where the key is a project id in the dataset and
-        the value is an object of SINGLE_CELL and SPATIAL samples
-        that are present in the dataset for that project.
+        the value is an object of the following samples that are present
+        in the dataset for that project:
+        - SINGLE_CELL
+        - SPATIAL
+        - BULK_RNA_SEQ
         """
         counts: dict[str, dict] = defaultdict(dict)
 
@@ -464,10 +509,20 @@ class Dataset(TimestampedModel):
             .values_list("project__scpca_id", "num_samples")
         )
 
+        bulk_count = dict(
+            self.get_selected_samples([Modalities.BULK_RNA_SEQ])
+            .values("project__scpca_id")
+            .annotate(num_samples=Count("project__scpca_id"))
+            .order_by("project__scpca_id")
+            .values_list("project__scpca_id", "num_samples")
+        )
+
         for project_id in self.data.keys():
             counts[project_id][Modalities.SINGLE_CELL] = single_cell_count.get(project_id, 0)
             if Project.objects.filter(scpca_id=project_id, has_spatial_data=True).exists():
                 counts[project_id][Modalities.SPATIAL] = spatial_count.get(project_id, 0)
+            if bulk_sample_count := bulk_count.get(project_id, 0):
+                counts[project_id][Modalities.BULK_RNA_SEQ] = bulk_sample_count
 
         return counts
 

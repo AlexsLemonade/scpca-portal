@@ -6,10 +6,11 @@ module "batch" {
   scpca_portal_subnet_1a = aws_subnet.scpca_portal_1a
 
   # job_definition envars
-  dockerhub_account   = var.dockerhub_account
-  region              = var.region
-  scpca_portal_bucket = aws_s3_bucket.scpca_portal_bucket
-  postgres_db         = aws_db_instance.postgres_db
+  dockerhub_account         = var.dockerhub_account
+  region                    = var.region
+  scpca_portal_bucket       = aws_s3_bucket.scpca_portal_bucket
+  postgres_db               = aws_db_instance.postgres_db
+  slack_notifications_email = var.slack_notifications_email
 
   # job_definition secret envars
   django_secret_key = aws_secretsmanager_secret.django_secret_key

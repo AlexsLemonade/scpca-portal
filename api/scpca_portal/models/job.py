@@ -7,7 +7,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import batch, common, s3
+from scpca_portal import batch, common
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.exceptions import (
@@ -23,7 +23,6 @@ from scpca_portal.exceptions import (
     JobTerminationFailedError,
 )
 from scpca_portal.models.base import TimestampedModel
-from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.dataset import Dataset
 
 logger = get_and_configure_logger(__name__)
@@ -423,7 +422,7 @@ class Job(TimestampedModel):
 
         for job in Job.objects.filter(state=JobStates.PENDING):
             try:
-                job.submit(save=False)
+                job.submit(save=False)  # Jobs are saved in bulk outside of the loop
                 submitted_jobs.append(job)
                 if job.dataset:  # TODO: Remove after the dataset release
                     submitted_datasets.append(job.dataset)
@@ -434,11 +433,29 @@ class Job(TimestampedModel):
                     failed_jobs.append(job)
 
         if submitted_jobs:
+            updated_batch_attrs = ["batch_job_id", "batch_job_queue", "batch_job_definition"]
+            cls.objects.bulk_update(submitted_jobs, updated_batch_attrs)
             cls.bulk_update_state(submitted_jobs)
             if submitted_datasets:  # TODO: Remove after the dataset release
                 Dataset.bulk_update_state(submitted_datasets)
 
         return submitted_jobs, pending_jobs, failed_jobs
+
+    @classmethod
+    def submit_ccdl_datasets(cls, ccdl_datasets) -> tuple[List[Self], List[Self]]:
+        """Gets and submits jobs for all passed ccdl datasets."""
+        submitted_jobs = []
+        failed_jobs = []
+
+        for dataset in ccdl_datasets:
+            job = Job.get_dataset_job(dataset)
+            try:
+                job.submit()
+                submitted_jobs.append(job)
+            except (DatasetError, JobError):
+                failed_jobs.append(dataset)
+
+        return submitted_jobs, failed_jobs
 
     def terminate(self, reason: str | None = "Terminated processing job", *, save=True):
         """
@@ -498,24 +515,3 @@ class Job(TimestampedModel):
             logger.info(f"{len(failed_jobs)} jobs failed to terminate.")
 
         return terminated_jobs
-
-    # BATCH PROCESSING LOGIC
-    def process_dataset_job(
-        self,
-        update_s3: bool = True,
-        clean_up_output_data=False,
-    ) -> None:
-        if old_dataset_file := self.dataset.computed_file:
-            old_dataset_file.purge(update_s3)
-
-        computed_file = ComputedFile.get_dataset_file(self.dataset)
-
-        if update_s3:
-            s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
-
-        computed_file.save()
-        self.dataset.computed_file = computed_file
-        self.dataset.save()
-
-        if clean_up_output_data:
-            computed_file.clean_up_local_computed_file()

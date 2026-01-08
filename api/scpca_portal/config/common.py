@@ -200,10 +200,13 @@ class Common(Configuration):
     # AWS
     AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
-    # AWS SES
-    DOMAIN = os.getenv("AWS_SES_DOMAIN", "staging.scpca.alexslemonade.org")
+    SLACK_NOTIFICATIONS_EMAIL = os.getenv("SLACK_NOTIFICATIONS_EMAIL")
+
+    # EMAILS
+    DOMAIN = os.getenv("AWS_SES_DOMAIN", "scpca.alexslemonade.org")
     EMAIL_SENDER = f"no-reply@{DOMAIN}"
-    TEST_EMAIL_RECIPIENT = os.getenv("SLACK_CCDL_TEST_CHANNEL_EMAIL")
+    EMAIL_CONTACT_ADDRESS = "scpca@ccdatalab.org"  # Always here
+    EMAIL_CHARSET = "UTF-8"
 
     # OpenAPI 3.0 - Swagger - Redoc
     # https://drf-spectacular.readthedocs.io/en/latest/settings.html

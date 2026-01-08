@@ -21,7 +21,7 @@ class TestMetadataParser(TestCase):
         self.assertTrue(any(expected_key in actual_keys for expected_key in expected_keys))
 
     def test_get_projects_metadata_ids(self):
-        expected_project_ids = ["SCPCP999990", "SCPCP999991", "SCPCP999992"]
+        expected_project_ids = ["SCPCP999990", "SCPCP999991", "SCPCP999992", "SCPCP999993"]
         loader.download_projects_metadata()
         actual_project_ids = metadata_parser.get_projects_metadata_ids()
         self.assertListEqual(actual_project_ids, expected_project_ids)

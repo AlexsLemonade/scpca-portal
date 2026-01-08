@@ -26,17 +26,17 @@ import { useResponsive } from 'hooks/useResponsive'
 
 // Styles for highlighting rows when their checkbox is selected
 const TableRow = styled(GrommetTableRow)`
- ${({ theme }) => css`
-   cursor: pointer;
-   td {
-     vertical-align: middle;
-   }
-   &.selected {
+  cursor: pointer;
+  td {
+    vertical-align: middle;
+  }
+ ${({ highlighted, theme }) =>
+   highlighted &&
+   css`
      > td {
        background: ${theme.global.colors['powder-blue']} !important;
      }
-   }
- `}}
+   `}}
 `
 
 // Styles to allow for dynamic "sticky" columns
@@ -167,15 +167,24 @@ export const TBody = ({
     state: { globalFilter }
   },
   stickies = 0,
+  prevSelectedRows,
   selectedRows
 }) => {
   const [offsets, setOffsets] = useState([])
   const ref = createRef(null)
-  // Get selected sample rows for highlighting
-  const getSelectedRow = (id) =>
-    ['SINGLE_CELL', 'SPATIAL'].some((modality) =>
-      selectedRows?.[modality]?.includes(id)
+
+  const getIsHighlighted = (id) => {
+    // Previously selected modalities for the sample row
+    const prevModalities = Object.keys(prevSelectedRows).filter((m) =>
+      prevSelectedRows[m].includes(id)
     )
+    // Currently selected modalities for the sample row
+    const currModalities = Object.keys(selectedRows).filter((m) =>
+      selectedRows[m].includes(id)
+    )
+
+    return currModalities.some((m) => !prevModalities.includes(m))
+  }
 
   useEffect(() => {
     if (ref.current) {
@@ -196,7 +205,7 @@ export const TBody = ({
         return (
           <TableRow
             ref={ref}
-            className={getSelectedRow(row.original.scpca_id) ? 'selected' : ''}
+            highlighted={getIsHighlighted(row.original.scpca_id)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...row.getRowProps()}
           >
@@ -236,10 +245,12 @@ export const Table = ({
   defaultSort = [],
   pageSize: initialPageSize = 0,
   pageSizeOptions = [],
-  selectedRows, // For highlighting selected samples rows
-  infoText,
+  prevSelectedRows = {}, // For unhighlithing previously selected sample rows
+  selectedRows = {}, // For highlighting currently selected samples rows
+  infoText = '',
+  text = '',
   children,
-  onFilterChange = () => {},
+  onAllRowsChange = () => {},
   onFilteredRowsChange = () => {}
 }) => {
   const filterTypes = useMemo(
@@ -290,6 +301,12 @@ export const Table = ({
   })
 
   useEffect(() => {
+    if (instance.rows) {
+      onAllRowsChange(instance.rows.map((row) => row.original))
+    }
+  }, [instance.rows])
+
+  useEffect(() => {
     if (instance.page) {
       onFilteredRowsChange(instance.page.map((row) => row.original))
     }
@@ -303,14 +320,13 @@ export const Table = ({
     )
   }, [setHiddenColumns, columns])
 
-  useEffect(() => {
-    onFilterChange(state.globalFilter)
-  }, [state.globalFilter])
-
-  const justify = filter && infoText ? 'between' : 'end'
+  const hasText = text || (filter && infoText)
+  const justify = hasText ? 'between' : 'end'
   const pad = filter ? { vertical: 'medium' } : {}
   const { responsive } = useResponsive()
 
+  const showPageSize =
+    pageSizeOptions.length > 0 && data?.length > pageSizeOptions[0]
   const showPagination = pageOptions && pageOptions.length > 1
 
   return (
@@ -323,7 +339,8 @@ export const Table = ({
         justify={justify}
       >
         {infoText && <InfoText label={infoText} />}
-        {pageSizeOptions.length > 0 && (
+        {text && text}
+        {showPageSize && (
           <TablePageSize
             pageSize={state.pageSize}
             setPageSize={setPageSize}
@@ -350,6 +367,7 @@ export const Table = ({
           <Body
             instance={instance}
             stickies={stickies}
+            prevSelectedRows={prevSelectedRows}
             selectedRows={selectedRows}
           />
         </StickyTable>

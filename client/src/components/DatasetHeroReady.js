@@ -1,23 +1,37 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
+import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useResponsive } from 'hooks/useResponsive'
+import { api } from 'api'
+import { formatBytes } from 'helpers/formatBytes'
 import { Button } from 'components/Button'
-import { CopyLinkButton } from 'components/CopyLinkButton'
-import { DatasetDownloadToken } from 'components/DatasetDownloadToken'
-import { Link } from 'components/Link'
+import { DatasetCopyLinkButton } from 'components/DatasetCopyLinkButton'
+import { DatasetDownloadForm } from 'components/DatasetDownloadForm'
 import DownloadReady from '../images/download-folder.svg'
 
-export const DatasetHeroReady = ({
-  isToken = false // temporary for Storybook
-}) => {
+export const DatasetHeroReady = ({ dataset }) => {
   const { responsive } = useResponsive()
-  const [token, setToken] = useState(isToken)
+  const { token } = useScPCAPortal()
 
-  // temporary
-  // NOTE: We handle the token generation in
+  const [downloadLink, setDownloadLink] = useState(null)
+
+  // Set download link if token is available on component mount
   useEffect(() => {
-    setToken(isToken)
-  }, [isToken])
+    const asyncFetch = async () => {
+      const downloadRequest = await api.datasets.get(dataset.id, token)
+      if (downloadRequest.isOk) {
+        setDownloadLink(downloadRequest.response.download_url)
+      }
+    }
+
+    if (token) asyncFetch()
+  }, [token])
+
+  const isDownloadDisabled = !token || !dataset.computed_file
+
+  const handleDownload = () => {
+    window.location.href = downloadLink
+  }
 
   return (
     <Grid
@@ -28,7 +42,7 @@ export const DatasetHeroReady = ({
           ['content', 'img']
         ]
       )}
-      columns={responsive(['auto'], ['2/4', '1/4'])}
+      columns={responsive(['auto'], ['3/5', '2/5'])}
       justifyContent="center"
     >
       <Box gridArea="header" margin={{ bottom: 'medium' }}>
@@ -36,8 +50,7 @@ export const DatasetHeroReady = ({
           Your dataset is ready!
         </Heading>
       </Box>
-
-      <Box gridArea="content" pad={{ right: 'small' }}>
+      <Box gridArea="content" pad={{ right: 'xlarge' }}>
         {token ? (
           <Box direction="column">
             <Paragraph size="21px">
@@ -48,37 +61,25 @@ export const DatasetHeroReady = ({
               download the dataset.
             </Paragraph>
             <Text margin={{ bottom: 'small' }} weight="bold">
-              Uncompressed size: 80GB
+              Uncompressed size: {formatBytes(dataset.estimated_size_in_bytes)}
             </Text>
             <Box
               direction={responsive('column', 'row')}
               gap="24px"
               margin={{ bottom: 'small' }}
             >
-              <Button primary aria-label="Download" label="Download" />
-              <CopyLinkButton computedFile={{}} />
+              <Button
+                primary
+                aria-label="Download"
+                label="Download"
+                disabled={isDownloadDisabled}
+                onClick={handleDownload}
+              />
+              <DatasetCopyLinkButton dataset={dataset} />
             </Box>
           </Box>
         ) : (
-          <>
-            <DatasetDownloadToken
-              text={
-                <>
-                  Please read and accept our{' '}
-                  <Link label="Terms of Service" href="/terms-of-use" /> and{' '}
-                  <Link label="Privacy Policy" href="/privacy-policy" /> before
-                  you download data.
-                </>
-              }
-            />
-            <Box
-              direction={responsive('column', 'row')}
-              gap="24px"
-              margin={{ top: 'medium' }}
-            >
-              <Button primary aria-label="Submit" label="Submit" />
-            </Box>
-          </>
+          <DatasetDownloadForm />
         )}
       </Box>
       <Box gridArea="img" align={responsive('center', 'start')}>

@@ -20,8 +20,9 @@ export default {
     }
   },
   secondary: {
+    background: { color: 'white' },
     border: { color: 'brand', ...defaultBorder },
-    color: 'text',
+    color: 'brand',
     padding: {
       horizontal: '24px',
       vertical: '7px' // 8px - 1px for border
@@ -47,8 +48,23 @@ export default {
     background: { color: 'brand' },
     disabled: undefined
   },
-  extend: () => `
+  extend: ({ danger, plain, disabled, theme }) => `
+    position: relative;
     white-space: nowrap;
+    ${disabled ? 'cursor: not-allowed;' : ''}
+    ${
+      danger &&
+      !disabled &&
+      `
+      border: ${theme.global.colors.error} 1px solid;
+      color: ${theme.global.colors.error};
+      &:hover {
+        background: ${theme.global.colors.error};
+        color: ${theme.global.colors.white};
+      }
+    `
+    }
+    ${plain && disabled ? 'opacity: 0.7;' : ''}
     &:active:not([disabled]) {
       box-shadow: 0 3px 4px 0 rgba(0,0,0,0.5);
     }
