@@ -316,24 +316,6 @@ export const useMyDataset = () => {
     return datasetProjectDataCopy
   }
 
-  // TODO: Remove the samples parameter
-  const getProjectSingleCellSamples = (
-    samples,
-    merged = false,
-    excludeMultiplexed = false
-  ) => {
-    // Populate SINGLE_CELL value for the project data for addProject
-    if (merged) return 'MERGED'
-
-    let projectSamples = samples.filter((s) => s.has_single_cell_data)
-
-    if (excludeMultiplexed) {
-      projectSamples = projectSamples.filter((s) => !s.has_multiplexed_data)
-    }
-
-    return projectSamples.map((s) => s.scpca_id)
-  }
-
   // Return remaining project sample IDs of the given project
   const getRemainingProjectSampleIds = (project) => {
     const projectData = getDatasetProjectData(project)
@@ -450,7 +432,6 @@ export const useMyDataset = () => {
     getAddedProjectDataSamples,
     getProjectDataSamples,
     getRemainingProjectSampleIds,
-    getProjectSingleCellSamples,
     getHasProject,
     getHasRemainingProjectSamples,
     isProjectIncludeBulk,
