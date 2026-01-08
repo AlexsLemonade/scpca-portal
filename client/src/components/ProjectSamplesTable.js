@@ -5,6 +5,7 @@ import { allModalities } from 'config/datasets'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
+import { useDataset } from 'hooks/useDataset'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
@@ -24,15 +25,12 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const { datasets } = useCCDLDatasetDownloadModalContext()
-  const {
-    myDataset,
-    getDatasetProjectDataSamples,
-    getProjectSingleCellSamples,
-    getProjectSpatialSamples
-  } = useMyDataset()
+  const { getDatasetProjectData } = useDataset()
+  const { myDataset, getDatasetProjectDataSamples } = useMyDataset()
   const {
     project,
     samples: defaultSamples,
+    dataset,
     canAdd,
     canRemove,
     allSamples,
@@ -187,16 +185,10 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   // Disable DatasetAddSamplesModal if all samples are added
   useEffect(() => {
     if (samples && loaded) {
-      const projectSamplesByModality = {
-        SINGLE_CELL: getProjectSingleCellSamples(samples),
-        SPATIAL: getProjectSpatialSamples(samples)
-      }
-
       const datasetProjectData = getDatasetProjectDataSamples(project)
-
       const samplesLeft = allModalities
         .map((m) =>
-          differenceArray(projectSamplesByModality[m], datasetProjectData[m])
+          differenceArray(project.modality_samples[m], datasetProjectData[m])
         )
         .flat()
 
@@ -204,16 +196,24 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     }
   }, [myDataset, samples, loaded])
 
-  // Preselect samples that are already in myDataset
+  // Preselect samples that are already in the dataset
   useEffect(() => {
-    if (!myDataset.data || !allSamples.length || !samples) return
+    if (!allSamples.length || !samples) return
 
-    const datasetProjectData = getDatasetProjectDataSamples(project)
+    let projectData
 
-    setAddedSamples(datasetProjectData)
-    selectModalitySamplesByIds('SINGLE_CELL', datasetProjectData.SINGLE_CELL)
-    selectModalitySamplesByIds('SPATIAL', datasetProjectData.SPATIAL)
-  }, [myDataset, allSamples, samples])
+    if (dataset?.data) {
+      projectData = getDatasetProjectData(dataset, project)
+    } else if (!dataset && myDataset?.data) {
+      projectData = getDatasetProjectDataSamples(project)
+    } else {
+      return
+    }
+
+    setAddedSamples(projectData)
+    selectModalitySamplesByIds('SINGLE_CELL', projectData.SINGLE_CELL)
+    selectModalitySamplesByIds('SPATIAL', projectData.SPATIAL)
+  }, [dataset, myDataset, allSamples, samples])
 
   if (!loaded)
     return (
