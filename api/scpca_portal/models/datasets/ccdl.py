@@ -7,7 +7,7 @@ from typing_extensions import Self
 from scpca_portal import ccdl_datasets, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import CCDLDatasetNames, Modalities
-from scpca_portal.models.datasets import DatasetABC
+from scpca_portal.models.datasets.base import DatasetABC
 from scpca_portal.models.project import Project
 
 logger = get_and_configure_logger(__name__)

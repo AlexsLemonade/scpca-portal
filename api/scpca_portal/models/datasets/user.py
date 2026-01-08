@@ -8,7 +8,7 @@ from django.db.models import Count
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetFormats, Modalities
-from scpca_portal.models.datasets import DatasetABC
+from scpca_portal.models.datasets.base import DatasetABC
 from scpca_portal.models.project import Project
 from scpca_portal.validators import DatasetDataModel, DatasetDataModelRelations
 

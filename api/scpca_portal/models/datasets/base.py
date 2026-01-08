@@ -1,6 +1,6 @@
 import sys
 import uuid
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, List, Set
@@ -15,6 +15,7 @@ from scpca_portal import common, lockfile, metadata_file, readme_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetDataProjectConfig, DatasetFormats, JobStates, Modalities
 from scpca_portal.models.api_token import APIToken
+from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
@@ -24,7 +25,7 @@ from scpca_portal.models.sample import Sample
 logger = get_and_configure_logger(__name__)
 
 
-class DatasetABC(ABC):
+class DatasetABC(TimestampedModel, models.Model):
     class Meta:
         abstract = True
 
@@ -41,7 +42,7 @@ class DatasetABC(ABC):
         "self",
         null=True,
         on_delete=models.SET_NULL,
-        related_name="regenerated_datasets",
+        related_name="regenerated_%(class)s_set",
     )
 
     # Hashes
@@ -79,17 +80,17 @@ class DatasetABC(ABC):
         ComputedFile,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="dataset",
+        related_name="%(class)s",
     )
     token = models.ForeignKey(
         APIToken,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="datasets",
+        related_name="%(class)s_set",
     )
     download_tokens = models.ManyToManyField(
         APIToken,
-        related_name="downloaded_datasets",
+        related_name="downloaded_%(class)s_set",
     )
 
     def __str__(self):
