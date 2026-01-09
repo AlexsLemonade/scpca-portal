@@ -7,7 +7,7 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
-def populate_datasets(apps, schema_editor):
+def apply_populate_datasets(apps, schema_editor):
     Dataset = apps.get_model("scpca_portal", "dataset")
     CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
     UserDataset = apps.get_model("scpca_portal", "userdataset")
@@ -41,9 +41,32 @@ def populate_datasets(apps, schema_editor):
         new_dataset.save()
 
         updated_attr = "ccdl_dataset" if model_cls == CCDLDataset else "user_dataset"
-        for job in old_dataset.jobs:
+        for job in old_dataset.jobs.all():
             setattr(job, updated_attr, new_dataset)
-        Job.objects.bulk_update(old_dataset.jobs, [updated_attr])
+        Job.objects.bulk_update(old_dataset.jobs.all(), [updated_attr])
+
+
+def reverse_populate_datasets(apps, schema_editor):
+    CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
+    UserDataset = apps.get_model("scpca_portal", "userdataset")
+    Job = apps.get_model("scpca_portal", "job")
+
+    jobs = Job.objects.all()
+    for job in jobs:
+        for attr in ["ccdl_dataset", "user_dataset"]:
+            setattr(job, attr, None)
+        job.save()
+
+    for dataset_cls in [CCDLDataset, UserDataset]:
+        for dataset in dataset_cls.objects.all():
+            dataset.regenerated_from = None
+            dataset.computed_file = None
+            dataset.token = None
+            dataset.download_tokens.clear()
+            dataset.save()
+
+    CCDLDataset.objects.all().delete()
+    UserDataset.objects.all().delete()
 
 
 class Migration(migrations.Migration):
@@ -302,4 +325,5 @@ class Migration(migrations.Migration):
                 to="scpca_portal.userdataset",
             ),
         ),
+        migrations.RunPython(apply_populate_datasets, reverse_code=reverse_populate_datasets),
     ]
