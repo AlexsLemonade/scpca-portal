@@ -7,6 +7,45 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+def populate_datasets(apps, schema_editor):
+    Dataset = apps.get_model("scpca_portal", "dataset")
+    CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
+    UserDataset = apps.get_model("scpca_portal", "userdataset")
+    Job = apps.get_model("scpca_portal", "job")
+
+    ccdl_datasets = []
+    user_datasets = []
+
+    def get_new_dataset_dict(new_dataset_cls, dataset):
+        return {field.name: getattr(dataset, field.name) for field in new_dataset_cls._meta.fields}
+
+    for dataset in Dataset.objects.all():
+        if dataset.is_ccdl:
+            ccdl_datasets.append(CCDLDataset(**get_new_dataset_dict(CCDLDataset, dataset)))
+        else:
+            user_datasets.append(UserDataset(**get_new_dataset_dict(UserDataset, dataset)))
+
+    CCDLDataset.objects.bulk_create(ccdl_datasets)
+    UserDataset.objects.bulk_create(user_datasets)
+
+    # Add many to many, reflexive and off model relations
+    for new_dataset in ccdl_datasets + user_datasets:
+        model_cls = new_dataset._meta.model
+        old_dataset = Dataset.objects.filter(id=new_dataset.id).first()
+
+        if old_dataset.regenerated_from:
+            new_dataset.regenerated_from = model_cls.objects.filter(
+                id=old_dataset.regenerated_from.id
+            ).first()
+        new_dataset.download_tokens.add(*old_dataset.download_tokens.all())
+        new_dataset.save()
+
+        updated_attr = "ccdl_dataset" if model_cls == CCDLDataset else "user_dataset"
+        for job in old_dataset.jobs:
+            setattr(job, updated_attr, new_dataset)
+        Job.objects.bulk_update(old_dataset.jobs, [updated_attr])
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
