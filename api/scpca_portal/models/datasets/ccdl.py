@@ -19,7 +19,7 @@ class CCDLDataset(DatasetABC):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
-    ccdl_name = models.TextField(choices=CCDLDatasetNames.choices, null=True)
+    ccdl_name = models.TextField(choices=CCDLDatasetNames.choices)
     ccdl_project_id = models.TextField(null=True)
     ccdl_modality = models.TextField(choices=Modalities.choices, null=True)
 

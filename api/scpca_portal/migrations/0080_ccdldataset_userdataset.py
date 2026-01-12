@@ -226,7 +226,6 @@ class Migration(migrations.Migration):
                             ("SINGLE_CELL_ANN_DATA_MERGED", "Single Cell Ann Data Merged"),
                             ("SPATIAL_SPATIAL_SPACERANGER", "Spatial Spatial Spaceranger"),
                         ],
-                        null=True,
                     ),
                 ),
                 ("ccdl_project_id", models.TextField(null=True)),
