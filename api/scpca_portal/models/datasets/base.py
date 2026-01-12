@@ -208,7 +208,7 @@ class DatasetABC(TimestampedModel, models.Model):
 
     @property
     def readme_file_contents(self) -> str:
-        return readme_file.get_file_contents_dataset(self)
+        return readme_file.get_file_contents_dataset_new(self)
 
     def get_includes_files_bulk(self) -> bool:
         return self.bulk_single_cell_projects.exists()
@@ -300,10 +300,6 @@ class DatasetABC(TimestampedModel, models.Model):
         Returns all project instances associated with the dataset
         which have cite seq data.
         """
-        # Spatial CCDL Datasets don't have cite seq data
-        if self.is_ccdl and self.ccdl_modality == Modalities.SPATIAL:
-            return Project.objects.none()
-
         return self.projects.filter(has_cite_seq_data=True)
 
     @property

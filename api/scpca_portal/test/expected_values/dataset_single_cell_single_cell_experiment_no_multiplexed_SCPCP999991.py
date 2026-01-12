@@ -16,7 +16,6 @@ class DatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991:
         "start": False,
         "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,
         "regenerated_from": None,
-        "is_ccdl": True,
         "ccdl_name": CCDL_NAME,
         "ccdl_project_id": PROJECT_ID,
         "started_at": None,

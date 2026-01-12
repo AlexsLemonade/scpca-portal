@@ -19,7 +19,6 @@ class DatasetCustomSingleCellExperiment:
         "start": False,
         "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,
         "regenerated_from": None,
-        "is_ccdl": False,
         "ccdl_name": None,
         "ccdl_project_id": None,
         "started_at": None,

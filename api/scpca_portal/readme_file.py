@@ -16,7 +16,94 @@ TEMPLATE_FILE_PATH = TEMPLATE_ROOT / "readme.md"
 # Dataset Readme Templates
 README_ROOT = settings.TEMPLATE_PATH / "dataset_readme"
 
+METADATA_LINK = utils.get_docs_url("download_files.html#metadata")
+ANN_DATA_LINK = utils.get_docs_url("sce_file_contents.html#components-of-an-anndata-object")
+ANN_DATA_WITH_CITE_SEQ_LINK = utils.get_docs_url(
+    "sce_file_contents.htm#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+)
+ANN_DATA_MERGED_LINK = utils.get_docs_url(
+    "merged_objects.html#components-of-an-anndata-merged-object"
+)
+ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = utils.get_docs_url(
+    "merged_objects.html#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+)
+SINGLE_CELL_EXPERIMENT_LINK = utils.get_docs_url(
+    "sce_file_contents.html#components-of-a-singlecellexperiment-object"
+)
+SINGLE_CELL_EXPERIMENT_MERGED_LINK = utils.get_docs_url(
+    "merged_objects.html#components-of-a-singlecellexperiment-merged-object"
+)
+SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = utils.get_docs_url(
+    "sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries"
+)
+SPATIAL_SPATIAL_SPACERANGER_LINK = utils.get_docs_url(
+    "processing_information.html#spatial-transcriptomics"
+)
+BULK_LINK = utils.get_docs_url("processing_information.html#bulk-rna-samples")
 
+PORTAL_CCDL_DATASET_LINKS = {
+    CCDLDatasetNames.ALL_METADATA: utils.get_docs_url("download_files.html#portal-wide-downloads"),
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT: utils.get_docs_url(
+        "download_files.html#singlecellexperiment-portal-wide-download-structure"
+    ),
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: utils.get_docs_url(
+        "download_files.html"
+        "#portal-wide-download-structure-for-merged-singlecellexperiment-objects"
+    ),
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA: utils.get_docs_url(
+        "download_files.html#anndata-portal-wide-download-structure"
+    ),
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: utils.get_docs_url(
+        "download_files.html#portal-wide-download-structure-for-merged-anndata-objects"
+    ),
+    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: utils.get_docs_url(
+        "download_files.html#spatial-portal-wide-download-structure"
+    ),
+}
+METADATA_LINK = utils.get_docs_url("download_files.html#metadata")
+ANN_DATA_LINK = utils.get_docs_url("sce_file_contents.html#components-of-an-anndata-object")
+ANN_DATA_WITH_CITE_SEQ_LINK = utils.get_docs_url(
+    "sce_file_contents.htm#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+)
+ANN_DATA_MERGED_LINK = utils.get_docs_url(
+    "merged_objects.html#components-of-an-anndata-merged-object"
+)
+ANN_DATA_MERGED_WITH_CITE_SEQ_LINK = utils.get_docs_url(
+    "merged_objects.html#additional-anndata-components-for-cite-seq-libraries-with-adt-tags"
+)
+SINGLE_CELL_EXPERIMENT_LINK = utils.get_docs_url(
+    "sce_file_contents.html#components-of-a-singlecellexperiment-object"
+)
+SINGLE_CELL_EXPERIMENT_MERGED_LINK = utils.get_docs_url(
+    "merged_objects.html#components-of-a-singlecellexperiment-merged-object"
+)
+SINGLE_CELL_EXPERIMENT_MULTIPLEXED_LINK = utils.get_docs_url(
+    "sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries"
+)
+SPATIAL_SPATIAL_SPACERANGER_LINK = utils.get_docs_url(
+    "processing_information.html#spatial-transcriptomics"
+)
+BULK_LINK = utils.get_docs_url("processing_information.html#bulk-rna-samples")
+
+PORTAL_CCDL_DATASET_LINKS = {
+    CCDLDatasetNames.ALL_METADATA: utils.get_docs_url("download_files.html#portal-wide-downloads"),
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT: utils.get_docs_url(
+        "download_files.html#singlecellexperiment-portal-wide-download-structure"
+    ),
+    CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED: utils.get_docs_url(
+        "download_files.html"
+        "#portal-wide-download-structure-for-merged-singlecellexperiment-objects"
+    ),
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA: utils.get_docs_url(
+        "download_files.html#anndata-portal-wide-download-structure"
+    ),
+    CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED: utils.get_docs_url(
+        "download_files.html#portal-wide-download-structure-for-merged-anndata-objects"
+    ),
+    CCDLDatasetNames.SPATIAL_SPATIAL_SPACERANGER: utils.get_docs_url(
+        "download_files.html#spatial-portal-wide-download-structure"
+    ),
+}
 METADATA_LINK = utils.get_docs_url("download_files.html#metadata")
 ANN_DATA_LINK = utils.get_docs_url("sce_file_contents.html#components-of-an-anndata-object")
 ANN_DATA_WITH_CITE_SEQ_LINK = utils.get_docs_url(
@@ -200,6 +287,15 @@ def get_content_portal_wide_link(dataset):
     return None
 
 
+def get_content_portal_wide_link_new(dataset) -> str | None:
+    """
+    Returns the link to the documentation if dataset is a ccdl portal wide download
+    """
+    if hasattr(dataset, "ccdl_project_id"):
+        return PORTAL_CCDL_DATASET_LINKS.get(dataset.ccdl_name)
+    return None
+
+
 def get_content_metadata_link(dataset):
     """
     Returns the link to the documentation if dataset is for metadata.
@@ -216,9 +312,36 @@ def get_file_contents_dataset(dataset) -> str:
     # data that is passed into templates
     context = {
         "context": {
-            "date": utils.helpers.get_today_string(),
+            "date": utils.get_today_string(),
             "dataset": dataset,
             "content_portal_wide_link": get_content_portal_wide_link(dataset),
+            "content_metadata_link": get_content_metadata_link(dataset),
+            "content_table_rows": get_content_table_rows(dataset),
+        }
+    }
+
+    return merge_partials(
+        [
+            render_to_string(README_ROOT / "1_header.md", **context),
+            render_to_string(README_ROOT / "2_contents.md", **context),
+            render_to_string(README_ROOT / "3_usage.md", **context),
+            render_to_string(README_ROOT / "4_changelog.md", **context),
+            render_to_string(README_ROOT / "5_contact.md", **context),
+            render_to_string(README_ROOT / "6_citation.md", **context),
+            render_to_string(README_ROOT / "7_terms_of_use.md", **context),
+        ]
+    )
+
+
+def get_file_contents_dataset_new(dataset) -> str:
+    """Return newly generated readme file as a string for immediate writing to a zip archive."""
+
+    # data that is passed into templates
+    context = {
+        "context": {
+            "date": utils.get_today_string(),
+            "dataset": dataset,
+            "content_portal_wide_link": get_content_portal_wide_link_new(dataset),
             "content_metadata_link": get_content_metadata_link(dataset),
             "content_table_rows": get_content_table_rows(dataset),
         }

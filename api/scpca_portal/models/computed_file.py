@@ -232,7 +232,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 )
 
         computed_file = cls(
-            dataset=dataset,
             has_bulk_rna_seq=(
                 any(
                     True
@@ -255,6 +254,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 library.workflow_version for library in dataset.libraries
             ),
         )
+        dataset.computed_file = computed_file
 
         return computed_file
 

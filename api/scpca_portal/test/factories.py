@@ -8,7 +8,7 @@ from django.utils.timezone import make_aware
 import factory
 
 from scpca_portal import common
-from scpca_portal.enums import DatasetFormats, FileFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 from scpca_portal.models import ComputedFile
 
 
@@ -227,6 +227,24 @@ class DatasetFactory(factory.django.DjangoModelFactory):
     }
     email = "user@example.com"
     format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
+
+
+class CCDLDatasetFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.CCDLDataset"
+
+    data = {
+        "SCPCP999990": {
+            "includes_bulk": True,
+            Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
+            Modalities.SPATIAL.value: [],
+        },
+    }
+    email = None
+    format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
+    ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
+    ccdl_project_id = "SCPCP999990"
+    ccdl_modality = Modalities.SINGLE_CELL
 
 
 class JobFactory(factory.django.DjangoModelFactory):

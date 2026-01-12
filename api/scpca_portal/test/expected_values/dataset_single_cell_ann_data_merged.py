@@ -25,7 +25,6 @@ class DatasetSingleCellAnndataMerged:
         "start": False,
         "format": DatasetFormats.ANN_DATA.value,
         "regenerated_from": None,
-        "is_ccdl": True,
         "ccdl_name": CCDL_NAME,
         "ccdl_project_id": None,
         "started_at": None,

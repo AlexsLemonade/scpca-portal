@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
 from django.db import models
 
@@ -33,9 +33,7 @@ class CCDLDataset(DatasetABC):
     def get_or_find_ccdl_dataset(
         cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
     ) -> tuple[Self, bool]:
-        if dataset := cls.objects.filter(
-            is_ccdl=True, ccdl_name=ccdl_name, ccdl_project_id=project_id
-        ).first():
+        if dataset := cls.objects.filter(ccdl_name=ccdl_name, ccdl_project_id=project_id).first():
             return dataset, True
 
         dataset = cls(ccdl_name=ccdl_name, ccdl_project_id=project_id)
@@ -160,3 +158,18 @@ class CCDLDataset(DatasetABC):
             return None
 
         return self.computed_file.get_dataset_download_url(self.download_filename)
+
+    def get_includes_files_cite_seq(self) -> bool:
+        return self.cite_seq_projects.exists()
+
+    @property
+    def cite_seq_projects(self) -> Iterable[Project]:
+        """
+        Returns all project instances associated with the dataset
+        which have cite seq data.
+        """
+        # Spatial CCDL Datasets don't have cite seq data
+        if self.ccdl_modality == Modalities.SPATIAL:
+            return Project.objects.none()
+
+        return super().cite_seq_projects
