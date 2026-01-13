@@ -185,8 +185,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   // Disable DatasetAddSamplesModal if all samples are added
   useEffect(() => {
     if (samples && loaded) {
-      const datasetProjectData = getDatasetProjectDataSamples(project, samples)
-
+      const datasetProjectData = getDatasetProjectDataSamples(project)
       const samplesLeft = allModalities
         .map((m) =>
           differenceArray(project.modality_samples[m], datasetProjectData[m])
@@ -206,7 +205,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     if (dataset?.data) {
       projectData = getDatasetProjectData(dataset, project)
     } else if (!dataset && myDataset?.data) {
-      projectData = getDatasetProjectDataSamples(project, samples)
+      projectData = getDatasetProjectDataSamples(project)
     } else {
       return
     }
