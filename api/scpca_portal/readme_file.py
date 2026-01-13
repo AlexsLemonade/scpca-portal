@@ -1,12 +1,15 @@
 import re
 from collections import namedtuple
-from typing import Dict, Iterable
+from typing import TYPE_CHECKING, Dict, Iterable
 
 from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils  # ccdl_datasets,
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
+
+if TYPE_CHECKING:
+    from scpca_portal.models import DatasetABC
 
 OUTPUT_NAME = "README.md"
 
@@ -287,11 +290,11 @@ def get_content_portal_wide_link(dataset):
     return None
 
 
-def get_content_portal_wide_link_new(dataset) -> str | None:
+def get_content_portal_wide_link_new(dataset: "DatasetABC") -> str | None:
     """
     Returns the link to the documentation if dataset is a ccdl portal wide download
     """
-    if hasattr(dataset, "ccdl_project_id"):
+    if hasattr(dataset, "ccdl_project_id") and not dataset.ccdl_project_id:
         return PORTAL_CCDL_DATASET_LINKS.get(dataset.ccdl_name)
     return None
 
@@ -333,7 +336,7 @@ def get_file_contents_dataset(dataset) -> str:
     )
 
 
-def get_file_contents_dataset_new(dataset) -> str:
+def get_file_contents_dataset_new(dataset: "DatasetABC") -> str:
     """Return newly generated readme file as a string for immediate writing to a zip archive."""
 
     # data that is passed into templates
