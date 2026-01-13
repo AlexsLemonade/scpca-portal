@@ -45,8 +45,8 @@ export const CCDLDatasetDownloadOption = () => {
             Size: {formatBytes(selectedDataset.computed_file.size_in_bytes)}
           </Text>
         </Box>
-        {selectedDataset.includes_files_merged && <WarningMultiplexedSamples />}
-        {selectedDataset.includes_files_multiplexed && <WarningMergedObjects />}
+        {selectedDataset.includes_files_merged && <WarningMergedObjects />}
+        {selectedDataset.includes_files_multiplexed && <WarningMultiplexedSamples />}
       </Box>
       <Box gridArea="body" margin={{ bottom: 'small' }}>
         <Paragraph>The download consists of the following items:</Paragraph>

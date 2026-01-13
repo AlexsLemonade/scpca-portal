@@ -5,6 +5,8 @@ import { Box, Grid, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { DatasetFileItems } from 'components/DatasetFileItems'
+import { WarningMultiplexedSamples } from 'components/WarningMultiplexedSamples'
+import { WarningMergedObjects } from 'components/WarningMergedObjects'
 import { formatBytes } from 'helpers/formatBytes'
 import { getReadable } from 'helpers/getReadable'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
@@ -36,26 +38,21 @@ export const CCDLDatasetDownloadStarted = () => {
       >
         <Box>
           <Paragraph>Your download should have started.</Paragraph>
-          <Box margin={{ top: 'small', bottom: 'small' }}>
+          <Box direction="row" gap="xlarge" margin={{ top: 'small', bottom: 'small' }}>
             {downloadableDataset.format !== 'METADATA' && (
               <Text weight="bold">Data Format: {getReadableDataFormat()}</Text>
             )}
-          </Box>
-          <Paragraph>The download consists of the following items:</Paragraph>
-          <DatasetFileItems dataset={downloadableDataset} />
-          {downloadableDataset.includes_files_merged && (
-            <Box margin={{ top: 'small', bottom: 'small' }}>
-              <Text>Samples are merged into 1 object per project</Text>
-            </Box>
-          )}{' '}
-          {downloadableDataset.format !== 'METADATA' && (
-            <Box margin={{ top: 'small', bottom: 'small' }}>
+            {downloadableDataset.format !== 'METADATA' && (
               <Text weight="bold">
                 Size:{' '}
                 {formatBytes(downloadableDataset?.computed_file?.size_in_bytes)}
               </Text>
-            </Box>
-          )}
+            )}
+          </Box>
+          {downloadableDataset.includes_files_merged && <WarningMergedObjects />}
+          {downloadableDataset.includes_files_multiplexed && <WarningMultiplexedSamples />}
+          <Paragraph>The download consists of the following items:</Paragraph>
+          <DatasetFileItems dataset={downloadableDataset} />
           <Paragraph margin={{ bottom: 'small' }}>
             Learn more about what you can expect in your download file{' '}
             <Link label="here" href={learnMore} />.
