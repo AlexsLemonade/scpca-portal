@@ -174,7 +174,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     def get_output_file_format(cls, dataset) -> str | None:
         match dataset.format:
             case DatasetFormats.SINGLE_CELL_EXPERIMENT:
-                if dataset.ccdl_modality == Modalities.SPATIAL:
+                if (
+                    hasattr(dataset, "ccdl_modality")
+                    and dataset.ccdl_modality == Modalities.SPATIAL
+                ):
                     return cls.OutputFileFormats.SPATIAL_SPACERANGER
                 else:
                     return cls.OutputFileFormats.SINGLE_CELL_EXPERIMENT
@@ -187,6 +190,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @classmethod
     def get_output_file_modality(cls, dataset) -> str | None:
+        if not hasattr(dataset, "ccdl_type"):
+            return None
+
         match dataset.ccdl_type.get("modality"):
             case Modalities.SINGLE_CELL:
                 return cls.OutputFileModalities.SINGLE_CELL

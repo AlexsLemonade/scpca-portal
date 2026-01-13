@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from scpca_portal import loader, metadata_parser, utils
 from scpca_portal.enums import CCDLDatasetNames
-from scpca_portal.models import ComputedFile, Dataset
+from scpca_portal.models import CCDLDataset, ComputedFile, UserDataset
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
 
@@ -90,7 +90,7 @@ class TestGetFile(TestCase):
         ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
         project_id = "SCPCP999990"
 
-        dataset, _ = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
+        dataset, _ = CCDLDataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
         dataset.save()
 
         computed_file = ComputedFile.get_dataset_file(dataset)
@@ -117,7 +117,7 @@ class TestGetFile(TestCase):
     def test_original_file_zip_namelist(self):
         self.maxDiff = None
 
-        dataset = Dataset(
+        dataset = UserDataset(
             data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
             format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
         )
