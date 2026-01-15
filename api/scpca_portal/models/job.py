@@ -29,7 +29,7 @@ from scpca_portal.exceptions import (
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.dataset import Dataset
 from scpca_portal.models.datasets.base import DatasetABC
-from scpca_portal.models.datasets.ccdl import CCDLDataset
+from scpca_portal.models.datasets.ccdl_dataset import CCDLDataset
 
 logger = get_and_configure_logger(__name__)
 

@@ -147,11 +147,11 @@ class TestJob(TestCase):
         self.assertIsInstance(saved_job.processing_at, datetime)
 
     @patch(
-        "scpca_portal.models.datasets.ccdl.CCDLDataset.has_locked_projects",
+        "scpca_portal.models.datasets.ccdl_dataset.CCDLDataset.has_locked_projects",
         new_callable=PropertyMock,
     )
     @patch(
-        "scpca_portal.models.datasets.ccdl.CCDLDataset.has_lockfile_projects",
+        "scpca_portal.models.datasets.ccdl_dataset.CCDLDataset.has_lockfile_projects",
         new_callable=PropertyMock,
     )
     @patch("scpca_portal.batch.submit_job")
