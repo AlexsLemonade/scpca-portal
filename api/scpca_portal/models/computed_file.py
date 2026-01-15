@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict
+from typing import TYPE_CHECKING, Dict
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -14,6 +14,9 @@ from scpca_portal.exceptions import DatasetLockedProjectError, DatasetMissingLib
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
+
+if TYPE_CHECKING:
+    from scpca_portal.models import DatasetABC
 
 logger = get_and_configure_logger(__name__)
 
@@ -127,7 +130,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return parent_dir
 
     @staticmethod
-    def get_original_file_zip_path(original_file: OriginalFile, dataset) -> Path:
+    def get_original_file_zip_path(original_file: OriginalFile, dataset: "DatasetABC") -> Path:
         """Return an original file's path for the zip file being computed."""
         # always remove project directory
         zip_file_path = original_file.s3_key_path.relative_to(
@@ -149,7 +152,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @staticmethod
     def get_metadata_file_zip_path(
-        dataset, project_id: str | None = None, modality: Modalities | None = None
+        dataset: "DatasetABC", project_id: str | None = None, modality: Modalities | None = None
     ) -> Path:
         """Return metadata file path, modality name inside of project_modality directory."""
         # Metadata only downloads are not associated with a specific project_id or modality
@@ -166,12 +169,12 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return Path(metadata_dir) / Path(metadata_file_name_path)
 
     @classmethod
-    def get_dataset_file_s3_key(cls, dataset) -> str:
+    def get_dataset_file_s3_key(cls, dataset: "DatasetABC") -> str:
         return f"{dataset.id}.zip"
 
     # # TODO: TEMP translation for dataset -> computed file enums
     @classmethod
-    def get_output_file_format(cls, dataset) -> str | None:
+    def get_output_file_format(cls, dataset: "DatasetABC") -> str | None:
         match dataset.format:
             case DatasetFormats.SINGLE_CELL_EXPERIMENT:
                 if (
@@ -189,7 +192,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 return None
 
     @classmethod
-    def get_output_file_modality(cls, dataset) -> str | None:
+    def get_output_file_modality(cls, dataset: "DatasetABC") -> str | None:
         if not hasattr(dataset, "ccdl_type"):
             return None
 
@@ -202,7 +205,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 return None
 
     @classmethod
-    def get_dataset_file(cls, dataset) -> Self:
+    def get_dataset_file(cls, dataset: "DatasetABC") -> Self:
         """
         Computes a given dataset's zip archive and returns a corresponding ComputedFile object.
         """

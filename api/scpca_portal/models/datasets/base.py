@@ -208,7 +208,7 @@ class DatasetABC(TimestampedModel, models.Model):
 
     @property
     def readme_file_contents(self) -> str:
-        return readme_file.get_file_contents_dataset_new(self)
+        return readme_file.get_file_contents_dataset(self)
 
     def get_includes_files_bulk(self) -> bool:
         return self.bulk_single_cell_projects.exists()
