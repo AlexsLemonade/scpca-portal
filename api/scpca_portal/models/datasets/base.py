@@ -120,6 +120,9 @@ class DatasetABC(TimestampedModel, models.Model):
 
         super().save(*args, **kwargs)
 
+    def get_class(self) -> models.Model:
+        return self._meta.model
+
     # HASHING AND CACHED ATTR LOGIC
     def get_hashes(self) -> tuple[str, str, str, str]:
         """Computes and returns data, metadata, readme, and combined hashes."""
