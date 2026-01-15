@@ -5,7 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
 
-from scpca_portal import common, utils
+from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models.datasets.base import DatasetABC
@@ -311,22 +311,3 @@ class UserDataset(DatasetABC):
             .order_by("project__scpca_id")
             .values_list("project__scpca_id", "num_samples")
         )
-
-    @property
-    def download_filename(self) -> str:
-        # User Datasets have a default DatasetFormat of SINGLE_CELL_EXERPIMENT,
-        # though many of their files are of FileFormat SPATIAL_SPACERANGER.
-        # The ouptut format depends on the format requested
-        # for the rest of the data included in the dataset.
-        output_format = "-".join(self.format.split("_")).lower()
-        date = utils.get_today_string()
-
-        return f"{self.id}_{output_format}_{date}.zip"
-
-    @property
-    def download_url(self) -> str | None:
-        """A temporary URL from which the file can be downloaded."""
-        if not self.computed_file:
-            return None
-
-        return self.computed_file.get_dataset_download_url(self.download_filename)

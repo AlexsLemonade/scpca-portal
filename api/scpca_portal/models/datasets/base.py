@@ -1,6 +1,5 @@
 import sys
 import uuid
-from abc import abstractmethod
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, List, Set
@@ -498,14 +497,19 @@ class DatasetABC(TimestampedModel, models.Model):
         return settings.OUTPUT_DATA_PATH / ComputedFile.get_dataset_file_s3_key(self)
 
     @property
-    @abstractmethod
     def download_filename(self) -> str:
-        pass
+        output_format = "-".join(self.format.split("_")).lower()
+        date = utils.get_today_string()
+
+        return f"{self.id}_{output_format}_{date}.zip"
 
     @property
-    @abstractmethod
     def download_url(self) -> str | None:
-        pass
+        """A temporary URL from which the file can be downloaded."""
+        if not self.computed_file:
+            return None
+
+        return self.computed_file.get_dataset_download_url(self.download_filename)
 
     def apply_job_state(self, job) -> None:
         """

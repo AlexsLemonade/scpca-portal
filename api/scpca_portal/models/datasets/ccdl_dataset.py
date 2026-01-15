@@ -137,9 +137,6 @@ class CCDLDataset(DatasetABC):
 
     @property
     def download_filename(self) -> str:
-        # CCDL Datasets have a default DatasetFormat of SINGLE_CELL_EXERPIMENT,
-        # though many of their files are of FileFormat SPATIAL_SPACERANGER.
-        # CCDL Spatial Datasets should have an output_format of "spaceranger".
         output_format = "-".join(self.format.split("_")).lower()
         if self.ccdl_modality == Modalities.SPATIAL:
             output_format = "spaceranger"
@@ -150,14 +147,6 @@ class CCDLDataset(DatasetABC):
             return f"portal-wide_{output_format}_{date}.zip"
 
         return f"{self.ccdl_project_id}_{output_format}_{date}.zip"
-
-    @property
-    def download_url(self) -> str | None:
-        """A temporary URL from which the file can be downloaded."""
-        if not self.computed_file:
-            return None
-
-        return self.computed_file.get_dataset_download_url(self.download_filename)
 
     def get_includes_files_cite_seq(self) -> bool:
         return self.cite_seq_projects.exists()
