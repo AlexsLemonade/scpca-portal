@@ -273,8 +273,9 @@ class JobFactory(factory.django.DjangoModelFactory):
 
     batch_job_id = factory.Sequence(lambda n: f"MOCK_JOB_ID_{str(n).zfill(3)}")
     batch_job_name = "SCPCP000000-MOCK_DOWNLOAD_CONFIG_NAME"
-    batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
-    batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+    # not all environments have these batch fargate attrs, so a fallback is necessary
+    batch_job_queue = getattr(settings, "AWS_BATCH_FARGATE_JOB_QUEUE_NAME", None)
+    batch_job_definition = getattr(settings, "AWS_BATCH_FARGATE_JOB_DEFINITION_NAME", None)
     batch_container_overrides = factory.LazyAttribute(
         lambda obj: {
             "command": [
