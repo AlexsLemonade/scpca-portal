@@ -46,7 +46,9 @@ export const CCDLDatasetDownloadOption = () => {
           </Text>
         </Box>
         {selectedDataset.includes_files_merged && <WarningMergedObjects />}
-        {selectedDataset.includes_files_multiplexed && <WarningMultiplexedSamples />}
+        {selectedDataset.includes_files_multiplexed && (
+          <WarningMultiplexedSamples />
+        )}
       </Box>
       <Box gridArea="body" margin={{ bottom: 'small' }}>
         <Paragraph>The download consists of the following items:</Paragraph>

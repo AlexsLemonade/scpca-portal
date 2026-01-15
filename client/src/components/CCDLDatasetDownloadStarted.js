@@ -38,7 +38,11 @@ export const CCDLDatasetDownloadStarted = () => {
       >
         <Box>
           <Paragraph>Your download should have started.</Paragraph>
-          <Box direction="row" gap="xlarge" margin={{ top: 'small', bottom: 'small' }}>
+          <Box
+            direction="row"
+            gap="xlarge"
+            margin={{ top: 'small', bottom: 'small' }}
+          >
             {downloadableDataset.format !== 'METADATA' && (
               <Text weight="bold">Data Format: {getReadableDataFormat()}</Text>
             )}
@@ -49,8 +53,12 @@ export const CCDLDatasetDownloadStarted = () => {
               </Text>
             )}
           </Box>
-          {downloadableDataset.includes_files_merged && <WarningMergedObjects />}
-          {downloadableDataset.includes_files_multiplexed && <WarningMultiplexedSamples />}
+          {downloadableDataset.includes_files_merged && (
+            <WarningMergedObjects />
+          )}
+          {downloadableDataset.includes_files_multiplexed && (
+            <WarningMultiplexedSamples />
+          )}
           <Paragraph>The download consists of the following items:</Paragraph>
           <DatasetFileItems dataset={downloadableDataset} />
           <Paragraph margin={{ bottom: 'small' }}>
