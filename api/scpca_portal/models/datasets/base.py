@@ -94,7 +94,9 @@ class DatasetABC(TimestampedModel, models.Model):
         related_name="downloaded_%(class)s_set",
     )
     jobs = GenericRelation(
-        "scpca_portal.Job", content_type_field="dataset_content_type", object_id_field="dataset_id"
+        "scpca_portal.Job",
+        content_type_field="dataset_content_type",
+        object_id_field="dataset_object_id",
     )
 
     def __str__(self):

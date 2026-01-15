@@ -64,8 +64,8 @@ class Job(TimestampedModel):
 
     # Datasets should never be deleted
     dataset_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
-    dataset_id = models.UUIDField(null=True)
-    dataset = GenericForeignKey("dataset_content_type", "dataset_id")
+    dataset_object_id = models.UUIDField(null=True)
+    dataset = GenericForeignKey("dataset_content_type", "dataset_object_id")
 
     # TODO: delete in PR which removes dataset
     dataset_old = models.ForeignKey(

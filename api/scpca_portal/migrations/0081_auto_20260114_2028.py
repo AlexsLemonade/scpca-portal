@@ -17,9 +17,9 @@ def apply_dataset_gfks(apps, schema_editor):
     for job in jobs:
         if job.dataset_old:
             job.dataset_content_type = ccdl_ct if job.dataset_old.is_ccdl else user_ct
-            job.dataset_id = job.dataset_old.id
+            job.dataset_object_id = job.dataset_old.id
 
-    Job.objects.bulk_update(jobs, ["dataset_content_type", "dataset_id"])
+    Job.objects.bulk_update(jobs, ["dataset_content_type", "dataset_object_id"])
 
 
 class Migration(migrations.Migration):
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="job",
-            name="dataset_id",
+            name="dataset_object_id",
             field=models.UUIDField(null=True),
         ),
         migrations.RenameField(
