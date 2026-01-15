@@ -27,7 +27,6 @@ from scpca_portal.exceptions import (
     JobTerminationFailedError,
 )
 from scpca_portal.models.base import TimestampedModel
-from scpca_portal.models.dataset import Dataset
 from scpca_portal.models.datasets.base import DatasetABC
 from scpca_portal.models.datasets.ccdl_dataset import CCDLDataset
 
@@ -66,11 +65,6 @@ class Job(TimestampedModel):
     dataset_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
     dataset_object_id = models.UUIDField(null=True)
     dataset = GenericForeignKey("dataset_content_type", "dataset_object_id")
-
-    # TODO: delete in PR which removes dataset
-    dataset_old = models.ForeignKey(
-        Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs"
-    )
 
     # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
     # Number should be half of max fargate ephemeral storage (which is 200 GB)

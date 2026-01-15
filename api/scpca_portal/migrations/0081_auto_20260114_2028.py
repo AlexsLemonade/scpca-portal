@@ -43,10 +43,16 @@ class Migration(migrations.Migration):
             name="dataset_object_id",
             field=models.UUIDField(null=True),
         ),
+        # this is necessary in order to avoid a naming collisions in the RunPython method
+        # with the new generic foreign key name (which is `dataset`)
         migrations.RenameField(
             model_name="job",
             old_name="dataset",
             new_name="dataset_old",
         ),
         migrations.RunPython(apply_dataset_gfks, reverse_code=migrations.RunPython.noop),
+        migrations.RemoveField(
+            model_name="job",
+            name="dataset_old",
+        ),
     ]
