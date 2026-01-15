@@ -21,6 +21,14 @@ class UserDataset(DatasetABC):
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
 
+    # Required upon regeneration
+    regenerated_from = models.ForeignKey(
+        "self",
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="regenerated_%(class)s_set",
+    )
+
     # Cached File Attrs
     total_sample_count = models.BigIntegerField(default=0)
     diagnoses_summary = models.JSONField(default=dict)

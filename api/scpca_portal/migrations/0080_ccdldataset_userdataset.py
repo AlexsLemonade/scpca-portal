@@ -32,7 +32,7 @@ def apply_populate_datasets(apps, schema_editor):
         model_cls = new_dataset._meta.model
         old_dataset = Dataset.objects.filter(id=new_dataset.id).first()
 
-        if old_dataset.regenerated_from:
+        if model_cls == UserDataset and old_dataset.regenerated_from:
             new_dataset.regenerated_from = model_cls.objects.filter(
                 id=old_dataset.regenerated_from.id
             ).first()
@@ -248,15 +248,6 @@ class Migration(migrations.Migration):
                     "download_tokens",
                     models.ManyToManyField(
                         related_name="downloaded_ccdldataset_set", to="scpca_portal.APIToken"
-                    ),
-                ),
-                (
-                    "regenerated_from",
-                    models.ForeignKey(
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="regenerated_ccdldataset_set",
-                        to="scpca_portal.ccdldataset",
                     ),
                 ),
                 (

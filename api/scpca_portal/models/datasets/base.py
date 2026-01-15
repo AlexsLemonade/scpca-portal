@@ -38,14 +38,6 @@ class DatasetABC(TimestampedModel, models.Model):
     email = models.EmailField(null=True)
     start = models.BooleanField(default=False)
 
-    # Required upon regeneration
-    regenerated_from = models.ForeignKey(
-        "self",
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="regenerated_%(class)s_set",
-    )
-
     # Hashes
     data_hash = models.CharField(max_length=32, null=True)
     metadata_hash = models.CharField(max_length=32, null=True)
