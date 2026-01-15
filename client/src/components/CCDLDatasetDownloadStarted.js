@@ -22,11 +22,13 @@ export const CCDLDatasetDownloadStarted = () => {
     : portalWideLinks
   const { learnMore } = links[downloadableDataset.ccdl_name]
 
-  const getReadableDataFormat = () => {
-    if (downloadableDataset.ccdl_modality === 'SPATIAL')
-      return getReadable('SPATIAL_SPACERANGER')
-    return getReadable(downloadableDataset.format)
-  }
+  const isProject = !!downloadableDataset.ccdl_project_id
+  const isMetadata = downloadableDataset.format === 'METADATA'
+  const isSpatial = downloadableDataset.ccdl_modality === 'SPATIAL'
+
+  const readableFormat = isSpatial
+    ? getReadable('SPATIAL_SPACERANGER')
+    : getReadable(downloadableDataset.format)
 
   return (
     <>
@@ -43,10 +45,15 @@ export const CCDLDatasetDownloadStarted = () => {
             gap="xlarge"
             margin={{ top: 'small', bottom: 'small' }}
           >
-            {downloadableDataset.format !== 'METADATA' && (
-              <Text weight="bold">Data Format: {getReadableDataFormat()}</Text>
+            {isProject && (
+              <Text weight="bold">
+                Project ID: {downloadableDataset.ccdl_project_id}
+              </Text>
             )}
-            {downloadableDataset.format !== 'METADATA' && (
+            {!isProject && !isMetadata && (
+              <Text weight="bold">Dataset Format: {readableFormat}</Text>
+            )}
+            {!isMetadata && (
               <Text weight="bold">
                 Size:{' '}
                 {formatBytes(downloadableDataset?.computed_file?.size_in_bytes)}
