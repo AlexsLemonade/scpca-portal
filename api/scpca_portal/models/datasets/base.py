@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Iterable, List, Set
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.timezone import make_aware
 
@@ -91,6 +92,9 @@ class DatasetABC(TimestampedModel, models.Model):
     download_tokens = models.ManyToManyField(
         APIToken,
         related_name="downloaded_%(class)s_set",
+    )
+    jobs = GenericRelation(
+        "scpca_portal.Job", content_type_field="dataset_content_type", object_id_field="dataset_id"
     )
 
     def __str__(self):

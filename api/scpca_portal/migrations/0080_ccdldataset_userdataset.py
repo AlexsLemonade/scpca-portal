@@ -11,7 +11,6 @@ def apply_populate_datasets(apps, schema_editor):
     Dataset = apps.get_model("scpca_portal", "dataset")
     CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
     UserDataset = apps.get_model("scpca_portal", "userdataset")
-    Job = apps.get_model("scpca_portal", "job")
 
     ccdl_datasets = []
     user_datasets = []
@@ -39,12 +38,6 @@ def apply_populate_datasets(apps, schema_editor):
             ).first()
         new_dataset.download_tokens.add(*old_dataset.download_tokens.all())
         new_dataset.save()
-
-        jobs = old_dataset.jobs.all()
-        update_attr = "ccdl_dataset" if model_cls == CCDLDataset else "user_dataset"
-        for job in jobs:
-            setattr(job, update_attr, new_dataset)
-        Job.objects.bulk_update(jobs, [update_attr])
 
 
 class Migration(migrations.Migration):
@@ -281,26 +274,6 @@ class Migration(migrations.Migration):
                 "ordering": ["updated_at"],
                 "get_latest_by": "updated_at",
             },
-        ),
-        migrations.AddField(
-            model_name="job",
-            name="ccdl_dataset",
-            field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name="jobs",
-                to="scpca_portal.ccdldataset",
-            ),
-        ),
-        migrations.AddField(
-            model_name="job",
-            name="user_dataset",
-            field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name="jobs",
-                to="scpca_portal.userdataset",
-            ),
         ),
         migrations.RunPython(apply_populate_datasets, reverse_code=migrations.RunPython.noop),
     ]

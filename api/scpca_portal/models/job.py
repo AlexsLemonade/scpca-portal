@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import List
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.timezone import make_aware
 
@@ -24,8 +26,6 @@ from scpca_portal.exceptions import (
 )
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.dataset import Dataset
-from scpca_portal.models.datasets.ccdl import CCDLDataset
-from scpca_portal.models.datasets.user import UserDataset
 
 logger = get_and_configure_logger(__name__)
 
@@ -59,12 +59,13 @@ class Job(TimestampedModel):
     batch_status = models.TextField(null=True)  # Set by a cron job
 
     # Datasets should never be deleted
-    dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
-    ccdl_dataset = models.ForeignKey(
-        CCDLDataset, null=True, on_delete=models.SET_NULL, related_name="jobs"
-    )
-    user_dataset = models.ForeignKey(
-        UserDataset, null=True, on_delete=models.SET_NULL, related_name="jobs"
+    dataset_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    dataset_id = models.UUIDField(null=True)
+    dataset = GenericForeignKey("dataset_content_type", "dataset_id")
+
+    # TODO: delete in PR which removes dataset
+    dataset_old = models.ForeignKey(
+        Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs"
     )
 
     # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
