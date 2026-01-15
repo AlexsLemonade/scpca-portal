@@ -38,9 +38,11 @@ export const CCDLDatasetDownloadOption = () => {
           gap="xlarge"
           margin={{ top: 'medium', bottom: 'small' }}
         >
-          <Text weight="bold">
-            CCDL Project ID: {selectedDataset.ccdl_project_id}
-          </Text>
+          {selectedDataset.ccdl_project_id && (
+            <Text weight="bold">
+              Project ID: {selectedDataset.ccdl_project_id}
+            </Text>
+          )}
           <Text weight="bold">
             Size: {formatBytes(selectedDataset.computed_file.size_in_bytes)}
           </Text>
