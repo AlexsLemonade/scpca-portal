@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils.timezone import make_aware
 
@@ -17,7 +18,7 @@ from scpca_portal.exceptions import (
     JobSyncStateFailedError,
     JobTerminationFailedError,
 )
-from scpca_portal.models import CCDLDataset, Job
+from scpca_portal.models import CCDLDataset, Dataset, Job, UserDataset
 from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory, UserDatasetFactory
 
 
@@ -57,6 +58,20 @@ class TestJob(TestCase):
         if is_terminated:
             self.assertIsInstance(dataset.terminated_at, datetime)
         self.assertEqual(dataset.terminated_reason, terminated_reason)
+
+    def test_validate_dataset_type(self):
+        # assert that dataset attr is of subtype DatasetABC
+        job = JobFactory()
+
+        job.dataset = CCDLDataset()
+        job.save()
+
+        job.dataset = UserDataset()
+        job.save()
+
+        job.dataset = Dataset()
+        with self.assertRaises(ValidationError):
+            job.save()
 
     def test_apply_state(self):
         job = JobFactory(state=JobStates.PENDING, dataset=CCDLDatasetFactory())
