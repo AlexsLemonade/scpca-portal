@@ -100,7 +100,7 @@ class TestGetFile(TestCase):
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.DatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_LIST,
+                test_data.CCDLDatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
@@ -109,7 +109,7 @@ class TestGetFile(TestCase):
             attribute,
             value,
         ) in (
-            test_data.DatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_VALUES.items()
+            test_data.CCDLDatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_VALUES.items()  # noqa
         ):
             msg = f"The actual and expected `{attribute}` values differ in {computed_file}"
             self.assertEqual(getattr(computed_file, attribute), value, msg)
@@ -118,8 +118,8 @@ class TestGetFile(TestCase):
         self.maxDiff = None
 
         dataset = UserDataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
         dataset.save()
 
@@ -129,5 +129,5 @@ class TestGetFile(TestCase):
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                sorted(test_data.DatasetCustomSingleCellExperiment.COMPUTED_FILE_LIST),
+                sorted(test_data.UserDatasetSingleCellExperiment.COMPUTED_FILE_LIST),
             )

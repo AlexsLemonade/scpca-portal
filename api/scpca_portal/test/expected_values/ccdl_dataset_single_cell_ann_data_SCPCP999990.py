@@ -1,32 +1,29 @@
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 
-class DatasetSingleCellAnndata:
+class CCDLDatasetSingleCellAnndataSCPCP999990:
+    PROJECT_ID = "SCPCP999990"
     CCDL_NAME = CCDLDatasetNames.SINGLE_CELL_ANN_DATA.value
     VALUES = {
+        "format": DatasetFormats.ANN_DATA.value,
         "data": {
-            "SCPCP999990": {
+            PROJECT_ID: {
                 "includes_bulk": True,
                 Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
                 Modalities.SPATIAL.value: [],
-            },
-            "SCPCP999991": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999995"],
-                Modalities.SPATIAL.value: [],
-            },
-            "SCPCP999992": {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999996", "SCPCS999998"],
-                Modalities.SPATIAL.value: [],
-            },
+            }
         },
         "email": None,
         "start": False,
-        "format": DatasetFormats.ANN_DATA.value,
-        "regenerated_from": None,
-        "ccdl_name": CCDL_NAME,
-        "ccdl_project_id": None,
+        "data_hash": None,
+        "metadata_hash": None,
+        "readme_hash": None,
+        "combined_hash": None,
+        "includes_files_bulk": None,
+        "includes_files_cite_seq": None,
+        "includes_files_merged": None,
+        "includes_files_multiplexed": None,
+        "estimated_size_in_bytes": None,
         "started_at": None,
         "is_started": False,
         "is_processing": False,
@@ -37,4 +34,10 @@ class DatasetSingleCellAnndata:
         "failed_reason": None,
         "expires_at": None,
         "is_expired": False,
+        "terminated_at": None,
+        "is_terminated": None,
+        "terminated_reason": None,
+        "ccdl_name": CCDL_NAME,
+        "ccdl_project_id": PROJECT_ID,
+        "ccdl_modality": None,
     }

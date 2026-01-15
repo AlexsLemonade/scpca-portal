@@ -39,12 +39,12 @@ class TestCCDLDataset(TestCase):
     def test_get_or_find(self):
         # Portal Dataset Check
         ccdl_portal_datasets_expected_values = [
-            test_data.DatasetAllMetadata,
-            test_data.DatasetSingleCellSingleCellExperiment,
-            test_data.DatasetSingleCellSingleCellExperimentMerged,
-            test_data.DatasetSingleCellAnndata,
-            test_data.DatasetSingleCellAnndataMerged,
-            test_data.DatasetSpatialSpatialSpaceranger,
+            test_data.CCDLDatasetAllMetadata,
+            test_data.CCDLDatasetSingleCellSingleCellExperiment,
+            test_data.CCDLDatasetSingleCellSingleCellExperimentMerged,
+            test_data.CCDLDatasetSingleCellAnndata,
+            test_data.CCDLDatasetSingleCellAnndataMerged,
+            test_data.CCDLDatasetSpatialSpatialSpaceranger,
         ]
 
         for ccdl_portal_dataset in ccdl_portal_datasets_expected_values:
@@ -65,7 +65,7 @@ class TestCCDLDataset(TestCase):
 
         # Project Dataset Check
         ccdl_project_dataset = (
-            test_data.DatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991
+            test_data.CCDLDatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991
         )
         dataset, found = CCDLDataset.get_or_find(
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
@@ -116,7 +116,7 @@ class TestCCDLDataset(TestCase):
     def test_create_or_update_ccdl_datasets_update_data_attr(self):
         """Assert that data attr updates when new samples and libraries are added."""
         # Create dataset
-        dataset_expected_values = test_data.DatasetSingleCellSingleCellExperimentSCPCP999990
+        dataset_expected_values = test_data.CCDLDatasetSingleCellSingleCellExperimentSCPCP999990
         dataset, _ = CCDLDataset.get_or_find(
             dataset_expected_values.CCDL_NAME, dataset_expected_values.PROJECT_ID
         )

@@ -53,12 +53,12 @@ class TestDataset(TestCase):
     def test_get_or_find_ccdl_dataset(self):
         # Portal Dataset Check
         ccdl_portal_datasets_expected_values = [
-            test_data.DatasetAllMetadata,
-            test_data.DatasetSingleCellSingleCellExperiment,
-            test_data.DatasetSingleCellSingleCellExperimentMerged,
-            test_data.DatasetSingleCellAnndata,
-            test_data.DatasetSingleCellAnndataMerged,
-            test_data.DatasetSpatialSpatialSpaceranger,
+            test_data.CCDLDatasetAllMetadata,
+            test_data.CCDLDatasetSingleCellSingleCellExperiment,
+            test_data.CCDLDatasetSingleCellSingleCellExperimentMerged,
+            test_data.CCDLDatasetSingleCellAnndata,
+            test_data.CCDLDatasetSingleCellAnndataMerged,
+            test_data.CCDLDatasetSpatialSpatialSpaceranger,
         ]
 
         for ccdl_portal_dataset in ccdl_portal_datasets_expected_values:
@@ -81,7 +81,7 @@ class TestDataset(TestCase):
 
         # Project Dataset Check
         ccdl_project_dataset = (
-            test_data.DatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991
+            test_data.CCDLDatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991
         )
         dataset, found = Dataset.get_or_find_ccdl_dataset(
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
@@ -132,7 +132,7 @@ class TestDataset(TestCase):
     def test_create_or_update_ccdl_datasets_update_data_attr(self):
         """Assert that data attr updates when new samples and libraries are added."""
         # Create dataset
-        dataset_expected_values = test_data.DatasetSingleCellSingleCellExperimentSCPCP999990
+        dataset_expected_values = test_data.CCDLDatasetSingleCellSingleCellExperimentSCPCP999990
         dataset, _ = Dataset.get_or_find_ccdl_dataset(
             dataset_expected_values.CCDL_NAME, dataset_expected_values.PROJECT_ID
         )
@@ -645,8 +645,8 @@ class TestDataset(TestCase):
 
     def test_contains_project_ids(self):
         dataset = Dataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
         self.assertTrue(dataset.contains_project_ids(set(dataset.data.keys())))
         self.assertTrue(dataset.contains_project_ids({"SCPCP999990"}))
@@ -655,8 +655,8 @@ class TestDataset(TestCase):
 
     def test_has_lockfile_projects_property(self):
         dataset = Dataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
 
         with patch("scpca_portal.lockfile.get_locked_project_ids", return_value=["SCPCP999990"]):
@@ -667,8 +667,8 @@ class TestDataset(TestCase):
 
     def test_projects_property(self):
         dataset = Dataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
 
         dataset_projects = dataset.projects
@@ -678,8 +678,8 @@ class TestDataset(TestCase):
 
     def test_locked_projects_property(self):
         dataset = Dataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
 
         locked_project = Project.objects.filter(scpca_id="SCPCP999990").first()
@@ -699,8 +699,8 @@ class TestDataset(TestCase):
 
     def test_has_locked_projects_property(self):
         dataset = Dataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
         self.assertFalse(dataset.has_locked_projects)
 

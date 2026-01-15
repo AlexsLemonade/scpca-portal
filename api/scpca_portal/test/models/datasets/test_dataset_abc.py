@@ -469,8 +469,8 @@ class TestDatasetABC(TestCase):
 
     def test_contains_project_ids(self):
         dataset = UserDataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
         self.assertTrue(dataset.contains_project_ids(set(dataset.data.keys())))
         self.assertTrue(dataset.contains_project_ids({"SCPCP999990"}))
@@ -479,8 +479,8 @@ class TestDatasetABC(TestCase):
 
     def test_has_lockfile_projects_property(self):
         dataset = UserDataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
 
         with patch("scpca_portal.lockfile.get_locked_project_ids", return_value=["SCPCP999990"]):
@@ -491,8 +491,8 @@ class TestDatasetABC(TestCase):
 
     def test_projects_property(self):
         dataset = UserDataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
 
         dataset_projects = dataset.projects
@@ -502,8 +502,8 @@ class TestDatasetABC(TestCase):
 
     def test_locked_projects_property(self):
         dataset = UserDataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
 
         locked_project = Project.objects.filter(scpca_id="SCPCP999990").first()
@@ -523,8 +523,8 @@ class TestDatasetABC(TestCase):
 
     def test_has_locked_projects_property(self):
         dataset = UserDataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
         self.assertFalse(dataset.has_locked_projects)
 

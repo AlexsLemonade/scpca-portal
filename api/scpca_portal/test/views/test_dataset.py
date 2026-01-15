@@ -8,7 +8,7 @@ from rest_framework.test import APITestCase
 
 from scpca_portal.enums import DatasetFormats
 from scpca_portal.models import Dataset
-from scpca_portal.test.expected_values import DatasetCustomSingleCellExperiment
+from scpca_portal.test.expected_values import UserDatasetSingleCellExperiment
 from scpca_portal.test.factories import (
     APITokenFactory,
     DatasetFactory,
@@ -94,17 +94,17 @@ class DatasetsTestCase(APITestCase):
     def test_post(self):
         url = reverse("datasets-list", args=[])
         data = {
-            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            "data": UserDatasetSingleCellExperiment.VALUES.get("data"),
+            "email": UserDatasetSingleCellExperiment.VALUES.get("email"),
+            "format": UserDatasetSingleCellExperiment.VALUES.get("format"),
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Assert that format must be present
         data = {
-            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "data": UserDatasetSingleCellExperiment.VALUES.get("data"),
+            "email": UserDatasetSingleCellExperiment.VALUES.get("email"),
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -112,9 +112,9 @@ class DatasetsTestCase(APITestCase):
         # Assert that adding ccdl datasets doesn't work
         data = {
             "is_ccdl": True,  # this non serialized field should be ignored by DRF
-            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            "data": UserDatasetSingleCellExperiment.VALUES.get("data"),
+            "email": UserDatasetSingleCellExperiment.VALUES.get("email"),
+            "format": UserDatasetSingleCellExperiment.VALUES.get("format"),
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -130,8 +130,8 @@ class DatasetsTestCase(APITestCase):
 
         # Assert that format remains unchanged when not present
         data = {
-            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "data": UserDatasetSingleCellExperiment.VALUES.get("data"),
+            "email": UserDatasetSingleCellExperiment.VALUES.get("email"),
         }
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -141,8 +141,8 @@ class DatasetsTestCase(APITestCase):
         self.custom_dataset.start = True
         self.custom_dataset.save()
         data = {
-            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
+            "data": UserDatasetSingleCellExperiment.VALUES.get("data"),
+            "email": UserDatasetSingleCellExperiment.VALUES.get("email"),
             "format": DatasetFormats.ANN_DATA,
         }
         response = self.client.put(url, data)
@@ -156,7 +156,7 @@ class DatasetsTestCase(APITestCase):
 
     def test_update_format(self):
         url = reverse("datasets-detail", args=[self.custom_dataset.id])
-        self.custom_dataset.data = DatasetCustomSingleCellExperiment.VALUES.get("data")
+        self.custom_dataset.data = UserDatasetSingleCellExperiment.VALUES.get("data")
         self.custom_dataset.format = DatasetFormats.SINGLE_CELL_EXPERIMENT
         self.custom_dataset.save()
 
@@ -189,9 +189,9 @@ class DatasetsTestCase(APITestCase):
 
         # Assert job not started
         data = {
-            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            "data": UserDatasetSingleCellExperiment.VALUES.get("data"),
+            "email": UserDatasetSingleCellExperiment.VALUES.get("email"),
+            "format": UserDatasetSingleCellExperiment.VALUES.get("format"),
             "start": False,
         }
         response = self.client.post(url, data)
@@ -200,9 +200,9 @@ class DatasetsTestCase(APITestCase):
 
         # Assert job started
         data = {
-            "data": DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            "email": DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            "format": DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            "data": UserDatasetSingleCellExperiment.VALUES.get("data"),
+            "email": UserDatasetSingleCellExperiment.VALUES.get("email"),
+            "format": UserDatasetSingleCellExperiment.VALUES.get("format"),
             "start": True,
         }
         response = self.client.post(url, data)
@@ -213,9 +213,9 @@ class DatasetsTestCase(APITestCase):
     def test_update_submit_job(self, mock_submit_job):
         # Assert that job cannot be started when it's already processing
         dataset = Dataset(
-            data=DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            email=DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            format=DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            data=UserDatasetSingleCellExperiment.VALUES.get("data"),
+            email=UserDatasetSingleCellExperiment.VALUES.get("email"),
+            format=UserDatasetSingleCellExperiment.VALUES.get("format"),
             start=True,
         )
         dataset.save()
@@ -229,9 +229,9 @@ class DatasetsTestCase(APITestCase):
 
         # Assert that not started job can be started
         dataset = Dataset(
-            data=DatasetCustomSingleCellExperiment.VALUES.get("data"),
-            email=DatasetCustomSingleCellExperiment.VALUES.get("email"),
-            format=DatasetCustomSingleCellExperiment.VALUES.get("format"),
+            data=UserDatasetSingleCellExperiment.VALUES.get("data"),
+            email=UserDatasetSingleCellExperiment.VALUES.get("email"),
+            format=UserDatasetSingleCellExperiment.VALUES.get("format"),
             start=False,
         )
         dataset.save()
