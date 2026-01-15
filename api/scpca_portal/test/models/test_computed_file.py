@@ -90,7 +90,7 @@ class TestGetFile(TestCase):
         ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
         project_id = "SCPCP999990"
 
-        dataset, _ = CCDLDataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
+        dataset, _ = CCDLDataset.get_or_find(ccdl_name, project_id)
         dataset.save()
 
         computed_file = ComputedFile.get_dataset_file(dataset)

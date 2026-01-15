@@ -30,7 +30,7 @@ class CCDLDataset(DatasetABC):
         )
 
     @classmethod
-    def get_or_find_ccdl_dataset(
+    def get_or_find(
         cls, ccdl_name: CCDLDatasetNames, project_id: str | None = None
     ) -> tuple[Self, bool]:
         if dataset := cls.objects.filter(ccdl_name=ccdl_name, ccdl_project_id=project_id).first():
@@ -39,10 +39,11 @@ class CCDLDataset(DatasetABC):
         dataset = cls(ccdl_name=ccdl_name, ccdl_project_id=project_id)
         dataset.ccdl_modality = dataset.ccdl_type["modality"]
         dataset.format = dataset.ccdl_type["format"]
-        dataset.data = dataset.get_ccdl_data()
+        dataset.data = dataset.current_data
         return dataset, False
 
-    def get_ccdl_data(self) -> Dict:
+    @property
+    def current_data(self) -> Dict:
         projects = Project.objects.all()
         if self.ccdl_project_id:
             projects = projects.filter(scpca_id=self.ccdl_project_id)
@@ -91,7 +92,7 @@ class CCDLDataset(DatasetABC):
         return ccdl_datasets.TYPES.get(self.ccdl_name, {})
 
     @property
-    def is_valid_ccdl_dataset(self) -> bool:
+    def is_valid(self) -> bool:
         if not self.ccdl_project_id and self.ccdl_name not in ccdl_datasets.PORTAL_TYPE_NAMES:
             return False
 
@@ -116,15 +117,15 @@ class CCDLDataset(DatasetABC):
         updated_datasets = []
         for ccdl_name in ccdl_datasets.TYPES:
             for ccdl_project_id in dataset_ccdl_project_ids:
-                dataset, found = cls.get_or_find_ccdl_dataset(ccdl_name, ccdl_project_id)
+                dataset, found = cls.get_or_find(ccdl_name, ccdl_project_id)
 
                 if found:
-                    dataset.data = dataset.get_ccdl_data()
+                    dataset.data = dataset.current_data
                     if dataset.is_hash_unchanged and not ignore_hash:
                         continue
                     updated_datasets.append(dataset)
                 else:
-                    if not dataset.is_valid_ccdl_dataset:
+                    if not dataset.is_valid:
                         continue
                     created_datasets.append(dataset)
 

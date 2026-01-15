@@ -36,7 +36,7 @@ class TestCCDLDataset(TestCase):
                 update_s3=False,
             )
 
-    def test_get_or_find_ccdl_dataset(self):
+    def test_get_or_find(self):
         # Portal Dataset Check
         ccdl_portal_datasets_expected_values = [
             test_data.DatasetAllMetadata,
@@ -48,7 +48,7 @@ class TestCCDLDataset(TestCase):
         ]
 
         for ccdl_portal_dataset in ccdl_portal_datasets_expected_values:
-            dataset, found = CCDLDataset.get_or_find_ccdl_dataset(ccdl_portal_dataset.CCDL_NAME)
+            dataset, found = CCDLDataset.get_or_find(ccdl_portal_dataset.CCDL_NAME)
             dataset.save()
             self.assertFalse(found)
 
@@ -59,9 +59,7 @@ class TestCCDLDataset(TestCase):
                 else:
                     self.assertEqual(getattr(dataset, attribute), value, msg)
 
-            dataset_same, found_same = CCDLDataset.get_or_find_ccdl_dataset(
-                ccdl_portal_dataset.CCDL_NAME
-            )
+            dataset_same, found_same = CCDLDataset.get_or_find(ccdl_portal_dataset.CCDL_NAME)
             self.assertEqual(dataset_same.pk, dataset.pk)
             self.assertTrue(found_same)
 
@@ -69,7 +67,7 @@ class TestCCDLDataset(TestCase):
         ccdl_project_dataset = (
             test_data.DatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991
         )
-        dataset, found = CCDLDataset.get_or_find_ccdl_dataset(
+        dataset, found = CCDLDataset.get_or_find(
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
         )
         dataset.save()
@@ -82,7 +80,7 @@ class TestCCDLDataset(TestCase):
             else:
                 self.assertEqual(getattr(dataset, attribute), value, msg)
 
-        dataset, found = CCDLDataset.get_or_find_ccdl_dataset(
+        dataset, found = CCDLDataset.get_or_find(
             ccdl_project_dataset.CCDL_NAME, ccdl_project_dataset.PROJECT_ID
         )
         self.assertTrue(found)
@@ -119,13 +117,13 @@ class TestCCDLDataset(TestCase):
         """Assert that data attr updates when new samples and libraries are added."""
         # Create dataset
         dataset_expected_values = test_data.DatasetSingleCellSingleCellExperimentSCPCP999990
-        dataset, _ = CCDLDataset.get_or_find_ccdl_dataset(
+        dataset, _ = CCDLDataset.get_or_find(
             dataset_expected_values.CCDL_NAME, dataset_expected_values.PROJECT_ID
         )
         dataset.save()
 
         # Define original and expected values
-        actual_old_data_attr = dataset.get_ccdl_data()
+        actual_old_data_attr = dataset.current_data
         expected_old_data_attr = {
             "SCPCP999990": {
                 "includes_bulk": True,
