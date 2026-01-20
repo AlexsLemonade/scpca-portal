@@ -9,7 +9,7 @@ export const WarningMultiplexedSamples = () => (
     lineBreak={false}
     link={config.links.what_downloading_multiplexed}
     linkLabel="Learn more"
-    text="This project contains multiplexed samples"
+    text="This contains multiplexed samples"
   />
 )
 

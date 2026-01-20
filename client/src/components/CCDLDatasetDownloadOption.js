@@ -3,6 +3,8 @@ import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { DatasetFileItems } from 'components/DatasetFileItems'
 import { DatasetCopyLinkButton } from 'components/DatasetCopyLinkButton'
+import { WarningMultiplexedSamples } from 'components/WarningMultiplexedSamples'
+import { WarningMergedObjects } from 'components/WarningMergedObjects'
 import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
@@ -36,13 +38,19 @@ export const CCDLDatasetDownloadOption = () => {
           gap="xlarge"
           margin={{ top: 'medium', bottom: 'small' }}
         >
-          <Text weight="bold">
-            CCDL Project ID: {selectedDataset.ccdl_project_id}
-          </Text>
+          {selectedDataset.ccdl_project_id && (
+            <Text weight="bold">
+              Project ID: {selectedDataset.ccdl_project_id}
+            </Text>
+          )}
           <Text weight="bold">
             Size: {formatBytes(selectedDataset.computed_file.size_in_bytes)}
           </Text>
         </Box>
+        {selectedDataset.includes_files_merged && <WarningMergedObjects />}
+        {selectedDataset.includes_files_multiplexed && (
+          <WarningMultiplexedSamples />
+        )}
       </Box>
       <Box gridArea="body" margin={{ bottom: 'small' }}>
         <Paragraph>The download consists of the following items:</Paragraph>
