@@ -35,29 +35,20 @@ export const useCCDLDatasetDownloadModalContext = () => {
     isTokenReady || isOptionsReady ? 'Download' : 'Downloading'
   const [modalTitle, setModalTitle] = useState(modalTitleAction)
 
-  const modalModalityNames = {
-    SINGLE_CELL: 'Data',
-    SPATIAL: 'Spatial Data'
-  }
-
   useEffect(() => {
     if (!selectedDataset) return
 
-    const modalityName =
-      selectedDataset.format === 'METADATA'
-        ? 'Sample Metadata'
-        : modalModalityNames[selectedDataset.ccdl_modality]
     const modalTitleResource = selectedDataset.ccdl_project_id
       ? 'Project'
-      : `Portal-wide ${modalityName}`
-    const asFormat =
-      !selectedDataset.ccdl_project_id &&
-      selectedDataset.ccdl_modality === 'SINGLE_CELL'
-        ? `as ${getReadable(selectedDataset.format)}`
-        : ''
+      : `Portal-wide`
+
+    const dataName =
+      selectedDataset.format === 'METADATA'
+        ? 'Sample Metadata'
+        : 'Data'
 
     setModalTitle(
-      `${modalTitleAction} ${modalTitleResource} ${asFormat}`.trim()
+      `${modalTitleAction} ${modalTitleResource} ${dataName}`.trim()
     )
   }, [selectedDataset, modalTitleAction])
 
