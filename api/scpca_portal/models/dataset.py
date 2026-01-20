@@ -849,7 +849,7 @@ class Dataset(TimestampedModel):
         project_samples = Sample.objects.filter(project__scpca_id=project_id)
 
         if modality is Modalities.SINGLE_CELL and self.get_is_merged_project(project_id):
-            return project_samples.filter(has_single_cell_data=True)
+            return project_samples.filter(has_single_cell_data=True, has_multiplexed_data=False)
 
         if modality is Modalities.BULK_RNA_SEQ and project_data.get(
             DatasetDataProjectConfig.INCLUDES_BULK
