@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
 import { CCDLDatasetDownloadModalContext } from 'contexts/CCDLDatasetDownloadModalContext'
-import { getReadable } from 'helpers/getReadable'
 
 export const useCCDLDatasetDownloadModalContext = () => {
   const {
@@ -43,9 +42,7 @@ export const useCCDLDatasetDownloadModalContext = () => {
       : `Portal-wide`
 
     const dataName =
-      selectedDataset.format === 'METADATA'
-        ? 'Sample Metadata'
-        : 'Data'
+      selectedDataset.format === 'METADATA' ? 'Sample Metadata' : 'Data'
 
     setModalTitle(
       `${modalTitleAction} ${modalTitleResource} ${dataName}`.trim()
