@@ -177,6 +177,11 @@ export const useDataset = () => {
     }
   }
 
+  const getProjectModalitySampleById = async (projectId, modality) => {
+    const { isOk, response } = await api.projects.get(projectId)
+    return isOk ? response.modality_samples[modality] : null
+  }
+
   return {
     errors,
     create,
@@ -188,6 +193,7 @@ export const useDataset = () => {
     isProjectMerged,
     getDatasetProjectData,
     getDatasetProjectSamples,
-    getDatasetState
+    getDatasetState,
+    getProjectModalitySampleById
   }
 }

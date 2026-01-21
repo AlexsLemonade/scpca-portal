@@ -20,7 +20,7 @@ export const useMyDataset = () => {
     setUserFormat
   } = useContext(MyDatasetContext)
   const { token, email } = useScPCAPortal()
-  const { create, get, update } = useDataset()
+  const { create, get, update, getProjectModalitySampleById } = useDataset()
 
   const emptyDatasetProjectOptions = {
     includeBulk: false,
@@ -80,13 +80,12 @@ export const useMyDataset = () => {
       return addError('A format is required to create a dataset.')
     }
 
-    const datasetRequest = await create(dataset, token)
+    const newDataset = await create(dataset, token)
 
-    if (!datasetRequest.isOk) {
+    // TODO: Revise once error handling is finalized
+    if (newDataset === null) {
       return addError('An error occurred while trying to create a new dataset.')
     }
-
-    const newDataset = datasetRequest.response
 
     setMyDataset(newDataset)
     setPrevMyDatasetFormat(newDataset.format) // Use to compare format changes on myDataset replace
@@ -102,35 +101,30 @@ export const useMyDataset = () => {
     if (!myDataset.id) return null
 
     // A valid API token is required for dataset file downloads
-    // TODO: Component is reponsible for generating a valid token for file download upon request
-    const datasetRequest = await get(myDataset.id, downloadToken)
+    const latestDataset = await get(myDataset, downloadToken)
 
-    if (!datasetRequest.isOk) {
-      // TODO:
-      // '/dataset': handle fetch and errors via getServerSide
-      // '/download': Display the error message to users in the UI
+    // TODO: Revise once error handling is finalized
+    if (latestDataset === null) {
       return addError('An error occurred while trying to fetch the dataset')
     }
 
-    // TODO: non-myDataset will always be fetched via useDataset
-    setMyDataset(datasetRequest.response)
+    setMyDataset(latestDataset)
 
-    return datasetRequest.response
+    return latestDataset
   }
 
   const updateMyDataset = async (dataset) => {
-    const datasetRequest = await update(dataset.id, dataset, token)
+    const updatedDataset = await update(dataset)
 
-    if (!datasetRequest.isOk) {
+    // TODO: Revise once error handling is finalized
+    if (updatedDataset === null) {
       return addError('An error occurred while trying to update the dataset')
     }
 
-    const { response } = datasetRequest
-    // TODO: Determine which field should be used to clear localStorage (e.g., is_started, is_processing, start)
-    // Temporarily using 'start' flag to clear or set the response to myDataset
-    setMyDataset(response.start ? {} : response)
+    // Clear myDataset if 'start' flag to ture
+    setMyDataset(updatedDataset.start ? {} : updatedDataset)
 
-    return datasetRequest.response
+    return updatedDataset
   }
 
   const clearMyDataset = async () => updateMyDataset({ ...myDataset, data: {} })
@@ -166,8 +160,7 @@ export const useMyDataset = () => {
 
     // Add all project samples, if one is merged and the other has samples
     if (eitherMerged && eitherHasSamples) {
-      const { isOk, response } = await get(projectId)
-      return isOk ? response.modality_samples[modality] : null
+      return getProjectModalitySampleById(projectId, modality)
     }
 
     return uniqueArray(original, incoming)
