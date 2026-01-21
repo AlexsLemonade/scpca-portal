@@ -20,7 +20,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
     defaultProjectOptions,
     userFormat,
     setUserFormat,
-    addProject,
+    addProjectToMyDataset,
     getAllSamplesForProjectAdded,
     getHasRemainingProjectSamples,
     getMissingModalitySamples,
@@ -59,7 +59,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
 
   const handleAddProject = async () => {
     setLoading(true)
-    await addProject(project, projectData, userFormat)
+    await addProjectToMyDataset(project, projectData, userFormat)
     setLoading(false)
     setShowing(false)
   }
@@ -106,7 +106,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
     setIsAllSamplesAdded(getAllSamplesForProjectAdded(project))
   }, [myDataset])
 
-  // Populate the project data for API call via addProject
+  // Populate the project data for API call via addProjectToMyDataset
   useEffect(() => {
     setProjectData({
       ...getProjectDataSamples(
