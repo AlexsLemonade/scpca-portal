@@ -7,7 +7,7 @@ import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
 // - Display the info message to view My Dataset
 // - Display the already added samples in My Dataset
 export const DatasetAddProjectModalRemainingContent = ({ project }) => {
-  const { myDataset, getDatasetProjectData, getAllSamplesForProjectAdded } =
+  const { myDataset, getMyDatasetProjectData, hasAllProjectSamplesAdded } =
     useMyDataset()
 
   const [projectDataInMyDataset, setProjectDataInMyDataset] = useState(null)
@@ -27,8 +27,8 @@ export const DatasetAddProjectModalRemainingContent = ({ project }) => {
 
   //  Get the project data in myDataset for the Add Remaining state
   useEffect(() => {
-    setProjectDataInMyDataset(getDatasetProjectData(project))
-    setIsAllSamplesAdded(getAllSamplesForProjectAdded(project))
+    setProjectDataInMyDataset(getMyDatasetProjectData(project))
+    setIsAllSamplesAdded(hasAllProjectSamplesAdded(project))
   }, [myDataset])
 
   return (

@@ -25,8 +25,8 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
 export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const { datasets } = useCCDLDatasetDownloadModalContext()
-  const { getDatasetProjectData } = useDataset()
-  const { myDataset, getDatasetProjectDataSamples } = useMyDataset()
+  const { getDatasetProjectDataSamples } = useDataset()
+  const { myDataset, getMyDatasetProjectDataSamples } = useMyDataset()
   const {
     project,
     samples: defaultSamples,
@@ -185,7 +185,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   // Disable DatasetAddSamplesModal if all samples are added
   useEffect(() => {
     if (samples && loaded) {
-      const datasetProjectData = getDatasetProjectDataSamples(project)
+      const datasetProjectData = getMyDatasetProjectDataSamples(project)
       const samplesLeft = allModalities
         .map((m) =>
           differenceArray(project.modality_samples[m], datasetProjectData[m])
@@ -203,9 +203,9 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     let projectData
 
     if (dataset?.data) {
-      projectData = getDatasetProjectData(dataset, project)
+      projectData = getDatasetProjectDataSamples(dataset, project)
     } else if (!dataset && myDataset?.data) {
-      projectData = getDatasetProjectDataSamples(project)
+      projectData = getMyDatasetProjectDataSamples(project)
     } else {
       return
     }
