@@ -265,9 +265,6 @@ export const useMyDataset = () => {
   const getMyDatasetProjectSamples = (project) =>
     getDatasetProjectSamples(myDataset, project)
 
-  const hasAllProjectSamplesAdded = (project) =>
-    baseHasAllProjectSamplesAdded(myDataset, project)
-
   const getBuildMyDatasetProjectData = (
     project,
     selectedModalities,
@@ -294,6 +291,9 @@ export const useMyDataset = () => {
   // Return remaining project sample IDs of the given project
   const getRemainingProjectSampleIds = (project) =>
     baseGetRemainingProjectSampleIds(myDataset, project)
+
+  const hasAllProjectSamplesAdded = (project) =>
+    baseHasAllProjectSamplesAdded(myDataset, project)
 
   const hasRemainingProjectSamples = (project) =>
     baseHasRemainingProjectSamples(myDataset, project)
@@ -355,12 +355,12 @@ export const useMyDataset = () => {
     processMyDataset,
     addProjectToMyDataset,
     removeProjectByIdFromMyDataset,
-    hasAllProjectSamplesAdded,
     getMyDatasetProjectData,
     getMyDatasetProjectDataSamples,
     getMyDatasetProjectSamples,
     getBuildMyDatasetProjectData,
     getRemainingProjectSampleIds,
+    hasAllProjectSamplesAdded,
     hasRemainingProjectSamples,
     isProjectIncludeBulk,
     isProjectMerged,
