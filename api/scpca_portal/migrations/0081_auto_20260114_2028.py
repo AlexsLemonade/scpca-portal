@@ -109,7 +109,7 @@ class Migration(migrations.Migration):
             name="dataset_content_type",
             field=models.ForeignKey(
                 null=True,
-                on_delete=django.db.models.deletion.CASCADE,
+                on_delete=django.db.models.deletion.SET_NULL,
                 to="contenttypes.contenttype",
             ),
         ),

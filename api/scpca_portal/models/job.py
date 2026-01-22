@@ -62,7 +62,7 @@ class Job(TimestampedModel):
     batch_status = models.TextField(null=True)  # Set by a cron job
 
     # Datasets should never be deleted
-    dataset_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    dataset_content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True)
     dataset_object_id = models.UUIDField(null=True)
     dataset = GenericForeignKey("dataset_content_type", "dataset_object_id")
 
