@@ -1,24 +1,18 @@
 from rest_framework import serializers
 
-from scpca_portal.models import Dataset
+from scpca_portal.models import CCDLDataset
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 
 
 class CCDLDatasetSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Dataset
+        model = CCDLDataset
         fields = (
             "id",
+            "format",
             "data",
             "email",
             "start",
-            "format",
-            "regenerated_from",
-            "includes_files_bulk",
-            "includes_files_cite_seq",
-            "includes_files_merged",
-            "includes_files_multiplexed",
-            "is_ccdl",
             "ccdl_name",
             "ccdl_project_id",
             "ccdl_modality",
@@ -26,22 +20,11 @@ class CCDLDatasetSerializer(serializers.ModelSerializer):
             "metadata_hash",
             "readme_hash",
             "combined_hash",
-            # TODO: Uncomment re-computed current hashes if hashing can be optimized for large
-            # datasets (specifically portal wide) to avert a timeout upon list request.
-            # "current_data_hash",
-            # "current_metadata_hash",
-            # "current_readme_hash",
-            # "current_combined_hash",
-            # "is_hash_changed",
+            "includes_files_bulk",
+            "includes_files_cite_seq",
+            "includes_files_merged",
+            "includes_files_multiplexed",
             "estimated_size_in_bytes",
-            "total_sample_count",
-            "diagnoses_summary",
-            "files_summary",
-            "project_diagnoses",
-            "project_modality_counts",
-            "modality_count_mismatch_projects",
-            "project_sample_counts",
-            "project_titles",
             "started_at",
             "is_started",
             "is_processing",
@@ -60,13 +43,6 @@ class CCDLDatasetSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     computed_file = ComputedFileSerializer(read_only=True, many=False)
-
-    # TODO: see above TODO about attrs being added back in when hashing is optimized
-    # current_combined_hash = serializers.SerializerMethodField(read_only=True, default=None)
-    # def get_current_combined_hash(self, obj):
-    #     return Dataset.get_current_combined_hash(
-    #         obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
-    #    )
 
 
 class CCDLDatasetDetailSerializer(CCDLDatasetSerializer):
