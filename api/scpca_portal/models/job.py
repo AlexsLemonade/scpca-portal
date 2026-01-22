@@ -87,8 +87,8 @@ class Job(TimestampedModel):
     def save(self, *args, **kwargs):
         if self.dataset and not isinstance(self.dataset, DatasetABC):
             raise ValidationError(
-                "Invalid entry: `dataset` attr must be a subtype of type `DatasetABC`."
-                f"`dataset` attr value - {self.dataset}"
+                f"Job.dataset cannot be of type {type(self.dataset)}. "
+                "It must be of type DatasetABC."
             )
 
         super().save(*args, **kwargs)
