@@ -127,6 +127,12 @@ export const useMyDataset = () => {
     return latestDataset
   }
 
+  const getMyDatasetCopy = (dataToCopy = myDataset) =>
+    structuredClone(dataToCopy) || {}
+
+  const saveMyDataset = async (dataset) =>
+    !myDataset.id ? createMyDataset(dataset) : updateMyDataset(dataset)
+
   const updateMyDataset = async (dataset) => {
     const updatedDataset = await update(dataset)
 
@@ -236,7 +242,7 @@ export const useMyDataset = () => {
 
   /* Project-level */
   const addProjectToMyDataset = async (project, newProjectData, format) => {
-    const datasetDataCopy = structuredClone(myDataset.data) || {}
+    const datasetDataCopy = getMyDatasetCopy(myDataset.data)
 
     // Make sure data is defined for a new dataset
     datasetDataCopy[project.scpca_id] = newProjectData
@@ -247,9 +253,7 @@ export const useMyDataset = () => {
       format // Required for a new dataset
     }
 
-    return !myDataset.id
-      ? createMyDataset(updatedDataset)
-      : updateMyDataset(updatedDataset)
+    return saveMyDataset(updatedDataset)
   }
 
   const getMyDatasetProjectData = (project) =>
@@ -271,7 +275,7 @@ export const useMyDataset = () => {
     spatialSamples
   ) => {
     // Populate modality samples for the project data for addProjectToMyDataset
-    const datasetProjectDataCopy = structuredClone(
+    const datasetProjectDataCopy = getMyDatasetCopy(
       getMyDatasetProjectData(project)
     )
 
@@ -300,7 +304,7 @@ export const useMyDataset = () => {
   const isProjectMerged = (project) => baseIsProjectMerged(myDataset, project)
 
   const removeProjectByIdFromMyDataset = (projectId) => {
-    const datasetCopy = structuredClone(myDataset)
+    const datasetCopy = getMyDatasetCopy(myDataset)
     delete datasetCopy.data[projectId]
 
     return updateMyDataset(datasetCopy)
@@ -308,7 +312,7 @@ export const useMyDataset = () => {
 
   /* Sample-level */
   const setMyDatasetSamples = async (project, newProjectData, format) => {
-    const datasetDataCopy = structuredClone(myDataset.data) || {}
+    const datasetDataCopy = getMyDatasetCopy(myDataset.data)
 
     delete datasetDataCopy[project.scpca_id]
     // Only add projects with requested samples
@@ -325,9 +329,7 @@ export const useMyDataset = () => {
       format // Required for a new dataset
     }
 
-    return !myDataset.id
-      ? createMyDataset(updatedDataset)
-      : updateMyDataset(updatedDataset)
+    return saveMyDataset(updatedDataset)
   }
 
   return {
@@ -347,6 +349,7 @@ export const useMyDataset = () => {
     clearMyDataset,
     createMyDataset,
     getMyDataset,
+    saveMyDataset,
     updateMyDataset,
     getMergeMyDatasetData,
     processMyDataset,
