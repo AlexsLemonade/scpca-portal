@@ -39,17 +39,18 @@ def apply_populate_datasets(apps, schema_editor):
 
 def reverse_populate_datasets(apps, schema_editor):
     Dataset = apps.get_model("scpca_portal", "dataset")
-    DatasetABC = apps.get_model("scpca_portal", "datasetabc")
     CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
     UserDataset = apps.get_model("scpca_portal", "userdataset")
 
     old_datasets = []
 
-    for new_dataset in CCDLDataset.objects.all() | UserDataset.objects.all():
+    for new_dataset in list(CCDLDataset.objects.all()) + list(UserDataset.objects.all()):
         old_dataset_dict = {
-            field.name: getattr(new_dataset, field.name, None) for field in Dataset._meta.fields
+            field.name: getattr(new_dataset, field.name)
+            for field in Dataset._meta.fields
+            if hasattr(new_dataset, field.name)
         }
-        old_dataset_dict["is_ccdl"] = DatasetABC.get_class(new_dataset) == CCDLDataset
+        old_dataset_dict["is_ccdl"] = new_dataset._meta.model == "ccdldataset"
         old_datasets.append(Dataset(**old_dataset_dict))
 
     Dataset.objects.bulk_create(old_datasets)
