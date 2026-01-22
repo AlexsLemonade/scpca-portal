@@ -152,7 +152,8 @@ export const useMyDataset = () => {
 
   const getMergedIncludesBulk = (projectId, dataset) =>
     myDataset.data[projectId]?.includes_bulk ||
-    dataset.data[projectId]?.includes_bulk
+    dataset.data[projectId]?.includes_bulk ||
+    false
 
   // Merge project modality samples based on their state (e.g., merged, empty)
   const mergeProjectModalities = async (projectId, modality, dataset) => {
@@ -181,7 +182,7 @@ export const useMyDataset = () => {
   }
 
   // Handle merging the shared dataset data into myDataset for the UI
-  const getMergeDatasetData = async (dataset) => {
+  const getMergeMyDatasetData = async (dataset) => {
     const projectIds = uniqueArray(
       Object.keys(myDataset.data),
       Object.keys(dataset.data)
@@ -267,7 +268,7 @@ export const useMyDataset = () => {
   const hasAllProjectSamplesAdded = (project) =>
     baseHasAllProjectSamplesAdded(myDataset, project)
 
-  const getProjectDataSamples = (
+  const getBuildMyDatasetProjectData = (
     project,
     selectedModalities,
     singleCellSamples,
@@ -351,7 +352,7 @@ export const useMyDataset = () => {
     createMyDataset,
     getMyDataset,
     updateMyDataset,
-    getMergeDatasetData,
+    getMergeMyDatasetData,
     processMyDataset,
     addProjectToMyDataset,
     removeProjectByIdFromMyDataset,
@@ -359,7 +360,7 @@ export const useMyDataset = () => {
     getMyDatasetProjectData,
     getMyDatasetProjectDataSamples,
     getMyDatasetProjectSamples,
-    getProjectDataSamples,
+    getBuildMyDatasetProjectData,
     getRemainingProjectSampleIds,
     hasRemainingProjectSamples,
     isProjectIncludeBulk,

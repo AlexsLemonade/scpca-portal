@@ -25,7 +25,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
     hasRemainingProjectSamples,
     getModalitySamplesDifference,
     getMyDatasetProjectData,
-    getProjectDataSamples
+    getBuildMyDatasetProjectData
   } = useMyDataset()
   const { responsive } = useResponsive()
 
@@ -109,7 +109,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
   // Populate the project data for API call via addProjectToMyDataset
   useEffect(() => {
     setProjectData({
-      ...getProjectDataSamples(
+      ...getBuildMyDatasetProjectData(
         project,
         modalities,
         singleCellSamples,
