@@ -21,10 +21,10 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
     userFormat,
     setUserFormat,
     addProjectToMyDataset,
-    getAllSamplesForProjectAdded,
-    getHasRemainingProjectSamples,
-    getMissingModalitySamples,
-    getDatasetProjectData,
+    hasAllProjectSamplesAdded,
+    hasRemainingProjectSamples,
+    getModalitySamplesDifference,
+    getMyDatasetProjectData,
     getProjectDataSamples
   } = useMyDataset()
   const { responsive } = useResponsive()
@@ -101,9 +101,9 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
   }, [myDataset.format, showing])
 
   useEffect(() => {
-    setMyDatasetProjectData(getDatasetProjectData(project))
-    setHasRemainingSamples(getHasRemainingProjectSamples(project))
-    setIsAllSamplesAdded(getAllSamplesForProjectAdded(project))
+    setMyDatasetProjectData(getMyDatasetProjectData(project))
+    setHasRemainingSamples(hasRemainingProjectSamples(project))
+    setIsAllSamplesAdded(hasAllProjectSamplesAdded(project))
   }, [myDataset])
 
   // Populate the project data for API call via addProjectToMyDataset
@@ -157,7 +157,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
 
   // Calculate missing modality samples
   useEffect(() => {
-    setSampleDifference(getMissingModalitySamples(project, modalities))
+    setSampleDifference(getModalitySamplesDifference(project, modalities))
   }, [modalities])
 
   if (isAllSamplesAdded) {

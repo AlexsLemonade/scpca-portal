@@ -16,7 +16,7 @@ export const ViewEditSamples = ({ project }) => {
   const { setRestoreFromDestination } = useScrollRestore()
   const {
     myDataset,
-    getAddedProjectDataSamples,
+    getMyDatasetProjectSamples,
     isProjectIncludeBulk,
     isProjectMerged
   } = useMyDataset()
@@ -32,7 +32,7 @@ export const ViewEditSamples = ({ project }) => {
     // Check to see if myDataset exists or if project was removed from myDataset
     if (!myDataset?.data[project.scpca_id]) return
     // Filter to display only samples from My Dataset
-    setSamples(getAddedProjectDataSamples(project))
+    setSamples(getMyDatasetProjectSamples(project))
     // Preselect download options based on the values in myDataset
     setIncludeBulk(isProjectIncludeBulk(project))
     setIncludeMerge(isProjectMerged(project))
