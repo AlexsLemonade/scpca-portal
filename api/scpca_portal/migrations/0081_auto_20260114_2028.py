@@ -64,6 +64,32 @@ def reverse_populate_datasets(apps, schema_editor):
         old_dataset.save()
 
 
+def apply_dataset_jobs(apps, schema_editor):
+    Job = apps.get_model("scpca_portal", "job")
+    CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
+    UserDataset = apps.get_model("scpca_portal", "userdataset")
+
+    jobs = Job.objects.all()
+    for job in jobs:
+        if job.dataset_old:
+            model_cls = CCDLDataset if job.dataset_old.is_ccdl else UserDataset
+            job.dataset = model_cls.objects.filter(id=job.dataset_old.id).first()
+
+    Job.objects.bulk_update(jobs, ["dataset"])
+
+
+def reverse_dataset_jobs(apps, schema_editor):
+    Job = apps.get_model("scpca_portal", "job")
+    Dataset = apps.get_model("scpca_portal", "dataset")
+
+    jobs = Job.objects.all()
+    for job in jobs:
+        if job.dataset:
+            job.dataset_old = Dataset.objects.filter(id=job.dataset.id).first()
+
+    Job.objects.bulk_update(jobs, ["dataset_old"])
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -93,6 +119,7 @@ class Migration(migrations.Migration):
             old_name="dataset",
             new_name="dataset_old",
         ),
+        migrations.RunPython(apply_dataset_jobs, reverse_code=reverse_dataset_jobs),
         migrations.RemoveField(
             model_name="job",
             name="dataset_old",
