@@ -238,10 +238,6 @@ export const useMyDataset = () => {
   const addProjectToMyDataset = async (project, newProjectData, format) => {
     const datasetDataCopy = structuredClone(myDataset.data) || {}
 
-    if (datasetDataCopy[project.scpca_id]) {
-      console.error('Project already present in myDataset')
-    }
-
     // Make sure data is defined for a new dataset
     datasetDataCopy[project.scpca_id] = newProjectData
 
