@@ -33,11 +33,46 @@ from scpca_portal.models.datasets.ccdl_dataset import CCDLDataset
 logger = get_and_configure_logger(__name__)
 
 
+class JobQuerySet(models.QuerySet):
+    def _validate_bulk(self, jobs):
+        for job in jobs:
+            job.validate_dataset()
+
+    def bulk_create(self, objs, *args, **kwargs):
+        self._validate_bulk(objs)
+        return super().bulk_create(objs, *args, **kwargs)
+
+    def bulk_update(self, objs, fields, *args, **kwargs):
+        job_dataset_fields = {"dataset", "dataset_content_type", "dataset_object_id"}
+        if job_dataset_fields & set(fields):
+            self._validate_bulk(objs)
+
+        return super().bulk_update(objs, fields, *args, **kwargs)
+
+    # The update method doesn't load Job instances into memory,
+    # but instead performs a single SQL UPDATE operation (SQL UPDATE vs SQL SELECT and UPDATE).
+    # This effectively bypasses any possible validation by Django, as we've implemented above.
+    # As such, we override it to restrict Job.dataset updates to where Django can perform validation
+    def update(self, **kwargs):
+        job_dataset_fields = {"dataset", "dataset_content_type", "dataset_object_id"}
+        if job_dataset_fields & kwargs.keys():
+            raise RuntimeError(
+                "Job model dataset updates are restricted to the save() and bulk_update() methods."
+            )
+        return super().update(**kwargs)
+
+
+class JobManager(models.Manager.from_queryset(JobQuerySet)):
+    pass
+
+
 class Job(TimestampedModel):
     class Meta:
         db_table = "jobs"
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
+
+    objects = JobManager()
 
     # Internal Attributes
     attempt = models.PositiveIntegerField(default=1)  # Incremented on every retry
@@ -84,13 +119,15 @@ class Job(TimestampedModel):
         """
         return cls(batch_job_name=str(dataset.id), dataset=dataset)
 
-    def save(self, *args, **kwargs):
-        if self.dataset and not isinstance(self.dataset, DatasetABC):
+    def validate_dataset(self) -> None:
+        if self.dataset and not issubclass(type(self.dataset), DatasetABC):
             raise ValidationError(
                 f"Job.dataset cannot be of type {type(self.dataset)}. "
                 "It must be of type DatasetABC."
             )
 
+    def save(self, *args, **kwargs):
+        self.validate_dataset()
         super().save(*args, **kwargs)
 
     @classmethod
