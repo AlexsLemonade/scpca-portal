@@ -177,7 +177,7 @@ export const useDataset = () => {
     }
   }
 
-  const getProjectModalitySampleById = async (projectId, modality) => {
+  const getProjectModalitySamplesById = async (projectId, modality) => {
     const { isOk, response } = await api.projects.get(projectId)
     return isOk ? response.modality_samples[modality] : null
   }
@@ -194,6 +194,6 @@ export const useDataset = () => {
     getDatasetProjectData,
     getDatasetProjectSamples,
     getDatasetState,
-    getProjectModalitySampleById
+    getProjectModalitySamplesById
   }
 }

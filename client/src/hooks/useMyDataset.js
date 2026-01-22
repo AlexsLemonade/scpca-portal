@@ -20,7 +20,7 @@ export const useMyDataset = () => {
     setUserFormat
   } = useContext(MyDatasetContext)
   const { token, email } = useScPCAPortal()
-  const { create, get, update, getProjectModalitySampleById } = useDataset()
+  const { create, get, update, getProjectModalitySamplesById } = useDataset()
 
   const emptyDatasetProjectOptions = {
     includeBulk: false,
@@ -160,7 +160,7 @@ export const useMyDataset = () => {
 
     // Add all project samples, if one is merged and the other has samples
     if (eitherMerged && eitherHasSamples) {
-      return getProjectModalitySampleById(projectId, modality)
+      return getProjectModalitySamplesById(projectId, modality)
     }
 
     return uniqueArray(original, incoming)
