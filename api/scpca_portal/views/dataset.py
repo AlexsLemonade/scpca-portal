@@ -14,9 +14,9 @@ from scpca_portal.exceptions import (
 )
 from scpca_portal.models import APIToken, Dataset, Job
 from scpca_portal.serializers import (
-    DatasetCreateSerializer,
-    DatasetDetailSerializer,
-    DatasetUpdateSerializer,
+    UserDatasetCreateSerializer,
+    UserDatasetDetailSerializer,
+    UserDatasetUpdateSerializer,
 )
 
 logger = get_and_configure_logger(__name__)
@@ -55,12 +55,12 @@ class DatasetViewSet(
 
     def get_serializer_class(self):
         if self.action == "create":
-            return DatasetCreateSerializer
+            return UserDatasetCreateSerializer
 
         if self.action == "update":
-            return DatasetUpdateSerializer
+            return UserDatasetUpdateSerializer
 
-        return DatasetDetailSerializer
+        return UserDatasetDetailSerializer
 
     def get_object(self):
         queryset = self.get_queryset()
