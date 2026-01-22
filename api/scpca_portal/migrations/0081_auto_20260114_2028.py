@@ -67,16 +67,21 @@ def reverse_populate_datasets(apps, schema_editor):
 
 def apply_dataset_jobs(apps, schema_editor):
     Job = apps.get_model("scpca_portal", "job")
+    ContentType = apps.get_model("contenttypes", "ContentType")
     CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
     UserDataset = apps.get_model("scpca_portal", "userdataset")
+
+    ccdl_ct, user_ct = [
+        ContentType.objects.get_for_model(cls) for cls in [CCDLDataset, UserDataset]
+    ]
 
     jobs = Job.objects.all()
     for job in jobs:
         if job.dataset_old:
-            model_cls = CCDLDataset if job.dataset_old.is_ccdl else UserDataset
-            job.dataset = model_cls.objects.filter(id=job.dataset_old.id).first()
+            job.dataset_content_type = ccdl_ct if job.dataset_old.is_ccdl else user_ct
+            job.dataset_object_id = job.dataset_old.id
 
-    Job.objects.bulk_update(jobs, ["dataset"])
+    Job.objects.bulk_update(jobs, ["dataset_content_type", "dataset_object_id"])
 
 
 def reverse_dataset_jobs(apps, schema_editor):
