@@ -22,10 +22,9 @@ export const DatasetMoveSamplesModal = ({
   const {
     myDataset,
     clearMyDataset,
-    createMyDataset,
+    saveMyDataset,
     isDatasetDataEmpty,
-    getMergeMyDatasetData,
-    updateMyDataset
+    getMergeMyDatasetData
   } = useMyDataset()
   const { showNotification } = useNotification()
   const { responsive } = useResponsive()
@@ -74,13 +73,11 @@ export const DatasetMoveSamplesModal = ({
   }
 
   const request = async (newData) => {
-    const datasetRequest = !isMyDataset
-      ? await createMyDataset({ format: dataset.format, data: newData })
-      : await updateMyDataset({
-          ...myDataset,
-          format: dataset.format,
-          data: newData
-        })
+    const datasetRequest = await saveMyDataset({
+      ...myDataset,
+      format: dataset.format,
+      data: newData
+    })
 
     return datasetRequest
   }
