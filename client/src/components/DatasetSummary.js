@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Paragraph, Text } from 'grommet'
 import { mapRowsWithColumns } from 'helpers/mapRowsWithColumns'
+import { pluralizeCountText } from 'helpers/pluralizeCountText'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 
 export const DatasetSummary = ({ dataset }) => {
   const [totalSample, setSampleTotal] = useState(0)
   const [totalProject, setTotalProject] = useState(0)
-  const sampleTotalText = `${totalSample} Sample${totalSample > 1 ? 's' : ''}`
-  const projectTotalText = `${totalProject} Project${
-    totalProject > 1 ? 's' : ''
-  }`
 
   const diagnosesSummary = dataset.diagnoses_summary
   const columns = ['Diagnosis', 'Samples', 'Projects']
@@ -37,8 +34,11 @@ export const DatasetSummary = ({ dataset }) => {
           Dataset Summary
         </Text>
         <Paragraph>
-          <Text weight="bold">{sampleTotalText}</Text> accross{' '}
-          <Text weight="bold">{projectTotalText}</Text>
+          <Text weight="bold">{pluralizeCountText(totalSample, 'Sample')}</Text>{' '}
+          accross{' '}
+          <Text weight="bold">
+            {pluralizeCountText(totalProject, 'Project')}
+          </Text>
         </Paragraph>
       </Box>
       <DatasetSummaryTable data={data} columns={columns} keyValue="Diagnosis" />
