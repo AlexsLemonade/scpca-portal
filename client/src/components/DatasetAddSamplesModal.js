@@ -41,37 +41,30 @@ export const DatasetAddSamplesModal = ({
   // NOTE: Make sure not to lose the user's selection when toggling formats before API request
   useEffect(() => {
     if (!samples) return
-    if (!project.has_multiplexed_data) {
+
+    if (!project.has_multiplexed_data || canAddMultiplexed) {
       setSelectedSingleCellSamples(selectedSamples.SINGLE_CELL)
-    } else {
-      setSelectedSingleCellSamples(
-        canAddMultiplexed
-          ? selectedSamples.SINGLE_CELL
-          : samples
-              .filter(
-                (s) =>
-                  !s.has_multiplexed_data &&
-                  selectedSamples.SINGLE_CELL.includes(s.scpca_id)
-              )
-              .map((s) => s.scpca_id)
-      )
+      return
     }
+
+    const selectedSet = new Set(selectedSamples.SINGLE_CELL)
+    setSelectedSingleCellSamples(
+      samples
+        .filter((s) => !s.has_multiplexed_data && selectedSet.has(s.scpca_id))
+        .map((s) => s.scpca_id)
+    )
   }, [userFormat, canAddMultiplexed, selectedSamples])
 
   // Get multiplexed samples in selectedSamples
   useEffect(() => {
-    if (!samples) return
-    if (project.has_multiplexed_data) {
-      setSelectedMultiplexedSamples(
-        samples
-          .filter(
-            (s) =>
-              s.has_multiplexed_data &&
-              selectedSamples.SINGLE_CELL.includes(s.scpca_id)
-          )
-          .map((s) => s.scpca_id)
-      )
-    }
+    if (!samples || !project.has_multiplexed_data) return
+
+    const samplesSet = new Set(selectedSamples.SINGLE_CELL)
+    setSelectedMultiplexedSamples(
+      samples
+        .filter((s) => s.has_multiplexed_data && samplesSet.has(s.scpca_id))
+        .map((s) => s.scpca_id)
+    )
   }, [userFormat, canAddMultiplexed, selectedSamples])
 
   // Modal toggle
