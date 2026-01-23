@@ -3,6 +3,8 @@ import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
 import { allModalities } from 'config/datasets'
+import { differenceArray } from 'helpers/differenceArray'
+import { getHashMap } from 'helpers/getHashMap'
 import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useDataset = () => {
@@ -147,20 +149,18 @@ export const useDataset = () => {
     // Combines modalities and returns an array of all unique samples
     // available for projects that exist the dataset
     const { samples } = project
-    const { SINGLE_CELL: singleCell, SPATIAL: spatial } =
+    const { SINGLE_CELL: singleCell, SPATIAL: spatialIds } =
       dataset.data[project.scpca_id]
 
-    const singleCellSamples =
+    const singleCellIds =
       singleCell === 'MERGED'
-        ? samples.filter((s) => s.has_single_cell_data)
-        : samples.filter(
-            (s) => s.has_single_cell_data && singleCell.includes(s.scpca_id)
-          )
-    const spatialSamples = samples.filter(
-      (s) => s.has_spatial_data && spatial.includes(s.scpca_id)
-    )
+        ? project.modality_samples.SINGLE_CELL
+        : singleCell
 
-    return uniqueArray(singleCellSamples, spatialSamples)
+    const sampleIds = uniqueArray(singleCellIds, spatialIds)
+    const samplesMap = getHashMap(samples, 'scpca_id')
+
+    return sampleIds.map((id) => samplesMap[id])
   }
 
   // TODO: Implementation might change
@@ -190,11 +190,13 @@ export const useDataset = () => {
 
     const { modality_samples: modalitySamples } = project
 
-    const selectedModalitySamples = modalities.map((m) => modalitySamples[m])
+    const selectedModalitySamples = modalities.map(
+      (m) => new Set(modalitySamples[m])
+    )
     const allSamples = uniqueArray(...selectedModalitySamples)
 
     return allSamples.filter(
-      (s) => !selectedModalitySamples.every((m) => m.includes(s))
+      (s) => !selectedModalitySamples.every((m) => m.has(s))
     )
   }
 
@@ -221,9 +223,7 @@ export const useDataset = () => {
       if (addedSampleId === 'MERGED') {
         acc[m] = []
       } else {
-        acc[m] = project.modality_samples[m].filter(
-          (id) => !addedSampleId.includes(id)
-        )
+        acc[m] = differenceArray(project.modality_samples[m], addedSampleId)
       }
       return acc
     }, {})

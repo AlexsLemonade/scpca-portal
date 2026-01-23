@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
+import { differenceArray } from 'helpers/differenceArray'
 import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getProjectFormats } from 'helpers/getProjectFormats'
 import { Button } from 'components/Button'
@@ -130,8 +131,9 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
         projectSamples = project.modality_samples.SINGLE_CELL
 
         if (excludeMultiplexed) {
-          projectSamples = projectSamples.filter(
-            (s) => !project.multiplexed_samples.includes(s)
+          projectSamples = differenceArray(
+            projectSamples,
+            project.multiplexed_samples
           )
         }
       }
