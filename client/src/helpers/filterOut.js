@@ -1,4 +1,4 @@
-/** 
+/**
 @name filterOut
 @description returns a new array excluding the given values
 @param {any[]} arr - an array to be filtered
