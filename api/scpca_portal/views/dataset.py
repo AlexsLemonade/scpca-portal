@@ -1,4 +1,3 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -12,7 +11,7 @@ from scpca_portal.exceptions import (
     JobError,
     UpdateProcessingDatasetError,
 )
-from scpca_portal.models import APIToken, Dataset, Job
+from scpca_portal.models import APIToken, Job, UserDataset
 from scpca_portal.serializers import (
     UserDatasetCreateSerializer,
     UserDatasetDetailSerializer,
@@ -47,11 +46,8 @@ class DatasetViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    model = Dataset
+    queryset = UserDataset.objects.all()
     lookup_field = "id"
-
-    def get_queryset(self):
-        return Dataset.objects.filter(is_ccdl=False)
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -62,17 +58,11 @@ class DatasetViewSet(
 
         return UserDatasetDetailSerializer
 
-    def get_object(self):
-        queryset = self.get_queryset()
-        dataset = get_object_or_404(queryset, pk=self.kwargs[self.lookup_field])
-
-        return dataset
-
     def get_serializer_context(self):
         """
         Additional context is added to provide the serializer classes with the API token.
         """
-        serializer_context = super(DatasetViewSet, self).get_serializer_context()
+        serializer_context = super().get_serializer_context()
 
         if token_id := self.request.META.get("HTTP_API_KEY"):
             token = APIToken.verify(token_id)
