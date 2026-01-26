@@ -7,6 +7,8 @@ services:
     image: postgres:16.11
     volumes:
       - ./api/volumes_postgres/volumes_postgres:/var/lib/postgresql/data
+    environment:
+     - POSTGRES_HOST_AUTH_METHOD=trust
   api:
     container_name: '${API_NAME}'
     network_mode: '${API_NETWORK}'
