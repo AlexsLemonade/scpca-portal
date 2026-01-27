@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Paragraph, Text } from 'grommet'
 import { mapRowsWithColumns } from 'helpers/mapRowsWithColumns'
-import { pluralizeCountText } from 'helpers/pluralizeCountText'
+import { pluralize } from 'helpers/pluralize'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 
 export const DatasetSummary = ({ dataset }) => {
@@ -34,10 +34,12 @@ export const DatasetSummary = ({ dataset }) => {
           Dataset Summary
         </Text>
         <Paragraph>
-          <Text weight="bold">{pluralizeCountText(totalSample, 'Sample')}</Text>{' '}
+          <Text weight="bold">
+            {pluralize(`${totalSample} Sample`, totalSample)}
+          </Text>{' '}
           accross{' '}
           <Text weight="bold">
-            {pluralizeCountText(totalProject, 'Project')}
+            {pluralize(`${totalProject} Project`, totalProject)}
           </Text>
         </Paragraph>
       </Box>

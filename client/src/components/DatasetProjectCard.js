@@ -9,7 +9,7 @@ import {
   formatDiagnosisCounts
 } from 'helpers/formatCounts'
 import { getReadable } from 'helpers/getReadable'
-import { pluralizeCountText } from 'helpers/pluralizeCountText'
+import { pluralize } from 'helpers/pluralize'
 import { Badge } from 'components/Badge'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
@@ -90,7 +90,7 @@ export const DatasetProjectCard = ({
       <Box margin={{ bottom: '24px' }}>
         <Badge badge="Samples">
           <Text size="21px" weight="bold">
-            {pluralizeCountText(downloadableSamples, 'Sample')}
+            {pluralize(`${downloadableSamples} Sample`, downloadableSamples)}
           </Text>
         </Badge>
       </Box>
