@@ -174,8 +174,8 @@ class Common(Configuration):
         },
     }
 
-    # Django 
-    DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+    # Django
+    DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
     # Django Rest Framework.
     REST_FRAMEWORK = {
