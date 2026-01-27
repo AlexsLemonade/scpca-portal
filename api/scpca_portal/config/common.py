@@ -174,6 +174,9 @@ class Common(Configuration):
         },
     }
 
+    # Django 
+    DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
     # Django Rest Framework.
     REST_FRAMEWORK = {
         # format is an attribute on some of our models, so it collides in the query param filtering
