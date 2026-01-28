@@ -35,7 +35,7 @@ services:
       - client
       - postgres
   client:
-    image: node:18.17.1
+    image: node:22.22.0
     ports:
       - '${API_PORT}:${API_PORT}'
       - '${STORYBOOK_PORT}:${STORYBOOK_PORT}'
