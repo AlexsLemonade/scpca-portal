@@ -8,7 +8,7 @@ from django.utils.timezone import make_aware
 
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Job
-from scpca_portal.test.factories import DatasetFactory, JobFactory
+from scpca_portal.test.factories import JobFactory, UserDatasetFactory
 
 
 class TestSyncBatchJobs(TestCase):
@@ -58,7 +58,7 @@ class TestSyncBatchJobs(TestCase):
             JobFactory(
                 state=JobStates.PROCESSING,
                 batch_job_id=batch_job_id,
-                dataset=DatasetFactory(
+                dataset=UserDatasetFactory(
                     is_processing=True, processing_at=make_aware(datetime.now())
                 ),
             )

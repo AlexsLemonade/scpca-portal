@@ -8,7 +8,7 @@ from django.utils.timezone import make_aware
 import factory
 
 from scpca_portal import common
-from scpca_portal.enums import DatasetFormats, FileFormats, Modalities
+from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 from scpca_portal.models import ComputedFile
 
 
@@ -229,14 +229,53 @@ class DatasetFactory(factory.django.DjangoModelFactory):
     format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
 
 
+class CCDLDatasetFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.CCDLDataset"
+
+    data = {
+        "SCPCP999990": {
+            "includes_bulk": True,
+            Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
+            Modalities.SPATIAL.value: [],
+        },
+    }
+    email = None
+    format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
+    ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
+    ccdl_project_id = "SCPCP999990"
+    ccdl_modality = Modalities.SINGLE_CELL
+
+
+class UserDatasetFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "scpca_portal.UserDataset"
+
+    data = {
+        "SCPCP999990": {
+            "includes_bulk": True,
+            Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
+            Modalities.SPATIAL.value: ["SCPCS999991"],
+        },
+        "SCPCP999991": {
+            "includes_bulk": True,
+            Modalities.SINGLE_CELL.value: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
+            Modalities.SPATIAL.value: [],
+        },
+    }
+    email = "user@example.com"
+    format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
+
+
 class JobFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Job"
 
     batch_job_id = factory.Sequence(lambda n: f"MOCK_JOB_ID_{str(n).zfill(3)}")
     batch_job_name = "SCPCP000000-MOCK_DOWNLOAD_CONFIG_NAME"
-    batch_job_queue = settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME
-    batch_job_definition = settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME
+    # not all environments have these batch fargate attrs, so a fallback is necessary
+    batch_job_queue = getattr(settings, "AWS_BATCH_FARGATE_JOB_QUEUE_NAME", None)
+    batch_job_definition = getattr(settings, "AWS_BATCH_FARGATE_JOB_DEFINITION_NAME", None)
     batch_container_overrides = factory.LazyAttribute(
         lambda obj: {
             "command": [
