@@ -44,7 +44,7 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
 
   const [tokenModalShowing, setTokenModalShowing] = useState(false)
 
-  const isCCDL = dataset.is_ccdl
+  const isCCDL = dataset.ccdl_name
   const isDisabled = !dataset?.computed_file
 
   const handleCopy = () => {
