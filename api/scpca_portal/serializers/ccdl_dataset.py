@@ -12,7 +12,6 @@ class CCDLDatasetSerializer(serializers.ModelSerializer):
             "format",
             "data",
             "email",
-            "start",
             "ccdl_name",
             "ccdl_project_id",
             "ccdl_modality",
