@@ -18,15 +18,15 @@ def apply_populate_ccdl_datasets(apps, schema_editor):
     Dataset = apps.get_model("scpca_portal", "dataset")
     CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
 
-    ccdl_datasets = []
-    for dataset in Dataset.objects.filter(is_ccdl=True):
-        ccdl_datasets.append(CCDLDataset(**get_new_dataset_dict(CCDLDataset, dataset)))
-
+    old_datasets = Dataset.objects.filter(is_ccdl=True)
+    ccdl_datasets = [
+        CCDLDataset(**get_new_dataset_dict(CCDLDataset, old_dataset))
+        for old_dataset in old_datasets
+    ]
     CCDLDataset.objects.bulk_create(ccdl_datasets)
 
     # Add many to many, reflexive and off model relations
-    for new_dataset in ccdl_datasets:
-        old_dataset = Dataset.objects.filter(id=new_dataset.id).first()
+    for new_dataset, old_dataset in zip(ccdl_datasets, old_datasets):
         new_dataset.download_tokens.add(*old_dataset.download_tokens.all())
         new_dataset.save()
 
@@ -41,20 +41,19 @@ def apply_populate_user_datasets(apps, schema_editor):
     Dataset = apps.get_model("scpca_portal", "dataset")
     UserDataset = apps.get_model("scpca_portal", "userdataset")
 
-    user_datasets = []
-    for dataset in Dataset.objects.filter(is_ccdl=False):
-        user_datasets.append(UserDataset(**get_new_dataset_dict(UserDataset, dataset)))
-
+    old_datasets = Dataset.objects.filter(is_ccdl=False)
+    user_datasets = [
+        UserDataset(**get_new_dataset_dict(UserDataset, old_dataset))
+        for old_dataset in old_datasets
+    ]
     UserDataset.objects.bulk_create(user_datasets)
 
     # Add many to many, reflexive and off model relations
-    for new_dataset in user_datasets:
-        old_dataset = Dataset.objects.filter(id=new_dataset.id).first()
-
+    for new_dataset, old_dataset in zip(user_datasets, old_datasets):
+        new_dataset.download_tokens.add(*old_dataset.download_tokens.all())
         new_dataset.regenerated_from = UserDataset.objects.filter(
             id=old_dataset.regenerated_from.id
         ).first()
-        new_dataset.download_tokens.add(*old_dataset.download_tokens.all())
         new_dataset.save()
 
 
