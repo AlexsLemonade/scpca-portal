@@ -98,6 +98,7 @@ class SampleComputedFileFactory(LeafComputedFileFactory):
 class SampleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Sample"
+        skip_postgeneration_save = True
 
     age = "4"
     age_timing = "diagnosis"
@@ -185,6 +186,9 @@ class LibraryFactory(factory.django.DjangoModelFactory):
 
 
 class ProjectFactory(LeafProjectFactory):
+    class Meta:
+        skip_postgeneration_save = True
+
     computed_file = factory.RelatedFactory(ProjectComputedFileFactory, "project")
     sample = factory.RelatedFactory(SampleFactory, "project")
     library = factory.RelatedFactory(LibraryFactory, "project")

@@ -5,9 +5,9 @@ dj-database-url==3.1.0
 django-configurations==2.5.1
 django-cors-headers==4.9.0
 django-extensions==4.1
-django-filter==25.1
+django-filter==25.2
 django-storages==1.14.6
-django>=4.2,<4.3
+django>=5.2,<6.0
 djangorestframework==3.16.1
 drf-extensions==0.8.0
 drf-spectacular==0.29.0
