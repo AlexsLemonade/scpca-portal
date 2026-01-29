@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Box, Text } from 'grommet'
+import { Box } from 'grommet'
 import { api } from 'api'
 import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useDataset } from 'hooks/useDataset'
@@ -23,7 +23,7 @@ const Dataset = ({ dataset: initialDataset }) => {
   const pollInterval = 1000 * 60
   const [dataset, setDataset] = useState(initialDataset)
 
-  const { isProcessing, isUnprocessed } = getDatasetState(dataset)
+  const { isProcessing } = getDatasetState(dataset)
 
   // Restore scroll position after component mounts
   useEffect(() => {
@@ -63,23 +63,10 @@ const Dataset = ({ dataset: initialDataset }) => {
         <DatasetHero dataset={dataset} />
       </Box>
       <Box pad={responsive({ horizontal: 'medium' })} fill>
-        <Box
-          direction="row"
-          justify={isUnprocessed ? 'between' : 'end'}
-          pad={{ bottom: 'large' }}
-          fill
-        >
-          {isUnprocessed && (
-            <Text serif size="xlarge">
-              Shared Dataset
-            </Text>
-          )}
-          <Box>
-            <DatasetMoveSamplesModal dataset={dataset} />
-          </Box>
-        </Box>
         <Box margin={{ bottom: 'large' }}>
-          <DatasetSummary dataset={dataset} />
+          <DatasetSummary dataset={dataset}>
+            <DatasetMoveSamplesModal dataset={dataset} />
+          </DatasetSummary>
         </Box>
         <Box margin={{ bottom: 'large' }}>
           <DatasetDownloadFileSummary dataset={dataset} />
