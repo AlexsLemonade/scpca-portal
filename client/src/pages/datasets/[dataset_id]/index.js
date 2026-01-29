@@ -64,7 +64,7 @@ const Dataset = ({ dataset: initialDataset }) => {
       </Box>
       <Box pad={responsive({ horizontal: 'medium' })} fill>
         <Box margin={{ bottom: 'large' }}>
-          <DatasetSummary dataset={dataset}>
+          <DatasetSummary titleSize="xlarge" dataset={dataset}>
             <DatasetMoveSamplesModal dataset={dataset} />
           </DatasetSummary>
         </Box>
