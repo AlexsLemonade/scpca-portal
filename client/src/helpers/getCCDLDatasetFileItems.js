@@ -33,7 +33,7 @@ export const getCCDLDatasetFileItems = (dataset) => {
     items.push(`${getReadableFileItems('SPATIAL_DATA')} as spaceranger`)
   }
 
-  if (hasMultiplexed && !isMetadataDataset & !hasMerged) {
+  if (hasMultiplexed && !isMetadataDataset && !hasMerged) {
     items.push(
       `${getReadableFileItems('MULTIPLEXED_DATA')} as ${getReadable(format)}`
     )

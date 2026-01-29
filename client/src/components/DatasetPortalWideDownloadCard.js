@@ -67,9 +67,10 @@ export const DatasetPortalWideDownloadCard = ({
             </Box>
           )}
         </>
-        {(dataset.includes_files_merged && dataset.includes_files_multiplexed) && (
-          <WarningMultiplexedSamplesRemoved />
-        )}
+        {dataset.includes_files_merged &&
+          dataset.includes_files_multiplexed && (
+            <WarningMultiplexedSamplesRemoved />
+          )}
         <Box
           align={responsive('start', 'center')}
           direction={responsive('column', 'row')}
