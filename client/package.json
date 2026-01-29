@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.15.0",
-    "@babel/eslint-parser": "^7.15.0",
+    "@babel/eslint-parser": "^7.28.6",
     "@storybook/addon-actions": "^7.4.1",
     "@storybook/addon-essentials": "^7.4.1",
     "@storybook/addon-links": "^7.4.1",
@@ -45,11 +45,11 @@
     "babel-preset-airbnb": "^5.0.0",
     "babel-preset-next": "^1.4.0",
     "dotenv-webpack": "^7.1.0",
-    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-airbnb": "^19.0.4",
     "eslint-config-next": "^15.5.9",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^3.4.0",
-    "eslint-plugin-storybook": "^0.6.13",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-storybook": "^10.2.1",
     "globals": "^17.2.0",
     "storybook": "^7.4.1"
   }
