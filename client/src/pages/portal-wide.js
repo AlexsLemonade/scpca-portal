@@ -53,8 +53,9 @@ const PortalWideDownloads = ({ datasets }) => {
               Data from the projects in the ScPCA portal is packaged together
               for your convenience.{' '}
               <Anchor
+                target="_blank"
                 label={genericPortalWideDocsLink.learnMore.text}
-                href={genericPortalWideDocsLink.learnMore.link}
+                href={genericPortalWideDocsLink.learnMore.url}
               />
             </Text>
           </Box>
