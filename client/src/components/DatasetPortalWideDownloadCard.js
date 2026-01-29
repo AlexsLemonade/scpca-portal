@@ -67,10 +67,9 @@ export const DatasetPortalWideDownloadCard = ({
             </Box>
           )}
         </>
-        {dataset.includes_files_merged &&
-          dataset.includes_files_multiplexed && (
-            <WarningMultiplexedSamplesRemoved />
-          )}
+        {['SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED'].includes(
+          dataset.ccdl_name
+        ) && <WarningMultiplexedSamplesRemoved />}
         <Box
           align={responsive('start', 'center')}
           direction={responsive('column', 'row')}

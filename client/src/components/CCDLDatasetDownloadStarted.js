@@ -63,10 +63,9 @@ export const CCDLDatasetDownloadStarted = () => {
           {downloadableDataset.includes_files_merged && (
             <WarningMergedObjects />
           )}
-          {!downloadableDataset.includes_files_merged &&
-            downloadableDataset.includes_files_multiplexed && (
-              <WarningMultiplexedSamples />
-            )}
+          {downloadableDataset.includes_files_multiplexed && (
+            <WarningMultiplexedSamples />
+          )}
           <Paragraph>The download consists of the following items:</Paragraph>
           <DatasetFileItems dataset={downloadableDataset} />
           <Paragraph margin={{ bottom: 'small' }}>

@@ -10,8 +10,7 @@ export const getCCDLDatasetFileItems = (dataset) => {
     ccdl_modality: modality,
     includes_files_bulk: hasBulk,
     includes_files_cite_seq: hasCiteSeq,
-    includes_files_multiplexed: hasMultiplexed,
-    includes_files_merged: hasMerged
+    includes_files_multiplexed: hasMultiplexed
   } = dataset
 
   const isMetadataDataset = format === 'METADATA'
@@ -33,7 +32,7 @@ export const getCCDLDatasetFileItems = (dataset) => {
     items.push(`${getReadableFileItems('SPATIAL_DATA')} as spaceranger`)
   }
 
-  if (hasMultiplexed && !isMetadataDataset && !hasMerged) {
+  if (hasMultiplexed && !isMetadataDataset) {
     items.push(
       `${getReadableFileItems('MULTIPLEXED_DATA')} as ${getReadable(format)}`
     )
