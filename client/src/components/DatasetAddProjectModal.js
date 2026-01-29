@@ -21,8 +21,8 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
     userFormat,
     setUserFormat,
     addProjectToMyDataset,
-    hasAllProjectSamplesAdded,
-    hasRemainingProjectSamples,
+    hasMyDatasetAllProjectSamplesAdded,
+    hasMyDatasetRemainingProjectSamples,
     getModalitySamplesDifference,
     getMyDatasetProjectData,
     getBuildMyDatasetProjectData
@@ -102,8 +102,8 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
 
   useEffect(() => {
     setMyDatasetProjectData(getMyDatasetProjectData(project))
-    setHasRemainingSamples(hasRemainingProjectSamples(project))
-    setIsAllSamplesAdded(hasAllProjectSamplesAdded(project))
+    setHasRemainingSamples(hasMyDatasetRemainingProjectSamples(project))
+    setIsAllSamplesAdded(hasMyDatasetAllProjectSamplesAdded(project))
   }, [myDataset])
 
   // Populate the project data for API call via addProjectToMyDataset

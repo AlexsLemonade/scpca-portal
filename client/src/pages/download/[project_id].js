@@ -17,8 +17,8 @@ export const ViewEditSamples = ({ project }) => {
   const {
     myDataset,
     getMyDatasetProjectSamples,
-    isProjectIncludeBulk,
-    isProjectMerged
+    isMyDatasetProjectIncludeBulk,
+    isMyDatasetProjectMerged
   } = useMyDataset()
 
   const [loading, setLoading] = useState(true)
@@ -34,8 +34,8 @@ export const ViewEditSamples = ({ project }) => {
     // Filter to display only samples from My Dataset
     setSamples(getMyDatasetProjectSamples(project))
     // Preselect download options based on the values in myDataset
-    setIncludeBulk(isProjectIncludeBulk(project))
-    setIncludeMerge(isProjectMerged(project))
+    setIncludeBulk(isMyDatasetProjectIncludeBulk(project))
+    setIncludeMerge(isMyDatasetProjectMerged(project))
     setLoading(false)
   }, [myDataset])
 

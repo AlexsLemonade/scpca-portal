@@ -29,11 +29,11 @@ export const useMyDataset = () => {
     getProjectModalitySamplesById,
     getDatasetProjectDataSamples,
     getDatasetProjectSamples,
-    getRemainingProjectSampleIds: baseGetRemainingProjectSampleIds,
-    isProjectIncludeBulk: baseIsProjectIncludeBulk,
-    isProjectMerged: baseIsProjectMerged,
-    hasAllProjectSamplesAdded: baseHasAllProjectSamplesAdded,
-    hasRemainingProjectSamples: baseHasRemainingProjectSamples
+    getRemainingProjectSampleIds,
+    isProjectIncludeBulk,
+    isProjectMerged,
+    hasAllProjectSamplesAdded,
+    hasRemainingProjectSamples
   } = useDataset()
 
   const emptyDatasetProjectOptions = {
@@ -285,19 +285,20 @@ export const useMyDataset = () => {
   }
 
   // Return remaining project sample IDs of the given project
-  const getRemainingProjectSampleIds = (project) =>
-    baseGetRemainingProjectSampleIds(myDataset, project)
+  const getMyDatasetRemainingProjectSampleIds = (project) =>
+    getRemainingProjectSampleIds(myDataset, project)
 
-  const hasAllProjectSamplesAdded = (project) =>
-    baseHasAllProjectSamplesAdded(myDataset, project)
+  const hasMyDatasetAllProjectSamplesAdded = (project) =>
+    hasAllProjectSamplesAdded(myDataset, project)
 
-  const hasRemainingProjectSamples = (project) =>
-    baseHasRemainingProjectSamples(myDataset, project)
+  const hasMyDatasetRemainingProjectSamples = (project) =>
+    hasRemainingProjectSamples(myDataset, project)
 
-  const isProjectIncludeBulk = (project) =>
-    baseIsProjectIncludeBulk(myDataset, project)
+  const isMyDatasetProjectIncludeBulk = (project) =>
+    isProjectIncludeBulk(myDataset, project)
 
-  const isProjectMerged = (project) => baseIsProjectMerged(myDataset, project)
+  const isMyDatasetProjectMerged = (project) =>
+    isProjectMerged(myDataset, project)
 
   const removeProjectByIdFromMyDataset = (projectId) => {
     const datasetCopy = structuredClone(myDataset)
@@ -356,11 +357,11 @@ export const useMyDataset = () => {
     getMyDatasetProjectDataSamples,
     getMyDatasetProjectSamples,
     getBuildMyDatasetProjectData,
-    getRemainingProjectSampleIds,
-    hasAllProjectSamplesAdded,
-    hasRemainingProjectSamples,
-    isProjectIncludeBulk,
-    isProjectMerged,
+    getMyDatasetRemainingProjectSampleIds,
+    hasMyDatasetAllProjectSamplesAdded,
+    hasMyDatasetRemainingProjectSamples,
+    isMyDatasetProjectIncludeBulk,
+    isMyDatasetProjectMerged,
     setMyDatasetSamples,
     getModalitySamplesDifference
   }
