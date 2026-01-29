@@ -51,6 +51,7 @@
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-storybook": "^0.6.13",
     "globals": "^17.2.0",
+    "semver": "^7.7.3",
     "storybook": "^7.4.1"
   }
 }
