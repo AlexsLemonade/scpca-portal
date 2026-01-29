@@ -1,7 +1,7 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { FlatCompat } from '@eslint/eslintrc'
-import babelParser from "@babel/eslint-parser";
+import babelParser from '@babel/eslint-parser'
 import globals from 'globals'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -14,7 +14,7 @@ const compat = new FlatCompat({
 export default [
   // ignore patterns
   {
-    ignores: ["cellbrowser/"],
+    ignores: ['cellbrowser/']
   },
   // legacy configs
   ...compat.extends(
@@ -36,7 +36,7 @@ export default [
       },
       globals: {
         ...globals.browser,
-        ...globals.es2021,
+        ...globals.es2021
       }
     },
 
