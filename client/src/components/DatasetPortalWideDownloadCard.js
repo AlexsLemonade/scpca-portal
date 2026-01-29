@@ -8,6 +8,7 @@ import { DatasetFileItems } from 'components/DatasetFileItems'
 import { config } from 'config'
 import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 import { formatBytes } from 'helpers/formatBytes'
+import { WarningMultiplexedSamplesRemoved } from 'components/WarningMultiplexedSamplesRemoved'
 
 const DatasetCopyLinkButton = dynamic(() => import('./DatasetCopyLinkButton'), {
   ssr: false
@@ -66,6 +67,9 @@ export const DatasetPortalWideDownloadCard = ({
             </Box>
           )}
         </>
+        {(dataset.includes_files_merged && dataset.includes_files_multiplexed) && (
+          <WarningMultiplexedSamplesRemoved />
+        )}
         <Box
           align={responsive('start', 'center')}
           direction={responsive('column', 'row')}
