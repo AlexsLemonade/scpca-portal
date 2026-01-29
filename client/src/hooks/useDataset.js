@@ -149,13 +149,13 @@ export const useDataset = () => {
     // Combines modalities and returns an array of all unique samples
     // available for projects that exist the dataset
     const { samples } = project
-    const { SINGLE_CELL: singleCell, SPATIAL: spatialIds } =
+    const { SINGLE_CELL: mergedOrSingleCellIds, SPATIAL: spatialIds } =
       dataset.data[project.scpca_id]
 
     const singleCellIds =
-      singleCell === 'MERGED'
+      mergedOrSingleCellIds === 'MERGED'
         ? project.modality_samples.SINGLE_CELL
-        : singleCell
+        : mergedOrSingleCellIds
 
     const sampleIds = uniqueArray(singleCellIds, spatialIds)
     const samplesMap = getHashMap(samples, 'scpca_id')
@@ -190,13 +190,11 @@ export const useDataset = () => {
 
     const { modality_samples: modalitySamples } = project
 
-    const selectedModalitySamples = modalities.map(
-      (m) => new Set(modalitySamples[m])
-    )
+    const selectedModalitySamples = modalities.map((m) => modalitySamples[m])
     const allSamples = uniqueArray(...selectedModalitySamples)
 
     return allSamples.filter(
-      (s) => !selectedModalitySamples.every((m) => m.has(s))
+      (s) => !selectedModalitySamples.every((m) => m.includes(s))
     )
   }
 
