@@ -9048,6 +9048,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"globals@npm:^17.2.0":
+  version: 17.2.0
+  resolution: "globals@npm:17.2.0"
+  checksum: 6b953720052cfe1cb14c15f6f0c12ee21661409f524ff8816d26031faad31e93f978259de6fc828af428758709063bff3ae382e217d7edaa0103bbca2c221a31
+  languageName: node
+  linkType: hard
+
 "globalthis@npm:^1.0.3":
   version: 1.0.3
   resolution: "globalthis@npm:1.0.3"
@@ -13084,6 +13091,7 @@ __metadata:
     eslint-config-prettier: ^8.3.0
     eslint-plugin-prettier: ^3.4.0
     eslint-plugin-storybook: ^0.6.13
+    globals: ^17.2.0
     grommet: ^2.17.5
     grommet-icons: ^4.6.2
     http-proxy-middleware: ^3.0.5
