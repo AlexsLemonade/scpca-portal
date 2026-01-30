@@ -24,7 +24,7 @@ export const DatasetProjectCard = ({
 }) => {
   const { asPath, push } = useRouter()
   const { saveOriginScrollPosition } = useScrollRestore()
-  const { removeProjectById } = useMyDataset()
+  const { removeProjectByIdFromMyDataset } = useMyDataset()
   const { responsive } = useResponsive()
 
   const { data } = dataset
@@ -58,7 +58,7 @@ export const DatasetProjectCard = ({
   const [removeProjectLoading, setRemoveProjectLoading] = useState(false)
   const handleRemoveProject = async () => {
     setRemoveProjectLoading(true)
-    await removeProjectById(projectId)
+    await removeProjectByIdFromMyDataset(projectId)
     setRemoveProjectLoading(false)
   }
 

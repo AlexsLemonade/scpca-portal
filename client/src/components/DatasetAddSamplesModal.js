@@ -22,7 +22,7 @@ export const DatasetAddSamplesModal = ({
   const {
     myDataset,
     getDatasetProjectDataSamples,
-    setSamples,
+    setMyDatasetSamples,
     userFormat,
     setUserFormat
   } = useMyDataset()
@@ -101,7 +101,7 @@ export const DatasetAddSamplesModal = ({
         ? 'MERGED'
         : selectedSingleCellSamples
 
-    await setSamples(
+    await setMyDatasetSamples(
       project,
       {
         ...selectedSamples,

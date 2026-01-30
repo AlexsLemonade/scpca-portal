@@ -8,6 +8,7 @@ import { DatasetFileItems } from 'components/DatasetFileItems'
 import { config } from 'config'
 import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 import { formatBytes } from 'helpers/formatBytes'
+import { WarningMultiplexedSamplesRemoved } from 'components/WarningMultiplexedSamplesRemoved'
 
 const DatasetCopyLinkButton = dynamic(() => import('./DatasetCopyLinkButton'), {
   ssr: false
@@ -66,6 +67,9 @@ export const DatasetPortalWideDownloadCard = ({
             </Box>
           )}
         </>
+        {['SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED'].includes(
+          dataset.ccdl_name
+        ) && <WarningMultiplexedSamplesRemoved />}
         <Box
           align={responsive('start', 'center')}
           direction={responsive('column', 'row')}

@@ -4,7 +4,7 @@ import { mapRowsWithColumns } from 'helpers/mapRowsWithColumns'
 import { pluralize } from 'helpers/pluralize'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 
-export const DatasetSummary = ({ dataset }) => {
+export const DatasetSummary = ({ dataset, titleSize = 'large', children }) => {
   const [totalSample, setSampleTotal] = useState(0)
   const [totalProject, setTotalProject] = useState(0)
 
@@ -26,22 +26,26 @@ export const DatasetSummary = ({ dataset }) => {
     <Box>
       <Box
         border={{ side: 'bottom', color: 'border-black', size: 'small' }}
-        gap="medium"
+        direction="row"
         margin={{ bottom: 'medium' }}
-        pad={{ bottom: 'medium' }}
+        justify="between"
+        fill
       >
-        <Text serif size="large">
-          Dataset Summary
-        </Text>
-        <Paragraph>
-          <Text weight="bold">
-            {pluralize(`${totalSample} Sample`, totalSample)}
-          </Text>{' '}
-          accross{' '}
-          <Text weight="bold">
-            {pluralize(`${totalProject} Project`, totalProject)}
+        <Box gap="medium" pad={{ bottom: 'medium' }}>
+          <Text serif size={titleSize}>
+            Dataset Summary
           </Text>
-        </Paragraph>
+          <Paragraph>
+            <Text weight="bold">
+              {pluralize(`${totalSample} Sample`, totalSample)}
+            </Text>{' '}
+            accross{' '}
+            <Text weight="bold">
+              {pluralize(`${totalProject} Project`, totalProject)}
+            </Text>
+          </Paragraph>
+        </Box>
+        {children && <Box>{children}</Box>}
       </Box>
       <DatasetSummaryTable data={data} columns={columns} keyValue="Diagnosis" />
     </Box>

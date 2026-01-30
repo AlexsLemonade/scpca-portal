@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from 'react'
 import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
+import { useDataset } from 'hooks/useDataset'
 import { allModalities } from 'config/datasets'
-import { api } from 'api'
 import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useMyDataset = () => {
@@ -20,6 +20,7 @@ export const useMyDataset = () => {
     setUserFormat
   } = useContext(MyDatasetContext)
   const { token, email } = useScPCAPortal()
+  const { create, get, update, getProjectModalitySamplesById } = useDataset()
 
   const emptyDatasetProjectOptions = {
     includeBulk: false,
@@ -74,18 +75,17 @@ export const useMyDataset = () => {
   const isDatasetDataEmpty =
     !myDataset.data || Object.keys(myDataset.data || {}).length === 0
 
-  const createDataset = async (dataset) => {
+  const createMyDataset = async (dataset) => {
     if (!dataset.format) {
       return addError('A format is required to create a dataset.')
     }
 
-    const datasetRequest = await api.datasets.create(dataset, token)
+    const newDataset = await create(dataset, token)
 
-    if (!datasetRequest.isOk) {
+    // TODO: Revise once error handling is finalized
+    if (newDataset === null) {
       return addError('An error occurred while trying to create a new dataset.')
     }
-
-    const newDataset = datasetRequest.response
 
     setMyDataset(newDataset)
     setPrevMyDatasetFormat(newDataset.format) // Use to compare format changes on myDataset replace
@@ -97,42 +97,37 @@ export const useMyDataset = () => {
     return newDataset
   }
 
-  const getDataset = async (downloadToken = '') => {
+  const getMyDataset = async (downloadToken = '') => {
     if (!myDataset.id) return null
 
     // A valid API token is required for dataset file downloads
-    // TODO: Component is reponsible for generating a valid token for file download upon request
-    const datasetRequest = await api.datasets.get(myDataset.id, downloadToken)
+    const latestDataset = await get(myDataset, downloadToken)
 
-    if (!datasetRequest.isOk) {
-      // TODO:
-      // '/dataset': handle fetch and errors via getServerSide
-      // '/download': Display the error message to users in the UI
+    // TODO: Revise once error handling is finalized
+    if (latestDataset === null) {
       return addError('An error occurred while trying to fetch the dataset')
     }
 
-    // TODO: non-myDataset will always be fetched via useDataset
-    setMyDataset(datasetRequest.response)
+    setMyDataset(latestDataset)
 
-    return datasetRequest.response
+    return latestDataset
   }
 
-  const updateDataset = async (dataset) => {
-    const datasetRequest = await api.datasets.update(dataset.id, dataset, token)
+  const updateMyDataset = async (dataset) => {
+    const updatedDataset = await update(dataset)
 
-    if (!datasetRequest.isOk) {
+    // TODO: Revise once error handling is finalized
+    if (updatedDataset === null) {
       return addError('An error occurred while trying to update the dataset')
     }
 
-    const { response } = datasetRequest
-    // TODO: Determine which field should be used to clear localStorage (e.g., is_started, is_processing, start)
-    // Temporarily using 'start' flag to clear or set the response to myDataset
-    setMyDataset(response.start ? {} : response)
+    // Clear myDataset if 'start' flag to ture
+    setMyDataset(updatedDataset.start ? {} : updatedDataset)
 
-    return datasetRequest.response
+    return updatedDataset
   }
 
-  const clearDataset = async () => updateDataset({ ...myDataset, data: {} })
+  const clearMyDataset = async () => updateMyDataset({ ...myDataset, data: {} })
 
   // Return the flags based on a project modality samples' value (SINGLE_CELL, SPATIAL)
   const getModalityState = (value = []) => ({
@@ -165,8 +160,7 @@ export const useMyDataset = () => {
 
     // Add all project samples, if one is merged and the other has samples
     if (eitherMerged && eitherHasSamples) {
-      const { isOk, response } = await api.projects.get(projectId)
-      return isOk ? response.modality_samples[modality] : null
+      return getProjectModalitySamplesById(projectId, modality)
     }
 
     return uniqueArray(original, incoming)
@@ -209,7 +203,7 @@ export const useMyDataset = () => {
     }, {})
   }
 
-  const processDataset = async () => {
+  const processMyDataset = async () => {
     // Token is required for dataset processing
     if (!token) {
       return addError('A valid token is required to update the dataset')
@@ -222,16 +216,12 @@ export const useMyDataset = () => {
     // Save the dataset email
     setEmail(email)
     // Set the start flag to true for processing
-    return updateDataset({ ...myDataset, email, start: true })
+    return updateMyDataset({ ...myDataset, email, start: true })
   }
 
   /* Project-level */
-  const addProject = async (project, newProjectData, format) => {
+  const addProjectToMyDataset = async (project, newProjectData, format) => {
     const datasetDataCopy = structuredClone(myDataset.data) || {}
-
-    if (datasetDataCopy[project.scpca_id]) {
-      console.error('Project already present in myDataset')
-    }
 
     // Make sure data is defined for a new dataset
     datasetDataCopy[project.scpca_id] = newProjectData
@@ -243,8 +233,8 @@ export const useMyDataset = () => {
     }
 
     return !myDataset.id
-      ? createDataset(updatedDataset)
-      : updateDataset(updatedDataset)
+      ? createMyDataset(updatedDataset)
+      : updateMyDataset(updatedDataset)
   }
 
   const getDatasetProjectData = (project) => {
@@ -299,7 +289,7 @@ export const useMyDataset = () => {
     singleCellSamples,
     spatialSamples
   ) => {
-    // Populate modality samples for the project data for addProject
+    // Populate modality samples for the project data for addProjectToMyDataset
     const datasetProjectDataCopy = structuredClone(
       getDatasetProjectData(project)
     )
@@ -360,15 +350,15 @@ export const useMyDataset = () => {
   const isProjectMerged = (project) =>
     myDataset.data?.[project.scpca_id]?.SINGLE_CELL === 'MERGED'
 
-  const removeProjectById = (projectId) => {
+  const removeProjectByIdFromMyDataset = (projectId) => {
     const datasetCopy = structuredClone(myDataset)
     delete datasetCopy.data[projectId]
 
-    return updateDataset(datasetCopy)
+    return updateMyDataset(datasetCopy)
   }
 
   /* Sample-level */
-  const setSamples = async (project, newProjectData, format) => {
+  const setMyDatasetSamples = async (project, newProjectData, format) => {
     const datasetDataCopy = structuredClone(myDataset.data) || {}
 
     delete datasetDataCopy[project.scpca_id]
@@ -387,8 +377,8 @@ export const useMyDataset = () => {
     }
 
     return !myDataset.id
-      ? createDataset(updatedDataset)
-      : updateDataset(updatedDataset)
+      ? createMyDataset(updatedDataset)
+      : updateMyDataset(updatedDataset)
   }
 
   const getMissingModalitySamples = (project, modalities) => {
@@ -418,14 +408,14 @@ export const useMyDataset = () => {
     removeError,
     defaultProjectOptions,
     isDatasetDataEmpty,
-    clearDataset,
-    createDataset,
-    getDataset,
-    updateDataset,
+    clearMyDataset,
+    createMyDataset,
+    getMyDataset,
+    updateMyDataset,
     getMergeDatasetData,
-    processDataset,
-    addProject,
-    removeProjectById,
+    processMyDataset,
+    addProjectToMyDataset,
+    removeProjectByIdFromMyDataset,
     getAllSamplesForProjectAdded,
     getDatasetProjectData,
     getDatasetProjectDataSamples,
@@ -436,7 +426,7 @@ export const useMyDataset = () => {
     getHasRemainingProjectSamples,
     isProjectIncludeBulk,
     isProjectMerged,
-    setSamples,
+    setMyDatasetSamples,
     getMissingModalitySamples
   }
 }
