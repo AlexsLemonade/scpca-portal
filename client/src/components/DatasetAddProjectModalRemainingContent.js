@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Paragraph } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
+import { pluralize } from 'helpers/pluralize'
 import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
 
 // This UI component is only shown for the 'Add Remaining' button
@@ -18,12 +19,14 @@ export const DatasetAddProjectModalRemainingContent = ({ project }) => {
   const addedSingleCellText =
     projectDataInMyDataset?.SINGLE_CELL === 'MERGED'
       ? 'All single-cell samples as a merged object'
-      : `${
-          isAllSamplesAdded ? 'All' : ''
-        } ${addedSingleCellCount} samples with single-cell modality`
-  const addedSpatialText = `${
-    isAllSamplesAdded ? 'All' : ''
-  } ${addedSpatialCount} samples with spatial modality`
+      : `${isAllSamplesAdded ? 'All' : ''} ${pluralize(
+          `${addedSingleCellCount} sample`,
+          addedSingleCellCount
+        )} with single-cell modality`
+  const addedSpatialText = `${isAllSamplesAdded ? 'All' : ''} ${pluralize(
+    `${addedSpatialCount} sample`,
+    addedSpatialCount
+  )} with spatial modality`
 
   //  Get the project data in myDataset for the Add Remaining state
   useEffect(() => {

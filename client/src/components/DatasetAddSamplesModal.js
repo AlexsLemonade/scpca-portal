@@ -5,6 +5,7 @@ import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { getProjectFormats } from 'helpers/getProjectFormats'
 import { differenceArray } from 'helpers/differenceArray'
+import { pluralize } from 'helpers/pluralize'
 import { Button } from 'components/Button'
 import { Modal, ModalBody } from 'components/Modal'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
@@ -174,7 +175,9 @@ export const DatasetAddSamplesModal = ({
               <Paragraph margin={{ bottom: 'xsmall' }}>
                 You have selected the following to add to My Dataset:
               </Paragraph>
-              <Paragraph>{`${totalSamples} samples`}</Paragraph>
+              <Paragraph>
+                {pluralize(`${totalSamples} sample`, totalSamples)}
+              </Paragraph>
               <Box
                 as="ul"
                 margin={{ top: '0' }}
@@ -182,11 +185,18 @@ export const DatasetAddSamplesModal = ({
                 style={{ listStyle: 'disc' }}
               >
                 <Box as="li" style={{ display: 'list-item' }}>
-                  {`${singleCellSamplesToAdd} samples with single-cell modality`}
+                  {`${pluralize(
+                    `${singleCellSamplesToAdd} sample`,
+                    singleCellSamplesToAdd
+                  )} with single-cell modality`}
                 </Box>
+
                 {project.has_spatial_data && (
                   <Box as="li" style={{ display: 'list-item' }}>
-                    {`${spatialSamplesToAdd} samples with spatial modality`}
+                    {`${pluralize(
+                      `${spatialSamplesToAdd} sample`,
+                      spatialSamplesToAdd
+                    )} with spatial modality`}
                   </Box>
                 )}
               </Box>
