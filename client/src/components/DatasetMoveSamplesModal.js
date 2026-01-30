@@ -24,7 +24,7 @@ export const DatasetMoveSamplesModal = ({
     clearMyDataset,
     createMyDataset,
     isDatasetDataEmpty,
-    getMergeDatasetData,
+    getMergeMyDatasetData,
     updateMyDataset
   } = useMyDataset()
   const { showNotification } = useNotification()
@@ -109,7 +109,7 @@ export const DatasetMoveSamplesModal = ({
     // Merge or replace dataset data
     const updatedData =
       action === 'append'
-        ? await getMergeDatasetData(dataset)
+        ? await getMergeMyDatasetData(dataset)
         : structuredClone(dataset.data)
 
     // API failure while merging data

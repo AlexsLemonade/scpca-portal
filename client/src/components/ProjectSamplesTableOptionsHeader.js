@@ -21,7 +21,8 @@ export const ProjectSamplesTableOptionsHeader = ({
 }) => {
   const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
-  const { myDataset, isProjectMerged, setMyDatasetSamples } = useMyDataset()
+  const { myDataset, isMyDatasetProjectMerged, setMyDatasetSamples } =
+    useMyDataset()
   const { readOnly, selectAllSingleCellSamples, selectedSamples } =
     useProjectSamplesTable()
   const { responsive } = useResponsive()
@@ -42,7 +43,7 @@ export const ProjectSamplesTableOptionsHeader = ({
   // - User has already confirmed unmerge action
   // - Previously selected samples count is not initialized yet
   const hideChangeMergedProjectModal = [
-    !isProjectMerged(project),
+    !isMyDatasetProjectMerged(project),
     !includeMerge,
     confirmUnmerge,
     noPrevSelectedSamples
