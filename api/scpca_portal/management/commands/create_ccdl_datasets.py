@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from django.template.defaultfilters import pluralize
 
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.models import Dataset, Job
+from scpca_portal.models import CCDLDataset, Job
 
 logger = get_and_configure_logger(__name__)
 
@@ -44,7 +44,7 @@ class Command(BaseCommand):
         self.create_ccdl_datasets(**kwargs)
 
     def create_ccdl_datasets(self, ignore_hash, retry_failed_jobs, **kwargs) -> None:
-        created_datasets, updated_datasets = Dataset.create_or_update_ccdl_datasets(
+        created_datasets, updated_datasets = CCDLDataset.create_or_update_ccdl_datasets(
             ignore_hash=ignore_hash
         )
         if created_datasets:
