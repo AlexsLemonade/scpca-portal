@@ -124,6 +124,18 @@ export const useDataset = () => {
   const isProjectMerged = (dataset, project) =>
     dataset.data[project.scpca_id].SINGLE_CELL === 'MERGED'
 
+  const getDatasetProjectData = (dataset, project) => {
+    const projectData = dataset.data[project.scpca_id]
+    // If merged, unmerge the single-cell samples
+    return {
+      SINGLE_CELL:
+        projectData.SINGLE_CELL === 'MERGED'
+          ? project.modality_samples.SINGLE_CELL
+          : projectData.SINGLE_CELL,
+      SPATIAL: projectData.SPATIAL
+    }
+  }
+
   // Return an array of all samples in the project data
   const getDatasetProjectSamples = (dataset, project) => {
     const { samples } = project
@@ -174,6 +186,7 @@ export const useDataset = () => {
     update,
     isProjectIncludeBulk,
     isProjectMerged,
+    getDatasetProjectData,
     getDatasetProjectSamples,
     getDatasetState
   }

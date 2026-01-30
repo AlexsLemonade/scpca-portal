@@ -28,7 +28,8 @@ export const getCCDLDatasetFileItems = (dataset) => {
   }
 
   if (modality === 'SPATIAL') {
-    items.push(getReadableFileItems('SPATIAL_DATA'))
+    // exception to the rule: spaceranger as files is always one word lower
+    items.push(`${getReadableFileItems('SPATIAL_DATA')} as spaceranger`)
   }
 
   if (hasMultiplexed && !isMetadataDataset) {

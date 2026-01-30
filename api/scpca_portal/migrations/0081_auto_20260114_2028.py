@@ -4,63 +4,113 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
-def apply_populate_datasets(apps, schema_editor):
+def get_new_dataset_dict(new_dataset_cls, dataset):
+    return {field.name: getattr(dataset, field.name) for field in new_dataset_cls._meta.fields}
+
+
+def apply_populate_ccdl_datasets(apps, schema_editor):
+    """
+    Grabs all CCDL Datasets.
+    Creates new CCDLDataset instances.
+    Applies download token relationships.
+    """
+
     Dataset = apps.get_model("scpca_portal", "dataset")
     CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
-    UserDataset = apps.get_model("scpca_portal", "userdataset")
 
-    ccdl_datasets = []
-    user_datasets = []
-
-    def get_new_dataset_dict(new_dataset_cls, dataset):
-        return {field.name: getattr(dataset, field.name) for field in new_dataset_cls._meta.fields}
-
-    for dataset in Dataset.objects.all():
-        if dataset.is_ccdl:
-            ccdl_datasets.append(CCDLDataset(**get_new_dataset_dict(CCDLDataset, dataset)))
-        else:
-            user_datasets.append(UserDataset(**get_new_dataset_dict(UserDataset, dataset)))
-
+    old_datasets = Dataset.objects.filter(is_ccdl=True)
+    ccdl_datasets = [
+        CCDLDataset(**get_new_dataset_dict(CCDLDataset, old_dataset))
+        for old_dataset in old_datasets
+    ]
     CCDLDataset.objects.bulk_create(ccdl_datasets)
-    UserDataset.objects.bulk_create(user_datasets)
 
     # Add many to many, reflexive and off model relations
-    for new_dataset in ccdl_datasets + user_datasets:
-        model_cls = new_dataset._meta.model
-        old_dataset = Dataset.objects.filter(id=new_dataset.id).first()
-
-        if model_cls == UserDataset and old_dataset.regenerated_from:
-            new_dataset.regenerated_from = model_cls.objects.filter(
-                id=old_dataset.regenerated_from.id
-            ).first()
+    for new_dataset, old_dataset in zip(ccdl_datasets, old_datasets):
         new_dataset.download_tokens.add(*old_dataset.download_tokens.all())
         new_dataset.save()
 
 
-def reverse_populate_datasets(apps, schema_editor):
+def apply_populate_user_datasets(apps, schema_editor):
+    """
+    Grabs all User Datasets.
+    Creates new UserDataset instances.
+    Applies download token and regenerated from relationships.
+    """
+
+    Dataset = apps.get_model("scpca_portal", "dataset")
+    UserDataset = apps.get_model("scpca_portal", "userdataset")
+
+    old_datasets = Dataset.objects.filter(is_ccdl=False)
+    user_datasets = [
+        UserDataset(**get_new_dataset_dict(UserDataset, old_dataset))
+        for old_dataset in old_datasets
+    ]
+    UserDataset.objects.bulk_create(user_datasets)
+
+    # Add many to many, reflexive and off model relations
+    for new_dataset, old_dataset in zip(user_datasets, old_datasets):
+        new_dataset.download_tokens.add(*old_dataset.download_tokens.all())
+        new_dataset.regenerated_from = UserDataset.objects.filter(
+            id=old_dataset.regenerated_from.id
+        ).first()
+        new_dataset.save()
+
+
+def reverse_populate_ccdl_datasets(apps, schema_editor):
+    """
+    Grabs all CCDLDatasets.
+    Creates new Dataset instances with is_ccdl attr set to True.
+    Applies download token relationships.
+    """
     Dataset = apps.get_model("scpca_portal", "dataset")
     CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
-    UserDataset = apps.get_model("scpca_portal", "userdataset")
 
     old_datasets = []
 
-    for new_dataset in list(CCDLDataset.objects.all()) + list(UserDataset.objects.all()):
+    for new_dataset in CCDLDataset.objects.all():
         old_dataset_dict = {
             field.name: getattr(new_dataset, field.name)
             for field in Dataset._meta.fields
             if hasattr(new_dataset, field.name)
         }
-        old_dataset_dict["is_ccdl"] = new_dataset._meta.model == "ccdldataset"
+        old_dataset_dict["is_ccdl"] = True
         old_datasets.append(Dataset(**old_dataset_dict))
 
     Dataset.objects.bulk_create(old_datasets)
 
     for old_dataset in old_datasets:
-        model_cls = CCDLDataset if old_dataset.is_ccdl else UserDataset
-        new_dataset = model_cls.objects.filter(id=old_dataset.id).first()
+        new_dataset = CCDLDataset.objects.filter(id=old_dataset.id).first()
+        old_dataset.download_tokens.add(*new_dataset.download_tokens.all())
+        old_dataset.save()
 
-        if not old_dataset.is_ccdl:
-            old_dataset.regenerated_from = new_dataset.regenerated_from
+
+def reverse_populate_user_datasets(apps, schema_editor):
+    """
+    Grabs all UserDatasets.
+    Creates new Dataset instances with is_ccdl attr set to False.
+    Applies download token and regenerated from relationships.
+    """
+    Dataset = apps.get_model("scpca_portal", "dataset")
+    UserDataset = apps.get_model("scpca_portal", "userdataset")
+
+    old_datasets = []
+
+    for new_dataset in UserDataset.objects.all():
+        old_dataset_dict = {
+            field.name: getattr(new_dataset, field.name)
+            for field in Dataset._meta.fields
+            if hasattr(new_dataset, field.name)
+        }
+        old_dataset_dict["is_ccdl"] = False
+        old_datasets.append(Dataset(**old_dataset_dict))
+
+    Dataset.objects.bulk_create(old_datasets)
+
+    for old_dataset in old_datasets:
+        new_dataset = UserDataset.objects.filter(id=old_dataset.id).first()
+
+        old_dataset.regenerated_from = new_dataset.regenerated_from
         old_dataset.download_tokens.add(*new_dataset.download_tokens.all())
         old_dataset.save()
 
@@ -103,7 +153,8 @@ class Migration(migrations.Migration):
         ("scpca_portal", "0080_ccdldataset_userdataset"),
     ]
     operations = [
-        migrations.RunPython(apply_populate_datasets, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(apply_populate_ccdl_datasets, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(apply_populate_user_datasets, reverse_code=migrations.RunPython.noop),
         migrations.AddField(
             model_name="job",
             name="dataset_content_type",
@@ -130,5 +181,10 @@ class Migration(migrations.Migration):
             model_name="job",
             name="dataset_old",
         ),
-        migrations.RunPython(migrations.RunPython.noop, reverse_code=reverse_populate_datasets),
+        migrations.RunPython(
+            migrations.RunPython.noop, reverse_code=reverse_populate_user_datasets
+        ),
+        migrations.RunPython(
+            migrations.RunPython.noop, reverse_code=reverse_populate_ccdl_datasets
+        ),
     ]

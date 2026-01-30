@@ -3,7 +3,7 @@ import { Box, Paragraph, Text } from 'grommet'
 import { mapRowsWithColumns } from 'helpers/mapRowsWithColumns'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
 
-export const DatasetSummary = ({ dataset }) => {
+export const DatasetSummary = ({ dataset, titleSize = 'large', children }) => {
   const [totalSample, setSampleTotal] = useState(0)
   const [totalProject, setTotalProject] = useState(0)
   const sampleTotalText = `${totalSample} Sample${totalSample > 1 ? 's' : ''}`
@@ -29,17 +29,21 @@ export const DatasetSummary = ({ dataset }) => {
     <Box>
       <Box
         border={{ side: 'bottom', color: 'border-black', size: 'small' }}
-        gap="medium"
+        direction="row"
         margin={{ bottom: 'medium' }}
-        pad={{ bottom: 'medium' }}
+        justify="between"
+        fill
       >
-        <Text serif size="large">
-          Dataset Summary
-        </Text>
-        <Paragraph>
-          <Text weight="bold">{sampleTotalText}</Text> accross{' '}
-          <Text weight="bold">{projectTotalText}</Text>
-        </Paragraph>
+        <Box gap="medium" pad={{ bottom: 'medium' }}>
+          <Text serif size={titleSize}>
+            Dataset Summary
+          </Text>
+          <Paragraph>
+            <Text weight="bold">{sampleTotalText}</Text> accross{' '}
+            <Text weight="bold">{projectTotalText}</Text>
+          </Paragraph>
+        </Box>
+        {children && <Box>{children}</Box>}
       </Box>
       <DatasetSummaryTable data={data} columns={columns} keyValue="Diagnosis" />
     </Box>
