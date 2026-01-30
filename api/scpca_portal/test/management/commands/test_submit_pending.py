@@ -8,7 +8,7 @@ from django.test import TestCase
 from scpca_portal import common
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Job
-from scpca_portal.test.factories import DatasetFactory, JobFactory
+from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory
 
 
 class TestSubmitPending(TestCase):
@@ -57,7 +57,7 @@ class TestSubmitPending(TestCase):
         for _ in range(3):
             JobFactory(
                 state=JobStates.PENDING,
-                dataset=DatasetFactory(is_processing=False),
+                dataset=CCDLDatasetFactory(is_processing=False),
             )
         mock_batch_submit_job.return_value = "MOCK_JOB_ID"
 
@@ -76,7 +76,7 @@ class TestSubmitPending(TestCase):
     def test_submit_pending_not_called(self, mock_batch_submit_job):
         # Set up 4 jobs that are either in processing or in the final states
         for state in common.SUBMITTED_JOB_STATES:
-            JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
+            JobFactory(state=state, dataset=CCDLDatasetFactory(is_processing=False))
 
         # Should not call submit_job
         self.submit_pending()

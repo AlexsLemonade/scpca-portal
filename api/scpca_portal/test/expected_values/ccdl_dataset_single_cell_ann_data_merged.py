@@ -1,9 +1,10 @@
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 
-class DatasetSingleCellAnndataMerged:
+class CCDLDatasetSingleCellAnndataMerged:
     CCDL_NAME = CCDLDatasetNames.SINGLE_CELL_ANN_DATA_MERGED.value
     VALUES = {
+        "format": DatasetFormats.ANN_DATA.value,
         "data": {
             "SCPCP999990": {
                 "includes_bulk": True,
@@ -23,11 +24,15 @@ class DatasetSingleCellAnndataMerged:
         },
         "email": None,
         "start": False,
-        "format": DatasetFormats.ANN_DATA.value,
-        "regenerated_from": None,
-        "is_ccdl": True,
-        "ccdl_name": CCDL_NAME,
-        "ccdl_project_id": None,
+        "data_hash": "93fda0b433955d4e188c2944e1c3dc7d",
+        "metadata_hash": "bf303b1f1ec8cc29bf882b13e8bc72ee",
+        "readme_hash": "2a396b0f1086da707cb9a3221b5930ac",
+        "combined_hash": "d33f8ad21ea9aadd8527a0905543d906",
+        "includes_files_bulk": True,
+        "includes_files_cite_seq": True,
+        "includes_files_merged": True,
+        "includes_files_multiplexed": False,
+        "estimated_size_in_bytes": 9027,
         "started_at": None,
         "is_started": False,
         "is_processing": False,
@@ -38,4 +43,10 @@ class DatasetSingleCellAnndataMerged:
         "failed_reason": None,
         "expires_at": None,
         "is_expired": False,
+        "terminated_at": None,
+        "is_terminated": False,
+        "terminated_reason": None,
+        "ccdl_name": CCDL_NAME,
+        "ccdl_project_id": None,
+        "ccdl_modality": Modalities.SINGLE_CELL,
     }

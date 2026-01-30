@@ -2,6 +2,9 @@ from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.dataset import Dataset
+from scpca_portal.models.datasets.base import DatasetABC
+from scpca_portal.models.datasets.ccdl_dataset import CCDLDataset
+from scpca_portal.models.datasets.user_dataset import UserDataset
 from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.job import Job
 from scpca_portal.models.library import Library
