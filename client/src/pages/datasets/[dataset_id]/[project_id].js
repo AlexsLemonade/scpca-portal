@@ -52,7 +52,11 @@ export const ViewSamples = ({ dataset, project }) => {
           </Text>
         </Link>
       </Box>
-      <ProjectSamplesTableContextProvider project={project} samples={samples}>
+      <ProjectSamplesTableContextProvider
+        project={project}
+        samples={samples}
+        dataset={dataset}
+      >
         <Box pad={{ bottom: 'medium' }}>
           <ProjectSamplesTableOptionsHeader
             project={project}

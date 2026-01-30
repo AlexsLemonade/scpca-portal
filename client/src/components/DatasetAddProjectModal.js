@@ -4,7 +4,6 @@ import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getProjectFormats } from 'helpers/getProjectFormats'
-import { api } from 'api'
 import { Button } from 'components/Button'
 import { DatasetAddProjectModalRemainingContent } from 'components/DatasetAddProjectModalRemainingContent'
 import { DatasetAddProjectModalAddedContent } from 'components/DatasetAddProjectModalAddedContent'
@@ -12,7 +11,7 @@ import { DatasetProjectAdditionalOptions } from 'components/DatasetProjectAdditi
 import { DatasetProjectModalityOptions } from 'components/DatasetProjectModalityOptions'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
 import { DatasetWarningMissingSamples } from 'components/DatasetWarningMissingSamples'
-import { Modal, ModalBody, ModalLoader } from 'components/Modal'
+import { Modal, ModalBody } from 'components/Modal'
 
 // Three states: Add to Dataset (no samples added), Add Remaining (some samples added), Added to Dataset (all samples added)
 export const DatasetAddProjectModal = ({ project, disabled = false }) => {
@@ -24,11 +23,9 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
     addProject,
     getAllSamplesForProjectAdded,
     getHasRemainingProjectSamples,
-    getMissingModaliesSamples,
+    getMissingModalitySamples,
     getDatasetProjectData,
-    getProjectDataSamples,
-    getProjectSingleCellSamples,
-    getProjectSpatialSamples
+    getProjectDataSamples
   } = useMyDataset()
   const { responsive } = useResponsive()
 
@@ -46,11 +43,6 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
   const [singleCellSamples, setSingleCellSamples] = useState([])
   const [spatialSamples, setSpatialSamples] = useState([])
 
-  // TODOL: Remove this after API update
-  const [samples, setSamples] = useState(
-    // We get either sample IDs (on Browse) or sample objects (on View Project)
-    project.samples.filter((s) => s.scpca_id)
-  )
   const [sampleDifference, setSampleDifference] = useState([])
 
   // For the button states
@@ -108,28 +100,13 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
     }
   }, [myDataset.format, showing])
 
-  // TODOL: Remove fetching samples
-  useEffect(() => {
-    const asyncFetch = async () => {
-      const samplesRequest = await api.samples.list({
-        project__scpca_id: project.scpca_id,
-        limit: 1000 // TODO:: 'all' option
-      })
-
-      if (samplesRequest.isOk) {
-        setSamples(samplesRequest.response.results)
-      }
-    }
-    if (!samples.length && showing) asyncFetch()
-  }, [showing])
-
   useEffect(() => {
     setMyDatasetProjectData(getDatasetProjectData(project))
     setHasRemainingSamples(getHasRemainingProjectSamples(project))
     setIsAllSamplesAdded(getAllSamplesForProjectAdded(project))
   }, [myDataset])
 
-  // Populate the project data for addProject
+  // Populate the project data for API call via addProject
   useEffect(() => {
     setProjectData({
       ...getProjectDataSamples(
@@ -144,34 +121,44 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
 
   // Update singleCellSamples based on user selections
   useEffect(() => {
+    let projectSamples
+
     if (modalities.includes('SINGLE_CELL')) {
-      setSingleCellSamples(
-        getProjectSingleCellSamples(samples, includeMerge, excludeMultiplexed)
-      )
+      if (includeMerge) {
+        projectSamples = 'MERGED'
+      } else {
+        projectSamples = project.modality_samples.SINGLE_CELL
+
+        if (excludeMultiplexed) {
+          projectSamples = projectSamples.filter(
+            (s) => !project.multiplexed_samples.includes(s)
+          )
+        }
+      }
     } else {
-      setSingleCellSamples(myDatasetProjectData?.SINGLE_CELL || [])
+      projectSamples = myDatasetProjectData?.SINGLE_CELL || []
     }
-  }, [
-    excludeMultiplexed,
-    includeMerge,
-    modalities,
-    samples,
-    myDatasetProjectData
-  ])
+
+    setSingleCellSamples(projectSamples)
+  }, [excludeMultiplexed, includeMerge, modalities, myDatasetProjectData])
 
   // Update spatialSamples based on user selections
   useEffect(() => {
+    let projectSamples
+
     if (modalities.includes('SPATIAL')) {
-      setSpatialSamples(getProjectSpatialSamples(samples))
+      projectSamples = project.modality_samples.SPATIAL
     } else {
-      setSpatialSamples(myDatasetProjectData?.SPATIAL || [])
+      projectSamples = myDatasetProjectData?.SPATIAL || []
     }
-  }, [modalities, samples, myDatasetProjectData])
+
+    setSpatialSamples(projectSamples)
+  }, [modalities, myDatasetProjectData])
 
   // Calculate missing modality samples
   useEffect(() => {
-    setSampleDifference(getMissingModaliesSamples(samples, modalities))
-  }, [modalities, samples])
+    setSampleDifference(getMissingModalitySamples(project, modalities))
+  }, [modalities])
 
   if (isAllSamplesAdded) {
     return <DatasetAddProjectModalAddedContent />
@@ -190,59 +177,55 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
       />
       <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
         <ModalBody>
-          {!samples.length ? (
-            <ModalLoader />
-          ) : (
-            <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
-              <Heading level="3" size="small" margin={{ top: '0' }}>
-                Download Options
-              </Heading>
-              {myDatasetProjectData && (
-                <DatasetAddProjectModalRemainingContent project={project} />
-              )}
-              <Box pad={{ top: 'large' }}>
-                <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
-                  <DatasetDataFormatOptions project={project} />
-                  <DatasetProjectModalityOptions
-                    project={project}
-                    modalities={modalities}
-                    onModalitiesChange={setModalities}
-                  />
-                  <DatasetProjectAdditionalOptions
-                    project={project}
-                    selectedFormat={userFormat}
-                    selectedModalities={modalities}
-                    excludeMultiplexed={excludeMultiplexed}
-                    includeBulk={includeBulk}
-                    includeMerge={includeMerge}
-                    onExcludeMultiplexedChange={setExcludeMultiplexed}
-                    onIncludeBulkChange={setIncludeBulk}
-                    onIncludeMergeChange={setIncludeMerge}
-                  />
-                </Box>
-                <Box
-                  align="center"
-                  direction={responsive('column', 'row')}
-                  gap="xlarge"
-                >
-                  <Button
-                    primary
-                    aria-label={btnLabel}
-                    label={btnLabel}
-                    loading={loading}
-                    disabled={!canClickAddProject}
-                    onClick={handleAddProject}
-                  />
-                  {sampleDifference.length > 0 && (
-                    <DatasetWarningMissingSamples
-                      project={project}
-                      sampleCount={sampleDifference.length}
-                    />
-                  )}
-                </Box>
+          <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
+            <Heading level="3" size="small" margin={{ top: '0' }}>
+              Download Options
+            </Heading>
+            {myDataset.data?.[project.scpca_id] && (
+              <DatasetAddProjectModalRemainingContent project={project} />
+            )}
+            <Box pad={{ top: 'large' }}>
+              <Box gap="medium" pad={{ bottom: 'medium' }} width="680px">
+                <DatasetDataFormatOptions project={project} />
+                <DatasetProjectModalityOptions
+                  project={project}
+                  modalities={modalities}
+                  onModalitiesChange={setModalities}
+                />
+                <DatasetProjectAdditionalOptions
+                  project={project}
+                  selectedFormat={userFormat}
+                  selectedModalities={modalities}
+                  excludeMultiplexed={excludeMultiplexed}
+                  includeBulk={includeBulk}
+                  includeMerge={includeMerge}
+                  onExcludeMultiplexedChange={setExcludeMultiplexed}
+                  onIncludeBulkChange={setIncludeBulk}
+                  onIncludeMergeChange={setIncludeMerge}
+                />
               </Box>
-            </Grid>
-          )}
+              <Box
+                align="center"
+                direction={responsive('column', 'row')}
+                gap="xlarge"
+              >
+                <Button
+                  primary
+                  aria-label={btnLabel}
+                  label={btnLabel}
+                  loading={loading}
+                  disabled={!canClickAddProject}
+                  onClick={handleAddProject}
+                />
+                {sampleDifference.length > 0 && (
+                  <DatasetWarningMissingSamples
+                    project={project}
+                    sampleCount={sampleDifference.length}
+                  />
+                )}
+              </Box>
+            </Box>
+          </Grid>
         </ModalBody>
       </Modal>
     </>

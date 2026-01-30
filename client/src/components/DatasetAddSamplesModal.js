@@ -131,7 +131,7 @@ export const DatasetAddSamplesModal = ({
   useEffect(() => {
     if (samples) {
       const { SINGLE_CELL: singleCellSamples, SPATIAL: spatialSamples } =
-        getDatasetProjectDataSamples(project, samples)
+        getDatasetProjectDataSamples(project)
 
       setSingleCellSamplesToAdd(
         differenceArray(selectedSamples.SINGLE_CELL, singleCellSamples)
