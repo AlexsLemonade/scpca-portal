@@ -21,11 +21,11 @@ export const DatasetMoveSamplesModal = ({
   const { push } = useRouter()
   const {
     myDataset,
-    clearDataset,
-    createDataset,
+    clearMyDataset,
+    createMyDataset,
     isDatasetDataEmpty,
     getMergeDatasetData,
-    updateDataset
+    updateMyDataset
   } = useMyDataset()
   const { showNotification } = useNotification()
   const { responsive } = useResponsive()
@@ -75,8 +75,8 @@ export const DatasetMoveSamplesModal = ({
 
   const request = async (newData) => {
     const datasetRequest = !isMyDataset
-      ? await createDataset({ format: dataset.format, data: newData })
-      : await updateDataset({
+      ? await createMyDataset({ format: dataset.format, data: newData })
+      : await updateMyDataset({
           ...myDataset,
           format: dataset.format,
           data: newData
@@ -120,7 +120,7 @@ export const DatasetMoveSamplesModal = ({
     }
 
     // Clear the data in My Dataset if the format has changed
-    if (isFormatChanged) await clearDataset()
+    if (isFormatChanged) await clearMyDataset()
 
     const updatedDataset = await request(updatedData)
 

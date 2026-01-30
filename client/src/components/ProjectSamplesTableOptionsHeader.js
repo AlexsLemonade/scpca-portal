@@ -21,7 +21,7 @@ export const ProjectSamplesTableOptionsHeader = ({
 }) => {
   const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
-  const { myDataset, isProjectMerged, setSamples } = useMyDataset()
+  const { myDataset, isProjectMerged, setMyDatasetSamples } = useMyDataset()
   const { readOnly, selectAllSingleCellSamples, selectedSamples } =
     useProjectSamplesTable()
   const { responsive } = useResponsive()
@@ -79,7 +79,7 @@ export const ProjectSamplesTableOptionsHeader = ({
       ...(includeMerge && { SINGLE_CELL: 'MERGED' })
     }
 
-    const datasetRequest = await setSamples(project, {
+    const datasetRequest = await setMyDatasetSamples(project, {
       ...newSamplesToAdd,
       includes_bulk: includeBulk
     })
