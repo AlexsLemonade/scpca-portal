@@ -102,6 +102,15 @@ class Project(CommonDataAttributes, TimestampedModel):
         }
 
     @property
+    def multiplexed_samples(self):
+        """Return a lists containing multiplexed sample IDs."""
+        if not self.has_multiplexed_data:
+            return []
+        return list(
+            self.samples.filter(has_multiplexed_data=True).values_list("scpca_id", flat=True)
+        )
+
+    @property
     def samples_to_generate(self):
         """Return all non multiplexed samples and only one sample from multiplexed libraries."""
         return [sample for sample in self.samples.all() if sample.is_last_multiplexed_sample]

@@ -45,6 +45,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "sample_count",
             "samples",
             "modality_samples",
+            "multiplexed_samples",
             "scpca_id",
             "seq_units",
             "summaries",

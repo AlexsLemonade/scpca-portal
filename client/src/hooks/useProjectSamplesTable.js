@@ -9,6 +9,7 @@ export const useProjectSamplesTable = () => {
   const {
     project,
     samples,
+    dataset,
     canAdd,
     canRemove,
     readOnly,
@@ -19,13 +20,8 @@ export const useProjectSamplesTable = () => {
     filteredSamples,
     setFilteredSamples
   } = useContext(ProjectSamplesTableContext)
-  const {
-    myDataset,
-    userFormat,
-    setUserFormat,
-    getDatasetProjectDataSamples,
-    getProjectSingleCellSamples
-  } = useMyDataset()
+  const { myDataset, userFormat, setUserFormat, getDatasetProjectDataSamples } =
+    useMyDataset()
 
   // Set default userFormat value
   useEffect(() => {
@@ -41,7 +37,7 @@ export const useProjectSamplesTable = () => {
     (myDataset.format || userFormat) === 'ANN_DATA'
 
   const getIsSampleInMyDataset = (sample, modality) => {
-    const datasetProjectData = getDatasetProjectDataSamples(project, samples)
+    const datasetProjectData = getDatasetProjectDataSamples(project)
     return datasetProjectData[modality].includes(sample.scpca_id)
   }
 
@@ -95,7 +91,7 @@ export const useProjectSamplesTable = () => {
   const selectAllSingleCellSamples = () => {
     setSelectedSamples((prevSelectedSamples) => ({
       ...prevSelectedSamples,
-      SINGLE_CELL: getProjectSingleCellSamples(project.samples)
+      SINGLE_CELL: project.modality_samples.SINGLE_CELL
     }))
   }
 
@@ -130,7 +126,7 @@ export const useProjectSamplesTable = () => {
 
       // Exclude toggling of already-added samples on the Browse page
       const alreadyAddedSampleIds = canAdd
-        ? getDatasetProjectDataSamples(project, samples)[modality] || []
+        ? getDatasetProjectDataSamples(project)[modality] || []
         : []
 
       const sampleIdsToToggle = differenceArray(
@@ -186,6 +182,7 @@ export const useProjectSamplesTable = () => {
   return {
     project,
     samples,
+    dataset,
     canAddMultiplexed,
     canAdd,
     canRemove,
