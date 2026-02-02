@@ -23,6 +23,10 @@ module.exports = {
             {
               name: 'removeAttrs',
               params: { attrs: '(data-name)' }
+            },
+            {
+              name: 'cleanupIDs',
+              active: false
             }
           ]
         }
