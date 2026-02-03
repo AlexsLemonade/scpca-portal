@@ -127,8 +127,7 @@ export const useMyDataset = () => {
     return latestDataset
   }
 
-  const getMyDatasetCopy = (dataToCopy = myDataset) =>
-    structuredClone(dataToCopy) || {}
+  const getMyDatasetCopy = () => structuredClone(myDataset.data) || {}
 
   const saveMyDataset = async (dataset) =>
     !myDataset.id ? createMyDataset(dataset) : updateMyDataset(dataset)
