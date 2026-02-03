@@ -13,14 +13,14 @@ export const DatasetProcessModal = ({
   disabled = false
 }) => {
   const { push } = useRouter()
-  const { processDataset } = useMyDataset()
+  const { processMyDataset } = useMyDataset()
 
   const [showing, setShowing] = useState(false)
   const [submitting, setSubmitting] = useState(false) // Disable the button while making request
 
   useEffect(() => {
     const submit = async () => {
-      const datasetRequest = await processDataset()
+      const datasetRequest = await processMyDataset()
       if (datasetRequest) {
         push(`/datasets/${datasetRequest.id}`)
       } else {

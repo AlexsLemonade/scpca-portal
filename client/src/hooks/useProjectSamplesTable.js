@@ -20,8 +20,12 @@ export const useProjectSamplesTable = () => {
     filteredSamples,
     setFilteredSamples
   } = useContext(ProjectSamplesTableContext)
-  const { myDataset, userFormat, setUserFormat, getDatasetProjectDataSamples } =
-    useMyDataset()
+  const {
+    myDataset,
+    userFormat,
+    setUserFormat,
+    getMyDatasetProjectDataSamples
+  } = useMyDataset()
 
   // Set default userFormat value
   useEffect(() => {
@@ -37,7 +41,7 @@ export const useProjectSamplesTable = () => {
     (myDataset.format || userFormat) === 'ANN_DATA'
 
   const getIsSampleInMyDataset = (sample, modality) => {
-    const datasetProjectData = getDatasetProjectDataSamples(project)
+    const datasetProjectData = getMyDatasetProjectDataSamples(project)
     return datasetProjectData[modality].includes(sample.scpca_id)
   }
 
@@ -67,6 +71,7 @@ export const useProjectSamplesTable = () => {
     return true
   }
 
+  // TODO: This method will be refactored in #1750 (excluded from optimization)
   // Get the current state of the tri-state checkbox
   const getHeaderState = (modality) => {
     const allSampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
@@ -96,8 +101,9 @@ export const useProjectSamplesTable = () => {
   }
 
   const selectModalitySamplesByIds = (modality, sampleIds) => {
+    const sampleIdsSet = new Set(sampleIds)
     const samplesToBeSelected = allSamples
-      .filter((s) => sampleIds.includes(s.scpca_id))
+      .filter((s) => sampleIdsSet.has(s.scpca_id))
       .map((s) => s.scpca_id)
 
     setSelectedSamples((prev) => {
@@ -124,35 +130,33 @@ export const useProjectSamplesTable = () => {
         .filter((s) => s[`has_${modality.toLowerCase()}_data`])
         .map((s) => s.scpca_id)
 
-      // Exclude toggling of already-added samples on the Browse page
+      // Exclude samples already added to the dataset (on the Browse page)
       const alreadyAddedSampleIds = canAdd
-        ? getDatasetProjectDataSamples(project)[modality] || []
+        ? getMyDatasetProjectDataSamples(project)[modality] || []
         : []
 
+      // Samples that can be toggled in the table
       const sampleIdsToToggle = differenceArray(
         modalitySampleIds,
         alreadyAddedSampleIds
       )
 
+      const currentSelectedSet = new Set(currentSelectedSamples)
       const isAllOrSomeSelected = sampleIdsToToggle.some((id) =>
-        currentSelectedSamples.includes(id)
+        currentSelectedSet.has(id)
       )
 
       if (isAllOrSomeSelected) {
+        // Remove currently selected toggleable samples
         return {
           ...prevSelectedSamples,
-          [modality]: currentSelectedSamples.filter(
-            (id) => !sampleIdsToToggle.includes(id)
-          )
+          [modality]: differenceArray(currentSelectedSamples, sampleIdsToToggle)
         }
       }
 
       return {
         ...prevSelectedSamples,
-        [modality]: uniqueArray([
-          ...currentSelectedSamples,
-          ...sampleIdsToToggle
-        ])
+        [modality]: uniqueArray(currentSelectedSamples, sampleIdsToToggle)
       }
     })
   }
