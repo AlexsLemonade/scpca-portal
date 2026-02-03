@@ -127,8 +127,7 @@ export const useMyDataset = () => {
     return latestDataset
   }
 
-  const getMyDatasetCopy = (dataToCopy = myDataset) =>
-    structuredClone(dataToCopy) || {}
+  const getMyDatasetCopy = () => structuredClone(myDataset.data) || {}
 
   const saveMyDataset = async (dataset) =>
     !myDataset.id ? createMyDataset(dataset) : updateMyDataset(dataset)
@@ -305,10 +304,15 @@ export const useMyDataset = () => {
     isProjectMerged(myDataset, project)
 
   const removeProjectByIdFromMyDataset = (projectId) => {
-    const datasetCopy = getMyDatasetCopy(myDataset)
-    delete datasetCopy.data[projectId]
+    const datasetDataCopy = getMyDatasetCopy(myDataset)
+    delete datasetDataCopy[projectId]
 
-    return updateMyDataset(datasetCopy)
+    const updatedDataset = {
+      ...myDataset,
+      data: datasetDataCopy
+    }
+
+    return updateMyDataset(updatedDataset)
   }
 
   /* Sample-level */
