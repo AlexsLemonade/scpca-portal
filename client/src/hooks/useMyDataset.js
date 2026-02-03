@@ -304,10 +304,15 @@ export const useMyDataset = () => {
     isProjectMerged(myDataset, project)
 
   const removeProjectByIdFromMyDataset = (projectId) => {
-    const datasetCopy = getMyDatasetCopy(myDataset)
-    delete datasetCopy.data[projectId]
+    const datasetDataCopy = getMyDatasetCopy(myDataset)
+    delete datasetDataCopy[projectId]
 
-    return updateMyDataset(datasetCopy)
+    const updatedDataset = {
+      ...myDataset,
+      data: datasetDataCopy
+    }
+
+    return updateMyDataset(updatedDataset)
   }
 
   /* Sample-level */
