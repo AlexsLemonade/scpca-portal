@@ -2,6 +2,9 @@ import { useContext } from 'react'
 import { MyDatasetContext } from 'contexts/MyDatasetContext'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { api } from 'api'
+import { allModalities } from 'config/datasets'
+import { differenceArray } from 'helpers/differenceArray'
+import { getHashMap } from 'helpers/getHashMap'
 import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useDataset = () => {
@@ -124,35 +127,40 @@ export const useDataset = () => {
   const isProjectMerged = (dataset, project) =>
     dataset.data[project.scpca_id].SINGLE_CELL === 'MERGED'
 
-  const getDatasetProjectData = (dataset, project) => {
-    const projectData = dataset.data[project.scpca_id]
-    // If merged, unmerge the single-cell samples
+  const getDatasetProjectData = (dataset, project) =>
+    dataset?.data?.[project.scpca_id] || {}
+
+  const getDatasetProjectDataSamples = (dataset, project) => {
+    // Return added samples in each modalities and
+    // unmerge the single-cell samples if they're merged
+    const { SINGLE_CELL: singleCell = [], SPATIAL: spatial = [] } =
+      getDatasetProjectData(dataset, project)
+
     return {
       SINGLE_CELL:
-        projectData.SINGLE_CELL === 'MERGED'
+        singleCell === 'MERGED'
           ? project.modality_samples.SINGLE_CELL
-          : projectData.SINGLE_CELL,
-      SPATIAL: projectData.SPATIAL
+          : singleCell,
+      SPATIAL: spatial
     }
   }
 
-  // Return an array of all samples in the project data
   const getDatasetProjectSamples = (dataset, project) => {
+    // Combines modalities and returns an array of all unique samples
+    // available for projects that exist the dataset
     const { samples } = project
-    const { SINGLE_CELL: singleCell, SPATIAL: spatial } =
+    const { SINGLE_CELL: mergedOrSingleCellIds, SPATIAL: spatialIds } =
       dataset.data[project.scpca_id]
 
-    const singleCellSamples =
-      singleCell === 'MERGED'
-        ? samples.filter((s) => s.has_single_cell_data)
-        : samples.filter(
-            (s) => s.has_single_cell_data && singleCell.includes(s.scpca_id)
-          )
-    const spatialSamples = samples.filter(
-      (s) => s.has_spatial_data && spatial.includes(s.scpca_id)
-    )
+    const singleCellIds =
+      mergedOrSingleCellIds === 'MERGED'
+        ? project.modality_samples.SINGLE_CELL
+        : mergedOrSingleCellIds
 
-    return uniqueArray(singleCellSamples, spatialSamples)
+    const sampleIds = uniqueArray(singleCellIds, spatialIds)
+    const samplesMap = getHashMap(samples, 'scpca_id')
+
+    return sampleIds.map((id) => samplesMap[id])
   }
 
   // TODO: Implementation might change
@@ -177,6 +185,68 @@ export const useDataset = () => {
     }
   }
 
+  const getModalitySamplesDifference = (project, modalities) => {
+    if (modalities.length <= 1) return []
+
+    const { modality_samples: modalitySamples } = project
+
+    const selectedModalitySamples = modalities.map((m) => modalitySamples[m])
+    const allSamples = uniqueArray(...selectedModalitySamples)
+
+    return allSamples.filter(
+      (s) => !selectedModalitySamples.every((m) => m.includes(s))
+    )
+  }
+
+  const getProjectModalitySamplesById = async (projectId, modality) => {
+    const { isOk, response } = await api.projects.get(projectId)
+    return isOk ? response.modality_samples[modality] : null
+  }
+
+  const getRemainingProjectSampleIds = (dataset, project) => {
+    // Returns remaining project sample IDs that haven't been included
+    // in the given project present in the dataset
+    const projectData = getDatasetProjectData(dataset, project)
+
+    if (Object.keys(projectData).length === 0) {
+      return allModalities.reduce((acc, m) => {
+        acc[m] = project.modality_samples[m]
+        return acc
+      }, {})
+    }
+
+    return allModalities.reduce((acc, m) => {
+      const addedSampleId = projectData[m]
+
+      if (addedSampleId === 'MERGED') {
+        acc[m] = []
+      } else {
+        acc[m] = differenceArray(project.modality_samples[m], addedSampleId)
+      }
+      return acc
+    }, {})
+  }
+
+  const hasAllProjectSamplesAdded = (dataset, project) => {
+    if (!dataset.data?.[project.scpca_id]) {
+      return false
+    }
+
+    const remamingSamples = getRemainingProjectSampleIds(dataset, project)
+
+    return allModalities.every((m) => remamingSamples[m].length === 0)
+  }
+
+  const hasRemainingProjectSamples = (dataset, project) => {
+    if (!dataset.data?.[project.scpca_id]) {
+      return false
+    }
+
+    const remamingSamples = getRemainingProjectSampleIds(dataset, project)
+
+    return allModalities.some((m) => remamingSamples[m].length > 0)
+  }
+
   return {
     errors,
     create,
@@ -187,7 +257,13 @@ export const useDataset = () => {
     isProjectIncludeBulk,
     isProjectMerged,
     getDatasetProjectData,
+    getDatasetProjectDataSamples,
     getDatasetProjectSamples,
-    getDatasetState
+    getDatasetState,
+    getModalitySamplesDifference,
+    getProjectModalitySamplesById,
+    getRemainingProjectSampleIds,
+    hasAllProjectSamplesAdded,
+    hasRemainingProjectSamples
   }
 }
