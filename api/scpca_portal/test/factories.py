@@ -15,6 +15,7 @@ from scpca_portal.models import ComputedFile
 class ProjectSummaryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.ProjectSummary"
+        skip_postgeneration_save = True
 
     diagnosis = "AML"
     seq_unit = "cell"
@@ -26,6 +27,7 @@ class ProjectSummaryFactory(factory.django.DjangoModelFactory):
 class APITokenFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.APIToken"
+        skip_postgeneration_save = True
 
     email = "test-user@ccdatalab.org"
     is_activated = True
@@ -34,6 +36,7 @@ class APITokenFactory(factory.django.DjangoModelFactory):
 class LeafComputedFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.ComputedFile"
+        skip_postgeneration_save = True
 
     s3_bucket = "scpca-portal-local"
     s3_key = "SCPCR000126/filtered.rds"
@@ -44,6 +47,7 @@ class LeafComputedFileFactory(factory.django.DjangoModelFactory):
 class LeafProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Project"
+        skip_postgeneration_save = True
 
     scpca_id = factory.Sequence(lambda n: f"SCPCP{str(n).zfill(6)}")
     pi_name = "gawad"
@@ -144,6 +148,7 @@ class SampleFactory(factory.django.DjangoModelFactory):
 class LibraryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Library"
+        skip_postgeneration_save = True
 
     formats = [FileFormats.SINGLE_CELL_EXPERIMENT]
     is_multiplexed = False
@@ -186,9 +191,6 @@ class LibraryFactory(factory.django.DjangoModelFactory):
 
 
 class ProjectFactory(LeafProjectFactory):
-    class Meta:
-        skip_postgeneration_save = True
-
     computed_file = factory.RelatedFactory(ProjectComputedFileFactory, "project")
     sample = factory.RelatedFactory(SampleFactory, "project")
     library = factory.RelatedFactory(LibraryFactory, "project")
@@ -216,6 +218,7 @@ class ProjectFactory(LeafProjectFactory):
 class DatasetFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Dataset"
+        skip_postgeneration_save = True
 
     data = {
         "SCPCP999990": {
@@ -236,6 +239,7 @@ class DatasetFactory(factory.django.DjangoModelFactory):
 class JobFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Job"
+        skip_postgeneration_save = True
 
     batch_job_id = factory.Sequence(lambda n: f"MOCK_JOB_ID_{str(n).zfill(3)}")
     batch_job_name = "SCPCP000000-MOCK_DOWNLOAD_CONFIG_NAME"
@@ -267,6 +271,7 @@ class JobFactory(factory.django.DjangoModelFactory):
 class OriginalFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.OriginalFile"
+        skip_postgeneration_save = True
 
     s3_bucket = settings.AWS_S3_INPUT_BUCKET_NAME
     s3_key = factory.Sequence(lambda n: f"SCPCP999999/SCPCS999999/SCPCL{str(n).zfill(6)}.txt")
