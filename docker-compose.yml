@@ -37,8 +37,6 @@ services:
   client:
     image: node:22.22.0
     ports:
-      - '${API_PORT}:${API_PORT}'
-      - '${STORYBOOK_PORT}:${STORYBOOK_PORT}'
       - '${CLIENT_PORT}:${CLIENT_PORT}'
     environment:
       - STAGE_API_HOST=http://localhost:${API_PORT}
@@ -51,11 +49,30 @@ services:
     env_file: docker-compose.env
     command: >
       bash -c 'cd /home/user/code &&
-               yarn set version 3.6.3 &&
                yarn &&
-               (yarn storybook --quiet -p ${STORYBOOK_PORT} &
-               yarn dev -p ${CLIENT_PORT})'
+               yarn dev -p ${CLIENT_PORT}'
     volumes:
       - ./client:/home/user/code
       - ./client/node_modules:/home/user/code/node_modules
       - ./client/.next:/home/user/code/.next
+  storybook:
+    image: node:22.22.0
+    ports:
+      - '${STORYBOOK_PORT}:${STORYBOOK_PORT}'
+    environment:
+      - STAGE_API_HOST=http://localhost:${API_PORT}
+      - STAGE_SENTRY_DSN=${SENTRY_DSN}
+      - STAGE_HUBSPOT_PORTAL_ID=${HUBSPOT_PORTAL_ID}
+      - STAGE_HUBSPOT_EMAIL_LIST_ID=${HUBSPOT_EMAIL_LIST_ID}
+      - STAGE_HUBSPOT_SURVEY_LIST_ID=${HUBSPOT_SURVEY_LIST_ID}
+      - STAGE_CELLBROWSER_SECRET=${CELLBROWSER_SECRET}
+      - STAGE_CELLBROWSER_STATIC_HOST=${CELLBROWSER_STATIC_HOST}
+    env_file: docker-compose.env
+    command: >
+     bash -c 'cd /home/user/code &&
+             yarn storybook --quiet -p ${STORYBOOK_PORT}'
+    volumes:
+      - ./client:/home/user/code:ro
+      - ./client/node_modules:/home/user/code/node_modules
+    depends_on:
+      - client
