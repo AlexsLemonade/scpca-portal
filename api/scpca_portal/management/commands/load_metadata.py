@@ -30,11 +30,10 @@ class Command(BaseCommand):
         parser.add_argument(
             "--clean-up-input-data",
             action=BooleanOptionalAction,
-            type=bool,
             default=settings.CLEAN_UP_DATA,
         )
         parser.add_argument(
-            "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
+            "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
         parser.add_argument(
             "--submitter-whitelist",
