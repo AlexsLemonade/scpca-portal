@@ -22,6 +22,12 @@ module.exports = {
     // Add src to imports (so this works with app webpack config)
     config.resolve.modules.push(path.resolve(__dirname, './../src'))
     config.resolve.alias['data'] = path.resolve(__dirname, './data')
+
+    config.resolve.fallback = {
+      ...(config.resolve.fallback || {}),
+      zlib: false
+    }
+
     // Add env vars for helpers
     config.plugins.forEach((plugin) => {
       if (Object.keys(plugin)[0] === 'definitions') {
