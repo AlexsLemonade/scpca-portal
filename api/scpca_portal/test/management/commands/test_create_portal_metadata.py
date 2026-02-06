@@ -123,7 +123,7 @@ class TestCreatePortalMetadata(TransactionTestCase):
                 output_libraries = set(
                     [row[common.LIBRARY_ID_KEY] for row in rows if common.LIBRARY_ID_KEY in row]
                 )
-                self.assertEquals(output_libraries, expected_libraries)
+                self.assertEqual(output_libraries, expected_libraries)
 
     @patch("scpca_portal.management.commands.create_portal_metadata.s3.delete_output_file")
     def test_only_one_computed_file_at_any_point(self, mock_delete_output_file):
