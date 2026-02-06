@@ -70,7 +70,7 @@ services:
     env_file: docker-compose.env
     command: >
      bash -c 'cd /home/user/code &&
-             yarn storybook --quiet -p ${STORYBOOK_PORT}'
+             yarn storybook --quiet --no-open -p ${STORYBOOK_PORT}'
     volumes:
       - ./client:/home/user/code:ro
       - ./client/node_modules:/home/user/code/node_modules
