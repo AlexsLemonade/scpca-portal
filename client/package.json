@@ -50,6 +50,6 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-storybook": "^0.6.13",
-    "storybook": "^7.4.1"
+    "storybook": "^8.0.1"
   }
 }
