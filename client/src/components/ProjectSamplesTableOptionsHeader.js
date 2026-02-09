@@ -27,6 +27,11 @@ export const ProjectSamplesTableOptionsHeader = ({
     useProjectSamplesTable()
   const { responsive } = useResponsive()
 
+  // Enable the include merge checkbox only if:
+  // - All project samples in the table are selected
+  // - All project samples have been added to myDataset
+  const [enableMergeCheckBox, setEnableMergeCheckBox] = useState(false)
+
   // For the changing merged project modal visibility and conditions
   const [confirmUnmerge, setConfirmUnmerge] = useState(false)
   const [prevSelectedCount, setPrevSelectedCount] = useState(null) // Count for previously selected samples to detect sample deselection
@@ -114,6 +119,14 @@ export const ProjectSamplesTableOptionsHeader = ({
     setPrevSelectedCount(newSelectedCount)
   }, [newSelectedCount])
 
+  // Toggle include merge checkbox based on the selected sample count
+  useEffect(() => {
+    setEnableMergeCheckBox(
+      selectedSamples.SINGLE_CELL.length ===
+        project.modality_samples.SINGLE_CELL.length
+    )
+  }, [selectedSamples])
+
   return (
     <>
       <DatasetChangingMergedProjectModal
@@ -169,7 +182,7 @@ export const ProjectSamplesTableOptionsHeader = ({
           <CheckBox
             label="Merge single-cell samples into 1 object"
             checked={includeMerge}
-            disabled={readOnly}
+            disabled={readOnly || !enableMergeCheckBox}
             onChange={({ target: { checked } }) =>
               onIncludeMergeChange(checked)
             }
