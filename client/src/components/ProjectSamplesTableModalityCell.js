@@ -7,8 +7,8 @@ import { CheckBox } from 'components/CheckBox'
 export const ProjectSamplesTableModalityCell = ({ sample }) => {
   const {
     project,
-    getCheckBoxIsChecked,
-    getCheckBoxIsDisabled,
+    getIsSampleSelected,
+    getIsSamlpleSelectable,
     toggleSampleModality
   } = useProjectSamplesTable()
 
@@ -20,8 +20,8 @@ export const ProjectSamplesTableModalityCell = ({ sample }) => {
         <CheckBox
           key={`${sample.scpca_id}_${m}`}
           name={m}
-          checked={getCheckBoxIsChecked(sample, m)}
-          disabled={getCheckBoxIsDisabled(sample, m)}
+          checked={getIsSampleSelected(sample, m)}
+          disabled={getIsSamlpleSelectable(sample, m)}
           onClick={() => toggleSampleModality(sample, m)}
         />
       ))}
