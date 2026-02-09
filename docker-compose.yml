@@ -76,8 +76,6 @@ services:
     volumes:
       - ./client:/home/user/code
       - ./client/storybook:/home/user/code/storybook
-      #- ./client/src:/home/user/code/src:ro
-      #- ./client/public:/home/user/code/public:ro
       - ./client/node_modules:/home/user/code/node_modules
     depends_on:
       - client
