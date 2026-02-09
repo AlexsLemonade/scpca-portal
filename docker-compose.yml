@@ -48,9 +48,16 @@ services:
       - STAGE_CELLBROWSER_STATIC_HOST=${CELLBROWSER_STATIC_HOST}
     env_file: docker-compose.env
     command: >
-      bash -c 'cd /home/user/code &&
-               yarn &&
-               yarn dev -p ${CLIENT_PORT}'
+      bash -c 'set -e
+              cd /home/user/code
+              cleanup() { rm -f "$CLIENT_DEPS_LOCKFILE"; }
+              trap cleanup EXIT
+              touch "$CLIENT_DEPS_LOCKFILE"
+              yarn set version 3.6.3
+              yarn
+              cleanup
+              trap - EXIT
+              yarn dev -p ${CLIENT_PORT}'
     volumes:
       - ./client:/home/user/code
       - ./client/node_modules:/home/user/code/node_modules
@@ -59,20 +66,18 @@ services:
     image: node:22.22.0
     ports:
       - '${STORYBOOK_PORT}:${STORYBOOK_PORT}'
-    environment:
-      - STAGE_API_HOST=http://localhost:${API_PORT}
-      - STAGE_SENTRY_DSN=${SENTRY_DSN}
-      - STAGE_HUBSPOT_PORTAL_ID=${HUBSPOT_PORTAL_ID}
-      - STAGE_HUBSPOT_EMAIL_LIST_ID=${HUBSPOT_EMAIL_LIST_ID}
-      - STAGE_HUBSPOT_SURVEY_LIST_ID=${HUBSPOT_SURVEY_LIST_ID}
-      - STAGE_CELLBROWSER_SECRET=${CELLBROWSER_SECRET}
-      - STAGE_CELLBROWSER_STATIC_HOST=${CELLBROWSER_STATIC_HOST}
     env_file: docker-compose.env
     command: >
-     bash -c 'cd /home/user/code &&
-             yarn storybook --quiet --no-open -p ${STORYBOOK_PORT}'
+      bash -c 'cd /home/user/code/ &&
+              chmod +x ./wait_for_client.sh &&
+              ./wait_for_client.sh &&
+              yarn set version 3.6.3 &&
+              yarn workspace scpca-portal-storybook storybook --quiet --no-open -p ${STORYBOOK_PORT}'
     volumes:
-      - ./client:/home/user/code:ro
+      - ./client:/home/user/code
+      - ./client/storybook:/home/user/code/storybook
+      #- ./client/src:/home/user/code/src:ro
+      #- ./client/public:/home/user/code/public:ro
       - ./client/node_modules:/home/user/code/node_modules
     depends_on:
       - client
