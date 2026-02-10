@@ -52,7 +52,7 @@ resource "aws_db_instance" "postgres_db" {
   allocated_storage = 100
   storage_type      = "gp2"
   engine            = "postgres"
-  engine_version    = "17.8"
+  engine_version    = "17.7"
 
   # When doing a major version upgrade it is easier
   # to apply changes immediately to allow for subsequent deployments.
