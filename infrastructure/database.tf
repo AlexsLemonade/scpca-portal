@@ -59,7 +59,7 @@ resource "aws_db_instance" "postgres_db" {
   # `allow_major_version_upgrade` and `apply_immediately`
   # should be set to false when the old parameter group is removed.
   allow_major_version_upgrade = true
-  apply_immediately           = false
+  apply_immediately           = true
 
   auto_minor_version_upgrade = false
   instance_class             = var.database_instance_type
