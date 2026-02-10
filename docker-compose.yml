@@ -4,7 +4,7 @@ networks:
 
 services:
   postgres:
-    image: postgres:16.11
+    image: postgres:17.7
     volumes:
       - ./api/volumes_postgres/volumes_postgres:/var/lib/postgresql/data
     environment:
