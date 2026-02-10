@@ -55,7 +55,7 @@ class DatasetJobProcessor(JobProcessorABC):
 
     def purge_old_computed_file(self):
         if self.job.dataset.computed_file:
-            self.job.dataset.comptued_file.purge(delete_from_s3=True)
+            self.job.dataset.computed_file.purge(delete_from_s3=True)
 
     def create_new_computed_file(self):
         self.job.dataset.computed_file = ComputedFile.get_dataset_file(self.job.dataset)
