@@ -27,12 +27,32 @@ resource "aws_db_parameter_group" "postgres16_parameters" {
   }
 }
 
+resource "aws_db_parameter_group" "postgres17_parameters" {
+  name        = "scpca-portal-postgres17-parameters-${var.user}-${var.stage}"
+  description = "Postgres Parameters ${var.user} ${var.stage}"
+  family      = "postgres17"
+
+  parameter {
+    name  = "deadlock_timeout"
+    value = "60000" # 60000ms = 60s
+  }
+
+  parameter {
+    name  = "statement_timeout"
+    value = "60000" # 60000ms = 60s
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_db_instance" "postgres_db" {
   identifier        = "scpca-portal-${var.user}-${var.stage}"
   allocated_storage = 100
   storage_type      = "gp2"
   engine            = "postgres"
-  engine_version    = "16.8"
+  engine_version    = "17.8"
 
   # When doing a major version upgrade it is easier
   # to apply changes immediately to allow for subsequent deployments.
@@ -49,7 +69,7 @@ resource "aws_db_instance" "postgres_db" {
   password                   = var.database_password
 
   db_subnet_group_name = aws_db_subnet_group.scpca_portal.name
-  parameter_group_name = aws_db_parameter_group.postgres16_parameters.name
+  parameter_group_name = aws_db_parameter_group.postgres17_parameters.name
 
   # TF is broken, but we do want this protection in prod.
   # Related: https://github.com/hashicorp/terraform/issues/5417
