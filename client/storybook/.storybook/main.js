@@ -22,9 +22,11 @@ module.exports = {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       data: path.resolve(__dirname, './data'),
+      api: path.resolve(__dirname, '../../src/api'),
       components: path.resolve(__dirname, '../../src/components'),
       contexts: path.resolve(__dirname, '../../src/contexts'),
-      hooks: path.resolve(__dirname, '../../src/hooks')
+      hooks: path.resolve(__dirname, '../../src/hooks'),
+      helpers: path.resolve(__dirname, '../../src/helpers')
     }
 
     // Add env vars for helpers

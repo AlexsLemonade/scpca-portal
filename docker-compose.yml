@@ -67,6 +67,9 @@ services:
     ports:
       - '${STORYBOOK_PORT}:${STORYBOOK_PORT}'
     env_file: docker-compose.env
+    environment:
+      - API_HOST=https://api.staging.scpca.alexslemonade.org
+      - API_VERSION=v1
     command: >
       bash -c 'cd /home/user/code/ &&
               chmod +x ./wait_for_client.sh &&
