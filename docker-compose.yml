@@ -75,6 +75,7 @@ services:
               chmod +x ./wait_for_client.sh &&
               ./wait_for_client.sh &&
               yarn set version 3.6.3 &&
+              yarn workspace scpca-portal-storybook storybook:update-data &&
               yarn workspace scpca-portal-storybook storybook --quiet --no-open -p ${STORYBOOK_PORT}'
     volumes:
       - ./client:/home/user/code
