@@ -2,7 +2,7 @@ import React from 'react'
 import 'regenerator-runtime/runtime'
 import { Box } from 'grommet'
 import { DatasetProjectCard } from 'components/DatasetProjectCard'
-import dataset from '../data/user_dataset.json'
+import dataset from '../data/dataset.json'
 
 const projectKeys = Object.keys(dataset.data) || []
 

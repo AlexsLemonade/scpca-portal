@@ -1,6 +1,6 @@
 import React from 'react'
 import { DatasetMoveSamplesModal } from 'components/DatasetMoveSamplesModal'
-import dataset from 'data/user_dataset.json'
+import dataset from 'data/dataset.json'
 
 
 export default {

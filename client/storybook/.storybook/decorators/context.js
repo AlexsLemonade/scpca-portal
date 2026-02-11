@@ -2,7 +2,7 @@ import React from 'react'
 import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
 import { NotificationContextProvider } from 'contexts/NotificationContext'
 import { MyDatasetContextProvider } from 'contexts/MyDatasetContext'
-import dataset from '../data/user_dataset.json'
+import dataset from '../data/dataset.json'
 
 const Context = Story => {
   if (typeof window !== 'undefined') {
