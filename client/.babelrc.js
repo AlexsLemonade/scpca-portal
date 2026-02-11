@@ -21,18 +21,12 @@ module.exports = {
               params: { attrs: { keepDataAttrs: false } }
             },
             {
-              name: 'cleanupIDs',
-              params: {
-                prefix: {
-                  toString() {
-                    return `${Math.random().toString(36).substr(2, 9)}`
-                  }
-                }
-              }
-            },
-            {
               name: 'removeAttrs',
               params: { attrs: '(data-name)' }
+            },
+            {
+              name: 'cleanupIDs',
+              active: false
             }
           ]
         }
