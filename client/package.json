@@ -2,7 +2,7 @@
  "name": "scpca-portal",
  "version": "0.1.0",
  "private": true,
- "packageManager": "yarn@3.6.3",
+ "packageManager": "yarn@4.12.0",
  "workspaces": [
   "storybook"
  ],
