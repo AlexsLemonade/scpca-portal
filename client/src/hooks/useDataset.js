@@ -221,16 +221,18 @@ export const useDataset = () => {
       if (addedSampleId === 'MERGED') {
         acc[m] = []
       } else {
-        // Exclude multiplexed samples for a dataset with AnnData format
-        const samplesForAnnData = differenceArray(
-          project.modality_samples[m],
-          project.multiplexed_samples
-        )
-
-        acc[m] =
+        // Exclude multiplexed samples for datasets in AnnData format
+        const isMultiplexedExcluded =
           dataset.format === 'ANN_DATA' && project.has_multiplexed_data
-            ? differenceArray(samplesForAnnData, addedSampleId)
-            : differenceArray(project.modality_samples[m], addedSampleId)
+
+        const projectModalitySampleIds = isMultiplexedExcluded
+          ? differenceArray(
+              project.modality_samples[m],
+              project.multiplexed_samples
+            )
+          : project.modality_samples[m]
+
+        acc[m] = differenceArray(projectModalitySampleIds, addedSampleId)
       }
       return acc
     }, {})
