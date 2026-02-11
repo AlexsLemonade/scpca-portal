@@ -6,10 +6,6 @@ const envVars = {
 }
 
 module.exports = {
-  addons: [
-    '@storybook/addon-essentials',
-    '@storybook/addon-interactions'
-  ],
   framework: {
     name: '@storybook/nextjs',
     options: {}
