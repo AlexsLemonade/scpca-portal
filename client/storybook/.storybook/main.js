@@ -1,11 +1,15 @@
 import * as path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const envVars = {
   API_HOST: 'http://localhost:8000',
   API_VERSION: 'v1'
 }
 
-module.exports = {
+export default {
   framework: {
     name: '@storybook/nextjs',
     options: {}
