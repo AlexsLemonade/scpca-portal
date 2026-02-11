@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box } from 'grommet'
 import { Table } from 'components/Table'
-import project from 'data/project.js'
+import project from 'data/project.json'
 
 const columns = [
   { Header: 'Technologies', accessor: 'technologies' },

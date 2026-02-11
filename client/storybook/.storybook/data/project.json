@@ -15,129 +15,14 @@
     "tissue_ontology_term_id"
   ],
   "additional_restrictions": "Research or academic purposes only",
-  "computed_files": [
-    {
-      "created_at": "2025-12-25T05:34:34.369050Z",
-      "format": "SINGLE_CELL_EXPERIMENT",
-      "has_bulk_rna_seq": true,
-      "has_cite_seq_data": false,
-      "has_multiplexed_data": false,
-      "id": 11700,
-      "includes_merged": false,
-      "metadata_only": false,
-      "portal_metadata_only": false,
-      "modality": "SINGLE_CELL",
-      "project": "SCPCP000001",
-      "s3_bucket": "scpca-portal-deployer-staging",
-      "s3_key": "SCPCP000001_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-      "sample": null,
-      "size_in_bytes": 1357829535,
-      "updated_at": "2025-12-25T05:34:34.369073Z",
-      "workflow_version": "v0.8.7"
-    },
-    {
-      "created_at": "2025-12-25T08:22:58.947684Z",
-      "format": null,
-      "has_bulk_rna_seq": false,
-      "has_cite_seq_data": false,
-      "has_multiplexed_data": false,
-      "id": 13193,
-      "includes_merged": false,
-      "metadata_only": true,
-      "portal_metadata_only": false,
-      "modality": null,
-      "project": "SCPCP000001",
-      "s3_bucket": "scpca-portal-deployer-staging",
-      "s3_key": "SCPCP000001_ALL_METADATA.zip",
-      "sample": null,
-      "size_in_bytes": 33606,
-      "updated_at": "2025-12-25T08:22:58.947707Z",
-      "workflow_version": "v0.8.7"
-    },
-    {
-      "created_at": "2025-12-25T08:23:42.033063Z",
-      "format": "SINGLE_CELL_EXPERIMENT",
-      "has_bulk_rna_seq": true,
-      "has_cite_seq_data": false,
-      "has_multiplexed_data": false,
-      "id": 13197,
-      "includes_merged": true,
-      "metadata_only": false,
-      "portal_metadata_only": false,
-      "modality": "SINGLE_CELL",
-      "project": "SCPCP000001",
-      "s3_bucket": "scpca-portal-deployer-staging",
-      "s3_key": "SCPCP000001_SINGLE-CELL_SINGLE-CELL-EXPERIMENT_MERGED.zip",
-      "sample": null,
-      "size_in_bytes": 902893517,
-      "updated_at": "2025-12-25T08:23:42.033089Z",
-      "workflow_version": "v0.8.7"
-    },
-    {
-      "created_at": "2025-12-25T08:24:53.570421Z",
-      "format": "ANN_DATA",
-      "has_bulk_rna_seq": true,
-      "has_cite_seq_data": false,
-      "has_multiplexed_data": false,
-      "id": 13206,
-      "includes_merged": false,
-      "metadata_only": false,
-      "portal_metadata_only": false,
-      "modality": "SINGLE_CELL",
-      "project": "SCPCP000001",
-      "s3_bucket": "scpca-portal-deployer-staging",
-      "s3_key": "SCPCP000001_SINGLE-CELL_ANN-DATA.zip",
-      "sample": null,
-      "size_in_bytes": 2887159776,
-      "updated_at": "2025-12-25T08:24:53.570446Z",
-      "workflow_version": "v0.8.7"
-    },
-    {
-      "created_at": "2025-12-25T08:25:01.538710Z",
-      "format": "ANN_DATA",
-      "has_bulk_rna_seq": true,
-      "has_cite_seq_data": false,
-      "has_multiplexed_data": false,
-      "id": 13207,
-      "includes_merged": true,
-      "metadata_only": false,
-      "portal_metadata_only": false,
-      "modality": "SINGLE_CELL",
-      "project": "SCPCP000001",
-      "s3_bucket": "scpca-portal-deployer-staging",
-      "s3_key": "SCPCP000001_SINGLE-CELL_ANN-DATA_MERGED.zip",
-      "sample": null,
-      "size_in_bytes": 1318355074,
-      "updated_at": "2025-12-25T08:25:01.538735Z",
-      "workflow_version": "v0.8.7"
-    },
-    {
-      "created_at": "2025-12-25T08:25:03.621829Z",
-      "format": "SINGLE_CELL_EXPERIMENT",
-      "has_bulk_rna_seq": true,
-      "has_cite_seq_data": false,
-      "has_multiplexed_data": false,
-      "id": 13208,
-      "includes_merged": false,
-      "metadata_only": false,
-      "portal_metadata_only": false,
-      "modality": "SINGLE_CELL",
-      "project": "SCPCP000001",
-      "s3_bucket": "scpca-portal-deployer-staging",
-      "s3_key": "SCPCP000001_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-      "sample": null,
-      "size_in_bytes": 1357829535,
-      "updated_at": "2025-12-25T08:25:03.621851Z",
-      "workflow_version": "v0.8.7"
-    }
-  ],
+  "computed_files": [],
   "contacts": [
     {
       "email": "adam.green@cuanschutz.edu",
       "name": "Adam Green"
     }
   ],
-  "created_at": "2025-11-11T01:44:12.027242Z",
+  "created_at": "2026-02-10T22:30:32.854813Z",
   "diagnoses_counts": {
     "Glioblastoma": 16,
     "Non-cancerous": 1,
@@ -159,12 +44,12 @@
   "disease_timings": [
     "First recurrence after treatment for glioblastoma",
     "Initial diagnosis of 2nd primary RIG",
-    "Initial diagnosis",
     "Autopsy",
+    "Initial diagnosis",
     "Metastatic recurrence of anaplastic pleomorphic xanthoastrocytoma",
     "Recurrence as glioblastoma after multiple resections for pleomorphic xanthoastrocytoma"
   ],
-  "downloadable_sample_count": 23,
+  "downloadable_sample_count": 0,
   "external_accessions": [
     {
       "accession": "SRP436316",
@@ -234,47 +119,8 @@
       },
       "age": "14",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:23:38.160467Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13196,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000001_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000001",
-          "size_in_bytes": 123739692,
-          "updated_at": "2025-12-25T08:23:38.160488Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:24:14.224379Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13203,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000001_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000001",
-          "size_in_bytes": 267349845,
-          "updated_at": "2025-12-25T08:24:14.224399Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.087492Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.926892Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Anaplastic glioma",
       "disease_timing": "Initial diagnosis",
@@ -292,7 +138,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 3422,
+      "sample_cell_count_estimate": 3428,
       "scpca_id": "SCPCS000001",
       "seq_units": [
         "bulk",
@@ -301,12 +147,12 @@
       "sex": "F",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Right thalamus/midbrain",
       "treatment": "Debulking, RT, irinotecan/cetuximab",
-      "updated_at": "2025-11-11T01:44:12.087517Z"
+      "updated_at": "2026-02-10T22:30:32.926905Z"
     },
     {
       "additional_metadata": {
@@ -325,47 +171,8 @@
       },
       "age": "7",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:24:06.345959Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13199,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000002_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000002",
-          "size_in_bytes": 106425352,
-          "updated_at": "2025-12-25T08:24:06.345978Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:24:08.038333Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13200,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000002_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000002",
-          "size_in_bytes": 50615400,
-          "updated_at": "2025-12-25T08:24:08.038353Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.087636Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.926960Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -383,7 +190,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 1573,
+      "sample_cell_count_estimate": 1572,
       "scpca_id": "SCPCS000002",
       "seq_units": [
         "bulk",
@@ -392,12 +199,12 @@
       "sex": "F",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Right thalamus",
       "treatment": "STR, RT/TMZ/CCNU",
-      "updated_at": "2025-11-11T01:44:12.087647Z"
+      "updated_at": "2026-02-10T22:30:32.926965Z"
     },
     {
       "additional_metadata": {
@@ -416,47 +223,8 @@
       },
       "age": "10",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:24:10.632383Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13202,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000003_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000003",
-          "size_in_bytes": 21275807,
-          "updated_at": "2025-12-25T08:24:10.632405Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:24:37.789352Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13204,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000003_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000003",
-          "size_in_bytes": 51413535,
-          "updated_at": "2025-12-25T08:24:37.789374Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.087724Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927003Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -483,12 +251,12 @@
       "sex": "M",
       "subdiagnosis": "Gliomatosis cerebri",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Left frontal with right frontal and left basal ganglia involvement",
       "treatment": "STR, RT",
-      "updated_at": "2025-11-11T01:44:12.087733Z"
+      "updated_at": "2026-02-10T22:30:32.927007Z"
     },
     {
       "additional_metadata": {
@@ -507,47 +275,8 @@
       },
       "age": "15",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:24:10.362454Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13201,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000004_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000004",
-          "size_in_bytes": 41597850,
-          "updated_at": "2025-12-25T08:24:10.362484Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:25:09.141074Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13209,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000004_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000004",
-          "size_in_bytes": 86065549,
-          "updated_at": "2025-12-25T08:25:09.141094Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.087806Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927044Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "High-grade glioma",
       "disease_timing": "Initial diagnosis",
@@ -565,7 +294,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 842,
+      "sample_cell_count_estimate": 843,
       "scpca_id": "SCPCS000004",
       "seq_units": [
         "bulk",
@@ -574,12 +303,12 @@
       "sex": "M",
       "subdiagnosis": "Poorly differentiated, RIG",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Pons/Cerebellum",
       "treatment": "RT",
-      "updated_at": "2025-11-11T01:44:12.087835Z"
+      "updated_at": "2026-02-10T22:30:32.927049Z"
     },
     {
       "additional_metadata": {
@@ -598,47 +327,8 @@
       },
       "age": "8",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:24:39.002693Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13205,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000005_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000005",
-          "size_in_bytes": 27339853,
-          "updated_at": "2025-12-25T08:24:39.002715Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:25:44.726518Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13213,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000005_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000005",
-          "size_in_bytes": 61745939,
-          "updated_at": "2025-12-25T08:25:44.726540Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.087913Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927084Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Diffuse midline glioma",
       "disease_timing": "Initial diagnosis",
@@ -656,7 +346,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 384,
+      "sample_cell_count_estimate": 385,
       "scpca_id": "SCPCS000005",
       "seq_units": [
         "bulk",
@@ -665,12 +355,12 @@
       "sex": "M",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Right thalamus",
       "treatment": "Debulking, RT",
-      "updated_at": "2025-11-11T01:44:12.087922Z"
+      "updated_at": "2026-02-10T22:30:32.927088Z"
     },
     {
       "additional_metadata": {
@@ -689,47 +379,8 @@
       },
       "age": "15",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:25:12.812366Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13210,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000006_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000006",
-          "size_in_bytes": 212282632,
-          "updated_at": "2025-12-25T08:25:12.812388Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:25:40.450058Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13212,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000006_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000006",
-          "size_in_bytes": 97349053,
-          "updated_at": "2025-12-25T08:25:40.450079Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.087993Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927124Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -746,7 +397,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 2281,
+      "sample_cell_count_estimate": 2282,
       "scpca_id": "SCPCS000006",
       "seq_units": [
         "cell"
@@ -754,11 +405,11 @@
       "sex": "M",
       "subdiagnosis": "RIG",
       "technologies": [
-        "10Xv3"
+        "10xv3"
       ],
       "tissue_location": "Left cerebral hemisphere",
       "treatment": "RT, olaparib, Optune",
-      "updated_at": "2025-11-11T01:44:12.088001Z"
+      "updated_at": "2026-02-10T22:30:32.927129Z"
     },
     {
       "additional_metadata": {
@@ -777,47 +428,8 @@
       },
       "age": "11",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:25:47.596352Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13214,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000007_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000007",
-          "size_in_bytes": 78521462,
-          "updated_at": "2025-12-25T08:25:47.596374Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:25:49.607013Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13215,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000007_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000007",
-          "size_in_bytes": 164904735,
-          "updated_at": "2025-12-25T08:25:49.607034Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088080Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927164Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -844,12 +456,12 @@
       "sex": "F",
       "subdiagnosis": "RIG",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "single_end"
       ],
       "tissue_location": "Left frontal (with satellite lesions in same lobe)",
       "treatment": "PR, RT/cetuximab",
-      "updated_at": "2025-11-11T01:44:12.088089Z"
+      "updated_at": "2026-02-10T22:30:32.927168Z"
     },
     {
       "additional_metadata": {
@@ -868,47 +480,8 @@
       },
       "age": "12",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:25:40.042794Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13211,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000008_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000008",
-          "size_in_bytes": 105694548,
-          "updated_at": "2025-12-25T08:25:40.042813Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:26:15.759065Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13219,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000008_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000008",
-          "size_in_bytes": 223143724,
-          "updated_at": "2025-12-25T08:26:15.759089Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088161Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927204Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -926,7 +499,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 6001,
+      "sample_cell_count_estimate": 5996,
       "scpca_id": "SCPCS000008",
       "seq_units": [
         "bulk",
@@ -935,12 +508,12 @@
       "sex": "M",
       "subdiagnosis": "RIG",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "single_end"
       ],
       "tissue_location": "Cerebellum (multiple masses)",
       "treatment": "PR, RT/cetuximab",
-      "updated_at": "2025-11-11T01:44:12.088169Z"
+      "updated_at": "2026-02-10T22:30:32.927208Z"
     },
     {
       "additional_metadata": {
@@ -959,47 +532,8 @@
       },
       "age": "15",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:26:11.789157Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13217,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000009_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000009",
-          "size_in_bytes": 37927237,
-          "updated_at": "2025-12-25T08:26:11.789177Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:26:22.656875Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13220,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000009_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000009",
-          "size_in_bytes": 81677476,
-          "updated_at": "2025-12-25T08:26:22.656897Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088238Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927243Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -1017,7 +551,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 706,
+      "sample_cell_count_estimate": 708,
       "scpca_id": "SCPCS000009",
       "seq_units": [
         "bulk",
@@ -1026,12 +560,12 @@
       "sex": "M",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Right frontotemporal",
       "treatment": "STR, RT/TMZ/cetuximab",
-      "updated_at": "2025-11-11T01:44:12.088247Z"
+      "updated_at": "2026-02-10T22:30:32.927247Z"
     },
     {
       "additional_metadata": {
@@ -1050,47 +584,8 @@
       },
       "age": "21",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:26:13.247883Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13218,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000010_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000010",
-          "size_in_bytes": 21657992,
-          "updated_at": "2025-12-25T08:26:13.247903Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:26:27.302063Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13221,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000010_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000010",
-          "size_in_bytes": 50500029,
-          "updated_at": "2025-12-25T08:26:27.302086Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088318Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927283Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis of 2nd primary RIG",
@@ -1117,12 +612,12 @@
       "sex": "M",
       "subdiagnosis": "RIG",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Right parietal",
       "treatment": "GTR, RT, Optune; entrectinib started just before progression",
-      "updated_at": "2025-11-11T01:44:12.088326Z"
+      "updated_at": "2026-02-10T22:30:32.927287Z"
     },
     {
       "additional_metadata": {
@@ -1141,47 +636,8 @@
       },
       "age": "21",
       "age_timing": "unknown",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:26:10.161190Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13216,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000011_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000011",
-          "size_in_bytes": 43855969,
-          "updated_at": "2025-12-25T08:26:10.161210Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:26:47.527854Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13222,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000011_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000011",
-          "size_in_bytes": 91659744,
-          "updated_at": "2025-12-25T08:26:47.527878Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088397Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927321Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Non-cancerous",
       "disease_timing": "NA",
@@ -1198,7 +654,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 878,
+      "sample_cell_count_estimate": 879,
       "scpca_id": "SCPCS000011",
       "seq_units": [
         "cell"
@@ -1206,11 +662,11 @@
       "sex": "M",
       "subdiagnosis": "Normal margin",
       "technologies": [
-        "10Xv3"
+        "10xv3"
       ],
       "tissue_location": "NA",
       "treatment": "NA",
-      "updated_at": "2025-11-11T01:44:12.088405Z"
+      "updated_at": "2026-02-10T22:30:32.927326Z"
     },
     {
       "additional_metadata": {
@@ -1229,47 +685,8 @@
       },
       "age": "6",
       "age_timing": "unknown",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:27:21.772966Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13226,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000012_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000012",
-          "size_in_bytes": 131898134,
-          "updated_at": "2025-12-25T08:27:21.772987Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:27:23.991597Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13228,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000012_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000012",
-          "size_in_bytes": 64306565,
-          "updated_at": "2025-12-25T08:27:23.991618Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088475Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927362Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Pleomorphic xanthoastrocytoma",
       "disease_timing": "First recurrence after treatment for glioblastoma",
@@ -1286,7 +703,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 2298,
+      "sample_cell_count_estimate": 2299,
       "scpca_id": "SCPCS000012",
       "seq_units": [
         "cell"
@@ -1294,11 +711,11 @@
       "sex": "M",
       "subdiagnosis": "Glioblastoma treatment induced",
       "technologies": [
-        "10Xv3"
+        "10xv3"
       ],
       "tissue_location": "Right cerebellum",
       "treatment": "GTR, focal RT",
-      "updated_at": "2025-11-11T01:44:12.088483Z"
+      "updated_at": "2026-02-10T22:30:32.927366Z"
     },
     {
       "additional_metadata": {
@@ -1317,47 +734,8 @@
       },
       "age": "15",
       "age_timing": "unknown",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:27:15.386850Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13223,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000013_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000013",
-          "size_in_bytes": 70687939,
-          "updated_at": "2025-12-25T08:27:15.386871Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:27:23.630419Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13227,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000013_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000013",
-          "size_in_bytes": 153530001,
-          "updated_at": "2025-12-25T08:27:23.630440Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088553Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927402Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Recurrence as glioblastoma after multiple resections for pleomorphic xanthoastrocytoma",
@@ -1384,12 +762,12 @@
       "sex": "F",
       "subdiagnosis": "Epithelioid",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Left temporal/occipital",
       "treatment": "GTR, vemurafenib; focal RT (for recurrence)",
-      "updated_at": "2025-11-11T01:44:12.088562Z"
+      "updated_at": "2026-02-10T22:30:32.927406Z"
     },
     {
       "additional_metadata": {
@@ -1408,47 +786,8 @@
       },
       "age": "18",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:27:15.699248Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13224,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000014_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000014",
-          "size_in_bytes": 52080040,
-          "updated_at": "2025-12-25T08:27:15.699269Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:28:03.439725Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13235,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000014_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000014",
-          "size_in_bytes": 109110940,
-          "updated_at": "2025-12-25T08:28:03.439747Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088640Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927442Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -1475,12 +814,12 @@
       "sex": "M",
       "subdiagnosis": "Epithelioid/giant cell",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Left frontal",
       "treatment": "GTR, RT, cetuximab",
-      "updated_at": "2025-11-11T01:44:12.088650Z"
+      "updated_at": "2026-02-10T22:30:32.927446Z"
     },
     {
       "additional_metadata": {
@@ -1499,47 +838,8 @@
       },
       "age": "18",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:27:18.986979Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13225,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000015_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000015",
-          "size_in_bytes": 154731708,
-          "updated_at": "2025-12-25T08:27:18.987001Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:27:46.938136Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13230,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000015_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000015",
-          "size_in_bytes": 74958029,
-          "updated_at": "2025-12-25T08:27:46.938158Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088722Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927482Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -1557,7 +857,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 1654,
+      "sample_cell_count_estimate": 1656,
       "scpca_id": "SCPCS000015",
       "seq_units": [
         "bulk",
@@ -1566,12 +866,12 @@
       "sex": "F",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Right thalamus",
       "treatment": "GTR/NTR, RT/TMZ, TMZ/Avastin",
-      "updated_at": "2025-11-11T01:44:12.088730Z"
+      "updated_at": "2026-02-10T22:30:32.927487Z"
     },
     {
       "additional_metadata": {
@@ -1590,47 +890,8 @@
       },
       "age": "11",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:27:57.813383Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13233,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000016_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000016",
-          "size_in_bytes": 203768144,
-          "updated_at": "2025-12-25T08:27:57.813404Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:27:58.229033Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13234,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000016_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000016",
-          "size_in_bytes": 95775134,
-          "updated_at": "2025-12-25T08:27:58.229053Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088801Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927523Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Anaplastic astrocytoma",
       "disease_timing": "Initial diagnosis",
@@ -1648,7 +909,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 3318,
+      "sample_cell_count_estimate": 3316,
       "scpca_id": "SCPCS000016",
       "seq_units": [
         "bulk",
@@ -1657,12 +918,12 @@
       "sex": "M",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Right cerebral hemisphere (centered in right parietal lobe)",
       "treatment": "STR, RT/cetuximab/TMZ",
-      "updated_at": "2025-11-11T01:44:12.088824Z"
+      "updated_at": "2026-02-10T22:30:32.927527Z"
     },
     {
       "additional_metadata": {
@@ -1681,47 +942,8 @@
       },
       "age": "4",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:27:52.026924Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13231,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000017_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000017",
-          "size_in_bytes": 106779149,
-          "updated_at": "2025-12-25T08:27:52.026944Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:27:52.745141Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13232,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000017_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000017",
-          "size_in_bytes": 51114578,
-          "updated_at": "2025-12-25T08:27:52.745163Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088909Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927563Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -1748,12 +970,12 @@
       "sex": "F",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "C/T-spine",
       "treatment": "PR, RT",
-      "updated_at": "2025-11-11T01:44:12.088917Z"
+      "updated_at": "2026-02-10T22:30:32.927567Z"
     },
     {
       "additional_metadata": {
@@ -1772,47 +994,8 @@
       },
       "age": "7",
       "age_timing": "unknown",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:28:21.662066Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13236,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000018_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000018",
-          "size_in_bytes": 12441486,
-          "updated_at": "2025-12-25T08:28:21.662086Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:28:52.569694Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13238,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000018_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000018",
-          "size_in_bytes": 33917871,
-          "updated_at": "2025-12-25T08:28:52.569718Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.088990Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927602Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Autopsy",
@@ -1837,11 +1020,11 @@
       "sex": "F",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3"
+        "10xv3"
       ],
       "tissue_location": "Pons and surrounding areas",
       "treatment": "RT",
-      "updated_at": "2025-11-11T01:44:12.088998Z"
+      "updated_at": "2026-02-10T22:30:32.927607Z"
     },
     {
       "additional_metadata": {
@@ -1860,47 +1043,8 @@
       },
       "age": "11",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:28:54.187918Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13239,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000019_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000019",
-          "size_in_bytes": 87350509,
-          "updated_at": "2025-12-25T08:28:54.187942Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:29:01.370545Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13242,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000019_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000019",
-          "size_in_bytes": 181058361,
-          "updated_at": "2025-12-25T08:29:01.370567Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.089068Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927642Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -1927,12 +1071,12 @@
       "sex": "M",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Left thalamus",
       "treatment": "GTR, RT, TMZ",
-      "updated_at": "2025-11-11T01:44:12.089076Z"
+      "updated_at": "2026-02-10T22:30:32.927646Z"
     },
     {
       "additional_metadata": {
@@ -1951,47 +1095,8 @@
       },
       "age": "17",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:28:51.281618Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13237,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000020_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000020",
-          "size_in_bytes": 35325110,
-          "updated_at": "2025-12-25T08:28:51.281641Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:28:58.130276Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13240,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000020_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000020",
-          "size_in_bytes": 76985113,
-          "updated_at": "2025-12-25T08:28:58.130298Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.089147Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.927681Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -2018,12 +1123,12 @@
       "sex": "F",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Left frontal",
       "treatment": "PR, RT, TMZ",
-      "updated_at": "2025-11-11T01:44:12.089155Z"
+      "updated_at": "2026-02-10T22:30:32.927685Z"
     },
     {
       "additional_metadata": {
@@ -2042,47 +1147,8 @@
       },
       "age": "7",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:28:58.167236Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13241,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000021_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000021",
-          "size_in_bytes": 102208932,
-          "updated_at": "2025-12-25T08:28:58.167257Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:29:22.949687Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13244,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000021_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000021",
-          "size_in_bytes": 47440971,
-          "updated_at": "2025-12-25T08:29:22.949709Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.089226Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.928595Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "High-grade glioma",
       "disease_timing": "Initial diagnosis",
@@ -2109,12 +1175,12 @@
       "sex": "M",
       "subdiagnosis": "NA",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "Left temporal",
       "treatment": "PR, RT, MEK inhibitor",
-      "updated_at": "2025-11-11T01:44:12.089234Z"
+      "updated_at": "2026-02-10T22:30:32.928602Z"
     },
     {
       "additional_metadata": {
@@ -2133,47 +1199,8 @@
       },
       "age": "15",
       "age_timing": "diagnosis",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:29:30.738066Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13246,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000022_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000022",
-          "size_in_bytes": 40976735,
-          "updated_at": "2025-12-25T08:29:30.738086Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:29:32.140875Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13247,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000022_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000022",
-          "size_in_bytes": 85910804,
-          "updated_at": "2025-12-25T08:29:32.140924Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.089312Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.928639Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Initial diagnosis",
@@ -2191,7 +1218,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 728,
+      "sample_cell_count_estimate": 729,
       "scpca_id": "SCPCS000022",
       "seq_units": [
         "bulk",
@@ -2200,12 +1227,12 @@
       "sex": "F",
       "subdiagnosis": "Epithelioid/giant cell",
       "technologies": [
-        "10Xv3",
+        "10xv3",
         "paired_end"
       ],
       "tissue_location": "3rd/lateral ventricles, pineal",
       "treatment": "STR, RT/TMZ/CCNU",
-      "updated_at": "2025-11-11T01:44:12.089321Z"
+      "updated_at": "2026-02-10T22:30:32.928643Z"
     },
     {
       "additional_metadata": {
@@ -2224,47 +1251,8 @@
       },
       "age": "24",
       "age_timing": "unknown",
-      "computed_files": [
-        {
-          "created_at": "2025-12-25T08:29:22.538626Z",
-          "format": "SINGLE_CELL_EXPERIMENT",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13243,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000023_SINGLE-CELL_SINGLE-CELL-EXPERIMENT.zip",
-          "sample": "SCPCS000023",
-          "size_in_bytes": 69603467,
-          "updated_at": "2025-12-25T08:29:22.538649Z",
-          "workflow_version": "v0.8.7"
-        },
-        {
-          "created_at": "2025-12-25T08:29:28.854949Z",
-          "format": "ANN_DATA",
-          "has_bulk_rna_seq": false,
-          "has_cite_seq_data": false,
-          "has_multiplexed_data": false,
-          "id": 13245,
-          "includes_merged": false,
-          "metadata_only": false,
-          "portal_metadata_only": false,
-          "modality": "SINGLE_CELL",
-          "project": null,
-          "s3_bucket": "scpca-portal-deployer-staging",
-          "s3_key": "SCPCS000023_SINGLE-CELL_ANN-DATA.zip",
-          "sample": "SCPCS000023",
-          "size_in_bytes": 143903585,
-          "updated_at": "2025-12-25T08:29:28.854973Z",
-          "workflow_version": "v0.8.7"
-        }
-      ],
-      "created_at": "2025-11-11T01:44:12.089393Z",
+      "computed_files": [],
+      "created_at": "2026-02-10T22:30:32.928679Z",
       "demux_cell_count_estimate_sum": null,
       "diagnosis": "Glioblastoma",
       "disease_timing": "Metastatic recurrence of anaplastic pleomorphic xanthoastrocytoma",
@@ -2281,7 +1269,7 @@
       ],
       "multiplexed_with": [],
       "project": "SCPCP000001",
-      "sample_cell_count_estimate": 2099,
+      "sample_cell_count_estimate": 2097,
       "scpca_id": "SCPCS000023",
       "seq_units": [
         "cell"
@@ -2289,11 +1277,11 @@
       "sex": "F",
       "subdiagnosis": "Epithelioid",
       "technologies": [
-        "10Xv3"
+        "10xv3"
       ],
       "tissue_location": "Right frontal leptomeninges",
       "treatment": "GTR, vemurafenib, chloroquine",
-      "updated_at": "2025-11-11T01:44:12.089401Z"
+      "updated_at": "2026-02-10T22:30:32.928683Z"
     }
   ],
   "modality_samples": {
@@ -2334,56 +1322,56 @@
       "diagnosis": "Anaplastic glioma",
       "sample_count": 1,
       "seq_unit": "cell",
-      "technology": "10Xv3",
-      "updated_at": "2025-11-11T01:44:13.606214Z"
+      "technology": "10xv3",
+      "updated_at": "2026-02-10T22:30:34.413196Z"
     },
     {
       "diagnosis": "Glioblastoma",
       "sample_count": 16,
       "seq_unit": "cell",
-      "technology": "10Xv3",
-      "updated_at": "2025-11-11T01:44:13.614632Z"
+      "technology": "10xv3",
+      "updated_at": "2026-02-10T22:30:34.425228Z"
     },
     {
       "diagnosis": "High-grade glioma",
       "sample_count": 2,
       "seq_unit": "cell",
-      "technology": "10Xv3",
-      "updated_at": "2025-11-11T01:44:13.623345Z"
+      "technology": "10xv3",
+      "updated_at": "2026-02-10T22:30:34.432443Z"
     },
     {
       "diagnosis": "Diffuse midline glioma",
       "sample_count": 1,
       "seq_unit": "cell",
-      "technology": "10Xv3",
-      "updated_at": "2025-11-11T01:44:13.634143Z"
+      "technology": "10xv3",
+      "updated_at": "2026-02-10T22:30:34.440197Z"
     },
     {
       "diagnosis": "Non-cancerous",
       "sample_count": 1,
       "seq_unit": "cell",
-      "technology": "10Xv3",
-      "updated_at": "2025-11-11T01:44:13.641847Z"
+      "technology": "10xv3",
+      "updated_at": "2026-02-10T22:30:34.446934Z"
     },
     {
       "diagnosis": "Pleomorphic xanthoastrocytoma",
       "sample_count": 1,
       "seq_unit": "cell",
-      "technology": "10Xv3",
-      "updated_at": "2025-11-11T01:44:13.651974Z"
+      "technology": "10xv3",
+      "updated_at": "2026-02-10T22:30:34.454810Z"
     },
     {
       "diagnosis": "Anaplastic astrocytoma",
       "sample_count": 1,
       "seq_unit": "cell",
-      "technology": "10Xv3",
-      "updated_at": "2025-11-11T01:44:13.659454Z"
+      "technology": "10xv3",
+      "updated_at": "2026-02-10T22:30:34.462249Z"
     }
   ],
   "technologies": [
-    "10Xv3"
+    "10xv3"
   ],
   "title": "Single cell RNA sequencing of pediatric high-grade gliomas",
   "unavailable_samples_count": 0,
-  "updated_at": "2025-12-25T08:29:32.148903Z"
+  "updated_at": "2026-02-10T22:30:34.366346Z"
 }

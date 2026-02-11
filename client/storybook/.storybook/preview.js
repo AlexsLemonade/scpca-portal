@@ -1,6 +1,4 @@
-const { default: theme } = require('./decorators/theme')
-const { default: context } = require('./decorators/context')
+import theme from './decorators/theme'
+import context from './decorators/context'
 
-module.exports = {
-  decorators: [theme, context]
-}
+export const decorators = [theme, context]
