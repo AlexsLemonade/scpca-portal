@@ -12,17 +12,17 @@ const compat = new FlatCompat({
 })
 
 export default [
-  // ignore patterns
+  // Ignore patterns
   {
     ignores: ['cellbrowser/']
   },
-  // legacy configs
+  // Legacy configs
   ...compat.extends(
     'airbnb',
     'plugin:prettier/recommended',
     'plugin:storybook/recommended'
   ),
-  // project rules
+  // Project rules
   {
     languageOptions: {
       parser: babelParser,
@@ -41,6 +41,7 @@ export default [
     },
 
     rules: {
+      // JS correctness, safety, styling and formatting
       camelcase: 'warn',
       'max-len': [
         'warn',
@@ -56,28 +57,45 @@ export default [
           ignoreRegExpLiterals: true
         }
       ],
-      'jsx-a11y/href-no-hash': ['off'],
-      'react/jsx-filename-extension': ['warn', { extensions: ['.js', '.jsx'] }],
-      'react/jsx-one-expression-per-line': 0,
-      'no-console': ['error', { allow: ['error'] }], // only allow `console.error` calls
-      'no-unused-vars': 2,
-      'no-func-assign': 0,
 
-      // Not sure if we should enforce these rules.
-      'class-methods-use-this': 0,
-      'react/prop-types': 0,
+      'default-param-last': 'warn',
+      'no-class-assign': 'off',
+      'no-console': ['error', { allow: ['error'] }], // only allow `console.error` calls
+      'no-continue': 'off',
+      'no-func-assign': 'off',
       'no-nested-ternary': 'warn',
-      'no-class-assign': 0,
-      'no-restricted-syntax': 0,
-      'no-continue': 0,
-      'react/destructuring-assignment': 0,
-      'react/no-unescaped-entities': 0,
-      'jsx-a11y/click-events-have-key-events': 0,
-      'import/prefer-default-export': 0,
-      'no-use-before-define': 0,
-      'react/no-multi-comp': 0,
-      'import/no-mutable-exports': 0,
-      'react/jsx-props-no-spreading': 'warn'
+      'no-promise-executor-return': 'warn',
+      'no-restricted-syntax': 'off',
+      'no-unsafe-optional-chaining': 'warn',
+      'no-unused-vars': 'error',
+      'no-use-before-define': 'off',
+
+      // React correctness, safety, styling and formatting
+      'react/destructuring-assignment': 'off',
+      'react/function-component-definition': [
+        'warn',
+        {
+          namedComponents: 'arrow-function',
+          unnamedComponents: 'arrow-function'
+        }
+      ],
+      'react/jsx-filename-extension': ['warn', { extensions: ['.js', '.jsx'] }],
+      'react/jsx-no-useless-fragment': 'warn',
+      'react/jsx-no-constructed-context-values': 'warn',
+      'react/jsx-one-expression-per-line': 'off',
+      'react/jsx-props-no-spreading': 'warn',
+      'react/no-multi-comp': 'off',
+      'react/no-unescaped-entities': 'off',
+      'react/no-unstable-nested-components': ['warn', { allowAsProps: true }],
+      'react/prop-types': 'off',
+
+      'jsx-a11y/href-no-hash': 'off',
+      'jsx-a11y/click-events-have-key-events': 'off',
+
+      // Relax Airbnb strictness
+      'class-methods-use-this': 'off',
+      'import/no-mutable-exports': 'off',
+      'import/prefer-default-export': 'off'
     },
 
     settings: {
