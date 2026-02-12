@@ -1,7 +1,11 @@
+from collections import defaultdict
 from datetime import datetime
 from typing import List
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.timezone import make_aware
 
@@ -23,9 +27,43 @@ from scpca_portal.exceptions import (
     JobTerminationFailedError,
 )
 from scpca_portal.models.base import TimestampedModel
-from scpca_portal.models.dataset import Dataset
+from scpca_portal.models.datasets.base import DatasetABC
+from scpca_portal.models.datasets.ccdl_dataset import CCDLDataset
 
 logger = get_and_configure_logger(__name__)
+
+
+class JobQuerySet(models.QuerySet):
+    def _validate_bulk(self, jobs):
+        for job in jobs:
+            job.validate_dataset()
+
+    def bulk_create(self, objs, *args, **kwargs):
+        self._validate_bulk(objs)
+        return super().bulk_create(objs, *args, **kwargs)
+
+    def bulk_update(self, objs, fields, *args, **kwargs):
+        job_dataset_fields = {"dataset", "dataset_content_type", "dataset_object_id"}
+        if job_dataset_fields & set(fields):
+            self._validate_bulk(objs)
+
+        return super().bulk_update(objs, fields, *args, **kwargs)
+
+    # The update method doesn't load Job instances into memory,
+    # but instead performs a single SQL UPDATE operation (SQL UPDATE vs SQL SELECT and UPDATE).
+    # This effectively bypasses any possible validation by Django, as we've implemented above.
+    # As such, we override it to restrict Job.dataset updates to where Django can perform validation
+    def update(self, **kwargs):
+        job_dataset_fields = {"dataset", "dataset_content_type", "dataset_object_id"}
+        if job_dataset_fields & kwargs.keys():
+            raise RuntimeError(
+                "Job model dataset updates are restricted to the save() and bulk_update() methods."
+            )
+        return super().update(**kwargs)
+
+
+class JobManager(models.Manager.from_queryset(JobQuerySet)):
+    pass
 
 
 class Job(TimestampedModel):
@@ -33,6 +71,8 @@ class Job(TimestampedModel):
         db_table = "jobs"
         get_latest_by = "updated_at"
         ordering = ["updated_at"]
+
+    objects = JobManager()
 
     # Internal Attributes
     attempt = models.PositiveIntegerField(default=1)  # Incremented on every retry
@@ -57,7 +97,9 @@ class Job(TimestampedModel):
     batch_status = models.TextField(null=True)  # Set by a cron job
 
     # Datasets should never be deleted
-    dataset = models.ForeignKey(Dataset, null=True, on_delete=models.SET_NULL, related_name="jobs")
+    dataset_content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True)
+    dataset_object_id = models.UUIDField(null=True)
+    dataset = GenericForeignKey("dataset_content_type", "dataset_object_id")
 
     # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
     # Number should be half of max fargate ephemeral storage (which is 200 GB)
@@ -71,14 +113,22 @@ class Job(TimestampedModel):
 
     # INSTANCE CREATIONAL LOGIC
     @classmethod
-    def get_dataset_job(cls, dataset: Dataset) -> Self:
+    def get_dataset_job(cls, dataset: DatasetABC) -> Self:
         """
         Prepare a Job instance for a dataset without saving it to the db.
         """
-        return cls(
-            batch_job_name=str(dataset.id),
-            dataset=dataset,
-        )
+        return cls(batch_job_name=str(dataset.id), dataset=dataset)
+
+    def validate_dataset(self) -> None:
+        if self.dataset and not issubclass(type(self.dataset), DatasetABC):
+            raise ValidationError(
+                f"Job.dataset cannot be of type {type(self.dataset)}. "
+                "It must be of type DatasetABC."
+            )
+
+    def save(self, *args, **kwargs):
+        self.validate_dataset()
+        super().save(*args, **kwargs)
 
     @classmethod
     def get_project_job(
@@ -189,18 +239,19 @@ class Job(TimestampedModel):
             return []
 
         retry_jobs = []
-        retry_datasets = []
+        retry_datasets = defaultdict(list)
 
         for job in jobs:
             if retry_job := job.create_retry_job(save=False):
                 retry_jobs.append(retry_job)
                 if job.dataset:  # TODO: Remove after the dataset release
-                    retry_datasets.append(job.dataset)
+                    retry_datasets[job.dataset.get_class()].append(job.dataset)
 
         if retry_jobs:
             cls.objects.bulk_create(retry_jobs)
             if retry_datasets:  # TODO: Remove after the dataset release
-                Dataset.bulk_update_state(retry_datasets)
+                for dataset_cls, datasets in retry_datasets.items():
+                    dataset_cls.bulk_update_state(datasets)
 
         return retry_jobs
 
@@ -254,7 +305,7 @@ class Job(TimestampedModel):
             return False
 
         synced_jobs = []
-        synced_datasets = []
+        synced_datasets = defaultdict(list)
         failed_job_ids = []
 
         fetched_jobs = []
@@ -272,7 +323,7 @@ class Job(TimestampedModel):
                 if job.apply_state(new_state, reason):
                     synced_jobs.append(job)
                     if job.dataset:  # TODO: Remove after the dataset release
-                        synced_datasets.append(job.dataset)
+                        synced_datasets[job.dataset.get_class()].append(job.dataset)
 
         if not synced_jobs:
             logger.info("No jobs were updated during sync.")
@@ -281,7 +332,8 @@ class Job(TimestampedModel):
         logger.info(f"Synced {len(synced_jobs)} jobs with AWS.")
         cls.bulk_update_state(synced_jobs)
         if synced_datasets:  # TODO: Remove after the dataset release
-            Dataset.bulk_update_state(synced_datasets)
+            for dataset_cls, datasets in synced_datasets.items():
+                dataset_cls.bulk_update_state(datasets)
 
         if failed_job_ids:
             logger.info(f"{len(failed_job_ids)} jobs failed to sync.")
@@ -416,7 +468,7 @@ class Job(TimestampedModel):
         Returns all the submitted jobs.
         """
         submitted_jobs = []
-        submitted_datasets = []
+        submitted_datasets = defaultdict(list)
         pending_jobs = []
         failed_jobs = []
 
@@ -425,7 +477,7 @@ class Job(TimestampedModel):
                 job.submit(save=False)  # Jobs are saved in bulk outside of the loop
                 submitted_jobs.append(job)
                 if job.dataset:  # TODO: Remove after the dataset release
-                    submitted_datasets.append(job.dataset)
+                    submitted_datasets[job.dataset.get_class()].append(job.dataset)
             except (JobError, DatasetError):
                 if job.increment_attempt_or_fail():
                     pending_jobs.append(job)
@@ -437,12 +489,15 @@ class Job(TimestampedModel):
             cls.objects.bulk_update(submitted_jobs, updated_batch_attrs)
             cls.bulk_update_state(submitted_jobs)
             if submitted_datasets:  # TODO: Remove after the dataset release
-                Dataset.bulk_update_state(submitted_datasets)
+                for dataset_cls, datasets in submitted_datasets.items():
+                    dataset_cls.bulk_update_state(datasets)
 
         return submitted_jobs, pending_jobs, failed_jobs
 
     @classmethod
-    def submit_ccdl_datasets(cls, ccdl_datasets) -> tuple[List[Self], List[Self]]:
+    def submit_ccdl_datasets(
+        cls, ccdl_datasets: List[CCDLDataset]
+    ) -> tuple[List[Self], List[Self]]:
         """Gets and submits jobs for all passed ccdl datasets."""
         submitted_jobs = []
         failed_jobs = []
@@ -488,7 +543,7 @@ class Job(TimestampedModel):
         Returns all the terminated jobs.
         """
         terminated_jobs = []
-        terminated_datasets = []
+        terminated_datasets = defaultdict(list)
         final_state_jobs = []
         failed_jobs = []
 
@@ -497,7 +552,7 @@ class Job(TimestampedModel):
                 job.terminate(reason=reason, save=False)
                 terminated_jobs.append(job)
                 if job.dataset:  # TODO: Remove after the dataset release
-                    terminated_datasets.append(job.dataset)
+                    terminated_datasets[job.dataset.get_class()].append(job.dataset)
             except JobInvalidTerminateStateError:
                 final_state_jobs.append(job)
             except JobError:
@@ -507,7 +562,8 @@ class Job(TimestampedModel):
             logger.info(f"Terminated {len(terminated_jobs)} jobs on AWS.")
             cls.bulk_update_state(terminated_jobs)
             if terminated_datasets:  # TODO: Remove after the dataset release
-                Dataset.bulk_update_state(terminated_datasets)
+                for dataset_cls, datasets in terminated_datasets.items():
+                    dataset_cls.bulk_update_state(datasets)
 
         if final_state_jobs:
             logger.info(f"{len(final_state_jobs)} jobs were not in a terminable state.")

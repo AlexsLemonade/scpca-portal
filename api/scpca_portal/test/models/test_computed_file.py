@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from scpca_portal import loader, metadata_parser, utils
 from scpca_portal.enums import CCDLDatasetNames
-from scpca_portal.models import ComputedFile, Dataset
+from scpca_portal.models import CCDLDataset, ComputedFile, UserDataset
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
 
@@ -90,7 +90,7 @@ class TestGetFile(TestCase):
         ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
         project_id = "SCPCP999990"
 
-        dataset, _ = Dataset.get_or_find_ccdl_dataset(ccdl_name, project_id)
+        dataset, _ = CCDLDataset.get_or_find(ccdl_name, project_id)
         dataset.save()
 
         computed_file = ComputedFile.get_dataset_file(dataset)
@@ -100,7 +100,7 @@ class TestGetFile(TestCase):
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                test_data.DatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_LIST,
+                test_data.CCDLDatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_LIST,
             )
 
         # CHECK COMPUTED FILE ATTRIBUTES
@@ -109,7 +109,7 @@ class TestGetFile(TestCase):
             attribute,
             value,
         ) in (
-            test_data.DatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_VALUES.items()
+            test_data.CCDLDatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_VALUES.items()  # noqa
         ):
             msg = f"The actual and expected `{attribute}` values differ in {computed_file}"
             self.assertEqual(getattr(computed_file, attribute), value, msg)
@@ -117,9 +117,9 @@ class TestGetFile(TestCase):
     def test_original_file_zip_namelist(self):
         self.maxDiff = None
 
-        dataset = Dataset(
-            data=test_data.DatasetCustomSingleCellExperiment.VALUES["data"],
-            format=test_data.DatasetCustomSingleCellExperiment.VALUES["format"],
+        dataset = UserDataset(
+            data=test_data.UserDatasetSingleCellExperiment.VALUES["data"],
+            format=test_data.UserDatasetSingleCellExperiment.VALUES["format"],
         )
         dataset.save()
 
@@ -129,5 +129,5 @@ class TestGetFile(TestCase):
             # Check if file list is as expected
             self.assertListEqual(
                 sorted(project_zip.namelist()),
-                sorted(test_data.DatasetCustomSingleCellExperiment.COMPUTED_FILE_LIST),
+                sorted(test_data.UserDatasetSingleCellExperiment.COMPUTED_FILE_LIST),
             )

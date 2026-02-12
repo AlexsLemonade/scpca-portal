@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils.timezone import make_aware
 
@@ -17,8 +18,8 @@ from scpca_portal.exceptions import (
     JobSyncStateFailedError,
     JobTerminationFailedError,
 )
-from scpca_portal.models import Dataset, Job
-from scpca_portal.test.factories import DatasetFactory, JobFactory
+from scpca_portal.models import CCDLDataset, Dataset, Job, UserDataset
+from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory, UserDatasetFactory
 
 
 class TestJob(TestCase):
@@ -58,8 +59,22 @@ class TestJob(TestCase):
             self.assertIsInstance(dataset.terminated_at, datetime)
         self.assertEqual(dataset.terminated_reason, terminated_reason)
 
+    def test_validate_dataset_type(self):
+        # assert that dataset attr is of subtype DatasetABC
+        job = JobFactory()
+
+        job.dataset = CCDLDataset()
+        job.save()
+
+        job.dataset = UserDataset()
+        job.save()
+
+        job.dataset = Dataset()
+        with self.assertRaises(ValidationError):
+            job.save()
+
     def test_apply_state(self):
-        job = JobFactory(state=JobStates.PENDING, dataset=DatasetFactory())
+        job = JobFactory(state=JobStates.PENDING, dataset=CCDLDatasetFactory())
 
         # Update the state to PROCESSING
         job.apply_state(JobStates.PROCESSING)
@@ -106,7 +121,7 @@ class TestJob(TestCase):
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
 
-        dataset = DatasetFactory(is_processing=False)
+        dataset = UserDatasetFactory(is_processing=False)
         job = Job.get_dataset_job(dataset)
         job.dataset = dataset
 
@@ -131,8 +146,14 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.PROCESSING)
         self.assertIsInstance(saved_job.processing_at, datetime)
 
-    @patch("scpca_portal.models.dataset.Dataset.has_locked_projects", new_callable=PropertyMock)
-    @patch("scpca_portal.models.dataset.Dataset.has_lockfile_projects", new_callable=PropertyMock)
+    @patch(
+        "scpca_portal.models.datasets.ccdl_dataset.CCDLDataset.has_locked_projects",
+        new_callable=PropertyMock,
+    )
+    @patch(
+        "scpca_portal.models.datasets.ccdl_dataset.CCDLDataset.has_lockfile_projects",
+        new_callable=PropertyMock,
+    )
     @patch("scpca_portal.batch.submit_job")
     def test_submit_handle_exceptions(
         self, mock_batch_submit_job, mock_has_lockfile_projects, mock_has_locked_projects
@@ -144,13 +165,13 @@ class TestJob(TestCase):
 
         # Assert "Job is not in a pending state" exception thrown correctly
         non_pending_job = JobFactory(
-            state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False)
+            state=JobStates.SUCCEEDED, dataset=CCDLDatasetFactory(is_processing=False)
         )
         with self.assertRaises(JobSubmitNotPendingError):
             non_pending_job.submit()
 
         # Assert "Dataset has a locked project" exception thrown correctly
-        dataset = DatasetFactory(is_processing=False)
+        dataset = CCDLDatasetFactory(is_processing=False)
         job = Job.get_dataset_job(dataset)
         job.dataset = dataset
 
@@ -178,13 +199,15 @@ class TestJob(TestCase):
         expected_submitted_jobs = [
             JobFactory(
                 state=JobStates.PENDING,
-                dataset=DatasetFactory(is_pending=True, is_processing=False),
+                dataset=CCDLDatasetFactory(is_pending=True, is_processing=False),
             )
             for _ in range(3)
         ]
 
         for state in common.SUBMITTED_JOB_STATES:
-            JobFactory(state=state, dataset=DatasetFactory(is_pending=False, is_processing=False))
+            JobFactory(
+                state=state, dataset=CCDLDatasetFactory(is_pending=False, is_processing=False)
+            )
 
         # Before submission, there is 1 job in a PROCESSING state
         self.assertEqual(Job.objects.filter(state=JobStates.PROCESSING).count(), 1)
@@ -205,7 +228,7 @@ class TestJob(TestCase):
     def test_submit_pending_failure(self, mock_batch_submit_job):
         # Set up 3 saved PENDING jobs
         expected_pending_jobs = [
-            JobFactory(state=JobStates.PENDING, dataset=DatasetFactory(is_pending=False))
+            JobFactory(state=JobStates.PENDING, dataset=CCDLDatasetFactory(is_pending=False))
             for _ in range(3)
         ]
 
@@ -226,7 +249,7 @@ class TestJob(TestCase):
     def test_submit_pending_no_submission(self, mock_batch_submit_job):
         # Set up already submitted jobs
         for _ in range(3):
-            JobFactory(state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True))
+            JobFactory(state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True))
         mock_batch_submit_job.return_value = []
 
         # Should return an empty list without calling submit_job
@@ -247,7 +270,7 @@ class TestJob(TestCase):
         ]
 
         processing_job = JobFactory(
-            state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True)
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True)
         )
 
         changed = processing_job.sync_state()
@@ -285,7 +308,7 @@ class TestJob(TestCase):
         ]
 
         processing_job = JobFactory(
-            state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True)
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True)
         )
 
         changed = processing_job.sync_state()
@@ -308,7 +331,7 @@ class TestJob(TestCase):
         ]
 
         processing_job = JobFactory(
-            state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True)
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True)
         )
 
         changed = processing_job.sync_state()
@@ -338,7 +361,7 @@ class TestJob(TestCase):
         ]
 
         processing_job = JobFactory(
-            state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True)
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True)
         )
 
         changed = processing_job.sync_state()
@@ -361,7 +384,7 @@ class TestJob(TestCase):
     def test_sync_state_handle_exception(self, mock_batch_get_jobs):
         pending_job = JobFactory(
             state=JobStates.PENDING,
-            dataset=DatasetFactory(is_pending=True, pending_at=make_aware(datetime.now())),
+            dataset=CCDLDatasetFactory(is_pending=True, pending_at=make_aware(datetime.now())),
         )
 
         with self.assertRaises(JobSyncNotProcessingError):
@@ -380,7 +403,9 @@ class TestJob(TestCase):
 
         processing_job = JobFactory(
             state=JobStates.PROCESSING,
-            dataset=DatasetFactory(is_processing=True, processing_at=make_aware(datetime.now())),
+            dataset=CCDLDatasetFactory(
+                is_processing=True, processing_at=make_aware(datetime.now())
+            ),
         )
 
         with self.assertRaises(JobSyncStateFailedError):
@@ -399,7 +424,7 @@ class TestJob(TestCase):
         jobs_to_sync = [
             JobFactory(
                 state=JobStates.PROCESSING,
-                dataset=DatasetFactory(
+                dataset=CCDLDatasetFactory(
                     is_processing=True, processing_at=make_aware(datetime.now())
                 ),
             )
@@ -467,7 +492,7 @@ class TestJob(TestCase):
     def test_bulk_sync_state_no_matching_batch_job_found(self, mock_batch_get_jobs):
         # Set up mock for get_jobs with no matched AWS job found
         jobs_to_sync = [
-            JobFactory(state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True))
+            JobFactory(state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True))
             for _ in range(4)
         ]
         mock_response = [
@@ -502,7 +527,7 @@ class TestJob(TestCase):
         mock_batch_terminate_job.return_value = True
 
         processing_job = JobFactory(
-            state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True)
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True)
         )
 
         processing_job.terminate()
@@ -526,7 +551,9 @@ class TestJob(TestCase):
 
         processing_job = JobFactory(
             state=JobStates.PROCESSING,
-            dataset=DatasetFactory(is_processing=True, processing_at=make_aware(datetime.now())),
+            dataset=CCDLDatasetFactory(
+                is_processing=True, processing_at=make_aware(datetime.now())
+            ),
         )
 
         with self.assertRaises(JobTerminationFailedError):
@@ -544,7 +571,7 @@ class TestJob(TestCase):
 
         succeeded_job = JobFactory(
             state=JobStates.SUCCEEDED,
-            dataset=DatasetFactory(is_succeeded=True, succeeded_at=make_aware(datetime.now())),
+            dataset=CCDLDatasetFactory(is_succeeded=True, succeeded_at=make_aware(datetime.now())),
         )
 
         with self.assertRaises(JobInvalidTerminateStateError):
@@ -562,7 +589,7 @@ class TestJob(TestCase):
     def test_terminate_processing(self, mock_batch_terminate_job):
         # Set up 3 jobs in PROCESSING state
         for _ in range(3):
-            JobFactory(state=JobStates.PROCESSING, dataset=DatasetFactory(is_processing=True))
+            JobFactory(state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True))
 
         # Should call terminate_job 3 times for processing, incompleted jobs
         response = Job.terminate_processing()
@@ -587,7 +614,7 @@ class TestJob(TestCase):
         for _ in range(3):
             JobFactory(
                 state=JobStates.PROCESSING,
-                dataset=DatasetFactory(
+                dataset=CCDLDatasetFactory(
                     is_processing=True, processing_at=make_aware(datetime.now())
                 ),
             )
@@ -609,7 +636,7 @@ class TestJob(TestCase):
     def test_terminate_processing_no_termination(self, mock_batch_terminate_job):
         # Set up jobs that are already in the final states
         for state in common.FINAL_JOB_STATES:
-            JobFactory(state=state, dataset=DatasetFactory(is_processing=False))
+            JobFactory(state=state, dataset=CCDLDatasetFactory(is_processing=False))
         mock_batch_terminate_job.return_value = []
 
         # Should return an empty list without calling terminate_job
@@ -621,7 +648,7 @@ class TestJob(TestCase):
         # Set up a non-terminated job
         job = JobFactory(
             state=JobStates.PROCESSING,
-            dataset=DatasetFactory(is_processing=True),
+            dataset=CCDLDatasetFactory(is_processing=True),
         )
 
         with self.assertRaises(JobInvalidRetryStateError):
@@ -661,7 +688,7 @@ class TestJob(TestCase):
                 batch_job_queue=batch_job_queue,
                 batch_container_overrides=batch_container_overrides,
                 attempt=attempt,
-                dataset=DatasetFactory(is_processing=False),
+                dataset=CCDLDatasetFactory(is_processing=False),
             )
             for _ in range(3)
         ]
@@ -693,9 +720,9 @@ class TestJob(TestCase):
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
 
-        dataset = DatasetFactory()
+        dataset = CCDLDatasetFactory()
         with patch.object(
-            Dataset, "estimated_size_in_bytes", new_callable=PropertyMock
+            CCDLDataset, "estimated_size_in_bytes", new_callable=PropertyMock
         ) as mock_size:
             # job size is below threshold
             mock_size.return_value = Job.MAX_FARGATE_SIZE_IN_BYTES - 1000
@@ -725,7 +752,7 @@ class TestJob(TestCase):
             )
 
     def test_increment_attempt_or_fail(self):
-        job = JobFactory(state=JobStates.PENDING, dataset=DatasetFactory(is_processing=False))
+        job = JobFactory(state=JobStates.PENDING, dataset=CCDLDatasetFactory(is_processing=False))
 
         for _ in range(common.MAX_JOB_ATTEMPTS):
             self.assertEqual(job.state, JobStates.PENDING)

@@ -1,8 +1,9 @@
 from scpca_portal.enums import DatasetFormats, Modalities
 
 
-class DatasetCustomSingleCellExperiment:
+class UserDatasetSingleCellExperiment:
     VALUES = {
+        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,
         "data": {
             "SCPCP999990": {
                 "includes_bulk": True,
@@ -17,11 +18,15 @@ class DatasetCustomSingleCellExperiment:
         },
         "email": "user@example.com",
         "start": False,
-        "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,
-        "regenerated_from": None,
-        "is_ccdl": False,
-        "ccdl_name": None,
-        "ccdl_project_id": None,
+        "data_hash": None,
+        "metadata_hash": None,
+        "readme_hash": None,
+        "combined_hash": None,
+        "includes_files_bulk": None,
+        "includes_files_cite_seq": None,
+        "includes_files_merged": None,
+        "includes_files_multiplexed": None,
+        "estimated_size_in_bytes": None,
         "started_at": None,
         "is_started": False,
         "is_processing": False,
@@ -32,6 +37,18 @@ class DatasetCustomSingleCellExperiment:
         "failed_reason": None,
         "expires_at": None,
         "is_expired": False,
+        "terminated_at": None,
+        "is_terminated": None,
+        "terminated_reason": None,
+        "regenerated_from": None,
+        "total_sample_count": None,
+        "diagnoses_summary": None,
+        "files_summary": None,
+        "project_diagnoses": None,
+        "project_modality_counts": None,
+        "modality_count_mismatch_projects": None,
+        "project_sample_counts": None,
+        "project_titles": None,
     }
     COMPUTED_FILE_LIST = [
         "README.md",

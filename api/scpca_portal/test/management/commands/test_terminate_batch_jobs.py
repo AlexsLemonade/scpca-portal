@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from scpca_portal.enums import JobStates
 from scpca_portal.models import Job
-from scpca_portal.test.factories import DatasetFactory, JobFactory
+from scpca_portal.test.factories import JobFactory, UserDatasetFactory
 
 
 class TestTerminateBatchJobs(TestCase):
@@ -56,7 +56,7 @@ class TestTerminateBatchJobs(TestCase):
         for _ in range(3):
             JobFactory(
                 state=JobStates.PROCESSING,
-                dataset=DatasetFactory(is_processing=True),
+                dataset=UserDatasetFactory(is_processing=True),
             )
         terminated_reason = "Terminated jobs for deploy"
 
@@ -87,7 +87,7 @@ class TestTerminateBatchJobs(TestCase):
         for _ in range(3):
             JobFactory(
                 state=JobStates.PROCESSING,
-                dataset=DatasetFactory(is_processing=True),
+                dataset=UserDatasetFactory(is_processing=True),
             )
 
         # Before the call, only 3 TERMINATED jobs are in the db
@@ -109,7 +109,7 @@ class TestTerminateBatchJobs(TestCase):
     def test_terminate_batch_jobs_not_called(self, mock_batch_terminate_job):
         # Set up 3 SUCCEEDED jobs
         for _ in range(3):
-            JobFactory(state=JobStates.SUCCEEDED, dataset=DatasetFactory(is_processing=False))
+            JobFactory(state=JobStates.SUCCEEDED, dataset=UserDatasetFactory(is_processing=False))
 
         # Should not call terminate_job
         self.terminate_batch_jobs()
