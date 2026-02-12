@@ -13,7 +13,7 @@
     "eslint": "eslint --fix"
   },
   "dependencies": {
-    "@sentry/react": "^10.32.1",
+    "@sentry/react": "^10.37.0",
     "eslint": "^9.39.2",
     "grommet": "^2.17.5",
     "grommet-icons": "^4.6.2",
