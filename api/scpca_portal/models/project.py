@@ -1,11 +1,12 @@
 import csv
 from collections import Counter
-from typing import Dict, Iterable, List
+from typing import Dict, List
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count, Q
+from django.db.models.query import QuerySet
 
 from typing_extensions import Self
 
@@ -132,7 +133,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         ]
 
     @property
-    def original_files(self) -> Iterable[OriginalFile]:
+    def original_files(self) -> QuerySet[OriginalFile]:
         return OriginalFile.downloadable_objects.filter(
             project_id=self.scpca_id, is_project_file=True
         )
@@ -142,7 +143,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @property
-    def computed_files(self) -> Iterable[ComputedFile]:
+    def computed_files(self) -> QuerySet[ComputedFile]:
         return self.project_computed_files.order_by("created_at")
 
     @property
