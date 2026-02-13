@@ -15,7 +15,7 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 export const DatasetAddSamplesModal = ({
   project,
   samples,
-  label = 'Add to Dataset',
+  label = 'Add Samples to Dataset',
   title = 'Add Samples to Dataset',
   disabled = false
 }) => {
@@ -85,6 +85,7 @@ export const DatasetAddSamplesModal = ({
     userFormat === 'ANN_DATA'
       ? totalSamples - selectedMulstiplexedSamples.length > 0
       : totalSamples > 0
+  const isDisabled = disabled || !canClickAddSamples
 
   const handleAddSamples = async () => {
     setLoading(true)
@@ -154,7 +155,7 @@ export const DatasetAddSamplesModal = ({
         flex="grow"
         primary
         label={label}
-        disabled={disabled}
+        disabled={isDisabled}
         onClick={() => setShowing(true)}
       />
       <Modal title={title} showing={showing} setShowing={setShowing}>
@@ -222,7 +223,7 @@ export const DatasetAddSamplesModal = ({
                   primary
                   aria-label={label}
                   label={label}
-                  disabled={!canClickAddSamples}
+                  disabled={isDisabled}
                   onClick={handleAddSamples}
                   loading={loading}
                 />
