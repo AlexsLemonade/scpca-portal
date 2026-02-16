@@ -27,14 +27,12 @@ class Command(BaseCommand):
 
         parser.add_argument(
             "--ignore-hash",
-            type=bool,
             default=False,
             action=BooleanOptionalAction,
             help=ignore_hash_help_text,
         )
         parser.add_argument(
             "--retry-failed-jobs",
-            type=bool,
             default=True,
             action=BooleanOptionalAction,
             help=retry_failed_jobs_help_text,

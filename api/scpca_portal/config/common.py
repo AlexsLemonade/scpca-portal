@@ -1,10 +1,11 @@
 import os
-from distutils.util import strtobool
 from pathlib import Path
 
 import dj_database_url
 from configurations import Configuration
 from corsheaders.defaults import default_headers
+
+from scpca_portal.strtobool import strtobool
 
 BASE_DIR = Path(__file__).parent.parent
 

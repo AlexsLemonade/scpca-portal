@@ -1,11 +1,11 @@
 import os
-from distutils.util import strtobool
 from pathlib import Path
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 from scpca_portal.config.common import Common
+from scpca_portal.strtobool import strtobool
 
 
 class Production(Common):
