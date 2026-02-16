@@ -58,7 +58,7 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     current_combined_hash = serializers.SerializerMethodField(read_only=True, default=None)
 
-    def get_current_combined_hash(self, obj):
+    def get_current_combined_hash(self, obj) -> str:
         return Dataset.get_current_combined_hash(
             obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
         )
