@@ -7,26 +7,6 @@ data "aws_rds_certificate" "cert" {
   # latest_valid_till = true
 }
 
-resource "aws_db_parameter_group" "postgres16_parameters" {
-  name        = "scpca-portal-postgres16-parameters-${var.user}-${var.stage}"
-  description = "Postgres Parameters ${var.user} ${var.stage}"
-  family      = "postgres16"
-
-  parameter {
-    name  = "deadlock_timeout"
-    value = "60000" # 60000ms = 60s
-  }
-
-  parameter {
-    name  = "statement_timeout"
-    value = "60000" # 60000ms = 60s
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_db_parameter_group" "postgres17_parameters" {
   name        = "scpca-portal-postgres17-parameters-${var.user}-${var.stage}"
   description = "Postgres Parameters ${var.user} ${var.stage}"
