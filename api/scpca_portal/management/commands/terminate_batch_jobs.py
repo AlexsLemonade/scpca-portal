@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--reason", type=str, default="Terminated via API")
-        parser.add_argument("--retry", action=BooleanOptionalAction, type=bool, default=True)
+        parser.add_argument("--retry", action=BooleanOptionalAction, default=True)
 
     def handle(self, *args, **kwargs):
         self.terminate_batch_jobs(**kwargs)
