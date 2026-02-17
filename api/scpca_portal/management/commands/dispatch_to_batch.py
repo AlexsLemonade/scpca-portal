@@ -19,12 +19,10 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "--regenerate-all", action=BooleanOptionalAction, type=bool, default=False
-        )
+        parser.add_argument("--regenerate-all", action=BooleanOptionalAction, default=False)
         parser.add_argument("--project-id", type=str, default="")
         # for now, we're only notifying on submission of the last project job
-        parser.add_argument("--notify", type=bool, default=False, action=BooleanOptionalAction)
+        parser.add_argument("--notify", default=False, action=BooleanOptionalAction)
 
     def handle(self, *args, **kwargs):
         self.dispatch_to_batch(**kwargs)

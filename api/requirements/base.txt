@@ -1,6 +1,6 @@
-awscli==1.29.5
-boto3==1.28.5
-daiquiri==1.5.0
+awscli==1.44.31
+boto3==1.42.41
+daiquiri==3.4.0
 dj-database-url==3.1.0
 django-configurations==2.5.1
 django-cors-headers==4.9.0
@@ -11,6 +11,6 @@ django>=5.2,<6.0
 djangorestframework==3.16.1
 drf-extensions==0.8.0
 drf-spectacular==0.29.0
-psycopg2-binary==2.9.6
-pydantic==2.11.7
-sentry-sdk==0.18.0
+psycopg2-binary==2.9.11
+pydantic==2.12.5
+sentry-sdk==2.52.0
