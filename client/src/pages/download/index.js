@@ -27,6 +27,7 @@ const Download = () => {
   const { responsive } = useResponsive()
 
   const [loading, setLoading] = useState(true)
+  const [redirecting, setRedirecting] = useState(false)
   const [isFormatChanged, setIsFormatChanged] = useState(false)
 
   const { hideNotification } = useNotification()
@@ -55,7 +56,8 @@ const Download = () => {
     }
   }, [loading])
 
-  if (loading) return <Loader />
+  // Show a loader while restoring scroll position or redirecting users
+  if (loading || redirecting) return <Loader />
 
   // TODO: Replace this once error handling is finalized
   // Show error page if there are any API errors
@@ -82,7 +84,7 @@ const Download = () => {
               )}
             </Box>
             <Box>
-              <DatasetProcessModal />
+              <DatasetProcessModal onRedirecting={setRedirecting} />
               <Text weight="bold">
                 Uncompressed size:{' '}
                 {formatBytes(myDataset.estimated_size_in_bytes)}
