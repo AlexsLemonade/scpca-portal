@@ -1,0 +1,150 @@
+{
+  "id": "92f68e72-3637-4d70-a865-bb19372a0203",
+  "data": {
+    "SCPCP000001": {
+      "SPATIAL": [],
+      "SINGLE_CELL": [
+        "SCPCS000001",
+        "SCPCS000002",
+        "SCPCS000003",
+        "SCPCS000004",
+        "SCPCS000005",
+        "SCPCS000006",
+        "SCPCS000007",
+        "SCPCS000008",
+        "SCPCS000009",
+        "SCPCS000010",
+        "SCPCS000011",
+        "SCPCS000012",
+        "SCPCS000013",
+        "SCPCS000014",
+        "SCPCS000015",
+        "SCPCS000016",
+        "SCPCS000017",
+        "SCPCS000018",
+        "SCPCS000019",
+        "SCPCS000020",
+        "SCPCS000021",
+        "SCPCS000022",
+        "SCPCS000023"
+      ],
+      "includes_bulk": true
+    }
+  },
+  "email": null,
+  "start": false,
+  "format": "SINGLE_CELL_EXPERIMENT",
+  "regenerated_from": null,
+  "includes_files_bulk": true,
+  "includes_files_cite_seq": false,
+  "includes_files_merged": false,
+  "includes_files_multiplexed": false,
+  "is_ccdl": true,
+  "ccdl_name": "SINGLE_CELL_SINGLE_CELL_EXPERIMENT",
+  "ccdl_project_id": "SCPCP000001",
+  "ccdl_modality": "SINGLE_CELL",
+  "data_hash": "5ab043e19b1c81f03fb979fde30c6a48",
+  "metadata_hash": "ca5ce6e92d1049da0e8116b9be8c6653",
+  "readme_hash": "38efabb26c9c1fc575eb2daf3c51a62d",
+  "combined_hash": "0c31b79ba2e6c19efc618cff31b7fad8",
+  "estimated_size_in_bytes": 1362855078,
+  "total_sample_count": 23,
+  "diagnoses_summary": {
+    "Glioblastoma": {
+      "samples": 16,
+      "projects": 1
+    },
+    "Non-cancerous": {
+      "samples": 1,
+      "projects": 1
+    },
+    "Anaplastic glioma": {
+      "samples": 1,
+      "projects": 1
+    },
+    "High-grade glioma": {
+      "samples": 2,
+      "projects": 1
+    },
+    "Anaplastic astrocytoma": {
+      "samples": 1,
+      "projects": 1
+    },
+    "Diffuse midline glioma": {
+      "samples": 1,
+      "projects": 1
+    },
+    "Pleomorphic xanthoastrocytoma": {
+      "samples": 1,
+      "projects": 1
+    }
+  },
+  "files_summary": [
+    {
+      "name": "Single-cell samples",
+      "format": ".rds",
+      "samples_count": 23
+    },
+    {
+      "name": "Bulk RNA-seq samples",
+      "format": ".tsv",
+      "samples_count": 18
+    }
+  ],
+  "project_diagnoses": {
+    "SCPCP000001": {
+      "Glioblastoma": 16,
+      "Non-cancerous": 1,
+      "Anaplastic glioma": 1,
+      "High-grade glioma": 2,
+      "Anaplastic astrocytoma": 1,
+      "Diffuse midline glioma": 1,
+      "Pleomorphic xanthoastrocytoma": 1
+    }
+  },
+  "project_modality_counts": {
+    "SCPCP000001": {
+      "SINGLE_CELL": 23,
+      "BULK_RNA_SEQ": 18
+    }
+  },
+  "modality_count_mismatch_projects": [],
+  "project_sample_counts": {
+    "SCPCP000001": 23
+  },
+  "project_titles": {
+    "SCPCP000001": "Single cell RNA sequencing of pediatric high-grade gliomas"
+  },
+  "started_at": null,
+  "is_started": false,
+  "is_processing": false,
+  "succeeded_at": "2026-02-11T04:49:07.555126Z",
+  "is_succeeded": true,
+  "failed_at": null,
+  "is_failed": false,
+  "failed_reason": null,
+  "expires_at": null,
+  "is_expired": false,
+  "terminated_at": null,
+  "is_terminated": false,
+  "terminated_reason": null,
+  "computed_file": {
+    "created_at": "2026-02-11T04:48:49.413400Z",
+    "format": "SINGLE_CELL_EXPERIMENT",
+    "has_bulk_rna_seq": true,
+    "has_cite_seq_data": false,
+    "has_multiplexed_data": false,
+    "id": 14745,
+    "includes_merged": false,
+    "metadata_only": false,
+    "portal_metadata_only": false,
+    "modality": "SINGLE_CELL",
+    "project": null,
+    "s3_bucket": "scpca-portal-deployer-staging",
+    "s3_key": "92f68e72-3637-4d70-a865-bb19372a0203.zip",
+    "sample": null,
+    "size_in_bytes": 1362878430,
+    "updated_at": "2026-02-11T04:48:49.413421Z",
+    "workflow_version": "v0.9.3"
+  }
+}

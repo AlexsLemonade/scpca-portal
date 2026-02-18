@@ -170,6 +170,10 @@ client/.env.production.local
 client/.vercel
 api/test_data/
 
+# storybook
+client/storybook/node_modules
+client/storybook/.yarn/cache
+
 # Local Data for Backend development
 api/data
 api/test_data*

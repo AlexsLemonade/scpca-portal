@@ -15,8 +15,8 @@ import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDow
 export const ProjectSearchResult = ({ project, ccdlDatasets }) => {
   const { responsive } = useResponsive()
 
-  const ccdlDataDatasets = ccdlDatasets.filter((d) => d.format !== 'METADATA')
-  const ccdlMetadataDatasets = ccdlDatasets.filter(
+  const ccdlDataDatasets = ccdlDatasets?.filter((d) => d.format !== 'METADATA')
+  const ccdlMetadataDatasets = ccdlDatasets?.filter(
     (d) => d.format === 'METADATA'
   )
 

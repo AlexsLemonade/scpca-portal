@@ -1,0 +1,20 @@
+{
+  "name": "scpca-portal-storybook",
+  "private": true,
+  "scripts": {
+    "storybook": "storybook dev -p 7001 --no-open",
+    "build-storybook": "storybook build",
+    "storybook:update-data": "API_HOST=https://api.staging.scpca.alexslemonade.org API_VERSION=v1 node ./.storybook/scripts/update-data.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@storybook/nextjs": "^10.2.0",
+    "@storybook/testing-library": "^0.2.2",
+    "@svgr/webpack": "^8.1.0",
+    "storybook": "^10.2.0"
+  }
+}

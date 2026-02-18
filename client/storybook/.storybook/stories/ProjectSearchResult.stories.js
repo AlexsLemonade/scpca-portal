@@ -1,6 +1,6 @@
 import React from 'react'
 import { ProjectSearchResult } from 'components/ProjectSearchResult'
-import project from 'data/project'
+import project from 'data/project.json'
 
 export default {
   title: 'Components/ProjectSearchResult',
