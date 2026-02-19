@@ -227,6 +227,8 @@ export const TBody = ({
   )
 }
 
+export const TFooter = ({ children }) => <Box fill>{children}</Box>
+
 // Custom fuzzyText filter function
 const fuzzyTextFilterFn = (rows, ids, filterValue) =>
   matchSorter(rows, filterValue, {
@@ -241,6 +243,7 @@ export const Table = ({
   stickies = 0,
   Head = THead,
   Body = TBody,
+  Footer,
   filter = false,
   defaultSort = [],
   pageSize: initialPageSize = 0,
@@ -384,6 +387,7 @@ export const Table = ({
           <Button label="Reset Filter" onClick={() => setGlobalFilter()} />
         </Box>
       )}
+      <TFooter>{Footer}</TFooter>
       {showPagination && (
         <Box justify="center" pad={{ vertical: 'medium' }}>
           <Pagination
