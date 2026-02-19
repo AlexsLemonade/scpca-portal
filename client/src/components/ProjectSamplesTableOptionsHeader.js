@@ -194,7 +194,7 @@ export const ProjectSamplesTableOptionsHeader = ({
                 onIncludeMergeChange(checked)
               }
             />
-            {!allSingleCellSamplesSelected && (
+            {!readOnly && !allSingleCellSamplesSelected && (
               <Box margin={{ left: '2px' }}>
                 <InfoText label="Select all samples to enable merging" />
               </Box>
