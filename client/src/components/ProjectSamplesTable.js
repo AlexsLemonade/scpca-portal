@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { api } from 'api'
 import { config } from 'config'
-import { allModalities } from 'config/datasets'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 import { useDataset } from 'hooks/useDataset'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
-import { differenceArray } from 'helpers/differenceArray'
 import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
-import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
@@ -31,7 +28,6 @@ export const ProjectSamplesTable = ({ stickies = 3, children }) => {
     project,
     samples: defaultSamples,
     dataset,
-    canAdd,
     canRemove,
     allSamples,
     showBulkInfoText,
@@ -45,8 +41,6 @@ export const ProjectSamplesTable = ({ stickies = 3, children }) => {
   const [loaded, setLoaded] = useState(false)
   const [samples, setSamples] = useState(defaultSamples) // For all project samples
   const [addedSamples, setAddedSamples] = useState([]) // For samples already added to myDataset
-  const [disableAddToDatasetModal, setDisableAddToDatasetModal] =
-    useState(false)
 
   const hasMultiplexedData = project.has_multiplexed_data
 
@@ -182,20 +176,6 @@ export const ProjectSamplesTable = ({ stickies = 3, children }) => {
     if (samples && !loaded) setLoaded(true)
   }, [samples, loaded])
 
-  // Disable DatasetAddSamplesModal if all samples are added
-  useEffect(() => {
-    if (samples && loaded) {
-      const datasetProjectData = getMyDatasetProjectDataSamples(project)
-      const samplesLeft = allModalities
-        .map((m) =>
-          differenceArray(project.modality_samples[m], datasetProjectData[m])
-        )
-        .flat()
-
-      setDisableAddToDatasetModal(samplesLeft.length === 0)
-    }
-  }, [myDataset, samples, loaded])
-
   // Preselect samples that are already in the dataset
   useEffect(() => {
     if (!allSamples.length || !samples) return
@@ -223,45 +203,34 @@ export const ProjectSamplesTable = ({ stickies = 3, children }) => {
     )
 
   return (
-    <>
-      {canAdd && (
-        <Box direction="row" justify="end">
-          <DatasetAddSamplesModal
-            project={project}
-            samples={samples}
-            disabled={disableAddToDatasetModal}
+    <Table
+      columns={columns}
+      data={samples}
+      filter
+      stickies={stickies}
+      Footer={children}
+      pageSize={50}
+      pageSizeOptions={[50, 100, 150]}
+      infoText={infoText}
+      text={text}
+      defaultSort={[{ id: 'scpca_id', asc: true }]}
+      prevSelectedRows={addedSamples}
+      selectedRows={selectedSamples}
+      onAllRowsChange={setAllSamples}
+      onFilteredRowsChange={setFilteredSamples}
+    >
+      {datasets && (
+        <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
+          <CCDLDatasetDownloadModal
+            label="Download Sample Metadata"
+            icon={<DownloadIcon color="brand" />}
           />
         </Box>
       )}
-      <Table
-        columns={columns}
-        data={samples}
-        filter
-        stickies={stickies}
-        Footer={children}
-        pageSize={50}
-        pageSizeOptions={[50, 100, 150]}
-        infoText={infoText}
-        text={text}
-        defaultSort={[{ id: 'scpca_id', asc: true }]}
-        prevSelectedRows={addedSamples}
-        selectedRows={selectedSamples}
-        onAllRowsChange={setAllSamples}
-        onFilteredRowsChange={setFilteredSamples}
-      >
-        {datasets && (
-          <Box direction="row" justify="end" pad={{ bottom: 'medium' }}>
-            <CCDLDatasetDownloadModal
-              label="Download Sample Metadata"
-              icon={<DownloadIcon color="brand" />}
-            />
-          </Box>
-        )}
-        {/* Only display this warning when myDataset format has already been defined */}
-        {showWarningMultiplexed && myDataset.format && (
-          <WarningAnnDataMultiplexed />
-        )}
-      </Table>
-    </>
+      {/* Only display this warning when myDataset format has already been defined */}
+      {showWarningMultiplexed && myDataset.format && (
+        <WarningAnnDataMultiplexed />
+      )}
+    </Table>
   )
 }
