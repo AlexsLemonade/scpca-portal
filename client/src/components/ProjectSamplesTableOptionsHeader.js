@@ -11,6 +11,7 @@ import { Button } from 'components/Button'
 import { DatasetChangingMergedProjectModal } from 'components/DatasetChangingMergedProjectModal'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
+import { InfoText } from 'components/InfoText'
 
 export const ProjectSamplesTableOptionsHeader = ({
   project,
@@ -172,7 +173,6 @@ export const ProjectSamplesTableOptionsHeader = ({
             />
           }
           direction={responsive('column', 'row')}
-          align={responsive('start', 'center')}
         >
           <Text>{getReadable(myDataset.format)}</Text>
         </FormField>
@@ -185,14 +185,21 @@ export const ProjectSamplesTableOptionsHeader = ({
           />
         )}
         {isMergedObjectsAvailable && (
-          <CheckBox
-            label="Merge single-cell samples into 1 object"
-            checked={includeMerge}
-            disabled={readOnly || !allSingleCellSamplesSelected}
-            onChange={({ target: { checked } }) =>
-              onIncludeMergeChange(checked)
-            }
-          />
+          <Box>
+            <CheckBox
+              label="Merge single-cell samples into 1 object"
+              checked={includeMerge}
+              disabled={readOnly || !allSingleCellSamplesSelected}
+              onChange={({ target: { checked } }) =>
+                onIncludeMergeChange(checked)
+              }
+            />
+            {!allSingleCellSamplesSelected && (
+              <Box margin={{ left: '2px' }}>
+                <InfoText label="Select all samples to enable merging" />
+              </Box>
+            )}
+          </Box>
         )}
       </Box>
     </>
