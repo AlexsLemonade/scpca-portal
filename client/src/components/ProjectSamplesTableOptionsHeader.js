@@ -11,6 +11,15 @@ import { Button } from 'components/Button'
 import { DatasetChangingMergedProjectModal } from 'components/DatasetChangingMergedProjectModal'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
+import { InfoText } from 'components/InfoText'
+import styled, { css } from 'styled-components'
+
+const InfoTextMergingSamplesIntoOneObject = styled(Box)`
+  ${({ show }) =>
+    css`
+      visibility: ${show ? 'visible' : 'hidden'};
+    `}
+`
 
 export const ProjectSamplesTableOptionsHeader = ({
   project,
@@ -26,6 +35,12 @@ export const ProjectSamplesTableOptionsHeader = ({
   const { readOnly, selectAllSingleCellSamples, selectedSamples } =
     useProjectSamplesTable()
   const { responsive } = useResponsive()
+
+  // Enable the include merge checkbox only if all project single-cell samples:
+  // - Are currently selected in the table
+  // - Have been added to myDataset (which will be pre-selected in the table)
+  const [allSingleCellSamplesSelected, setAllSingleCellSamplesSelected] =
+    useState(false)
 
   // For the changing merged project modal visibility and conditions
   const [confirmUnmerge, setConfirmUnmerge] = useState(false)
@@ -114,6 +129,19 @@ export const ProjectSamplesTableOptionsHeader = ({
     setPrevSelectedCount(newSelectedCount)
   }, [newSelectedCount])
 
+  // Toggle include merge checkbox based on the selected single-cell sample count
+  useEffect(() => {
+    const isAllSelected =
+      selectedSamples.SINGLE_CELL.length ===
+      project.modality_samples.SINGLE_CELL.length
+    setAllSingleCellSamplesSelected(isAllSelected)
+
+    // Uncheck the include merge checkbox if any single-cell sample is deselected
+    if (!isAllSelected) {
+      onIncludeMergeChange(false)
+    }
+  }, [selectedSamples])
+
   return (
     <>
       <DatasetChangingMergedProjectModal
@@ -153,7 +181,6 @@ export const ProjectSamplesTableOptionsHeader = ({
             />
           }
           direction={responsive('column', 'row')}
-          align={responsive('start', 'center')}
         >
           <Text>{getReadable(myDataset.format)}</Text>
         </FormField>
@@ -166,14 +193,29 @@ export const ProjectSamplesTableOptionsHeader = ({
           />
         )}
         {isMergedObjectsAvailable && (
-          <CheckBox
-            label="Merge single-cell samples into 1 object"
-            checked={includeMerge}
-            disabled={readOnly}
-            onChange={({ target: { checked } }) =>
-              onIncludeMergeChange(checked)
-            }
-          />
+          <Box>
+            <CheckBox
+              label="Merge single-cell samples into 1 object"
+              checked={includeMerge}
+              disabled={readOnly || !allSingleCellSamplesSelected}
+              onChange={({ target: { checked } }) =>
+                onIncludeMergeChange(checked)
+              }
+            />
+            {!readOnly && (
+              <InfoTextMergingSamplesIntoOneObject
+                animation={
+                  !allSingleCellSamplesSelected
+                    ? { type: 'fadeIn', duration: 1000, size: 'xsmall' }
+                    : {}
+                }
+                margin={{ left: '2px' }}
+                show={!allSingleCellSamplesSelected}
+              >
+                <InfoText label="Select all samples to enable merging" />
+              </InfoTextMergingSamplesIntoOneObject>
+            )}
+          </Box>
         )}
       </Box>
     </>
