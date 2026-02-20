@@ -12,6 +12,14 @@ import { DatasetChangingMergedProjectModal } from 'components/DatasetChangingMer
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 import { InfoText } from 'components/InfoText'
+import styled, { css } from 'styled-components'
+
+const InfoTextMergingSamplesIntoOneObject = styled(Box)`
+  ${({ show }) =>
+    css`
+      visibility: ${show ? 'visible' : 'hidden'};
+    `}
+`
 
 export const ProjectSamplesTableOptionsHeader = ({
   project,
@@ -194,10 +202,18 @@ export const ProjectSamplesTableOptionsHeader = ({
                 onIncludeMergeChange(checked)
               }
             />
-            {!readOnly && !allSingleCellSamplesSelected && (
-              <Box margin={{ left: '2px' }}>
+            {!readOnly && (
+              <InfoTextMergingSamplesIntoOneObject
+                animation={
+                  allSingleCellSamplesSelected
+                    ? {}
+                    : { type: 'fadeIn', duration: 1000, size: 'xsmall' }
+                }
+                margin={{ left: '2px' }}
+                show={!allSingleCellSamplesSelected}
+              >
                 <InfoText label="Select all samples to enable merging" />
-              </Box>
+              </InfoTextMergingSamplesIntoOneObject>
             )}
           </Box>
         )}
