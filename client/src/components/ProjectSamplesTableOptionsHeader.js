@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
-import { useRouter } from 'next/router'
-import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { getReadable } from 'helpers/getReadable'
-import { Button } from 'components/Button'
 import { DatasetChangingMergedProjectModal } from 'components/DatasetChangingMergedProjectModal'
+import { DatasetSaveAndGoBackButton } from 'components/DatasetSaveAndGoBackButton'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 
@@ -19,10 +17,7 @@ export const ProjectSamplesTableOptionsHeader = ({
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { asPath, back } = useRouter()
-  const { setRestoreFromDestination } = useScrollRestore()
-  const { myDataset, isMyDatasetProjectMerged, setMyDatasetSamples } =
-    useMyDataset()
+  const { myDataset, isMyDatasetProjectMerged } = useMyDataset()
   const { readOnly, selectAllSingleCellSamples, selectedSamples } =
     useProjectSamplesTable()
   const { responsive } = useResponsive()
@@ -72,28 +67,6 @@ export const ProjectSamplesTableOptionsHeader = ({
     setShowChangeMergedProjectModal(false)
   }
 
-  const [saving, setSaving] = useState(false)
-  const handleSaveAndGoBack = async () => {
-    setSaving(true)
-    const newSamplesToAdd = {
-      ...selectedSamples,
-      ...(includeMerge && { SINGLE_CELL: 'MERGED' })
-    }
-
-    const datasetRequest = await setMyDatasetSamples(project, {
-      ...newSamplesToAdd,
-      includes_bulk: includeBulk
-    })
-
-    if (datasetRequest) {
-      setRestoreFromDestination(asPath)
-      back()
-    } else {
-      // TODO: Error handling
-    }
-    setSaving(false)
-  }
-
   // Set up prevSelectedCount on initial load
   useEffect(() => {
     if (noPrevSelectedSamples) {
@@ -133,11 +106,10 @@ export const ProjectSamplesTableOptionsHeader = ({
       >
         <Text size="large">{title}</Text>
         {!readOnly && (
-          <Button
-            primary
-            label="Save & Go Back"
-            loading={saving}
-            onClick={handleSaveAndGoBack}
+          <DatasetSaveAndGoBackButton
+            project={project}
+            includeBulk={includeBulk}
+            includeMerge={includeMerge}
           />
         )}
       </Box>

@@ -1,10 +1,14 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Tabs, Tab, Text } from 'grommet'
 import { useRouter } from 'next/router'
+import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
 import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 import { ProjectSamplesTableContextProvider } from 'contexts/ProjectSamplesTableContext'
 import { api } from 'api'
+import { allModalities } from 'config/datasets'
+import { differenceArray } from 'helpers/differenceArray'
+import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { DetailsTable } from 'components/DetailsTable'
 import { Link } from 'components/Link'
 import { PageTitle } from 'components/PageTitle'
@@ -17,17 +21,37 @@ import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
 
 const Project = ({ project, ccdlDatasets }) => {
-  if (!project) return '404'
+  const { myDataset, getMyDatasetProjectDataSamples } = useMyDataset()
+  const { responsive } = useResponsive()
+
   const router = useRouter()
+
   const showSamples = router.asPath.indexOf('samples') !== -1
+
   const [activeIndex, setActiveIndex] = useState(showSamples ? 1 : 0)
   const onActive = (nextIndex) => setActiveIndex(nextIndex)
-  const { responsive } = useResponsive()
+
+  const [disableAddToDatasetModal, setDisableAddToDatasetModal] =
+    useState(false)
 
   const ccdlDataDatasets = ccdlDatasets.filter((d) => d.format !== 'METADATA')
   const ccdlMetadataDatasets = ccdlDatasets.filter(
     (d) => d.format === 'METADATA'
   )
+
+  // Disable DatasetAddSamplesModal if all samples are added
+  useEffect(() => {
+    const datasetProjectData = getMyDatasetProjectDataSamples(project)
+    const samplesLeft = allModalities
+      .map((m) =>
+        differenceArray(project.modality_samples[m], datasetProjectData[m])
+      )
+      .flat()
+
+    setDisableAddToDatasetModal(samplesLeft.length === 0)
+  }, [myDataset])
+
+  if (!project) return '404'
 
   return (
     <>
@@ -161,7 +185,26 @@ const Project = ({ project, ccdlDatasets }) => {
                     samples={project.samples}
                     canAdd
                   >
-                    <ProjectSamplesTable stickies={responsive(0, 3)} />
+                    <Box direction="row" justify="end">
+                      <DatasetAddSamplesModal
+                        project={project}
+                        samples={project.samples}
+                        disabled={disableAddToDatasetModal}
+                      />
+                    </Box>
+                    <ProjectSamplesTable stickies={responsive(0, 3)}>
+                      <Box
+                        direction="row"
+                        justify="end"
+                        margin={{ vertical: 'medium' }}
+                      >
+                        <DatasetAddSamplesModal
+                          project={project}
+                          samples={project.samples}
+                          disabled={disableAddToDatasetModal}
+                        />
+                      </Box>
+                    </ProjectSamplesTable>
                   </ProjectSamplesTableContextProvider>
                 </CCDLDatasetDownloadModalContextProvider>
               </Box>

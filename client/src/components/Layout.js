@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useNotification } from 'hooks/useNotification'
 import { useResizeObserver } from 'hooks/useResizeObserver'
 import { Box, Main } from 'grommet'
+import { BackToTopButton } from 'components/BackToTopButton'
 import { ContributeBanner } from 'components/ContributeBanner'
 import { EnvarBanner } from 'components/EnvarBanner'
 import { Footer } from 'components/Footer'
@@ -44,6 +45,12 @@ export const Layout = ({ children }) => {
   // donate button on about page only
   const donatePaths = ['/about']
   const showDonate = donatePaths.includes(router.pathname)
+
+  // show BackToTopButton only on the following pages
+  const backToTopPaths = ['/datasets', '/download', '/projects']
+  const showBackToTop = backToTopPaths.some(
+    (path) => router.pathname === path || router.pathname.startsWith(path)
+  )
 
   // homepage is full width
   const widePaths = ['/', '/about', '/visualize', '/portal-wide']
@@ -88,6 +95,7 @@ export const Layout = ({ children }) => {
         {children}
       </Main>
       <Footer />
+      {showBackToTop && <BackToTopButton />}
     </Box>
   )
 }

@@ -7,6 +7,7 @@ import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesTableOptionsHeader } from 'components/ProjectSamplesTableOptionsHeader'
+import { DatasetSaveAndGoBackButton } from 'components/DatasetSaveAndGoBackButton'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
@@ -70,7 +71,15 @@ export const ViewEditSamples = ({ project }) => {
             onIncludeMergeChange={setIncludeMerge}
           />
         </Box>
-        <ProjectSamplesTable />
+        <ProjectSamplesTable>
+          <Box direction="row" justify="end" margin={{ vertical: 'medium' }}>
+            <DatasetSaveAndGoBackButton
+              project={project}
+              includeBulk={includeBulk}
+              includeMerge={includeMerge}
+            />
+          </Box>
+        </ProjectSamplesTable>
       </ProjectSamplesTableContextProvider>
     </Box>
   )

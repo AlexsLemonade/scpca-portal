@@ -19,7 +19,6 @@ import {
 import { matchSorter } from 'match-sorter'
 import { Icon } from 'components/Icon'
 import { TableFilter } from 'components/TableFilter'
-import { TablePageSize } from 'components/TablePageSize'
 import { Pagination } from 'components/Pagination'
 import { InfoText } from 'components/InfoText'
 import { useResponsive } from 'hooks/useResponsive'
@@ -54,6 +53,8 @@ const TableHeader = styled(GrommetTableHeader)`
     vertical-align: middle;
   }
 `
+
+const TableFooter = ({ children }) => <Box fill>{children}</Box>
 
 const StickyTable = styled(GrommetTable)`
   position: relative;
@@ -241,12 +242,13 @@ export const Table = ({
   stickies = 0,
   Head = THead,
   Body = TBody,
+  footerContent = null,
   filter = false,
   defaultSort = [],
   pageSize: initialPageSize = 0,
-  pageSizeOptions = [],
   prevSelectedRows = {}, // For unhighlithing previously selected sample rows
   selectedRows = {}, // For highlighting currently selected samples rows
+  totalSampleCount = 0,
   infoText = '',
   text = '',
   children,
@@ -263,7 +265,7 @@ export const Table = ({
   const columns = useMemo(() => userColumns, [])
   const data = useMemo(() => userData, [])
 
-  const pageSize = initialPageSize || pageSizeOptions[0] || 0
+  const pageSize = initialPageSize || 0
 
   // if no pageSize is set dont use the hook
   const hooks = [useGlobalFilter, useSortBy]
@@ -289,8 +291,6 @@ export const Table = ({
     setGlobalFilter,
     globalFilteredRows,
     gotoPage,
-    setPageSize,
-    pageOptions,
     setHiddenColumns,
     state: { pageIndex }
   } = instance
@@ -325,9 +325,7 @@ export const Table = ({
   const pad = filter ? { vertical: 'medium' } : {}
   const { responsive } = useResponsive()
 
-  const showPageSize =
-    pageSizeOptions.length > 0 && data?.length > pageSizeOptions[0]
-  const showPagination = pageOptions && pageOptions.length > 1
+  const showPagination = totalSampleCount > pageSize
 
   return (
     <>
@@ -340,14 +338,6 @@ export const Table = ({
       >
         {infoText && <InfoText label={infoText} />}
         {text && text}
-        {showPageSize && (
-          <TablePageSize
-            pageSize={state.pageSize}
-            setPageSize={setPageSize}
-            pageSizeOptions={pageSizeOptions}
-            gotoPage={gotoPage}
-          />
-        )}
         {filter && (
           <TableFilter
             // state.globalFilter is the current string being filtered against
@@ -384,6 +374,7 @@ export const Table = ({
           <Button label="Reset Filter" onClick={() => setGlobalFilter()} />
         </Box>
       )}
+      <TableFooter>{footerContent}</TableFooter>
       {showPagination && (
         <Box justify="center" pad={{ vertical: 'medium' }}>
           <Pagination
