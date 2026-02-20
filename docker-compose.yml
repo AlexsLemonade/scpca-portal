@@ -4,9 +4,9 @@ networks:
 
 services:
   postgres:
-    image: postgres:17.8
+    image: postgres:18.2
     volumes:
-      - ./api/volumes_postgres/volumes_postgres:/var/lib/postgresql/data
+      - ./api/volumes_postgres/volumes_postgres:/var/lib/postgresql
     environment:
      - POSTGRES_HOST_AUTH_METHOD=trust
   api:
