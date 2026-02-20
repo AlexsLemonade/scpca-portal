@@ -208,7 +208,7 @@ export const ProjectSamplesTable = ({ stickies = 3, children }) => {
       data={samples}
       filter
       stickies={stickies}
-      Footer={children}
+      footerContent={children}
       pageSize={1000}
       infoText={infoText}
       text={text}
