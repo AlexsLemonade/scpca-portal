@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Select, Text } from 'grommet'
 
+// TODO: This component is no longer used in Table. Add it to Storybook later.
 export const TablePageSize = ({
   pageSize,
   setPageSize,

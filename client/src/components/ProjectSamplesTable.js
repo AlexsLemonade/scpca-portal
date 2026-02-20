@@ -209,13 +209,13 @@ export const ProjectSamplesTable = ({ stickies = 3, children }) => {
       filter
       stickies={stickies}
       Footer={children}
-      pageSize={50}
-      pageSizeOptions={[50, 100, 150]}
+      pageSize={1000}
       infoText={infoText}
       text={text}
       defaultSort={[{ id: 'scpca_id', asc: true }]}
       prevSelectedRows={addedSamples}
       selectedRows={selectedSamples}
+      totalSampleCount={allSamples.length}
       onAllRowsChange={setAllSamples}
       onFilteredRowsChange={setFilteredSamples}
     >
