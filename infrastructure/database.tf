@@ -7,26 +7,6 @@ data "aws_rds_certificate" "cert" {
   # latest_valid_till = true
 }
 
-resource "aws_db_parameter_group" "postgres17_parameters" {
-  name        = "scpca-portal-postgres17-parameters-${var.user}-${var.stage}"
-  description = "Postgres Parameters ${var.user} ${var.stage}"
-  family      = "postgres17"
-
-  parameter {
-    name  = "deadlock_timeout"
-    value = "60000" # 60000ms = 60s
-  }
-
-  parameter {
-    name  = "statement_timeout"
-    value = "60000" # 60000ms = 60s
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_db_parameter_group" "postgres18_parameters" {
   name        = "scpca-portal-postgres18-parameters-${var.user}-${var.stage}"
   description = "Postgres Parameters ${var.user} ${var.stage}"
@@ -60,8 +40,8 @@ resource "aws_db_instance" "postgres_db" {
   # to apply changes immediately to allow for subsequent deployments.
   # `allow_major_version_upgrade` and `apply_immediately`
   # should be set to false when the old parameter group is removed.
-  allow_major_version_upgrade = true
-  apply_immediately           = true
+  allow_major_version_upgrade = false
+  apply_immediately           = false
 
   auto_minor_version_upgrade = false
   instance_class             = var.database_instance_type
