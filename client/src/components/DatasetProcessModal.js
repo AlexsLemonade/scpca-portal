@@ -10,7 +10,8 @@ import { Modal, ModalBody } from 'components/Modal'
 export const DatasetProcessModal = ({
   label = 'Download Dataset',
   title = 'Download Dataset',
-  disabled = false
+  disabled = false,
+  onRedirecting = () => {}
 }) => {
   const { push } = useRouter()
   const { processMyDataset } = useMyDataset()
@@ -22,10 +23,12 @@ export const DatasetProcessModal = ({
     const submit = async () => {
       const datasetRequest = await processMyDataset()
       if (datasetRequest) {
+        onRedirecting(true)
         push(`/datasets/${datasetRequest.id}`)
       } else {
         // TODO: Error handling
         setSubmitting(false)
+        setShowing(false)
       }
     }
 
