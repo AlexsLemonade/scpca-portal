@@ -16,7 +16,7 @@ export const ProjectSamplesTableContext = createContext({})
 export const ProjectSamplesTableContextProvider = ({
   project,
   samples,
-  dataset,
+  dataset = null,
   canAdd = false,
   canRemove = false,
   children

@@ -199,16 +199,10 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   // Preselect samples that are already in the dataset
   useEffect(() => {
     if (!allSamples.length || !samples) return
-
-    let projectData
-
-    if (dataset?.data) {
-      projectData = getDatasetProjectDataSamples(dataset, project)
-    } else if (!dataset && myDataset?.data) {
-      projectData = getMyDatasetProjectDataSamples(project)
-    } else {
-      return
-    }
+    // Use dataset on /datasets, otherwise use myDataset for setup
+    const projectData = dataset
+      ? getDatasetProjectDataSamples(dataset, project)
+      : getMyDatasetProjectDataSamples(project)
 
     setAddedSamples(projectData)
     selectModalitySamplesByIds('SINGLE_CELL', projectData.SINGLE_CELL)
