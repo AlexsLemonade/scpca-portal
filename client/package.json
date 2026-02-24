@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@sentry/react": "^10.37.0",
+    "@tanstack/react-table": "^8.21.3",
     "grommet": "^2.17.5",
     "grommet-icons": "^4.6.2",
     "http-proxy-middleware": "^3.0.5",
