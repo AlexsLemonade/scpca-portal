@@ -1,5 +1,5 @@
 import React from 'react'
-import { useAsyncDebounce } from 'react-table'
+import { useDebouncedCallback } from 'use-debounce'
 import { Box, Text, TextInput } from 'grommet'
 
 export const TableFilter = ({
@@ -10,7 +10,7 @@ export const TableFilter = ({
   totalFilteredSize
 }) => {
   const [value, setValue] = React.useState(globalFilter)
-  const onChange = useAsyncDebounce((newValue) => {
+  const onChange = useDebouncedCallback((newValue) => {
     setGlobalFilter(newValue || undefined)
   }, 200)
 
