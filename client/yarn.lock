@@ -4399,6 +4399,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/react-table@npm:^8.21.3":
+  version: 8.21.3
+  resolution: "@tanstack/react-table@npm:8.21.3"
+  dependencies:
+    "@tanstack/table-core": 8.21.3
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: 1452e7bd1dd0febbfc37e656c61c2c426dc243136333a8688bfadfccfec233e87c9bbe83011d742b0e86ae52c9b3d436bdc5618be4ac675ab921f52317317780
+  languageName: node
+  linkType: hard
+
+"@tanstack/table-core@npm:8.21.3":
+  version: 8.21.3
+  resolution: "@tanstack/table-core@npm:8.21.3"
+  checksum: ce260ab981f334ba999240cf68ae942a524a28980f6853275da90d1864a8b56fa59b952bfd2266570f36ae11f66476d1c96dacc640ba5fd9d6d4e2a78cf05187
+  languageName: node
+  linkType: hard
+
 "@tootallnate/once@npm:2":
   version: 2.0.0
   resolution: "@tootallnate/once@npm:2.0.0"
@@ -12483,15 +12502,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-table@npm:^7.7.0":
-  version: 7.8.0
-  resolution: "react-table@npm:7.8.0"
-  peerDependencies:
-    react: ^16.8.3 || ^17.0.0-0 || ^18.0.0
-  checksum: 44ca0fb848c6869cd793cede8dc33072b38ebb8f8d2833565afe7cf3eac5d1fa455ac5fb9d06838b16fab0523d5d03e3e82f7645032f71245096e67b892313b9
-  languageName: node
-  linkType: hard
-
 "react@npm:^18.2.0":
   version: 18.2.0
   resolution: "react@npm:18.2.0"
@@ -13078,6 +13088,7 @@ __metadata:
     "@storybook/addon-storysource": ^7.4.1
     "@storybook/react": ^7.4.1
     "@storybook/react-webpack5": ^7.4.1
+    "@tanstack/react-table": ^8.21.3
     babel-loader: ^8.2.2
     babel-plugin-inline-react-svg: ^2.0.1
     babel-preset-airbnb: ^5.0.0
@@ -13100,12 +13111,12 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-ga4: ^1.4.1
-    react-table: ^7.7.0
     regenerator-runtime: ^0.14.0
     semver: ^7.7.3
     storybook: ^7.4.1
     styled-components: ^5.3.0
     styled-reset: ^4.3.4
+    use-debounce: ^10.1.0
     yup: ^0.32.9
   languageName: unknown
   linkType: soft
@@ -14600,6 +14611,15 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 7913df383a5a6fcb399212eedefaac2e0c6f843555202d4e3010bac3848afe38ecaa3d0d6500ad1d936fbeffd637e6c517e68edb024af5e6beca7f27f3ce7b21
+  languageName: node
+  linkType: hard
+
+"use-debounce@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "use-debounce@npm:10.1.0"
+  peerDependencies:
+    react: "*"
+  checksum: 217a80a392cbd6bafb43cd52bc5579847d35c5df890f2b3689c527317bc610e8467f4c051e39180f825b6e8ee9e6fc777c09a214a9df4fff3dc72a1a9ee73853
   languageName: node
   linkType: hard
 
