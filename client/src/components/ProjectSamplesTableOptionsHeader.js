@@ -206,7 +206,7 @@ export const ProjectSamplesTableOptionsHeader = ({
               <InfoTextMergingSamplesIntoOneObject
                 animation={
                   !allSingleCellSamplesSelected
-                    ? { type: 'fadeIn', duration: 1000, size: 'xsmall' }
+                    ? { type: 'fadeIn', duration: 250, size: 'xsmall' }
                     : {}
                 }
                 margin={{ left: '2px' }}
