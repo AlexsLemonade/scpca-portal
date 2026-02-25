@@ -280,10 +280,9 @@ export const Table = ({
   })
 
   const state = instance.getState()
-  const filteredRows = instance.getFilteredRowModel().rows
   const pageRows = pageSize !== 0
     ? instance.getPaginationRowModel().rows
-    : filteredRows
+    : instance.getSortedRowModel().rows
 
   const gotoPage = (index) => setPagination((p) => ({ ...p, pageIndex: index}))
   const setPageSize = (size) => setPagination({ pageIndex: 0, pageSize: size})
@@ -309,6 +308,8 @@ export const Table = ({
   const showPageSize =
     pageSizeOptions.length > 0 && data?.length > pageSizeOptions[0]
   const showPagination = pageSize !== 0 && instance.getPageCount() > 1
+
+  const filteredRowCount = instance.getFilteredRowModel().rows.length
 
   return (
     <>
@@ -336,7 +337,7 @@ export const Table = ({
             setGlobalFilter={setGlobalFilter}
             pageIndex={state.pagination.pageIndex}
             pageSize={state.pagination.pageSize}
-            totalFilteredSize={filteredRows.length}
+            totalFilteredSize={filteredRowCount}
           />
         )}
       </Box>
@@ -353,7 +354,7 @@ export const Table = ({
           />
         </StickyTable>
       </TableBox>
-      {filter && filteredRows.length === 0 && (
+      {filter && filteredRowCount === 0 && (
         <Box
           direction="row"
           align="center"
@@ -371,7 +372,7 @@ export const Table = ({
             update={({ pageIndex: index }) => gotoPage(index)}
             offset={state.pagination.pageIndex * state.pagination.pageSize}
             limit={state.pagination.pageSize}
-            count={filteredRows.length}
+            count={filteredRowCount}
           />
         </Box>
       )}
