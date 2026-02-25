@@ -125,7 +125,7 @@ export const useDataset = () => {
     dataset.data?.[project.scpca_id]?.includes_bulk || false
 
   const isProjectMerged = (dataset, project) =>
-    dataset.data[project.scpca_id].SINGLE_CELL === 'MERGED'
+    dataset.data?.[project.scpca_id].SINGLE_CELL === 'MERGED'
 
   const getDatasetProjectData = (dataset, project) =>
     dataset?.data?.[project.scpca_id] || {}
