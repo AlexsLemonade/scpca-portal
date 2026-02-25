@@ -284,10 +284,9 @@ export const Table = ({
   const pageRows = pageSize !== 0
     ? instance.getPaginationRowModel().rows
     : filteredRows
-  const pageOptions = Array.from({ length: instance.getPageCount() }, (_, i) => i)
 
   const gotoPage = (index) => setPagination((p) => ({ ...p, pageIndex: index}))
-  const setPageSizeFn = (size) => setPagination({ pageIndex: 0, pageSize: size})
+  const setPageSize = (size) => setPagination({ pageIndex: 0, pageSize: size})
 
   useEffect(() => {
     const rows = instance.getCoreRowModel().rows
@@ -309,7 +308,7 @@ export const Table = ({
 
   const showPageSize =
     pageSizeOptions.length > 0 && data?.length > pageSizeOptions[0]
-  const showPagination = pageOptions && pageOptions.length > 1
+  const showPagination = pageSize !== 0 && instance.getPageCount() > 1
 
   return (
     <>
@@ -325,7 +324,7 @@ export const Table = ({
         {showPageSize && (
           <TablePageSize
             pageSize={state.pagination.pageSize}
-            setPageSize={setPageSizeFn}
+            setPageSize={setPageSize}
             pageSizeOptions={pageSizeOptions}
             gotoPage={gotoPage}
           />
