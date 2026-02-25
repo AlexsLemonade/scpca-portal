@@ -26,7 +26,8 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 export const ProjectSamplesTable = ({ stickies = 3 }) => {
   const { datasets } = useCCDLDatasetDownloadModalContext()
   const { getDatasetProjectDataSamples } = useDataset()
-  const { myDataset, getMyDatasetProjectDataSamples } = useMyDataset()
+  const { myDataset, isDatasetDataEmpty, getMyDatasetProjectDataSamples } =
+    useMyDataset()
   const {
     project,
     samples: defaultSamples,
@@ -199,6 +200,10 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   // Preselect samples that are already in the dataset
   useEffect(() => {
     if (!allSamples.length || !samples) return
+
+    // Run only when the dataset contains data
+    if (!dataset.data && isDatasetDataEmpty) return
+
     // Use dataset on /datasets, otherwise use myDataset for setup
     const projectData = dataset
       ? getDatasetProjectDataSamples(dataset, project)
