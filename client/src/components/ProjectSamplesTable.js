@@ -91,7 +91,8 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     },
     {
       header: 'Diagnosis - Subdiagnosis',
-      accessorFn: ({ diagnosis, subdiagnosis }) => `${diagnosis} ${subdiagnosis}`,
+      accessorFn: ({ diagnosis, subdiagnosis }) =>
+        `${diagnosis} ${subdiagnosis}`,
       cell: ({ row }) => (
         <Box width={{ max: '200px' }} style={{ whiteSpace: 'normal' }}>
           <Text>{row.original.diagnosis}</Text>
@@ -163,7 +164,8 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     },
     {
       header: 'Additional Metadata Fields',
-      accessorFn: ({ additional_metadata: data }) => Object.keys(data).join(', ')
+      accessorFn: ({ additional_metadata: data }) =>
+        Object.keys(data).join(', ')
     }
   ]
 

@@ -139,7 +139,10 @@ export const THead = ({ instance, stickies = 0 }) => {
               onClick={header.column.getToggleSortingHandler()}
             >
               <Box direction="row" justify="between">
-                {flexRender(header.column.columnDef.header, header.getContext())}
+                {flexRender(
+                  header.column.columnDef.header,
+                  header.getContext()
+                )}
                 {header.column.getCanSort() && (
                   <SortIcon
                     sorted={!!header.column.getIsSorted()}
@@ -214,7 +217,6 @@ export const TBody = ({
   )
 }
 
-
 // Custom fuzzyText filter function
 // TODO: determine if we still want to use matchSorter as react table v8
 // enforces a fuzzy function acting on one row at a time
@@ -280,15 +282,16 @@ export const Table = ({
   })
 
   const state = instance.getState()
-  const pageRows = pageSize !== 0
-    ? instance.getPaginationRowModel().rows
-    : instance.getSortedRowModel().rows
+  const pageRows =
+    pageSize !== 0
+      ? instance.getPaginationRowModel().rows
+      : instance.getSortedRowModel().rows
 
-  const gotoPage = (index) => setPagination((p) => ({ ...p, pageIndex: index}))
-  const setPageSize = (size) => setPagination({ pageIndex: 0, pageSize: size})
+  const gotoPage = (index) => setPagination((p) => ({ ...p, pageIndex: index }))
+  const setPageSize = (size) => setPagination({ pageIndex: 0, pageSize: size })
 
   useEffect(() => {
-    const rows = instance.getCoreRowModel().rows
+    const { rows } = instance.getCoreRowModel()
     if (rows.length > 0) {
       onAllRowsChange(rows.map((row) => row.original))
     }
