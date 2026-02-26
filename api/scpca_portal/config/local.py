@@ -18,7 +18,7 @@ class Local(Common):
     AWS_REGION = "us-east-1"
 
     # AWS S3
-    AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-inputs"
+    AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-input"
     AWS_S3_OUTPUT_BUCKET_NAME = "scpca-local-data"
 
     CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1"]

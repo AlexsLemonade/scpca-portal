@@ -12,7 +12,7 @@ logger = get_and_configure_logger(__name__)
 
 class Command(BaseCommand):
     help = """
-    Data files should be contained in an S3 bucket called scpca-portal-inputs.
+    Data files should be contained in an S3 bucket called scpca-portal-input.
 
     The directory structure for this bucket should follow this pattern:
         /project_metadata.csv
