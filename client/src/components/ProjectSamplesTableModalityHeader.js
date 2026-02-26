@@ -5,22 +5,14 @@ import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getReadable } from 'helpers/getReadable'
 import { CheckBox } from 'components/CheckBox'
 
-const TriStateCheckBox = ({ modality }) => {
-  const { getHeaderState, toggleModalitySamples } = useProjectSamplesTable()
-  const { checked, disabled, indeterminate } = getHeaderState(modality)
-
-  return (
-    <CheckBox
-      checked={checked}
-      disabled={disabled}
-      indeterminate={indeterminate}
-      onChange={() => toggleModalitySamples(modality)}
-    />
-  )
-}
-
 export const ProjectSamplesTableModalityHeader = () => {
-  const { project } = useProjectSamplesTable()
+  const {
+    project,
+    readOnly,
+    getIsAllSelected,
+    getIsSomeSelected,
+    toggleModalitySamples
+  } = useProjectSamplesTable()
   const availableModalities = getProjectModalities(project)
   const isSingleModality = availableModalities.length === 1
 
@@ -51,7 +43,12 @@ export const ProjectSamplesTableModalityHeader = () => {
             {!isSingleModality && (
               <Text margin={{ bottom: 'xsmall' }}>{getReadable(m)}</Text>
             )}
-            <TriStateCheckBox modality={m} />
+            <CheckBox
+              checked={getIsAllSelected(m)}
+              disabled={readOnly}
+              indeterminate={getIsSomeSelected(m)}
+              onChange={() => toggleModalitySamples(m)}
+            />
           </Box>
         ))}
       </Box>
