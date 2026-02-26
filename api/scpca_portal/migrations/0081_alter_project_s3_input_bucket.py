@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scpca_portal', '0080_alter_computedfile_id_alter_contact_id_alter_job_id_and_more'),
+        ("scpca_portal", "0080_alter_computedfile_id_alter_contact_id_alter_job_id_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='s3_input_bucket',
-            field=models.TextField(default='scpca-portal-input'),
+            model_name="project",
+            name="s3_input_bucket",
+            field=models.TextField(default="scpca-portal-input"),
         ),
     ]
