@@ -117,12 +117,18 @@ resource "aws_iam_policy" "batch_job_s3_access" {
       "Effect": "Allow",
       "Action": [
         "s3:ListBucket",
-        "s3:GetObject",
-        "kms:Decrypt"
+        "s3:GetObject"
       ],
       "Resource": [
         "arn:aws:s3:::scpca-portal-input/*"
       ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+      ],
+      "Resource": "*"
     },
     {
       "Effect": "Allow",
