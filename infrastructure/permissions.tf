@@ -127,19 +127,19 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
    "Version":"2012-10-17",
    "Statement":[
       {
-         "Effect":"Allow",
-         "Action":[
+         "Effect": "Allow",
+         "Action": [
             "s3:ListAllMyBuckets"
          ],
-         "Resource":"arn:aws:s3:::*"
+         "Resource": "arn:aws:s3:::*"
       },
       {
-         "Effect":"Allow",
-         "Action":[
+         "Effect": "Allow",
+         "Action": [
             "s3:ListBucket",
             "s3:GetBucketLocation"
          ],
-         "Resource":"arn:aws:s3:::scpca-portal-input"
+         "Resource": "arn:aws:s3:::scpca-portal-input"
       },
       {
          "Effect":"Allow",
@@ -151,11 +151,11 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
           ]
       },
       {
-       "Effect":"Allow",
-       "Action":[
-          "kms:Decrypt",
-       ],
-       "Resource": "*"
+         "Effect": "Allow",
+         "Action": [
+           "kms:Decrypt",
+         ],
+         "Resource": "*"
       }
    ]
 }

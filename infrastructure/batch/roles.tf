@@ -124,8 +124,8 @@ resource "aws_iam_policy" "batch_job_s3_access" {
       ]
     },
     {
-      "Effect":"Allow",
-      "Action":[
+      "Effect": "Allow",
+      "Action": [
         "kms:Decrypt",
       ],
       "Resource": "*"
