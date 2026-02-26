@@ -123,13 +123,13 @@ resource "aws_iam_policy" "batch_job_s3_access" {
         "arn:aws:s3:::scpca-portal-input/*"
       ]
     },
-      {
-       "Effect":"Allow",
-       "Action":[
-          "kms:Decrypt",
-       ],
-       "Resource": "*"
-      }
+    {
+      "Effect":"Allow",
+      "Action":[
+        "kms:Decrypt",
+      ],
+      "Resource": "*"
+    },
     {
       "Effect": "Allow",
       "Action": [
