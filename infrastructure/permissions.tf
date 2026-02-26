@@ -153,7 +153,7 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
       {
          "Effect": "Allow",
          "Action": [
-           "kms:Decrypt",
+           "kms:Decrypt"
          ],
          "Resource": "*"
       }
