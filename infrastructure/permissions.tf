@@ -144,7 +144,8 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
       {
          "Effect":"Allow",
          "Action":[
-            "s3:GetObject"
+            "s3:GetObject",
+            "kms:Decrypt"
          ],
           "Resource": [
             "arn:aws:s3:::scpca-portal-input/*"
