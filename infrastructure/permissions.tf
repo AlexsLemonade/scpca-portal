@@ -77,7 +77,9 @@ resource "aws_iam_policy" "s3_access_policy" {
         Action = [
           "s3:ListAllMyBuckets"
         ]
-        Resource = "arn:aws:s3:::*"
+        Resource = [
+          "arn:aws:s3:::*"
+        ]
       },
       {
         Effect = "Allow"
@@ -123,7 +125,9 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
         Action = [
           "s3:ListAllMyBuckets"
         ]
-        Resource = "arn:aws:s3:::*"
+        Resource = [
+          "arn:aws:s3:::*"
+        ]
       },
       {
         Effect = "Allow"
@@ -131,7 +135,9 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
           "s3:ListBucket",
           "s3:GetBucketLocation"
         ]
-        Resource = "arn:aws:s3:::scpca-portal-input"
+        Resource = [
+          "arn:aws:s3:::scpca-portal-input"
+        ]
       },
       {
         Effect = "Allow"
@@ -147,7 +153,9 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
         Action = [
           "kms:Decrypt"
         ]
-        Resource = "*"
+        Resource = [
+          "*"
+        ]
       }
     ]
   })
@@ -171,7 +179,9 @@ resource "aws_iam_policy" "batch" {
           "batch:TerminateJob",
           "batch:DescribeJobs"
         ]
-        Resource = "*"
+        Resource = [
+          "*"
+        ]
       }
     ]
   })
@@ -194,7 +204,9 @@ resource "aws_iam_policy" "api_ses_send_email" {
           "ses:SendEmail",
           "ses:SendRawEmail"
         ]
-        Resource = data.aws_ses_domain_identity.scpca_portal.arn
+        Resource = [
+          data.aws_ses_domain_identity.scpca_portal.arn
+        ]
       }
     ]
   })
