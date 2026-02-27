@@ -125,7 +125,7 @@ export const useDataset = () => {
     dataset.data?.[project.scpca_id]?.includes_bulk || false
 
   const isProjectMerged = (dataset, project) =>
-    dataset.data[project.scpca_id].SINGLE_CELL === 'MERGED'
+    dataset.data?.[project.scpca_id].SINGLE_CELL === 'MERGED'
 
   const getDatasetProjectData = (dataset, project) =>
     dataset?.data?.[project.scpca_id] || {}
@@ -221,7 +221,18 @@ export const useDataset = () => {
       if (addedSampleId === 'MERGED') {
         acc[m] = []
       } else {
-        acc[m] = differenceArray(project.modality_samples[m], addedSampleId)
+        // Exclude multiplexed samples for datasets in AnnData format
+        const isMultiplexedExcluded =
+          dataset.format === 'ANN_DATA' && project.has_multiplexed_data
+
+        const projectModalitySampleIds = isMultiplexedExcluded
+          ? differenceArray(
+              project.modality_samples[m],
+              project.multiplexed_samples
+            )
+          : project.modality_samples[m]
+
+        acc[m] = differenceArray(projectModalitySampleIds, addedSampleId)
       }
       return acc
     }, {})

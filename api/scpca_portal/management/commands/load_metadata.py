@@ -14,7 +14,7 @@ logger = get_and_configure_logger(__name__)
 class Command(BaseCommand):
     help = """Populates the database with data.
 
-    Metadata files should be contained in an S3 bucket called scpca-portal-inputs.
+    Metadata files should be contained in an S3 bucket called scpca-portal-input.
 
     The bucket's directory structure, as it pertains to metadata files, should follow this pattern:
         /project_metadata.csv

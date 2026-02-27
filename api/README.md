@@ -115,7 +115,7 @@ sportal api:manage generate_computed_files
 ```
 
 ### Load Metadata Configuration Options
-Calling `sportal api:manage load_metadata` will populate your local database by pulling metadata from the `scpca-portal-inputs` bucket.
+Calling `sportal api:manage load_metadata` will populate your local database by pulling metadata from the `scpca-portal-input` bucket.
 
 By default the command will only look for new projects.
 If you would like to reimport existing projects you can run:
@@ -136,7 +136,7 @@ If you would like to update a specific project, use the `--scpca-project-id` fla
 sportal api:manage load_metadata --scpca-project-id SCPCP000001
 ```
 
-The default input bucket for local development is `scpca-portal-inputs`. To pass a custom input bucket the `--input-bucket-name` flag can be passed, as illustrated below:
+The default input bucket for local development is `scpca-portal-input`. To pass a custom input bucket the `--input-bucket-name` flag can be passed, as illustrated below:
 
 ```
 sportal api:manage load_metadata --input-bucket-name custom-input-bucket

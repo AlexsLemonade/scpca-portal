@@ -52,10 +52,10 @@ export const useProjectSamplesTable = () => {
     // Multiplexed samples are not available for ANN_DATA
     myDataset.format === 'ANN_DATA' && sample.has_multiplexed_data
 
-  const getCheckBoxIsChecked = (sample, modality) =>
+  const getIsSampleSelected = (sample, modality) =>
     selectedSamples[modality].includes(sample.scpca_id)
 
-  const getCheckBoxIsDisabled = (sample, modality) => {
+  const getIsSamlpleSelectable = (sample, modality) => {
     if (canAdd) {
       return (
         !getHasModality(sample, modality) ||
@@ -71,27 +71,27 @@ export const useProjectSamplesTable = () => {
     return true
   }
 
-  // TODO: This method will be refactored in #1750 (excluded from optimization)
-  // Get the current state of the tri-state checkbox
-  const getHeaderState = (modality) => {
+  const getSelectedSampleIdsOnPage = (modality) => {
     const allSampleIdsOnPage = filteredSamples.map((s) => s.scpca_id)
     const selectedModalitySampleIds = selectedSamples[modality]
 
-    const selectedSampleIdsOnPage = allSampleIdsOnPage.filter((id) =>
+    return allSampleIdsOnPage.filter((id) =>
       selectedModalitySampleIds.includes(id)
     )
-
-    const isNoneSelected = selectedSampleIdsOnPage.length === 0
-    const isAllSelected =
-      selectedSampleIdsOnPage.length === allSampleIdsOnPage.length
-    const isSomeSelected = !isNoneSelected && !isAllSelected
-
-    return {
-      checked: isAllSelected,
-      disabled: readOnly,
-      indeterminate: isSomeSelected
-    }
   }
+
+  const getIsAllSelected = (modality) => {
+    const selectedSampleIdsOnPage = getSelectedSampleIdsOnPage(modality)
+    return selectedSampleIdsOnPage.length === filteredSamples.length
+  }
+
+  const getIsNoneSelected = (modality) => {
+    const selectedSampleIdsOnPage = getSelectedSampleIdsOnPage(modality)
+    return selectedSampleIdsOnPage.length === 0
+  }
+
+  const getIsSomeSelected = (modality) =>
+    !getIsAllSelected(modality) && !getIsNoneSelected(modality)
 
   const selectAllSingleCellSamples = () => {
     setSelectedSamples((prevSelectedSamples) => ({
@@ -199,9 +199,10 @@ export const useProjectSamplesTable = () => {
     setFilteredSamples,
     showBulkInfoText,
     showWarningMultiplexed,
-    getHeaderState,
-    getCheckBoxIsChecked,
-    getCheckBoxIsDisabled,
+    getIsAllSelected,
+    getIsSomeSelected,
+    getIsSampleSelected,
+    getIsSamlpleSelectable,
     selectAllSingleCellSamples,
     selectModalitySamplesByIds,
     toggleSampleModality,
