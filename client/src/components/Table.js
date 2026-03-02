@@ -18,7 +18,7 @@ import {
   getPaginationRowModel,
   flexRender
 } from '@tanstack/react-table'
-import { matchSorter } from 'match-sorter'
+import { rankItem } from '@tanstack/match-sorter-utils'
 import { Icon } from 'components/Icon'
 import { TableFilter } from 'components/TableFilter'
 import { TablePageSize } from 'components/TablePageSize'
@@ -218,11 +218,10 @@ export const TBody = ({
 }
 
 // Custom fuzzyText filter function
-// TODO: determine if we still want to use matchSorter as react table v8
-// enforces a fuzzy function acting on one row at a time
-const fuzzyTextFilterFn = (row, columnId, filterValue) => {
-  const value = row.getValue(columnId)
-  return matchSorter([value], filterValue).length > 0
+const fuzzyTextFilterFn = (row, columnId, filterValue, addMeta) => {
+  const itemRank = rankItem(row.getValue(columnId), filterValue)
+  addMeta({ itemRank })
+  return itemRank.passed
 }
 
 // Let the table remove the filter if the string is empty
