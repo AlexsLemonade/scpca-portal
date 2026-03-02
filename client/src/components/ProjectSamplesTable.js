@@ -240,8 +240,8 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         data={samples}
         filter
         stickies={stickies}
-        pageSize={5}
-        pageSizeOptions={[5, 10, 20, 50]}
+        pageSize={1000}
+        pageSizeOptions={[1000]} // Temporary value
         infoText={infoText}
         text={text}
         defaultSort={[{ id: 'scpca_id', asc: true }]}
