@@ -301,7 +301,7 @@ export const Table = ({
     if (pageRows.length > 0) {
       onFilteredRowsChange(pageRows.map((row) => row.original))
     }
-  }, [globalFilter, pagination])
+  }, [globalFilter, sorting, pagination])
 
   const hasText = text || (filter && infoText)
   const justify = hasText ? 'between' : 'end'
