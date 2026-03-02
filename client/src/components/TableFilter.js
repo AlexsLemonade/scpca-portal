@@ -1,6 +1,22 @@
-import React from 'react'
-import { useDebouncedCallback } from 'use-debounce'
+import React, { useCallback, useRef } from 'react'
 import { Box, Text, TextInput } from 'grommet'
+
+const useAsyncDebounce = (fn, delay) => {
+  const timeoutRef = useRef(null)
+  return useCallback(
+    (...args) => {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = setTimeout(async () => {
+        try {
+          await fn(...args)
+        } catch (e) {
+          console.error(e)
+        }
+      }, delay)
+    },
+    [fn, delay]
+  )
+}
 
 export const TableFilter = ({
   globalFilter,
@@ -10,7 +26,7 @@ export const TableFilter = ({
   totalFilteredSize
 }) => {
   const [value, setValue] = React.useState(globalFilter)
-  const onChange = useDebouncedCallback((newValue) => {
+  const onChange = useAsyncDebounce((newValue) => {
     setGlobalFilter(newValue || undefined)
   }, 200)
 

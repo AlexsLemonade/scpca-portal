@@ -13116,7 +13116,6 @@ __metadata:
     storybook: ^7.4.1
     styled-components: ^5.3.0
     styled-reset: ^4.3.4
-    use-debounce: ^10.1.0
     yup: ^0.32.9
   languageName: unknown
   linkType: soft
@@ -14611,15 +14610,6 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 7913df383a5a6fcb399212eedefaac2e0c6f843555202d4e3010bac3848afe38ecaa3d0d6500ad1d936fbeffd637e6c517e68edb024af5e6beca7f27f3ce7b21
-  languageName: node
-  linkType: hard
-
-"use-debounce@npm:^10.1.0":
-  version: 10.1.0
-  resolution: "use-debounce@npm:10.1.0"
-  peerDependencies:
-    react: "*"
-  checksum: 217a80a392cbd6bafb43cd52bc5579847d35c5df890f2b3689c527317bc610e8467f4c051e39180f825b6e8ee9e6fc777c09a214a9df4fff3dc72a1a9ee73853
   languageName: node
   linkType: hard
 

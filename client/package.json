@@ -28,7 +28,6 @@
     "regenerator-runtime": "^0.14.0",
     "styled-components": "^5.3.0",
     "styled-reset": "^4.3.4",
-    "use-debounce": "^10.1.0",
     "yup": "^0.32.9"
   },
   "devDependencies": {
