@@ -23,7 +23,7 @@ import { Table } from 'components/Table'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
-export const ProjectSamplesTable = ({ stickies = 3 }) => {
+export const ProjectSamplesTable = ({ stickies = 3, children }) => {
   const { datasets } = useCCDLDatasetDownloadModalContext()
   const { getDatasetProjectData } = useDataset()
   const { myDataset, getDatasetProjectDataSamples } = useMyDataset()
@@ -263,6 +263,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           <WarningAnnDataMultiplexed />
         )}
       </Table>
+      <Box>{children}</Box>
     </>
   )
 }
