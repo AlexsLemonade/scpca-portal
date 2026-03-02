@@ -1,22 +1,6 @@
-import React, { useCallback, useRef } from 'react'
+import React from 'react'
 import { Box, Text, TextInput } from 'grommet'
-
-const useAsyncDebounce = (fn, delay) => {
-  const timeoutRef = useRef(null)
-  return useCallback(
-    (...args) => {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = setTimeout(async () => {
-        try {
-          await fn(...args)
-        } catch (e) {
-          console.error(e)
-        }
-      }, delay)
-    },
-    [fn, delay]
-  )
-}
+import { useAsyncDebounce } from 'hooks/useAsyncDebounce'
 
 export const TableFilter = ({
   globalFilter,
