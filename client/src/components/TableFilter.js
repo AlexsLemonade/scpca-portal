@@ -1,6 +1,6 @@
 import React from 'react'
-import { useAsyncDebounce } from 'react-table'
 import { Box, Text, TextInput } from 'grommet'
+import { useAsyncDebounce } from 'hooks/useAsyncDebounce'
 
 export const TableFilter = ({
   globalFilter,
