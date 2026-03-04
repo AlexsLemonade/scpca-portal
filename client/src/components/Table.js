@@ -18,7 +18,7 @@ import {
   getPaginationRowModel,
   flexRender
 } from '@tanstack/react-table'
-import { rankItem } from '@tanstack/match-sorter-utils'
+import { rankItem, rankings } from '@tanstack/match-sorter-utils'
 import { Icon } from 'components/Icon'
 import { TableFilter } from 'components/TableFilter'
 import { TablePageSize } from 'components/TablePageSize'
@@ -219,7 +219,9 @@ export const TBody = ({
 
 // Custom fuzzyText filter function
 const fuzzyTextFilterFn = (row, columnId, filterValue, addMeta) => {
-  const itemRank = rankItem(row.getValue(columnId), filterValue)
+  const itemRank = rankItem(row.getValue(columnId), filterValue, {
+    threshold: rankings.CONTAINS
+  })
   addMeta({ itemRank })
   return itemRank.passed
 }
