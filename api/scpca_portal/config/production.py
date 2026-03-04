@@ -1,11 +1,11 @@
 import os
-from distutils.util import strtobool
 from pathlib import Path
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 from scpca_portal.config.common import Common
+from scpca_portal.strtobool import strtobool
 
 
 class Production(Common):
@@ -17,7 +17,7 @@ class Production(Common):
     UPDATE_S3_DATA = True
 
     # AWS S3
-    AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-inputs"
+    AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-input"
     AWS_S3_OUTPUT_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME")
 
     # AWS Batch

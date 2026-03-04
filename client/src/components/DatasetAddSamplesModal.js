@@ -5,6 +5,7 @@ import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { getProjectFormats } from 'helpers/getProjectFormats'
 import { differenceArray } from 'helpers/differenceArray'
+import { pluralize } from 'helpers/pluralize'
 import { Button } from 'components/Button'
 import { Modal, ModalBody } from 'components/Modal'
 import { DatasetDataFormatOptions } from 'components/DatasetDataFormatOptions'
@@ -14,14 +15,14 @@ import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 export const DatasetAddSamplesModal = ({
   project,
   samples,
-  label = 'Add to Dataset',
+  label = 'Add Samples to Dataset',
   title = 'Add Samples to Dataset',
   disabled = false
 }) => {
   const {
     myDataset,
-    getDatasetProjectDataSamples,
-    setSamples,
+    getMyDatasetProjectDataSamples,
+    setMyDatasetSamples,
     userFormat,
     setUserFormat
   } = useMyDataset()
@@ -41,37 +42,30 @@ export const DatasetAddSamplesModal = ({
   // NOTE: Make sure not to lose the user's selection when toggling formats before API request
   useEffect(() => {
     if (!samples) return
-    if (!project.has_multiplexed_data) {
+
+    if (!project.has_multiplexed_data || canAddMultiplexed) {
       setSelectedSingleCellSamples(selectedSamples.SINGLE_CELL)
-    } else {
-      setSelectedSingleCellSamples(
-        canAddMultiplexed
-          ? selectedSamples.SINGLE_CELL
-          : samples
-              .filter(
-                (s) =>
-                  !s.has_multiplexed_data &&
-                  selectedSamples.SINGLE_CELL.includes(s.scpca_id)
-              )
-              .map((s) => s.scpca_id)
-      )
+      return
     }
+
+    const selectedSet = new Set(selectedSamples.SINGLE_CELL)
+    setSelectedSingleCellSamples(
+      samples
+        .filter((s) => !s.has_multiplexed_data && selectedSet.has(s.scpca_id))
+        .map((s) => s.scpca_id)
+    )
   }, [userFormat, canAddMultiplexed, selectedSamples])
 
   // Get multiplexed samples in selectedSamples
   useEffect(() => {
-    if (!samples) return
-    if (project.has_multiplexed_data) {
-      setSelectedMultiplexedSamples(
-        samples
-          .filter(
-            (s) =>
-              s.has_multiplexed_data &&
-              selectedSamples.SINGLE_CELL.includes(s.scpca_id)
-          )
-          .map((s) => s.scpca_id)
-      )
-    }
+    if (!samples || !project.has_multiplexed_data) return
+
+    const samplesSet = new Set(selectedSamples.SINGLE_CELL)
+    setSelectedMultiplexedSamples(
+      samples
+        .filter((s) => s.has_multiplexed_data && samplesSet.has(s.scpca_id))
+        .map((s) => s.scpca_id)
+    )
   }, [userFormat, canAddMultiplexed, selectedSamples])
 
   // Modal toggle
@@ -91,6 +85,7 @@ export const DatasetAddSamplesModal = ({
     userFormat === 'ANN_DATA'
       ? totalSamples - selectedMulstiplexedSamples.length > 0
       : totalSamples > 0
+  const isDisabled = disabled || !canClickAddSamples
 
   const handleAddSamples = async () => {
     setLoading(true)
@@ -100,7 +95,7 @@ export const DatasetAddSamplesModal = ({
         ? 'MERGED'
         : selectedSingleCellSamples
 
-    await setSamples(
+    await setMyDatasetSamples(
       project,
       {
         ...selectedSamples,
@@ -131,7 +126,7 @@ export const DatasetAddSamplesModal = ({
   useEffect(() => {
     if (samples) {
       const { SINGLE_CELL: singleCellSamples, SPATIAL: spatialSamples } =
-        getDatasetProjectDataSamples(project)
+        getMyDatasetProjectDataSamples(project)
 
       setSingleCellSamplesToAdd(
         differenceArray(selectedSamples.SINGLE_CELL, singleCellSamples)
@@ -160,7 +155,7 @@ export const DatasetAddSamplesModal = ({
         flex="grow"
         primary
         label={label}
-        disabled={disabled}
+        disabled={isDisabled}
         onClick={() => setShowing(true)}
       />
       <Modal title={title} showing={showing} setShowing={setShowing}>
@@ -174,7 +169,9 @@ export const DatasetAddSamplesModal = ({
               <Paragraph margin={{ bottom: 'xsmall' }}>
                 You have selected the following to add to My Dataset:
               </Paragraph>
-              <Paragraph>{`${totalSamples} samples`}</Paragraph>
+              <Paragraph>
+                {pluralize(`${totalSamples} sample`, totalSamples)}
+              </Paragraph>
               <Box
                 as="ul"
                 margin={{ top: '0' }}
@@ -182,11 +179,18 @@ export const DatasetAddSamplesModal = ({
                 style={{ listStyle: 'disc' }}
               >
                 <Box as="li" style={{ display: 'list-item' }}>
-                  {`${singleCellSamplesToAdd} samples with single-cell modality`}
+                  {`${pluralize(
+                    `${singleCellSamplesToAdd} sample`,
+                    singleCellSamplesToAdd
+                  )} with single-cell modality`}
                 </Box>
+
                 {project.has_spatial_data && (
                   <Box as="li" style={{ display: 'list-item' }}>
-                    {`${spatialSamplesToAdd} samples with spatial modality`}
+                    {`${pluralize(
+                      `${spatialSamplesToAdd} sample`,
+                      spatialSamplesToAdd
+                    )} with spatial modality`}
                   </Box>
                 )}
               </Box>
@@ -219,7 +223,7 @@ export const DatasetAddSamplesModal = ({
                   primary
                   aria-label={label}
                   label={label}
-                  disabled={!canClickAddSamples}
+                  disabled={isDisabled}
                   onClick={handleAddSamples}
                   loading={loading}
                 />

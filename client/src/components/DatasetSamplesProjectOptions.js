@@ -8,13 +8,13 @@ export const DatasetSamplesProjectOptions = ({
   includeBulk,
   onIncludeBulkChange
 }) => {
-  const { myDataset, isProjectIncludeBulk } = useMyDataset()
+  const { myDataset, isMyDatasetProjectIncludeBulk } = useMyDataset()
 
   // Preselect options based on the values in myDataset
   useEffect(() => {
     if (!myDataset) return
 
-    onIncludeBulkChange(isProjectIncludeBulk(project))
+    onIncludeBulkChange(isMyDatasetProjectIncludeBulk(project))
   }, [myDataset])
 
   return (

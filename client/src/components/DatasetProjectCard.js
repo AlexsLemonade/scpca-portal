@@ -4,15 +4,16 @@ import { useRouter } from 'next/router'
 import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useResponsive } from 'hooks/useResponsive'
-import { Badge } from 'components/Badge'
-import { Button } from 'components/Button'
-import { Link } from 'components/Link'
-import { WarningText } from 'components/WarningText'
 import {
   formatModalityCounts,
   formatDiagnosisCounts
 } from 'helpers/formatCounts'
 import { getReadable } from 'helpers/getReadable'
+import { pluralize } from 'helpers/pluralize'
+import { Badge } from 'components/Badge'
+import { Button } from 'components/Button'
+import { Link } from 'components/Link'
+import { WarningText } from 'components/WarningText'
 
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
 
@@ -23,7 +24,7 @@ export const DatasetProjectCard = ({
 }) => {
   const { asPath, push } = useRouter()
   const { saveOriginScrollPosition } = useScrollRestore()
-  const { removeProjectById } = useMyDataset()
+  const { removeProjectByIdFromMyDataset } = useMyDataset()
   const { responsive } = useResponsive()
 
   const { data } = dataset
@@ -57,7 +58,7 @@ export const DatasetProjectCard = ({
   const [removeProjectLoading, setRemoveProjectLoading] = useState(false)
   const handleRemoveProject = async () => {
     setRemoveProjectLoading(true)
-    await removeProjectById(projectId)
+    await removeProjectByIdFromMyDataset(projectId)
     setRemoveProjectLoading(false)
   }
 
@@ -89,7 +90,7 @@ export const DatasetProjectCard = ({
       <Box margin={{ bottom: '24px' }}>
         <Badge badge="Samples">
           <Text size="21px" weight="bold">
-            {downloadableSamples} Sample{downloadableSamples > 1 ? 's' : ''}
+            {pluralize(`${downloadableSamples} Sample`, downloadableSamples)}
           </Text>
         </Badge>
       </Box>

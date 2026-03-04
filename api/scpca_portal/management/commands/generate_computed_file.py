@@ -26,7 +26,7 @@ class Command(BaseCommand):
         parser.add_argument("--project-id", type=str)
         parser.add_argument("--sample-id", type=str)
         parser.add_argument("--download-config-name", type=str)
-        parser.add_argument("--notify", type=bool, default=False, action=BooleanOptionalAction)
+        parser.add_argument("--notify", default=False, action=BooleanOptionalAction)
 
     def handle(self, *args, **kwargs):
         self.generate_computed_file(**kwargs)

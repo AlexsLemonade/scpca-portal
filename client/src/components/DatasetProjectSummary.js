@@ -5,6 +5,7 @@ import { DatasetRemoveAllModal } from 'components/DatasetRemoveAllModal'
 
 export const DatasetProjectSummary = ({ dataset, readOnly = false }) => {
   const projectKeys = Object.keys(dataset.data) || []
+  const canRemoveAll = !readOnly && projectKeys.length > 0
 
   return (
     <Box margin={{ bottom: 'large' }}>
@@ -18,7 +19,7 @@ export const DatasetProjectSummary = ({ dataset, readOnly = false }) => {
         <Text serif size="large">
           Project Summary
         </Text>
-        {projectKeys.length > 1 && (
+        {canRemoveAll && (
           <Box>
             <DatasetRemoveAllModal />
           </Box>

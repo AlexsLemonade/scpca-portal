@@ -12,7 +12,7 @@ logger = get_and_configure_logger(__name__)
 
 class Command(BaseCommand):
     help = """
-    Data files should be contained in an S3 bucket called scpca-portal-inputs.
+    Data files should be contained in an S3 bucket called scpca-portal-input.
 
     The directory structure for this bucket should follow this pattern:
         /project_metadata.csv
@@ -41,19 +41,17 @@ class Command(BaseCommand):
         parser.add_argument(
             "--clean-up-input-data",
             action=BooleanOptionalAction,
-            type=bool,
             default=settings.CLEAN_UP_DATA,
         )
         parser.add_argument(
             "--clean-up-output-data",
             action=BooleanOptionalAction,
-            type=bool,
             default=settings.CLEAN_UP_DATA,
         )
         parser.add_argument("--max-workers", type=int, default=10)
         parser.add_argument("--scpca-project-id", type=str)
         parser.add_argument(
-            "--update-s3", action=BooleanOptionalAction, type=bool, default=settings.UPDATE_S3_DATA
+            "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
 
     def handle(self, *args, **kwargs):

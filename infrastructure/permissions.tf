@@ -6,21 +6,18 @@ resource "aws_iam_role" "scpca_portal_instance" {
 
   # Policy text found at:
   # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/instance_IAM_role.html
-  assume_role_policy = <<EOF
-{
-  "Version": "2008-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": ["ec2.amazonaws.com"]
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
+  assume_role_policy = jsonencode({
+    Version = "2008-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = ["ec2.amazonaws.com"]
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
 }
 
 resource "aws_iam_instance_profile" "scpca_portal_instance_profile" {
@@ -37,30 +34,28 @@ resource "aws_iam_policy" "scpca_portal_cloudwatch" {
   # http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/iam-identity-based-access-control-cwl.html
 
   # Log streams are created dynamically by Nomad, so we give permission to the entire group
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-                "logs:DescribeLogStreams",
-                "cloudwatch:GetMetricStatistics",
-                "cloudwatch:ListMetrics",
-                "cloudwatch:PutMetricAlarm",
-                "cloudwatch:PutMetricData",
-                "cloudwatch:SetAlarmState"
-            ],
-            "Resource": [
-              "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.scpca_portal_log_group.name}:*"
-            ]
-        }
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams",
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:ListMetrics",
+          "cloudwatch:PutMetricAlarm",
+          "cloudwatch:PutMetricData",
+          "cloudwatch:SetAlarmState"
+        ]
+        Resource = [
+          "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.scpca_portal_log_group.name}:*"
+        ]
+      }
     ]
-}
-EOF
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "cloudwatch" {
@@ -74,43 +69,43 @@ resource "aws_iam_policy" "s3_access_policy" {
 
   # Policy text based off of:
   # http://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html
-  policy = <<EOF
-{
-   "Version":"2012-10-17",
-   "Statement":[
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
       {
-         "Effect":"Allow",
-         "Action":[
-            "s3:ListAllMyBuckets"
-         ],
-         "Resource":"arn:aws:s3:::*"
+        Effect = "Allow"
+        Action = [
+          "s3:ListAllMyBuckets"
+        ]
+        Resource = [
+          "arn:aws:s3:::*"
+        ]
       },
       {
-         "Effect":"Allow",
-         "Action":[
-            "s3:ListBucket",
-            "s3:GetBucketLocation"
-         ],
-         "Resource": [
-            "arn:aws:s3:::${aws_s3_bucket.scpca_portal_bucket.bucket}",
-            "arn:aws:s3:::${aws_s3_bucket.scpca_portal_cert_bucket.bucket}"
-         ]
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketLocation"
+        ]
+        Resource = [
+          "arn:aws:s3:::${aws_s3_bucket.scpca_portal_bucket.bucket}",
+          "arn:aws:s3:::${aws_s3_bucket.scpca_portal_cert_bucket.bucket}"
+        ]
       },
       {
-         "Effect":"Allow",
-         "Action":[
-            "s3:PutObject",
-            "s3:GetObject",
-            "s3:DeleteObject"
-         ],
-          "Resource": [
-            "arn:aws:s3:::${aws_s3_bucket.scpca_portal_bucket.bucket}/*",
-            "arn:aws:s3:::${aws_s3_bucket.scpca_portal_cert_bucket.bucket}/*"
-          ]
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:DeleteObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::${aws_s3_bucket.scpca_portal_bucket.bucket}/*",
+          "arn:aws:s3:::${aws_s3_bucket.scpca_portal_cert_bucket.bucket}/*"
+        ]
       }
-   ]
-}
-EOF
+    ]
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "s3" {
@@ -122,37 +117,48 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
   name        = "scpca-portal-input-bucket-access-policy-${var.user}-${var.stage}"
   description = "Allows S3 Permissions to the input bucket."
 
-  policy = <<EOF
-{
-   "Version":"2012-10-17",
-   "Statement":[
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
       {
-         "Effect":"Allow",
-         "Action":[
-            "s3:ListAllMyBuckets"
-         ],
-         "Resource":"arn:aws:s3:::*"
+        Effect = "Allow"
+        Action = [
+          "s3:ListAllMyBuckets"
+        ]
+        Resource = [
+          "arn:aws:s3:::*"
+        ]
       },
       {
-         "Effect":"Allow",
-         "Action":[
-            "s3:ListBucket",
-            "s3:GetBucketLocation"
-         ],
-         "Resource":"arn:aws:s3:::scpca-portal-inputs"
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketLocation"
+        ]
+        Resource = [
+          "arn:aws:s3:::scpca-portal-input"
+        ]
       },
       {
-         "Effect":"Allow",
-         "Action":[
-            "s3:GetObject"
-         ],
-          "Resource": [
-            "arn:aws:s3:::scpca-portal-inputs/*"
-          ]
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::scpca-portal-input/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt"
+        ]
+        Resource = [
+          "*"
+        ]
       }
-   ]
-}
-EOF
+    ]
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "input_bucket" {
@@ -163,22 +169,22 @@ resource "aws_iam_role_policy_attachment" "input_bucket" {
 resource "aws_iam_policy" "batch" {
   name = "scpca-portal-batch-submit-job-${var.user}-${var.stage}"
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "batch:SubmitJob",
-        "batch:TerminateJob",
-        "batch:DescribeJobs"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "batch:SubmitJob",
+          "batch:TerminateJob",
+          "batch:DescribeJobs"
+        ]
+        Resource = [
+          "*"
+        ]
+      }
+    ]
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "batch" {
@@ -187,22 +193,23 @@ resource "aws_iam_role_policy_attachment" "batch" {
 }
 
 resource "aws_iam_policy" "api_ses_send_email" {
-  name   = "scpca-portal-api-ses-send-email-${var.user}-${var.stage}"
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ses:SendEmail",
-        "ses:SendRawEmail"
-      ],
-      "Resource": "${data.aws_ses_domain_identity.scpca_portal.arn}"
-    }
-  ]
-}
-EOF
+  name = "scpca-portal-api-ses-send-email-${var.user}-${var.stage}"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ses:SendEmail",
+          "ses:SendRawEmail"
+        ]
+        Resource = [
+          data.aws_ses_domain_identity.scpca_portal.arn
+        ]
+      }
+    ]
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "api_ses_send_policy" {

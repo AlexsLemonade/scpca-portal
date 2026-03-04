@@ -1,10 +1,11 @@
 import os
-from distutils.util import strtobool
 from pathlib import Path
 
 import dj_database_url
 from configurations import Configuration
 from corsheaders.defaults import default_headers
+
+from scpca_portal.strtobool import strtobool
 
 BASE_DIR = Path(__file__).parent.parent
 
@@ -71,7 +72,6 @@ class Common(Configuration):
     # If you set this to False, Django will make some optimizations so as not
     # to load the internationalization machinery.
     USE_I18N = False
-    USE_L10N = True
     USE_TZ = True
     LOGIN_REDIRECT_URL = "/"
 
@@ -173,6 +173,9 @@ class Common(Configuration):
             "django.db.backends": {"handlers": ["console"], "level": "INFO"},
         },
     }
+
+    # Django
+    DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
     # Django Rest Framework.
     REST_FRAMEWORK = {
