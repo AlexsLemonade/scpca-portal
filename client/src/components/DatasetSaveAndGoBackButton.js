@@ -13,7 +13,7 @@ export const DatasetSaveAndGoBackButton = ({
 }) => {
   const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
-  const { setSamples } = useMyDataset()
+  const { setMyDatasetSamples } = useMyDataset()
   const { selectedSamples } = useProjectSamplesTable()
 
   const [saving, setSaving] = useState(false)
@@ -24,7 +24,7 @@ export const DatasetSaveAndGoBackButton = ({
       ...(includeMerge && { SINGLE_CELL: 'MERGED' })
     }
 
-    const datasetRequest = await setSamples(project, {
+    const datasetRequest = await setMyDatasetSamples(project, {
       ...newSamplesToAdd,
       includes_bulk: includeBulk
     })
