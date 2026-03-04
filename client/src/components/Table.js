@@ -11,12 +11,14 @@ import {
 } from 'grommet'
 import styled, { css } from 'styled-components'
 import {
-  useTable,
-  useSortBy,
-  useGlobalFilter,
-  usePagination
-} from 'react-table'
-import { matchSorter } from 'match-sorter'
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  flexRender
+} from '@tanstack/react-table'
+import { rankItem, rankings } from '@tanstack/match-sorter-utils'
 import { Icon } from 'components/Icon'
 import { TableFilter } from 'components/TableFilter'
 import { TablePageSize } from 'components/TablePageSize'
@@ -109,15 +111,11 @@ const SortIcon = ({ sorted, descending }) => {
   )
 }
 
-export const THead = ({
-  instance: {
-    headerGroups,
-    state: { globalFilter }
-  },
-  stickies = 0
-}) => {
+export const THead = ({ instance, stickies = 0 }) => {
   const [offsets, setOffsets] = useState([])
   const ref = createRef(null)
+  const { globalFilter } = instance.getState()
+
   useEffect(() => {
     const nodes = Array.from(ref.current.childNodes)
     const widths = nodes.map((n) => n.clientWidth)
@@ -126,27 +124,29 @@ export const THead = ({
       .slice(0, stickies)
     setOffsets(newOffsets)
   }, [globalFilter, stickies])
+
   return (
     <TableHeader>
-      {headerGroups.map((headerGroup) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <TableRow ref={ref} {...headerGroup.getHeaderGroupProps()}>
-          {headerGroup.headers.map((column, index) => (
-            // eslint-disable-next-line react/jsx-props-no-spreading
+      {instance.getHeaderGroups().map((headerGroup) => (
+        <TableRow ref={ref} key={headerGroup.id}>
+          {headerGroup.headers.map((header, index) => (
             <StickyTableCell
               scope="col"
+              key={header.id}
               offset={offsets[index]}
               stickies={stickies}
               index={index}
-              // eslint-disable-next-line react/jsx-props-no-spreading
-              {...column.getHeaderProps(column.getSortByToggleProps())}
+              onClick={header.column.getToggleSortingHandler()}
             >
               <Box direction="row" justify="between">
-                {column.render('Header')}
-                {column.canSort && (
+                {flexRender(
+                  header.column.columnDef.header,
+                  header.getContext()
+                )}
+                {header.column.getCanSort() && (
                   <SortIcon
-                    sorted={column.isSorted}
-                    descending={column.isSortedDesc}
+                    sorted={!!header.column.getIsSorted()}
+                    descending={header.column.getIsSorted() === 'desc'}
                   />
                 )}
               </Box>
@@ -159,19 +159,15 @@ export const THead = ({
 }
 
 export const TBody = ({
-  instance: {
-    getTableBodyProps,
-    prepareRow,
-    page,
-    rows,
-    state: { globalFilter }
-  },
+  instance,
   stickies = 0,
   prevSelectedRows,
-  selectedRows
+  selectedRows,
+  pageRows
 }) => {
   const [offsets, setOffsets] = useState([])
   const ref = createRef(null)
+  const { globalFilter } = instance.getState()
 
   const getIsHighlighted = (id) => {
     // Previously selected modalities for the sample row
@@ -198,40 +194,38 @@ export const TBody = ({
   }, [globalFilter, stickies])
 
   return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <TableBody {...getTableBodyProps()}>
-      {(page || rows).map((row) => {
-        prepareRow(row)
-        return (
-          <TableRow
-            ref={ref}
-            highlighted={getIsHighlighted(row.original.scpca_id)}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...row.getRowProps()}
-          >
-            {row.cells.map((cell, index) => (
-              <StickyTableCell
-                offset={offsets[index]}
-                stickies={stickies}
-                index={index}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...cell.getCellProps()}
-              >
-                {cell.render('Cell')}
-              </StickyTableCell>
-            ))}
-          </TableRow>
-        )
-      })}
+    <TableBody>
+      {pageRows.map((row) => (
+        <TableRow
+          ref={ref}
+          key={row.id}
+          highlighted={getIsHighlighted(row.original.scpca_id)}
+        >
+          {row.getVisibleCells().map((cell, index) => (
+            <StickyTableCell
+              key={cell.id}
+              offset={offsets[index]}
+              stickies={stickies}
+              index={index}
+            >
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </StickyTableCell>
+          ))}
+        </TableRow>
+      ))}
     </TableBody>
   )
 }
 
 // Custom fuzzyText filter function
-const fuzzyTextFilterFn = (rows, ids, filterValue) =>
-  matchSorter(rows, filterValue, {
-    keys: ids.map((id) => `values.${id}`)
+const fuzzyTextFilterFn = (row, columnId, filterValue, addMeta) => {
+  const itemRank = rankItem(row.getValue(columnId), filterValue, {
+    threshold: rankings.CONTAINS
   })
+  addMeta({ itemRank })
+  return itemRank.passed
+}
+
 // Let the table remove the filter if the string is empty
 fuzzyTextFilterFn.autoRemove = (val) => !val
 
@@ -253,72 +247,62 @@ export const Table = ({
   onAllRowsChange = () => {},
   onFilteredRowsChange = () => {}
 }) => {
-  const filterTypes = useMemo(
-    () => ({
-      // Add fuzzyText filter type
-      fuzzyText: fuzzyTextFilterFn
-    }),
-    []
-  )
   const columns = useMemo(() => userColumns, [])
   const data = useMemo(() => userData, [])
 
   const pageSize = initialPageSize || pageSizeOptions[0] || 0
 
-  // if no pageSize is set dont use the hook
-  const hooks = [useGlobalFilter, useSortBy]
-  if (pageSize !== 0) {
-    hooks.push(usePagination)
-  }
-
-  const sortRules = useMemo(() => defaultSort, [userData])
-
-  const instance = useTable(
-    {
-      columns,
-      data,
-      defaultFilter: 'fuzzyText',
-      filterTypes,
-      initialState: { pageSize, sortBy: sortRules }
-    },
-    ...hooks
+  const [globalFilter, setGlobalFilter] = useState('')
+  const [sorting, setSorting] = useState(defaultSort)
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize })
+  const [columnVisibility, setColumnVisibility] = useState(
+    Object.fromEntries(
+      userColumns.map((c) => [c.accessorKey ?? c.id, c.isVisible ?? true])
+    )
   )
-  const {
-    getTableProps,
-    state,
-    setGlobalFilter,
-    globalFilteredRows,
-    gotoPage,
-    setPageSize,
-    pageOptions,
-    setHiddenColumns,
-    state: { pageIndex }
-  } = instance
 
-  userColumns.forEach((c) => {
-    // eslint-disable-next-line no-prototype-builtins, no-param-reassign
-    if (!c.hasOwnProperty('isVisible')) c.isVisible = true
+  const instance = useReactTable({
+    columns,
+    data,
+    filterFns: { fuzzyText: fuzzyTextFilterFn },
+    globalFilterFn: 'fuzzyText',
+    state: {
+      globalFilter,
+      sorting,
+      pagination,
+      columnVisibility
+    },
+    onGlobalFilterChange: setGlobalFilter,
+    onSortingChange: setSorting,
+    onPaginationChange: setPagination,
+    onColumnVisibilityChange: setColumnVisibility,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel()
   })
 
-  useEffect(() => {
-    if (instance.rows) {
-      onAllRowsChange(instance.rows.map((row) => row.original))
-    }
-  }, [instance.rows])
+  const state = instance.getState()
+  const pageRows =
+    pageSize !== 0
+      ? instance.getPaginationRowModel().rows
+      : instance.getSortedRowModel().rows
+
+  const gotoPage = (index) => setPagination((p) => ({ ...p, pageIndex: index }))
+  const setPageSize = (size) => setPagination({ pageIndex: 0, pageSize: size })
 
   useEffect(() => {
-    if (instance.page) {
-      onFilteredRowsChange(instance.page.map((row) => row.original))
+    const { rows } = instance.getCoreRowModel()
+    if (rows.length > 0) {
+      onAllRowsChange(rows.map((row) => row.original))
     }
-  }, [instance.page])
+  }, [data])
 
   useEffect(() => {
-    setHiddenColumns(
-      columns
-        .filter((column) => !column.isVisible)
-        .map((column) => column.accessor)
-    )
-  }, [setHiddenColumns, columns])
+    if (pageRows.length > 0) {
+      onFilteredRowsChange(pageRows.map((row) => row.original))
+    }
+  }, [globalFilter, sorting, pagination])
 
   const hasText = text || (filter && infoText)
   const justify = hasText ? 'between' : 'end'
@@ -327,7 +311,9 @@ export const Table = ({
 
   const showPageSize =
     pageSizeOptions.length > 0 && data?.length > pageSizeOptions[0]
-  const showPagination = pageOptions && pageOptions.length > 1
+  const showPagination = pageSize !== 0 && instance.getPageCount() > 1
+
+  const filteredRowCount = instance.getFilteredRowModel().rows.length
 
   return (
     <>
@@ -342,7 +328,7 @@ export const Table = ({
         {text && text}
         {showPageSize && (
           <TablePageSize
-            pageSize={state.pageSize}
+            pageSize={state.pagination.pageSize}
             setPageSize={setPageSize}
             pageSizeOptions={pageSizeOptions}
             gotoPage={gotoPage}
@@ -351,28 +337,28 @@ export const Table = ({
         {filter && (
           <TableFilter
             // state.globalFilter is the current string being filtered against
-            globalFilter={state.globalFilter}
+            globalFilter={globalFilter}
             setGlobalFilter={setGlobalFilter}
-            pageIndex={state.pageIndex}
-            pageSize={state.pageSize}
-            totalFilteredSize={globalFilteredRows.length}
+            pageIndex={state.pagination.pageIndex}
+            pageSize={state.pagination.pageSize}
+            totalFilteredSize={filteredRowCount}
           />
         )}
       </Box>
       {children}
       <TableBox width={{ max: 'full' }} overflow="auto" stickies={stickies}>
-        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-        <StickyTable {...getTableProps()} width="auto">
+        <StickyTable width="auto">
           <Head instance={instance} stickies={stickies} />
           <Body
             instance={instance}
             stickies={stickies}
             prevSelectedRows={prevSelectedRows}
             selectedRows={selectedRows}
+            pageRows={pageRows}
           />
         </StickyTable>
       </TableBox>
-      {filter && globalFilteredRows.length === 0 && (
+      {filter && filteredRowCount === 0 && (
         <Box
           direction="row"
           align="center"
@@ -381,16 +367,16 @@ export const Table = ({
           pad={{ vertical: 'large' }}
         >
           <Text italic>Filter has no matches.</Text>
-          <Button label="Reset Filter" onClick={() => setGlobalFilter()} />
+          <Button label="Reset Filter" onClick={() => setGlobalFilter('')} />
         </Box>
       )}
       {showPagination && (
         <Box justify="center" pad={{ vertical: 'medium' }}>
           <Pagination
             update={({ pageIndex: index }) => gotoPage(index)}
-            offset={pageIndex * state.pageSize}
-            limit={state.pageSize}
-            count={globalFilteredRows.length}
+            offset={state.pagination.pageIndex * state.pagination.pageSize}
+            limit={state.pagination.pageSize}
+            count={filteredRowCount}
           />
         </Box>
       )}

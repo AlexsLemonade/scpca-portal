@@ -3,7 +3,7 @@ import fetch from 'isomorphic-unfetch'
 const parseRequestResponse = async (response) => {
   try {
     return await response.json()
-  } catch (e) {
+  } catch {
     return {}
   }
 }
