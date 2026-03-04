@@ -52,8 +52,9 @@ export const ProjectSamplesTableOptionsHeader = ({
   // - Include merged option is deselected
   // - User has already confirmed unmerge action
   // - Previously selected samples count is not initialized yet
+  const isProjectMerged = isMyDatasetProjectMerged(project)
   const hideChangeMergedProjectModal = [
-    !isMyDatasetProjectMerged(project),
+    !isProjectMerged,
     !includeMerge,
     confirmUnmerge,
     noPrevSelectedSamples
@@ -104,13 +105,16 @@ export const ProjectSamplesTableOptionsHeader = ({
 
   // Toggle include merge checkbox based on the selected single-cell sample count
   useEffect(() => {
+    // Only evaluated for myDataset
+    if (readOnly) return
+
     const isAllSelected =
       selectedSamples.SINGLE_CELL.length ===
       project.modality_samples.SINGLE_CELL.length
     setAllSingleCellSamplesSelected(isAllSelected)
 
     // Uncheck the include merge checkbox if any single-cell sample is deselected
-    if (!isAllSelected) {
+    if (!isAllSelected && !isProjectMerged) {
       onIncludeMergeChange(false)
     }
   }, [selectedSamples])
@@ -174,7 +178,7 @@ export const ProjectSamplesTableOptionsHeader = ({
                 onIncludeMergeChange(checked)
               }
             />
-            {!readOnly && (
+            {!readOnly && !isProjectMerged && (
               <InfoTextMergingSamplesIntoOneObject
                 animation={
                   !allSingleCellSamplesSelected
