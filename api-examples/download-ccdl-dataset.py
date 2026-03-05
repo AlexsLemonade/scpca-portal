@@ -145,7 +145,13 @@ else:
 # NOTE: SPATIAL_SPACERANGER is not considered a dataset format.
 # To fetch all SPATIAL CCDL Datasets data, use ccdl_modality attr to query all SPATIAL data
 
-query = {"ccdl_modality": "SINGLE_CELL", "format": "SINGLE_CELL_EXPERIMENT"}
+# For CCDL Project Datasets, the ccdl_prjoect_id__isnull attr must be set to False,
+# For CCDL Portal Wide Datasets, it must be set to True
+query = {
+    "ccdl_modality": "SINGLE_CELL",
+    "format": "SINGLE_CELL_EXPERIMENT",
+    "ccdl_project_id__isnull": False,
+}
 
 queried_ccdl_datasets = request_api("ccdl-datasets", query=query).get("results", [])
 
