@@ -103,9 +103,10 @@ export const ProjectSamplesTableOptionsHeader = ({
     setPrevSelectedCount(newSelectedCount)
   }, [newSelectedCount])
 
-  // Toggle include merge checkbox based on the selected single-cell sample count
+  // Toggle include merge checkbox based on the selected single-cell
+  // sample count for editable datasets
   useEffect(() => {
-    // Only evaluated for myDataset
+    // Prevent running for readOnly during initial setup
     if (readOnly) return
 
     const isAllSelected =

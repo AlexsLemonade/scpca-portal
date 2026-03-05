@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
+import { Icon } from 'components/Icon'
 import styled, { css } from 'styled-components'
 
 const ArrowIcon = styled(Box)`
   ${({ theme }) => css`
-    border: 1px solid ${theme.global.colors.brand.light};
     &::before {
       border: 1px solid ${theme.global.colors.brand.light};
     }
   `}
   border-width: 1px 1px 0 0;
   margin: 0 calc(50% - 4px);
-  height: 6px;
-  width: 6px;
   position: relative;
-  transform: rotate(-45deg);
   &::before {
     content: '';
     border-radius: 50%;
@@ -22,7 +19,7 @@ const ArrowIcon = styled(Box)`
     height: 24px;
     position: absolute;
     left: -8px;
-    top: -12px;
+    top: -10px;
   }
 `
 
@@ -32,7 +29,7 @@ const ButtonBody = styled(Box)`
 
 const ButtonContainer = styled(Box)`
   ${({ show }) => css`
-    display: ${show ? 'block' : 'none'};
+    visibility: ${show ? 'visible' : 'hidden'};
   `}
   position: fixed;
   bottom: 5vh;
@@ -78,7 +75,11 @@ export const BackToTopButton = () => {
         pad={{ top: '20px', bottom: 'xsmall', horizontal: 'small' }}
         onClick={handleClick}
       >
-        <ArrowIcon />
+        <ArrowIcon>
+          <Box margin={{ top: '-2px' }}>
+            <Icon name="ChevronUp" size="small" color="brand" />
+          </Box>
+        </ArrowIcon>
         <Text
           color="brand"
           margin={{ top: 'small' }}
