@@ -131,12 +131,17 @@ else:
     API_TOKEN_BODY = {"email": API_TOKEN_EMAIL, "is_activated": True}
     token = request_api("tokens", body=API_TOKEN_BODY, method="POST")
 
-    token = dict(token)
-    API_TOKEN = token.get("id")
+    # Only continue if API token created and response received
+    try:
+        token = dict(token)
+        API_TOKEN = token["id"]
+    except KeyError:
+        print(f"An error occurred when trying to create an API token.")
 
-    print(f"Saving token to {API_TOKEN_FILENAME}")
-    with open(API_TOKEN_FILENAME, "w") as f:
-        f.writelines(token)
+    if API_TOKEN:
+        print(f"Saving token to {API_TOKEN_FILENAME}")
+        with open(API_TOKEN_FILENAME, "w") as f:
+            f.write(API_TOKEN)
 
 
 # SAMPLES
