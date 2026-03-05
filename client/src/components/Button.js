@@ -8,9 +8,9 @@ import { useWaitForAsync } from 'hooks/useWaitForAsync'
 import styled, { css } from 'styled-components'
 
 const ButtonText = styled(Text)`
-  ${({ loading }) =>
+  ${({ show }) =>
     css`
-      visibility: ${loading ? 'hidden' : 'visible'};
+      visibility: ${show ? 'hidden' : 'visible'};
     `}
 `
 
@@ -22,16 +22,16 @@ const ButtonSpinner = styled(GrommetSpinner)`
   top: 10%;
   left: 40%;
   transform: translate(-10%, -40%);
-  ${({ loading }) =>
+  ${({ show }) =>
     css`
-      visibility: ${loading ? 'visible' : 'hidden'};
+      visibility: ${show ? 'visible' : 'hidden'};
     `}
 `
 
-const ButtonLabel = ({ label, loading }) => (
+const ButtonLabel = ({ label, show }) => (
   <>
-    <ButtonText loading={loading}>{label}</ButtonText>
-    <ButtonSpinner loading={loading} />
+    <ButtonText show={show}>{label}</ButtonText>
+    <ButtonSpinner show={show} />
   </>
 )
 
@@ -48,7 +48,7 @@ export const Button = ({
     <GrommetButton
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
-      label={<ButtonLabel label={label} loading={loading} />}
+      label={<ButtonLabel label={label} show={loading} />}
       disabled={disabled}
       onClick={asyncOnClick}
     />

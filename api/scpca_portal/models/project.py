@@ -90,7 +90,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         return locked_projects
 
     @property
-    def modality_samples(self):
+    def modality_samples(self) -> Dict[str, List[str]]:
         """Return a dictionary of lists containing sample IDs, grouped by modality."""
         return {
             Modalities.SINGLE_CELL: list(
@@ -102,7 +102,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         }
 
     @property
-    def multiplexed_samples(self):
+    def multiplexed_samples(self) -> List[str]:
         """Return a lists containing multiplexed sample IDs."""
         if not self.has_multiplexed_data:
             return []

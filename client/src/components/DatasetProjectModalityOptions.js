@@ -10,7 +10,7 @@ export const DatasetProjectModalityOptions = ({
   modalities,
   onModalitiesChange
 }) => {
-  const { myDataset, getRemainingProjectSampleIds } = useMyDataset()
+  const { myDataset, getMyDatasetRemainingProjectSampleIds } = useMyDataset()
 
   const [remainingSamples, setRemainingSamples] = useState(null)
 
@@ -19,7 +19,7 @@ export const DatasetProjectModalityOptions = ({
   )
 
   useEffect(() => {
-    setRemainingSamples(getRemainingProjectSampleIds(project))
+    setRemainingSamples(getMyDatasetRemainingProjectSampleIds(project))
   }, [myDataset])
 
   // Run only for the add remaining modal

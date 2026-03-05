@@ -10,22 +10,25 @@ import { Modal, ModalBody } from 'components/Modal'
 export const DatasetProcessModal = ({
   label = 'Download Dataset',
   title = 'Download Dataset',
-  disabled = false
+  disabled = false,
+  onRedirecting = () => {}
 }) => {
   const { push } = useRouter()
-  const { processDataset } = useMyDataset()
+  const { processMyDataset } = useMyDataset()
 
   const [showing, setShowing] = useState(false)
   const [submitting, setSubmitting] = useState(false) // Disable the button while making request
 
   useEffect(() => {
     const submit = async () => {
-      const datasetRequest = await processDataset()
+      const datasetRequest = await processMyDataset()
       if (datasetRequest) {
+        onRedirecting(true)
         push(`/datasets/${datasetRequest.id}`)
       } else {
         // TODO: Error handling
         setSubmitting(false)
+        setShowing(false)
       }
     }
 

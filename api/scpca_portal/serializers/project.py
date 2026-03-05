@@ -66,7 +66,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
     # @extend_schema_field(DatasetSerializer)
-    def get_metadata_dataset_id(self, obj):
+    def get_metadata_dataset_id(self, obj) -> str | None:
         if dataset := Dataset.objects.filter(
             is_ccdl=True, ccdl_project_id=obj.scpca_id, format=DatasetFormats.METADATA
         ).first():

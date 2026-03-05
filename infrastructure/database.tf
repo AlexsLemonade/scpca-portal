@@ -7,10 +7,10 @@ data "aws_rds_certificate" "cert" {
   # latest_valid_till = true
 }
 
-resource "aws_db_parameter_group" "postgres16_parameters" {
-  name        = "scpca-portal-postgres16-parameters-${var.user}-${var.stage}"
+resource "aws_db_parameter_group" "postgres18_parameters" {
+  name        = "scpca-portal-postgres18-parameters-${var.user}-${var.stage}"
   description = "Postgres Parameters ${var.user} ${var.stage}"
-  family      = "postgres16"
+  family      = "postgres18"
 
   parameter {
     name  = "deadlock_timeout"
@@ -27,12 +27,14 @@ resource "aws_db_parameter_group" "postgres16_parameters" {
   }
 }
 
+
+
 resource "aws_db_instance" "postgres_db" {
   identifier        = "scpca-portal-${var.user}-${var.stage}"
   allocated_storage = 100
   storage_type      = "gp2"
   engine            = "postgres"
-  engine_version    = "16.8"
+  engine_version    = "18.2"
 
   # When doing a major version upgrade it is easier
   # to apply changes immediately to allow for subsequent deployments.
@@ -49,7 +51,7 @@ resource "aws_db_instance" "postgres_db" {
   password                   = var.database_password
 
   db_subnet_group_name = aws_db_subnet_group.scpca_portal.name
-  parameter_group_name = aws_db_parameter_group.postgres16_parameters.name
+  parameter_group_name = aws_db_parameter_group.postgres18_parameters.name
 
   # TF is broken, but we do want this protection in prod.
   # Related: https://github.com/hashicorp/terraform/issues/5417

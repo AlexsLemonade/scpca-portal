@@ -10,14 +10,14 @@ export const DatasetRemoveAllModal = ({
   title = 'Are you sure you want to remove all projects?',
   disabled = false
 }) => {
-  const { clearDataset } = useMyDataset()
+  const { clearMyDataset } = useMyDataset()
 
   const [showing, setShowing] = useState(false)
 
   const [removing, setRemoving] = useState(false)
   const handleRemoveAll = async () => {
     setRemoving(true)
-    await clearDataset()
+    await clearMyDataset()
     setRemoving(false)
     setShowing(false)
   }

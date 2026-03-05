@@ -16,7 +16,7 @@ import { getReadable } from 'helpers/getReadable'
 import { getReadableModality } from 'helpers/getReadableModality'
 
 export const ProjectHeader = ({ project, linked = false }) => {
-  const { myDataset, getHasRemainingProjectSamples } = useMyDataset()
+  const { myDataset, hasMyDatasetRemainingProjectSamples } = useMyDataset()
   const { responsive } = useResponsive()
 
   const hasUnavailableSample = Number(project.unavailable_samples_count) !== 0
@@ -29,7 +29,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
 
   const [hasRemainingSamples, setHasRemainingSamples] = useState(false)
   useEffect(() => {
-    setHasRemainingSamples(getHasRemainingProjectSamples(project))
+    setHasRemainingSamples(hasMyDatasetRemainingProjectSamples(project))
   }, [myDataset])
 
   return (

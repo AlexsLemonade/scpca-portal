@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       if (!(await validateToken(token))) {
         return res.status(401).json({ error: 'Invalid API Token' })
       }
-    } catch (error) {
+    } catch {
       return res.status(400).json({ error: 'Invalid Authorization Header' })
     }
 
