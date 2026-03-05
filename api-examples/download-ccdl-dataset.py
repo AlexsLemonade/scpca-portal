@@ -169,7 +169,9 @@ print(f"Found {len(downloadable_ccdl_dataset_ids)} downloadable CCDL Datasets.")
 
 # For example lets just download one file
 download_id = downloadable_ccdl_dataset_ids[0]
-print(f"For demonstation purposes only downloading 1 CCDL Dataset, CCDL Dataset {download_id}.")
+print(
+    f"For demonstration purposes, we will only download 1 CCDL Dataset (CCDL Dataset {download_id})."
+)
 ccdl_dataset = request_api("ccdl-datasets", download_id, token=API_TOKEN)
 
 # Another request to actually download using pre-signed url
