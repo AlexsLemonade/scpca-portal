@@ -59,6 +59,7 @@ export default [
       ],
 
       'default-param-last': 'warn',
+      'import/no-extraneous-dependencies': 'warn',
       'no-class-assign': 'off',
       'no-console': ['error', { allow: ['error'] }], // only allow `console.error` calls
       'no-continue': 'off',
@@ -69,6 +70,7 @@ export default [
       'no-unsafe-optional-chaining': 'warn',
       'no-unused-vars': 'error',
       'no-use-before-define': 'off',
+      'no-underscore-dangle': 'off',
 
       // React correctness, safety, styling and formatting
       'react/destructuring-assignment': 'off',
