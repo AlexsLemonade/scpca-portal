@@ -14,7 +14,7 @@ const compat = new FlatCompat({
 export default [
   // Ignore patterns
   {
-    ignores: ['cellbrowser/']
+    ignores: ['cellbrowser/', '.storybook/']
   },
   // Legacy configs
   ...compat.extends(
