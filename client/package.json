@@ -10,7 +10,13 @@
     "lint": "eslint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "eslint": "eslint --fix"
+    "eslint": "eslint --fix",
+    "biome:format:dry-run": "@biomejs/biome format",
+    "biome:format:write": "@biomejs/biome format --write",
+    "biome:lint:dry-run": "biome lint",
+    "biome:lint:write": "biome lint --write",
+    "biome:check:dry-run": "@biomejs/biome check",
+    "biome:check:write": "@biomejs/biome check --write"
   },
   "dependencies": {
     "@sentry/react": "^10.37.0",
@@ -34,6 +40,7 @@
   "devDependencies": {
     "@babel/core": "^7.15.0",
     "@babel/eslint-parser": "^7.28.6",
+    "@biomejs/biome": "^2.4.6",
     "@eslint/eslintrc": "^3.3.4",
     "@storybook/addon-actions": "^7.4.1",
     "@storybook/addon-essentials": "^7.4.1",
