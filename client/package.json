@@ -11,12 +11,14 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "eslint": "eslint --fix",
-    "biome:format:dry-run": "@biomejs/biome format",
-    "biome:format:write": "@biomejs/biome format --write",
-    "biome:lint:dry-run": "biome lint",
+    "biome:format:dry": "biome format",
+    "biome:format:write": "biome format --write",
+    "biome:lint:dry": "biome lint",
     "biome:lint:write": "biome lint --write",
-    "biome:check:dry-run": "@biomejs/biome check",
-    "biome:check:write": "@biomejs/biome check --write"
+    "biome:check:dry": "biome check",
+    "biome:check:write": "biome check --write",
+    "biome:check:show-errors": "biome check --diagnostic-level=error",
+    "biome:check:show-warnings": "biome check --diagnostic-level=warn"
   },
   "dependencies": {
     "@sentry/react": "^10.37.0",
