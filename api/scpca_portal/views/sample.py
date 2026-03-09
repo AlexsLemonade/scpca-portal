@@ -1,7 +1,5 @@
-from django.contrib.postgres.fields import ArrayField
 from rest_framework import viewsets
 
-from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
