@@ -133,6 +133,8 @@ else:
 #   SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED:
 #       with all data matching the single cell modality and single cell experiemnt format,
 #       but excluding the project's multiplexed data
+#       NOTE: NO_MUTLIPLEXED is available for CCDL Project Datasets,
+#       but unavailable for CCDL Portal-wide Datasets
 #   SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED:
 #       with all merged data matching the single cell modality and single cell experiemnt format
 #   SINGLE_CELL_ANN_DATA:
@@ -155,7 +157,7 @@ else:
 query = {
     "ccdl_modality": "SINGLE_CELL",
     "format": "SINGLE_CELL_EXPERIMENT",
-    "ccdl_project_id__isnull": False,
+    "ccdl_project_id__isnull": True,
 }
 
 queried_ccdl_datasets = request_api("ccdl-datasets", query=query).get("results", [])
