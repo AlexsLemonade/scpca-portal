@@ -1,6 +1,7 @@
 import React from 'react'
 import { Text } from 'grommet'
 import { Blank } from 'grommet-icons'
+import styled from 'styled-components'
 import Check from '../images/check.svg'
 import ChevronDown from '../images/chevron-down.svg'
 import ChevronLeft from '../images/chevron-left.svg'
@@ -29,6 +30,13 @@ import Instagram from '../images/instagram.svg'
 import Github from '../images/github.svg'
 import Copy from '../images/copy.svg'
 
+// force the exclamation point to fill black
+const WarningBlackFill = styled(Warning)`
+  > :last-child {
+    fill: black !important;
+  }
+`
+
 export const SVGs = {
   Check,
   ChevronDown,
@@ -50,7 +58,7 @@ export const SVGs = {
   Search,
   Trashcan,
   View,
-  Warning,
+  Warning: WarningBlackFill,
   WarningNoFill,
   Bluesky,
   Twitter,
