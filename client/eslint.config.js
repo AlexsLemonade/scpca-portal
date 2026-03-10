@@ -14,7 +14,7 @@ const compat = new FlatCompat({
 export default [
   // Ignore patterns
   {
-    ignores: ['cellbrowser/']
+    ignores: ['cellbrowser/', '.storybook/']
   },
   // Legacy configs
   ...compat.extends(
@@ -59,6 +59,10 @@ export default [
       ],
 
       'default-param-last': 'warn',
+      'import/no-extraneous-dependencies': [
+        'error',
+        { devDependencies: ['**/eslint.config.js'] }
+      ],
       'no-class-assign': 'off',
       'no-console': ['error', { allow: ['error'] }], // only allow `console.error` calls
       'no-continue': 'off',
@@ -69,6 +73,7 @@ export default [
       'no-unsafe-optional-chaining': 'warn',
       'no-unused-vars': 'error',
       'no-use-before-define': 'off',
+      'no-underscore-dangle': 'off',
 
       // React correctness, safety, styling and formatting
       'react/destructuring-assignment': 'off',
