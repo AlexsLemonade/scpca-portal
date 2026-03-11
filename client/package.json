@@ -36,12 +36,13 @@
     "@babel/core": "^7.15.0",
     "@babel/eslint-parser": "^7.28.6",
     "@eslint/eslintrc": "^3.3.4",
-    "@storybook/addon-actions": "^7.4.1",
-    "@storybook/addon-essentials": "^7.4.1",
-    "@storybook/addon-links": "^7.4.1",
-    "@storybook/addon-storysource": "^7.4.1",
-    "@storybook/react": "^7.4.1",
-    "@storybook/react-webpack5": "^7.4.1",
+    "@storybook/addon-actions": "8.4.7",
+    "@storybook/addon-essentials": "8.4.7",
+    "@storybook/addon-links": "8.4.7",
+    "@storybook/addon-storysource": "8.4.7",
+    "@storybook/addon-webpack5-compiler-babel": "^4.0.0",
+    "@storybook/react": "8.4.7",
+    "@storybook/react-webpack5": "8.4.7",
     "babel-loader": "^8.2.2",
     "babel-preset-airbnb": "^5.0.0",
     "babel-preset-next": "^1.4.0",
@@ -54,6 +55,6 @@
     "eslint-plugin-storybook": "^0.6.13",
     "globals": "^17.2.0",
     "semver": "^7.7.3",
-    "storybook": "^7.4.1"
+    "storybook": "8.4.7"
   }
 }
