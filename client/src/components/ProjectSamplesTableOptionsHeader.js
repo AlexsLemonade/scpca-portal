@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Box, CheckBox, Text } from 'grommet'
 import { config } from 'config'
-import { useRouter } from 'next/router'
-import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useMyDataset } from 'hooks/useMyDataset'
 import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { useResponsive } from 'hooks/useResponsive'
 import { getReadable } from 'helpers/getReadable'
-import { Button } from 'components/Button'
 import { DatasetChangingMergedProjectModal } from 'components/DatasetChangingMergedProjectModal'
+import { DatasetSaveAndGoBackButton } from 'components/DatasetSaveAndGoBackButton'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
 import { InfoText } from 'components/InfoText'
@@ -28,10 +26,7 @@ export const ProjectSamplesTableOptionsHeader = ({
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { asPath, back } = useRouter()
-  const { setRestoreFromDestination } = useScrollRestore()
-  const { myDataset, isMyDatasetProjectMerged, setMyDatasetSamples } =
-    useMyDataset()
+  const { myDataset, isMyDatasetProjectMerged } = useMyDataset()
   const { readOnly, selectAllSingleCellSamples, selectedSamples } =
     useProjectSamplesTable()
   const { responsive } = useResponsive()
@@ -57,8 +52,9 @@ export const ProjectSamplesTableOptionsHeader = ({
   // - Include merged option is deselected
   // - User has already confirmed unmerge action
   // - Previously selected samples count is not initialized yet
+  const isProjectMerged = isMyDatasetProjectMerged(project)
   const hideChangeMergedProjectModal = [
-    !isMyDatasetProjectMerged(project),
+    !isProjectMerged,
     !includeMerge,
     confirmUnmerge,
     noPrevSelectedSamples
@@ -87,28 +83,6 @@ export const ProjectSamplesTableOptionsHeader = ({
     setShowChangeMergedProjectModal(false)
   }
 
-  const [saving, setSaving] = useState(false)
-  const handleSaveAndGoBack = async () => {
-    setSaving(true)
-    const newSamplesToAdd = {
-      ...selectedSamples,
-      ...(includeMerge && { SINGLE_CELL: 'MERGED' })
-    }
-
-    const datasetRequest = await setMyDatasetSamples(project, {
-      ...newSamplesToAdd,
-      includes_bulk: includeBulk
-    })
-
-    if (datasetRequest) {
-      setRestoreFromDestination(asPath)
-      back()
-    } else {
-      // TODO: Error handling
-    }
-    setSaving(false)
-  }
-
   // Set up prevSelectedCount on initial load
   useEffect(() => {
     if (noPrevSelectedSamples) {
@@ -129,15 +103,19 @@ export const ProjectSamplesTableOptionsHeader = ({
     setPrevSelectedCount(newSelectedCount)
   }, [newSelectedCount])
 
-  // Toggle include merge checkbox based on the selected single-cell sample count
+  // Toggle include merge checkbox based on the selected single-cell
+  // sample count for editable datasets
   useEffect(() => {
+    // Prevent running for readOnly during initial setup
+    if (readOnly) return
+
     const isAllSelected =
       selectedSamples.SINGLE_CELL.length ===
       project.modality_samples.SINGLE_CELL.length
     setAllSingleCellSamplesSelected(isAllSelected)
 
     // Uncheck the include merge checkbox if any single-cell sample is deselected
-    if (!isAllSelected) {
+    if (!isAllSelected && !isProjectMerged) {
       onIncludeMergeChange(false)
     }
   }, [selectedSamples])
@@ -161,11 +139,10 @@ export const ProjectSamplesTableOptionsHeader = ({
       >
         <Text size="large">{title}</Text>
         {!readOnly && (
-          <Button
-            primary
-            label="Save & Go Back"
-            loading={saving}
-            onClick={handleSaveAndGoBack}
+          <DatasetSaveAndGoBackButton
+            project={project}
+            includeBulk={includeBulk}
+            includeMerge={includeMerge}
           />
         )}
       </Box>
@@ -202,7 +179,7 @@ export const ProjectSamplesTableOptionsHeader = ({
                 onIncludeMergeChange(checked)
               }
             />
-            {!readOnly && (
+            {!readOnly && !isProjectMerged && (
               <InfoTextMergingSamplesIntoOneObject
                 animation={
                   !allSingleCellSamplesSelected

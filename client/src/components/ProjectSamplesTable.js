@@ -23,7 +23,7 @@ import { Table } from 'components/Table'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
-export const ProjectSamplesTable = ({ stickies = 3 }) => {
+export const ProjectSamplesTable = ({ stickies = 3, children }) => {
   const { datasets } = useCCDLDatasetDownloadModalContext()
   const { getDatasetProjectDataSamples } = useDataset()
   const { myDataset, isDatasetDataEmpty, getMyDatasetProjectDataSamples } =
@@ -239,8 +239,8 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         data={samples}
         filter
         stickies={stickies}
-        pageSize={5}
-        pageSizeOptions={[5, 10, 20, 50]}
+        pageSize={1000}
+        pageSizeOptions={[1000]} // Temporary value
         infoText={infoText}
         text={text}
         defaultSort={[{ id: 'scpca_id', asc: true }]}
@@ -262,6 +262,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           <WarningAnnDataMultiplexed />
         )}
       </Table>
+      <Box>{children}</Box>
     </>
   )
 }
