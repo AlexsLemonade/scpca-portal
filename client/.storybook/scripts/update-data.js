@@ -49,7 +49,9 @@ const getProjects = async projectIds => {
 const writeJSON = async (fileName, data) => {
   try {
     const filePath = path.resolve(`./.storybook/data/${fileName}`)
-    await writeFile(filePath, JSON.stringify(data, null, 2).trim())
+    // add a trailing newline to end of data string to comply with posix standard for json files
+    const jsonData = JSON.stringify(data, null, 2).trim() + '\n'
+    await writeFile(filePath, jsonData, 'utf8')
   } catch (error) {
     console.error(`An error occurred when trying to write ${fileName}: `, error)
     process.exit(1)
