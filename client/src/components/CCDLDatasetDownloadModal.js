@@ -25,7 +25,7 @@ export const CCDLDatasetDownloadModal = ({
   } = useCCDLDatasetDownloadModalContext()
 
   const isDisabled =
-    disabled || !datasets.some((dataset) => dataset.computed_file)
+    disabled || !datasets?.some((dataset) => dataset.computed_file)
 
   const handleClick = () => {
     setShowing(true)
