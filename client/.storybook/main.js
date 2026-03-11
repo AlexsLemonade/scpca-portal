@@ -1,8 +1,8 @@
 import * as path from 'path'
 
 const envVars = {
-  API_HOST: 'http://localhost:8000',
-  API_VERSION: 'v1'
+  API_HOST: process.env.API_HOST || 'http://localhost:8000',
+  API_VERSION: process.env.API_VERSION || 'v1'
 }
 
 module.exports = {
