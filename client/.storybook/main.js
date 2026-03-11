@@ -41,6 +41,48 @@ export default {
       }
     })
 
+    // Add custom svg loading rule (taken from next.config.js file)
+    const svgLoaderRule = config.module.rules.find((r) =>
+      r.test?.test?.('.svg')
+    )
+    if (!svgLoaderRule) {
+      throw new Error('Could not find Next.js file loader rule for SVGs.')
+    }
+    // append `?url` to the import for an image source url
+    svgLoaderRule.resourceQuery = /url/
+
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      resourceQuery: { not: /url/ },
+      use: [
+        {
+          loader: '@svgr/webpack',
+          options: {
+            svgoConfig: {
+              plugins: [
+                {
+                  name: 'preset-default',
+                  params: {
+                    overrides: {
+                      cleanupIds: false,
+                      removeViewBox: false
+                    }
+                  }
+                },
+                {
+                  name: 'prefixIds',
+                  params: {
+                    prefix: true
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    })
+
     return config
   }
 }
