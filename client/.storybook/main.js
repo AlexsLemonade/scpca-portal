@@ -23,6 +23,13 @@ export default {
     // Add src to imports (so this works with app webpack config)
     config.resolve.modules.push(path.resolve(__dirname, './../src'))
     config.resolve.alias['data'] = path.resolve(__dirname, './data')
+
+    // As webpack 5 and on don't include polyfills, disable the unnecessary error
+    config.resolve.fallback = {
+      ...(config.resolve.fallback || {}),
+      zlib: false
+    }
+
     // Add env vars for helpers
     config.plugins.forEach((plugin) => {
       if (Object.keys(plugin)[0] === 'definitions') {
