@@ -1,9 +1,9 @@
 /* eslint-disable import/prefer-default-export */
 import { createGlobalStyle } from 'styled-components'
-import reset from 'styled-reset'
+import styledReset from 'styled-reset'
 
 export const Reset = createGlobalStyle`
-  ${reset}
+  ${styledReset}
   html, body {
     display: flex;
     flex-direction: column;
