@@ -1,14 +1,25 @@
 import React from 'react'
 import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
-import { DatasetSamplesTableContextProvider } from 'contexts/DatasetSamplesTableContext'
 import { NotificationContextProvider } from 'contexts/NotificationContext'
+import { MyDatasetContextProvider } from 'contexts/MyDatasetContext'
+import dataset from '../data/dataset.json'
 
-const Context = Story => <ScPCAPortalContextProvider>
-  <NotificationContextProvider>
-    <DatasetSamplesTableContextProvider>
-      <Story />
-    </DatasetSamplesTableContextProvider>
-  </NotificationContextProvider>
-</ScPCAPortalContextProvider>;
+const Context = Story => {
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem('dataset', JSON.stringify(dataset))
+    window.localStorage.setItem('user-format', JSON.stringify(dataset.format))
+    window.localStorage.setItem('datasets', JSON.stringify([dataset.id]))
+  }
 
-export default Context;
+  return (
+    <ScPCAPortalContextProvider>
+      <MyDatasetContextProvider>
+        <NotificationContextProvider>
+          <Story />
+        </NotificationContextProvider>
+      </MyDatasetContextProvider>
+    </ScPCAPortalContextProvider>
+  )
+}
+
+export default Context
