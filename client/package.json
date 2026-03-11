@@ -12,7 +12,7 @@
     "lint:fix": "oxlint --fix",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "eslint": "eslint --fix"
+    "eslint:fix": "eslint --fix"
   },
   "dependencies": {
     "@sentry/react": "^10.37.0",
