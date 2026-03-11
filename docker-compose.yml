@@ -55,7 +55,7 @@ services:
       bash -c 'cd /home/user/code &&
                yarn set version 3.6.3 &&
                yarn &&
-               (yarn storybook --quiet -p ${STORYBOOK_PORT} &
+               (yarn storybook --quiet -p ${STORYBOOK_PORT} --no-open &
                yarn dev -p ${CLIENT_PORT})'
     volumes:
       - ./client:/home/user/code
