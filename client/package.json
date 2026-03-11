@@ -10,6 +10,7 @@
     "lint": "eslint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "storybook:update-data": "API_HOST=https://api.staging.scpca.alexslemonade.org API_VERSION=v1 node ./.storybook/scripts/update-data.js",
     "eslint": "eslint --fix"
   },
   "dependencies": {
