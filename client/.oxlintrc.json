@@ -394,7 +394,7 @@
     "import/no-cycle": [
       "error",
       {
-        "maxDepth": "∞"
+        "maxDepth": 2
       }
     ],
     "react/jsx-boolean-value": [
@@ -404,12 +404,7 @@
         "always": []
       }
     ],
-    "react/jsx-no-duplicate-props": [
-      "error",
-      {
-        "ignoreCase": true
-      }
-    ],
+    "react/jsx-no-duplicate-props":  "error",
     "react/jsx-no-undef": "error",
     "react/jsx-pascal-case": [
       "error",
@@ -515,12 +510,7 @@
         "input[type=\"image\"]": []
       }
     ],
-    "jsx-a11y/anchor-has-content": [
-      "error",
-      {
-        "components": []
-      }
-    ],
+    "jsx-a11y/anchor-has-content": "error",
     "jsx-a11y/anchor-is-valid": [
       "error",
       {
@@ -633,37 +623,4 @@
   "jsPlugins": [
     "eslint-plugin-prettier"
   ],
-  "overrides": [
-    {
-      "files": [
-        null
-      ],
-      "rules": {
-        "import/no-anonymous-default-export": "off",
-        "storybook/await-interactions": "error",
-        "storybook/context-in-play-function": "error",
-        "storybook/default-exports": "error",
-        "storybook/hierarchy-separator": "warn",
-        "storybook/no-redundant-story-name": "warn",
-        "storybook/prefer-pascal-case": "warn",
-        "storybook/story-exports": "error",
-        "storybook/use-storybook-expect": "error",
-        "storybook/use-storybook-testing-library": "error"
-      },
-      "jsPlugins": [
-        "eslint-plugin-storybook"
-      ]
-    },
-    {
-      "files": [
-        null
-      ],
-      "rules": {
-        "storybook/no-uninstalled-addons": "error"
-      },
-      "jsPlugins": [
-        "eslint-plugin-storybook"
-      ]
-    }
-  ]
 }
