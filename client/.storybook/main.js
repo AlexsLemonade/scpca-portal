@@ -10,10 +10,9 @@ export default {
     '@storybook/addon-storysource',
     '@storybook/addon-links',
     '@storybook/addon-essentials',
-    '@storybook/addon-webpack5-compiler-babel'
   ],
   framework: {
-    name: '@storybook/react-webpack5',
+    name: '@storybook/nextjs',
     options: {}
   },
   staticDirs: ['./../public'],
