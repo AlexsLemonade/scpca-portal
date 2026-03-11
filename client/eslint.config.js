@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url'
 import { FlatCompat } from '@eslint/eslintrc'
 import babelParser from '@babel/eslint-parser'
 import globals from 'globals'
+import oxlint from 'eslint-plugin-oxlint'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -110,5 +111,6 @@ export default [
         }
       }
     }
-  }
+  },
+  ...oxlint.configs['flat/recommended'] // oxlint should be the last one
 ]

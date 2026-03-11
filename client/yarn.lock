@@ -9737,6 +9737,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-oxlint@npm:^1.51.0":
+  version: 1.51.0
+  resolution: "eslint-plugin-oxlint@npm:1.51.0"
+  dependencies:
+    jsonc-parser: ^3.3.1
+  checksum: 3063b71bee73a0a4c73359da23430fef430f13d5278c7f03085b435cb025e159975ef0cafd81d06bfd47f08c29364be82f98b59a9f0609b2b1bffbcf9e7af445
+  languageName: node
+  linkType: hard
+
 "eslint-plugin-prettier@npm:^5.5.5":
   version: 5.5.5
   resolution: "eslint-plugin-prettier@npm:5.5.5"
@@ -12246,6 +12255,13 @@ __metadata:
   bin:
     json5: lib/cli.js
   checksum: 2a7436a93393830bce797d4626275152e37e877b265e94ca69c99e3d20c2b9dab021279146a39cdb700e71b2dd32a4cebd1514cd57cee102b1af906ce5040349
+  languageName: node
+  linkType: hard
+
+"jsonc-parser@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "jsonc-parser@npm:3.3.1"
+  checksum: 81ef19d98d9c6bd6e4a37a95e2753c51c21705cbeffd895e177f4b542cca9cda5fda12fb942a71a2e824a9132cf119dc2e642e9286386055e1365b5478f49a47
   languageName: node
   linkType: hard
 
@@ -14997,6 +15013,7 @@ __metadata:
     eslint-config-airbnb: ^19.0.4
     eslint-config-next: ^15.5.9
     eslint-config-prettier: ^10.1.8
+    eslint-plugin-oxlint: ^1.51.0
     eslint-plugin-prettier: ^5.5.5
     eslint-plugin-storybook: ^0.6.13
     globals: ^17.2.0
