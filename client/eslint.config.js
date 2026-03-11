@@ -106,8 +106,10 @@ export default [
 
     settings: {
       'import/resolver': {
+        typescript: true,
         node: {
-          moduleDirectory: ['node_modules', 'src']
+          moduleDirectory: ['node_modules', 'src'],
+          paths: ['./src']
         }
       }
     }
