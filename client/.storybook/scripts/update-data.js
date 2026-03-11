@@ -29,6 +29,23 @@ const getProject = async projectId => {
   return projectRequest.response
 }
 
+const getProjects = async projectIds => {
+  const endpoint = `projects`
+  const url = new URL(endpoint, base)
+
+  const projectsRequest = await request(url)
+  if (!projectsRequest.isOk) {
+    console.error(`update-data: Failed to get projects from api`)
+    console.error(projectsRequest.error)
+    process.exit(1)
+  }
+
+  const filteredProjects = projectsRequest.response.results.filter(
+    (p) => projectIds.includes(p.scpca_id)
+  )
+  return filteredProjects
+}
+
 const writeJSON = async (fileName, data) => {
   try {
     const filePath = path.resolve(`./.storybook/data/${fileName}`)
@@ -44,6 +61,5 @@ const project = await getProject(projectIds[0])
 await writeJSON('project.json', project)
 
 // Build projects.json
-const lastProjects = await Promise.all(projectIds.slice(1).map(projectId => getProject(projectId)))
-const projects = [project, ...lastProjects]
+const projects = await getProjects(projectIds)
 await writeJSON('projects.json', projects)
