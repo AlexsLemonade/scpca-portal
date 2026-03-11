@@ -5,7 +5,7 @@ const envVars = {
   API_VERSION: process.env.API_VERSION || 'v1'
 }
 
-module.exports = {
+export default {
   addons: [
     '@storybook/addon-storysource',
     '@storybook/addon-links',
