@@ -31,7 +31,7 @@ class ArrayFieldContainsFilter(django_filters.BaseInFilter, django_filters.CharF
             return qs
         for term in value:
             qs = qs.filter(**{f"{self.field_name}__icontains": term.strip()})
-            return qs
+        return qs
 
 
 # Filterset Factory
