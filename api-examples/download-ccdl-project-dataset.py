@@ -8,6 +8,8 @@ from urllib import request
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 # this is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
+# set this to True if you'd like for requested files to be downloaded at the end of the file
+PROCESS_DOWNLOAD = False
 
 if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
     raise Exception("Please accept terms by adding a valid email for API_TOKEN_EMAIL")
@@ -185,7 +187,8 @@ if download_url := ccdl_dataset.get("download_url"):
     print(download_url)
     print("---")
 
-#   download_filename = ccdl_dataset["download_filename"]
-#   print(f"Downloading: {download_filename}")
-#   request.urlretrieve(download_url, download_filename)
-#   print(f"Finished Downloading: {download_filename}")
+    if PROCESS_DOWNLOAD:
+        download_filename = ccdl_dataset["download_filename"]
+        print(f"Downloading: {download_filename}")
+        request.urlretrieve(download_url, download_filename)
+        print(f"Finished Downloading: {download_filename}")
