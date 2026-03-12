@@ -125,32 +125,11 @@ else:
 # CCDL DATASETS
 
 # QUERYING CCDL DATASETS
-# Each project has the potential to have up 7 different ccdl datasets associated with it,
-# depending on the data contained within that project.
-# The 7 possible datasets, reffered to by the attribute "ccdl_name", include:
-#   ALL_METADATA: exclusively with project and sample level metadata
-#   SINGLE_CELL_SINGLE_CELL_EXPERIMENT:
-#       with all data matching the single cell modality and single cell experiemnt format,
-#       including any multiplexed data associated with the project
-#   SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED:
-#       with all data matching the single cell modality and single cell experiemnt format,
-#       but excluding the project's multiplexed data
-#   SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED:
-#       with all merged data matching the single cell modality and single cell experiemnt format
-#   SINGLE_CELL_ANN_DATA:
-#       with all data matching the single cell modality and anndata format,
-#       (there is no multiplexed data associated with the anndata format)
-#   SINGLE_CELL_ANN_DATA_MERGED:
-#       with all merged data matching the single cell modality and anndata format
-#   SPATIAL_SPATIAL_SPACERANGER:
-#       with all data matching the spatial modality, generated with the spaceranger format,
-
-# Possible query options for CCDL Datasets include:
-#   id, ccdl_name, ccdl_project_id, ccdl_modality and format
-# ccdl_modality options include: SINGLE_CELL and SPATIAL
-# format options include: ANNDATA, SINGLE_CELL_EXPERIMENT, and METADATA
+# For available query parameters and options, please visit:
+# https://api.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets
 # NOTE: SPATIAL_SPACERANGER is not considered a dataset format.
-# To fetch all SPATIAL CCDL Datasets data, use ccdl_modality attr to query all SPATIAL data
+# To fetch all SPATIAL CCDL Datasets data, use ccdl_modality with the value SPATIAL
+# to query all SPATIAL data
 
 # For CCDL Project Datasets, the ccdl_prjoect_id__isnull attr must be set to False,
 # For CCDL Portal Wide Datasets, it must be set to True
@@ -174,7 +153,7 @@ downloadable_ccdl_dataset_ids = [
 ]
 print(f"Found {len(downloadable_ccdl_dataset_ids)} downloadable CCDL Datasets.")
 
-# For example lets just download one file
+# For example, let's just download one file
 download_id = downloadable_ccdl_dataset_ids[0]
 print(
     f"For demonstration purposes, we will only download 1 CCDL Dataset (CCDL Dataset {download_id})."
