@@ -70,6 +70,12 @@ def build_auto_filterset(model, include_fields=None, extra_filters=None):
                 meta_fields[field.name] = lookups
                 break
 
+    # Add other custom lookup fields included in include_fields
+    if include_fields:
+        for field in include_fields:
+            if field not in meta_fields and field not in declared_filters:
+                meta_fields[field] = ["exact", "icontains"]
+
     if extra_filters:
         declared_filters.update(extra_filters)
 
