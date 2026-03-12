@@ -133,9 +133,9 @@ def get_data(
             if excludes_multiplexed or data_format == "ANN_DATA":
                 # NOTE: Multiplexed samples are not available as AnnData
                 single_cell = [s for s in single_cell_samples if s not in multiplexed_samples]
-        elif includes_merged:
-            # NOTE: Merged objects are not available for projects with multiplexed data
-            single_cell = "MERGED"
+            elif includes_merged:
+                # NOTE: Merged objects are not available for projects with multiplexed data
+                single_cell = "MERGED"
 
         data[project_id] = {
             "SINGLE_CELL": single_cell,
