@@ -99,27 +99,28 @@ API_TOKEN = None
 # Here we are creating a token using the above helper method.
 # This also will save the file locally to API_TOKEN_FILENAME to use for future calls.
 # Please try to re-use your tokens and don't create a new one for every request.
-if os.path.isfile(API_TOKEN_FILENAME):
-    with open(API_TOKEN_FILENAME, "r") as f:
-        print("Using existing token")
-        API_TOKEN = f.readlines()[0].strip()
-else:
+if not os.path.isfile(API_TOKEN_FILENAME):
     print(f"Fetching token with {API_TOKEN_EMAIL}")
     # This is the payload that you need to send to /tokens to get an active API_TOKEN
     API_TOKEN_BODY = {"email": API_TOKEN_EMAIL, "is_activated": True}
-    token = request_api("tokens", body=API_TOKEN_BODY, method="POST")
-
-    # Only continue if API token created and response received
     try:
-        token = dict(token)
-        API_TOKEN = token["id"]
-    except KeyError:
-        print(f"An error occurred when trying to create an API token.")
+        token_response = request_api("tokens", body=API_TOKEN_BODY, method="POST")
+    except Exception as e:
+        print("ERROR: The following error occurred while trying to create an API token:")
+        print(f"ERROR: {e}")
+        exit()
+
+    token = dict(token_response)
+    API_TOKEN = token.get("id")
 
     if API_TOKEN:
         print(f"Saving token to {API_TOKEN_FILENAME}")
         with open(API_TOKEN_FILENAME, "w") as f:
             f.write(API_TOKEN)
+else:
+    with open(API_TOKEN_FILENAME, "r") as f:
+        print("Using existing token")
+        API_TOKEN = f.readlines()[0].strip()
 
 
 # CCDL DATASETS
