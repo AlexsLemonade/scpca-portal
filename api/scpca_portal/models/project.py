@@ -437,13 +437,3 @@ class Project(CommonDataAttributes, TimestampedModel):
             project_summary.sample_count = count
 
             project_summary.save(update_fields=("sample_count",))
-
-    def update_downloadable_sample_count(self):
-        """
-        Retrieves downloadable sample counts after the uploading of computed files to s3,
-        updates the corresponding attributes on the project object, and saves the object to the db.
-        """
-        self.downloadable_sample_count = (
-            self.samples.filter(sample_computed_files__isnull=False).distinct().count()
-        )
-        self.save()
