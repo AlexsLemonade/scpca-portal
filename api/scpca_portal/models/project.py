@@ -438,7 +438,6 @@ class Project(CommonDataAttributes, TimestampedModel):
 
             project_summary.save(update_fields=("sample_count",))
 
-    # TODO: Remove after the dataset release
     def update_downloadable_sample_count(self):
         """
         Retrieves downloadable sample counts after the uploading of computed files to s3,

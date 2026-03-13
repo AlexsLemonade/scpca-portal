@@ -11,7 +11,6 @@ class Project_SCPCP999990:
         "diagnoses": ["diagnosis1", "diagnosis2", "diagnosis5"],
         "diagnoses_counts": {"diagnosis1": 1, "diagnosis2": 1, "diagnosis5": 2},
         "disease_timings": ["Initial diagnosis"],
-        # This value is not determined until after computed file generation, and should be 3
         "downloadable_sample_count": 3,
         "has_bulk_rna_seq": True,
         "has_cite_seq_data": False,
