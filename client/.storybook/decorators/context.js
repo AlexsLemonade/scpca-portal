@@ -2,6 +2,7 @@ import React from 'react'
 import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
 import { NotificationContextProvider } from 'contexts/NotificationContext'
 import { MyDatasetContextProvider } from 'contexts/MyDatasetContext'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 import dataset from '../data/dataset.json'
 
 const Context = Story => {
@@ -14,9 +15,11 @@ const Context = Story => {
   return (
     <ScPCAPortalContextProvider>
       <MyDatasetContextProvider>
-        <NotificationContextProvider>
-          <Story />
-        </NotificationContextProvider>
+        <CCDLDatasetDownloadModalContextProvider datasets={[dataset]} >
+          <NotificationContextProvider>
+            <Story />
+          </NotificationContextProvider>
+        </CCDLDatasetDownloadModalContextProvider>
       </MyDatasetContextProvider>
     </ScPCAPortalContextProvider>
   )
