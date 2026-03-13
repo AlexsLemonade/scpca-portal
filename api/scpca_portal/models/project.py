@@ -243,7 +243,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             project_id=self.scpca_id, sample_ids__isnull=False
         ).values_list("sample_ids", flat=True)
 
-        return len({sample_id for sample_ids in sample_ids_queryset for sample_id in sample_ids})
+        return len(set().union(*sample_ids_queryset))
 
     def get_bulk_rna_seq_sample_ids(self):
         """Returns set of bulk RNA sequencing sample IDs."""
