@@ -8,6 +8,9 @@ from urllib import request
 
 # NOTE: UPDATE EMAIL OR SCRIPT WILL NOT WORK
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
+# NOTE: By adding your email, you agree to the terms of service and privacy policy:
+# Terms of Service: https://scpca.alexslemonade.org/terms-of-use
+# Privacy Policy: https://scpca.alexslemonade.org/privacy-policy
 
 # This is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
@@ -15,14 +18,14 @@ API_TOKEN_FILENAME = ".token"
 if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
     raise Exception("Please accept terms by adding a valid email for API_TOKEN_EMAIL")
 
-# This is all boilerplate to make it easier to make api calls
+# This is all boilerplate to make it easier to make API calls
 # API_RESOURCES is pulled from the list shown on https://api.scpca.alexslemonade.org/v1/
 API_BASE = "http://localhost:8000/v1/"  # TODO: Temporarily point to localhost for testing
 API_RESOURCES = ["datasets", "projects", "samples", "tokens", "project-options"]
 API_ENDPOINTS = {resource: f"{API_BASE}{resource}/" for resource in API_RESOURCES}
 
 BASE_HEADERS = {"Accept": "application/json"}
-BASE_PARAMS = {"limit": 2000}  # lets ignore pagination for now
+BASE_PARAMS = {"limit": 2000}  # Let's ignore pagination for now
 
 
 # STEP 2: SET UP HELPERS
@@ -42,7 +45,7 @@ def request_api(
     Generic API Wrapper.
     Accepts:
      - resource: A string that is defined in API_RESOURCES. Ex: "samples"
-     - id: A string, int, or undefined: Id of resource.
+     - id: A string, int, or undefined: Id of resource. Ex: project.scpca_id
      - query: A query parameters as a dict to be urlencoded to tack onto the request.
      - body: A dict that is the payload of your request.
      - token: A authenticated API token to add to the request headers.
@@ -180,7 +183,7 @@ def get_data_by_samples(
             "results", []
         ):
             for sample in samples:
-                sample_id = sample.get("scpca_id")
+                sample_id = sample["scpca_id"]
 
                 has_single_cell = sample["has_single_cell_data"]
                 has_spatial = sample["has_spatial_data"]
@@ -263,15 +266,18 @@ print(
 
 # Populate a data for your dataset
 data = get_data(
-    queried_projects, data_format=data_format, includes_bulk=includes_bulk, includes_merged=True
+    queried_projects,
+    data_format=data_format,
+    includes_bulk=includes_bulk,
+    includes_merged=includes_merged,
 )
 
 print(f"Your dataset includes:\n{json.dumps(data, indent=2)}")
 
 # 3. Create Your Dataset
 # DATASETS
-# Make API call to create and process your dataset for download.
-# You'll be notified via email once your dataset is processed.
+# Make a API call to create and process your dataset for download.
+# You'll receive a download link via email once your dataset is processed.
 if data:
     dataset = request_api(
         "datasets",
@@ -286,13 +292,19 @@ if data:
     )
 
 print(f"Check your email {API_TOKEN_EMAIL} for the dataset download notification.")
+# NOTE: You'll need to accept terms again on the browser, when downloading your dataset via the email link.
 
 # 4. (Optional) Download Your Dataset
-# NOTE: As an alternative to email notification, you can download your processed dataset via the API
+# NOTE: As an alternative to the email link, you can download your processed dataset via the API.
 
-# processed_dataset = request_api("datasets", id=dataset.id, token=API_TOKEN)
-# print(f"Signed Download URL for your dataset {dataset.id}")
-# print(f"Downloading: {processed_dataset.get("download_url")}")
+# dataset_id = ADD_YOUR_DATASET_ID # Your dataset ID (UUID
+# ) is accessible via the email link
 
-# request.urlretrieve(download_url, computed_file["s3_key"])
-# print(f"Finished Downloading:  {processed_dataset.get("download_url")}")
+# processed_dataset = request_api("datasets", id=dataset_id, token=API_TOKEN)
+
+# download_url = processed_dataset["download_url"]
+# print(f"Signed Download URL for your dataset {dataset_id}")
+# print(f"Downloading: {download_url}")
+
+# request.urlretrieve(download_url, processed_dataset["s3_key"])
+# print(f"Finished Downloading: download_url}")
