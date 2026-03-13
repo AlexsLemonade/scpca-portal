@@ -78,12 +78,12 @@ def request_api(
         headers["API-KEY"] = token
 
     print(f"{method}: {resource_url}")
-    if data:
-        print("Payload")
-        pp(body)
     if headers:
         print("Headers:")
         pp(headers)
+    if data:
+        print("Payload")
+        pp(body)
 
     httprequest = request.Request(resource_url, data=data, headers=headers, method=method)
 
