@@ -295,10 +295,9 @@ print(f"Check your email {API_TOKEN_EMAIL} for the dataset download notification
 # NOTE: You'll need to accept terms again on the browser, when downloading your dataset via the email link.
 
 # 4. (Optional) Download Your Dataset
-# NOTE: As an alternative to the email link, you can download your processed dataset via the API.
+# NOTE: Instead of using the email link, you can download the processed dataset directly via the API.
 
-# dataset_id = ADD_YOUR_DATASET_ID # Your dataset ID (UUID
-# ) is accessible via the email link
+# dataset_id = "" # Add your processed dataset ID here (UUID available via the email link)
 
 # processed_dataset = request_api("datasets", id=dataset_id, token=API_TOKEN)
 
@@ -307,4 +306,4 @@ print(f"Check your email {API_TOKEN_EMAIL} for the dataset download notification
 # print(f"Downloading: {download_url}")
 
 # request.urlretrieve(download_url, processed_dataset["s3_key"])
-# print(f"Finished Downloading: download_url}")
+# print(f"Finished Downloading: {download_url}")
