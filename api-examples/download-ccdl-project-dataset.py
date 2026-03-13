@@ -8,7 +8,7 @@ from urllib import request
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 # this is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
-# set this to True if you'd like for requested files to be downloaded at the end of the file
+# set this to True if you'd like for requested files to be downloaded at the end of the script
 PROCESS_DOWNLOAD = False
 
 if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
@@ -128,9 +128,8 @@ else:
 # QUERYING CCDL DATASETS
 # For available query parameters and options, please visit:
 # https://api.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets
-# NOTE: SPATIAL_SPACERANGER is not considered a dataset format.
+# NOTE: SPATIAL_SPACERANGER is not considered a dataset format
 # To fetch all SPATIAL CCDL Datasets data, use ccdl_modality with the value SPATIAL
-# to query all SPATIAL data
 
 # For CCDL Project Datasets, the ccdl_prjoect_id__isnull attr must be set to False,
 # For CCDL Portal Wide Datasets, it must be set to True
