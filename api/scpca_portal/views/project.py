@@ -9,7 +9,7 @@ from scpca_portal.serializers import ProjectDetailSerializer, ProjectSerializer
 
 ProjectFilterSet = filter.build_auto_filterset(
     Project,
-    include_fields=[
+    auto_fields=[
         "scpca_id",
         "pi_name",
         "has_bulk_rna_seq",

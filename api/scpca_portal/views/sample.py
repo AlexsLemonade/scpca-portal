@@ -15,9 +15,8 @@ class SampleDetailSerializer(SampleSerializer):
 
 SampleFilterSet = filter.build_auto_filterset(
     Sample,
-    include_fields=[
+    auto_fields=[
         "scpca_id",
-        "project__scpca_id",
         "has_cite_seq_data",
         "has_bulk_rna_seq",
         "has_multiplexed_data",
@@ -43,6 +42,9 @@ SampleFilterSet = filter.build_auto_filterset(
         "created_at",
         "updated_at",
     ],
+    extra_fields={
+        "project__scpca_id": ["exact"],
+    },
 )
 
 
