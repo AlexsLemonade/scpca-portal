@@ -25,7 +25,6 @@ class FilterTest(TestCase):
         expected_fields = [
             "scpca_id",
             "has_cite_seq_data",
-            "diagnosis",
             "technologies",
             "sample_cell_count_estimate",
             "updated_at",
@@ -76,7 +75,7 @@ class FilterTest(TestCase):
     def test_text_fields(self):
         # Should support "exact", "icontains"
         actual_fields = self.SampleFilterSet.base_filters.keys()
-        expected_fields = ["scpca_id", "scpca_id__icontains", "diagnosis", "diagnosis__icontains"]
+        expected_fields = ["scpca_id", "scpca_id__icontains"]
 
         for expected_field in expected_fields:
             self.assertIn(expected_field, actual_fields)
