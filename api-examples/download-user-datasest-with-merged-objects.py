@@ -99,12 +99,9 @@ def request_api(
     return resp
 
 
-# Version 1: Populate the data from queried projects
 def get_data(
     projects: list[dict],
     *,
-    data_format: str = "SINGLE_CELL_EXPERIMENT",
-    excludes_multiplexed: bool = False,
     includes_bulk: bool = False,
     includes_merged: bool = False,
 ) -> dict[str, dict]:
@@ -112,103 +109,31 @@ def get_data(
     Populates a data dictionary from queried projects.
     Accepts:
     - projects: List of queried projects
-    - data_format: Data format for your dataset
-    - excludes_multiplexed: If True, excludes multiplexed samples
     - includes_bulk: If True, includes bulk data when available
     - includes_merged: If True, merges single-cell samples into 1 object
     """
+
     data = {}
 
     for project in projects:
         project_id = project["scpca_id"]
 
         has_bulk = project["has_bulk_rna_seq"]
-        has_multiplexed = project["has_multiplexed_data"]
 
         modality_samples = project["modality_samples"]
         single_cell_samples = modality_samples["SINGLE_CELL"]
         spatial_samples = modality_samples["SPATIAL"]
-        multiplexed_samples = project["multiplexed_samples"]
 
         single_cell = single_cell_samples
 
-        if has_multiplexed:
-            if excludes_multiplexed or data_format == "ANN_DATA":
-                # NOTE: Multiplexed samples are not available as AnnData
-                single_cell = [s for s in single_cell_samples if s not in multiplexed_samples]
-            elif includes_merged:
-                # NOTE: Merged objects are not available for projects with multiplexed data
-                single_cell = "MERGED"
+        if includes_merged:
+            single_cell = "MERGED"
 
         data[project_id] = {
             "SINGLE_CELL": single_cell,
             "SPATIAL": spatial_samples,
             "includes_bulk": includes_bulk and has_bulk,
         }
-
-    return data
-
-
-# Version 2: Populate the data by making a second API call to the samples endpoint using project IDs
-def get_data_by_samples(
-    projects: list[dict],
-    *,
-    data_format: str = "SINGLE_CELL_EXPERIMENT",
-    excludes_multiplexed: bool = False,
-    includes_bulk: bool = False,
-    includes_merged: bool = False,
-) -> dict[str, dict]:
-    """
-    Fetches samples for queried projects by project IDs, and populates a data dictionary.
-    Accepts:
-    - projects: List of queried projects
-    - data_format: Data format for your dataset
-    - excludes_multiplexed: If True, excludes multiplexed samples
-    - includes_bulk: If True, includes bulk data when available
-    - includes_merged: If True, merges single-cell samples into 1 object
-    """
-    data = {}
-
-    for project in projects:
-        project_id = project["scpca_id"]
-
-        project_has_bulk = project["has_bulk_rna_seq"]
-        project_has_multiplexed = project["has_multiplexed_data"]
-
-        single_cell = []
-        spatial = []
-
-        # Projects are added to your data only if they contain samples
-        if samples := request_api("samples", query={"project__scpca_id": project_id}).get(
-            "results", []
-        ):
-            for sample in samples:
-                sample_id = sample["scpca_id"]
-
-                has_single_cell = sample["has_single_cell_data"]
-                has_spatial = sample["has_spatial_data"]
-
-                if has_single_cell:
-                    if project_has_multiplexed and (
-                        excludes_multiplexed or data_format == "ANN_DATA"
-                    ):
-                        # NOTE: Multiplexed samples are not available as AnnData
-                        continue
-                    single_cell.append(sample_id)
-
-                if has_spatial:
-                    spatial.append(sample_id)
-
-            if includes_merged and not project_has_multiplexed:
-                # Merge all project single-cell samples into 1 object if requested
-                # NOTE: Merged objects are not available for projects with multiplexed data
-                single_cell = "MERGED"
-
-            data[project_id] = {
-                "SINGLE_CELL": single_cell,
-                "SPATIAL": spatial,
-                "includes_bulk": includes_bulk and project_has_bulk,
-            }
 
     return data
 
@@ -238,25 +163,18 @@ else:
         f.writelines(API_TOKEN)
 
 # 2. Prepare Your Dataset
-# Set a data format (SINGLE_CELL_EXPERIMENT or ANN_DATA) for your dataset
+# Set a data format (SINGLE_CELL_EXPERIMENT or ANN_DATA)
 data_format = "SINGLE_CELL_EXPERIMENT"  # Required upon dataset creation
-# Set True if you want to exclude multiplexed samples
-excludes_multiplexed = False
-# Set True if you want to include Bulk RNA-seq data
-includes_bulk = True
-# Set True if you want to merge single-cell samples into 1 object
-includes_merged = True
 
 # PROJECTS
 # NOTE: See available project options by querying project-options (https://api.scpca.alexslemonade.org/v1/project-options)
+# We'll query projects containing the following diagnoses and including mergd objects
 query = {"diagnoses": "Ganglioglioma"}  # Can also be a list (e.g., ['Ganglioglioma', 'Ependymoma'])
-
-# Append a flag for merged objects if requested
-if includes_merged:
-    if data_format == "SINGLE_CELL_EXPERIMENT":
-        query["includes_merged_sce"] = True
-    else:
-        query["includes_merged_anndata"] = True
+# Append a appropriate flag for merged objects based on the specified data format
+if data_format == "SINGLE_CELL_EXPERIMENT":
+    query["includes_merged_sce"] = True
+else:
+    query["includes_merged_anndata"] = True
 
 queried_projects = request_api("projects", query=query).get("results", [])
 
@@ -267,14 +185,14 @@ print(
 # Populate a data for your dataset
 data = get_data(
     queried_projects,
-    data_format=data_format,
-    includes_bulk=includes_bulk,
-    includes_merged=includes_merged,
+    includes_bulk=False,  # Set True if you want to include Bulk RNA-seq data
+    includes_merged=True,
 )
 
 print(f"Your dataset includes:\n{json.dumps(data, indent=2)}")
 
 # 3. Create Your Dataset
+# See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
 # DATASETS
 # Make a API call to create and process your dataset for download.
 # You'll receive a download link via email once your dataset is processed.
