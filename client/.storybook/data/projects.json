@@ -1,0 +1,1054 @@
+[
+  {
+    "abstract": "Pediatric brain tumors are now the most common cause of mortality from disease in childhood. Molecular characteristics of pediatric high- and low-grade gliomas (PHGG and PLGG), the most common tumor category overall, are crucial to treatment and outcomes, but the impact of these characteristics and of the variety of cell populations in these tumors is poorly understood. We performed single-cell RNA-sequencing on viably banked single cell samples of high- and low- grade glial tumors from children treated at Children’s Hospital Colorado. These samples are part of ongoing single-cell pediatric brain tumor banking that our group initiated a decade ago. The maturity of this resource, collected over a decade, provides us with the opportunity to perform well-powered outcome association studies. Samples are collected during routine surgery and immediately disaggregated to isolate single cells. These are then viably frozen in DMSO and banked for later use. We have tumors that cover the variety of subtypes in each of these diseases, as well as comprehensive clinical information on these cases, which will allow us to correlate molecular subtypes and research findings with these clinical measures. Here, we perform single-cell RNA-sequencing on 23 samples from patients with PHGG. In PHGG, we aim to understand the extent to which pediatric HGG stem like cells may differentiate into other cell types found in HGG tumors, or whether the non-stemlike cells may be derived from host tissue; whether gene expression is altered in host cells as the result of interactions with tumor stem cells; and the extent to which specific gene expression patterns among tumor cell subpopulations correlate with outcome measures such as mortality or event-free survival. These studies will significantly advance our understanding of disease biology and provide the detailed molecular and functional insights needed to identify new therapeutic targets for these biologically and clinically heterogeneous tumors.",
+    "additional_metadata_keys": [
+      "development_stage_ontology_term_id",
+      "disease_ontology_term_id",
+      "molecular_characteristics",
+      "organism",
+      "organism_ontology_id",
+      "outcome",
+      "participant_id",
+      "self_reported_ethnicity_ontology_term_id",
+      "sex_ontology_term_id",
+      "spinal_leptomeningeal_mets",
+      "submitter_id",
+      "tissue_ontology_term_id"
+    ],
+    "additional_restrictions": "Research or academic purposes only",
+    "computed_files": [],
+    "contacts": [
+      {
+        "email": "adam.green@cuanschutz.edu",
+        "name": "Adam Green"
+      }
+    ],
+    "created_at": "2026-02-10T22:30:32.854813Z",
+    "diagnoses_counts": {
+      "Glioblastoma": 16,
+      "Non-cancerous": 1,
+      "Anaplastic glioma": 1,
+      "High-grade glioma": 2,
+      "Anaplastic astrocytoma": 1,
+      "Diffuse midline glioma": 1,
+      "Pleomorphic xanthoastrocytoma": 1
+    },
+    "diagnoses": [
+      "Anaplastic astrocytoma",
+      "Anaplastic glioma",
+      "Diffuse midline glioma",
+      "Glioblastoma",
+      "High-grade glioma",
+      "Non-cancerous",
+      "Pleomorphic xanthoastrocytoma"
+    ],
+    "disease_timings": [
+      "First recurrence after treatment for glioblastoma",
+      "Initial diagnosis of 2nd primary RIG",
+      "Autopsy",
+      "Initial diagnosis",
+      "Metastatic recurrence of anaplastic pleomorphic xanthoastrocytoma",
+      "Recurrence as glioblastoma after multiple resections for pleomorphic xanthoastrocytoma"
+    ],
+    "downloadable_sample_count": 0,
+    "external_accessions": [
+      {
+        "accession": "SRP436316",
+        "has_raw": true,
+        "url": "https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=SRP436316&o=acc_s%3Aa"
+      },
+      {
+        "accession": "SRP436322",
+        "has_raw": true,
+        "url": "https://www.ncbi.nlm.nih.gov/Traces/study/?acc=SRP436322&o=acc_s%3Aa"
+      },
+      {
+        "accession": "GSE231858",
+        "has_raw": false,
+        "url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE231858"
+      },
+      {
+        "accession": "GSE231859",
+        "has_raw": false,
+        "url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE231859"
+      }
+    ],
+    "has_bulk_rna_seq": true,
+    "has_cite_seq_data": false,
+    "has_multiplexed_data": false,
+    "has_single_cell_data": true,
+    "has_spatial_data": false,
+    "human_readable_pi_name": "Green/Mulcahy Levy",
+    "includes_anndata": true,
+    "includes_cell_lines": false,
+    "includes_merged_anndata": true,
+    "includes_merged_sce": true,
+    "includes_xenografts": false,
+    "metadata_dataset_id": "3b1b4f45-e7bf-4799-83c9-a70bbf986bd6",
+    "modalities": [
+      "SINGLE_CELL",
+      "BULK_RNA_SEQ"
+    ],
+    "multiplexed_sample_count": 0,
+    "organisms": [
+      "Homo sapiens"
+    ],
+    "pi_name": "green_mulcahy_levy",
+    "publications": [
+      {
+        "citation": "DeSisto J., A. M. Donson, A. M. Griesinger, R. Fu, K. Riemondy, et al., 2023 Tumor and immune cell types interact to produce heterogeneous phenotypes of pediatric high-grade glioma. Neuro-oncology 26: 538-552. https://doi.org/10.1093/neuonc/noad207",
+        "doi": "10.1093/neuonc/noad207",
+        "doi_url": "https://doi.org/10.1093/neuonc/noad207"
+      }
+    ],
+    "sample_count": 23,
+    "samples": [
+      "SCPCS000001",
+      "SCPCS000002",
+      "SCPCS000003",
+      "SCPCS000004",
+      "SCPCS000005",
+      "SCPCS000006",
+      "SCPCS000007",
+      "SCPCS000008",
+      "SCPCS000009",
+      "SCPCS000010",
+      "SCPCS000011",
+      "SCPCS000012",
+      "SCPCS000013",
+      "SCPCS000014",
+      "SCPCS000015",
+      "SCPCS000016",
+      "SCPCS000017",
+      "SCPCS000018",
+      "SCPCS000019",
+      "SCPCS000020",
+      "SCPCS000021",
+      "SCPCS000022",
+      "SCPCS000023"
+    ],
+    "modality_samples": {
+      "SINGLE_CELL": [
+        "SCPCS000001",
+        "SCPCS000002",
+        "SCPCS000003",
+        "SCPCS000004",
+        "SCPCS000005",
+        "SCPCS000006",
+        "SCPCS000007",
+        "SCPCS000008",
+        "SCPCS000009",
+        "SCPCS000010",
+        "SCPCS000011",
+        "SCPCS000012",
+        "SCPCS000013",
+        "SCPCS000014",
+        "SCPCS000015",
+        "SCPCS000016",
+        "SCPCS000017",
+        "SCPCS000018",
+        "SCPCS000019",
+        "SCPCS000020",
+        "SCPCS000021",
+        "SCPCS000022",
+        "SCPCS000023"
+      ],
+      "SPATIAL": []
+    },
+    "multiplexed_samples": [],
+    "scpca_id": "SCPCP000001",
+    "seq_units": [
+      "cell"
+    ],
+    "summaries": [
+      {
+        "diagnosis": "Anaplastic glioma",
+        "sample_count": 1,
+        "seq_unit": "cell",
+        "technology": "10xv3",
+        "updated_at": "2026-02-10T22:30:34.413196Z"
+      },
+      {
+        "diagnosis": "Glioblastoma",
+        "sample_count": 16,
+        "seq_unit": "cell",
+        "technology": "10xv3",
+        "updated_at": "2026-02-10T22:30:34.425228Z"
+      },
+      {
+        "diagnosis": "High-grade glioma",
+        "sample_count": 2,
+        "seq_unit": "cell",
+        "technology": "10xv3",
+        "updated_at": "2026-02-10T22:30:34.432443Z"
+      },
+      {
+        "diagnosis": "Diffuse midline glioma",
+        "sample_count": 1,
+        "seq_unit": "cell",
+        "technology": "10xv3",
+        "updated_at": "2026-02-10T22:30:34.440197Z"
+      },
+      {
+        "diagnosis": "Non-cancerous",
+        "sample_count": 1,
+        "seq_unit": "cell",
+        "technology": "10xv3",
+        "updated_at": "2026-02-10T22:30:34.446934Z"
+      },
+      {
+        "diagnosis": "Pleomorphic xanthoastrocytoma",
+        "sample_count": 1,
+        "seq_unit": "cell",
+        "technology": "10xv3",
+        "updated_at": "2026-02-10T22:30:34.454810Z"
+      },
+      {
+        "diagnosis": "Anaplastic astrocytoma",
+        "sample_count": 1,
+        "seq_unit": "cell",
+        "technology": "10xv3",
+        "updated_at": "2026-02-10T22:30:34.462249Z"
+      }
+    ],
+    "technologies": [
+      "10xv3"
+    ],
+    "title": "Single cell RNA sequencing of pediatric high-grade gliomas",
+    "unavailable_samples_count": 0,
+    "updated_at": "2026-02-10T22:30:34.366346Z"
+  },
+  {
+    "abstract": "Pediatric solid tumors are rare compared to common adult malignancies and they are also remarkably diverse. For example, rhabdomyosarcomas have features of skeletal muscle, osteosarcomas have features of bone and neuroblastomas have features of cells in the sympathoadrenal lineage. The diversity and rarity of pediatric solid tumors makes it difficult to accelerate biomedical research that can improve patient outcomes. For example, even with the large number of patients treated at St. Jude, it can be difficult to obtain fresh pediatric solid tumor tissue that is suitable for single cell sequencing. To overcome this barrier in the field, we have collaborated with Aviv Regev at the Broad Institute to compare single-cell RNA-sequencing to single-nuclei RNA-sequencing for pediatric solid tumors. Our data show that we can capture the transcriptional heterogeneity of the tumors and the complexity of the tumor microenvironment using single-nuclei RNA-sequencing of patient tumors from the St. Jude biorepository. In addition, over the past 9 years, we have generated 166 orthotopic patient derived xenografts (O-PDXs) representing 21 different pediatric solid tumor types. The O-PDXs and corresponding patient tumors have undergone some of the most comprehensive characterization of any pediatric cancer model including detailed analysis of the clonal heterogeneity (Stewart et al. Nature, 2018). We performed single-cell or single-nuclei RNA-sequencing of 40 tissue samples obtained from Neuroblastoma patients as part of a larger effort to perform single-cell/single-nuclei RNA-sequencing on a large cohort of patient tumors and O-PDXs. This research proposal will fill a fundamental gap in our knowledge of the transcriptome heterogeneity across pediatric solid tumor clones and of the normal cells found in the tumor microenvironment.\\n\\nWe would greatly appreciate if you cite the listed publications when using this data.",
+    "additional_metadata_keys": [
+      "COG_risk",
+      "development_stage_ontology_term_id",
+      "disease_ontology_term_id",
+      "IGSS_stage",
+      "MYCN_status",
+      "organism",
+      "organism_ontology_id",
+      "participant_id",
+      "primary_site",
+      "sample_type",
+      "self_reported_ethnicity_ontology_term_id",
+      "sex_ontology_term_id",
+      "submitter_id",
+      "tissue_ontology_term_id",
+      "treatment_status"
+    ],
+    "additional_restrictions": "Research or academic purposes only",
+    "computed_files": [],
+    "contacts": [
+      {
+        "email": "anand.patel2@stjude.org",
+        "name": "Anand G. Patel"
+      }
+    ],
+    "created_at": "2026-02-10T22:31:01.156361Z",
+    "diagnoses_counts": {
+      "Neuroblastoma": 40
+    },
+    "diagnoses": [
+      "Neuroblastoma"
+    ],
+    "disease_timings": [
+      "Initial diagnosis",
+      "Recurrence"
+    ],
+    "downloadable_sample_count": 0,
+    "external_accessions": [
+      {
+        "accession": "GSE228957",
+        "has_raw": false,
+        "url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE228957"
+      },
+      {
+        "accession": "SRP430879",
+        "has_raw": true,
+        "url": "https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=SRP430879"
+      },
+      {
+        "accession": "HTAN HTAPP",
+        "has_raw": true,
+        "url": "https://humantumoratlas.org/publications/hta1_2024_biorxiv_anand-g-patel?tab=overview"
+      }
+    ],
+    "has_bulk_rna_seq": false,
+    "has_cite_seq_data": false,
+    "has_multiplexed_data": false,
+    "has_single_cell_data": true,
+    "has_spatial_data": false,
+    "human_readable_pi_name": "Dyer/Chen",
+    "includes_anndata": true,
+    "includes_cell_lines": false,
+    "includes_merged_anndata": true,
+    "includes_merged_sce": true,
+    "includes_xenografts": true,
+    "metadata_dataset_id": "0f27d4cb-41a6-4e51-b318-408fd112a5cc",
+    "modalities": [
+      "SINGLE_CELL"
+    ],
+    "multiplexed_sample_count": 0,
+    "organisms": [
+      "Homo sapiens"
+    ],
+    "pi_name": "dyer_chen",
+    "publications": [
+      {
+        "citation": "Patel A.G., O. Ashenberg, N.B. Collins, A. Segerstolpe, S.Jiang, et al., 2024 A spatial cell atlas of neuroblastoma reveals developmental, epigentic and spatial axis of tumor heterogeneity. bioRxiv 2024.01.07.574538. https://doi.org/10.1101/2024.01.07.574538",
+        "doi": "10.1101/2024.01.07.574538",
+        "doi_url": "https://doi.org/10.1101/2024.01.07.574538"
+      },
+      {
+        "citation": "Chapple R.H., X. Liu, S. Natarajan, M.I.M. Alexander, Y. Kim, et al., 2024 An integrated single-cell RNA-seq map of human neuroblastoma tumors and preclinical models uncovers divergent mesenchymal-like gene expression programs. Genome Biology 25: 161. https://doi.org/10.1186/s13059-024-03309-4",
+        "doi": "10.1186/s13059-024-03309-4",
+        "doi_url": "https://doi.org/10.1186/s13059-024-03309-4"
+      }
+    ],
+    "sample_count": 40,
+    "samples": [
+      "SCPCS000101",
+      "SCPCS000102",
+      "SCPCS000103",
+      "SCPCS000104",
+      "SCPCS000105",
+      "SCPCS000106",
+      "SCPCS000107",
+      "SCPCS000108",
+      "SCPCS000109",
+      "SCPCS000110",
+      "SCPCS000111",
+      "SCPCS000112",
+      "SCPCS000113",
+      "SCPCS000114",
+      "SCPCS000115",
+      "SCPCS000116",
+      "SCPCS000117",
+      "SCPCS000118",
+      "SCPCS000119",
+      "SCPCS000120",
+      "SCPCS000121",
+      "SCPCS000122",
+      "SCPCS000123",
+      "SCPCS000686",
+      "SCPCS000687",
+      "SCPCS000688",
+      "SCPCS000689",
+      "SCPCS000690",
+      "SCPCS000691",
+      "SCPCS000692",
+      "SCPCS000693",
+      "SCPCS000694",
+      "SCPCS000695",
+      "SCPCS000696",
+      "SCPCS000697",
+      "SCPCS000698",
+      "SCPCS000699",
+      "SCPCS000700",
+      "SCPCS000702",
+      "SCPCS000703"
+    ],
+    "modality_samples": {
+      "SINGLE_CELL": [
+        "SCPCS000101",
+        "SCPCS000102",
+        "SCPCS000103",
+        "SCPCS000104",
+        "SCPCS000105",
+        "SCPCS000106",
+        "SCPCS000107",
+        "SCPCS000108",
+        "SCPCS000109",
+        "SCPCS000110",
+        "SCPCS000111",
+        "SCPCS000112",
+        "SCPCS000113",
+        "SCPCS000114",
+        "SCPCS000115",
+        "SCPCS000116",
+        "SCPCS000117",
+        "SCPCS000118",
+        "SCPCS000119",
+        "SCPCS000120",
+        "SCPCS000121",
+        "SCPCS000122",
+        "SCPCS000123",
+        "SCPCS000686",
+        "SCPCS000687",
+        "SCPCS000688",
+        "SCPCS000689",
+        "SCPCS000690",
+        "SCPCS000691",
+        "SCPCS000692",
+        "SCPCS000693",
+        "SCPCS000694",
+        "SCPCS000695",
+        "SCPCS000696",
+        "SCPCS000697",
+        "SCPCS000698",
+        "SCPCS000699",
+        "SCPCS000700",
+        "SCPCS000702",
+        "SCPCS000703"
+      ],
+      "SPATIAL": []
+    },
+    "multiplexed_samples": [],
+    "scpca_id": "SCPCP000004",
+    "seq_units": [
+      "cell",
+      "nucleus"
+    ],
+    "summaries": [
+      {
+        "diagnosis": "Neuroblastoma",
+        "sample_count": 28,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:31:03.065581Z"
+      },
+      {
+        "diagnosis": "Neuroblastoma",
+        "sample_count": 5,
+        "seq_unit": "cell",
+        "technology": "10xv2",
+        "updated_at": "2026-02-10T22:31:03.071998Z"
+      },
+      {
+        "diagnosis": "Neuroblastoma",
+        "sample_count": 3,
+        "seq_unit": "cell",
+        "technology": "10xv3",
+        "updated_at": "2026-02-10T22:31:03.079141Z"
+      },
+      {
+        "diagnosis": "Neuroblastoma",
+        "sample_count": 5,
+        "seq_unit": "nucleus",
+        "technology": "10xv2",
+        "updated_at": "2026-02-10T22:31:03.085765Z"
+      },
+      {
+        "diagnosis": "Neuroblastoma",
+        "sample_count": 1,
+        "seq_unit": "cell",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:31:03.094568Z"
+      }
+    ],
+    "technologies": [
+      "10xv2",
+      "10xv3",
+      "10xv3.1"
+    ],
+    "title": "Profiling the transcriptional heterogeneity of diverse pediatric solid tumors - Neuroblastoma",
+    "unavailable_samples_count": 0,
+    "updated_at": "2026-02-10T22:31:02.975797Z"
+  },
+  {
+    "abstract": "Wilms tumor (WT) is the most common pediatric kidney cancer. WT is characterized by a significant degree of intratumor subclonal histologic and genetic heterogeneity. Histology is the greatest predictor of outcome, and patients with unfavorable histology (diffuse anaplasia) account for 5% of cases, but 50% of deaths from this disease. A critical barrier to understanding therapeutic resistance in WT is that resistant cells, particularly the anaplastic population in unfavorable histology WT, may represent a minor subclone in the tumor. Therefore, prior analyses based on bulk genome and RNA-sequencing may have failed to identify new anaplasia-specific therapeutic targets because of dilution by non-anaplastic cells in the tumor. Our preliminary single-cell RNA-sequencing experiments have revealed substantial transcriptomic heterogeneity in anaplastic and favorable histology WT patient derived xenografts. However, it has been challenging to assign specific cluster(s) to the anaplastic populations unambiguously. The purpose of this project is to resolve the transcriptome of the blastemal, epithelial, and stromal cellular populations in Wilms tumor and to unambiguously identify the expression signature of anaplastic clones in anaplastic histology WT. We aim to achieve this goal by analyzing 23 favorable histology WT and 22 anaplastic histology WT with single-nuclei RNA sequencing. This study will help establish an anaplasia-specific expression signature in unfavorable histology WT. Furthermore, our approach will also identify how tumor-stromal interactions, which play a key role in therapeutic resistance, may differ between anaplastic and favorable histology components within unfavorable histology WT. The long-term intellectual impact of this study is that the expression signature established by our work is likely to advance the understanding of therapeutic resistance in this treatment refractory tumor subtype.",
+    "additional_metadata_keys": [
+      "development_stage_ontology_term_id",
+      "disease_ontology_term_id",
+      "metastasis",
+      "organism",
+      "organism_ontology_id",
+      "participant_id",
+      "relapse_status",
+      "self_reported_ethnicity_ontology_term_id",
+      "sex_ontology_term_id",
+      "submitter_id",
+      "tissue_ontology_term_id",
+      "vital_status"
+    ],
+    "additional_restrictions": "Research or academic purposes only",
+    "computed_files": [],
+    "contacts": [
+      {
+        "email": "andrew.murphy@stjude.org",
+        "name": "Andrew J. Murphy"
+      }
+    ],
+    "created_at": "2026-02-10T22:31:25.638262Z",
+    "diagnoses_counts": {
+      "Wilms tumor": 45
+    },
+    "diagnoses": [
+      "Wilms tumor"
+    ],
+    "disease_timings": [
+      "Initial diagnosis",
+      "Recurrence",
+      "Metastatic (autopsy)",
+      "Initial diagnosis (prior needle biopsy)"
+    ],
+    "downloadable_sample_count": 0,
+    "external_accessions": [
+      {
+        "accession": "SRP367737",
+        "has_raw": true,
+        "url": "https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=SRP367737&o=acc_s%3Aa"
+      },
+      {
+        "accession": "GSE200256",
+        "has_raw": false,
+        "url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE200256"
+      }
+    ],
+    "has_bulk_rna_seq": true,
+    "has_cite_seq_data": false,
+    "has_multiplexed_data": false,
+    "has_single_cell_data": true,
+    "has_spatial_data": true,
+    "human_readable_pi_name": "Murphy/Chen",
+    "includes_anndata": true,
+    "includes_cell_lines": false,
+    "includes_merged_anndata": true,
+    "includes_merged_sce": true,
+    "includes_xenografts": false,
+    "metadata_dataset_id": "cf477932-56d0-4073-b67b-517ddf689338",
+    "modalities": [
+      "SINGLE_CELL",
+      "BULK_RNA_SEQ",
+      "SPATIAL"
+    ],
+    "multiplexed_sample_count": 0,
+    "organisms": [
+      "Homo sapiens"
+    ],
+    "pi_name": "murphy_chen",
+    "publications": [],
+    "sample_count": 45,
+    "samples": [
+      "SCPCS000168",
+      "SCPCS000169",
+      "SCPCS000170",
+      "SCPCS000171",
+      "SCPCS000172",
+      "SCPCS000173",
+      "SCPCS000174",
+      "SCPCS000175",
+      "SCPCS000176",
+      "SCPCS000177",
+      "SCPCS000178",
+      "SCPCS000179",
+      "SCPCS000180",
+      "SCPCS000181",
+      "SCPCS000182",
+      "SCPCS000183",
+      "SCPCS000184",
+      "SCPCS000185",
+      "SCPCS000186",
+      "SCPCS000187",
+      "SCPCS000188",
+      "SCPCS000189",
+      "SCPCS000190",
+      "SCPCS000191",
+      "SCPCS000192",
+      "SCPCS000193",
+      "SCPCS000194",
+      "SCPCS000195",
+      "SCPCS000196",
+      "SCPCS000197",
+      "SCPCS000198",
+      "SCPCS000199",
+      "SCPCS000200",
+      "SCPCS000201",
+      "SCPCS000202",
+      "SCPCS000203",
+      "SCPCS000204",
+      "SCPCS000205",
+      "SCPCS000206",
+      "SCPCS000207",
+      "SCPCS000208",
+      "SCPCS000209",
+      "SCPCS000210",
+      "SCPCS000211",
+      "SCPCS000249"
+    ],
+    "modality_samples": {
+      "SINGLE_CELL": [
+        "SCPCS000168",
+        "SCPCS000169",
+        "SCPCS000170",
+        "SCPCS000171",
+        "SCPCS000172",
+        "SCPCS000173",
+        "SCPCS000174",
+        "SCPCS000175",
+        "SCPCS000176",
+        "SCPCS000177",
+        "SCPCS000178",
+        "SCPCS000179",
+        "SCPCS000180",
+        "SCPCS000181",
+        "SCPCS000182",
+        "SCPCS000183",
+        "SCPCS000184",
+        "SCPCS000185",
+        "SCPCS000186",
+        "SCPCS000187",
+        "SCPCS000188",
+        "SCPCS000189",
+        "SCPCS000190",
+        "SCPCS000191",
+        "SCPCS000192",
+        "SCPCS000193",
+        "SCPCS000194",
+        "SCPCS000195",
+        "SCPCS000196",
+        "SCPCS000197",
+        "SCPCS000198",
+        "SCPCS000199",
+        "SCPCS000200",
+        "SCPCS000201",
+        "SCPCS000202",
+        "SCPCS000203",
+        "SCPCS000204",
+        "SCPCS000205",
+        "SCPCS000206",
+        "SCPCS000208"
+      ],
+      "SPATIAL": [
+        "SCPCS000168",
+        "SCPCS000169",
+        "SCPCS000170",
+        "SCPCS000171",
+        "SCPCS000172",
+        "SCPCS000173",
+        "SCPCS000174",
+        "SCPCS000176",
+        "SCPCS000177",
+        "SCPCS000178",
+        "SCPCS000179",
+        "SCPCS000180",
+        "SCPCS000181",
+        "SCPCS000182",
+        "SCPCS000183",
+        "SCPCS000184",
+        "SCPCS000185",
+        "SCPCS000186",
+        "SCPCS000187",
+        "SCPCS000188",
+        "SCPCS000189",
+        "SCPCS000190",
+        "SCPCS000191",
+        "SCPCS000192",
+        "SCPCS000193",
+        "SCPCS000194",
+        "SCPCS000195",
+        "SCPCS000196",
+        "SCPCS000197",
+        "SCPCS000198",
+        "SCPCS000199",
+        "SCPCS000200",
+        "SCPCS000201",
+        "SCPCS000202",
+        "SCPCS000203",
+        "SCPCS000204",
+        "SCPCS000205",
+        "SCPCS000206",
+        "SCPCS000207",
+        "SCPCS000209",
+        "SCPCS000249"
+      ]
+    },
+    "multiplexed_samples": [],
+    "scpca_id": "SCPCP000006",
+    "seq_units": [
+      "nucleus",
+      "spot"
+    ],
+    "summaries": [
+      {
+        "diagnosis": "Wilms tumor",
+        "sample_count": 40,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:31:30.838538Z"
+      },
+      {
+        "diagnosis": "Wilms tumor",
+        "sample_count": 100,
+        "seq_unit": "spot",
+        "technology": "visium",
+        "updated_at": "2026-02-10T22:31:30.845942Z"
+      }
+    ],
+    "technologies": [
+      "10xv3.1",
+      "visium"
+    ],
+    "title": "Single nuclear RNA-seq and spatial transcriptomic analysis of anaplastic and favorable histology Wilms tumor",
+    "unavailable_samples_count": 2,
+    "updated_at": "2026-02-10T22:31:30.746404Z"
+  },
+  {
+    "abstract": "Single cell gene expression profiling of pediatric central nervous system (CNS) tumors holds great potential to further our understanding of carcinogenesis, augment prognostic indicators, and identify rational therapeutic targets. Whereas the genomic characteristics of these tumors are fairly well-defined in aggregate, the extent to which cellular heterogeneity is associated with carcinogenesis and clinical outcomes is largely unknown. Here we profile single nuclei gene expression in 36 brain tumor specimens from individuals with a diagnosis of ependymoma, glioma, or embryonal CNS tumor with substantial follow up time, as well as non-tumor brain tissue from three pediatric controls. We used the 10X Genomics Single Cell platform to obtain single nuclei for RNA sequencing in conjunction with bulk RNA sequencing. In conjunction with this study, we obtained 5-methyl- and 5-hydroxymethylation profiles on these samples to investigate functional aspects of gene regulation by cytosine modification. The data and results from this study are expected to reveal an abundance of information about pediatric CNS tumors with value for the broader scientific community.",
+    "additional_metadata_keys": [
+      "developed_recurrence",
+      "development_stage_ontology_term_id",
+      "disease_ontology_term_id",
+      "location_class",
+      "organism",
+      "organism_ontology_id",
+      "participant_id",
+      "self_reported_ethnicity_ontology_term_id",
+      "sex_ontology_term_id",
+      "submitter_id",
+      "tissue_ontology_term_id",
+      "WHO_grade",
+      "years_to_recurrence"
+    ],
+    "additional_restrictions": "Research or academic purposes only",
+    "computed_files": [],
+    "contacts": [
+      {
+        "email": "brock.christensen@dartmouth.edu",
+        "name": "Brock Christensen"
+      }
+    ],
+    "created_at": "2026-02-10T22:32:06.387643Z",
+    "diagnoses_counts": {
+      "Ependymoma": 5,
+      "Schwannoma": 1,
+      "Glioblastoma": 1,
+      "Ganglioglioma": 1,
+      "Non-cancerous": 3,
+      "Subependymoma": 1,
+      "Medulloblastoma": 4,
+      "Low-grade glioma": 1,
+      "Anaplastic ependymoma": 4,
+      "Pilocytic astrocytoma": 6,
+      "Pilomyxoid astrocytoma": 1,
+      "Anaplastic ganglioglioma": 1,
+      "Dysplastic gangliocytoma": 1,
+      "Myxopapillary ependymoma": 1,
+      "Desmoplastic ganglioglioma": 2,
+      "Primitive neuroectodermal tumor": 3,
+      "Dysembryoplastic neuroepithelial tumor": 3
+    },
+    "diagnoses": [
+      "Anaplastic ependymoma",
+      "Anaplastic ganglioglioma",
+      "Desmoplastic ganglioglioma",
+      "Dysembryoplastic neuroepithelial tumor",
+      "Dysplastic gangliocytoma",
+      "Ependymoma",
+      "Ganglioglioma",
+      "Glioblastoma",
+      "Low-grade glioma",
+      "Medulloblastoma",
+      "Myxopapillary ependymoma",
+      "Non-cancerous",
+      "Pilocytic astrocytoma",
+      "Pilomyxoid astrocytoma",
+      "Primitive neuroectodermal tumor",
+      "Schwannoma",
+      "Subependymoma"
+    ],
+    "disease_timings": [
+      "Initial diagnosis"
+    ],
+    "downloadable_sample_count": 0,
+    "external_accessions": [
+      {
+        "accession": "SRP392501",
+        "has_raw": true,
+        "url": "https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA869964&o=acc_s%3Aa"
+      },
+      {
+        "accession": "GSE211362",
+        "has_raw": false,
+        "url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE211362"
+      }
+    ],
+    "has_bulk_rna_seq": true,
+    "has_cite_seq_data": false,
+    "has_multiplexed_data": true,
+    "has_single_cell_data": true,
+    "has_spatial_data": false,
+    "human_readable_pi_name": "Christensen",
+    "includes_anndata": true,
+    "includes_cell_lines": false,
+    "includes_merged_anndata": false,
+    "includes_merged_sce": false,
+    "includes_xenografts": false,
+    "metadata_dataset_id": "26d17645-7111-42fd-b6d4-8a5a510a278b",
+    "modalities": [
+      "SINGLE_CELL",
+      "BULK_RNA_SEQ",
+      "MULTIPLEXED"
+    ],
+    "multiplexed_sample_count": 34,
+    "organisms": [
+      "Homo sapiens"
+    ],
+    "pi_name": "christensen",
+    "publications": [
+      {
+        "citation": "Lee M. K., N. Azizgolshani, J. A. Shapiro, L. Nguyen, F. K. IV, et al., 2024 Identifying tumor type and cell type-specific gene expression alterations in pediatric central nervous system tumors. Nat Commun 15: 3634. https://doi.org/10.1038/s41467-024-47712-8",
+        "doi": "10.1038/s41467-024-47712-8",
+        "doi_url": "https://doi.org/10.1038/s41467-024-47712-8"
+      },
+      {
+        "citation": "Lee M. K., N. Azizgolshani, Z. Zhang, L. Perreard, F. K. IV, et al., 2024 Associations in cell type-specific hydroxymethylation and transcriptional alterations of pediatric central nervous system tumors. Nat Commun 15: 3635. https://doi.org/10.1038/s41467-024-47943-9",
+        "doi": "10.1038/s41467-024-47943-9",
+        "doi_url": "https://doi.org/10.1038/s41467-024-47943-9"
+      }
+    ],
+    "sample_count": 39,
+    "samples": [
+      "SCPCS000129",
+      "SCPCS000130",
+      "SCPCS000131",
+      "SCPCS000132",
+      "SCPCS000133",
+      "SCPCS000134",
+      "SCPCS000135",
+      "SCPCS000136",
+      "SCPCS000137",
+      "SCPCS000138",
+      "SCPCS000139",
+      "SCPCS000140",
+      "SCPCS000141",
+      "SCPCS000142",
+      "SCPCS000143",
+      "SCPCS000144",
+      "SCPCS000145",
+      "SCPCS000146",
+      "SCPCS000147",
+      "SCPCS000148",
+      "SCPCS000149",
+      "SCPCS000150",
+      "SCPCS000151",
+      "SCPCS000152",
+      "SCPCS000153",
+      "SCPCS000154",
+      "SCPCS000155",
+      "SCPCS000156",
+      "SCPCS000157",
+      "SCPCS000158",
+      "SCPCS000159",
+      "SCPCS000160",
+      "SCPCS000161",
+      "SCPCS000162",
+      "SCPCS000163",
+      "SCPCS000164",
+      "SCPCS000165",
+      "SCPCS000166",
+      "SCPCS000167"
+    ],
+    "modality_samples": {
+      "SINGLE_CELL": [
+        "SCPCS000130",
+        "SCPCS000131",
+        "SCPCS000132",
+        "SCPCS000133",
+        "SCPCS000134",
+        "SCPCS000135",
+        "SCPCS000136",
+        "SCPCS000137",
+        "SCPCS000138",
+        "SCPCS000139",
+        "SCPCS000140",
+        "SCPCS000141",
+        "SCPCS000142",
+        "SCPCS000143",
+        "SCPCS000144",
+        "SCPCS000145",
+        "SCPCS000146",
+        "SCPCS000147",
+        "SCPCS000148",
+        "SCPCS000149",
+        "SCPCS000150",
+        "SCPCS000151",
+        "SCPCS000152",
+        "SCPCS000153",
+        "SCPCS000154",
+        "SCPCS000155",
+        "SCPCS000156",
+        "SCPCS000157",
+        "SCPCS000158",
+        "SCPCS000159",
+        "SCPCS000160",
+        "SCPCS000161",
+        "SCPCS000162",
+        "SCPCS000163",
+        "SCPCS000164",
+        "SCPCS000165",
+        "SCPCS000166",
+        "SCPCS000167"
+      ],
+      "SPATIAL": []
+    },
+    "multiplexed_samples": [
+      "SCPCS000131",
+      "SCPCS000133",
+      "SCPCS000134",
+      "SCPCS000135",
+      "SCPCS000136",
+      "SCPCS000137",
+      "SCPCS000138",
+      "SCPCS000139",
+      "SCPCS000140",
+      "SCPCS000141",
+      "SCPCS000142",
+      "SCPCS000143",
+      "SCPCS000145",
+      "SCPCS000146",
+      "SCPCS000147",
+      "SCPCS000148",
+      "SCPCS000149",
+      "SCPCS000150",
+      "SCPCS000151",
+      "SCPCS000152",
+      "SCPCS000153",
+      "SCPCS000154",
+      "SCPCS000155",
+      "SCPCS000156",
+      "SCPCS000157",
+      "SCPCS000159",
+      "SCPCS000160",
+      "SCPCS000161",
+      "SCPCS000162",
+      "SCPCS000163",
+      "SCPCS000164",
+      "SCPCS000165",
+      "SCPCS000166",
+      "SCPCS000167"
+    ],
+    "scpca_id": "SCPCP000009",
+    "seq_units": [
+      "nucleus"
+    ],
+    "summaries": [
+      {
+        "diagnosis": "Ependymoma",
+        "sample_count": 9,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.120634Z"
+      },
+      {
+        "diagnosis": "Pilocytic astrocytoma",
+        "sample_count": 11,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.129565Z"
+      },
+      {
+        "diagnosis": "Dysplastic gangliocytoma",
+        "sample_count": 1,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.136650Z"
+      },
+      {
+        "diagnosis": "Primitive neuroectodermal tumor",
+        "sample_count": 6,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.144592Z"
+      },
+      {
+        "diagnosis": "Medulloblastoma",
+        "sample_count": 6,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.152446Z"
+      },
+      {
+        "diagnosis": "Desmoplastic ganglioglioma",
+        "sample_count": 4,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.159839Z"
+      },
+      {
+        "diagnosis": "Anaplastic ganglioglioma",
+        "sample_count": 2,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.166992Z"
+      },
+      {
+        "diagnosis": "Dysembryoplastic neuroepithelial tumor",
+        "sample_count": 5,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.175298Z"
+      },
+      {
+        "diagnosis": "Subependymoma",
+        "sample_count": 2,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.184520Z"
+      },
+      {
+        "diagnosis": "Low-grade glioma",
+        "sample_count": 2,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.193551Z"
+      },
+      {
+        "diagnosis": "Myxopapillary ependymoma",
+        "sample_count": 1,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.202326Z"
+      },
+      {
+        "diagnosis": "Non-cancerous",
+        "sample_count": 3,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.210069Z"
+      },
+      {
+        "diagnosis": "Glioblastoma",
+        "sample_count": 1,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.217515Z"
+      },
+      {
+        "diagnosis": "Anaplastic ependymoma",
+        "sample_count": 11,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.226786Z"
+      },
+      {
+        "diagnosis": "Pilomyxoid astrocytoma",
+        "sample_count": 2,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.235309Z"
+      },
+      {
+        "diagnosis": "Schwannoma",
+        "sample_count": 3,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.242608Z"
+      },
+      {
+        "diagnosis": "Ganglioglioma",
+        "sample_count": 3,
+        "seq_unit": "nucleus",
+        "technology": "10xv3.1",
+        "updated_at": "2026-02-10T22:32:09.252006Z"
+      }
+    ],
+    "technologies": [
+      "10xv3.1"
+    ],
+    "title": "Single-cell gene expression and cytosine modification profiling in pediatric central nervous system tumors",
+    "unavailable_samples_count": 1,
+    "updated_at": "2026-02-10T22:32:09.039911Z"
+  }
+]
