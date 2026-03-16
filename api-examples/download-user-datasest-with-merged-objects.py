@@ -28,10 +28,9 @@ BASE_HEADERS = {"Accept": "application/json"}
 BASE_PARAMS = {"limit": 2000}  # Let's ignore pagination for now
 
 
-# STEP 2: SET UP HELPERS
+# STEP 2: SET UP API HELPER
 
 
-# Generic API Request method for API_RESOURCES
 def request_api(
     resource: str,
     id: str | int | None = None,
@@ -99,45 +98,6 @@ def request_api(
     return resp
 
 
-def get_data(
-    projects: list[dict],
-    *,
-    includes_bulk: bool = False,
-    includes_merged: bool = False,
-) -> dict[str, dict]:
-    """
-    Populates a data dictionary from queried projects.
-    Accepts:
-    - projects: List of queried projects
-    - includes_bulk: If True, includes bulk data when available
-    - includes_merged: If True, merges single-cell samples into 1 object
-    """
-
-    data = {}
-
-    for project in projects:
-        project_id = project["scpca_id"]
-
-        has_bulk = project["has_bulk_rna_seq"]
-
-        modality_samples = project["modality_samples"]
-        single_cell_samples = modality_samples["SINGLE_CELL"]
-        spatial_samples = modality_samples["SPATIAL"]
-
-        single_cell = single_cell_samples
-
-        if includes_merged:
-            single_cell = "MERGED"
-
-        data[project_id] = {
-            "SINGLE_CELL": single_cell,
-            "SPATIAL": spatial_samples,
-            "includes_bulk": includes_bulk and has_bulk,
-        }
-
-    return data
-
-
 # STEP 3: DATASET DOWNLOAD
 
 # 1. Authenticate API TOKEN
@@ -170,7 +130,8 @@ data_format = "SINGLE_CELL_EXPERIMENT"  # Required upon dataset creation
 # NOTE: See available project options by querying project-options (https://api.scpca.alexslemonade.org/v1/project-options)
 # We'll query projects containing the following diagnoses and including mergd objects
 query = {"diagnoses": "Ganglioglioma"}  # Can also be a list (e.g., ['Ganglioglioma', 'Ependymoma'])
-# Append a appropriate flag for merged objects based on the specified data format
+
+# Append the appropriate flag for merged objects based on the specified data format
 if data_format == "SINGLE_CELL_EXPERIMENT":
     query["includes_merged_sce"] = True
 else:
@@ -182,17 +143,22 @@ print(
     f"Found {len(queried_projects)} projects for your reuqested query:\n{json.dumps(query, indent=2)}"
 )
 
-# Populate a data for your dataset
-data = get_data(
-    queried_projects,
-    includes_bulk=False,  # Set True if you want to include Bulk RNA-seq data
-    includes_merged=True,
-)
+# Let's populate a data dictionary from the queried projects
+MERGED = "MERGED"  # This constant marks all single-cell samples as 1 merged object
+
+data = {}
+for project in queried_projects:
+    data[project["scpca_id"]] = {
+        "SINGLE_CELL": MERGED,
+        "SPATIAL": project["modality_samples"]["SPATIAL"],
+        "includes_bulk": project["has_bulk_rna_seq"],  # Bulk data is included if available
+    }
 
 print(f"Your dataset includes:\n{json.dumps(data, indent=2)}")
 
 # 3. Create Your Dataset
 # See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
+
 # DATASETS
 # Make a API call to create and process your dataset for download.
 # You'll receive a download link via email once your dataset is processed.
