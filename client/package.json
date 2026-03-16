@@ -7,11 +7,19 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "biome lint",
     "storybook": "storybook dev -p 7001",
     "build-storybook": "storybook build",
     "storybook:update-data": "API_HOST=https://api.staging.scpca.alexslemonade.org API_VERSION=v1 node ./.storybook/scripts/update-data.js",
-    "eslint": "eslint --fix"
+    "eslint": "eslint --fix",
+    "biome:format:dry": "biome format",
+    "biome:format:write": "biome format --write",
+    "biome:lint:dry": "biome lint",
+    "biome:lint:write": "biome lint --write",
+    "biome:check:dry": "biome check",
+    "biome:check:write": "biome check --write",
+    "biome:check:show-errors": "biome check --diagnostic-level=error",
+    "biome:check:show-warnings": "biome check --diagnostic-level=warn"
   },
   "dependencies": {
     "@sentry/react": "^10.37.0",
@@ -35,6 +43,7 @@
   "devDependencies": {
     "@babel/core": "^7.15.0",
     "@babel/eslint-parser": "^7.28.6",
+    "@biomejs/biome": "^2.4.6",
     "@eslint/eslintrc": "^3.3.4",
     "@storybook/nextjs": "^10.2.17",
     "babel-loader": "^8.2.2",
