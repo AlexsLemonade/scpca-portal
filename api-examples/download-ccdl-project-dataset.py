@@ -4,12 +4,16 @@ import urllib.parse
 from pprint import pp
 from urllib import request
 
+# SCRIPT CONSTANTS
 # NOTE: UPDATE EMAIL OR SCRIPT WILL NOT WORK
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 # this is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
 # set this to True if you'd like for requested files to be downloaded at the end of the script
 PROCESS_DOWNLOAD = False
+# this constant exists as a safeguard so many files are not accidentally downloaded at once
+# set this to False if the desired outcome is to download multiple files
+SKIP_RESULTS_AFTER_FIRST = True
 
 if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
     raise Exception("Please accept terms by adding a valid email for API_TOKEN_EMAIL")
@@ -153,21 +157,20 @@ downloadable_ccdl_dataset_ids = [
 ]
 print(f"Found {len(downloadable_ccdl_dataset_ids)} downloadable CCDL Datasets.")
 
-# For example, let's just download one file
-download_id = downloadable_ccdl_dataset_ids[0]
-print(
-    f"For demonstration purposes, we will only download 1 CCDL Dataset (CCDL Dataset {download_id})."
-)
-ccdl_dataset = request_api("ccdl-datasets", download_id, token=API_TOKEN)
+if SKIP_RESULTS_AFTER_FIRST:
+    downloadable_ccdl_dataset_ids = downloadable_ccdl_dataset_ids[:1]
 
-# Another request to actually download using pre-signed url
-if download_url := ccdl_dataset.get("download_url"):
-    print(f"Signed Download URL for CCDL Dataset {download_id}")
-    print(download_url)
-    print("---")
+for download_id in downloadable_ccdl_dataset_ids:
+    ccdl_dataset = request_api("ccdl-datasets", download_id, token=API_TOKEN)
 
-    if PROCESS_DOWNLOAD:
-        download_filename = ccdl_dataset["download_filename"]
-        print(f"Downloading: {download_filename}")
-        request.urlretrieve(download_url, download_filename)
-        print(f"Finished Downloading: {download_filename}")
+    # Another request to actually download using pre-signed url
+    if download_url := ccdl_dataset.get("download_url"):
+        print(f"Signed Download URL for CCDL Dataset {download_id}")
+        print(download_url)
+        print("---")
+
+        if PROCESS_DOWNLOAD:
+            download_filename = ccdl_dataset["download_filename"]
+            print(f"Downloading: {download_filename}")
+            request.urlretrieve(download_url, download_filename)
+            print(f"Finished Downloading: {download_filename}")
