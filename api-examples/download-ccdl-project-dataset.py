@@ -155,7 +155,12 @@ downloadable_ccdl_dataset_ids = [
     for ccdl_dataset in queried_ccdl_datasets
     if ccdl_dataset.get("computed_file")
 ]
-print(f"Found {len(downloadable_ccdl_dataset_ids)} downloadable CCDL Datasets.")
+if nondownloadable_count := len(queried_ccdl_datasets) - len(downloadable_ccdl_dataset_ids):
+    print(
+        f"{nondownloadable_count} CCDL Datasets are being reprocessed "
+        "and are unavailable for download. "
+        "Resuming with remaining."
+    )
 
 if SKIP_RESULTS_AFTER_FIRST:
     downloadable_ccdl_dataset_ids = downloadable_ccdl_dataset_ids[:1]
