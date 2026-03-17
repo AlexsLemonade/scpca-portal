@@ -31,13 +31,6 @@ export const readableNames = {
   '.h5ad': 'AnnData (.h5ad)'
 }
 
-export const storableNames = {
-  'Single-cell': 'SINGLE_CELL',
-  Spatial: 'SPATIAL',
-  'AnnData (Python)': 'ANN_DATA',
-  'SingleCellExperiment (R)': 'SINGLE_CELL_EXPERIMENT'
-}
-
 // Alternate presentation
 export const readableFiles = {
   SINGLE_CELL: 'Single-cell data',

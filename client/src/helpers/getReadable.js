@@ -1,13 +1,10 @@
 import {
   readableNames,
-  storableNames,
   readableFiles,
   readableCCDLFileItems
 } from 'config/readableNames'
 
 export const getReadable = (key) => readableNames[key] || key
-
-export const getStorable = (key) => storableNames[key] || key
 
 export const getReadableFiles = (key) => readableFiles[key] || getReadable(key)
 
