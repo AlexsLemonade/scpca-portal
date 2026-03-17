@@ -28,7 +28,9 @@ export const readableNames = {
   SINGLE_CELL_EXPERIMENT: 'SingleCellExperiment (R)',
   SPATIAL_SPACERANGER: 'Spaceranger',
   '.rds': 'SingleCellExperiment (.rds)',
-  '.h5ad': 'AnnData (.h5ad)'
+  '.h5ad': 'AnnData (.h5ad)',
+  // Kit technology names
+  '10Xflex_v1.1_multi': 'GEM-X Flex v1'
 }
 
 // Alternate presentation
