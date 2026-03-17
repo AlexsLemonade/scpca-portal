@@ -4,7 +4,7 @@ import {
   readableCCDLFileItems
 } from 'config/readableNames'
 
-export const getReadable = (key) => readableNames[key] || key
+export const getReadable = (key, dict = readableNames) => dict[key] || key
 
 export const getReadableFiles = (key) => readableFiles[key] || getReadable(key)
 
