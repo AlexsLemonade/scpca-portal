@@ -5,15 +5,16 @@ from pprint import pp
 from urllib import request
 
 # SCRIPT CONSTANTS
+# by default, we only attempt to work with one downloadable file
+# set this to True if you would like to loop over all downloadable files
+LOOP_OVER_ALL_DOWNLOADS = False
+# by default, we only print the signed download URL
+# set this to True if you would like to initiate the download
+INITIATE_DOWNLOAD = False
 # NOTE: UPDATE EMAIL OR SCRIPT WILL NOT WORK
-API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
+API_TOKEN_EMAIL = "user@a.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 # this is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
-# set this to True if you'd like for requested files to be downloaded at the end of the script
-PROCESS_DOWNLOAD = False
-# this constant exists as a safeguard so many files are not accidentally downloaded at once
-# set this to False if the desired outcome is to download multiple files
-SKIP_RESULTS_AFTER_FIRST = True
 
 if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
     raise Exception("Please accept terms by adding a valid email for API_TOKEN_EMAIL")
@@ -162,7 +163,7 @@ if nondownloadable_count := len(queried_ccdl_datasets) - len(downloadable_ccdl_d
         "Resuming with remaining."
     )
 
-if SKIP_RESULTS_AFTER_FIRST:
+if not LOOP_OVER_ALL_DOWNLOADS:
     downloadable_ccdl_dataset_ids = downloadable_ccdl_dataset_ids[:1]
 
 for download_id in downloadable_ccdl_dataset_ids:
@@ -174,7 +175,7 @@ for download_id in downloadable_ccdl_dataset_ids:
         print(download_url)
         print("---")
 
-        if PROCESS_DOWNLOAD:
+        if INITIATE_DOWNLOAD:
             download_filename = ccdl_dataset["download_filename"]
             print(f"Downloading: {download_filename}")
             request.urlretrieve(download_url, download_filename)
