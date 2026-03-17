@@ -12,8 +12,7 @@ import { Link } from 'components/Link'
 import { Pill } from 'components/Pill'
 import { WarningText } from 'components/WarningText'
 import { capitalize } from 'helpers/capitalize'
-import { getReadable } from 'helpers/getReadable'
-import { getReadableModality } from 'helpers/getReadableModality'
+import { getReadable, getReadableModality } from 'helpers/getReadable'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { myDataset, hasMyDatasetRemainingProjectSamples } = useMyDataset()

@@ -6,8 +6,7 @@ import {
 
 export const getReadable = (key, dict = readableNames) => dict[key] || key
 
-export const getReadableFiles = (key) => readableFiles[key] || getReadable(key)
-
+// Exclusively used for CCDL datasets
 export const getReadableCCDLFileItems = (key) => {
   const value = readableCCDLFileItems[key] || readableFiles[key]
   if (!value) {
@@ -15,5 +14,11 @@ export const getReadableCCDLFileItems = (key) => {
   }
   return value
 }
+
+export const getReadableFiles = (key) => readableFiles[key] || getReadable(key)
+
+// Exclusively used to append 'Data' to the SPATIAL moality in the UI
+export const getReadableModality = (modality) =>
+  `${getReadable(modality)}${modality === 'SPATIAL' ? ' Data' : ''}`
 
 export default getReadable

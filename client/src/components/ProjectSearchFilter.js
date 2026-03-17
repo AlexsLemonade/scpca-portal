@@ -4,8 +4,7 @@ import { Loader } from 'components/Loader'
 import { api } from 'api'
 import { useAnalytics } from 'hooks/useAnalytics'
 import { filterOut } from 'helpers/filterOut'
-import { getReadable } from 'helpers/getReadable'
-import { getReadableModality } from 'helpers/getReadableModality'
+import { getReadable, getReadableModality } from 'helpers/getReadable'
 
 export const ProjectSearchFilter = ({
   filters: defaultFilters = {},
