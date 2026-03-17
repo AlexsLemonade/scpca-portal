@@ -5,14 +5,17 @@ from pprint import pp
 from urllib import request
 
 # SCRIPT CONSTANTS
+# NOTE: UPDATE EMAIL OR SCRIPT WILL NOT WORK
+API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
+
 # by default, we only attempt to work with one downloadable file
 # set this to True if you would like to loop over all downloadable files
 LOOP_OVER_ALL_DOWNLOADS = False
+
 # by default, we only print the signed download URL
 # set this to True if you would like to initiate the download
 INITIATE_DOWNLOAD = False
-# NOTE: UPDATE EMAIL OR SCRIPT WILL NOT WORK
-API_TOKEN_EMAIL = "user@a.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
+
 # this is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
 
@@ -136,17 +139,19 @@ else:
 # NOTE: SPATIAL_SPACERANGER is not considered a dataset format
 # To fetch all SPATIAL CCDL Datasets data, use ccdl_modality with the value SPATIAL
 
-# For CCDL Project Datasets, the ccdl_prjoect_id__isnull attr must be set to False,
-# For CCDL Portal Wide Datasets, it must be set to True
+# For a specific CCDL Project Dataset, use the ccdl_project_id query parameter.
+# For all Project CCDL Datasets, use ccdl_project_id__isnull=False.
+# For all Portal Wide CCDL Datasets, use ccdl_project_id__isnull=True.
 query = {
     "ccdl_modality": "SINGLE_CELL",
     "format": "SINGLE_CELL_EXPERIMENT",
-    "ccdl_project_id__isnull": False,
+    "ccdl_project_id": "SCPCP000001",
 }
 
 queried_ccdl_datasets = request_api("ccdl-datasets", query=query).get("results", [])
 
-print(f"Found {len(queried_ccdl_datasets)} projects for {query.items()}")
+print(f"Found {len(queried_ccdl_datasets)} projects for query:")
+pp(query)
 
 # DOWNLOADING CCDL DATASETS
 
@@ -171,12 +176,15 @@ for download_id in downloadable_ccdl_dataset_ids:
 
     # Another request to actually download using pre-signed url
     if download_url := ccdl_dataset.get("download_url"):
-        print(f"Signed Download URL for CCDL Dataset {download_id}")
+        download_filename = ccdl_dataset.get("download_filename")
+
+        print(f"Signed Download URL for CCDL Dataset {download_filename}")
         print(download_url)
         print("---")
 
         if INITIATE_DOWNLOAD:
-            download_filename = ccdl_dataset["download_filename"]
             print(f"Downloading: {download_filename}")
             request.urlretrieve(download_url, download_filename)
             print(f"Finished Downloading: {download_filename}")
+        else:
+            print("Skipping downloading.")
