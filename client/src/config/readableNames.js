@@ -50,7 +50,7 @@ export const readableFiles = {
   has_multiplexed_data: 'Multiplexed single-cell data'
 }
 
-export const readableFileItems = {
+export const readableCCDLFileItems = {
   SINGLE_CELL_DATA: 'Single-cell data',
   SPATIAL_DATA: 'Spatial data',
   BULK_DATA: 'Bulk RNA-Seq data',

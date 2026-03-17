@@ -1,4 +1,4 @@
-import { getReadable, getReadableFileItems } from 'helpers/getReadable'
+import { getReadable, getReadableCCDLFileItems } from 'helpers/getReadable'
 
 // takes a dataset and returns an array of readable file items
 export const getCCDLDatasetFileItems = (dataset) => {
@@ -20,37 +20,39 @@ export const getCCDLDatasetFileItems = (dataset) => {
 
   if (modality === 'SINGLE_CELL') {
     const modalityItem = combinedCiteSeqFile
-      ? `${getReadableFileItems('SINGLE_CELL_DATA')}, ${getReadableFileItems(
-          'CITE_SEQ_DATA'
-        )}`
-      : getReadableFileItems('SINGLE_CELL_DATA')
+      ? `${getReadableCCDLFileItems(
+          'SINGLE_CELL_DATA'
+        )}, ${getReadableCCDLFileItems('CITE_SEQ_DATA')}`
+      : getReadableCCDLFileItems('SINGLE_CELL_DATA')
     items.push(`${modalityItem} as ${getReadable(format)}`)
   }
 
   if (modality === 'SPATIAL') {
     // exception to the rule: spaceranger as files is always one word lower
-    items.push(`${getReadableFileItems('SPATIAL_DATA')} as spaceranger`)
+    items.push(`${getReadableCCDLFileItems('SPATIAL_DATA')} as spaceranger`)
   }
 
   if (hasMultiplexed && !isMetadataDataset) {
     items.push(
-      `${getReadableFileItems('MULTIPLEXED_DATA')} as ${getReadable(format)}`
+      `${getReadableCCDLFileItems('MULTIPLEXED_DATA')} as ${getReadable(
+        format
+      )}`
     )
   }
 
   if (hasBulk && !isMetadataDataset) {
-    items.push(getReadableFileItems('BULK_DATA'))
+    items.push(getReadableCCDLFileItems('BULK_DATA'))
   }
 
   if (seperateCiteSeqFile) {
     items.push(
-      `${getReadableFileItems('CITE_SEQ_DATA')} as ${getReadable(format)}`
+      `${getReadableCCDLFileItems('CITE_SEQ_DATA')} as ${getReadable(format)}`
     )
   }
 
   const metadataItem = portalWideMetadataOnly
-    ? getReadableFileItems('PORTAL_WIDE_METADATA')
-    : getReadableFileItems('PROJECT_METADATA')
+    ? getReadableCCDLFileItems('PORTAL_WIDE_METADATA')
+    : getReadableCCDLFileItems('PROJECT_METADATA')
 
   items.push(metadataItem)
 
