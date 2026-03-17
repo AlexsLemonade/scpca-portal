@@ -7,10 +7,16 @@ from urllib import request
 # STEP 1: SET UP BASE API CONFIGS
 
 # NOTE: UPDATE EMAIL OR SCRIPT WILL NOT WORK
+# By adding your email, you agree to the terms of service and privacy policy:
+# - Terms of Service: https://scpca.alexslemonade.org/terms-of-use
+# - Privacy Policy: https://scpca.alexslemonade.org/privacy-policy
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
-# NOTE: By adding your email, you agree to the terms of service and privacy policy:
-# Terms of Service: https://scpca.alexslemonade.org/terms-of-use
-# Privacy Policy: https://scpca.alexslemonade.org/privacy-policy
+
+# Set this to True if you'd like to start processing your dataset for file download
+PROCESS_DATASET = False
+# Set this to True if you'd like for requested files to be downloaded at the end of the file
+# NOTE: Your dataset is available for download only after processing is complate
+DOWNLOAD_DATASET = False
 
 # This is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
@@ -73,12 +79,15 @@ def request_api(
         query_params.update(formatted_query)
         resource_url += f"?{urllib.parse.urlencode(query_params)}"
 
+    # Convert body to JSON if provided
     data = None
     if body:
-        data = urllib.parse.urlencode(body).encode("utf-8")
+        data = json.dumps(body).encode("utf-8")
 
-    # If passed, attach api-key header
+    # If passed, set headers
     headers = BASE_HEADERS.copy()
+    if body:
+        headers["Content-Type"] = "application/json"
     if token:
         headers["API-KEY"] = token
 
@@ -127,67 +136,71 @@ else:
 data_format = "SINGLE_CELL_EXPERIMENT"  # Required upon dataset creation
 
 # PROJECTS
-# NOTE: See available project options by querying project-options (https://api.scpca.alexslemonade.org/v1/project-options)
-# We'll query projects containing the following diagnoses and including mergd objects
-query = {"diagnoses": "Ganglioglioma"}  # Can also be a list (e.g., ['Ganglioglioma', 'Ependymoma'])
-
-# Append the appropriate flag for merged objects based on the specified data format
-if data_format == "SINGLE_CELL_EXPERIMENT":
-    query["includes_merged_sce"] = True
-else:
-    query["includes_merged_anndata"] = True
+print(f"See available project options by querying project-options: {API_BASE}/project-options")
+# Let's query projects containing the following diagnoses and including mergd objects
+# - diagnoses can also be a list  (e.g., ['Ganglioglioma', 'Ependymoma'])
+# - Use the includes_merged_anndata flag for ANN_DATA
+query = {"diagnoses": "Ganglioglioma", "includes_merged_sce": True}
 
 queried_projects = request_api("projects", query=query).get("results", [])
 
-print(
-    f"Found {len(queried_projects)} projects for your reuqested query:\n{json.dumps(query, indent=2)}"
-)
+pp(f"Found {len(queried_projects)} projects")
+
+# Let's build your dataset
+dataset = {
+    "format": data_format,
+    "data": {},
+    "start": PROCESS_DATASET,  # Set True to process your dataset immediately
+    "email": API_TOKEN_EMAIL,  # Required for email notification
+}
 
 # Let's populate a data dictionary from the queried projects
-MERGED = "MERGED"  # This constant marks all single-cell samples as 1 merged object
-
-data = {}
+# NOTE: Replace "MERGED" with project["modality_samples"]["SINGLE_CELL"] if you prefer no merged objects
 for project in queried_projects:
-    data[project["scpca_id"]] = {
-        "SINGLE_CELL": MERGED,
+    dataset["data"][project["scpca_id"]] = {
+        "SINGLE_CELL": "MERGED",  # Marks all single-cell samples as one merged object
         "SPATIAL": project["modality_samples"]["SPATIAL"],
-        "includes_bulk": project["has_bulk_rna_seq"],  # Bulk data is included if available
+        "includes_bulk": project["has_bulk_rna_seq"],  # Include bulk data if available
     }
 
-print(f"Your dataset includes:\n{json.dumps(data, indent=2)}")
+pp(f"Your dataset includes:\n{dataset["data"]}")
+
 
 # 3. Create Your Dataset
 # See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
 
 # DATASETS
-# Make a API call to create and process your dataset for download.
-# You'll receive a download link via email once your dataset is processed.
-if data:
-    dataset = request_api(
-        "datasets",
-        body={
-            "format": data_format,
-            "data": data,
-            "start": True,  # Set True to process your dataset immediately
-            "email": API_TOKEN_EMAIL,  # Required for email notification
-        },
-        token=API_TOKEN,
-        method="POST",
-    )
+dataset = request_api(
+    "datasets",
+    body=dataset,
+    token=API_TOKEN,  # Required for dataset processing
+    method="POST",
+)
 
-print(f"Check your email {API_TOKEN_EMAIL} for the dataset download notification.")
-# NOTE: You'll need to accept terms again on the browser, when downloading your dataset via the email link.
+print(f"Your Dataset: {dataset}")
+
+if PROCESS_DATASET:
+    # You'll receive a download link via email once your dataset is processed.
+    print(f"Check your email {API_TOKEN_EMAIL} for the dataset download notification.")
+    # NOTE: You'll need to accept terms again when downloading your dataset via the email link in a browser.
+else:
+    # You can view your dataset via our public API
+    print(f"Your dataset has been created: {API_BASE}/{dataset["id"]}")
 
 # 4. (Optional) Download Your Dataset
+# See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets/ccdl_datasets_retrieve
 # NOTE: Instead of using the email link, you can download the processed dataset directly via the API.
 
-# dataset_id = "" # Add your processed dataset ID here (UUID available via the email link)
+if DOWNLOAD_DATASET:
+    dataset_id = ""  # Add your processed dataset ID here (UUID available via the email link)
 
-# processed_dataset = request_api("datasets", id=dataset_id, token=API_TOKEN)
+    processed_dataset = request_api(
+        "datasets", id=dataset_id, token=API_TOKEN  # Required for dataset download
+    )
 
-# download_url = processed_dataset["download_url"]
-# print(f"Signed Download URL for your dataset {dataset_id}")
-# print(f"Downloading: {download_url}")
+    download_url = processed_dataset["download_url"]
+    print(f"Signed Download URL for your dataset {dataset_id}")
+    print(f"Downloading: {download_url}")
 
-# request.urlretrieve(download_url, processed_dataset["s3_key"])
-# print(f"Finished Downloading: {download_url}")
+    request.urlretrieve(download_url, processed_dataset["s3_key"])
+    print(f"Finished Downloading: {download_url}")
