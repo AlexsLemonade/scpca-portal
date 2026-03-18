@@ -17,7 +17,7 @@ PROCESS_DATASET = False
 
 # Set this to True if you'd like for requested files to be downloaded at the end of the script
 # NOTE: Files are available for download only after dataset processing is complete (this may take some time).
-# If enabled, comment out all code except the "3. Create Your Dataset" section to avoid recreating and reprocessing the dataset.
+# If enabled, comment out all code except the "4. (Optional) Download Your Dataset" section to avoid recreating and reprocessing the dataset.
 INITIATE_DOWNLOAD = False
 
 # This is where we will save the token for future calls
@@ -208,6 +208,7 @@ for project_id in project_ids:
 for project_data in dataset["data"].values():
     project_data["SINGLE_CELL"] = sorted(project_data["SINGLE_CELL"])
     project_data["SPATIAL"] = sorted(project_data["SPATIAL"])
+
 
 # 3. Create Your Dataset
 # See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
