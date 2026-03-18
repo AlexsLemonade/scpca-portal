@@ -28,7 +28,7 @@ if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
 
 # This is all boilerplate to make it easier to make API calls
 # API_RESOURCES is pulled from the list shown on https://api.scpca.alexslemonade.org/v1/
-API_BASE = "http://localhost:8000/v1/" # TODO: Temporaily points to localhost for testing
+API_BASE = "http://localhost:8000/v1/"  # TODO: Temporaily points to localhost for testing
 API_RESOURCES = [
     "ccdl-datasets",
     "computed-files",
@@ -153,7 +153,9 @@ data_format = "ANN_DATA"  # Required upon dataset creation
 
 
 # SAMPLES
-print(f"See available diagnoses on the portal by querying project-options: {API_BASE}/project-options")
+print(
+    f"See available diagnoses on the portal by querying project-options: {API_BASE}/project-options"
+)
 # Let's query samples in ANN_DATA format for the specified diagnosis
 # NOTE: The includes_anndata flag can be omitted for SINGLE_CELL_EXPERIMENT
 query = {"diagnoses": "Neuroblastoma", "has_single_cell_data": True, "includes_anndata": True}
@@ -172,32 +174,34 @@ dataset = {
 }
 
 # Let's populate a data dictionary from the queried samples
-project_ids = set() # For querying the projects resource later for bulk data
+project_ids = set()  # For querying the projects resource later for bulk data
 
 for sample in queried_samples:
     project_id = sample["project"]
     sample_id = sample["scpca_id"]
-   
-    # Initialize the project data 
+
+    # Initialize the project data
     if project_id not in dataset["data"]:
         dataset["data"][project_id] = {
             "SINGLE_CELL": set(),
             "SPATIAL": set(),
-            "includes_bulk": False
+            "includes_bulk": False,
         }
-   
+
     project_ids.add(project_id)
-    
+
     if sample["has_single_cell_data"]:
         dataset["data"][project_id]["SINGLE_CELL"].add(sample_id)
-        
+
     if sample["has_spatial_data"]:
         dataset["data"][project_id]["SPATIAL"].add(sample_id)
 
-# Fetch the projects to include bulk data if available 
+# Fetch the projects to include bulk data if available
 print(f"Fetching {len(project_ids)} projects fonud in the queried samples:")
 for project_id in project_ids:
-    if queried_project := request_api("projects", query={"scpca_id": project_id}).get("results", []):
+    if queried_project := request_api("projects", query={"scpca_id": project_id}).get(
+        "results", []
+    ):
         dataset["data"][project_id]["includes_bulk"] = queried_project[0]["has_bulk_rna_seq"]
 
 # Lastly, sort and covert the sample ID sets to lists
@@ -243,4 +247,3 @@ if INITIATE_DOWNLOAD:
 
     request.urlretrieve(download_url, processed_dataset["s3_key"])
     print(f"Finished Downloading: {download_url}")
-
