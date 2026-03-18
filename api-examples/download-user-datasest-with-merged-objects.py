@@ -14,9 +14,11 @@ API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR
 
 # Set this to True if you'd like to start processing your dataset for file download
 PROCESS_DATASET = False
+
 # Set this to True if you'd like for requested files to be downloaded at the end of the script
-# NOTE: Your dataset is available for download only after processing is complate
-DOWNLOAD_DATASET = False
+# NOTE: Files are available for download only after dataset processing is complete (this may take some time).
+# If enabled, comment out all code except the "(Optional) Download Your Dataset" section to avoid recreating and reprocessing the dataset.
+INITIATE_DOWNLOAD = False
 
 # This is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
@@ -178,9 +180,6 @@ for project in queried_projects:
         "includes_bulk": project["has_bulk_rna_seq"],  # Include bulk data if available
     }
 
-print("Your dataset includes:")
-pp(dataset["data"])
-
 
 # 3. Create Your Dataset
 # See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
@@ -199,16 +198,16 @@ if PROCESS_DATASET:
     # NOTE: You'll need to accept terms again when downloading your dataset via the email link in a browser.
 else:
     # You can view your dataset via our public API
-    print(f"Your dataset has been created: {API_BASE}/{dataset["id"]}")
+    print(f"Your dataset has been created: {API_BASE}datasets/{dataset["id"]}")
 
 # 4. (Optional) Download Your Dataset
 # See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets/ccdl_datasets_retrieve
 # NOTE: Instead of using the email link, you can download the processed dataset directly via the API.
 
-if DOWNLOAD_DATASET:
+if INITIATE_DOWNLOAD:
     dataset_id = dataset[
         "id"
-    ]  # Add your processed dataset ID here (UUID available via the email link)
+    ]  # Add your processed dataset ID here (also available via the email link)
 
     processed_dataset = request_api(
         "datasets", id=dataset_id, token=API_TOKEN  # Required for dataset download
