@@ -26,7 +26,7 @@ if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
 
 # This is all boilerplate to make it easier to make API calls
 # API_RESOURCES is pulled from the list shown on https://api.scpca.alexslemonade.org/v1/
-API_BASE = "http://localhost:8000/v1/"  # TODO: Temporarily point to localhost for testing
+API_BASE = "https://api.scpca.alexslemonade.org/v1/"
 API_RESOURCES = [
     "ccdl-datasets",
     "computed-files",
