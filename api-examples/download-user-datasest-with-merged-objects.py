@@ -14,7 +14,7 @@ API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR
 
 # Set this to True if you'd like to start processing your dataset for file download
 PROCESS_DATASET = False
-# Set this to True if you'd like for requested files to be downloaded at the end of the file
+# Set this to True if you'd like for requested files to be downloaded at the end of the script
 # NOTE: Your dataset is available for download only after processing is complate
 DOWNLOAD_DATASET = False
 
@@ -27,7 +27,15 @@ if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
 # This is all boilerplate to make it easier to make API calls
 # API_RESOURCES is pulled from the list shown on https://api.scpca.alexslemonade.org/v1/
 API_BASE = "http://localhost:8000/v1/"  # TODO: Temporarily point to localhost for testing
-API_RESOURCES = ["datasets", "projects", "samples", "tokens", "project-options"]
+API_RESOURCES = [
+    "ccdl-datasets",
+    "computed-files",
+    "datasets",
+    "projects",
+    "samples",
+    "tokens",
+    "project-options",
+]
 API_ENDPOINTS = {resource: f"{API_BASE}{resource}/" for resource in API_RESOURCES}
 
 BASE_HEADERS = {"Accept": "application/json"}
@@ -92,12 +100,12 @@ def request_api(
         headers["API-KEY"] = token
 
     print(f"{method}: {resource_url}")
-    if data:
-        print("Payload")
-        pp(body)
     if headers:
         print("Headers:")
         pp(headers)
+    if data:
+        print("Payload")
+        pp(body)
 
     httprequest = request.Request(resource_url, data=data, headers=headers, method=method)
 
@@ -150,7 +158,8 @@ query = {"diagnoses": "Ganglioglioma", "includes_merged_sce": True}
 
 queried_projects = request_api("projects", query=query).get("results", [])
 
-pp(f"Found {len(queried_projects)} projects")
+print(f"Found {len(queried_projects)} projects for query:")
+pp(query)
 
 # Let's build your dataset
 dataset = {
@@ -169,7 +178,8 @@ for project in queried_projects:
         "includes_bulk": project["has_bulk_rna_seq"],  # Include bulk data if available
     }
 
-pp(f"Your dataset includes:\n{dataset["data"]}")
+print("Your dataset includes:")
+pp(dataset["data"])
 
 
 # 3. Create Your Dataset
@@ -196,7 +206,9 @@ else:
 # NOTE: Instead of using the email link, you can download the processed dataset directly via the API.
 
 if DOWNLOAD_DATASET:
-    dataset_id = ""  # Add your processed dataset ID here (UUID available via the email link)
+    dataset_id = dataset[
+        "id"
+    ]  # Add your processed dataset ID here (UUID available via the email link)
 
     processed_dataset = request_api(
         "datasets", id=dataset_id, token=API_TOKEN  # Required for dataset download
