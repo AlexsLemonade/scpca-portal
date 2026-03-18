@@ -6,6 +6,9 @@ from urllib import request
 
 # SCRIPT CONSTANTS
 # NOTE: UPDATE EMAIL OR SCRIPT WILL NOT WORK
+# By adding your email, you agree to the terms of service and privacy policy:
+# - Terms of Service: https://scpca.alexslemonade.org/terms-of-use
+# - Privacy Policy: https://scpca.alexslemonade.org/privacy-policy
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 
 # by default, we only attempt to work with one downloadable file
