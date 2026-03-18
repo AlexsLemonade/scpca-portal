@@ -8,6 +8,8 @@ from urllib import request
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 # this is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
+# set this to True if you'd like for requested files to be downloaded at the end of the file
+PROCESS_DOWNLOAD = False
 
 if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
     raise Exception("Please accept terms by adding a valid email for API_TOKEN_EMAIL")
@@ -131,12 +133,17 @@ else:
     API_TOKEN_BODY = {"email": API_TOKEN_EMAIL, "is_activated": True}
     token = request_api("tokens", body=API_TOKEN_BODY, method="POST")
 
-    token = dict(token)
-    API_TOKEN = token.get("id")
+    # Only continue if API token created and response received
+    try:
+        token = dict(token)
+        API_TOKEN = token["id"]
+    except KeyError:
+        print(f"An error occurred when trying to create an API token.")
 
-    print(f"Saving token to {API_TOKEN_FILENAME}")
-    with open(API_TOKEN_FILENAME, "w") as f:
-        f.writelines(token)
+    if API_TOKEN:
+        print(f"Saving token to {API_TOKEN_FILENAME}")
+        with open(API_TOKEN_FILENAME, "w") as f:
+            f.write(API_TOKEN)
 
 
 # SAMPLES
@@ -194,6 +201,7 @@ for id in download_ids:
         print(download_url)
         print("---")
 
-    # print(f"Downloading: {computed_file["s3_key"]}")
-    # request.urlretrieve(download_url, computed_file["s3_key"])
-    # print(f"Finished Downloading: {computed_file["s3_key"]}")
+        if PROCESS_DOWNLOAD:
+            print(f"Downloading: {computed_file["s3_key"]}")
+            request.urlretrieve(download_url, computed_file["s3_key"])
+            print(f"Finished Downloading: {computed_file["s3_key"]}")
