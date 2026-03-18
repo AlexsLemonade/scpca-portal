@@ -8,6 +8,7 @@ import { ProjectSamplesTableContextProvider } from 'contexts/ProjectSamplesTable
 import { api } from 'api'
 import { allModalities } from 'config/datasets'
 import { differenceArray } from 'helpers/differenceArray'
+import { getReadableModality } from 'helpers/getReadableModality'
 import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { DetailsTable } from 'components/DetailsTable'
 import { Link } from 'components/Link'
@@ -165,6 +166,16 @@ const Project = ({ project, ccdlDatasets }) => {
                 width={{ max: 'full' }}
                 overflow="auto"
               >
+                <Box direction="row" margin={{ bottom: 'small' }}>
+                  <Text margin={{ right: 'xsmall' }} weight="bold">
+                    Available Modalities:
+                  </Text>
+                  <Text>
+                    {project.modalities
+                      .map((m) => getReadableModality(m))
+                      .join(', ')}
+                  </Text>
+                </Box>
                 <ProjectSamplesSummaryTable summaries={project.summaries} />
               </Box>
             </Tab>
