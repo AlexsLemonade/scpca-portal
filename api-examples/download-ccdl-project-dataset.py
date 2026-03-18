@@ -47,44 +47,54 @@ BASE_PARAMS = {"limit": 2000}  # lets ignore pagination for now
 def request_api(
     resource: str,
     id: str | int | None = None,
-    *,  # use the following as keyword arguments to prevent confusion
+    *,  # Use the following as keyword arguments to prevent confusion
     query: dict = {},
     body: dict | None = None,
     token: str | None = None,
     method: str = "GET",
 ) -> dict:
     """
-    Genertic API Wrapper.
+    Generic API Wrapper.
     Accepts:
-     - resource: A string that is definied in API_RESOURCES. Ex: "samples"
-     - id: A string, int, or undefined: Id of resource.
+     - resource: A string that is defined in API_RESOURCES. Ex: "samples"
+     - id: A string, int, or undefined: Id of resource. Ex: project.scpca_id
      - query: A query parameters as a dict to be urlencoded to tack onto the request.
      - body: A dict that is the payload of your request.
      - token: A authenticated API token to add to the request headers.
      - method: HTTP Method: ex: "GET" or "POST" - defaults to "GET"
     """
-
     # Only continue if trying to access a known API resource
     try:
         resource_url = API_ENDPOINTS[resource]
     except KeyError:
         print(f"{resource} is not an API resource, options are {API_RESOURCES}")
 
-    # if ID is passed, tack it to end of reuqest
+    # If ID is passed, tack it to end of request
     if id is not None:
         resource_url += f"{id}/"
 
-    if not id or query:  # adding not id to always list out all items without pagination
+    if not id or query:  # Adding not id to always list out all items without pagination
+        # Convert lists to comma-separated strings
+        formatted_query = {}
+        for key, value in query.items():
+            if isinstance(value, list):
+                formatted_query[key] = ",".join(str(v) for v in value)
+            else:
+                formatted_query[key] = value
+
         query_params = BASE_PARAMS.copy()
-        query_params.update(query)
+        query_params.update(formatted_query)
         resource_url += f"?{urllib.parse.urlencode(query_params)}"
 
+    # Convert body to JSON if provided
     data = None
     if body:
-        data = urllib.parse.urlencode(body).encode("utf-8")
+        data = json.dumps(body).encode("utf-8")
 
-    # if passed attach api-key header
+    # If passed, set headers
     headers = BASE_HEADERS.copy()
+    if body:
+        headers["Content-Type"] = "application/json"
     if token:
         headers["API-KEY"] = token
 
