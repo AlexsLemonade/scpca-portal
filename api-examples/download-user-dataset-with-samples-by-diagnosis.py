@@ -148,17 +148,12 @@ else:
         API_TOKEN = f.readlines()[0].strip()
 
 # 2. Prepare Your Dataset
-# Set a data format (SINGLE_CELL_EXPERIMENT or ANN_DATA)
-data_format = "ANN_DATA"  # Required upon dataset creation
 
 
 # SAMPLES
-print(
-    f"See available diagnoses on the portal by querying project-options: {API_BASE}/project-options"
-)
+# See available diagnoses on the portal by querying https://api.scpca.alexslemonade.org/v1/project-options
 # Let's query samples in ANN_DATA format for the specified diagnosis
-# NOTE: The includes_anndata flag can be omitted for SINGLE_CELL_EXPERIMENT
-query = {"diagnoses": "Neuroblastoma", "has_single_cell_data": True, "includes_anndata": True}
+query = {"diagnosis": "Neuroblastoma", "has_single_cell_data": True, "includes_anndata": True}
 
 queried_samples = request_api("samples", query=query).get("results", [])
 
@@ -167,15 +162,13 @@ pp(query)
 
 # Let's build your dataset
 dataset = {
-    "format": data_format,
+    "format": "ANN_DATA",  # Required upon dataset creation
     "data": {},
     "start": PROCESS_DATASET,  # Set True to process your dataset immediately
     "email": API_TOKEN_EMAIL,  # Required for email notification
 }
 
 # Let's populate a data dictionary from the queried samples
-project_ids = set()  # For querying the projects resource later for bulk data
-
 for sample in queried_samples:
     project_id = sample["project"]
     sample_id = sample["scpca_id"]
@@ -183,32 +176,16 @@ for sample in queried_samples:
     # Initialize the project data
     if project_id not in dataset["data"]:
         dataset["data"][project_id] = {
-            "SINGLE_CELL": set(),
-            "SPATIAL": set(),
-            "includes_bulk": False,
+            "SINGLE_CELL": [],
+            "SPATIAL": [],
+            "includes_bulk": False,  # Ignore bulk RNA-seq data in this example
         }
 
-    project_ids.add(project_id)
-
     if sample["has_single_cell_data"]:
-        dataset["data"][project_id]["SINGLE_CELL"].add(sample_id)
+        dataset["data"][project_id]["SINGLE_CELL"].append(sample_id)
 
     if sample["has_spatial_data"]:
-        dataset["data"][project_id]["SPATIAL"].add(sample_id)
-
-# Fetch the projects to include bulk data if available
-print(f"Fetching {len(project_ids)} projects fonud in the queried samples:")
-for project_id in project_ids:
-    if queried_project := request_api("projects", query={"scpca_id": project_id}).get(
-        "results", []
-    ):
-        dataset["data"][project_id]["includes_bulk"] = queried_project[0]["has_bulk_rna_seq"]
-
-# Lastly, sort and covert the sample ID sets to lists
-for project_data in dataset["data"].values():
-    project_data["SINGLE_CELL"] = sorted(project_data["SINGLE_CELL"])
-    project_data["SPATIAL"] = sorted(project_data["SPATIAL"])
-
+        dataset["data"][project_id]["SPATIAL"].append(sample_id)
 
 # 3. Create Your Dataset
 # See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
