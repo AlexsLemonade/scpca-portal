@@ -128,7 +128,7 @@
       "style": {
         "noCommonJs": "off",
         "noDefaultExport": "off",
-        "noImplicitBoolean": "warn",
+        "noImplicitBoolean": "off",
         "noJsxLiterals": "off",
         "noNegationElse": "off",
         "noNestedTernary": "warn",
