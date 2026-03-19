@@ -1,7 +1,9 @@
 import json
 import os
+import sys
 import urllib.parse
 from pprint import pp
+from time import sleep
 from urllib import request
 
 # STEP 1: SET UP BASE API CONFIGS
@@ -12,13 +14,13 @@ from urllib import request
 # - Privacy Policy: https://scpca.alexslemonade.org/privacy-policy
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 
-# Set this to True if you'd like to start processing your dataset for file download
+# Set this to True if you want to start processing the dataset immediately.
 PROCESS_DATASET = False
 
-# Set this to True if you'd like for requested files to be downloaded at the end of the script
-# NOTE: Files are available for download only after dataset processing is complete (this may take some time).
-# If enabled, comment out all code except the "(Optional) Download Your Dataset" section to avoid recreating and reprocessing the dataset.
-INITIATE_DOWNLOAD = False
+# Set this to True if you want to wait and download the dataset once processing is complete.
+# NOTE: Dataset processing may take up to 20 minutes.
+# NOTE: This option is ignored if PROCESS_DATASET is False.
+WAIT_FOR_DOWNLOAD = False
 
 # This is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
@@ -147,15 +149,12 @@ else:
         print("Using existing token")
         API_TOKEN = f.readlines()[0].strip()
 
-# 2. Prepare Your Dataset
-# Set a data format (SINGLE_CELL_EXPERIMENT or ANN_DATA)
-data_format = "SINGLE_CELL_EXPERIMENT"  # Required upon dataset creation
-
+# 2. Prepare Dataset
 # PROJECTS
-print(f"See available project options by querying project-options: {API_BASE}/project-options")
-# Let's query projects containing the following diagnoses and including mergd objects
-# - diagnoses can also be a list  (e.g., ['Ganglioglioma', 'Ependymoma'])
-# - Use the includes_merged_anndata flag for ANN_DATA
+# See available project options at https://api.scpca.alexslemonade.org/v1/project-options
+# Query projects in SINGLE_CELL_EXPERIMENT containing the following diagnoses and including merged objects:
+# - diagnoses can also be a list (e.g., ['Ganglioglioma', 'Ependymoma'])
+# - Set the includes_merged_sce flag to True for merged objects
 query = {"diagnoses": "Ganglioglioma", "includes_merged_sce": True}
 
 queried_projects = request_api("projects", query=query).get("results", [])
@@ -163,28 +162,34 @@ queried_projects = request_api("projects", query=query).get("results", [])
 print(f"Found {len(queried_projects)} projects for query:")
 pp(query)
 
-# Let's build your dataset
+# Let's build a dataset
 dataset = {
-    "format": data_format,
+    "format": "SINGLE_CELL_EXPERIMENT",  # Required upon dataset creation
     "data": {},
-    "start": PROCESS_DATASET,  # Set True to process your dataset immediately
+    "start": PROCESS_DATASET,  # Set True to process the dataset immediately
     "email": API_TOKEN_EMAIL,  # Required for email notification
 }
 
 # Let's populate a data dictionary from the queried projects
-# NOTE: Replace "MERGED" with project["modality_samples"]["SINGLE_CELL"] if you prefer no merged objects
+# NOTE: Replace "MERGED" with project["modality_samples"]["SINGLE_CELL"] if you prefer individual samples.
 for project in queried_projects:
     dataset["data"][project["scpca_id"]] = {
-        "SINGLE_CELL": "MERGED",  # Marks all single-cell samples as one merged object
+        "SINGLE_CELL": "MERGED",  # Mark all single-cell samples as one merged object
         "SPATIAL": project["modality_samples"]["SPATIAL"],
         "includes_bulk": project["has_bulk_rna_seq"],  # Include bulk data if available
     }
 
+print("Dataset Structure:")
+pp(dataset)
 
-# 3. Create Your Dataset
-# See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
+if not PROCESS_DATASET:
+    sys.exit(0)
 
-# DATASETS
+# 3. Process Dataset
+# See https://api.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
+
+# Replace your locally populated dataset with the API response.
+print("Start processing the dataset...")
 dataset = request_api(
     "datasets",
     body=dataset,
@@ -192,30 +197,31 @@ dataset = request_api(
     method="POST",
 )
 
-if PROCESS_DATASET:
-    # You'll receive a download link via email once your dataset is processed.
-    print(f"Check your email {API_TOKEN_EMAIL} for the dataset download notification.")
-    # NOTE: You'll need to accept terms again when downloading your dataset via the email link in a browser.
-else:
-    # You can view your dataset via our public API
-    print(f"Your dataset has been created: {API_BASE}datasets/{dataset["id"]}")
+# You'll receive a download link via email once the dataset is processed.
+print(
+    f"Dataset {dataset["id"]} has been created. An download link will be sent to {API_TOKEN_EMAIL} when processing is complete."
+)
 
-# 4. (Optional) Download Your Dataset
-# See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets/ccdl_datasets_retrieve
-# NOTE: Instead of using the email link, you can download the processed dataset directly via the API.
+# 4. Wait and Download Dataset
+if WAIT_FOR_DOWNLOAD:
+    # See https://api.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets/ccdl_datasets_retrieve
+    # Check the dataset status
+    while True:
+        print("Dataset still processing. Checking status in 2 minutes...")
+        sleep(60 * 2)
+        dataset = request_api(
+            "datasets", id=dataset["id"], token=API_TOKEN  # Required for download_url
+        )
 
-if INITIATE_DOWNLOAD:
-    dataset_id = dataset[
-        "id"
-    ]  # Add your processed dataset ID here (also available via the email link)
+        if dataset["is_succeeded"] == True:
+            break
 
-    processed_dataset = request_api(
-        "datasets", id=dataset_id, token=API_TOKEN  # Required for dataset download
-    )
+        if dataset["is_failed"] == True:
+            print("Dataset processing failed. Exiting...")
+            sys.exit(1)
 
-    download_url = processed_dataset["download_url"]
-    print(f"Signed Download URL for your dataset {dataset_id}")
+    download_url = dataset["download_url"]
     print(f"Downloading: {download_url}")
 
-    request.urlretrieve(download_url, processed_dataset["s3_key"])
-    print(f"Finished Downloading: {download_url}")
+    request.urlretrieve(download_url, dataset["s3_key"])
+    print(f"Completed Successfully.")
