@@ -8,8 +8,12 @@ import { Button } from 'components/Button'
 export const DatasetProcessForm = ({
   buttonLabel = 'Agree and Continue',
   text = '',
-  onCancel = () => {},
-  onContinue = () => {}
+  onCancel = () => {
+    // no-op
+  },
+  onContinue = () => {
+    // no-op
+  }
 }) => {
   const {
     token,
