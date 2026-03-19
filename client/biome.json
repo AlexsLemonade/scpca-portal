@@ -204,7 +204,7 @@
         "noUselessElse": "error",
         "noYodaExpression": "error",
         "useArrayLiterals": "error",
-        "useBlockStatements": "warn",
+        "useBlockStatements": "off",
         "useCollapsedElseIf": "error",
         "useConsistentArrowReturn": "warn",
         "useConsistentBuiltinInstantiation": "warn",
