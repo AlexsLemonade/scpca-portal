@@ -199,12 +199,13 @@ dataset = request_api(
 
 # You'll receive a download link via email once the dataset is processed.
 print(
-    f"Dataset {dataset["id"]} has been created. An download link will be sent to {API_TOKEN_EMAIL} when processing is complete."
+    f"Dataset {dataset["id"]} has been created. A download link will be sent to {API_TOKEN_EMAIL} when processing is complete."
 )
 
 # 4. Wait and Download Dataset
+# See https://api.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets/ccdl_datasets_retrieve
+
 if WAIT_FOR_DOWNLOAD:
-    # See https://api.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets/ccdl_datasets_retrieve
     # Check the dataset status
     while True:
         print("Dataset still processing. Checking status in 2 minutes...")
