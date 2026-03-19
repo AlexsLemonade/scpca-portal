@@ -235,6 +235,16 @@ class Project(CommonDataAttributes, TimestampedModel):
             includes_merged=download_config["includes_merged"],
         ).first()
 
+    def get_downloadable_sample_count(self):
+        """
+        Returns the count of unique samples with the corresponding input files on S3.
+        """
+        sample_ids_queryset = OriginalFile.downloadable_objects.filter(
+            project_id=self.scpca_id, sample_ids__isnull=False
+        ).values_list("sample_ids", flat=True)
+
+        return len(set().union(*sample_ids_queryset))
+
     def get_bulk_rna_seq_sample_ids(self):
         """Returns set of bulk RNA sequencing sample IDs."""
         bulk_rna_seq_sample_ids = set()
@@ -399,6 +409,7 @@ class Project(CommonDataAttributes, TimestampedModel):
                 "scpca_id", filter=Q(has_single_cell_data=False, has_spatial_data=False)
             ),
         )
+        self.downloadable_sample_count = self.get_downloadable_sample_count()
         self.sample_count = counts["sample_count"]
         self.multiplexed_sample_count = counts["multiplexed_sample_count"]
         self.unavailable_samples_count = counts["unavailable_samples_count"]
@@ -426,13 +437,3 @@ class Project(CommonDataAttributes, TimestampedModel):
             project_summary.sample_count = count
 
             project_summary.save(update_fields=("sample_count",))
-
-    def update_downloadable_sample_count(self):
-        """
-        Retrieves downloadable sample counts after the uploading of computed files to s3,
-        updates the corresponding attributes on the project object, and saves the object to the db.
-        """
-        self.downloadable_sample_count = (
-            self.samples.filter(sample_computed_files__isnull=False).distinct().count()
-        )
-        self.save()

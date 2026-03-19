@@ -8,6 +8,8 @@ from urllib import request
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 # this is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
+# set this to True if you'd like for requested files to be downloaded at the end of the file
+PROCESS_DOWNLOAD = False
 
 if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
     raise Exception("Please accept terms by adding a valid email for API_TOKEN_EMAIL")
@@ -199,6 +201,7 @@ for id in download_ids:
         print(download_url)
         print("---")
 
-    # print(f"Downloading: {computed_file["s3_key"]}")
-    # request.urlretrieve(download_url, computed_file["s3_key"])
-    # print(f"Finished Downloading: {computed_file["s3_key"]}")
+        if PROCESS_DOWNLOAD:
+            print(f"Downloading: {computed_file["s3_key"]}")
+            request.urlretrieve(download_url, computed_file["s3_key"])
+            print(f"Finished Downloading: {computed_file["s3_key"]}")

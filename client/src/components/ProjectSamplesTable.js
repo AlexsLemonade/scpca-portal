@@ -23,10 +23,11 @@ import { Table } from 'components/Table'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
-export const ProjectSamplesTable = ({ stickies = 3 }) => {
+export const ProjectSamplesTable = ({ stickies = 3, children }) => {
   const { datasets } = useCCDLDatasetDownloadModalContext()
   const { getDatasetProjectDataSamples } = useDataset()
-  const { myDataset, getMyDatasetProjectDataSamples } = useMyDataset()
+  const { myDataset, isDatasetDataEmpty, getMyDatasetProjectDataSamples } =
+    useMyDataset()
   const {
     project,
     samples: defaultSamples,
@@ -202,15 +203,13 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   useEffect(() => {
     if (!allSamples.length || !samples) return
 
-    let projectData
+    // Run only when the dataset contains data
+    if (!dataset.data && isDatasetDataEmpty) return
 
-    if (dataset?.data) {
-      projectData = getDatasetProjectDataSamples(dataset, project)
-    } else if (!dataset && myDataset?.data) {
-      projectData = getMyDatasetProjectDataSamples(project)
-    } else {
-      return
-    }
+    // Use dataset on /datasets, otherwise use myDataset for setup
+    const projectData = dataset
+      ? getDatasetProjectDataSamples(dataset, project)
+      : getMyDatasetProjectDataSamples(project)
 
     setAddedSamples(projectData)
     selectModalitySamplesByIds('SINGLE_CELL', projectData.SINGLE_CELL)
@@ -240,8 +239,8 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         data={samples}
         filter
         stickies={stickies}
-        pageSize={5}
-        pageSizeOptions={[5, 10, 20, 50]}
+        pageSize={1000}
+        pageSizeOptions={[1000]} // Temporary value
         infoText={infoText}
         text={text}
         defaultSort={[{ id: 'scpca_id', asc: true }]}
@@ -263,6 +262,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           <WarningAnnDataMultiplexed />
         )}
       </Table>
+      <Box>{children}</Box>
     </>
   )
 }
