@@ -163,7 +163,7 @@ query = {
 
 queried_ccdl_datasets = request_api("ccdl-datasets", query=query).get("results", [])
 
-print(f"Found {len(queried_ccdl_datasets)} projects for query:")
+print(f"Found {len(queried_ccdl_datasets)} CCDL Datasets for query:")
 pp(query)
 
 # DOWNLOADING CCDL DATASETS
