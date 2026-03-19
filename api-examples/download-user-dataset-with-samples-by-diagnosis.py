@@ -1,7 +1,9 @@
 import json
 import os
+import sys
 import urllib.parse
 from pprint import pp
+from time import sleep
 from urllib import request
 
 # STEP 1: SET UP BASE API CONFIGS
@@ -12,13 +14,13 @@ from urllib import request
 # - Privacy Policy: https://scpca.alexslemonade.org/privacy-policy
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 
-# Set this to True if you'd like to start processing your dataset for file download
+# Set this to True if you want to start processing the dataset immediately.
 PROCESS_DATASET = False
 
-# Set this to True if you'd like for requested files to be downloaded at the end of the script
-# NOTE: Files are available for download only after dataset processing is complete (this may take some time).
-# If enabled, comment out all code except the "4. (Optional) Download Your Dataset" section to avoid recreating and reprocessing the dataset.
-INITIATE_DOWNLOAD = False
+# Set this to True if you want to wait and download the dataset once processing is complete.
+# NOTE: Dataset processing may take up to 20 minutes.
+# NOTE: This option is ignored if PROCESS_DATASET is False.
+WAIT_FOR_DOWNLOAD = False
 
 # This is where we will save the token for future calls
 API_TOKEN_FILENAME = ".token"
@@ -28,7 +30,7 @@ if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
 
 # This is all boilerplate to make it easier to make API calls
 # API_RESOURCES is pulled from the list shown on https://api.scpca.alexslemonade.org/v1/
-API_BASE = "http://localhost:8000/v1/"  # TODO: Temporaily points to localhost for testing
+API_BASE = "https://api.scpca.alexslemonade.org/v1/"
 API_RESOURCES = [
     "ccdl-datasets",
     "computed-files",
@@ -147,12 +149,10 @@ else:
         print("Using existing token")
         API_TOKEN = f.readlines()[0].strip()
 
-# 2. Prepare Your Dataset
-
-
+# 2. Prepare Dataset
 # SAMPLES
-# See available diagnoses on the portal by querying https://api.scpca.alexslemonade.org/v1/project-options
-# Let's query samples in ANN_DATA format for the specified diagnosis
+# See available diagnoses at https://api.scpca.alexslemonade.org/v1/project-options
+# Query samples in ANN_DATA format containing the specified diagnosis
 query = {"diagnosis": "Neuroblastoma", "has_single_cell_data": True, "includes_anndata": True}
 
 queried_samples = request_api("samples", query=query).get("results", [])
@@ -160,11 +160,11 @@ queried_samples = request_api("samples", query=query).get("results", [])
 print(f"Found {len(queried_samples)} samples for query:")
 pp(query)
 
-# Let's build your dataset
+# Let's build a dataset
 dataset = {
     "format": "ANN_DATA",  # Required upon dataset creation
     "data": {},
-    "start": PROCESS_DATASET,  # Set True to process your dataset immediately
+    "start": PROCESS_DATASET,  # Set True to process the dataset immediately
     "email": API_TOKEN_EMAIL,  # Required for email notification
 }
 
@@ -187,10 +187,17 @@ for sample in queried_samples:
     if sample["has_spatial_data"]:
         dataset["data"][project_id]["SPATIAL"].append(sample_id)
 
-# 3. Create Your Dataset
-# See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
+print("Dataset Structure:")
+pp(dataset)
 
-# DATASETS
+if not PROCESS_DATASET:
+    sys.exit(0)
+
+# 3. Process Dataset
+# See https://api.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
+
+# Replace your locally populated dataset with the API response.
+print("Start processing the dataset...")
 dataset = request_api(
     "datasets",
     body=dataset,
@@ -198,30 +205,32 @@ dataset = request_api(
     method="POST",
 )
 
-if PROCESS_DATASET:
-    # You'll receive a download link via email once your dataset is processed.
-    print(f"Check your email {API_TOKEN_EMAIL} for the dataset download notification.")
-    # NOTE: You'll need to accept terms again when downloading your dataset via the email link in a browser.
-else:
-    # You can view your dataset via our public API
-    print(f"Your dataset has been created: {API_BASE}datasets/{dataset["id"]}")
+# You'll receive a download link via email once the dataset is processed.
+print(
+    f"Dataset {dataset["id"]} has been created. A download link will be sent to {API_TOKEN_EMAIL} when processing is complete."
+)
 
-# 4. (Optional) Download Your Dataset
-# See https://api.staging.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets/ccdl_datasets_retrieve
-# NOTE: Instead of using the email link, you can download the processed dataset directly via the API.
+# 4. Wait and Download Dataset
+# See https://api.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets/ccdl_datasets_retrieve
 
-if INITIATE_DOWNLOAD:
-    dataset_id = dataset[
-        "id"
-    ]  # Add your processed dataset ID here (also available via the email link)
+if WAIT_FOR_DOWNLOAD:
+    # Check the dataset status
+    while True:
+        print("Dataset still processing. Checking status in 2 minutes...")
+        sleep(60 * 2)
+        dataset = request_api(
+            "datasets", id=dataset["id"], token=API_TOKEN  # Required for download_url
+        )
 
-    processed_dataset = request_api(
-        "datasets", id=dataset_id, token=API_TOKEN  # Required for dataset download
-    )
+        if dataset["is_succeeded"] == True:
+            break
 
-    download_url = processed_dataset["download_url"]
-    print(f"Signed Download URL for your dataset {dataset_id}")
+        if dataset["is_failed"] == True:
+            print("Dataset processing failed. Exiting...")
+            sys.exit(1)
+
+    download_url = dataset["download_url"]
     print(f"Downloading: {download_url}")
 
-    request.urlretrieve(download_url, processed_dataset["s3_key"])
-    print(f"Finished Downloading: {download_url}")
+    request.urlretrieve(download_url, dataset["s3_key"])
+    print(f"Completed Successfully.")
