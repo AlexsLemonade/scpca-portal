@@ -14,9 +14,7 @@ import { AnalyticsContextProvider } from 'contexts/AnalyticsContext'
 import { PageTitle } from 'components/PageTitle'
 import Error from './_error'
 
-const Fallback = (sentry) => {
-  return <Error sentry={sentry} />
-}
+const Fallback = (sentry) => <Error sentry={sentry} />
 
 const Portal = ({ Component, pageProps }) => {
   // configuring sentry

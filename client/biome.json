@@ -206,7 +206,7 @@
         "useArrayLiterals": "error",
         "useBlockStatements": "off",
         "useCollapsedElseIf": "error",
-        "useConsistentArrowReturn": "warn",
+        "useConsistentArrowReturn": "error",
         "useConsistentBuiltinInstantiation": "warn",
         "useConsistentCurlyBraces": "error",
         "useConsistentObjectDefinitions": "error",
