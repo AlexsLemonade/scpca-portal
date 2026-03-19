@@ -68,7 +68,7 @@
         "noUselessCatch": "error",
         "noUselessConstructor": "error",
         "noUselessEscapeInRegex": "error",
-        "noUselessFragments": "warn",
+        "noUselessFragments": "error",
         "noUselessLabel": "error",
         "noUselessLoneBlockStatements": "error",
         "noUselessRename": "error",
@@ -121,9 +121,9 @@
       "performance": { "noAwaitInLoops": "error" },
       "security": {
         "noBlankTarget": "error",
-        "noDangerouslySetInnerHtml": "warn",
+        "noDangerouslySetInnerHtml": "off",
         "noDangerouslySetInnerHtmlWithChildren": "error",
-        "noGlobalEval": "warn"
+        "noGlobalEval": "error"
       },
       "style": {
         "noCommonJs": "off",
@@ -131,7 +131,7 @@
         "noImplicitBoolean": "off",
         "noJsxLiterals": "off",
         "noNegationElse": "off",
-        "noNestedTernary": "warn",
+        "noNestedTernary": "error",
         "noParameterAssign": "error",
         "noRestrictedGlobals": {
           "level": "error",
@@ -206,12 +206,12 @@
         "useArrayLiterals": "error",
         "useBlockStatements": "off",
         "useCollapsedElseIf": "error",
-        "useConsistentArrowReturn": "error",
+        "useConsistentArrowReturn": "off",
         "useConsistentBuiltinInstantiation": "warn",
         "useConsistentCurlyBraces": "error",
         "useConsistentObjectDefinitions": "error",
         "useConst": "error",
-        "useDefaultParameterLast": "warn",
+        "useDefaultParameterLast": "error",
         "useDefaultSwitchClause": "error",
         "useExponentiationOperator": "error",
         "useExportsLast": "off",
@@ -235,7 +235,12 @@
         "noCommentText": "error",
         "noCompareNegZero": "error",
         "noConfusingLabels": "error",
-        "noConsole": "warn",
+        "noConsole": {
+          "level": "error",
+          "options": {
+            "allow": ["error", "warn"]
+          }
+        },
         "noControlCharactersInRegex": "error",
         "noDebugger": "error",
         "noDeprecatedImports": "off",
@@ -246,7 +251,7 @@
         "noDuplicateJsxProps": "error",
         "noDuplicateObjectKeys": "error",
         "noDuplicateParameters": "error",
-        "noEmptyBlockStatements": "error",
+        "noEmptyBlockStatements": "off",
         "noFallthroughSwitchClause": "error",
         "noFunctionAssign": "error",
         "noGlobalAssign": "error",
@@ -259,7 +264,7 @@
         "noPrototypeBuiltins": "error",
         "noRedeclare": "error",
         "noSelfCompare": "error",
-        "noShadowRestrictedNames": "warn",
+        "noShadowRestrictedNames": "error",
         "noSparseArray": "error",
         "noTemplateCurlyInString": "error",
         "noUnsafeNegation": "error",
@@ -271,7 +276,7 @@
         "useDefaultSwitchClauseLast": "error",
         "useGetterReturn": "error",
         "useGuardForIn": "error",
-        "useIterableCallbackReturn": "warn"
+        "useIterableCallbackReturn": "off"
       }
     }
   },
