@@ -90,6 +90,7 @@ DOWNLOAD_IDS=$(
   if [ "$LOOP_OVER_ALL_DOWNLOADS" = "true" ]; then
     echo "$CCDL_DATASET_IDS"
   else
+    # If all downloads var not set, then grab just the first id
     echo "$CCDL_DATASET_IDS" | head -n 1
   fi
 )
