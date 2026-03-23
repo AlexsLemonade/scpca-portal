@@ -87,9 +87,10 @@ fi
 #
 # Step 3: Get the download URLs, they expire after 7 days
 DOWNLOAD_IDS=$(
-  if [ "$LOOP_OVER_ALL_DOWNLOADS" = "true" ];
-  then echo "$CCDL_DATASET_IDS";
-  else echo "$CCDL_DATASET_IDS" | head -n 1;
+  if [ "$LOOP_OVER_ALL_DOWNLOADS" = "true" ]; then
+    echo "$CCDL_DATASET_IDS"
+  else
+    echo "$CCDL_DATASET_IDS" | head -n 1
   fi
 )
 
