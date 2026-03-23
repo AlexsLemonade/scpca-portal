@@ -42,14 +42,13 @@ CCDL_DATASETS_RESPONSE=$(curl -s --get \
 
 echo "Found $(echo $CCDL_DATASETS_RESPONSE | jq '.count') projects."
 
-
 CCDL_DATASETS=$(
   echo $CCDL_DATASETS_RESPONSE | jq '.results[]'
 )
-
 CCDL_DATASET_IDS=$(
   echo $CCDL_DATASETS | jq -r '.id'
 )
+
 
 #
 # Step 2: Create a token to get download urls
