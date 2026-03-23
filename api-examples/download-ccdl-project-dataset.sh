@@ -101,6 +101,7 @@ for download_id in $DOWNLOAD_IDS; do
   )
 
   DOWNLOAD_URL=$(echo $CCDL_DATASET_DOWNLOAD_RESPONSE | jq -r '.download_url')
+  DOWNLOAD_FILENAME=$(echo $CCDL_DATASET_DOWNLOAD_RESPONSE | jq -r '.download_filename')
 
   if [ "$DOWNLOAD_URL" = "null" ]; then
     # Uh oh, something happened so print the response.
@@ -109,8 +110,6 @@ for download_id in $DOWNLOAD_IDS; do
     continue
   fi
 
-  DOWNLOAD_FILENAME=$(echo $CCDL_DATASET_DOWNLOAD_RESPONSE | jq -r '.download_filename')
-
   # Success
   echo "Signed Download URL for CCDL Dataset $DOWNLOAD_FILENAME"
   echo $DOWNLOAD_URL
@@ -118,7 +117,7 @@ for download_id in $DOWNLOAD_IDS; do
 
   if [ "$INITIATE_DOWNLOAD" = "true" ]; then
     echo "Downloading: $DOWNLOAD_FILENAME"
-    curl -O $DOWNLOAD_URL
+    curl -o $DOWNLOAD_FILENAME $DOWNLOAD_URL
     echo "Finished Downloading: $DOWNLOAD_FILENAME"
   else
     echo "Skipping downloading."
