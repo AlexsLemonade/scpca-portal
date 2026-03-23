@@ -86,18 +86,20 @@ fi
 
 #
 # Step 3: Get the download URLs, they expire after 7 days
-if [ "$LOOP_OVER_ALL_DOWNLOADS" = "false" ]; then
-  CCDL_DATASET_IDS=$(echo "$CCDL_DATASET_IDS" | head -n 1)
-fi
+DOWNLOAD_IDS=$(
+  if [ "$LOOP_OVER_ALL_DOWNLOADS" = "true" ];
+  then echo "$CCDL_DATASET_IDS";
+  else echo "$CCDL_DATASET_IDS" | head -n 1;
+  fi
+)
 
-for ccdl_dataset_id in $CCDL_DATASET_IDS; do
+for download_id in $DOWNLOAD_IDS; do
   CCDL_DATASET_DOWNLOAD_RESPONSE=$(curl -s --get \
-    "${API_ROOT}/ccdl-datasets/$ccdl_dataset_id" \
+    "${API_ROOT}/ccdl-datasets/$download_id" \
     -H 'Content-Type: application/json' \
     -H "API-KEY: $TOKEN"
   )
 
-  # The id is the API Key that will be used later to get a download url.
   DOWNLOAD_URL=$(echo $CCDL_DATASET_DOWNLOAD_RESPONSE | jq -r '.download_url')
 
   if [ "$DOWNLOAD_URL" = "null" ]; then
