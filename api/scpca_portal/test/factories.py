@@ -209,26 +209,6 @@ class ProjectFactory(LeafProjectFactory):
         sample.libraries.add(library)
 
 
-class DatasetFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = "scpca_portal.Dataset"
-
-    data = {
-        "SCPCP999990": {
-            "includes_bulk": True,
-            Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
-            Modalities.SPATIAL.value: ["SCPCS999991"],
-        },
-        "SCPCP999991": {
-            "includes_bulk": True,
-            Modalities.SINGLE_CELL.value: ["SCPCS999992", "SCPCS999993", "SCPCS999995"],
-            Modalities.SPATIAL.value: [],
-        },
-    }
-    email = "user@example.com"
-    format = DatasetFormats.SINGLE_CELL_EXPERIMENT.value
-
-
 class CCDLDatasetFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.CCDLDataset"
