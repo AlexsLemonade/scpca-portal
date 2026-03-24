@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from scpca_portal.enums.dataset_formats import DatasetFormats
-from scpca_portal.models import Dataset, Project
+from scpca_portal.models import CCDLDataset, Project
 from scpca_portal.serializers.computed_file import ComputedFileSerializer
 from scpca_portal.serializers.contact import ContactSerializer
 from scpca_portal.serializers.external_accession import ExternalAccessionSerializer
@@ -65,10 +65,9 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
-    # @extend_schema_field(DatasetSerializer)
     def get_metadata_dataset_id(self, obj):
-        if dataset := Dataset.objects.filter(
-            is_ccdl=True, ccdl_project_id=obj.scpca_id, format=DatasetFormats.METADATA
+        if dataset := CCDLDataset.objects.filter(
+            ccdl_project_id=obj.scpca_id, format=DatasetFormats.METADATA
         ).first():
             return dataset.id
 
