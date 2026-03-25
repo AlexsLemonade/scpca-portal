@@ -37,8 +37,7 @@ API_TOKEN_FILE=".token"
 
 # Public API for the ScPCA Portal:
 # See API schema https://api.scpca.alexslemonade.org/docs/swagger/
-# API_ROOT="https://api.scpca.alexslemonade.org/v1"
-API_ROOT="http://localhost:8000/v1" # TODO: Temporarily using localhost for testing
+API_ROOT="https://api.scpca.alexslemonade.org/v1"
 
 API_CONTENT_TYPE='Content-Type: application/json'
 
@@ -150,7 +149,7 @@ fi
 # 3. Process Dataset
 # See https://api.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
 # NOTE: Dataset processing may take up to 20 minutes.
-# NOTE: A download URL will be sent to $API_TOKEN_EMAIL once processing is complete.
+# NOTE: A download URL will be sent to API_TOKEN_EMAIL once processed.
 # NOTE: Download URLs expire after 7 days.
 
 echo "Start processing the dataset..."
