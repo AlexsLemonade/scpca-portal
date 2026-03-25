@@ -72,10 +72,9 @@ def build_auto_filterset(
             continue
 
         # Standard field types: use dict-style meta fields for multi-lookup support
-        for field_type, lookups in FILTER_LOOKUPS.items():
-            if isinstance(field, field_type):
-                meta_fields[field.name] = lookups
-                break
+        field_type = type(field)
+        if field_type in FILTER_LOOKUPS:
+            meta_fields[field.name] = FILTER_LOOKUPS[field_type]
 
     if extra_fields:
         meta_fields.update(extra_fields)
