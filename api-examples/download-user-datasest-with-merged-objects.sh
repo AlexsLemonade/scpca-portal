@@ -47,12 +47,12 @@ API_CONTENT_TYPE='Content-Type: application/json'
 # 1. Authenticate API Key
 if [ -f "$API_TOKEN_FILE" ]; then
   # Check if a token file exists.
-  API_TOKEN=$(cat $API_TOKEN_FILE)  
+  API_TOKEN=$(cat $API_TOKEN_FILE)
   echo "Using the API token from $API_TOKEN_FILE"
 else
   # Otherwise create a new token and save it to the file
   echo "Creating token using $API_TOKEN_EMAIL:"
-  TOKEN_RESOURCE="${API_ROOT}/tokens/" 
+  TOKEN_RESOURCE="${API_ROOT}/tokens/"
   TOKEN_BODY="{\"is_activated\": true, \"email\": \"${API_TOKEN_EMAIL}\"}"
 
   TOKEN_RESPONSE=$(curl -s -X 'POST' \
@@ -80,7 +80,7 @@ fi
 
 # 2. Prepare Dataset
 # See available project options at https://api.scpca.alexslemonade.org/v1/project-options
-PROJECT_RESOURCE="${API_ROOT}/projects/" 
+PROJECT_RESOURCE="${API_ROOT}/projects/"
 # Query projects in SINGLE_CELL_EXPERIMENT containing the following diagnoses and including merged objects:
 # - diagnoses can also be values separated by commas (e.g., diagnoses=Ganglioglioma, Ependymoma)
 # - Set the includes_merged_sce flag to true for merged objects
@@ -99,12 +99,12 @@ if [ -z "$PROJECT_COUNT" ]; then
   echo "Error in querying projects. Exiting..."
   echo "$DATASET_RESPONSE" | jq
   exit 1
-fi  
+fi
 
-if [ "$PROJECT_COUNT" = 0 ]; then 
+if [ "$PROJECT_COUNT" = 0 ]; then
   echo "No project founds. Exiting..."
   exit 0
-fi 
+fi
 
 echo "Found $PROJECT_COUNT projects for query:"
 echo "$PROJECT_QUERY"
@@ -152,7 +152,7 @@ fi
 # NOTE: Download URLs expire after 7 days.
 
 echo "Start processing the dataset..."
-DATASET_RESOURCE="${API_ROOT}/datasets/" 
+DATASET_RESOURCE="${API_ROOT}/datasets/"
 DATASET_BODY=$DATASET
 
 DATASET_RESPONSE=$(curl -s -X POST \
@@ -182,14 +182,14 @@ if [ "$WAIT_FOR_DOWNLOAD" = true ]; then
     sleep 2m
 
     # Append the dataset ID
-    DATASET_RESOURCE="${API_ROOT}/datasets/${DATASET_ID}" 
+    DATASET_RESOURCE="${API_ROOT}/datasets/${DATASET_ID}"
 
     DATASET_RESPONSE=$(curl -s --get \
       "$DATASET_RESOURCE" \
       -H "$API_CONTENT_TYPE" \
       -H "API-KEY: ${API_TOKEN}" \ # Required for a download URL
     )
-    
+
     IS_SUCCEEDED=$(echo "$DATASET_RESPONSE" | jq '.is_succeeded')
     IS_FAILED=$(echo "$DATASET_RESPONSE" | jq '.is_failed')
 
