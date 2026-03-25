@@ -142,7 +142,7 @@ else:
 
 # CCDL DATASETS
 
-# QUERYING CCDL DATASETS
+# QUERYING CCDL DATASET
 # For available query parameters and options, please visit:
 # https://api.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets
 # NOTE: SPATIAL_SPACERANGER is not considered a dataset format
@@ -154,17 +154,15 @@ else:
 query = {"ccdl_project_id__isnull": True, "ccdl_name": "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"}
 
 queried_ccdl_dataset_response = request_api("ccdl-datasets", query=query)
-if queried_ccdl_dataset_response.get("count", 0):
+if queried_ccdl_dataset_response.get("count", 0) == 0:
     raise Exception("Query returned no results. Exiting early.")
-else:
-    print(f"Found 1 CCDL Dataset for query:")
-    pp(query)
+
+print(f"Found 1 CCDL Dataset for query:")
+pp(query)
 
 queried_ccdl_dataset = queried_ccdl_dataset_response.get("results", [])
 
-# DOWNLOADING CCDL DATASETS
-
-# Grab the IDs
+# DOWNLOADING CCDL DATASET
 if not queried_ccdl_dataset.get("computed_file"):
     raise Exception(
         "CCDL Dataset is either being reprocessed or is not currently available for download. "
