@@ -37,7 +37,7 @@ class ArrayFieldContainsFilter(django_filters.BaseInFilter, django_filters.CharF
 # Filterset Factory
 def build_auto_filterset(
     model,
-    auto_fields: list[str],
+    auto_fields: list[str] = [],
     extra_fields: dict[str, list[str]] = None,
     extra_filters: dict = None,
 ):
@@ -46,7 +46,7 @@ def build_auto_filterset(
     per field type. ArrayFields get icontains via ArrayFieldContainsFilter.
     Args:
         model:          The Django model class to build a FilterSet for.
-        auto_fields:    Allowlist of field names. Use this
+        auto_fields:    Optional allowlist of field names. Use this
                         to keep your public API surface intentional.
         extra_fields:   Additional model fields included in the public API
                         e.g. {"project__scpca_id": ["exact"]}.
@@ -54,9 +54,6 @@ def build_auto_filterset(
                         excluded from the public API
                         e.g. {"in_stock": MyCustomFilter(...)}.
     """
-    if not auto_fields:
-        raise ValueError("auto_fields are required and cannot be empty.")
-
     declared_filters = {}
     meta_fields = {}
 
