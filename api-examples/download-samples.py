@@ -117,7 +117,7 @@ def filter_resources(resources: list, filters: dict):
     Booleans must match exactly, so if you pass {A: True}
     then only the elements in `resources` where resource.A === True will be kept.
     Strings are lax, so if you pass {A: "substring"}
-    then only the elemends in `resources`
+    then only the elements in `resources`
     where resource.A = "example_substring" will not be omitted.
     """
     matches = []
@@ -170,7 +170,7 @@ else:
 
 # SAMPLES
 
-# There are 704 samples. Loading everything is pretty trivial as a sigle request.
+# There are 704 samples. Loading everything is pretty trivial as a single request.
 all_samples = request_api("samples").get("results", [])
 
 
