@@ -40,6 +40,7 @@ API_TOKEN_FILE=".token"
 API_ROOT="https://api.scpca.alexslemonade.org/v1"
 
 API_CONTENT_TYPE='Content-Type: application/json'
+API_LIMIT="&limit=2000" # Ignore pagination in this example
 
 # STEP 2: PROCESS DATASET
 
@@ -83,7 +84,7 @@ PROJECT_RESOURCE="${API_ROOT}/projects/"
 # Query projects in SINGLE_CELL_EXPERIMENT containing the following diagnoses and including merged objects:
 # - diagnoses can also be comma separated (e.g., diagnoses=Ganglioglioma, Ependymoma)
 # - Set includes_merged_sce to true for merged objects
-PROJECT_QUERY="diagnoses=Ganglioglioma&includes_merged_sce=true"
+PROJECT_QUERY="diagnoses=Ganglioglioma&includes_merged_sce=true${API_LIMIT}"
 
 PROJECTS_RESPONSE=$(curl -s --get \
     "$PROJECT_RESOURCE" \
@@ -96,7 +97,7 @@ PROJECT_COUNT=$(echo "$PROJECTS_RESPONSE" | jq '.count')
 if [ -z "$PROJECT_COUNT" ]; then
   # Uh oh, something happened so print the response.
   echo "Error in querying projects. Exiting..."
-  echo "$DATASET_RESPONSE" | jq
+  echo "$PROJECTS_RESPONSE" | jq
   exit 1
 fi
 
