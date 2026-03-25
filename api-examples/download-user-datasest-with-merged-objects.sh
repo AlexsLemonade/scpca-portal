@@ -32,7 +32,7 @@ WAIT_FOR_DOWNLOAD=false
 # Token is used to:
 # - Process a dataset for file download
 # - Retrieve a signed download URL
-# NOTE: If you already have a token, save it to a file located at $API_TOKEN_FILE
+# NOTE: If you already have a token, save it to a file located at $API_TOKEN_FILE.
 API_TOKEN_FILE=".token"
 
 # Public API for the ScPCA Portal:
@@ -70,7 +70,7 @@ else
     echo "Error occurred while trying to create a token:"
     echo "$TOKEN_RESPONSE" | jq
     echo "Exiting..."
-    exit 0
+    exit 1
   else
     # Success
     echo "Saving token to '$API_TOKEN_FILE'"
@@ -82,8 +82,8 @@ fi
 # See available project options at https://api.scpca.alexslemonade.org/v1/project-options
 PROJECT_RESOURCE="${API_ROOT}/projects/"
 # Query projects in SINGLE_CELL_EXPERIMENT containing the following diagnoses and including merged objects:
-# - diagnoses can also be values separated by commas (e.g., diagnoses=Ganglioglioma, Ependymoma)
-# - Set the includes_merged_sce flag to true for merged objects
+# - diagnoses can also be comma separated (e.g., diagnoses=Ganglioglioma, Ependymoma)
+# - Set includes_merged_sce to true for merged objects
 PROJECT_QUERY="diagnoses=Ganglioglioma&includes_merged_sce=true"
 
 PROJECTS_RESPONSE=$(curl -s --get \
@@ -112,7 +112,8 @@ echo "$PROJECT_QUERY"
 # Populate a dataset from the queried projects
 QUERIED_PROJECTS=$(echo "$PROJECTS_RESPONSE" | jq '.results')
 
-# NOTE: Replace "MERGED" with .modality_samples.SINGLE_CELL if you prefer individual samples.
+# NOTE: Replace "MERGED" with .modality_samples.SINGLE_CELL for individual samples.
+# NOTE: Bulk RNA-seq data will be included if available. Set includes_bulk to false to exclude it.
 DATA=$(echo "$QUERIED_PROJECTS" | jq 'map({
     key: .scpca_id,
     value: {
@@ -149,6 +150,7 @@ fi
 # 3. Process Dataset
 # See https://api.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
 # NOTE: Dataset processing may take up to 20 minutes.
+# NOTE: A download URL will be sent to $API_TOKEN_EMAIL once processing is complete.
 # NOTE: Download URLs expire after 7 days.
 
 echo "Start processing the dataset..."
@@ -199,7 +201,7 @@ if [ "$WAIT_FOR_DOWNLOAD" = true ]; then
 
     if [ "$IS_FAILED" = "true" ]; then
       echo "Dataset processing failed. Exiting..."
-      exit 1
+      exit 0
     fi
 
   done
