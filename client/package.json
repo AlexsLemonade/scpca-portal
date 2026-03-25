@@ -8,17 +8,10 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "biome lint",
+    "format": "biome format --write",
+    "check": "biome check",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "eslint": "eslint --fix",
-    "biome:format:dry": "biome format",
-    "biome:format:write": "biome format --write",
-    "biome:lint:dry": "biome lint",
-    "biome:lint:write": "biome lint --write",
-    "biome:check:dry": "biome check",
-    "biome:check:write": "biome check --write",
-    "biome:check:show-errors": "biome check --diagnostic-level=error",
-    "biome:check:show-warnings": "biome check --diagnostic-level=warn"
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@sentry/react": "^10.37.0",
