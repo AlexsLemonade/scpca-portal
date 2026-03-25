@@ -160,6 +160,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # STEP 1: Create UserDataset and CCDLDataset Tables
         migrations.CreateModel(
             name="UserDataset",
             fields=[
@@ -379,6 +380,8 @@ class Migration(migrations.Migration):
                 "get_latest_by": "updated_at",
             },
         ),
+        # STEP 2: Populate new tables with Dataset table data (include reverse ops for rollbacks),
+        # and define and populate relations
         migrations.RunPython(apply_populate_ccdl_datasets, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(apply_populate_user_datasets, reverse_code=migrations.RunPython.noop),
         migrations.AddField(
@@ -413,6 +416,7 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             migrations.RunPython.noop, reverse_code=reverse_populate_ccdl_datasets
         ),
+        # STEP 3: Drop Dataset Table
         migrations.DeleteModel(
             name="Dataset",
         ),
