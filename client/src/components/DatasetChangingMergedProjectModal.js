@@ -14,12 +14,8 @@ export const DatasetChangingMergedProjectModal = ({
   hideButton = false,
   nondismissable = false,
   openModal = false,
-  onCancel = () => {
-    // no-op
-  },
-  onContinue = () => {
-    // no-op
-  }
+  onCancel = () => {},
+  onContinue = () => {}
 }) => {
   const [showing, setShowing] = useState(false)
 

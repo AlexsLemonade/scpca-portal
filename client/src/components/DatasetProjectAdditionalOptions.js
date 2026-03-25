@@ -15,15 +15,9 @@ export const DatasetProjectAdditionalOptions = ({
   excludeMultiplexed,
   includeBulk,
   includeMerge,
-  onExcludeMultiplexedChange = () => {
-    // no-op
-  },
-  onIncludeBulkChange = () => {
-    // no-op
-  },
-  onIncludeMergeChange = () => {
-    // no-op
-  }
+  onExcludeMultiplexedChange = () => {},
+  onIncludeBulkChange = () => {},
+  onIncludeMergeChange = () => {}
 }) => {
   const { myDataset } = useMyDataset()
 

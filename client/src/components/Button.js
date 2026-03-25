@@ -38,9 +38,7 @@ const ButtonLabel = ({ label, show }) => (
 export const Button = ({
   label,
   loading = false,
-  onClick = () => {
-    // no-op
-  },
+  onClick = () => {},
   ...props
 }) => {
   const [waiting, asyncOnClick] = useWaitForAsync(onClick)

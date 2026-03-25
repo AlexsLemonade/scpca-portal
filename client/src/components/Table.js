@@ -244,12 +244,8 @@ export const Table = ({
   infoText = '',
   text = '',
   children,
-  onAllRowsChange = () => {
-    // no-op
-  },
-  onFilteredRowsChange = () => {
-    // no-op
-  }
+  onAllRowsChange = () => {},
+  onFilteredRowsChange = () => {}
 }) => {
   const columns = useMemo(() => userColumns, [])
   const data = useMemo(() => userData, [])

@@ -11,9 +11,7 @@ export const DatasetProcessModal = ({
   label = 'Download Dataset',
   title = 'Download Dataset',
   disabled = false,
-  onRedirecting = () => {
-    // no-op
-  }
+  onRedirecting = () => {}
 }) => {
   const { push } = useRouter()
   const { processMyDataset } = useMyDataset()

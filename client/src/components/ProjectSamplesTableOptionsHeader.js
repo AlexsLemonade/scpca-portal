@@ -25,12 +25,8 @@ export const ProjectSamplesTableOptionsHeader = ({
   project,
   includeBulk,
   includeMerge,
-  onIncludeBulkChange = () => {
-    // no-op
-  },
-  onIncludeMergeChange = () => {
-    // no-op
-  }
+  onIncludeBulkChange = () => {},
+  onIncludeMergeChange = () => {}
 }) => {
   const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()

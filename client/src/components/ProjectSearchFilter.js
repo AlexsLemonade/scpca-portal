@@ -10,9 +10,7 @@ import { getReadableModality } from 'helpers/getReadableModality'
 export const ProjectSearchFilter = ({
   filters: defaultFilters = {},
   filterOptions: defaultOptions,
-  onFilterChange = () => {
-    // no-op
-  }
+  onFilterChange = () => {}
 }) => {
   const { trackFilterChange } = useAnalytics()
   const filterNames = {
