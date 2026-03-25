@@ -11,10 +11,6 @@ from urllib import request
 # - Privacy Policy: https://scpca.alexslemonade.org/privacy-policy
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 
-# by default, we only attempt to work with one downloadable file
-# set this to True if you would like to loop over all downloadable files
-LOOP_OVER_ALL_DOWNLOADS = False
-
 # by default, we only print the signed download URL
 # set this to True if you would like to initiate the download
 INITIATE_DOWNLOAD = False
@@ -155,49 +151,38 @@ else:
 # For a specific CCDL Project Dataset, use the ccdl_project_id query parameter.
 # For all Project CCDL Datasets, use ccdl_project_id__isnull=False.
 # For all Portal Wide CCDL Datasets, use ccdl_project_id__isnull=True.
-query = {
-    "ccdl_modality": "SINGLE_CELL",
-    "format": "SINGLE_CELL_EXPERIMENT",
-    "ccdl_project_id__isnull": True,
-}
+query = {"ccdl_project_id__isnull": True, "ccdl_name": "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"}
 
-queried_ccdl_datasets = request_api("ccdl-datasets", query=query).get("results", [])
+queried_ccdl_dataset_response = request_api("ccdl-datasets", query=query)
+if queried_ccdl_dataset_response.get("count", 0):
+    raise Exception("Query returned no results. Exiting early.")
+else:
+    print(f"Found 1 CCDL Dataset for query:")
+    pp(query)
 
-print(f"Found {len(queried_ccdl_datasets)} CCDL Datasets for query:")
-pp(query)
+queried_ccdl_dataset = queried_ccdl_dataset_response.get("results", [])
 
 # DOWNLOADING CCDL DATASETS
 
 # Grab the IDs
-downloadable_ccdl_dataset_ids = [
-    ccdl_dataset["id"]
-    for ccdl_dataset in queried_ccdl_datasets
-    if ccdl_dataset.get("computed_file")
-]
-if nondownloadable_count := len(queried_ccdl_datasets) - len(downloadable_ccdl_dataset_ids):
-    print(
-        f"{nondownloadable_count} ccdl datasets are being reprocessed "
-        "and are unavailable for download. "
-        "resuming with remaining."
+if not queried_ccdl_dataset.get("computed_file"):
+    raise Exception(
+        "CCDL Dataset is either being reprocessed or is not currently available for download. "
+        "Please try back again later."
     )
 
-if not LOOP_OVER_ALL_DOWNLOADS:
-    downloadable_ccdl_dataset_ids = downloadable_ccdl_dataset_ids[:1]
+# Another request to actually download using pre-signed url
+ccdl_dataset = request_api("ccdl-datasets", queried_ccdl_dataset, token=API_TOKEN)
+if download_url := ccdl_dataset.get("download_url"):
+    download_filename = ccdl_dataset.get("download_filename")
 
-for download_id in downloadable_ccdl_dataset_ids:
-    ccdl_dataset = request_api("ccdl-datasets", download_id, token=API_TOKEN)
+    print(f"Signed Download URL for CCDL Dataset {download_filename}")
+    print(download_url)
+    print("---")
 
-    # Another request to actually download using pre-signed url
-    if download_url := ccdl_dataset.get("download_url"):
-        download_filename = ccdl_dataset.get("download_filename")
-
-        print(f"Signed Download URL for CCDL Dataset {download_filename}")
-        print(download_url)
-        print("---")
-
-        if INITIATE_DOWNLOAD:
-            print(f"Downloading: {download_filename}")
-            request.urlretrieve(download_url, download_filename)
-            print(f"Finished Downloading: {download_filename}")
-        else:
-            print("Skipping downloading.")
+    if INITIATE_DOWNLOAD:
+        print(f"Downloading: {download_filename}")
+        request.urlretrieve(download_url, download_filename)
+        print(f"Finished Downloading: {download_filename}")
+    else:
+        print("Skipping downloading.")
