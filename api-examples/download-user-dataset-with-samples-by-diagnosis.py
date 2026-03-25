@@ -12,17 +12,26 @@ from urllib import request
 # By adding your email, you agree to the terms of service and privacy policy:
 # - Terms of Service: https://scpca.alexslemonade.org/terms-of-use
 # - Privacy Policy: https://scpca.alexslemonade.org/privacy-policy
+#
+# Email address is used to:
+# - Create a API token
+# - Process a dataset for file download
 API_TOKEN_EMAIL = "user@example.com"  # NOTE: REPLACE THIS WITH A VALID EMAIL OR IT WILL ERROR OUT
 
 # Set this to True if you want to start processing the dataset immediately.
+# (For 3. Process Dataset)
 PROCESS_DATASET = False
 
 # Set this to True if you want to wait and download the dataset once processing is complete.
+# (For 4. Wait and Download Dataset)
 # NOTE: Dataset processing may take up to 20 minutes.
 # NOTE: This option is ignored if PROCESS_DATASET is False.
 WAIT_FOR_DOWNLOAD = False
 
 # This is where we will save the token for future calls
+# Token is used to:
+# - Process a dataset for file download
+# - Retrieve a signed download URL
 API_TOKEN_FILENAME = ".token"
 
 if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
@@ -153,6 +162,8 @@ else:
 # SAMPLES
 # See available diagnoses at https://api.scpca.alexslemonade.org/v1/project-options
 # Query samples in ANN_DATA format containing the specified diagnosis
+# - Set has_single_cell_data to True for SINGLE_CELL modality samples
+# - Set includes_anndata to True for samples in ANN_DATA format
 query = {"diagnosis": "Neuroblastoma", "has_single_cell_data": True, "includes_anndata": True}
 
 queried_samples = request_api("samples", query=query).get("results", [])
@@ -160,15 +171,15 @@ queried_samples = request_api("samples", query=query).get("results", [])
 print(f"Found {len(queried_samples)} samples for query:")
 pp(query)
 
-# Let's build a dataset
+# Populate a dataset from queried_samples
 dataset = {
     "format": "ANN_DATA",  # Required upon dataset creation
     "data": {},
-    "start": PROCESS_DATASET,  # Set True to process the dataset immediately
-    "email": API_TOKEN_EMAIL,  # Required for email notification
+    "start": PROCESS_DATASET,
+    "email": API_TOKEN_EMAIL,
 }
 
-# Let's populate a data dictionary from the queried samples
+# NOTE: Bulk RNA-seq data will be excluded in this example (i.e., includes_bulk).
 for sample in queried_samples:
     project_id = sample["project"]
     sample_id = sample["scpca_id"]
@@ -178,7 +189,7 @@ for sample in queried_samples:
         dataset["data"][project_id] = {
             "SINGLE_CELL": [],
             "SPATIAL": [],
-            "includes_bulk": False,  # Ignore bulk RNA-seq data in this example
+            "includes_bulk": False,
         }
 
     if sample["has_single_cell_data"]:
@@ -191,21 +202,24 @@ print("Dataset Structure:")
 pp(dataset)
 
 if not PROCESS_DATASET:
+    print("Set PROCESS_DATASET to true to start processing. Exiting...")
     sys.exit(0)
 
 # 3. Process Dataset
 # See https://api.scpca.alexslemonade.org/docs/swagger/#/datasets/datasets_create
+# NOTE: Dataset processing may take up to 20 minutes.
+# NOTE: A download URL will be sent to API_TOKEN_EMAIL once processed.
+# NOTE: Download URLs expire after 7 days.
 
 # Replace your locally populated dataset with the API response.
 print("Start processing the dataset...")
 dataset = request_api(
     "datasets",
     body=dataset,
-    token=API_TOKEN,  # Required for dataset processing
+    token=API_TOKEN,
     method="POST",
 )
 
-# You'll receive a download link via email once the dataset is processed.
 print(
     f"Dataset {dataset["id"]} has been created. A download link will be sent to {API_TOKEN_EMAIL} when processing is complete."
 )
@@ -218,9 +232,7 @@ if WAIT_FOR_DOWNLOAD:
     while True:
         print("Dataset still processing. Checking status in 2 minutes...")
         sleep(60 * 2)
-        dataset = request_api(
-            "datasets", id=dataset["id"], token=API_TOKEN  # Required for download_url
-        )
+        dataset = request_api("datasets", id=dataset["id"], token=API_TOKEN)
 
         if dataset["is_succeeded"] == True:
             break
