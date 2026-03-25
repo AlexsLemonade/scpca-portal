@@ -42,6 +42,7 @@ API_ROOT="https://api.scpca.alexslemonade.org/v1"
 API_CONTENT_TYPE='Content-Type: application/json'
 API_LIMIT="&limit=2000" # Ignore pagination in this example
 
+
 # STEP 2: PROCESS DATASET
 
 # 1. Authenticate API Key
@@ -77,6 +78,9 @@ else
     echo "$API_TOKEN" > $API_TOKEN_FILE
   fi
 fi
+
+# HTTP header for the token
+API_TOKEN_HEADER="API-KEY: ${API_TOKEN}"
 
 # 2. Prepare Dataset
 # See available project options at https://api.scpca.alexslemonade.org/v1/project-options
@@ -129,13 +133,11 @@ DATASET=$(jq -n \
   --argjson data "$DATA" \
   --arg start "$PROCESS_DATASET" \
   --arg email "$API_TOKEN_EMAIL" \
-  --arg token "$API_TOKEN" \
  '{
    "format": "SINGLE_CELL_EXPERIMENT",
    "data": $data,
    "start": $start,
-   "email": $email,
-   "token": $token
+   "email": $email
   }'
 )
 
@@ -160,7 +162,7 @@ DATASET_BODY=$DATASET
 DATASET_RESPONSE=$(curl -s -X POST \
   "$DATASET_RESOURCE" \
   -H "$API_CONTENT_TYPE" \
-  -H "API-KEY: ${API_TOKEN}" \
+  -H "$API_TOKEN_HEADER" \
   -d "$DATASET_BODY")
 
 DATASET_ID=$(echo "$DATASET_RESPONSE" | jq '.id')
@@ -189,7 +191,7 @@ if [ "$WAIT_FOR_DOWNLOAD" = true ]; then
     DATASET_RESPONSE=$(curl -s --get \
       "$DATASET_RESOURCE" \
       -H "$API_CONTENT_TYPE" \
-      -H "API-KEY: ${API_TOKEN}" \ # Required for a download URL
+      -H "$API_TOKEN_HEADER" \
     )
 
     IS_SUCCEEDED=$(echo "$DATASET_RESPONSE" | jq '.is_succeeded')
