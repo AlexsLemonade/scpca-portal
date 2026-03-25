@@ -20,6 +20,14 @@ class FilterTest(TestCase):
             extra_fields={"project__scpca_id": ["exact"]},
         )
 
+    def test_empty_auto_fields(self):
+        with self.assertRaises(ValueError):
+            filter.build_auto_filterset(Sample, auto_fields=[])
+
+    def test_non_model_field(self):
+        with self.assertRaises(KeyError):
+            filter.build_auto_filterset(Sample, auto_fields=["a"])
+
     def test_all_included_fields(self):
         actual_fields = self.SampleFilterSet.base_filters.keys()
         expected_fields = [

@@ -37,7 +37,7 @@ class ArrayFieldContainsFilter(django_filters.BaseInFilter, django_filters.CharF
 # Filterset Factory
 def build_auto_filterset(
     model,
-    auto_fields: list[str] = None,
+    auto_fields: list[str],
     extra_fields: dict[str, list[str]] = None,
     extra_filters: dict = None,
 ):
@@ -46,8 +46,7 @@ def build_auto_filterset(
     per field type. ArrayFields get icontains via ArrayFieldContainsFilter.
     Args:
         model:          The Django model class to build a FilterSet for.
-        auto_fields: Optional allowlist of field names. If omitted, all
-                        supported field types are included. Always use this
+        auto_fields:    Allowlist of field names. Use this
                         to keep your public API surface intentional.
         extra_fields:   Additional model fields included in the public API
                         e.g. {"project__scpca_id": ["exact"]}.
@@ -55,15 +54,22 @@ def build_auto_filterset(
                         excluded from the public API
                         e.g. {"in_stock": MyCustomFilter(...)}.
     """
+    if not auto_fields:
+        raise ValueError("auto_fields are required and cannot be empty.")
 
     declared_filters = {}
     meta_fields = {}
 
-    for field in model._meta.get_fields():
+    model_name_fields = {field.name: field for field in model._meta.get_fields()}
+
+    for field_name in auto_fields:
+        try:
+            field = model_name_fields[field_name]
+        except KeyError:
+            raise KeyError(f"{field_name} does not exit on {model}.")
+
         if field.is_relation and (field.one_to_many or field.many_to_many):
             # Skip reverse relations and ManyToMany
-            continue
-        if auto_fields and field.name not in auto_fields:
             continue
 
         # ArrayField: use custom filter, one filter per field
@@ -72,9 +78,10 @@ def build_auto_filterset(
             continue
 
         # Standard field types: use dict-style meta fields for multi-lookup support
-        field_type = type(field)
-        if field_type in FILTER_LOOKUPS:
-            meta_fields[field.name] = FILTER_LOOKUPS[field_type]
+        for field_type, lookups in FILTER_LOOKUPS.items():
+            if isinstance(field, field_type):
+                meta_fields[field.name] = lookups
+                break
 
     if extra_fields:
         meta_fields.update(extra_fields)
