@@ -4,7 +4,8 @@ import { Loader } from 'components/Loader'
 import { api } from 'api'
 import { useAnalytics } from 'hooks/useAnalytics'
 import { filterOut } from 'helpers/filterOut'
-import { getReadable, getReadableModality } from 'helpers/getReadable'
+import { getReadable } from 'helpers/getReadable'
+import { keys } from 'config/translations'
 
 export const ProjectSearchFilter = ({
   filters: defaultFilters = {},
@@ -100,7 +101,7 @@ export const ProjectSearchFilter = ({
           <Box key={f} height={{ min: 'auto' }}>
             <CheckBox
               key={f}
-              label={`${getReadable(f)}`}
+              label={`${getReadable(f, keys)}`}
               value
               checked={hasFilterOption(f)}
               onChange={() => toggleFilterOption(f)}
@@ -120,7 +121,7 @@ export const ProjectSearchFilter = ({
             {filterOptions[f].map((o) => (
               <CheckBox
                 key={`${f}-${o}`}
-                label={getReadableModality(o)}
+                label={getReadable(o)}
                 value
                 checked={hasFilterOption(f, o)}
                 onChange={() => toggleFilterOption(f, o)}

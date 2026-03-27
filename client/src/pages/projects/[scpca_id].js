@@ -7,7 +7,9 @@ import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDow
 import { ProjectSamplesTableContextProvider } from 'contexts/ProjectSamplesTableContext'
 import { api } from 'api'
 import { allModalities } from 'config/datasets'
+import { keys } from 'config/translations'
 import { differenceArray } from 'helpers/differenceArray'
+import { getReadable } from 'helpers/getReadable'
 import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { DetailsTable } from 'components/DetailsTable'
 import { Link } from 'components/Link'
@@ -123,9 +125,14 @@ const Project = ({ project, ccdlDatasets }) => {
                           ''
                         )
                     },
-
-                    'sample_count',
-                    'human_readable_pi_name',
+                    {
+                      accessorKey: 'sample_count',
+                      label: getReadable('sample_count', keys)
+                    },
+                    {
+                      accessorKey: 'human_readable_pi_name',
+                      label: getReadable('human_readable_pi_name', keys)
+                    },
                     {
                       label: 'Contact Information',
                       value:
