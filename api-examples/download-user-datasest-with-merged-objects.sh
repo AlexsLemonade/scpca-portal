@@ -39,10 +39,6 @@ API_TOKEN_FILE=".token"
 # See API schema https://api.scpca.alexslemonade.org/docs/swagger/
 API_ROOT="https://api.scpca.alexslemonade.org/v1"
 
-API_CONTENT_TYPE='Content-Type: application/json'
-API_LIMIT="&limit=2000" # Ignore pagination in this example
-
-
 # STEP 2: PROCESS DATASET
 
 # 1. Authenticate API Key
@@ -52,14 +48,12 @@ if [ -f "$API_TOKEN_FILE" ]; then
   echo "Using the API token from $API_TOKEN_FILE"
 else
   # Otherwise create a new token and save it to the file
-  echo "Creating token using $API_TOKEN_EMAIL:"
-  TOKEN_RESOURCE="${API_ROOT}/tokens/"
-  TOKEN_BODY="{\"is_activated\": true, \"email\": \"${API_TOKEN_EMAIL}\"}"
-
+  echo "Creating token using $API_TOKEN_EMAIL"
+  # Create a token - This is the important part
   TOKEN_RESPONSE=$(curl -s -X 'POST' \
-    "$TOKEN_RESOURCE" \
-    -H "$API_CONTENT_TYPE" \
-    -d "$TOKEN_BODY"
+    "${API_ROOT}/tokens/" \
+    -H "Content-Type: application/json" \
+    -d "{\"is_activated\": true, \"email\": \"${API_TOKEN_EMAIL}\"}"
   )
 
   # The id is the API Key that will be used later
@@ -79,29 +73,30 @@ else
   fi
 fi
 
-# HTTP header for the token
-API_TOKEN_HEADER="API-KEY: ${API_TOKEN}"
-
 # 2. Prepare Dataset
 # See available project options at https://api.scpca.alexslemonade.org/v1/project-options
-PROJECT_RESOURCE="${API_ROOT}/projects/"
 # Query projects in SINGLE_CELL_EXPERIMENT containing the following diagnoses and including merged objects:
 # - diagnoses can also be comma separated (e.g., diagnoses=Ganglioglioma, Ependymoma)
 # - Set includes_merged_sce to true for merged objects
-PROJECT_QUERY="diagnoses=Ganglioglioma&includes_merged_sce=true${API_LIMIT}"
+DIAGNOSES=Ganglioglioma
+INCLUDES_MERGED_SCE=true
+LIMIT=2000 # Ignore pagination in this example
 
 PROJECTS_RESPONSE=$(curl -s --get \
-    "$PROJECT_RESOURCE" \
-    -H "$API_CONTENT_TYPE" \
-    -d "$PROJECT_QUERY"
+    "${API_ROOT}/projects/" \
+    -H "Content-Type: application/json" \
+    -d "diagnoses=$DIAGNOSES" \
+    -d "includes_merged_sce=$INCLUDES_MERGED_SCE" \
+    -d "limit=$LIMIT"
 )
 
 PROJECT_COUNT=$(echo "$PROJECTS_RESPONSE" | jq '.count')
 
 if [ -z "$PROJECT_COUNT" ]; then
   # Uh oh, something happened so print the response.
-  echo "Error in querying projects. Exiting..."
+  echo "Error in querying projects:"
   echo "$PROJECTS_RESPONSE" | jq
+  echo "Exiting..."
   exit 1
 fi
 
@@ -110,8 +105,7 @@ if [ "$PROJECT_COUNT" = 0 ]; then
   exit 0
 fi
 
-echo "Found $PROJECT_COUNT projects for query:"
-echo "$PROJECT_QUERY"
+echo "Found $PROJECT_COUNT projects for the query."
 
 # Populate a dataset from the queried projects
 QUERIED_PROJECTS=$(echo "$PROJECTS_RESPONSE" | jq '.results')
@@ -154,28 +148,25 @@ fi
 # NOTE: Dataset processing may take up to 20 minutes.
 # NOTE: A download URL will be sent to API_TOKEN_EMAIL once processed.
 # NOTE: Download URLs expire after 7 days.
-
-echo "Start processing the dataset..."
-DATASET_RESOURCE="${API_ROOT}/datasets/"
-DATASET_BODY=$DATASET
-
+echo "Starting dataset processing..."
 DATASET_RESPONSE=$(curl -s -X POST \
-  "$DATASET_RESOURCE" \
-  -H "$API_CONTENT_TYPE" \
-  -H "$API_TOKEN_HEADER" \
-  -d "$DATASET_BODY")
+  "${API_ROOT}/datasets/" \
+  -H "Content-Type: application/json" \
+  -H "API-KEY: $API_TOKEN" \
+  -d "$DATASET")
 
 DATASET_ID=$(echo "$DATASET_RESPONSE" | jq '.id')
 
 if [ "$DATASET_ID" = 'null' ] || [ -z "$DATASET_ID" ]; then
   # Uh oh, something happened so print the response.
-  echo "Error in starting dataset processing. Exiting..."
+  echo "Error in starting dataset processing:"
   echo "$DATASET_RESPONSE" | jq
+  echo "Exiting..."
   exit 1
 fi
 
 echo "Dataset $DATASET_ID has been created."
-echo "A download link will be sent to $API_TOKEN_EMAIL when processing is complete."
+echo "Once processing is complete, a download link will be sent to $API_TOKEN_EMAIL"
 
 # STEP 3: WAIT AND DOWNLOAD DATASET
 # See https://api.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets/ccdl_datasets_retrieve
@@ -185,13 +176,11 @@ if [ "$WAIT_FOR_DOWNLOAD" = true ]; then
     echo "Dataset still processing. Checking status in 2 minutes..."
     sleep 2m
 
-    # Append the dataset ID
-    DATASET_RESOURCE="${API_ROOT}/datasets/${DATASET_ID}"
-
+    # Append the dataset ID to URL
     DATASET_RESPONSE=$(curl -s --get \
-      "$DATASET_RESOURCE" \
-      -H "$API_CONTENT_TYPE" \
-      -H "$API_TOKEN_HEADER" \
+      "${API_ROOT}/datasets/${DATASET_ID}" \
+      -H "Content-Type: application/json" \
+      -H "API-KEY: $API_TOKEN"
     )
 
     IS_SUCCEEDED=$(echo "$DATASET_RESPONSE" | jq '.is_succeeded')
@@ -212,8 +201,9 @@ if [ "$WAIT_FOR_DOWNLOAD" = true ]; then
 
   if [ "$DOWNLOAD_URL" = "null" ]; then
     # Uh oh, something happened so print the response.
-    echo "Error in response. Exiting..."
+    echo "Error in response:"
     echo "$DATASET_RESPONSE" | jq
+    echo "Exiting..."
     exit 1
   fi
 
