@@ -12,7 +12,7 @@ class TestCreateCCDLDatasets(TestCase):
     def test_ignore_hash(self, mock_submit_ccdl_datasets):
         mock_submit_ccdl_datasets.return_value = [], []
         with patch(
-            "scpca_portal.models.Dataset.create_or_update_ccdl_datasets", return_value=([], [])
+            "scpca_portal.models.CCDLDataset.create_or_update_ccdl_datasets", return_value=([], [])
         ) as mock_create_or_update_ccdl_datasets:
             ignore_hash = False
             call_command("create_ccdl_datasets", ignore_hash=ignore_hash)
@@ -23,7 +23,7 @@ class TestCreateCCDLDatasets(TestCase):
             mock_create_or_update_ccdl_datasets.assert_called_with(ignore_hash=ignore_hash)
 
     @patch("scpca_portal.models.Job.submit_ccdl_datasets")
-    @patch("scpca_portal.models.Dataset.create_or_update_ccdl_datasets")
+    @patch("scpca_portal.models.CCDLDataset.create_or_update_ccdl_datasets")
     def test_retry_failed_jobs(
         self, mock_create_or_update_ccdl_datasets, mock_submit_ccdl_datasets
     ):
