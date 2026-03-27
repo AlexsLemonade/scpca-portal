@@ -1,50 +1,46 @@
-from django.contrib.postgres.fields import ArrayField
 from rest_framework import viewsets
 
-from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from scpca_portal import filter
 from scpca_portal.models import Project
 from scpca_portal.serializers import ProjectDetailSerializer, ProjectSerializer
 
-
-class ProjectFilterSet(filters.FilterSet):
-    """
-    Custom FilterSet to support ArrayField.
-    """
-
-    class Meta:
-        model = Project
-        fields = [
-            "scpca_id",
-            "pi_name",
-            "has_bulk_rna_seq",
-            "has_cite_seq_data",
-            "has_multiplexed_data",
-            "has_single_cell_data",
-            "has_spatial_data",
-            "includes_cell_lines",
-            "includes_xenografts",
-            "diagnoses",
-            "seq_units",
-            "modalities",
-            "organisms",
-            "technologies",
-            "disease_timings",
-            "human_readable_pi_name",
-            "title",
-            "abstract",
-        ]
-
-        filter_overrides = {
-            ArrayField: {
-                "filter_class": filters.CharFilter,
-                "extra": lambda f: {
-                    "lookup_expr": "icontains",
-                },
-            }
-        }
+ProjectFilterSet = filter.build_auto_filterset(
+    Project,
+    auto_fields=[
+        "scpca_id",
+        "pi_name",
+        "has_bulk_rna_seq",
+        "has_cite_seq_data",
+        "has_multiplexed_data",
+        "has_single_cell_data",
+        "has_spatial_data",
+        "includes_anndata",
+        "includes_cell_lines",
+        "includes_merged_anndata",
+        "includes_merged_sce",
+        "includes_xenografts",
+        "diagnoses",
+        "seq_units",
+        "modalities",
+        "organisms",
+        "technologies",
+        "disease_timings",
+        "human_readable_pi_name",
+        "title",
+        "abstract",
+        # counts
+        "sample_count",
+        "downloadable_sample_count",
+        "multiplexed_sample_count",
+        "unavailable_samples_count",
+        # timestamps
+        "created_at",
+        "updated_at",
+    ],
+)
 
 
 @extend_schema(auth=False)

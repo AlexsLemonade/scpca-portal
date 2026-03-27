@@ -28,7 +28,15 @@ if not API_TOKEN_EMAIL or "example" in API_TOKEN_EMAIL:
 # This is all boiler plate to make it easier to make api calls
 # API_RESOURCES is pulled from the list shown on https://api.scpca.alexslemonade.org/v1/
 API_BASE = "https://api.scpca.alexslemonade.org/v1/"
-API_RESOURCES = ["computed-files", "projects", "samples", "tokens", "project-options"]
+API_RESOURCES = [
+    "ccdl-datasets",
+    "computed-files",
+    "datasets",
+    "projects",
+    "samples",
+    "tokens",
+    "project-options",
+]
 API_ENDPOINTS = {resource: f"{API_BASE}{resource}/" for resource in API_RESOURCES}
 
 BASE_HEADERS = {"Accept": "application/json"}
@@ -136,50 +144,60 @@ else:
         API_TOKEN = f.readlines()[0].strip()
 
 
-# PROJECTS
-query = {"diagnoses": "Ganglioglioma"}
+# CCDL DATASETS
 
-queried_projects = request_api("projects", query=query).get("results", [])
+# QUERYING CCDL DATASETS
+# For available query parameters and options, please visit:
+# https://api.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets
+# NOTE: SPATIAL_SPACERANGER is not considered a dataset format
+# To fetch all SPATIAL CCDL Datasets data, use ccdl_modality with the value SPATIAL
 
-print(f"Found {len(queried_projects)} projects for query:")
+# For a specific CCDL Project Dataset, use the ccdl_project_id query parameter.
+# For all Project CCDL Datasets, use ccdl_project_id__isnull=False.
+# For all Portal Wide CCDL Datasets, use ccdl_project_id__isnull=True.
+query = {
+    "ccdl_modality": "SINGLE_CELL",
+    "format": "SINGLE_CELL_EXPERIMENT",
+    "ccdl_project_id": "SCPCP000001",
+}
+
+queried_ccdl_datasets = request_api("ccdl-datasets", query=query).get("results", [])
+
+print(f"Found {len(queried_ccdl_datasets)} CCDL Datasets for query:")
 pp(query)
 
-# COMPUTED FILES
+# DOWNLOADING CCDL DATASETS
 
-# here we will collect computed files that we want to collect based on the samples
-# Note: Each sample is associated with multiple computed_files
-# so you will need to filter on modality again.
-computed_files_of_interest = []
+# Grab the IDs
+downloadable_ccdl_dataset_ids = [
+    ccdl_dataset["id"]
+    for ccdl_dataset in queried_ccdl_datasets
+    if ccdl_dataset.get("computed_file")
+]
+if nondownloadable_count := len(queried_ccdl_datasets) - len(downloadable_ccdl_dataset_ids):
+    print(
+        f"{nondownloadable_count} CCDL Datasets are being reprocessed "
+        "and are unavailable for download. "
+        "Resuming with remaining."
+    )
 
-for project in queried_projects:
-    for computed_file in project["computed_files"]:
-        # You need to filter for the types of downloads that you need.
-        if (
-            computed_file["modality"] == "SINGLE_CELL"
-            and computed_file["format"] == "SINGLE_CELL_EXPERIMENT"
-            and computed_file.get("includes_merged")
-            and not computed_file.get("metadata_only")
-        ):
-            computed_files_of_interest.append(computed_file)
-# grab the IDs
-computed_file_ids = [cf["id"] for cf in computed_files_of_interest]
+if not LOOP_OVER_ALL_DOWNLOADS:
+    downloadable_ccdl_dataset_ids = downloadable_ccdl_dataset_ids[:1]
 
-print(f"Found {len(computed_files_of_interest)} project computed-files.")
-
-# DOWNLOADING
-download_ids = computed_file_ids if LOOP_OVER_ALL_DOWNLOADS else computed_file_ids[0:1]
-for id in download_ids:
-    computed_file = request_api("computed-files", id, token=API_TOKEN)
+for download_id in downloadable_ccdl_dataset_ids:
+    ccdl_dataset = request_api("ccdl-datasets", download_id, token=API_TOKEN)
 
     # Another request to actually download using pre-signed url
-    if download_url := computed_file.get("download_url"):
-        print(f"Signed Download URL for computed file {id}")
+    if download_url := ccdl_dataset.get("download_url"):
+        download_filename = ccdl_dataset.get("download_filename")
+
+        print(f"Signed Download URL for CCDL Dataset {download_filename}")
         print(download_url)
         print("---")
 
         if INITIATE_DOWNLOAD:
-            print(f"Downloading: {computed_file['s3_key']}")
-            request.urlretrieve(download_url, computed_file["s3_key"])
-            print(f"Finished Downloading: {computed_file['s3_key']}")
+            print(f"Downloading: {download_filename}")
+            request.urlretrieve(download_url, download_filename)
+            print(f"Finished Downloading: {download_filename}")
         else:
             print("Skipping downloading.")

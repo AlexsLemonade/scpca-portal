@@ -115,7 +115,7 @@ const Project = ({ project, ccdlDatasets }) => {
                         )
                     },
                     {
-                      label: 'disease_timings',
+                      label: 'Disease Timings',
                       value:
                         project.disease_timings.length > 0 ? (
                           <Text>{project.disease_timings.join(', ')}</Text>
