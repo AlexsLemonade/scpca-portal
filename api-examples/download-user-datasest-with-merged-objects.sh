@@ -16,7 +16,10 @@
 # - Process a dataset for file download
 API_TOKEN_EMAIL="user@example.com" # You MUST change this to your email.
 
-# TODO: Add email validation?
+if [[ $API_TOKEN_EMAIL == *"example"* ]]; then
+  echo "Please accept terms by adding a valid email for API_TOKEN_EMAIL"
+  exit 0
+fi
 
 # Set this to True if you want to start processing the dataset immediately.
 # (For STEP 2: PROCESS DATASET)
