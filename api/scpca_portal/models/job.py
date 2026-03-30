@@ -552,7 +552,7 @@ class Job(TimestampedModel):
                 job.terminate(reason=reason, save=False)
                 terminated_jobs.append(job)
                 if job.dataset:  # TODO: Remove after the dataset release
-                    terminated_datasets.append(job.dataset)
+                    terminated_datasets[job.dataset.get_class()].append(job.dataset)
             except JobInvalidTerminateStateError:
                 final_state_jobs.append(job)
             except JobError:

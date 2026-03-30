@@ -81,7 +81,7 @@ class CCDLDatasetsTestCase(APITestCase):
         ccdl_dataset = CCDLDatasetFactory()
         user_dataset = UserDatasetFactory()
 
-        url = reverse("ccdl-datasets-detail", args=[self.ccdl_dataset.id])
+        url = reverse("ccdl-datasets-detail", args=[ccdl_dataset.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json().get("id"), str(ccdl_dataset.id))

@@ -164,13 +164,13 @@ class DatasetsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_is_not_allowed(self):
-        user_dataset = UserDatasetFactory()
-        url = reverse("datasets-detail", args=[user_dataset.id])
+        url = reverse("datasets-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_delete_is_not_allowed(self):
-        url = reverse("datasets-detail", args=[self.custom_dataset.id])
+        user_dataset = UserDatasetFactory()
+        url = reverse("datasets-detail", args=[user_dataset.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 

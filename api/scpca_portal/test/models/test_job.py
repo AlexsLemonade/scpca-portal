@@ -18,7 +18,7 @@ from scpca_portal.exceptions import (
     JobSyncStateFailedError,
     JobTerminationFailedError,
 )
-from scpca_portal.models import CCDLDataset, Dataset, Job, UserDataset
+from scpca_portal.models import CCDLDataset, Job, Project, UserDataset
 from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory, UserDatasetFactory
 
 
@@ -69,7 +69,7 @@ class TestJob(TestCase):
         job.dataset = UserDataset()
         job.save()
 
-        job.dataset = Dataset()
+        job.dataset = Project()
         with self.assertRaises(ValidationError):
             job.save()
 
