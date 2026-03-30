@@ -119,7 +119,7 @@ class UserDatasetCreateSerializer(UserDatasetSerializer):
         return validated_attrs
 
 
-class DatasetUpdateSerializer(UserDatasetSerializer):
+class UserDatasetUpdateSerializer(UserDatasetSerializer):
     class Meta(UserDatasetSerializer.Meta):
         modifiable_fields = ("format", "data", "email", "start")
         read_only_fields = tuple(
