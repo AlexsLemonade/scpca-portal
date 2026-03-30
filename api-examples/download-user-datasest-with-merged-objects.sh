@@ -104,7 +104,7 @@ if [ -z "$PROJECT_COUNT" ]; then
 fi
 
 if [ "$PROJECT_COUNT" = 0 ]; then
-  echo "No project founds. Exiting..."
+  echo "No projects found. Exiting..."
   exit 0
 fi
 
@@ -112,7 +112,9 @@ echo "Found $PROJECT_COUNT projects for the query."
 
 # Populate a dataset from the queried projects
 QUERIED_PROJECTS=$(echo "$PROJECTS_RESPONSE" | jq '.results')
-
+# Steps:
+# 1. Map the results via jq, where each key is a project ID and the value of SINGLE_CELL is 'MERGED'
+# 2. Convert the mapped array into a JSON object using from_entries
 # NOTE: Replace "MERGED" with .modality_samples.SINGLE_CELL for individual samples.
 # NOTE: Bulk RNA-seq data will be included if available. Set includes_bulk to false to exclude it.
 DATA=$(echo "$QUERIED_PROJECTS" | jq 'map({
