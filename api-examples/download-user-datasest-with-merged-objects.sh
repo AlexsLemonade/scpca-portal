@@ -173,48 +173,48 @@ echo "Once processing is complete, a download link will be sent to $API_TOKEN_EM
 
 # STEP 3: WAIT AND DOWNLOAD DATASET
 # See https://api.scpca.alexslemonade.org/docs/swagger/#/ccdl-datasets/ccdl_datasets_retrieve
-if [ "$WAIT_FOR_DOWNLOAD" = true ]; then
-  # Check the dataset status
-  while true; do
-    echo "Dataset still processing. Checking status in 2 minutes..."
-    sleep 2m
-
-    # Append the dataset ID to URL
-    DATASET_RESPONSE=$(curl -s --get \
-      "${API_ROOT}/datasets/${DATASET_ID}" \
-      -H "Content-Type: application/json" \
-      -H "API-KEY: $API_TOKEN"
-    )
-
-    IS_SUCCEEDED=$(echo "$DATASET_RESPONSE" | jq '.is_succeeded')
-    IS_FAILED=$(echo "$DATASET_RESPONSE" | jq '.is_failed')
-
-    if [ "$IS_SUCCEEDED" = "true" ]; then
-      break
-    fi
-
-    if [ "$IS_FAILED" = "true" ]; then
-      echo "Dataset processing failed. Exiting..."
-      exit 0
-    fi
-
-  done
-
-  DOWNLOAD_URL=$(echo "$DATASET_RESPONSE" | jq -r '.download_url // "null"')
-
-  if [ "$DOWNLOAD_URL" = "null" ]; then
-    # Uh oh, something happened so print the response.
-    echo "Error in response:"
-    echo "$DATASET_RESPONSE" | jq
-    echo "Exiting..."
-    exit 1
-  fi
-
-  # Success
-  echo "Downloading: $DOWNLOAD_URL"
-  curl -O "$DOWNLOAD_URL"
-  echo "Completed Successfully."
+if [ "$WAIT_FOR_DOWNLOAD" != true ]; then
+  echo "Set WAIT_FOR_DOWNLOAD to true to download dataset. Exiting..."
+  exit 0
 fi
 
-echo "Wait and download dataset was skipped."
-echo "End of script."
+# Check the dataset status
+while true; do
+  echo "Dataset still processing. Checking status in 2 minutes..."
+  sleep 2m
+
+  # Append the dataset ID to URL
+  DATASET_RESPONSE=$(curl -s --get \
+    "${API_ROOT}/datasets/${DATASET_ID}" \
+    -H "Content-Type: application/json" \
+    -H "API-KEY: $API_TOKEN"
+  )
+
+  IS_SUCCEEDED=$(echo "$DATASET_RESPONSE" | jq '.is_succeeded')
+  IS_FAILED=$(echo "$DATASET_RESPONSE" | jq '.is_failed')
+
+  if [ "$IS_SUCCEEDED" = "true" ]; then
+    break
+  fi
+
+  if [ "$IS_FAILED" = "true" ]; then
+    echo "Dataset processing failed. Exiting..."
+    exit 0
+  fi
+
+done
+
+DOWNLOAD_URL=$(echo "$DATASET_RESPONSE" | jq -r '.download_url // "null"')
+
+if [ "$DOWNLOAD_URL" = "null" ]; then
+  # Uh oh, something happened so print the response.
+  echo "Error in response:"
+  echo "$DATASET_RESPONSE" | jq
+  echo "Exiting..."
+  exit 1
+fi
+
+# Success
+echo "Downloading: $DOWNLOAD_URL"
+curl -O "$DOWNLOAD_URL"
+echo "Completed Successfully."
