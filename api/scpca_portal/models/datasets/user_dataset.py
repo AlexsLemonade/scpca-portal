@@ -26,7 +26,7 @@ class UserDataset(DatasetABC):
         "self",
         null=True,
         on_delete=models.SET_NULL,
-        related_name="regenerated_%(class)s_set",
+        related_name="regenerated_to_set",
     )
 
     # Cached File Attrs

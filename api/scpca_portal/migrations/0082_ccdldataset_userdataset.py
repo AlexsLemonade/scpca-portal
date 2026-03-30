@@ -227,7 +227,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         null=True,
                         on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="regenerated_%(class)s_set",
+                        related_name="regenerated_to_set",
                         to="scpca_portal.userdataset",
                     ),
                 ),
