@@ -52,21 +52,17 @@ export const DatasetPortalWideDownloadCard = ({
         </Text>
       </Box>
       <Box justify="between" height="100%">
-        <>
-          <DatasetFileItems dataset={dataset} />
-          {datasets?.length > 1 && (
-            <Box direction="row" margin={{ bottom: '24px' }}>
-              <CheckBox
-                label="Merge samples into one object per project"
-                checked={includesMerged}
-                onChange={({ target: { checked } }) =>
-                  setIncludesMerged(checked)
-                }
-              />
-              <HelpLink link={config.links.when_downloading_merged_objects} />
-            </Box>
-          )}
-        </>
+        <DatasetFileItems dataset={dataset} />
+        {datasets?.length > 1 && (
+          <Box direction="row" margin={{ bottom: '24px' }}>
+            <CheckBox
+              label="Merge samples into one object per project"
+              checked={includesMerged}
+              onChange={({ target: { checked } }) => setIncludesMerged(checked)}
+            />
+            <HelpLink link={config.links.when_downloading_merged_objects} />
+          </Box>
+        )}
         {['SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED'].includes(
           dataset.ccdl_name
         ) && <WarningMultiplexedSamplesRemoved />}

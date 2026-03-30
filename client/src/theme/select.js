@@ -5,7 +5,6 @@ import { applyAll } from 'helpers/applyAll'
 import { applyWhen } from 'helpers/applyWhen'
 
 const DownArrow = (props) => (
-  // eslint-disable-next-line react/jsx-props-no-spreading
   <Blank {...props}>
     <polygon points="4,8 20,8 12,16" stroke="#000" fill="#000" />
   </Blank>
