@@ -1,12 +1,15 @@
 import re
 from collections import namedtuple
-from typing import Dict, Iterable
+from typing import TYPE_CHECKING, Dict, Iterable
 
 from django.conf import settings
 from django.template.loader import render_to_string
 
 from scpca_portal import common, utils  # ccdl_datasets,
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
+
+if TYPE_CHECKING:
+    from scpca_portal.models import CCDLDataset, DatasetABC
 
 OUTPUT_NAME = "README.md"
 
@@ -79,7 +82,7 @@ MODALITY_STRING = {
 }
 
 
-def add_ann_data_content_rows(content_rows: set, dataset) -> set:
+def add_ann_data_content_rows(content_rows: set, dataset: "DatasetABC") -> set:
     """
     Takes a dataset and returns the set of ContentRows
     for the content section table for ANN_DATA.
@@ -112,7 +115,7 @@ def add_ann_data_content_rows(content_rows: set, dataset) -> set:
     return content_rows
 
 
-def add_single_cell_experiment_content_rows(content_rows: set, dataset) -> set:
+def add_single_cell_experiment_content_rows(content_rows: set, dataset: "DatasetABC") -> set:
     """
     Takes a dataset and returns the set of ContentRows
     for the content section table for SINGLE_CELL_EXPERIMENT.
@@ -145,7 +148,7 @@ def add_single_cell_experiment_content_rows(content_rows: set, dataset) -> set:
     return content_rows
 
 
-def get_content_table_rows(dataset) -> list[ContentRow]:
+def get_content_table_rows(dataset: "DatasetABC") -> list[ContentRow]:
     """
     Returns a list of ContentRows for non-metadata downloads.
     """
@@ -191,16 +194,16 @@ def get_content_table_rows(dataset) -> list[ContentRow]:
     )
 
 
-def get_content_portal_wide_link(dataset):
+def get_content_portal_wide_link(dataset: "CCDLDataset"):
     """
-    Returns the link to the documentation if dataset is a ccdl portal wide download
+    Returns the link to the documentation if ccdl dataset is a portal wide download
     """
-    if dataset.is_ccdl and not dataset.ccdl_project_id:
+    if not dataset.ccdl_project_id:
         return PORTAL_CCDL_DATASET_LINKS.get(dataset.ccdl_name)
     return None
 
 
-def get_content_metadata_link(dataset):
+def get_content_metadata_link(dataset: "CCDLDataset"):
     """
     Returns the link to the documentation if dataset is for metadata.
     Portal wide metadata is handled by `content_portal_wide_link`.
@@ -210,7 +213,7 @@ def get_content_metadata_link(dataset):
     return None
 
 
-def get_file_contents_dataset(dataset) -> str:
+def get_file_contents_dataset(dataset: "DatasetABC") -> str:
     """Return newly generated readme file as a string for immediate writing to a zip archive."""
 
     # data that is passed into templates
@@ -218,8 +221,16 @@ def get_file_contents_dataset(dataset) -> str:
         "context": {
             "date": utils.helpers.get_today_string(),
             "dataset": dataset,
-            "content_portal_wide_link": get_content_portal_wide_link(dataset),
-            "content_metadata_link": get_content_metadata_link(dataset),
+            "content_portal_wide_link": (
+                get_content_portal_wide_link(dataset)
+                if type(dataset).__name__ == "CCDLDataset"
+                else None
+            ),
+            "content_metadata_link": (
+                get_content_metadata_link(dataset)
+                if type(dataset).__name__ == "CCDLDataset"
+                else None
+            ),
             "content_table_rows": get_content_table_rows(dataset),
         }
     }
