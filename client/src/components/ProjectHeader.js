@@ -23,10 +23,6 @@ export const ProjectHeader = ({ project, linked = false }) => {
   const unavailableSampleCountText =
     Number(project.unavailable_samples_count) > 1 ? 'samples' : 'sample'
 
-  const modalitiesExcludingSingleCell = project.modalities.filter(
-    (m) => m !== 'SINGLE_CELL'
-  )
-
   const [hasRemainingSamples, setHasRemainingSamples] = useState(false)
   useEffect(() => {
     setHasRemainingSamples(hasMyDatasetRemainingProjectSamples(project))
@@ -40,7 +36,8 @@ export const ProjectHeader = ({ project, linked = false }) => {
         justifyContents="between"
         margin={{ bottom: responsive('medium', 'large') }}
       >
-        <Box flex="shrink" pad={{ right: 'medium' }}>
+        <Box flex="shrink" gap="small" pad={{ right: 'medium' }}>
+          <Badge badge="Number" label={project.scpca_id} />
           {linked ? (
             <Link href={`/projects/${project.scpca_id}`}>
               <Text weight="bold" color="brand" size="large">
@@ -76,24 +73,22 @@ export const ProjectHeader = ({ project, linked = false }) => {
           </Box>
         </Box>
       </Box>
-      <Grid columns={responsive('1', '1/4')} gap={responsive('medium')}>
+      <Grid columns={responsive('1', '1/3')} gap={responsive('medium')}>
         <Badge
           badge="Samples"
           label={`${project.downloadable_sample_count} Downloadable Samples`}
         />
-        <Badge
-          badge="SeqUnit"
-          label={project.seq_units.map((su) => capitalize(su || '')).join(', ')}
-        />
-        <Badge badge="Kit" label={project.technologies.join(', ')} />
-        {modalitiesExcludingSingleCell.length > 0 && (
+        <Box align={responsive('start', 'center')}>
           <Badge
-            badge="Modality"
-            label={modalitiesExcludingSingleCell
-              .map((m) => getReadable(m, keys))
+            badge="SeqUnit"
+            label={project.seq_units
+              .map((su) => capitalize(su || ''))
               .join(', ')}
           />
-        )}
+        </Box>
+        <Box align={responsive('start', 'end')}>
+          <Badge badge="Kit" label={project.technologies.join(', ')} />
+        </Box>
       </Grid>
 
       {hasUnavailableSample && (

@@ -172,6 +172,14 @@ const Project = ({ project, ccdlDatasets }) => {
                 width={{ max: 'full' }}
                 overflow="auto"
               >
+                <Box direction="row" margin={{ bottom: 'small' }}>
+                  <Text margin={{ right: 'xsmall' }} weight="bold">
+                    Available Modalities:
+                  </Text>
+                  <Text>
+                    {project.modalities.map((m) => getReadable(m)).join(', ')}
+                  </Text>
+                </Box>
                 <ProjectSamplesSummaryTable summaries={project.summaries} />
               </Box>
             </Tab>
