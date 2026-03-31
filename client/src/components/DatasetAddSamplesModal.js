@@ -22,6 +22,7 @@ export const DatasetAddSamplesModal = ({
   const {
     myDataset,
     getMyDatasetProjectDataSamples,
+    isMyDatasetProjectMerged,
     setMyDatasetSamples,
     userFormat,
     setUserFormat
@@ -35,7 +36,7 @@ export const DatasetAddSamplesModal = ({
   const { responsive } = useResponsive()
 
   const [selectedSingleCellSamples, setSelectedSingleCellSamples] = useState([])
-  const [selectedMulstiplexedSamples, setSelectedMultiplexedSamples] = useState(
+  const [selectedMultiplexedSamples, setSelectedMultiplexedSamples] = useState(
     []
   )
   // Exclude multiplexed samples from selectedSamples for ANN_DATA
@@ -83,17 +84,16 @@ export const DatasetAddSamplesModal = ({
   const totalSamples = singleCellSamplesToAdd + spatialSamplesToAdd
   const canClickAddSamples =
     userFormat === 'ANN_DATA'
-      ? totalSamples - selectedMulstiplexedSamples.length > 0
+      ? totalSamples - selectedMultiplexedSamples.length > 0
       : totalSamples > 0
   const isDisabled = disabled || !canClickAddSamples
 
   const handleAddSamples = async () => {
     setLoading(true)
     // Ensure that the merged object is retained if present in myDataset
-    const samplesToAdd =
-      myDataset.data[project.scpca_id]?.SINGLE_CELL === 'MERGED'
-        ? 'MERGED'
-        : selectedSingleCellSamples
+    const samplesToAdd = isMyDatasetProjectMerged(project)
+      ? 'MERGED'
+      : selectedSingleCellSamples
 
     await setMyDatasetSamples(
       project,
@@ -113,7 +113,7 @@ export const DatasetAddSamplesModal = ({
     setLoading(false)
   }
 
-  // Reset Data Fromat dropdown value on modal closes
+  // Reset Data Format dropdown value on modal closes
   useEffect(() => {
     if (!myDataset.format) {
       setUserFormat(getProjectFormats(project)[0])
@@ -204,7 +204,7 @@ export const DatasetAddSamplesModal = ({
                   <DatasetDataFormatOptions project={project} />
                   {showWarningMultiplexed && (
                     <WarningAnnDataMultiplexed
-                      count={selectedMulstiplexedSamples.length}
+                      count={selectedMultiplexedSamples.length}
                     />
                   )}
                 </Box>
