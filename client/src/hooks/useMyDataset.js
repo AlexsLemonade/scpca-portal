@@ -7,8 +7,6 @@ import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useMyDataset = () => {
   const {
-    myDataset,
-    setMyDataset,
     prevMyDatasetFormat,
     setPrevMyDatasetFormat,
     datasets,
@@ -19,7 +17,7 @@ export const useMyDataset = () => {
     userFormat,
     setUserFormat
   } = useContext(MyDatasetContext)
-  const { token, email } = useScPCAPortal()
+  const { myDataset, setMyDataset, token, email } = useScPCAPortal()
   const {
     create,
     get,
@@ -193,7 +191,7 @@ export const useMyDataset = () => {
       Object.keys(dataset.data)
     )
 
-    const mergedProjectModaliies = await Promise.all(
+    const mergedProjectModalities = await Promise.all(
       projectIds.map(async (pId) => {
         const modalityData = await Promise.all(
           allModalities.map(async (m) => [
@@ -207,14 +205,14 @@ export const useMyDataset = () => {
 
     // Return null for any merge failure (null samples)
     if (
-      mergedProjectModaliies.some(
+      mergedProjectModalities.some(
         ([, data]) => data.SINGLE_CELL === null || data.SPATIAL === null
       )
     ) {
       return null
     }
 
-    return mergedProjectModaliies.reduce((acc, [pId, modalityData]) => {
+    return mergedProjectModalities.reduce((acc, [pId, modalityData]) => {
       acc[pId] = {
         ...modalityData,
         includes_bulk: getMergedIncludesBulk(pId, dataset)
