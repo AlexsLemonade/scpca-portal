@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from scpca_portal.enums.dataset_formats import DatasetFormats
-from scpca_portal.test.factories import DatasetFactory, ProjectFactory
+from scpca_portal.test.factories import CCDLDatasetFactory, ProjectFactory
 
 
 class ProjectsTestCase(APITestCase):
@@ -45,9 +45,7 @@ class ProjectsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_datasets_field(self):
-        datasets = [
-            DatasetFactory(is_ccdl=True, ccdl_project_id=self.project.scpca_id) for _ in range(3)
-        ]
+        datasets = [CCDLDatasetFactory(ccdl_project_id=self.project.scpca_id) for _ in range(3)]
         metadata_dataset = datasets[-1]
         metadata_dataset.format = DatasetFormats.METADATA
         metadata_dataset.save()
