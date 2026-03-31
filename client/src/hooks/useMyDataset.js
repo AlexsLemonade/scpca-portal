@@ -84,8 +84,7 @@ export const useMyDataset = () => {
   }
 
   /* Dataset-level */
-  const isDatasetDataEmpty =
-    !myDataset.data || Object.keys(myDataset.data || {}).length === 0
+  const isDatasetDataEmpty = Object.keys(myDataset.data).length === 0
 
   const createMyDataset = async (dataset) => {
     if (!dataset.format) {
