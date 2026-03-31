@@ -139,13 +139,15 @@ def reverse_dataset_jobs(apps, schema_editor):
 
     jobs = Job.objects.all()
     for job in jobs:
-        if job.dataset:
-            job.dataset_old = Dataset.objects.filter(id=job.dataset.id).first()
+        if job_dataset_id := job.dataset_object_id:
+            job.dataset_old = Dataset.objects.filter(id=job_dataset_id).first()
 
     Job.objects.bulk_update(jobs, ["dataset_old"])
 
 
 class Migration(migrations.Migration):
+    # this is necessary to enable table altering when triggers batch at end of transaction
+    atomic = False
 
     dependencies = [
         ("contenttypes", "0002_remove_content_type_name"),
