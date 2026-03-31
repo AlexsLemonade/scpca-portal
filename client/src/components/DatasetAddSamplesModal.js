@@ -91,7 +91,7 @@ export const DatasetAddSamplesModal = ({
     setLoading(true)
     // Ensure that the merged object is retained if present in myDataset
     const samplesToAdd =
-      myDataset.data?.[project.scpca_id]?.SINGLE_CELL === 'MERGED'
+      myDataset.data[project.scpca_id]?.SINGLE_CELL === 'MERGED'
         ? 'MERGED'
         : selectedSingleCellSamples
 

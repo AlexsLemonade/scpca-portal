@@ -160,8 +160,8 @@ export const useMyDataset = () => {
 
   // Merge project modality samples based on their state (e.g., merged, empty)
   const mergeProjectModalities = async (projectId, modality, dataset) => {
-    const original = myDataset.data?.[projectId]?.[modality] || []
-    const incoming = dataset.data?.[projectId]?.[modality] || []
+    const original = myDataset.data[projectId]?.[modality] || []
+    const incoming = dataset.data[projectId]?.[modality] || []
 
     const originalState = getModalityState(original)
     const incomingState = getModalityState(incoming)

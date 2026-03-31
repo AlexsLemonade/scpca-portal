@@ -37,7 +37,7 @@ export const DatasetProjectAdditionalOptions = ({
     (selectedModalities.length > 0 &&
       !selectedModalities.includes('SINGLE_CELL')) ||
     !isMergedObjectsAvailable ||
-    myDataset.data?.[project.scpca_id]?.SINGLE_CELL === 'MERGED'
+    myDataset.data[project.scpca_id]?.SINGLE_CELL === 'MERGED'
 
   // Show the merged objects warning only for multiplexed samples
   const showMergedMultiplexedWarning = disableMergedObjects && hasMultiplexed
@@ -74,7 +74,7 @@ export const DatasetProjectAdditionalOptions = ({
             label="Include all bulk RNA-seq data in the project"
             checked={hasBulkRnaSeq && includeBulk}
             // Disable this if the project already includes bulk data
-            disabled={myDataset.data?.[project.scpca_id]?.includes_bulk}
+            disabled={myDataset.data[project.scpca_id]?.includes_bulk}
             onChange={({ target: { checked } }) => onIncludeBulkChange(checked)}
           />
         </Box>

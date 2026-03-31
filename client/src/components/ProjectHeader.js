@@ -48,7 +48,7 @@ export const ProjectHeader = ({ project, linked = false }) => {
               {project.title}
             </Text>
           )}
-          {myDataset.data?.[project.scpca_id] && hasRemainingSamples && (
+          {myDataset.data[project.scpca_id] && hasRemainingSamples && (
             <Box margin={{ top: 'medium' }}>
               <InfoViewMyDataset />
             </Box>
