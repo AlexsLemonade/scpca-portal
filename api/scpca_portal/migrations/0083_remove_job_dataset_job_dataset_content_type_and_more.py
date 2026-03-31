@@ -19,14 +19,14 @@ def apply_populate_ccdl_datasets(apps, schema_editor):
     CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
 
     old_datasets = Dataset.objects.filter(is_ccdl=True)
-    ccdl_datasets = [
+    new_datasets = [
         CCDLDataset(**get_new_dataset_dict(CCDLDataset, old_dataset))
         for old_dataset in old_datasets
     ]
-    CCDLDataset.objects.bulk_create(ccdl_datasets)
+    CCDLDataset.objects.bulk_create(new_datasets)
 
     # Add many to many, reflexive and off model relations
-    for new_dataset, old_dataset in zip(ccdl_datasets, old_datasets):
+    for new_dataset, old_dataset in zip(new_datasets, old_datasets):
         new_dataset.download_tokens.add(*old_dataset.download_tokens.all())
         new_dataset.save()
 
@@ -42,18 +42,16 @@ def apply_populate_user_datasets(apps, schema_editor):
     UserDataset = apps.get_model("scpca_portal", "userdataset")
 
     old_datasets = Dataset.objects.filter(is_ccdl=False)
-    user_datasets = [
+    new_datasets = [
         UserDataset(**get_new_dataset_dict(UserDataset, old_dataset))
         for old_dataset in old_datasets
     ]
-    UserDataset.objects.bulk_create(user_datasets)
+    UserDataset.objects.bulk_create(new_datasets)
 
     # Add many to many, reflexive and off model relations
-    for new_dataset, old_dataset in zip(user_datasets, old_datasets):
+    for new_dataset, old_dataset in zip(new_datasets, old_datasets):
+        new_dataset.regenerated_from = old_dataset.regenerated_from
         new_dataset.download_tokens.add(*old_dataset.download_tokens.all())
-        new_dataset.regenerated_from = UserDataset.objects.filter(
-            id=old_dataset.regenerated_from.id
-        ).first()
         new_dataset.save()
 
 
@@ -66,9 +64,10 @@ def reverse_populate_ccdl_datasets(apps, schema_editor):
     Dataset = apps.get_model("scpca_portal", "dataset")
     CCDLDataset = apps.get_model("scpca_portal", "ccdldataset")
 
+    new_datasets = CCDLDataset.objects.all()
     old_datasets = []
 
-    for new_dataset in CCDLDataset.objects.all():
+    for new_dataset in new_datasets:
         old_dataset_dict = {
             field.name: getattr(new_dataset, field.name)
             for field in Dataset._meta.fields
@@ -79,8 +78,8 @@ def reverse_populate_ccdl_datasets(apps, schema_editor):
 
     Dataset.objects.bulk_create(old_datasets)
 
-    for old_dataset in old_datasets:
-        new_dataset = CCDLDataset.objects.filter(id=old_dataset.id).first()
+    # Add many to many, reflexive and off model relations
+    for old_dataset, new_dataset in zip(old_datasets, new_datasets):
         old_dataset.download_tokens.add(*new_dataset.download_tokens.all())
         old_dataset.save()
 
@@ -94,9 +93,10 @@ def reverse_populate_user_datasets(apps, schema_editor):
     Dataset = apps.get_model("scpca_portal", "dataset")
     UserDataset = apps.get_model("scpca_portal", "userdataset")
 
+    new_datasets = UserDataset.objects.all()
     old_datasets = []
 
-    for new_dataset in UserDataset.objects.all():
+    for new_dataset in new_datasets:
         old_dataset_dict = {
             field.name: getattr(new_dataset, field.name)
             for field in Dataset._meta.fields
@@ -107,9 +107,8 @@ def reverse_populate_user_datasets(apps, schema_editor):
 
     Dataset.objects.bulk_create(old_datasets)
 
-    for old_dataset in old_datasets:
-        new_dataset = UserDataset.objects.filter(id=old_dataset.id).first()
-
+    # Add many to many, reflexive and off model relations
+    for old_dataset, new_dataset in zip(old_datasets, new_datasets):
         old_dataset.regenerated_from = new_dataset.regenerated_from
         old_dataset.download_tokens.add(*new_dataset.download_tokens.all())
         old_dataset.save()
