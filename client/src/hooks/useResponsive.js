@@ -9,8 +9,10 @@ export const useResponsive = () => {
     setSize(responsiveSize)
   }, [responsiveSize])
 
-  const responsive = (small, big) => {
+  // TODO: Temporarily add medium at the last for backward compatibility
+  const responsive = (small, big = null, medium = null) => {
     if (size === 'small') return small
+    if (size === 'medium') return medium || big
     return big
   }
 

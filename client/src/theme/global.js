@@ -13,10 +13,6 @@ export default {
     xsmall: '1px'
   },
   breakpoints: {
-    large: {},
-    medium: {
-      value: '1024px'
-    },
     small: {
       borderSize: {
         large: '4px',
@@ -45,6 +41,12 @@ export default {
         xxsmall: '16px'
       },
       value: 768
+    },
+    medium: {
+      value: 1250
+    },
+    large: {
+      value: 1440
     }
   },
   colors: {
