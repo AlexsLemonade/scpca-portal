@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'grommet'
 import { api } from 'api'
 import { ProjectSamplesTableContextProvider } from 'contexts/ProjectSamplesTableContext'
+import { useDataset } from 'hooks/useDataset'
+import { useResponsive } from 'hooks/useResponsive'
 import { useRouter } from 'next/router'
 import { useScrollRestore } from 'hooks/useScrollRestore'
-import { useDataset } from 'hooks/useDataset'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesTableOptionsHeader } from 'components/ProjectSamplesTableOptionsHeader'
 import { Badge } from 'components/Badge'
@@ -13,6 +14,7 @@ import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
 
 export const ViewSamples = ({ dataset, project }) => {
+  const { responsive } = useResponsive()
   const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
   const { isProjectIncludeBulk, isProjectMerged, getDatasetProjectSamples } =
@@ -44,7 +46,12 @@ export const ViewSamples = ({ dataset, project }) => {
   if (loading) return <Loader />
 
   return (
-    <Box gap="large" fill margin={{ bottom: 'large' }}>
+    <Box
+      gap="large"
+      fill
+      margin={{ bottom: 'large' }}
+      pad={{ horizontal: responsive('medium', null, 'medium') }}
+    >
       <Box align="start" gap="large">
         <Button label="Back to Dataset" onClick={handleBackToDataset} />
         <Box gap="small">

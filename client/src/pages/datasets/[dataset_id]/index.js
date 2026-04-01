@@ -58,7 +58,7 @@ const Dataset = ({ dataset: initialDataset }) => {
   }, [])
 
   return (
-    <>
+    <Box pad={{ horizontal: responsive('medium', null, 'medium') }}>
       <Box pad={{ top: responsive('medium', 'xlarge') }} fill>
         <DatasetHero dataset={dataset} />
       </Box>
@@ -75,7 +75,7 @@ const Dataset = ({ dataset: initialDataset }) => {
           <DatasetProjectSummary dataset={dataset} readOnly />
         </Box>
       </Box>
-    </>
+    </Box>
   )
 }
 
