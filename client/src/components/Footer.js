@@ -22,7 +22,10 @@ export const Footer = () => {
       elevation="medium"
       align="center"
       justify="center"
-      pad={{ vertical: 'xlarge' }}
+      pad={{
+        horizontal: responsive('medium', null, 'medium'),
+        vertical: 'xlarge'
+      }}
     >
       <Box direction={direction} justify="between" align="end" width="xlarge">
         <Box

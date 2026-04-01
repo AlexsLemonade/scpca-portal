@@ -32,7 +32,10 @@ export const About = () => {
         <Box
           width={{ max: 'xlarge' }}
           fill
-          pad={responsive({ horizontal: 'medium' }, { top: 'large' })}
+          pad={{
+            horizontal: responsive('medium', null, 'medium'),
+            top: responsive('large')
+          }}
         >
           <Text size="xxlarge">About</Text>
         </Box>
@@ -51,7 +54,14 @@ export const About = () => {
           </Paragraph>
         </Box>
       </HeroBandReversed>
-      <Box width="full" align="center" pad={{ vertical: 'large' }}>
+      <Box
+        width="full"
+        align="center"
+        pad={{
+          vertical: 'large',
+          horizontal: responsive('medium', null, 'medium')
+        }}
+      >
         <Box
           width={{ max: 'xlarge' }}
           fill
@@ -72,7 +82,11 @@ export const About = () => {
       <Grid
         columns={responsive('1', '1/2')}
         gap="xxlarge"
-        pad={{ top: 'large', bottom: 'xlarge' }}
+        pad={{
+          top: 'large',
+          bottom: 'xlarge',
+          horizontal: responsive('medium', null, 'medium')
+        }}
         width={{ width: 'full', max: 'xlarge' }}
       >
         <Box pad={responsive({ horizontal: 'medium' })}>
@@ -140,7 +154,12 @@ export const About = () => {
           </Box>
         </Box>
       </Grid>
-      <Box background="dawn" width="full" align="center" pad={{ top: 'large' }}>
+      <Box
+        background="dawn"
+        width="full"
+        align="center"
+        pad={{ top: 'large', horizontal: responsive('medium', null, 'medium') }}
+      >
         <Box
           width={{ max: 'xlarge' }}
           fill
@@ -242,7 +261,10 @@ export const About = () => {
           </Grid>
         </Box>
       </Box>
-      <Box width={{ max: 'xlarge' }}>
+      <Box
+        width={{ max: 'xlarge' }}
+        pad={{ horizontal: responsive('medium', null, 'medium') }}
+      >
         <Grid
           align="end"
           gap="none"

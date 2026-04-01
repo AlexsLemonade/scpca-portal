@@ -17,7 +17,7 @@ export const ResponsiveSheet = ({
   children
 }) => {
   const { size } = useResponsive()
-  if (size === 'large') return children
+  if (size !== 'small') return children
   return (
     <>
       <Button
@@ -25,7 +25,7 @@ export const ResponsiveSheet = ({
         label={label}
         onClick={() => setShow(!show)}
         plain={buttonStyle === 'plain'}
-        primary={buttonStyle === 'prinary'}
+        primary={buttonStyle === 'primary'}
         secondary={buttonStyle === 'secondary'}
       />
       {show && (

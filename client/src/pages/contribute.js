@@ -8,6 +8,7 @@ import {
   TableRow as GrommetTableRow,
   Text
 } from 'grommet'
+import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
 import { ContributeDownloadPDFButton } from 'components/ContributeDownloadPDFButton'
 import { ContributeClosedCard } from 'components/ContributeClosedCard'
@@ -40,6 +41,8 @@ const FormLinkButton = ({ href, label }) => (
 )
 
 export const Contribute = () => {
+  const { responsive } = useResponsive()
+
   const headingMargin = { top: '24px', bottom: 'small' }
   const listMargin = { bottom: 'medium', horizontal: 'medium' }
   const isOpen = process.env.CONTRIBUTIONS_OPEN === 'ON'
@@ -151,7 +154,9 @@ export const Contribute = () => {
   }
 
   return (
-    <>
+    <Box
+      pad={responsive({ horizontal: 'medium' }, null, { horizontal: 'medium' })}
+    >
       {isOpen ? (
         <Box alignSelf="end" margin={{ top: 'large' }}>
           <ContributeDownloadPDFButton />
@@ -164,7 +169,7 @@ export const Contribute = () => {
         markdown={markdown}
         width="xlarge"
       />
-    </>
+    </Box>
   )
 }
 
