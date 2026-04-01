@@ -1,6 +1,7 @@
-from typing import Dict, Iterable, List
+from typing import Dict, List
 
 from django.db import models
+from django.db.models import QuerySet
 
 from typing_extensions import Self
 
@@ -153,7 +154,7 @@ class CCDLDataset(DatasetABC):
         return self.cite_seq_projects.exists()
 
     @property
-    def cite_seq_projects(self) -> Iterable[Project]:
+    def cite_seq_projects(self) -> QuerySet[Project]:
         """
         Returns all project instances associated with the dataset
         which have cite seq data.
