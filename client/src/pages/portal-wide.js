@@ -39,9 +39,7 @@ const PortalWideDownloads = ({ datasets }) => {
         <Box
           width={{ max: 'xlarge' }}
           margin={{ top: responsive('-148px', '-132px') }}
-          pad={responsive({ horizontal: 'medium' }, null, {
-            horizontal: 'medium'
-          })}
+          pad={{ horizontal: responsive('medium', null, 'medium') }}
           fill
         >
           <Text color="white" size="xxlarge">
@@ -51,9 +49,7 @@ const PortalWideDownloads = ({ datasets }) => {
       </HeroBandPortalWide>
       <Box
         width={{ max: 'xlarge' }}
-        pad={responsive({ horizontal: 'medium' }, null, {
-          horizontal: 'medium'
-        })}
+        pad={{ horizontal: responsive('medium', null, 'medium') }}
         fill
       >
         <Box alignSelf="center" margin={{ top: 'none' }} fill>

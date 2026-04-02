@@ -53,9 +53,7 @@ const Project = ({ project, ccdlDatasets }) => {
   if (!project) return '404'
 
   return (
-    <Box
-      pad={responsive({ horizontal: 'medium' }, null, { horizontal: 'medium' })}
-    >
+    <Box pad={{ horizontal: responsive('medium', null, 'medium') }}>
       <PageTitle title={project.title} />
       <Box width="xlarge">
         <CCDLDatasetDownloadModalContextProvider

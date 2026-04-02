@@ -154,9 +154,7 @@ export const Contribute = () => {
   }
 
   return (
-    <Box
-      pad={responsive({ horizontal: 'medium' }, null, { horizontal: 'medium' })}
-    >
+    <Box pad={{ horizontal: responsive('medium', null, 'medium') }}>
       {isOpen ? (
         <Box alignSelf="end" margin={{ top: 'large' }}>
           <ContributeDownloadPDFButton />

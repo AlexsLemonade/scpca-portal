@@ -46,7 +46,7 @@ const Project = ({ projects, count, filters, filterOptions, ccdlDatasets }) => {
   return (
     <Box
       width="full"
-      pad={responsive({ horizontal: 'medium' }, null, { horizontal: 'medium' })}
+      pad={{ horizontal: responsive('medium', null, 'medium') }}
     >
       <Box pad={{ bottom: 'large' }}>
         <Text serif size="xlarge">
