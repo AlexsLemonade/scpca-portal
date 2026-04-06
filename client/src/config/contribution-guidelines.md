@@ -30,7 +30,14 @@ Submitters must also sign a Data Transfer Agreement before data transfer ([view 
 
 ### Award
 
-**Up to 5 eligible researchers will receive $5000 in unrestricted funds**.
+**Up to 5 eligible researchers will receive up to $10,000 in unrestricted funds**. 
+Grant amounts will be awarded on the basis of the sample types submitted to ScPCA:
+
+- $10,000 for patient tumor or patient-derived xenograft samples
+- $5,000 for all other submissions, such as cell lines, cell line-derived xenografts, or mouse models
+
+The grant amount your submission is eligible for will be indicated in an email communication from the Childhood Cancer Data Lab (Data Lab) following your submission of the intake form.
+
 Once an eligible single-cell dataset submission has been completed and approved by the Data Lab, researchers will be invited to complete a grant application for the unrestricted funds consisting of basic contact and payment information.
 Eligibility will be determined at ALSF’s discretion.
 Funds are available on a first-come-first-served basis and distributed to the researcher’s institution, which must be a non-profit institution.
@@ -38,13 +45,13 @@ ALSF does not allow any funds to be used for research utilizing human embryonic 
 Research with human induced pluripotent stem cells is permissible.
 **The first step in the submission process is to [fill out this form](https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0) to verify whether a dataset is suitable for inclusion in the ScPCA Portal.**
 
-Researchers are encouraged to engage with the Childhood Cancer Data Lab (Data Lab) before and during the preparation of their submissions.
-Interested parties can join drop-in office hours sessions with Data Lab team members on Zoom or reach out to the Data Lab directly via email (See [**Contact the Data Lab**](#contact-the-data-lab)).
+Researchers are encouraged to engage with the Data Lab before and during the preparation of their submissions.
+Interested parties can reach out to the Data Lab directly via email (See [**Contact the Data Lab**](#contact-the-data-lab)).
 
 #### Important Dates
 
-* **Dataset Submission Deadline:** October 15, 2025
-* **Application Submission Deadline** (if eligible): November 1, 2025
+* **Dataset Submission Deadline:** November 1, 2026
+* **Application Submission Deadline** (if eligible): November 15, 2026
 
 #### Contact the Data Lab
 
@@ -80,13 +87,14 @@ Nextflow will also handle parallelizing sample processing as your environment al
 
 #### Processing Your Data
 
-**Please note that processing single-cell, single-nuclei or spatial transcriptomic samples with the pipeline as currently configured requires access to a high-performance computing (HPC) environment with nodes that can accommodate jobs requiring up to 24 GB of RAM and 12 CPUs.**
+**Please note that processing single-cell, single-nuclei or (non-HD) spatial transcriptomic samples with the pipeline as currently configured requires access to a high-performance computing (HPC) environment with nodes that can accommodate jobs requiring up to 32 GB of RAM and 12 CPUs.**
+**If you are processing Visium HD or Visium HD 3' spatial transcriptomic datasets, you will need access to between 64-128 GB of RAM and 16 CPUs.**
 The pipeline can be adapted to lower CPU counts if needed.
 
 `scpca-nf` can be set up for your computing environment with a few configuration files.
 Please see [our instructions](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md) to get started.
 
-Please note that our instructions reference [cell type annotation](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#cell-type-annotation) and [creating merged objects](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#the-mergenf-workflow).
+Please note that our instructions reference [cell type annotation](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#cell-type-annotation), [CNV inference](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#cnv-inference), and [creating merged objects](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#the-mergenf-workflow).
 As these steps are computationally intensive relative to quantification, they are not required for submission.
 
 The Data Lab team is available to provide technical support, including video conferencing calls for troubleshooting purposes, as you prepare your submission (see [**Contact the Data Lab**](#contact-the-data-lab) to get in touch).
