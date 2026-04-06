@@ -43,7 +43,7 @@ class UserDataset(DatasetABC):
         return f"User Dataset {self.id}"
 
     # INSTANCE CREATION AND MODIFICATION
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         """
         In addition to the built-in object saving functionality,
         cached attributes should be re-computed and re-assigned on each save.

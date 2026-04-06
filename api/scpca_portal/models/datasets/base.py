@@ -7,6 +7,7 @@ from typing import Iterable, List, Set
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
+from django.db.models import QuerySet
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
@@ -93,7 +94,7 @@ class DatasetABC(TimestampedModel, models.Model):
     def __str__(self):
         return f"Dataset {self.id}"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         """
         In addition to the built-in object saving functionality,
         cached attributes should be re-computed and re-assigned on each save.
@@ -171,7 +172,7 @@ class DatasetABC(TimestampedModel, models.Model):
     def is_hash_unchanged(self) -> bool:
         return not self.is_hash_changed
 
-    def get_metadata_file_content(self, libraries: Iterable[Library]) -> str:
+    def get_metadata_file_content(self, libraries: QuerySet[Library]) -> str:
         """Return a string of the metadata file content of a collection of libraries."""
         libraries_metadata = Library.get_libraries_metadata(libraries)
         return metadata_file.get_file_contents(libraries_metadata)
@@ -223,7 +224,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return self.multiplexed_projects.exists()
 
     @property
-    def pretty_estimated_size_in_bytes(self):
+    def pretty_estimated_size_in_bytes(self) -> str:
         return utils.format_bytes(self.estimated_size_in_bytes)
 
     def get_estimated_size_in_bytes(self) -> int:
@@ -243,14 +244,14 @@ class DatasetABC(TimestampedModel, models.Model):
 
     # ASSOCIATIONS WITH OTHER MODELS
     @property
-    def projects(self) -> Iterable[Project]:
+    def projects(self) -> QuerySet[Project]:
         """Returns all project instances associated with the dataset."""
         if project_ids := self.data.keys():
             return Project.objects.filter(scpca_id__in=project_ids).order_by("scpca_id")
         return Project.objects.none()
 
     @property
-    def spatial_projects(self) -> Iterable[Project]:
+    def spatial_projects(self) -> QuerySet[Project]:
         """
         Returns all project instances which have spatial data
         with spatial samples requested in the data attribute.
@@ -265,7 +266,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return Project.objects.none()
 
     @property
-    def single_cell_projects(self) -> Iterable[Project]:
+    def single_cell_projects(self) -> QuerySet[Project]:
         """
         Returns all project instances which have single cell data
         with single cell samples requested in the data attribute.
@@ -280,7 +281,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return Project.objects.none()
 
     @property
-    def bulk_single_cell_projects(self) -> Iterable[Project]:
+    def bulk_single_cell_projects(self) -> QuerySet[Project]:
         """
         Returns all project instances which have bulk data
         where bulk was requested in the data attribute.
@@ -295,7 +296,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return Project.objects.none()
 
     @property
-    def cite_seq_projects(self) -> Iterable[Project]:
+    def cite_seq_projects(self) -> QuerySet[Project]:
         """
         Returns all project instances associated with the dataset
         which have cite seq data.
@@ -303,7 +304,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return self.projects.filter(has_cite_seq_data=True)
 
     @property
-    def merged_projects(self) -> Iterable[Project]:
+    def merged_projects(self) -> QuerySet[Project]:
         """
         Returns all project instances which have merged data
         where merged was requested in the data attribute single cell field.
@@ -324,7 +325,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return Project.objects.none()
 
     @property
-    def multiplexed_projects(self) -> Iterable[Project]:
+    def multiplexed_projects(self) -> QuerySet[Project]:
         """
         Returns all project instances which have multiplexed data.
         """
@@ -347,7 +348,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return self.contains_project_ids(set(lockfile.get_locked_project_ids()))
 
     @property
-    def locked_projects(self) -> Iterable[Project]:
+    def locked_projects(self) -> QuerySet[Project]:
         """Returns a queryset of all of the dataset's locked project."""
         return self.projects.filter(is_locked=True)
 
@@ -365,7 +366,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return self.has_locked_projects or self.has_lockfile_projects
 
     @property
-    def samples(self) -> Iterable[Sample]:
+    def samples(self) -> QuerySet[Sample]:
         """
         Returns a queryset of all samples contained in data attribute.
         If a sample is present in more than one modality, it will be
@@ -375,7 +376,7 @@ class DatasetABC(TimestampedModel, models.Model):
             [Modalities.SINGLE_CELL, Modalities.SPATIAL, Modalities.BULK_RNA_SEQ]
         )
 
-    def get_selected_samples(self, modalities: Iterable[Modalities] = []) -> Iterable[Sample]:
+    def get_selected_samples(self, modalities: Iterable[Modalities] = []) -> QuerySet[Sample]:
         """
         Returns a queryset of samples for the specified modalities
         contained in data attribute.
@@ -389,7 +390,7 @@ class DatasetABC(TimestampedModel, models.Model):
 
     def get_project_modality_samples(
         self, project_id: str, modality: Modalities
-    ) -> Iterable[Library]:
+    ) -> QuerySet[Sample]:
         """
         Takes project's scpca_id and a modality.
         Returns Sample instances defined in data attribute.
@@ -410,7 +411,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return project_samples.filter(scpca_id__in=project_data.get(modality, []))
 
     @property
-    def libraries(self) -> Iterable[Library]:
+    def libraries(self) -> QuerySet[Library]:
         """Returns all of a Dataset's library, based on Data and Format attrs."""
         dataset_libraries = Library.objects.none()
 
@@ -422,7 +423,7 @@ class DatasetABC(TimestampedModel, models.Model):
 
     def get_project_modality_libraries(
         self, project_id: str, modality: Modalities
-    ) -> Iterable[Library]:
+    ) -> QuerySet[Library]:
         """
         Takes project's scpca_id and a modality.
         Returns Library instances associated with Samples defined in data attribute.
@@ -442,7 +443,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return self.data.get(project_id, {}).get(Modalities.SINGLE_CELL.value) == "MERGED"
 
     @property
-    def original_files(self) -> Iterable[OriginalFile]:
+    def original_files(self) -> QuerySet[OriginalFile]:
         """Returns all of a Dataset's associated OriginalFiles."""
         files = OriginalFile.objects.none()
 

@@ -1,11 +1,11 @@
 import csv
 from collections import Counter
-from typing import Dict, Iterable, List
+from typing import Dict, List, Set
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 
 from typing_extensions import Self
 
@@ -67,7 +67,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         return f"Project {self.scpca_id}"
 
     @classmethod
-    def get_from_dict(cls, data: Dict):
+    def get_from_dict(cls, data: Dict) -> Self:
         project = cls(scpca_id=data.pop("scpca_project_id"))
         # Assign values to remaining properties
         for key in data.keys():
@@ -111,7 +111,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         )
 
     @property
-    def samples_to_generate(self):
+    def samples_to_generate(self) -> List[Sample]:
         """Return all non multiplexed samples and only one sample from multiplexed libraries."""
         return [sample for sample in self.samples.all() if sample.is_last_multiplexed_sample]
 
@@ -132,7 +132,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         ]
 
     @property
-    def original_files(self) -> Iterable[OriginalFile]:
+    def original_files(self) -> QuerySet[OriginalFile]:
         return OriginalFile.downloadable_objects.filter(
             project_id=self.scpca_id, is_project_file=True
         )
@@ -142,11 +142,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
     @property
-    def computed_files(self) -> Iterable[ComputedFile]:
+    def computed_files(self) -> QuerySet[ComputedFile]:
         return self.project_computed_files.order_by("created_at")
 
     @property
-    def url(self):
+    def url(self) -> str:
         return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
 
     def get_metadata(self) -> Dict:
@@ -156,7 +156,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             "project_title": self.title,
         }
 
-    def get_libraries(self, download_config: Dict = {}):  # -> QuerySet[Library]:
+    def get_libraries(self, download_config: Dict = {}) -> QuerySet[Library]:
         """
         Return all of a project's associated libraries filtered by the passed download config.
         """
@@ -235,7 +235,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             includes_merged=download_config["includes_merged"],
         ).first()
 
-    def get_downloadable_sample_count(self):
+    def get_downloadable_sample_count(self) -> int:
         """
         Returns the count of unique samples with the corresponding input files on S3.
         """
@@ -245,7 +245,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return len(set().union(*sample_ids_queryset))
 
-    def get_bulk_rna_seq_sample_ids(self):
+    def get_bulk_rna_seq_sample_ids(self) -> Set[str]:
         """Returns set of bulk RNA sequencing sample IDs."""
         bulk_rna_seq_sample_ids = set()
         if self.has_bulk_rna_seq:
@@ -259,7 +259,9 @@ class Project(CommonDataAttributes, TimestampedModel):
                 )
         return bulk_rna_seq_sample_ids
 
-    def get_original_files_by_download_config(self, download_config: Dict):
+    def get_original_files_by_download_config(
+        self, download_config: Dict
+    ) -> QuerySet[OriginalFile]:
         """
         Return all of a project's file paths that are suitable for the passed download config.
         """
@@ -309,7 +311,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         for computed_file in self.project_computed_files.all():
             computed_file.purge(delete_from_s3)
 
-    def update_project_modality_properties(self):
+    def update_project_modality_properties(self) -> None:
         """
         Updates project modality properties,
         which are derived from the existence of a certain attribute within a collection of Samples.
@@ -337,7 +339,7 @@ class Project(CommonDataAttributes, TimestampedModel):
             )
         )
 
-    def update_project_aggregate_properties(self):
+    def update_project_aggregate_properties(self) -> None:
         """
         The Project model cache aggregated sample metadata.
         We need to update these after any project's sample gets added/deleted.
@@ -397,7 +399,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         self.save()
 
-    def update_project_sample_aggregate_counts(self):
+    def update_project_sample_aggregate_counts(self) -> None:
         """
         The Project model cache aggregated sample counts.
         We need to update these after any project's sample gets added/deleted.
@@ -416,7 +418,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         self.save()
 
-    def update_project_summaries_aggregate_properties(self):
+    def update_project_summaries_aggregate_properties(self) -> None:
         """
         The ProjectSummary model cache aggregated sample metadata.
         We need to update these after any project's sample gets added/deleted.
