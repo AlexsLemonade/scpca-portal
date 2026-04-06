@@ -12,8 +12,9 @@ export const useCellbrowserIframe = () => {
   const [isIframeLoaded, setIsIframeLoaded] = useState(false)
   const [isIframeReady, setIsIframeReady] = useState(true)
   // the token to send to the iframe
+  // TODO: clean up cellbrowser-client-token from earlier implementation
   const [clientToken, setClientToken] = useLocalStorage(
-    'cellbrowser-client-token'
+    'ccdl-cellbrowser-client-token'
   )
 
   const [hasError, setHasError] = useState(false)
