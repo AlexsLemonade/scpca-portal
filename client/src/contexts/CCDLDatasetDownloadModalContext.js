@@ -1,6 +1,8 @@
 import React, { createContext, useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
+import { useAnalytics } from 'hooks/useAnalytics'
 import { api } from 'api'
+import { getDateISO } from 'helpers/getDateISO'
 import { filterPartialObject } from 'helpers/filterPartialObject'
 import { uniqueArrayByKey } from 'helpers/uniqueArray'
 import { getReadable } from 'helpers/getReadable'
@@ -15,7 +17,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   datasets,
   children
 }) => {
-  const { token, createToken } = useScPCAPortal()
+  const { email, token, createToken, surveyListForm } = useScPCAPortal()
+  const { trackDataset } = useAnalytics()
 
   const [showing, setShowing] = useState(false)
 
@@ -155,6 +158,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         token
       )
       if (downloadRequest.isOk) {
+        trackDataset(selectedDataset)
+        surveyListForm.submit({ email, scpca_last_download_date: getDateISO() })
         window.open(downloadRequest.response.download_url)
         setDownloadableDataset(downloadRequest.response)
       } else if (downloadRequest.status === 403) {

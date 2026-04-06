@@ -72,11 +72,14 @@ export const DatasetProjectCard = ({
         margin={{ bottom: '24px' }}
         pad={{ bottom: '24px' }}
       >
-        <Link href={`/projects/${projectId}`} newTab>
-          <Text weight="bold" color="brand" size="large">
-            {title}
-          </Text>
-        </Link>
+        <Box gap="small">
+          <Badge badge="Number" label={projectId} />
+          <Link href={`/projects/${projectId}`} newTab>
+            <Text weight="bold" color="brand" size="large">
+              {title}
+            </Text>
+          </Link>
+        </Box>
         {!readOnly && (
           <Button
             danger

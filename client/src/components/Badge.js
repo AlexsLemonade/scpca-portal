@@ -2,12 +2,14 @@ import React from 'react'
 import { Box, Paragraph } from 'grommet'
 import Kit from '../images/badges/kit.svg'
 import Modality from '../images/badges/modality.svg'
+import Number from '../images/badges/number.svg'
 import SeqUnit from '../images/badges/seq-unit.svg'
 import Samples from '../images/badges/samples.svg'
 
 const badges = {
   Kit,
   Modality,
+  Number,
   SeqUnit,
   Samples
 }

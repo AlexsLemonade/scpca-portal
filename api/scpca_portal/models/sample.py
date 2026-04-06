@@ -1,14 +1,19 @@
-from typing import Dict, List
+from pathlib import Path
+from typing import TYPE_CHECKING, Dict, List, Self
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import QuerySet
 
 from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
+
+if TYPE_CHECKING:
+    from scpca_portal.models import ComputedFile
 
 logger = get_and_configure_logger(__name__)
 
@@ -48,7 +53,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return f"Sample {self.scpca_id} of {self.project}"
 
     @classmethod
-    def get_from_dict(cls, data, project):
+    def get_from_dict(cls, data, project) -> Self:
         """Prepares ready for saving sample object."""
         sample = cls(
             age=data["age"],
@@ -229,7 +234,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample_metadata
 
-    def get_libraries(self, download_config: Dict = {}):  # -> QuerySet[Library]:
+    def get_libraries(self, download_config: Dict = {}) -> QuerySet[Library]:
         """
         Return all of a sample's associated libraries filtered by the passed download config.
         """
@@ -244,7 +249,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             formats__contains=[download_config["format"]],
         )
 
-    def get_computed_file(self, download_config: Dict):
+    def get_computed_file(self, download_config: Dict) -> "ComputedFile":
         "Return the sample computed file that matches the passed download_config."
         return self.computed_files.filter(
             modality=download_config["modality"],
@@ -259,7 +264,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return "_".join(self.multiplexed_ids + sorted(download_config.values()))
 
     @staticmethod
-    def get_output_metadata_file_path(scpca_sample_id, modality):
+    def get_output_metadata_file_path(scpca_sample_id, modality) -> Path:
         return {
             Modalities.MULTIPLEXED: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_multiplexed_metadata.tsv",
@@ -288,11 +293,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
         )
 
     @property
-    def computed_files(self):
+    def computed_files(self) -> QuerySet["ComputedFile"]:
         return self.sample_computed_files.order_by("created_at")
 
     @property
-    def multiplexed_with_samples(self):
+    def multiplexed_with_samples(self) -> QuerySet[Self]:
         return (
             Sample.objects.filter(libraries__in=self.libraries.filter(is_multiplexed=True))
             .distinct()
@@ -300,14 +305,14 @@ class Sample(CommonDataAttributes, TimestampedModel):
         )
 
     @property
-    def multiplexed_ids(self):
+    def multiplexed_ids(self) -> List[str]:
         multiplexed_sample_ids = [self.scpca_id]
         multiplexed_sample_ids.extend(self.multiplexed_with)
 
         return sorted(multiplexed_sample_ids)
 
     @property
-    def is_last_multiplexed_sample(self):
+    def is_last_multiplexed_sample(self) -> bool:
         """Return True if sample id is highest in list of multiplexed ids, False if not"""
         return self.scpca_id == self.multiplexed_ids[-1]
 

@@ -23,10 +23,11 @@ import { Table } from 'components/Table'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
-export const ProjectSamplesTable = ({ stickies = 3 }) => {
+export const ProjectSamplesTable = ({ stickies = 3, children }) => {
   const { datasets } = useCCDLDatasetDownloadModalContext()
   const { getDatasetProjectDataSamples } = useDataset()
-  const { myDataset, getMyDatasetProjectDataSamples } = useMyDataset()
+  const { myDataset, isDatasetDataEmpty, getMyDatasetProjectDataSamples } =
+    useMyDataset()
   const {
     project,
     samples: defaultSamples,
@@ -60,23 +61,23 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
 
   const columns = [
     {
-      Header: (
+      header: (
         <Box width={checkBoxCellWidth}>
           <ProjectSamplesTableModalityHeader />
         </Box>
       ),
-      disableSortBy: true,
-      accessor: 'data',
-      Cell: ({ row }) => (
+      enableSorting: false,
+      accessorKey: 'data',
+      cell: ({ row }) => (
         <Box width={checkBoxCellWidth}>
           <ProjectSamplesTableModalityCell sample={row.original} />
         </Box>
       )
     },
     {
-      Header: 'Sample ID',
-      accessor: 'scpca_id',
-      Cell: ({ row }) => (
+      header: 'Sample ID',
+      accessorKey: 'scpca_id',
+      cell: ({ row }) => (
         <Box>
           <Text>{row.original.scpca_id}</Text>
           {row.original.has_multiplexed_data && (
@@ -90,49 +91,50 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
       )
     },
     {
-      Header: 'Diagnosis - Subdiagnosis',
-      accessor: ({ diagnosis, subdiagnosis }) => `${diagnosis} ${subdiagnosis}`,
-      Cell: ({ row }) => (
+      header: 'Diagnosis - Subdiagnosis',
+      accessorFn: ({ diagnosis, subdiagnosis }) =>
+        `${diagnosis} ${subdiagnosis}`,
+      cell: ({ row }) => (
         <Box width={{ max: '200px' }} style={{ whiteSpace: 'normal' }}>
           <Text>{row.original.diagnosis}</Text>
           <Text size="small">{row.original.subdiagnosis}</Text>
         </Box>
       )
     },
-    { Header: 'Disease Timing', accessor: 'disease_timing' },
-    { Header: 'Tissue Location', accessor: 'tissue_location' },
+    { header: 'Disease Timing', accessorKey: 'disease_timing' },
+    { header: 'Tissue Location', accessorKey: 'tissue_location' },
     {
-      Header: 'Treatment',
-      accessor: ({ treatment }) => treatment || 'N/A'
+      header: 'Treatment',
+      accessorFn: ({ treatment }) => treatment || 'N/A'
     },
     {
-      Header: 'Age',
-      accessor: 'age'
+      header: 'Age',
+      accessorKey: 'age'
     },
     {
-      Header: 'Age Timing',
-      accessor: 'age_timing'
+      header: 'Age Timing',
+      accessorKey: 'age_timing'
     },
-    { Header: 'Sex', accessor: 'sex' },
+    { header: 'Sex', accessorKey: 'sex' },
     {
-      Header: 'Modalities',
-      accessor: ({ modalities }) =>
+      header: 'Modalities',
+      accessorFn: ({ modalities }) =>
         modalities.map(getReadableModality).join(', ')
     },
     {
-      Header: 'Sequencing Units',
-      accessor: 'seq_units',
-      Cell: ({ row }) => <Text>{row.original.seq_units.join(', ')}</Text>
+      header: 'Sequencing Units',
+      accessorKey: 'seq_units',
+      cell: ({ row }) => <Text>{row.original.seq_units.join(', ')}</Text>
     },
     {
-      Header: 'Technology',
-      accessor: 'technologies',
-      Cell: ({ row }) => <Text>{row.original.technologies.join(', ')}</Text>
+      header: 'Technology',
+      accessorKey: 'technologies',
+      cell: ({ row }) => <Text>{row.original.technologies.join(', ')}</Text>
     },
     {
-      Header: 'Multiplexed with',
-      accessor: 'multiplexed_with',
-      Cell: ({
+      header: 'Multiplexed with',
+      accessorKey: 'multiplexed_with',
+      cell: ({
         row: {
           original: { multiplexed_with: multiplexedWith }
         }
@@ -144,12 +146,12 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
       isVisible: hasMultiplexedData
     },
     {
-      Header: 'Sample Count Estimates',
-      accessor: ({ sample_cell_count_estimate: count }) => count || 'N/A'
+      header: 'Sample Count Estimates',
+      accessorFn: ({ sample_cell_count_estimate: count }) => count || 'N/A'
     },
     {
       id: 'demux_cell_count_estimate_sum',
-      Header: () => (
+      header: () => (
         <Box direction="row" align="center">
           Est. Demux Sample Counts&nbsp;
           <Link href={config.links.what_est_demux_cell}>
@@ -158,12 +160,13 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           &nbsp;&nbsp;
         </Box>
       ),
-      accessor: ({ demux_cell_count_estimate_sum: count }) => count || 'N/A',
+      accessorFn: ({ demux_cell_count_estimate_sum: count }) => count || 'N/A',
       isVisible: hasMultiplexedData
     },
     {
-      Header: 'Additional Metadata Fields',
-      accessor: ({ additional_metadata: data }) => Object.keys(data).join(', ')
+      header: 'Additional Metadata Fields',
+      accessorFn: ({ additional_metadata: data }) =>
+        Object.keys(data).join(', ')
     }
   ]
 
@@ -200,15 +203,13 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
   useEffect(() => {
     if (!allSamples.length || !samples) return
 
-    let projectData
+    // Run only when the dataset contains data
+    if (!dataset?.data && isDatasetDataEmpty) return
 
-    if (dataset?.data) {
-      projectData = getDatasetProjectDataSamples(dataset, project)
-    } else if (!dataset && myDataset?.data) {
-      projectData = getMyDatasetProjectDataSamples(project)
-    } else {
-      return
-    }
+    // Use dataset on /datasets, otherwise use myDataset for setup
+    const projectData = dataset
+      ? getDatasetProjectDataSamples(dataset, project)
+      : getMyDatasetProjectDataSamples(project)
 
     setAddedSamples(projectData)
     selectModalitySamplesByIds('SINGLE_CELL', projectData.SINGLE_CELL)
@@ -238,8 +239,8 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         data={samples}
         filter
         stickies={stickies}
-        pageSize={5}
-        pageSizeOptions={[5, 10, 20, 50]}
+        pageSize={1000}
+        pageSizeOptions={[1000]} // Temporary value
         infoText={infoText}
         text={text}
         defaultSort={[{ id: 'scpca_id', asc: true }]}
@@ -261,6 +262,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           <WarningAnnDataMultiplexed />
         )}
       </Table>
+      <Box>{children}</Box>
     </>
   )
 }
