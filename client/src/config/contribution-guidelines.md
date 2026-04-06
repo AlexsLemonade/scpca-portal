@@ -30,7 +30,7 @@ Submitters must also sign a Data Transfer Agreement before data transfer ([view 
 
 ### Award
 
-**Up to 5 eligible researchers will receive up to $10,000 in unrestricted funds**. 
+**Up to 5 eligible researchers will receive up to $10,000 in unrestricted funds**.
 Grant amounts will be awarded on the basis of the sample types submitted to ScPCA:
 
 - $10,000 for patient tumor or patient-derived xenograft samples
