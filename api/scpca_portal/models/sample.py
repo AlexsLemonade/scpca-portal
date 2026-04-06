@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Self
+from typing import TYPE_CHECKING, Dict, List, Self
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -11,6 +11,9 @@ from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
+
+if TYPE_CHECKING:
+    from scpca_portal.models import ComputedFile
 
 logger = get_and_configure_logger(__name__)
 
@@ -246,7 +249,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
             formats__contains=[download_config["format"]],
         )
 
-    def get_computed_file(self, download_config: Dict):  # -> ComputedFile
+    def get_computed_file(self, download_config: Dict) -> "ComputedFile":
         "Return the sample computed file that matches the passed download_config."
         return self.computed_files.filter(
             modality=download_config["modality"],
@@ -290,7 +293,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         )
 
     @property
-    def computed_files(self):  # -> QuerySet[ComputedFile]
+    def computed_files(self) -> QuerySet["ComputedFile"]:
         return self.sample_computed_files.order_by("created_at")
 
     @property
