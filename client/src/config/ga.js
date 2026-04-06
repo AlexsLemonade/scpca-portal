@@ -6,10 +6,10 @@
 const getDatasetDownloadEventName = (dataset) => {
 
   if (dataset.ccdl_name) {
-    return `${dataset.ccdl_project_id || "Portal Wide"} - ${dataset.ccdl_name}`
+    return `${dataset.ccdl_project_id || 'Portal Wide'} - ${dataset.ccdl_name}`
   }
 
-  return "User Dataset"
+  return 'User Dataset'
 }
 
 export const events = {
