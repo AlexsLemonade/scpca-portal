@@ -30,7 +30,7 @@ Submitting institutions had to sign a Data Transfer Agreement before data transf
 
 ### Award
 
-Previous awards were $5000 in unrestricted funds.
+Previous awards were up to $10,000 in unrestricted funds, with the grant amount depending on the sample types submitted.
 **We are not currently accepting contributions associated with this grant opportunity.**
 **Below, we describe the process when we are actively accepting contributions.**
 
@@ -77,13 +77,14 @@ Nextflow will also handle parallelizing sample processing as your environment al
 
 #### Processing Your Data
 
-**Please note that processing single-cell, single-nuclei or spatial transcriptomic samples with the pipeline as currently configured requires access to a high-performance computing (HPC) environment with nodes that can accommodate jobs requiring up to 24 GB of RAM and 12 CPUs.**
+**Please note that processing single-cell, single-nuclei or (non-HD) spatial transcriptomic samples with the pipeline as currently configured requires access to a high-performance computing (HPC) environment with nodes that can accommodate jobs requiring up to 32 GB of RAM and 12 CPUs.**
+**If you are processing Visium HD or Visium HD 3' spatial transcriptomic datasets, you will need access to between 64-128 GB of RAM and 16 CPUs.**
 The pipeline can be adapted to lower CPU counts if needed.
 
 `scpca-nf` can be set up for your computing environment with a few configuration files.
 Please see [our instructions](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md) to get started.
 
-Please note that our instructions reference [cell type annotation](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#cell-type-annotation) and [creating merged objects](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#the-mergenf-workflow).
+Please note that our instructions reference [cell type annotation](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#cell-type-annotation), [CNV inference](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#cnv-inference), and [creating merged objects](https://github.com/AlexsLemonade/scpca-nf/blob/main/external-instructions.md#the-mergenf-workflow).
 As these steps are computationally intensive relative to quantification, they are not required for submission.
 
 The Data Lab team is available to provide technical support, including video conferencing calls for troubleshooting purposes, as you prepare your submission (see [**Contact the Data Lab**](#contact-the-data-lab) to get in touch).
