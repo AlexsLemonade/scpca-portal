@@ -12,9 +12,8 @@ import { objectContains } from 'helpers/objectContains'
 import { getReadableFiles } from 'helpers/getReadable'
 import { capitalize } from 'helpers/capitalize'
 
-export const resolveKey = (key, computedFile) => {
-  return dynamicKeys.includes(key) ? computedFile[key] : key
-}
+export const resolveKey = (key, computedFile) =>
+  dynamicKeys.includes(key) ? computedFile[key] : key
 
 const formatFileItemByKey = (key, computedFile) => {
   const { format } = computedFile
@@ -69,9 +68,9 @@ export const getDownloadOptionDetails = (computedFile) => {
   const seenKeys = []
 
   // Determine if multiple items should be combined when listing.
-  const appliedCombinations = combinedFiles.filter((conditions) => {
-    return objectContains(computedFile, conditions.rules)
-  })
+  const appliedCombinations = combinedFiles.filter((conditions) =>
+    objectContains(computedFile, conditions.rules)
+  )
 
   // Add downloadable items
   appliedCombinations.forEach((conditions) => {
