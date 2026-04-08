@@ -87,10 +87,10 @@ def build_auto_filterset(
                     }
                 except (KeyError, AttributeError):
                     raise KeyError(
-                        f"{related_name} or its related_model attribute does not exist on {current_model}."
+                        f"{related_name} or its related_model does not exist on {current_model}."
                     )
 
-            # Retrieve the field type of relation_field_name defined in it corresponding related_model
+            # Retrieve the field type of relation_field_name defined in its related_model
             try:
                 field = current_model._meta.get_field(relation_field_name)
             except FieldDoesNotExist:
