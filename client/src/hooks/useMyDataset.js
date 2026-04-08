@@ -7,8 +7,6 @@ import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useMyDataset = () => {
   const {
-    myDataset,
-    setMyDataset,
     prevMyDatasetFormat,
     setPrevMyDatasetFormat,
     datasets,
@@ -19,7 +17,7 @@ export const useMyDataset = () => {
     userFormat,
     setUserFormat
   } = useContext(MyDatasetContext)
-  const { token, email } = useScPCAPortal()
+  const { myDataset, setMyDataset, token, email } = useScPCAPortal()
   const {
     create,
     get,
@@ -86,8 +84,7 @@ export const useMyDataset = () => {
   }
 
   /* Dataset-level */
-  const isDatasetDataEmpty =
-    !myDataset.data || Object.keys(myDataset.data || {}).length === 0
+  const isDatasetDataEmpty = Object.keys(myDataset.data).length === 0
 
   const createMyDataset = async (dataset) => {
     if (!dataset.format) {
@@ -162,8 +159,8 @@ export const useMyDataset = () => {
 
   // Merge project modality samples based on their state (e.g., merged, empty)
   const mergeProjectModalities = async (projectId, modality, dataset) => {
-    const original = myDataset.data?.[projectId]?.[modality] || []
-    const incoming = dataset.data?.[projectId]?.[modality] || []
+    const original = myDataset.data[projectId]?.[modality] || []
+    const incoming = dataset.data[projectId]?.[modality] || []
 
     const originalState = getModalityState(original)
     const incomingState = getModalityState(incoming)
@@ -193,7 +190,7 @@ export const useMyDataset = () => {
       Object.keys(dataset.data)
     )
 
-    const mergedProjectModaliies = await Promise.all(
+    const mergedProjectModalities = await Promise.all(
       projectIds.map(async (pId) => {
         const modalityData = await Promise.all(
           allModalities.map(async (m) => [
@@ -207,14 +204,14 @@ export const useMyDataset = () => {
 
     // Return null for any merge failure (null samples)
     if (
-      mergedProjectModaliies.some(
+      mergedProjectModalities.some(
         ([, data]) => data.SINGLE_CELL === null || data.SPATIAL === null
       )
     ) {
       return null
     }
 
-    return mergedProjectModaliies.reduce((acc, [pId, modalityData]) => {
+    return mergedProjectModalities.reduce((acc, [pId, modalityData]) => {
       acc[pId] = {
         ...modalityData,
         includes_bulk: getMergedIncludesBulk(pId, dataset)

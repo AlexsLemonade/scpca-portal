@@ -183,7 +183,7 @@ export const DatasetAddProjectModal = ({ project, disabled = false }) => {
             <Heading level="3" size="small" margin={{ top: '0' }}>
               Download Options
             </Heading>
-            {myDataset.data?.[project.scpca_id] && (
+            {myDataset.data[project.scpca_id] && (
               <DatasetAddProjectModalRemainingContent project={project} />
             )}
             <Box pad={{ top: 'large' }}>

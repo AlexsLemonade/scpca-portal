@@ -204,7 +204,7 @@ export const ProjectSamplesTable = ({ stickies = 3, children }) => {
     if (!allSamples.length || !samples) return
 
     // Run only when the dataset contains data
-    if (!dataset?.data && isDatasetDataEmpty) return
+    if (!dataset && isDatasetDataEmpty) return
 
     // Use dataset on /datasets, otherwise use myDataset for setup
     const projectData = dataset
