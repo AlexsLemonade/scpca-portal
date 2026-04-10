@@ -34,7 +34,7 @@ CCDL_PROJECT_ID=SCPCP000001
 
 CCDL_DATASETS_RESPONSE=$(curl -s --get \
   "${API_ROOT}/ccdl-datasets/" \
-  -H 'Content-Type: application/json' \
+  -H "Content-Type: application/json" \
   -d "ccdl_modality=$CCDL_MODALITY" \
   -d "format=$FORMAT" \
   -d "ccdl_project_id=$CCDL_PROJECT_ID"
