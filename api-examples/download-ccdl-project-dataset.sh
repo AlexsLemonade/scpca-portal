@@ -56,7 +56,7 @@ CCDL_DATASET_IDS=$(
 if [ -f "$TOKEN_FILE" ]; then
   # Check if token file exists.
   echo "Using Token from $TOKEN_FILE"
-  TOKEN=`cat $TOKEN_FILE`
+  TOKEN=$(cat $TOKEN_FILE)
 else
   # Otherwise create a new token and save it to the file
   echo "Creating token:"
