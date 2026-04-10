@@ -40,13 +40,13 @@ CCDL_DATASETS_RESPONSE=$(curl -s --get \
   -d "ccdl_project_id=$CCDL_PROJECT_ID"
 )
 
-echo "Found $(echo $CCDL_DATASETS_RESPONSE | jq '.count') projects."
+echo "Found $(echo "$CCDL_DATASETS_RESPONSE" | jq '.count') projects."
 
 CCDL_DATASETS=$(
-  echo $CCDL_DATASETS_RESPONSE | jq '.results[]'
+  echo "$CCDL_DATASETS_RESPONSE" | jq '.results[]'
 )
 CCDL_DATASET_IDS=$(
-  echo $CCDL_DATASETS | jq -r '.id'
+  echo "$CCDL_DATASETS" | jq -r '.id'
 )
 
 
@@ -69,16 +69,16 @@ else
 
   # The id is the API Key that will be used later to get a download url.
   # -r to remove quotes
-  TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.id')
+  TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.id')
 
   if [ "$TOKEN" = "null" ]; then
     # Uh oh, something happened so print the response.
     echo "Using $EMAIL_ADDRESS"
-    echo $TOKEN_RESPONSE | jq
+    echo "$TOKEN_RESPONSE" | jq
   else
     # Success
     echo "Saving Token to '$TOKEN_FILE'"
-    echo $TOKEN > $TOKEN_FILE
+    echo "$TOKEN" > $TOKEN_FILE
   fi
 fi
 
@@ -101,24 +101,24 @@ for download_id in $DOWNLOAD_IDS; do
     -H "API-KEY: $TOKEN"
   )
 
-  DOWNLOAD_URL=$(echo $CCDL_DATASET_DOWNLOAD_RESPONSE | jq -r '.download_url')
-  DOWNLOAD_FILENAME=$(echo $CCDL_DATASET_DOWNLOAD_RESPONSE | jq -r '.download_filename')
+  DOWNLOAD_URL=$(echo "$CCDL_DATASET_DOWNLOAD_RESPONSE" | jq -r '.download_url')
+  DOWNLOAD_FILENAME=$(echo "$CCDL_DATASET_DOWNLOAD_RESPONSE" | jq -r '.download_filename')
 
   if [ "$DOWNLOAD_URL" = "null" ]; then
     # Uh oh, something happened so print the response.
     echo "Error in response."
-    echo $CCDL_DATASET_DOWNLOAD_RESPONSE | jq
+    echo "$CCDL_DATASET_DOWNLOAD_RESPONSE" | jq
     continue
   fi
 
   # Success
   echo "Signed Download URL for CCDL Dataset $DOWNLOAD_FILENAME"
-  echo $DOWNLOAD_URL
+  echo "$DOWNLOAD_URL"
   echo "---"
 
   if [ "$INITIATE_DOWNLOAD" = "true" ]; then
     echo "Downloading: $DOWNLOAD_FILENAME"
-    curl -o $DOWNLOAD_FILENAME $DOWNLOAD_URL
+    curl -o "$DOWNLOAD_FILENAME" "$DOWNLOAD_URL"
     echo "Finished Downloading: $DOWNLOAD_FILENAME"
   else
     echo "Skipping downloading."
