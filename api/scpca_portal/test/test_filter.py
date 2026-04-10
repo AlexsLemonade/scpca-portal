@@ -99,3 +99,45 @@ class FilterTest(TestCase):
 
         for expected_field in expected_fields:
             self.assertIn(expected_field, actual_fields)
+
+    def test_relationship_fields(self):
+        SampleFilterSet = filter.build_auto_filterset(
+            Sample,
+            auto_fields=[
+                "project",  # ForeignKey
+                "project__downloadable_sample_count",  # IntegerField
+                "project__includes_anndata",  # BooleanField
+                "project__modalities",  # ArrayField
+                "project__pi_name",  # TextField
+                "project__unavailable_samples_count",  # PositiveIntegerField
+                "project__contacts__name",  # ManyToMany's model field
+            ],
+            extra_fields={"project__scpca_id": ["exact"]},  # Override default lookup
+        )
+
+        actual_fields = list(SampleFilterSet.base_filters.keys())
+        expected_fields = [
+            "project",
+            "project__in",
+            "project__downloadable_sample_count",
+            "project__downloadable_sample_count__gte",
+            "project__downloadable_sample_count__lte",
+            "project__downloadable_sample_count__gt",
+            "project__downloadable_sample_count__lt",
+            "project__downloadable_sample_count__in",
+            "project__includes_anndata",
+            "project__pi_name",
+            "project__pi_name__icontains",
+            "project__unavailable_samples_count",
+            "project__unavailable_samples_count__gte",
+            "project__unavailable_samples_count__lte",
+            "project__unavailable_samples_count__gt",
+            "project__unavailable_samples_count__lt",
+            "project__unavailable_samples_count__in",
+            "project__contacts__name",
+            "project__contacts__name__icontains",
+            "project__scpca_id",
+            "project__modalities",
+        ]
+
+        self.assertEqual(expected_fields, actual_fields)

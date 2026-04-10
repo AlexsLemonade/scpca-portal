@@ -1,4 +1,5 @@
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
 import django_filters
@@ -15,6 +16,10 @@ FILTER_LOOKUPS = {
     models.JSONField: ["exact", "in"],
     models.PositiveIntegerField: ["exact", "gte", "lte", "gt", "lt", "in"],
     models.TextField: ["exact", "icontains"],
+    # Relation fields
+    models.ForeignKey: ["exact", "in"],
+    models.ManyToManyField: ["exact", "in"],
+    models.OneToOneField: ["exact", "in"],
 }
 
 
@@ -45,39 +50,68 @@ def build_auto_filterset(
     Introspects a model and builds a FilterSet with sensible lookup expressions
     per field type. ArrayFields get icontains via ArrayFieldContainsFilter.
     Args:
-        model:          The Django model class to build a FilterSet for.
-        auto_fields:    Optional allowlist of field names. Use this
-                        to keep your public API surface intentional.
-        extra_fields:   Additional model fields included in the public API
-                        e.g. {"project__scpca_id": ["exact"]}.
-        extra_filters:  Optional dict of additional filter instances to mix in,
-                        excluded from the public API
+        model:          The Django base model class to build a FilterSet for.
+        auto_fields:    Optional allowlist of field names, including relations
+                        with ORM lookup separator (e.g., 'project__pi_name').
+                        Use this to keep your public API surface intentional.
+        extra_fields:   Override default lookup expressions of fields as needed.
+                        e.g., {'project__scpca_id': ['exact']}.
+        extra_filters:  Additional filter instances to mix in.
                         e.g. {"in_stock": MyCustomFilter(...)}.
     """
     declared_filters = {}
     meta_fields = {}
+    LOOKUP_SEPARATOR = "__"
 
-    model_name_fields = {field.name: field for field in model._meta.get_fields()}
+    base_model_fields = {field.name: field for field in model._meta.get_fields()}
 
     for field_name in auto_fields:
-        try:
-            field = model_name_fields[field_name]
-        except KeyError:
-            raise KeyError(f"{field_name} does not exit on {model}.")
+        # Handle relation fields using ORM lookup separator
+        if LOOKUP_SEPARATOR in field_name:
+            name_parts = field_name.split(LOOKUP_SEPARATOR)
+            relation_field_name = name_parts[-1]
 
-        if field.is_relation and (field.one_to_many or field.many_to_many):
-            # Skip reverse relations and ManyToMany
-            continue
+            # Traverse the relationship paths via related_name
+            related_name_paths = name_parts[:-1]
+            current_model = model
+            current_model_fields = base_model_fields
+
+            for related_name in related_name_paths:
+                # Ensure the related_name and its related_model exists on the current model
+                try:
+                    related_name_field = current_model_fields[related_name]
+                    # Update the model references for the next iteration
+                    current_model = related_name_field.related_model
+                    current_model_fields = {
+                        field.name: field for field in current_model._meta.get_fields()
+                    }
+                except (KeyError, AttributeError):
+                    raise KeyError(
+                        f"{related_name} or its related_model does not exist on {current_model}."
+                    )
+
+            # Retrieve the field type of relation_field_name defined in its related_model
+            try:
+                field = current_model._meta.get_field(relation_field_name)
+            except FieldDoesNotExist:
+                raise FieldDoesNotExist(f"{relation_field_name} does not exist on {current_model}.")
+
+        else:
+            # Handle local fields define in the base model class
+            try:
+                field = base_model_fields[field_name]
+            except KeyError:
+                raise KeyError(f"{field_name} does not exist on {model}.")
 
         # ArrayField: use custom filter, one filter per field
         if isinstance(field, ArrayField):
-            declared_filters[field.name] = ArrayFieldContainsFilter(field_name=field.name)
+            declared_filters[field_name] = ArrayFieldContainsFilter(field_name=field_name)
             continue
 
-        # Standard field types: use dict-style meta fields for multi-lookup support
+        # Assign default expressions to use dict-style meta fields for multi-lookup support
         for field_type, lookups in FILTER_LOOKUPS.items():
             if isinstance(field, field_type):
-                meta_fields[field.name] = lookups
+                meta_fields[field_name] = lookups
                 break
 
     if extra_fields:
