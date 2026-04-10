@@ -1,4 +1,5 @@
 import React from 'react'
+import { useResponsive } from 'hooks/useResponsive'
 import { Box } from 'grommet'
 import styled from 'styled-components'
 import { MarkdownPage } from 'components/MarkdownPage'
@@ -12,15 +13,21 @@ const StyledList = styled(Box)`
 `
 
 export const TermsOfUse = () => {
+  const { responsive } = useResponsive()
+
   const components = {
     ul: { component: StyledList, props: { as: 'ul' } }
     // li: { component: StyledLi, props: { as: "li" } },
   }
   return (
-    <>
+    <Box
+      pad={{
+        horizontal: responsive('medium', null, 'medium')
+      }}
+    >
       <MarkdownPage components={components} markdown={termsOfUse} />
       <LastUpdated date={process.env.TOS_RELEASE} />
-    </>
+    </Box>
   )
 }
 

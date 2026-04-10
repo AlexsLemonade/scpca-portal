@@ -64,7 +64,10 @@ const Download = () => {
   if (errors.length > 0) return <Error />
 
   return (
-    <Box width="full" pad={responsive({ horizontal: 'medium' })}>
+    <Box
+      width="full"
+      pad={{ horizontal: responsive('medium', null, 'medium') }}
+    >
       {isDatasetDataEmpty ? (
         <DatasetEmpty />
       ) : (
