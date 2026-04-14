@@ -39,4 +39,5 @@ class CCDLDatasetSpatialSpatialSpaceranger:
         "ccdl_name": CCDL_NAME,
         "ccdl_project_id": None,
         "ccdl_modality": Modalities.SPATIAL,
+        "ccdl_is_merged": False,
     }

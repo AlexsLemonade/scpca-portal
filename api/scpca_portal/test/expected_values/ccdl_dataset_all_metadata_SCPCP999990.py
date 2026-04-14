@@ -40,4 +40,5 @@ class CCDLDatasetAllMetadataSCPCP999990:
         "ccdl_name": CCDL_NAME,
         "ccdl_project_id": PROJECT_ID,
         "ccdl_modality": None,
+        "ccdl_is_merged": False,
     }
