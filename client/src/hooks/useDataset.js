@@ -121,10 +121,10 @@ export const useDataset = () => {
     return datasetRequest.response
   }
 
-  const isProjectIncludeBulk = (dataset, project) =>
+  const getProjectIsIncludeBulk = (dataset, project) =>
     dataset.data[project.scpca_id]?.includes_bulk || false
 
-  const isProjectMerged = (dataset, project) =>
+  const getProjectIsMerged = (dataset, project) =>
     dataset.data[project.scpca_id]?.SINGLE_CELL === 'MERGED'
 
   const getDatasetProjectData = (dataset, project) =>
@@ -265,8 +265,8 @@ export const useDataset = () => {
     process,
     regenerate,
     update,
-    isProjectIncludeBulk,
-    isProjectMerged,
+    getProjectIsIncludeBulk,
+    getProjectIsMerged,
     getDatasetProjectData,
     getDatasetProjectDataSamples,
     getDatasetProjectSamples,

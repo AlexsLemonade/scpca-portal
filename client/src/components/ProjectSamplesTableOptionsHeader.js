@@ -26,7 +26,7 @@ export const ProjectSamplesTableOptionsHeader = ({
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { myDataset, isMyDatasetProjectMerged } = useMyDataset()
+  const { myDataset, getMyDatasetProjectIsMerged } = useMyDataset()
   const { readOnly, selectAllSingleCellSamples, selectedSamples } =
     useProjectSamplesTable()
   const { responsive } = useResponsive()
@@ -52,7 +52,7 @@ export const ProjectSamplesTableOptionsHeader = ({
   // - Include merged option is deselected
   // - User has already confirmed unmerge action
   // - Previously selected samples count is not initialized yet
-  const isProjectMerged = isMyDatasetProjectMerged(project)
+  const isProjectMerged = getMyDatasetProjectIsMerged(project)
   const hideChangeMergedProjectModal = [
     !isProjectMerged,
     !includeMerge,

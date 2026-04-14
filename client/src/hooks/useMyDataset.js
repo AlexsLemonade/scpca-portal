@@ -28,8 +28,8 @@ export const useMyDataset = () => {
     getDatasetProjectDataSamples,
     getDatasetProjectSamples,
     getRemainingProjectSampleIds,
-    isProjectIncludeBulk,
-    isProjectMerged,
+    getProjectIsIncludeBulk,
+    getProjectIsMerged,
     hasAllProjectSamplesAdded,
     hasRemainingProjectSamples
   } = useDataset()
@@ -294,11 +294,11 @@ export const useMyDataset = () => {
   const hasMyDatasetRemainingProjectSamples = (project) =>
     hasRemainingProjectSamples(myDataset, project)
 
-  const isMyDatasetProjectIncludeBulk = (project) =>
-    isProjectIncludeBulk(myDataset, project)
+  const getMyDatasetProjectIsIncludeBulk = (project) =>
+    getProjectIsIncludeBulk(myDataset, project)
 
-  const isMyDatasetProjectMerged = (project) =>
-    isProjectMerged(myDataset, project)
+  const getMyDatasetProjectIsMerged = (project) =>
+    getProjectIsMerged(myDataset, project)
 
   const removeProjectByIdFromMyDataset = (projectId) => {
     const datasetDataCopy = getMyDatasetCopy(myDataset)
@@ -364,8 +364,8 @@ export const useMyDataset = () => {
     getMyDatasetRemainingProjectSampleIds,
     hasMyDatasetAllProjectSamplesAdded,
     hasMyDatasetRemainingProjectSamples,
-    isMyDatasetProjectIncludeBulk,
-    isMyDatasetProjectMerged,
+    getMyDatasetProjectIsIncludeBulk,
+    getMyDatasetProjectIsMerged,
     setMyDatasetSamples,
     getModalitySamplesDifference
   }

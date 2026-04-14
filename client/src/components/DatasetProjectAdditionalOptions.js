@@ -19,8 +19,11 @@ export const DatasetProjectAdditionalOptions = ({
   onIncludeBulkChange = () => {},
   onIncludeMergeChange = () => {}
 }) => {
-  const { myDataset, isMyDatasetProjectIncludeBulk, isMyDatasetProjectMerged } =
-    useMyDataset()
+  const {
+    myDataset,
+    getMyDatasetProjectIsIncludeBulk,
+    getMyDatasetProjectIsMerged
+  } = useMyDataset()
 
   const {
     has_bulk_rna_seq: hasBulkRnaSeq,
@@ -38,7 +41,7 @@ export const DatasetProjectAdditionalOptions = ({
     (selectedModalities.length > 0 &&
       !selectedModalities.includes('SINGLE_CELL')) ||
     !isMergedObjectsAvailable ||
-    isMyDatasetProjectMerged(project)
+    getMyDatasetProjectIsMerged(project)
 
   // Show the merged objects warning only for multiplexed samples
   const showMergedMultiplexedWarning = disableMergedObjects && hasMultiplexed
@@ -75,7 +78,7 @@ export const DatasetProjectAdditionalOptions = ({
             label="Include all bulk RNA-seq data in the project"
             checked={hasBulkRnaSeq && includeBulk}
             // Disable this if the project already includes bulk data
-            disabled={isMyDatasetProjectIncludeBulk(project)}
+            disabled={getMyDatasetProjectIsIncludeBulk(project)}
             onChange={({ target: { checked } }) => onIncludeBulkChange(checked)}
           />
         </Box>

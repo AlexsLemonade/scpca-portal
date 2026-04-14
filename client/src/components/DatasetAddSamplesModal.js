@@ -22,7 +22,7 @@ export const DatasetAddSamplesModal = ({
   const {
     myDataset,
     getMyDatasetProjectDataSamples,
-    isMyDatasetProjectMerged,
+    getMyDatasetProjectIsMerged,
     setMyDatasetSamples,
     userFormat,
     setUserFormat
@@ -91,7 +91,7 @@ export const DatasetAddSamplesModal = ({
   const handleAddSamples = async () => {
     setLoading(true)
     // Ensure that the merged object is retained if present in myDataset
-    const samplesToAdd = isMyDatasetProjectMerged(project)
+    const samplesToAdd = getMyDatasetProjectIsMerged(project)
       ? 'MERGED'
       : selectedSingleCellSamples
 
