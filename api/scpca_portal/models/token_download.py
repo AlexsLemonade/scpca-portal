@@ -19,11 +19,11 @@ class TokenDownload(TimestampedModel):
     metadata_only = models.BooleanField(default=False)
     portal_metadata_only = models.BooleanField(default=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"TrackTokenDownload {self.token}"
 
     @classmethod
-    def track(cls, token_id, computed_file_id):
+    def track(cls, token_id: str, computed_file_id: str) -> None:
         if computed_file := ComputedFile.objects.filter(id=computed_file_id).first():
 
             token_download = TokenDownload.objects.create(

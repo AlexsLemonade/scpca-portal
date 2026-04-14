@@ -24,7 +24,7 @@ class CCDLDataset(DatasetABC):
     ccdl_project_id = models.TextField(null=True)
     ccdl_modality = models.TextField(choices=Modalities.choices, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"CCDL Dataset {self.id}: "
             f"{self.ccdl_project_id if self.ccdl_project_id else 'PORTAL WIDE'} {self.ccdl_name}"
