@@ -35,7 +35,7 @@ export const DatasetHeroReady = ({ dataset }) => {
   const handleDownload = () => {
     trackDataset(downloadableDataset)
     surveyListForm.submit({ email, scpca_last_download_date: getDateISO() })
-    window.location.href = downloadableDataset.download_url
+    window.open(downloadableDataset.download_url)
   }
 
   return (
