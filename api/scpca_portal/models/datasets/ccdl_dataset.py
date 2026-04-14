@@ -40,6 +40,7 @@ class CCDLDataset(DatasetABC):
 
         dataset = cls(ccdl_name=ccdl_name, ccdl_project_id=project_id)
         dataset.ccdl_modality = dataset.ccdl_type["modality"]
+        dataset.ccdl_is_merged = ccdl_name in ccdl_datasets.MERGED_TYPE_NAMES
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.current_data
         return dataset, False
