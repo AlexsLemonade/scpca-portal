@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from scpca_portal import notifications
 from scpca_portal.enums import JobStates
-from scpca_portal.test.factories import DatasetFactory, JobFactory
+from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory
 
 
 class TestNotifications(TestCase):
@@ -17,7 +17,7 @@ class TestNotifications(TestCase):
         mock_ses_client.send_email.return_value = {"MessageId": "mocked-message-id"}
 
         dataset_id = "b369f67f-69c8-46a9-8fcf-746f35fc7e74"
-        job = JobFactory(state=JobStates.SUCCEEDED, dataset=DatasetFactory(id=dataset_id))
+        job = JobFactory(state=JobStates.SUCCEEDED, dataset=CCDLDatasetFactory(id=dataset_id))
 
         notifications.send_dataset_job_success_email(job)
         mock_ses_client.send_email.assert_called_once_with(

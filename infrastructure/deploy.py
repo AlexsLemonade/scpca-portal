@@ -192,21 +192,21 @@ def pre_deploy_hook(terraform_output: dict):
         return 0
 
     # Stop cron now so no new batch jobs are submitted after processing is paused
-    try:
-        run_remote_command(api_ip_address, "sudo systemctl stop cron")
-    except subprocess.CalledProcessError:
-        print("There was an error disabling the cron service.")
-        return 1
+    # try:
+    #     run_remote_command(api_ip_address, "sudo systemctl stop cron")
+    # except subprocess.CalledProcessError:
+    #     print("There was an error disabling the cron service.")
+    #     return 1
 
-    try:
-        completed_command_logs = run_remote_command(
-            api_ip_address, "sudo ./run_command.sh pause_processing"
-        )
-        print(completed_command_logs.decode("utf-8"), end="")
-    except subprocess.CalledProcessError:
-        print("There was an error terminating currently processing jobs.")
-        print("WARNING: If this was an existing deploy cron is now disabled.")
-        return 1
+    # try:
+    #     completed_command_logs = run_remote_command(
+    #         api_ip_address, "sudo ./run_command.sh pause_processing"
+    #     )
+    #     print(completed_command_logs.decode("utf-8"), end="")
+    # except subprocess.CalledProcessError:
+    #     print("There was an error terminating currently processing jobs.")
+    #     print("WARNING: If this was an existing deploy cron is now disabled.")
+    #     return 1
 
     print("Processing jobs requeued successfully.")
     return 0
