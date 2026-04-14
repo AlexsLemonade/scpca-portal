@@ -5,6 +5,7 @@ import { useAnalytics } from 'hooks/useAnalytics'
 import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
 import { formatBytes } from 'helpers/formatBytes'
+import { getDateISO } from 'helpers/getDateISO'
 import { Button } from 'components/Button'
 import { DatasetCopyLinkButton } from 'components/DatasetCopyLinkButton'
 import { DatasetDownloadForm } from 'components/DatasetDownloadForm'
@@ -12,7 +13,7 @@ import DownloadReady from '../images/download-folder.svg'
 
 export const DatasetHeroReady = ({ dataset }) => {
   const { responsive } = useResponsive()
-  const { token } = useScPCAPortal()
+  const { email, token, surveyListForm } = useScPCAPortal()
   const { trackDataset } = useAnalytics()
 
   const [downloadableDataset, setDownloadableDataset] = useState(null)
@@ -33,6 +34,7 @@ export const DatasetHeroReady = ({ dataset }) => {
 
   const handleDownload = () => {
     trackDataset(downloadableDataset)
+    surveyListForm.submit({ email, scpca_last_download_date: getDateISO() })
     window.location.href = downloadableDataset.download_url
   }
 
