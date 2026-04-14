@@ -62,7 +62,7 @@ class CCDLDatasetDetailSerializer(CCDLDatasetSerializer):
             },
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if "context" in kwargs:
             # Only include the field `download_url` if a valid token is specified.
