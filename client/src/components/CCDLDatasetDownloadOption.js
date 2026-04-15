@@ -63,7 +63,11 @@ export const CCDLDatasetDownloadOption = () => {
             setDownloadDataset(true)
           }}
         />
-        <Box margin={{ top: 'large' }}>
+        <Box
+          border={{ side: 'top', color: 'border-black', size: 'small' }}
+          margin={{ top: 'xlarge' }}
+          pad={{ top: 'large' }}
+        >
           <DatasetCopyLinkButton dataset={selectedDataset} />
         </Box>
       </Box>

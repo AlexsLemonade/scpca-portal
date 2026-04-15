@@ -84,11 +84,17 @@ export const DatasetHeroReady = ({ dataset }) => {
           <DownloadReady />
         </Box>
       </Grid>
-      <Box margin={{ top: 'xlarge' }}>
-        <Box pad={{ horizontal: responsive('', 'xxlarge') }}>
-          <DatasetCopyLinkButton dataset={dataset} />
+      {token && (
+        <Box
+          border={{ side: 'top', color: 'border-black', size: 'small' }}
+          margin={{ top: 'xlarge' }}
+          pad={{ top: 'large', horizontal: responsive('', 'xxlarge') }}
+        >
+          <Box>
+            <DatasetCopyLinkButton dataset={dataset} />
+          </Box>
         </Box>
-      </Box>
+      )}
     </>
   )
 }

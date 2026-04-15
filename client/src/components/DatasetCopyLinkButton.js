@@ -92,10 +92,7 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
   }, [downloadLink, isGenerateClicked])
 
   return (
-    <Box
-      border={{ side: 'top', color: 'border-black', size: 'small' }}
-      pad={{ top: 'large' }}
-    >
+    <Box>
       <Heading level={5}>Download link for command line tools</Heading>
       <Paragraph margin={{ bottom: 'medium' }}>
         Download data using tools like <Text color="error">wget</Text> or{' '}

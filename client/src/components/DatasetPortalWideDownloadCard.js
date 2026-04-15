@@ -88,11 +88,16 @@ export const DatasetPortalWideDownloadCard = ({
             <CCDLDatasetDownloadModalContextProvider datasets={[dataset]}>
               <CCDLDatasetDownloadModal label="Download" />
             </CCDLDatasetDownloadModalContextProvider>
-            <Box margin={{ top: 'large' }} fill>
-              {showCopyLinkButton && (
+            {showCopyLinkButton && (
+              <Box
+                border={{ side: 'top', color: 'border-black', size: 'small' }}
+                margin={{ top: 'xlarge' }}
+                pad={{ top: 'large' }}
+                fill
+              >
                 <DatasetCopyLinkButton dataset={dataset} />
-              )}
-            </Box>
+              </Box>
+            )}
           </Box>
         </Box>
       </Box>
