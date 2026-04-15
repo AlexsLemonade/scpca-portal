@@ -15,6 +15,8 @@ import styled from 'styled-components'
 
 const Tabs = styled(GrommetTabs)`
   [role='tabpanel'] {
+    display: flex;
+    justify-content: center;
     padding: 35px;
   }
 `
