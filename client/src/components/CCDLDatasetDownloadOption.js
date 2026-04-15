@@ -5,7 +5,6 @@ import { DatasetFileItems } from 'components/DatasetFileItems'
 import { DatasetCopyLinkButton } from 'components/DatasetCopyLinkButton'
 import { WarningMultiplexedSamples } from 'components/WarningMultiplexedSamples'
 import { WarningMergedObjects } from 'components/WarningMergedObjects'
-import { useResponsive } from 'hooks/useResponsive'
 import { formatBytes } from 'helpers/formatBytes'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 
@@ -14,8 +13,6 @@ export const CCDLDatasetDownloadOption = () => {
     useCCDLDatasetDownloadModalContext()
 
   const downloadLabel = 'Download Project'
-
-  const { responsive } = useResponsive()
 
   return (
     <Grid
