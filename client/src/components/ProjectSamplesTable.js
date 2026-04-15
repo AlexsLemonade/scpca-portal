@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api } from 'api'
 import { config } from 'config'
 import { allModalities } from 'config/datasets'
+import { keys } from 'config/translations'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
@@ -11,7 +12,6 @@ import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
 import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getReadable } from 'helpers/getReadable'
-import { getReadableModality } from 'helpers/getReadableModality'
 import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
@@ -119,7 +119,7 @@ export const ProjectSamplesTable = ({ stickies = 3, children }) => {
     {
       header: 'Modalities',
       accessorFn: ({ modalities }) =>
-        modalities.map(getReadableModality).join(', ')
+        modalities.map((m) => getReadable(m, keys)).join(', ')
     },
     {
       header: 'Sequencing Units',

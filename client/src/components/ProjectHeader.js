@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useResponsive } from 'hooks/useResponsive'
 import { config } from 'config'
+import { keys } from 'config/translations'
 import { Box, Grid, Text } from 'grommet'
 import { useMyDataset } from 'hooks/useMyDataset'
+import { capitalize } from 'helpers/capitalize'
+import { getReadable } from 'helpers/getReadable'
 import { Badge } from 'components/Badge'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
@@ -11,8 +14,6 @@ import { InfoViewMyDataset } from 'components/InfoViewMyDataset'
 import { Link } from 'components/Link'
 import { Pill } from 'components/Pill'
 import { WarningText } from 'components/WarningText'
-import { capitalize } from 'helpers/capitalize'
-import { getReadable } from 'helpers/getReadable'
 
 export const ProjectHeader = ({ project, linked = false }) => {
   const { myDataset, hasMyDatasetRemainingProjectSamples } = useMyDataset()
@@ -65,7 +66,9 @@ export const ProjectHeader = ({ project, linked = false }) => {
             <DatasetAddProjectModal project={project} />
             <CCDLDatasetDownloadModal label="Download Now" secondary />
             {project.has_bulk_rna_seq && (
-              <Pill label={`Includes ${getReadable('has_bulk_rna_seq')}`} />
+              <Pill
+                label={`Includes ${getReadable('has_bulk_rna_seq', keys)}`}
+              />
             )}
           </Box>
         </Box>
