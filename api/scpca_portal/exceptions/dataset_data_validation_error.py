@@ -4,7 +4,7 @@ from scpca_portal.enums import Modalities
 
 
 class DatasetDataValidationError(ValueError):
-    def __init__(self, message: str | None = None):
+    def __init__(self, message: str | None = None) -> None:
         default_message = "A validation error occurred with the dataset data attribute."
 
         message = message or default_message
@@ -12,13 +12,13 @@ class DatasetDataValidationError(ValueError):
 
 
 class DatasetDataInvalidSampleIDLocationError(DatasetDataValidationError):
-    def __init__(self):
+    def __init__(self) -> None:
         message = "Sample IDs must be inside an Array."
         super().__init__(message)
 
 
 class DatasetDataInvalidModalityStringError(DatasetDataValidationError):
-    def __init__(self, invalid_value: str):
+    def __init__(self, invalid_value: str) -> None:
         message = (
             f"Invalid string value for 'single-cell' modality: {invalid_value}. "
             "Allowed string values: 'MERGED'."
@@ -27,25 +27,25 @@ class DatasetDataInvalidModalityStringError(DatasetDataValidationError):
 
 
 class DatasetDataInvalidSampleIDError(DatasetDataValidationError):
-    def __init__(self, sample_id_str: str):
+    def __init__(self, sample_id_str: str) -> None:
         message = f"Invalid sample ID format: {sample_id_str}."
         super().__init__(message)
 
 
 class DatasetDataInvalidProjectIDError(DatasetDataValidationError):
-    def __init__(self, project_id_str: str):
+    def __init__(self, project_id_str: str) -> None:
         message = f"Invalid project ID format: {project_id_str}."
         super().__init__(message)
 
 
 class DatasetDataProjectsDontExistError(DatasetDataValidationError):
-    def __init__(self, invalid_project_ids: Iterable[str]):
+    def __init__(self, invalid_project_ids: Iterable[str]) -> None:
         message = f"The following projects do not exist: {', '.join(sorted(invalid_project_ids))}"
         super().__init__(message)
 
 
 class DatasetDataProjectsNoMergedFilesError(DatasetDataValidationError):
-    def __init__(self, invalid_project_ids: Iterable[str]):
+    def __init__(self, invalid_project_ids: Iterable[str]) -> None:
         message = (
             "The following projects do not have merged files: "
             f"{', '.join(sorted(invalid_project_ids))}"
@@ -54,7 +54,7 @@ class DatasetDataProjectsNoMergedFilesError(DatasetDataValidationError):
 
 
 class DatasetDataProjectsNoBulkDataError(DatasetDataValidationError):
-    def __init__(self, invalid_project_ids: Iterable[str]):
+    def __init__(self, invalid_project_ids: Iterable[str]) -> None:
         message = (
             "The following projects do not have bulk data: "
             f"{', '.join(sorted(invalid_project_ids))}"
@@ -63,13 +63,15 @@ class DatasetDataProjectsNoBulkDataError(DatasetDataValidationError):
 
 
 class DatasetDataSamplesDontExistError(DatasetDataValidationError):
-    def __init__(self, invalid_sample_ids: Iterable[str]):
+    def __init__(self, invalid_sample_ids: Iterable[str]) -> None:
         message = f"The following samples do not exist: {', '.join(sorted(invalid_sample_ids))}"
         super().__init__(message)
 
 
 class DatasetDataSampleAssociationsError(DatasetDataValidationError):
-    def __init__(self, project_id: str, modality: Modalities, invalid_sample_ids: Iterable[str]):
+    def __init__(
+        self, project_id: str, modality: Modalities, invalid_sample_ids: Iterable[str]
+    ) -> None:
         message = (
             "The following samples are not associated "
             f"with {project_id} and {modality}: "
