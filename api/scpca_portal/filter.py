@@ -1,5 +1,8 @@
+from typing import Any
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import QuerySet
 
 import django_filters
 from django_filters import rest_framework as filters
@@ -26,7 +29,7 @@ class ArrayFieldContainsFilter(django_filters.BaseInFilter, django_filters.CharF
     NOTE: Swap the loop for Q objects if you want OR logic instead.
     """
 
-    def filter(self, qs, value):
+    def filter(self, qs: QuerySet, value: Any) -> QuerySet:
         if not value:
             return qs
         for term in value:
@@ -34,13 +37,13 @@ class ArrayFieldContainsFilter(django_filters.BaseInFilter, django_filters.CharF
         return qs
 
 
-# Filterset Factory
+# FilterSet Factory
 def build_auto_filterset(
     model,
     auto_fields: list[str] = [],
     extra_fields: dict[str, list[str]] = None,
     extra_filters: dict = None,
-):
+) -> type[filters.FilterSet]:
     """
     Introspects a model and builds a FilterSet with sensible lookup expressions
     per field type. ArrayFields get icontains via ArrayFieldContainsFilter.

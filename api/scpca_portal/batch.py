@@ -1,6 +1,7 @@
-from typing import Dict, Iterable, List
+from typing import TYPE_CHECKING, List
 
 from django.conf import settings
+from django.db.models import QuerySet
 from django.template.defaultfilters import pluralize
 
 import boto3
@@ -9,13 +10,17 @@ from botocore.client import Config
 from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
 
+if TYPE_CHECKING:
+    from scpca_portal.models import Job
+
+
 logger = get_and_configure_logger(__name__)
 aws_batch = boto3.client(
     "batch", config=Config(signature_version="s3v4", region_name=settings.AWS_REGION)
 )
 
 
-def submit_job(job) -> str | None:
+def submit_job(job: "Job") -> str | None:
     """
     Take a job instance to submit.
     Submit a job via boto3.
@@ -44,7 +49,7 @@ def submit_job(job) -> str | None:
     return response["jobId"]
 
 
-def terminate_job(job) -> bool:
+def terminate_job(job: "Job") -> bool:
     """
     Take a job instance to cancel or terminate.
     Terminate a job via boto3.
@@ -70,7 +75,7 @@ def terminate_job(job) -> bool:
     return True
 
 
-def get_jobs(batch_jobs: Iterable["Job"]) -> List[Dict] | None:  # noqa: F821
+def get_jobs(batch_jobs: QuerySet["Job"]) -> List["Job"] | None:
     """
     Fetch AWS Batch job(s) for the given one or more job(s) in bulk.
     Raises Exception on failure.

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict, List
 
 from django.conf import settings
+from django.db.models import QuerySet
 
 import boto3
 from botocore.client import Config
@@ -47,7 +48,7 @@ def _exclude_objects_with_key_substrings(
     ]
 
 
-def _remove_listed_directories(listed_objects):
+def _remove_listed_directories(listed_objects: List[Dict]) -> List[Dict]:
     """Returns cleaned list of object files without directories objects."""
     return [obj for obj in listed_objects if not obj["s3_key"].endswith("/")]
 
@@ -162,7 +163,7 @@ def check_file_exists(key: str, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME)
     return True
 
 
-def download_files(original_files) -> bool:
+def download_files(original_files: QuerySet[OriginalFile]) -> bool:
     """Download all passed data file paths which have not previously been downloaded.'"""
 
     # NOTE: AWS Sync does one iteration per include flag.

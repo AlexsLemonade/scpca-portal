@@ -22,17 +22,17 @@ def send_email(
     body_text: str,
     body_html: str,
     sender: str = settings.EMAIL_SENDER,
-):
+) -> None:
     ses = boto3.client("ses", region_name=settings.AWS_REGION)
 
-    bcc_addressses = [settings.SLACK_NOTIFICATIONS_EMAIL]
+    bcc_addresses = [settings.SLACK_NOTIFICATIONS_EMAIL]
     # dont double send emails to slack
     if settings.SLACK_NOTIFICATIONS_EMAIL is recipient:
-        bcc_addressses = []
+        bcc_addresses = []
 
     ses.send_email(
         Source=sender,
-        Destination={"ToAddresses": [recipient], "BccAddresses": bcc_addressses},
+        Destination={"ToAddresses": [recipient], "BccAddresses": bcc_addresses},
         Message={
             "Subject": {"Data": subject, "Charset": settings.EMAIL_CHARSET},
             "Body": {

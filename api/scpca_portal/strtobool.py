@@ -1,7 +1,7 @@
 # NOTE: To prevent circular import errors, this file can not be imported via /__init__.py
 # Replacement of distutils.utils.strtobool:
 # https://github.com/python/cpython/blob/e1a8a0393cd0869b72b6be559a2b145f1ff8c169/Lib/distutils/util.py#L308C1-L321C60
-def strtobool(val):
+def strtobool(val: str) -> int:
     """Convert a string representation of truth to true (1) or false (0).
 
     True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
