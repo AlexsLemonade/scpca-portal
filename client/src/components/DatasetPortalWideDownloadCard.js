@@ -17,7 +17,8 @@ const DatasetCopyLinkButton = dynamic(() => import('./DatasetCopyLinkButton'), {
 export const DatasetPortalWideDownloadCard = ({
   title,
   datasets = [],
-  metadataOnly = false
+  metadataOnly = false,
+  cardWidth = '628px'
 }) => {
   const { responsive } = useResponsive()
 
@@ -41,7 +42,7 @@ export const DatasetPortalWideDownloadCard = ({
   }, [datasets, includesMerged])
 
   return (
-    <Box elevation="medium" background="white" pad="24px" width="full">
+    <Box elevation="medium" background="white" pad="24px" width={cardWidth}>
       <Box
         border={{ side: 'bottom' }}
         margin={{ bottom: '24px' }}
@@ -75,7 +76,7 @@ export const DatasetPortalWideDownloadCard = ({
           direction={responsive('column', 'row')}
           gap="large"
         >
-          <Box direction="column">
+          <Box align="start" direction="column" fill>
             {showDownloadSize && (
               <Text margin={{ bottom: 'small' }} weight="bold">
                 Size:{' '}
@@ -84,14 +85,10 @@ export const DatasetPortalWideDownloadCard = ({
                   : 'N/A'}
               </Text>
             )}
-            <Box
-              direction={responsive('column', 'row')}
-              gap="24px"
-              margin={{ bottom: 'small' }}
-            >
-              <CCDLDatasetDownloadModalContextProvider datasets={[dataset]}>
-                <CCDLDatasetDownloadModal label="Download" />
-              </CCDLDatasetDownloadModalContextProvider>
+            <CCDLDatasetDownloadModalContextProvider datasets={[dataset]}>
+              <CCDLDatasetDownloadModal label="Download" />
+            </CCDLDatasetDownloadModalContextProvider>
+            <Box margin={{ top: 'large' }} fill>
               {showCopyLinkButton && (
                 <DatasetCopyLinkButton dataset={dataset} />
               )}

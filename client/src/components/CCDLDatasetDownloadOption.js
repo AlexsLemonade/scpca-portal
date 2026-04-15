@@ -56,19 +56,19 @@ export const CCDLDatasetDownloadOption = () => {
         <Paragraph>The download consists of the following items:</Paragraph>
         <DatasetFileItems dataset={selectedDataset} />
       </Box>
-      <Box gridArea="footer" margin={{ top: 'medium' }}>
-        <Grid columns={responsive('1', '1/2')} gap="large">
-          <Button
-            primary
-            alignSelf="start"
-            aria-label={downloadLabel}
-            label={downloadLabel}
-            onClick={() => {
-              setDownloadDataset(true)
-            }}
-          />
+      <Box gridArea="footer" margin={{ top: 'large' }}>
+        <Button
+          primary
+          alignSelf="start"
+          aria-label={downloadLabel}
+          label={downloadLabel}
+          onClick={() => {
+            setDownloadDataset(true)
+          }}
+        />
+        <Box margin={{ top: 'large' }}>
           <DatasetCopyLinkButton dataset={selectedDataset} />
-        </Grid>
+        </Box>
       </Box>
     </Grid>
   )

@@ -1,12 +1,40 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { genericPortalWideDocsLink } from 'config/ccdlDatasets'
-import { Anchor, Box, Grid, Text } from 'grommet'
+import {
+  Anchor,
+  Box,
+  Tab as GrommetTab,
+  Tabs as GrommetTabs,
+  Text
+} from 'grommet'
 import { api } from 'api'
 import { HeroBandPortalWide } from 'components/Band'
 import { DatasetPortalWideDownloadCard } from 'components/DatasetPortalWideDownloadCard'
 import { useResponsive } from 'hooks/useResponsive'
+import styled from 'styled-components'
 
+const Tabs = styled(GrommetTabs)`
+  [role='tabpanel'] {
+    padding: 35px;
+  }
+`
+
+const Tab = styled(GrommetTab)`
+  > div {
+    &:nth-child(1) {
+      span {
+        font-size: 28px;
+      }
+    }
+    &:nth-child(2) {
+      padding: 35px;
+    }
+  }
+`
 const PortalWideDownloads = ({ datasets }) => {
+  const [activeIndex, setActiveIndex] = useState(0)
+  const onActive = (nextIndex) => setActiveIndex(nextIndex)
+
   const metadataDatasets = datasets.filter(
     (dataset) => dataset.format === 'METADATA'
   )
@@ -86,26 +114,28 @@ const PortalWideDownloads = ({ datasets }) => {
             into 1 object.
             <br />A separate spatial only download is also available.
           </Text>
-          <Grid
-            columns={responsive(['auto'], ['1/2', '1/2'])}
-            rows={['auto', 'auto']}
-            gap="xxlarge"
-            pad={{ vertical: 'medium' }}
-            width={responsive('100%', '80%')}
-          >
-            <DatasetPortalWideDownloadCard
-              title="SingleCellExperiment (R) Download"
-              datasets={singleCellExperimentDatasets}
-            />
-            <DatasetPortalWideDownloadCard
-              title="AnnData (Python) Download"
-              datasets={anndataDatasets}
-            />
-            <DatasetPortalWideDownloadCard
-              title="Spatial Download"
-              datasets={spatialDatasets}
-            />
-          </Grid>
+          <Box gap="xxlarge" pad={{ vertical: 'medium' }}>
+            <Tabs activeIndex={activeIndex} onActive={onActive}>
+              <Tab title="SingleCellExperiment (R)">
+                <DatasetPortalWideDownloadCard
+                  title="SingleCellExperiment (R) Download"
+                  datasets={singleCellExperimentDatasets}
+                />
+              </Tab>
+              <Tab title="AnnData (Python)" justify="center">
+                <DatasetPortalWideDownloadCard
+                  title="AnnData (Python) Download"
+                  datasets={anndataDatasets}
+                />
+              </Tab>
+              <Tab title="Spatial">
+                <DatasetPortalWideDownloadCard
+                  title="Spatial Download"
+                  datasets={spatialDatasets}
+                />
+              </Tab>
+            </Tabs>
+          </Box>
         </Box>
       </Box>
     </>

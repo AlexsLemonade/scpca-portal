@@ -63,11 +63,7 @@ export const DatasetHeroReady = ({ dataset }) => {
             <Text margin={{ bottom: 'small' }} weight="bold">
               Uncompressed size: {formatBytes(dataset.estimated_size_in_bytes)}
             </Text>
-            <Box
-              direction={responsive('column', 'row')}
-              gap="24px"
-              margin={{ bottom: 'small' }}
-            >
+            <Box align="start" gap="24px" margin={{ bottom: 'small' }}>
               <Button
                 primary
                 aria-label="Download"
@@ -75,6 +71,8 @@ export const DatasetHeroReady = ({ dataset }) => {
                 disabled={isDownloadDisabled}
                 onClick={handleDownload}
               />
+            </Box>
+            <Box>
               <DatasetCopyLinkButton dataset={dataset} />
             </Box>
           </Box>
