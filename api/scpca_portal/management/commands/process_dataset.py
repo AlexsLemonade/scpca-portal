@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 from django.core.management.base import BaseCommand
 
 from scpca_portal.config.logging import get_and_configure_logger
@@ -15,10 +17,10 @@ class Command(BaseCommand):
     Processing details can be found in: scpca_portal.job_processors.DatasetJobProcessor
     """
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("--job-id", type=str)
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.process_dataset(**kwargs)
 
     def process_dataset(self, job_id: str, **kwargs) -> None:

@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -10,7 +12,7 @@ logger = get_and_configure_logger(__name__)
 class Command(BaseCommand):
     help = """Deletes all data related to a project with ScPCA ID `scpca_id`."""
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument(
             "--delete-from-s3",
             action="store_true",
@@ -27,7 +29,7 @@ class Command(BaseCommand):
             type=str,
         )
 
-    def handle(self, *args, **options):
+    def handle(self, *args, **options) -> None:
         try:
             project = Project.objects.get(scpca_id=options["scpca_id"])
             logger.info(f"Purging '{project}'")

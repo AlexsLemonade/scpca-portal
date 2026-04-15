@@ -1,4 +1,4 @@
-from argparse import BooleanOptionalAction
+from argparse import ArgumentParser, BooleanOptionalAction
 
 from django.core.management.base import BaseCommand
 
@@ -13,14 +13,14 @@ class Command(BaseCommand):
     Use the --retry flag to create new retry jobs.
     """
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("--reason", type=str, default="Terminated via API")
         parser.add_argument("--retry", action=BooleanOptionalAction, default=True)
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.terminate_batch_jobs(**kwargs)
 
-    def terminate_batch_jobs(self, reason, retry: bool = False, **kwargs):
+    def terminate_batch_jobs(self, reason: str, retry: bool = False, **kwargs) -> None:
         logger.info("Terminating jobs on AWS Batch...")
         terminated_jobs = Job.terminate_processing(reason)
 
