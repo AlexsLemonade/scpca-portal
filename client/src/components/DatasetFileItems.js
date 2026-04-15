@@ -7,7 +7,11 @@ export const DatasetFileItems = ({ dataset }) => {
   const items = getCCDLDatasetFileItems(dataset)
 
   return (
-    <Box as="ul" pad={{ left: 'large' }} style={{ listStyle: 'disc' }}>
+    <Box
+      as="ul"
+      pad={{ bottom: 'large', left: 'large' }}
+      style={{ listStyle: 'disc' }}
+    >
       {items.map((item) => (
         <Box key={item} as="li" style={{ display: 'list-item' }}>
           {item}
