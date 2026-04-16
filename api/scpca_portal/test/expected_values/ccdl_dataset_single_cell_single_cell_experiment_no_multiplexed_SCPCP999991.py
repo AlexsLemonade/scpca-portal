@@ -40,4 +40,5 @@ class CCDLDatasetSingleCellSingleCellExperimentNoMultiplexedSCPCP999991:
         "ccdl_name": CCDL_NAME,
         "ccdl_project_id": PROJECT_ID,
         "ccdl_modality": Modalities.SINGLE_CELL,
+        "ccdl_is_merged": False,
     }
