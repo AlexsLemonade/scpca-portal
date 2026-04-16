@@ -7,6 +7,7 @@ import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useDataset } from 'hooks/useDataset'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesTableOptionsHeader } from 'components/ProjectSamplesTableOptionsHeader'
+import { Badge } from 'components/Badge'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
@@ -46,11 +47,14 @@ export const ViewSamples = ({ dataset, project }) => {
     <Box gap="large" fill margin={{ bottom: 'large' }}>
       <Box align="start" gap="large">
         <Button label="Back to Dataset" onClick={handleBackToDataset} />
-        <Link href={`/projects/${project.scpca_id}`} newTab>
-          <Text weight="bold" color="brand" size="large">
-            {project.title}
-          </Text>
-        </Link>
+        <Box gap="small">
+          <Badge badge="Number" label={project.scpca_id} />
+          <Link href={`/projects/${project.scpca_id}`} newTab>
+            <Text weight="bold" color="brand" size="large">
+              {project.title}
+            </Text>
+          </Link>
+        </Box>
       </Box>
       <ProjectSamplesTableContextProvider
         project={project}
