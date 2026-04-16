@@ -14,6 +14,7 @@ class CCDLDatasetSerializer(serializers.ModelSerializer):
             "ccdl_name",
             "ccdl_project_id",
             "ccdl_modality",
+            "ccdl_is_merged",
             "data_hash",
             "metadata_hash",
             "readme_hash",

@@ -29,6 +29,7 @@ class CCDLDatasetViewSet(viewsets.ReadOnlyModelViewSet):
         "ccdl_name": ["exact"],
         "ccdl_project_id": ["exact", "isnull"],
         "ccdl_modality": ["exact"],
+        "ccdl_is_merged": ["exact"],
         "format": ["exact"],
     }
 
