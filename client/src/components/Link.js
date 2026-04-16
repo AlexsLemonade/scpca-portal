@@ -35,18 +35,16 @@ export const Link = ({
       {children}
     </LinkAnchor>
   ) : (
-    <NextLink href={href} legacyBehavior>
-      <LinkAnchor
-        color={color}
-        href={href}
-        label={label}
-        icon={icon}
-        as={as}
-        underline={underline}
-      >
-        {children}
-      </LinkAnchor>
-    </NextLink>
+    <LinkAnchor
+      color={color}
+      href={href}
+      label={label}
+      icon={icon}
+      forwardedAs={NextLink}
+      underline={underline}
+    >
+      {children}
+    </LinkAnchor>
   )
 }
 

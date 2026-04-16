@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api } from 'api'
 import { config } from 'config'
 import { allModalities } from 'config/datasets'
+import { keys } from 'config/translations'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
@@ -11,7 +12,6 @@ import { useProjectSamplesTable } from 'hooks/useProjectSamplesTable'
 import { differenceArray } from 'helpers/differenceArray'
 import { getProjectModalities } from 'helpers/getProjectModalities'
 import { getReadable } from 'helpers/getReadable'
-import { getReadableModality } from 'helpers/getReadableModality'
 import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { Icon } from 'components/Icon'
 import { Link } from 'components/Link'
@@ -23,7 +23,7 @@ import { Table } from 'components/Table'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { WarningAnnDataMultiplexed } from 'components/WarningAnnDataMultiplexed'
 
-export const ProjectSamplesTable = ({ stickies = 3 }) => {
+export const ProjectSamplesTable = ({ stickies = 3, children }) => {
   const { datasets } = useCCDLDatasetDownloadModalContext()
   const { getDatasetProjectDataSamples } = useDataset()
   const { myDataset, isDatasetDataEmpty, getMyDatasetProjectDataSamples } =
@@ -119,7 +119,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     {
       header: 'Modalities',
       accessorFn: ({ modalities }) =>
-        modalities.map(getReadableModality).join(', ')
+        modalities.map((m) => getReadable(m, keys)).join(', ')
     },
     {
       header: 'Sequencing Units',
@@ -204,7 +204,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
     if (!allSamples.length || !samples) return
 
     // Run only when the dataset contains data
-    if (!dataset.data && isDatasetDataEmpty) return
+    if (!dataset?.data && isDatasetDataEmpty) return
 
     // Use dataset on /datasets, otherwise use myDataset for setup
     const projectData = dataset
@@ -239,8 +239,8 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
         data={samples}
         filter
         stickies={stickies}
-        pageSize={5}
-        pageSizeOptions={[5, 10, 20, 50]}
+        pageSize={1000}
+        pageSizeOptions={[1000]} // Temporary value
         infoText={infoText}
         text={text}
         defaultSort={[{ id: 'scpca_id', asc: true }]}
@@ -262,6 +262,7 @@ export const ProjectSamplesTable = ({ stickies = 3 }) => {
           <WarningAnnDataMultiplexed />
         )}
       </Table>
+      <Box>{children}</Box>
     </>
   )
 }

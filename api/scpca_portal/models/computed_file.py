@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict
+from typing import TYPE_CHECKING, Dict
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -14,6 +14,10 @@ from scpca_portal.exceptions import DatasetLockedProjectError, DatasetMissingLib
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
+
+if TYPE_CHECKING:
+    from scpca_portal.models import CCDLDataset, DatasetABC
+
 
 logger = get_and_configure_logger(__name__)
 
@@ -127,7 +131,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return parent_dir
 
     @staticmethod
-    def get_original_file_zip_path(original_file: OriginalFile, dataset) -> Path:
+    def get_original_file_zip_path(original_file: OriginalFile, dataset: "DatasetABC") -> Path:
         """Return an original file's path for the zip file being computed."""
         # always remove project directory
         zip_file_path = original_file.s3_key_path.relative_to(
@@ -149,7 +153,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @staticmethod
     def get_metadata_file_zip_path(
-        dataset, project_id: str | None = None, modality: Modalities | None = None
+        dataset: "DatasetABC", project_id: str | None = None, modality: Modalities | None = None
     ) -> Path:
         """Return metadata file path, modality name inside of project_modality directory."""
         # Metadata only downloads are not associated with a specific project_id or modality
@@ -166,15 +170,18 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return Path(metadata_dir) / Path(metadata_file_name_path)
 
     @classmethod
-    def get_dataset_file_s3_key(cls, dataset) -> str:
+    def get_dataset_file_s3_key(cls, dataset: "DatasetABC") -> str:
         return f"{dataset.id}.zip"
 
     # # TODO: TEMP translation for dataset -> computed file enums
     @classmethod
-    def get_output_file_format(cls, dataset) -> str | None:
+    def get_output_file_format(cls, dataset: "DatasetABC") -> str | None:
         match dataset.format:
             case DatasetFormats.SINGLE_CELL_EXPERIMENT:
-                if dataset.ccdl_modality == Modalities.SPATIAL:
+                if (
+                    type(dataset).__name__ == "CCDLDataset"
+                    and dataset.ccdl_modality == Modalities.SPATIAL
+                ):
                     return cls.OutputFileFormats.SPATIAL_SPACERANGER
                 else:
                     return cls.OutputFileFormats.SINGLE_CELL_EXPERIMENT
@@ -186,7 +193,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 return None
 
     @classmethod
-    def get_output_file_modality(cls, dataset) -> str | None:
+    def get_ccdl_dataset_output_file_modality(cls, dataset: "CCDLDataset") -> str | None:
         match dataset.ccdl_type.get("modality"):
             case Modalities.SINGLE_CELL:
                 return cls.OutputFileModalities.SINGLE_CELL
@@ -196,7 +203,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 return None
 
     @classmethod
-    def get_dataset_file(cls, dataset) -> Self:
+    def get_dataset_file(cls, dataset: "DatasetABC") -> Self:
         """
         Computes a given dataset's zip archive and returns a corresponding ComputedFile object.
         """
@@ -232,7 +239,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 )
 
         computed_file = cls(
-            dataset=dataset,
             has_bulk_rna_seq=(
                 any(
                     True
@@ -246,7 +252,11 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             format=cls.get_output_file_format(dataset),
             includes_celltype_report=dataset.projects.filter(samples__is_cell_line=False).exists(),
             includes_merged=dataset.includes_files_merged,
-            modality=cls.get_output_file_modality(dataset),
+            modality=(
+                cls.get_ccdl_dataset_output_file_modality(dataset)
+                if type(dataset).__name__ == "CCDLDataset"
+                else None
+            ),
             metadata_only=dataset.format == DatasetFormats.METADATA,
             s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
             s3_key=cls.get_dataset_file_s3_key(dataset),
@@ -255,6 +265,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
                 library.workflow_version for library in dataset.libraries
             ),
         )
+        dataset.computed_file = computed_file
 
         return computed_file
 

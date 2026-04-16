@@ -3,7 +3,7 @@ const path = require('path')
 module.exports = () => {
   const isProduction = process.env.VERCEL_GIT_COMMIT_REF === 'main'
 
-  // eslint-disable-next-line prettier/prettier, no-console
+  // eslint-disable-next-line no-console
   console.log(
     'CCDL BUILD LOG:',
     process.env.VERCEL_GIT_COMMIT_REF,
@@ -25,7 +25,7 @@ module.exports = () => {
     CONTRIBUTIONS_OPEN: process.env.CONTRIBUTIONS_OPEN,
     CLIENT_SECRET: process.env.CLIENT_SECRET,
     CELLBROWSER_SECRET: process.env.CELLBROWSER_SECRET,
-    CELLBROWSER_STATIC_HOST: process.env.CELLBROWSER_STATIC_HOST,
+    CELLBROWSER_STATIC_HOST: process.env.CELLBROWSER_STATIC_HOST
   }
 
   const stageEnv = {
@@ -43,7 +43,7 @@ module.exports = () => {
     CONTRIBUTIONS_OPEN: process.env.STAGE_CONTRIBUTIONS_OPEN,
     CLIENT_SECRET: process.env.STAGE_CLIENT_SECRET,
     CELLBROWSER_SECRET: process.env.STAGE_CELLBROWSER_SECRET,
-    CELLBROWSER_STATIC_HOST: process.env.STAGE_CELLBROWSER_STATIC_HOST,
+    CELLBROWSER_STATIC_HOST: process.env.STAGE_CELLBROWSER_STATIC_HOST
   }
 
   const env = isProduction ? productionEnv : stageEnv
@@ -58,8 +58,50 @@ module.exports = () => {
         test: /\.md$/,
         use: ['raw-loader', 'template-literal-loader']
       })
+
+      const svgLoaderRule = config.module.rules.find((r) =>
+        r.test?.test?.('.svg')
+      )
+      if (!svgLoaderRule) {
+        throw new Error('Could not find Next.js file loader rule for SVGs.')
+      }
+      // append `?url` to the import for an image source url
+      svgLoaderRule.resourceQuery = /url/
+
+      config.module.rules.push({
+        test: /\.svg$/i,
+        issuer: /\.[jt]sx?$/,
+        resourceQuery: { not: /url/ },
+        use: [
+          {
+            loader: '@svgr/webpack',
+            options: {
+              svgoConfig: {
+                plugins: [
+                  {
+                    name: 'preset-default',
+                    params: {
+                      overrides: {
+                        cleanupIds: false,
+                        removeViewBox: false
+                      }
+                    }
+                  },
+                  {
+                    name: 'prefixIds',
+                    params: {
+                      prefix: true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      })
+
       return config
     },
-    skipTrailingSlashRedirect: true,
+    skipTrailingSlashRedirect: true
   }
 }

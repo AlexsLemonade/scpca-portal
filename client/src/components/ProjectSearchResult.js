@@ -1,7 +1,10 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
 import { Download as DownloadIcon } from 'grommet-icons'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 import { useResponsive } from 'hooks/useResponsive'
+import { formatDiagnosisCounts } from 'helpers/formatCounts'
+import { getReadable } from 'helpers/getReadable'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
@@ -9,8 +12,6 @@ import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
-import { formatDiagnosisCounts } from 'helpers/formatCounts'
-import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
 
 export const ProjectSearchResult = ({ project, ccdlDatasets }) => {
   const { responsive } = useResponsive()
@@ -21,6 +22,17 @@ export const ProjectSearchResult = ({ project, ccdlDatasets }) => {
   )
 
   const searchDetails = [
+    {
+      title: 'Available Modalities',
+      value:
+        Object.keys(project.modalities).length > 0 ? (
+          <Text>
+            {project.modalities.map((m) => getReadable(m)).join(', ')}
+          </Text>
+        ) : (
+          ''
+        )
+    },
     {
       title: 'Diagnosis',
       value:
