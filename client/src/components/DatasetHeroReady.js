@@ -39,58 +39,68 @@ export const DatasetHeroReady = ({ dataset }) => {
   }
 
   return (
-    <Grid
-      areas={responsive(
-        [['header'], ['img'], ['content']],
-        [
-          ['header', 'header'],
-          ['content', 'img']
-        ]
-      )}
-      columns={responsive(['auto'], ['3/5', '2/5'])}
-      justifyContent="center"
-    >
-      <Box gridArea="header" margin={{ bottom: 'medium' }}>
-        <Heading level={1} serif size="38px">
-          Your dataset is ready!
-        </Heading>
-      </Box>
-      <Box gridArea="content" pad={{ right: 'xlarge' }}>
-        {token ? (
-          <Box direction="column">
-            <Paragraph size="21px">
-              Your dataset will be available for immediate download for 7 days.
-            </Paragraph>
-            <Paragraph size="21px" margin={{ bottom: 'medium' }}>
-              After it expires, you can come back to this page to regenerate and
-              download the dataset.
-            </Paragraph>
-            <Text margin={{ bottom: 'small' }} weight="bold">
-              Uncompressed size: {formatBytes(dataset.estimated_size_in_bytes)}
-            </Text>
-            <Box
-              direction={responsive('column', 'row')}
-              gap="24px"
-              margin={{ bottom: 'small' }}
-            >
-              <Button
-                primary
-                aria-label="Download"
-                label="Download"
-                disabled={isDownloadDisabled}
-                onClick={handleDownload}
-              />
-              <DatasetCopyLinkButton dataset={dataset} />
-            </Box>
-          </Box>
-        ) : (
-          <DatasetDownloadForm />
+    <>
+      <Grid
+        areas={responsive(
+          [['header'], ['img'], ['content']],
+          [
+            ['header', 'header'],
+            ['content', 'img']
+          ]
         )}
-      </Box>
-      <Box gridArea="img" align={responsive('center', 'start')}>
-        <DownloadReady />
-      </Box>
-    </Grid>
+        columns={responsive(['auto'], ['3/5', '2/5'])}
+        justifyContent="center"
+      >
+        <Box gridArea="header" margin={{ bottom: 'medium' }}>
+          <Heading level={1} serif size="38px">
+            Your dataset is ready!
+          </Heading>
+        </Box>
+        <Box gridArea="content" pad={{ right: 'xlarge' }}>
+          {token ? (
+            <Box direction="column">
+              <Paragraph size="21px">
+                Your dataset will be available for immediate download for 7
+                days.
+              </Paragraph>
+              <Paragraph size="21px" margin={{ bottom: 'medium' }}>
+                After it expires, you can come back to this page to regenerate
+                and download the dataset.
+              </Paragraph>
+              <Text margin={{ bottom: 'small' }} weight="bold">
+                Uncompressed size:{' '}
+                {formatBytes(dataset.estimated_size_in_bytes)}
+              </Text>
+              <Box align="start" gap="24px" margin={{ bottom: 'small' }}>
+                <Button
+                  primary
+                  aria-label="Download"
+                  label="Download"
+                  disabled={isDownloadDisabled}
+                  onClick={handleDownload}
+                />
+              </Box>
+            </Box>
+          ) : (
+            <DatasetDownloadForm />
+          )}
+        </Box>
+        <Box gridArea="img" align={responsive('center', 'start')}>
+          <DownloadReady />
+        </Box>
+      </Grid>
+      {token && (
+        <Box
+          border={{ side: 'top', color: 'border-black', size: 'small' }}
+          margin={{ top: 'xlarge' }}
+          pad={{ top: 'large', horizontal: responsive('', 'xxlarge') }}
+        >
+          <Box>
+            <DatasetCopyLinkButton dataset={dataset} />
+          </Box>
+        </Box>
+      )}
+    </>
   )
 }
 
