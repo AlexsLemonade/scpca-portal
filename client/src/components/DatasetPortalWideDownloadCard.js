@@ -56,7 +56,7 @@ export const DatasetPortalWideDownloadCard = ({
         <>
           <DatasetFileItems dataset={dataset} />
           {datasets?.length > 1 && (
-            <Box direction="row" margin={{ bottom: '24px' }}>
+            <Box direction="row" margin={{ top: 'large' }}>
               <CheckBox
                 label="Merge samples into one object per project"
                 checked={includesMerged}
@@ -75,6 +75,7 @@ export const DatasetPortalWideDownloadCard = ({
           align={responsive('start', 'center')}
           direction={responsive('column', 'row')}
           gap="large"
+          margin={{ top: '24px' }}
         >
           <Box align="start" direction="column" fill>
             {showDownloadSize && (

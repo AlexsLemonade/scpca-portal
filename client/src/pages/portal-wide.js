@@ -99,6 +99,7 @@ const PortalWideDownloads = ({ datasets }) => {
                 title="Sample Metadata Download"
                 datasets={metadataDatasets}
                 metadataOnly
+                cardWidth="fill"
               />
             </Box>
           </Box>
