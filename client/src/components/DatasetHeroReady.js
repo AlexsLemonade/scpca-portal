@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Grid, Heading, Paragraph, Text } from 'grommet'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
+import { useAnalytics } from 'hooks/useAnalytics'
 import { useResponsive } from 'hooks/useResponsive'
 import { api } from 'api'
 import { formatBytes } from 'helpers/formatBytes'
+import { getDateISO } from 'helpers/getDateISO'
 import { Button } from 'components/Button'
 import { DatasetCopyLinkButton } from 'components/DatasetCopyLinkButton'
 import { DatasetDownloadForm } from 'components/DatasetDownloadForm'
@@ -11,16 +13,17 @@ import DownloadReady from '../images/download-folder.svg'
 
 export const DatasetHeroReady = ({ dataset }) => {
   const { responsive } = useResponsive()
-  const { token } = useScPCAPortal()
+  const { email, token, surveyListForm } = useScPCAPortal()
+  const { trackDataset } = useAnalytics()
 
-  const [downloadLink, setDownloadLink] = useState(null)
+  const [downloadableDataset, setDownloadableDataset] = useState(null)
 
   // Set download link if token is available on component mount
   useEffect(() => {
     const asyncFetch = async () => {
       const downloadRequest = await api.datasets.get(dataset.id, token)
       if (downloadRequest.isOk) {
-        setDownloadLink(downloadRequest.response.download_url)
+        setDownloadableDataset(downloadRequest.response)
       }
     }
 
@@ -30,7 +33,9 @@ export const DatasetHeroReady = ({ dataset }) => {
   const isDownloadDisabled = !token || !dataset.computed_file
 
   const handleDownload = () => {
-    window.location.href = downloadLink
+    trackDataset(downloadableDataset)
+    surveyListForm.submit({ email, scpca_last_download_date: getDateISO() })
+    window.open(downloadableDataset.download_url)
   }
 
   return (
