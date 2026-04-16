@@ -159,48 +159,38 @@ else:
         API_TOKEN = f.readlines()[0].strip()
 
 # 2. Prepare Dataset
-# SAMPLES
-# See available diagnoses at https://api.scpca.alexslemonade.org/v1/project-options
-# Query samples in ANN_DATA format containing the specified diagnosis
-# - Set has_single_cell_data to True for SINGLE_CELL modality samples
-# - Set includes_anndata to True for samples in ANN_DATA format
-query = {"diagnosis": "Neuroblastoma", "has_single_cell_data": True, "includes_anndata": True}
+# PROJECTS
+# See available project options at https://api.scpca.alexslemonade.org/v1/project-options
+# Query projects in SINGLE_CELL_EXPERIMENT containing the following diagnoses and including merged objects:
+# - diagnoses can also be a list (e.g., ['Ganglioglioma', 'Ependymoma'])
+# - Set includes_merged_sce to True for merged objects
+query = {"diagnoses": "Ganglioglioma", "includes_merged_sce": True}
 
-queried_samples = request_api("samples", query=query).get("results", [])
+queried_projects = request_api("projects", query=query).get("results", [])
 
-if not queried_samples:
-    print("No samples are available. Existing...")
+if not queried_projects:
+    print("No projects are available. Existing...")
     sys.exit(0)
 
-print(f"Found {len(queried_samples)} samples for query:")
+print(f"Found {len(queried_projects)} projects for query:")
 pp(query)
 
-# Populate a dataset from queried_samples
+# Populate a dataset from queried_projects
 dataset = {
-    "format": "ANN_DATA",  # Required upon dataset creation
+    "format": "SINGLE_CELL_EXPERIMENT",  # Required upon dataset creation
     "data": {},
     "start": PROCESS_DATASET,
     "email": API_TOKEN_EMAIL,
 }
 
-# NOTE: Bulk RNA-seq data will be excluded in this example (i.e., includes_bulk).
-for sample in queried_samples:
-    project_id = sample["project"]
-    sample_id = sample["scpca_id"]
-
-    # Initialize the project data
-    if project_id not in dataset["data"]:
-        dataset["data"][project_id] = {
-            "SINGLE_CELL": [],
-            "SPATIAL": [],
-            "includes_bulk": False,
-        }
-
-    if sample["has_single_cell_data"]:
-        dataset["data"][project_id]["SINGLE_CELL"].append(sample_id)
-
-    if sample["has_spatial_data"]:
-        dataset["data"][project_id]["SPATIAL"].append(sample_id)
+# NOTE: Replace "MERGED" with .modality_samples.SINGLE_CELL for individual samples.
+# NOTE: Bulk RNA-seq data will be included if available. Set includes_bulk to False to exclude it.
+for project in queried_projects:
+    dataset["data"][project["scpca_id"]] = {
+        "SINGLE_CELL": "MERGED",  # Mark all single-cell samples as one merged object
+        "SPATIAL": project["modality_samples"]["SPATIAL"],
+        "includes_bulk": project["has_bulk_rna_seq"],
+    }
 
 print("Dataset Structure:")
 pp(dataset)
@@ -243,7 +233,7 @@ if WAIT_FOR_DOWNLOAD:
 
         if dataset["is_failed"] == True:
             print("Dataset processing failed. Exiting...")
-            sys.exit(1)
+            sys.exit(0)
 
     download_url = dataset["download_url"]
     print(f"Downloading: {download_url}")
