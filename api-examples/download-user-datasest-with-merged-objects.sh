@@ -77,55 +77,52 @@ else
 fi
 
 # 2. Prepare Dataset
-# See available diagnoses at https://api.scpca.alexslemonade.org/v1/project-options
-# Query single-cell samples in ANN_DATA format containing the specified diagnosis
-# - Set has_single_cell_data to true for samples with SINGLE_CELL modality
-# - Set includes_anndata to true for ANN_DATA format
-DIAGNOSIS=Neuroblastoma
-HAS_SINGLE_CELL_DATA=true
-INCLUDES_ANNDATA=true
+# See available project options at https://api.scpca.alexslemonade.org/v1/project-options
+# Query projects in SINGLE_CELL_EXPERIMENT containing the following diagnoses and including merged objects:
+# - diagnoses can also be comma separated (e.g., diagnoses=Ganglioglioma, Ependymoma)
+# - Set includes_merged_sce to true for merged objects
+DIAGNOSES=Ganglioglioma
+INCLUDES_MERGED_SCE=true
 LIMIT=2000 # Ignore pagination in this example
 
-SAMPLES_RESPONSE=$(curl -s --get \
-    "${API_ROOT}/samples/" \
+PROJECTS_RESPONSE=$(curl -s --get \
+    "${API_ROOT}/projects/" \
     -H "Content-Type: application/json" \
-    -d "diagnosis=$DIAGNOSIS" \
-    -d "has_single_cell_data=$HAS_SINGLE_CELL_DATA" \
-    -d "includes_anndata=$INCLUDES_ANNDATA" \
+    -d "diagnoses=$DIAGNOSES" \
+    -d "includes_merged_sce=$INCLUDES_MERGED_SCE" \
     -d "limit=$LIMIT"
- )
+)
 
-SAMPLE_COUNT=$(echo "$SAMPLES_RESPONSE" | jq '.count')
+PROJECT_COUNT=$(echo "$PROJECTS_RESPONSE" | jq '.count')
 
-if [ -z "$SAMPLE_COUNT" ]; then
+if [ -z "$PROJECT_COUNT" ]; then
   # Uh oh, something happened so print the response.
-  echo "Error in querying samples:"
-  echo "$SAMPLES_RESPONSE" | jq
+  echo "Error in querying projects:"
+  echo "$PROJECTS_RESPONSE" | jq
   echo "Exiting..."
   exit 1
 fi
 
-if [ "$SAMPLE_COUNT" = 0 ]; then
-  echo "No samples found. Exiting..."
+if [ "$PROJECT_COUNT" = 0 ]; then
+  echo "No projects found. Exiting..."
   exit 0
 fi
 
-echo "Found $SAMPLE_COUNT samples for the query"
+echo "Found $PROJECT_COUNT projects for the query."
 
-# Populate a dataset from the queried samples
-QUERIED_SAMPLES=$(echo "$SAMPLES_RESPONSE" | jq '.results')
+# Populate a dataset from the queried projects
+QUERIED_PROJECTS=$(echo "$PROJECTS_RESPONSE" | jq '.results')
 # Steps:
-# 1. Pipe the results via jq, grouped by project IDs
-# 2. Map grouped results, where each key is a project ID and the value of SINGLE_CELL contains the sample IDs
-# 3. Convert the mapped array into a JSON object via jq from_entries
-# NOTE: Bulk RNA-seq data is excluded in this example (i.e., includes_bulk).
-# NOTE: SPATIAL modality is excluded in this example (i.e., SPATIAL).
-DATA=$(echo "$QUERIED_SAMPLES" | jq 'group_by(.project) | map({
-    key: .[0].project,
+# 1. Map the results via jq, where each key is a project ID and the value of SINGLE_CELL is 'MERGED'
+# 2. Convert the mapped array into a JSON object using from_entries
+# NOTE: Replace "MERGED" with .modality_samples.SINGLE_CELL for individual samples.
+# NOTE: Bulk RNA-seq data will be included if available. Set includes_bulk to false to exclude it.
+DATA=$(echo "$QUERIED_PROJECTS" | jq 'map({
+    key: .scpca_id,
     value: {
-      SINGLE_CELL: map(.scpca_id),
-      SPATIAL:[],
-      includes_bulk: false
+      "SINGLE_CELL": "MERGED",
+      "SPATIAL": .modality_samples.SPATIAL,
+      "includes_bulk": .has_bulk_rna_seq
     }
   }) | from_entries'
 )
@@ -136,7 +133,7 @@ DATASET=$(jq -n \
   --arg start "$PROCESS_DATASET" \
   --arg email "$API_TOKEN_EMAIL" \
  '{
-   "format": "ANN_DATA",
+   "format": "SINGLE_CELL_EXPERIMENT",
    "data": $data,
    "start": $start,
    "email": $email
