@@ -168,6 +168,10 @@ query = {"diagnoses": "Ganglioglioma", "includes_merged_sce": True}
 
 queried_projects = request_api("projects", query=query).get("results", [])
 
+if not queried_projects:
+    print("No projects are available. Existing...")
+    sys.exit(0)
+
 print(f"Found {len(queried_projects)} projects for query:")
 pp(query)
 
