@@ -38,8 +38,9 @@ class ArrayFieldContainsFilter(django_filters.BaseInFilter, django_filters.CharF
 def build_auto_filterset(
     model,
     auto_fields: list[str] = [],
-    extra_fields: dict[str, list[str]] = None,
-    extra_filters: dict = None,
+    extended_auto_field_lookups: dict[str, list[str]] = {},
+    extra_fields: dict[str, list[str]] = {},
+    extra_filters: dict = {},
 ):
     """
     Introspects a model and builds a FilterSet with sensible lookup expressions
@@ -48,6 +49,9 @@ def build_auto_filterset(
         model:          The Django model class to build a FilterSet for.
         auto_fields:    Optional allowlist of field names. Use this
                         to keep your public API surface intentional.
+        extended_auto_field_lookups:
+                        Optional dict of filters for specific auto fields
+                        as an extension from the per data type defaults
         extra_fields:   Additional model fields included in the public API
                         e.g. {"project__scpca_id": ["exact"]}.
         extra_filters:  Optional dict of additional filter instances to mix in,
@@ -78,6 +82,8 @@ def build_auto_filterset(
         for field_type, lookups in FILTER_LOOKUPS.items():
             if isinstance(field, field_type):
                 meta_fields[field.name] = lookups
+                if extended_lookup := extended_auto_field_lookups.get(field.name):
+                    meta_fields[field.name] += extended_lookup
                 break
 
     if extra_fields:
