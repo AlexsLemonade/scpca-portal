@@ -10,7 +10,6 @@ export const ScPCAPortalContext = createContext({})
 export const ScPCAPortalContextProvider = ({ children }) => {
   const [browseFilters, setBrowseFilters] = useState({})
   const [email, setEmail] = useLocalStorage('scpca-user-email')
-  const [myDataset, setMyDataset] = useLocalStorage('dataset', { data: {} })
   const [token, setToken] = useLocalStorage('scpca-api-token', false)
   const [acceptsTerms, setAcceptsTerms] = useLocalStorage(
     'scpca-api-terms',
@@ -20,6 +19,9 @@ export const ScPCAPortalContextProvider = ({ children }) => {
     'scpca-api-wants-emails',
     false
   )
+  const [myDataset, setMyDataset] = useLocalStorage('dataset', { data: {} })
+  // TODO REMOVE HOTFIX
+  if (!myDataset.data) myDataset.data = {} // hotfix
 
   const emailListForm = useHubspotForm(
     process.env.HUBSPOT_PORTAL_ID,
