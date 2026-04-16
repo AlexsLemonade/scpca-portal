@@ -6,7 +6,6 @@ import { useCopyToClipboard } from 'hooks/useCopyToClipboard'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useResponsive } from 'hooks/useResponsive'
 import { Button } from 'components/Button'
-import { HelpLink } from 'components/HelpLink'
 import { Modal, ModalBody } from 'components/Modal'
 import { Icon } from 'components/Icon'
 import { CCDLDatasetDownloadToken } from 'components/CCDLDatasetDownloadToken'
@@ -138,7 +137,6 @@ export const DatasetCopyLinkButton = ({ dataset }) => {
               disabled={isDisabled}
               onClick={handleCopy}
             />
-            <HelpLink link={config.links.what_copy_link} />
           </Box>
         </Grid>
       )}
