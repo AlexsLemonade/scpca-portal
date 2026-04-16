@@ -201,7 +201,7 @@ while true; do
 
   if [ "$IS_FAILED" = "true" ]; then
     echo "Dataset processing failed. Exiting..."
-    exit 0
+    exit 1
   fi
 
 done
