@@ -19,8 +19,8 @@ export const ViewEditSamples = ({ project }) => {
   const {
     myDataset,
     getMyDatasetProjectSamples,
-    isMyDatasetProjectIncludeBulk,
-    isMyDatasetProjectMerged
+    getMyDatasetProjectIsIncludeBulk,
+    getMyDatasetProjectIsMerged
   } = useMyDataset()
 
   const [loading, setLoading] = useState(true)
@@ -32,12 +32,12 @@ export const ViewEditSamples = ({ project }) => {
   //  Set up the dataset table and options after component mounts
   useEffect(() => {
     // Check to see if myDataset exists or if project was removed from myDataset
-    if (!myDataset?.data[project.scpca_id]) return
+    if (!myDataset.data[project.scpca_id]) return
     // Filter to display only samples from My Dataset
     setSamples(getMyDatasetProjectSamples(project))
     // Preselect download options based on the values in myDataset
-    setIncludeBulk(isMyDatasetProjectIncludeBulk(project))
-    setIncludeMerge(isMyDatasetProjectMerged(project))
+    setIncludeBulk(getMyDatasetProjectIsIncludeBulk(project))
+    setIncludeMerge(getMyDatasetProjectIsMerged(project))
     setLoading(false)
   }, [myDataset])
 

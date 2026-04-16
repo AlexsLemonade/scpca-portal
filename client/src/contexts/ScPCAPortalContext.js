@@ -10,6 +10,7 @@ export const ScPCAPortalContext = createContext({})
 export const ScPCAPortalContextProvider = ({ children }) => {
   const [browseFilters, setBrowseFilters] = useState({})
   const [email, setEmail] = useLocalStorage('scpca-user-email')
+  const [myDataset, setMyDataset] = useLocalStorage('dataset', { data: {} })
   const [token, setToken] = useLocalStorage('scpca-api-token', false)
   const [acceptsTerms, setAcceptsTerms] = useLocalStorage(
     'scpca-api-terms',
@@ -62,8 +63,10 @@ export const ScPCAPortalContextProvider = ({ children }) => {
   return (
     <ScPCAPortalContext.Provider
       value={{
-        setEmail,
         email,
+        setEmail,
+        myDataset,
+        setMyDataset,
         token,
         setToken,
         acceptsTerms,
