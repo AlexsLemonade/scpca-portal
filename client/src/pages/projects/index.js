@@ -44,82 +44,84 @@ const Project = ({ projects, count, filters, filterOptions, ccdlDatasets }) => {
   }
 
   return (
-    <>
-      <Box width="full" pad={responsive({ horizontal: 'medium' })}>
-        <Box pad={{ bottom: 'large' }}>
-          <Text serif size="xlarge">
-            Browse Projects
-          </Text>
-        </Box>
-        <Grid
-          rows={responsive(['auto', 'auto'], ['auto'])}
-          columns={responsive(['auto'], ['small', 'auto'])}
-          areas={responsive(
-            [
-              { name: 'filters', start: [0, 0], end: [0, 0] },
-              { name: 'results', start: [0, 1], end: [0, 1] }
-            ],
-            [
-              { name: 'filters', start: [0, 0], end: [0, 0] },
-              { name: 'results', start: [1, 0], end: [1, 0] }
-            ]
-          )}
-          direction="row"
-          gap="large"
-        >
-          <Box gridArea="filters">
-            <ResponsiveSheet
-              show={showFilters}
-              setShow={setShowFilters}
-              label="Show Filters"
-              loading={loading}
-            >
-              <Box width="small">
-                <Box direction="row" justify="between">
-                  <Text serif size="large">
-                    Filters
-                  </Text>
-                  <Anchor
-                    color="brand"
-                    label="clear all"
-                    disabled={!hasFilters}
-                    onClick={clearFilters}
-                  />
-                </Box>
-                <ProjectSearchFilter
-                  filters={browseFilters}
-                  filterOptions={filterOptions}
-                  onFilterChange={onFilterChange}
-                />
-              </Box>
-            </ResponsiveSheet>
-          </Box>
-          <Box gridArea="results" pad={{ bottom: 'medium' }}>
-            <Box direction="row" justify="between">
-              <Box flex="shrink">
-                <ProjectSearchFilterPills
-                  filters={browseFilters}
-                  onFilterChange={onFilterChange}
-                />
-              </Box>
-              <Box flex="grow">
-                <Text alignSelf="end">Number of Projects: {count}</Text>
-              </Box>
-            </Box>
-            {projects.map((p) => (
-              <Box key={p.scpca_id} margin={{ top: 'medium', bottom: 'small' }}>
-                <ProjectSearchResult
-                  project={p}
-                  ccdlDatasets={ccdlDatasets.filter(
-                    (d) => d.ccdl_project_id === p.scpca_id
-                  )}
-                />
-              </Box>
-            ))}
-          </Box>
-        </Grid>
+    <Box width="full" pad={responsive({ horizontal: 'medium' })}>
+      <Box pad={{ bottom: 'large' }}>
+        <Text serif size="xlarge">
+          Browse Projects
+        </Text>
       </Box>
-    </>
+      <Grid
+        rows={responsive(['auto', 'auto'], ['auto'])}
+        columns={responsive(['auto'], ['small', 'auto'])}
+        areas={responsive(
+          [
+            { name: 'filters', start: [0, 0], end: [0, 0] },
+            { name: 'results', start: [0, 1], end: [0, 1] }
+          ],
+          [
+            { name: 'filters', start: [0, 0], end: [0, 0] },
+            { name: 'results', start: [1, 0], end: [1, 0] }
+          ]
+        )}
+        direction="row"
+        gap="large"
+      >
+        <Box gridArea="filters">
+          <ResponsiveSheet
+            show={showFilters}
+            setShow={setShowFilters}
+            label="Show Filters"
+            loading={loading}
+          >
+            <Box width="small">
+              <Box
+                direction="row"
+                justify="between"
+                margin={{ bottom: 'medium' }}
+              >
+                <Text serif size="large">
+                  Filters
+                </Text>
+                <Anchor
+                  color="brand"
+                  label="clear all"
+                  disabled={!hasFilters}
+                  onClick={clearFilters}
+                />
+              </Box>
+              <ProjectSearchFilter
+                filters={browseFilters}
+                filterOptions={filterOptions}
+                onFilterChange={onFilterChange}
+              />
+            </Box>
+          </ResponsiveSheet>
+        </Box>
+        <Box gridArea="results" pad={{ bottom: 'medium' }}>
+          <Box direction="row" justify="between">
+            <Box flex="shrink">
+              <ProjectSearchFilterPills
+                filters={browseFilters}
+                onFilterChange={onFilterChange}
+              />
+            </Box>
+            <Box flex="grow">
+              <Text alignSelf="end">Number of Projects: {count}</Text>
+            </Box>
+          </Box>
+          {projects.map((p) => (
+            <Box key={p.scpca_id} margin={{ top: 'medium', bottom: 'small' }}>
+              <ProjectSearchResult
+                project={p}
+                ccdlDatasets={ccdlDatasets.filter(
+                  (d) => d.ccdl_project_id === p.scpca_id
+                )}
+              />
+            </Box>
+          ))}
+        </Box>
+      </Grid>
+    </Box>
   )
 }
 
