@@ -27,6 +27,16 @@ class FilterTest(TestCase):
 
         self.assertEqual(expected_fields, actual_fields)
 
+    def test_extended_auto_field_lookups(self):
+        SampleFilterSet = filter.build_auto_filterset(
+            Sample,
+            auto_fields=["scpca_id", "diagnosis"],  # TextFields
+            extended_auto_field_lookups={"diagnosis": ["isnull"]},
+        )
+        actual_filters = SampleFilterSet.base_filters.keys()
+        self.assertIn("diagnosis__isnull", actual_filters)
+        self.assertNotIn("scpca_id__isnull", actual_filters)
+
     def test_only_extra_fields(self):
         SampleFilterSet = filter.build_auto_filterset(
             Sample, extra_fields={"project__scpca_id": ["exact"]}
