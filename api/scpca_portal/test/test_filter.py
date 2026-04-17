@@ -27,11 +27,10 @@ class FilterTest(TestCase):
 
         self.assertEqual(expected_fields, actual_fields)
 
-    def test_extended_auto_field_lookups(self):
+    def test_nullable_auto_fields(self):
         SampleFilterSet = filter.build_auto_filterset(
             Sample,
-            auto_fields=["scpca_id", "diagnosis"],  # TextFields
-            extended_auto_field_lookups={"diagnosis": ["isnull"]},
+            auto_fields=["scpca_id", "diagnosis"],  # non-nullable TextField  # nullable TextField
         )
         actual_filters = SampleFilterSet.base_filters.keys()
         self.assertIn("diagnosis__isnull", actual_filters)
