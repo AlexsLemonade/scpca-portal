@@ -22,7 +22,6 @@ CCDLDatasetFilterSet = filter.build_auto_filterset(
         "includes_files_multiplexed",
         "estimated_size_in_bytes",
     ],
-    extended_auto_field_lookups={"ccdl_project_id": ["isnull"]},
 )
 
 
