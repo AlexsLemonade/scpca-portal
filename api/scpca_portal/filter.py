@@ -77,7 +77,7 @@ def build_auto_filterset(
         # Standard field types: use dict-style meta fields for multi-lookup support
         for field_type, lookups in FILTER_LOOKUPS.items():
             if isinstance(field, field_type):
-                # create deep copy to accommodate mutability of the list
+                # create copy to accommodate mutability of the list
                 meta_fields[field.name] = list(lookups)
                 if field.null:
                     meta_fields[field.name].append("isnull")
