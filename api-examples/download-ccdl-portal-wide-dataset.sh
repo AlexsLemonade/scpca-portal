@@ -26,16 +26,16 @@ API_ROOT="https://api.scpca.alexslemonade.org/v1"
 # Step 1: Find CCDL project datasets of interest.
 CCDL_PROJECT_ID__ISNULL=true
 CCDL_MODALITY=SINGLE_CELL
-FORMAT=SINGLE_CELL_EXPERIMENT
 CCDL_IS_MERGED=true
+FORMAT=SINGLE_CELL_EXPERIMENT
 
 CCDL_DATASETS_RESPONSE=$(curl -s --get \
   "${API_ROOT}/ccdl-datasets/" \
   -H "Content-Type: application/json" \
   -d "ccdl_project_id__isnull=$CCDL_PROJECT_ID__ISNULL" \
   -d "ccdl_modality"=$CCDL_MODALITY \
-  -d "format"=$FORMAT \
-  -d "ccdl_is_merged"=$CCDL_IS_MERGED
+  -d "ccdl_is_merged"=$CCDL_IS_MERGED \
+  -d "format"=$FORMAT
 )
 
 echo "Found $(echo "$CCDL_DATASETS_RESPONSE" | jq '.count') projects."

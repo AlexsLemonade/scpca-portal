@@ -154,8 +154,8 @@ else:
 query = {
     "ccdl_project_id__isnull": True,
     "ccdl_modality": "SINGLE_CELL",
-    "format": "SINGLE_CELL_EXPERIMENT",
     "ccdl_is_merged": True,
+    "format": "SINGLE_CELL_EXPERIMENT",
 }
 
 queried_ccdl_dataset_response = request_api("ccdl-datasets", query=query)
