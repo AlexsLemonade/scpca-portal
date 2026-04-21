@@ -64,18 +64,18 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
 @extend_schema_view(
     list=extend_schema(
         auth=False,
+        deprecated=True,
         description="""
         Computed Files are immutable pre-generated downloadable files.
-        (This endpoint is deprecated and will be removed in a future release.)
         """,
     ),
     retrieve=extend_schema(
+        deprecated=True,
         description="""
         Computed Files are immutable pre-generated downloadable files..
         In order to retrieve a Computed File with a download_url you must
         pass an API-KEY header.
-        (This endpoint is deprecated and will be removed in a future release.)
-        """
+        """,
     ),
 )
 class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
