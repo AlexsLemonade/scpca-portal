@@ -169,7 +169,7 @@ query = {"diagnosis": "Neuroblastoma", "has_single_cell_data": True, "includes_a
 queried_samples = request_api("samples", query=query).get("results", [])
 
 if not queried_samples:
-    print("No samples are available. Existing...")
+    print("No samples are available. Exiting...")
     sys.exit(0)
 
 print(f"Found {len(queried_samples)} samples for query:")
