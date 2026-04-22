@@ -65,7 +65,7 @@ We have prepared example scripts below to help get started downloading ScPCA Por
 > Computed Files are deprecated and will be removed in a future release. Please use CCDL Datasets for ready to download workflows.
 
 > [!NOTE]
-> Computed Files are downloads that managed by the CCDL. These are provided as "ready to download" adn configured by modality, file format, merged and bulk options.
+> Computed Files are downloads that managed by the CCDL. These are provided as "ready to download" and configured by modality, file format, merged and bulk options.
 
 #### Bash
 - [Download Project in Bash](./download-project.sh)
