@@ -67,6 +67,9 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
         deprecated=True,
         description="""
         Computed Files are immutable pre-generated downloadable files.
+        WARNING: This endpoint is deprecated and will be removed in a future release.
+        Please use the CCDL Dataset endpoint at `/ccdl-datasets/`
+        for "ready to download" workflows moving forward.
         """,
     ),
     retrieve=extend_schema(
@@ -75,6 +78,9 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
         Computed Files are immutable pre-generated downloadable files..
         In order to retrieve a Computed File with a download_url you must
         pass an API-KEY header.
+        WARNING: This endpoint is deprecated and will be removed in a future release.
+        Please use the CCDL Dataset endpoint at `/ccdl-datasets/{id}`
+        for "ready to download" workflows moving forward.
         """,
     ),
 )
