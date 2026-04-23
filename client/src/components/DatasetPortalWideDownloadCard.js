@@ -59,9 +59,7 @@ export const DatasetPortalWideDownloadCard = ({
             <CheckBox
               label="Merge samples into one object per project"
               checked={includesMerged}
-              onChange={({ target: { checked } }) =>
-                setIncludesMerged(checked)
-              }
+              onChange={({ target: { checked } }) => setIncludesMerged(checked)}
             />
             <HelpLink link={config.links.when_downloading_merged_objects} />
           </Box>
