@@ -19,6 +19,9 @@ export const ScPCAPortalContextProvider = ({ children }) => {
     'scpca-api-wants-emails',
     false
   )
+  const [myDataset, setMyDataset] = useLocalStorage('dataset', { data: {} })
+  // TODO REMOVE HOTFIX
+  if (!myDataset.data) myDataset.data = {} // hotfix
 
   const emailListForm = useHubspotForm(
     process.env.HUBSPOT_PORTAL_ID,
@@ -62,8 +65,10 @@ export const ScPCAPortalContextProvider = ({ children }) => {
   return (
     <ScPCAPortalContext.Provider
       value={{
-        setEmail,
         email,
+        setEmail,
+        myDataset,
+        setMyDataset,
         token,
         setToken,
         acceptsTerms,

@@ -7,6 +7,7 @@ import { useScrollRestore } from 'hooks/useScrollRestore'
 import { useDataset } from 'hooks/useDataset'
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesTableOptionsHeader } from 'components/ProjectSamplesTableOptionsHeader'
+import { Badge } from 'components/Badge'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { Loader } from 'components/Loader'
@@ -14,8 +15,11 @@ import { Loader } from 'components/Loader'
 export const ViewSamples = ({ dataset, project }) => {
   const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
-  const { isProjectIncludeBulk, isProjectMerged, getDatasetProjectSamples } =
-    useDataset()
+  const {
+    getProjectIsIncludeBulk,
+    getProjectIsMerged,
+    getDatasetProjectSamples
+  } = useDataset()
 
   const [loading, setLoading] = useState(true)
   const [samples, setSamples] = useState([])
@@ -29,8 +33,8 @@ export const ViewSamples = ({ dataset, project }) => {
     // Filter to display only samples from dataset
     setSamples(getDatasetProjectSamples(dataset, project))
     // Preselect download options based on the values in dataset
-    setIncludeBulk(isProjectIncludeBulk(dataset, project))
-    setIncludeMerge(isProjectMerged(dataset, project))
+    setIncludeBulk(getProjectIsIncludeBulk(dataset, project))
+    setIncludeMerge(getProjectIsMerged(dataset, project))
     setLoading(false)
   }, [])
 
@@ -46,11 +50,14 @@ export const ViewSamples = ({ dataset, project }) => {
     <Box gap="large" fill margin={{ bottom: 'large' }}>
       <Box align="start" gap="large">
         <Button label="Back to Dataset" onClick={handleBackToDataset} />
-        <Link href={`/projects/${project.scpca_id}`} newTab>
-          <Text weight="bold" color="brand" size="large">
-            {project.title}
-          </Text>
-        </Link>
+        <Box gap="small">
+          <Badge badge="Number" label={project.scpca_id} />
+          <Link href={`/projects/${project.scpca_id}`} newTab>
+            <Text weight="bold" color="brand" size="large">
+              {project.title}
+            </Text>
+          </Link>
+        </Box>
       </Box>
       <ProjectSamplesTableContextProvider
         project={project}

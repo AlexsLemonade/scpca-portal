@@ -174,7 +174,7 @@ def generate_computed_file(
         _create_computed_file(computed_file, update_s3, clean_up_output_data=False)
     if sample and (computed_file := ComputedFile.get_sample_file(sample, download_config)):
         _create_computed_file(computed_file, update_s3, clean_up_output_data=False)
-        sample.project.update_downloadable_sample_count()
+        sample.project.get_downloadable_sample_count()
 
 
 # TODO: Remove after the dataset release
@@ -216,4 +216,4 @@ def generate_computed_files(
                     download_config,
                 ).add_done_callback(on_get_file)
 
-    project.update_downloadable_sample_count()
+    project.get_downloadable_sample_count()
