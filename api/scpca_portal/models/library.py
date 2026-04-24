@@ -1,7 +1,8 @@
-from typing import Dict, List
+from typing import Dict, List, Self
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import QuerySet
 
 from scpca_portal import common, metadata_parser
 from scpca_portal.enums import FileFormats, Modalities
@@ -29,7 +30,7 @@ class Library(TimestampedModel):
         return f"Library {self.scpca_id}"
 
     @classmethod
-    def get_from_dict(cls, data, project):
+    def get_from_dict(cls, data, project) -> Self:
         library_id = data["scpca_library_id"]
         original_files = OriginalFile.downloadable_objects.filter(library_id=library_id)
 
@@ -119,7 +120,7 @@ class Library(TimestampedModel):
             Library.load_bulk_metadata(project)
 
     @property
-    def original_files(self):
+    def original_files(self) -> QuerySet[OriginalFile]:
         return OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
 
     @property
@@ -151,7 +152,9 @@ class Library(TimestampedModel):
             for sample in self.samples.all()
         ]
 
-    def get_original_files_by_download_config(self, download_config: Dict):
+    def get_original_files_by_download_config(
+        self, download_config: Dict
+    ) -> QuerySet[OriginalFile]:
         """
         Return all of a library's file paths that are suitable for the passed download config.
         """
@@ -174,7 +177,7 @@ class Library(TimestampedModel):
         ]
 
     @staticmethod
-    def get_libraries_original_files(libraries, download_config):
+    def get_libraries_original_files(libraries, download_config) -> List[OriginalFile]:
         """
         Return file paths associated with the libraries according to the passed download_config.
         Files are then downloaded and included in computed files.

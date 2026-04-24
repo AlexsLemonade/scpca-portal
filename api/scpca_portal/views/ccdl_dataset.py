@@ -3,7 +3,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from scpca_portal.models import APIToken, Dataset
+from scpca_portal.models import APIToken, CCDLDataset
 from scpca_portal.serializers import CCDLDatasetDetailSerializer, CCDLDatasetSerializer
 
 
@@ -22,13 +22,14 @@ from scpca_portal.serializers import CCDLDatasetDetailSerializer, CCDLDatasetSer
     ),
 )
 class CCDLDatasetViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Dataset.objects.filter(is_ccdl=True).order_by("ccdl_project_id")
+    queryset = CCDLDataset.objects.order_by("ccdl_project_id")
     ordering_fields = "__all__"
     filterset_fields = {
         "id": ["exact"],
         "ccdl_name": ["exact"],
         "ccdl_project_id": ["exact", "isnull"],
         "ccdl_modality": ["exact"],
+        "ccdl_is_merged": ["exact"],
         "format": ["exact"],
     }
 

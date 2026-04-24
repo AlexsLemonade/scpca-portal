@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useNotification } from 'hooks/useNotification'
 import { useResizeObserver } from 'hooks/useResizeObserver'
 import { Box, Main } from 'grommet'
+import { BackToTopButton } from 'components/BackToTopButton'
 import { ContributeBanner } from 'components/ContributeBanner'
 import { EnvarBanner } from 'components/EnvarBanner'
 import { Footer } from 'components/Footer'
@@ -87,6 +88,7 @@ export const Layout = ({ children }) => {
       >
         {children}
       </Main>
+      <BackToTopButton />
       <Footer />
     </Box>
   )

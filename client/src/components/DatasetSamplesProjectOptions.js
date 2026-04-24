@@ -8,13 +8,13 @@ export const DatasetSamplesProjectOptions = ({
   includeBulk,
   onIncludeBulkChange
 }) => {
-  const { myDataset, isMyDatasetProjectIncludeBulk } = useMyDataset()
+  const { myDataset, getMyDatasetProjectIsIncludeBulk } = useMyDataset()
 
   // Preselect options based on the values in myDataset
   useEffect(() => {
     if (!myDataset) return
 
-    onIncludeBulkChange(isMyDatasetProjectIncludeBulk(project))
+    onIncludeBulkChange(getMyDatasetProjectIsIncludeBulk(project))
   }, [myDataset])
 
   return (
@@ -25,7 +25,7 @@ export const DatasetSamplesProjectOptions = ({
           checked={includeBulk}
           disabled={
             !project.has_bulk_rna_seq ||
-            !!myDataset.data?.[project.scpca_id]?.includes_bulk
+            !!getMyDatasetProjectIsIncludeBulk(project)
           }
           onChange={({ target: { checked } }) => onIncludeBulkChange(checked)}
         />
