@@ -44,9 +44,6 @@ export const useMyDataset = () => {
     emptyDatasetProjectOptions
   )
 
-  const isDatasetDataEmpty =
-    !myDataset.data || Object.keys(myDataset.data || {}).length === 0
-
   // Clear dataset format once data is emptied
   const isDatasetDataEmpty = Object.keys(myDataset.data).length === 0
 
