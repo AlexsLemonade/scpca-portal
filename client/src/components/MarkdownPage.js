@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { Box, Paragraph, Text, Markdown } from 'grommet'
 import styled from 'styled-components'
-import Error from 'pages/_error'
+import ErrorPage from 'pages/_error'
 import { useScrollToTextContentHash } from 'hooks/useScrollToTextContentHash'
 
 const StyledLi = styled(Box)`
@@ -31,7 +31,7 @@ export const MarkdownPage = ({
     ...components
   }
 
-  if (!markdown) return <Error />
+  if (!markdown) return <ErrorPage />
 
   return (
     <Box pad={{ vertical: 'large' }} justify="center">

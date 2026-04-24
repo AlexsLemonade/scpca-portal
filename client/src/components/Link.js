@@ -21,8 +21,8 @@ export const Link = ({
   color = 'brand',
   newTab = false,
   underline = false
-}) => {
-  return isExternalPath(href) || newTab ? (
+}) =>
+  isExternalPath(href) || newTab ? (
     <LinkAnchor
       target="_blank"
       color={color}
@@ -46,6 +46,5 @@ export const Link = ({
       {children}
     </LinkAnchor>
   )
-}
 
 export default Link

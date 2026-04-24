@@ -31,7 +31,6 @@ export const RecruitNFContentBlock = () => {
 
 export const RecruitNFBanner = ({ id = 'recruit-nf', ...props }) => {
   return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <Banner id={id} background="alexs-lemonade-tint-40" {...props}>
       <RecruitNFContentBlock />
     </Banner>
