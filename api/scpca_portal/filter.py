@@ -38,8 +38,8 @@ class ArrayFieldContainsFilter(django_filters.BaseInFilter, django_filters.CharF
 def build_auto_filterset(
     model,
     auto_fields: list[str] = [],
-    extra_fields: dict[str, list[str]] = None,
-    extra_filters: dict = None,
+    extra_fields: dict[str, list[str]] = {},
+    extra_filters: dict = {},
 ):
     """
     Introspects a model and builds a FilterSet with sensible lookup expressions
@@ -77,7 +77,10 @@ def build_auto_filterset(
         # Standard field types: use dict-style meta fields for multi-lookup support
         for field_type, lookups in FILTER_LOOKUPS.items():
             if isinstance(field, field_type):
-                meta_fields[field.name] = lookups
+                # create copy to accommodate mutability of the list
+                meta_fields[field.name] = list(lookups)
+                if field.null:
+                    meta_fields[field.name].append("isnull")
                 break
 
     if extra_fields:
