@@ -9,7 +9,7 @@ import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useResponsive } from 'hooks/useResponsive'
 import { delay } from 'helpers/delay'
 import { api } from 'api'
-import Error from 'pages/_error'
+import ErrorPage from 'pages/_error'
 
 const Project = ({ projects, count, filters, filterOptions, ccdlDatasets }) => {
   const { browseFilters, setBrowseFilters } = useScPCAPortal()
@@ -19,7 +19,7 @@ const Project = ({ projects, count, filters, filterOptions, ccdlDatasets }) => {
   const router = useRouter()
 
   // we don't want to 404 here we want to show that the api is down
-  if (!projects) return <Error />
+  if (!projects) return <ErrorPage />
 
   useEffect(() => {
     setBrowseFilters(filters)
