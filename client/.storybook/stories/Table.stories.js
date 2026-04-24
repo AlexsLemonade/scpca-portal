@@ -1,12 +1,12 @@
 import React from 'react'
 import { Box } from 'grommet'
 import { Table } from 'components/Table'
-import project from 'data/project.js'
+import project from 'data/project.json'
 
 const columns = [
-  { Header: 'Technologies', accessor: 'technologies' },
-  { Header: 'Diagnosis', accessor: 'diagnosis' },
-  { Header: 'Disease Timing', accessor: 'disease_timing' }
+  { header: 'Technologies', accessorKey: 'technologies' },
+  { header: 'Diagnosis', accessorKey: 'diagnosis' },
+  { header: 'Disease Timing', accessorKey: 'disease_timing' }
 ]
 
 export default {
