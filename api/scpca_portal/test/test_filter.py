@@ -30,7 +30,8 @@ class FilterTest(TestCase):
     def test_nullable_auto_fields(self):
         SampleFilterSet = filter.build_auto_filterset(
             Sample,
-            auto_fields=["scpca_id", "diagnosis"],  # non-nullable TextField  # nullable TextField
+            # while both fields are TextFields, scpca_id is non-nullable while diagnosis is nullable
+            auto_fields=["scpca_id", "diagnosis"],
         )
         actual_filters = SampleFilterSet.base_filters.keys()
         self.assertIn("diagnosis__isnull", actual_filters)
