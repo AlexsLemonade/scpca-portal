@@ -74,7 +74,11 @@ const Project = ({ projects, count, filters, filterOptions, ccdlDatasets }) => {
             loading={loading}
           >
             <Box width="small">
-              <Box direction="row" justify="between">
+              <Box
+                direction="row"
+                justify="between"
+                margin={{ bottom: 'medium' }}
+              >
                 <Text serif size="large">
                   Filters
                 </Text>
