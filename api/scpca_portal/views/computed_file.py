@@ -63,12 +63,25 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
 
 @extend_schema_view(
     list=extend_schema(
-        auth=False, description="""Computed Files are immutable pre-generated downloadable files."""
+        auth=False,
+        deprecated=True,
+        description="""
+        Computed Files are immutable pre-generated downloadable files.
+        WARNING: This endpoint is deprecated and will be removed in a future release.
+        Please use the CCDL Dataset endpoint at `/ccdl-datasets/`
+        for "ready to download" workflows moving forward.
+        """,
     ),
     retrieve=extend_schema(
-        description="""Computed Files are immutable pre-generated downloadable files..
+        deprecated=True,
+        description="""
+        Computed Files are immutable pre-generated downloadable files..
         In order to retrieve a Computed File with a download_url you must
-        pass a API-KEY header."""
+        pass an API-KEY header.
+        WARNING: This endpoint is deprecated and will be removed in a future release.
+        Please use the CCDL Dataset endpoint at `/ccdl-datasets/{id}`
+        for "ready to download" workflows moving forward.
+        """,
     ),
 )
 class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):

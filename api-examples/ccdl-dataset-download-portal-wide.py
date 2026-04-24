@@ -151,7 +151,12 @@ else:
 # For a specific CCDL Project Dataset, use the ccdl_project_id query parameter.
 # For all Project CCDL Datasets, use ccdl_project_id__isnull=False.
 # For all Portal Wide CCDL Datasets, use ccdl_project_id__isnull=True.
-query = {"ccdl_project_id__isnull": True, "ccdl_name": "SINGLE_CELL_SINGLE_CELL_EXPERIMENT"}
+query = {
+    "ccdl_project_id__isnull": True,
+    "ccdl_modality": "SINGLE_CELL",
+    "ccdl_is_merged": True,
+    "format": "SINGLE_CELL_EXPERIMENT",
+}
 
 queried_ccdl_dataset_response = request_api("ccdl-datasets", query=query)
 if queried_ccdl_dataset_response.get("count", 0) == 0:
