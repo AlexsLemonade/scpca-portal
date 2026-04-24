@@ -1,7 +1,5 @@
 // regex test to check that a string is only numbers
 
-export const isOnlyNumbers = (input) => {
-  return /^\d+$/.test(input)
-}
+export const isOnlyNumbers = (input) => /^\d+$/.test(input)
 
 export default isOnlyNumbers

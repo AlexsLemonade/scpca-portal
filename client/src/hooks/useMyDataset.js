@@ -7,8 +7,6 @@ import { uniqueArray } from 'helpers/uniqueArray'
 
 export const useMyDataset = () => {
   const {
-    myDataset,
-    setMyDataset,
     prevMyDatasetFormat,
     setPrevMyDatasetFormat,
     datasets,
@@ -19,7 +17,7 @@ export const useMyDataset = () => {
     userFormat,
     setUserFormat
   } = useContext(MyDatasetContext)
-  const { token, email } = useScPCAPortal()
+  const { myDataset, setMyDataset, token, email } = useScPCAPortal()
   const {
     create,
     get,
@@ -30,8 +28,8 @@ export const useMyDataset = () => {
     getDatasetProjectDataSamples,
     getDatasetProjectSamples,
     getRemainingProjectSampleIds,
-    isProjectIncludeBulk,
-    isProjectMerged,
+    getProjectIsIncludeBulk,
+    getProjectIsMerged,
     hasAllProjectSamplesAdded,
     hasRemainingProjectSamples
   } = useDataset()
@@ -46,10 +44,9 @@ export const useMyDataset = () => {
     emptyDatasetProjectOptions
   )
 
-  const isDatasetDataEmpty =
-    !myDataset.data || Object.keys(myDataset.data || {}).length === 0
-
   // Clear dataset format once data is emptied
+  const isDatasetDataEmpty = Object.keys(myDataset.data).length === 0
+
   useEffect(() => {
     if (!isDatasetDataEmpty) return
     setMyDataset((prev) => ({ ...prev, format: '' }))
@@ -162,8 +159,8 @@ export const useMyDataset = () => {
 
   // Merge project modality samples based on their state (e.g., merged, empty)
   const mergeProjectModalities = async (projectId, modality, dataset) => {
-    const original = myDataset.data?.[projectId]?.[modality] || []
-    const incoming = dataset.data?.[projectId]?.[modality] || []
+    const original = myDataset.data[projectId]?.[modality] || []
+    const incoming = dataset.data[projectId]?.[modality] || []
 
     const originalState = getModalityState(original)
     const incomingState = getModalityState(incoming)
@@ -193,7 +190,7 @@ export const useMyDataset = () => {
       Object.keys(dataset.data)
     )
 
-    const mergedProjectModaliies = await Promise.all(
+    const mergedProjectModalities = await Promise.all(
       projectIds.map(async (pId) => {
         const modalityData = await Promise.all(
           allModalities.map(async (m) => [
@@ -207,14 +204,14 @@ export const useMyDataset = () => {
 
     // Return null for any merge failure (null samples)
     if (
-      mergedProjectModaliies.some(
+      mergedProjectModalities.some(
         ([, data]) => data.SINGLE_CELL === null || data.SPATIAL === null
       )
     ) {
       return null
     }
 
-    return mergedProjectModaliies.reduce((acc, [pId, modalityData]) => {
+    return mergedProjectModalities.reduce((acc, [pId, modalityData]) => {
       acc[pId] = {
         ...modalityData,
         includes_bulk: getMergedIncludesBulk(pId, dataset)
@@ -297,11 +294,11 @@ export const useMyDataset = () => {
   const hasMyDatasetRemainingProjectSamples = (project) =>
     hasRemainingProjectSamples(myDataset, project)
 
-  const isMyDatasetProjectIncludeBulk = (project) =>
-    isProjectIncludeBulk(myDataset, project)
+  const getMyDatasetProjectIsIncludeBulk = (project) =>
+    getProjectIsIncludeBulk(myDataset, project)
 
-  const isMyDatasetProjectMerged = (project) =>
-    isProjectMerged(myDataset, project)
+  const getMyDatasetProjectIsMerged = (project) =>
+    getProjectIsMerged(myDataset, project)
 
   const removeProjectByIdFromMyDataset = (projectId) => {
     const datasetDataCopy = getMyDatasetCopy(myDataset)
@@ -367,8 +364,8 @@ export const useMyDataset = () => {
     getMyDatasetRemainingProjectSampleIds,
     hasMyDatasetAllProjectSamplesAdded,
     hasMyDatasetRemainingProjectSamples,
-    isMyDatasetProjectIncludeBulk,
-    isMyDatasetProjectMerged,
+    getMyDatasetProjectIsIncludeBulk,
+    getMyDatasetProjectIsMerged,
     setMyDatasetSamples,
     getModalitySamplesDifference
   }

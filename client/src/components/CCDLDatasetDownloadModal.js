@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 import React from 'react'
 import { Anchor } from 'grommet'
 import { Button } from 'components/Button'
@@ -8,21 +7,24 @@ import { CCDLDatasetDownloadToken } from 'components/CCDLDatasetDownloadToken'
 import { Modal, ModalLoader, ModalBody } from 'components/Modal'
 import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 
+const CCDLDatasetDownloadModalBody = () => {
+  const { isDownloadReady, isTokenReady, isOptionsReady } =
+    useCCDLDatasetDownloadModalContext()
+
+  if (isTokenReady) return <CCDLDatasetDownloadToken />
+  if (isOptionsReady) return <CCDLDatasetDownloadOptions />
+  if (isDownloadReady) return <CCDLDatasetDownloadStarted />
+  return <ModalLoader />
+}
+
 export const CCDLDatasetDownloadModal = ({
   label,
   icon = null,
   disabled = false,
   secondary = false
 }) => {
-  const {
-    showing,
-    setShowing,
-    modalTitle,
-    isDownloadReady,
-    isTokenReady,
-    isOptionsReady,
-    datasets
-  } = useCCDLDatasetDownloadModalContext()
+  const { showing, setShowing, modalTitle, datasets } =
+    useCCDLDatasetDownloadModalContext()
 
   const isDisabled =
     disabled || !datasets.some((dataset) => dataset.computed_file)
@@ -52,15 +54,7 @@ export const CCDLDatasetDownloadModal = ({
       )}
       <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
         <ModalBody>
-          {isTokenReady ? (
-            <CCDLDatasetDownloadToken />
-          ) : isOptionsReady ? (
-            <CCDLDatasetDownloadOptions />
-          ) : isDownloadReady ? (
-            <CCDLDatasetDownloadStarted />
-          ) : (
-            <ModalLoader />
-          )}
+          <CCDLDatasetDownloadModalBody />
         </ModalBody>
       </Modal>
     </>

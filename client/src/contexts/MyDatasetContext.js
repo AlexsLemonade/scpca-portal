@@ -4,7 +4,6 @@ import { useLocalStorage } from 'hooks/useLocalStorage'
 export const MyDatasetContext = createContext({})
 
 export const MyDatasetContextProvider = ({ children }) => {
-  const [myDataset, setMyDataset] = useLocalStorage('dataset', {})
   const [prevMyDatasetFormat, setPrevMyDatasetFormat] = useLocalStorage(
     // Previously selected format for comparing format changes
     'dataset-prev-format',
@@ -19,8 +18,6 @@ export const MyDatasetContextProvider = ({ children }) => {
   return (
     <MyDatasetContext.Provider
       value={{
-        myDataset,
-        setMyDataset,
         prevMyDatasetFormat,
         setPrevMyDatasetFormat,
         datasets,

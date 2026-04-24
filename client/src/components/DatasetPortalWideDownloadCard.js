@@ -17,7 +17,8 @@ const DatasetCopyLinkButton = dynamic(() => import('./DatasetCopyLinkButton'), {
 export const DatasetPortalWideDownloadCard = ({
   title,
   datasets = [],
-  metadataOnly = false
+  metadataOnly = false,
+  cardWidth = '628px'
 }) => {
   const { responsive } = useResponsive()
 
@@ -41,7 +42,7 @@ export const DatasetPortalWideDownloadCard = ({
   }, [datasets, includesMerged])
 
   return (
-    <Box elevation="medium" background="white" pad="24px" width="full">
+    <Box elevation="medium" background="white" pad="24px" width={cardWidth}>
       <Box
         border={{ side: 'bottom' }}
         margin={{ bottom: '24px' }}
@@ -52,21 +53,17 @@ export const DatasetPortalWideDownloadCard = ({
         </Text>
       </Box>
       <Box justify="between" height="100%">
-        <>
-          <DatasetFileItems dataset={dataset} />
-          {datasets?.length > 1 && (
-            <Box direction="row" margin={{ bottom: '24px' }}>
-              <CheckBox
-                label="Merge samples into one object per project"
-                checked={includesMerged}
-                onChange={({ target: { checked } }) =>
-                  setIncludesMerged(checked)
-                }
-              />
-              <HelpLink link={config.links.when_downloading_merged_objects} />
-            </Box>
-          )}
-        </>
+        <DatasetFileItems dataset={dataset} />
+        {datasets?.length > 1 && (
+          <Box direction="row" margin={{ top: 'large' }}>
+            <CheckBox
+              label="Merge samples into one object per project"
+              checked={includesMerged}
+              onChange={({ target: { checked } }) => setIncludesMerged(checked)}
+            />
+            <HelpLink link={config.links.when_downloading_merged_objects} />
+          </Box>
+        )}
         {['SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED'].includes(
           dataset.ccdl_name
         ) && <WarningMultiplexedSamplesRemoved />}
@@ -74,8 +71,9 @@ export const DatasetPortalWideDownloadCard = ({
           align={responsive('start', 'center')}
           direction={responsive('column', 'row')}
           gap="large"
+          margin={{ top: '24px' }}
         >
-          <Box direction="column">
+          <Box align="start" direction="column" fill>
             {showDownloadSize && (
               <Text margin={{ bottom: 'small' }} weight="bold">
                 Size:{' '}
@@ -84,18 +82,19 @@ export const DatasetPortalWideDownloadCard = ({
                   : 'N/A'}
               </Text>
             )}
-            <Box
-              direction={responsive('column', 'row')}
-              gap="24px"
-              margin={{ bottom: 'small' }}
-            >
-              <CCDLDatasetDownloadModalContextProvider datasets={[dataset]}>
-                <CCDLDatasetDownloadModal label="Download" />
-              </CCDLDatasetDownloadModalContextProvider>
-              {showCopyLinkButton && (
+            <CCDLDatasetDownloadModalContextProvider datasets={[dataset]}>
+              <CCDLDatasetDownloadModal label="Download" />
+            </CCDLDatasetDownloadModalContextProvider>
+            {showCopyLinkButton && (
+              <Box
+                border={{ side: 'top', color: 'border-black', size: 'small' }}
+                margin={{ top: 'xlarge' }}
+                pad={{ top: 'large' }}
+                fill
+              >
                 <DatasetCopyLinkButton dataset={dataset} />
-              )}
-            </Box>
+              </Box>
+            )}
           </Box>
         </Box>
       </Box>
