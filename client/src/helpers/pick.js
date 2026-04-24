@@ -13,6 +13,6 @@
  *    ], 'format'
  *   ) // [ 'SINGLE_CELL_EXPERIMENT', 'ANN_DATA' ]
  */
-export const pick = (arr = [], key) => arr.map((i) => i[key])
+export const pick = (arr = [], key = undefined) => arr.map((i) => i[key])
 
 export default pick

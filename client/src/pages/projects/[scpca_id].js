@@ -7,7 +7,9 @@ import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDow
 import { ProjectSamplesTableContextProvider } from 'contexts/ProjectSamplesTableContext'
 import { api } from 'api'
 import { allModalities } from 'config/datasets'
+import { keys } from 'config/translations'
 import { differenceArray } from 'helpers/differenceArray'
+import { getReadable } from 'helpers/getReadable'
 import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { DetailsTable } from 'components/DetailsTable'
 import { Link } from 'components/Link'
@@ -115,7 +117,7 @@ const Project = ({ project, ccdlDatasets }) => {
                         )
                     },
                     {
-                      label: 'disease_timings',
+                      label: 'Disease Timings',
                       value:
                         project.disease_timings.length > 0 ? (
                           <Text>{project.disease_timings.join(', ')}</Text>
@@ -123,15 +125,19 @@ const Project = ({ project, ccdlDatasets }) => {
                           ''
                         )
                     },
-
-                    'sample_count',
-                    'human_readable_pi_name',
+                    {
+                      accessorKey: 'sample_count',
+                      label: getReadable('sample_count', keys)
+                    },
+                    {
+                      accessorKey: 'human_readable_pi_name',
+                      label: getReadable('human_readable_pi_name', keys)
+                    },
                     {
                       label: 'Contact Information',
                       value:
-                        project.contacts.length > 0 ? (
-                          <>
-                            {project.contacts.map((contact, i) => (
+                        project.contacts.length > 0
+                          ? project.contacts.map((contact, i) => (
                               <Text key={contact}>
                                 {i ? ', ' : ''}
                                 <Link
@@ -140,11 +146,8 @@ const Project = ({ project, ccdlDatasets }) => {
                                   href={`mailto:${contact.email}`}
                                 />
                               </Text>
-                            ))}
-                          </>
-                        ) : (
-                          ''
-                        )
+                            ))
+                          : ''
                     },
                     {
                       label: 'Additional Restrictions',
@@ -165,6 +168,14 @@ const Project = ({ project, ccdlDatasets }) => {
                 width={{ max: 'full' }}
                 overflow="auto"
               >
+                <Box direction="row" margin={{ bottom: 'small' }}>
+                  <Text margin={{ right: 'xsmall' }} weight="bold">
+                    Available Modalities:
+                  </Text>
+                  <Text>
+                    {project.modalities.map((m) => getReadable(m)).join(', ')}
+                  </Text>
+                </Box>
                 <ProjectSamplesSummaryTable summaries={project.summaries} />
               </Box>
             </Tab>

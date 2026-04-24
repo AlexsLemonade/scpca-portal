@@ -3,7 +3,7 @@ import { Box, Grid, Paragraph, Text } from 'grommet'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
 import { formatBytes } from 'helpers/formatBytes'
-import { getReadable, getReadableFiles } from 'helpers/getReadable'
+import { getReadable } from 'helpers/getReadable'
 import DownloadSVG from '../images/download-folder.svg'
 
 const Li = ({ children }) => (
@@ -12,8 +12,6 @@ const Li = ({ children }) => (
   </Box>
 )
 
-// This component temporarily accepts 'dataset' but it's subject to change
-// Using mock data with storybook
 // Modal body to show when downloading CCDL dataset
 export const DatasetDownloadStarted = ({ dataset }) => {
   const {
@@ -25,7 +23,7 @@ export const DatasetDownloadStarted = ({ dataset }) => {
   const fileItems = [
     modality,
     ...['has_cite_seq_data', 'has_bulk_rna_seq'].filter((key) => dataset[key])
-  ].map((key) => getReadableFiles(key))
+  ].map((key) => getReadable(key))
 
   const startedText = metadataOnly ? (
     'This download contains all of the sample metadata from every project in ScPCA Portal.'

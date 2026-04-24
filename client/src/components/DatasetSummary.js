@@ -39,7 +39,7 @@ export const DatasetSummary = ({ dataset, titleSize = 'large', children }) => {
             <Text weight="bold">
               {pluralize(`${totalSample} Sample`, totalSample)}
             </Text>{' '}
-            accross{' '}
+            across{' '}
             <Text weight="bold">
               {pluralize(`${totalProject} Project`, totalProject)}
             </Text>
