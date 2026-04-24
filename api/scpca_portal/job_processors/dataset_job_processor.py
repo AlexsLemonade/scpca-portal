@@ -25,17 +25,17 @@ class DatasetJobProcessor(JobProcessorABC):
     }
 
     # Logging
-    def on_run(self):
+    def on_run(self) -> None:
         logger.info(f"Processing {self.job.id} - {self.job.batch_job_id} - {self.job.dataset}")
 
-    def on_step_start(self, step: str):
+    def on_step_start(self, step: str) -> None:
         logger.info(f"Entering step: {step}")
 
-    def on_step_exception(self, step: str, e: Exception):
+    def on_step_exception(self, step: str, e: Exception) -> None:
         logger.info(f"Handling step {step} exception {e.__class__.__name__}")
         logger.exception(e)
 
-    def on_uncaught_exception(self, step, e: Exception):
+    def on_uncaught_exception(self, step: str, e: Exception) -> None:
         logger.info("Encountered uncaught exception.")
         logger.exception(e)
         self.job.save()
@@ -44,31 +44,31 @@ class DatasetJobProcessor(JobProcessorABC):
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
 
-    def on_run_done(self):
+    def on_run_done(self) -> None:
         self.job.save()
         self.job.dataset.save()
         logger.info("Job completed.")
 
     # Steps
-    def setup_work_dir(self):
+    def setup_work_dir(self) -> None:
         utils.create_data_dirs()
 
-    def purge_old_computed_file(self):
+    def purge_old_computed_file(self) -> None:
         if self.job.dataset.computed_file:
             self.job.dataset.computed_file.purge(delete_from_s3=True)
 
-    def create_new_computed_file(self):
+    def create_new_computed_file(self) -> None:
         self.job.dataset.computed_file = ComputedFile.get_dataset_file(self.job.dataset)
         self.job.dataset.computed_file.save()
         self.job.dataset.save()
 
-    def handle_locked_project(self, step: str, e: Exception):
+    def handle_locked_project(self, step: str, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason="Dataset contains locked project.")
         self.job.save()
         self.job.dataset.save()
         self.job.create_retry_job()
 
-    def handle_missing_libraries(self, step: str, e: Exception):
+    def handle_missing_libraries(self, step: str, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason="Dataset contains missing libraries.")
         self.job.save()
         self.job.dataset.save()
@@ -76,14 +76,14 @@ class DatasetJobProcessor(JobProcessorABC):
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
 
-    def upload_new_computed_file(self):
+    def upload_new_computed_file(self) -> None:
         s3.upload_output_file(
             self.job.dataset.computed_file.s3_key, self.job.dataset.computed_file.s3_bucket
         )
 
-    def clean_up_local_computed_file(self):
+    def clean_up_local_computed_file(self) -> None:
         self.job.dataset.computed_file.clean_up_local_computed_file()
 
-    def send_notification(self):
+    def send_notification(self) -> None:
         if self.job.dataset.email:
             notifications.send_dataset_job_success_email(self.job)

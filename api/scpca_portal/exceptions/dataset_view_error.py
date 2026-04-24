@@ -7,7 +7,7 @@ class DatasetViewError(APIException):
     default_detail = "Invalid request: A dataset view error occurred."
     default_code = "bad_request"
 
-    def __init__(self, detail: str | None = None, code: str | None = None):
+    def __init__(self, detail: str | None = None, code: str | None = None) -> None:
         detail = detail or self.default_detail
         code = code or self.default_code
         super().__init__(detail, code)

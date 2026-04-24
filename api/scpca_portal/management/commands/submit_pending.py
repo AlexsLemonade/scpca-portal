@@ -9,10 +9,10 @@ logger = get_and_configure_logger(__name__)
 class Command(BaseCommand):
     help = """Submits all pending jobs to AWS Batch for processing."""
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.submit_pending()
 
-    def submit_pending(self):
+    def submit_pending(self) -> None:
         submitted_jobs, pending_jobs, failed_jobs = Job.submit_pending()
 
         if submitted_jobs:

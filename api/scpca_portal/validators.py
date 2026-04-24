@@ -2,6 +2,7 @@ import re
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field, RootModel, ValidationInfo, field_validator, model_validator
+from typing_extensions import Self
 
 from scpca_portal.enums import Modalities
 from scpca_portal.exceptions import (
@@ -29,7 +30,7 @@ class ProjectDataModel(BaseModel):
 
     @field_validator(Modalities.SINGLE_CELL.value, Modalities.SPATIAL.value, mode="after")
     @classmethod
-    def validate_samples_ids(cls, modality_value: Any, info: ValidationInfo):
+    def validate_samples_ids(cls, modality_value: Any, info: ValidationInfo) -> Any:
         # Note: There's no actual need to check if field_name is "SINGLE_CELL"
         # because if a str is passed to the "SPATIAL" field, pydantic type checking will catch it.
         # The check is included here for extra clarity.
@@ -52,7 +53,7 @@ class DatasetDataModel(RootModel):
     root: Dict[str, ProjectDataModel]
 
     @model_validator(mode="after")
-    def validate_project_ids(self):
+    def validate_project_ids(self) -> Self:
         for project_id in self.root:
             if not re.match(PROJECT_ID_REGEX, project_id):
                 raise DatasetDataInvalidProjectIDError(project_id)
@@ -61,13 +62,13 @@ class DatasetDataModel(RootModel):
 
 class DatasetDataModelRelations:
     @staticmethod
-    def validate(data: Dict[str, Any]) -> Dict:
+    def validate(data: Dict[str, Any]) -> Dict[str, Any]:
         DatasetDataModelRelations.validate_projects(data)
         DatasetDataModelRelations.validate_samples(data)
         return data
 
     @staticmethod
-    def validate_projects(data: Dict[str, Any]):
+    def validate_projects(data: Dict[str, Any]) -> None:
         """
         Validates that projects set in the data attribute
         both exist and have the requested project level data (bulk and merged)
@@ -99,7 +100,7 @@ class DatasetDataModelRelations:
             raise DatasetDataProjectsNoBulkDataError(invalid_bulk_ids)
 
     @staticmethod
-    def validate_samples(data: Dict[str, Any]):
+    def validate_samples(data: Dict[str, Any]) -> None:
         """
         Validates that samples set into the data attribute,
         both exist and are correctly related with their projects.

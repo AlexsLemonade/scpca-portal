@@ -6,7 +6,7 @@ from scpca_portal.enums import FileFormats, Modalities
 
 
 class InputBucketS3KeyInfo:
-    def __init__(self, s3_key_path: Path):
+    def __init__(self, s3_key_path: Path) -> None:
         self.s3_key_path: Path = s3_key_path
         self.project_id_part: str | None = utils.find_first_contained(
             common.PROJECT_ID_PREFIX, s3_key_path.parts
@@ -76,39 +76,39 @@ class InputBucketS3KeyInfo:
         return formats
 
     @property
-    def _is_spatial(self):
+    def _is_spatial(self) -> bool:
         # all spatial files have "spatial" appended to the libary part of their file path
         return bool(self.library_id_part and self.library_id_part.endswith("spatial"))
 
     @property
-    def _is_single_cell(self):
+    def _is_single_cell(self) -> bool:
         # single cell files won't be nested in subdirectories
         return self.library_id_part == self.s3_key_path.name
 
     @property
-    def _is_cite_seq(self):
+    def _is_cite_seq(self) -> bool:
         return self.s3_key_path.name.endswith(common.CITE_SEQ_FILENAME_ENDING)
 
     @property
-    def _is_bulk(self):
+    def _is_bulk(self) -> bool:
         return "bulk" in self.s3_key_path.parts
 
     @property
-    def _is_single_cell_experiment(self):
+    def _is_single_cell_experiment(self) -> bool:
         return self.s3_key_path.suffix == common.FORMAT_EXTENSIONS["SINGLE_CELL_EXPERIMENT"]
 
     @property
-    def _is_anndata(self):
+    def _is_anndata(self) -> bool:
         return self.s3_key_path.suffix == common.FORMAT_EXTENSIONS["ANN_DATA"]
 
     @property
-    def _is_spatial_spaceranger(self):
+    def _is_spatial_spaceranger(self) -> bool:
         return self._is_spatial
 
     @property
-    def _is_metadata(self):
+    def _is_metadata(self) -> bool:
         return self.s3_key_path.stem.endswith("metadata")
 
     @property
-    def _is_supplementary(self):
+    def _is_supplementary(self) -> bool:
         return self.s3_key_path.suffix in common.SUPPLEMENTARY_EXTENSIONS

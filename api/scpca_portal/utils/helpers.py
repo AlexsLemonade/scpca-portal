@@ -208,7 +208,7 @@ def get_csv_zipped_values(
 KeyTransform = namedtuple("KeyTransform", ["old_key", "new_key", "default_value"])
 
 
-def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
+def transform_keys(data_dict: Dict[str, Any], key_transforms: List[Tuple]) -> Dict[str, Any]:
     """
     Transforms keys in inputted data dict according to inputted key transforms tuple list.
     """
@@ -219,7 +219,9 @@ def transform_keys(data_dict: Dict, key_transforms: List[Tuple]):
     return data_dict
 
 
-def transform_values(data_dict: Dict, value_transforms: Dict[str, Callable], *args):
+def transform_values(
+    data_dict: Dict[str, Any], value_transforms: Dict[str, Callable], *args
+) -> Dict[str, Any]:
     """
     Transform values in data dict according to transformation functions in value transform dict.
     Functions with variable numbers of params are supported,

@@ -13,7 +13,7 @@ from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 
 if TYPE_CHECKING:
-    from scpca_portal.models import ComputedFile
+    from scpca_portal.models import ComputedFile, Project
 
 logger = get_and_configure_logger(__name__)
 
@@ -49,11 +49,11 @@ class Sample(CommonDataAttributes, TimestampedModel):
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="samples")
     libraries = models.ManyToManyField(Library, related_name="samples")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Sample {self.scpca_id} of {self.project}"
 
     @classmethod
-    def get_from_dict(cls, data, project) -> Self:
+    def get_from_dict(cls, data: Dict, project: "Project") -> Self:
         """Prepares ready for saving sample object."""
         sample = cls(
             age=data["age"],
@@ -78,7 +78,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return sample
 
     @classmethod
-    def bulk_create_from_dicts(cls, samples_metadata: List[Dict], project) -> None:
+    def bulk_create_from_dicts(cls, samples_metadata: List[Dict], project: "Project") -> None:
         """Creates a list of sample objects from sample metadata libraries and then saves them."""
         samples = []
         for sample_metadata in samples_metadata:
@@ -87,7 +87,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         Sample.objects.bulk_create(samples)
 
     @classmethod
-    def load_metadata(cls, project) -> None:
+    def load_metadata(cls, project: "Project") -> None:
         """
         Parses sample metadata csv, creates Sample objects,
         loads library metadata for the given project, and
@@ -104,7 +104,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         Sample.update_aggregate_properties(project)
 
     @classmethod
-    def update_aggregate_properties(cls, project) -> None:
+    def update_aggregate_properties(cls, project: "Project") -> None:
         """
         The Sample model caches aggregated library metadata.
         We need to update these after libraries are added/deleted.
@@ -162,7 +162,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         Sample.objects.bulk_update(updated_samples, updated_attrs)
 
     @classmethod
-    def update_modality_properties(cls, project) -> None:
+    def update_modality_properties(cls, project: "Project") -> None:
         """
         Updates sample modality properties,
         derived from the existence of a certain attribute within a collection of Libraries.
@@ -264,7 +264,7 @@ class Sample(CommonDataAttributes, TimestampedModel):
         return "_".join(self.multiplexed_ids + sorted(download_config.values()))
 
     @staticmethod
-    def get_output_metadata_file_path(scpca_sample_id, modality) -> Path:
+    def get_output_metadata_file_path(scpca_sample_id: str, modality: str) -> Path:
         return {
             Modalities.MULTIPLEXED: settings.OUTPUT_DATA_PATH
             / f"{scpca_sample_id}_multiplexed_metadata.tsv",

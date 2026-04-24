@@ -1,4 +1,5 @@
 import subprocess
+from argparse import ArgumentParser
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -24,12 +25,12 @@ class Command(BaseCommand):
     The configuration works by writing the config values to ~/.aws/config,
     which is references by the AWS CLI tool each time its called."""
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("--s3-max-bandwidth", type=int, default=None, help="In MB/s")
         parser.add_argument("--s3-max-concurrent-requests", type=int, default=10)
         parser.add_argument("--s3-multipart-chunk-size", type=int, default=8, help="In MB")
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.configure_aws_cli(**kwargs)
 
     def configure_aws_cli(
@@ -39,7 +40,7 @@ class Command(BaseCommand):
         s3_multipart_chunk_size: int = 8,
         s3_max_bandwidth: int,
         **kwargs,
-    ):
+    ) -> None:
         commands = [
             # https://docs.aws.amazon.com/cli/latest/topic/s3-config.html#payload-signing-enabled
             "aws configure set default.s3.payload_signing_enabled false",

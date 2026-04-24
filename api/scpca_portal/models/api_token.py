@@ -5,11 +5,14 @@ import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import QuerySet
+
+from typing_extensions import Self
 
 from scpca_portal.models.base import TimestampedModel
 
 
-def validate_email_blacklist(value):
+def validate_email_blacklist(value: str) -> None:
     """
     Prevent the ability to use certain email addresses to create a token.
     This is primarily to prevent pollution from the swagger-ui documentation.
@@ -36,7 +39,7 @@ class APIToken(TimestampedModel):
     is_activated = models.BooleanField(default=False)
 
     @classmethod
-    def verify(cls, token_id):
+    def verify(cls, token_id: str) -> QuerySet[Self] | None:
         """
         Returns APIToken instance for an active token_id. Returns None
         otherwise.

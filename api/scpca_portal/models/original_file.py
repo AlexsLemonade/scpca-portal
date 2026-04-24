@@ -1,10 +1,12 @@
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import QuerySet
 
 from typing_extensions import Self
 
@@ -62,11 +64,11 @@ class OriginalFile(TimestampedModel):
     objects = models.Manager()
     downloadable_objects = DownloadableFileManager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Original File {self.s3_key} from Project {self.project_id} ({self.size_in_bytes}B)"
 
     @classmethod
-    def get_from_dict(cls, file_object, bucket, sync_timestamp):
+    def get_from_dict(cls, file_object: Dict, bucket: str, sync_timestamp: datetime) -> Self:
         s3_key_info = utils.InputBucketS3KeyInfo(Path(file_object["s3_key"]))
         modalities = s3_key_info.modalities
         formats = s3_key_info.formats
@@ -99,7 +101,7 @@ class OriginalFile(TimestampedModel):
         return original_file
 
     @staticmethod
-    def _is_downloadable(s3_key_info: utils.InputBucketS3KeyInfo):
+    def _is_downloadable(s3_key_info: utils.InputBucketS3KeyInfo) -> bool:
         """
         Returns whether or not a file is downloadable.
         Most files are downloadable, with the exception of input metadata files.
@@ -115,7 +117,9 @@ class OriginalFile(TimestampedModel):
         return True
 
     @classmethod
-    def bulk_create_from_dicts(cls, file_objects, bucket, sync_timestamp) -> List[Self]:
+    def bulk_create_from_dicts(
+        cls, file_objects: List[Dict], bucket: str, sync_timestamp: datetime
+    ) -> List[Self]:
         original_files = []
         for file_object in file_objects:
             if not OriginalFile.objects.filter(
@@ -129,7 +133,7 @@ class OriginalFile(TimestampedModel):
 
     @classmethod
     def bulk_update_from_dicts(
-        cls, file_objects: List[Dict], bucket: str, sync_timestamp
+        cls, file_objects: List[Dict], bucket: str, sync_timestamp: datetime
     ) -> List[Self]:
         # all existing files must have their timestamps updated, at the minimum
         existing_original_files = []
@@ -163,7 +167,7 @@ class OriginalFile(TimestampedModel):
 
     @staticmethod
     def purge_deleted_files(
-        bucket: str, sync_timestamp, allow_bucket_wipe: bool = False
+        bucket: str, sync_timestamp: datetime, allow_bucket_wipe: bool = False
     ) -> List[Self]:
         """Purge all files that no longer exist on s3."""
         # if the last_bucket_sync timestamp wasn't updated,
@@ -221,13 +225,13 @@ class OriginalFile(TimestampedModel):
         return self.s3_key_path.relative_to(self.download_dir)
 
     @property
-    def local_file_path(self):
+    def local_file_path(self) -> Path:
         return settings.INPUT_DATA_PATH / self.s3_key_path
 
     def _get_zip_file_path(self, download_config: Dict) -> Path:
         """
         Return file path with requested directory structure according to download config.
-        The multiplexed sample delimeter is not replaced in this method.
+        The multiplexed sample delimiter is not replaced in this method.
         """
         # Project output paths are relative to project directory
         output_path = self.s3_key_path.relative_to(Path(self.s3_key_info.project_id_part))
@@ -243,15 +247,15 @@ class OriginalFile(TimestampedModel):
             return output_path.relative_to(common.BULK_INPUT_DIR)
 
         # Nest sample reports into individual_reports directory in merged download
-        # The merged summmary html file should not go into this directory
+        # The merged summary html file should not go into this directory
         if download_config.get("includes_merged", False) and self.is_supplementary:
             return Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path
 
         return output_path
 
     def get_zip_file_path(self, download_config: Dict) -> Path:
-        """Returns the formatted file path while replacing the multiplexed sample delimter."""
-        # Delimeter must be exchanged if file has multiplexed samples
+        """Returns the formatted file path while replacing the multiplexed sample delimiter."""
+        # Delimiter must be exchanged if file has multiplexed samples
         return utils.path_replace(
             self._get_zip_file_path(download_config),
             common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
@@ -259,7 +263,7 @@ class OriginalFile(TimestampedModel):
         )
 
     @staticmethod
-    def get_bucket_paths(original_files) -> Dict[Tuple, List[Path]]:
+    def get_bucket_paths(original_files: QuerySet[Self]) -> Dict[Tuple, List[Path]]:
         """
         Collect and return files for download according to their bucket names and download dirs.
         """

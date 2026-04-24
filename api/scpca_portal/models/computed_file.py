@@ -1,9 +1,10 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, List
 from zipfile import ZipFile
 
 from django.conf import settings
 from django.db import models
+from django.db.models import QuerySet
 
 from typing_extensions import Self
 
@@ -16,7 +17,7 @@ from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 
 if TYPE_CHECKING:
-    from scpca_portal.models import CCDLDataset, DatasetABC
+    from scpca_portal.models import CCDLDataset, DatasetABC, Project, Sample
 
 
 logger = get_and_configure_logger(__name__)
@@ -66,7 +67,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         "Sample", null=True, on_delete=models.CASCADE, related_name="sample_computed_files"
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"'{self.project or self.sample}' "
             f"{dict(self.OutputFileModalities.CHOICES).get(self.modality, 'No Modality')} "
@@ -75,7 +76,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         )
 
     @staticmethod
-    def get_local_project_metadata_path(project, download_config: Dict) -> Path:
+    def get_local_project_metadata_path(project: "Project", download_config: Dict) -> Path:
         file_name_parts = [project.scpca_id]
         if not download_config["metadata_only"]:
             file_name_parts.extend([download_config["modality"], download_config["format"]])
@@ -86,7 +87,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return settings.OUTPUT_DATA_PATH / "_".join(file_name_parts)
 
     @staticmethod
-    def get_local_sample_metadata_path(sample, download_config: Dict) -> Path:
+    def get_local_sample_metadata_path(sample: "Sample", download_config: Dict) -> Path:
         file_name_parts = sample.multiplexed_ids
         file_name_parts.extend(
             [download_config["modality"], download_config["format"], "METADATA.tsv"]
@@ -106,8 +107,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
     @staticmethod
     def get_output_file_parent_dir(
-        original_file,
-        dataset,
+        original_file: OriginalFile,
+        dataset: "DatasetABC",
     ) -> Path:
         """Return the correct output file parent directory of the passed original_file."""
         if original_file.is_bulk:
@@ -270,7 +271,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_portal_metadata_file(cls, projects, download_config: Dict) -> Self:
+    def get_portal_metadata_file(cls, projects: QuerySet["Project"], download_config: Dict) -> Self:
         """
         Queries all libraries to aggregate the combined metadata,
         writes the aggregated combined metadata to a portal metadata file,
@@ -317,7 +318,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_project_file(cls, project, download_config: Dict) -> Self:
+    def get_project_file(cls, project: "Project", download_config: Dict) -> Self:
         """
         Queries for a project's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -378,7 +379,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return computed_file
 
     @classmethod
-    def get_sample_file(cls, sample, download_config: Dict) -> Self:
+    def get_sample_file(cls, sample: "Sample", download_config: Dict) -> Self:
         """
         Queries for a sample's libraries according to the given download options configuration,
         writes the queried libraries to a libraries metadata file,
@@ -452,25 +453,25 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return s3.generate_pre_signed_link(self.download_filename, self.s3_key, self.s3_bucket)
 
     @property
-    def is_project_multiplexed_zip(self):
+    def is_project_multiplexed_zip(self) -> bool:
         return (
             self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
             and self.has_multiplexed_data
         )
 
     @property
-    def is_project_single_cell_zip(self):
+    def is_project_single_cell_zip(self) -> bool:
         return (
             self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
             and not self.has_multiplexed_data
         )
 
     @property
-    def is_project_spatial_zip(self):
+    def is_project_spatial_zip(self) -> bool:
         return self.modality == ComputedFile.OutputFileModalities.SPATIAL
 
     @property
-    def metadata_file_name(self):
+    def metadata_file_name(self) -> str:
         if self.is_project_multiplexed_zip or self.is_project_single_cell_zip:
             return ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
         if self.is_project_spatial_zip:
@@ -478,10 +479,10 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
         return ComputedFile.MetadataFilenames.METADATA_ONLY_FILE_NAME
 
     @property
-    def zip_file_path(self):
+    def zip_file_path(self) -> Path:
         return settings.OUTPUT_DATA_PATH / self.s3_key
 
-    def get_multiplexed_computed_files(self):
+    def get_multiplexed_computed_files(self) -> List[Self]:
         """
         Return computed file objects for all associated multiplexed samples.
         """
@@ -508,7 +509,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         return computed_files
 
-    def clean_up_local_computed_file(self):
+    def clean_up_local_computed_file(self) -> None:
         """Delete local computed file."""
         self.zip_file_path.unlink(missing_ok=True)
 

@@ -63,7 +63,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     external_accessions = models.ManyToManyField(ExternalAccession)
     publications = models.ManyToManyField(Publication)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Project {self.scpca_id}"
 
     @classmethod
@@ -426,7 +426,7 @@ class Project(CommonDataAttributes, TimestampedModel):
         summaries_counts = Counter()
 
         for sample in self.samples.all():
-            # We currently exlude bulk data in the project summary and aggregate values
+            # We currently exclude bulk data in the project summary and aggregate values
             for library in sample.libraries.exclude(modality=Modalities.BULK_RNA_SEQ):
                 seq_unit = library.metadata.get("seq_unit", "").strip()
                 technology = library.metadata.get("technology", "").strip()
